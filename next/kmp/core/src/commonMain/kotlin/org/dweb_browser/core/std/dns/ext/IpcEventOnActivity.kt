@@ -1,4 +1,4 @@
-package org.dweb_browser.core.std.dns
+package org.dweb_browser.core.std.dns.ext
 
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.ipc.helper.IpcEvent

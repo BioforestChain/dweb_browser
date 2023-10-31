@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.window.core
+package org.dweb_browser.sys.window.ext
 
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.ipc.helper.IpcEvent
@@ -7,7 +7,6 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
-import org.dweb_browser.sys.window.ext.openMainWindow
 import kotlin.jvm.JvmInline
 
 /**

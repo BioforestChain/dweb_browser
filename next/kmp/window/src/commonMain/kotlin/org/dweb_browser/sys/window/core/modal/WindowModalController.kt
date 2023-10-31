@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.window.ext
+package org.dweb_browser.sys.window.core.modal
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.SharedFlow

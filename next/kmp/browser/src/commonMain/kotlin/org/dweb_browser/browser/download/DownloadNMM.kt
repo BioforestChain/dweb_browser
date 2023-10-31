@@ -27,7 +27,7 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.core.helper.setFromManifest
-import org.dweb_browser.sys.window.core.onRenderer
+import org.dweb_browser.sys.window.ext.onRenderer
 import org.dweb_browser.sys.window.ext.getMainWindow
 
 internal val debugDownload = Debugger("Download")
@@ -128,9 +128,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     )
     onRenderer {
       controller.renderDownloadWindow(wid)
-      getMainWindow().state.apply {
-        setFromManifest(this@DownloadNMM)
-      }
+      getMainWindow().state.setFromManifest(this@DownloadNMM)
     }
   }
 

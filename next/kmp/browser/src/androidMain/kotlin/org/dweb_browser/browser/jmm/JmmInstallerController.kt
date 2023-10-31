@@ -21,14 +21,14 @@ import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureString
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMethod
-import org.dweb_browser.core.std.dns.createActivity
+import org.dweb_browser.core.std.dns.ext.createActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.trueAlso
-import org.dweb_browser.sys.window.ext.WindowBottomSheetsController
+import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 

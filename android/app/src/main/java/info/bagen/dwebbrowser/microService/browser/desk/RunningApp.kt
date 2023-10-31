@@ -8,7 +8,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowConstants
-import org.dweb_browser.sys.window.core.createRenderer
+import org.dweb_browser.sys.window.ext.createRenderer
 import org.dweb_browser.sys.window.core.windowAdapterManager
 
 /**

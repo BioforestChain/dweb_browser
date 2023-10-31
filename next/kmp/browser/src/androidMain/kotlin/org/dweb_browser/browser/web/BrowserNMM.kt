@@ -20,7 +20,7 @@ import org.dweb_browser.core.sys.dns.returnAndroidFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.withMainContext
-import org.dweb_browser.sys.window.core.onRenderer
+import org.dweb_browser.sys.window.ext.onRenderer
 import org.dweb_browser.sys.window.ext.openMainWindow
 
 val debugBrowser = Debugger("browser")

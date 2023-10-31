@@ -27,7 +27,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
-import org.dweb_browser.core.sys.boot.BootNMM
+import org.dweb_browser.sys.boot.BootNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.sys.motionSensors.MotionSensorsNMM

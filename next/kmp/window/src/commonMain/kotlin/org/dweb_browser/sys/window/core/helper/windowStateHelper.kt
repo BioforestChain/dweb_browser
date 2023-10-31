@@ -1,22 +1,23 @@
 package org.dweb_browser.sys.window.core.helper
 
+import org.dweb_browser.core.help.types.ICommonAppManifest
 import org.dweb_browser.helper.ComparableWrapper
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.enumToComparable
-import org.dweb_browser.core.help.types.ICommonAppManifest
 import org.dweb_browser.sys.window.core.WindowState
 import kotlin.math.sqrt
 
 fun WindowState.setFromManifest(manifest: ICommonAppManifest) {
-  title = manifest.name
-  manifest.theme_color?.let {
-    themeColor = it
-  }
-  setIconFromManifest(manifest);
+  setWindowStateFromAppManifest(this, manifest)
 }
 
-fun WindowState.setIconFromManifest(manifest: ICommonAppManifest) {
+fun setWindowStateFromAppManifest(windowState: WindowState, manifest: ICommonAppManifest) {
+  windowState.title = manifest.name
+  manifest.theme_color?.let {
+    windowState.themeColor = it
+  }
+
   /**
    * 挑选合适的图标作为应用的图标
    */
@@ -45,11 +46,12 @@ fun WindowState.setIconFromManifest(manifest: ICommonAppManifest) {
     icons.minOfOrNull { comparableBuilder.build(StrictImageResource.from(it)) }?.value
   }
   if (iconResource != null) {
-    iconUrl = iconResource.src
-    iconMaskable = iconResource.purpose.contains(ImageResourcePurposes.Maskable)
-    iconMonochrome = iconResource.purpose.contains(ImageResourcePurposes.Monochrome)
+    windowState.iconUrl = iconResource.src
+    windowState.iconMaskable = iconResource.purpose.contains(ImageResourcePurposes.Maskable)
+    windowState.iconMonochrome = iconResource.purpose.contains(ImageResourcePurposes.Monochrome)
   }
 }
+
 
 fun WindowState.setDefaultFloatWindowBounds(
   displayWidth: Float,

@@ -20,7 +20,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.startAppActivity
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.dns.onActivity
+import org.dweb_browser.core.std.dns.ext.onActivity
 import org.dweb_browser.core.std.http.CORS_HEADERS
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.HttpDwebServer

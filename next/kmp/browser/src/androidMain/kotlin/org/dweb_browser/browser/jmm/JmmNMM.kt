@@ -24,8 +24,8 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.sys.window.core.helper.setFromManifest
-import org.dweb_browser.sys.window.core.onRenderer
 import org.dweb_browser.sys.window.ext.getMainWindow
+import org.dweb_browser.sys.window.ext.onRenderer
 
 val debugJMM = Debugger("JMM")
 
@@ -109,9 +109,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         true
       })
     onRenderer {
-      getMainWindow().state.apply {
-        setFromManifest(this@JmmNMM)
-      }
+      getMainWindow().state.setFromManifest(this@JmmNMM)
     }
   }
 

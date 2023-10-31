@@ -29,6 +29,7 @@ import org.dweb_browser.core.module.DnsMicroModule
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.connectMicroModules
+import org.dweb_browser.core.std.dns.ext.createActivity
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
