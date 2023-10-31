@@ -14,8 +14,14 @@ struct DWebOS: View {
 }
 
 struct ComposeView: UIViewControllerRepresentable {
+
+    @State var size: CGSize = CGSize(width: 350, height: 500)
     func makeUIViewController(context: Context) -> UIViewController {
-        let controller = Main_iosKt.MainViewController(iosView: UIHostingController(rootView: BrowserView()).view)
+        let controller = Main_iosKt.MainViewController(iosView: UIHostingController(rootView: BrowserView(size: $size)).view) { (w,h) in
+            size.width = CGFloat(truncating: w)
+            size.height = CGFloat(truncating: h)
+            printWithDate("changing size, size: \(size)")
+        }
         controller.overrideUserInterfaceStyle = .light
         return controller
     }

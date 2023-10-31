@@ -10,7 +10,6 @@
 		058557BB273AAA24004C7B11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557BA273AAA24004C7B11 /* Assets.xcassets */; };
 		058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */; };
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
-		46DDA4CC2AE8AD84005C2709 /* WebRTC.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 46DDA4CB2AE8AD84005C2709 /* WebRTC.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7555FF83242A565900829871 /* DWebOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* DWebOS.swift */; };
 		F034443C2AE26F64004F732E /* DwebBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034443A2AE26F64004F732E /* DwebBrowser.swift */; };
 		F034443D2AE26F64004F732E /* BrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034443B2AE26F64004F732E /* BrowserView.swift */; };
@@ -47,7 +46,6 @@
 		F03444A52AE26FAB004F732E /* WebSearcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444662AE26FAA004F732E /* WebSearcher.swift */; };
 		F03444A62AE26FAB004F732E /* SearchResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444672AE26FAA004F732E /* SearchResultView.swift */; };
 		F03444A72AE26FAB004F732E /* SearchTypingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444682AE26FAA004F732E /* SearchTypingView.swift */; };
-		F03444A82AE26FAB004F732E /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034446A2AE26FAA004F732E /* Grid.swift */; };
 		F03444A92AE26FAB004F732E /* BookmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034446D2AE26FAA004F732E /* BookmarkView.swift */; };
 		F03444AA2AE26FAB004F732E /* BookmarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034446E2AE26FAA004F732E /* BookmarkCell.swift */; };
 		F03444AB2AE26FAB004F732E /* BookmarkViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034446F2AE26FAA004F732E /* BookmarkViewModel.swift */; };
@@ -80,6 +78,8 @@
 		F03444D22AE2713D004F732E /* DownloadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444CC2AE2713D004F732E /* DownloadButtonView.swift */; };
 		F03444D32AE2713D004F732E /* CustomUIScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444CD2AE2713D004F732E /* CustomUIScrollView.swift */; };
 		F03444D42AE2713D004F732E /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444CE2AE2713D004F732E /* DownloadAppView.swift */; };
+		F0C9E2E72AE8E8460035AEE0 /* WebRTC.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F0C9E2E62AE8E8460035AEE0 /* WebRTC.xcframework */; };
+		F0C9E2E82AE8E8460035AEE0 /* WebRTC.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F0C9E2E62AE8E8460035AEE0 /* WebRTC.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -89,7 +89,17 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				46DDA4CC2AE8AD84005C2709 /* WebRTC.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F0C9E2E92AE8E8460035AEE0 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				F0C9E2E82AE8E8460035AEE0 /* WebRTC.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -100,7 +110,6 @@
 		058557BA273AAA24004C7B11 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2152FB032600AC8F00CF470E /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
-		46DDA4CB2AE8AD84005C2709 /* WebRTC.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = WebRTC.xcframework; path = .build/artifacts/webrtc/WebRTC/WebRTC.xcframework; sourceTree = "<group>"; };
 		7555FF7B242A565900829871 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7555FF82242A565900829871 /* DWebOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWebOS.swift; sourceTree = "<group>"; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -139,7 +148,6 @@
 		F03444662AE26FAA004F732E /* WebSearcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebSearcher.swift; sourceTree = "<group>"; };
 		F03444672AE26FAA004F732E /* SearchResultView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultView.swift; sourceTree = "<group>"; };
 		F03444682AE26FAA004F732E /* SearchTypingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTypingView.swift; sourceTree = "<group>"; };
-		F034446A2AE26FAA004F732E /* Grid.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Grid.swift; sourceTree = "<group>"; };
 		F034446D2AE26FAA004F732E /* BookmarkView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkView.swift; sourceTree = "<group>"; };
 		F034446E2AE26FAA004F732E /* BookmarkCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkCell.swift; sourceTree = "<group>"; };
 		F034446F2AE26FAA004F732E /* BookmarkViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkViewModel.swift; sourceTree = "<group>"; };
@@ -172,6 +180,7 @@
 		F03444CC2AE2713D004F732E /* DownloadButtonView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadButtonView.swift; sourceTree = "<group>"; };
 		F03444CD2AE2713D004F732E /* CustomUIScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIScrollView.swift; sourceTree = "<group>"; };
 		F03444CE2AE2713D004F732E /* DownloadAppView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppView.swift; sourceTree = "<group>"; };
+		F0C9E2E62AE8E8460035AEE0 /* WebRTC.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = WebRTC.xcframework; path = .build/artifacts/webrtc/WebRTC/WebRTC.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -179,6 +188,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F0C9E2E72AE8E8460035AEE0 /* WebRTC.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,7 +236,7 @@
 		7555FFB0242A642200829871 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				46DDA4CB2AE8AD84005C2709 /* WebRTC.xcframework */,
+				F0C9E2E62AE8E8460035AEE0 /* WebRTC.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -311,7 +321,6 @@
 				F034445E2AE26FAA004F732E /* Scan */,
 				F03444622AE26FAA004F732E /* AddressBarView.swift */,
 				F03444632AE26FAA004F732E /* AddressBarTyping */,
-				F03444692AE26FAA004F732E /* View */,
 				F034446B2AE26FAA004F732E /* Sheet */,
 			);
 			path = View;
@@ -350,14 +359,6 @@
 				F03444682AE26FAA004F732E /* SearchTypingView.swift */,
 			);
 			path = AddressBarTyping;
-			sourceTree = "<group>";
-		};
-		F03444692AE26FAA004F732E /* View */ = {
-			isa = PBXGroup;
-			children = (
-				F034446A2AE26FAA004F732E /* Grid.swift */,
-			);
-			path = View;
 			sourceTree = "<group>";
 		};
 		F034446B2AE26FAA004F732E /* Sheet */ = {
@@ -462,6 +463,7 @@
 				7555FF78242A565900829871 /* Frameworks */,
 				7555FF79242A565900829871 /* Resources */,
 				7555FFB4242A642300829871 /* Embed Frameworks */,
+				F0C9E2E92AE8E8460035AEE0 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -587,7 +589,6 @@
 				F034448A2AE26FAB004F732E /* Date+format.swift in Sources */,
 				F03444B12AE26FAB004F732E /* Tools.swift in Sources */,
 				F034448F2AE26FAB004F732E /* Url+Validator.swift in Sources */,
-				F03444A82AE26FAB004F732E /* Grid.swift in Sources */,
 				F034443D2AE26F64004F732E /* BrowserView.swift in Sources */,
 				F03444BB2AE26FAC004F732E /* NetworkPermission.swift in Sources */,
 				F03444CF2AE2713D004F732E /* JmmAppDownloadManifest.swift in Sources */,

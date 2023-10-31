@@ -18,6 +18,8 @@ struct AddressBar: View {
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var keyboard: KeyBoard
+    @EnvironmentObject var dragScale: WndDragScale
+
     @ObservedObject var webWrapper: WebWrapper
     @ObservedObject var webCache: WebCache
 
@@ -29,39 +31,51 @@ struct AddressBar: View {
     private var isVisible: Bool { index == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 && !addressBar.isFocused }
     private var textColor: Color { isAdressBarFocused ? .black : webCache.isBlank() ? .networkTipColor : .black }
-//    var webWrapper: WebWrapper { WebWrapper(cacheID: webCache.id) }
+
+    var roundRectHeight: CGFloat {addressbarHeight - dragScale.properValue(floor: 3, ceiling: 10) * 2}
+    var addressbarHeight: CGFloat { dragScale.properValue(floor: 25, ceiling: 60)}
 
     var body: some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 10)
                 .foregroundColor(Color.AddressbarbkColor)
-                .frame(height: 40)
                 .overlay {
                     progressV
                 }
                 .padding(.horizontal)
-
-            HStack {
-                if addressBar.isFocused, !inputText.isEmpty {
-                    Spacer()
-                    clearTextButton
-                }
-
-                if !inputText.isEmpty, !addressBar.isFocused {
-                    Spacer()
-                    if shouldShowProgress {
-                        cancelLoadingButtion
-                    } else {
-                        if !webCache.isBlank() {
-                            reloadButton
+                .frame(height: roundRectHeight)
+            
+            textField
+            
+            accessoryButton
+                
+        }
+        .frame(height: addressbarHeight)
+//        .background(Color.orange)
+    }
+    
+    var accessoryButton: some View {
+            HStack{
+                Spacer()
+                ZStack{
+                    if addressBar.isFocused, !inputText.isEmpty {
+                        clearTextButton
+                    }
+                    
+                    if !inputText.isEmpty, !addressBar.isFocused {
+                        if shouldShowProgress {
+                            cancelLoadingButtion
+                        } else {
+                            if !webCache.isBlank() {
+                                reloadButton
+                            }
                         }
                     }
                 }
+                .frame(width: roundRectHeight)
+                .scaleEffect(dragScale.onWidth)
+                Spacer().frame(width: 25)
             }
-
-            textField
-        }
-        .background(Color.bkColor)
     }
 
     var textField: some View {
@@ -74,6 +88,7 @@ struct AddressBar: View {
             .padding(.trailing, 50)
             .keyboardType(.webSearch)
             .focused($isAdressBarFocused)
+            .font(dragScale.scaledFont())
             .onTapGesture {
                 if webCache.isBlank() {
                     inputText = ""
@@ -162,7 +177,6 @@ struct AddressBar: View {
         } label: {
             Image(systemName: "xmark.circle.fill")
                 .foregroundColor(Color.clearTextColor)
-                .padding(.trailing, 20)
         }
     }
 
@@ -172,7 +186,6 @@ struct AddressBar: View {
         } label: {
             Image(systemName: "arrow.clockwise")
                 .foregroundColor(Color.addressTextColor)
-                .padding(.trailing, 25)
         }
     }
 
@@ -182,60 +195,6 @@ struct AddressBar: View {
         } label: {
             Image(systemName: "xmark")
                 .foregroundColor(Color.addressTextColor)
-                .padding(.trailing, 25)
-        }
-    }
-}
-
-struct AverageView: View{
-    @State var width = 200.0
-    var body: some View{
-        VStack{
-            HStack{
-                Spacer()
-                Rectangle()
-                    .frame(minWidth: 15,maxWidth: 30)
-                Spacer()
-                Rectangle()
-                
-                    .frame(minWidth: 15,maxWidth: 30)
-                Spacer()
-                Rectangle()
-                
-                    .frame(minWidth: 15,maxWidth: 30)
-                Spacer()
-                Group{
-                    Rectangle()
-                    
-                        .frame(minWidth: 15,maxWidth: 30)
-                    Spacer()
-                    Rectangle()
-                    
-                        .frame(minWidth: 15,maxWidth: 30)
-                    Spacer()
-                }
-            }
-            .frame(width: width,height: 50)
-            .background(.red
-            )
-            Button("change"){
-                if width + 60 > 400 {
-                    width = width + 100 - 400
-                }else{
-                    width += 60
-                }
-                
-            }
-                .offset(y: 100)
-        }
-    }
-}
-
-struct AddressBarHStack_Previews: PreviewProvider {
-    static var previews: some View {
-        ZStack{
-            AverageView()
-                
         }
     }
 }

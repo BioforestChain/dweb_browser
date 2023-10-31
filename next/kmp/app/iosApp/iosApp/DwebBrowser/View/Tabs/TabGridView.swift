@@ -47,9 +47,7 @@ struct TabGridView: View {
         GeometryReader { geo in
             ScrollViewReader { scrollproxy in
                 ScrollView {
-                    LazyVGrid(columns: [
-                        GridItem(.adaptive(minimum: screen_width/3.0, maximum: screen_width/2.0), spacing: gridHSpace),
-                    ], spacing: gridVSpace) {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: gridVSpace) {
                         ForEach(webcacheStore.caches, id: \.id) { webCache in
                             GridCell(webCache: webCache, isSelected: isSelected(webCache: webCache))
                                 .id(webCache.id)
@@ -72,8 +70,10 @@ struct TabGridView: View {
                                     }
                                 }
                         }
-                        .shadow(color: Color.gray, radius: 6)
+                        .shadow(color: Color.gray, radius: 2)
                     }
+                    
+
                     .environmentObject(deleteCache)
                     .padding(gridHSpace)
                     .scaleEffect(x: gridState.scale, y: gridState.scale)
@@ -91,7 +91,7 @@ struct TabGridView: View {
                     if $0.count > 0 {
                         self.frames = $0
                     }
-                    printWithDate("end scrolling and record cell frames : \($0)")
+//                    printWithDate("end scrolling and record cell frames : \($0)")
                 }
                 .onChange(of: deleteCache.cacheId, perform: { _ in
                     guard let cache = webcacheStore.caches.filter({ $0.id == deleteCache.cacheId }).first else { return }

@@ -66,7 +66,7 @@ struct TabsContainerView: View {
 
             .onAppear {
                 geoRect = geo.frame(in: .global)
-                print("tabs contianer rect: \(geoRect)")
+                print("tabs contianer rect: \(geoRect)") 
             }
 
             .onReceive(toolbarState.$createTabTapped) { createTabTapped in

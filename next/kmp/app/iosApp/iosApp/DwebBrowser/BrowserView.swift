@@ -14,12 +14,15 @@ struct BrowserView: View {
     @StateObject var openingLink = OpeningLink()
     @StateObject var toolBarState = ToolBarState()
     @StateObject var webcacheStore = WebCacheStore()
+    @StateObject var dragScale = WndDragScale()
 
+    @Binding var size: CGSize
     var body: some View {
-        ZStack {
-            GeometryReader { geometry in
+        GeometryReader { geometry in
+            ZStack {
                 VStack(spacing: 0) {
                     TabsContainerView()
+
                     ToolbarView()
                         .frame(height: toolbarHeight(baseOn: geometry.size))
                 }
@@ -29,13 +32,22 @@ struct BrowserView: View {
                 .environmentObject(selectedTab)
                 .environmentObject(addressBar)
                 .environmentObject(toolBarState)
+                .environmentObject(dragScale)
+            }
+            .frame(width: size.width, height: size.height)
+            .background(.red)
+            .onChange(of: size) { newSize in
+                dragScale.onWidth = (newSize.width - 10) / screen_width
+                printWithDate("scale on X: \(dragScale.onWidth)")
+            }
+            .onAppear {
+                dragScale.onWidth = (geometry.size.width - 10) / screen_width
             }
         }
-        .frame(width: DWEB_OS ? 300:nil,height: DWEB_OS ? 400:nil)
-        .background(.red)
     }
-    func toolbarHeight(baseOn wndSize: CGSize) -> CGFloat{
-        let scale = min(wndSize.width / (maxDragWndWidth - maxDragWndWidth), wndSize.height / (maxDragWndHeight - 60))
-        return max(toolBarMinHeight, min(toolBarH, scale * wndSize.height))
-    }
+}
+
+func toolbarHeight(baseOn wndSize: CGSize) -> CGFloat {
+    let scale = min(wndSize.width / (maxDragWndWidth - maxDragWndWidth), wndSize.height / (maxDragWndHeight - 60))
+    return max(toolBarMinHeight, min(toolBarH, scale * wndSize.height))
 }

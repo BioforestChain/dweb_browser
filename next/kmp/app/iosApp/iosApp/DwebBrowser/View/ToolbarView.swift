@@ -16,13 +16,12 @@ struct ToolbarView: View {
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
+    @EnvironmentObject var dragScale: WndDragScale
 
     @State private var toolbarHeight: CGFloat = toolBarH
     @State private var isPresentingScanner = false
     @State private var showMoreSheet = false
     @State private var cancellables: Set<AnyCancellable> = []
-
-    @State private var wndWidth: CGFloat = .zero
 
     var body: some View {
         GeometryReader { geo in
@@ -48,12 +47,6 @@ struct ToolbarView: View {
             }
     }
 
-    func getFont(by width: CGFloat) -> Font {
-        var size = width / 15.0
-        size = min(18, max(10, size))
-        return Font.system(size: size)
-    }
-
     var threeButtons: some View {
         ZStack {
             GeometryReader { geo in
@@ -70,7 +63,7 @@ struct ToolbarView: View {
                     Spacer()
                     Text("\(webcacheStore.cacheCount)个标签页")
                         .foregroundColor(Color.ToolbarColor)
-                        .font(getFont(by: geo.size.width))
+                        .font(dragScale.scaledFont())
                         .fontWeight(.semibold)
 
                     Spacer()
@@ -80,7 +73,7 @@ struct ToolbarView: View {
                     } label: {
                         Text("完成")
                             .foregroundColor(Color.dwebTint)
-                            .font(getFont(by: size.width))
+                            .font(dragScale.scaledFont())
                             .fontWeight(.semibold)
                     }
 
@@ -173,3 +166,5 @@ struct ToolbarView: View {
 let toolItemMinWidth = 14.0
 let toolItemMaxWidth = toolItemMinWidth * 2
 let toolBarMinHeight = toolItemMinWidth + 4.0
+
+let addressbarMinHeight = toolBarMinHeight
