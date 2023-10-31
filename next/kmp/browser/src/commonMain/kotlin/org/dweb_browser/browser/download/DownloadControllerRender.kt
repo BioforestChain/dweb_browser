@@ -7,7 +7,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.browser.download.model.DownloadModel
 import org.dweb_browser.browser.download.model.LocalDownloadModel
 import org.dweb_browser.browser.download.ui.DownloadView
 import org.dweb_browser.sys.window.core.WindowRenderScope
@@ -15,7 +14,7 @@ import org.dweb_browser.sys.window.core.WindowRenderScope
 @Composable
 fun DownloadController.Render(modifier: Modifier, windowRenderScope: WindowRenderScope) {
   CompositionLocalProvider(
-    LocalDownloadModel provides DownloadModel(this)
+    LocalDownloadModel provides this.downloadModel
   ) {
     Box(modifier = with(windowRenderScope) {
       Modifier

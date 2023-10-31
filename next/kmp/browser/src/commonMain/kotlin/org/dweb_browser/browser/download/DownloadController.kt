@@ -12,6 +12,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import okio.IOException
+import org.dweb_browser.browser.download.model.DownloadModel
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
@@ -111,6 +112,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   val downloadManagers: ChangeableMap<TaskId, DownloadTask> = ChangeableMap() // 用于监听下载列表
   val downloadCompletes: ChangeableMap<TaskId, DownloadTask> = ChangeableMap() // 用于下载完成或者下载失败
   private var winLock = Mutex(false)
+  val downloadModel = DownloadModel(this)
 
   init {
     // 从内存中恢复状态

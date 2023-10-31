@@ -149,7 +149,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       originUrl = params.originUrl,
       completeCallbackUrl = params.completeCallbackUrl,
       mime = "application/octet-stream",
-      filepath = createFilePath(params.url),
+      filepath = createFilePath(params.url)
     )
     recover(task, ContentRange.TailFrom(0L), controller)
     controller.downloadManagers[task.id] = task

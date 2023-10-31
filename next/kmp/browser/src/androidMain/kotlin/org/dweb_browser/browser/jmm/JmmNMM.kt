@@ -4,6 +4,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import org.dweb_browser.browser.download.TaskId
+import org.dweb_browser.browser.jmm.ui.JmmStatus
 import org.dweb_browser.browser.web.ui.browser.model.isUrl
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -131,17 +132,30 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       JmmInstallerController(
         this@JmmNMM, jmmAppInstallManifest, originUrl, downloadTaskIdMap[jmmAppInstallManifest.id]
       ).also { controller ->
-        controller.onDownloadStart { taskId ->
-          store.saveJMMTaskId(jmmAppInstallManifest.id, taskId)
-        }
-        controller.onDownloadComplete {
-          // 安装完成，卸载之前的，安装新的
-          bootstrapContext.dns.uninstall(jmmAppInstallManifest.id)
-          bootstrapContext.dns.install(JsMicroModule(jmmAppInstallManifest))
-          // 存储app信息到内存
-          store.setApp(
-            jmmAppInstallManifest.id, JsMicroModuleDBItem(jmmAppInstallManifest, originUrl)
-          )
+        controller.onJmmStateListener { pair ->
+          when (pair.first) {
+            JmmStatus.Init -> {
+              store.saveJMMTaskId(jmmAppInstallManifest.id, pair.second)
+            }
+
+            JmmStatus.Completed -> {
+              // 安装完成后，删除该数据的下载记录，避免状态出现问题
+              downloadTaskIdMap.remove(jmmAppInstallManifest.id)
+              store.deleteJMMTaskId(jmmAppInstallManifest.id)
+            }
+
+            JmmStatus.INSTALLED -> {
+              // 安装完成，卸载之前的，安装新的
+              bootstrapContext.dns.uninstall(jmmAppInstallManifest.id)
+              bootstrapContext.dns.install(JsMicroModule(jmmAppInstallManifest))
+              // 存储app信息到内存
+              store.setApp(
+                jmmAppInstallManifest.id, JsMicroModuleDBItem(jmmAppInstallManifest, originUrl)
+              )
+            }
+
+            else -> null
+          }
         }
       }
     }

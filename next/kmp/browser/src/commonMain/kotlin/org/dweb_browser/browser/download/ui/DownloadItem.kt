@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PauseCircle
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
@@ -125,6 +125,11 @@ fun DownloadItem(downloadTask: DownloadTask, downloadTab: DownloadTab) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
               )
+              Text(
+                text = downloadTask.status.state.name,
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth()
+              )
             }
           }
         }
@@ -137,7 +142,7 @@ fun DownloadItem(downloadTask: DownloadTask, downloadTab: DownloadTab) {
       Row {
         if (downloadTab == DownloadTab.Downloads) {
           Image(
-            imageVector = if (downloadTask.status.state == DownloadState.Paused) Icons.Default.Pause else Icons.Default.PlayArrow,
+            imageVector = if (downloadTask.status.state == DownloadState.Paused) Icons.Default.PauseCircle else Icons.Default.PlayCircle,
             contentDescription = "State",
             modifier = Modifier.clickableWithNoEffect { }
           )

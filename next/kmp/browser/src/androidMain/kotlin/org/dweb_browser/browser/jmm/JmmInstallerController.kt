@@ -13,6 +13,7 @@ import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
+import org.dweb_browser.browser.jmm.ui.JmmStatus
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.IPureBody
@@ -45,10 +46,8 @@ class JmmInstallerController(
   val viewModel: JmmManagerViewHelper = JmmManagerViewHelper(jmmAppInstallManifest, this)
   val ioAsyncScope = jmmNMM.ioAsyncScope
 
-  private val downloadCompleteSignal = Signal<String>()
-  val onDownloadComplete = downloadCompleteSignal.toListener()
-  private val downloadStartSignal = Signal<TaskId>()
-  val onDownloadStart = downloadStartSignal.toListener()
+  private val jmmStateSignal = Signal<Pair<JmmStatus, TaskId>>()
+  val onJmmStateListener = jmmStateSignal.toListener()
 
   private val viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
   suspend fun getView() = viewDeferred.await()
@@ -96,22 +95,47 @@ class JmmInstallerController(
     }
   }
 
-  fun watchProcess(taskId: TaskId, cb: suspend DownloadTask.() -> Unit) {
+  suspend fun watchProcess(taskId: TaskId, callback: suspend (JmmStatus, Long, Long) -> Unit) {
     jmmNMM.ioAsyncScope.launch {
       val res = jmmNMM.nativeFetch("file://download.browser.dweb/watch/progress?taskId=$taskId")
       val readChannel = res.stream().getReader("jmm watchProcess")
-      readChannel.consumeEachJsonLine<DownloadTask> {
-        it.cb()
-        if (it.status.state == DownloadState.Init) {
-          downloadStartSignal.emit(it.id)
-        }
+      readChannel.consumeEachJsonLine<DownloadTask> { downloadTask ->
+        when (downloadTask.status.state) {
+          DownloadState.Init -> {
+            callback(JmmStatus.Init, 0L, downloadTask.status.total)
+            jmmStateSignal.emit(Pair(JmmStatus.Init, downloadTask.id))
+          }
 
-        if (it.status.state == DownloadState.Completed) {
-          // 关闭watchProcess
-          readChannel.cancel()
-          downloadCompleteSignal.emit(taskId)
-          // 删除缓存的zip文件
-          jmmNMM.remove(it.filepath)
+          DownloadState.Downloading -> {
+            callback(JmmStatus.Downloading, downloadTask.status.current, downloadTask.status.total)
+          }
+
+          DownloadState.Paused -> {
+            callback(JmmStatus.Paused, downloadTask.status.current, downloadTask.status.total)
+          }
+
+          DownloadState.Canceled -> {
+            callback(JmmStatus.Canceled, downloadTask.status.current, downloadTask.status.total)
+          }
+
+          DownloadState.Failed -> {
+            callback(JmmStatus.Failed, 0L, downloadTask.status.total)
+          }
+
+          DownloadState.Completed -> {
+            callback(JmmStatus.Completed, downloadTask.status.current, downloadTask.status.total)
+            jmmStateSignal.emit(Pair(JmmStatus.Completed, downloadTask.id))
+            if (decompress(downloadTask)) {
+              callback(JmmStatus.INSTALLED, downloadTask.status.current, downloadTask.status.total)
+              jmmStateSignal.emit(Pair(JmmStatus.INSTALLED, downloadTask.id))
+            } else {
+              callback(JmmStatus.Failed, 0L, downloadTask.status.total)
+            }
+            // 关闭watchProcess
+            readChannel.cancel()
+            // 删除缓存的zip文件
+            jmmNMM.remove(downloadTask.filepath)
+          }
         }
       }
     }

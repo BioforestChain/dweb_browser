@@ -92,34 +92,10 @@ class JmmManagerViewHelper(
   }
 
   private suspend fun watchProcess(taskId: TaskId) {
-    controller.watchProcess(taskId) {
-      println("watch=> ${this.status.state.name} ${this.status.current}")
-
-      if (this.status.state == DownloadState.Downloading) {
-        uiState.downloadSize.value = this.status.current
-        uiState.downloadStatus.value = JmmStatus.Downloading
-      }
-
-      if (this.status.state == DownloadState.Paused) {
-        uiState.downloadSize.value = this.status.current
-        uiState.downloadStatus.value = JmmStatus.Paused
-      }
-
-      if (this.status.state == DownloadState.Failed) {
-        uiState.downloadSize.value = this.status.current
-        uiState.downloadStatus.value = JmmStatus.Failed
-      }
-
-      // 下载完成触发解压
-      if (this.status.state == DownloadState.Completed) {
-        val success = controller.decompress(this)
-        if (success) {
-          uiState.downloadStatus.value = JmmStatus.INSTALLED
-        } else {
-          uiState.downloadSize.value = 0L
-          uiState.downloadStatus.value = JmmStatus.Failed
-        }
-      }
+    controller.watchProcess(taskId) { state, current, total ->
+      debugJMM("ViewHelper", "watchProcess=> $state, $current, $total")
+      uiState.downloadStatus.value = state
+      uiState.downloadSize.value = current
     }
   }
 
