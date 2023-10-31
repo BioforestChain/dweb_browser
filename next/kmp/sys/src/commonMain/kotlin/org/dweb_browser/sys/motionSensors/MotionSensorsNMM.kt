@@ -1,4 +1,4 @@
-package org.dweb_browser.shared.microService.sys.motionSensors
+package org.dweb_browser.sys.motionSensors
 
 import io.ktor.http.HttpMethod
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -13,12 +13,11 @@ class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Se
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val msNMM = this
     routes(
       // 获取加速计 (push模式)
       "/observe/accelerometer" bind HttpMethod.Get to defineJsonLineResponse {
         val interval = request.queryAsOrNull<Int>("interval")
-        val motionSensors = MotionSensorsApi(msNMM)
+        val motionSensors = MotionSensorsApi(this@MotionSensorsNMM)
         motionSensors.startAccelerometerListener(interval)
 
         motionSensors.onAccelerometerChanges {
@@ -31,7 +30,7 @@ class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Se
       },
       // 获取陀螺仪 (push模式)
       "/observe/gyroscope" bind HttpMethod.Get to defineJsonLineResponse {
-        val motionSensors = MotionSensorsApi(msNMM)
+        val motionSensors = MotionSensorsApi(this@MotionSensorsNMM)
         val interval = request.queryAsOrNull<Int>("interval")
 
         motionSensors.startGyroscopeListener(interval)

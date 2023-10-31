@@ -30,7 +30,7 @@ import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.sys.boot.BootNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.platform.getKtorClientEngine
-import org.dweb_browser.shared.microService.sys.motionSensors.MotionSensorsNMM
+import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
 
 suspend fun startDwebBrowser(): DnsNMM {
   /**
