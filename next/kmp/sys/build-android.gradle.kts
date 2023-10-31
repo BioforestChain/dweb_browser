@@ -26,6 +26,7 @@ kotlin {
         implementation(libs.jetbrains.compose.material3)
 
         implementation(project(":helper"))
+        implementation(project(":core"))
       }
     }
     val commonTest by getting {

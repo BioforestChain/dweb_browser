@@ -48,7 +48,7 @@ internal fun BoxScope.BottomDownloadButton() {
     }
     val installByteLength = BrowserI18nResource.Companion.InstallByteLength(downloadSize, totalSize)
     val text = if (canSupportTarget) when (downloadStatus) {
-      JmmStatus.Init, JmmStatus.Canceld -> {
+      JmmStatus.Init, JmmStatus.Canceled -> {
         BrowserI18nResource.install_button_download(installByteLength)
       }
 
@@ -96,7 +96,7 @@ internal fun BoxScope.BottomDownloadButton() {
     ElevatedButton(
       onClick = {
         when (downloadStatus) {
-          JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceld, JmmStatus.NewVersion -> {
+          JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled, JmmStatus.NewVersion -> {
             downloadStatus = JmmStatus.Downloading
             viewModel.startDownload()
           }

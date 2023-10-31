@@ -98,7 +98,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val pickFilepath =
           nativeFetch("file://file.std.dweb/picker?path=${downloadTask.filepath}").text()
         downloadTask.onDownload {
-          println("xxxxx11 ${it.status.current} ${it.status.state}")
           emit(it.copy(filepath = pickFilepath))
         }
         downloadTask.downloadSignal.emit(downloadTask)

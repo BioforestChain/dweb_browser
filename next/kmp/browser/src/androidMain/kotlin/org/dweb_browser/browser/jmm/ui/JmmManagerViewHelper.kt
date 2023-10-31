@@ -41,7 +41,7 @@ enum class JmmStatus {
   Paused,
 
   /** 取消下载*/
-  Canceld,
+  Canceled,
 
   /** 下载失败*/
   Failed,
@@ -68,7 +68,8 @@ class JmmManagerViewHelper(
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
 
   fun startDownload() = controller.ioAsyncScope.launch {
-    val taskId = controller.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
+    val taskId = controller.downloadTaskId
+      ?: controller.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
     watchProcess(taskId)
     // 已经注册完监听了，开始
     controller.start()

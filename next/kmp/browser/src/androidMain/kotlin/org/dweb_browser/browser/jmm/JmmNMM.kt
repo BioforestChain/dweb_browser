@@ -92,6 +92,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         // 从磁盘中移除整个
         store.deleteApp(mmid)
         val taskId = store.getTaskId(mmid)
+        store.deleteJMMTaskId(mmid)
         // 从磁盘中移除下载记录
         if (taskId !== null) {
           removeTask(taskId)
@@ -131,7 +132,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         this@JmmNMM, jmmAppInstallManifest, originUrl, downloadTaskIdMap[jmmAppInstallManifest.id]
       ).also { controller ->
         controller.onDownloadStart { taskId ->
-          store.saveJMMTask(jmmAppInstallManifest.id, taskId)
+          store.saveJMMTaskId(jmmAppInstallManifest.id, taskId)
         }
         controller.onDownloadComplete {
           // 安装完成，卸载之前的，安装新的
@@ -165,7 +166,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     ).boolean()
   }
 
-  suspend fun removeTask(taskId: TaskId): Boolean {
+  private suspend fun removeTask(taskId: TaskId): Boolean {
     return nativeFetch(
       PureRequest(
         "file://download.browser.dweb/remove?taskId=${taskId}", IpcMethod.DELETE
@@ -186,7 +187,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
    * 恢复下载任务
    */
   private suspend fun loadJmmDownloadList(store: JmmStore) {
-    store.getAllJMMTask().map { (key, taskId) ->
+    store.getAllJMMTaskId().map { (key, taskId) ->
       debugJMM("loadJmmDownloadList", "恢复:$key $taskId")
       downloadTaskIdMap.put(key, taskId)
     }

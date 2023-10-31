@@ -155,7 +155,7 @@ class DownloadController(val mm: DownloadNMM) {
     val output = ByteChannel(true)
     downloadTask.status.state = DownloadState.Downloading
     val taskId = downloadTask.id
-    // 重要记录点内存状态更新
+    // 重要记录点 存储到硬盘
     downloadManagers[taskId] = downloadTask
     mm.ioAsyncScope.launch {
       debugDownload("middleware", "id:$taskId current:${downloadTask.status.current}")
@@ -170,12 +170,16 @@ class DownloadController(val mm: DownloadNMM) {
             // 触发取消
             input.cancel()
             downloadTask.downloadSignal.emit(downloadTask)
+            // 重要记录点 存储到硬盘
+            downloadManagers[taskId] = downloadTask
           } else if (last) {
             output.close()
             input.cancel()
             downloadTask.status.state = DownloadState.Completed
             // 触发完成
             downloadTask.downloadSignal.emit(downloadTask)
+            // 重要记录点 存储到硬盘
+            downloadManagers[taskId] = downloadTask
           } else {
             downloadTask.status.current += byteArray.size
             // 触发进度更新
