@@ -1,4 +1,4 @@
-package org.dweb_browser.shared.microService.sys.motionSensors
+package org.dweb_browser.sys.motionSensors
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
