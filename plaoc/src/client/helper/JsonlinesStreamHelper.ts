@@ -13,24 +13,28 @@ export class JsonlinesStreamResponse<RAW, STATE> {
     private buildWsUrl: (ws_url: URL) => Promise<URL | void> = async (ws_url) => ws_url
   ) {}
 
-  async *jsonlines(pathAndQuery: string, options?: { signal?: AbortSignal }) {
-    const pub_url = await BasePlugin.public_url;
+  async *jsonlines(path: string, options?: { signal?: AbortSignal, searchParams?: URLSearchParams }) {
+    const pub_url = BasePlugin.public_url;
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
     // 内部的监听
-    url.pathname = `/${this.plugin.mmid}${pathAndQuery}`;
+    url.pathname = `/${this.plugin.mmid}${path}`;
+    options?.searchParams?.forEach((v, k) => {
+      url.searchParams.append(k, v);
+    });
+    
     const ws = new WebSocket((await this.buildWsUrl(url)) ?? url);
     this._ws = ws;
     ws.binaryType = "arraybuffer";
     const streamout = new ReadableStreamOut();
 
-    ws.onmessage = async (event) => {
+    ws.onmessage = (event) => {
       const data = event.data;
       streamout.controller.enqueue(data);
     };
-    ws.onclose = async () => {
+    ws.onclose = () => {
       streamout.controller.close();
     };
-    ws.onerror = async (event) => {
+    ws.onerror = (event) => {
       streamout.controller.error(event);
     };
 
