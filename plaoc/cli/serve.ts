@@ -36,7 +36,7 @@ export const doServe = async (flags: $ServeOptions) => {
     throw new Error(`need input '--port 8080'`);
   }
 
-  const serveTarget = flags.metadata
+  const serveTarget = flags.metadata;
   if (typeof serveTarget !== "string") {
     throw new Error(`need input 'YOUR/FOLDER/FOR/BUNDLE'`);
   }
@@ -44,7 +44,7 @@ export const doServe = async (flags: $ServeOptions) => {
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
   const plaocHelper = new PlaocJsonGenerator(flags);
   const data = metadataFlagHelper.readMetadata();
-  const bundleFlagHelper = new BundleZipGenerator(flags,plaocHelper, data.id,data.version);
+  const bundleFlagHelper = new BundleZipGenerator(flags, plaocHelper, data.id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   /// 启动http服务器

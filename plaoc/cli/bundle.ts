@@ -8,8 +8,8 @@ import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper, PlaocJsonGen
 export const doBundleCommand = new Command()
   .arguments("<source:string>")
   .description("Packaged source code folder.")
-  .option("-o --out <out:string>", "Directory for packaged output.",{
-    default:"bundle"
+  .option("-o --out <out:string>", "Directory for packaged output.", {
+    default: "bundle",
   })
   .option("-v --version <version:string>", "Set app packaging version.")
   .option("-d --dir <dir:string>", "Root directory of the project, generally the same level as manifest.json.")
@@ -30,7 +30,7 @@ export const doBundle = async (flags: $BundleOptions) => {
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
   const plaocHelper = new PlaocJsonGenerator(flags);
   const data = metadataFlagHelper.readMetadata();
-  const bundleFlagHelper = new BundleZipGenerator(flags,plaocHelper, data.id,data.version);
+  const bundleFlagHelper = new BundleZipGenerator(flags, plaocHelper, data.id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   const outDir = path.resolve(Deno.cwd(), flags.out);
@@ -48,11 +48,17 @@ export const doBundle = async (flags: $BundleOptions) => {
   /// 先写入bundle.zip
   fs.writeFileSync(
     path.resolve(outDir, nameFlagHelper.bundleName),
-    await (await bundleFlagHelper.bundleZip()).generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 9 } })
+    await (
+      await bundleFlagHelper.bundleZip()
+    ).generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 9 } })
   );
   // 生成打包文件名称，大小
   const zip = await bundleFlagHelper.bundleZip(true);
-  const zipData = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE", compressionOptions: { level: 9 } });
+  const zipData = await zip.generateAsync({
+    type: "uint8array",
+    compression: "DEFLATE",
+    compressionOptions: { level: 9 },
+  });
   const hasher = crypto.createHash("sha256").update(zipData);
   const metadata = metadataFlagHelper.readMetadata(true);
   metadata.bundle_size = zipData.byteLength;
