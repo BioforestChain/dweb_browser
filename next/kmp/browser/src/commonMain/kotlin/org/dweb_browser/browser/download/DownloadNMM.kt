@@ -53,7 +53,9 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     /** 文件的元数据类型，可以用来做“打开文件”时的参考类型 */
     val mime: String? = null,
     /** 是否直接开始下载(如果您需要监听完整的进度流程，可以先监听再调用下载)*/
-    val start: Boolean = false
+    val start: Boolean = false,
+    /** 用于接收json中文件大小 */
+    val total: Long = 1L,
   )
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
@@ -147,7 +149,8 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       originUrl = params.originUrl,
       completeCallbackUrl = params.completeCallbackUrl,
       mime = "application/octet-stream",
-      filepath = createFilePath(params.url)
+      filepath = createFilePath(params.url),
+      status = DownloadStateEvent(total = params.total)
     )
     recover(task, ContentRange.TailFrom(0L), controller)
     controller.downloadManagers[task.id] = task
@@ -173,7 +176,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     } else {
       // 下载流程初始化成功
       task.status.state = DownloadState.Init
-      task.status.total = response.headers.get("Content-Length")?.toLong() ?: 1L
+      task.status.total = response.headers.get("Content-Length")?.toLong() ?: task.status.total
       task.readChannel = response.stream().getReader("downloadTask#${task.id}")
     }
   }

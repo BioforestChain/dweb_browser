@@ -1,41 +1,27 @@
 package org.dweb_browser.helper.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshotFlow
-//import androidx.compose.ui.platform.LocalConfiguration
-
-@Composable
-fun LanguageWatch() {
-  val language = LocalLanguage.current
-//  val config = LocalConfiguration.current
-//  LaunchedEffect(config) {
-//    snapshotFlow { config.locales[0] }.collect { locale ->
-//      val currentLanguage = locale.language // language zh, toString() zh_CN/zh_HK_#Hant/zh_TW_#Hant
-//      language.value = Language.values().find { currentLanguage == it.code } ?: Language.EN
-//    }
-//  }
-}
+import androidx.compose.ui.text.intl.Locale
 
 @Composable
 fun i18nResource(res: SimpleI18nResource): String {
-  val language = LocalLanguage.current
-  return res.valuesMap[language.value] ?: res.i18nValues.first().second
+  val language = Locale.current.language
+  return res.valuesMap[Language.getLanguage(language)] ?: res.i18nValues.first().second
 }
 
 @Composable
 fun <T> i18nResource(res: OneParamI18nResource<T>, param: T): String {
-  val language = LocalLanguage.current
-  return (res.valuesMap[language.value] ?: res.i18nValues.first().second).invoke(param)
+  val language = Locale.current.language
+  return (res.valuesMap[Language.getLanguage(language)] ?: res.i18nValues.first().second).invoke(param)
 }
 
 enum class Language(val code: String) {
   EN("en"), ZH("zh"), ;
-}
 
-val LocalLanguage = compositionLocalOf { mutableStateOf(Language.ZH) }
+  companion object {
+    fun getLanguage(language: String) = Language.values().find { it.code == language } ?: ZH
+  }
+}
 
 class SimpleI18nResource(
   internal val i18nValues: List<Pair<Language, String>>,
@@ -70,7 +56,6 @@ class OneParamI18nResource<T>(
       resource.valuesMap[this] = param
     }
   }
-
 
   @Composable
   operator fun invoke(buildParam: T.() -> Unit) = paramBuilder().let {

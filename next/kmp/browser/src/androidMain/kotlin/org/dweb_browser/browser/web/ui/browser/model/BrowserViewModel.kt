@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Message
+import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
@@ -22,9 +23,11 @@ import com.google.accompanist.web.WebViewState
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.R
 import org.dweb_browser.browser.web.BrowserController
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.util.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browser.web.util.KEY_NO_TRACE
 import org.dweb_browser.browser.web.util.getBoolean
@@ -58,12 +61,16 @@ data class BrowserUIState(
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
   // val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏 // 暂时屏蔽qrCode
 ) {
-  suspend fun focusBrowserView(view: BrowserWebView) = withMainContext {
-    val index = browserViewList.indexOf(view);
+  suspend fun focusBrowserView(view: BrowserWebView) {
+    val index = browserViewList.indexOf(view)
     currentBrowserBaseView.value = view
     multiViewShow.targetState = false
-    pagerStateNavigator.value?.scrollToPage(index)
-    pagerStateContent.value?.scrollToPage(index)
+    debugBrowser("focusBrowserView", "index=$index, size=${browserViewList.size}")
+    delay(100) // window没渲染，导致scroll操作没效果，所以这边增加点等待
+    withMainContext {
+      pagerStateNavigator.value?.scrollToPage(index)
+      pagerStateContent.value?.scrollToPage(index)
+    }
   }
 }
 
@@ -300,6 +307,7 @@ class BrowserViewModel(
             )
           }*/
         }
+        else -> null
       }
     }
   }

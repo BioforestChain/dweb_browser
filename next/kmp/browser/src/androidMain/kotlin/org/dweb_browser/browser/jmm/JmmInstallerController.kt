@@ -87,8 +87,8 @@ class JmmInstallerController(
   /**
    * 创建任务，如果存在则恢复
    */
-  suspend fun createDownloadTask(metadataUrl: String): PureString {
-    val fetchUrl = "file://download.browser.dweb/create?url=$metadataUrl"
+  suspend fun createDownloadTask(metadataUrl: String, total: Long): PureString {
+    val fetchUrl = "file://download.browser.dweb/create?url=$metadataUrl&total=$total"
     val response = jmmNMM.nativeFetch(fetchUrl)
     return response.text().also {
       this.downloadTaskId = it

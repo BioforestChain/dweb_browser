@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.JmmNMM
@@ -68,8 +67,9 @@ class JmmManagerViewHelper(
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
 
   fun startDownload() = controller.ioAsyncScope.launch {
-    val taskId = controller.downloadTaskId
-      ?: controller.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
+    val taskId = controller.downloadTaskId ?: controller.createDownloadTask(
+      uiState.jmmAppInstallManifest.bundle_url, uiState.jmmAppInstallManifest.bundle_size
+    )
     watchProcess(taskId)
     // 已经注册完监听了，开始
     controller.start()
