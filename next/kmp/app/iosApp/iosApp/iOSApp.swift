@@ -8,7 +8,12 @@ let DWEB_OS = true
 struct iOSApp: App {
     @StateObject private var networkManager = NetworkManager()
     @State private var isNetworkSegmentViewPresented = false
-
+    
+    init() {
+        print("iOS init")
+        KmpBridgeManager.registerIMPs()
+    }
+    
 	var body: some Scene {
 		WindowGroup {
             ZStack{

@@ -43,6 +43,7 @@ kotlin {
     implementation(project(":window"))
     implementation(project(":browser"))
     implementation(project(":core"))
+    implementation(project(":sys"))
   }
 
   sourceSets.commonTest.dependencies {

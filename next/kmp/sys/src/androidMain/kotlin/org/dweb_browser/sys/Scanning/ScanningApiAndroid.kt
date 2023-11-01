@@ -1,6 +1,4 @@
-package org.dweb_browser.sys.Scanning
-
-//import org.dweb_browser.sys.Scanning.ScanningApi
+package org.dweb_browser.sys.scanning
 
 actual fun getScanningController(): ScanningApi = ScanningAndroidController()
 
@@ -9,11 +7,7 @@ class ScanningAndroidController(): ScanningApi {
         TODO("Not yet implemented")
     }
 
-    override fun startScan(): String {
-        TODO("Not yet implemented")
-    }
-
-    override fun stopScan() {
+    override fun stop() {
         TODO("Not yet implemented")
     }
 

@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.Scanning
+package org.dweb_browser.sys.scanning
 
 import io.ktor.http.HttpMethod
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -34,19 +34,9 @@ class ScanningNMM: NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scann
 
             // 停止处理
             "/stop" bind HttpMethod.Get to defineBooleanResponse {
-                getScanningController().stopScan()
+                getScanningController().stop()
                 return@defineBooleanResponse true
             },
-
-            "/open" bind HttpMethod.Get to defineStringResponse {
-                val controller = getScanningController()
-                if (controller.cameraPermission()) {
-                    getScanningController().startScan()
-                } else {
-                    // TODO: 多语言
-                    "permission denied"
-                }
-            }
         )
     }
 

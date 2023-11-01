@@ -1,13 +1,11 @@
-package org.dweb_browser.sys.Scanning
+package org.dweb_browser.sys.scanning
 
 interface ScanningApi {
 
     //nativeFetch("file://permission.sys.dweb/query?permission=${EPermission.PERMISSION_CAMERA}").boolean()
     fun cameraPermission(): Boolean
 
-    fun startScan(): String
-
-    fun stopScan()
+    fun stop()
 
     fun recognize(img: ByteArray, rotation: Int): List<String>
 }

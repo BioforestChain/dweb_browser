@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.TextField
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -34,7 +34,9 @@ import platform.CoreGraphics.CGSize
 import platform.CoreGraphics.CGSizeMake
 import platform.CoreGraphics.CGFloat
 import kotlinx.cinterop.useContents
-
+import org.dweb_browser.sys.*
+import kotlinx.coroutines.runBlocking
+import org.dweb_browser.shared.*
 
 @Suppress("FunctionName", "unused")
 fun MainViewController(iosView: UIView, onSizeChange: (CGFloat, CGFloat) -> Unit): UIViewController = ComposeUIViewController {
@@ -56,16 +58,30 @@ fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat)->Unit)
     state.showMenuPanel = true
   }) { modifier ->
 
-    onSizeChange(width.toDouble(), height.toDouble())
 
-    UIKitView(
-      factory = {
-        iosView
-      },
-      modifier =Modifier,
-      update = { view ->
-      println( "update:::: $view")
-    })//    PreviewWindowTopBarContent(modifier)
+
+    Box() {
+      onSizeChange(width.toDouble(), height.toDouble())
+      UIKitView(
+        factory = {
+          iosView
+        },
+        modifier =Modifier,
+        update = { view ->
+          println( "update:::: $view")
+        })//    PreviewWindowTopBarContent(modifier)
+
+      ElevatedButton(onClick = {
+        println("[iOS Test] Scan >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        runBlocking {
+          TestEntry().doScanningTest()
+        }
+        println("[iOS Test] Scan <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+      }) {
+
+        Text("Scan Test")
+      }
+    }
   }
 }
 
