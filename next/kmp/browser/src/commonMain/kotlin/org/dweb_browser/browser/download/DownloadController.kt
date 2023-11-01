@@ -1,6 +1,11 @@
 package org.dweb_browser.browser.download
 
 import io.ktor.http.ContentRange
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.URLBuilder
+import io.ktor.http.fromFilePath
+import io.ktor.http.headers
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
@@ -11,14 +16,22 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import okio.IOException
+import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.download.model.DownloadModel
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureStreamBody
+import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.FileMetadata
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.consumeEachArrayRange
+import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
@@ -118,6 +131,13 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     // 从内存中恢复状态
     downloadNMM.ioAsyncScope.launch {
       downloadManagers.putAll(store.getAll())
+      // 如果是从文件中读取的，需要将下载中的状态统一置为暂停。其他状态保持不变
+      downloadManagers.forEach { (taskId, downloadTask) ->
+        if (downloadTask.status.state == DownloadState.Downloading) {
+          downloadTask.status.state = DownloadState.Paused
+        }
+        downloadTask.pauseFlag = false
+      }
       // 状态改变的时候存储保存到内存
       downloadManagers.onChange {
         debugDownload(
@@ -142,33 +162,168 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   }
 
   /**
+   * 创建新下载任务
+   */
+  suspend fun createTaskFactory(
+    params: DownloadNMM.DownloadTaskParams, originMmid: MMID
+  ): DownloadTask {
+    // 查看是否创建过相同的task,并且相同的task已经下载完成
+    val task = DownloadTask(
+      id = randomUUID(),
+      url = params.url,
+      createTime = datetimeNow(),
+      originMmid = originMmid,
+      originUrl = params.originUrl,
+      completeCallbackUrl = params.completeCallbackUrl,
+      mime = "application/octet-stream",
+      filepath = createFilePath(params.url),
+      status = DownloadStateEvent(total = params.total)
+    )
+    recover(task, 0L)
+    downloadManagers[task.id] = task
+    debugDownload("初始化成功！", "${task.id} -> $task")
+    return task
+  }
+
+  /**
+   * 恢复(创建)下载，需要重新创建连接🔗
+   */
+  private suspend fun recover(task: DownloadTask, start: Long) {
+    debugDownload("recover", start)
+    val response = downloadNMM.nativeFetch(URLBuilder(task.url).also {
+      headers { append(HttpHeaders.Range, ContentRange.TailFrom(start).toString()) }
+    }.buildString())
+    // 直接变成失败
+    task.mime = mimeFactory(response.headers, task.url)
+    if (!response.isOk()) {
+      task.status.state = DownloadState.Failed
+      task.status.stateMessage = response.text()
+    } else {
+      // 下载流程初始化成功
+      task.status.state = DownloadState.Init
+      response.headers.get("Content-Length")?.toLong()?.let { total ->
+        debugDownload("recover", "content-length=$total")
+        task.status.current = start
+        task.status.total = total + start
+        // 使用 total 和 task的total进行比对
+      } ?: kotlin.run {
+        // TODO 如果识别不到Content-Length，目前当做是无法进行ContentRange操作
+        task.status.current = 0L
+      }
+      task.readChannel = response.stream().getReader("downloadTask#${task.id}")
+    }
+  }
+
+  /**
+   * 创建不重复的文件
+   */
+  private suspend fun createFilePath(url: String): String {
+    var index = 0
+    var path: String
+    val fileName = url.substring(url.lastIndexOf("/") + 1)
+    do {
+      path = "/data/download/${index++}_${fileName}"
+      val boolean = exist(path)
+    } while (boolean)
+    return path
+  }
+
+  private fun mimeFactory(header: IpcHeaders, filePath: String): String {
+    // 先从header判断
+    val contentType = header.get("Content-Type")
+    if (!contentType.isNullOrEmpty()) {
+      return contentType
+    }
+    //再从文件判断
+    val extension = ContentType.fromFilePath(filePath)
+    if (extension.isNotEmpty()) {
+      return extension.first().toString()
+    }
+    return "application/octet-stream"
+  }
+
+  suspend fun exist(path: String): Boolean {
+    val response = downloadNMM.nativeFetch("file://file.std.dweb/exist?path=$path")
+    return response.boolean()
+  }
+
+  private suspend fun info(path: String): FileMetadata {
+    val response = downloadNMM.nativeFetch("file://file.std.dweb/info?path=$path")
+    return Json.decodeFromString(response.text())
+  }
+
+  suspend fun remove(filepath: String): Boolean {
+    return downloadNMM.nativeFetch(
+      PureRequest(
+        "file://file.std.dweb/remove?path=${filepath}&recursive=true", IpcMethod.DELETE
+      )
+    ).boolean()
+  }
+
+  //  追加写入文件，断点续传
+  private suspend fun appendFile(task: DownloadTask, stream: ByteReadChannel) {
+    downloadNMM.nativeFetch(
+      PureRequest(
+        "file://file.std.dweb/append?path=${task.filepath}&create=true",
+        IpcMethod.PUT,
+        body = PureStreamBody(stream)
+      )
+    )
+  }
+
+  /**
+   * 暂停⏸️
+   */
+  suspend fun pause(task: DownloadTask) {
+    // 暂停并不会删除文件
+    task.status.state = DownloadState.Paused
+    task.pauseFlag = true
+    store.set(task.id, task) // 保存到文件
+  }
+
+  /**
+   * 取消下载
+   */
+  suspend fun cancel(task: DownloadTask) {
+    // 如果有文件,直接删除
+    if (exist(task.filepath)) {
+      remove(task.filepath)
+    }
+    // 修改状态
+    task.status.state = DownloadState.Canceled
+    task.status.current = 0L
+    task.readChannel?.cancel()
+    task.readChannel = null
+    store.set(task.id, task) // 保存到文件
+  }
+
+  /**
    * 执行下载任务 ,可能是断点下载
    */
   suspend fun downloadFactory(task: DownloadTask): Boolean {
-    if (downloadNMM.exist(task.filepath)) {
+    if (exist(task.filepath)) {
       // 已经存在了，并且对方支持range 从断点开始
-      val current = downloadNMM.info(task.filepath).size
+      val current = info(task.filepath).size
       debugDownload("downloadFactory", "是否支持range:$current")
 
       // 已经存在并且下载完成
       if (current != null) {
         // 开始断点续传，这是在内存中恢复的，创建了一个新的channel
-        downloadNMM.recover(task, ContentRange.TailFrom(current), this)
-        task.status.current = current
+        recover(task, current)
+        // task.status.current = current
         // 恢复状态 改状态为暂停，并且卡住
-        task.status.state = DownloadState.Paused
-        task.pauseFlag = true
-        task.pauseWait()
+        // task.status.state = DownloadState.Paused
+        // task.pauseFlag = true
+        // task.pauseWait()
       }
     }
     // 如果内存中没有，或者对方不支持Range，需要重新下载,否则这个channel是从支持的断点开始
     val stream = task.readChannel ?: return false
     debugDownload("downloadFactory", task.id)
-    val buffer = this.middleware(task, stream)
-    downloadNMM.appendFile(task, buffer)
+    val buffer = middleware(task, stream)
+    appendFile(task, buffer)
     return true
   }
-
 
   /**
    * 下载 task 中间件
@@ -181,7 +336,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     downloadManagers[taskId] = downloadTask
     downloadNMM.ioAsyncScope.launch {
       debugDownload("middleware", "id:$taskId current:${downloadTask.status.current}")
-      downloadTask.downloadSignal.emit(downloadTask)
+      emitDownloadTask(downloadTask)
       try {
         input.consumeEachArrayRange { byteArray, last ->
           // 处理是否暂停
@@ -189,11 +344,9 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
           if (output.isClosedForRead) {
             breakLoop()
             downloadTask.status.state = DownloadState.Canceled
-            // 触发取消
+            // 触发取消 存储到硬盘
             input.cancel()
-            downloadTask.downloadSignal.emit(downloadTask)
-            // 重要记录点 存储到硬盘
-            // downloadManagers[taskId] = downloadTask
+            emitDownloadTask(downloadTask)
             downloadManagers.remove(taskId)?.let {
               downloadCompletes[taskId] = it
             }
@@ -201,33 +354,32 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
             output.close()
             input.cancel()
             downloadTask.status.state = DownloadState.Completed
-            // 触发完成
-            downloadTask.downloadSignal.emit(downloadTask)
-            // 重要记录点 存储到硬盘
-            // downloadManagers[taskId] = downloadTask
+            // 触发完成 存储到硬盘
+            emitDownloadTask(downloadTask)
             downloadManagers.remove(taskId)?.let {
               downloadCompletes[taskId] = it
             }
           } else {
             downloadTask.status.current += byteArray.size
             // 触发进度更新
-            downloadTask.downloadSignal.emit(downloadTask)
+            emitDownloadTask(downloadTask)
             output.writePacket(ByteReadPacket(byteArray))
           }
         }
-      } catch (e: IOException) {
+      } catch (e: Throwable) {
         // 这里捕获的一般是 connection reset by peer 当前没有重试机制，用户再次点击即为重新下载
         debugDownload("middleware", "${e.message}")
         downloadTask.status.state = DownloadState.Failed
         // 触发失败
-        downloadTask.downloadSignal.emit(downloadTask)
-        // 内存中删除
-        downloadManagers.remove(taskId)?.let {
-          downloadCompletes[taskId] = it
-        }
+        emitDownloadTask(downloadTask)
       }
     }
     return output
+  }
+
+  private suspend fun emitDownloadTask(downloadTask: DownloadTask) {
+    downloadTask.downloadSignal.emit(downloadTask)
+    store.set(downloadTask.id, downloadTask) // 随时保存状态到文件
   }
 
   /**

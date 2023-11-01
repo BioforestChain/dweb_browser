@@ -8,6 +8,10 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
+import io.ktor.util.asStream
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.PromiseOut
@@ -57,6 +61,10 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
         multiPartData.forEachPart { partData ->
           when (partData) {
             is PartData.FileItem -> {
+              partData.provider.asFlow().collect {
+                it.asStream()
+
+              }
               partData.originalFileName?.also { filename ->
                 val url = plugin.writeFile(
                   filename, EFileType.Cache, partData.streamProvider(), false

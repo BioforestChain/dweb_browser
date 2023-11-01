@@ -8,7 +8,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.jmm.JmmInstallerController
-import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jmm.debugJMM
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.helper.compose.noLocalProvidedFor
@@ -17,15 +16,9 @@ import org.dweb_browser.helper.falseAlso
 internal val LocalShowWebViewVersion = compositionLocalOf {
   mutableStateOf(false)
 }
-internal val LocalShowWebViewHelper = compositionLocalOf {
-  mutableStateOf(false)
-}
 
 internal val LocalJmmViewHelper = compositionLocalOf<JmmManagerViewHelper> {
   noLocalProvidedFor("LocalJmmViewHelper")
-}
-internal val LocalJmmNMM = compositionLocalOf<JmmNMM> {
-  noLocalProvidedFor("JmmNMM")
 }
 
 @Serializable
@@ -67,10 +60,12 @@ class JmmManagerViewHelper(
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
 
   fun startDownload() = controller.ioAsyncScope.launch {
-    val taskId = controller.downloadTaskId ?: controller.createDownloadTask(
-      uiState.jmmAppInstallManifest.bundle_url, uiState.jmmAppInstallManifest.bundle_size
-    )
-    watchProcess(taskId)
+    if (controller.downloadTaskId == null) {
+      val taskId = controller.createDownloadTask(
+        uiState.jmmAppInstallManifest.bundle_url, uiState.jmmAppInstallManifest.bundle_size
+      )
+      watchProcess(taskId)
+    }
     // 已经注册完监听了，开始
     controller.start()
   }
@@ -107,12 +102,12 @@ class JmmManagerViewHelper(
       "refreshStatus",
       "是否是恢复 ${controller.downloadTaskId} 是否有新版本:${hasNewVersion}"
     )
-    controller.downloadTaskId?.let { taskId ->
+    if (controller.exists()) {
       // 监听推送的变化
-      watchProcess(taskId)
+      watchProcess(controller.downloadTaskId!!)
       // 继续/恢复 下载，不管什么状态都会推送过来
-      controller.start()
-    } ?: if (hasNewVersion) {
+      // controller.start()
+    } else if (hasNewVersion) {
       uiState.downloadStatus.value = JmmStatus.NewVersion
     } else if (controller.hasInstallApp()) {
       uiState.downloadStatus.value = JmmStatus.INSTALLED

@@ -128,11 +128,12 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     debugJMM("openInstallerView", jmmAppInstallManifest.bundle_url)
     val controller = controllerMap.getOrPut(jmmAppInstallManifest.id) {
       JmmInstallerController(
-        this@JmmNMM, jmmAppInstallManifest, originUrl, downloadTaskIdMap[jmmAppInstallManifest.id]
+        this@JmmNMM, originUrl, jmmAppInstallManifest, downloadTaskIdMap[jmmAppInstallManifest.id]
       ).also { controller ->
         controller.onJmmStateListener { pair ->
           when (pair.first) {
             JmmStatus.Init -> {
+              downloadTaskIdMap[jmmAppInstallManifest.id] = pair.second
               store.saveJMMTaskId(jmmAppInstallManifest.id, pair.second)
             }
 

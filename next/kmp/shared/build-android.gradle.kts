@@ -31,6 +31,7 @@ kotlin {
         implementation(project(":window"))
         implementation(project(":core"))
         implementation(project(":browser"))
+        implementation(project(":sys"))
       }
     }
     val commonTest by getting {
