@@ -45,11 +45,11 @@ data-moshi-pack = "1.0.1"
 data-store = "1.0.0"
 data-store-preferences = "1.1.0-alpha05"
 room-version = "2.6.0"
-coil-version = "2.4.0"
+coil-version = "2.5.0"
 camera-version = "1.4.0-alpha02"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
-jetbrains-compose-version = "1.5.10-rc02"
+jetbrains-compose-version = "1.5.10"
 
 # kotlin native C库编译
 cklib-version = "0.2.5"

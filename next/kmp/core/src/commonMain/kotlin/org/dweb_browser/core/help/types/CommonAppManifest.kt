@@ -26,7 +26,7 @@ class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
     private val P_id = P.required("id", "")
     private val P_dweb_deeplinks = P.list<DWEB_DEEPLINK>("dweb_deeplinks")
     private val P_dweb_protocols = P.list<DWEB_PROTOCOL>("dweb_protocols")
-    private val P_dweb_permissions = P.list<DwebPermissions>("dweb_permissions")
+    private val P_dweb_permissions = P.list<DwebPermission>("dweb_permissions")
     private val P_dir = P.optional<String>("dir")
     private val P_lang = P.optional<String>("lang")
     private val P_name = P.required("name", "")
@@ -67,7 +67,7 @@ interface ICommonAppManifest {
   var id: MMID
   var dweb_deeplinks: List<DWEB_DEEPLINK>
   var dweb_protocols: List<DWEB_PROTOCOL>
-  var dweb_permissions: List<DwebPermissions>
+  var dweb_permissions: List<DwebPermission>
   var dir: String?// 文本方向
   var lang: String?
   var name: String// 应用名称

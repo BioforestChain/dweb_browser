@@ -3,7 +3,15 @@ package org.dweb_browser.core.help.types
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class DwebPermissions(
+data class DwebPermission(
+  /**
+   * 权限的全局唯一标识，不可重复
+   * 比如 gaubee.dweb/info
+   *
+   * 必须是包含 module.id 为前缀，如果缺省，那么直接使用 "$module.id/"
+   *
+   */
+  val pid: String? = null,
   /**
    * 权限捕捉的路由，比如：
    * file://gaubee.com.dweb/info

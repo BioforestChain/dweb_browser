@@ -61,8 +61,7 @@ import org.dweb_browser.sys.window.render.LocalWindowPadding
 val debugModal = Debugger("modal")
 
 @Serializable
-sealed class ModalState(
-) {
+sealed class ModalState() {
   val modalId = randomUUID()
   abstract val callbackUrl: String?
 

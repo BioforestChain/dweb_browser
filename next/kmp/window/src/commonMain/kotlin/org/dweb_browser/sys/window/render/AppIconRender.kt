@@ -19,6 +19,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
+import org.dweb_browser.helper.ImageResourcePurposes
+import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.compose.ImageLoadResult
 import org.dweb_browser.helper.compose.ImageLoader
 import org.dweb_browser.helper.compose.rememberImageLoader
@@ -100,6 +102,32 @@ fun AppIcon(
 }
 
 @Composable
+fun AppIcon(
+  iconResource: StrictImageResource, modifier: Modifier = Modifier,
+  color: Color = LocalContentColor.current,
+  containerColor: Color? = null,
+  iconPlaceholder: Painter? = null,
+  iconError: Painter? = null,
+  iconDescription: String = "icon",
+  iconLoader: ImageLoader? = null,
+  iconFetchHook: FetchHook? = null,
+) {
+  AppIconOuter(
+    iconSrc = iconResource.src,
+    modifier = modifier,
+    color = color,
+    containerColor = containerColor,
+    iconPlaceholder = iconPlaceholder,
+    iconError = iconError,
+    iconMaskable = iconResource.purpose.contains(ImageResourcePurposes.Maskable),
+    iconMonochrome = iconResource.purpose.contains(ImageResourcePurposes.Monochrome),
+    iconDescription = iconDescription,
+    iconLoader = iconLoader,
+    iconFetchHook = iconFetchHook,
+  )
+}
+
+@Composable
 private fun AppIconOuter(
   iconSrc: Any?,
   modifier: Modifier,
@@ -133,7 +161,9 @@ private fun AppIconOuter(
       ?: (if (color.luminance() > 0.5f) Color.Black else Color.White).copy(alpha = 0.2f)
     // 只有加载成功的时候，才会显示背景裁切图
     val containerModifier = if (icon.isSuccess) {
-      modifier.clip(SquircleShape()).background(safeContainerColor)
+      modifier
+        .clip(SquircleShape())
+        .background(safeContainerColor)
     } else {
       modifier
     }
