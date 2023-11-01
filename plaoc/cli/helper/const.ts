@@ -19,6 +19,7 @@ export type $MetadataJsonGeneratorOptions = {
   version?: string;
   id?: string;
   dir?: string;
+  serve?:string
 };
 
 /**
