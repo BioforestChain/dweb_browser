@@ -13,8 +13,9 @@ struct TabsContainerView: View {
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
-
+    @EnvironmentObject var dragScale: WndDragScale
     @StateObject var gridState = TabGridState()
+    
     @StateObject var animation = ShiftAnimation()
 
     @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
@@ -23,7 +24,7 @@ struct TabsContainerView: View {
     @State private var lastProgress: AnimationProgress = .invisible
     @State var showTabPage: Bool = true
 
-    private var snapshotHeight: CGFloat { geoRect.height - addressBarH }
+    private var snapshotHeight: CGFloat { geoRect.height - dragScale.addressbarHeight }
 
     @Namespace private var expandshrinkAnimation
     private let animationId = "expandshrinkAnimation"
@@ -44,7 +45,6 @@ struct TabsContainerView: View {
                     .environmentObject(webcacheStore)
                     .environmentObject(animation)
                     .allowsHitTesting(showTabPage) // This line allows TabGridView to receive the tap event, down through click
-
                 if animation.progress.isAnimating() {
                     if isExpanded {
                         animationImage
@@ -80,6 +80,11 @@ struct TabsContainerView: View {
 
             .onChange(of: selectedCellFrame) { newValue in
                 printWithDate( "selecte cell rect changes to : \(newValue)")
+            }
+            .onChange(of: animation.progress) { progress in
+                if progress.isAnimating() {
+                    showTabPage = false
+                }
             }
         }
     }

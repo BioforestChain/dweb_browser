@@ -38,9 +38,8 @@ struct GridCell: View {
     @EnvironmentObject var dragScale: WndDragScale
 
     var body: some View {
-            ZStack(alignment: .topTrailing) {
-                GeometryReader { geo in
-
+        ZStack(alignment: .topTrailing) {
+            GeometryReader { geo in
                 VStack(spacing: 0) {
                     Image(uiImage: webCache.snapshotImage)
                         .resizable()
@@ -56,21 +55,16 @@ struct GridCell: View {
                             .aspectRatio(contentMode: .fit)
 
                         Text(webCache.title)
-                            .font(.system(size: dragScale.scaledFontSize(maxSize: 20), weight: .semibold)) // 设置字体大小为 20，粗细为 semibold
-//                            .fontWeight(.semibold)
+                            .font(.system(size: dragScale.scaledFontSize(maxSize: 20))) // 设置字体大小为 20，粗细为 semibold
                             .lineLimit(1)
-                            .aspectRatio(contentMode: .fit)
                     }
                     .padding(.vertical, 3)
                     .frame(height: geo.size.height * 0.15)
-
-//                    .frame(height: gridcellBottomH)
                 }
-//                deleteButton
             }
 
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .aspectRatio(0.66, contentMode: .fit)
+            deleteButton
         }
     }
 
@@ -80,7 +74,7 @@ struct GridCell: View {
         } label: {
             Image(systemName: "xmark.circle.fill")
                 .resizable()
-                .frame(width: 26, height: 26)
+                .frame(width: dragScale.onWidth * 28, height: dragScale.onWidth * 28)
                 .foregroundColor(.gray)
                 .background(Color.white)
                 .cornerRadius(100)

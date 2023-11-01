@@ -15,6 +15,7 @@ struct TabPageView: View {
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
+    @EnvironmentObject var dragScale: WndDragScale
 
     var index: Int
     var webCache: WebCache { webcacheStore.cache(at: index) }
@@ -73,7 +74,7 @@ struct TabPageView: View {
                         .takeSnapshot(completion: { image in
                             printWithDate("has took a snapshot")
                             let scale = image.scale
-                            let cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: screen_width * scale, height: (snapshotHeight - addressBarH - toolBarH) * scale)
+                            let cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: screen_width * scale, height: (snapshotHeight - dragScale.addressbarHeight - toolBarH) * scale)
                             if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
                                 let croppedImage = UIImage(cgImage: croppedCGImage)
                                 animation.snapshotImage = croppedImage
@@ -127,7 +128,7 @@ struct TabPageView: View {
             .onChange(of: webWrapper.estimatedProgress) { newValue in
                 if newValue >= 1.0 {
                     webcacheStore.saveCaches()
-                    if !TraceLessMode.shared.isON {
+                    if !TracelessMode.shared.isON {
                         let manager = HistoryCoreDataManager()
                         let history = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
                         manager.insertHistory(history: history)

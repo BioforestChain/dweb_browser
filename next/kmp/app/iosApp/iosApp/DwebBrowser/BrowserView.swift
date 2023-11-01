@@ -22,9 +22,9 @@ struct BrowserView: View {
             ZStack {
                 VStack(spacing: 0) {
                     TabsContainerView()
-
                     ToolbarView()
-                        .frame(height: toolbarHeight(baseOn: geometry.size))
+                        .frame(height: dragScale.toolbarHeight)
+                        .background(Color.bkColor)
                 }
                 .background(Color.bkColor)
                 .environmentObject(webcacheStore)
@@ -35,19 +35,12 @@ struct BrowserView: View {
                 .environmentObject(dragScale)
             }
             .frame(width: size.width, height: size.height)
-            .background(.red)
-            .onChange(of: size) { newSize in
-                dragScale.onWidth = (newSize.width - 10) / screen_width
-                printWithDate("scale on X: \(dragScale.onWidth)")
-            }
             .onAppear {
                 dragScale.onWidth = (geometry.size.width - 10) / screen_width
             }
+            .onChange(of: size) { newSize in
+                dragScale.onWidth = (newSize.width - 10) / screen_width
+            }
         }
     }
-}
-
-func toolbarHeight(baseOn wndSize: CGSize) -> CGFloat {
-    let scale = min(wndSize.width / (maxDragWndWidth - maxDragWndWidth), wndSize.height / (maxDragWndHeight - 60))
-    return max(toolBarMinHeight, min(toolBarH, scale * wndSize.height))
 }

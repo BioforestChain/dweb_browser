@@ -16,7 +16,10 @@ let toolBarH: CGFloat = 50
 
 let addressbarHolder = "搜索或输入网址"
 
-let addressBarH: CGFloat = 60
+let maxAddressBarH: CGFloat = 60
+let minAddressBarH: CGFloat = 25
+let maxToolBarH: CGFloat = 50
+let minToolBarH: CGFloat = 25
 
 let emptyLink = "https://http.cat/404"
 let emptyURL = URL(string: emptyLink)!
@@ -30,8 +33,6 @@ let gridCellH: CGFloat = gridCellW * 1.5
 let cellImageH: CGFloat = gridCellH * 0.9
 let gridcellBottomH: CGFloat = gridCellH * 0.1
 let gridcellCornerR: CGFloat = 10
-
-//let cellImageH: CGFloat = gridCellW * 1.3
 
 private var curSafeAreaInsets: UIEdgeInsets {
     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
