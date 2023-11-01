@@ -21,6 +21,9 @@ import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.WebKit.WKWebpagePreferences
 import platform.darwin.NSObject
+import platform.WebKit.WKURLSchemeTaskProtocol
+import platform.WebKit.WKUIDelegateProtocol
+
 
 @OptIn(ExperimentalForeignApi::class)
 class DWebViewEngine(
@@ -37,6 +40,9 @@ class DWebViewEngine(
   }
 
   init {
+    setUIDelegate(object : NSObject(), WKUIDelegateProtocol {
+
+    })
     setNavigationDelegate(
       object : NSObject(), WKNavigationDelegateProtocol {
 //        override fun webView(

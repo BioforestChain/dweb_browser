@@ -34,10 +34,10 @@ interface IMessageChannel {
 }
 
 interface IMessagePort {
-  fun start()
-  fun close()
-  fun postMessage(event: MessageEvent)
-  val onMessage: Signal.Listener<MessageEvent>
+  suspend fun start()
+  suspend fun close()
+  suspend fun postMessage(event: IMessageEvent)
+  val onMessage: Signal.Listener<IMessageEvent>
 }
 
 internal class LoadUrlTask(
@@ -45,4 +45,7 @@ internal class LoadUrlTask(
   val deferred: CompletableDeferred<String> = CompletableDeferred()
 )
 
-data class MessageEvent(val data: String, val ports: List<IMessagePort> = emptyList())
+interface IMessageEvent {
+  val data: String
+  val ports: List<IMessagePort>
+}
