@@ -176,4 +176,5 @@ class DWebView(private val engine: DWebViewEngine) : IDWebView {
   //#endregion
 }
 
+data class MessageEvent(override val data: String, override val ports: List<IMessagePort> = emptyList()) : IMessageEvent
 

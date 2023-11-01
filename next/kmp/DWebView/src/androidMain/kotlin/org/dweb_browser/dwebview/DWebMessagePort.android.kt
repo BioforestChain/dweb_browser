@@ -41,7 +41,7 @@ class DWebMessagePort private constructor(private val port: WebMessagePort) : IM
       }
     })
     val messageScope = CoroutineScope(CoroutineName("webMessage") + defaultAsyncExceptionHandler)
-    val onMessageSignal = Signal<MessageEvent>()
+    val onMessageSignal = Signal<IMessageEvent>()
     messageScope.launch {
       /// 这里为了确保消息的顺序正确性，比如使用channel来一帧一帧地读取数据，不可以直接用 launch 去异步执行 event，这会导致下层解析数据的顺序问题
       /// 并发性需要到消息被解码出来后才能去执行并发。也就是非 IpcStream 类型的数据才可以走并发
@@ -53,17 +53,18 @@ class DWebMessagePort private constructor(private val port: WebMessagePort) : IM
     onMessageSignal
   }
 
-  override fun start() {
+  override suspend fun start() {
     _started.value
   }
 
-  override fun close() {
+  override suspend fun close() {
     port.close()
   }
 
   private val onMessageSignal by _started
   override val onMessage = onMessageSignal.toListener()
-  override fun postMessage(event: MessageEvent) {
+  override suspend fun postMessage(event: IMessageEvent) {
+    require(event is MessageEvent)
     port.postMessage(
       WebMessage(
         event.data,
