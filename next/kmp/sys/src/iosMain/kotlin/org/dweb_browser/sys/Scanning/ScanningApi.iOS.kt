@@ -5,14 +5,11 @@ import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.allocArrayOf
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.usePinned
-import kotlinx.coroutines.runBlocking
 import org.dweb_browser.sys.*
 import platform.Foundation.NSData
 import platform.Foundation.create
 import platform.CoreImage.*
 import platform.posix.memcpy
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 actual fun getScanningController(): ScanningApi = ScanningIOSController()
 
