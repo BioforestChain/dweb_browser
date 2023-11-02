@@ -19,7 +19,8 @@ class SelectedTab: ObservableObject {
 
 class WndDragScale: ObservableObject {
     @Published var onWidth: CGFloat = 1
-    func properValue(floor: CGFloat, ceiling: CGFloat) -> CGFloat{
+    
+    private func properValue(floor: CGFloat, ceiling: CGFloat) -> CGFloat{
         min(ceiling, max(floor, ceiling * onWidth))
     }
     func scaledFont(maxSize: CGFloat = 18) -> Font{
@@ -28,6 +29,9 @@ class WndDragScale: ObservableObject {
     func scaledFontSize(maxSize: CGFloat = 18) -> CGFloat{
         max(10, onWidth * maxSize)
     }
+
+    var addressbarHeight: CGFloat { properValue(floor: minAddressBarH, ceiling: maxAddressBarH)}
+    var toolbarHeight: CGFloat { properValue(floor: minToolBarH, ceiling: maxToolBarH)}
 }
 
 class AddressBarState: ObservableObject {
@@ -53,8 +57,8 @@ class ShiftAnimation: ObservableObject {
     @Published var progress: AnimationProgress = .invisible
 }
 
-class TraceLessMode {
-    static var shared = TraceLessMode()
+class TracelessMode {
+    static var shared = TracelessMode()
     private let tracelessKEY = "tracelessKEY"
     var isON: Bool {
         willSet {

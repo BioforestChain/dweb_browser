@@ -10,7 +10,7 @@ import SwiftUI
 struct MenuView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var webcacheStore: WebCacheStore
-    @State private var isTraceless: Bool = TraceLessMode.shared.isON
+    @State private var isTraceless: Bool = TracelessMode.shared.isON
     @State var isShare: Bool = false
     @State var isAlert: Bool = false
     private let titles: [String] = ["添加书签","分享"]
@@ -44,7 +44,7 @@ struct MenuView: View {
                     .font(.system(size: 16))
             }
             .onChange(of: isTraceless, perform: { newValue in
-                TraceLessMode.shared.isON = newValue
+                TracelessMode.shared.isON = newValue
             })
             .toggleStyle(CustomToggleStyle())
             .frame(height: 50)
