@@ -19,8 +19,8 @@ import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.startAppActivity
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.ext.onActivity
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.CORS_HEADERS
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.HttpDwebServer
@@ -326,7 +326,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       val response = nativeFetch(request.toPure().copy(href = url))
       ipc.postMessage(
         IpcResponse.fromResponse(
-          request.req_id, response.appendHeaders(CORS_HEADERS), ipc
+          request.req_id, PureResponse.build(response) { appendHeaders(CORS_HEADERS) }, ipc
         )
       )
     }
