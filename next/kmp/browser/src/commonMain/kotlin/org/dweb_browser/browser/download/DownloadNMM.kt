@@ -46,8 +46,8 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     val controller = DownloadController(this)
     onAfterShutdown {
       ioAsyncScope.launch {
-        controller.downloadManagers.forEach { (taskId, downloadTask) ->
-          controller.pause(downloadTask)
+        controller.downloadManagers.suspendForEach { _, downloadTask ->
+          controller.pauseDownload(downloadTask)
         }
       }
     }
@@ -66,20 +66,14 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       // 开始/恢复 下载
       "/start" bind HttpMethod.Get to defineBooleanResponse {
         val taskId = request.query("taskId")
-        debugDownload("/start", "$taskId -> ${controller.downloadManagers[taskId]}")
-        val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
-        // 表示只是短暂的暂停，不用从内存中恢复
-        if (task.pauseFlag) {
-          task.paused.resolve(Unit)
-          return@defineBooleanResponse true
-        }
-        // 触发断点逻辑
-        controller.downloadFactory(task)
+        debugDownload("/start", "$taskId")
+        val task = controller.downloadManagers.get(taskId) ?: return@defineBooleanResponse false
+        controller.startDownload(task)
       },
       // 监控下载进度
       "/watch/progress" bind HttpMethod.Get to defineJsonLineResponse {
         val taskId = request.query("taskId")
-        val downloadTask = controller.downloadManagers[taskId]
+        val downloadTask = controller.downloadManagers.get(taskId)
           ?: return@defineJsonLineResponse emit("not Found download task!")
         debugDownload("/watch/progress", "taskId=$taskId")
         // 给别人的需要给picker地址
@@ -93,25 +87,19 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       // 暂停下载
       "/pause" bind HttpMethod.Get to defineBooleanResponse {
         val taskId = request.query("taskId")
-        val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
-        controller.pause(task)
+        val task = controller.downloadManagers.get(taskId) ?: return@defineBooleanResponse false
+        controller.pauseDownload(task)
         true
       },
       // 取消下载
       "/cancel" bind HttpMethod.Get to defineBooleanResponse {
         val taskId = request.query("taskId")
-        val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
-        controller.cancel(task)
-        controller.downloadManagers.remove(taskId)?.let {
-          it.status.state = DownloadState.Canceled
-          controller.downloadCompletes[taskId] = it
-        }
-        true
+        controller.cancelDownload(taskId)
       },
       // 移除任务
       "/remove" bind HttpMethod.Delete to defineEmptyResponse {
         val taskId = request.query("taskId")
-        controller.downloadManagers.remove(taskId)
+        controller.removeDownload(taskId)
       },
       // taskId是否存在
       "/exists" bind HttpMethod.Get to defineBooleanResponse {

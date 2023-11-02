@@ -17,6 +17,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.download.model.ChangeableMutableMap
+import org.dweb_browser.browser.download.model.ChangeableType
 import org.dweb_browser.browser.download.model.DownloadModel
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureRequest
@@ -57,7 +59,7 @@ data class DownloadTask(
   /** 文件路径 */
   var filepath: String,
   /** 标记当前下载状态 */
-  val status: DownloadStateEvent = DownloadStateEvent()
+  val status: DownloadStateEvent
 ) {
 
   @Transient
@@ -122,8 +124,8 @@ data class DownloadStateEvent(
 
 class DownloadController(private val downloadNMM: DownloadNMM) {
   private val store = DownloadStore(downloadNMM)
-  val downloadManagers: ChangeableMap<TaskId, DownloadTask> = ChangeableMap() // 用于监听下载列表
-  val downloadCompletes: ChangeableMap<TaskId, DownloadTask> = ChangeableMap() // 用于下载完成或者下载失败
+  val downloadManagers: ChangeableMutableMap<TaskId, DownloadTask> = ChangeableMutableMap() // 用于监听下载列表
+  val downloadCompletes: ChangeableMutableMap<TaskId, DownloadTask> = ChangeableMutableMap() // 用于下载完成或者下载失败
   private var winLock = Mutex(false)
   val downloadModel = DownloadModel(this)
 
@@ -132,31 +134,40 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     downloadNMM.ioAsyncScope.launch {
       downloadManagers.putAll(store.getAll())
       // 如果是从文件中读取的，需要将下载中的状态统一置为暂停。其他状态保持不变
-      downloadManagers.forEach { (taskId, downloadTask) ->
+      downloadManagers.suspendForEach { _, downloadTask ->
         if (downloadTask.status.state == DownloadState.Downloading) {
+          if (fileExists(downloadTask.filepath)) { // 为了保证下载中的状态current值正确
+            downloadTask.status.current = fileInfo(downloadTask.filepath).size ?: 0L
+          }
           downloadTask.status.state = DownloadState.Paused
         }
         downloadTask.pauseFlag = false
       }
       // 状态改变的时候存储保存到内存
-      downloadManagers.onChange {
-        debugDownload(
-          "DownloadController",
-          "downloading add=${it.adds.size}, del=${it.removes.size}, upd=${it.updates.size}"
-        )
-        it.adds.forEach { key -> store.set(key, it.origin[key]!!) }
-        it.removes.forEach { key -> store.delete(key) }
-        it.updates.forEach { key -> store.set(key, it.origin[key]!!) }
+      downloadManagers.onChange { (type, key, value) ->
+        debugDownload("DownloadController", "downloading type=$type, key=$key")
+        when(type) {
+          ChangeableType.Add -> {
+            value?.let { downloadTask -> store.set(downloadTask.id, downloadTask) }
+          }
+          ChangeableType.Remove -> {
+            value?.let { downloadTask -> store.delete(downloadTask.id) }
+          }
+          else -> {}
+        }
       }
       downloadCompletes.putAll(store.getAllCompletes())
-      downloadCompletes.onChange {
-        debugDownload(
-          "DownloadController",
-          "complete add=${it.adds.size}, del=${it.removes.size}, upd=${it.updates.size}"
-        )
-        it.adds.forEach { key -> store.setComplete(key, it.origin[key]!!) }
-        it.removes.forEach { key -> store.deleteComplete(key) }
-        it.updates.forEach { key -> store.setComplete(key, it.origin[key]!!) }
+      downloadCompletes.onChange { (type, key, value) ->
+        debugDownload("DownloadController", "complete type=$type, key=$key")
+        when(type) {
+          ChangeableType.Add -> {
+            value?.let { downloadTask -> store.setComplete(downloadTask.id, downloadTask) }
+          }
+          ChangeableType.Remove -> {
+            value?.let { downloadTask -> store.deleteComplete(downloadTask.id) }
+          }
+          else -> {}
+        }
       }
     }
   }
@@ -176,11 +187,11 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       originUrl = params.originUrl,
       completeCallbackUrl = params.completeCallbackUrl,
       mime = "application/octet-stream",
-      filepath = createFilePath(params.url),
+      filepath = fileCreateByPath(params.url),
       status = DownloadStateEvent(total = params.total)
     )
     recover(task, 0L)
-    downloadManagers[task.id] = task
+    downloadManagers.put(task.id, task)
     debugDownload("初始化成功！", "${task.id} -> $task")
     return task
   }
@@ -214,20 +225,6 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     }
   }
 
-  /**
-   * 创建不重复的文件
-   */
-  private suspend fun createFilePath(url: String): String {
-    var index = 0
-    var path: String
-    val fileName = url.substring(url.lastIndexOf("/") + 1)
-    do {
-      path = "/data/download/${index++}_${fileName}"
-      val boolean = exist(path)
-    } while (boolean)
-    return path
-  }
-
   private fun mimeFactory(header: IpcHeaders, filePath: String): String {
     // 先从header判断
     val contentType = header.get("Content-Type")
@@ -242,17 +239,31 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     return "application/octet-stream"
   }
 
-  suspend fun exist(path: String): Boolean {
+  /**
+   * 创建不重复的文件
+   */
+  private suspend fun fileCreateByPath(url: String): String {
+    var index = 0
+    var path: String
+    val fileName = url.substring(url.lastIndexOf("/") + 1)
+    do {
+      path = "/data/download/${index++}_${fileName}"
+      val boolean = fileExists(path)
+    } while (boolean)
+    return path
+  }
+
+  private suspend fun fileExists(path: String): Boolean {
     val response = downloadNMM.nativeFetch("file://file.std.dweb/exist?path=$path")
     return response.boolean()
   }
 
-  private suspend fun info(path: String): FileMetadata {
+  private suspend fun fileInfo(path: String): FileMetadata {
     val response = downloadNMM.nativeFetch("file://file.std.dweb/info?path=$path")
     return Json.decodeFromString(response.text())
   }
 
-  suspend fun remove(filepath: String): Boolean {
+  private suspend fun fileRemove(filepath: String): Boolean {
     return downloadNMM.nativeFetch(
       PureRequest(
         "file://file.std.dweb/remove?path=${filepath}&recursive=true", IpcMethod.DELETE
@@ -261,7 +272,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   }
 
   //  追加写入文件，断点续传
-  private suspend fun appendFile(task: DownloadTask, stream: ByteReadChannel) {
+  private suspend fun fileAppend(task: DownloadTask, stream: ByteReadChannel) {
     downloadNMM.nativeFetch(
       PureRequest(
         "file://file.std.dweb/append?path=${task.filepath}&create=true",
@@ -272,9 +283,19 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   }
 
   /**
+   * 启动
+   */
+  suspend fun startDownload(task: DownloadTask) = if (task.pauseFlag) { // 表示只是短暂的暂停，不用从内存中恢复
+    task.paused.resolve(Unit)
+    true
+  } else { // 触发断点逻辑
+    downloadFactory(task)
+  }
+
+  /**
    * 暂停⏸️
    */
-  suspend fun pause(task: DownloadTask) {
+  suspend fun pauseDownload(task: DownloadTask) {
     // 暂停并不会删除文件
     task.status.state = DownloadState.Paused
     task.pauseFlag = true
@@ -284,26 +305,37 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   /**
    * 取消下载
    */
-  suspend fun cancel(task: DownloadTask) {
+  suspend fun cancelDownload(taskId: TaskId) = downloadManagers.get(taskId)?.let { downloadTask ->
     // 如果有文件,直接删除
-    if (exist(task.filepath)) {
-      remove(task.filepath)
+    if (fileExists(downloadTask.filepath)) {
+      fileRemove(downloadTask.filepath)
     }
     // 修改状态
-    task.status.state = DownloadState.Canceled
-    task.status.current = 0L
-    task.readChannel?.cancel()
-    task.readChannel = null
-    store.set(task.id, task) // 保存到文件
+    downloadTask.status.state = DownloadState.Canceled
+    downloadTask.status.current = 0L
+    downloadTask.readChannel?.cancel()
+    downloadTask.readChannel = null
+    downloadManagers.remove(downloadTask.id)?.let {
+      downloadCompletes.set(downloadTask.id, downloadTask)
+    }
+    true
+  } ?: false
+
+  suspend fun removeDownload(taskId: TaskId) {
+    downloadManagers.remove(taskId)?.let { downloadTask ->
+      downloadTask.readChannel?.cancel()
+      downloadTask.readChannel = null
+    }
+    downloadCompletes.remove(taskId) // 移除任务只要taskId对，就可以移除
   }
 
   /**
    * 执行下载任务 ,可能是断点下载
    */
   suspend fun downloadFactory(task: DownloadTask): Boolean {
-    if (exist(task.filepath)) {
+    if (fileExists(task.filepath)) {
       // 已经存在了，并且对方支持range 从断点开始
-      val current = info(task.filepath).size
+      val current = fileInfo(task.filepath).size
       debugDownload("downloadFactory", "是否支持range:$current")
 
       // 已经存在并且下载完成
@@ -321,7 +353,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     val stream = task.readChannel ?: return false
     debugDownload("downloadFactory", task.id)
     val buffer = middleware(task, stream)
-    appendFile(task, buffer)
+    fileAppend(task, buffer)
     return true
   }
 
@@ -333,10 +365,10 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     downloadTask.status.state = DownloadState.Downloading
     val taskId = downloadTask.id
     // 重要记录点 存储到硬盘
-    downloadManagers[taskId] = downloadTask
+    downloadManagers.set(taskId, downloadTask)
     downloadNMM.ioAsyncScope.launch {
       debugDownload("middleware", "id:$taskId current:${downloadTask.status.current}")
-      emitDownloadTask(downloadTask)
+      downloadTask.downloadSignal.emit(downloadTask)
       try {
         input.consumeEachArrayRange { byteArray, last ->
           // 处理是否暂停
@@ -346,23 +378,23 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
             downloadTask.status.state = DownloadState.Canceled
             // 触发取消 存储到硬盘
             input.cancel()
-            emitDownloadTask(downloadTask)
+            downloadTask.downloadSignal.emit(downloadTask)
             downloadManagers.remove(taskId)?.let {
-              downloadCompletes[taskId] = it
+              downloadCompletes.set(taskId, it)
             }
           } else if (last) {
             output.close()
             input.cancel()
             downloadTask.status.state = DownloadState.Completed
             // 触发完成 存储到硬盘
-            emitDownloadTask(downloadTask)
+            downloadTask.downloadSignal.emit(downloadTask)
             downloadManagers.remove(taskId)?.let {
-              downloadCompletes[taskId] = it
+              downloadCompletes.set(taskId, it)
             }
           } else {
             downloadTask.status.current += byteArray.size
             // 触发进度更新
-            emitDownloadTask(downloadTask)
+            downloadTask.downloadSignal.emit(downloadTask)
             output.writePacket(ByteReadPacket(byteArray))
           }
         }
@@ -371,15 +403,10 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
         debugDownload("middleware", "${e.message}")
         downloadTask.status.state = DownloadState.Failed
         // 触发失败
-        emitDownloadTask(downloadTask)
+        downloadTask.downloadSignal.emit(downloadTask)
       }
     }
     return output
-  }
-
-  private suspend fun emitDownloadTask(downloadTask: DownloadTask) {
-    downloadTask.downloadSignal.emit(downloadTask)
-    store.set(downloadTask.id, downloadTask) // 随时保存状态到文件
   }
 
   /**

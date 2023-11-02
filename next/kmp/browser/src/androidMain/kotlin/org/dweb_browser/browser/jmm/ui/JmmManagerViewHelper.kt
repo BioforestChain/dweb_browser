@@ -112,7 +112,7 @@ class JmmManagerViewHelper(
     } else if (controller.hasInstallApp()) {
       uiState.downloadStatus.value = JmmStatus.INSTALLED
     } else {
-      null
+      uiState.downloadStatus.value = JmmStatus.Init
     }
   }
 }

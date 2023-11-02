@@ -2,16 +2,8 @@ package org.dweb_browser.browser.web
 
 import android.content.Context
 import android.graphics.Bitmap
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Text
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -31,8 +23,6 @@ import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.windowInstancesManager
-import org.dweb_browser.sys.window.ext.createAlert
-import org.dweb_browser.sys.window.ext.createBottomSheets
 
 class BrowserController(
   private val browserNMM: BrowserNMM, private val browserServer: HttpDwebServer

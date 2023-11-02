@@ -43,6 +43,7 @@ kotlin {
         implementation(libs.test.kotlin.coroutines.test)
         implementation(libs.test.kotlin.coroutines.debug)
         implementation(libs.kotlinx.atomicfu)
+        implementation(libs.kotlinx.io)
       }
     }
     val androidMain by getting {

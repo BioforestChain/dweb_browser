@@ -14,6 +14,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -49,8 +51,8 @@ fun DownloadTabView() {
   val viewModel = LocalDownloadModel.current
   val downloadTab = viewModel.tabItems[viewModel.tabIndex.value]
   val list = when (downloadTab) {
-    DownloadTab.Downloads -> viewModel.downloadController.downloadManagers
-    DownloadTab.Files -> viewModel.downloadController.downloadCompletes
+    DownloadTab.Downloads -> viewModel.downloadController.downloadManagers.cMaps
+    DownloadTab.Files -> viewModel.downloadController.downloadCompletes.cMaps
   }
   if (list.isEmpty()) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -60,9 +62,9 @@ fun DownloadTabView() {
   }
 
   LazyColumn {
-    list.forEach { downloadItem ->
-      item(downloadItem.key) {
-        DownloadItem(downloadItem.value, downloadTab)
+    list.forEach { (_, downloadTask) ->
+      item(downloadTask.id) {
+        DownloadItem(downloadTask, downloadTab)
         Spacer(
           Modifier
             .height(1.dp)
