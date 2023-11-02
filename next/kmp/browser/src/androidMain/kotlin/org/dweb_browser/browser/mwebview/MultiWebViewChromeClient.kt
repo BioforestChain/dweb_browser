@@ -85,7 +85,7 @@ class MultiWebViewChromeClient(
   //#endregion
 
   //#region NewWindow & CloseWatcher
-  val closeWatcherController = CloseWatcher(viewItem)
+  val closeWatcherController = CloseWatcher(viewItem.webView)
 
   override fun onCreateWindow(
     view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message

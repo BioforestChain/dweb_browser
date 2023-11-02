@@ -28,6 +28,11 @@ interface IDWebView {
   fun evalAsyncJavascript(code: String): Deferred<String>
 }
 
+interface IDWebViewEngine {
+  fun evaluateJavascriptSync(script: String)
+  suspend fun evaluateJavascriptAsync(script: String, afterEval: suspend () -> Unit = {})
+}
+
 interface IMessageChannel {
   val port1: IMessagePort
   val port2: IMessagePort
