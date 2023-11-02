@@ -21,6 +21,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.BootstrapContext
@@ -39,6 +41,7 @@ import org.dweb_browser.core.std.permission.permissionStdProtocol
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
@@ -48,7 +51,7 @@ import org.dweb_browser.sys.window.render.AppIcon
 class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Management") {
   init {
     short_name = "Permission";
-    dweb_deeplinks = listOf("dweb://install")
+    dweb_protocols = listOf("permission.std.dweb")
     categories = listOf(
       MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,
@@ -70,16 +73,17 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
           bootstrapContext.dns.query(permission.providerMmid)?.let { permission to it }
         }.toMap()
         val resultMap = mutableMapOf<PermissionProvider, Boolean>()
+        val checkedMap = mutableMapOf<PermissionProvider, MutableState<Boolean>>()
         val submitDeferred = CompletableDeferred<Unit>()
 
         val modal = createBottomSheets(
           title = "${applicant.name} 申请权限", iconUrl = "file:///sys/icons/$mmid.svg"
         ) {
           Card(elevation = CardDefaults.cardElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp, 0.dp)) {
-            Column {
+            Column(verticalArrangement = Arrangement.Center) {
               Box(Modifier.size(32.dp)) {
                 val applicantIcon = remember {
-                  applicant.icons.pickLargest()
+                  applicant.icons.toStrict().pickLargest()
                 }
                 when (applicantIcon) {
                   null -> Text(applicant.short_name)
@@ -92,11 +96,17 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
               for ((permission, module) in permissionModuleMap) {
                 ListItem(leadingContent = {
                   BadgedBox(badge = {
-                    permission.badge?.also {
+                    val badgeIcon = remember {
+                      permission.badges.pickLargest()
+                    }
+                    badgeIcon?.also {
                       AppIcon(iconResource = it, Modifier.size(6.dp))
                     }
                   }) {
-                    when (val providerIcon = module.icons.pickLargest()) {
+                    val providerIcon = remember {
+                      module.icons.toStrict().pickLargest()
+                    }
+                    when (providerIcon) {
                       null -> Image(
                         imageVector = Icons.Rounded.Info, contentDescription = module.name
                       )
@@ -115,8 +125,9 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                   },
                   trailingContent = {
                     var checked by remember {
-                      resultMap[permission] = true
-                      mutableStateOf(true)
+                      checkedMap.getOrPut(permission) {
+                        mutableStateOf(true)
+                      }
                     }
                     val icon: (@Composable () -> Unit)? = if (checked) {
                       @Composable {
@@ -127,17 +138,15 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                         )
                       }
                     } else null
-
                     Switch(checked = checked, onCheckedChange = {
                       checked = it
-                      resultMap[permission] = it
                     }, thumbContent = icon)
                   })
               }
               HorizontalDivider()
               Row(horizontalArrangement = Arrangement.SpaceBetween) {
                 Button(onClick = {
-                  for (permission in permissionModuleMap.keys) {
+                  for (permission in checkedMap.keys) {
                     resultMap[permission] = false
                   }
                   submitDeferred.complete(Unit)
@@ -146,13 +155,16 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                 }
 
                 Button(onClick = {
+                  for ((permission, state) in checkedMap) {
+                    resultMap[permission] = state.value
+                  }
                   submitDeferred.complete(Unit)
                 }) {
                   Text(text = "确定")
                 }
 
                 ElevatedButton(onClick = {
-                  for (permission in permissionModuleMap.keys) {
+                  for (permission in checkedMap.keys) {
                     resultMap[permission] = true
                   }
                   submitDeferred.complete(Unit)
@@ -163,10 +175,15 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
             }
           }
         }
+        submitDeferred.invokeOnCompletion {
+          ioAsyncScope.launch {
+            modal.close()
+          }
+        }
         // 等待关闭
+        modal.open()
         modal.onClose.awaitOnce()
         modal.destroy()
-        submitDeferred.await()
         return resultMap.mapValues { it.key.getAuthorizationRecord(it.value, applicantMmid) }
       }
     }

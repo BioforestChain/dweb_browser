@@ -12,6 +12,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.sys.window.core.CloseAlertModalCallback
 import org.dweb_browser.sys.window.core.CloseModalCallback
+import org.dweb_browser.sys.window.core.DestroyModalCallback
 import org.dweb_browser.sys.window.core.ModalCallback
 import org.dweb_browser.sys.window.core.ModalState
 import org.dweb_browser.sys.window.core.OpenModalCallback
@@ -58,8 +59,8 @@ sealed class WindowModalController(
           WindowModalState.OPEN -> onOpenSignal.emit(Unit)
           WindowModalState.CLOSE -> onCloseSignal.emit(Unit)
           WindowModalState.DESTROY -> {
-            onDestroySignal.emitAndClear(Unit)
-            onCloseSignal.clear()
+            onCloseSignal.emitAndClear()
+            onDestroySignal.emitAndClear()
             onOpenSignal.clear()
           }
 
@@ -74,6 +75,7 @@ sealed class WindowModalController(
         is CloseAlertModalCallback -> WindowModalState.CLOSE
         is CloseModalCallback -> WindowModalState.CLOSE
         is OpenModalCallback -> WindowModalState.OPEN
+        is DestroyModalCallback -> WindowModalState.DESTROY
       }
     }.launchIn(mm.ioAsyncScope)
   }

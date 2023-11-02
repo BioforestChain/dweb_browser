@@ -126,8 +126,20 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
   private suspend fun openInstallerView(
     jmmAppInstallManifest: JmmAppInstallManifest, originUrl: String, store: JmmStore
   ) {
-    if (!jmmAppInstallManifest.bundle_url.let { it.isUrl() }) {
-      jmmAppInstallManifest.bundle_url = URLBuilder(originUrl).run {
+    val baseURI = when (jmmAppInstallManifest.baseURI?.isUrl()) {
+      true -> jmmAppInstallManifest.baseURI!!
+      else -> when (val baseUri = jmmAppInstallManifest.baseURI) {
+        null -> originUrl
+        else -> URLBuilder(originUrl).run {
+          resolvePath(baseUri)
+          buildString()
+        }
+      }.also {
+        jmmAppInstallManifest.baseURI = it
+      }
+    }
+    if (!jmmAppInstallManifest.bundle_url.isUrl()) {
+      jmmAppInstallManifest.bundle_url = URLBuilder(baseURI).run {
         resolvePath(jmmAppInstallManifest.bundle_url)
         buildString()
       }
@@ -172,7 +184,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
               )
             }
 
-            else -> null
+            else -> {}
           }
         }
       }

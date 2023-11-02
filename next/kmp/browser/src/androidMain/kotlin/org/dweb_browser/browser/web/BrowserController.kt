@@ -25,7 +25,7 @@ import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.windowInstancesManager
 
 class BrowserController(
-  private val browserNMM: BrowserNMM, private val browserServer: HttpDwebServer
+  val browserNMM: BrowserNMM, private val browserServer: HttpDwebServer
 ) {
   private val browserStore = BrowserStore(browserNMM)
 
@@ -130,7 +130,7 @@ class BrowserController(
   suspend fun addUrlToDesktop(context: Context, title: String, url: String, icon: Bitmap?) {
     // 由于已经放弃了DataStore，所有这边改为直接走WebLinkStore
     val linkId = WebLinkManifest.createLinkId(url)
-    val icons = icon?.let { WebLinkManifest.bitmapToImageResource(context, it) }?.let {listOf(it) }
+    val icons = icon?.let { WebLinkManifest.bitmapToImageResource(context, it) }?.let { listOf(it) }
       ?: emptyList()
     val webLinkManifest = WebLinkManifest(id = linkId, title = title, url = url, icons = icons)
     addWebLinkSignal.emit(webLinkManifest)

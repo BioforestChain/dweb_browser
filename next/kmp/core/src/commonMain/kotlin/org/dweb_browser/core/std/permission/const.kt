@@ -24,8 +24,7 @@ data class AuthorizationRecord(
   /**
    * 权限申请者
    */
-  @SerialName("mmid")
-  val applicantMmid: MMID,
+  @SerialName("mmid") val applicantMmid: MMID,
   /**
    * 记录的过期时间
    *
@@ -47,7 +46,7 @@ data class AuthorizationRecord(
   /**
    * 权限提供者
    */
-  val providerMmid get() = pid.split('/', limit = 1)[0]
+  val providerMmid by lazy { pid.split('/', limit = 2)[0] }
   val safeStatus
     get() = if (expirationTime < 0L || expirationTime > datetimeNow()) status else
     // 如果已经过期，返回 unknown
@@ -60,8 +59,11 @@ object AuthorizationStatusSerializer : StringEnumSerializer<AuthorizationStatus>
   { status })
 
 @Serializable(AuthorizationStatusSerializer::class)
-enum class AuthorizationStatus(val status: String) {
-  UNKNOWN("unknown"), DENIED("denied"), GRANTED("granted"), ;
+enum class AuthorizationStatus(val status: String, val allow: Boolean) {
+  UNKNOWN("unknown", false),//
+  DENIED("denied", true),//
+  GRANTED("granted", false),//
+  ;
 
   companion object {
     val ALL_VALUES = entries.associateBy { it.status }

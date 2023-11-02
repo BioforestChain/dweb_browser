@@ -21,14 +21,19 @@ import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.sys.boot.BootNMM
 import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
+import org.dweb_browser.sys.permission.PermissionApplicantTMM
+import org.dweb_browser.sys.permission.PermissionNMM
+import org.dweb_browser.sys.permission.PermissionProviderTNN
 
 suspend fun startDwebBrowser(): DnsNMM {
   /**
@@ -64,10 +69,15 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 初始化DNS服务
   val dnsNMM = DnsNMM()
+  suspend fun MicroModule.setup() = this.also {
+    dnsNMM.install(this)
+  }
+
+  val permissionsNMM = PermissionNMM().setup()
 
   /// 安装系统应用
-  val jsProcessNMM = JsProcessNMM().also { dnsNMM.install(it) }
-  val multiWebViewNMM = MultiWebViewNMM().also { dnsNMM.install(it) }
+  val jsProcessNMM = JsProcessNMM().setup()
+  val multiWebViewNMM = MultiWebViewNMM().setup()
   val httpNMM = HttpNMM().also { it ->
     dnsNMM.install(it)
     /// 自定义 httpClient 的缓存
@@ -82,57 +92,58 @@ suspend fun startDwebBrowser(): DnsNMM {
   }
 
   /// 安装系统桌面
-  val browserNMM = BrowserNMM().also { dnsNMM.install(it) }
+  val browserNMM = BrowserNMM().setup()
 
   /// 下载功能
-  val downloadNMM = DownloadNMM().also { dnsNMM.install(it) }
-  val zipNMM = ZipNMM().also { dnsNMM.install(it) }
+  val downloadNMM = DownloadNMM().setup()
+  val zipNMM = ZipNMM().setup()
 
   /// 扫码
   val scannerNMM = info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM()
-    .also { dnsNMM.install(it) }
+    .setup()
   ///安装剪切板
-  val clipboardNMM = ClipboardNMM().also { dnsNMM.install(it) }
+  val clipboardNMM = ClipboardNMM().setup()
   ///设备信息
-  val deviceNMM = DeviceNMM().also { dnsNMM.install(it) }
-  val configNMM = ConfigNMM().also { dnsNMM.install(it) }
+  val deviceNMM = DeviceNMM().setup()
+  val configNMM = ConfigNMM().setup()
   ///位置
-//  val locationNMM = LocationNMM().also { dnsNMM.install(it) }
+//  val locationNMM = LocationNMM().setup()
 //    /// 蓝牙
-//    val bluetoothNMM = BluetoothNMM().also { dnsNMM.install(it) }
+//    val bluetoothNMM = BluetoothNMM().setup()
 //    ///权限
-  val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
+  val permissionNMM = PermissionsNMM().setup()
   ///文件系统
-  val fileSystemNMM = FileSystemNMM().also { dnsNMM.install(it) }
+  val fileSystemNMM = FileSystemNMM().setup()
   // 标准文件模块
-  val fileNMM = FileNMM().also { dnsNMM.install(it) }
+  val fileNMM = FileNMM().setup()
   /// NFC
-//  val nfcNMM = NfcNMM().also { dnsNMM.install(it) }
+//  val nfcNMM = NfcNMM().setup()
   /// 通知
-  val notificationNMM = NotificationNMM().also { dnsNMM.install(it) }
+  val notificationNMM = NotificationNMM().setup()
   /// 弹窗
-  val toastNMM = ToastNMM().also { dnsNMM.install(it) }
+  val toastNMM = ToastNMM().setup()
   /// 分享
-  val shareNMM = ShareNMM().also { dnsNMM.install(it) }
+  val shareNMM = ShareNMM().setup()
   /// 振动效果
-  val hapticsNMM = HapticsNMM().also { dnsNMM.install(it) }
+  val hapticsNMM = HapticsNMM().setup()
   /// 手电筒
   val torchNMM = TorchNMM().also() { dnsNMM.install(it) }
   /// 生物识别
-  val biometricsNMM = BiometricsNMM().also { dnsNMM.install(it) }
+  val biometricsNMM = BiometricsNMM().setup()
   /// 运动传感器
-  val motionSensorsNMM = MotionSensorsNMM().also { dnsNMM.install(it) }
+  val motionSensorsNMM = MotionSensorsNMM().setup()
 
   /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
-  val nativeUiNMM = org.dweb_browser.browser.nativeui.NativeUiNMM().also { dnsNMM.install(it) }
+  val nativeUiNMM = org.dweb_browser.browser.nativeui.NativeUiNMM().setup()
 
   /// 安装Jmm
-  val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
-  val deskNMM = DeskNMM().also { dnsNMM.install(it) }
+  val jmmNMM = JmmNMM().setup()
+  val deskNMM = DeskNMM().setup()
 
   /// 启动程序
   val bootNMM = BootNMM(
     listOf(
+      permissionsNMM.mmid,// 权限管理
       fileNMM.mmid,//
       jmmNMM.mmid,//
       httpNMM.mmid,//
@@ -141,7 +152,12 @@ suspend fun startDwebBrowser(): DnsNMM {
       deskNMM.mmid,//
       browserNMM.mmid // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
     ),
-  ).also { dnsNMM.install(it) }
+  ).setup()
+
+  if (debugTest.isEnable) {
+    PermissionProviderTNN().setup()
+    PermissionApplicantTMM().setup()
+  }
 
   /// 启动Web调试
   WebView.setWebContentsDebuggingEnabled(true)

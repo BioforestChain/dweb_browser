@@ -13,7 +13,7 @@ interface DnsMicroModule {
   /**
    * 动态安装应用
    */
-  fun install(mm: MicroModule)
+  suspend fun install(mm: MicroModule)
 
   /**
    * 动态卸载应用

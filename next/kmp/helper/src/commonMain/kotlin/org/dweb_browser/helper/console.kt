@@ -3,10 +3,9 @@ package org.dweb_browser.helper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -160,4 +159,13 @@ class Debugger(val scope: String) {
   operator fun invoke(tag: String, msg: Any = "", err: Throwable? = null) {
     printDebug(scope, tag, msg, err)
   }
+
+  val isEnable
+    get() = debugTags.contains(scope) || debugTagsRegex.firstOrNull { regex ->
+      regex.matches(
+        scope
+      )
+    } != null
 }
+
+val debugTest = Debugger("test")

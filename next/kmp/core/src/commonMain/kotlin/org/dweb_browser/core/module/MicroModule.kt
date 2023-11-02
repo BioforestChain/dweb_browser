@@ -12,6 +12,7 @@ import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
@@ -53,6 +54,13 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       _scope = getModuleCoroutineScope()
     }
   }
+
+
+  /**
+   * 获取权限提供器，这需要在bootstrap之前就能提供
+   * 因为 dweb_permissions 字段并不难直接使用，所以需要模块对其数据进行加工处理，从而确保数据合法与安全
+   */
+  abstract suspend fun getSafeDwebPermissionProviders(): List<PermissionProvider>
 
   private var _bootstrapContext: BootstrapContext? = null
   val bootstrapContext get() = _bootstrapContext ?: throw Exception("module no run.")

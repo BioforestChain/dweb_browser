@@ -30,13 +30,13 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.connectMicroModules
 import org.dweb_browser.core.std.dns.ext.createActivity
+import org.dweb_browser.core.std.permission.permissionAdapterManager
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
-import kotlin.jvm.JvmInline
 
 val debugDNS = Debugger("dns")
 
@@ -162,7 +162,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   class MyDnsMicroModule(private val dnsMM: DnsNMM, private val fromMM: MicroModule) :
     DnsMicroModule {
-    override fun install(mm: MicroModule) {
+    override suspend fun install(mm: MicroModule) {
       // TODO 作用域保护
       dnsMM.install(mm)
     }
@@ -317,11 +317,14 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   /** 安装应用 */
-  fun install(mm: MicroModule) {
+  suspend fun install(mm: MicroModule) {
     allApps[mm.mmid] = mm
     addInstallApps(mm.mmid, mm)
     for (protocol in mm.dweb_protocols) {
       addInstallApps(protocol, mm)
+    }
+    for (provider in mm.getSafeDwebPermissionProviders()) {
+      permissionAdapterManager.append(adapter = provider)
     }
   }
 

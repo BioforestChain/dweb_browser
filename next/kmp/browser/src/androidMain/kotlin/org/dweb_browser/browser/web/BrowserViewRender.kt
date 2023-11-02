@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.web
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import io.ktor.http.Url
@@ -32,7 +31,5 @@ fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowRender
     }
   }
 
-  Box(modifier = modifier) {
-    BrowserViewForWindow(controller.viewModel, modifier, windowRenderScope)
-  }
+  BrowserViewForWindow(controller.viewModel, modifier, windowRenderScope)
 }

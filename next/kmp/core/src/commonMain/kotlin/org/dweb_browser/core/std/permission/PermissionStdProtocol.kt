@@ -1,85 +1,18 @@
 package org.dweb_browser.core.std.permission
 
 import io.ktor.http.HttpMethod
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.core.help.types.MMID
+import io.ktor.http.HttpStatusCode
+import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.file.ext.createStore
+import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.core.std.permission.ext.requestPermission
 import org.dweb_browser.helper.ReasonLock
+import org.dweb_browser.helper.some
 import org.dweb_browser.helper.toJsonElement
-
-/**
- * 权限表
- * 该表中有两个索引： mmid 和 permissionId
- */
-class PermissionTable(private val nmm: NativeMicroModule) {
-  /**
-   * 认证记录
-   *
-   * 这里跟着 PERMISSION_ID 走，应用在被卸载的时候，它对别人的授权记录会被删除，但是别人对它的授权记录还是保留
-   */
-  private val store = nmm.createStore("authorization", true)
-  private val authorizationMap = mutableMapOf<PERMISSION_ID, MutableMap<
-      /** applicantMmid */
-      MMID, AuthorizationRecord>>()
-
-  private suspend fun queryMicroModule(mmid: MMID) = nmm.bootstrapContext.dns.query(mmid)
-
-  private val lock = Mutex(true)
-
-  init {
-    nmm.ioAsyncScope.launch {
-      for ((pid, recordMap) in store.getAll<MutableMap<MMID, AuthorizationRecord>>()) {
-        authorizationMap[pid] = recordMap
-      }
-      lock.unlock()
-    }
-  }
-
-  suspend fun addRecord(record: AuthorizationRecord) = lock.withLock {
-    val recordMap = authorizationMap.getOrPut(record.pid) { mutableMapOf() }
-    recordMap[record.applicantMmid] = record
-    store.set(record.pid, recordMap)
-  }
-
-  suspend fun removeRecord(providerMmid: MMID, pid: PERMISSION_ID, applicantMmid: MMID) =
-    lock.withLock {
-      val recordMap = authorizationMap[pid] ?: return@withLock false
-      val record = recordMap[applicantMmid] ?: return@withLock false
-      if (record.providerMmid != providerMmid) {
-        return@withLock false
-      }
-      recordMap.remove(pid)
-
-      if (recordMap.isEmpty()) {
-        store.delete(pid)
-      } else {
-        store.set(pid, recordMap)
-      }
-      true
-    }
-
-  /**
-   * 查询权限的授权情况
-   */
-  suspend fun query(providerMmid: MMID, pid: PERMISSION_ID) = lock.withLock {
-    authorizationMap[pid]?.filter { it.value.providerMmid == providerMmid }
-      ?.mapValues { it.value.safeStatus } ?: mapOf()
-  }
-
-  /**
-   * 请求者 检查权限的状态
-   */
-  suspend fun check(applicantMmid: MMID, pid: PERMISSION_ID) = lock.withLock {
-    authorizationMap[pid]?.get(applicantMmid)?.safeStatus ?: AuthorizationStatus.UNKNOWN
-  }
-
-}
 
 interface PermissionHooks {
   suspend fun onRequestPermissions(
@@ -94,7 +27,53 @@ private inline fun <T> PureRequest.mapOfPermissions(valueSelector: (PERMISSION_I
  * 权限模块需要附着到原生模块上才能完整，这里只提供一些基本标准
  */
 suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): PermissionTable {
+  /**
+   * 权限注册表
+   */
   val permissionTable = PermissionTable(this)
+
+  nativeFetchAdaptersManager.append(100) { fromMM, request ->
+    if (request.url.protocol.name == "file" && request.url.host.endsWith(".dweb")
+      // 如果是提供者请求提供者，那么直接跳过，这里只处理客户请求提供者
+      && fromMM.mmid != request.url.host
+    ) {
+      for (adapter in permissionAdapterManager.adapters) {
+        if (
+        // 首先进行 host 判断
+          adapter.providerMmid == request.url.host &&
+          // 然后再进行路由判断
+          adapter.routes.some { request.href.startsWith(it) }
+        ) {
+          /// 首先进行查询
+          val authStatus = when (val authStatus = permissionTable.query(
+            adapter.providerMmid, adapter.pid
+          )[fromMM.mmid]) {
+            AuthorizationStatus.UNKNOWN, null ->
+              /// 根据查询结果，尝试直接帮它进行权限申请，如果可以的话
+              if (fromMM is NativeMicroModule) fromMM.requestPermission(adapter.pid)
+              else AuthorizationStatus.UNKNOWN
+
+            else -> authStatus
+          }
+
+          return@append if (AuthorizationStatus.GRANTED == authStatus)
+          // 授权成功，直接返回null，让路由接着往下走
+            null
+          // 否则返回未认证的异常
+          else PureResponse(
+            HttpStatusCode.Forbidden,
+            body = IPureBody.from("Insufficient permissions: ${authStatus.status}")
+          )
+        }
+      }
+
+      null
+    } else null
+  }
+
+  /**
+   * 请求锁
+   */
   val requestsLock = ReasonLock()
   protocol("permission.std.dweb") {
     routes(
@@ -175,11 +154,5 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
     )
   }
 
-  permissionAdapterManager.onChange {
-
-  }
-  for (permissionProvider in permissionAdapterManager.adapters) {
-//    permissionTable.
-  }
   return permissionTable
 }

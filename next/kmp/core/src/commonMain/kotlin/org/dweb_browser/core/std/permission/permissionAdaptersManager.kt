@@ -1,9 +1,14 @@
 package org.dweb_browser.core.std.permission
 
+import io.ktor.http.URLBuilder
+import io.ktor.http.encodedPath
 import org.dweb_browser.core.help.AdapterManager
+import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.StrictImageResource
+import org.dweb_browser.helper.buildUnsafeString
+import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.datetimeNow
 
@@ -13,7 +18,10 @@ import org.dweb_browser.helper.datetimeNow
  * 一般来说，如果一个模块声明了类型是 Service
  */
 class PermissionProvider(
-  val module: MicroModule,
+  /**
+   * 权限提供者
+   */
+  val providerModule: MicroModule,
   /**
    * 权限的唯一标识
    */
@@ -22,12 +30,14 @@ class PermissionProvider(
    * 权限捕捉的路由，比如：
    * file://gaubee.com.dweb/info
    *
+   * 这里的 routes 是根据规则已经处理过的，可以直接用 startsWith 来匹配使用
+   *
    */
   val routes: List<String>,
   /**
    * 徽章
    */
-  val badge: StrictImageResource? = null,
+  val badges: List<StrictImageResource>,
   /**
    * 权限标题，可以理解成短语，用户在熟悉详情后，可以通过识别短语来快速判断申请的权限信息
    */
@@ -40,7 +50,7 @@ class PermissionProvider(
   /**
    * 权限提供者
    */
-  val providerMmid get() = pid.split('/', limit = 1)[0]
+  val providerMmid get() = providerModule.mmid
 
   fun getAuthorizationRecord(granted: Boolean, applicantMmid: MMID) = when (granted) {
     true -> AuthorizationRecord(
@@ -58,6 +68,41 @@ class PermissionProvider(
     )
   }
 
+  companion object {
+    fun DwebPermission.toProvider(providerModule: MicroModule, baseUrl: String? = null) =
+      from(providerModule, this, baseUrl)
+
+    fun from(
+      providerModule: MicroModule, permission: DwebPermission, baseUrl: String? = null
+    ): PermissionProvider? {
+      val pid = permission.pid ?: providerModule.mmid
+      if (!(pid == providerModule.mmid || pid.startsWith("${providerModule.mmid}/"))) {
+        return null
+      }
+      val routes = permission.routes.mapNotNull {
+        URLBuilder(it).run {
+          if (host != providerModule.mmid) {
+            return@run null
+          }
+          if (encodedPath.isEmpty()) {
+            encodedPath = "/"
+          }
+          buildUnsafeString()
+        }
+      }
+      if (routes.isEmpty()) {
+        return null
+      }
+      return PermissionProvider(
+        providerModule = providerModule,
+        pid = pid,
+        routes = routes,
+        badges = permission.badges.map { StrictImageResource.from(it, baseUrl) },
+        title = SimpleI18nResource(Language.current to (permission.title ?: providerModule.name)),
+        description = permission.description?.let { SimpleI18nResource(Language.current to it) },
+      )
+    }
+  }
 }
 
 /**

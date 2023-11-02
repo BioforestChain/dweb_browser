@@ -22,7 +22,7 @@ fun setWindowStateFromAppManifest(windowState: WindowState, manifest: ICommonApp
   /**
    * 挑选合适的图标作为应用的图标
    */
-  val iconResource = manifest.icons.pickLargest()
+  val iconResource = manifest.icons.toStrict().pickLargest()
   if (iconResource != null) {
     windowState.iconUrl = iconResource.src
     windowState.iconMaskable = iconResource.purpose.contains(ImageResourcePurposes.Maskable)
@@ -51,17 +51,20 @@ private val comparableBuilder =
     )
   }
 
+fun List<ImageResource>.toStrict(baseUri: String? = null) =
+  map { StrictImageResource.from(it, baseUri) }
+
 /**
  * 选择最大的图标
  */
-fun List<ImageResource>.pickLargest() =
-  minOfOrNull { comparableBuilder.build(StrictImageResource.from(it)) }?.value
+fun List<StrictImageResource>.pickLargest() =
+  minOfOrNull { comparableBuilder.build(it) }?.value
 
 /**
  * 选择最小的图标
  */
-fun List<ImageResource>.pickMinimal() =
-  maxOfOrNull { comparableBuilder.build(StrictImageResource.from(it)) }?.value
+fun List<StrictImageResource>.pickMinimal() =
+  maxOfOrNull { comparableBuilder.build(it) }?.value
 
 
 fun WindowState.setDefaultFloatWindowBounds(
