@@ -30,7 +30,9 @@ import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
+import org.dweb_browser.sys.window.ext.createRenderer
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
+import org.dweb_browser.sys.window.ext.openMainWindow
 
 /**
  * JS 模块安装 的 控制器
@@ -74,14 +76,15 @@ class JmmInstallerController(
   }
 
   suspend fun openApp(mmid: MMID) {
-    openLock.withLock {
+    jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
+    /*openLock.withLock {
       val (ipc) = jmmNMM.bootstrapContext.dns.connect(mmid)
       ipc.postMessage(IpcEvent.createActivity(""))
 
       val (deskIpc) = jmmNMM.bootstrapContext.dns.connect("desk.browser.dweb")
       debugJMM("openApp", "postMessage==>activity desk.browser.dweb")
       deskIpc.postMessage(IpcEvent.createActivity(""))
-    }
+    }*/
   }
 
   /**

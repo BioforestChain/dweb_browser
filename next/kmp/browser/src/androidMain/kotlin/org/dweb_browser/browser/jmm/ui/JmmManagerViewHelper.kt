@@ -60,11 +60,11 @@ class JmmManagerViewHelper(
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
 
   fun startDownload() = controller.ioAsyncScope.launch {
-    if (controller.downloadTaskId == null) {
-      val taskId = controller.createDownloadTask(
+    if (controller.downloadTaskId == null || uiState.downloadStatus.value != JmmStatus.Init) {
+      controller.downloadTaskId = controller.createDownloadTask(
         uiState.jmmAppInstallManifest.bundle_url, uiState.jmmAppInstallManifest.bundle_size
       )
-      watchProcess(taskId)
+      watchProcess(controller.downloadTaskId!!)
     }
     // 已经注册完监听了，开始
     controller.start()

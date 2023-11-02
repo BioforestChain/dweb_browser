@@ -108,7 +108,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     ipc: Ipc, desktopController: DesktopController
   ): WindowController {
     val appId = ipc.remote.mmid;
-    debugDesk("/openAppOrActivate", appId)
+    debugDesk("openOrActivateAppWindow", appId)
     try {
       /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
       val appMainWindow = getAppMainWindow(ipc)
@@ -189,6 +189,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       //
       "/openAppOrActivate" bind HttpMethod.Get to defineStringResponse {
         val mmid = request.query("app_id")
+        debugDesk("openAppOrActivate", "requestMMID=$mmid")
         // 内部接口，所以ipc通过connect获得
         openOrActivateAppWindow(connect(mmid, request), desktopController).id
       },
@@ -266,7 +267,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         taskBarController.taskbarView.toggleFloatWindow(
           request.queryOrNull("open")?.toBooleanStrictOrNull()
         )
-      }).private().cors()
+      }).protected(setOf("jmm.browser.dweb", mmid)).cors()
 
     onActivity {
       startDesktopView(deskSessionId)
