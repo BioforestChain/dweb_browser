@@ -4,7 +4,6 @@ import io.ktor.utils.io.cancel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -14,25 +13,25 @@ import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
 import org.dweb_browser.browser.jmm.ui.JmmStatus
+import org.dweb_browser.browser.jmm.ui.ManagerViewRender
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureString
-import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMethod
-import org.dweb_browser.core.std.dns.ext.createActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.sys.window.core.constant.WindowMode
+import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
+import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.createBottomSheets
-import org.dweb_browser.sys.window.ext.createRenderer
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
-import org.dweb_browser.sys.window.ext.openMainWindow
 
 /**
  * JS 模块安装 的 控制器
@@ -65,7 +64,14 @@ class JmmInstallerController(
 
   suspend fun openRender(hasNewVersion: Boolean) {
     /// 隐藏主窗口
-    jmmNMM.getOrOpenMainWindow().hide()
+    /// jmmNMM.getOrOpenMainWindow().hide()
+    with(jmmNMM.getOrOpenMainWindow()) {
+      state.mode = WindowMode.MAXIMIZE
+      state.setFromManifest(jmmNMM)
+      windowAdapterManager.provideRender(id) { modifier ->
+        ManagerViewRender(modifier, this)
+      }
+    }
     /// 显示抽屉
     val bottomSheets = getView()
     bottomSheets.open()
@@ -194,4 +200,6 @@ class JmmInstallerController(
   }
 
   fun hasInstallApp() = jmmNMM.bootstrapContext.dns.query(jmmAppInstallManifest.id) != null
+
+  val jmmMetadataList = jmmNMM.jmmMetadataList
 }
