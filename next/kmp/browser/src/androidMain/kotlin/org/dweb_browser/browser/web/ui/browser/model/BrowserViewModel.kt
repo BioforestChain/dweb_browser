@@ -338,7 +338,7 @@ class BrowserViewModel(
       coroutineScope = coroutineScope,
       navigator = navigator,
     )
-    val closeWatcherController = CloseWatcher(viewItem)
+    val closeWatcherController = CloseWatcher(viewItem.webView)
 
     viewItem.webView.webChromeClient = object : WebChromeClient() {
       override fun onCreateWindow(

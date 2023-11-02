@@ -228,31 +228,6 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
   fun toListener() = Listener(this)
 }
 
-class SignalResult<R> {
-  var result: R? = null
-  var hasResult: Boolean = false
-
-  /**
-   * 写入结果
-   */
-  fun complete(result: R) {
-    if(hasResult) return
-
-    this.result = result
-    hasResult = true
-    next()
-  }
-
-  /**
-   * 跳过处置，由下一个处理者接管
-   */
-  fun next() {
-    waiter.complete(Unit)
-  }
-
-  val waiter = CompletableDeferred<Unit>()
-}
-
 class SimpleSignal : Signal<Unit>() {
   suspend fun emit() {
     emit(Unit)

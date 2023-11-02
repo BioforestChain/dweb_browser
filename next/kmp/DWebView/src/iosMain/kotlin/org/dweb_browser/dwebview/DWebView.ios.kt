@@ -3,10 +3,10 @@ package org.dweb_browser.dwebview
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.getAndUpdate
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.cancel
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import platform.Foundation.NSArray
-import platform.Foundation.NSError
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
 
@@ -63,6 +63,7 @@ class DWebView(
 
   override suspend fun destroy() {
     loadUrl("about:blank", true)
+    engine.mainScope.cancel(null)
     engine.removeFromSuperview()
   }
 
@@ -111,72 +112,19 @@ class DWebView(
     engine.setContentScaleFactor(scale.toDouble())
   }
 
-  override fun evalAsyncJavascript(code: String): Deferred<String> {
-    val deferred = CompletableDeferred<String>()
-    engine.evaluateJavaScript(code) { result, error ->
-      if (error == null) {
-        deferred.complete(result as String)
-      } else {
-        deferred.completeExceptionally(Throwable(error.localizedDescription))
-      }
-    }
-
-    return deferred
-  }
+  override fun evalAsyncJavascript(code: String): Deferred<String> = engine.evalAsyncJavascript(code)
 
   fun <T> evalAsyncJavascript(
     code: String,
     wkFrameInfo: WKFrameInfo?,
     wkContentWorld: WKContentWorld
-  ): Deferred<T> {
-    val deferred = CompletableDeferred<T>()
-    engine.evaluateJavaScript(code, wkFrameInfo, wkContentWorld) { result, error ->
-      if (error == null) {
-        deferred.complete(result as T)
-      } else {
-        deferred.completeExceptionally(Throwable(error.localizedDescription))
-      }
-    }
-
-    return deferred
-  }
-
-  fun evaluateJavaScript(code: String, completionHandler: ((Any?, NSError?) -> Unit)?) =
-    engine.evaluateJavaScript(code, completionHandler)
-
-  fun evaluateJavaScript(
-    code: String,
-    wkFrameInfo: WKFrameInfo?,
-    wkContentWorld: WKContentWorld,
-    completionHandler: ((Any?, NSError?) -> Unit)?
-  ) = engine.evaluateJavaScript(code, wkFrameInfo, wkContentWorld, completionHandler)
-
-  fun callAsyncJavaScript(
-    functionBody: String,
-    arguments: Map<Any?, *>?,
-    inFrame: WKFrameInfo?,
-    inContentWorld: WKContentWorld,
-    completionHandler: ((Any?, NSError?) -> Unit)?
-  ) =
-    engine.callAsyncJavaScript(functionBody, arguments, inFrame, inContentWorld, completionHandler)
+  ): Deferred<T> = engine.evalAsyncJavascript(code, wkFrameInfo, wkContentWorld)
 
   fun <T> callAsyncJavaScript(
     functionBody: String,
     arguments: Map<Any?, *>?,
     inFrame: WKFrameInfo?,
     inContentWorld: WKContentWorld,
-  ) : Deferred<T> {
-    val deferred = CompletableDeferred<T>()
-
-    engine.callAsyncJavaScript(functionBody, arguments, inFrame, inContentWorld) { result, error ->
-      if(error == null) {
-        deferred.complete(result as T)
-      } else {
-        deferred.completeExceptionally(Throwable(error.localizedDescription))
-      }
-    }
-
-    return deferred
-  }
+  ) : Deferred<T> = engine.callAsyncJavaScript(functionBody, arguments, inFrame, inContentWorld)
 }
 

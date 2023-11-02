@@ -1,17 +1,13 @@
 package org.dweb_browser.dwebview.closeWatcher
 
-import android.annotation.SuppressLint
-import android.webkit.JavascriptInterface
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.dwebview.base.ViewItem
+import org.dweb_browser.dwebview.IDWebViewEngine
 import org.dweb_browser.helper.*
 
-@SuppressLint("JavascriptInterface")
-class CloseWatcher(val viewItem: ViewItem) {
+open class DCloseWatcher(open val engine: IDWebViewEngine) {
 
   companion object {
     val acc_id = atomic(1)
@@ -21,37 +17,7 @@ class CloseWatcher(val viewItem: ViewItem) {
   val consuming = mutableSetOf<String>()
   private val mainScope = MainScope()
 
-  init {
-    viewItem.webView.addJavascriptInterface(
-      object {
-        /**
-         * js 创建 CloseWatcher
-         */
-        @JavascriptInterface
-        fun registryToken(consumeToken: String) {
-          if (consumeToken.isNullOrBlank()) {
-            throw Exception("CloseWatcher.registryToken invalid arguments");
-          }
-          consuming.add(consumeToken)
-          mainScope.launch {
-            viewItem.webView.evaluateJavascript("open('$consumeToken')", {})
-          }
-        }
-
-        /**
-         * js主动关闭 CloseWatcher
-         */
-        @JavascriptInterface
-        fun tryClose(id: String) =
-          watchers.find { watcher -> watcher.id == id }?.also {
-            mainScope.launch { close(it) }
-          }
-      },
-      JS_POLYFILL_KIT
-    )
-  }
-
-  private val watchers = mutableListOf<Watcher>()
+  val watchers = mutableListOf<Watcher>()
 
   inner class Watcher {
     val id = acc_id.getAndAdd(1).toString()
@@ -83,11 +49,11 @@ class CloseWatcher(val viewItem: ViewItem) {
 
       /// 尝试去触发客户端的监听，如果客户端有监听的话
       withMainContext {
-        viewItem.webView.evaluateJavascript(
+        engine.evaluateJavascriptSync(
           """
                     $JS_POLYFILL_KIT._watchers?.get("$id")?.dispatchEvent(new CloseEvent('close'));
                     """.trimIndent()
-        ) {}
+        )
       }
 
       if (!defaultPrevented) {
@@ -110,11 +76,11 @@ class CloseWatcher(val viewItem: ViewItem) {
   }
 
   fun resolveToken(consumeToken: String, watcher: Watcher) {
-    viewItem.webView.evaluateJavascript(
+    engine.evaluateJavascriptSync(
       """
             $JS_POLYFILL_KIT._tasks?.get("$consumeToken")("${watcher.id}");
             """.trimIndent()
-    ) {};
+    )
   }
 
   /**

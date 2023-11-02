@@ -30,6 +30,7 @@ import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.IDWebViewEngine
 import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.PromiseOut
@@ -94,7 +95,7 @@ class DWebViewEngine(
    * 我们将这些功能都写到了BaseActivity上，如果没有提供该对象，则相关的功能将会被禁用
    */
   var activity: BaseActivity? = null
-) : WebView(context) {
+) : WebView(context), IDWebViewEngine {
   init {
     if (activity == null && context is BaseActivity) {
       activity = context
@@ -451,6 +452,19 @@ class DWebViewEngine(
    */
   suspend fun evaluateSyncJavascriptCode(script: String) =
     evaluator.evaluateSyncJavascriptCode(script)
+
+  //#region 用于 CloseWatcher
+  override fun evaluateJavascriptSync(script: String) {
+    evaluateJavascript(script) {}
+  }
+  override suspend fun evaluateJavascriptAsync(script: String, afterEval: suspend () -> Unit) {
+    withMainContext {
+      evaluator.evaluateAsyncJavascriptCode(
+        script, afterEval
+      )
+    }
+  }
+  //#endregion
 
   /**
    * 执行异步JS代码，需要传入一个表达式
