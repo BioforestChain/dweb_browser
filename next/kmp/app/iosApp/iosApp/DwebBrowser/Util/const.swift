@@ -29,6 +29,9 @@ let gridHSpace: CGFloat = 18.0
 
 let gridCellW: CGFloat = (screen_width - gridHSpace * 3.0) / 2
 let gridCellH: CGFloat = gridCellW * 1.5
+let cellWHratio = 2.0/3.0
+let imageHratio = 0.85
+
 
 let cellImageH: CGFloat = gridCellH * 0.9
 let gridcellBottomH: CGFloat = gridCellH * 0.1

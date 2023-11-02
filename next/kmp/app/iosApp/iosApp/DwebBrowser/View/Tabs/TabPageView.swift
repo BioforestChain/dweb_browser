@@ -74,7 +74,10 @@ struct TabPageView: View {
                         .takeSnapshot(completion: { image in
                             printWithDate("has took a snapshot")
                             let scale = image.scale
-                            let cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: screen_width * scale, height: (snapshotHeight - dragScale.addressbarHeight - toolBarH) * scale)
+                            let isFullWidth = (geo.size.width / geo.size.height) < cellWHratio
+                            let width = (isFullWidth ? geo.size.width : geo.size.height * cellWHratio) * scale
+                            let height = (isFullWidth ? geo.size.width / cellWHratio : geo.size.height) * scale * imageHratio
+                            let cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: width, height: height)
                             if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
                                 let croppedImage = UIImage(cgImage: croppedCGImage)
                                 animation.snapshotImage = croppedImage

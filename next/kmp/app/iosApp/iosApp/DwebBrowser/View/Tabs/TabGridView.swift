@@ -50,6 +50,8 @@ struct TabGridView: View {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: gridVSpace) {
                         ForEach(webcacheStore.caches, id: \.id) { webCache in
                             GridCell(webCache: webCache, isSelected: isSelected(webCache: webCache))
+                                .frame(maxWidth: .infinity, maxHeight: .infinity) // 使用最大的宽度和高度
+                                .aspectRatio(cellWHratio, contentMode: .fit)
                                 .id(webCache.id)
                                 .background(GeometryReader { geometry in
                                     Color.clear

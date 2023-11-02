@@ -14,8 +14,10 @@ struct SearchTypingView: View {
         VStack(spacing: 0) {
             Text("搜索")
                 .font(.headline)
-                .frame(width: screen_width, height: 40)
+                .frame(height: 40)
+                .frame(maxWidth: .infinity)
                 .background(Color.bkColor)
+                
             HStack {
                 Spacer()
                 Button {
@@ -29,7 +31,8 @@ struct SearchTypingView: View {
                 }
                 .padding(.trailing, 20)
             }
-            .background(Color.bkColor)
+            .background(Color.white)
+            
 
             if addressBar.inputText == "" && !InstalledAppMgr.shared.apps.isEmpty {
                 VStack {

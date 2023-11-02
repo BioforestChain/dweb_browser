@@ -43,27 +43,28 @@ struct GridCell: View {
                 VStack(spacing: 0) {
                     Image(uiImage: webCache.snapshotImage)
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(height: geo.size.height * 0.85)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: geo.size.height * imageHratio)
                         .cornerRadius(gridcellCornerR)
                         .overlay(RoundedRectangle(cornerRadius: 10)
                             .stroke(Color.dwebTint, lineWidth: 2)
                             .opacity(isSelected ? 1 : 0)
                         )
+                        .clipped()
                     HStack {
                         WebsiteIconImage(iconUrl: webCache.webIconUrl)
                             .aspectRatio(contentMode: .fit)
-
+                            .frame(height: geo.size.height * 0.1)
+                        
                         Text(webCache.title)
                             .font(.system(size: dragScale.scaledFontSize(maxSize: 20))) // 设置字体大小为 20，粗细为 semibold
                             .lineLimit(1)
                     }
                     .padding(.vertical, 3)
-                    .frame(height: geo.size.height * 0.15)
+                    .frame(height: geo.size.height * (1.0-imageHratio))
                 }
             }
 
-            .aspectRatio(0.66, contentMode: .fit)
             deleteButton
         }
     }
