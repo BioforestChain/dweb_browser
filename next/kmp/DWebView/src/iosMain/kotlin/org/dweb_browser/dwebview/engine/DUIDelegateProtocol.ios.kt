@@ -1,9 +1,9 @@
-package org.dweb_browser.dwebview
+package org.dweb_browser.dwebview.engine
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.launch
-import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.withMainContext
 import platform.AVFoundation.AVAuthorizationStatusAuthorized

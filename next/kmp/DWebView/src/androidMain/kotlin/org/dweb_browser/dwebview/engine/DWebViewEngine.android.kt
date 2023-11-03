@@ -453,23 +453,14 @@ class DWebViewEngine(
   suspend fun evaluateSyncJavascriptCode(script: String) =
     evaluator.evaluateSyncJavascriptCode(script)
 
-  //#region 用于 CloseWatcher
   override fun evaluateJavascriptSync(script: String) {
     evaluateJavascript(script) {}
   }
-  override suspend fun evaluateJavascriptAsync(script: String, afterEval: suspend () -> Unit) {
-    withMainContext {
-      evaluator.evaluateAsyncJavascriptCode(
-        script, afterEval
-      )
-    }
-  }
-  //#endregion
 
   /**
    * 执行异步JS代码，需要传入一个表达式
    */
-  suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit = {}) =
+  override suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit) =
     withMainContext {
       evaluator.evaluateAsyncJavascriptCode(
         script, afterEval

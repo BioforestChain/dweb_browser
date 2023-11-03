@@ -5,7 +5,7 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.withMainContext
 
-class DWebMessagePort(val portId: Int, private val webview: DWebView) : IMessagePort {
+class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMessagePort {
   private val onMessageSignal = Signal<IMessageEvent>()
   override suspend fun start() {
     withMainContext {

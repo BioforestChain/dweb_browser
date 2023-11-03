@@ -7,7 +7,7 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.dwebview.IDWebViewEngine
 import org.dweb_browser.helper.*
 
-open class DCloseWatcher(open val engine: IDWebViewEngine) {
+open class DCloseWatcher(private val engine: IDWebViewEngine) {
 
   companion object {
     val acc_id = atomic(1)

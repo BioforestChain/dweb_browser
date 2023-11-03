@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.channels.Channel
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Signal
 
@@ -30,15 +31,15 @@ interface IDWebView {
 
 interface IDWebViewEngine {
   fun evaluateJavascriptSync(script: String)
-  suspend fun evaluateJavascriptAsync(script: String, afterEval: suspend () -> Unit = {})
+  suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit = {}) : String
 }
 
 interface IMessageChannel {
-  val port1: IMessagePort
-  val port2: IMessagePort
+  val port1: IWebMessagePort
+  val port2: IWebMessagePort
 }
 
-interface IMessagePort {
+interface IWebMessagePort {
   suspend fun start()
   suspend fun close()
   suspend fun postMessage(event: IMessageEvent)
@@ -52,5 +53,7 @@ internal class LoadUrlTask(
 
 interface IMessageEvent {
   val data: String
-  val ports: List<IMessagePort>
+  val ports: List<IWebMessagePort>
 }
+
+typealias AsyncChannel = Channel<Result<String>>

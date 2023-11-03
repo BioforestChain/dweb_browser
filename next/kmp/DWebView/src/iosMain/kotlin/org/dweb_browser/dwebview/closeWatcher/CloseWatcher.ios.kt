@@ -4,7 +4,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.withMainContext
 
-internal class CloseWatcher(override val engine: DWebViewEngine) : DCloseWatcher(engine) {
+internal class CloseWatcher(val engine: DWebViewEngine) : DCloseWatcher(engine) {
   suspend fun registryToken(consumeToken: String) {
     consuming.add(consumeToken)
     withMainContext {
