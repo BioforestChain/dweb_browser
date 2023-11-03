@@ -10,20 +10,19 @@ import platform.darwin.NSObject
 
 class DWebViewAsyncCode(private val engine: DWebViewEngine) : NSObject(),
   WKScriptMessageHandlerProtocol {
-  companion object {
-    val asyncCodePrepareCode = """
-    ${WebViewEvaluator.JS_ASYNC_KIT} = {
-        resolve(id,res){
-            webkit.messageHandlers.asyncCode.postMessage([1,id,res])
-        },
-        reject(id,err){
-            console.error(err);
-            webkit.messageHandlers.asyncCode.postMessage([0,id,"QQQQ:"+(err instanceof Error?(err.message+"\n"+err.stack):String(err))])
-        }
-    };
-    void 0;
-  """.trimMargin()
-  }
+
+  internal val asyncCodePrepareCode = """
+      ${WebViewEvaluator.JS_ASYNC_KIT} = {
+          resolve(id,res){
+              webkit.messageHandlers.asyncCode.postMessage([1,id,res])
+          },
+          reject(id,err){
+              console.error(err);
+              webkit.messageHandlers.asyncCode.postMessage([0,id,"QQQQ:"+(err instanceof Error?(err.message+"\n"+err.stack):String(err))])
+          }
+      };
+      void 0;
+    """.trimMargin()
 
   override fun userContentController(
     userContentController: WKUserContentController,

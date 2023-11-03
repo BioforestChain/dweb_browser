@@ -22,16 +22,6 @@ interface IDWebView {
   suspend fun createMessageChannel(): IMessageChannel
 
   suspend fun setContentScale(scale: Float)
-
-  /**
-   * 执行一段JS代码，这个代码将会包裹在 (async()=>{ YOUR_CODE })() 中
-   */
-  fun evalAsyncJavascript(code: String): Deferred<String>
-}
-
-interface IDWebViewEngine {
-  fun evaluateJavascriptSync(script: String)
-  suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit = {}) : String
 }
 
 interface IMessageChannel {

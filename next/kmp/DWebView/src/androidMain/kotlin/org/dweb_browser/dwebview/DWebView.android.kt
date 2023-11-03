@@ -13,6 +13,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.withMainContext
 
 class DWebView(private val engine: DWebViewEngine) : IDWebView {
   suspend fun <T> runMain(block: suspend CoroutineScope.() -> T) =
@@ -161,7 +162,7 @@ class DWebView(private val engine: DWebViewEngine) : IDWebView {
     engine.setInitialScale((scale * 100).toInt())
   }
 
-  override fun evalAsyncJavascript(code: String): Deferred<String> {
+  fun evalAsyncJavascript(code: String): Deferred<String> {
     val comp = CompletableDeferred<String>()
     engine.mainScope.launch {
       val result = engine.evaluateAsyncJavascriptCode(code)
