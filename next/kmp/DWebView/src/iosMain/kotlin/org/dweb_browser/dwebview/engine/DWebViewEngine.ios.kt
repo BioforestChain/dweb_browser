@@ -62,6 +62,8 @@ class DWebViewEngine(
   internal val onReadySignal = SimpleSignal()
 
   init {
+    /// 测试的时候使用
+    this.setInspectable(true)
     setUIDelegate(DUIDelegateProtocol(this))
     setNavigationDelegate(object : NSObject(), WKNavigationDelegateProtocol {
       override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
@@ -74,10 +76,19 @@ class DWebViewEngine(
     configuration.userContentController.apply {
       removeAllScriptMessageHandlers()
       removeAllUserScripts()
+      addScriptMessageHandler(
+        LogScriptMessageHandler(),
+        DWebViewWebMessage.webMessagePortContentWorld,
+        "log"
+      )
       val dWebViewAsyncCode = DWebViewAsyncCode(this@DWebViewEngine)
       addScriptMessageHandler(dWebViewAsyncCode, "asyncCode")
       addScriptMessageHandler(CloseWatcherScriptMessageHandler(this@DWebViewEngine), "closeWatcher")
-      addScriptMessageHandler(DWebViewWebMessage.WebMessagePortMessageHanlder(), "webMessagePort")
+      addScriptMessageHandler(
+        DWebViewWebMessage.WebMessagePortMessageHanlder(),
+        DWebViewWebMessage.webMessagePortContentWorld,
+        "webMessagePort"
+      )
       addUserScript(
         WKUserScript(
           DWebViewWebMessage.WebMessagePortPrepareCode,
@@ -90,9 +101,13 @@ class DWebViewEngine(
         WKUserScript(
           dWebViewAsyncCode.asyncCodePrepareCode,
           WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentEnd,
-          false
+          false,
         )
       )
+    }
+
+    if (options.url.isNotEmpty()) {
+      loadUrl(options.url)
     }
   }
 

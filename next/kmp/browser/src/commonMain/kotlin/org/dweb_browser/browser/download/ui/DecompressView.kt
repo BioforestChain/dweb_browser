@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.download.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -30,6 +29,7 @@ import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.formatTimestamp
+import org.dweb_browser.sys.window.render.LocalWindowController
 
 val LocalDecompressModel = compositionLocalOf<DecompressModel> {
   noLocalProvidedFor("LocalDecompressModel")
@@ -75,7 +75,9 @@ class DecompressModel(private val downloadController: DownloadController) {
 fun DecompressView() {
   val decompressModel = LocalDecompressModel.current
   if (decompressModel.downloadTask.value != null) {
-    BackHandler { decompressModel.hide() }
+    LocalWindowController.current.GoBackHandler {
+      decompressModel.hide()
+    }
     Column(
       modifier = Modifier
         .fillMaxSize()

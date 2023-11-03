@@ -42,8 +42,8 @@ class ChangeableMutableList<E>(
   }
 
   fun removeAt(element: E): Boolean {
-    return cList.removeIf { element == it }.also {
-      if (it) {
+    return cList.removeAll { element == it }.also {
+      if(it) {
         emitBackground(ChangeableType.Remove, element)
       }
     }
