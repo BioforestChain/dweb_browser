@@ -4,7 +4,6 @@ import io.ktor.utils.io.cancel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -14,21 +13,23 @@ import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
 import org.dweb_browser.browser.jmm.ui.JmmStatus
+import org.dweb_browser.browser.jmm.ui.ManagerViewRender
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureString
-import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMethod
-import org.dweb_browser.core.std.dns.ext.createActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.sys.window.core.constant.WindowMode
+import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
+import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
@@ -37,8 +38,8 @@ import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
  */
 class JmmInstallerController(
   private val jmmNMM: JmmNMM,
-  val jmmAppInstallManifest: JmmAppInstallManifest,
   private val originUrl: String,
+  val jmmAppInstallManifest: JmmAppInstallManifest,
   // 一个jmmManager 只会创建一个task
   var downloadTaskId: String?
 ) {
@@ -63,7 +64,14 @@ class JmmInstallerController(
 
   suspend fun openRender(hasNewVersion: Boolean) {
     /// 隐藏主窗口
-    jmmNMM.getOrOpenMainWindow().hide()
+    /// jmmNMM.getOrOpenMainWindow().hide()
+    with(jmmNMM.getOrOpenMainWindow()) {
+      state.mode = WindowMode.MAXIMIZE
+      state.setFromManifest(jmmNMM)
+      windowAdapterManager.provideRender(id) { modifier ->
+        ManagerViewRender(modifier, this)
+      }
+    }
     /// 显示抽屉
     val bottomSheets = getView()
     bottomSheets.open()
@@ -74,14 +82,15 @@ class JmmInstallerController(
   }
 
   suspend fun openApp(mmid: MMID) {
-    openLock.withLock {
+    jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
+    /*openLock.withLock {
       val (ipc) = jmmNMM.bootstrapContext.dns.connect(mmid)
       ipc.postMessage(IpcEvent.createActivity(""))
 
       val (deskIpc) = jmmNMM.bootstrapContext.dns.connect("desk.browser.dweb")
       debugJMM("openApp", "postMessage==>activity desk.browser.dweb")
       deskIpc.postMessage(IpcEvent.createActivity(""))
-    }
+    }*/
   }
 
   /**
@@ -91,6 +100,7 @@ class JmmInstallerController(
     val fetchUrl = "file://download.browser.dweb/create?url=$metadataUrl&total=$total"
     val response = jmmNMM.nativeFetch(fetchUrl)
     return response.text().also {
+      jmmStateSignal.emit(Pair(JmmStatus.Init, it)) // 创建下载任务时，保存进度
       this.downloadTaskId = it
     }
   }
@@ -141,20 +151,21 @@ class JmmInstallerController(
     }
   }
 
-  suspend fun start(): Boolean {
-    val response = jmmNMM.nativeFetch("file://download.browser.dweb/start?taskId=$downloadTaskId")
-    return response.boolean()
-  }
+  suspend fun start() = downloadTaskId?.let { taskId ->
+    jmmNMM.nativeFetch("file://download.browser.dweb/start?taskId=$taskId").boolean()
+  } ?: false
 
-  suspend fun pause(): Boolean {
-    val response = jmmNMM.nativeFetch("file://download.browser.dweb/pause?taskId=$downloadTaskId")
-    return response.boolean()
-  }
+  suspend fun pause() = downloadTaskId?.let { taskId ->
+    jmmNMM.nativeFetch("file://download.browser.dweb/pause?taskId=$taskId").boolean()
+  } ?: false
 
-  suspend fun cancel(): Boolean {
-    val response = jmmNMM.nativeFetch("file://download.browser.dweb/cancel?taskId=$downloadTaskId")
-    return response.boolean()
-  }
+  suspend fun cancel() = downloadTaskId?.let { taskId ->
+    jmmNMM.nativeFetch("file://download.browser.dweb/cancel?taskId=$taskId").boolean()
+  } ?: false
+
+  suspend fun exists() = downloadTaskId?.let { taskId ->
+    jmmNMM.nativeFetch("file://download.browser.dweb/exists?taskId=$taskId").boolean()
+  } ?: false
 
   suspend fun decompress(task: DownloadTask): Boolean {
     var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
@@ -189,4 +200,6 @@ class JmmInstallerController(
   }
 
   fun hasInstallApp() = jmmNMM.bootstrapContext.dns.query(jmmAppInstallManifest.id) != null
+
+  val jmmMetadataList = jmmNMM.jmmMetadataList
 }

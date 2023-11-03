@@ -3,7 +3,13 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { Command } from "./deps.ts";
 import { $BundleOptions } from "./helper/const.ts";
-import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper, PlaocJsonGenerator } from "./helper/generator.ts";
+import {
+  BackendServerGenerator,
+  BundleZipGenerator,
+  MetadataJsonGenerator,
+  NameFlagHelper,
+  PlaocJsonGenerator,
+} from "./helper/generator.ts";
 
 export const doBundleCommand = new Command()
   .arguments("<source:string>")
@@ -13,6 +19,7 @@ export const doBundleCommand = new Command()
   })
   .option("-v --version <version:string>", "Set app packaging version.")
   .option("-d --dir <dir:string>", "Root directory of the project, generally the same level as manifest.json.")
+  .option("-s --serve <serve:string>", "Specify the path of the programmable backend.")
   .option("-c --clear <clear:boolean>", "Empty the cache.")
   .option("--id <id:string>", "set app id")
   .option("--dev <dev:boolean>", "Is it development mode.")
@@ -28,9 +35,12 @@ export const doBundleCommand = new Command()
  */
 export const doBundle = async (flags: $BundleOptions) => {
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
+  // 注入plaoc.json
   const plaocHelper = new PlaocJsonGenerator(flags);
+  // 尝试注入可编程后端
+  const injectServer = new BackendServerGenerator(flags);
   const data = metadataFlagHelper.readMetadata();
-  const bundleFlagHelper = new BundleZipGenerator(flags, plaocHelper, data.id);
+  const bundleFlagHelper = new BundleZipGenerator(flags, plaocHelper, injectServer, data.id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   const outDir = path.resolve(Deno.cwd(), flags.out);
@@ -44,7 +54,6 @@ export const doBundle = async (flags: $BundleOptions) => {
   } else {
     fs.mkdirSync(outDir, { recursive: true });
   }
-
   /// 先写入bundle.zip
   fs.writeFileSync(
     path.resolve(outDir, nameFlagHelper.bundleName),

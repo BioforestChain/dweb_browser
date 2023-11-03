@@ -128,7 +128,7 @@ class DWebViewEngine(
     readyPo.waitPromise()
   }
 
-  private val evaluator = WebViewEvaluator(this, mainScope)
+  internal val evaluator = WebViewEvaluator(this, mainScope)
   suspend fun getUrlInMain() = withMainContext { url }
 
   /**
@@ -451,6 +451,10 @@ class DWebViewEngine(
    */
   suspend fun evaluateSyncJavascriptCode(script: String) =
     evaluator.evaluateSyncJavascriptCode(script)
+
+  fun evaluateJavascriptSync(script: String) {
+    evaluateJavascript(script) {}
+  }
 
   /**
    * 执行异步JS代码，需要传入一个表达式

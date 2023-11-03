@@ -3,9 +3,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "npm:jszip";
 import { $JmmAppInstallManifest, $MMID } from "./../deps.ts";
-import { WalkFiles } from "./WalkDir.ts";
 import { $MetadataJsonGeneratorOptions, SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
+import { WalkFiles } from "./walk-dir.ts";
 import { $ZipEntry, walkDirToZipEntries, zipEntriesToZip } from "./zip.ts";
 
 export class MetadataJsonGenerator {
@@ -61,7 +61,9 @@ export class MetadataJsonGenerator {
     } as $JmmAppInstallManifest);
   }
 }
-
+/**
+ * 注入转发服务
+ */
 export class PlaocJsonGenerator {
   readonly plaocFilepaths: string;
 
@@ -94,12 +96,60 @@ export class PlaocJsonGenerator {
   }
 }
 
+/**
+ * 可编程后端注入
+ */
+export class BackendServerGenerator {
+  readonly serverFilepaths: string | null;
+  constructor(readonly flags: $MetadataJsonGeneratorOptions) {
+    this.serverFilepaths = (() => {
+      if (flags.serve == undefined) return null;
+      // 如果指定了项目目录，到项目目录里面搜索配置文件
+      return path.resolve(Deno.cwd(), flags.serve);
+    })();
+  }
+
+  async tryWriteServer() {
+    const entries: $ZipEntry[] = [];
+    async function copyFolder(src: string, pathalias: string) {
+      if (fs.statSync(src).isFile()) {
+        entries.push({
+          dir: false,
+          path: `usr/${pathalias}`.replace(/\\/g, "/"),
+          data: fs.readFileSync(src),
+        });
+      } else {
+        entries.push({
+          dir: true,
+          path: `usr/${pathalias}`.replace(/\\/g, "/"),
+          time: new Date(),
+        });
+        for (const entry of WalkFiles(src)) {
+          const child_addpath = entry.entrypath;
+          await copyFolder(child_addpath, child_addpath.replace(src, pathalias));
+        }
+        return;
+      }
+    }
+    // 可编程后端注入
+    if (this.serverFilepaths) {
+      await copyFolder(this.serverFilepaths, "server/middleware");
+    }
+    return entries;
+  }
+}
+
 export class BundleZipGenerator {
   private zipGetter: () => Promise<JSZip> = () => {
     throw new Error("no implement");
   };
   readonly www_dir: undefined | string;
-  constructor(readonly flags: $MetadataJsonGeneratorOptions, readonly plaoc: PlaocJsonGenerator, readonly id: $MMID) {
+  constructor(
+    readonly flags: $MetadataJsonGeneratorOptions,
+    readonly plaoc: PlaocJsonGenerator,
+    readonly server: BackendServerGenerator,
+    readonly id: $MMID
+  ) {
     const bundleTarget = flags.metadata;
     /// 实时预览模式，使用代理html
     if (
@@ -121,12 +171,13 @@ export class BundleZipGenerator {
         </script>`,
         time: new Date(0),
       } satisfies $ZipEntry;
-      this.zipGetter = async () => {
+      async () => {
         return zipEntriesToZip(
           this.normalizeZipEntries([
             ...(await this.getBaseZipEntries(flags.dev)),
             index_html_file_entry,
             ...plaoc.tryReadPlaoc(),
+            ...(await server.tryWriteServer()),
           ])
         );
       };
@@ -151,6 +202,7 @@ export class BundleZipGenerator {
       this.zipGetter = async () => {
         return zipEntriesToZip(
           this.normalizeZipEntries([
+            ...(await server.tryWriteServer()),
             ...(await this.getBaseZipEntries(flags.dev)),
             ...plaoc.tryReadPlaoc(),
             ...walkDirToZipEntries(www_dir).map((entry) => {

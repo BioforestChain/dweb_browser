@@ -19,8 +19,8 @@ import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.startAppActivity
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.ext.onActivity
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.CORS_HEADERS
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.HttpDwebServer
@@ -108,7 +108,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     ipc: Ipc, desktopController: DesktopController
   ): WindowController {
     val appId = ipc.remote.mmid;
-    debugDesk("/openAppOrActivate", appId)
+    debugDesk("openOrActivateAppWindow", appId)
     try {
       /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
       val appMainWindow = getAppMainWindow(ipc)
@@ -189,6 +189,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       //
       "/openAppOrActivate" bind HttpMethod.Get to defineStringResponse {
         val mmid = request.query("app_id")
+        debugDesk("openAppOrActivate", "requestMMID=$mmid")
         // 内部接口，所以ipc通过connect获得
         openOrActivateAppWindow(connect(mmid, request), desktopController).id
       },
@@ -266,7 +267,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         taskBarController.taskbarView.toggleFloatWindow(
           request.queryOrNull("open")?.toBooleanStrictOrNull()
         )
-      }).private().cors()
+      }).protected(setOf("jmm.browser.dweb", mmid)).cors()
 
     onActivity {
       startDesktopView(deskSessionId)
@@ -326,7 +327,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       val response = nativeFetch(request.toPure().copy(href = url))
       ipc.postMessage(
         IpcResponse.fromResponse(
-          request.req_id, response.appendHeaders(CORS_HEADERS), ipc
+          request.req_id, PureResponse.build(response) { appendHeaders(CORS_HEADERS) }, ipc
         )
       )
     }

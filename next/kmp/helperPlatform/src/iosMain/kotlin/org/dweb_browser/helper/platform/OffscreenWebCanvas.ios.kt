@@ -28,7 +28,7 @@ actual class OffscreenWebCanvas private actual constructor(width: Int, height: I
     config.preferences.javaScriptEnabled = true
     this.webview = WKWebView(frame = cValue { CGRectZero }, configuration = config).also {
       if(UIDevice.currentDevice.systemVersion.compareTo("16.4", true) >= 0) {
-        it.setValue(value = true, forKey = "inspectable")
+        it.setInspectable(true)
       }
 
       CoroutineScope(mainAsyncExceptionHandler).launch {

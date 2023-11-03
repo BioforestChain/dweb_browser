@@ -8,8 +8,6 @@
 import Combine
 import SwiftUI
 
-//let webWrapper = WebWrapper(cacheID: UUID())
-
 struct AddressBar: View {
     var index: Int
 
@@ -27,13 +25,12 @@ struct AddressBar: View {
     @State private var inputText: String = ""
     @State private var displayText: String = ""
     @State private var loadingProgress: CGFloat = 0
-
+    
     private var isVisible: Bool { index == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 && !addressBar.isFocused }
     private var textColor: Color { isAdressBarFocused ? .black : webCache.isBlank() ? .networkTipColor : .black }
 
-    var roundRectHeight: CGFloat {addressbarHeight - dragScale.properValue(floor: 3, ceiling: 10) * 2}
-    var addressbarHeight: CGFloat { dragScale.properValue(floor: 25, ceiling: 60)}
+    var roundRectHeight: CGFloat {dragScale.addressbarHeight / 1.4}
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -46,15 +43,12 @@ struct AddressBar: View {
                 .frame(height: roundRectHeight)
             
             textField
-            
-            accessoryButton
-                
+            accessoryButtons
         }
-        .frame(height: addressbarHeight)
-//        .background(Color.orange)
+        .frame(height: dragScale.addressbarHeight)
     }
     
-    var accessoryButton: some View {
+    var accessoryButtons: some View {
             HStack{
                 Spacer()
                 ZStack{

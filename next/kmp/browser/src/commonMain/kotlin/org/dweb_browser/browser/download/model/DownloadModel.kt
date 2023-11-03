@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.datetime.LocalDate
 import org.dweb_browser.browser.download.DownloadController
+import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 
 val LocalDownloadModel = compositionLocalOf<DownloadModel> {
@@ -27,6 +28,10 @@ enum class DownloadTab(val id: Int, val title: String, val vector: ImageVector) 
 class DownloadModel(val downloadController: DownloadController) {
   val tabIndex = mutableIntStateOf(0)
   val tabItems = DownloadTab.values()
+
+  suspend fun startDownload(downloadTask: DownloadTask) = downloadController.startDownload(downloadTask)
+
+  suspend fun pauseDownload(downloadTask: DownloadTask) = downloadController.pauseDownload(downloadTask)
 }
 
 fun getIconByMime(mime: String): ImageVector {

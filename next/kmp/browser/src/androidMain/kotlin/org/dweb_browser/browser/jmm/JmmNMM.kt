@@ -1,8 +1,13 @@
 package org.dweb_browser.browser.jmm
 
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.jmm.ui.JmmStatus
 import org.dweb_browser.browser.web.ui.browser.model.isUrl
@@ -64,11 +69,13 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
 
   // jmm download数据
   private val downloadTaskIdMap = mutableMapOf<MMID, String>()
+  val jmmMetadataList = mutableStateListOf<JmmAppInstallManifest>()
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val store = JmmStore(this)
     loadJmmAppList(store) // 加载安装的应用信息
     loadJmmDownloadList(store) // 加载下载的信息
+    loadHistoryMetadataUrl(store) // 加载之前加载过的应用
 
     val routeInstallHandler = defineEmptyResponse {
       val metadataUrl = request.query("url")
@@ -119,20 +126,45 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
   private suspend fun openInstallerView(
     jmmAppInstallManifest: JmmAppInstallManifest, originUrl: String, store: JmmStore
   ) {
-    if (!jmmAppInstallManifest.bundle_url.let { it.isUrl() }) {
-      jmmAppInstallManifest.bundle_url = URLBuilder(originUrl).run {
+    val baseURI = when (jmmAppInstallManifest.baseURI?.isUrl()) {
+      true -> jmmAppInstallManifest.baseURI!!
+      else -> when (val baseUri = jmmAppInstallManifest.baseURI) {
+        null -> originUrl
+        else -> URLBuilder(originUrl).run {
+          resolvePath(baseUri)
+          buildString()
+        }
+      }.also {
+        jmmAppInstallManifest.baseURI = it
+      }
+    }
+    if (!jmmAppInstallManifest.bundle_url.isUrl()) {
+      jmmAppInstallManifest.bundle_url = URLBuilder(baseURI).run {
         resolvePath(jmmAppInstallManifest.bundle_url)
         buildString()
       }
     }
     debugJMM("openInstallerView", jmmAppInstallManifest.bundle_url)
+    // 存储下载过的MetadataUrl, 并更新列表，已存在，
+    val saveMetadata = jmmMetadataList.find { it.bundle_url == originUrl }?.let { lastMetadata ->
+      jmmMetadataList.remove(lastMetadata)
+      if (jmmAppInstallManifest.version.isGreaterThan(lastMetadata.version)) {
+        jmmAppInstallManifest
+      } else {
+        lastMetadata
+      }
+    } ?: jmmAppInstallManifest
+    jmmMetadataList.add(0, saveMetadata)
+    store.saveMetadata(originUrl, saveMetadata)
+
     val controller = controllerMap.getOrPut(jmmAppInstallManifest.id) {
       JmmInstallerController(
-        this@JmmNMM, jmmAppInstallManifest, originUrl, downloadTaskIdMap[jmmAppInstallManifest.id]
+        this@JmmNMM, originUrl, jmmAppInstallManifest, downloadTaskIdMap[jmmAppInstallManifest.id]
       ).also { controller ->
         controller.onJmmStateListener { pair ->
           when (pair.first) {
             JmmStatus.Init -> {
+              downloadTaskIdMap[jmmAppInstallManifest.id] = pair.second
               store.saveJMMTaskId(jmmAppInstallManifest.id, pair.second)
             }
 
@@ -152,7 +184,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
               )
             }
 
-            else -> null
+            else -> {}
           }
         }
       }
@@ -198,11 +230,14 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
   /**
    * 恢复下载任务
    */
-  private suspend fun loadJmmDownloadList(store: JmmStore) {
-    store.getAllJMMTaskId().map { (key, taskId) ->
-      debugJMM("loadJmmDownloadList", "恢复:$key $taskId")
-      downloadTaskIdMap.put(key, taskId)
-    }
+  private suspend fun loadJmmDownloadList(store: JmmStore) =
+    downloadTaskIdMap.putAll(store.getAllJMMTaskId())
+
+  /**
+   * 获取历史下载任务
+   */
+  private suspend fun loadHistoryMetadataUrl(store: JmmStore) {
+    jmmMetadataList.addAll(store.getAllMetadata().values.sortedBy { it.release_date })
   }
 
   override suspend fun _shutdown() {

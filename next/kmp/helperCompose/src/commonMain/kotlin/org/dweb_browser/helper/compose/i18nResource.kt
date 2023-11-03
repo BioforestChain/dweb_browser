@@ -12,14 +12,18 @@ fun i18nResource(res: SimpleI18nResource): String {
 @Composable
 fun <T> i18nResource(res: OneParamI18nResource<T>, param: T): String {
   val language = Locale.current.language
-  return (res.valuesMap[Language.getLanguage(language)] ?: res.i18nValues.first().second).invoke(param)
+  return (res.valuesMap[Language.getLanguage(language)] ?: res.i18nValues.first().second).invoke(
+    param
+  )
 }
 
 enum class Language(val code: String) {
   EN("en"), ZH("zh"), ;
 
   companion object {
-    fun getLanguage(language: String) = Language.values().find { it.code == language } ?: ZH
+    private var _current = Language.ZH
+    val current get() = _current
+    fun getLanguage(language: String) = entries.find { it.code == language } ?: ZH
   }
 }
 

@@ -6,20 +6,6 @@ import io.ktor.http.fullPath
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
-import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.JsonLoose
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.buildUnsafeString
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.printError
-import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.helper.toBase64Url
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.ConnectResult
-import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.connectAdapterManager
 import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.IpcSupportProtocols
@@ -35,14 +21,29 @@ import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.ConnectResult
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.connectAdapterManager
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.permission.PermissionProvider
+import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
+import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.buildUnsafeString
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.printError
+import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.helper.toBase64Url
 import java.util.Random
 
 fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("JsMM", tag, msg, err)
 
-open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
-  MicroModuleManifest().apply {
+open class JsMicroModule(val metadata: JmmAppInstallManifest) :
+  MicroModule(MicroModuleManifest().apply {
     assign(metadata)
     categories += MICRO_MODULE_CATEGORY.Application
     icons.ifEmpty {
@@ -52,8 +53,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
     ipc_support_protocols = IpcSupportProtocols(
       cbor = true, protobuf = false, raw = true
     )
-  }
-) {
+  }) {
 
   companion object {
     /**
@@ -94,6 +94,9 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
     }
   }
 
+  override suspend fun getSafeDwebPermissionProviders() =
+    this.dweb_permissions.mapNotNull { PermissionProvider.from(this, it, metadata.bundle_url) }
+
   /**
    * 和 dweb 的 port 一样，pid 是我们自己定义的，它跟我们的 mmid 关联在一起
    * 所以不会和其它程序所使用的 pid 冲突
@@ -132,8 +135,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     debugJsMM(
-      "bootstrap...",
-      "$mmid/ minTarget:${metadata.minTarget} maxTarget:${metadata.maxTarget}"
+      "bootstrap...", "$mmid/ minTarget:${metadata.minTarget} maxTarget:${metadata.maxTarget}"
     )
     metadata.canSupportTarget(VERSION, disMatchMinTarget = {
       throw RuntimeException(

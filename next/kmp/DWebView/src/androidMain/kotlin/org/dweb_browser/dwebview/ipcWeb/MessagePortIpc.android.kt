@@ -7,38 +7,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
-import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcEventJsonAble
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
-import org.dweb_browser.core.ipc.helper.IpcReqMessage
-import org.dweb_browser.core.ipc.helper.IpcRequest
-import org.dweb_browser.core.ipc.helper.IpcResMessage
-import org.dweb_browser.core.ipc.helper.IpcResponse
-import org.dweb_browser.core.ipc.helper.IpcStreamAbort
-import org.dweb_browser.core.ipc.helper.IpcStreamData
-import org.dweb_browser.core.ipc.helper.IpcStreamDataJsonAble
-import org.dweb_browser.core.ipc.helper.IpcStreamEnd
-import org.dweb_browser.core.ipc.helper.IpcStreamPaused
-import org.dweb_browser.core.ipc.helper.IpcStreamPulling
 import org.dweb_browser.core.ipc.helper.jsonToIpcMessage
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.withMainContext
 
-fun printThreadName(): String = Thread.currentThread().name
-fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =
-  printDebug("message-port-ipc", tag, msg, err)
-
-class MessagePort private constructor(private val port: WebMessagePort) {
+class MessagePort private constructor(private val port: WebMessagePort) : IMessagePort {
   companion object {
     private val wm = WeakHashMap<WebMessagePort, MessagePort>()
     suspend fun from(port: WebMessagePort): MessagePort =
@@ -75,12 +55,12 @@ class MessagePort private constructor(private val port: WebMessagePort) {
   }
 
   fun onWebMessage(cb: Callback<WebMessage>) = _messageSignal.listen(cb)
-  suspend fun postMessage(data: String) = withMainContext {
+  override suspend fun postMessage(data: String) = withMainContext {
     port.postMessage(WebMessage(data))
   }
 
   private var _isClosed = false
-  fun close() {
+  override fun close() {
     if (_isClosed) {
       return
     }
@@ -91,19 +71,14 @@ class MessagePort private constructor(private val port: WebMessagePort) {
 }
 
 open class MessagePortIpc(
-  val port: MessagePort,
+  override val port: MessagePort,
   override val remote: IMicroModuleManifest,
   private val roleType: IPC_ROLE,
-) : Ipc() {
+) : DMessagePortIpc(port, remote, roleType) {
   companion object {
     suspend fun from(
       port: WebMessagePort, remote: IMicroModuleManifest, roleType: IPC_ROLE
     ) = MessagePortIpc(MessagePort.from(port), remote, roleType)
-  }
-
-  override val role get() = roleType.role
-  override fun toString(): String {
-    return super.toString() + "@MessagePortIpc(${remote.mmid}, $roleType)"
   }
 
   init {
@@ -124,31 +99,6 @@ open class MessagePortIpc(
 
   }
 
-  override suspend fun _doPostMessage(data: IpcMessage) {
-    val message = when (data) {
-      is IpcRequest -> Json.encodeToString(data.ipcReqMessage)
-      is IpcResponse -> Json.encodeToString(data.ipcResMessage)
-      is IpcStreamData -> Json.encodeToString(data)
-      is IpcEvent -> Json.encodeToString(data)
-      is IpcEventJsonAble -> Json.encodeToString(data)
-      is IpcReqMessage -> Json.encodeToString(data)
-      is IpcResMessage -> Json.encodeToString(data)
-      is IpcStreamAbort -> Json.encodeToString(data)
-      is IpcStreamDataJsonAble -> Json.encodeToString(data)
-      is IpcStreamEnd -> Json.encodeToString(data)
-      is IpcStreamPaused -> Json.encodeToString(data)
-      is IpcStreamPulling -> Json.encodeToString(data)
-    }
-    this.port.postMessage(message)
-  }
 
-  override suspend fun _doClose() {
-    this.port.postMessage("close")
-    this.port.close()
-  }
-
-  suspend fun emitClose() {
-    closeSignal.emit()
-  }
 }
 

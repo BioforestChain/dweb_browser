@@ -34,10 +34,10 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
         )
       },
       "/closeModal" bind HttpMethod.Get to defineBooleanResponse {
-        getAppMainWindow(ipc).closeModal(request.query("modalId"))
+        getAppMainWindow(ipc).closeModal(this@windowProtocol, request.query("modalId"))
       },
       "/removeModal" bind HttpMethod.Get to defineBooleanResponse {
-        getAppMainWindow(ipc).removeModal(request.query("modalId"))
+        getAppMainWindow(ipc).removeModal(this@windowProtocol, request.query("modalId"))
       },
       /** 窗口的状态监听 */
       "/observe" bind HttpMethod.Get to defineJsonLineResponse {

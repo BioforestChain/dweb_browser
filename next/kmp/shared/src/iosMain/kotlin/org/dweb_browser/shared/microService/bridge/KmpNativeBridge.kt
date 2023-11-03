@@ -1,4 +1,4 @@
-package org.dweb_browser.shared.microService
+package org.dweb_browser.shared.microService.bridge
 
 import org.dweb_browser.sys.KmpNativeBridgeInterface
 import org.dweb_browser.sys.KmpNativeRegister

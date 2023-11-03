@@ -1,9 +1,18 @@
 package org.dweb_browser.core.help.types
 
 import kotlinx.serialization.Serializable
+import org.dweb_browser.helper.ImageResource
 
 @Serializable
-data class DwebPermissions(
+data class DwebPermission(
+  /**
+   * 权限的全局唯一标识，不可重复
+   * 比如 gaubee.dweb/info
+   *
+   * 必须是包含 module.id 为前缀，如果缺省，那么直接使用 "$module.id/"
+   *
+   */
+  val pid: String? = null,
   /**
    * 权限捕捉的路由，比如：
    * file://gaubee.com.dweb/info
@@ -18,7 +27,7 @@ data class DwebPermissions(
   /**
    * 徽章，和icon类似，但是是附着在 module.icon 的右下方，如果不提供，默认使用 module.icon 来作为图标
    */
-  val badge: String? = null,
+  val badges: List<ImageResource> = listOf(),
   /**
    * 权限标题，如果没有提供，默认使用 manifest.name
    */

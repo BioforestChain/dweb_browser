@@ -9,15 +9,6 @@ import io.ktor.http.fullPath
 import io.ktor.util.decodeBase64String
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.dweb_browser.helper.SafeHashMap
-import org.dweb_browser.helper.decodeURIComponent
-import org.dweb_browser.helper.encodeURI
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.removeWhen
-import org.dweb_browser.helper.toBase64Url
-import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
@@ -27,10 +18,19 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.debugFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.http.HttpNMM.Companion.dwebServer
 import org.dweb_browser.core.std.http.net.Http1Server
+import org.dweb_browser.helper.SafeHashMap
+import org.dweb_browser.helper.decodeURIComponent
+import org.dweb_browser.helper.encodeURI
+import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.removeWhen
+import org.dweb_browser.helper.toBase64Url
+import org.dweb_browser.helper.toJsonElement
 import kotlin.random.Random
 
 fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
@@ -126,7 +126,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
     /// 模块 API 接口
     routes(
-      //
+      // 开启一个服务
       "/start" bind HttpMethod.Get to defineJsonResponse {
         start(
           ipc, DwebHttpServerOptions(
@@ -134,16 +134,17 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           )
         ).toJsonElement()
       },
-      //
+      // 监听一个服务
       "/listen" bind HttpMethod.Post to definePureStreamHandler {
         val token = request.query("token")
         val routes = Json.decodeFromString<List<RouteConfig>>(request.query("routes"))
         listen(token, request, routes)
       },
-      //
+      // 主动关闭一个服务
       "/close" bind HttpMethod.Get to defineBooleanResponse {
         close(ipc, request.queryAs())
-      })
+      },
+    );
   }
 
   @Serializable
@@ -274,7 +275,7 @@ fun findRequestGateway(request: PureRequest): String? {
   val query_x_dweb_host: String? = request.queryOrNull("X-Dweb-Host")?.decodeURIComponent()
   for ((key, value) in request.headers) {
     if (reg_host.matches(key)) {
-       header_host = parseHost(value)
+      header_host = parseHost(value)
     } else if (reg_x_dweb_host.matches(key)) {
       header_x_dweb_host = value
     } else if (reg_authorization.matches(key)) {
@@ -305,11 +306,11 @@ fun parseHost(value: String?): String? {
   if (value != null) {
     // 解析subDomain
     if (value.endsWith(".${dwebServer.authority}")) {
-      var queryXWebHost =
-        value.substring(0, value.length - dwebServer.authority.length - 1)
+      var queryXWebHost = value.substring(0, value.length - dwebServer.authority.length - 1)
       val portStartIndex = queryXWebHost.lastIndexOf("-")
-      queryXWebHost = queryXWebHost.substring(0, portStartIndex) + ":" +
-          queryXWebHost.substring(portStartIndex + 1)
+      queryXWebHost = queryXWebHost.substring(
+        0, portStartIndex
+      ) + ":" + queryXWebHost.substring(portStartIndex + 1)
       return queryXWebHost
     }
 

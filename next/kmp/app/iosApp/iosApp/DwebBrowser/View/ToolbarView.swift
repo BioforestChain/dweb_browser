@@ -33,18 +33,18 @@ struct ToolbarView: View {
                 }
             }.frame(height: geo.size.height)
         }
-            .onAppear {
-                selectedTab.$curIndex
-                    .sink { newIndex in
-                        print("Value changed: \(newIndex)")
-                        tabIndexChanged(to: newIndex)
-                    }
-                    .store(in: &cancellables) // Store the subscription
-            }
-            .onDisappear {
-                cancellables.forEach { $0.cancel() }
-                cancellables.removeAll()
-            }
+        .onAppear {
+            selectedTab.$curIndex
+                .sink { newIndex in
+                    print("Value changed: \(newIndex)")
+                    tabIndexChanged(to: newIndex)
+                }
+                .store(in: &cancellables) // Store the subscription
+        }
+        .onDisappear {
+            cancellables.forEach { $0.cancel() }
+            cancellables.removeAll()
+        }
     }
 
     var threeButtons: some View {
@@ -161,7 +161,6 @@ struct ToolbarView: View {
         toolbarState.canGoForward = currentWrapper.canGoForward
     }
 }
-
 
 let toolItemMinWidth = 14.0
 let toolItemMaxWidth = toolItemMinWidth * 2

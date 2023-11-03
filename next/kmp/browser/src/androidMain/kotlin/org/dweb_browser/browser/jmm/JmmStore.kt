@@ -13,6 +13,7 @@ data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val o
 class JmmStore(microModule: MicroModule) {
   private val storeApp = microModule.createStore("JmmApps", false)
   private val storeTaskId = microModule.createStore("DownloadTaskId", false)
+  private val storeMetadataUrl = microModule.createStore("MetadataUrl", false)
 
   suspend fun getOrPutApp(key: MMID, value: JsMicroModuleDBItem): JsMicroModuleDBItem {
     return storeApp.getOrPut(key) { value }
@@ -51,5 +52,24 @@ class JmmStore(microModule: MicroModule) {
 
   suspend fun deleteJMMTaskId(mmid: MMID): Boolean {
     return storeTaskId.delete(mmid)
+  }
+
+  /*****************************************************************************
+   * JMM对应的json地址存储
+   */
+  suspend fun saveMetadata(url: String, metadata: JmmAppInstallManifest) {
+    storeMetadataUrl.set(url, metadata)
+  }
+
+  suspend fun getAllMetadata(): MutableMap<String, JmmAppInstallManifest> {
+    return storeMetadataUrl.getAll()
+  }
+
+  suspend fun getMetadata(url: String): String? {
+    return storeMetadataUrl.getOrNull<String>(url)
+  }
+
+  suspend fun deleteMetadata(url: String): Boolean {
+    return storeMetadataUrl.delete(url)
   }
 }

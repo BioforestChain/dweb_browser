@@ -6,11 +6,11 @@ import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.serialization.Transient
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.platform.PlatformViewController
-import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
@@ -364,11 +364,9 @@ abstract class WindowController(
   /**
    * 尝试移除一个 modal
    */
-  suspend fun removeModal(modalId: String) = modalsLock.withLock("write") {
+  suspend fun removeModal(module: MicroModule, modalId: String) = modalsLock.withLock("write") {
     val modal = state.modals[modalId] ?: return@withLock false
-    state.modals -= modalId
-    windowAdapterManager.renderProviders.remove(modal.renderId)
-    true
+    modal.safeDestroy(module)
   }
 
   suspend fun updateModalCloseTip(modalId: String, closeTip: String?) =
@@ -381,7 +379,7 @@ abstract class WindowController(
   /**
    * 取当前正在显示的 modal
    */
-  private suspend fun getOpenModal() = modalsLock.withLock("read") {
+  internal suspend fun getOpenModal() = modalsLock.withLock("read") {
     state.modals.firstNotNullOfOrNull { if (it.value.isOpen) it.value else null }
   }
 
@@ -398,12 +396,7 @@ abstract class WindowController(
     /// 找寻当前
     when (getOpenModal()) {
       modal -> true
-      null -> {
-        modal.open()
-        openingModal.value = modal
-        true
-      }
-
+      null -> modal.safeOpen()
       else -> false
     }
   }
@@ -413,11 +406,8 @@ abstract class WindowController(
    *
    * @return 返回true说明这次操作让这个 modal 关闭了。否则可能是 modal不存在、或者modal本来就是关闭的
    */
-  suspend fun closeModal(modalId: String) = modalsLock.withLock("write") {
+  suspend fun closeModal(module: MicroModule, modalId: String) = modalsLock.withLock("write") {
     val modal = state.modals[modalId] ?: return@withLock false
-    modal.isOpen.trueAlso {
-      modal.close()
-      openingModal.value = getOpenModal()
-    }
+    modal.safeClose(module)
   }
 }
