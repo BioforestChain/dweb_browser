@@ -113,7 +113,7 @@ class DWebView(
     engine.setContentScaleFactor(scale.toDouble())
   }
 
-  override fun evalAsyncJavascript(code: String): Deferred<String> = engine.evalAsyncJavascript(code)
+  fun evalAsyncJavascript(code: String): Deferred<String> = engine.evalAsyncJavascript(code)
 
   fun <T> evalAsyncJavascript(
     code: String,

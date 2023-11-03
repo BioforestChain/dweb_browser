@@ -3,6 +3,7 @@ package org.dweb_browser.dwebview.engine
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.takeFrom
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.StableRef
@@ -25,6 +26,7 @@ import platform.Foundation.HTTPMethod
 import platform.Foundation.NSData
 import platform.Foundation.NSHTTPURLResponse
 import platform.Foundation.NSURL
+import platform.Foundation.NSURLResponse
 import platform.Foundation.allHTTPHeaderFields
 import platform.Foundation.create
 import platform.WebKit.WKURLSchemeHandlerProtocol
@@ -39,6 +41,7 @@ class DURLSchemeHandler(private val microModule: MicroModule, private val baseUr
   val host get() = baseUri.getFullAuthority()
   val scheme get() = host.replaceFirst(":", "+")
 
+  @Suppress("CONFLICTING_OVERLOADS")
   @OptIn(BetaInteropApi::class, ExperimentalForeignApi::class)
   override fun webView(webView: WKWebView, startURLSchemeTask: WKURLSchemeTaskProtocol) {
     try {
@@ -68,10 +71,11 @@ class DURLSchemeHandler(private val microModule: MicroModule, private val baseUr
         val response = microModule.nativeFetch(pureRequest)
 
         startURLSchemeTask.didReceiveResponse(
-          NSHttpResponseFactory(
-            startURLSchemeTask.request.URL,
+          NSHTTPURLResponse(
+            startURLSchemeTask.request.URL ?: NSURL(string = ""),
             response.status.value.toLong(),
-            response.headers
+            "HTTP/1.1",
+            response.headers.toMap().toMap()
           )
         )
         when (val body = response.body) {
@@ -113,29 +117,29 @@ class DURLSchemeHandler(private val microModule: MicroModule, private val baseUr
 //      }
 
       startURLSchemeTask.didReceiveResponse(
-        NSHttpResponseFactory(
-          startURLSchemeTask.request.URL,
-          502L, IpcHeaders()
+        NSHTTPURLResponse(
+          startURLSchemeTask.request.URL ?: NSURL(string = ""),
+          502,
+          "HTTP/1.1",
+          null
         )
       )
-      NSData.create(e.message ?: e.stackTraceToString())
-        ?.let { startURLSchemeTask.didReceiveData(it) }
+      val byteArray = (e.message ?: e.stackTraceToString()).toByteArray()
+      val pointer = StableRef.create(byteArray.toUByteArray().toCValues()).asCPointer()
+      startURLSchemeTask.didReceiveData(
+        NSData.create(
+          bytesNoCopy = pointer,
+          length = byteArray.size.toULong(),
+          true
+        )
+      )
+
       startURLSchemeTask.didFinish()
     }
   }
 
-//  override fun webView(webView: WKWebView, stopURLSchemeTask: WKURLSchemeTaskProtocol) {
-//    TODO("Not yet implemented")
-//  }
-
-  internal class NSHttpResponseFactory(
-    private val url: NSURL?,
-    private val code: Long,
-    private val headers: IpcHeaders
-  ) : NSHTTPURLResponse() {
-    override fun statusCode(): NSInteger = code
-    override fun URL(): NSURL? = url
-
-    override fun allHeaderFields(): Map<Any?, *> = headers.toMap().toMap()
+  @Suppress("CONFLICTING_OVERLOADS")
+  override fun webView(webView: WKWebView, stopURLSchemeTask: WKURLSchemeTaskProtocol) {
+    TODO("Not yet implemented")
   }
 }

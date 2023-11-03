@@ -12,7 +12,6 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DNavigationDelegateProtocol
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewWebMessage
-import org.dweb_browser.dwebview.IDWebViewEngine
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.helper.SimpleSignal
@@ -37,7 +36,7 @@ class DWebViewEngine(
   val remoteMM: MicroModule,
   val options: DWebViewOptions,
   configuration: WKWebViewConfiguration,
-) : WKWebView(frame, configuration), IDWebViewEngine {
+) : WKWebView(frame, configuration) {
   internal val mainScope = MainScope()
 
   val evaluator by lazy { WebViewEvaluator(this) }
@@ -74,12 +73,11 @@ class DWebViewEngine(
 
     configuration.userContentController.apply {
       removeAllScriptMessageHandlers()
-      addScriptMessageHandler(DWebViewAsyncCode(this@DWebViewEngine), "asyncCode")
+      removeAllUserScripts()
+      val dWebViewAsyncCode = DWebViewAsyncCode(this@DWebViewEngine)
+      addScriptMessageHandler(dWebViewAsyncCode, "asyncCode")
       addScriptMessageHandler(CloseWatcherScriptMessageHandler(this@DWebViewEngine), "closeWatcher")
       addScriptMessageHandler(DWebViewWebMessage.WebMessagePortMessageHanlder(), "webMessagePort")
-    }
-    configuration.userContentController.apply {
-      removeAllUserScripts()
       addUserScript(
         WKUserScript(
           DWebViewWebMessage.WebMessagePortPrepareCode,
@@ -90,7 +88,7 @@ class DWebViewEngine(
       )
       addUserScript(
         WKUserScript(
-          DWebViewAsyncCode.asyncCodePrepareCode,
+          dWebViewAsyncCode.asyncCodePrepareCode,
           WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentEnd,
           false
         )
@@ -146,11 +144,11 @@ class DWebViewEngine(
   }
 
   //#region 用于 CloseWatcher
-  override fun evaluateJavascriptSync(script: String) {
+  fun evaluateJavascriptSync(script: String) {
     evaluateJavaScript(script) { _, _ -> }
   }
 
-  override suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit) =
+  suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit = {}) =
     withMainContext {
       val deferred = evalAsyncJavascript(script)
       afterEval()
