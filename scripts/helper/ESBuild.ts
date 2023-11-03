@@ -37,6 +37,10 @@ export class ESBuild {
     }
     const plugins = (esbuildOptions.plugins ??= []);
     if (esbuildOptions.denoLoader) {
+      let importMapURL = this.options.importMapURL;
+      if (importMapURL !== undefined && !importMapURL.startsWith("file:///")) {
+        importMapURL = "file:///" + importMapURL;
+      }
       plugins.push(
         // ESBuild plugin to rewrite import starting "npm:" to "esm.sh" for https plugin
         {
@@ -51,7 +55,7 @@ export class ESBuild {
           },
         },
         ...esbuild_deno_loader.denoPlugins({
-          importMapURL: this.options.importMapURL,
+          importMapURL,
         })
       );
     }

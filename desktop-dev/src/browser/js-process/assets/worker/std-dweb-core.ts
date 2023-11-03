@@ -1,5 +1,5 @@
-export * from "../../../../core/helper/ipcFetchHelper.ts";
-export * from "../../../../core/ipc-web/index.ts";
-export * from "../../../../core/ipc/index.ts";
-export * from "../../../../core/types.ts";
-export { ReadableStreamOut } from "../../../../helper/stream/readableStreamHelper.ts";
+export * from "@dweb-browser/desktop/core/helper/ipcFetchHelper.ts";
+export * from "@dweb-browser/desktop/core/ipc-web/index.ts";
+export * from "@dweb-browser/desktop/core/ipc/index.ts";
+export * from "@dweb-browser/desktop/core/types.ts";
+export { ReadableStreamOut } from "@dweb-browser/desktop/helper/stream/readableStreamHelper.ts";

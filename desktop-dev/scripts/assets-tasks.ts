@@ -14,7 +14,7 @@ export const assetsTasks = new ConTasks(
       outDir: "electron/assets/browser/web",
       baseDir,
     }),
-    "desk": viteTaskFactory({
+    desk: viteTaskFactory({
       inDir: "src/browser/desk/assets/desktop",
       outDir: "electron/assets/browser/desk",
       baseDir,
@@ -28,6 +28,7 @@ export const assetsTasks = new ConTasks(
       input: "src/browser/js-process/assets/worker/index.ts",
       outfile: "electron/assets/browser/js-process.worker/index.js",
       baseDir,
+      importMap: "src/browser/js-process/assets/worker/import_map.json",
     }),
     "js-process.main.html": viteTaskFactory({
       inDir: "src/browser/js-process/assets/main",

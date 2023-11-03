@@ -2,8 +2,7 @@ import { transfer, type Remote } from "comlink";
 import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { $ReqMatcher, $isMatchReq } from "../../core/helper/$ReqMatcher.ts";
 import type { $PromiseMaybe } from "../../core/helper/types.ts";
-import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
-import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
+import { MessagePortIpc, ReadableStreamIpc } from "../../core/ipc-web/index.ts";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.ts";
 import { IPC_ROLE, Ipc, IpcRequest, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
@@ -14,9 +13,9 @@ import { mapHelper } from "../../helper/mapHelper.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
 import { closeHttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
+import { JsMicroModule } from "../jmm/micro-module.js.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 import { jsProcessOpenWindow } from "./js-process.openWindow.ts";
-import { JsMicroModule } from "../jmm/micro-module.js.ts";
 
 type $APIS = typeof import("./assets/main/index.ts")["APIS"];
 
@@ -326,7 +325,7 @@ export class JsProcessNMM extends NativeMicroModule {
       env,
       transfer(channel_for_worker.port2, [channel_for_worker.port2]),
       httpDwebServer.startResult.urlInfo.host,
-      JSON.stringify({jsMicroModule: `${JsMicroModule.VERSION}.${JsMicroModule.PATCH}`})
+      JSON.stringify({ jsMicroModule: `${JsMicroModule.VERSION}.${JsMicroModule.PATCH}` })
     );
 
     /**

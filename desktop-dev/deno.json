@@ -4,6 +4,7 @@
   "exclude": [
     "**/assets/",
     "electron/",
+    "build/**",
     "*.bak/"
   ],
   "lint": {
@@ -22,7 +23,9 @@
     "noImplicitOverride": true
   },
   "tasks": {
+    "assets": "deno run -A ./scripts/assets-tasks.ts",
     "dnt": "deno run -A ./scripts/dnt.ts",
+    "dnt:js-process": "deno run -A ./scripts/dnt.js-process.ts",
     "bundle": "deno run -A ./scripts/bundle.ts",
     "start": "deno task dnt --start",
     "pkg": "deno task dnt && npm exec -- electron-builder build --project electron -wml",
