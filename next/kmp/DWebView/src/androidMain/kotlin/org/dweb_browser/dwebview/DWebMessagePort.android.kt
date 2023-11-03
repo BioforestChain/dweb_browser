@@ -12,7 +12,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 
-class DWebMessagePort private constructor(private val port: WebMessagePort) : IMessagePort {
+class DWebMessagePort private constructor(private val port: WebMessagePort) : IWebMessagePort {
   companion object {
     private val wm = WeakHashMap<WebMessagePort, DWebMessagePort>()
     fun from(port: WebMessagePort) = wm.getOrPut(port) { DWebMessagePort(port) }

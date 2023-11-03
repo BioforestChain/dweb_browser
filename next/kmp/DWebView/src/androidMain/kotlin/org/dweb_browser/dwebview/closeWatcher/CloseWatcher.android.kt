@@ -7,7 +7,7 @@ import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.*
 
 @SuppressLint("JavascriptInterface")
-class CloseWatcher(override val engine: DWebViewEngine) : DCloseWatcher(engine) {
+class CloseWatcher(val engine: DWebViewEngine) : DCloseWatcher(engine) {
 
   init {
     engine.addJavascriptInterface(

@@ -1,5 +1,7 @@
 package org.dweb_browser.dwebview.engine
 
+import io.ktor.http.URLProtocol
+import io.ktor.http.Url
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
@@ -8,7 +10,6 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DNavigationDelegateProtocol
-import org.dweb_browser.dwebview.DUIDelegateProtocol
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewWebMessage
 import org.dweb_browser.dwebview.IDWebViewEngine
@@ -23,6 +24,8 @@ import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
 import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationDelegateProtocol
+import platform.WebKit.WKUserScript
+import platform.WebKit.WKUserScriptInjectionTime
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
@@ -31,39 +34,67 @@ import platform.darwin.NSObject
 @OptIn(ExperimentalForeignApi::class)
 class DWebViewEngine(
   frame: CValue<CGRect>,
-  remoteMM: MicroModule,
-  options: DWebViewOptions,
+  val remoteMM: MicroModule,
+  val options: DWebViewOptions,
   configuration: WKWebViewConfiguration,
 ) : WKWebView(frame, configuration), IDWebViewEngine {
   internal val mainScope = MainScope()
+
+  val evaluator by lazy { WebViewEvaluator(this) }
 
   internal val closeWatcher: CloseWatcher by lazy {
     CloseWatcher(this)
   }
 
   fun loadUrl(url: String) {
+    val uri = Url(url)
+
+    /// 如果是 dweb 域名，这是需要加入网关的链接前缀才能被正常加载
+    if (uri.host.endsWith(".dweb") && (uri.protocol == URLProtocol.HTTP || uri.protocol == URLProtocol.HTTPS)) {
+      val dwebSchemeHandler = DURLSchemeHandler(remoteMM, uri)
+      configuration.setURLSchemeHandler(dwebSchemeHandler, dwebSchemeHandler.scheme)
+    }
+
     val nsUrl = NSURL.URLWithString(url) ?: throw Exception("invalid url: ${url}")
     val navigation = super.loadRequest(NSURLRequest.requestWithURL(nsUrl))
       ?: throw Exception("fail to get WKNavigation when loadRequest")
-
   }
 
   internal val onReadySignal = SimpleSignal()
 
   init {
     setUIDelegate(DUIDelegateProtocol(this))
-    setNavigationDelegate(
-      object : NSObject(), WKNavigationDelegateProtocol {
-        override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
-          mainScope.launch {
-            onReadySignal.emit()
-          }
+    setNavigationDelegate(object : NSObject(), WKNavigationDelegateProtocol {
+      override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
+        mainScope.launch {
+          onReadySignal.emit()
         }
-      })
+      }
+    })
 
     configuration.userContentController.apply {
-      addScriptMessageHandler(CloseWatcherScriptMessageHandler(this@DWebViewEngine), "CloseWatcher")
-      addScriptMessageHandler(DWebViewWebMessage.WebMessagePortMessageHanlder(), "WebMessagePort")
+      removeAllScriptMessageHandlers()
+      addScriptMessageHandler(DWebViewAsyncCode(this@DWebViewEngine), "asyncCode")
+      addScriptMessageHandler(CloseWatcherScriptMessageHandler(this@DWebViewEngine), "closeWatcher")
+      addScriptMessageHandler(DWebViewWebMessage.WebMessagePortMessageHanlder(), "webMessagePort")
+    }
+    configuration.userContentController.apply {
+      removeAllUserScripts()
+      addUserScript(
+        WKUserScript(
+          DWebViewWebMessage.WebMessagePortPrepareCode,
+          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentEnd,
+          false,
+          DWebViewWebMessage.webMessagePortContentWorld
+        )
+      )
+      addUserScript(
+        WKUserScript(
+          DWebViewAsyncCode.asyncCodePrepareCode,
+          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentEnd,
+          false
+        )
+      )
     }
   }
 
@@ -81,9 +112,7 @@ class DWebViewEngine(
   }
 
   fun <T> evalAsyncJavascript(
-    code: String,
-    wkFrameInfo: WKFrameInfo?,
-    wkContentWorld: WKContentWorld
+    code: String, wkFrameInfo: WKFrameInfo?, wkContentWorld: WKContentWorld
   ): Deferred<T> {
     val deferred = CompletableDeferred<T>()
     evaluateJavaScript(code, wkFrameInfo, wkContentWorld) { result, error ->
@@ -121,12 +150,13 @@ class DWebViewEngine(
     evaluateJavaScript(script) { _, _ -> }
   }
 
-  override suspend fun evaluateJavascriptAsync(script: String, afterEval: suspend () -> Unit) {
+  override suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit) =
     withMainContext {
-      evalAsyncJavascript(script).await()
+      val deferred = evalAsyncJavascript(script)
       afterEval()
+      deferred.await()
     }
-  }
+
   //#endregion
 
   private val navigationDelegateProtocols = mutableListOf<DNavigationDelegateProtocol>()

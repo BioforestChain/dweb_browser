@@ -6,6 +6,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.cancel
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.dwebview.engine.WebViewEvaluator
 import platform.Foundation.NSArray
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
