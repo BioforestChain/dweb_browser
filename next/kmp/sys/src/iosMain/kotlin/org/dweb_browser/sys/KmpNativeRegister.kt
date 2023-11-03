@@ -1,12 +1,12 @@
 package org.dweb_browser.sys
 
+import platform.Foundation.NSData
+
 interface KmpNativeBridgeInterface {
-    fun getShareController(): KmpNativeBridgeShareInterface?
+    fun invokeKmpEvent(event: KmpToIosEvent)
 }
 
-interface KmpNativeBridgeShareInterface {
-//    fun share(title: String, text: String)
-}
+public data class KmpToIosEvent(val name: String, val inputDatas: Map<String, Any>?, val outputDatas: Map<String, Any>?)
 
 //主要用于持有iOS注册的实际imp
 public class KmpNativeRegister() {

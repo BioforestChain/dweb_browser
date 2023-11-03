@@ -8,27 +8,46 @@
 
 import Foundation
 import DwebShared
+import Combine
 
 
 class KmpBridgeManager {
-    class func registerIMPs() {
-        print("iOS registerIMPs")
-        KmpNativeBridge.Companion.shared.registerIos(imp: KmpBridgeManager())
+    
+    static let shared = KmpBridgeManager()
+        
+    private(set) var eventPublisher = PassthroughSubject<KmpEvent, Never>()
+    private var events = [KmpEvent]()
+    
+    func event(for name: String) -> KmpEvent? {
+        return events.first { $0.name == name }
     }
     
-    var shareController: ShareKmpIMPController?
+    func complete(for name: String) {
+        events.removeAll { $0.name == name}
+        print("[iOS Test] kmp events:\(events.count)")
+    }
     
+    func registerIMPs() {
+        KmpNativeBridge.Companion.shared.registerIos(imp: self)
+    }
 }
+
 
 extension KmpBridgeManager: SysKmpNativeBridgeInterface {
-
-    func getShareController() -> SysKmpNativeBridgeShareInterface? {
-        let imp = shareController ?? ShareKmpIMPController()
-        shareController = imp
-        return imp
-     }
- }
-
-class ShareKmpIMPController: SysKmpNativeBridgeShareInterface {
     
-}
+    func invokeKmpEvent(event: SysKmpToIosEvent) {
+        print("[iOS Test] iOS invokeKmpEvent events:\(event.name)")
+
+        var responseAction: KmpEventResposeActionProtocol? = nil
+        switch event.name {
+        case KmpEvent.share:
+            responseAction = KmpEventShareResposeAction(eventName: event.name)
+        default:
+            assert(false, "no response action for: \(event.name)")
+        }
+        
+        let e = KmpEvent(name: event.name, inputDatas: event.inputDatas, outputDatas: event.outputDatas, responseAction: responseAction)
+        events.append(e)
+        eventPublisher.send(e)
+    }
+ }
