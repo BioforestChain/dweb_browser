@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
@@ -19,7 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.TextUnit
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
-import org.dweb_browser.browser.download.model.DownloadTab
 import org.dweb_browser.browser.download.model.LocalDownloadModel
 import org.dweb_browser.browser.download.model.getIconByMime
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -94,27 +93,45 @@ fun MiddleEllipsisText(
 fun String.lastPath() = this.substring(this.lastIndexOf("/") + 1)
 
 @Composable
-fun DownloadItem(downloadTask: DownloadTask, downloadTab: DownloadTab) {
+fun DownloadItem(downloadTask: DownloadTask, onClick: (DownloadTask) -> Unit) {
   val viewModel = LocalDownloadModel.current
   val scope = rememberCoroutineScope()
   var taskCurrent by remember { mutableLongStateOf(downloadTask.status.current) }
   var taskState by remember { mutableStateOf(downloadTask.status.state) }
 
   LaunchedEffect(downloadTask) { // 监听状态，更新显示
-    downloadTask.onDownload {
-      taskState = it.status.state
-      taskCurrent = it.status.current
+    if (downloadTask.status.state != DownloadState.Completed) {
+      downloadTask.onDownload {
+        taskState = it.status.state
+        taskCurrent = it.status.current
+      }
     }
   }
 
   ListItem(
+    modifier = Modifier.clickableWithNoEffect { onClick(downloadTask) },
     headlineContent = { // 主标题
       MiddleEllipsisText(text = downloadTask.url.lastPath())
     },
     supportingContent = { // 副标题
       Column {
-        when (downloadTab) {
-          DownloadTab.Downloads -> {
+        when (downloadTask.status.state) {
+          DownloadState.Completed -> {
+            Row {
+              Text(
+                text = downloadTask.status.total.toSpaceSize(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+              )
+              Text(
+                text = downloadTask.status.state.name,
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth()
+              )
+            }
+          }
+
+          else -> {
             // 显示下载进度，右边显示下载状态
             Row(modifier = Modifier.fillMaxWidth()) {
               Text(
@@ -131,21 +148,6 @@ fun DownloadItem(downloadTask: DownloadTask, downloadTab: DownloadTab) {
             // 显示下载进度
             LinearProgressIndicator(progress = taskCurrent / downloadTask.status.total.toFloat())
           }
-
-          DownloadTab.Files -> {
-            Row {
-              Text(
-                text = downloadTask.status.total.toSpaceSize(),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-              )
-              Text(
-                text = downloadTask.status.state.name,
-                textAlign = TextAlign.End,
-                modifier = Modifier.fillMaxWidth()
-              )
-            }
-          }
         }
       }
     },
@@ -154,26 +156,82 @@ fun DownloadItem(downloadTask: DownloadTask, downloadTab: DownloadTab) {
     },
     trailingContent = { // 右边的图标
       Row {
-        if (downloadTab == DownloadTab.Downloads) {
-          Image(
-            imageVector = if (downloadTask.status.state == DownloadState.Paused) Icons.Default.PauseCircle else Icons.Default.PlayCircle,
-            contentDescription = "State",
-            modifier = Modifier.clickableWithNoEffect {
-              scope.launch {
-                when (downloadTask.status.state) {
-                  DownloadState.Failed, DownloadState.Paused -> { viewModel.startDownload(downloadTask) }
-                  DownloadState.Downloading -> { viewModel.pauseDownload(downloadTask) }
-                  else -> {}
+        when (downloadTask.status.state) {
+          DownloadState.Downloading -> {
+            Image(
+              imageVector = Icons.Default.PlayCircle,
+              contentDescription = "Downloading",
+              modifier = Modifier.clickableWithNoEffect {
+                scope.launch {
+                  when (downloadTask.status.state) {
+                    DownloadState.Failed, DownloadState.Paused -> {
+                      viewModel.startDownload(downloadTask)
+                    }
+
+                    DownloadState.Downloading -> {
+                      viewModel.pauseDownload(downloadTask)
+                    }
+
+                    else -> {}
+                  }
                 }
               }
-            }
-          )
-        } else {
-          Image(
-            imageVector = Icons.Default.FileOpen,
-            contentDescription = "Open",
-            modifier = Modifier.clickableWithNoEffect { }
-          )
+            )
+          }
+
+          DownloadState.Paused -> {
+            Image(
+              imageVector = Icons.Default.PauseCircle,
+              contentDescription = "Pause",
+              modifier = Modifier.clickableWithNoEffect {
+                scope.launch {
+                  when (downloadTask.status.state) {
+                    DownloadState.Failed, DownloadState.Paused -> {
+                      viewModel.startDownload(downloadTask)
+                    }
+
+                    DownloadState.Downloading -> {
+                      viewModel.pauseDownload(downloadTask)
+                    }
+
+                    else -> {}
+                  }
+                }
+              }
+            )
+          }
+
+          DownloadState.Completed -> {
+            Image(
+              imageVector = Icons.Default.FileOpen,
+              contentDescription = "Open",
+              modifier = Modifier.clickableWithNoEffect {
+                // TODO 这个后续要做成打开应用功能
+              }
+            )
+          }
+
+          else -> {
+            Image(
+              imageVector = Icons.Default.Refresh,
+              contentDescription = "Refresh",
+              modifier = Modifier.clickableWithNoEffect {
+                scope.launch {
+                  when (downloadTask.status.state) {
+                    DownloadState.Failed, DownloadState.Paused -> {
+                      viewModel.startDownload(downloadTask)
+                    }
+
+                    DownloadState.Downloading -> {
+                      viewModel.pauseDownload(downloadTask)
+                    }
+
+                    else -> {}
+                  }
+                }
+              }
+            )
+          }
         }
       }
     }

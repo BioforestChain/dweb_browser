@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.jmm
+package org.dweb_browser.browser.jmm.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -13,13 +13,14 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.render.BottomDownloadButton
 import org.dweb_browser.browser.jmm.render.WebviewVersionWarningDialog
 import org.dweb_browser.browser.jmm.render.ImagePreview
 import org.dweb_browser.browser.jmm.render.PreviewState
 import org.dweb_browser.browser.jmm.render.JmmAppInstallManifest.Render
 import org.dweb_browser.browser.jmm.render.measureCenterOffset
-import org.dweb_browser.browser.jmm.ui.LocalJmmViewHelper
+import org.dweb_browser.browser.jmm.model.LocalJmmViewHelper
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.jmm.ui
+package org.dweb_browser.browser.jmm.model
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
@@ -17,7 +17,7 @@ internal val LocalShowWebViewVersion = compositionLocalOf {
   mutableStateOf(false)
 }
 
-internal val LocalJmmViewHelper = compositionLocalOf<JmmManagerViewHelper> {
+internal val LocalJmmViewHelper = compositionLocalOf<JmmInstallerModel> {
   noLocalProvidedFor("LocalJmmViewHelper")
 }
 
@@ -54,13 +54,15 @@ data class JmmUIState(
   val downloadStatus: MutableState<JmmStatus> = mutableStateOf(JmmStatus.Init)
 )
 
-class JmmManagerViewHelper(
+class JmmInstallerModel(
   jmmAppInstallManifest: JmmAppInstallManifest, private val controller: JmmInstallerController
 ) {
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
 
   fun startDownload() = controller.ioAsyncScope.launch {
-    if (controller.downloadTaskId == null || uiState.downloadStatus.value != JmmStatus.Init) {
+    if (controller.downloadTaskId == null || (uiState.downloadStatus.value != JmmStatus.INSTALLED &&
+          uiState.downloadStatus.value != JmmStatus.Completed)
+    ) {
       controller.downloadTaskId = controller.createDownloadTask(
         uiState.jmmAppInstallManifest.bundle_url, uiState.jmmAppInstallManifest.bundle_size
       )

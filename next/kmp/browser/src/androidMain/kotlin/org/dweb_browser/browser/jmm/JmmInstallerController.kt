@@ -3,7 +3,6 @@ package org.dweb_browser.browser.jmm
 import io.ktor.utils.io.cancel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -11,9 +10,9 @@ import kotlinx.serialization.json.buildJsonObject
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
-import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
-import org.dweb_browser.browser.jmm.ui.JmmStatus
-import org.dweb_browser.browser.jmm.ui.ManagerViewRender
+import org.dweb_browser.browser.jmm.model.JmmInstallerModel
+import org.dweb_browser.browser.jmm.model.JmmStatus
+import org.dweb_browser.browser.jmm.ui.Render
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.IPureBody
@@ -26,10 +25,7 @@ import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.trueAlso
-import org.dweb_browser.sys.window.core.constant.WindowMode
-import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
-import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
@@ -43,8 +39,7 @@ class JmmInstallerController(
   // 一个jmmManager 只会创建一个task
   var downloadTaskId: String?
 ) {
-  private val openLock = Mutex()
-  val viewModel: JmmManagerViewHelper = JmmManagerViewHelper(jmmAppInstallManifest, this)
+  val viewModel: JmmInstallerModel = JmmInstallerModel(jmmAppInstallManifest, this)
   val ioAsyncScope = jmmNMM.ioAsyncScope
 
   private val jmmStateSignal = Signal<Pair<JmmStatus, TaskId>>()
@@ -64,14 +59,7 @@ class JmmInstallerController(
 
   suspend fun openRender(hasNewVersion: Boolean) {
     /// 隐藏主窗口
-    /// jmmNMM.getOrOpenMainWindow().hide()
-    with(jmmNMM.getOrOpenMainWindow()) {
-      state.mode = WindowMode.MAXIMIZE
-      state.setFromManifest(jmmNMM)
-      windowAdapterManager.provideRender(id) { modifier ->
-        ManagerViewRender(modifier, this)
-      }
-    }
+    jmmNMM.getOrOpenMainWindow().hide()
     /// 显示抽屉
     val bottomSheets = getView()
     bottomSheets.open()
@@ -81,17 +69,8 @@ class JmmInstallerController(
     viewModel.refreshStatus(hasNewVersion)
   }
 
-  suspend fun openApp(mmid: MMID) {
+  suspend fun openApp(mmid: MMID) =
     jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
-    /*openLock.withLock {
-      val (ipc) = jmmNMM.bootstrapContext.dns.connect(mmid)
-      ipc.postMessage(IpcEvent.createActivity(""))
-
-      val (deskIpc) = jmmNMM.bootstrapContext.dns.connect("desk.browser.dweb")
-      debugJMM("openApp", "postMessage==>activity desk.browser.dweb")
-      deskIpc.postMessage(IpcEvent.createActivity(""))
-    }*/
-  }
 
   /**
    * 创建任务，如果存在则恢复
@@ -200,6 +179,4 @@ class JmmInstallerController(
   }
 
   fun hasInstallApp() = jmmNMM.bootstrapContext.dns.query(jmmAppInstallManifest.id) != null
-
-  val jmmMetadataList = jmmNMM.jmmMetadataList
 }

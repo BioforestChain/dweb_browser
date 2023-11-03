@@ -8,7 +8,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import kotlin.coroutines.CoroutineContext
 
 enum class ChangeableType {
-  Add, Update, Remove, Clear, PutAll
+  Add, Remove, Clear, PutAll
   ;
 }
 

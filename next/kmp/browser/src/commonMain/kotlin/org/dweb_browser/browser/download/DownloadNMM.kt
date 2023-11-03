@@ -33,7 +33,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     /** 来源链接 */
     val originUrl: String? = null,
     /** 下载回调链接 */
-    val completeCallbackUrl: String? = null,
+    val openDappUri: String? = null,
     /** 文件的元数据类型，可以用来做“打开文件”时的参考类型 */
     val mime: String? = null,
     /** 是否直接开始下载(如果您需要监听完整的进度流程，可以先监听再调用下载)*/
@@ -104,7 +104,9 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       // taskId是否存在
       "/exists" bind HttpMethod.Get to defineBooleanResponse {
         val taskId = request.query("taskId")
-        controller.downloadManagers.containsKey(taskId)
+        controller.downloadManagers.get(taskId)?.status?.state?.let { state ->
+          state != DownloadState.Completed && state != DownloadState.Canceled
+        } ?: false
       },
     )
     onRenderer {

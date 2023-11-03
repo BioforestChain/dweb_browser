@@ -20,6 +20,7 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.download.model.ChangeableMutableMap
 import org.dweb_browser.browser.download.model.ChangeableType
 import org.dweb_browser.browser.download.model.DownloadModel
+import org.dweb_browser.browser.download.ui.DecompressModel
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureStreamBody
@@ -27,18 +28,21 @@ import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileMetadata
-import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.windowInstancesManager
+import org.dweb_browser.sys.window.ext.getMainWindow
+import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
 @Serializable
 data class DownloadTask(
@@ -52,8 +56,8 @@ data class DownloadTask(
   val originMmid: MMID,
   /** 来源链接 */
   val originUrl: String?,
-  /** 下载回调链接 */
-  val completeCallbackUrl: String?,
+  /** 打开应用的跳转地址 */
+  val openDappUri: String?,
   /** 文件的元数据类型，可以用来做“打开文件”时的参考类型 */
   var mime: String,
   /** 文件路径 */
@@ -125,9 +129,9 @@ data class DownloadStateEvent(
 class DownloadController(private val downloadNMM: DownloadNMM) {
   private val store = DownloadStore(downloadNMM)
   val downloadManagers: ChangeableMutableMap<TaskId, DownloadTask> = ChangeableMutableMap() // 用于监听下载列表
-  val downloadCompletes: ChangeableMutableMap<TaskId, DownloadTask> = ChangeableMutableMap() // 用于下载完成或者下载失败
   private var winLock = Mutex(false)
   val downloadModel = DownloadModel(this)
+  val decompressModel = DecompressModel(this)
 
   init {
     // 从内存中恢复状态
@@ -156,19 +160,6 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
           else -> {}
         }
       }
-      downloadCompletes.putAll(store.getAllCompletes())
-      downloadCompletes.onChange { (type, key, value) ->
-        debugDownload("DownloadController", "complete type=$type, key=$key")
-        when(type) {
-          ChangeableType.Add -> {
-            value?.let { downloadTask -> store.setComplete(downloadTask.id, downloadTask) }
-          }
-          ChangeableType.Remove -> {
-            value?.let { downloadTask -> store.deleteComplete(downloadTask.id) }
-          }
-          else -> {}
-        }
-      }
     }
   }
 
@@ -185,7 +176,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       createTime = datetimeNow(),
       originMmid = originMmid,
       originUrl = params.originUrl,
-      completeCallbackUrl = params.completeCallbackUrl,
+      openDappUri = params.openDappUri,
       mime = "application/octet-stream",
       filepath = fileCreateByPath(params.url),
       status = DownloadStateEvent(total = params.total)
@@ -315,9 +306,6 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     downloadTask.status.current = 0L
     downloadTask.readChannel?.cancel()
     downloadTask.readChannel = null
-    downloadManagers.remove(downloadTask.id)?.let {
-      downloadCompletes.set(downloadTask.id, downloadTask)
-    }
     true
   } ?: false
 
@@ -326,7 +314,6 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       downloadTask.readChannel?.cancel()
       downloadTask.readChannel = null
     }
-    downloadCompletes.remove(taskId) // 移除任务只要taskId对，就可以移除
   }
 
   /**
@@ -376,21 +363,18 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
           if (output.isClosedForRead) {
             breakLoop()
             downloadTask.status.state = DownloadState.Canceled
+            downloadTask.status.current = 0L
             // 触发取消 存储到硬盘
             input.cancel()
+            store.set(downloadTask.id, downloadTask)
             downloadTask.downloadSignal.emit(downloadTask)
-            downloadManagers.remove(taskId)?.let {
-              downloadCompletes.set(taskId, it)
-            }
           } else if (last) {
             output.close()
             input.cancel()
             downloadTask.status.state = DownloadState.Completed
             // 触发完成 存储到硬盘
+            store.set(downloadTask.id, downloadTask)
             downloadTask.downloadSignal.emit(downloadTask)
-            downloadManagers.remove(taskId)?.let {
-              downloadCompletes.set(taskId, it)
-            }
           } else {
             downloadTask.status.current += byteArray.size
             // 触发进度更新
@@ -408,6 +392,35 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     }
     return output
   }
+
+  suspend fun decompress(task: DownloadTask): Boolean {
+    var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
+    jmm = jmm.substring(0, jmm.lastIndexOf("."))
+    val sourcePath = downloadNMM.nativeFetch(buildUrlString("file://file.std.dweb/picker") {
+      parameters.append("path", task.filepath)
+    }).text()
+    val targetPath = downloadNMM.nativeFetch(buildUrlString("file://file.std.dweb/picker") {
+      parameters.append("path", "/data/apps/$jmm")
+    }).text()
+    return downloadNMM.nativeFetch(buildUrlString("file://zip.browser.dweb/decompress") {
+      parameters.append("sourcePath", sourcePath)
+      parameters.append("targetPath", targetPath)
+    }).boolean().trueAlso {
+      // 保存 session（记录安装时间） 和 metadata （app数据源）
+      /*downloadNMM.nativeFetch(PureRequest(buildUrlString("file://file.std.dweb/write") {
+        parameters.append("path", "/data/apps/$jmm/usr/sys/metadata.json")
+        parameters.append("create", "true")
+      }, IpcMethod.POST, body = IPureBody.from(Json.encodeToString(jmmAppInstallManifest))))
+      downloadNMM.nativeFetch(PureRequest(buildUrlString("file://file.std.dweb/write") {
+        parameters.append("path", "/data/apps/$jmm/usr/sys/session.json")
+        parameters.append("create", "true")
+      }, IpcMethod.POST, body = IPureBody.from(Json.encodeToString(buildJsonObject {
+        put("installTime", JsonPrimitive(datetimeNow()))
+        put("installUrl", JsonPrimitive(task.originUrl?:""))
+      }))))*/
+    }
+  }
+
 
   /**
    * 窗口是单例模式
@@ -436,4 +449,6 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       }
     }
   }
+
+  suspend fun close() = winLock.withLock { downloadNMM.getMainWindow().hide() }
 }
