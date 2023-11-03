@@ -37,6 +37,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
+import kotlin.jvm.JvmInline
 
 val debugDNS = Debugger("dns")
 

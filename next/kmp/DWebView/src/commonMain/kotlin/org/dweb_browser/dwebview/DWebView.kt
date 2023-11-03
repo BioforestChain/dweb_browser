@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.channels.Channel
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Signal
 
@@ -21,23 +22,18 @@ interface IDWebView {
   suspend fun createMessageChannel(): IMessageChannel
 
   suspend fun setContentScale(scale: Float)
-
-  /**
-   * 执行一段JS代码，这个代码将会包裹在 (async()=>{ YOUR_CODE })() 中
-   */
-  fun evalAsyncJavascript(code: String): Deferred<String>
 }
 
 interface IMessageChannel {
-  val port1: IMessagePort
-  val port2: IMessagePort
+  val port1: IWebMessagePort
+  val port2: IWebMessagePort
 }
 
-interface IMessagePort {
-  fun start()
-  fun close()
-  fun postMessage(event: MessageEvent)
-  val onMessage: Signal.Listener<MessageEvent>
+interface IWebMessagePort {
+  suspend fun start()
+  suspend fun close()
+  suspend fun postMessage(event: IMessageEvent)
+  val onMessage: Signal.Listener<IMessageEvent>
 }
 
 internal class LoadUrlTask(
@@ -45,4 +41,9 @@ internal class LoadUrlTask(
   val deferred: CompletableDeferred<String> = CompletableDeferred()
 )
 
-data class MessageEvent(val data: String, val ports: List<IMessagePort> = emptyList())
+interface IMessageEvent {
+  val data: String
+  val ports: List<IWebMessagePort>
+}
+
+typealias AsyncChannel = Channel<Result<String>>

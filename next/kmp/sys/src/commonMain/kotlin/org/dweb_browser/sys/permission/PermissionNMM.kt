@@ -14,7 +14,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExperimentalMaterial3Api
+//import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Switch
@@ -62,6 +64,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
     )
   }
 
+  @OptIn(ExperimentalMaterial3Api::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val hooks = object : PermissionHooks {
       override suspend fun onRequestPermissions(
@@ -91,7 +94,8 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                 }
               }
 
-              HorizontalDivider()
+//              HorizontalDivider()
+              Divider()
 
               for ((permission, module) in permissionModuleMap) {
                 ListItem(leadingContent = {
@@ -143,7 +147,8 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                     }, thumbContent = icon)
                   })
               }
-              HorizontalDivider()
+//              HorizontalDivider()
+              Divider()
               Row(horizontalArrangement = Arrangement.SpaceBetween) {
                 Button(onClick = {
                   for (permission in checkedMap.keys) {

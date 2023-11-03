@@ -1,44 +1,34 @@
 package org.dweb_browser.dwebview.ipcWeb
 
-import android.webkit.WebMessage
-import android.webkit.WebMessagePort
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
 import org.dweb_browser.core.ipc.helper.jsonToIpcMessage
+import org.dweb_browser.dwebview.DWebMessagePort
+import org.dweb_browser.dwebview.IWebMessagePort
+import org.dweb_browser.dwebview.MessageEvent
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.withMainContext
+import platform.Foundation.NSString
 
-class MessagePort private constructor(private val port: WebMessagePort) : IMessagePort {
+class MessagePort private constructor(private val port: DWebMessagePort) : IMessagePort {
   companion object {
-    private val wm = WeakHashMap<WebMessagePort, MessagePort>()
-    suspend fun from(port: WebMessagePort): MessagePort =
-      wm.getOrPut(port) { MessagePort(port).also { it.installMessageSignal() } }
+    private val wm = WeakHashMap<DWebMessagePort, MessagePort>()
+    suspend fun from(port: DWebMessagePort): MessagePort = wm.getOrPut(port) { MessagePort(port) }
 
     val messageScope = CoroutineScope(CoroutineName("webMessage") + ioAsyncExceptionHandler)
   }
 
   val messageChannel = Channel<WebMessage>(capacity = Channel.UNLIMITED)
-
-  private suspend fun installMessageSignal() = withMainContext {
-    port.setWebMessageCallback(object : WebMessagePort.WebMessageCallback() {
-      override fun onMessage(port: WebMessagePort, event: WebMessage) {
-        messageChannel.trySend(event).getOrElse { err ->
-          err?.printStackTrace()
-        }
-        /// TODO 尝试告知对方暂停，比如发送 StreamPaused
-      }
-    })
-  }
 
   private val _messageSignal by lazy {
     val signal = Signal<WebMessage>()
@@ -55,8 +45,13 @@ class MessagePort private constructor(private val port: WebMessagePort) : IMessa
   }
 
   fun onWebMessage(cb: Callback<WebMessage>) = _messageSignal.listen(cb)
-  override suspend fun postMessage(data: String) = withMainContext {
-    port.postMessage(WebMessage(data))
+
+  override suspend fun postMessage(data: String) {
+    postMessage(data, emptyList())
+  }
+
+  suspend fun postMessage(data: String, ports: List<DWebMessagePort>) = withMainContext {
+    port.postMessage(MessageEvent(data, ports))
   }
 
   private var _isClosed = false
@@ -66,7 +61,9 @@ class MessagePort private constructor(private val port: WebMessagePort) : IMessa
     }
     _isClosed = true
     messageChannel.close()
-    port.close()
+    messageScope.launch {
+      port.close()
+    }
   }
 }
 
@@ -76,15 +73,15 @@ open class MessagePortIpc(
   private val roleType: IPC_ROLE,
 ) : DMessagePortIpc(port, remote, roleType) {
   companion object {
-    suspend fun from(
-      port: WebMessagePort, remote: IMicroModuleManifest, roleType: IPC_ROLE
-    ) = MessagePortIpc(MessagePort.from(port), remote, roleType)
+    fun from(
+      port: IWebMessagePort, remote: IMicroModuleManifest, roleType: IPC_ROLE
+    ) = DMessagePortIpc(IMessagePort.from(port), remote, roleType)
   }
 
   init {
     port.onWebMessage { event ->
       val ipc = this@MessagePortIpc
-      when (val message = jsonToIpcMessage(event.data, ipc)) {
+      when (val message = jsonToIpcMessage((event.data as NSString).toString(), ipc)) {
         "close" -> close()
         "ping" -> port.postMessage("pong")
         "pong" -> debugMessagePortIpc("PONG", "$ipc")
@@ -96,9 +93,6 @@ open class MessagePortIpc(
         else -> throw Exception("unknown message: $message")
       }
     }.removeWhen(onDestroy)
-
   }
-
-
 }
 
