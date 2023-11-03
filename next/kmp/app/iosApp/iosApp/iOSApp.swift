@@ -11,7 +11,7 @@ struct iOSApp: App {
     
     init() {
         print("iOS init")
-        KmpBridgeManager.registerIMPs()
+        KmpBridgeManager.shared.registerIMPs()
     }
     
 	var body: some Scene {
@@ -29,6 +29,9 @@ struct iOSApp: App {
             .onReceive(networkManager.$isNetworkAvailable) { isAvailable in
                 isNetworkSegmentViewPresented = !isAvailable
             }
+            .onReceive(KmpBridgeManager.shared.eventPublisher.filter{ $0.name == KmpEvent.share }, perform: { event in
+                event.responseAction?.doResponseAction()
+            })
 		}
 	}
 }

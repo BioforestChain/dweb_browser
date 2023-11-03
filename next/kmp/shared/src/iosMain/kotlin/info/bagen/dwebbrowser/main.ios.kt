@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.UIKitView
@@ -34,6 +35,7 @@ import platform.CoreGraphics.CGSize
 import platform.CoreGraphics.CGSizeMake
 import platform.CoreGraphics.CGFloat
 import kotlinx.cinterop.useContents
+import kotlinx.coroutines.launch
 import org.dweb_browser.sys.*
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.shared.*
@@ -58,9 +60,8 @@ fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat)->Unit)
     state.showMenuPanel = true
   }) { modifier ->
 
-
-
     Box() {
+      val scope = rememberCoroutineScope()
       onSizeChange(width.toDouble(), height.toDouble())
       UIKitView(
         factory = {
@@ -71,16 +72,28 @@ fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat)->Unit)
           println( "update:::: $view")
         })//    PreviewWindowTopBarContent(modifier)
 
-      ElevatedButton(onClick = {
-        println("[iOS Test] Scan >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        runBlocking {
-          TestEntry().doScanningTest()
-        }
-        println("[iOS Test] Scan <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-      }) {
+        Column {
+          ElevatedButton(onClick = {
+            println("[iOS Test] Scan >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            scope.launch {
+              TestEntry().doScanningTest()
+            }
+            println("[iOS Test] Scan <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+          }) {
+            Text("Scan Test")
+          }
 
-        Text("Scan Test")
-      }
+          ElevatedButton(onClick = {
+            println("[iOS Test] Share >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            scope.launch {
+              TestEntry().doShareTest()
+            }
+            println("[iOS Test] Share <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+          }) {
+            Text("Share Test")
+          }
+        }
+
     }
   }
 }
