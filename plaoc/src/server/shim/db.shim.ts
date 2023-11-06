@@ -23,6 +23,6 @@ export const setupDB = async (sessionId: string) => {
       tasks.push(t2.catch(console.error));
     }
     await Promise.all(tasks);
-    location.replace(location.href);
+    (location as Location).replace(location.href);
   }
 };

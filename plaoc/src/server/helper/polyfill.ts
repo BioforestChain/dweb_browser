@@ -6,6 +6,8 @@ if (typeof Response.json !== "function") {
   };
 }
 
-if (!globalThis.URLPattern) { 
-  await import("npm:urlpattern-polyfill");
-}
+(async () => {
+  if (typeof URLPattern === 'undefined') {
+    await import("npm:urlpattern-polyfill");
+  }
+})();

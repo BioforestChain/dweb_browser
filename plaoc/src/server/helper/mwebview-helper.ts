@@ -1,4 +1,4 @@
-import { createSignal, jsProcess } from "./deps.ts";
+import { createSignal, jsProcess } from "npm:@dweb-browser/js-process";
 
 /**开启新页面 */
 export const mwebview_open = async (wid: string, url: string) => {
@@ -52,7 +52,7 @@ export interface $AllWebviewState {
 export type DiffFn = (size: number) => unknown;
 
 // 管理webView
-export const all_webview_status = new (class extends Map<string, $WebViewState> {
+class AllWebviewStatus extends Map<string, $WebViewState> {
   last() {
     return [...this.entries()].at(-1)!;
   }
@@ -85,7 +85,8 @@ export const all_webview_status = new (class extends Map<string, $WebViewState> 
     this.oldWebviewState = newState.views;
     this.diffFactory(diff);
   }
-})();
+}
+export const all_webview_status = new AllWebviewStatus();
 
 let _false = true;
 export const sync_mwebview_status = async () => {

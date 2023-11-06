@@ -9,28 +9,28 @@ export const enum X_EMULATOR_ACTION {
 }
 
 export interface $PlaocConfig {
-  usePublicUrl?:boolean,
-  defaultConfig:$DefaultConfig,
-  redirect:$Redirect[]
+  usePublicUrl?: boolean;
+  defaultConfig: $DefaultConfig;
+  redirect: $Redirect[];
 }
 
 export interface $DefaultConfig {
-  lang:string
+  lang: string;
 }
 
 export interface $Redirect {
-  matchMethod?: string[],
-  matchUrl: $MatchUrl,
-  to:$To
+  matchMethod?: string[];
+  matchUrl: $MatchUrl;
+  to: $To;
 }
 
 export interface $MatchUrl {
-  pathname?: string,
-  search?:string
+  pathname?: string;
+  search?: string;
 }
 
 export interface $To {
-  url: string,
-  appendHeaders: Record<string, string>,
-  removeHeaders:string[]
+  url: string;
+  appendHeaders: Record<string, string>;
+  removeHeaders: string[];
 }

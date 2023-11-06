@@ -1,4 +1,3 @@
-import { IpcHeaders, IpcResponse } from "../../deps.ts";
 import {
   $DwebHttpServerOptions,
   $Ipc,
@@ -6,14 +5,20 @@ import {
   $OnFetchReturn,
   FetchEvent,
   IPC_ROLE,
+  IpcHeaders,
   IpcRequest,
+  IpcResponse,
   PromiseOut,
   ReadableStreamIpc,
   jsProcess,
-  mapHelper,
-} from "./deps.ts";
-import { HttpServer } from "./http-helper.ts";
-import { mwebview_destroy } from "./mwebview-helper.ts";
+  mapHelper
+} from "npm:@dweb-browser/js-process";
+
+
+
+import { HttpServer } from "./helper/http-helper.ts";
+import { mwebview_destroy } from "./helper/mwebview-helper.ts";
+import { API_onFetchHandlers } from "./middleware-config.ts";
 const DNS_PREFIX = "/dns.std.dweb/";
 const INTERNAL_PREFIX = "/internal/";
 
@@ -28,9 +33,13 @@ export class Server_api extends HttpServer {
       port: 443,
     };
   }
+
   async start() {
     const serverIpc = await this._listener;
-    return serverIpc.onFetch(this._provider.bind(this)).internalServerError().cors();
+    return serverIpc
+      .onFetch(...API_onFetchHandlers, this._provider.bind(this))
+      .internalServerError()
+      .cors();
   }
 
   protected async _provider(event: FetchEvent) {
@@ -101,6 +110,7 @@ export class Server_api extends HttpServer {
           categories: [],
           name: "",
         },
+        //@ts-ignore
         IPC_ROLE.SERVER
       );
       readableStreamIpc.bindIncomeStream(event.request.body!);

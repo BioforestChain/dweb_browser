@@ -1,5 +1,4 @@
-import { X_PLAOC_QUERY } from "./const.ts";
-import type { $MicroModuleManifest, $ReadableStreamIpc } from "./deps.ts";
+import type { $MicroModuleManifest, $ReadableStreamIpc } from "npm:@dweb-browser/js-process";
 import {
   $IpcResponse,
   $MMID,
@@ -10,23 +9,15 @@ import {
   ReadableStreamIpc,
   jsProcess,
   mapHelper,
-  simpleEncoder,
-} from "./deps.ts";
+  simpleEncoder
+} from "npm:@dweb-browser/js-process";
+import { X_PLAOC_QUERY } from "./const.ts";
 import { Server_api as _Server_api } from "./http-api-server.ts";
 const EMULATOR_PREFIX = "/emulator";
 export class Server_api extends _Server_api {
   readonly streamMap = new Map<string, $ReadableStreamOut<Uint8Array>>();
   readonly responseMap = new Map<number, PromiseOut<$IpcResponse>>();
   readonly jsonlineEnd = simpleEncoder("\n", "utf8");
-
-  /**内部请求事件 */
-  // protected override async _onInternal(event: FetchEvent): Promise<$OnFetchReturn> {
-  //   const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
-  //   if (!sessionId) {
-  //     throw new Error("session not connect!");
-  //   }
-  //   return super._onInternal(event);
-  // }
 
   protected override async _onApi(event: FetchEvent) {
     const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
@@ -49,6 +40,7 @@ export class Server_api extends _Server_api {
           dweb_deeplinks: [],
           categories: [],
         } satisfies $MicroModuleManifest,
+        // @ts-ignore
         IPC_ROLE.SERVER
       );
       void streamIpc.bindIncomeStream(event.body!);

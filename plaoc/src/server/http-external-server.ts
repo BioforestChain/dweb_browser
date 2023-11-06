@@ -1,5 +1,4 @@
-import { $MicroModuleManifest, isWebSocket } from "../../deps.ts";
-import { $MMID } from "../../server.deps.ts";
+import type { $MMID, $MicroModuleManifest } from "npm:@dweb-browser/js-process";
 import {
   $DwebHttpServerOptions,
   $Ipc,
@@ -12,10 +11,12 @@ import {
   IpcResponse,
   PromiseOut,
   ReadableStreamIpc,
+  isWebSocket,
   jsProcess,
   mapHelper,
-} from "./deps.ts";
-import { HttpServer } from "./http-helper.ts";
+} from "npm:@dweb-browser/js-process";
+import { HttpServer } from "./helper/http-helper.ts";
+import { EXTERNAL_onFetchHandlers } from "./middleware-config.ts";
 
 declare global {
   interface WindowEventMap {
@@ -90,7 +91,7 @@ export class Server_external extends HttpServer {
     jsProcess.onFetch(async (event) => {
       if (event.pathname == ExternalState.WAIT_EXTERNAL_READY) {
         await this.ipcPo.waitOpen();
-      } 
+      }
       return { status: 200 };
     });
   }
@@ -106,7 +107,10 @@ export class Server_external extends HttpServer {
   readonly token = crypto.randomUUID();
   async start() {
     const serverIpc = await this._listener;
-    return serverIpc.onFetch(this._provider.bind(this)).internalServerError().cors();
+    return serverIpc
+      .onFetch(...EXTERNAL_onFetchHandlers, this._provider.bind(this))
+      .internalServerError()
+      .cors();
   }
 
   private ipcPo = new PromiseToggle<$ReadableStreamIpc, void>({ type: "close", value: undefined });
@@ -139,6 +143,7 @@ export class Server_external extends HttpServer {
             dweb_deeplinks: [],
             categories: [],
           } satisfies $MicroModuleManifest,
+          //@ts-ignore
           IPC_ROLE.SERVER
         );
         this.ipcPo.toggleOpen(streamIpc);
@@ -178,7 +183,7 @@ export class Server_external extends HttpServer {
           }
           const ext_options = this._getOptions();
           // 请求跟外部app通信，并拿到返回值
-          event.headers.append("X-Dweb-Host",jsProcess.mmid)
+          event.headers.append("X-Dweb-Host", jsProcess.mmid);
           return await jsProcess.nativeFetch(
             `http://${ext_options.subdomain}.${mmid}:${ext_options.port}${event.pathname}${event.search}`,
             {

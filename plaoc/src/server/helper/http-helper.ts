@@ -1,4 +1,4 @@
-import { $DwebHttpServerOptions, http, jsProcess } from "./deps.ts";
+import { $DwebHttpServerOptions, http, jsProcess, ServerStartResult } from "npm:@dweb-browser/js-process";
 
 const { IpcHeaders } = navigator.dweb.ipc;
 
@@ -18,7 +18,7 @@ export abstract class HttpServer {
   getServer() {
     return this._serverP;
   }
-  getStartResult() {
+  async getStartResult():Promise<InstanceType<typeof ServerStartResult>> {
     return this._serverP.then((server) => server.startResult);
   }
   async stop() {
