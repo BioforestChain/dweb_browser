@@ -1,0 +1,19 @@
+[
+  {
+    "buildFromRootDir": "./src/server/index.ts",
+    "mainExports": ".",
+    "buildToRootDir": "./build/server",
+    "watchDir": "./src/server",
+    "denoShim": false,
+    "name": "@plaoc/server",
+    "version": "0.0.1",
+    "importMap": "./import_map.json",
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "devDependencies": {
+      "@typescript/lib-dom": "npm:@types/web@^0.0.119"
+    }
+  }
+]

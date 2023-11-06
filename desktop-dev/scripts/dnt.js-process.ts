@@ -68,9 +68,6 @@ export const doBuild = async (args = Deno.args, _version?: string) => {
     },
     packageManager: "yarn",
     async postBuild() {
-      /// STEP1:
-      Deno.copyFileSync(resolveTo("logo.png"), resolveTo("electron/logo.png"));
-
       /// STEP2: 强行进行源码映射
       type $SourceMap = {
         version: number;

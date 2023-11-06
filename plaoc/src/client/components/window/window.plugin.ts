@@ -125,6 +125,7 @@ export class WindowPlugin extends BasePlugin {
         categories: [],
         name: "",
       },
+      //@ts-ignore
       IPC_ROLE.CLIENT
     );
     const ws = new WebSocket(url);

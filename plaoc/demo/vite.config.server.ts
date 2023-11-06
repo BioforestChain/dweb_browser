@@ -6,8 +6,9 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [],
   build: {
-    rollupOptions: {
-      input: Object.fromEntries(
+    outDir: "plaoc-dist",
+    lib: {
+      entry: Object.fromEntries(
         glob
           .sync("./server/*.ts")
           .map((file: string) => [
@@ -15,10 +16,8 @@ export default defineConfig({
             fileURLToPath(new URL(file, import.meta.url)),
           ])
       ),
-      output: {
-        dir: "plaoc-dist",
-        entryFileNames: `[name].js`,
-      },
+      formats: ["es"],
+      fileName: (_, name) => name + ".js",
     },
   },
 });

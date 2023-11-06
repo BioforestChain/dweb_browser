@@ -2,7 +2,7 @@
 
 - 先执行`deno task icon` 生成应用图标
 
-- 然后执行`deno task start install --url http://xx.xx.xx.xx:8096/metadata.json` 启动app安装。
+- 然后执行`deno task start install --url http://xx.xx.xx.xx:8096/metadata.json` 启动 app 安装。
 
 # 工程中运行 plugin/demo 应用流程
 
@@ -15,6 +15,14 @@
   打包 electron 应用
 - `deno task plaoc serve ./DIR_OR_URL`
   将制定目录或者链接作为应用启动
+
+## 打包发布 `@dweb-browser/desktop` `@dweb-browser/js-process`
+
+build and publish
+
+```bash
+ deno task dnt ${version} --pub
+```
 
 # TODO
 
@@ -39,25 +47,25 @@
 
 ## 打包桌面端
 
-> 以下命令都在desktop-dev目录下
+> 以下命令都在 desktop-dev 目录下
 
 1. 先打包个版本。
 
 ```bash
-deno task dnt 2.0.5 
+deno task dnt 2.0.5
 ```
 
-2. 生成icon, 这个不用每次都生成，在打包目录清空的时候再去生成。
-   
+2. 生成 icon, 这个不用每次都生成，在打包目录清空的时候再去生成。
+
 ```bash
 deno task icon
-``` 
+```
 
 3. 打包成应用
 
 ```bash
 deno task pkg
-#or 
+#or
 deno task pkg:win
 #or
 deno task pkg:mac

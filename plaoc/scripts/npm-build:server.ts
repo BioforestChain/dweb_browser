@@ -36,6 +36,9 @@ export const doBuidCore = async (config: {
   entryPoints.push({
     name: config.mainExports,
     path: entry,
+  },{
+    name: "./middleware",
+    path: "./src/server/middlewares/index.ts"
   });
   console.group("buildFromDir :", buildFromRootDir);
   // console.groupEnd();
@@ -56,7 +59,12 @@ export const doBuidCore = async (config: {
     test: false,
     shims: {
       deno: config.denoShim,
-      custom: [],
+      custom: [
+        {
+          module: "src/server/shim/Response.shim.ts",
+          globalNames: [{ name: "Response" }],
+        },
+      ],
     },
     compilerOptions: {
       target: "ES2020",
@@ -192,12 +200,9 @@ export const doBuild = async (args = Deno.args) => {
       });
     }
   }
-  const targets = args.filter((a) => /^\w/.test(a));
   const rest = args.filter((a) => /^\w/.test(a) === false);
 
-  const target = targets[0] ?? "client";
-
-  await doBuildFromJson(import.meta.resolve(`./npm.${target}.json`), rest);
+  await doBuildFromJson(import.meta.resolve(`./npm.server.json`), rest);
 };
 
 if (import.meta.main) {

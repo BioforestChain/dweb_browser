@@ -33,7 +33,7 @@ export const doBuild = async (args = Deno.args, _version?: string) => {
     outDir: resolveTo("./electron"),
     shims: {
       // see JS docs for overview and more options
-      deno: true,
+      deno: false,
     },
     importMap: resolveTo("import_map.json"),
     typeCheck: false,
@@ -61,7 +61,7 @@ export const doBuild = async (args = Deno.args, _version?: string) => {
         start: "electron ./",
       },
       author: "Bnqkl Dweb Team",
-      main: "./bundle/index.js",
+      // main: "./bundle/index.js",
       exports: {
         ".": {
           require: "./script/index.js",
@@ -187,6 +187,9 @@ export const doBuild = async (args = Deno.args, _version?: string) => {
       updatePackageJson((packageJson) => {
         const moveDepToDev = (name: string) => {
           if (!packageJson.dependencies) return;
+          if (!packageJson.devDependencies) {
+            packageJson.devDependencies = {}
+          }
           packageJson.devDependencies[name] = packageJson.dependencies[name];
           delete packageJson.dependencies[name];
         };

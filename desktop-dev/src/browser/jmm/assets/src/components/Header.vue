@@ -35,7 +35,7 @@ async function querySelf() {
   const res = await fetch(url);
   const result: Boolean = await res.json();
 
-  if (res.ok && result) {
+  if (res.ok && false) {
     downloadState.value = DOWNLOAD_STATUS.DONE;
   }
 }

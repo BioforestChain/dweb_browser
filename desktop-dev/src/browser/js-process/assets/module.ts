@@ -1,10 +1,9 @@
 //#region helper
 export { isWebSocket } from "@dweb-browser/desktop/core/helper/ipcRequestHelper.ts";
 export type { $MMID, $MicroModuleManifest } from "@dweb-browser/desktop/core/helper/types.ts";
-export { queue } from "@dweb-browser/desktop/helper/$queue.ts";
 export * from "@dweb-browser/desktop/helper/PromiseOut.ts";
 export * from "@dweb-browser/desktop/helper/binaryHelper.ts";
-export * from "@dweb-browser/desktop/helper/color.ts";
+// export * from "@dweb-browser/desktop/helper/color.ts"; // 没用到
 export * from "@dweb-browser/desktop/helper/createSignal.ts";
 export * from "@dweb-browser/desktop/helper/encoding.ts";
 export * from "@dweb-browser/desktop/helper/mapHelper.ts";
@@ -26,7 +25,7 @@ export {
   IpcRequest,
   IpcResponse,
   ReadableStreamIpc,
-  ReadableStreamOut,
+  ReadableStreamOut
 } from "./worker/std-dweb-core.ts";
 export type * from "./worker/std-dweb-http.ts";
 import type * as $Core from "./worker/std-dweb-core.ts";

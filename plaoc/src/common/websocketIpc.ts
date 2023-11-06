@@ -24,6 +24,7 @@ export const createMockModuleServerIpc = (wsUrl:URL,remote:$MicroModuleManifest)
      */
     const serverIpc = new ReadableStreamIpc(
       remote,
+      //@ts-ignore
       IPC_ROLE.CLIENT
     );
     waitOpenPo.resolve(serverIpc);

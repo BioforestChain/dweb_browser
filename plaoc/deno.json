@@ -12,9 +12,10 @@
     "build:client:watch": "deno run --watch -A ./scripts/npm-build.ts client --watch",
     "build:cli": "deno run -A ./scripts/npm-bin.ts cli && deno task cp:cli",
     "build:is-dweb": "deno run -A ./scripts/npm-build.ts is-dweb",
-    "cp:cli":"cp -r ./dist ./build/cli/esm/plaoc",
+    "cp:cli": "cp -r ./build/server/dist ./build/cli/esm/plaoc",
     "build:server": "deno run -A ./scripts/bundle-server.ts",
     "build:watch:server": "deno task build:server --watch",
+    "build:s": "deno run -A ./scripts/npm-build:server.ts",
     "dev": "deno task dev:demo & deno task build:watch:demo",
     "dev:demo": "cd ./demo && pnpm dev",
     "build:demo": "cd ./demo && pnpm build",
@@ -27,7 +28,9 @@
     "strict": true,
     "strictNullChecks": true,
     "noImplicitOverride": true,
-    "types":["deno-ns"],
+    "types": [
+      "deno-ns"
+    ],
     "lib": [
       "dom",
       "deno.window"
