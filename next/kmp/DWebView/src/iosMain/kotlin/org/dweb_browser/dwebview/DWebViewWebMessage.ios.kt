@@ -1,12 +1,9 @@
 package org.dweb_browser.dwebview
 
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.convert
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
-import platform.Foundation.NSArray
 import platform.Foundation.NSNumber
 import platform.Foundation.valueForKey
 import platform.WebKit.WKContentWorld
@@ -14,7 +11,6 @@ import platform.WebKit.WKScriptMessage
 import platform.WebKit.WKScriptMessageHandlerProtocol
 import platform.WebKit.WKUserContentController
 import platform.darwin.NSObject
-import platform.darwin.NSUInteger
 
 internal class DWebViewWebMessage(val webview: DWebView) {
   companion object {

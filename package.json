@@ -4,6 +4,7 @@
     "description": "该配置只包含基本的一些全局工具链",
     "scripts": {},
     "devDependencies": {
+        "@types/node": "^20.8.10",
         "esbuild": "^0.17.19",
         "esbuild-plugin-html-modules": "^0.6.0",
         "prettier": "^2.8.8",

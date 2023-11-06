@@ -1,15 +1,11 @@
 package org.dweb_browser.browser.jmm
 
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.LocalTime
 import org.dweb_browser.browser.download.TaskId
-import org.dweb_browser.browser.jmm.ui.JmmStatus
+import org.dweb_browser.browser.jmm.model.JmmStatus
 import org.dweb_browser.browser.web.ui.browser.model.isUrl
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -29,6 +25,7 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 
@@ -76,6 +73,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     loadJmmAppList(store) // 加载安装的应用信息
     loadJmmDownloadList(store) // 加载下载的信息
     loadHistoryMetadataUrl(store) // 加载之前加载过的应用
+    val historyController = JmmHistoryController(this)
 
     val routeInstallHandler = defineEmptyResponse {
       val metadataUrl = request.query("url")
@@ -116,7 +114,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         true
       })
     onRenderer {
-      getMainWindow().state.setFromManifest(this@JmmNMM)
+      historyController.openHistoryView()
     }
   }
 

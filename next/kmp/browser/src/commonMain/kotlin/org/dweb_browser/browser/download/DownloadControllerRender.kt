@@ -9,12 +9,14 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.download.model.LocalDownloadModel
 import org.dweb_browser.browser.download.ui.DownloadView
+import org.dweb_browser.browser.download.ui.LocalDecompressModel
 import org.dweb_browser.sys.window.core.WindowRenderScope
 
 @Composable
 fun DownloadController.Render(modifier: Modifier, windowRenderScope: WindowRenderScope) {
   CompositionLocalProvider(
-    LocalDownloadModel provides this.downloadModel
+    LocalDownloadModel provides this.downloadModel,
+    LocalDecompressModel provides this.decompressModel,
   ) {
     Box(modifier = with(windowRenderScope) {
       Modifier

@@ -8,37 +8,52 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.common.CommonSimpleTopBar
+import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.model.DownloadTab
 import org.dweb_browser.browser.download.model.LocalDownloadModel
 
 @Composable
 fun DownloadView() {
   DownloadTab()
+  DecompressView()
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadTab() {
   val viewModel = LocalDownloadModel.current
-  Column {
-    TabRow(selectedTabIndex = viewModel.tabIndex.value) {
+  val scope = rememberCoroutineScope()
+  Column(modifier = Modifier
+    .fillMaxSize()
+    .background(MaterialTheme.colorScheme.background)
+  ) {
+    CommonSimpleTopBar(title = BrowserI18nResource.top_bar_title_download()) {
+      scope.launch { viewModel.close() }
+    }
+
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
       viewModel.tabItems.forEachIndexed { index, downloadTab ->
-        Tab(
+        SegmentedButton(
           selected = index == viewModel.tabIndex.value,
           onClick = { viewModel.tabIndex.value = index },
-          text = { Text(text = downloadTab.title) },
-          icon = { Icon(imageVector = downloadTab.vector, contentDescription = downloadTab.title) }
+          shape = RoundedCornerShape(16.dp),
+          icon = { Icon(imageVector = downloadTab.vector, contentDescription = downloadTab.title) },
+          label = { Text(text = downloadTab.title) }
         )
       }
     }
@@ -49,11 +64,9 @@ fun DownloadTab() {
 @Composable
 fun DownloadTabView() {
   val viewModel = LocalDownloadModel.current
+  val decompressModel = LocalDecompressModel.current
   val downloadTab = viewModel.tabItems[viewModel.tabIndex.value]
-  val list = when (downloadTab) {
-    DownloadTab.Downloads -> viewModel.downloadController.downloadManagers.cMaps
-    DownloadTab.Files -> viewModel.downloadController.downloadCompletes.cMaps
-  }
+  val list = viewModel.downloadController.downloadManagers.cMaps
   if (list.isEmpty()) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
       Text(text = BrowserI18nResource.no_download_links())
@@ -63,14 +76,18 @@ fun DownloadTabView() {
 
   LazyColumn {
     list.forEach { (_, downloadTask) ->
-      item(downloadTask.id) {
-        DownloadItem(downloadTask, downloadTab)
-        Spacer(
-          Modifier
-            .height(1.dp)
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.outlineVariant)
-        )
+      if (downloadTab == DownloadTab.Downloads ||
+        downloadTask.status.state == DownloadState.Completed
+      ) {
+        item(downloadTask.id) {
+          DownloadItem(downloadTask) { decompressModel.show(it) }
+          Spacer(
+            Modifier
+              .height(1.dp)
+              .fillMaxWidth()
+              .background(MaterialTheme.colorScheme.outlineVariant)
+          )
+        }
       }
     }
   }

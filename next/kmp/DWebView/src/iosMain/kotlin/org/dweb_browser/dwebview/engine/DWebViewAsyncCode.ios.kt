@@ -3,6 +3,7 @@ package org.dweb_browser.dwebview.engine
 import kotlinx.coroutines.launch
 import platform.Foundation.NSArray
 import platform.Foundation.NSNumber
+import platform.Foundation.valueForKey
 import platform.WebKit.WKScriptMessage
 import platform.WebKit.WKScriptMessageHandlerProtocol
 import platform.WebKit.WKUserContentController
@@ -45,5 +46,15 @@ class DWebViewAsyncCode(private val engine: DWebViewEngine) : NSObject(),
         }
       }
     }
+  }
+}
+
+class LogScriptMessageHandler : NSObject(), WKScriptMessageHandlerProtocol {
+  override fun userContentController(
+    userContentController: WKUserContentController,
+    didReceiveScriptMessage: WKScriptMessage
+  ) {
+    val message = didReceiveScriptMessage.body as NSObject
+    println(message.valueForKey("log") as String)
   }
 }

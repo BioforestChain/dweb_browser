@@ -1,6 +1,8 @@
 {
   "imports": {
-    "vue":"https://esm.sh/v124/vue@3.3.4",
+    "@dweb-browser/desktop": "./src/index.ts",
+    "@dweb-browser/desktop/": "./src/",
+    "vue": "https://esm.sh/v124/vue@3.3.4",
     "ws": "https://esm.sh/v124/ws@8.13.0",
     "cbor-x": "https://esm.sh/v124/cbor-x@1.5.4",
     "popmotion": "https://esm.sh/v124/popmotion@11.0.5",

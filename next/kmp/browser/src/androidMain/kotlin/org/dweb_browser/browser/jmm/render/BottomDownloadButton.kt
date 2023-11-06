@@ -22,8 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JsMicroModule
-import org.dweb_browser.browser.jmm.ui.JmmStatus
-import org.dweb_browser.browser.jmm.ui.LocalJmmViewHelper
+import org.dweb_browser.browser.jmm.model.JmmStatus
+import org.dweb_browser.browser.jmm.model.LocalJmmViewHelper
 
 @Composable
 internal fun BoxScope.BottomDownloadButton() {
