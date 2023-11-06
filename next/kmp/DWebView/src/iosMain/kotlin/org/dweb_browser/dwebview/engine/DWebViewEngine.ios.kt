@@ -8,13 +8,17 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.MainScope
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.dwebview.DWebMessageChannel
+import org.dweb_browser.dwebview.DWebMessagePort
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewWebMessage
+import org.dweb_browser.dwebview.IMessageChannel
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
+import platform.Foundation.NSArray
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
 import platform.WebKit.WKContentWorld
@@ -73,7 +77,7 @@ class DWebViewEngine(
       ?: throw Exception("fail to get WKNavigation when loadRequest")
   }
 
-  internal val onReadySignal = SimpleSignal()
+  val onReadySignal = SimpleSignal()
 
   init {
     /// 测试的时候使用

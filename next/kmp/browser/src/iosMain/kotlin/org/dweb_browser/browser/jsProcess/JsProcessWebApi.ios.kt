@@ -1,50 +1,56 @@
 package org.dweb_browser.browser.jsProcess
 
-import android.net.Uri
-import android.webkit.WebMessage
+import kotlinx.atomicfu.atomic
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.jmm.JsMicroModule
-import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
-import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
-import java.util.concurrent.atomic.AtomicInteger
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.http.HttpDwebServer
+import org.dweb_browser.dwebview.DWebMessagePort
+import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.ipcWeb.WebMessage
+import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
+import org.dweb_browser.helper.OffListener
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SimpleCallback
+import org.dweb_browser.helper.build
+import org.dweb_browser.helper.resolvePath
+import platform.CoreGraphics.CGRectMake
+import platform.WebKit.WKWebViewConfiguration
 
-class JsProcessWebApi(val dWebView: DWebViewEngine) {
-  suspend fun isReady() =
-    dWebView.evaluateSyncJavascriptCode("typeof createProcess") == "function"
+class JsProcessWebApi(val engine: DWebViewEngine) : IJsProcessWebApi {
 
-  @Serializable
-  data class ProcessInfo(val process_id: Int) {}
-  inner class ProcessHandler(val info: ProcessInfo, var ipc: MessagePortIpc)
+  private val dWebView: DWebView by lazy { DWebView(engine) }
 
   /**
    * 执行js"多步骤"代码时的并发编号
    */
-  private var hidAcc = AtomicInteger(1);
+  private var hidAcc = atomic(1);
 
-  suspend fun createProcess(
+  override suspend fun createProcess(
     env_script_url: String,
     metadata_json: String,
     env_json: String,
     remoteModule: IMicroModuleManifest,
     host: String
   ) = withContext(Dispatchers.Main) {
-    val channel = dWebView.createWebMessageChannel()
-    val port1 = channel[0]
-    val port2 = channel[1]
+    val channel = dWebView.createMessageChannel()
+    val port1 = channel.port1
+    val port2 = channel.port2
     val metadata_json_str = Json.encodeToString(metadata_json)
     val env_json_str = Json.encodeToString(env_json)
 
     val hid = hidAcc.addAndGet(1);
-    val processInfo_json = dWebView.evaluateAsyncJavascriptCode("""
+    val processInfo_json = engine.evaluateAsyncJavascriptCode("""
             new Promise((resolve,reject)=>{
                 addEventListener("message", async function doCreateProcess(event) {
                     if (event.data === "js-process/create-process/$hid") {
@@ -60,9 +66,7 @@ class JsProcessWebApi(val dWebView: DWebViewEngine) {
             })
             """.trimIndent(), afterEval = {
       try {
-        dWebView.postWebMessage(
-          WebMessage("js-process/create-process/$hid", arrayOf(port1)), Uri.EMPTY
-        );
+        dWebView.postMessage("js-process/create-process/$hid", listOf(port1))
       } catch (e: Exception) {
         e.printStackTrace()
       }
@@ -73,39 +77,37 @@ class JsProcessWebApi(val dWebView: DWebViewEngine) {
     ProcessHandler(info, ipc)
   }
 
-  suspend fun createIpcFail(
+  override suspend fun createIpcFail(
     process_id: String,
     mmid: String,
     reason: String
-  ) = dWebView.evaluateAsyncJavascriptCode(
+  ) = engine.evaluateAsyncJavascriptCode(
     """
         createIpcFail($process_id,$mmid,$reason)
         """.trimIndent()
   ).let {}
 
-  data class RunProcessMainOptions(val main_url: String)
-
-  suspend fun runProcessMain(process_id: Int, options: RunProcessMainOptions) =
-    dWebView.evaluateAsyncJavascriptCode(
+  override suspend fun runProcessMain(process_id: Int, options: RunProcessMainOptions) =
+    engine.evaluateAsyncJavascriptCode(
       """
         runProcessMain($process_id, { main_url:`${options.main_url}` })
         """.trimIndent()
     ).let {}
 
-  suspend fun destroyProcess(process_id: Int) =
-    dWebView.evaluateAsyncJavascriptCode(
+  override suspend fun destroyProcess(process_id: Int) =
+    engine.evaluateAsyncJavascriptCode(
       """
         destroyProcess($process_id)
         """.trimIndent()
     ).let {}
 
-  suspend fun createIpc(process_id: Int, mmid: MMID) = withContext(Dispatchers.Main) {
-    val channel = dWebView.createWebMessageChannel()
-    val port1 = channel[0]
-    val port2 = channel[1]
+  override suspend fun createIpc(process_id: Int, mmid: MMID) = withContext(Dispatchers.Main) {
+    val channel = dWebView.createMessageChannel()
+    val port1 = channel.port1
+    val port2 = channel.port2
     val jsIpcPortId = saveNative2JsIpcPort(port2)
     val hid = hidAcc.getAndAdd(1);
-    dWebView.evaluateAsyncJavascriptCode("""
+    engine.evaluateAsyncJavascriptCode("""
         new Promise((resolve,reject)=>{
             addEventListener("message", async function doCreateIpc(event) {
                 if (event.data === "js-process/create-ipc/$hid") {
@@ -120,15 +122,42 @@ class JsProcessWebApi(val dWebView: DWebViewEngine) {
             })
         })
         """.trimIndent(), afterEval = {
-      dWebView.postWebMessage(
-        WebMessage("js-process/create-ipc/$hid", arrayOf(port1)), Uri.EMPTY
-      );
+      dWebView.postMessage("js-process/create-ipc/$hid", listOf(port1))
     })
     jsIpcPortId
   }
 
 
-  fun destroy() {
+  override suspend fun destroy() {
     dWebView.destroy()
   }
+
+  override suspend fun onDestory(cb: SimpleCallback) = dWebView.onDestroy(cb)
+}
+
+
+@OptIn(ExperimentalForeignApi::class)
+actual suspend fun createJsProcessWeb(
+  mainServer: HttpDwebServer,
+  mm: NativeMicroModule
+): IJsProcessWebApi {
+  val afterReadyPo = PromiseOut<Unit>()
+  /// WebView 实例
+  val apis = withContext(Dispatchers.Main) {
+    val urlInfo = mainServer.startResult.urlInfo
+
+    JsProcessWebApi(
+      DWebViewEngine(
+        CGRectMake(0.0, 0.0, 0.0, 0.0), mm, DWebViewOptions(
+          url = urlInfo.buildInternalUrl().build { resolvePath("/index.html") }.toString()
+        ), WKWebViewConfiguration()
+      )
+    ).also { api ->
+      api.engine.onReadySignal.listen {
+        afterReadyPo.resolve(Unit)
+      }
+    }
+  }
+  afterReadyPo.waitPromise()
+  return apis
 }

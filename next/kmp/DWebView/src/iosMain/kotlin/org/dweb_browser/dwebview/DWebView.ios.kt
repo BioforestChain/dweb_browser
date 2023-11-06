@@ -8,6 +8,9 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.SimpleCallback
+import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 import platform.Foundation.NSArray
 import platform.Foundation.NSError
@@ -75,8 +78,20 @@ class DWebView(
     TODO("Not yet implemented")
   }
 
+  private var _destroyed = false
+  private var _destroySignal = SimpleSignal();
+  fun onDestroy(cb: SimpleCallback) = _destroySignal.listen(cb)
+
   override suspend fun destroy() {
+    if (_destroyed) {
+      return
+    }
+    _destroyed = true
+    debugDWebView("DESTROY")
     loadUrl("about:blank", true)
+    runBlockingCatching {
+      _destroySignal.emitAndClear(Unit)
+    }.getOrNull()
     engine.mainScope.cancel(null)
     engine.removeFromSuperview()
   }

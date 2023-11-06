@@ -24,9 +24,6 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.sys.window.core.helper.setFromManifest
-import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 
 val debugJMM = Debugger("JMM")

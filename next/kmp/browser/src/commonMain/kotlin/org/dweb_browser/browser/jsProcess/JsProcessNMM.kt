@@ -9,9 +9,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.module.getAppContext
+//import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebViewOptions
-import org.dweb_browser.dwebview.engine.DWebViewEngine
+//import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.encodeURI
@@ -87,14 +87,15 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         }
       }
     }
-    val apis = createJsProcessWeb(mainServer)
+
+    val apis = createJsProcessWeb(mainServer, this)
     val bootstrapUrl = mainServer.startResult.urlInfo.buildInternalUrl()
       .build { resolvePath("$INTERNAL_PATH/bootstrap.js") }.toString()
 
     this.onAfterShutdown {
-      apis.dWebView.destroy()
+      apis.destroy()
     }
-    apis.dWebView.onDestroy {
+    apis.onDestory {
       shutdown()
     }
 
@@ -173,31 +174,13 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       })
   }
 
-  private suspend fun createJsProcessWeb(mainServer: HttpDwebServer): JsProcessWebApi {
-    val afterReadyPo = PromiseOut<Unit>()
-    /// WebView 实例
-    val apis = withContext(Dispatchers.Main) {
-
-      val urlInfo = mainServer.startResult.urlInfo
-      JsProcessWebApi(DWebViewEngine(
-        getAppContext(), this@JsProcessNMM, DWebViewOptions(
-          url = urlInfo.buildInternalUrl().build { resolvePath("/index.html") }.toString()
-        )
-      ).also { it.settings.safeBrowsingEnabled = false }).also { api ->
-        api.dWebView.onReady { afterReadyPo.resolve(Unit) }
-      }
-    }
-    afterReadyPo.waitPromise()
-    return apis
-  }
-
   override suspend fun _shutdown() {
     debugJsProcess("JsProcess", "_shutdown")
   }
 
   private suspend fun createProcessAndRun(
     ipc: Ipc,
-    apis: JsProcessWebApi,
+    apis: IJsProcessWebApi,
     bootstrapUrl: String,
     entry: String?,
     requestMessage: PureRequest,
@@ -306,7 +289,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
      * 开始执行代码
      */
     apis.runProcessMain(
-      processHandler.info.process_id, JsProcessWebApi.RunProcessMainOptions(
+      processHandler.info.process_id, RunProcessMainOptions(
         main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
           .build { resolvePath(entry ?: "/index.js") }.toString()
       )
@@ -316,17 +299,17 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
   }
 
   data class CreateProcessAndRunResult(
-    val streamIpc: ReadableStreamIpc, val processHandler: JsProcessWebApi.ProcessHandler
+    val streamIpc: ReadableStreamIpc, val processHandler: ProcessHandler
   )
 
   private suspend fun createIpc(
-    ipc: Ipc, apis: JsProcessWebApi, process_id: Int, mmid: MMID
+    ipc: Ipc, apis: IJsProcessWebApi, process_id: Int, mmid: MMID
   ): Int {
     return apis.createIpc(process_id, mmid)
   }
 
   private suspend fun closeAllProcessByIpc(
-    apis: JsProcessWebApi,
+    apis: IJsProcessWebApi,
     ipcProcessIdMap: MutableMap<String, MutableMap<String, PromiseOut<Int>>>,
     mmid: MMID
   ): Boolean {
