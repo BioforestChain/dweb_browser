@@ -6,13 +6,18 @@ import kotlinx.cinterop.BetaInteropApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.withMainContext
 import platform.Foundation.NSArray
+import platform.Foundation.NSError
 import platform.Foundation.NSString
 import platform.Foundation.create
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
+import platform.WebKit.WKNavigation
+import platform.WebKit.WKNavigationDelegateProtocol
+import platform.WebKit.WKWebView
 import platform.darwin.NSObject
 
 class DWebView(
@@ -20,17 +25,21 @@ class DWebView(
 ) : IDWebView {
   private suspend fun loadUrl(task: LoadUrlTask): String {
     engine.loadUrl(task.url)
-    engine.addNavigationDelegate(DNavigationDelegateProtocol(decidePolicyForNavigationAction = { _, action, _ ->
-      this();
-      task.deferred.complete(
-        action.request.URL?.absoluteString ?: "about:blank"
-      )
-    },
-      didFailNavigation = { _, _, error ->
-        this();
-        task.deferred.completeExceptionally(Exception("[${error.code}] ${error.description}"))
+    engine.setNavigationDelegate(object : NSObject(), WKNavigationDelegateProtocol {
+      override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
+        task.deferred.complete(webView.URL?.absoluteString ?: "about:blank")
+        engine.mainScope.launch { engine.onReadySignal.emit() }
       }
-    ));
+
+      override fun webView(
+        webView: WKWebView,
+        didFailNavigation: WKNavigation?,
+        withError: NSError
+      ) {
+        task.deferred.completeExceptionally(Exception("[${withError.code}] ${withError.localizedDescription}"))
+        engine.mainScope.launch { engine.onReadySignal.emit() }
+      }
+    })
     task.deferred.invokeOnCompletion {
       engine.setNavigationDelegate(null)
     }

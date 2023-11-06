@@ -7,9 +7,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.dwebview.DNavigationDelegateProtocol
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewWebMessage
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
@@ -21,22 +19,25 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
-import platform.WebKit.WKNavigation
-import platform.WebKit.WKNavigationDelegateProtocol
+import platform.WebKit.WKPreferences
 import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
-import platform.darwin.NSObject
+import platform.WebKit.javaScriptEnabled
 
 
 @OptIn(ExperimentalForeignApi::class)
 class DWebViewEngine(
   frame: CValue<CGRect>,
   val remoteMM: MicroModule,
-  val options: DWebViewOptions,
+  private val options: DWebViewOptions,
   configuration: WKWebViewConfiguration,
-) : WKWebView(frame, configuration) {
+) : WKWebView(frame, configuration.also {
+  if (options.url.isNotEmpty()) {
+    tryRegistryUrlSchemeHandler(options.url, remoteMM, it)
+  }
+}) {
   internal val mainScope = MainScope()
 
   val evaluator by lazy { WebViewEvaluator(this) }
@@ -45,17 +46,30 @@ class DWebViewEngine(
     CloseWatcher(this)
   }
 
-  fun loadUrl(url: String) {
-    val uri = Url(url)
+  companion object {
+    private fun tryRegistryUrlSchemeHandler(
+      url: String,
+      remoteMM: MicroModule,
+      configuration: WKWebViewConfiguration
+    ) {
+      val baseUri = Url(url)
+      /// 如果是 dweb 域名，这是需要加入网关的链接前缀才能被正常加载
+      if (baseUri.host.endsWith(".dweb") && (baseUri.protocol == URLProtocol.HTTP || baseUri.protocol == URLProtocol.HTTPS)) {
+        val dwebSchemeHandler = DURLSchemeHandler(remoteMM, baseUri)
+        configuration.setURLSchemeHandler(dwebSchemeHandler, dwebSchemeHandler.scheme)
+      }
+    }
+  }
 
-    /// 如果是 dweb 域名，这是需要加入网关的链接前缀才能被正常加载
+  fun loadUrl(url: String) {
+    var uri = Url(url)
+
     if (uri.host.endsWith(".dweb") && (uri.protocol == URLProtocol.HTTP || uri.protocol == URLProtocol.HTTPS)) {
-      val dwebSchemeHandler = DURLSchemeHandler(remoteMM, uri)
-      configuration.setURLSchemeHandler(dwebSchemeHandler, dwebSchemeHandler.scheme)
+      uri = Url("${DURLSchemeHandler.getScheme(uri)}:${uri.encodedPathAndQuery}")
     }
 
-    val nsUrl = NSURL.URLWithString(url) ?: throw Exception("invalid url: ${url}")
-    val navigation = super.loadRequest(NSURLRequest.requestWithURL(nsUrl))
+    val nsUrl = NSURL.URLWithString(uri.toString()) ?: throw Exception("invalid url: $url")
+    val navigation = loadRequest(NSURLRequest.requestWithURL(nsUrl))
       ?: throw Exception("fail to get WKNavigation when loadRequest")
   }
 
@@ -65,14 +79,11 @@ class DWebViewEngine(
     /// 测试的时候使用
     this.setInspectable(true)
     setUIDelegate(DUIDelegateProtocol(this))
-    setNavigationDelegate(object : NSObject(), WKNavigationDelegateProtocol {
-      override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
-        mainScope.launch {
-          onReadySignal.emit()
-        }
-      }
-    })
 
+    val preferences = WKPreferences()
+    preferences.javaScriptEnabled = true
+    preferences.javaScriptCanOpenWindowsAutomatically = false
+    configuration.preferences = preferences
     configuration.userContentController.apply {
       removeAllScriptMessageHandlers()
       removeAllUserScripts()
@@ -171,13 +182,4 @@ class DWebViewEngine(
     }
 
   //#endregion
-
-  private val navigationDelegateProtocols = mutableListOf<DNavigationDelegateProtocol>()
-  fun addNavigationDelegate(protocol: DNavigationDelegateProtocol) {
-    navigationDelegateProtocols.add(protocol)
-  }
-
-  fun removeNavigationDelegate(protocol: DNavigationDelegateProtocol) {
-    navigationDelegateProtocols.remove(protocol)
-  }
 }
