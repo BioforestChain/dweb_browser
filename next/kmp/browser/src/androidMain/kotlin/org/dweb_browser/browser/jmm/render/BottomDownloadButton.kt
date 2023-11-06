@@ -24,6 +24,7 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jmm.model.JmmStatus
 import org.dweb_browser.browser.jmm.model.LocalJmmViewHelper
+import org.dweb_browser.core.help.types.JmmAppInstallManifest
 
 @Composable
 internal fun BoxScope.BottomDownloadButton() {
@@ -42,34 +43,11 @@ internal fun BoxScope.BottomDownloadButton() {
     var downloadStatus by viewModel.uiState.downloadStatus
     val downloadSize = viewModel.uiState.downloadSize.value
     val totalSize = viewModel.uiState.jmmAppInstallManifest.bundle_size
-    var showLinearProgress = false
     val canSupportTarget = remember {
       viewModel.uiState.jmmAppInstallManifest.canSupportTarget(JsMicroModule.VERSION)
     }
-    val installByteLength = BrowserI18nResource.Companion.InstallByteLength(downloadSize, totalSize)
-    val text = if (canSupportTarget) when (downloadStatus) {
-      JmmStatus.Init, JmmStatus.Canceled -> {
-        BrowserI18nResource.install_button_download(installByteLength)
-      }
-
-      JmmStatus.NewVersion -> {
-        BrowserI18nResource.install_button_update(installByteLength)
-      }
-
-      JmmStatus.Downloading -> {
-        showLinearProgress = true
-        BrowserI18nResource.install_button_downloading(installByteLength)
-      }
-
-      JmmStatus.Paused -> {
-        showLinearProgress = true
-        BrowserI18nResource.install_button_paused(installByteLength)
-      }
-
-      JmmStatus.Completed -> BrowserI18nResource.install_button_installing()
-      JmmStatus.INSTALLED -> BrowserI18nResource.install_button_open()
-      JmmStatus.Failed -> BrowserI18nResource.install_button_retry()
-    } else BrowserI18nResource.install_button_incompatible()
+    val showLinearProgress =
+      downloadStatus == JmmStatus.Downloading || downloadStatus == JmmStatus.Paused
 
     val modifier = Modifier
       .requiredSize(height = 50.dp, width = 300.dp)
@@ -126,7 +104,42 @@ internal fun BoxScope.BottomDownloadButton() {
       ),
       enabled = canSupportTarget,
     ) {
-      Text(text = text)
+      Text(
+        text = JmmStatusText(
+          viewModel.uiState.jmmAppInstallManifest, downloadStatus, downloadSize, totalSize
+        )
+      )
     }
   }
+}
+
+@Composable
+fun JmmStatusText(
+  manifest: JmmAppInstallManifest, jmmStatus: JmmStatus, downloadSize: Long, totalSize: Long
+): String {
+  val canSupportTarget = remember {
+    manifest.canSupportTarget(JsMicroModule.VERSION)
+  }
+  val installByteLength = BrowserI18nResource.Companion.InstallByteLength(downloadSize, totalSize)
+  return if (canSupportTarget) when (jmmStatus) {
+    JmmStatus.Init, JmmStatus.Canceled -> {
+      BrowserI18nResource.install_button_download(installByteLength)
+    }
+
+    JmmStatus.NewVersion -> {
+      BrowserI18nResource.install_button_update(installByteLength)
+    }
+
+    JmmStatus.Downloading -> {
+      BrowserI18nResource.install_button_downloading(installByteLength)
+    }
+
+    JmmStatus.Paused -> {
+      BrowserI18nResource.install_button_paused(installByteLength)
+    }
+
+    JmmStatus.Completed -> BrowserI18nResource.install_button_installing()
+    JmmStatus.INSTALLED -> BrowserI18nResource.install_button_open()
+    JmmStatus.Failed -> BrowserI18nResource.install_button_retry()
+  } else BrowserI18nResource.install_button_incompatible()
 }

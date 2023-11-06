@@ -1,19 +1,11 @@
 package org.dweb_browser.browser.jmm
 
-import androidx.compose.runtime.mutableStateListOf
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLBuilder
-import org.dweb_browser.browser.download.TaskId
-import org.dweb_browser.browser.jmm.model.JmmStatus
-import org.dweb_browser.browser.web.ui.browser.model.isUrl
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
-import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -58,19 +50,11 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     }
   }
 
-  // jmm app数据
-  private val controllerMap = mutableMapOf<MMID, JmmInstallerController>()
-
-  // jmm download数据
-  private val downloadTaskIdMap = mutableMapOf<MMID, String>()
-  val jmmMetadataList = mutableStateListOf<JmmAppInstallManifest>()
-
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val store = JmmStore(this)
+    val jmmController = JmmController(this, store)
     loadJmmAppList(store) // 加载安装的应用信息
-    loadJmmDownloadList(store) // 加载下载的信息
-    loadHistoryMetadataUrl(store) // 加载之前加载过的应用
-    val historyController = JmmHistoryController(this)
+    jmmController.loadHistoryMetadataUrl() // 加载之前加载过的应用
 
     val routeInstallHandler = defineEmptyResponse {
       val metadataUrl = request.query("url")
@@ -80,7 +64,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       }
       val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
       debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
-      openInstallerView(jmmAppInstallManifest, metadataUrl, store)
+      jmmController.openInstallerView(jmmAppInstallManifest, metadataUrl)
     }
     routes(
       // 安装
@@ -91,14 +75,14 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         val data = store.getApp(mmid) ?: return@defineBooleanResponse false
         val installMetadata = data.installManifest
         debugJMM("uninstall", "$mmid-${installMetadata.bundle_url} ${installMetadata.version} ")
-        uninstall(mmid, installMetadata.version)
+        jmmController.uninstall(mmid, installMetadata.version)
         // 从磁盘中移除整个
         store.deleteApp(mmid)
         val taskId = store.getTaskId(mmid)
         store.deleteJMMTaskId(mmid)
         // 从磁盘中移除下载记录
         if (taskId !== null) {
-          removeTask(taskId)
+          jmmController.removeTask(taskId)
         }
         true
       },
@@ -107,110 +91,12 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         val mmid = request.query("app_id")
         debugJMM("detailApp", mmid)
         val info = store.getApp(mmid) ?: return@defineBooleanResponse false
-        openInstallerView(info.installManifest, info.originUrl, store)
+        jmmController.openInstallerView(info.installManifest, info.originUrl)
         true
       })
     onRenderer {
-      historyController.openHistoryView()
+      jmmController.openHistoryView()
     }
-  }
-
-  /**
-   * 打开安装器视图
-   */
-  private suspend fun openInstallerView(
-    jmmAppInstallManifest: JmmAppInstallManifest, originUrl: String, store: JmmStore
-  ) {
-    val baseURI = when (jmmAppInstallManifest.baseURI?.isUrl()) {
-      true -> jmmAppInstallManifest.baseURI!!
-      else -> when (val baseUri = jmmAppInstallManifest.baseURI) {
-        null -> originUrl
-        else -> URLBuilder(originUrl).run {
-          resolvePath(baseUri)
-          buildString()
-        }
-      }.also {
-        jmmAppInstallManifest.baseURI = it
-      }
-    }
-    if (!jmmAppInstallManifest.bundle_url.isUrl()) {
-      jmmAppInstallManifest.bundle_url = URLBuilder(baseURI).run {
-        resolvePath(jmmAppInstallManifest.bundle_url)
-        buildString()
-      }
-    }
-    debugJMM("openInstallerView", jmmAppInstallManifest.bundle_url)
-    // 存储下载过的MetadataUrl, 并更新列表，已存在，
-    val saveMetadata = jmmMetadataList.find { it.bundle_url == originUrl }?.let { lastMetadata ->
-      jmmMetadataList.remove(lastMetadata)
-      if (jmmAppInstallManifest.version.isGreaterThan(lastMetadata.version)) {
-        jmmAppInstallManifest
-      } else {
-        lastMetadata
-      }
-    } ?: jmmAppInstallManifest
-    jmmMetadataList.add(0, saveMetadata)
-    store.saveMetadata(originUrl, saveMetadata)
-
-    val controller = controllerMap.getOrPut(jmmAppInstallManifest.id) {
-      JmmInstallerController(
-        this@JmmNMM, originUrl, jmmAppInstallManifest, downloadTaskIdMap[jmmAppInstallManifest.id]
-      ).also { controller ->
-        controller.onJmmStateListener { pair ->
-          when (pair.first) {
-            JmmStatus.Init -> {
-              downloadTaskIdMap[jmmAppInstallManifest.id] = pair.second
-              store.saveJMMTaskId(jmmAppInstallManifest.id, pair.second)
-            }
-
-            JmmStatus.Completed -> {
-              // 安装完成后，删除该数据的下载记录，避免状态出现问题
-              downloadTaskIdMap.remove(jmmAppInstallManifest.id)
-              store.deleteJMMTaskId(jmmAppInstallManifest.id)
-            }
-
-            JmmStatus.INSTALLED -> {
-              // 安装完成，卸载之前的，安装新的
-              bootstrapContext.dns.uninstall(jmmAppInstallManifest.id)
-              bootstrapContext.dns.install(JsMicroModule(jmmAppInstallManifest))
-              // 存储app信息到内存
-              store.setApp(
-                jmmAppInstallManifest.id, JsMicroModuleDBItem(jmmAppInstallManifest, originUrl)
-              )
-            }
-
-            else -> {}
-          }
-        }
-      }
-    }
-    // 打开渲染
-    controller.openRender(
-      jmmAppInstallManifest.version.isGreaterThan(controller.jmmAppInstallManifest.version)
-    )
-  }
-
-  private suspend fun uninstall(mmid: MMID, version: String) {
-    // 在dns中移除app
-    bootstrapContext.dns.uninstall(mmid)
-    // 在存储中移除整个app
-    remove("/data/apps/${mmid}-${version}")
-  }
-
-  suspend fun remove(filepath: String): Boolean {
-    return nativeFetch(
-      PureRequest(
-        "file://file.std.dweb/remove?path=${filepath}&recursive=true", IpcMethod.DELETE
-      )
-    ).boolean()
-  }
-
-  private suspend fun removeTask(taskId: TaskId): Boolean {
-    return nativeFetch(
-      PureRequest(
-        "file://download.browser.dweb/remove?taskId=${taskId}", IpcMethod.DELETE
-      )
-    ).boolean()
   }
 
   /**
@@ -220,19 +106,6 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     for (dbItem in store.getAllApps().values) {
       bootstrapContext.dns.install(JsMicroModule(dbItem.installManifest))
     }
-  }
-
-  /**
-   * 恢复下载任务
-   */
-  private suspend fun loadJmmDownloadList(store: JmmStore) =
-    downloadTaskIdMap.putAll(store.getAllJMMTaskId())
-
-  /**
-   * 获取历史下载任务
-   */
-  private suspend fun loadHistoryMetadataUrl(store: JmmStore) {
-    jmmMetadataList.addAll(store.getAllMetadata().values.sortedBy { it.release_date })
   }
 
   override suspend fun _shutdown() {

@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.download.TaskId
+import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.debugJMM
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -60,13 +61,14 @@ class JmmInstallerModel(
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
 
   fun startDownload() = controller.ioAsyncScope.launch {
-    if (controller.downloadTaskId == null || (uiState.downloadStatus.value != JmmStatus.INSTALLED &&
+    if (controller.jmmHistoryMetadata.taskId == null ||
+      (uiState.downloadStatus.value != JmmStatus.INSTALLED &&
           uiState.downloadStatus.value != JmmStatus.Completed)
     ) {
-      controller.downloadTaskId = controller.createDownloadTask(
+      controller.createDownloadTask(
         uiState.jmmAppInstallManifest.bundle_url, uiState.jmmAppInstallManifest.bundle_size
       )
-      watchProcess(controller.downloadTaskId!!)
+      watchProcess()
     }
     // 已经注册完监听了，开始
     controller.start()
@@ -88,8 +90,8 @@ class JmmInstallerModel(
     controller.openApp(uiState.jmmAppInstallManifest.id)
   }
 
-  private suspend fun watchProcess(taskId: TaskId) {
-    controller.watchProcess(taskId) { state, current, total ->
+  private suspend fun watchProcess() {
+    controller.watchProcess { state, current, total ->
       debugJMM("ViewHelper", "watchProcess=> $state, $current, $total")
       uiState.downloadStatus.value = state
       uiState.downloadSize.value = current
@@ -102,11 +104,11 @@ class JmmInstallerModel(
   fun refreshStatus(hasNewVersion: Boolean) = controller.ioAsyncScope.launch {
     debugJMM(
       "refreshStatus",
-      "是否是恢复 ${controller.downloadTaskId} 是否有新版本:${hasNewVersion}"
+      "是否是恢复 ${controller.jmmHistoryMetadata.taskId} 是否有新版本:${hasNewVersion}"
     )
     if (controller.exists()) {
       // 监听推送的变化
-      watchProcess(controller.downloadTaskId!!)
+      watchProcess()
       // 继续/恢复 下载，不管什么状态都会推送过来
       // controller.start()
     } else if (hasNewVersion) {

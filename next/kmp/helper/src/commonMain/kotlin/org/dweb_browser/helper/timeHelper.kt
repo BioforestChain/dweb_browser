@@ -15,3 +15,9 @@ fun Long.formatTimestamp(): String {
   val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
   return "${localDateTime.date} ${localDateTime.time}"
 }
+
+fun Long.formatDatestamp(): String {
+  val instant = Instant.fromEpochMilliseconds(this)
+  val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+  return localDateTime.date.toString()
+}
