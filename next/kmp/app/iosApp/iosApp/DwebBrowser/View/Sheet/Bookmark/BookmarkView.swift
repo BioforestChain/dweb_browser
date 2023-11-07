@@ -13,11 +13,9 @@ struct BookmarkView: View {
     var body: some View {
         if viewModel.dataSources.count > 0 {
             VStack {
-                
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.white)
                     .shadow(radius: 2)
-                    .padding()
                     .overlay(
                         List {
                             ForEach(viewModel.dataSources) {  link in
@@ -31,8 +29,6 @@ struct BookmarkView: View {
                             .listRowSeparator(.hidden)
                         }
                     )
-                
-                Spacer()
             }
         } else {
             NoResultView(config: .bookmark)

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct NoResultView: View {
     var config: LinkConfig
+    @EnvironmentObject var dragScale: WndDragScale
     var body: some View {
         
         ZStack {
@@ -19,11 +20,11 @@ struct NoResultView: View {
                 Image(uiImage: .assetsImage(name: (config.imageName)))
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 120, height: 120)
+                    .frame(width: dragScale.properValue(floor: 50, ceiling: 120), height: dragScale.properValue(floor: 50, ceiling: 120))
+
                 Text(config.msg)
-                    .font(.system(size: 22.0))
+                    .font(.system(size: dragScale.scaledFontSize(maxSize: 22)))
                     .foregroundColor(Color(hexString: "c9c9c9"))
-                    .lineLimit(1)
             })
         }
     }

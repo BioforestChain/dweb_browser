@@ -11,6 +11,8 @@ struct BookmarkCell: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var selectedTab: SelectedTab
+    @EnvironmentObject var dragScale: WndDragScale
+
     var linkRecord: LinkRecord
     var isLast: Bool
     var loadMoreAction: ()->Void
@@ -20,20 +22,19 @@ struct BookmarkCell: View {
         ZStack(alignment: .leading){
 
             VStack{
-                HStack(spacing: 12) {
+                HStack(spacing: dragScale.properValue(floor: 6, ceiling: 12)) {
                     WebsiteIconImage(iconUrl: iconUrl)
-                        .frame(width: 28, height: 28)
+                        .frame(width: dragScale.properValue(floor: 16, ceiling: 28), height: dragScale.properValue(floor: 16, ceiling: 28))
                         .cornerRadius(4)
                         .padding(.leading, 12)
                     
                     Text(linkRecord.title)
-                        .font(.system(size: 16))
+                        .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
                         .foregroundColor(Color.menuTitleColor)
-                        .lineLimit(1)
                     Spacer()
                 }
             }
-            .frame(height: 50)
+            .frame(height: dragScale.properValue(floor: 32, ceiling: 50))
             .background(Color.menubkColor)
             
             .overlay(

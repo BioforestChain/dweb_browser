@@ -10,103 +10,81 @@ import SwiftUI
 struct MenuView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var webcacheStore: WebCacheStore
+    @EnvironmentObject var dragScale: WndDragScale
+
     @State private var isTraceless: Bool = TracelessMode.shared.isON
-    @State var isShare: Bool = false
-    @State var isAlert: Bool = false
-    private let titles: [String] = ["添加书签","分享"]
-    private let imagesNames: [String] = ["bookmark", "share"]
+    @State var toastOpacity: CGFloat = 0.0
     var webCache: WebCache { webcacheStore.cache(at: selectedTab.curIndex) }
 
     @State private var offsetY: CGFloat = 300
-    
+
     var body: some View {
-        
-        VStack(spacing: 16) {
-            
-            ForEach(0..<titles.count, id: \.self) { index in
-                if index == 0 {
-                    Button {
-                        addToBookmark()
-                    } label: {
-                        MenuCell(title: titles[index], imageName: imagesNames[index])
-                    }
-                } else if index == 1 {
-                    ShareLink(item: webCache.lastVisitedUrl.absoluteString) {
-                        MenuCell(title: titles[index], imageName: imagesNames[index])
-                    }
+        ZStack {
+            VStack(spacing: dragScale.properValue(floor: 5, ceiling: 16)) {
+                Button {
+                    addToBookmark()
+                } label: {
+                    MenuCell(title: "添加书签", imageName: "bookmark")
                 }
-            }
-            
-            Toggle(isOn: $isTraceless ) {
-                Text("无痕模式")
-                    .padding(16)
-                    .foregroundColor(Color.menuTitleColor)
-                    .font(.system(size: 16))
-            }
-            .onChange(of: isTraceless, perform: { newValue in
-                TracelessMode.shared.isON = newValue
-            })
-            .toggleStyle(CustomToggleStyle())
-            .frame(height: 50)
-            .background(Color.menubkColor)
-            .cornerRadius(6)
-            .padding(.horizontal, 16)
-            
-            
-            if isAlert {
-                ZStack {
-                    Text("已添加至书签")
-                        .frame(width: 150, height: 50)
-                        .background(SwiftUI.Color.black.opacity(0.35))
-                        .cornerRadius(25)
-                        .foregroundColor(.white)
-                        .font(.system(size: 15))
-                        .offset(y: offsetY)
+
+                ShareLink(item: webCache.lastVisitedUrl.absoluteString) {
+                    MenuCell(title: "分享", imageName: "share")
                 }
+
+                tracelessView
             }
+            .padding(.vertical, dragScale.properValue(floor: 10, ceiling: 32))
+            .background(Color.bkColor)
+            .frame(maxWidth: .infinity)
+
+            toast
+                .opacity(toastOpacity)
+                .scaleEffect(dragScale.onWidth)
         }
-        .background(Color.bkColor)
-        
     }
-    
+
+    var toast: some View {
+        Text("已添加至书签")
+            .frame(width: 150, height: 50)
+            .background(.black.opacity(0.5))
+            .cornerRadius(25)
+            .foregroundColor(.white)
+            .font(.system(size: 15))
+    }
+
+    var tracelessView: some View {
+        HStack {
+            Text("无痕模式")
+                .foregroundColor(Color.menuTitleColor)
+                .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
+                .padding(.leading, 16)
+
+            Toggle("", isOn: $isTraceless)
+                .scaleEffect(dragScale.onWidth)
+        }
+        .frame(height: 50 * dragScale.onWidth)
+        .background(Color.menubkColor)
+        .cornerRadius(6)
+        .padding(.horizontal, 16)
+        .onChange(of: isTraceless, perform: { newValue in
+            TracelessMode.shared.isON = newValue
+        })
+    }
+
     private func addToBookmark() {
         let manager = BookmarkCoreDataManager()
         let bookmark = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
-        let result = manager.insertBookmark(bookmark: bookmark)
-        if result {
-            alertAnimation()
-        }
-    }
-    
-    private func alertAnimation() {
-        isAlert.toggle()
-        withAnimation {
-            offsetY = safeAreaBottomHeight
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        if manager.insertBookmark(bookmark: bookmark) {
             withAnimation {
-                offsetY = 300
+                toastOpacity = 1.0
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                withAnimation {
+                    toastOpacity = 0
+                }
             }
         }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            self.isAlert.toggle()
-        }
     }
 }
 
-struct MenuView_Previews: PreviewProvider {
-    static var previews: some View {
-        MenuView()
-    }
-}
-
-
-struct CustomToggleStyle: ToggleStyle {
-    
-    func makeBody(configuration: Configuration) -> some View {
-        Toggle(configuration)
-            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 12))
-    }
-}

@@ -7,42 +7,50 @@
 
 import SwiftUI
 
-enum SheetCategory: String{
+enum SheetCategory: String {
     case menu = "menu_set"
-    case bookmark = "bookmark"
-    case history = "history"
+    case bookmark
+    case history
 }
 
 struct SheetSegmentView: View {
-    @EnvironmentObject var selectedTab:SelectedTab
+    @EnvironmentObject var selectedTab: SelectedTab
+    @EnvironmentObject var dragScale: WndDragScale
     @State var selectedCategory = SheetCategory.bookmark
     var isShowingWeb: Bool
     var categoryList: [SheetCategory] {
         isShowingWeb ? [.menu, .bookmark, .history] : [.bookmark, .history]
     }
-    
+
     var body: some View {
-        VStack{
+        VStack {
+            HStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .foregroundColor(Color.sheetTopbar)
+                    .frame(width: dragScale.properValue(floor: 45, ceiling: 60), height: dragScale.properValue(floor: 6, ceiling: 9))
+            }
+            .frame(height: dragScale.properValue(floor: 20, ceiling: 30))
+            
             Picker("Select image", selection: $selectedCategory) {
                 ForEach(categoryList, id: \.self) {
-                    Image(uiImage: .assetsImage(name: ($0.rawValue)))
+                    Image(uiImage: .assetsImage(name: $0.rawValue))
                 }
             }
             .pickerStyle(.segmented)
-            .padding(.horizontal,16)
-            
+            .padding(.horizontal, 16)
+
             if selectedCategory == .menu {
                 MenuView()
-                    .padding(.vertical, 16)
-                Spacer()
             } else if selectedCategory == .bookmark {
                 BookmarkView()
             } else if selectedCategory == .history {
-                HistoryView(histories: HistoryMgr())
+                HistoryView()
             }
+
+            Spacer()
         }
-        .padding(.top, 28)
         .background(Color.bkColor)
+        .cornerRadius(gridcellCornerR)
     }
 }
 
