@@ -21,6 +21,7 @@ import platform.CoreGraphics.CGRect
 import platform.Foundation.NSArray
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
+import platform.UIKit.UIDevice
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
 import platform.WebKit.WKPreferences
@@ -81,7 +82,9 @@ class DWebViewEngine(
 
   init {
     /// 测试的时候使用
-    this.setInspectable(true)
+    if(UIDevice.currentDevice.systemVersion.compareTo("16.4", true) >= 0) {
+      this.setInspectable(true)
+    }
     setUIDelegate(DUIDelegateProtocol(this))
 
     val preferences = WKPreferences()
