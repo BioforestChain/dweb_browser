@@ -1,4 +1,4 @@
-import type { $MMID, $MicroModuleManifest } from "npm:@dweb-browser/js-process";
+import type { $MMID, $MicroModuleManifest, $OnFetch } from "npm:@dweb-browser/js-process";
 import {
   $DwebHttpServerOptions,
   $Ipc,
@@ -16,7 +16,6 @@ import {
   mapHelper,
 } from "npm:@dweb-browser/js-process";
 import { HttpServer } from "./helper/http-helper.ts";
-import { EXTERNAL_onFetchHandlers } from "./middleware-config.ts";
 
 declare global {
   interface WindowEventMap {
@@ -86,7 +85,7 @@ class PromiseToggle<T1, T2> {
 }
 
 export class Server_external extends HttpServer {
-  constructor() {
+  constructor(private handlers: $OnFetch[] = []) {
     super();
     jsProcess.onFetch(async (event) => {
       if (event.pathname == ExternalState.WAIT_EXTERNAL_READY) {
@@ -108,7 +107,7 @@ export class Server_external extends HttpServer {
   async start() {
     const serverIpc = await this._listener;
     return serverIpc
-      .onFetch(...EXTERNAL_onFetchHandlers, this._provider.bind(this))
+      .onFetch(...this.handlers, this._provider.bind(this))
       .internalServerError()
       .cors();
   }

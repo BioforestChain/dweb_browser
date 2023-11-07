@@ -1,4 +1,4 @@
-import { IpcHeaders } from "../../../common/deps.ts";
+import { IpcHeaders } from "npm:@dweb-browser/js-process";
 import { createMockModuleServerIpc } from "../../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import type { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";

@@ -9,7 +9,7 @@
     "serve:watch": "vite build  --config ./vite.config.server.ts  --watch --minify=false"
   },
   "dependencies": {
-    "@plaoc/server": "^0.0.1",
+    "@plaoc/server": "^0.0.5",
     "@types/web-bluetooth": "^0.0.17",
     "vite-plugin-vuetify": "^1.0.2",
     "vue": "^3.3.2",

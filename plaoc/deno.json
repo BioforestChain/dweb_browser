@@ -15,7 +15,7 @@
     "cp:cli": "cp -r ./build/server/dist ./build/cli/esm/plaoc",
     "build:server": "deno run -A ./scripts/bundle-server.ts",
     "build:watch:server": "deno task build:server --watch",
-    "build:s": "deno run -A ./scripts/npm-build.server.ts",
+    "build:s": "deno run -A ./scripts/npm-build.server.ts && deno task build:server",
     "dev": "deno task dev:demo & deno task build:watch:demo",
     "dev:demo": "cd ./demo && pnpm dev",
     "build:demo": "cd ./demo && pnpm build",

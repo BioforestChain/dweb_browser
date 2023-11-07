@@ -1,4 +1,4 @@
-import type { $MicroModuleManifest } from "./deps.ts";
+import type { $MicroModuleManifest } from "npm:@dweb-browser/js-process";
 import {
   IPC_ROLE,
   PromiseOut,
@@ -6,7 +6,7 @@ import {
   ReadableStreamOut,
   simpleEncoder,
   streamReadAll
-} from "./deps.ts";
+} from "npm:@dweb-browser/js-process";
 // 回复信息给后端
 export const createMockModuleServerIpc = (wsUrl:URL,remote:$MicroModuleManifest) => {
   const waitOpenPo = new PromiseOut<ReadableStreamIpc>();

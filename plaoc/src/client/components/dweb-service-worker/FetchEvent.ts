@@ -1,5 +1,6 @@
 
-import { $JmmAppInstallManifest, FetchEvent, IpcResponse } from "../../../common/deps.ts";
+import type { $MicroModuleManifest } from "npm:@dweb-browser/js-process";
+import { FetchEvent, IpcResponse } from "npm:@dweb-browser/js-process";
 import type { DwebServiceWorkerPlugin } from "./index.ts";
 
 export class ServiceWorkerFetchEvent extends Event {
@@ -10,7 +11,7 @@ export class ServiceWorkerFetchEvent extends Event {
     return this.fetchEvent.request;
   }
   /**查询连接者的信息 */
-  async getRemoteManifest():Promise<$JmmAppInstallManifest> {
+  async getRemoteManifest():Promise<$MicroModuleManifest> {
     const { request } = this.fetchEvent;
     const mmid = request.headers.get("x-Dweb-Host");
     console.log("getRemoteManifest查询id=>",mmid)

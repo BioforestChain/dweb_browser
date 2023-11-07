@@ -6,14 +6,11 @@
     "watchDir": "./src/server",
     "denoShim": false,
     "name": "@plaoc/server",
-    "version": "0.0.2",
+    "version": "0.0.6",
     "importMap": "./import_map.json",
     "lib": [
       "ES2022",
       "DOM"
-    ],
-    "devDependencies": {
-      "@typescript/lib-dom": "npm:@types/web@^0.0.119"
-    }
+    ]
   }
 ]

@@ -33,13 +33,16 @@ export const doBuidCore = async (config: {
   if (buildFromRootDir.includes(".ts")) {
     entry = buildFromRootDir;
   }
-  entryPoints.push({
-    name: config.mainExports,
-    path: entry,
-  },{
-    name: "./middleware",
-    path: "./src/server/middlewares/index.ts"
-  });
+  entryPoints.push(
+    {
+      name: config.mainExports,
+      path: entry,
+    },
+    {
+      name: "./middleware",
+      path: "./src/server/middlewares/index.ts",
+    }
+  );
   console.group("buildFromDir :", buildFromRootDir);
   // console.groupEnd();
 
@@ -86,7 +89,17 @@ export const doBuidCore = async (config: {
       bugs: {
         url: "https://github.com/BioforestChain/dweb_browser/issues",
       },
-      keywords: ["plaoc", "dweb"],
+      keywords: ["plaoc", "dweb", "middleware"],
+      exports: {
+        ".": {
+          types: "./types/server/index.d.ts",
+          default: "./esm/server/index.js",
+        },
+        "./middleware": {
+          import: "./esm/server/middlewares/index.js",
+          types: "./types/server/middlewares/index.d.ts",
+        },
+      },
       devDependencies: config.devDependencies ?? {},
     },
   });

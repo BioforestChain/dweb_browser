@@ -13,6 +13,7 @@ import {
   sync_mwebview_status,
 } from "./helper/mwebview-helper.ts";
 import { queue } from "./helper/queue.ts";
+import { MiddlewareImporter } from "./middleware-importer.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
 import { isMobile } from "./shim/is-mobile.ts";
 
@@ -55,9 +56,10 @@ const main = async () => {
 
   //#region 启动http服务
   const plaocConfig = await PlaocConfig.init();
-  const wwwServer = new Server_www(plaocConfig);
-  const externalServer = new Server_external();
-  const apiServer = new Server_api(widPo);
+
+  const wwwServer = new Server_www(plaocConfig, await MiddlewareImporter.init(plaocConfig.config.middlewares?.www));
+  const externalServer = new Server_external(await MiddlewareImporter.init(plaocConfig.config.middlewares?.external));
+  const apiServer = new Server_api(widPo, await MiddlewareImporter.init(plaocConfig.config.middlewares?.api));
 
   const wwwListenerTask = wwwServer.start().finally(() => console.log("wwwServer started"));
   const externalListenerTask = externalServer.start().finally(() => console.log("externalServer started"));
@@ -73,8 +75,7 @@ const main = async () => {
   const wwwStartResult = await wwwServer.getStartResult();
   const apiStartResult = await apiServer.getStartResult();
   const usePublic =
-    plaocConfig.config.usePublicUrl ??
-    (isMobile() ? (navigator.userAgent.includes("Android") ? false : true) : true);
+    plaocConfig.config.usePublicUrl ?? (isMobile() ? (navigator.userAgent.includes("Android") ? false : true) : true);
   const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(usePublic, (url) => {
     url.pathname = "/index.html";
     url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildUrl(usePublic).href);

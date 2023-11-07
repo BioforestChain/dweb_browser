@@ -40,7 +40,7 @@ class Debugger {
   static filterList = new Set<string>();
 
   log(tag: string, ...args: unknown[]) {
-    if (!Debugger.filterList.has(tag)) return;
+    // if (!Debugger.filterList.has(tag)) return;
     standConsole.log(`log-   [${tag}]: `, ...args);
   }
 
