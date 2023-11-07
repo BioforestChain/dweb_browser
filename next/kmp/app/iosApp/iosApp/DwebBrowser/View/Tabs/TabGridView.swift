@@ -104,6 +104,14 @@ struct TabGridView: View {
                         }
                     }
                     selectedCellFrame = cellFrame(at: selectedTab.curIndex)
+                    
+                    if webcacheStore.cacheCount == 1 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            selectedTab.curIndex = 0
+                            selectedCellFrame = CGRect(origin: CGPoint(x: screen_width/2, y: screen_height/2), size: CGSize(width: 5, height: 5))
+                            toolbarState.shouldExpand = true
+                        }
+                    }
 
                     _ = withAnimation(.easeIn) {
                         webcacheStore.remove(by: deleteCache.cacheId)
@@ -133,16 +141,11 @@ struct TabGridView: View {
                         }
                     }
                 }
-                .onChange(of: webcacheStore.caches) { store in
-                    if store.count == 0 { // 准备放大动画
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            webcacheStore.createOne()
-                            selectedTab.curIndex = 0
-                            selectedCellFrame = CGRect(origin: CGPoint(x: screen_width/2, y: screen_height/2), size: CGSize(width: 5, height: 5))
-                            toolbarState.shouldExpand = true
-                        }
-                    }
-                }
+//                .onChange(of: webcacheStore.caches) { store in
+//                    if store.count == 0 { // 准备放大动画
+//
+//                    }
+//                }
             }
         }
     }

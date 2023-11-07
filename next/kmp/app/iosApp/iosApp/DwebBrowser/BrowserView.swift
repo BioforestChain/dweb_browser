@@ -20,6 +20,7 @@ struct BrowserView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
+                Color.black
                 VStack(spacing: 0) {
                     TabsContainerView()
                     ToolbarView()
@@ -35,6 +36,7 @@ struct BrowserView: View {
                 .environmentObject(dragScale)
             }
             .frame(width: size.width, height: size.height)
+
             .onAppear {
                 dragScale.onWidth = (geometry.size.width - 10) / screen_width
             }
@@ -42,5 +44,19 @@ struct BrowserView: View {
                 dragScale.onWidth = (newSize.width - 10) / screen_width
             }
         }
+        .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
+            SheetSegmentView(isShowingWeb: showWeb())
+                .environmentObject(selectedTab)
+                .environmentObject(openingLink)
+                .environmentObject(webcacheStore)
+                .environmentObject(dragScale)
+        }
+    }
+
+    func showWeb() -> Bool {
+        if webcacheStore.caches.count == 0 {
+            return true
+        }
+        return webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb
     }
 }

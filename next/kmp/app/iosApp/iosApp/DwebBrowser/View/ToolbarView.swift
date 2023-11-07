@@ -20,7 +20,7 @@ struct ToolbarView: View {
 
     @State private var toolbarHeight: CGFloat = toolBarH
     @State private var isPresentingScanner = false
-    @State private var showMoreSheet = false
+//    @State private var showMoreSheet = false
     @State private var cancellables: Set<AnyCancellable> = []
 
     var body: some View {
@@ -116,7 +116,8 @@ struct ToolbarView: View {
                     Spacer()
                     BiColorButton(imageName: "more", disabled: false) {
                         withAnimation {
-                            showMoreSheet = true
+                            toolbarState.showMoreMenu = true
+//                            showMoreSheet = true
                         }
                         printWithDate("more menu was clicked")
                     }
@@ -143,13 +144,6 @@ struct ToolbarView: View {
                             }
                         }
                     }
-                }
-
-                .sheet(isPresented: $showMoreSheet) {
-                    SheetSegmentView(isShowingWeb: webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb)
-                        .environmentObject(selectedTab)
-                        .environmentObject(openingLink)
-                        .presentationDetents([.medium, .large])
                 }
             }
         }

@@ -156,7 +156,9 @@ class WebCacheStore: ObservableObject {
         guard let index = caches.firstIndex(of: cache) else { return }
         UIImage.removeImage(with: cache.snapshotUrl)
         caches.remove(at: index)
-        
+        if caches.count == 0 {
+            createOne()
+        }
         saveCaches()
     }
 

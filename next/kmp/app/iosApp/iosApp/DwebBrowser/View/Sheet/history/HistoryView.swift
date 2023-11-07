@@ -9,12 +9,14 @@ import SwiftUI
 
 struct HistoryView: View {
     @State private var searchText = ""
-    @ObservedObject var histories: HistoryMgr
-    @EnvironmentObject var selectedTab:SelectedTab
-
+    @StateObject var histories = HistoryMgr()
+    @EnvironmentObject var selectedTab: SelectedTab
+    @EnvironmentObject var dragScale: WndDragScale
     var body: some View {
         
-        if histories.sections.count > 0 {
+        if histories.sections.count <= 0 {
+            NoResultView(config: .history)
+        } else {
             Form {
                 ForEach(0..<histories.sections.count, id: \.self) { section in
                     let section = histories.sections[section]
@@ -34,7 +36,8 @@ struct HistoryView: View {
                     } header: {
                         HStack {
                             Text(Date.historyTime(timeString: section.id))
-                                .frame(height: 30)
+                                .font(dragScale.scaledFont())
+                                .frame(height: dragScale.properValue(floor: 15, ceiling: 30))
                             Spacer()
                         }
                     }
@@ -43,8 +46,6 @@ struct HistoryView: View {
                     .listRowSeparator(.hidden)
                 }
             }
-        } else {
-            NoResultView(config: .history)
         }
     }
     

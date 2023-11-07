@@ -10,6 +10,8 @@ import SwiftUI
 struct HistoryCell: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var openingLink: OpeningLink
+    @EnvironmentObject var dragScale: WndDragScale
+    
     var linkRecord: LinkRecord
     var isLast: Bool
 //    @Binding var shouldShowWeb: Bool
@@ -18,20 +20,18 @@ struct HistoryCell: View {
     var body: some View {
         ZStack(alignment: .leading){
 
-            VStack(alignment: .leading, spacing: 10){
+            VStack(alignment: .leading, spacing: 5){
                 Text(linkRecord.title)
-                    .font(.system(size: 16))
+                    .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
                     .foregroundColor(Color.menuTitleColor)
-                    .lineLimit(1)
                 
                 Text(linkRecord.link)
-                    .font(.system(size: 11))
+                    .font(.system(size: dragScale.scaledFontSize(maxSize: 11)))
                     .foregroundColor(Color(hexString: "ACB5BF"))
-                    .lineLimit(1)
                 
             }
             .padding(.horizontal,16)
-            .frame(height: 66)
+            .frame(height: dragScale.properValue(floor: 32, ceiling: 60))
             
             
             .overlay(

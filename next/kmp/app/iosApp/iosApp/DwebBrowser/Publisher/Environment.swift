@@ -20,7 +20,7 @@ class SelectedTab: ObservableObject {
 class WndDragScale: ObservableObject {
     @Published var onWidth: CGFloat = 1
     
-    private func properValue(floor: CGFloat, ceiling: CGFloat) -> CGFloat{
+    func properValue(floor: CGFloat, ceiling: CGFloat) -> CGFloat{
         min(ceiling, max(floor, ceiling * onWidth))
     }
     func scaledFont(maxSize: CGFloat = 18) -> Font{
@@ -50,6 +50,7 @@ class ToolBarState: ObservableObject {
     @Published var goBackTapped = false
     @Published var goForwardTapped = false
     @Published var createTabTapped = false
+    @Published var showMoreMenu = false
 }
 
 class ShiftAnimation: ObservableObject {

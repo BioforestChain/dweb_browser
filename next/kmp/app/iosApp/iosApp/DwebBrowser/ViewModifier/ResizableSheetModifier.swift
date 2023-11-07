@@ -12,62 +12,48 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
 
     @State private var startOffsetY: CGFloat = 0
     @State private var curDragOffsetY: CGFloat = 0
-    @State private var endingOffsetY: CGFloat = 0
     var sheetView: SheetView
     func body(content: Content) -> some View {
         ZStack {
             GeometryReader { geo in
                 let wndHeight = geo.frame(in: .local).height
-                let sheetHeight = geo.frame(in: .local).height * 0.9
+                let sheetHeight = wndHeight * 0.96
                 content
                     .onAppear {
-                        startOffsetY = wndHeight + toolAreaHeight
+                        startOffsetY = wndHeight
                     }
-                    .onChange(of: geo.frame(in: .local).height, perform: { newValue in
-                        startOffsetY = newValue + toolAreaHeight
-                    })
                     .overlay {
                         sheetView
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 12)
+                            .frame(height: sheetHeight)
                             .cornerRadius(10)
+                            .padding(.horizontal, 4)
                             .offset(y: startOffsetY)
                             .offset(y: curDragOffsetY)
-                            .offset(y: endingOffsetY)
-                            .frame(height: sheetHeight)
 
                             .onChange(of: isPresented, perform: { _ in
                                 if isPresented {
                                     withAnimation(.spring()) {
-                                        startOffsetY = sheetHeight * 0.4
+                                        startOffsetY = 0
                                     }
                                 }
                             })
                             .gesture(
                                 DragGesture()
                                     .onChanged { value in
-                                        let total = startOffsetY + curDragOffsetY + endingOffsetY
-                                        if total == startOffsetY * 0.1, value.translation.height < 0 {
-                                            curDragOffsetY = 0
-                                        } else {
-                                            withAnimation(.spring()) {
-                                                curDragOffsetY = value.translation.height
+                                        if value.startLocation.y < 30 {
+                                            if value.translation.height < 0 {
+                                                curDragOffsetY = 0
+                                            } else {
+                                                withAnimation(.spring()) {
+                                                    curDragOffsetY = value.translation.height
+                                                }
                                             }
                                         }
                                     }
                                     .onEnded { _ in
                                         withAnimation(.spring()) {
-                                            let total = startOffsetY + curDragOffsetY + endingOffsetY
-                                            if curDragOffsetY < -50 {
-                                                endingOffsetY = -startOffsetY * 0.9
-                                            
-                                            } else if curDragOffsetY > 50 {
-                                                if startOffsetY == total {
-                                                    startOffsetY = sheetHeight * 0.4
-                                                } else {
-                                                    startOffsetY = wndHeight + toolAreaHeight
-                                                }
-                                                endingOffsetY = 0
+                                            if curDragOffsetY > 50 {
+                                                startOffsetY = wndHeight
                                                 isPresented = false
                                             }
                                             curDragOffsetY = 0
@@ -75,7 +61,6 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                                     })
                     }
             }
-            .background(.purple)
         }
     }
 }
@@ -86,8 +71,8 @@ extension View {
     }
 }
 
-struct MySheetView: View{
-    var body: some View{
+struct MySheetView: View {
+    var body: some View {
         ZStack {
             VStack {
                 Text("this is sheet view")
@@ -103,4 +88,3 @@ struct MySheetView: View{
         .background(.green)
     }
 }
-

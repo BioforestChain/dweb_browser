@@ -13,7 +13,7 @@ extension Color{
     static let btnNormalColor = Color(hex: 0x0A1626)  //  dark gray
     static let networkTipColor = Color(hex: 0x737980)  //  network tip color
     static let networkGuidColor = Color(hex: 0xACB5BF)  //
-    static let sheetTopbar = Color(hex: 0xD8D8D8)  //  
+    static let sheetTopbar = Color(assetsColor: "sheetTopBarColor")  //
     static let lightTextColor = btnDisabledColor
     static let AddressbarbkColor = Color(assetsColor: "AddressbarbkColor")
     static let addressTextColor = Color(assetsColor: "addressTextColor")
