@@ -44,7 +44,7 @@ import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.browser.common.CommonSimpleTopBar
 import org.dweb_browser.browser.jmm.JmmHistoryController
 import org.dweb_browser.browser.jmm.JmmHistoryMetadata
-import org.dweb_browser.browser.jmm.model.JmmStatus
+import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.formatDatestamp
 import org.dweb_browser.helper.toSpaceSize
@@ -140,7 +140,7 @@ fun JmmViewItem(metadata: JmmHistoryMetadata) {
 }
 
 private fun JmmHistoryMetadata.getName() =
-  when (state) {
+  when (state.state) {
     JmmStatus.Downloading -> "Downloading"
     JmmStatus.Paused -> "Pause"
     JmmStatus.Failed -> "Retry"

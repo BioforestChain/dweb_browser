@@ -75,12 +75,6 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         jmmController.uninstall(mmid, installMetadata.version)
         // 从磁盘中移除整个
         store.deleteApp(mmid)
-        val taskId = store.getTaskId(mmid)
-        store.deleteJMMTaskId(mmid)
-        // 从磁盘中移除下载记录
-        if (taskId !== null) {
-          jmmController.removeTask(taskId)
-        }
         true
       },
       // app详情

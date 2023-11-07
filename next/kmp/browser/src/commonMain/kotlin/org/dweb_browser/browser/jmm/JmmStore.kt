@@ -1,12 +1,15 @@
 package org.dweb_browser.browser.jmm
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
-import org.dweb_browser.browser.jmm.model.JmmStatus
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.isGreaterThan
 
@@ -15,8 +18,7 @@ data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val o
 
 class JmmStore(microModule: MicroModule) {
   private val storeApp = microModule.createStore("JmmApps", false)
-  private val storeTaskId = microModule.createStore("DownloadTaskId", false)
-  private val storeHistoryMetadata = microModule.createStore("MetadataUrl", false)
+  private val storeHistoryMetadata = microModule.createStore("HistoryMetadata", false)
 
   suspend fun getOrPutApp(key: MMID, value: JsMicroModuleDBItem): JsMicroModuleDBItem {
     return storeApp.getOrPut(key) { value }
@@ -39,26 +41,7 @@ class JmmStore(microModule: MicroModule) {
   }
 
   /*****************************************************************************
-   * 下载相关的函数
-   */
-  suspend fun saveJMMTaskId(mmid: MMID, taskId: TaskId) {
-    storeTaskId.set(mmid, taskId)
-  }
-
-  suspend fun getAllJMMTaskId(): MutableMap<MMID, String> {
-    return storeTaskId.getAll()
-  }
-
-  suspend fun getTaskId(mmid: MMID): String? {
-    return storeTaskId.getOrNull<String>(mmid)
-  }
-
-  suspend fun deleteJMMTaskId(mmid: MMID): Boolean {
-    return storeTaskId.delete(mmid)
-  }
-
-  /*****************************************************************************
-   * JMM对应的json地址存储
+   * JMM对应的json地址存储，以及下载的 taskId 信息
    */
   suspend fun saveHistoryMetadata(url: String, metadata: JmmHistoryMetadata) {
     storeHistoryMetadata.set(url, metadata)
@@ -84,43 +67,99 @@ class JmmStore(microModule: MicroModule) {
 data class JmmHistoryMetadata(
   val originUrl: String,
   val metadata: JmmAppInstallManifest,
-  var taskId: TaskId? = null, // 用于保存下载任务，下载完成置空。
-  var state: JmmStatus = JmmStatus.Init, // 用于显示下载状态。
+  var taskId: TaskId? = null, // 用于保存下载任务，下载完成置空
+  var state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
   var installTime: Long = datetimeNow(), // 表示安装应用的时间
 ) {
-  suspend fun initTaskId(taskId: TaskId, store: JmmStore) {
-    this.taskId = taskId
-    store.saveHistoryMetadata(originUrl, this)
-  }
-
-  suspend fun downloadComplete(store: JmmStore) {
-    taskId = null
-    state = JmmStatus.Completed
-    store.saveHistoryMetadata(originUrl, this)
-  }
-
-  suspend fun installFail(store: JmmStore) {
-    state = JmmStatus.Failed
-    store.saveHistoryMetadata(originUrl, this)
-  }
-
-  suspend fun newVersion(store: JmmStore, newMetadata: JmmAppInstallManifest): JmmHistoryMetadata {
-    if (newMetadata.version.isGreaterThan(this.metadata.version)) {
-      state = JmmStatus.NewVersion
-      store.saveHistoryMetadata(originUrl, this)
+  suspend fun updateState(downloadTask: DownloadTask, store: JmmStore) {
+    with(state) {
+      current = downloadTask.status.current
+      total = downloadTask.status.total
+      state = when(downloadTask.status.state) {
+        DownloadState.Init -> JmmStatus.Init
+        DownloadState.Downloading -> JmmStatus.Downloading
+        DownloadState.Paused -> JmmStatus.Paused
+        DownloadState.Failed -> JmmStatus.Failed
+        DownloadState.Canceled -> JmmStatus.Canceled
+        DownloadState.Completed -> JmmStatus.Completed
+      }
+      if (downloadTask.status.state != DownloadState.Downloading) {
+        store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
+      }
+      jmmStatusSignal.emit(this@with)
     }
-    return this
+  }
+
+  suspend fun updateState(jmmStatus: JmmStatus, store: JmmStore) {
+    state.state = jmmStatus
+    jmmStatusSignal.emit(state)
+    if (jmmStatus != JmmStatus.Downloading) {
+      store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
+    }
   }
 
   suspend fun installComplete(store: JmmStore) {
     taskId = null
-    state = JmmStatus.INSTALLED
+    state.state = JmmStatus.INSTALLED
     installTime = datetimeNow()
+    jmmStatusSignal.emit(state)
+    store.saveHistoryMetadata(originUrl, this)
+    store.setApp(
+      metadata.id, JsMicroModuleDBItem(metadata, originUrl)
+    )
+  }
+
+  suspend fun installFail(store: JmmStore) {
+    taskId = null
+    state.state = JmmStatus.Failed
+    installTime = datetimeNow()
+    jmmStatusSignal.emit(state)
     store.saveHistoryMetadata(originUrl, this)
   }
+
+  // 监听下载进度 不存储到内存
+  @Transient
+  val jmmStatusSignal: Signal<JmmStatusEvent> = Signal()
+
+  @Transient
+  val onJmmStatusChanged = jmmStatusSignal.toListener()
 }
+
+@Serializable
+data class JmmStatusEvent(
+  var current: Long = 0,
+  var total: Long = 1,
+  var state: JmmStatus = JmmStatus.Init,
+)
 
 fun JmmAppInstallManifest.createJmmHistoryMetadata(url: String) = JmmHistoryMetadata(
   originUrl = url,
   metadata = this,
 )
+
+@Serializable
+enum class JmmStatus {
+  /** 初始化中，做下载前的准备，包括寻址、创建文件、保存任务等工作 */
+  Init,
+
+  /** 下载中*/
+  Downloading,
+
+  /** 暂停下载*/
+  Paused,
+
+  /** 取消下载*/
+  Canceled,
+
+  /** 下载失败*/
+  Failed,
+
+  /** 下载完成*/
+  Completed,
+
+  /**安装中*/
+  INSTALLED,
+
+  /** 新版本*/
+  NewVersion;
+}
