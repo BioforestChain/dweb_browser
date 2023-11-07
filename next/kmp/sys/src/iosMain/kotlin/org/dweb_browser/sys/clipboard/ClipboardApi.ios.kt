@@ -5,6 +5,7 @@ import platform.Foundation.NSURL
 import platform.Foundation.base64Encoding
 import platform.Foundation.create
 import platform.UIKit.UIImage
+import platform.UIKit.UIImagePNGRepresentation
 import platform.UIKit.UIPasteboard
 
 actual fun writeClipboard(label: String?, content: String?, type: ClipboardType): ClipboardWriteResponse {
@@ -37,16 +38,16 @@ actual fun readClipboard(): ClipboardData {
         value = pasteboard.string.toString()
         type = "text/plain"
     } else if (pasteboard.hasImages) {
-        var base64 = pasteboard.image?.pngData()?.base64Encoding()
-        value = "data:image/png;base64,$base64"
-        type = "text/png"
+        val image = pasteboard.image
+        if (image != null) {
+            val data = UIImagePNGRepresentation(image!!)
+            var base64 = data?.base64Encoding()
+            value = "data:image/png;base64,$base64"
+            type = "text/png"
+        }
     } else if (pasteboard.hasURLs) {
         value = pasteboard.URL?.absoluteString.toString()
         type = "text/plain"
     }
     return ClipboardData(value,type)
-}
-
-fun UIImage.pngData(): NSData {
-    return pngData()
 }
