@@ -17,7 +17,7 @@ export const prod = new ESBuild({
   outfile: "dist/server/plaoc.server.js",
   bundle: true,
   platform: "browser",
-  format: "esm",external:["@dweb-browser/js-process"]
+  format: "esm",external:[]
 });
 export const dev = new ESBuild({
   absWorkingDir,
