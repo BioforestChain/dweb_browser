@@ -14,7 +14,7 @@ const absWorkingDir = resolveTo("../build/server");
 export const prod = new ESBuild({
   absWorkingDir,
   entryPoints: ["src/server/index.ts"],
-  outfile: "dist/server/plaoc.server.js",
+  outfile: "../../dist/server/plaoc.server.js",
   bundle: true,
   platform: "browser",
   format: "esm",external:[]
