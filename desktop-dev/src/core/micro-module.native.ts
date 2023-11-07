@@ -12,7 +12,6 @@ import { connectAdapterManager } from "./nativeConnect.ts";
 import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID } from "./types.ts";
 
 connectAdapterManager.append((fromMM, toMM, reason) => {
-  // 测试代码
   if (toMM instanceof NativeMicroModule) {
     const channel = new MessageChannel();
     const { port1, port2 } = channel;

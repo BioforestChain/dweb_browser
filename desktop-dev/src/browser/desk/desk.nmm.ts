@@ -80,9 +80,9 @@ export class DeskNMM extends NativeMicroModule {
       /** 打开应用 */
       .get("/openAppOrActivate", async (event) => {
         const { app_id } = query_app_id(event.searchParams);
-        console.always("activity", app_id);
+        console.always("renderer", app_id);
         const ipc = this.runingApps.get(app_id) ?? (await this.connect(app_id));
-        ipc?.postMessage(IpcEvent.fromText("activity", ""));
+        ipc?.postMessage(IpcEvent.fromText("renderer", ""));
         if (ipc !== undefined) {
           focusApp = ipc.remote.mmid;
           /// 成功打开，保存到列表中

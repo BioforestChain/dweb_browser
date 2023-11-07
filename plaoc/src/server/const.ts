@@ -12,6 +12,11 @@ export interface $PlaocConfig {
   usePublicUrl?: boolean;
   defaultConfig: $DefaultConfig;
   redirect: $Redirect[];
+  middlewares?: {
+    www?: string;
+    api?: string;
+    external?: string;
+  };
 }
 
 export interface $DefaultConfig {

@@ -2,6 +2,7 @@ import {
   $DwebHttpServerOptions,
   $Ipc,
   $MMID,
+  $OnFetch,
   $OnFetchReturn,
   FetchEvent,
   IPC_ROLE,
@@ -11,20 +12,17 @@ import {
   PromiseOut,
   ReadableStreamIpc,
   jsProcess,
-  mapHelper
+  mapHelper,
 } from "npm:@dweb-browser/js-process";
-
-
 
 import { HttpServer } from "./helper/http-helper.ts";
 import { mwebview_destroy } from "./helper/mwebview-helper.ts";
-import { API_onFetchHandlers } from "./middleware-config.ts";
 const DNS_PREFIX = "/dns.std.dweb/";
 const INTERNAL_PREFIX = "/internal/";
 
 /**给前端的api服务 */
 export class Server_api extends HttpServer {
-  constructor(public widPo: PromiseOut<string>) {
+  constructor(public widPo: PromiseOut<string>, private handlers: $OnFetch[] = []) {
     super();
   }
   protected _getOptions(): $DwebHttpServerOptions {
@@ -37,7 +35,7 @@ export class Server_api extends HttpServer {
   async start() {
     const serverIpc = await this._listener;
     return serverIpc
-      .onFetch(...API_onFetchHandlers, this._provider.bind(this))
+      .onFetch(...this.handlers, this._provider.bind(this))
       .internalServerError()
       .cors();
   }

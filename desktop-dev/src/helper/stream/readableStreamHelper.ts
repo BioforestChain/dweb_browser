@@ -63,6 +63,7 @@ export const binaryStreamRead = (stream: ReadableStream<Uint8Array>, options?: $
     if (await appendToCache()) {
       return readBinary(size);
     } else {
+      console.log(new TextDecoder().decode(cache))
       throw new Error(`fail to read bytes(${cache.length}/${size} byte) in stream`);
     }
   };

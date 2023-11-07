@@ -1,11 +1,10 @@
 import { assertEquals } from "https://deno.land/std@0.205.0/assert/mod.ts";
-import { API_onFetchHandlers } from "../middleware-config.ts";
-import { ApiRouter } from "./index.ts";
+import { Router } from "./index.ts";
 
 Deno.test("test apiRouter", () => {
-  const api = new ApiRouter();
+  const api = new Router();
   api.use((event) => {
     console.log(event.pathname);
   });
-  assertEquals(API_onFetchHandlers.length, 1);
+  assertEquals(api.handlers.length, 1);
 });
