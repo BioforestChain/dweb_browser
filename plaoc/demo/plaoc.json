@@ -3,9 +3,9 @@
     "lang": "en"
   },
   "middlewares": {
-    "www": "./middleware/server/index.plaoc-www.js",
-    "api": "./middleware/server/index.plaoc-api.js",
-    "external": "./middleware/server/index.plaoc-external.js"
+    "www": "server/index.plaoc-www.js",
+    "api": "server/index.plaoc-api.js",
+    "external": "server/index.plaoc-external.js"
   },
   "redirect": []
 }
