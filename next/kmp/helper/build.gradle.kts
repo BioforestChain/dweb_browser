@@ -57,6 +57,9 @@ kotlin {
     api(libs.data.store.preferences)
     api(libs.whyoleg.cryptography.provider.jdk)
   }
+  sourceSets.iosMain.dependencies {
+    api(libs.whyoleg.cryptography.provider.openssl3.prebuilt)
+  }
 }
 
 android {
