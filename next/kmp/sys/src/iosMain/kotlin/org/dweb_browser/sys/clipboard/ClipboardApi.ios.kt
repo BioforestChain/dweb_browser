@@ -17,10 +17,9 @@ actual fun writeClipboard(label: String?, content: String?, type: ClipboardType)
             return ClipboardWriteResponse(false,"image content is null")
         }
         var tmpImage = content!!.replace("data:image/png;base64,", "")
-        var data = NSData.create(base64Encoding = tmpImage)
-        if (data != null) {
-            pasteboard.image = UIImage.imageWithData(data)
-        }
+        var data: NSData? = NSData.create(base64Encoding = tmpImage)
+            ?: return ClipboardWriteResponse(false,"image data is null")
+        pasteboard.image = data?.let { UIImage.imageWithData(it) }
     } else if (type == ClipboardType.URL) {
         if (content == null) {
             return ClipboardWriteResponse(false,"url content is null")
