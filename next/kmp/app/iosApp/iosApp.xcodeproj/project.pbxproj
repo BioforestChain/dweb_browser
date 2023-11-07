@@ -14,6 +14,7 @@
 		48C46BDD2AF4CFA0005CBA38 /* UIApplication+Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BDC2AF4CFA0005CBA38 /* UIApplication+Window.swift */; };
 		48C46BDF2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */; };
 		48C46BE12AF4D515005CBA38 /* KmpEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BE02AF4D515005CBA38 /* KmpEvent.swift */; };
+		48C46C672AFA2A58005CBA38 /* Loger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46C662AFA2A58005CBA38 /* Loger.swift */; };
 		7555FF83242A565900829871 /* DWebOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* DWebOS.swift */; };
 		F034443C2AE26F64004F732E /* DwebBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034443A2AE26F64004F732E /* DwebBrowser.swift */; };
 		F034443D2AE26F64004F732E /* BrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034443B2AE26F64004F732E /* BrowserView.swift */; };
@@ -118,6 +119,7 @@
 		48C46BDC2AF4CFA0005CBA38 /* UIApplication+Window.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+Window.swift"; sourceTree = "<group>"; };
 		48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpEventShareResposeAction.swift; sourceTree = "<group>"; };
 		48C46BE02AF4D515005CBA38 /* KmpEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpEvent.swift; sourceTree = "<group>"; };
+		48C46C662AFA2A58005CBA38 /* Loger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loger.swift; sourceTree = "<group>"; };
 		7555FF7B242A565900829871 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7555FF82242A565900829871 /* DWebOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWebOS.swift; sourceTree = "<group>"; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -284,6 +286,7 @@
 				F034443F2AE26FA9004F732E /* View+snapshot.swift */,
 				F03444402AE26FA9004F732E /* PagingScroll.swift */,
 				F03444412AE26FA9004F732E /* Button.swift */,
+				48C46C662AFA2A58005CBA38 /* Loger.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -620,6 +623,7 @@
 				F03444C52AE2704A004F732E /* HapticsHelper.swift in Sources */,
 				F03444B92AE26FAC004F732E /* InstalledApp.swift in Sources */,
 				F03444B52AE26FAB004F732E /* MenuView.swift in Sources */,
+				48C46C672AFA2A58005CBA38 /* Loger.swift in Sources */,
 				F03444A32AE26FAB004F732E /* LocalLinkSearcher.swift in Sources */,
 				F03444932AE26FAB004F732E /* CoreDataError.swift in Sources */,
 				F03444BA2AE26FAC004F732E /* WebCacheStore.swift in Sources */,
