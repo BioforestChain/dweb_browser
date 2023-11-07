@@ -12,7 +12,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 
 /**

@@ -16,7 +16,6 @@ import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.resp
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.core.std.http.createHttpDwebServer
-import org.dweb_browser.core.sys.dns.returnAndroidFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.withMainContext
@@ -41,7 +40,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
       return@append request.respondLocalFile {
         if (filePath.startsWith("/web_icons/")) {
           debugBrowser("IconFile", "$fromMM => ${request.href}")
-          returnAndroidFile(
+          returnFile(
             getAppContext().filesDir.absolutePath + "/icons",
             filePath.substring("/web_icons/".length)
           )

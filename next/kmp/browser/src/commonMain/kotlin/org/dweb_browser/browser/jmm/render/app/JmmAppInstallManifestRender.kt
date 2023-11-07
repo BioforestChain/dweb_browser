@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.jmm.render.JmmAppInstallManifest
+package org.dweb_browser.browser.jmm.render.app
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column

@@ -10,26 +10,44 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.jmm.JmmInstallerController
+import org.dweb_browser.browser.jmm.model.LocalJmmViewHelper
 import org.dweb_browser.browser.jmm.render.BottomDownloadButton
-import org.dweb_browser.browser.jmm.render.WebviewVersionWarningDialog
 import org.dweb_browser.browser.jmm.render.ImagePreview
 import org.dweb_browser.browser.jmm.render.PreviewState
-import org.dweb_browser.browser.jmm.render.JmmAppInstallManifest.Render
+import org.dweb_browser.browser.jmm.render.WebviewVersionWarningDialog
+import org.dweb_browser.browser.jmm.render.app.Render
 import org.dweb_browser.browser.jmm.render.measureCenterOffset
-import org.dweb_browser.browser.jmm.model.LocalJmmViewHelper
+import org.dweb_browser.helper.compose.rememberScreenSize
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
 fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowRenderScope) {
+  val lazyListState = rememberLazyListState()
+  val screenSize = rememberScreenSize()
+  val density = LocalDensity.current.density
+  val statusBarHeight = WindowInsets.statusBars.getTop(LocalDensity.current)
+  val previewState = remember {
+    PreviewState(
+      outsideLazy = lazyListState,
+      screenWidth = screenSize.screenWidth,
+      screenHeight = screenSize.screenHeight,
+      statusBarHeight = statusBarHeight,
+      density = density
+    )
+  }
+
   val win = LocalWindowController.current
   win.state.title = this.viewModel.uiState.jmmAppInstallManifest.name
   win.GoBackHandler {
-    closeSelf()
+    if (previewState.showPreview.targetState) {
+      previewState.showPreview.targetState = false
+    } else {
+      closeSelf()
+    }
   }
 
   CompositionLocalProvider(LocalJmmViewHelper provides viewModel) {
@@ -39,21 +57,6 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowRenderS
         .scale(scale)
     }) {
       val jmmMetadata = viewModel.uiState.jmmAppInstallManifest
-
-      val lazyListState = rememberLazyListState()
-      val screenWidth = LocalConfiguration.current.screenWidthDp
-      val screenHeight = LocalConfiguration.current.screenHeightDp
-      val density = LocalDensity.current.density
-      val statusBarHeight = WindowInsets.statusBars.getTop(LocalDensity.current)
-      val previewState = remember {
-        PreviewState(
-          outsideLazy = lazyListState,
-          screenWidth = screenWidth,
-          screenHeight = screenHeight,
-          statusBarHeight = statusBarHeight,
-          density = density
-        )
-      }
       jmmMetadata.Render { index, imageLazyListState ->
         previewState.selectIndex.value = index
         previewState.imageLazy = imageLazyListState

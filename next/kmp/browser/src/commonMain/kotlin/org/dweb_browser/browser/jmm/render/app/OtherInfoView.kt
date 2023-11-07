@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.jmm.render.JmmAppInstallManifest
+package org.dweb_browser.browser.jmm.render.app
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,7 +37,7 @@ internal fun OtherInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
       color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(HorizontalPadding))
-    OtherItemView(type = "开发者", content = jmmAppInstallManifest.author?.toContent() ?: "me")
+    OtherItemView(type = "开发者", content = jmmAppInstallManifest.author.toContent())
     OtherItemView(type = "大小", content = jmmAppInstallManifest.bundle_size.toSpaceSize())
     OtherItemView(type = "类别", content = jmmAppInstallManifest.categories.print())
     OtherItemView(type = "语言", content = "中文")
@@ -77,7 +77,7 @@ private fun OtherItemView(type: String, content: String, largeContent: String? =
 }
 
 fun List<MICRO_MODULE_CATEGORY>.print(): String {
-  val result = StringBuffer()
+  val result = StringBuilder()
   this.forEach { category ->
     result.append(category.name)
   }

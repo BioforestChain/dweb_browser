@@ -60,10 +60,10 @@ object BitmapUtil {
     BitmapFactory.decodeFile(imagePath, options)
     options.inJustDecodeBounds = false // 设置为false
     // 计算缩放比
-    var w = options.outWidth
-    var h = options.outHeight
-    var beWidth = w / width
-    var beHeight = h / height
+    val w = options.outWidth
+    val h = options.outHeight
+    val beWidth = w / width
+    val beHeight = h / height
     var be = if (beWidth < beHeight) {
       beWidth
     } else {

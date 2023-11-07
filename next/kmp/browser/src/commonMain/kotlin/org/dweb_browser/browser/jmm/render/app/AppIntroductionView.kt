@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.jmm.render.JmmAppInstallManifest
+package org.dweb_browser.browser.jmm.render.app
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
@@ -13,38 +13,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 
 /**
- * 应用新版本信息部分
+ * 应用介绍描述部分
  */
 @Composable
-internal fun NewVersionInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
+internal fun AppIntroductionView(jmmAppInstallManifest: JmmAppInstallManifest) {
   val expanded = remember { mutableStateOf(false) }
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
-      text = "更新日志",
+      text = "应用介绍",
       fontSize = 18.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.onSurface
-    )
-    Text(
-      text = "版本 ${jmmAppInstallManifest.version}",
-      fontSize = 12.sp,
-      fontWeight = FontWeight.Bold,
-      color = MaterialTheme.colorScheme.outline,
-      modifier = Modifier.padding(vertical = 6.dp)
     )
 
     Box(modifier = Modifier
       .animateContentSize()
       .clickable { expanded.value = !expanded.value }) {
       Text(
-        text = jmmAppInstallManifest.change_log,
+        text = jmmAppInstallManifest.description ?: "",
         maxLines = if (expanded.value) Int.MAX_VALUE else 2,
         overflow = TextOverflow.Ellipsis,
         color = MaterialTheme.colorScheme.onSurface

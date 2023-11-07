@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jmm.render
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -30,7 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 
@@ -56,7 +55,6 @@ internal fun ImagePreview(
       transformOrigin = TransformOrigin(previewState.offset.value.x, previewState.offset.value.y)
     ) + fadeOut(),
   ) {
-    BackHandler { previewState.showPreview.targetState = false }
     val pagerState = rememberPagerState(initialPage = previewState.selectIndex.value,
       initialPageOffsetFraction = 0f,
       pageCount = { jmmAppInstallManifest.images.size })

@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jmm.render
 
-import android.webkit.WebView
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
@@ -16,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.jmm.getWebViewVersion
 import org.dweb_browser.browser.jmm.model.LocalShowWebViewVersion
 import org.dweb_browser.helper.SupportUrl
 import org.dweb_browser.helper.compose.LocalCommonUrl
@@ -29,15 +29,10 @@ internal fun WebviewVersionWarningDialog() {
   var myVersion by remember { mutableStateOf("") }
   val lowVersion = "96.0.4664.104" // TODO 目前暂定该版本信息最低要求为96.0.4664.104以上
   LaunchedEffect(Unit) {
-    WebView.getCurrentWebViewPackage()?.let { webViewPackage -> // 获取当前WebView版本号
-      // 这边过滤华为的webview版本：com.huawei.webview,,,android.webkit.webview
-      if (webViewPackage.packageName == "com.google.android.webview" && lowVersion.isGreaterThan(
-          webViewPackage.versionName
-        )
-      ) {
-        myVersion = webViewPackage.versionName // 103.0.5060.129
-        isShowDialog = true
-      }
+    val version = getWebViewVersion() ?: return@LaunchedEffect
+    if (lowVersion.isGreaterThan(version)) {
+      myVersion = version
+      isShowDialog = true
     }
   }
   if (isShowDialog) {

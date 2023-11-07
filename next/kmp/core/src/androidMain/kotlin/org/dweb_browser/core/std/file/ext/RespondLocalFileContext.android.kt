@@ -1,8 +1,7 @@
-package org.dweb_browser.core.sys.dns
+package org.dweb_browser.core.std.file.ext
 
 import io.ktor.util.cio.toByteReadChannel
 import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.std.file.ext.RespondLocalFileContext
 import java.io.File
 import java.io.InputStream
 
@@ -31,13 +30,13 @@ fun String.parseToDirnameAndBasename(): Pair<String, String> {
   return Pair(dirname, basename)
 }
 
-fun RespondLocalFileContext.returnAndroidFile(
-  root: String, filePath: String = this.filePath
+actual fun loadByteChannelByPath(
+  context: RespondLocalFileContext, root: String, filePath: String
 ): PureResponse {
   val fullFilePath = root + File.separator + filePath.trimStart('/')
   return try {
-    returnFile(File(fullFilePath))
+    context.returnFile(File(fullFilePath))
   } catch (e: Throwable) {
-    returnNoFound(e.message)
+    context.returnNoFound(e.message)
   }
 }

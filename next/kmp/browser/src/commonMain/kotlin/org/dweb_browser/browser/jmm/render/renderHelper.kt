@@ -1,10 +1,13 @@
 package org.dweb_browser.browser.jmm.render
 
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.dp
 
 internal fun measureCenterOffset(index: Int, previewState: PreviewState): Offset {
   val firstVisible = previewState.imageLazy?.firstVisibleItemIndex ?: 0
@@ -48,11 +51,21 @@ internal fun measureCenterOffset(index: Int, previewState: PreviewState): Offset
 }
 
 @Composable
-internal fun CustomerDivider(modifier: Modifier = Modifier) =
-  HorizontalDivider(modifier = modifier, color = MaterialTheme.colorScheme.background)
+internal fun CustomerDivider(modifier: Modifier = Modifier) {
+  val color = MaterialTheme.colorScheme.outlineVariant
+  val thickness = 1.dp
+  Canvas(modifier.fillMaxWidth().height(thickness)) {
+    drawLine(
+      color = color,
+      strokeWidth = thickness.toPx(),
+      start = Offset(0f, thickness.toPx() / 2),
+      end = Offset(size.width, thickness.toPx() / 2),
+    )
+  }
+}
 
 fun List<String>.toContent(): String {
-  val sb = StringBuffer()
+  val sb = StringBuilder()
   this.forEachIndexed { index, data ->
     if (index > 0) sb.append(", ")
     sb.append(data)

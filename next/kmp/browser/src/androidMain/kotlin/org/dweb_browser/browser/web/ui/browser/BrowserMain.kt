@@ -65,7 +65,6 @@ internal fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: Brows
 
 @Composable
 fun HomePage(viewModel: BrowserViewModel? = null) {
-  val localConfiguration = LocalConfiguration.current.screenWidthDp.dp
   Box(
     modifier = Modifier
       .fillMaxSize()

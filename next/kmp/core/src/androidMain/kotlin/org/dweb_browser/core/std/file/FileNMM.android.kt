@@ -2,8 +2,6 @@ package org.dweb_browser.core.std.file
 
 import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.helper.ZipUtil
-import org.dweb_browser.helper.randomUUID
 
 /**
  * 持久化数据

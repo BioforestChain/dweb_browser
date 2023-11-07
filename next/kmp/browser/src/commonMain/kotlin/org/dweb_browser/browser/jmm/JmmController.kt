@@ -11,7 +11,7 @@ import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.jmm.model.JmmStatus
-import org.dweb_browser.browser.web.ui.browser.model.isUrl
+import org.dweb_browser.browser.util.isUrl
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.IPureBody

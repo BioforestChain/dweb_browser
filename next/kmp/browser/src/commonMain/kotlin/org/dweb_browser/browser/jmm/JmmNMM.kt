@@ -11,11 +11,8 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
-import org.dweb_browser.core.sys.dns.returnAndroidFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.isGreaterThan
-import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.sys.window.ext.onRenderer
 
 val debugJMM = Debugger("JMM")
@@ -41,7 +38,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       return@append request.respondLocalFile {
         if (filePath.startsWith("/usr/")) {
           debugJMM("UsrFile", "$fromMM => ${request.href} file=> ${fromMM.mmid}-${fromMM.version}")
-          returnAndroidFile(
+          returnFile(
             nativeFetch("file://file.std.dweb/realPath?path=/data/apps/${fromMM.mmid}-${fromMM.version}").text(),
             filePath
           )

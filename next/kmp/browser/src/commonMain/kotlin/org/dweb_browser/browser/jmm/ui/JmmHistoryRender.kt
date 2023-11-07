@@ -38,9 +38,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.browser.common.CommonSimpleTopBar
 import org.dweb_browser.browser.jmm.JmmHistoryController
 import org.dweb_browser.browser.jmm.JmmHistoryMetadata

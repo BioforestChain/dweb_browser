@@ -39,13 +39,13 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import org.dweb_browser.browser.R
+import org.dweb_browser.browser.util.toRequestUrl
 import org.dweb_browser.browser.web.ui.browser.dimenSearchHeight
 import org.dweb_browser.browser.web.ui.browser.dimenTextFieldFontSize
 import org.dweb_browser.browser.web.ui.browser.model.DefaultSearchWebEngine
 import org.dweb_browser.browser.web.ui.browser.model.WebEngine
 import org.dweb_browser.browser.web.ui.browser.model.findWebEngine
 import org.dweb_browser.browser.web.ui.browser.model.parseInputText
-import org.dweb_browser.browser.web.ui.browser.model.toRequestUrl
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 
 /**

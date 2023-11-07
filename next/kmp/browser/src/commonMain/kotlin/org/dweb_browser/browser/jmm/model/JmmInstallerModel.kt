@@ -6,8 +6,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.dweb_browser.browser.download.TaskId
-import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.debugJMM
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
