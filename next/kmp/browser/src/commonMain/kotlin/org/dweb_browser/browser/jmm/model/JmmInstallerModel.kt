@@ -5,10 +5,11 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
+import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmInstallerController
+import org.dweb_browser.browser.jmm.JmmStatus
+import org.dweb_browser.browser.jmm.JmmStatusEvent
 import org.dweb_browser.browser.jmm.debugJMM
-import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.falseAlso
 
@@ -20,53 +21,23 @@ internal val LocalJmmViewHelper = compositionLocalOf<JmmInstallerModel> {
   noLocalProvidedFor("LocalJmmViewHelper")
 }
 
-@Serializable
-enum class JmmStatus {
-  /** 初始化中，做下载前的准备，包括寻址、创建文件、保存任务等工作 */
-  Init,
-
-  /** 下载中*/
-  Downloading,
-
-  /** 暂停下载*/
-  Paused,
-
-  /** 取消下载*/
-  Canceled,
-
-  /** 下载失败*/
-  Failed,
-
-  /** 下载完成*/
-  Completed,
-
-  /**安装中*/
-  INSTALLED,
-
-  /** 新版本*/
-  NewVersion;
-}
 
 data class JmmUIState(
-  val jmmAppInstallManifest: JmmAppInstallManifest,
+  val jmmHistoryMetadata: JmmHistoryMetadata,
   val downloadSize: MutableState<Long> = mutableLongStateOf(0L),
-  val downloadStatus: MutableState<JmmStatus> = mutableStateOf(JmmStatus.Init)
 )
 
 class JmmInstallerModel(
-  jmmAppInstallManifest: JmmAppInstallManifest, private val controller: JmmInstallerController
+  private val jmmHistoryMetadata: JmmHistoryMetadata, private val controller: JmmInstallerController
 ) {
-  val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
+  val uiState: JmmUIState = JmmUIState(jmmHistoryMetadata)
 
   fun startDownload() = controller.ioAsyncScope.launch {
-    if (controller.jmmHistoryMetadata.taskId == null ||
-      (uiState.downloadStatus.value != JmmStatus.INSTALLED &&
-          uiState.downloadStatus.value != JmmStatus.Completed)
+    if (jmmHistoryMetadata.taskId == null ||
+      (jmmHistoryMetadata.state.state != JmmStatus.INSTALLED &&
+          jmmHistoryMetadata.state.state != JmmStatus.Completed)
     ) {
-      controller.createDownloadTask(
-        uiState.jmmAppInstallManifest.bundle_url, uiState.jmmAppInstallManifest.bundle_size
-      )
-      watchProcess()
+      controller.createDownloadTask()
     }
     // 已经注册完监听了，开始
     controller.start()
@@ -74,47 +45,34 @@ class JmmInstallerModel(
 
   fun pause() = controller.ioAsyncScope.launch {
     controller.pause().falseAlso {
-      uiState.downloadStatus.value = JmmStatus.Failed
+      jmmHistoryMetadata.jmmStatusSignal.emit(JmmStatusEvent(state = JmmStatus.Failed))
     }
   }
 
   fun start() = controller.ioAsyncScope.launch {
     controller.start().falseAlso {
-      uiState.downloadStatus.value = JmmStatus.Failed
+      jmmHistoryMetadata.jmmStatusSignal.emit(JmmStatusEvent(state = JmmStatus.Failed))
     }
   }
 
   fun open() = controller.ioAsyncScope.launch {
-    controller.openApp(uiState.jmmAppInstallManifest.id)
-  }
-
-  private suspend fun watchProcess() {
-    controller.watchProcess { state, current, total ->
-      debugJMM("ViewHelper", "watchProcess=> $state, $current, $total")
-      uiState.downloadStatus.value = state
-      uiState.downloadSize.value = current
-    }
+    controller.openApp(uiState.jmmHistoryMetadata.metadata.id)
   }
 
   /**
    * 打开之后更新状态值，主要是为了退出应用后重新打开时需要
    */
-  fun refreshStatus(hasNewVersion: Boolean) = controller.ioAsyncScope.launch {
+  fun refreshStatus() = controller.ioAsyncScope.launch {
     debugJMM(
       "refreshStatus",
-      "是否是恢复 ${controller.jmmHistoryMetadata.taskId} 是否有新版本:${hasNewVersion}"
+      "是否是恢复 ${jmmHistoryMetadata.taskId} 是否有新版本:${jmmHistoryMetadata.state.state}"
     )
-    if (controller.exists()) {
-      // 监听推送的变化
-      watchProcess()
-      // 继续/恢复 下载，不管什么状态都会推送过来
-      // controller.start()
-    } else if (hasNewVersion) {
-      uiState.downloadStatus.value = JmmStatus.NewVersion
+    if (jmmHistoryMetadata.state.state == JmmStatus.NewVersion) {
+      // ignore 就显示 更新
     } else if (controller.hasInstallApp()) {
-      uiState.downloadStatus.value = JmmStatus.INSTALLED
+      jmmHistoryMetadata.jmmStatusSignal.emit(JmmStatusEvent(state = JmmStatus.INSTALLED))
     } else {
-      uiState.downloadStatus.value = JmmStatus.Init
+      jmmHistoryMetadata.jmmStatusSignal.emit(JmmStatusEvent(state = JmmStatus.Init))
     }
   }
 }

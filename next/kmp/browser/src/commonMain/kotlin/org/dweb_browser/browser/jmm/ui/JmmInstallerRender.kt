@@ -41,7 +41,7 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowRenderS
   }
 
   val win = LocalWindowController.current
-  win.state.title = this.viewModel.uiState.jmmAppInstallManifest.name
+  win.state.title = this.viewModel.uiState.jmmHistoryMetadata.metadata.name
   win.GoBackHandler {
     if (previewState.showPreview.targetState) {
       previewState.showPreview.targetState = false
@@ -56,15 +56,15 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowRenderS
         .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
         .scale(scale)
     }) {
-      val jmmMetadata = viewModel.uiState.jmmAppInstallManifest
-      jmmMetadata.Render { index, imageLazyListState ->
+      val jmmMetadata = viewModel.uiState.jmmHistoryMetadata
+      jmmMetadata.metadata.Render { index, imageLazyListState ->
         previewState.selectIndex.value = index
         previewState.imageLazy = imageLazyListState
         previewState.offset.value = measureCenterOffset(index, previewState)
         previewState.showPreview.targetState = true
       }
       BottomDownloadButton()
-      ImagePreview(jmmMetadata, previewState)
+      ImagePreview(jmmMetadata.metadata, previewState)
       WebviewVersionWarningDialog()
     }
   }
