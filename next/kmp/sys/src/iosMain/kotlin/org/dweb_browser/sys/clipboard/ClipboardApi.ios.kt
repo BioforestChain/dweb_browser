@@ -42,7 +42,9 @@ actual fun readClipboard(): ClipboardData {
         if (image != null) {
             val data = UIImagePNGRepresentation(image!!)
             var base64 = data?.base64Encoding()
-            value = "data:image/png;base64,$base64"
+            if (base64 != null) {
+                value = "data:image/png;base64,$base64!!"
+            }
             type = "text/png"
         }
     } else if (pasteboard.hasURLs) {
