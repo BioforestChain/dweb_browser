@@ -32,13 +32,19 @@ extension URL {
 
 extension URL {
     static var defaultSnapshotURL: URL {
-        let bundle = Bundle(for: BridgeManager.self)
-        return bundle.url(forResource: "resource.bundle/snapshot", withExtension: "png")!
+         imageUrl(with: "snapshot")!
     }
 
     static var defaultWebIconURL: URL {
-        let bundle = Bundle(for: BridgeManager.self)
-        return bundle.url(forResource: "resource.bundle/defWebIcon", withExtension: "png")!
+        imageUrl(with: "defWebIcon")!
+    }
+    
+    static func imageUrl(with name: String) -> URL? {
+        if let resourceBundlePath = Bundle.main.path(forResource: "resource", ofType: "bundle"),
+           let resourceBundle = Bundle(path: resourceBundlePath) {
+            return resourceBundle.url(forResource: name, withExtension: "png") 
+        }
+        return nil
     }
 
     func getDomain() -> String {

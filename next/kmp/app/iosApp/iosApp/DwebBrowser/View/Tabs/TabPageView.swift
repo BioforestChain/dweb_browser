@@ -42,9 +42,9 @@ struct TabPageView: View {
                 print("clickedLink has changed: \(link)")
                 let webcache = webcacheStore.cache(at: selectedTab.curIndex)
                 webcache.lastVisitedUrl = link
-                if webcache.shouldShowWeb{
+                if webcache.shouldShowWeb {
                     webWrapper.webView.load(URLRequest(url: link))
-                }else{
+                } else {
                     webcache.shouldShowWeb = true
                 }
                 openingLink.clickedLink = emptyURL
@@ -68,29 +68,30 @@ struct TabPageView: View {
 
             .onChange(of: toolbarState.shouldExpand) { shouldExpand in
                 if isVisible, !shouldExpand { // 截图，为缩小动画做准备
-                    self
-                        .environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation)
-                        .environmentObject(openingLink).environmentObject(addressBar).environmentObject(webcacheStore)
-                        .takeSnapshot(completion: { image in
-                            printWithDate("has took a snapshot")
-                            let scale = image.scale
-                            let isFullWidth = (geo.size.width / geo.size.height) < cellWHratio
-                            let width = (isFullWidth ? geo.size.width : geo.size.height * cellWHratio) * scale
-                            let height = (isFullWidth ? geo.size.width / cellWHratio : geo.size.height) * scale * imageHratio
-                            let cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: width, height: height)
-                            if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
-                                let croppedImage = UIImage(cgImage: croppedCGImage)
-                                animation.snapshotImage = croppedImage
-                                webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
-                            }
-                            if animation.progress == .obtainedCellFrame {
-                                animation.progress = .startShrinking
-                                printWithDate("progress: start Shrinking in tabpage")
-                            } else {
-                                animation.progress = .obtainedSnapshot
-                                printWithDate("progress: obtained Snapshot")
-                            }
-                        })
+                    if !webCache.shouldShowWeb {
+                        animation.snapshotImage = UIImage.snapshotImage(from: .defaultSnapshotURL)
+                        afterGetSnapshot()
+                    } else {
+                        self
+                            .environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation)
+                            .environmentObject(openingLink).environmentObject(addressBar).environmentObject(webcacheStore)
+                            .takeSnapshot(completion: { image in
+                                printWithDate("has took a snapshot")
+                                let scale = image.scale
+
+                                let isFullWidth = (geo.size.width / geo.size.height) < cellWHratio
+                                let width = (isFullWidth ? geo.size.width : geo.size.height * cellWHratio) * scale
+                                let height = (isFullWidth ? geo.size.width / cellWHratio : geo.size.height) * scale * imageHratio
+                                var cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: width, height: height)
+
+                                if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
+                                    let croppedImage = UIImage(cgImage: croppedCGImage)
+                                    animation.snapshotImage = croppedImage
+                                    webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
+                                }
+                                afterGetSnapshot()
+                            })
+                    }
                 }
             }
         }
@@ -158,6 +159,14 @@ struct TabPageView: View {
 
     func goForward() {
         webWrapper.webView.goForward()
+    }
+
+    private func afterGetSnapshot() {
+        if animation.progress == .obtainedCellFrame {
+            animation.progress = .startShrinking
+        } else {
+            animation.progress = .obtainedSnapshot
+        }
     }
 }
 
