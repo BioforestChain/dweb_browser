@@ -72,7 +72,9 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
     val historyMetadata = historyMetadataMaps.replaceOrPut(
       key = originUrl,
       replace = {
-        if (jmmAppInstallManifest.version.isGreaterThan(it.metadata.version)) {
+        if (jmmNMM.bootstrapContext.dns.query(it.metadata.id) == null) {
+          jmmAppInstallManifest.createJmmHistoryMetadata(originUrl)
+        } else if (jmmAppInstallManifest.version.isGreaterThan(it.metadata.version)) {
           JmmHistoryMetadata(
             originUrl = originUrl,
             metadata = jmmAppInstallManifest,
@@ -86,11 +88,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
         }
       },
       defaultValue = {
-        JmmHistoryMetadata(
-          originUrl = originUrl,
-          metadata = jmmAppInstallManifest,
-          state = JmmStatusEvent(total = jmmAppInstallManifest.bundle_size)
-        )
+        jmmAppInstallManifest.createJmmHistoryMetadata(originUrl)
       }
     )
     store.saveHistoryMetadata(originUrl, historyMetadata)
@@ -217,11 +215,7 @@ inline fun <K, V> MutableMap<K, V>.replaceOrPut(
   key: K, replace: (V) -> V, defaultValue: () -> V
 ): V {
   val value = get(key)
-  return if (value == null) {
-    val answer = defaultValue()
-    put(key, answer)
-    answer
-  } else {
-    replace(value)
-  }
+  val answer = if (value == null) defaultValue() else replace(value)
+  put(key, answer)
+  return answer
 }

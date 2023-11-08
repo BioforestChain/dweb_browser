@@ -72,6 +72,7 @@ data class JmmHistoryMetadata(
   var installTime: Long = datetimeNow(), // 表示安装应用的时间
 ) {
   suspend fun updateState(downloadTask: DownloadTask, store: JmmStore) {
+    println("lin.huang ========== $downloadTask")
     with(state) {
       current = downloadTask.status.current
       total = downloadTask.status.total
@@ -135,6 +136,7 @@ data class JmmStatusEvent(
 fun JmmAppInstallManifest.createJmmHistoryMetadata(url: String) = JmmHistoryMetadata(
   originUrl = url,
   metadata = this,
+  state = JmmStatusEvent(total = this.bundle_size)
 )
 
 @Serializable
