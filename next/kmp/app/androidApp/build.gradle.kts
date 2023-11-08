@@ -2,6 +2,7 @@ plugins {
   alias(libs.plugins.kotlinxMultiplatform)
   alias(libs.plugins.androidApplication)
   alias(libs.plugins.jetbrainsCompose)
+  alias(libs.plugins.kotlinPluginSerialization)
 }
 
 kotlin {
@@ -23,6 +24,7 @@ kotlin {
           implementation(libs.androidx.activity.compose)
           implementation(libs.androidx.appcompat)
           implementation(libs.androidx.core.ktx)
+          implementation(libs.androidx.core.splashscreen)
 
           // Jetbrains Compose
           implementation(libs.jetbrains.compose.runtime)
@@ -34,6 +36,21 @@ kotlin {
           implementation(libs.jetbrains.compose.material3)
           implementation(libs.jetbrains.compose.materialIcons)
 
+          // Google.accompanist 相关
+          implementation(libs.accompanist.webview)
+          implementation(libs.accompanist.permissions)
+          implementation(libs.accompanist.systemui.controller)
+
+          // 生物识别
+          implementation(libs.androidx.biometric)
+
+          //扫码核心库
+          implementation(libs.camera.core)
+          implementation(libs.camera.view)
+          implementation(libs.camera.camera2)
+          implementation(libs.camera.lifecycle)
+          implementation(libs.camera.barcode)
+
           // test
           implementation(libs.compose.ui.preview)
 
@@ -44,6 +61,8 @@ kotlin {
           implementation(project(":core"))
           implementation(project(":window"))
           implementation(project(":sys"))
+          implementation(project(":browser"))
+          implementation(project(":DWebView"))
         }
       }
     }

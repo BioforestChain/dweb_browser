@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.scanning
+package org.dweb_browser.sys.scan
 
 actual fun getScanningController(): ScanningApi = ScanningAndroidController()
 

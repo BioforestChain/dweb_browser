@@ -15,7 +15,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-//import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -49,7 +48,6 @@ import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 import org.dweb_browser.sys.window.render.AppIcon
 
-
 class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Management") {
   init {
     short_name = "Permission";
@@ -66,6 +64,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
 
   @OptIn(ExperimentalMaterial3Api::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+
     val hooks = object : PermissionHooks {
       override suspend fun onRequestPermissions(
         applicantIpc: Ipc, permissions: List<PermissionProvider>

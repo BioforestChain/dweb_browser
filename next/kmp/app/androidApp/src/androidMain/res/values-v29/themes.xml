@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+  <style name="Theme.dwebbrowser" parent="Theme.AppCompat.Light.NoActionBar">
+    <!-- Primary brand color. -->
+    <item name="colorPrimary">@color/colorPrimary_light</item>
+    <item name="colorPrimaryVariant">@color/colorPrimaryVariant_light</item>
+    <item name="colorOnPrimary">@color/colorOnPrimary_light</item>
+    <!-- Secondary brand color. -->
+    <item name="colorSecondary">@color/colorSecondary_light</item>
+    <item name="colorSecondaryVariant">@color/colorSecondaryVariant_light</item>
+    <item name="colorOnSecondary">@color/colorOnSecondary_light</item>
+    <!-- Status bar color. -->
+    <item name="android:statusBarColor">@color/colorPrimary_light</item>
+    <!-- Customize your theme here. -->
+    <item name="android:textAllCaps">false</item>
+    <item name="android:forceDarkAllowed">true</item>
+    <!-- 关闭窗口预览，避免跳转activity时白屏问题 -->
+    <item name="android:windowDisablePreview">true</item>
+  </style>
+</resources>

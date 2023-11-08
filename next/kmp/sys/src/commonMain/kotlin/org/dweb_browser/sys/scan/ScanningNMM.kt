@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.scanning
+package org.dweb_browser.sys.scan
 
 import io.ktor.http.HttpMethod
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY

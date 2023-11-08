@@ -1,16 +1,9 @@
 package org.dweb_browser.sys.share
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.KmpNativeRegister
 import org.dweb_browser.sys.KmpToIosEvent
-import org.dweb_browser.sys.scanning.toNSData
-import platform.UIKit.*
 
 actual fun getShareController(): ShareApi = ShareIOSController()
 

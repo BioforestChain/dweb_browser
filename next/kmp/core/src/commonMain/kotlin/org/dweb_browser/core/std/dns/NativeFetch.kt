@@ -36,7 +36,7 @@ val debugFetchFile = Debugger("fetch-file")
 
 /**
  * file:/// => /usr & /sys as const
- * file://file.sys.dweb/ => /home & /tmp & /share as userData
+ * file://file.std.dweb/ => /home & /tmp & /share as userData
  */
 val nativeFetchAdaptersManager = NativeFetchAdaptersManager()
 

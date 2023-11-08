@@ -1,14 +1,12 @@
 package info.bagen.dwebbrowser
 
-import kotlinx.coroutines.runBlocking
-import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.sys.boot.BootNMM
-import org.dweb_browser.sys.scanning.ScanningNMM
+import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
 
 class TestEntry {
