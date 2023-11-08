@@ -1,11 +1,9 @@
 package org.dweb_browser.browser.jmm
 
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
-import org.dweb_browser.browser.download.TaskId
+import kotlinx.coroutines.launch
+import org.dweb_browser.browser.download.model.ChangeableType
 import org.dweb_browser.browser.jmm.ui.ManagerViewRender
-import org.dweb_browser.core.help.types.JmmAppInstallManifest
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getMainWindow
@@ -14,15 +12,38 @@ import org.dweb_browser.sys.window.ext.getMainWindow
  * JS 模块安装 的 控制器
  */
 class JmmHistoryController(
-  private val jmmNMM: JmmNMM, private val store: JmmStore, jmmController: JmmController
+  private val jmmNMM: JmmNMM, jmmController: JmmController
 ) {
-  val jmmHistoryMetadata = mutableStateListOf<JmmHistoryMetadata>()
-  private val jmmHistoryMap = mutableStateMapOf<String, JmmHistoryMetadata>()
+  val jmmHistoryMetadata: MutableList<JmmHistoryMetadata> = mutableStateListOf()
 
-  fun getTaskId(originUrl: String) = jmmHistoryMap[originUrl]?.taskId
+  init {
+    jmmController.ioAsyncScope.launch {
+      // val list = jmmController.historyMetadataMaps.toMutableList().sortedByDescending { it.installTime }
+      // jmmHistoryMetadata.addAll(list)
+      jmmController.historyMetadataMaps.onChange { item ->
+        when (item.first) {
+          ChangeableType.Add -> {
+            jmmHistoryMetadata.add(0, item.third!!)
+          }
 
-  private val jmmStateSignal = Signal<Pair<JmmStatus, TaskId>>()
-  val onJmmStateListener = jmmStateSignal.toListener()
+          ChangeableType.Remove -> {
+            jmmHistoryMetadata.remove(item.third!!)
+          }
+
+          ChangeableType.PutAll -> {
+            jmmHistoryMetadata.addAll(
+              jmmController.historyMetadataMaps.toMutableList()
+                .sortedByDescending { it.installTime }
+            )
+          }
+
+          ChangeableType.Clear -> {
+            jmmHistoryMetadata.clear()
+          }
+        }
+      }
+    }
+  }
 
   suspend fun close() {
     jmmNMM.getMainWindow().hide()
@@ -38,15 +59,5 @@ class JmmHistoryController(
       }
       show()
     }
-  }
-
-  suspend fun createNewMetadata(
-    originUrl: String, jmmAppInstallManifest: JmmAppInstallManifest
-  ): JmmHistoryMetadata {
-    val newMetadata = jmmAppInstallManifest.createJmmHistoryMetadata(originUrl).apply {
-      jmmHistoryMetadata.add(0, this)
-    }
-    store.saveHistoryMetadata(originUrl, newMetadata)
-    return newMetadata
   }
 }

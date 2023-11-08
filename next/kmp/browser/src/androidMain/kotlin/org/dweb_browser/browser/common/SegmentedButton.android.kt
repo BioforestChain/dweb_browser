@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.common
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.runtime.Composable
@@ -10,17 +11,17 @@ import androidx.compose.ui.graphics.Shape
 @Composable
 actual fun SingleChoiceSegmentedButtonRow(
   modifier: Modifier,
-  content: @Composable SingleChoiceSegmentedButtonRowScope.() -> Unit
+  content: @Composable RowScope.() -> Unit
 ) {
   androidx.compose.material3.SingleChoiceSegmentedButtonRow(
     modifier = modifier,
-    content = { content }
+    content = { content() }
   )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-actual fun SingleChoiceSegmentedButtonRowScope.SegmentedButton(
+actual fun RowScope.SegmentedButton(
   selected: Boolean,
   onClick: () -> Unit,
   shape: Shape,
@@ -35,7 +36,7 @@ actual fun SingleChoiceSegmentedButtonRowScope.SegmentedButton(
     shape = shape,
     modifier = modifier,
     enabled = enabled,
-    icon = { icon },
-    label = { label }
+    icon = { icon() },
+    label = { label() }
   )
 }

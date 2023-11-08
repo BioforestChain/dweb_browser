@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.getOrDefault
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import kotlin.coroutines.CoroutineContext
 
@@ -22,6 +23,7 @@ class ChangeableMutableMap<K, V>(
   }
 
   fun put(key: K, value: V) {
+    remove(key) // 为了确保后面接收onChange的时候，如果已存在的，会先收到一个移除的消息
     cMaps[key] = value
     emitBackground(ChangeableType.Add, key, value)
   }
@@ -43,7 +45,7 @@ class ChangeableMutableMap<K, V>(
 
   fun get(key: K) = cMaps[key]
 
-  fun set(key: K, value: V) = put(key, value)
+  val size get() = cMaps.size
 
   suspend fun suspendForEach(each: suspend (K, V) -> Unit) =
     cMaps.forEach { (key, value) -> each(key, value) }
@@ -58,4 +60,21 @@ class ChangeableMutableMap<K, V>(
 
   private val changeSignal: Signal<Triple<ChangeableType, K?, V?>> = Signal()
   val onChange = changeSignal.toListener()
+
+  fun toMutableList() = cMaps.values.toList()
+
+  fun getOrPut(key: K, defaultValue: () -> V) = cMaps.getOrPut(key, defaultValue)
+  fun getOrDefault(key: K, defaultValue: () -> V) = cMaps.getOrDefault(key, defaultValue)
+  fun getOrElse(key: K, defaultValue: () -> V) = cMaps.getOrElse(key, defaultValue)
+
+  fun replaceOrPut(
+    key: K, replace: (V) -> V?, defaultValue: () -> V
+  ): V {
+    val value = get(key)
+    return if (value == null) {
+      defaultValue().also { answer -> put(key, answer) }
+    } else {
+      replace(value)?.also { answer -> put(key, answer) } ?: value
+    }
+  }
 }

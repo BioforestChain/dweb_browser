@@ -58,21 +58,4 @@ class JmmInstallerModel(
   fun open() = controller.ioAsyncScope.launch {
     controller.openApp(uiState.jmmHistoryMetadata.metadata.id)
   }
-
-  /**
-   * 打开之后更新状态值，主要是为了退出应用后重新打开时需要
-   */
-  fun refreshStatus() = controller.ioAsyncScope.launch {
-    debugJMM(
-      "refreshStatus",
-      "是否是恢复 ${jmmHistoryMetadata.taskId} 是否有新版本:${jmmHistoryMetadata.state.state}"
-    )
-    if (jmmHistoryMetadata.state.state == JmmStatus.NewVersion) {
-      // ignore 就显示 更新
-    } else if (controller.hasInstallApp()) {
-      jmmHistoryMetadata.jmmStatusSignal.emit(JmmStatusEvent(state = JmmStatus.INSTALLED))
-    } else {
-      jmmHistoryMetadata.jmmStatusSignal.emit(JmmStatusEvent(state = JmmStatus.Init))
-    }
-  }
 }

@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.common
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
@@ -7,13 +8,13 @@ import androidx.compose.ui.graphics.Shape
 @Composable
 actual fun SingleChoiceSegmentedButtonRow(
   modifier: Modifier,
-  content: @Composable SingleChoiceSegmentedButtonRowScope.() -> Unit
+  content: @Composable RowScope.() -> Unit
 ) {
 
 }
 
 @Composable
-actual fun SingleChoiceSegmentedButtonRowScope.SegmentedButton(
+actual fun RowScope.SegmentedButton(
   selected: Boolean,
   onClick: () -> Unit,
   shape: Shape,

@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.download
 
+import androidx.compose.runtime.mutableStateListOf
 import io.ktor.http.ContentRange
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -42,7 +43,6 @@ import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.windowInstancesManager
 import org.dweb_browser.sys.window.ext.getMainWindow
-import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
 @Serializable
 data class DownloadTask(
@@ -51,7 +51,7 @@ data class DownloadTask(
   /** 下载链接 */
   val url: String,
   /** 创建时间 */
-  val createTime: Long,
+  val createTime: Long = datetimeNow(),
   /** 来源模块 */
   val originMmid: MMID,
   /** 来源链接 */
@@ -128,7 +128,9 @@ data class DownloadStateEvent(
 
 class DownloadController(private val downloadNMM: DownloadNMM) {
   private val store = DownloadStore(downloadNMM)
-  val downloadManagers: ChangeableMutableMap<TaskId, DownloadTask> = ChangeableMutableMap() // 用于监听下载列表
+  val downloadManagers: ChangeableMutableMap<TaskId, DownloadTask> =
+    ChangeableMutableMap() // 用于监听下载列表
+  val downloadList: MutableList<DownloadTask> = mutableStateListOf()
   private var winLock = Mutex(false)
   val downloadModel = DownloadModel(this)
   val decompressModel = DecompressModel(this)
@@ -136,6 +138,31 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   init {
     // 从内存中恢复状态
     downloadNMM.ioAsyncScope.launch {
+      // 状态改变的时候存储保存到内存
+      downloadManagers.onChange { (type, key, value) ->
+        when (type) {
+          ChangeableType.Add -> {
+            store.set(value!!.id, value!!)
+            downloadList.add(0, value!!)
+          }
+
+          ChangeableType.Remove -> {
+            store.delete(value!!.id)
+            downloadList.remove(value!!)
+          }
+
+          ChangeableType.PutAll -> {
+            downloadList.addAll(
+              downloadManagers.toMutableList().sortedByDescending { it.createTime }
+            )
+          }
+
+          ChangeableType.Clear -> {
+            downloadList.clear()
+          }
+        }
+      }
+
       downloadManagers.putAll(store.getAll())
       // 如果是从文件中读取的，需要将下载中的状态统一置为暂停。其他状态保持不变
       downloadManagers.suspendForEach { _, downloadTask ->
@@ -146,19 +173,6 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
           downloadTask.status.state = DownloadState.Paused
         }
         downloadTask.pauseFlag = false
-      }
-      // 状态改变的时候存储保存到内存
-      downloadManagers.onChange { (type, key, value) ->
-        debugDownload("DownloadController", "downloading type=$type, key=$key")
-        when(type) {
-          ChangeableType.Add -> {
-            value?.let { downloadTask -> store.set(downloadTask.id, downloadTask) }
-          }
-          ChangeableType.Remove -> {
-            value?.let { downloadTask -> store.delete(downloadTask.id) }
-          }
-          else -> {}
-        }
       }
     }
   }
@@ -173,7 +187,6 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     val task = DownloadTask(
       id = randomUUID(),
       url = params.url,
-      createTime = datetimeNow(),
       originMmid = originMmid,
       originUrl = params.originUrl,
       openDappUri = params.openDappUri,
@@ -352,7 +365,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     downloadTask.status.state = DownloadState.Downloading
     val taskId = downloadTask.id
     // 重要记录点 存储到硬盘
-    downloadManagers.set(taskId, downloadTask)
+    downloadManagers.put(taskId, downloadTask)
     downloadNMM.ioAsyncScope.launch {
       debugDownload("middleware", "id:$taskId current:${downloadTask.status.current}")
       downloadTask.downloadSignal.emit(downloadTask)

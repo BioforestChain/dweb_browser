@@ -11,7 +11,6 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.datetimeNow
-import org.dweb_browser.helper.isGreaterThan
 
 @Serializable
 data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String)
@@ -72,11 +71,10 @@ data class JmmHistoryMetadata(
   var installTime: Long = datetimeNow(), // 表示安装应用的时间
 ) {
   suspend fun updateState(downloadTask: DownloadTask, store: JmmStore) {
-    println("lin.huang ========== $downloadTask")
     with(state) {
       current = downloadTask.status.current
       total = downloadTask.status.total
-      state = when(downloadTask.status.state) {
+      state = when (downloadTask.status.state) {
         DownloadState.Init -> JmmStatus.Init
         DownloadState.Downloading -> JmmStatus.Downloading
         DownloadState.Paused -> JmmStatus.Paused

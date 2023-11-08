@@ -5,16 +5,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 
-interface SingleChoiceSegmentedButtonRowScope : RowScope
-
 @Composable
 expect fun SingleChoiceSegmentedButtonRow(
   modifier: Modifier = Modifier,
-  content: @Composable SingleChoiceSegmentedButtonRowScope.() -> Unit
+  content: @Composable RowScope.() -> Unit
 )
 
 @Composable
-expect fun SingleChoiceSegmentedButtonRowScope.SegmentedButton(
+expect fun RowScope.SegmentedButton(
   selected: Boolean,
   onClick: () -> Unit,
   shape: Shape,

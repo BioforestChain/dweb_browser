@@ -44,6 +44,10 @@ class BrowserI18nResource {
       Language.EN to "There are no download links yet",
       Language.ZH to "暂无下载数据"
     )
+    val no_apps_data = SimpleI18nResource(
+      Language.EN to "There are no Apps",
+      Language.ZH to "没有应用数据"
+    )
     val manager_downloads = SimpleI18nResource(Language.EN to "Downloads", Language.ZH to "下载")
     val manager_files = SimpleI18nResource(Language.EN to "Files", Language.ZH to "文件")
     val unzip_button_install = SimpleI18nResource(Language.ZH to "安装", Language.EN to "Install")

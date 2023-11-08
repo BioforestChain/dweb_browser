@@ -42,7 +42,6 @@ class JmmInstallerController(
     bottomSheets.onClose {
       /// TODO 如果应用正在下载，则显示toast应用正在安装中
     }
-    viewModel.refreshStatus()
   }
 
   suspend fun openApp(mmid: MMID) =
@@ -64,6 +63,4 @@ class JmmInstallerController(
   suspend fun closeSelf() {
     getView().close()
   }
-
-  fun hasInstallApp() = jmmNMM.bootstrapContext.dns.query(jmmHistoryMetadata.metadata.id) != null
 }

@@ -65,6 +65,13 @@ fun JmmHistoryController.ManagerViewRender(
       scope.launch { this@ManagerViewRender.close() }
     }
 
+    if (this@ManagerViewRender.jmmHistoryMetadata.isEmpty()) {
+      Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(text = BrowserI18nResource.no_apps_data())
+      }
+      return
+    }
+
     LazyColumn(modifier = Modifier.fillMaxSize()) {
       itemsIndexed(this@ManagerViewRender.jmmHistoryMetadata) { _, metadata ->
         JmmViewItem(metadata = metadata)

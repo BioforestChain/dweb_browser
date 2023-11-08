@@ -23,22 +23,24 @@ import org.dweb_browser.browser.common.CommonSimpleTopBar
 import org.dweb_browser.browser.common.SegmentedButton
 import org.dweb_browser.browser.common.SingleChoiceSegmentedButtonRow
 import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.download.debugDownload
 import org.dweb_browser.browser.download.model.DownloadTab
 import org.dweb_browser.browser.download.model.LocalDownloadModel
 
 @Composable
 fun DownloadView() {
-  DownloadTab()
+  DownloadHistory()
   DecompressView()
 }
 
 @Composable
-fun DownloadTab() {
+fun DownloadHistory() {
   val viewModel = LocalDownloadModel.current
   val scope = rememberCoroutineScope()
-  Column(modifier = Modifier
-    .fillMaxSize()
-    .background(MaterialTheme.colorScheme.background)
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(MaterialTheme.colorScheme.background)
   ) {
     CommonSimpleTopBar(title = BrowserI18nResource.top_bar_title_download()) {
       scope.launch { viewModel.close() }
@@ -64,7 +66,7 @@ fun DownloadTabView() {
   val viewModel = LocalDownloadModel.current
   val decompressModel = LocalDecompressModel.current
   val downloadTab = viewModel.tabItems[viewModel.tabIndex.value]
-  val list = viewModel.downloadController.downloadManagers.cMaps
+  val list = viewModel.downloadController.downloadList
   if (list.isEmpty()) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
       Text(text = BrowserI18nResource.no_download_links())
@@ -73,7 +75,7 @@ fun DownloadTabView() {
   }
 
   LazyColumn {
-    list.forEach { (_, downloadTask) ->
+    list.forEach { downloadTask ->
       if (downloadTab == DownloadTab.Downloads ||
         downloadTask.status.state == DownloadState.Completed
       ) {

@@ -2,7 +2,9 @@ package org.dweb_browser.browser.jmm
 
 import io.ktor.http.URLBuilder
 import io.ktor.utils.io.cancel
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -10,6 +12,7 @@ import kotlinx.serialization.json.buildJsonObject
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
+import org.dweb_browser.browser.download.model.ChangeableMutableMap
 import org.dweb_browser.browser.util.isUrl
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
@@ -20,23 +23,24 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.trueAlso
 
 class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
+  val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+  // 构建jmm历史记录
+  val historyMetadataMaps: ChangeableMutableMap<String, JmmHistoryMetadata> = ChangeableMutableMap()
   // 构建历史的controller
-  private val historyController = JmmHistoryController(jmmNMM, store, this)
+  private val historyController = JmmHistoryController(jmmNMM, this)
 
   // 打开历史界面
   suspend fun openHistoryView() = historyController.openHistoryView()
 
-  // 构建jmm历史记录
-  private val historyMetadataMaps = mutableMapOf<String, JmmHistoryMetadata>()
-
   suspend fun loadHistoryMetadataUrl() {
     historyMetadataMaps.putAll(store.getHistoryMetadata())
-    historyMetadataMaps.forEach { (_, historyMetadata) ->
+    historyMetadataMaps.forEach { _, historyMetadata ->
       if (historyMetadata.state.state == JmmStatus.Downloading) {
         historyMetadata.state.state = JmmStatus.Paused
       }
@@ -73,8 +77,14 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       key = originUrl,
       replace = {
         if (jmmNMM.bootstrapContext.dns.query(it.metadata.id) == null) {
-          jmmAppInstallManifest.createJmmHistoryMetadata(originUrl)
+          // 如果install app没有数据，那么判断当前的状态是否是下载或者暂停，如果不是这两个状态，直接当做新应用
+          if (it.state.state == JmmStatus.Downloading || it.state.state == JmmStatus.Paused) {
+            null // 不替换
+          } else {
+            jmmAppInstallManifest.createJmmHistoryMetadata(originUrl)
+          }
         } else if (jmmAppInstallManifest.version.isGreaterThan(it.metadata.version)) {
+          // 如果应用中有的话，那么就判断版本是否有新版本，有点话，修改状态为 NewVersion
           JmmHistoryMetadata(
             originUrl = originUrl,
             metadata = jmmAppInstallManifest,
@@ -83,9 +93,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
               state = JmmStatus.NewVersion
             )
           )
-        } else {
-          it
-        }
+        } else null // 上面的条件都不满足的话，直接不替换
       },
       defaultValue = {
         jmmAppInstallManifest.createJmmHistoryMetadata(originUrl)
@@ -209,13 +217,4 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       }))))
     }
   }
-}
-
-inline fun <K, V> MutableMap<K, V>.replaceOrPut(
-  key: K, replace: (V) -> V, defaultValue: () -> V
-): V {
-  val value = get(key)
-  val answer = if (value == null) defaultValue() else replace(value)
-  put(key, answer)
-  return answer
 }
