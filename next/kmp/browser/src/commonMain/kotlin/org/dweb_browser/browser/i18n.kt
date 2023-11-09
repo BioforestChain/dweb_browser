@@ -66,7 +66,7 @@ class BrowserI18nResource {
     val button_name_confirm = SimpleI18nResource(Language.ZH to "确定", Language.EN to "Confirm")
     val button_name_cancel = SimpleI18nResource(Language.ZH to "取消", Language.EN to "Cancel")
     val top_bar_title_install =
-      SimpleI18nResource(Language.ZH to "已安装应用", Language.EN to "All Dapp")
+      SimpleI18nResource(Language.ZH to "下载记录", Language.EN to "Download Record")
     val top_bar_title_download =
       SimpleI18nResource(Language.ZH to "下载列表", Language.EN to "All Downloads")
     val top_bar_title_down_detail =

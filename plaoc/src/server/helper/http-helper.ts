@@ -1,10 +1,17 @@
-import { $DwebHttpServerOptions, http, jsProcess, ServerStartResult } from "npm:@dweb-browser/js-process";
+import {
+  $DwebHttpServerOptions,
+  $ReadableStreamIpc,
+  HttpDwebServer,
+  IpcHeaders,
+  ServerStartResult,
+  http,
+  jsProcess,
+} from "npm:@dweb-browser/js-process@0.1.4";
 
-const { IpcHeaders } = navigator.dweb.ipc;
+export type $IpcHeaders = InstanceType<typeof IpcHeaders>;
+export { IpcHeaders };
 
-type $IpcHeaders = InstanceType<typeof IpcHeaders>;
-
-export const cors = (headers: $IpcHeaders) => {
+export const cors: (headers: $IpcHeaders) => $IpcHeaders = (headers: $IpcHeaders) => {
   headers.init("Access-Control-Allow-Origin", "*");
   headers.init("Access-Control-Allow-Headers", "*"); // 要支持 X-Dweb-Host
   headers.init("Access-Control-Allow-Methods", "*");
@@ -14,11 +21,11 @@ export const cors = (headers: $IpcHeaders) => {
 };
 export abstract class HttpServer {
   protected abstract _getOptions(): $DwebHttpServerOptions;
-  protected _serverP = http.createHttpDwebServer(jsProcess, this._getOptions());
+  protected _serverP: Promise<HttpDwebServer> = http.createHttpDwebServer(jsProcess, this._getOptions());
   getServer() {
     return this._serverP;
   }
-  async getStartResult():Promise<InstanceType<typeof ServerStartResult>> {
+  async getStartResult(): Promise<InstanceType<typeof ServerStartResult>> {
     return this._serverP.then((server) => server.startResult);
   }
   async stop() {
@@ -26,5 +33,5 @@ export abstract class HttpServer {
     return await server.close();
   }
 
-  protected _listener = this.getServer().then((server) => server.listen());
+  protected _listener: Promise<$ReadableStreamIpc> = this.getServer().then((server) => server.listen());
 }

@@ -16,7 +16,8 @@ import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 class JmmInstallerController(
   private val jmmNMM: JmmNMM,
   private val jmmHistoryMetadata: JmmHistoryMetadata,
-  private val jmmController: JmmController
+  private val jmmController: JmmController,
+  private val openFromHistory: Boolean,
 ) {
   val viewModel: JmmInstallerModel = JmmInstallerModel(jmmHistoryMetadata, this)
   val ioAsyncScope = jmmNMM.ioAsyncScope
@@ -35,7 +36,9 @@ class JmmInstallerController(
 
   suspend fun openRender() {
     /// 隐藏主窗口
-    jmmNMM.getOrOpenMainWindow().hide()
+    if (!openFromHistory) {
+      jmmNMM.getOrOpenMainWindow().hide()
+    }
     /// 显示抽屉
     val bottomSheets = getView()
     bottomSheets.open()

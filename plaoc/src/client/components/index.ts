@@ -1,4 +1,4 @@
-export { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
+export { createMockModuleServerIpc } from "../common/websocketIpc.ts";
 export * from "./barcode-scanning/index.ts";
 export * from "./biometrics/index.ts";
 // export * from "./bluetooth/index.ts";

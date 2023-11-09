@@ -13,7 +13,7 @@ import {
   ReadableStreamIpc,
   jsProcess,
   mapHelper,
-} from "npm:@dweb-browser/js-process";
+} from "npm:@dweb-browser/js-process@0.1.4";
 
 import { HttpServer } from "./helper/http-helper.ts";
 import { mwebview_destroy } from "./helper/mwebview-helper.ts";
@@ -126,7 +126,7 @@ export class Server_api extends HttpServer {
    */
   protected async _onApi(
     event: FetchEvent,
-    connect = (mmid: $MMID) => jsProcess.connect(mmid),
+    connect: (mmid: $MMID) => Promise<$Ipc> = (mmid: $MMID) => jsProcess.connect(mmid),
     useIpcBody = true
   ): Promise<$OnFetchReturn> {
     const { pathname, search } = event;

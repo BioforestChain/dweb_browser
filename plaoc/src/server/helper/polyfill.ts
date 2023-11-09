@@ -8,6 +8,6 @@ if (typeof Response.json !== "function") {
 
 (async () => {
   if (typeof URLPattern === 'undefined') {
-    await import("npm:urlpattern-polyfill");
+    await import("./urlpattern.polyfill.ts");
   }
 })();

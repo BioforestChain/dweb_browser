@@ -5,7 +5,7 @@ import {
   FetchEvent,
   IpcResponse,
   jsProcess,
-} from "npm:@dweb-browser/js-process";
+} from "npm:@dweb-browser/js-process@0.1.4";
 import { $PlaocConfig } from "./const.ts";
 import { HttpServer, cors } from "./helper/http-helper.ts";
 import { PlaocConfig } from "./plaoc-config.ts";

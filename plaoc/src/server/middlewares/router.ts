@@ -1,4 +1,4 @@
-import { $OnFetch } from "npm:@dweb-browser/js-process";
+import { $OnFetch } from "npm:@dweb-browser/js-process@0.1.4";
 import { BaseRouter } from "./base-router.ts";
 
 export class Router extends BaseRouter {

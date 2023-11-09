@@ -14,6 +14,7 @@ import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.download.model.ChangeableMutableMap
 import org.dweb_browser.browser.util.isUrl
+import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.IPureBody
@@ -41,8 +42,11 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   suspend fun loadHistoryMetadataUrl() {
     historyMetadataMaps.putAll(store.getHistoryMetadata())
     historyMetadataMaps.forEach { _, historyMetadata ->
-      if (historyMetadata.state.state == JmmStatus.Downloading) {
+      if (historyMetadata.state.state == JmmStatus.Downloading ||
+        historyMetadata.state.state == JmmStatus.Paused) {
         historyMetadata.state.state = JmmStatus.Paused
+      } else if (jmmNMM.bootstrapContext.dns.query(historyMetadata.metadata.id) == null) {
+        historyMetadata.state.state = JmmStatus.Init // 如果没有找到，说明被卸载了
       }
     }
   }
@@ -51,9 +55,9 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
    * 打开安装器视图
    */
   suspend fun openInstallerView(
-    jmmAppInstallManifest: JmmAppInstallManifest, originUrl: String
+    jmmAppInstallManifest: JmmAppInstallManifest, originUrl: String, fromHistory: Boolean = false
   ) {
-    val baseURI = when (jmmAppInstallManifest.baseURI?.isUrl()) {
+    val baseURI = when (jmmAppInstallManifest.baseURI?.isUrlOrHost()) {
       true -> jmmAppInstallManifest.baseURI!!
       else -> when (val baseUri = jmmAppInstallManifest.baseURI) {
         null -> originUrl
@@ -65,7 +69,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
         jmmAppInstallManifest.baseURI = it
       }
     }
-    if (!jmmAppInstallManifest.bundle_url.isUrl()) {
+    if (!jmmAppInstallManifest.bundle_url.isUrlOrHost()) {
       jmmAppInstallManifest.bundle_url = URLBuilder(baseURI).run {
         resolvePath(jmmAppInstallManifest.bundle_url)
         buildString()
@@ -78,8 +82,9 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       replace = {
         if (jmmNMM.bootstrapContext.dns.query(it.metadata.id) == null) {
           // 如果install app没有数据，那么判断当前的状态是否是下载或者暂停，如果不是这两个状态，直接当做新应用
-          if (it.state.state == JmmStatus.Downloading || it.state.state == JmmStatus.Paused) {
-            null // 不替换
+          if (fromHistory || it.state.state == JmmStatus.Downloading ||
+            it.state.state == JmmStatus.Paused) {
+            null // 不替换，包括来自历史
           } else {
             jmmAppInstallManifest.createJmmHistoryMetadata(originUrl)
           }
@@ -99,8 +104,8 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
         jmmAppInstallManifest.createJmmHistoryMetadata(originUrl)
       }
     )
-    store.saveHistoryMetadata(originUrl, historyMetadata)
-    JmmInstallerController(jmmNMM, historyMetadata, this).openRender()
+    store.saveHistoryMetadata(originUrl, historyMetadata) // 不管是否替换的，都进行一次存储新状态
+    JmmInstallerController(jmmNMM, historyMetadata, this, fromHistory).openRender()
   }
 
   suspend fun uninstall(mmid: MMID, version: String) {

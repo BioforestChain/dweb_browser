@@ -13,7 +13,12 @@ export * from "@dweb-browser/desktop/helper/stream/readableStreamHelper.ts";
 //#region runtime types
 export type * from "./worker/index.ts";
 export type * from "./worker/std-dweb-core.ts";
-export {
+
+export type * from "./worker/std-dweb-http.ts";
+import type * as $Core from "./worker/std-dweb-core.ts";
+
+export const { jsProcess, http, ipc, core } = navigator.dweb;
+export const {
   FetchError,
   IPC_METHOD,
   IPC_ROLE,
@@ -25,12 +30,8 @@ export {
   IpcRequest,
   IpcResponse,
   ReadableStreamIpc,
-  ReadableStreamOut
-} from "./worker/std-dweb-core.ts";
-export type * from "./worker/std-dweb-http.ts";
-import type * as $Core from "./worker/std-dweb-core.ts";
-
-export const { jsProcess, http, ipc, core } = navigator.dweb;
+  ReadableStreamOut,
+} = ipc;
 
 export const { ServerUrlInfo, ServerStartResult } = http;
 export type $ServerUrlInfo = InstanceType<typeof ServerUrlInfo>;
@@ -40,6 +41,7 @@ export type $Ipc = $Core.Ipc;
 export type $IpcRequest = $Core.IpcRequest;
 export type $IpcResponse = $Core.IpcResponse;
 export type $IpcEvent = $Core.IpcEvent;
+export type $IpcHeaders = $Core.IpcHeaders;
 export type $ReadableStreamIpc = $Core.ReadableStreamIpc;
 export type $ReadableStreamOut<T> = $Core.ReadableStreamOut<T>;
 

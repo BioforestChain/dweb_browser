@@ -20,8 +20,8 @@ val LocalDownloadModel = compositionLocalOf<DownloadModel> {
 }
 
 enum class DownloadTab(val id: Int, val title: String, val vector: ImageVector) {
-  Downloads(1, "Downloads", Icons.Default.FileDownload),
-  Files(2, "Files", Icons.Default.FileOpen),
+  Downloads(1, "下载", Icons.Default.FileDownload),
+  Files(2, "文件", Icons.Default.FileOpen),
   ;
 }
 
