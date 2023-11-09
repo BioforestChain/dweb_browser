@@ -61,7 +61,7 @@ export const doBuild = async (args = Deno.args, _version?: string) => {
         start: "electron ./",
       },
       author: "Bnqkl Dweb Team",
-      // main: "./bundle/index.js",
+      main: "./bundle/index.js",
       exports: {
         ".": {
           require: "./script/index.js",
