@@ -9,7 +9,11 @@
 import Foundation
 
 extension KmpEvent {
+    /// 唤醒系统share组件事件
     static let share = "share"
+    
+    /// 主题色切换事件
+    static let colorScheme = "colorScheme"
 }
 
 protocol KmpEventResposeActionProtocol {

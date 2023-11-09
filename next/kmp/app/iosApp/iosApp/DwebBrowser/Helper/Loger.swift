@@ -10,7 +10,7 @@ import Foundation
 
 private var dateformate: DateFormatter = {
     let formatter = DateFormatter()
-    formatter.dateFormat = "HH:mm:ss:SSSS"
+    formatter.dateFormat = "HH:mm:ss.SSSS"
     return formatter
 }()
 
@@ -18,10 +18,10 @@ func Log(time: String = dateformate.string(from: Date()),
          file: String = #file,
          function: String = #function,
          line: Int = #line,
-         category: String = "Debug",
+         category: String = "iOS",
          _ msg: String?) {
 #if DEBUG
-    print("[\(time)] [\(file.components(separatedBy: "/").last ?? "null"):\(function):\(line)]\n[\(category)] \(msg ?? "")")
+    print("[\(category)] [\(file.components(separatedBy: "/").last ?? "null"):\(function):\(line)] [\(time)] \(msg ?? "")")
 #else
 #endif
 }

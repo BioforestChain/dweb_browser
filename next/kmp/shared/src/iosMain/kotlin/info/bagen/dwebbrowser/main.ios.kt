@@ -39,6 +39,7 @@ import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.shared.*
 import org.dweb_browser.sys.*
+import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.WindowPreviewer
 import org.dweb_browser.sys.window.render.watchedState
@@ -61,6 +62,9 @@ import platform.WebKit.WKWebViewConfiguration
 @OptIn(ExperimentalForeignApi::class)
 @Composable
 fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat) -> Unit) {
+
+  var winController: WindowController? = null
+
   WindowPreviewer(modifier = Modifier.width(350.dp).height(500.dp), config = {
     state.title = "应用长长的标题的标题的标题～～"
     state.topBarContentColor = "#FF00FF"
@@ -68,8 +72,11 @@ fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat) -> Uni
     state.iconUrl = "http://172.30.92.50:12207/m3-favicon-apple-touch.png"
     state.iconMaskable = true
     state.showMenuPanel = true
+    winController = this
   }) { modifier ->
 
+    val colorScheme by winController?.watchedState { colorScheme } ?: return@WindowPreviewer
+    KmpNativeBridgeEventSender.sendColorScheme(colorScheme.scheme)
 
     Box() {
       val scope = rememberCoroutineScope()
@@ -182,7 +189,8 @@ fun MainViewController(
 
   return ComposeUIViewController {
     Box(Modifier.fillMaxSize().background(Color.Cyan)) {
-      PreviewWindowDWebViewContent(engine, dwebview, onSizeChange)
+//      PreviewWindowDWebViewContent(engine, dwebview, onSizeChange)
+      PreviewWindowTopBar(iosView, onSizeChange)
     }
   }
 }

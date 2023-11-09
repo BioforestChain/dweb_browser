@@ -24,7 +24,7 @@ class KmpBridgeManager {
     
     func complete(for name: String) {
         events.removeAll { $0.name == name}
-        print("[iOS Test] kmp events:\(events.count)")
+        Log("kmp events:\(events.count)")
     }
     
     func registerIMPs() {
@@ -36,14 +36,16 @@ class KmpBridgeManager {
 extension KmpBridgeManager: SysKmpNativeBridgeInterface {
     
     func invokeKmpEvent(event: SysKmpToIosEvent) {
-        print("[iOS Test] iOS invokeKmpEvent events:\(event.name)")
+        Log("\(event)")
 
         var responseAction: KmpEventResposeActionProtocol? = nil
         switch event.name {
         case KmpEvent.share:
             responseAction = KmpEventShareResposeAction(eventName: event.name)
+        case KmpEvent.colorScheme:
+            responseAction = nil
         default:
-            assert(false, "no response action for: \(event.name)")
+            assert(false, "no response action for: \(event.name) \(event.inputDatas?.description ?? "")")
         }
         
         let e = KmpEvent(name: event.name, inputDatas: event.inputDatas, outputDatas: event.outputDatas, responseAction: responseAction)

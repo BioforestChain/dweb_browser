@@ -17,39 +17,51 @@ struct BrowserView: View {
     @StateObject var dragScale = WndDragScale()
 
     @Binding var size: CGSize
+    @State var colorScheme = ColorScheme.light
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                Color.black
-                VStack(spacing: 0) {
-                    TabsContainerView()
-                    ToolbarView()
-                        .frame(height: dragScale.toolbarHeight)
-                        .background(Color.bkColor)
+        ZStack {
+            GeometryReader { geometry in
+                ZStack {
+                    Color.black
+                    VStack(spacing: 0) {
+                        TabsContainerView()
+                        ToolbarView()
+                            .frame(height: dragScale.toolbarHeight)
+                            .background(Color.bkColor)
+                    }
+                    .background(Color.bkColor)
+                    .environmentObject(webcacheStore)
+                    .environmentObject(openingLink)
+                    .environmentObject(selectedTab)
+                    .environmentObject(addressBar)
+                    .environmentObject(toolBarState)
+                    .environmentObject(dragScale)
                 }
-                .background(Color.bkColor)
-                .environmentObject(webcacheStore)
-                .environmentObject(openingLink)
-                .environmentObject(selectedTab)
-                .environmentObject(addressBar)
-                .environmentObject(toolBarState)
-                .environmentObject(dragScale)
-            }
-            .frame(width: size.width, height: size.height)
+                .frame(width: size.width, height: size.height)
 
-            .onAppear {
-                dragScale.onWidth = (geometry.size.width - 10) / screen_width
+                .onAppear {
+                    dragScale.onWidth = (geometry.size.width - 10) / screen_width
+                }
+                .onChange(of: size) { newSize in
+                    dragScale.onWidth = (newSize.width - 10) / screen_width
+                }
             }
-            .onChange(of: size) { newSize in
-                dragScale.onWidth = (newSize.width - 10) / screen_width
+            .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
+                SheetSegmentView(isShowingWeb: showWeb())
+                    .environmentObject(selectedTab)
+                    .environmentObject(openingLink)
+                    .environmentObject(webcacheStore)
+                    .environmentObject(dragScale)
             }
-        }
-        .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
-            SheetSegmentView(isShowingWeb: showWeb())
-                .environmentObject(selectedTab)
-                .environmentObject(openingLink)
-                .environmentObject(webcacheStore)
-                .environmentObject(dragScale)
+            .onReceive(KmpBridgeManager.shared.eventPublisher.filter{$0.name == KmpEvent.colorScheme} , perform: { e in
+                guard let scheme = e.inputDatas?["colorScheme"] as? String else { return }
+                if scheme == "dark" {
+                    colorScheme = .dark
+                } else {
+                    colorScheme = .light
+                }
+            })
+            .environment(\.colorScheme, colorScheme)
         }
     }
 
