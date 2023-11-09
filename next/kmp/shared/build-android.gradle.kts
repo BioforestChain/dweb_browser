@@ -1,6 +1,7 @@
 plugins {
   alias(libs.plugins.kotlinxMultiplatform)
   alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.kotlinPluginSerialization)
 }
 
 kotlin {
@@ -30,6 +31,7 @@ kotlin {
         implementation(project(":window"))
         implementation(project(":core"))
         implementation(project(":browser"))
+        implementation(project(":sys"))
       }
     }
     val commonTest by getting {

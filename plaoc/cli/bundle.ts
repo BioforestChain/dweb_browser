@@ -3,16 +3,23 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { Command } from "./deps.ts";
 import { $BundleOptions } from "./helper/const.ts";
-import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper, PlaocJsonGenerator } from "./helper/generator.ts";
+import {
+  BackendServerGenerator,
+  BundleZipGenerator,
+  MetadataJsonGenerator,
+  NameFlagHelper,
+  PlaocJsonGenerator,
+} from "./helper/generator.ts";
 
 export const doBundleCommand = new Command()
   .arguments("<source:string>")
   .description("Packaged source code folder.")
-  .option("-o --out <out:string>", "Directory for packaged output.",{
-    default:"bundle"
+  .option("-o --out <out:string>", "Directory for packaged output.", {
+    default: "bundle",
   })
   .option("-v --version <version:string>", "Set app packaging version.")
   .option("-d --dir <dir:string>", "Root directory of the project, generally the same level as manifest.json.")
+  .option("-s --serve <serve:string>", "Specify the path of the programmable backend.")
   .option("-c --clear <clear:boolean>", "Empty the cache.")
   .option("--id <id:string>", "set app id")
   .option("--dev <dev:boolean>", "Is it development mode.")
@@ -28,9 +35,12 @@ export const doBundleCommand = new Command()
  */
 export const doBundle = async (flags: $BundleOptions) => {
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
+  // 注入plaoc.json
   const plaocHelper = new PlaocJsonGenerator(flags);
+  // 尝试注入可编程后端
+  const injectServer = new BackendServerGenerator(flags);
   const data = metadataFlagHelper.readMetadata();
-  const bundleFlagHelper = new BundleZipGenerator(flags,plaocHelper, data.id,data.version);
+  const bundleFlagHelper = new BundleZipGenerator(flags, plaocHelper, injectServer, data.id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   const outDir = path.resolve(Deno.cwd(), flags.out);
@@ -44,15 +54,20 @@ export const doBundle = async (flags: $BundleOptions) => {
   } else {
     fs.mkdirSync(outDir, { recursive: true });
   }
-
   /// 先写入bundle.zip
   fs.writeFileSync(
     path.resolve(outDir, nameFlagHelper.bundleName),
-    await (await bundleFlagHelper.bundleZip()).generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 9 } })
+    await (
+      await bundleFlagHelper.bundleZip()
+    ).generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 9 } })
   );
   // 生成打包文件名称，大小
   const zip = await bundleFlagHelper.bundleZip(true);
-  const zipData = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE", compressionOptions: { level: 9 } });
+  const zipData = await zip.generateAsync({
+    type: "uint8array",
+    compression: "DEFLATE",
+    compressionOptions: { level: 9 },
+  });
   const hasher = crypto.createHash("sha256").update(zipData);
   const metadata = metadataFlagHelper.readMetadata(true);
   metadata.bundle_size = zipData.byteLength;

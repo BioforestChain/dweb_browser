@@ -1,5 +1,5 @@
+import { jsProcess } from "npm:@dweb-browser/js-process@0.1.4";
 import { $PlaocConfig } from "./const.ts";
-import { jsProcess } from "./deps.ts";
 
 export class PlaocConfig{
   constructor(readonly config:$PlaocConfig){

@@ -4,7 +4,6 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -68,7 +67,8 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
       emitCached = mutableListOf()
     }
   }
-  private fun consumeEmitCache() = synchronized(this){
+
+  private fun consumeEmitCache() = synchronized(this) {
     if (emitCached != null) {
       // 这里拷贝一份，避免中通对其读写的时候出问题
       val argsList = emitCached!!.toList()
@@ -121,7 +121,7 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
   open suspend fun emit(args: Args) {
     if (emitCached != null) {
       synchronized(this) {
-        printDebug("Signal","cache args", args)
+        printDebug("Signal", "cache args", args)
         emitCached!!.add(args)
         if (emitCached!!.size > 20) {
           printError("Signal", "too many emit cache args: ${emitCached!!.size}")
@@ -213,6 +213,15 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
         }
       }
       return signal.toListener()
+    }
+
+    suspend fun awaitOnce(): Args {
+      val res = CompletableDeferred<Args>()
+      signal.listen {
+        res.complete(it)
+        offListener()
+      }
+      return res.await()
     }
   }
 

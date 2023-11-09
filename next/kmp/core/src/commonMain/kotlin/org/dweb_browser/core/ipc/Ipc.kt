@@ -7,13 +7,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.defaultAsyncExceptionHandler
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureRequest
@@ -35,6 +28,13 @@ import org.dweb_browser.core.ipc.helper.OnIpcMessage
 import org.dweb_browser.core.ipc.helper.OnIpcRequestMessage
 import org.dweb_browser.core.ipc.helper.OnIpcResponseMessage
 import org.dweb_browser.core.ipc.helper.OnIpcStreamMessage
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.defaultAsyncExceptionHandler
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 val debugIpc = Debugger("ipc")
 
@@ -147,7 +147,7 @@ abstract class Ipc {
     }
   }
 
-  fun onResponse(cb: OnIpcResponseMessage) = _responseSignal.listen(cb)
+  private fun onResponse(cb: OnIpcResponseMessage) = _responseSignal.listen(cb)
 
   private val _streamSignal by lazy {
     val signal = _createSignal<IpcStreamMessageArgs>()
@@ -261,7 +261,7 @@ abstract class Ipc {
     return result.waitPromise()
   }
 
-  fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
+  private fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
     val req_id = this.allocReqId();
     val ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
     return ipcRequest;

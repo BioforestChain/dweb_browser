@@ -52,7 +52,9 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.compose.rememberImageLoader
 import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
+import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.render.IconRender
 import org.dweb_browser.sys.window.render.IdRender
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
@@ -60,9 +62,9 @@ import org.dweb_browser.sys.window.render.LocalWindowPadding
 
 val debugModal = Debugger("modal")
 
+@OptIn(LowLevelWindowAPI::class)
 @Serializable
-sealed class ModalState(
-) {
+sealed class ModalState() {
   val modalId = randomUUID()
   abstract val callbackUrl: String?
 
@@ -102,16 +104,62 @@ sealed class ModalState(
 
   val sessionId get() = _sessionId
 
+  @LowLevelWindowAPI
   open fun open() {
     this._sessionId += 1;
     this._isOpen = true
     this.isOpenState.value = true
   }
 
+  suspend fun safeOpen(): Boolean {
+    if (this._isDestroyed || this._isOpen) {
+      return false
+    }
+    open()
+    parent.openingModal.value = parent.getOpenModal()
+    return true
+  }
+
+  @LowLevelWindowAPI
   open fun close() {
     this._isOpen = false
     this.isOpenState.value = false
     this.showCloseTip.value = ""
+  }
+
+  @OptIn(LowLevelWindowAPI::class)
+  suspend fun safeClose(mm: MicroModule) = this._isOpen.trueAlso {
+    close();
+    /// 更新渲染中的modal
+    parent.openingModal.value = parent.getOpenModal()
+    // 发送 close 的信号
+    sendCallback(mm, CloseModalCallback(sessionId))
+    // 如果是一次性显示的，那么直接关闭它
+    if (once) {
+      mm.ioAsyncScope.launch {
+        safeDestroy(mm)
+      }
+    }
+  }
+
+  @Transient
+  private var _isDestroyed = false
+  suspend fun safeDestroy(mm: MicroModule): Boolean {
+    if (this._isDestroyed) {
+      return false
+    }
+    this._isDestroyed = true
+
+    /// 从parent中移除
+    parent.state.modals -= modalId
+    /// 更新渲染中的modal
+    parent.openingModal.value = parent.getOpenModal()
+    /// 移除渲染器
+    windowAdapterManager.renderProviders.remove(renderId)
+    /// 触发回调
+    sendCallback(mm, DestroyModalCallback(sessionId))
+
+    return true
   }
 
   @Transient
@@ -150,7 +198,7 @@ sealed class ModalState(
    * 关闭modal指令的发送器
    */
   @Transient
-  protected val dismissFlow = MutableSharedFlow<Boolean>()
+  internal val dismissFlow = MutableSharedFlow<Boolean>()
 
   @Composable
   protected fun RenderCloseTip(onConfirmToClose: () -> Unit) {
@@ -210,6 +258,10 @@ data class CloseAlertModalCallback(override val sessionId: Int, val confirm: Boo
   ModalCallback();
 
 @Serializable
+@SerialName("destroy")
+data class DestroyModalCallback(override val sessionId: Int) : ModalCallback();
+
+@Serializable
 @SerialName("alert")
 data class AlertModal internal constructor(
   override val title: String,
@@ -260,19 +312,15 @@ data class AlertModal internal constructor(
       val job = dismissFlow.debounce(200).map {
         debugModal("dismissFlow", "close=$it")
         if (show && it) {
-          close();
-          // 发送 close 的信号
-          sendCallback(mm, CloseModalCallback(sessionId))
-          // 如果是一次性显示的，那么直接关闭它
-          if (once) {
-            mm.ioAsyncScope.launch {
-              parent.removeModal(modalId)
-            }
-          }
+          safeClose(mm)
         }
       }.launchIn(mm.ioAsyncScope)
       onDispose {
         job.cancel()
+        /// 如果被销毁，那么也要进行安全的关闭
+        mm.ioAsyncScope.launch {
+          safeClose(mm)
+        }
       }
     }
     // alert的默认返回值
@@ -284,7 +332,7 @@ data class AlertModal internal constructor(
         sendCallback(mm, CloseAlertModalCallback(sessionId, confirm))
         if (once) {
           mm.ioAsyncScope.launch {
-            parent.removeModal(modalId)
+            parent.removeModal(mm, modalId)
           }
         }
       },
@@ -369,6 +417,8 @@ class BottomSheetsModal private constructor(
    */
   @Transient
   private var hasExpanded = false
+
+  @LowLevelWindowAPI
   override fun close() {
     super.close()
     this.hasExpanded = false
@@ -404,19 +454,15 @@ class BottomSheetsModal private constructor(
       }.debounce(200).map {
         debugModal("dismissFlow", "close=$it hasExpanded=$hasExpanded")
         if (show && it && hasExpanded) {
-          close();
-          // 发送 close 的信号
-          sendCallback(mm, CloseModalCallback(sessionId))
-          // 如果是一次性显示的，那么直接关闭它
-          if (once) {
-            mm.ioAsyncScope.launch {
-              parent.removeModal(modalId)
-            }
-          }
+          safeClose(mm)
         }
       }.launchIn(mm.ioAsyncScope)
       onDispose {
         job.cancel()
+        /// 如果被销毁，那么也要进行安全的关闭
+        mm.ioAsyncScope.launch {
+          safeClose(mm)
+        }
       }
     }
 

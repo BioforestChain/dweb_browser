@@ -3,46 +3,151 @@ package org.dweb_browser.browser.download.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.FileOpen
+import androidx.compose.material.icons.filled.PauseCircle
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
+import org.dweb_browser.browser.download.model.LocalDownloadModel
 import org.dweb_browser.browser.download.model.getIconByMime
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.toSpaceSize
+import kotlin.math.roundToInt
 
 @Composable
-fun DownloadItem(downloadTask: DownloadTask) {
+fun MiddleEllipsisText(
+  text: String,
+  modifier: Modifier = Modifier,
+  color: Color = Color.Unspecified,
+  fontSize: TextUnit = TextUnit.Unspecified,
+  fontStyle: FontStyle? = null,
+  fontWeight: FontWeight? = null,
+  fontFamily: FontFamily = FontFamily.Default,
+  letterSpacing: TextUnit = TextUnit.Unspecified,
+  textDecoration: TextDecoration? = null,
+  textAlign: TextAlign = TextAlign.Start,
+  lineHeight: TextUnit = TextUnit.Unspecified,
+) {
+  val textMeasure = rememberTextMeasurer()
+  var measuredText by remember { mutableStateOf(text) }
+  val textStyle by remember {
+    mutableStateOf(
+      TextStyle(
+        color = color,
+        fontSize = fontSize,
+        fontStyle = fontStyle,
+        fontWeight = fontWeight,
+        fontFamily = fontFamily,
+        letterSpacing = letterSpacing,
+        textDecoration = textDecoration,
+        textAlign = textAlign,
+        lineHeight = lineHeight
+      )
+    )
+  }
+
+  Text(
+    text = measuredText,
+    modifier = modifier,
+    overflow = TextOverflow.Ellipsis,
+    maxLines = 1,
+    style = textStyle,
+    onTextLayout = { layoutResult ->
+      val isLineEllipsized = layoutResult.isLineEllipsized(0)
+      val measureWidth = textMeasure.measure(measuredText, textStyle).size.width
+      if (isLineEllipsized && measureWidth > layoutResult.size.width) {
+        val fontRadio = measuredText.length * 1.0f / measureWidth
+        val maxLength = (layoutResult.size.width * fontRadio).roundToInt() - 2
+        measuredText = text.take(maxLength / 2) + "...." + text.takeLast(maxLength / 2)
+      }
+    }
+  )
+}
+
+fun String.lastPath() = this.substring(this.lastIndexOf("/") + 1)
+
+@Composable
+fun DownloadItem(downloadTask: DownloadTask, onClick: (DownloadTask) -> Unit) {
+  val viewModel = LocalDownloadModel.current
+  val scope = rememberCoroutineScope()
+  var taskCurrent by remember { mutableLongStateOf(downloadTask.status.current) }
+  var taskState by remember { mutableStateOf(downloadTask.status.state) }
+
+  LaunchedEffect(downloadTask) { // 监听状态，更新显示
+    if (downloadTask.status.state != DownloadState.Completed) {
+      downloadTask.onDownload {
+        taskState = it.status.state
+        taskCurrent = it.status.current
+      }
+    }
+  }
+
   ListItem(
+    modifier = Modifier.clickableWithNoEffect { onClick(downloadTask) },
     headlineContent = { // 主标题
-      Text(text = downloadTask.url)
+      MiddleEllipsisText(text = downloadTask.url.lastPath())
     },
     supportingContent = { // 副标题
       Column {
-        val status = downloadTask.status
-        LinearProgressIndicator(
-          progress = status.current / status.total.toFloat(),
-          color = when (status.state) {
-            DownloadState.Downloading -> {
-              MaterialTheme.colorScheme.primary
+        when (downloadTask.status.state) {
+          DownloadState.Completed -> {
+            Row {
+              Text(
+                text = downloadTask.status.total.toSpaceSize(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+              )
+              Text(
+                text = downloadTask.status.state.name,
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth()
+              )
             }
+          }
 
-            else -> {
-              MaterialTheme.colorScheme.background
+          else -> {
+            // 显示下载进度，右边显示下载状态
+            Row(modifier = Modifier.fillMaxWidth()) {
+              Text(
+                text = "${taskCurrent.toSpaceSize()} / ${downloadTask.status.total.toSpaceSize()}",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+              )
+              Text(
+                text = taskState.name,
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth()
+              )
             }
-          },
-        )
-        Row {
-          Text("下载中 ${downloadTask.status.current.toSpaceSize()} / ${downloadTask.status.total.toSpaceSize()}")
-          Text(downloadTask.mime)
+            // 显示下载进度
+            LinearProgressIndicator(progress = taskCurrent / downloadTask.status.total.toFloat())
+          }
         }
       }
     },
@@ -51,16 +156,83 @@ fun DownloadItem(downloadTask: DownloadTask) {
     },
     trailingContent = { // 右边的图标
       Row {
-        Image(
-          imageVector = if (downloadTask.status.state == DownloadState.Paused) Icons.Default.Pause else Icons.Default.PlayArrow,
-          contentDescription = "State",
-          modifier = Modifier.clickableWithNoEffect {  }
-        )
-        Image(
-          imageVector = Icons.Default.Close,
-          contentDescription = "Cancel",
-          modifier = Modifier.clickableWithNoEffect {  }
-        )
+        when (downloadTask.status.state) {
+          DownloadState.Downloading -> {
+            Image(
+              imageVector = Icons.Default.PlayCircle,
+              contentDescription = "Downloading",
+              modifier = Modifier.clickableWithNoEffect {
+                scope.launch {
+                  when (downloadTask.status.state) {
+                    DownloadState.Failed, DownloadState.Paused -> {
+                      viewModel.startDownload(downloadTask)
+                    }
+
+                    DownloadState.Downloading -> {
+                      viewModel.pauseDownload(downloadTask)
+                    }
+
+                    else -> {}
+                  }
+                }
+              }
+            )
+          }
+
+          DownloadState.Paused -> {
+            Image(
+              imageVector = Icons.Default.PauseCircle,
+              contentDescription = "Pause",
+              modifier = Modifier.clickableWithNoEffect {
+                scope.launch {
+                  when (downloadTask.status.state) {
+                    DownloadState.Failed, DownloadState.Paused -> {
+                      viewModel.startDownload(downloadTask)
+                    }
+
+                    DownloadState.Downloading -> {
+                      viewModel.pauseDownload(downloadTask)
+                    }
+
+                    else -> {}
+                  }
+                }
+              }
+            )
+          }
+
+          DownloadState.Completed -> {
+            Image(
+              imageVector = Icons.Default.FileOpen,
+              contentDescription = "Open",
+              modifier = Modifier.clickableWithNoEffect {
+                // TODO 这个后续要做成打开应用功能
+              }
+            )
+          }
+
+          else -> {
+            Image(
+              imageVector = Icons.Default.Refresh,
+              contentDescription = "Refresh",
+              modifier = Modifier.clickableWithNoEffect {
+                scope.launch {
+                  when (downloadTask.status.state) {
+                    DownloadState.Failed, DownloadState.Paused -> {
+                      viewModel.startDownload(downloadTask)
+                    }
+
+                    DownloadState.Downloading -> {
+                      viewModel.pauseDownload(downloadTask)
+                    }
+
+                    else -> {}
+                  }
+                }
+              }
+            )
+          }
+        }
       }
     }
   )

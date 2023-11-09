@@ -21,16 +21,7 @@ export const doBuidCore = async (config: {
   watch?: boolean;
   dev?: boolean;
 }) => {
-  const {
-    version,
-    buildFromRootDir,
-    entryFile = "index.ts",
-    buildToRootDir,
-    importMap,
-    name,
-    lib,
-    denoShim = true,
-  } = config;
+  const { version, buildFromRootDir, entryFile = "index.ts", buildToRootDir, importMap, name, lib } = config;
   console.log(`--- START BUILD: ${name} ${version} ---`);
 
   await dnt.emptyDir(buildToRootDir);
@@ -143,18 +134,12 @@ export const getVersionGenerator = (version_input?: string) => {
           }
           return v;
         });
-      if (
-        !(
-          release === "major" ||
-          release === "minor" ||
-          release === "patch" ||
-          (release === "prerelease" && typeof identifier === "string")
-        )
-      ) {
+      if (!(release === "major" || release === "minor" || release === "patch" || release === "prerelease")) {
         console.error("请输入正确的 ReleaseType: major, minor, patch, prerelease:identifier");
         Deno.exit(0);
       }
       // major, minor, patch, or prerelease
+      // @ts-ignore
       getVersion = (version) => semver.inc(version, release, undefined, identifier) || version;
     } else {
       const semver_version = (() => {

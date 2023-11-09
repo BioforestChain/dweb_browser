@@ -1,6 +1,10 @@
 package org.dweb_browser.dwebview
 
-import platform.CoreGraphics.CGFloat
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.dweb_browser.helper.defaultAsyncExceptionHandler
+import platform.Foundation.NSNumber
 import platform.Foundation.valueForKey
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKScriptMessage
@@ -86,15 +90,23 @@ internal class DWebViewWebMessage(val webview: DWebView) {
       userContentController: WKUserContentController,
       didReceiveScriptMessage: WKScriptMessage
     ) {
-      val message = didReceiveScriptMessage.body as NSObject;
-      val type = message.valueForKey("type") as String;
-      var data = message.valueForKey("data") as String;
-      var id = (message.valueForKey("id") as CGFloat).toInt();
-      val ports = mutableListOf<DWebMessagePort>();
-      var originPort = allPorts[id] ?: throw Exception("no found port by id:$id");
+      try {
+        val message = didReceiveScriptMessage.body as NSObject
+        val type = message.valueForKey("type") as String
 
+        if(type == "message") {
+          val id = (message.valueForKey("id") as NSNumber).intValue
+          val data = message.valueForKey("data") as String
+          val ports = mutableListOf<DWebMessagePort>()
+
+          val originPort = allPorts[id] ?: throw Exception("no found port by id:$id")
+
+          val messageScope = CoroutineScope(CoroutineName("webMessage") + defaultAsyncExceptionHandler)
+          messageScope.launch {
+            originPort.onMessage.signal.emit(MessageEvent(data, ports))
+          }
+        }
+      } catch(_: Throwable) {}
     }
-
   }
-//  val webMessagePortMessageHanlder = WebMessage
 }

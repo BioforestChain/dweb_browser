@@ -145,7 +145,10 @@ fun PureRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequest
   for ((key, value) in this.headers.toMap()) {
     httpRequestBuilder.headers.append(key, value)
   }
-  httpRequestBuilder.setBody(this.body.toPureStream().getReader("toHttpRequestBuilder"))
+  // get请求不能传递body，否则iOS会报错：GET method must not have a body
+  if(this.method != IpcMethod.GET) {
+    httpRequestBuilder.setBody(this.body.toPureStream().getReader("toHttpRequestBuilder"))
+  }
 }
 
 /**

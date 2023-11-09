@@ -1,0 +1,11 @@
+{
+  "defaultConfig": {
+    "lang": "en"
+  },
+  "middlewares": {
+    "www": "server/index.plaoc-www.js",
+    "api": "server/index.plaoc-api.js",
+    "external": "server/index.plaoc-external.js"
+  },
+  "redirect": []
+}

@@ -5,11 +5,17 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import adp from "npm:appdata-path";
 import { Command, EnumType, colors, createHash, debounce } from "./deps.ts";
-import { WalkFiles } from "./helper/WalkDir.ts";
 import { $ServeOptions, SERVE_MODE } from "./helper/const.ts";
-import { clearChangeState, fileHasChange, initFileState } from "./helper/fileHasChange.ts";
-import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper, PlaocJsonGenerator } from "./helper/generator.ts";
+import { clearChangeState, fileHasChange, initFileState } from "./helper/file-hash-change.ts";
+import {
+  BackendServerGenerator,
+  BundleZipGenerator,
+  MetadataJsonGenerator,
+  NameFlagHelper,
+  PlaocJsonGenerator,
+} from "./helper/generator.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
+import { WalkFiles } from "./helper/walk-dir.ts";
 
 const serveMode = new EnumType(SERVE_MODE);
 
@@ -20,6 +26,7 @@ export const doServeCommand = new Command()
   .option("-p --port <port:string>", "service port.", {
     default: "8096",
   })
+  .option("-s --serve <serve:string>", "Specify the path of the programmable backend. ")
   .option("-d --dir <dir:string>", "Root directory of the project, generally the same level as manifest.json.")
   .option("-m --mode <mode:serveMode>", "The processing mode of the service.")
   .option("--dev <dev:boolean>", "Is it development mode.", {
@@ -36,15 +43,18 @@ export const doServe = async (flags: $ServeOptions) => {
     throw new Error(`need input '--port 8080'`);
   }
 
-  const serveTarget = flags.metadata
+  const serveTarget = flags.metadata;
   if (typeof serveTarget !== "string") {
     throw new Error(`need input 'YOUR/FOLDER/FOR/BUNDLE'`);
   }
 
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
+  // 注入plaoc.json
   const plaocHelper = new PlaocJsonGenerator(flags);
+  // 尝试注入可编程后端
+  const injectServer = new BackendServerGenerator(flags);
   const data = metadataFlagHelper.readMetadata();
-  const bundleFlagHelper = new BundleZipGenerator(flags,plaocHelper, data.id,data.version);
+  const bundleFlagHelper = new BundleZipGenerator(flags, plaocHelper, injectServer, data.id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   /// 启动http服务器

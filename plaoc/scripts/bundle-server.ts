@@ -3,28 +3,32 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Chalk } from "npm:chalk";
 import _minifyHTML from "npm:rollup-plugin-minify-html-literals";
-import { InlineConfig, PluginOption, build } from "npm:vite";
+import { InlineConfig, PluginOption } from "npm:vite";
 import { ESBuild } from "../../scripts/helper/ESBuild.ts";
 const minifyHTML = _minifyHTML.default();
 const chalk = new Chalk({ level: 3 });
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
-const absWorkingDir = resolveTo("../");
-const importMapURL = import.meta.resolve("../import_map.json");
+const absWorkingDir = resolveTo("../build/server");
 
 export const prod = new ESBuild({
   absWorkingDir,
-  entryPoints: ["src/server/index.ts"],
-  outfile: "dist/server/plaoc.server.js",
+  splitting: true,
+  entryPoints: {
+    "plaoc.server": "src/server/index.ts",
+    "urlpattern.polyfill": "src/server/helper/urlpattern.polyfill.ts",
+  }, //[, "src/server/helper/urlpattern.polyfill.ts"],
+  // outfile: "../../dist/server/plaoc.server.js",
+  outdir: "../../dist/server",
+  chunkNames: "[name]",
   bundle: true,
   platform: "browser",
   format: "esm",
-  denoLoader: true,
-  importMapURL,
+  external: [],
 });
 export const dev = new ESBuild({
   absWorkingDir,
-  entryPoints: ["src/server/index.ts"],
+  entryPoints: ["/src/server/index.ts"],
   outfile: "dist/server/plaoc.server.dev.js",
   plugins: [
     {
@@ -54,8 +58,6 @@ export const dev = new ESBuild({
   bundle: true,
   platform: "browser",
   format: "esm",
-  denoLoader: true,
-  importMapURL,
 });
 
 export const emulator = {
@@ -107,8 +109,6 @@ export const emulator = {
                 bundle: true,
                 platform: "browser",
                 format: "esm",
-                denoLoader: true,
-                importMapURL,
                 metafile: true,
                 minify: false,
                 keepNames: true,
@@ -153,6 +153,6 @@ export const emulator = {
 
 if (import.meta.main) {
   void prod.auto();
-  void dev.auto();
-  void build(emulator);
+  // void dev.auto();
+  // void build(emulator);
 }

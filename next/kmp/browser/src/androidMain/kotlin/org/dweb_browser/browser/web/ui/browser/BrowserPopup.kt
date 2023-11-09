@@ -86,6 +86,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.R
+import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.BrowserModalBottomSheet
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.LocalModalBottomSheet
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.SheetState
@@ -96,13 +97,11 @@ import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
 import org.dweb_browser.browser.web.ui.browser.model.BrowserWebView
 import org.dweb_browser.browser.web.ui.browser.model.WebSiteInfo
 import org.dweb_browser.browser.web.ui.browser.model.WebSiteType
-import org.dweb_browser.browser.web.ui.browser.model.isSystemUrl
 import org.dweb_browser.browser.web.ui.browser.model.toWebSiteInfo
 import org.dweb_browser.browser.web.ui.browser.search.CustomTextField
 import org.dweb_browser.browser.web.ui.view.findActivity
 import org.dweb_browser.helper.BitmapUtil
 import org.dweb_browser.helper.PrivacyUrl
-import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.compose.rememberPlatformViewController
 import org.dweb_browser.helper.compose.theme.DimenBottomBarHeight
 import org.dweb_browser.helper.ioAsyncExceptionHandler

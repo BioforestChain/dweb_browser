@@ -241,8 +241,6 @@ export class JsMicroModule extends MicroModule {
           ).number();
 
           const originIpc = new JmmIpc(portId, this);
-          // 激活后端
-          // originIpc.postMessage(IpcEvent.fromText("activity","activity"))
           /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，
           /// 包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理
           if (targetIpc !== undefined) {

@@ -30,8 +30,7 @@ if (!fs.existsSync(dweb_browser_libs + "/README.md")) {
 
 /// 拉取更新
 await $(
-  `git submodule foreach git pull origi
-n main`,
+  `git submodule foreach git pull origin main`,
   "../"
 );
 /// 安装依赖

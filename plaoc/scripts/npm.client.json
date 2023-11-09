@@ -1,6 +1,6 @@
 [
   {
-    "buildFromRootDir": "../plaoc-client.ts",
+    "buildFromRootDir": "./src/client/index.ts",
     "mainExports": ".",
     "buildToRootDir": "./build/client",
     "watchDir": "./src/client",

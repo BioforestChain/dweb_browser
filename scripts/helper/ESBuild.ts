@@ -37,12 +37,20 @@ export class ESBuild {
     }
     const plugins = (esbuildOptions.plugins ??= []);
     if (esbuildOptions.denoLoader) {
+      let importMapURL = this.options.importMapURL;
+      if (importMapURL !== undefined && !importMapURL.startsWith("file:///")) {
+        importMapURL = "file:///" + importMapURL;
+      }
       plugins.push(
         // ESBuild plugin to rewrite import starting "npm:" to "esm.sh" for https plugin
         {
           name: "the-npm-plugin",
           setup(build: any) {
             build.onResolve({ filter: /^npm:/ }, (args: any) => {
+              // esm 缓存没刷新的时候指定版本 🥑
+              if (args.path.includes("npm:@dweb-browser/js-process")) {
+                args.path = "npm:@dweb-browser/js-process@0.1.1"
+              }
               return {
                 path: args.path.replace(/^npm:/, "//esm.sh/"),
                 namespace: "https",
@@ -51,7 +59,7 @@ export class ESBuild {
           },
         },
         ...esbuild_deno_loader.denoPlugins({
-          importMapURL: this.options.importMapURL,
+          importMapURL,
         })
       );
     }

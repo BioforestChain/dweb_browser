@@ -15,7 +15,6 @@ import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.std.dns.debugFetchFile
 
-
 class RespondLocalFileContext(val request: PureRequest) {
   val filePath by lazy { request.url.encodedPath }
   private val mode = request.queryOrNull("mode") ?: "auto"
@@ -37,6 +36,8 @@ class RespondLocalFileContext(val request: PureRequest) {
   fun returnFile(binary: PureBinary) = returnFile(asModePureBody(binary))
   fun returnFile(stream: PureStream) = returnFile(asModePureBody(stream))
   fun returnFile(byteChannel: ByteReadChannel) = returnFile(PureStream(byteChannel))
+  fun returnFile(root: String, filePath: String) = loadByteChannelByPath(this, root, filePath)
+
   fun returnNoFound(message: String? = null): PureResponse {
     debugFetchFile("NO-FOUND-FILE", filePath)
     return PureResponse(
@@ -53,3 +54,9 @@ class RespondLocalFileContext(val request: PureRequest) {
       } else null
   }
 }
+
+expect fun loadByteChannelByPath(
+  context: RespondLocalFileContext,
+  root: String,
+  filePath: String
+): PureResponse

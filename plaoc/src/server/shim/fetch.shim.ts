@@ -1,7 +1,7 @@
 /*#__PURE__*/
 export const setupFetch = () => {
   const nativeFetch = fetch;
-  const dwebFetch: typeof fetch = (input: URL | RequestInfo, init?: RequestInit) => {
+  const dwebFetch = (input: URL | RequestInfo, init?: RequestInit) => {
     return nativeFetch(new DwebRequest(input, init));
   };
   const getBaseUrl = typeof document === 'object'?()=>document.baseURI:()=>location.href;

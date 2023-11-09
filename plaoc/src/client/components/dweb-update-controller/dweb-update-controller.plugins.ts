@@ -1,4 +1,5 @@
-import { createMockModuleServerIpc } from "../../../common/websocketIpc.ts";
+import { $ReadableStreamIpc } from "npm:@dweb-browser/js-process";
+import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { ListenerCallback } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
@@ -16,7 +17,7 @@ class UpdateControllerPlugin extends BasePlugin {
   /**
    *  调出下载界面
    * @param metadataUrl 传递需要下载的metadata.json地址
-   * @returns 
+   * @returns
    */
   @bindThis
   async download(metadataUrl: string): Promise<boolean> {
@@ -48,32 +49,11 @@ class UpdateControllerPlugin extends BasePlugin {
       pathPrefix: this.listen.mmid,
     }).boolean();
   }
-
-  // /**
-  //  * 比对版本
-  //  * @param v1
-  //  * @param v2
-  //  * @returns
-  //  */
-  // compareVersion(v1: string, v2: string): number {
-  //   const v1Parts = v1.split(".");
-  //   const v2Parts = v2.split(".");
-
-  //   for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
-  //     const v1Part = parseInt(v1Parts[i]) || 0;
-  //     const v2Part = parseInt(v2Parts[i]) || 0;
-
-  //     if (v1Part < v2Part) return -1;
-  //     if (v1Part > v2Part) return 1;
-  //   }
-
-  //   return 0;
-  // }
 }
 
 class UpdateController extends EventTarget {
   mmid: $MMID = "download.browser.dweb";
-  readonly ipcPromise = this.createIpc();
+  readonly ipcPromise: Promise<$ReadableStreamIpc> = this.createIpc();
 
   constructor() {
     super();
@@ -89,7 +69,7 @@ class UpdateController extends EventTarget {
   }
 
   private async createIpc() {
-    const pub_url = await BasePlugin.public_url;
+    const pub_url = BasePlugin.public_url;
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
     url.pathname = `${this.mmid}/listen`;
     const ipc = await createMockModuleServerIpc(url, {

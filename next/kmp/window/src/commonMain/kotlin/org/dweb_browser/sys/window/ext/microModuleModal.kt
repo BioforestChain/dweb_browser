@@ -19,7 +19,8 @@ import org.dweb_browser.sys.window.core.AlertModal.Companion.createAlertModal
 import org.dweb_browser.sys.window.core.BottomSheetsModal.Companion.createBottomSheetsModal
 import org.dweb_browser.sys.window.core.ModalCallback
 import org.dweb_browser.sys.window.core.WindowRenderProvider
-import org.dweb_browser.sys.window.core.getOrOpenMainWindowId
+import org.dweb_browser.sys.window.core.modal.WindowAlertController
+import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.core.windowAdapterManager
 
 private val microModuleModalLocks = WeakHashMap<MicroModule, Mutex>()

@@ -4,6 +4,7 @@
   "exclude": [
     "**/assets/",
     "electron/",
+    "build/**",
     "*.bak/"
   ],
   "lint": {
@@ -22,14 +23,16 @@
     "noImplicitOverride": true
   },
   "tasks": {
+    "assets": "deno run -A ./scripts/assets-tasks.ts",
     "dnt": "deno run -A ./scripts/dnt.ts",
+    "dnt:js-process": "deno run -A ./scripts/dnt.js-process.ts",
     "bundle": "deno run -A ./scripts/bundle.ts",
     "start": "deno task dnt --start",
     "pkg": "deno task dnt && npm exec -- electron-builder build --project electron -wml",
     "pkg:win": "deno task dnt && npm exec -- electron-builder build --project electron --win",
     "pkg:mac": "deno task dnt && npm exec -- electron-builder build --project electron --mac",
     "pkg:linux": "deno task dnt && npm exec -- electron-builder build --project electron --linux",
-    "icon":"npm exec -- electron-icon-builder --input=logo.png --output=./electron",
+    "icon": "npm exec -- electron-icon-builder --input=logo.png --output=./electron",
     "esm:add": "deno run -A https://esm.sh/v124 add",
     "esm:update": "deno run -A https://esm.sh/v124 update",
     "esm:remove": "deno run -A https://esm.sh/v124 remove",

@@ -1,4 +1,4 @@
-export * from "../common/const.ts";
+export * from "../client/common/const.ts";
 export const enum OBSERVE {
   State = "observe",
 }
@@ -9,28 +9,33 @@ export const enum X_EMULATOR_ACTION {
 }
 
 export interface $PlaocConfig {
-  usePublicUrl?:boolean,
-  defaultConfig:$DefaultConfig,
-  redirect:$Redirect[]
+  usePublicUrl?: boolean;
+  defaultConfig: $DefaultConfig;
+  redirect: $Redirect[];
+  middlewares?: {
+    www?: string;
+    api?: string;
+    external?: string;
+  };
 }
 
 export interface $DefaultConfig {
-  lang:string
+  lang: string;
 }
 
 export interface $Redirect {
-  matchMethod?: string[],
-  matchUrl: $MatchUrl,
-  to:$To
+  matchMethod?: string[];
+  matchUrl: $MatchUrl;
+  to: $To;
 }
 
 export interface $MatchUrl {
-  pathname?: string,
-  search?:string
+  pathname?: string;
+  search?: string;
 }
 
 export interface $To {
-  url: string,
-  appendHeaders: Record<string, string>,
-  removeHeaders:string[]
+  url: string;
+  appendHeaders: Record<string, string>;
+  removeHeaders: string[];
 }

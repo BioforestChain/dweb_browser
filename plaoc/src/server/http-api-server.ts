@@ -1,25 +1,28 @@
-import { IpcHeaders, IpcResponse } from "../../deps.ts";
 import {
   $DwebHttpServerOptions,
   $Ipc,
   $MMID,
+  $OnFetch,
   $OnFetchReturn,
   FetchEvent,
   IPC_ROLE,
+  IpcHeaders,
   IpcRequest,
+  IpcResponse,
   PromiseOut,
   ReadableStreamIpc,
   jsProcess,
   mapHelper,
-} from "./deps.ts";
-import { HttpServer } from "./http-helper.ts";
-import { mwebview_destroy } from "./mwebview-helper.ts";
+} from "npm:@dweb-browser/js-process@0.1.4";
+
+import { HttpServer } from "./helper/http-helper.ts";
+import { mwebview_destroy } from "./helper/mwebview-helper.ts";
 const DNS_PREFIX = "/dns.std.dweb/";
 const INTERNAL_PREFIX = "/internal/";
 
 /**给前端的api服务 */
 export class Server_api extends HttpServer {
-  constructor(public widPo: PromiseOut<string>) {
+  constructor(public widPo: PromiseOut<string>, private handlers: $OnFetch[] = []) {
     super();
   }
   protected _getOptions(): $DwebHttpServerOptions {
@@ -28,9 +31,13 @@ export class Server_api extends HttpServer {
       port: 443,
     };
   }
+
   async start() {
     const serverIpc = await this._listener;
-    return serverIpc.onFetch(this._provider.bind(this)).internalServerError().cors();
+    return serverIpc
+      .onFetch(...this.handlers, this._provider.bind(this))
+      .internalServerError()
+      .cors();
   }
 
   protected async _provider(event: FetchEvent) {
@@ -101,6 +108,7 @@ export class Server_api extends HttpServer {
           categories: [],
           name: "",
         },
+        //@ts-ignore
         IPC_ROLE.SERVER
       );
       readableStreamIpc.bindIncomeStream(event.request.body!);
@@ -118,7 +126,7 @@ export class Server_api extends HttpServer {
    */
   protected async _onApi(
     event: FetchEvent,
-    connect = (mmid: $MMID) => jsProcess.connect(mmid),
+    connect: (mmid: $MMID) => Promise<$Ipc> = (mmid: $MMID) => jsProcess.connect(mmid),
     useIpcBody = true
   ): Promise<$OnFetchReturn> {
     const { pathname, search } = event;

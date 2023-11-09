@@ -18,16 +18,19 @@ struct BrowserView: View {
     @StateObject var wndArea = BrowserArea()
 
     @Binding var size: CGSize
+    @State var colorScheme = ColorScheme.light
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                Color.black
-                VStack(spacing: 0) {
-                    TabsContainerView()
-                    ToolbarView()
-                        .frame(height: dragScale.toolbarHeight)
-                        .background(Color.bkColor)
-                }
+        ZStack {
+            GeometryReader { geometry in
+                ZStack {
+                    Color.black
+                    VStack(spacing: 0) {
+                        TabsContainerView()
+                        ToolbarView()
+                            .frame(height: dragScale.toolbarHeight)
+                            .background(Color.bkColor)
+                    }
+ 
                 .background(Color.bkColor)
                 .environmentObject(webcacheStore)
                 .environmentObject(openingLink)
@@ -44,6 +47,14 @@ struct BrowserView: View {
             }
             .onChange(of: size) { newSize in
                 dragScale.onWidth = (newSize.width - 10) / screen_width
+            }
+            
+            .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
+                SheetSegmentView(isShowingWeb: showWeb())
+                    .environmentObject(selectedTab)
+                    .environmentObject(openingLink)
+                    .environmentObject(webcacheStore)
+                    .environmentObject(dragScale)
             }
             .onChange(of: geometry.frame(in: .global)) { frame in
                 wndArea.frame = frame

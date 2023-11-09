@@ -21,7 +21,8 @@ onMounted(() => {
 // router.push("/haptics");
 // router.push("/closewatcher")
 // router.push("/statusbar")
-router.push("/window")
+// router.push("/window")
+router.push("motionSensors")
 
 dwebServiceWorker.addEventListener("pause", (event) => {
   console.log("app暂停🍋", event);

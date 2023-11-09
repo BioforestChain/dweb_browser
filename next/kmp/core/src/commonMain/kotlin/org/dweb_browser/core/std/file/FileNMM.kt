@@ -11,12 +11,15 @@ import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.helper.Debugger
@@ -106,7 +109,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
   fun IHandlerContext.getPath(pathKey: String = "path"): Path {
     val virtualPath = request.query(pathKey)
     if (virtualPath.startsWith("/picker")) {
-      return pickerPathToRealPathMap[virtualPath]!!
+      return pickerPathToRealPathMap[virtualPath] ?: throwException(HttpStatusCode.Found)
     }
     return getVfsPath(pathKey).fsFullPath
   }
@@ -280,7 +283,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       },
       // 路径是否存在
       "/exist" bind HttpMethod.Get to defineBooleanResponse {
-        SystemFileSystem.exists(getPath())
+        try {
+          SystemFileSystem.exists(getPath())
+        } catch (e: ResponseException) {
+          return@defineBooleanResponse false
+        }
       },
       // 获取路径的基本信息
       "/info" bind HttpMethod.Get to defineJsonResponse {
@@ -302,7 +309,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         // 如果不存在则需要创建空文件夹
         if (!SystemFileSystem.exists(targetPath)) {
           SystemFileSystem.createDirectories(targetPath, true)
-        }else {
+        } else {
           // 需要保证文件夹为空
           SystemFileSystem.deleteRecursively(targetPath, false)
         }

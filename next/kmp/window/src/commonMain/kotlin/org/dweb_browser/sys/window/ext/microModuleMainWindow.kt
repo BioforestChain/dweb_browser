@@ -4,8 +4,6 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.sys.window.core.getMainWindowId
-import org.dweb_browser.sys.window.core.getOrOpenMainWindowId
 import org.dweb_browser.sys.window.core.windowInstancesManager
 
 /**

@@ -7,6 +7,8 @@ import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.platform.offscreenwebcanvas.FetchResponse
+import kotlin.properties.Delegates
+import kotlin.properties.ReadWriteProperty
 
 data class PureResponse(
   val status: HttpStatusCode = HttpStatusCode.OK,
@@ -17,8 +19,7 @@ data class PureResponse(
 
   fun isOk() = status.value in 200..299
   internal suspend fun requestOk(): PureResponse =
-    if (!isOk())
-      throw Exception("PureResponse not ok: [${status.value}]${status.description}\n${body.toPureString()}")
+    if (!isOk()) throw Exception("PureResponse not ok: [${status.value}]${status.description}\n${body.toPureString()}")
     else this
 
   suspend fun stream() = requestOk().body.toPureStream()
@@ -35,34 +36,57 @@ data class PureResponse(
 
   suspend inline fun <reified T> json() = JsonLoose.decodeFromString<T>(text())
 
-  fun jsonBody(value: JsonElement): PureResponse {
-    return PureResponse(
-      this.status,
-      IpcHeaders().apply { set("Content-Type", "application/json") },
-      PureStringBody(
-        JsonLoose.encodeToString(value)
-      )
-    )
-  }
 
-  fun jsonBody(value: String) = copy(
-    body = PureStringBody(value),
-    headers = headers.copy().apply { set("Content-Type", "application/json") })
-
-  fun jsonBody(value: Boolean) = jsonBody("$value")
-  fun jsonBody(value: Number) = jsonBody("$value")
-
-  fun body(body: PureStream) = copy(body = PureStreamBody(body))
-  fun body(body: ByteReadChannel) = copy(body = PureStreamBody(body))
-  fun body(body: ByteArray) = copy(body = PureBinaryBody(body))
-  fun body(body: String) = copy(body = PureStringBody(body))
-  fun appendHeaders(headers: Iterable<Pair<String, String>>) =
-    copy(headers = this.headers.copy().apply {
-      for ((key, value) in headers) {
-        set(key, value)
+  companion object {
+    class PureResponseBuilder(cacheDelegate: ReadWriteProperty<Any?, PureResponse>) {
+      internal var cache by cacheDelegate
+      fun jsonBody(value: String) {
+        cache = cache.copy(body = PureStringBody(value),
+          headers = cache.headers.copy().apply { set("Content-Type", "application/json") })
       }
-    })
 
+      fun jsonBody(value: Boolean) = jsonBody("$value")
+      fun jsonBody(value: Number) = jsonBody("$value")
+      fun jsonBody(value: JsonElement) = jsonBody(JsonLoose.encodeToString(value))
+
+      fun body(body: PureStream) {
+        cache = cache.copy(body = PureStreamBody(body))
+      }
+
+      fun body(body: ByteReadChannel) {
+        cache = cache.copy(body = PureStreamBody(body))
+      }
+
+      fun body(body: ByteArray) {
+        cache = cache.copy(body = PureBinaryBody(body))
+      }
+
+      fun body(body: String) {
+        cache = cache.copy(body = PureStringBody(body))
+      }
+
+      fun appendHeaders(headers: Iterable<Pair<String, String>>) {
+        cache.headers.apply {
+          for ((key, value) in headers) {
+            set(key, value)
+          }
+        }
+      }
+
+      fun status(value: HttpStatusCode) {
+        cache = cache.copy(status = value)
+      }
+    }
+
+    inline fun build(
+      base: PureResponse = PureResponse(),
+      builder: PureResponseBuilder.() -> Unit
+    ): PureResponse {
+      var result = base
+      PureResponseBuilder(Delegates.observable(result) { _, _, it -> result = it }).builder();
+      return result
+    }
+  }
 
 }
 

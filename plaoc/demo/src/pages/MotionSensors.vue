@@ -17,7 +17,7 @@ onMounted(() => {
 
 const startAccelerometer = defineLogAction(
   async () => {
-    motionSensors.startAccelerometer();
+    motionSensors.startAccelerometer(1000);
     console.info("启动加速计传感器");
     motionSensors.addEventListener("readAccelerometer", (event: Event) => {
       const e = event as CustomEvent<$Axis>;
@@ -41,7 +41,7 @@ const startGyroscope = defineLogAction(
 
 </script>
 <template>
-  <dweb-torch ref="$motionSensorsPlugin"></dweb-torch>
+  <dweb-motion-sensors ref="$motionSensorsPlugin"></dweb-motion-sensors>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/toast.svg" :alt="title" />

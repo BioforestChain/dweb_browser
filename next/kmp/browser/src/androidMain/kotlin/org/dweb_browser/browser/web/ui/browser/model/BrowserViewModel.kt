@@ -22,14 +22,19 @@ import com.google.accompanist.web.WebViewState
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.R
 import org.dweb_browser.browser.web.BrowserController
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.util.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browser.web.util.KEY_NO_TRACE
 import org.dweb_browser.browser.web.util.getBoolean
 import org.dweb_browser.browser.web.util.saveBoolean
 import org.dweb_browser.browser.web.util.saveString
+import org.dweb_browser.browser.util.isDeepLink
+import org.dweb_browser.browser.util.isSystemUrl
+import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
@@ -58,12 +63,16 @@ data class BrowserUIState(
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
   // val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏 // 暂时屏蔽qrCode
 ) {
-  suspend fun focusBrowserView(view: BrowserWebView) = withMainContext {
-    val index = browserViewList.indexOf(view);
+  suspend fun focusBrowserView(view: BrowserWebView) {
+    val index = browserViewList.indexOf(view)
     currentBrowserBaseView.value = view
     multiViewShow.targetState = false
-    pagerStateNavigator.value?.scrollToPage(index)
-    pagerStateContent.value?.scrollToPage(index)
+    debugBrowser("focusBrowserView", "index=$index, size=${browserViewList.size}")
+    delay(100) // window没渲染，导致scroll操作没效果，所以这边增加点等待
+    withMainContext {
+      pagerStateNavigator.value?.scrollToPage(index)
+      pagerStateContent.value?.scrollToPage(index)
+    }
   }
 }
 
@@ -300,6 +309,7 @@ class BrowserViewModel(
             )
           }*/
         }
+        else -> null
       }
     }
   }
@@ -330,7 +340,7 @@ class BrowserViewModel(
       coroutineScope = coroutineScope,
       navigator = navigator,
     )
-    val closeWatcherController = CloseWatcher(viewItem)
+    val closeWatcherController = CloseWatcher(viewItem.webView)
 
     viewItem.webView.webChromeClient = object : WebChromeClient() {
       override fun onCreateWindow(
@@ -516,43 +526,3 @@ internal fun findWebEngine(url: String): WebEngine? {
   }
   return null
 }
-
-/**
- * 判断输入内容是否是域名或者有效的网址
- */
-fun String.isUrl(): Boolean {
-  // 以 http 或者 https 或者 ftp 打头，可以没有
-  // 字符串中只能包含数字和字母，同时可以存在-
-  // 最后以 2~5个字符 结尾，可能还存在端口信息，端口信息限制数字，长度为1~5位
-  val regex =
-    "^((https?|ftp)://)?([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()
-  return regex.matches(this)
-}
-
-fun String.isHost(): Boolean {
-  // 只判断 host(长度1~63,结尾是.然后带2~6个字符如[.com]，没有端口判断)：val regex = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}\$".toRegex()
-  val regex =
-    "((https?|ftp)://)(((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}(:[0-9]{1,5})?(/.*)?)".toRegex()
-  return regex.matches(this)
-}
-
-fun String.isUrlOrHost() = this.isUrl() || this.isHost()
-fun String.isDeepLink() = this.startsWith("dweb://")
-
-/**
- * 将输入的内容补充为网址，如果本身就是网址直接返回
- */
-fun String.toRequestUrl() = if (this.isUrl() || this.isDeepLink()) {
-  this
-} else if (this.isHost()) {
-  "https://$this"
-} else {
-  null
-}
-
-/**
- * 为了判断字符串是否是内置的地址
- */
-fun String.isSystemUrl() = this.startsWith("file:///android_asset") ||
-    this.startsWith("chrome://") || this.startsWith("about:") ||
-    this.startsWith("https://web.browser.dweb") // || this.isDeepLink()

@@ -19,8 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 
 typealias CreateWindowAdapter = suspend (winState: WindowState) -> WindowController?
@@ -87,9 +92,7 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
 
   @Composable
   fun Renderer(
-    rid: String,
-    windowRenderScope: WindowRenderScope,
-    contentModifier: Modifier = Modifier
+    rid: String, windowRenderScope: WindowRenderScope, contentModifier: Modifier = Modifier
   ) {
     when (val render = windowAdapterManager.rememberRender(rid)) {
       null -> {
@@ -130,16 +133,41 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
     }
   }
 
+  override fun append(order: Int, adapter: CreateWindowAdapter): () -> Boolean {
+    return super.append(order, adapter)
+  }
+
+  private suspend fun CreateWindowAdapter.createAndSave(winState: WindowState): WindowController? {
+    val winCtrl = this(winState)
+    return if (winCtrl != null) {
+      /// 窗口创建成功，将窗口保存到实例集合中
+      windowInstancesManager.add(winCtrl)
+      winCtrl;
+    } else null
+  }
+
   suspend fun createWindow(winState: WindowState): WindowController {
     for (adapter in adapters) {
-      val winCtrl = adapter(winState)
-      if (winCtrl != null) {
-        /// 窗口创建成功，将窗口保存到实例集合中
-        windowInstancesManager.add(winCtrl)
-        return winCtrl;
+      return adapter.createAndSave(winState) ?: continue
+    }
+
+    /// 等待3秒，期间如果有适配器提供进来，也能启动
+    val waiter = CompletableDeferred<WindowController?>()
+    onChange { adapter ->
+      when (val win = adapter.createAndSave(winState)) {
+        null -> {}
+        else -> {
+          offListener()
+          waiter.complete(win)
+        }
       }
     }
-    throw Exception("no support create native window, owner:${winState.constants.owner} provider:${winState.constants.provider}")
+    CoroutineScope(defaultAsyncExceptionHandler).launch {
+      delay(3000);
+      waiter.complete(null)
+    }
+    return waiter.await()
+      ?: throw Exception("no support create native window, owner:${winState.constants.owner} provider:${winState.constants.provider}")
   }
 }
 

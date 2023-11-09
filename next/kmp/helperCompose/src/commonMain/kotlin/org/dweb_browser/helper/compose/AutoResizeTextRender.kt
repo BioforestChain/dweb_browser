@@ -7,6 +7,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -149,9 +150,9 @@ fun AutoResizeTextContainerScope.AutoSizeText(
       else -> fontSize.value
     }
     if (customFontSizeValue.isNaN()) {
-      mutableStateOf(maxFontSizeValue)
+      mutableFloatStateOf(maxFontSizeValue)
     } else {
-      mutableStateOf(min(maxFontSizeValue, customFontSizeValue))
+      mutableFloatStateOf(min(maxFontSizeValue, customFontSizeValue))
     }
   }
   val context = remember {

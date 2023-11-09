@@ -14,8 +14,10 @@ import org.dweb_browser.core.help.types.DWEB_PROTOCOL
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.http.PureBinary
+import org.dweb_browser.core.http.PureBinaryBody
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
+import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.http.router.HandlerContext
 import org.dweb_browser.core.http.router.HttpHandler
 import org.dweb_browser.core.http.router.HttpHandlerChain
@@ -31,6 +33,7 @@ import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.ReadableStreamOut
+import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.toJsonElement
@@ -58,6 +61,10 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         } else null
       }
     }
+  }
+
+  override suspend fun getSafeDwebPermissionProviders() = this.dweb_permissions.mapNotNull {
+    PermissionProvider.from(this, it)
   }
 
   private val protocolRouters = mutableMapOf<DWEB_PROTOCOL, MutableList<HttpRouter>>()
@@ -132,41 +139,41 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     middlewareHttpHandler: MiddlewareHttpHandler? = null,
     handler: TypedHttpHandler<String>,
   ) = wrapHandler(middlewareHttpHandler) {
-    PureResponse(HttpStatusCode.OK).body(
-      handler()
-    )
+    PureResponse.build { body(handler()) }
   }
 
   fun defineNumberResponse(
     middlewareHttpHandler: MiddlewareHttpHandler? = null,
     handler: TypedHttpHandler<Number>,
   ) = wrapHandler(middlewareHttpHandler) {
-    PureResponse(HttpStatusCode.OK).jsonBody(
-      handler()
-    )
+    PureResponse.build {
+      jsonBody(handler())
+    }
   }
 
   fun defineBooleanResponse(
     middlewareHttpHandler: MiddlewareHttpHandler? = null,
     handler: TypedHttpHandler<Boolean>,
   ) = wrapHandler(middlewareHttpHandler) {
-    PureResponse(HttpStatusCode.OK).jsonBody(
-      try {
-        handler()
-      } catch (e: Throwable) {
-        e.printStackTrace()
-        false
-      }
-    )
+    PureResponse.build {
+      jsonBody(
+        try {
+          handler()
+        } catch (e: Throwable) {
+          e.printStackTrace()
+          false
+        }
+      )
+    }
   }
 
   fun defineJsonResponse(
     middlewareHttpHandler: MiddlewareHttpHandler? = null,
     handler: TypedHttpHandler<JsonElement>,
   ) = wrapHandler(middlewareHttpHandler) {
-    PureResponse(HttpStatusCode.OK).jsonBody(
-      handler()
-    )
+    PureResponse.build {
+      jsonBody(handler())
+    }
   }
 
   class JsonLineHandlerContext constructor(context: HandlerContext) : IHandlerContext by context {
@@ -221,7 +228,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       // 监听 job 完成，释放相关的监听
       job.invokeOnCompletion { off() }
       // 返回响应流
-      PureResponse(HttpStatusCode.OK).body(responseReadableStream.stream.stream)
+      PureResponse.build { body(responseReadableStream.stream.stream) }
     }
   }
 
@@ -279,11 +286,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       // 监听 job 完成，释放相关的监听
       job.invokeOnCompletion { off() }
       // 返回响应流
-      PureResponse(HttpStatusCode.OK).body(responseReadableStream.stream.stream)
+      PureResponse.build { body(responseReadableStream.stream.stream) }
     }
   }
-
-  fun PureResponse.body(body: JsonElement) = jsonBody(body)
 
   fun definePureResponse(
     middlewareHttpHandler: MiddlewareHttpHandler? = null,
@@ -296,16 +301,14 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     middlewareHttpHandler: MiddlewareHttpHandler? = null,
     handler: TypedHttpHandler<PureBinary>,
   ) = wrapHandler(middlewareHttpHandler) {
-    PureResponse(HttpStatusCode.OK).body(
-      handler()
-    )
+    PureResponse(body = PureBinaryBody(handler()))
   }
 
   fun definePureStreamHandler(
     middlewareHttpHandler: MiddlewareHttpHandler? = null,
     handler: TypedHttpHandler<PureStream>,
   ) = wrapHandler(middlewareHttpHandler) {
-    PureResponse(HttpStatusCode.OK).body(handler())
+    PureResponse(body = PureStreamBody(handler()))
   }
 
   private fun wrapHandler(

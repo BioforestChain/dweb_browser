@@ -2,6 +2,7 @@ plugins {
   alias(libs.plugins.kotlinxMultiplatform)
   alias(libs.plugins.androidLibrary)
   alias(libs.plugins.jetbrainsCompose)
+  alias(libs.plugins.kotlinPluginSerialization)
 }
 
 kotlin {
@@ -42,6 +43,7 @@ kotlin {
     implementation(project(":window"))
     implementation(project(":browser"))
     implementation(project(":core"))
+    implementation(project(":sys"))
   }
 
   sourceSets.commonTest.dependencies {

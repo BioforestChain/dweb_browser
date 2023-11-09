@@ -1,5 +1,5 @@
-import { X_PLAOC_QUERY } from "../../../common/const.ts";
-import { $MMID } from "../../../common/types.ts";
+import type { $MMID } from "npm:@dweb-browser/js-process";
+import { X_PLAOC_QUERY } from "../../common/const.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
 

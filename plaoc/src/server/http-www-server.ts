@@ -1,15 +1,22 @@
-import isMobile from "npm:is-mobile";
+import {
+  $DwebHttpServerOptions,
+  $OnFetch,
+  $OnFetchReturn,
+  FetchEvent,
+  IpcResponse,
+  jsProcess,
+} from "npm:@dweb-browser/js-process@0.1.4";
 import { $PlaocConfig } from "./const.ts";
-import { $DwebHttpServerOptions, $OnFetchReturn, FetchEvent, IpcResponse, jsProcess } from "./deps.ts";
-import { HttpServer, cors } from "./http-helper.ts";
+import { HttpServer, cors } from "./helper/http-helper.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
 import { setupDB } from "./shim/db.shim.ts";
 import { setupFetch } from "./shim/fetch.shim.ts";
+import { isMobile } from "./shim/is-mobile.ts";
 
 const CONFIG_PREFIX = "/config.sys.dweb/";
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
-  constructor(readonly plaocConfig: PlaocConfig) {
+  constructor(readonly plaocConfig: PlaocConfig, private handlers: $OnFetch[] = []) {
     super();
   }
   get jsonPlaoc() {
@@ -35,7 +42,7 @@ export class Server_www extends HttpServer {
     }
 
     const serverIpc = await this._listener;
-    return serverIpc.onFetch(this._provider.bind(this)).noFound();
+    return serverIpc.onFetch(...this.handlers, this._provider.bind(this)).noFound();
   }
   protected async _provider(request: FetchEvent, root = "www"): Promise<$OnFetchReturn> {
     let { pathname } = request;
@@ -69,7 +76,7 @@ export class Server_www extends HttpServer {
         if (
           remoteIpcResponse.headers.get("Content-Type")?.includes("text/html") &&
           !plaocShims.has("raw") &&
-          isMobile.isMobile()
+          isMobile()
         ) {
           const rawText = await remoteIpcResponse.toResponse().text();
           const text = `<script>(${setupDB.toString()})("${(await this.sessionInfo).installTime}");</script>${rawText}`;

@@ -1,7 +1,7 @@
-import isMobile from "npm:is-mobile";
+import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "npm:@dweb-browser/js-process@0.1.4";
 import { X_PLAOC_QUERY } from "./const.ts";
-import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "./deps.ts";
 import { Server_www as _Server_www } from "./http-www-server.ts";
+import { isMobile } from "./shim/is-mobile.ts";
 
 /**
  * 给前端的文件服务
@@ -10,55 +10,26 @@ import { Server_www as _Server_www } from "./http-www-server.ts";
  * 2. emulator：为client所提供的插件提供模拟
  */
 export class Server_www extends _Server_www {
-
   override async getStartResult() {
     const result = await super.getStartResult();
     // TODO 未来如果有需求，可以用 flags 传入参数来控制这个模拟器的初始化参数
     /// 默认强制启动《emulator模拟器插件》
-    if (isMobile.isMobile() === false) {
+    if (isMobile() === false) {
       result.urlInfo.buildExtQuerys.set(X_PLAOC_QUERY.EMULATOR, "*");
     }
     return result;
   }
 
   protected async _onEmulator(request: FetchEvent, _emulatorFlags: string): Promise<$OnFetchReturn> {
-    // const indexUrl = (await super.getStartResult()).urlInfo.buildInternalUrl((url) => {
-    //   url.pathname = request.pathname;
-    //   url.search = request.search;
-    // });
-    // if (indexUrl.pathname.endsWith(".html") || indexUrl.pathname.endsWith("/")) {
-    //   /// 判 定SessionId 的唯一性，如果已经被使用，创新一个新的 SessionId 进行跳转
-    //   const sessionId = indexUrl.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
-    //   if (sessionId === null || emulatorDuplexs.has(sessionId)) {
-    //     const newSessionId = crypto.randomUUID();
-    //     const updateUrlWithSessionId = (url: URL) => {
-    //       url.searchParams.set(X_PLAOC_QUERY.SESSION_ID, newSessionId);
-    //       return url;
-    //     };
-    //     updateUrlWithSessionId(indexUrl);
-    //     indexUrl.searchParams.set(
-    //       X_PLAOC_QUERY.API_INTERNAL_URL,
-    //       updateUrlWithSessionId(new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_INTERNAL_URL)!)).href
-    //     );
-    //     indexUrl.searchParams.set(
-    //       X_PLAOC_QUERY.API_PUBLIC_URL,
-    //       updateUrlWithSessionId(new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_PUBLIC_URL)!)).href
-    //     );
-    //     return {
-    //       status: 301,
-    //       headers: {
-    //         Location: indexUrl.href,
-    //       },
-    //     };
-    //   }
-    // }
-    // return super._provider(request, "www");
     return super._provider(request, "server/emulator");
   }
   private xPlaocProxy: string | null = null;
   override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
     // 请求申请
-    if (request.pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`) || request.pathname.startsWith("/config.sys.dweb")) {
+    if (
+      request.pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`) ||
+      request.pathname.startsWith("/config.sys.dweb")
+    ) {
       return super._provider(request);
     }
 

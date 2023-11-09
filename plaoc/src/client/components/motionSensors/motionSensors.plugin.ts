@@ -10,17 +10,17 @@ export class MotionSensorsPlugin extends BasePlugin {
     super("motion-sensors.sys.dweb");
   }
 
-  coder: $Coder<string, $Axis> = {
-    decode: (raw) => JSON.parse(raw),
-    encode: (state) => JSON.stringify(state),
+  coder: $Coder<$Axis, $Axis> = {
+    decode: (raw) => raw,
+    encode: (state) => state,
   };
 
   private response = new JsonlinesStreamResponse(this, this.coder);
 
-  private accelerometerSignal = new Signal<$Callback<[$Axis]>>()
-  readonly onAccelerometer = this.accelerometerSignal.listen
-  private gyroscopeSignal = new Signal<$Callback<[$Axis]>>()
-  readonly onGyroscope = this.gyroscopeSignal.listen
+  private accelerometerSignal = new Signal<$Callback<[$Axis]>>();
+  readonly onAccelerometer = this.accelerometerSignal.listen;
+  private gyroscopeSignal = new Signal<$Callback<[$Axis]>>();
+  readonly onGyroscope = this.gyroscopeSignal.listen;
 
   /**
    * 启动加速计传感器
@@ -28,9 +28,9 @@ export class MotionSensorsPlugin extends BasePlugin {
    */
   @bindThis
   async startAccelerometer(interval?: number) {
-    for await(const data of this.response.jsonlines(
-      `/startAccelerometer${interval !== undefined ? "?interval=" + interval : ""}`
-    )){
+    for await (const data of this.response.jsonlines("/observe/accelerometer", {
+      searchParams: new URLSearchParams(interval !== undefined ? "?interval=" + interval : ""),
+    })) {
       this.accelerometerSignal.emit(data);
     }
   }
@@ -41,9 +41,9 @@ export class MotionSensorsPlugin extends BasePlugin {
    */
   @bindThis
   async startGyroscope(interval?: number) {
-    for await(const data of this.response.jsonlines(
-      `/startGyroscope${interval !== undefined ? "?interval=" + interval : ""}`
-    )) {
+    for await (const data of this.response.jsonlines("/observe/gyroscope", {
+      searchParams: new URLSearchParams(interval !== undefined ? "?interval=" + interval : ""),
+    })) {
       this.gyroscopeSignal.emit(data);
     }
   }

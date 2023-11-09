@@ -1,4 +1,4 @@
-import { IPC_ROLE, IpcResponse, ReadableStreamIpc } from "../../../common/deps.ts";
+import { IPC_ROLE, IpcResponse, ReadableStreamIpc } from "npm:@dweb-browser/js-process";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
@@ -125,6 +125,7 @@ export class WindowPlugin extends BasePlugin {
         categories: [],
         name: "",
       },
+      //@ts-ignore
       IPC_ROLE.CLIENT
     );
     const ws = new WebSocket(url);

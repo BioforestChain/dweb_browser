@@ -55,6 +55,7 @@ import com.google.accompanist.web.WebView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.R
+import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.LocalModalBottomSheet
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.ModalBottomModel
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.SheetState
@@ -67,7 +68,6 @@ import org.dweb_browser.browser.web.ui.browser.model.LocalInputText
 import org.dweb_browser.browser.web.ui.browser.model.LocalShowIme
 import org.dweb_browser.browser.web.ui.browser.model.LocalShowSearchView
 import org.dweb_browser.browser.web.ui.browser.model.LocalWebViewInitialScale
-import org.dweb_browser.browser.web.ui.browser.model.isSystemUrl
 import org.dweb_browser.browser.web.ui.browser.model.parseInputText
 import org.dweb_browser.browser.web.ui.browser.search.SearchView
 import org.dweb_browser.helper.compose.clickableWithNoEffect

@@ -178,7 +178,7 @@ private fun WindowTopControllerBar(
  */
 @Composable
 private fun WindowTopMaximizedBar(
-  win: WindowController,
+  @Suppress("UNUSED_PARAMETER") win: WindowController,
 ) {
   /// 这里可以渲染一些特殊的信息，比如将应用图标渲染到状态栏中
   //  val context = LocalContext.current

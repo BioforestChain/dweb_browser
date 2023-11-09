@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import tar from "tar";
-import { FetchEvent } from "../../core/ipc/index.ts";
+import { FetchEvent, IpcEvent } from "../../core/ipc/index.ts";
 import { $MMID } from "../../core/types.ts";
 import { resolveToDataRoot } from "../../helper/createResolveTo.ts";
 import { Store } from "../../helper/electronStore.ts";
@@ -81,11 +81,11 @@ export async function createApiServer(this: JmmNMM) {
       const id = event.searchParams.get("mmid") as $MMID;
       // 打开之前需要先关闭 否者更新后无法实现 更新打开 ？？
       await this.context?.dns.close(id);
-      const connectResult = this.context?.dns.connect(id);
+      const connectResult = await this.context?.dns.connect(id);
       if (connectResult === undefined) {
         throw new Error(`${id} not found!`);
       }
-      // opendAppIpc.postMessage(IpcEvent.fromText("activity", ""));
+      connectResult[0].postMessage(IpcEvent.fromText("renderer", ""));
       return Response.json(true);
     })
     .get("/app/query", async (event) => {

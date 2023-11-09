@@ -1,6 +1,7 @@
 packages:
-  - desktop-dev/
+  - "desktop-dev/"
   - "desktop-dev/**/assets/*"
   - "desktop-dev/**/assets"
-  - plaoc/demo/
-  - toolkit/*
+  - "plaoc/demo/"
+  - "toolkit/*"
+  - "!toolkit/plaoc-html-demo"
