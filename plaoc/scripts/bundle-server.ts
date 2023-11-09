@@ -13,11 +13,18 @@ const absWorkingDir = resolveTo("../build/server");
 
 export const prod = new ESBuild({
   absWorkingDir,
-  entryPoints: ["src/server/index.ts"],
-  outfile: "../../dist/server/plaoc.server.js",
+  splitting: true,
+  entryPoints: {
+    "plaoc.server": "src/server/index.ts",
+    "urlpattern.polyfill": "src/server/helper/urlpattern.polyfill.ts",
+  }, //[, "src/server/helper/urlpattern.polyfill.ts"],
+  // outfile: "../../dist/server/plaoc.server.js",
+  outdir: "../../dist/server",
+  chunkNames: "[name]",
   bundle: true,
   platform: "browser",
-  format: "esm",external:[]
+  format: "esm",
+  external: [],
 });
 export const dev = new ESBuild({
   absWorkingDir,

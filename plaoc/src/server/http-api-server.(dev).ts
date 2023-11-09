@@ -1,4 +1,4 @@
-import type { $MicroModuleManifest, $ReadableStreamIpc } from "npm:@dweb-browser/js-process";
+import type { $MicroModuleManifest, $ReadableStreamIpc } from "npm:@dweb-browser/js-process@0.1.4";
 import {
   $IpcResponse,
   $MMID,
@@ -10,7 +10,7 @@ import {
   jsProcess,
   mapHelper,
   simpleEncoder
-} from "npm:@dweb-browser/js-process";
+} from "npm:@dweb-browser/js-process@0.1.4";
 import { X_PLAOC_QUERY } from "./const.ts";
 import { Server_api as _Server_api } from "./http-api-server.ts";
 const EMULATOR_PREFIX = "/emulator";

@@ -1,4 +1,4 @@
-import type { $MMID, $MicroModuleManifest, $OnFetch } from "npm:@dweb-browser/js-process";
+import type { $MMID, $MicroModuleManifest, $OnFetch } from "npm:@dweb-browser/js-process@0.1.4";
 import {
   $DwebHttpServerOptions,
   $Ipc,
@@ -13,7 +13,7 @@ import {
   isWebSocket,
   jsProcess,
   mapHelper,
-} from "npm:@dweb-browser/js-process";
+} from "npm:@dweb-browser/js-process@0.1.4";
 import { HttpServer } from "./helper/http-helper.ts";
 import { PromiseToggle } from "./helper/promise-toggle.ts";
 

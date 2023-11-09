@@ -1,4 +1,4 @@
-import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "npm:@dweb-browser/js-process";
+import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "npm:@dweb-browser/js-process@0.1.4";
 import { X_PLAOC_QUERY } from "./const.ts";
 import { Server_www as _Server_www } from "./http-www-server.ts";
 import { isMobile } from "./shim/is-mobile.ts";
