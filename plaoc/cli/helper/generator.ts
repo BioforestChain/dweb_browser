@@ -171,7 +171,7 @@ export class BundleZipGenerator {
         </script>`,
         time: new Date(0),
       } satisfies $ZipEntry;
-      async () => {
+      this.zipGetter = async () => {
         return zipEntriesToZip(
           this.normalizeZipEntries([
             ...(await this.getBaseZipEntries(flags.dev)),
@@ -190,9 +190,7 @@ export class BundleZipGenerator {
       }
       this.zipGetter = () => JSZip.loadAsync(bundle_file);
     }
-
     /// 默认使用 本地文件夹模式
-    // if (flags.mode === SERVE_MODE.USR_WWW)
     else {
       const www_dir = bundleTarget;
       if (www_dir === undefined) {

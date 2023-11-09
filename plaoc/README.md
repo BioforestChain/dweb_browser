@@ -4,7 +4,7 @@
 
 [plaoc](https://docs.dweb-browser.org/) 是基于 dweb-browser 平台的一个对标 Cordova、Capacitor、Tauri 的“跨平台 Web 应用”开发工具包。
 
-## cli
+## @plaoc/cli
 
 [plaoc cli 文档](./cli/README.md)
 
@@ -16,9 +16,17 @@
 deno task plaoc serve ./plaoc/demo/dist
 ```
 
+## @plaoc/server
+
+修改 server 内容需要重新编译代码。
+
+```bash
+deno task build:s
+```
+
 > `./plaoc/demo/dist` 指向一个 build 之后的应用目录
 
-## MutilWebview概念
+## MutilWebview 概念
 
 1. 在 Dweb Browser 中，MutilWebview 作为前端载具，没有对全局变量的污染，所有的扩展都是通过网络通讯来实现功能（fetch/websocket）。
 2. 在 Dweb Browser 中，JsProcess 作为后端的载具，可以跟各个模块直接 IPC 通讯而不通过传统意义上的网络层。
@@ -29,7 +37,7 @@ deno task plaoc serve ./plaoc/demo/dist
 
 ## publish
 
-- 打标签，然后推送到github 
+- 打标签，然后推送到 github
 
 ```bash
 git tag -a 0.0.1 -m "feat: xxx"

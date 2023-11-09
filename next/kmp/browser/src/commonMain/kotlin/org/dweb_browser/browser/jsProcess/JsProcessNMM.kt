@@ -30,7 +30,6 @@ import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
-import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.core.std.http.closeHttpDwebServer
 import org.dweb_browser.core.std.http.createHttpDwebServer
 

@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService
 
 import android.webkit.WebView
 import info.bagen.dwebbrowser.microService.browser.desk.DeskNMM
+import info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM
@@ -16,6 +17,7 @@ import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
+import org.dweb_browser.browser.nativeui.NativeUiNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
@@ -97,8 +99,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val zipNMM = ZipNMM().setup()
 
   /// 扫码
-  val scannerNMM = info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM()
-    .setup()
+  val scannerNMM = ScanningNMM().setup()
   ///安装剪切板
   val clipboardNMM = ClipboardNMM().setup()
   ///设备信息
@@ -128,7 +129,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val motionSensorsNMM = MotionSensorsNMM().setup()
 
   /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
-  val nativeUiNMM = org.dweb_browser.browser.nativeui.NativeUiNMM().setup()
+  val nativeUiNMM = NativeUiNMM().setup()
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()
