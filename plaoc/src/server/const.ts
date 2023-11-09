@@ -1,4 +1,4 @@
-export * from "../common/const.ts";
+export * from "../client/common/const.ts";
 export const enum OBSERVE {
   State = "observe",
 }
