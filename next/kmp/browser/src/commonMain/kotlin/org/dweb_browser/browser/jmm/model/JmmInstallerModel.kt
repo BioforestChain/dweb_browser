@@ -9,7 +9,6 @@ import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmStatusEvent
-import org.dweb_browser.browser.jmm.debugJMM
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.falseAlso
 
@@ -28,9 +27,10 @@ data class JmmUIState(
 )
 
 class JmmInstallerModel(
-  private val jmmHistoryMetadata: JmmHistoryMetadata, private val controller: JmmInstallerController
+  private val jmmHistoryMetadata: JmmHistoryMetadata,
+  private val controller: JmmInstallerController
 ) {
-  val uiState: JmmUIState = JmmUIState(jmmHistoryMetadata)
+  val uiState: JmmUIState = JmmUIState(jmmHistoryMetadata = jmmHistoryMetadata)
 
   fun startDownload() = controller.ioAsyncScope.launch {
     if (jmmHistoryMetadata.taskId == null ||

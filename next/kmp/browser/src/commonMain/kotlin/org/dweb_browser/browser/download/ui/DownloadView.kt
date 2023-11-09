@@ -23,7 +23,6 @@ import org.dweb_browser.browser.common.CommonSimpleTopBar
 import org.dweb_browser.browser.common.SegmentedButton
 import org.dweb_browser.browser.common.SingleChoiceSegmentedButtonRow
 import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.download.debugDownload
 import org.dweb_browser.browser.download.model.DownloadTab
 import org.dweb_browser.browser.download.model.LocalDownloadModel
 
@@ -66,7 +65,9 @@ fun DownloadTabView() {
   val viewModel = LocalDownloadModel.current
   val decompressModel = LocalDecompressModel.current
   val downloadTab = viewModel.tabItems[viewModel.tabIndex.value]
-  val list = viewModel.downloadController.downloadList
+  val list = viewModel.downloadController.downloadList.filter {
+    downloadTab == DownloadTab.Downloads || it.status.state == DownloadState.Completed
+  }
   if (list.isEmpty()) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
       Text(text = BrowserI18nResource.no_download_links())
@@ -76,18 +77,14 @@ fun DownloadTabView() {
 
   LazyColumn {
     list.forEach { downloadTask ->
-      if (downloadTab == DownloadTab.Downloads ||
-        downloadTask.status.state == DownloadState.Completed
-      ) {
-        item(downloadTask.id) {
-          DownloadItem(downloadTask) { decompressModel.show(it) }
-          Spacer(
-            Modifier
-              .height(1.dp)
-              .fillMaxWidth()
-              .background(MaterialTheme.colorScheme.outlineVariant)
-          )
-        }
+      item(downloadTask.id) {
+        DownloadItem(downloadTask) { decompressModel.show(it) }
+        Spacer(
+          Modifier
+            .height(1.dp)
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.outlineVariant)
+        )
       }
     }
   }

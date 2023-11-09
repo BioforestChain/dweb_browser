@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,9 +43,12 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.browser.common.CommonSimpleTopBar
+import org.dweb_browser.browser.common.SegmentedButton
+import org.dweb_browser.browser.common.SingleChoiceSegmentedButtonRow
 import org.dweb_browser.browser.jmm.JmmHistoryController
 import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
+import org.dweb_browser.browser.jmm.JmmTabs
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.formatDatestamp
 import org.dweb_browser.helper.toSpaceSize
@@ -55,6 +59,7 @@ fun JmmHistoryController.ManagerViewRender(
   modifier: Modifier, windowRenderScope: WindowRenderScope
 ) {
   val scope = rememberCoroutineScope()
+  var curTab by remember { mutableStateOf(JmmTabs.NoInstall) }
   Column(modifier = with(windowRenderScope) {
     Modifier
       .fillMaxSize()
@@ -65,28 +70,69 @@ fun JmmHistoryController.ManagerViewRender(
       scope.launch { this@ManagerViewRender.close() }
     }
 
-    if (this@ManagerViewRender.jmmHistoryMetadata.isEmpty()) {
-      Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = BrowserI18nResource.no_apps_data())
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+      JmmTabs.values().forEachIndexed { index, jmmTab ->
+        SegmentedButton(
+          selected = index == curTab.index,
+          onClick = { curTab = JmmTabs.entries[index] },
+          shape = RoundedCornerShape(16.dp),
+          icon = { Icon(imageVector = jmmTab.vector, contentDescription = jmmTab.title) },
+          label = { Text(text = jmmTab.title) }
+        )
       }
-      return
     }
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-      itemsIndexed(this@ManagerViewRender.jmmHistoryMetadata) { _, metadata ->
-        JmmViewItem(metadata = metadata)
-      }
+    JmmTabsView(curTab)
+  }
+}
+
+@Composable
+fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
+  val scope = rememberCoroutineScope()
+  val list = jmmHistoryMetadata.filter {
+    (tab == JmmTabs.Installed && it.state.state == JmmStatus.INSTALLED) ||
+        (tab == JmmTabs.NoInstall && it.state.state != JmmStatus.INSTALLED)
+  }
+
+  if (list.isEmpty()) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+      Text(text = BrowserI18nResource.no_apps_data())
+    }
+    return
+  }
+
+  LazyColumn(modifier = Modifier.fillMaxSize()) {
+    itemsIndexed(list) { _, metadata ->
+      JmmViewItem(
+        jmmHistoryMetadata = metadata,
+        buttonClick = { scope.launch { this@JmmTabsView.buttonClick(metadata) }},
+        uninstall = { scope.launch { this@JmmTabsView.unInstall(metadata) }},
+        detail = { scope.launch { this@JmmTabsView.openInstallerView(metadata) }}
+      )
     }
   }
 }
 
 @Composable
-fun JmmViewItem(metadata: JmmHistoryMetadata) {
-  var showMore by remember { mutableStateOf(false) }
+fun JmmViewItem(
+  jmmHistoryMetadata: JmmHistoryMetadata,
+  buttonClick: () -> Unit,
+  uninstall: () -> Unit,
+  detail: () -> Unit
+) {
+  var showMore by remember(jmmHistoryMetadata) { mutableStateOf(false) }
+  var jmmStatus by remember(jmmHistoryMetadata) { mutableStateOf(jmmHistoryMetadata.state.state) }
+
+  LaunchedEffect(jmmHistoryMetadata) {
+    jmmHistoryMetadata.onJmmStatusChanged {
+      jmmStatus = it.state
+    }
+  }
+
   ListItem(
     headlineContent = {
       Text(
-        text = metadata.metadata.name,
+        text = jmmHistoryMetadata.metadata.name,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         color = MaterialTheme.colorScheme.onBackground,
@@ -95,9 +141,9 @@ fun JmmViewItem(metadata: JmmHistoryMetadata) {
     },
     supportingContent = {
       Row {
-        Text(text = metadata.metadata.bundle_size.toSpaceSize())
+        Text(text = jmmHistoryMetadata.metadata.bundle_size.toSpaceSize())
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = metadata.installTime.formatDatestamp())
+        Text(text = jmmHistoryMetadata.installTime.formatDatestamp())
         Spacer(modifier = Modifier.width(8.dp))
         Icon(
           imageVector = if (showMore) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
@@ -111,7 +157,7 @@ fun JmmViewItem(metadata: JmmHistoryMetadata) {
     leadingContent = {
       Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
         AsyncImage(
-          model = metadata.metadata.logo,
+          model = jmmHistoryMetadata.metadata.logo,
           contentDescription = "icon",
           modifier = Modifier.size(56.dp),
           contentScale = ContentScale.Fit
@@ -121,14 +167,14 @@ fun JmmViewItem(metadata: JmmHistoryMetadata) {
     trailingContent = {
       Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
         Text(
-          text = metadata.getName(),
+          text = jmmStatus.showText(),
           color = MaterialTheme.colorScheme.background,
           fontWeight = FontWeight.W900,
           modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.primary)
             .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clickable { }
+            .clickable{ buttonClick() }
         )
       }
     },
@@ -139,20 +185,26 @@ fun JmmViewItem(metadata: JmmHistoryMetadata) {
         .fillMaxWidth()
         .padding(start = 72.dp)
     ) {
-      TextButton(onClick = { /*TODO*/ }) {
-        Text(text = "UnInstall")
+      if (jmmStatus == JmmStatus.INSTALLED) {
+        TextButton(onClick = uninstall) {
+          Text(text = "卸载")
+        }
+      }
+
+      TextButton(onClick = detail) {
+        Text(text = "详情")
       }
     }
   }
 }
 
-private fun JmmHistoryMetadata.getName() =
-  when (state.state) {
-    JmmStatus.Downloading -> "Downloading"
-    JmmStatus.Paused -> "Pause"
-    JmmStatus.Failed -> "Retry"
-    JmmStatus.Init, JmmStatus.Canceled -> "Install"
-    JmmStatus.Completed -> "Installing"
-    JmmStatus.INSTALLED -> "Open"
-    JmmStatus.NewVersion -> "Upgrade"
+private fun JmmStatus.showText() =
+  when (this) {
+    JmmStatus.Downloading -> "下载中"
+    JmmStatus.Paused -> "暂停"
+    JmmStatus.Failed -> "重试"
+    JmmStatus.Init, JmmStatus.Canceled -> "下载"
+    JmmStatus.Completed -> "安装中"
+    JmmStatus.INSTALLED -> "打开"
+    JmmStatus.NewVersion -> "升级"
   }

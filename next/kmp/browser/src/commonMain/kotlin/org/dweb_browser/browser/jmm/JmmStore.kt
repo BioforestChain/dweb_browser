@@ -1,5 +1,9 @@
 package org.dweb_browser.browser.jmm
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.InstallMobile
+import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.browser.download.DownloadState
@@ -162,4 +166,10 @@ enum class JmmStatus {
 
   /** 新版本*/
   NewVersion;
+}
+
+enum class JmmTabs(val index: Int, val title: String, val vector: ImageVector) {
+  NoInstall(0, "未安装", Icons.Default.DeleteForever),
+  Installed(1, "已安装", Icons.Default.InstallMobile),
+  ;
 }

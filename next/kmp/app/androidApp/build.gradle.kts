@@ -98,7 +98,7 @@ android {
       signingConfig = signingConfigs.getByName("debug")
       val userName = System.getProperty("user.name")
         .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
-      resValue("string", "appName", "Dev-$userName")
+      resValue("string", "appName", "Kmp-$userName")
       applicationIdSuffix = ".kmp.$userName"
       versionNameSuffix = ".kmp.$userName"
     }
