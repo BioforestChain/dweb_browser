@@ -16,6 +16,7 @@ struct TabPageView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
     @EnvironmentObject var dragScale: WndDragScale
+    @EnvironmentObject var browerArea: BrowserArea
 
     var index: Int
     var webCache: WebCache { webcacheStore.cache(at: index) }
@@ -78,10 +79,10 @@ struct TabPageView: View {
                             .takeSnapshot(completion: { image in
                                 printWithDate("has took a snapshot")
                                 let scale = image.scale
-
-                                let isFullWidth = (geo.size.width / geo.size.height) < cellWHratio
-                                let width = (isFullWidth ? geo.size.width : geo.size.height * cellWHratio) * scale
-                                let height = (isFullWidth ? geo.size.width / cellWHratio : geo.size.height) * scale * imageHratio
+                                let snapshotAvailabeHeight = browerArea.frame.height - dragScale.addressbarHeight
+                                let isFullWidth = (browerArea.frame.width / snapshotAvailabeHeight) < cellWHratio
+                                let width = (isFullWidth ? browerArea.frame.width : snapshotAvailabeHeight * cellWHratio) * scale
+                                let height = (isFullWidth ? geo.size.width / cellWHratio : snapshotAvailabeHeight) * scale * cellImageHeightRatio
                                 var cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: width, height: height)
 
                                 if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {

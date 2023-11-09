@@ -93,7 +93,7 @@ struct TabGridView: View {
                     if $0.count > 0 {
                         self.frames = $0
                     }
-//                    printWithDate("end scrolling and record cell frames : \($0)")
+                    printWithDate("updating cell frames : \($0)")
                 }
                 .onChange(of: deleteCache.cacheId, perform: { _ in
                     guard let cache = webcacheStore.caches.filter({ $0.id == deleteCache.cacheId }).first else { return }

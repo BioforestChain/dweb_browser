@@ -14,8 +14,9 @@ struct TabsContainerView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
     @EnvironmentObject var dragScale: WndDragScale
+    @EnvironmentObject var browserArea: BrowserArea
+
     @StateObject var gridState = TabGridState()
-    
     @StateObject var animation = ShiftAnimation()
 
     @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
@@ -50,15 +51,17 @@ struct TabsContainerView: View {
                         animationImage
                             .transition(.identityHack)
                             .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
-                            .frame(width: screen_width, height: snapshotHeight)
-                            .position(x: screen_width/2, y: snapshotHeight/2)
+                            .frame(width: browserArea.frame.width,
+                                   height: browserArea.frame.height - dragScale.toolbarHeight - dragScale.addressbarHeight)
+                            .position(x: geo.frame(in: .global).midX,
+                                      y: geo.frame(in: .global).midY - browserArea.frame.minY - dragScale.addressbarHeight/2)
                     } else {
                         animationImage
                             .transition(.identityHack)
                             .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
-                            .frame(width: gridCellW, height: cellImageH)
-                            .position(x: selectedCellFrame.minX + selectedCellFrame.width/2.0,
-                                      y: selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0 - safeAreaTopHeight)
+                            .frame(width: selectedCellFrame.width, height: selectedCellFrame.height * cellImageHeightRatio)
+                            .position(x: selectedCellFrame.midX - browserArea.frame.minX,
+                                      y: selectedCellFrame.midY - browserArea.frame.minY - selectedCellFrame.height * cellTitleHeightRatio / 2)
                     }
                 }
             }
@@ -66,20 +69,20 @@ struct TabsContainerView: View {
 
             .onAppear {
                 geoRect = geo.frame(in: .global)
-                print("tabs contianer rect: \(geoRect)") 
+                print("tabs contianer rect: \(geoRect)")
             }
 
             .onReceive(toolbarState.$createTabTapped) { createTabTapped in
                 if createTabTapped { // 准备放大动画
                     webcacheStore.createOne()
                     selectedTab.curIndex = webcacheStore.cacheCount - 1
-                    selectedCellFrame = CGRect(origin: CGPoint(x: screen_width/2, y: screen_height/2), size: CGSize(width: 5, height: 5))
+                    selectedCellFrame = CGRect(x: geo.frame(in: .global).midX, y: geo.frame(in: .global).midY, width: 5, height: 5)
                     toolbarState.shouldExpand = true
                 }
             }
 
             .onChange(of: selectedCellFrame) { newValue in
-                printWithDate( "selecte cell rect changes to : \(newValue)")
+                printWithDate("selecte cell rect changes to : \(newValue)")
             }
             .onChange(of: animation.progress) { progress in
                 if progress.isAnimating() {
@@ -92,12 +95,13 @@ struct TabsContainerView: View {
     var animationImage: some View {
         Rectangle()
             .overlay(
-                ZStack{
+                ZStack {
+                    let image = animation.snapshotImage
+                     
                     Image(uiImage: animation.snapshotImage)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                 }
-                    
             )
             .cornerRadius(isExpanded ? 0 : gridcellCornerR)
             .animation(.default, value: isExpanded)
@@ -110,12 +114,12 @@ struct TabsContainerView: View {
 
                 if progress == .startShrinking || progress == .startExpanding {
                     let isExpanding = animation.progress == .startExpanding
-                    printWithDate( "animation : \(progress)")
+                    printWithDate("animation : \(progress)")
                     if progress == .startShrinking {
                         gridState.scale = 0.8
                     }
 
-                    printWithDate( "start to shifting animation")
+                    printWithDate("start to shifting animation")
                     withAnimation(.easeOut(duration: 0.3)) {
                         addressBar.shouldDisplay = isExpanding
                         gridState.scale = isExpanding ? 0.8 : 1
