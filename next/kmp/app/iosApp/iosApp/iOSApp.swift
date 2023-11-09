@@ -29,9 +29,6 @@ struct iOSApp: App {
             .onReceive(networkManager.$isNetworkAvailable) { isAvailable in
                 isNetworkSegmentViewPresented = !isAvailable
             }
-            .onReceive(KmpBridgeManager.shared.eventPublisher.filter{ $0.name == KmpEvent.share }, perform: { event in
-                event.responseAction?.doResponseAction()
-            })
 		}
 	}
 }
