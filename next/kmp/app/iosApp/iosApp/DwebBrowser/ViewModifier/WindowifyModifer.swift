@@ -130,7 +130,7 @@ struct WindowifyModifier: ViewModifier {
                 wndHeight = wndDragingSize.height
             }
             wndCenterOffset = .zero
-            print("minimize")
+            Log("minimize")
         } label: {
             Image(systemName: "arrow.down.forward.and.arrow.up.backward")
                 .foregroundColor(.black)

@@ -56,7 +56,7 @@ struct TabGridView: View {
                                 .background(GeometryReader { geometry in
                                     Color.clear
                                         .preference(key: CellFramePreferenceKey.self,
-                                                    value: [CellFrameInfo(index: webcacheStore.index(of: webCache) ?? 0, frame: geometry.frame(in: .global))])
+                                                    value: [CellFrameInfo(index: webcacheStore.index(of: webCache) ?? 0, frame: geometry.frame(in: .named("ScrollView")))])
                                 })
 
                                 .onTapGesture {
@@ -74,8 +74,6 @@ struct TabGridView: View {
                         }
                         .shadow(color: Color.gray, radius: 2)
                     }
-                    
-
                     .environmentObject(deleteCache)
                     .padding(gridHSpace)
                     .scaleEffect(x: gridState.scale, y: gridState.scale)
@@ -88,12 +86,12 @@ struct TabGridView: View {
                     }
                 }
                 .background(Color.bkColor)
-
+                .coordinateSpace(name: "ScrollView")
                 .onReceive(publisher) {
                     if $0.count > 0 {
                         self.frames = $0
                     }
-                    printWithDate("updating cell frames : \($0)")
+                    Log("updating cell frames : \($0)")
                 }
                 .onChange(of: deleteCache.cacheId, perform: { _ in
                     guard let cache = webcacheStore.caches.filter({ $0.id == deleteCache.cacheId }).first else { return }
@@ -129,7 +127,7 @@ struct TabGridView: View {
                     }
                 }
                 .onChange(of: toolbarState.shouldExpand) { shouldExpand in
-                    if !shouldExpand {
+                    if !shouldExpand { //缩小
                         let geoFrame = geo.frame(in: .global)
                         prepareToShrink(geoFrame: geoFrame, scrollproxy: scrollproxy) {
                             if animation.progress == .obtainedSnapshot {
@@ -156,7 +154,7 @@ struct TabGridView: View {
         let needScroll = !(geoFrame.minY <= currentFrame.minY && geoFrame.maxY >= currentFrame.maxY)
 
         if needScroll {
-            printWithDate("star scroll tp adjust")
+            Log("star scroll tp adjust")
 
             let webCache = webcacheStore.cache(at: selectedTab.curIndex)
             withAnimation(.linear(duration: 0.1)) {
@@ -167,7 +165,7 @@ struct TabGridView: View {
         let waitingDuration = needScroll ? 0.5 : 0.2 // 0.5是试出来的，少于这个时间滚动未完成，cell的位置不正确. 0.2是因为tabpage在某种情况下会收到两次shouldExpand的onchange事件，0.2是为了等第二次截图完成
         DispatchQueue.main.asyncAfter(deadline: .now() + waitingDuration) {
             selectedCellFrame = cellFrame(at: selectedTab.curIndex)
-            printWithDate("cell at \(selectedTab.curIndex) frame is:\(selectedCellFrame)")
+            Log("cell at \(selectedTab.curIndex) frame is:\(selectedCellFrame)")
             afterObtainCellFrame()
         }
     }

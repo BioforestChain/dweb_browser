@@ -36,7 +36,7 @@ struct ToolbarView: View {
         .onAppear {
             selectedTab.$curIndex
                 .sink { newIndex in
-                    print("Value changed: \(newIndex)")
+                    Log("Value changed: \(newIndex)")
                     tabIndexChanged(to: newIndex)
                 }
                 .store(in: &cancellables) // Store the subscription
@@ -55,7 +55,7 @@ struct ToolbarView: View {
                     Spacer().frame(width: size.width / 15)
 
                     BiColorButton(imageName: "add", disabled: false) {
-                        print("open new tab was clicked")
+                        Log("open new tab was clicked")
                         toolbarState.createTabTapped = true
                     }
                     .frame(height: min(size.width / 14, size.height / 1.9))
@@ -98,19 +98,19 @@ struct ToolbarView: View {
                 Spacer()
                 if webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb {
                     BiColorButton(imageName: "scan", disabled: false) {
-                        print("scan qrcode")
+                        Log("scan qrcode")
                         isPresentingScanner = true
                     }
                 } else {
                     BiColorButton(imageName: "add", disabled: false) {
-                        print("open new tab was clicked")
+                        Log("open new tab was clicked")
                         toolbarState.createTabTapped = true
                     }
                 }
                 Spacer()
                 Group {
                     BiColorButton(imageName: "shift", disabled: false) {
-                        print("shift tab was clicked")
+                        Log("shift tab was clicked")
                         toolbarState.shouldExpand = false
                     }
                     Spacer()
@@ -119,7 +119,7 @@ struct ToolbarView: View {
                             toolbarState.showMoreMenu = true
 //                            showMoreSheet = true
                         }
-                        printWithDate("more menu was clicked")
+                        Log("more menu was clicked")
                     }
                     Spacer()
                 }
@@ -134,7 +134,7 @@ struct ToolbarView: View {
                     CodeScannerView(codeTypes: [.qr], showViewfinder: true) { response in
                         if case let .success(result) = response {
                             // TODO: 扫描结果result.string
-                            print(result.string)
+                            Log(result.string)
                             isPresentingScanner = false
                             addressBar.inputText = result.string
                             let url = URL.createUrl(addressBar.inputText)

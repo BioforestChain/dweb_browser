@@ -111,7 +111,7 @@ struct AddressBar: View {
                 displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
             }
             .onChange(of: addressBar.isFocused) { isFocused in
-                printWithDate( " addressBar.isFocused onChange:\(isFocused)")
+                Log( " addressBar.isFocused onChange:\(isFocused)")
                 if !isFocused, isVisible {
                     isAdressBarFocused = isFocused
                     if addressBar.inputText.isEmpty { // 点击取消按钮

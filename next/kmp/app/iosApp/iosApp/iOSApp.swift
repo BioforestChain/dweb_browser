@@ -6,13 +6,9 @@ let DWEB_OS = true
 
 @main
 struct iOSApp: App {
+    @UIApplicationDelegateAdaptor(DwebAppDelegate.self) var appDelegate
     @StateObject private var networkManager = NetworkManager()
     @State private var isNetworkSegmentViewPresented = false
-    
-    init() {
-        print("iOS init")
-        KmpBridgeManager.shared.registerIMPs()
-    }
     
 	var body: some Scene {
 		WindowGroup {

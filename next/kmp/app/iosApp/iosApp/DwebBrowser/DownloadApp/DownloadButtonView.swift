@@ -117,7 +117,7 @@ struct DownloadButtonView: View {
             .onAppear {
                 isRotate = true
                 if !isLoading {
-                    print("download")
+                    Log("download")
                     isLoading = true
                     DispatchQueue.main.async {
                         callback("download")

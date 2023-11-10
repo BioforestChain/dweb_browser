@@ -47,6 +47,6 @@ public class BridgeManager: NSObject {
     }
     
     @objc public func testWebView(webView: WKWebView) {
-        print("test")
+        Log("test")
     }
 }

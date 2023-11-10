@@ -21,7 +21,7 @@ public class ConsoleSwift: NSObject {
     }
 
     @objc func testAction() {
-        print("haha")
+        Log("haha")
     }
     
     static func log(_ s: String) {

@@ -25,7 +25,7 @@ extension UIImage {
              
             return filePath
         } catch {
-            print("Writing image data went wrong! Error: \(error)")
+            Log("Writing image data went wrong! Error: \(error)")
             return URL.defaultSnapshotURL
         }
     }
@@ -36,17 +36,17 @@ extension UIImage {
         if fileManager.fileExists(atPath: fileUrl.path) {
             do {
                 try fileManager.removeItem(at: fileUrl)
-                print("deleted old snapshot for replacement successfully.")
+                Log("deleted old snapshot for replacement successfully.")
             } catch {
-                print("Error while deleting the snapshot: \(error.localizedDescription)")
+                Log("Error while deleting the snapshot: \(error.localizedDescription)")
             }
         } else {
-            print("snapshot does not exist.")
+            Log("snapshot does not exist.")
         }
     }
 
     static func snapshotImage(from localUrl: URL) -> UIImage {
-        print("snapshot url is \(localUrl)")
+        Log("snapshot url is \(localUrl)")
         var image: UIImage?
         do {
             image = try UIImage(data: Data(contentsOf: localUrl))!

@@ -11,6 +11,7 @@
 		058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */; };
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
 		4840D2C42AF10E6800102701 /* KmpBridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */; };
+		4876C7182AFDD94E00CDF8BF /* DwebAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */; };
 		48C46BDD2AF4CFA0005CBA38 /* UIApplication+Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BDC2AF4CFA0005CBA38 /* UIApplication+Window.swift */; };
 		48C46BDF2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */; };
 		48C46BE12AF4D515005CBA38 /* KmpEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BE02AF4D515005CBA38 /* KmpEvent.swift */; };
@@ -116,6 +117,7 @@
 		058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2152FB032600AC8F00CF470E /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KmpBridgeManager.swift; sourceTree = "<group>"; };
+		4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebAppDelegate.swift; sourceTree = "<group>"; };
 		48C46BDC2AF4CFA0005CBA38 /* UIApplication+Window.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+Window.swift"; sourceTree = "<group>"; };
 		48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpEventShareResposeAction.swift; sourceTree = "<group>"; };
 		48C46BE02AF4D515005CBA38 /* KmpEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpEvent.swift; sourceTree = "<group>"; };
@@ -248,6 +250,7 @@
 				7555FF8C242A565B00829871 /* Info.plist */,
 				7555FF82242A565900829871 /* DWebOS.swift */,
 				2152FB032600AC8F00CF470E /* iOSApp.swift */,
+				4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */,
 				058557D7273AAEEB004C7B11 /* Preview Content */,
 			);
 			path = iosApp;
@@ -624,6 +627,7 @@
 				F03444B92AE26FAC004F732E /* InstalledApp.swift in Sources */,
 				F03444B52AE26FAB004F732E /* MenuView.swift in Sources */,
 				48C46C672AFA2A58005CBA38 /* Loger.swift in Sources */,
+				4876C7182AFDD94E00CDF8BF /* DwebAppDelegate.swift in Sources */,
 				F03444A32AE26FAB004F732E /* LocalLinkSearcher.swift in Sources */,
 				F03444932AE26FAB004F732E /* CoreDataError.swift in Sources */,
 				F03444BA2AE26FAC004F732E /* WebCacheStore.swift in Sources */,
@@ -776,7 +780,7 @@
 					"$(SRCROOT)/../../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -806,7 +810,7 @@
 					"$(SRCROOT)/../../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

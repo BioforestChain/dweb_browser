@@ -43,8 +43,8 @@ struct GridCell: View {
                 VStack(spacing: 0) {
                     Image(uiImage: webCache.snapshotImage)
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: geo.size.height * cellImageHeightRatio)
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geo.size.width, height: geo.size.height * cellImageHeightRatio)
                         .cornerRadius(gridcellCornerR)
                         .overlay(RoundedRectangle(cornerRadius: 10)
                             .stroke(Color.dwebTint, lineWidth: 2)

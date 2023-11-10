@@ -58,15 +58,8 @@ struct BrowserView: View {
                 }
                 .onChange(of: geometry.frame(in: .global)) { frame in
                     wndArea.frame = frame
-                    print("window rect:(\(frame.origin)), (\(frame.size))")
+//                    Log("window rect:(\(frame.origin)), (\(frame.size))")
                 }
-            }
-            .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
-                SheetSegmentView(isShowingWeb: showWeb())
-                    .environmentObject(selectedTab)
-                    .environmentObject(openingLink)
-                    .environmentObject(webcacheStore)
-                    .environmentObject(dragScale)
             }
             .environment(\.colorScheme, colorScheme)
             .onReceive(KmpBridgeManager.shared.eventPublisher.filter{$0.name == KmpEvent.colorScheme}) { e in

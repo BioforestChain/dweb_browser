@@ -27,7 +27,7 @@ struct InnerAppGridView: View {
             LazyVGrid(columns: columns, spacing: 20) {
                 ForEach(appMgr.apps) { app in
                     Button {
-                        print("opneing an app")
+                        Log("opneing an app")
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                         BridgeManager.shared.clickApp(appUrl: app.link)
                     } label: {

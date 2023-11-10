@@ -110,7 +110,7 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
 """
 extension BrowserWebview: WKScriptMessageHandler, WKNavigationDelegate {
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        print("messageHandler: \(message.body as! String)")
+        Log("messageHandler: \(message.body as! String)")
         if let value = message.body as? String {
             icon = NSString(string: value.isEmpty ? URL.defaultWebIconURL.absoluteString : value)
         }
@@ -135,7 +135,7 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
         self.webView = BridgeManager.webviewGenerator?(nil) ?? BrowserWebview()
 //        self.webView = BrowserWebview()
         self.id = cacheID
-        print("making a WebWrapper: \(self)")
+        Log("making a WebWrapper: \(self)")
 
         setupObservers()
     }
@@ -197,7 +197,7 @@ struct WebView: View, UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: BrowserWebview, context: UIViewRepresentableContext<WebView>) {
-        printWithDate("visiting updateUIView function")
+        Log("visiting updateUIView function")
     }
 
     func makeCoordinator() -> Coordinator {
@@ -214,7 +214,7 @@ struct WebView: View, UIViewRepresentable {
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
             let verticalOffset = scrollView.contentOffset.y
             // 处理滚动距离的逻辑
-            print("Vertical Offset: \(verticalOffset)")
+            Log("Vertical Offset: \(verticalOffset)")
         }
     }
 }

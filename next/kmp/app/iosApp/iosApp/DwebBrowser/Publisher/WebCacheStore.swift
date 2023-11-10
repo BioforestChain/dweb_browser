@@ -128,7 +128,7 @@ class WebCacheStore: ObservableObject {
         }
         
         $caches.sink { [weak self] webCaches in
-                print("caches titles \(webCaches.map { $0.title })")
+                Log("caches titles \(webCaches.map { $0.title })")
                 let cacheIds = webCaches.map { $0.id }
                 let newStore = cacheIds.map {
                     self?.webWrapper(of: $0) ?? WebWrapper(cacheID: $0)
@@ -165,7 +165,7 @@ class WebCacheStore: ObservableObject {
     var saveCacheTimes = 0
     func saveCaches() {
         saveCacheTimes += 1
-        print("have saved times: \(saveCacheTimes)")
+        Log("have saved times: \(saveCacheTimes)")
         let data = try? JSONEncoder().encode(caches)
         UserDefaults.standard.set(data, forKey: userdefaultKey)
     }

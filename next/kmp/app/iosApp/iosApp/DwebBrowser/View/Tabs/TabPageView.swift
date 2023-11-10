@@ -73,25 +73,20 @@ struct TabPageView: View {
                         animation.snapshotImage = UIImage.snapshotImage(from: .defaultSnapshotURL)
                         afterGetSnapshot()
                     } else {
-                        self
-                            .environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation)
-                            .environmentObject(openingLink).environmentObject(addressBar).environmentObject(webcacheStore)
-                            .takeSnapshot(completion: { image in
-                                printWithDate("has took a snapshot")
-                                let scale = image.scale
-                                let snapshotAvailabeHeight = browerArea.frame.height - dragScale.addressbarHeight
-                                let isFullWidth = (browerArea.frame.width / snapshotAvailabeHeight) < cellWHratio
-                                let width = (isFullWidth ? browerArea.frame.width : snapshotAvailabeHeight * cellWHratio) * scale
-                                let height = (isFullWidth ? geo.size.width / cellWHratio : snapshotAvailabeHeight) * scale * cellImageHeightRatio
-                                var cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: width, height: height)
-
-                                if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
-                                    let croppedImage = UIImage(cgImage: croppedCGImage)
-                                    animation.snapshotImage = croppedImage
-                                    webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
-                                }
+                        webWrapper.webView.scrollView.showsVerticalScrollIndicator = false
+                        webWrapper.webView.scrollView.showsHorizontalScrollIndicator = false
+                        webWrapper.webView.takeSnapshot(with: nil) { image, error in
+                            webWrapper.webView.scrollView.showsVerticalScrollIndicator = true
+                            webWrapper.webView.scrollView.showsHorizontalScrollIndicator = true
+                            guard let img = image else {
+                                animation.snapshotImage = UIImage.snapshotImage(from: .defaultSnapshotURL)
                                 afterGetSnapshot()
-                            })
+                                return
+                            }
+                            animation.snapshotImage = img
+                            webCache.snapshotUrl = UIImage.createLocalUrl(withImage: img, imageName: webCache.id.uuidString)
+                            afterGetSnapshot()
+                        }
                     }
                 }
             }

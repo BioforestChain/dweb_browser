@@ -60,7 +60,7 @@ func isLink(urlString: String) -> Bool {
             return true
         }
     } catch {
-        print(error.localizedDescription)
+        Log(error.localizedDescription)
     }
     
     return false

@@ -10,19 +10,6 @@ import SwiftUI
 import UIKit
 import WebKit
 
-func printWithDate(_ msg: String = "") {
-    let date = Date()
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
-    let dateString = formatter.string(from: date)
-//#if DwebBrowser
-    print("~~~~" + dateString + "--" + msg)
-//#else
-    ConsoleSwift.log("~~~~" + dateString + "--" + msg)
-//#endif
-
-}
-
 extension View {
     func snapshot() -> UIImage? {
         // 创建UIView
