@@ -2,7 +2,7 @@
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MicroModule, $MMID } from "@dweb-browser/desktop/core/types.ts";
-import type { $RunMainConfig } from "../main/index.ts";
+import type { $RunMainConfig } from "../main/index.module.ts";
 
 import { $normalizeRequestInitAsIpcRequestArgs } from "@dweb-browser/desktop/core/helper/ipcRequestHelper.ts";
 import { $Callback, createSignal } from "@dweb-browser/desktop/helper/createSignal.ts";
