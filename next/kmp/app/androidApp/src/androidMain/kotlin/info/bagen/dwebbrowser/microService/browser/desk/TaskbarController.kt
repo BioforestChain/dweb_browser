@@ -21,7 +21,7 @@ class TaskbarController(
   private val runningApps: ChangeableMap<MMID, RunningApp>
 ) {
   val taskbarView = TaskbarView(this)
-  val taskbarStore = TaskbarStore(deskNMM)
+  private val taskbarStore = TaskbarStore(deskNMM)
 
   /** 展示在taskbar中的应用列表 */
   private suspend fun getTaskbarShowAppList() = taskbarStore.getApps()
@@ -42,11 +42,13 @@ class TaskbarController(
       runningApps.onChange { map ->
         /// 将新增的打开应用追加到列表签名
         for (mmid in map.origin.keys) {
-          if (!apps.contains(mmid)) {
-            apps.add(0, mmid) // 追加到第一个
-          }
+          apps.remove(mmid)
+          apps.add(0, mmid) // 追加到第一个
         }
-
+        // 只展示4个，结合返回桌面的一个tarBar有5个图标
+        if (apps.size > 4) {
+          apps.removeLastOrNull()
+        }
         /// 保存到数据库
         taskbarStore.setApps(apps)
         updateSignal.emit()
