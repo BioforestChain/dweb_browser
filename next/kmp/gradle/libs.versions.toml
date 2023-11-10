@@ -51,9 +51,6 @@ camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
 jetbrains-compose-version = "1.5.10"
 
-# kotlin native C库编译
-cklib-version = "0.2.5"
-
 # webrtc-kmp
 webrtc-kmp-version = "0.114.4"
 
@@ -199,6 +196,5 @@ kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", 
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 kspAndroid = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "jetbrains-compose-version" }
-cklib = { id = "co.touchlab.cklib", version.ref = "cklib-version" }
 
 [bundles]
