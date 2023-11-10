@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools">
+
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+  <application>
+    <activity
+      android:name=".desk.DesktopActivity"
+      android:exported="true"
+      android:launchMode="singleTask"
+      android:screenOrientation="portrait"
+      android:theme="@style/Theme.dwebbrowser"
+      tools:ignore="LockedOrientationActivity" />
+    <!--      android:windowSoftInputMode="adjustResize"-->
+    <activity
+      android:name=".desk.TaskbarActivity"
+      android:exported="true"
+      android:theme="@style/Theme.DwebBrowser.Transparent" />
+  </application>
+</manifest> 

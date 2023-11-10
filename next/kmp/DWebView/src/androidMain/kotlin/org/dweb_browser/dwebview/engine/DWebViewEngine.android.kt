@@ -21,6 +21,7 @@ import androidx.lifecycle.lifecycleScope
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -105,21 +106,22 @@ class DWebViewEngine(
   private var readyHelper: DWebViewClient.ReadyHelper? = null
 
   private val readyHelperLock = Mutex()
-  suspend fun onReady(cb: SimpleCallback) {
-    val readyHelper = readyHelperLock.withLock {
-      if (readyHelper == null) {
-        DWebViewClient.ReadyHelper().also {
-          readyHelper = it
-          withMainContext {
-            dWebViewClient.addWebViewClient(it)
-          }
-          it.afterReady {
-            debugDWebView("READY")
-          }
+  internal suspend fun getReadyHelper() = readyHelperLock.withLock {
+    if (readyHelper == null) {
+      DWebViewClient.ReadyHelper().also {
+        readyHelper = it
+        withMainContext {
+          dWebViewClient.addWebViewClient(it)
         }
-      } else readyHelper!!
-    }
-    readyHelper.afterReady(cb)
+        it.afterReady {
+          debugDWebView("READY")
+        }
+      }
+    } else readyHelper!!
+  }
+
+  suspend fun onReady(cb: SimpleCallback) {
+    getReadyHelper().afterReady(cb)
   }
 
   suspend fun waitReady() {
@@ -468,7 +470,7 @@ class DWebViewEngine(
 
   private var _destroyed = false
   private var _destroySignal = SimpleSignal();
-  fun onDestroy(cb: SimpleCallback) = _destroySignal.listen(cb)
+  val onDestroy = _destroySignal.toListener()
   override fun destroy() {
     if (_destroyed) {
       return

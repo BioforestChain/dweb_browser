@@ -10,7 +10,7 @@ import platform.Foundation.NSString
 import platform.Foundation.create
 
 class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMessagePort {
-  private val onMessageSignal = Signal<IMessageEvent>()
+  private val onMessageSignal = Signal<DWebMessage>()
 
   init {
     DWebViewWebMessage.allPorts[portId] = this
@@ -42,8 +42,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
     }
   }
 
-  override suspend fun postMessage(event: IMessageEvent) {
-    require(event is MessageEvent)
+  override suspend fun postMessage(event: DWebMessage) {
     withMainContext {
       val ports = event.ports.map {
         it.portId
@@ -64,4 +63,4 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
 data class MessageEvent(
   override val data: String,
   override val ports: List<DWebMessagePort> = emptyList()
-) : IMessageEvent
+) : DWebMessage

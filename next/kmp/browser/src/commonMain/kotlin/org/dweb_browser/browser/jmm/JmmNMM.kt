@@ -2,6 +2,8 @@ package org.dweb_browser.browser.jmm
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -35,13 +37,18 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     /// 提供JsMicroModule的文件适配器
     /// 这个适配器不需要跟着bootstrap声明周期，只要存在JmmNMM模块，就能生效
     nativeFetchAdaptersManager.append { fromMM, request ->
+      val usrRootMap = mutableMapOf<String, Deferred<String>>()
       return@append request.respondLocalFile {
         if (filePath.startsWith("/usr/")) {
-          debugJMM("UsrFile", "$fromMM => ${request.href} file=> ${fromMM.mmid}-${fromMM.version}")
-          returnFile(
-            nativeFetch("file://file.std.dweb/realPath?path=/data/apps/${fromMM.mmid}-${fromMM.version}").text(),
-            filePath
-          )
+          val rootKey = "${fromMM.mmid}-${fromMM.version}"
+          debugJMM("UsrFile", "$fromMM => ${request.href} in $rootKey")
+          val root = usrRootMap.getOrPut(rootKey) {
+            fromMM.ioAsyncScope.async {
+              this@JmmNMM.nativeFetch("file://file.std.dweb/realPath?path=/data/apps/${fromMM.mmid}-${fromMM.version}")
+                .text()
+            }
+          }.await()
+          returnFile(root, filePath)
         } else returnNext()
       }
     }

@@ -65,18 +65,6 @@
         android:resource="@xml/shortcuts" />
     </activity>
     <activity
-      android:name=".microService.browser.desk.DesktopActivity"
-      android:exported="true"
-      android:launchMode="singleTask"
-      android:screenOrientation="portrait"
-      android:theme="@style/Theme.dwebbrowser"
-      tools:ignore="LockedOrientationActivity" />
-    <!--      android:windowSoftInputMode="adjustResize"-->
-    <activity
-      android:name=".microService.browser.desk.TaskbarActivity"
-      android:exported="true"
-      android:theme="@style/Theme.DwebBrowser.Transparent" />
-    <activity
       android:name=".microService.sys.deepLink.DeepLinkActivity"
       android:exported="true"
       android:launchMode="singleTask"

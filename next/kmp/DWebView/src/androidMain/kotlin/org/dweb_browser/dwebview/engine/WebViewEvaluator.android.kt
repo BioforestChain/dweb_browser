@@ -11,7 +11,6 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.AsyncChannel
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.helper.runBlockingCatching
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -87,9 +86,9 @@ class WebViewEvaluator(
                 .catch(err=>$JS_ASYNC_KIT.reject($id,String(err)));
             """.trimMargin()
       ) {
-        runBlockingCatching {
+        ioAsyncScope.launch {
           afterEval()
-        }.getOrNull()
+        }
       };
 
     }

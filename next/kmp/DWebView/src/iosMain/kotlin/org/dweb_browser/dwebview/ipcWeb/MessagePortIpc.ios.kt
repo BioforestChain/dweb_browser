@@ -4,21 +4,14 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.ipc.helper.IPC_ROLE
-import org.dweb_browser.core.ipc.helper.IpcMessage
-import org.dweb_browser.core.ipc.helper.IpcMessageArgs
-import org.dweb_browser.core.ipc.helper.jsonToIpcMessage
 import org.dweb_browser.dwebview.DWebMessagePort
-import org.dweb_browser.dwebview.IWebMessagePort
-import org.dweb_browser.dwebview.MessageEvent
+import org.dweb_browser.dwebview.DWebMessage
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.withMainContext
-import platform.Foundation.NSString
 
 class MessagePort private constructor(private val port: DWebMessagePort) : IMessagePort {
   companion object {
@@ -51,7 +44,7 @@ class MessagePort private constructor(private val port: DWebMessagePort) : IMess
   }
 
   suspend fun postMessage(data: String, ports: List<DWebMessagePort>) = withMainContext {
-    port.postMessage(MessageEvent(data, ports))
+    port.postMessage(DWebMessage(data, ports))
   }
 
   private var _isClosed = false
@@ -67,32 +60,32 @@ class MessagePort private constructor(private val port: DWebMessagePort) : IMess
   }
 }
 
-open class MessagePortIpc(
-  override val port: MessagePort,
-  override val remote: IMicroModuleManifest,
-  private val roleType: IPC_ROLE,
-) : DMessagePortIpc(port, remote, roleType) {
-  companion object {
-    fun from(
-      port: IWebMessagePort, remote: IMicroModuleManifest, roleType: IPC_ROLE
-    ) = DMessagePortIpc(IMessagePort.from(port), remote, roleType)
-  }
-
-  init {
-    port.onWebMessage { event ->
-      val ipc = this@MessagePortIpc
-      when (val message = jsonToIpcMessage((event.data as NSString).toString(), ipc)) {
-        "close" -> close()
-        "ping" -> port.postMessage("pong")
-        "pong" -> debugMessagePortIpc("PONG", "$ipc")
-        is IpcMessage -> {
-          debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
-          _messageSignal.emit(IpcMessageArgs(message, ipc))
-        }
-
-        else -> throw Exception("unknown message: $message")
-      }
-    }.removeWhen(onDestroy)
-  }
-}
-
+//open class MessagePortIpc(
+//  override val port: MessagePort,
+//  override val remote: IMicroModuleManifest,
+//  private val roleType: IPC_ROLE,
+//) : MessagePortIpc(port, remote, roleType) {
+//  companion object {
+//    fun from(
+//      port: IWebMessagePort, remote: IMicroModuleManifest, roleType: IPC_ROLE
+//    ) = MessagePortIpc(IMessagePort.from(port), remote, roleType)
+//  }
+//
+//  init {
+//    port.onWebMessage { event ->
+//      val ipc = this@MessagePortIpc
+//      when (val message = jsonToIpcMessage((event.data as NSString).toString(), ipc)) {
+//        "close" -> close()
+//        "ping" -> port.postMessage("pong")
+//        "pong" -> debugMessagePortIpc("PONG", "$ipc")
+//        is IpcMessage -> {
+//          debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
+//          _messageSignal.emit(IpcMessageArgs(message, ipc))
+//        }
+//
+//        else -> throw Exception("unknown message: $message")
+//      }
+//    }.removeWhen(onDestroy)
+//  }
+//}
+//

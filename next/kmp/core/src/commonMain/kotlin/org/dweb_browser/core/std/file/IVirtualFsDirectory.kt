@@ -43,6 +43,11 @@ fun commonVirtualFsDirectoryFactory(firstSegment: String, nativeFsPath: String) 
 
 
 /**
+ * 获取应用内部目录
+ */
+expect fun FileNMM.Companion.getApplicationRootDir(): Path
+
+/**
  * 持久化数据
  */
 expect fun FileNMM.getDataVirtualFsDirectory(): IVirtualFsDirectory

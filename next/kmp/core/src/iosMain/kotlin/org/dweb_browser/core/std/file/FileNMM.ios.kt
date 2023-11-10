@@ -1,22 +1,21 @@
 package org.dweb_browser.core.std.file
 
-import org.dweb_browser.helper.randomUUID
+import okio.Path.Companion.toPath
 import platform.Foundation.NSApplicationDirectory
 import platform.Foundation.NSCachesDirectory
-import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
-import platform.Foundation.NSFileManager
 
 
+actual fun FileNMM.Companion.getApplicationRootDir() = NSSearchPathForDirectoriesInDomains(
+  NSApplicationDirectory, NSUserDomainMask, true
+).first().toString().toPath()
 
 /**
  * 持久化数据
  */
 actual fun FileNMM.getDataVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
-  "data", NSSearchPathForDirectoriesInDomains(
-    NSApplicationDirectory, NSUserDomainMask, true
-  ).first().toString()
+  "data", FileNMM.Companion.getApplicationRootDir().resolve("data")
 )
 
 /**

@@ -1,25 +1,14 @@
 package org.dweb_browser.browser.jsProcess
 
+//import org.dweb_browser.core.module.getAppContext
+//import org.dweb_browser.dwebview.engine.DWebViewEngine
 import io.ktor.http.HttpMethod
 import io.ktor.http.fullPath
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-//import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.dwebview.DWebViewOptions
-//import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.build
-import org.dweb_browser.helper.encodeURI
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureRequest
@@ -28,10 +17,18 @@ import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.closeHttpDwebServer
 import org.dweb_browser.core.std.http.createHttpDwebServer
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.build
+import org.dweb_browser.helper.encodeURI
+import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.helper.runBlockingCatching
 
 fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("js-process", tag, msg, err)
@@ -179,7 +176,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
 
   private suspend fun createProcessAndRun(
     ipc: Ipc,
-    apis: IJsProcessWebApi,
+    apis: JsProcessWebApi,
     bootstrapUrl: String,
     entry: String?,
     requestMessage: PureRequest,
@@ -227,7 +224,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         /// TODO 对代码进行翻译处理
         streamIpc.request(request.toRequest()).let {
           /// 加入跨域配置
-          var response = it;
+          val response = it;
           for ((key, value) in JS_CORS_HEADERS) {
             response.headers.apply { set(key, value) }
           }
@@ -302,13 +299,13 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
   )
 
   private suspend fun createIpc(
-    ipc: Ipc, apis: IJsProcessWebApi, process_id: Int, mmid: MMID
+    ipc: Ipc, apis: JsProcessWebApi, process_id: Int, mmid: MMID
   ): Int {
     return apis.createIpc(process_id, mmid)
   }
 
   private suspend fun closeAllProcessByIpc(
-    apis: IJsProcessWebApi,
+    apis: JsProcessWebApi,
     ipcProcessIdMap: MutableMap<String, MutableMap<String, PromiseOut<Int>>>,
     mmid: MMID
   ): Boolean {

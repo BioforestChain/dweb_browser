@@ -54,6 +54,7 @@ kotlin {
     implementation(project(":helper"))
     implementation(project(":core"))
     implementation(project(":helperPlatform"))
+    implementation(project(":reverse_proxy"))
   }
   sourceSets.commonTest.dependencies {
     implementation(kotlin("test"))
@@ -84,4 +85,5 @@ android {
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()
   }
+  sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 }

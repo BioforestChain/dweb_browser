@@ -1,13 +1,17 @@
 package org.dweb_browser.core.std.file
 
 import okio.Path.Companion.toPath
+import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
+
+actual fun FileNMM.Companion.getApplicationRootDir() =
+  NativeMicroModule.Companion.getAppContext().dataDir.absolutePath.toPath()
 
 /**
  * 持久化数据
  */
 actual fun FileNMM.getDataVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
-  "data", "${getAppContext().dataDir.absolutePath}/data".toPath()
+  "data", FileNMM.Companion.getApplicationRootDir().resolve("data")
 )
 
 /**

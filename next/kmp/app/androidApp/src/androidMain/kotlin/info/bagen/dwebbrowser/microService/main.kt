@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.microService
 
 import android.webkit.WebView
-import info.bagen.dwebbrowser.microService.browser.desk.DeskNMM
 import info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
@@ -13,6 +12,7 @@ import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import org.dweb_browser.sys.toast.ToastNMM
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM

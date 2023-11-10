@@ -4,7 +4,7 @@ import android.webkit.WebMessagePort
 
 class DWebMessageChannel internal constructor(
   webMessageChannel: Array<WebMessagePort>,
-) : IMessageChannel {
+) : IWebMessageChannel {
   override val port1: DWebMessagePort = DWebMessagePort.from(webMessageChannel[0])
   override val port2: DWebMessagePort = DWebMessagePort.from(webMessageChannel[1])
 }

@@ -103,7 +103,7 @@ internal class DWebViewWebMessage(val webview: DWebView) {
 
           val messageScope = CoroutineScope(CoroutineName("webMessage") + defaultAsyncExceptionHandler)
           messageScope.launch {
-            originPort.onMessage.signal.emit(MessageEvent(data, ports))
+            originPort.onMessage.signal.emit(DWebMessage(data, ports))
           }
         }
       } catch(_: Throwable) {}

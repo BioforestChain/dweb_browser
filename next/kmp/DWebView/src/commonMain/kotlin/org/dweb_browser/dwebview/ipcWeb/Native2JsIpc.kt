@@ -1,13 +1,13 @@
 package org.dweb_browser.dwebview.ipcWeb
 
-import android.webkit.WebMessagePort
 import kotlinx.atomicfu.atomic
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
+import org.dweb_browser.dwebview.IWebMessagePort
 
 val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, MessagePort>();
 private var all_ipc_id_acc = atomic(1);
-suspend fun saveNative2JsIpcPort(port: WebMessagePort) =
+suspend fun saveNative2JsIpcPort(port: IWebMessagePort) =
   all_ipc_id_acc.getAndAdd(1).also { portId ->
     ALL_MESSAGE_PORT_CACHE[portId] = MessagePort.from(port);
   }

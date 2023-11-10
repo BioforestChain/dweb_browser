@@ -10,13 +10,13 @@ const chalk = new Chalk({ level: 3 });
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
 const absWorkingDir = resolveTo("../build/server");
-
+console.log("absWorkingDir", absWorkingDir);
 export const prod = new ESBuild({
   absWorkingDir,
   splitting: true,
   entryPoints: {
-    "plaoc.server": "src/server/index.ts",
-    "urlpattern.polyfill": "src/server/helper/urlpattern.polyfill.ts",
+    "plaoc.server": "src/index.ts",
+    "urlpattern.polyfill": "src/helper/urlpattern.polyfill.ts",
   }, //[, "src/server/helper/urlpattern.polyfill.ts"],
   // outfile: "../../dist/server/plaoc.server.js",
   outdir: "../../dist/server",
@@ -28,8 +28,11 @@ export const prod = new ESBuild({
 });
 export const dev = new ESBuild({
   absWorkingDir,
-  entryPoints: ["/src/server/index.ts"],
-  outfile: "dist/server/plaoc.server.dev.js",
+  entryPoints: {
+    "plaoc.server.dev": "src/server/index.ts",
+    "urlpattern.polyfill": "src/server/helper/urlpattern.polyfill.ts",
+  },
+  outdir: "../../dist/server",
   plugins: [
     {
       name: "use-(dev)-ext",

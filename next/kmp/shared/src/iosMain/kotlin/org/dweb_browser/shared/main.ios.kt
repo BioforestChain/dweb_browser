@@ -30,11 +30,10 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.DWebViewOptions
-import org.dweb_browser.dwebview.MessageEvent
+import org.dweb_browser.dwebview.DWebMessage
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.withMainContext
-import org.dweb_browser.shared.*
 import org.dweb_browser.sys.*
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -245,7 +244,7 @@ fun PreviewWindowDWebViewContent(
                 var i = 0
                 while (i++ < 5) {
                   println("postMessage $i")
-                  channel.port1.postMessage(MessageEvent("你好$i"))
+                  channel.port1.postMessage(DWebMessage("你好$i"))
                   delay(100)
                   if (i > 3) {
                     channel.port2.start()
