@@ -15,6 +15,9 @@ struct BrowserView: View {
     @StateObject var toolBarState = ToolBarState()
     @StateObject var webcacheStore = WebCacheStore()
     @StateObject var dragScale = WndDragScale()
+    
+    private let maxWidth: CGFloat = 350
+    private let maxHeight: CGFloat = 430
 
     @Binding var size: CGSize
     var body: some View {
@@ -35,13 +38,14 @@ struct BrowserView: View {
                 .environmentObject(toolBarState)
                 .environmentObject(dragScale)
             }
-            .frame(width: size.width, height: size.height)
+            .frame(width: size.width > maxWidth ? maxWidth : size.width, height: size.height > maxHeight ? maxHeight : size.height)
 
             .onAppear {
                 dragScale.onWidth = (geometry.size.width - 10) / screen_width
             }
             .onChange(of: size) { newSize in
-                dragScale.onWidth = (newSize.width - 10) / screen_width
+                let width = newSize.width > maxWidth ? maxWidth : newSize.width
+                dragScale.onWidth = (width - 10) / screen_width
             }
         }
         .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
@@ -50,6 +54,7 @@ struct BrowserView: View {
                 .environmentObject(openingLink)
                 .environmentObject(webcacheStore)
                 .environmentObject(dragScale)
+                .environmentObject(toolBarState)
         }
     }
 

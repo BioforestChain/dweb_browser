@@ -11,6 +11,7 @@ struct HistoryCell: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var dragScale: WndDragScale
+    @EnvironmentObject var toolBarState: ToolBarState
     
     var linkRecord: LinkRecord
     var isLast: Bool
@@ -33,7 +34,6 @@ struct HistoryCell: View {
             .padding(.horizontal,16)
             .frame(height: dragScale.properValue(floor: 32, ceiling: 60))
             
-            
             .overlay(
                 Divider().frame(width: dividerWidth, height: 0.5), // 添加分割线视图
                 alignment: .bottom // 对齐到底部
@@ -48,7 +48,8 @@ struct HistoryCell: View {
                  .onTapGesture {
                      guard let link = URL(string: linkRecord.link) else { return }
                      openingLink.clickedLink = link
-                     presentationMode.wrappedValue.dismiss()
+                     toolBarState.showMoreMenu = false
+//                     presentationMode.wrappedValue.dismiss()
                  }
         }
         .background(Color.menubkColor)

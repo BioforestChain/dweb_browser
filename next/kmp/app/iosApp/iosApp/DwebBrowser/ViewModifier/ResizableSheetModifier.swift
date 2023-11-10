@@ -23,43 +23,48 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                         startOffsetY = wndHeight
                     }
                     .overlay {
-                        sheetView
-                            .frame(height: sheetHeight)
-                            .cornerRadius(10)
-                            .padding(.horizontal, 4)
-                            .offset(y: startOffsetY)
-                            .offset(y: curDragOffsetY)
-
-                            .onChange(of: isPresented, perform: { _ in
-                                if isPresented {
-                                    withAnimation(.spring()) {
-                                        startOffsetY = 0
+                            sheetView
+                                .frame(height: sheetHeight)
+                                .cornerRadius(10)
+                                .padding(.horizontal, 4)
+                                .offset(y: startOffsetY)
+                                .offset(y: curDragOffsetY)
+                            
+                                .onChange(of: isPresented, perform: { _ in
+                                    if isPresented {
+                                        withAnimation(.spring()) {
+                                            startOffsetY = 0
+                                        }
+                                    } else {
+                                        withAnimation(.spring()) {
+                                            curDragOffsetY = 0
+                                            startOffsetY = wndHeight
+                                        }
                                     }
-                                }
-                            })
-                            .gesture(
-                                DragGesture()
-                                    .onChanged { value in
-                                        if value.startLocation.y < 30 {
-                                            if value.translation.height < 0 {
-                                                curDragOffsetY = 0
-                                            } else {
-                                                withAnimation(.spring()) {
-                                                    curDragOffsetY = value.translation.height
+                                })
+                                .gesture(
+                                    DragGesture()
+                                        .onChanged { value in
+                                            if value.startLocation.y < 30 {
+                                                if value.translation.height < 0 {
+                                                    curDragOffsetY = 0
+                                                } else {
+                                                    withAnimation(.spring()) {
+                                                        curDragOffsetY = value.translation.height
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
-                                    .onEnded { _ in
-                                        withAnimation(.spring()) {
-                                            if curDragOffsetY > 50 {
-                                                startOffsetY = wndHeight
-                                                isPresented = false
+                                        .onEnded { _ in
+                                            withAnimation(.spring()) {
+                                                if curDragOffsetY > 50 {
+                                                    startOffsetY = wndHeight
+                                                    isPresented = false
+                                                }
+                                                curDragOffsetY = 0
                                             }
-                                            curDragOffsetY = 0
-                                        }
-                                    })
-                    }
+                                        })
+                        }
             }
         }
     }
