@@ -19,12 +19,10 @@ import android.webkit.WebViewClient
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import io.ktor.utils.io.jvm.javaio.toInputStream
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
@@ -33,8 +31,6 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.debugDWebView
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -85,7 +81,7 @@ class DWebViewEngine(
    */
   context: Context,
   /// 这两个参数是用来实现请求拦截与转发的
-  private val remoteMM: MicroModule,
+  internal val remoteMM: MicroModule,
   /**
    * 一些DWebView自定义的参数
    */
@@ -102,35 +98,13 @@ class DWebViewEngine(
     }
   }
 
-  internal val mainScope = MainScope()
-  private var readyHelper: DWebViewClient.ReadyHelper? = null
-
-  private val readyHelperLock = Mutex()
-  internal suspend fun getReadyHelper() = readyHelperLock.withLock {
-    if (readyHelper == null) {
-      DWebViewClient.ReadyHelper().also {
-        readyHelper = it
-        withMainContext {
-          dWebViewClient.addWebViewClient(it)
-        }
-        it.afterReady {
-          debugDWebView("READY")
-        }
-      }
-    } else readyHelper!!
-  }
-
-  suspend fun onReady(cb: SimpleCallback) {
-    getReadyHelper().afterReady(cb)
-  }
+  internal val scope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
 
   suspend fun waitReady() {
-    val readyPo = PromiseOut<Unit>()
-    onReady { readyPo.resolve(Unit) }
-    readyPo.waitPromise()
+    dWebViewClient.onReady.awaitOnce()
   }
 
-  internal val evaluator = WebViewEvaluator(this, mainScope)
+  private val evaluator = WebViewEvaluator(this, scope)
   suspend fun getUrlInMain() = withMainContext { url }
 
   /**
@@ -155,12 +129,17 @@ class DWebViewEngine(
   private val closeSignal = SimpleSignal()
   val onCloseWindow = closeSignal.toListener()
 
-  val dWebViewClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    DWebViewClient().also {
-      it.addWebViewClient(internalWebViewClient)
-      super.setWebViewClient(it)
+  internal val dWebViewClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    DWebViewClient(this).also {
+      scope.launch {
+        withMainContext {
+          it.addWebViewClient(internalWebViewClient)
+          super.setWebViewClient(it)
+        }
+      }
     }
   }
+
   private val internalWebViewClient = object : WebViewClient() {
     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
       if (!isWebUrlScheme(request.url.scheme ?: "http")) {
@@ -232,7 +211,7 @@ class DWebViewEngine(
     dWebViewClient.addWebViewClient(client)
   }
 
-  val dWebChromeClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  internal val dWebChromeClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     DWebChromeClient().also {
       it.addWebChromeClient(internalWebChromeClient)
       super.setWebChromeClient(it)
@@ -329,7 +308,7 @@ class DWebViewEngine(
 
 
     override fun onCloseWindow(window: WebView?) {
-      mainScope.launch {
+      scope.launch {
         closeSignal.emit()
       }
       super.onCloseWindow(window)
@@ -481,7 +460,7 @@ class DWebViewEngine(
     runBlockingCatching {
       _destroySignal.emitAndClear(Unit)
     }.getOrNull()
-    mainScope.cancel()
+    scope.cancel()
   }
 
   override fun onDetachedFromWindow() {

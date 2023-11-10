@@ -98,16 +98,16 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
   /**
    * Child 采用独立的实现，从而避开 clear 的影响
    */
-  private data class Child<Args, R>(
+  private data class Child<Args, F : Any, R>(
     val parentSignal: Signal<Args>,
     val childSignal: Signal<R>,
-    val filter: (Args) -> Boolean,
-    val map: (Args) -> R
+    val filter: (Args) -> F?,
+    val map: (F) -> R
   )
 
-  private val children = mutableMapOf<Signal<*>, Child<Args, *>>()
+  private val children = mutableMapOf<Signal<*>, Child<Args, *, *>>()
 
-  fun <R> createChild(filter: (Args) -> Boolean, map: (Args) -> R) =
+  fun <F : Any, R> createChild(filter: (Args) -> F?, map: (F) -> R) =
     Child(this, Signal(), filter, map).also {
       synchronized(this) {
         children[it.childSignal] = it
@@ -158,9 +158,13 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
 
     for (child in childList) {
       try {
-        if (child.filter(args)) {
-          val childArgs = child.map(args)
-          (child.childSignal as Signal<Any?>).emit(childArgs);
+
+        when (val f = child.filter(args)) {
+          null -> {}
+          else -> {
+            val childArgs = (child.map as (Any) -> Any?)(f)
+            (child.childSignal as Signal<Any?>).emit(childArgs);
+          }
         }
       } catch (e: Throwable) {
         e.printStackTrace()
@@ -196,8 +200,8 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
 
   class Listener<Args>(val signal: Signal<Args>) {
     operator fun invoke(cb: Callback<Args>) = signal.listen(cb)
-    fun <R> createChild(
-      filter: (Args) -> Boolean, map: (Args) -> R
+    fun <F : Any, R> createChild(
+      filter: (Args) -> F?, map: (F) -> R
     ) = signal.createChild(filter, map).toListener()
 
     fun toFlow() = signal.toFlow()

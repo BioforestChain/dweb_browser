@@ -69,7 +69,9 @@ abstract class WindowController(
     filter: (WindowState.(Observable.Change<WindowPropertyKeys, *>) -> Boolean)? = null,
     map: (Observable.Change<WindowPropertyKeys, *>) -> R
   ) = state.observable.changeSignal.createChild(
-    { (it.key == key) && (filter?.invoke(state, it) != false) }, map
+    {
+      if ((it.key == key) && (filter?.invoke(state, it) != false)) it else null
+    }, map
   ).toListener()
 
   val onFocus =

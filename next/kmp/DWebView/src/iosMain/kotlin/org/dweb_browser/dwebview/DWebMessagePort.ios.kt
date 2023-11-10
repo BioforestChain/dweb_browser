@@ -45,6 +45,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
   override suspend fun postMessage(event: DWebMessage) {
     withMainContext {
       val ports = event.ports.map {
+        require(it is DWebMessagePort)
         it.portId
       }.joinToString(",")
       webview.evalAsyncJavascript<Unit>(
@@ -59,8 +60,3 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
 
   override val onMessage = onMessageSignal.toListener()
 }
-
-data class MessageEvent(
-  override val data: String,
-  override val ports: List<DWebMessagePort> = emptyList()
-) : DWebMessage

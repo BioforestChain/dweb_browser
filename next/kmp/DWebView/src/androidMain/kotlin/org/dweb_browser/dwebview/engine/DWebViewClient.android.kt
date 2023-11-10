@@ -14,13 +14,17 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import kotlinx.coroutines.runBlocking
-import org.dweb_browser.helper.SimpleCallback
-import org.dweb_browser.helper.SimpleSignal
+import kotlinx.coroutines.launch
+import org.dweb_browser.dwebview.WebLoadErrorState
+import org.dweb_browser.dwebview.WebLoadSuccessState
+import org.dweb_browser.dwebview.WebViewState
+import org.dweb_browser.dwebview.toReadyListener
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
 
-class DWebViewClient : WebViewClient() {
+class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
+  private val scope get() = engine.remoteMM.ioAsyncScope
   private val extends = Extends<WebViewClient>()
   fun addWebViewClient(client: WebViewClient, config: Extends.Config = Extends.Config()) =
     extends.add(client, config)
@@ -30,18 +34,6 @@ class DWebViewClient : WebViewClient() {
 
   private fun inners(methodName: String) = extends.hasMethod(methodName)
 //        .also { debugDWebView("WebViewClient", "calling method: $methodName") }
-
-
-  class ReadyHelper : WebViewClient() {
-    private val readySignal = SimpleSignal()
-    fun afterReady(cb: SimpleCallback) = readySignal.listen(cb)
-    override fun onPageFinished(view: WebView?, url: String?) {
-      super.onPageFinished(view, url)
-      runBlocking {
-        readySignal.emit()
-      }
-    }
-  }
 
 
   override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
@@ -62,15 +54,23 @@ class DWebViewClient : WebViewClient() {
     )
   }
 
-  override fun onPageCommitVisible(view: WebView?, url: String?) {
+  override fun onPageCommitVisible(view: WebView, url: String) {
     inners("onPageCommitVisible").forEach { it.onPageCommitVisible(view, url) }
   }
 
+  val onStateChangeSignal = Signal<WebViewState>()
+  val onReady by lazy { onStateChangeSignal.toReadyListener() }
   override fun onPageFinished(view: WebView?, url: String?) {
+    scope.launch {
+      onStateChangeSignal.emit(WebLoadSuccessState(url ?: "about:blank"))
+    }
     inners("onPageFinished").forEach { it.onPageFinished(view, url) }
   }
 
   override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+    scope.launch {
+      onStateChangeSignal.emit(WebLoadSuccessState(url ?: "about:blank"))
+    }
     inners("onPageStarted").forEach { it.onPageStarted(view, url, favicon) }
   }
 
@@ -82,6 +82,14 @@ class DWebViewClient : WebViewClient() {
   override fun onReceivedError(
     view: WebView?, request: WebResourceRequest?, error: WebResourceError?
   ) {
+    scope.launch {
+      onStateChangeSignal.emit(
+        WebLoadErrorState(
+          view?.url ?: "about:blank",
+          error?.let { "[${it.errorCode}]${it.description}" } ?: ""
+        )
+      )
+    }
     inners("onReceivedError").one { it.onReceivedError(view, request, error) }
       ?: super.onReceivedError(
         view, request, error

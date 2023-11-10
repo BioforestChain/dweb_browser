@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class WebViewEvaluator(
   val webView: WebView,
-  val ioAsyncScope: CoroutineScope
+  val scope: CoroutineScope
 ) {
   companion object {
     private var idAcc = AtomicInteger(0)
@@ -33,7 +33,7 @@ class WebViewEvaluator(
     webView.addJavascriptInterface(object {
       @JavascriptInterface
       fun resolve(id: Int, data: String) {
-        ioAsyncScope.launch {
+        scope.launch {
           channelMap.remove(id)?.also {
             it.send(Result.success(data))
             it.close()
@@ -43,7 +43,7 @@ class WebViewEvaluator(
 
       @JavascriptInterface
       fun reject(id: Int, reason: String) {
-        ioAsyncScope.launch {
+        scope.launch {
           channelMap.remove(id)?.also {
             it.send(Result.failure(Exception(reason)))
             it.close()
@@ -78,7 +78,7 @@ class WebViewEvaluator(
     val channel: AsyncChannel = Channel()
     val id = idAcc.getAndAdd(1)
     channelMap[id] = channel
-    ioAsyncScope.launch(mainAsyncExceptionHandler) {
+    scope.launch(mainAsyncExceptionHandler) {
       webView.evaluateJavascript(
         """
             void (async()=>{return ($script)})()
@@ -86,7 +86,7 @@ class WebViewEvaluator(
                 .catch(err=>$JS_ASYNC_KIT.reject($id,String(err)));
             """.trimMargin()
       ) {
-        ioAsyncScope.launch {
+        scope.launch {
           afterEval()
         }
       };

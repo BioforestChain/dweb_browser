@@ -93,7 +93,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
     }
 
     if(url == null) {
-      engine.onReadySignal.listen {
+      engine.onReady {
         url = forNavigationAction.request.URL?.absoluteString
         createAction()
       }

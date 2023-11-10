@@ -1,31 +1,23 @@
 package org.dweb_browser.dwebview
 
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.getAndUpdate
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.SimpleCallback
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSArray
-import platform.Foundation.NSError
 import platform.Foundation.NSString
 import platform.Foundation.create
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
-import platform.WebKit.WKNavigation
-import platform.WebKit.WKNavigationDelegateProtocol
-import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
 
@@ -46,49 +38,10 @@ suspend fun IDWebView.Companion.create(
 
 class DWebView(
   private val engine: DWebViewEngine,
-) : IDWebView {
-  private suspend fun loadUrl(task: LoadUrlTask): String {
-    engine.loadUrl(task.url)
-    engine.setNavigationDelegate(object : NSObject(), WKNavigationDelegateProtocol {
-      override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
-        task.deferred.complete(webView.URL?.absoluteString ?: "about:blank")
-        engine.mainScope.launch { engine.onReadySignal.emit() }
-      }
-
-      override fun webView(
-        webView: WKWebView,
-        didFailNavigation: WKNavigation?,
-        withError: NSError
-      ) {
-        task.deferred.completeExceptionally(Exception("[${withError.code}] ${withError.localizedDescription}"))
-        engine.mainScope.launch { engine.onReadySignal.emit() }
-      }
-    })
-    task.deferred.invokeOnCompletion {
-      engine.setNavigationDelegate(null)
-    }
-    return task.deferred.await()
+) : IDWebView() {
+  override suspend fun startLoadUrl(url: String) = withMainContext {
+    engine.loadUrl(url)
   }
-
-  private val loadUrlTask = atomic<LoadUrlTask?>(null)
-
-  override suspend fun loadUrl(url: String, force: Boolean) = loadUrlTask.getAndUpdate { preTask ->
-    if (!force && preTask?.url == url) {
-      return@getAndUpdate preTask
-    } else {
-      preTask?.deferred?.cancel(CancellationException("load new url: $url"));
-    }
-    val newTask = LoadUrlTask(url)
-    loadUrl(newTask)
-    newTask.deferred.invokeOnCompletion {
-      loadUrlTask.getAndUpdate { preTask ->
-        if (preTask == newTask) null else preTask
-      }
-    }
-    newTask
-  }!!.deferred.await()
-
-  override suspend fun getUrl(): String = loadUrlTask.value?.url ?: "about:blank"
 
 
   override suspend fun getTitle(): String {
@@ -184,7 +137,12 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
 
   private var _destroyed = false
   private var _destroySignal = SimpleSignal();
-  fun onDestroy(cb: SimpleCallback) = _destroySignal.listen(cb)
+  private val onLoad = Signal<String>()
+
+  override val onDestroy by lazy { _destroySignal.toListener() }
+  override val onStateChange by lazy { engine.onStateChangeSignal.toListener() }
+
+  override val onReady get() = engine.onReady
 
   override suspend fun destroy() {
     if (_destroyed) {
@@ -245,15 +203,20 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     engine.setContentScaleFactor(scale.toDouble())
   }
 
+  override suspend fun evaluateAsyncJavascriptCode(
+    script: String,
+    afterEval: suspend () -> Unit
+  ) = engine.evaluateAsyncJavascriptCode(script, afterEval)
+
   @OptIn(BetaInteropApi::class)
-  suspend fun postMessage(message: String, ports: List<IWebMessagePort>) {
+  override suspend fun postMessage(data: String, ports: List<IWebMessagePort>) {
     val portIdList = ports.map {
       require(it is DWebMessagePort)
       it.portId
     }
     withMainContext {
       val arguments = mutableMapOf<NSString, NSObject>().apply {
-        put(NSString.create(string = "data"), NSString.create(string = message))
+        put(NSString.create(string = "data"), NSString.create(string = data))
         put(NSString.create(string = "ports"), NSArray.create(portIdList))
       }
       callAsyncJavaScript<Unit>(

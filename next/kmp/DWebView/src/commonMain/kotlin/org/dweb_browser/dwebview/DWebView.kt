@@ -1,6 +1,9 @@
 package org.dweb_browser.dwebview
 
 import io.ktor.server.engine.embeddedServer
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.getAndUpdate
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -12,8 +15,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.file.getApplicationRootDir
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.OffListener
-import org.dweb_browser.helper.SimpleCallback
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SystemFileSystem
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getKtorServerEngine
@@ -22,12 +24,12 @@ import org.jetbrains.compose.resources.resource
 
 val debugDWebView = Debugger("dwebview")
 
-expect suspend  fun IDWebView.Companion.create(
+expect suspend fun IDWebView.Companion.create(
   mm: MicroModule,
   options: DWebViewOptions = DWebViewOptions()
 ): IDWebView
 
-interface IDWebView {
+abstract class IDWebView {
   @OptIn(ExperimentalResourceApi::class)
   companion object {
     private suspend fun findPort(): UShort {
@@ -76,29 +78,87 @@ interface IDWebView {
     }
   }
 
-  suspend fun loadUrl(url: String, force: Boolean = false): String
-  suspend fun getUrl(): String
-  suspend fun getTitle(): String
-  suspend fun getIcon(): String
-  suspend fun destroy()
-  suspend fun canGoBack(): Boolean
-  suspend fun canGoForward(): Boolean
-  suspend fun goBack(): Boolean
-  suspend fun goForward(): Boolean
 
-  suspend fun createMessageChannel(): IWebMessageChannel
-  suspend fun postMessage(data: String, ports: List<IWebMessagePort>)
+  protected abstract suspend fun startLoadUrl(url: String)
 
-  suspend fun setContentScale(scale: Float)
+  private val loadUrlTask = atomic<LoadUrlTask?>(null)
 
-  suspend fun evaluateAsyncJavascriptCode(
+  suspend fun loadUrl(url: String, force: Boolean) = loadUrlTask.getAndUpdate { preTask ->
+    if (!force && preTask?.url == url) {
+      return@getAndUpdate preTask
+    } else {
+      preTask?.deferred?.cancel(CancellationException("load new url: $url"));
+    }
+    val newTask = LoadUrlTask(url)
+    loadUrl(newTask)
+    newTask.deferred.invokeOnCompletion {
+      loadUrlTask.getAndUpdate { preTask ->
+        if (preTask == newTask) null else preTask
+      }
+    }
+    newTask
+  }!!.deferred.await()
+
+  private suspend fun loadUrl(task: LoadUrlTask): String {
+    startLoadUrl(task.url)
+
+    val off = onStateChange {
+      when (it) {
+        is WebLoadErrorState -> {
+          task.deferred.completeExceptionally(Exception(it.errorMessage))
+        }
+
+        is WebLoadStartState -> {
+          if (it.url != task.url) {
+            task.deferred.cancel(CancellationException("start load url: ${it.url}"))
+          }
+        }
+
+        is WebLoadSuccessState -> {
+          task.deferred.complete(it.url)
+        }
+      }
+    }
+    try {
+      return task.deferred.await()
+    } finally {
+      off()
+    }
+  }
+
+  fun getUrl() = loadUrlTask.value?.url ?: "about:blank"
+  abstract suspend fun getTitle(): String
+  abstract suspend fun getIcon(): String
+  abstract suspend fun destroy()
+  abstract suspend fun canGoBack(): Boolean
+  abstract suspend fun canGoForward(): Boolean
+  abstract suspend fun goBack(): Boolean
+  abstract suspend fun goForward(): Boolean
+
+  abstract suspend fun createMessageChannel(): IWebMessageChannel
+  abstract suspend fun postMessage(data: String, ports: List<IWebMessagePort>)
+
+  abstract suspend fun setContentScale(scale: Float)
+
+  abstract suspend fun evaluateAsyncJavascriptCode(
     script: String,
     afterEval: suspend () -> Unit = {}
   ): String
 
-  fun onDestroy(cb: SimpleCallback): OffListener<Unit>
-  suspend fun onReady(cb: SimpleCallback)
+  abstract val onDestroy: Signal.Listener<Unit>
+  abstract val onStateChange: Signal.Listener<WebViewState>
+  abstract val onReady: Signal.Listener<String>
 }
+
+
+sealed class WebViewState {};
+class WebLoadStartState(val url: String) : WebViewState();
+class WebLoadSuccessState(val url: String) : WebViewState();
+class WebLoadErrorState(val url: String, val errorMessage: String) : WebViewState();
+
+fun Signal<WebViewState>.toReadyListener() =
+  createChild({ if (it is WebLoadSuccessState) it else null },
+    { it.url }).toListener()
 
 internal class LoadUrlTask(
   val url: String,

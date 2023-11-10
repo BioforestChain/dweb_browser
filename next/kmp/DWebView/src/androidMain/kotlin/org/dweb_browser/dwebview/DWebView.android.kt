@@ -3,19 +3,12 @@ package org.dweb_browser.dwebview
 import android.content.Context
 import android.net.Uri
 import android.webkit.WebMessage
-import android.webkit.WebResourceError
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import io.ktor.utils.io.CancellationException
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.getAndUpdate
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.SimpleCallback
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.withMainContext
 
@@ -43,46 +36,9 @@ suspend fun IDWebView.Companion.create(
   activity: BaseActivity? = null
 ) = withMainContext { DWebView(DWebViewEngine(context, remoteMM, options, activity)) }
 
-class DWebView(private val engine: DWebViewEngine) : IDWebView {
-  private suspend fun loadUrl(task: LoadUrlTask) = withMainContext {
-    engine.loadUrl(task.url)
-    val off = engine.addWebViewClient(object : WebViewClient() {
-      override fun onReceivedError(
-        view: WebView, request: WebResourceRequest, error: WebResourceError
-      ) {
-        task.deferred.completeExceptionally(Exception("[${error.errorCode}] ${error.description}"))
-      }
-
-      override fun onPageFinished(view: WebView, url: String) {
-        task.deferred.complete(url)
-      }
-    })
-    task.deferred.invokeOnCompletion {
-      off()
-    }
-    task.deferred.await()
-  }
-
-  private val loadUrlTask = atomic<LoadUrlTask?>(null)
-
-  override suspend fun loadUrl(url: String, force: Boolean) = loadUrlTask.getAndUpdate { preTask ->
-    if (!force && preTask?.url == url) {
-      return@getAndUpdate preTask
-    } else {
-      preTask?.deferred?.cancel(CancellationException("load new url: $url"));
-    }
-    val newTask = LoadUrlTask(url)
-    loadUrl(newTask)
-    newTask.deferred.invokeOnCompletion {
-      loadUrlTask.getAndUpdate { preTask ->
-        if (preTask == newTask) null else preTask
-      }
-    }
-    newTask
-  }!!.deferred.await()
-
-  override suspend fun getUrl() = withMainContext {
-    engine.url ?: "about:blank"
+class DWebView(private val engine: DWebViewEngine) : IDWebView() {
+  override suspend fun startLoadUrl(url: String) = withMainContext {
+    engine.loadUrl(url)
   }
 
 
@@ -195,9 +151,9 @@ class DWebView(private val engine: DWebViewEngine) : IDWebView {
     afterEval: suspend () -> Unit
   ): String = engine.evaluateAsyncJavascriptCode(script, afterEval)
 
-  override fun onDestroy(cb: SimpleCallback) = engine.onDestroy(cb)
-  override suspend fun onReady(cb: SimpleCallback) = engine.onReady(cb)
-
+  override val onDestroy = engine.onDestroy
+  override val onStateChange by lazy { engine.dWebViewClient.onStateChangeSignal.toListener() }
+  override val onReady: Signal.Listener<String> get() = engine.dWebViewClient.onReady
 
   //#region 一些针对平台的接口
   fun getAndroidWebViewEngine() = engine
