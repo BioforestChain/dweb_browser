@@ -212,7 +212,8 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     task.mime = mimeFactory(response.headers, task.url)
     if (!response.isOk()) {
       task.status.state = DownloadState.Failed
-      task.status.stateMessage = response.text()
+      task.status.stateMessage = response.status.description
+      downloadNMM.nativeFetch("file://toast.sys.dweb/show?message=${response.status}")
     } else {
       // 下载流程初始化成功
       task.status.state = DownloadState.Init

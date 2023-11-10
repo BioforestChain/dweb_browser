@@ -10,7 +10,7 @@ import info.bagen.dwebbrowser.microService.sys.device.DeviceNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
-import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
+import org.dweb_browser.sys.toast.ToastNMM
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import org.dweb_browser.browser.download.DownloadNMM

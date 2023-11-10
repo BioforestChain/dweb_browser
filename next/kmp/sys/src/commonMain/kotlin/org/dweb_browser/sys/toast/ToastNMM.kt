@@ -1,12 +1,10 @@
-package info.bagen.dwebbrowser.microService.sys.toast
+package org.dweb_browser.sys.toast
 
-import info.bagen.dwebbrowser.microService.sys.toast.ToastController.DurationType
-import info.bagen.dwebbrowser.microService.sys.toast.ToastController.PositionType
 import io.ktor.http.HttpMethod
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
 
 class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 
@@ -30,7 +28,7 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
           PositionType.CENTER.position -> PositionType.CENTER
           else -> PositionType.TOP
         }
-        ToastController.show(message, durationType, positionType)
+        showToast(message, durationType, positionType)
         return@defineBooleanResponse true
       },
     ).cors()
@@ -43,4 +41,12 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 
 enum class EToast(val type: String) {
   Long("long"), Short("short")
+}
+
+enum class DurationType(duration: Long) {
+  SHORT(2000L), LONG(3500L)
+}
+
+enum class PositionType(val position: String) {
+  TOP("top"), CENTER("center"), BOTTOM("bottom")
 }
