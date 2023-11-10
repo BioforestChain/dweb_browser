@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desk
+package org.dweb_browser.browser.desk
 
 import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.removeWhen

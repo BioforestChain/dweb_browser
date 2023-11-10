@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desk
+package org.dweb_browser.browser.desk
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box

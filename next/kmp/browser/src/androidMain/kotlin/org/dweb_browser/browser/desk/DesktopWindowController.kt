@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desk
+package org.dweb_browser.browser.desk
 
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState

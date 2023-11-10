@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desk
+package org.dweb_browser.browser.desk
 
 import androidx.compose.runtime.compositionLocalOf
 import org.dweb_browser.helper.compose.noLocalProvidedFor

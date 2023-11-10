@@ -13,7 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.browser.desk.DesktopActivity
+import org.dweb_browser.browser.desk.DesktopActivity
 import info.bagen.dwebbrowser.microService.sys.deepLink.DWebReceiver
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.module.getAppContext

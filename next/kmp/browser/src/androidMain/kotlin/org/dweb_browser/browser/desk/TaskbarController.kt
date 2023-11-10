@@ -1,7 +1,7 @@
-package info.bagen.dwebbrowser.microService.browser.desk
+package org.dweb_browser.browser.desk
 
 import android.content.res.Resources
-import info.bagen.dwebbrowser.microService.browser.desk.types.DeskAppMetaData
+import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.MMID

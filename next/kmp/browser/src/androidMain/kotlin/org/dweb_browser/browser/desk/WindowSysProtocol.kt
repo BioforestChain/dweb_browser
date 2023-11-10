@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desk
+package org.dweb_browser.browser.desk
 
 import io.ktor.http.HttpMethod
 import kotlinx.serialization.Serializable

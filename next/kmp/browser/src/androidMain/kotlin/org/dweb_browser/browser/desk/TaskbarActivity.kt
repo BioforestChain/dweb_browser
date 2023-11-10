@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desk
+package org.dweb_browser.browser.desk
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -10,7 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
-import info.bagen.dwebbrowser.R
+import org.dweb_browser.browser.R
 import org.dweb_browser.core.module.BaseThemeActivity
 import org.dweb_browser.helper.android.ActivityBlurHelper
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme

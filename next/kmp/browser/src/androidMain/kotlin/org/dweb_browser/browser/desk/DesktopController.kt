@@ -1,11 +1,11 @@
-package info.bagen.dwebbrowser.microService.browser.desk
+package org.dweb_browser.browser.desk
 
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
-import info.bagen.dwebbrowser.microService.browser.desk.types.DeskAppMetaData
+import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

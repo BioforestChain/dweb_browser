@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.microService
 
 import android.webkit.WebView
-import info.bagen.dwebbrowser.microService.browser.desk.DeskNMM
+import org.dweb_browser.browser.desk.DeskNMM
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM

@@ -73,7 +73,7 @@
         android:resource="@xml/shortcuts" />
     </activity>
     <activity
-      android:name=".microService.browser.desk.DesktopActivity"
+      android:name="org.dweb_browser.browser.desk.DesktopActivity"
       android:exported="true"
       android:launchMode="singleTask"
       android:screenOrientation="portrait"
@@ -81,7 +81,7 @@
       tools:ignore="LockedOrientationActivity" />
     <!--      android:windowSoftInputMode="adjustResize"-->
     <activity
-      android:name=".microService.browser.desk.TaskbarActivity"
+      android:name="org.dweb_browser.browser.desk.TaskbarActivity"
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
     <activity

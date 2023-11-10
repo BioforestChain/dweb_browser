@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desk
+package org.dweb_browser.browser.desk
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

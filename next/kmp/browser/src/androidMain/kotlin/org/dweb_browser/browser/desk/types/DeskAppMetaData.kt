@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desk.types
+package org.dweb_browser.browser.desk.types
 
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PropMetas

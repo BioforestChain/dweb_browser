@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desk
+package org.dweb_browser.browser.desk
 
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.compose.toComposableHelper
