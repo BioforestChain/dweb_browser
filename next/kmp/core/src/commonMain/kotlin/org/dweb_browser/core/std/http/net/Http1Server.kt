@@ -1,7 +1,6 @@
 package org.dweb_browser.core.std.http.net
 
 import io.ktor.server.engine.ApplicationEngine
-import io.ktor.util.InternalAPI
 import org.dweb_browser.core.http.DwebHttpGatewayServer
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
@@ -24,7 +23,6 @@ class Http1Server {
 
   private var server: ApplicationEngine? = null
 
-  @OptIn(InternalAPI::class)
   suspend fun createServer(
     gatewayHandler: GatewayHandler,
     httpHandler: GatewayHttpHandler,
@@ -40,7 +38,7 @@ class Http1Server {
       }
     }
 
-    dwebHttpGatewayServer.startServer()
+    bindingPort = dwebHttpGatewayServer.startServer()
   }
 
   val authority get() = "localhost:$bindingPort"

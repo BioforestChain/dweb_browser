@@ -131,7 +131,8 @@ class DwebHttpGatewayServer private constructor() {
     if (!startResult.isInitialized()) {
       startResult.value.also {
         server.start(wait = false)
-        it.complete(server.resolvedConnectors().first().port)
+        val port = server.resolvedConnectors().first().port
+        it.complete(port)
       }
     }
     return startResult.value.await()
@@ -141,6 +142,4 @@ class DwebHttpGatewayServer private constructor() {
 
 }
 
-val dwebHttpGatewayServer by lazy {
-  DwebHttpGatewayServer.INSTANCE
-}
+val dwebHttpGatewayServer get() = DwebHttpGatewayServer.INSTANCE
