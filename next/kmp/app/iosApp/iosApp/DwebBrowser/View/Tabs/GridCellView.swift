@@ -44,7 +44,7 @@ struct GridCell: View {
                     Image(uiImage: webCache.snapshotImage)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(height: geo.size.height * imageHratio)
+                        .frame(height: geo.size.height * cellImageHeightRatio)
                         .cornerRadius(gridcellCornerR)
                         .overlay(RoundedRectangle(cornerRadius: 10)
                             .stroke(Color.dwebTint, lineWidth: 2)
@@ -61,7 +61,7 @@ struct GridCell: View {
                             .lineLimit(1)
                     }
                     .padding(.vertical, 3)
-                    .frame(height: geo.size.height * (1.0-imageHratio))
+                    .frame(height: geo.size.height * cellTitleHeightRatio)
                 }
             }
 
@@ -85,8 +85,30 @@ struct GridCell: View {
     }
 }
 
+struct ImagePartialView: View {
+
+  var image: Image
+
+  var body: some View {
+
+    GeometryReader { geo in
+
+      image
+        .resizable()
+        .frame(width: 800, height: 1000)
+        .clipped()
+        .offset(x: 100, y: 200)
+        .frame(width: 300, height: 450)
+
+    }
+
+  }
+}
+
 struct GridCell_Previews: PreviewProvider {
     static var previews: some View {
-        Text("")
+        ImagePartialView(image: Image(uiImage: UIImage(named: "dweb_icon")! ))
+            .frame(width: 300,height: 600)
+            .background(.green)
     }
 }

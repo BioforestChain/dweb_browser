@@ -16,14 +16,24 @@ extension KmpEvent {
     static let colorScheme = "colorScheme"
 }
 
-protocol KmpEventResposeActionProtocol {
-    var eventName: String { get }
-    func doResponseAction()
+class KmpEventResposeAction {
+    
+    let event: KmpEvent
+    
+    init(_ event: KmpEvent) {
+        self.event = event
+    }
+    
+    func parseInputDatas() -> [Any]? {
+        return nil
+    }
+    
+    func doAction() async -> Any? {
+        return nil
+    }
 }
 
 struct KmpEvent {
     let name: String
     let inputDatas: [String: Any]?
-    let outputDatas: [String: Any]?
-    let responseAction: KmpEventResposeActionProtocol?
 }

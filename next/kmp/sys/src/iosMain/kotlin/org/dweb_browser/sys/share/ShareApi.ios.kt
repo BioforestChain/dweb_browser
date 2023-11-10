@@ -14,17 +14,8 @@ class ShareIOSController(): ShareApi {
         files: List<ByteArray>?
     ): String {
 
-        val result =  PromiseOut<String>()
-
-        val callback: ((String) -> Unit) = {
-            println("[iOS] kmp did callback: $it")
-            result.resolve(it)
+        return withMainContext {
+            KmpNativeBridgeEventSender.sendShare(title, text, url, files)
         }
-
-        withMainContext {
-            KmpNativeBridgeEventSender.sendShare(title, text, url, files, callback)
-        }
-
-        return result.waitPromise()
     }
 }

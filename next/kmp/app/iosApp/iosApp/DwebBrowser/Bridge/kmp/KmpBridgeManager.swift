@@ -16,16 +16,6 @@ class KmpBridgeManager {
     static let shared = KmpBridgeManager()
         
     private(set) var eventPublisher = PassthroughSubject<KmpEvent, Never>()
-    private var events = [KmpEvent]()
-    
-    func event(for name: String) -> KmpEvent? {
-        return events.first { $0.name == name }
-    }
-    
-    func complete(for name: String) {
-        events.removeAll { $0.name == name}
-        Log("kmp events:\(events.count)")
-    }
     
     func registerIMPs() {
         KmpNativeBridge.Companion.shared.registerIos(imp: self)
@@ -34,22 +24,28 @@ class KmpBridgeManager {
 
 
 extension KmpBridgeManager: SysKmpNativeBridgeInterface {
-    
-    func invokeKmpEvent(event: SysKmpToIosEvent) {
-        Log("\(event)")
 
-        var responseAction: KmpEventResposeActionProtocol? = nil
+    func invokeKmpEvent(event: SysKmpToIosEvent) -> Any? {
+        Log("\(event)")
+        let e = KmpEvent(name: event.name, inputDatas: event.inputDatas)
         switch event.name {
-        case KmpEvent.share:
-            responseAction = KmpEventShareResposeAction(eventName: event.name)
         case KmpEvent.colorScheme:
-            responseAction = nil
+            eventPublisher.send(e)
         default:
             assert(false, "no response action for: \(event.name) \(event.inputDatas?.description ?? "")")
         }
-        
-        let e = KmpEvent(name: event.name, inputDatas: event.inputDatas, outputDatas: event.outputDatas, responseAction: responseAction)
-        events.append(e)
-        eventPublisher.send(e)
+        return nil
+    }
+    
+    func invokeAsyncKmpEvent(event: SysKmpToIosEvent) async throws -> Any? {
+        Log("\(event)")
+        let e = KmpEvent(name: event.name, inputDatas: event.inputDatas)
+        switch event.name {
+        case KmpEvent.share:
+            return await KmpEventShareResposeAction(e).doAction()
+        default:
+            assert(false, "no response action for: \(event.name) \(event.inputDatas?.description ?? "")")
+        }
+        return nil
     }
  }

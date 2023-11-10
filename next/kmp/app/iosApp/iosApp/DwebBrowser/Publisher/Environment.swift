@@ -13,6 +13,10 @@ class KeyBoard: ObservableObject {
     @Published var height: CGFloat = 0
 }
 
+class BrowserArea: ObservableObject {
+    @Published var frame: CGRect = .zero
+}
+
 class SelectedTab: ObservableObject {
     @Published var curIndex: Int = 0
 }
