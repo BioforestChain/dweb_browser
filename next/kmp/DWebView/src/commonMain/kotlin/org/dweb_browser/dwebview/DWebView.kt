@@ -3,6 +3,8 @@ package org.dweb_browser.dwebview
 import io.ktor.server.engine.embeddedServer
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.getAndUpdate
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -102,7 +104,7 @@ abstract class IDWebView {
   private suspend fun loadUrl(task: LoadUrlTask): String {
     startLoadUrl(task.url)
 
-    val off = onStateChange {
+    val off = onLoadStateChange {
       when (it) {
         is WebLoadErrorState -> {
           task.deferred.completeExceptionally(Exception(it.errorMessage))
@@ -146,17 +148,57 @@ abstract class IDWebView {
   ): String
 
   abstract val onDestroy: Signal.Listener<Unit>
-  abstract val onStateChange: Signal.Listener<WebViewState>
+  abstract val onLoadStateChange: Signal.Listener<WebLoadState>
   abstract val onReady: Signal.Listener<String>
+  abstract val onBeforeUnload: Signal.Listener<WebBeforeUnloadArgs>
+}
+
+class WebBeforeUnloadArgs(
+  val message: String,
+) : SynchronizedObject() {
+  private val hookReasons = mutableMapOf<Any, WebBeforeUnloadHook>()
+  internal fun hook(reason: Any) =
+    synchronized(this) {
+      if (isLocked) throw Exception("fail to hook, event already passed.")
+      hookReasons.getOrPut(reason) { WebBeforeUnloadHook(message) }
+    }
+
+  private var isLocked = false
+  private fun lock() = synchronized(this) { isLocked = true }
+
+  private val result = CompletableDeferred<Boolean>()
+  internal suspend fun waitHookResults() = lock().let {
+    var isKeep = false;
+    val results = hookReasons.values.map { it.result.await() }
+    for (unload in results) {
+      if (!unload) {
+        isKeep = true;
+        break
+      }
+    }
+    val unload = !isKeep
+    result.complete(unload)
+    unload
+  }
+
+
+  suspend fun isKeep() = !result.await()
+  suspend fun isUnload() = result.await()
+}
+
+class WebBeforeUnloadHook(val message: String) {
+  internal val result = CompletableDeferred<Boolean>()
+  fun unloadDocument() = result.complete(true)
+  fun keepDocument() = result.complete(false)
 }
 
 
-sealed class WebViewState {};
-class WebLoadStartState(val url: String) : WebViewState();
-class WebLoadSuccessState(val url: String) : WebViewState();
-class WebLoadErrorState(val url: String, val errorMessage: String) : WebViewState();
+sealed class WebLoadState {};
+class WebLoadStartState(val url: String) : WebLoadState();
+class WebLoadSuccessState(val url: String) : WebLoadState();
+class WebLoadErrorState(val url: String, val errorMessage: String) : WebLoadState();
 
-fun Signal<WebViewState>.toReadyListener() =
+fun Signal<WebLoadState>.toReadyListener() =
   createChild({ if (it is WebLoadSuccessState) it else null },
     { it.url }).toListener()
 

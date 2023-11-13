@@ -1,31 +1,33 @@
 package org.dweb_browser.core.help
 
-enum class ARG_COUNT {
-  ONE
-}
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.getAndUpdate
 
-inline fun <A, R> suspendOnce(
-  t: ARG_COUNT,
-  crossinline runnable: suspend (A) -> R
-): suspend (A) -> R {
-  var runned = false
-  var result: R? = null
+inline fun <R> suspendOnce(crossinline runnable: suspend () -> R): suspend () -> R {
+  val hasRun = atomic(false)
+  var result: Any? = null
   return {
-    if (!runned) {
-      runned = true
-      result = runnable(it)
+    hasRun.getAndUpdate { run ->
+      if (!run) {
+        result = runnable()
+      }
+      true
     }
     result as R
   }
 }
 
-inline fun <R> suspendOnce(crossinline runnable: suspend () -> R): suspend () -> R {
-  var runned = false
-  var result: Any? = null
+inline fun <A, R> suspendOnce1(
+  crossinline runnable: suspend (A) -> R
+): suspend (A) -> R {
+  val hasRun = atomic(false)
+  var result: R? = null
   return {
-    if (!runned) {
-      runned = true
-      result = runnable()
+    hasRun.getAndUpdate { run ->
+      if (!run) {
+        result = runnable(it)
+      }
+      true
     }
     result as R
   }

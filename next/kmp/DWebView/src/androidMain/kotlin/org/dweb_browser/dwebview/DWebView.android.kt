@@ -8,7 +8,6 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.withMainContext
 
@@ -36,7 +35,7 @@ suspend fun IDWebView.Companion.create(
   activity: BaseActivity? = null
 ) = withMainContext { DWebView(DWebViewEngine(context, remoteMM, options, activity)) }
 
-class DWebView(private val engine: DWebViewEngine) : IDWebView() {
+class DWebView(internal val engine: DWebViewEngine) : IDWebView() {
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
   }
@@ -152,8 +151,10 @@ class DWebView(private val engine: DWebViewEngine) : IDWebView() {
   ): String = engine.evaluateAsyncJavascriptCode(script, afterEval)
 
   override val onDestroy = engine.onDestroy
-  override val onStateChange by lazy { engine.dWebViewClient.onStateChangeSignal.toListener() }
-  override val onReady: Signal.Listener<String> get() = engine.dWebViewClient.onReady
+  override val onLoadStateChange by lazy { engine.dWebViewClient.loadStateChangeSignal.toListener() }
+  override val onReady get() = engine.dWebViewClient.onReady
+
+  override val onBeforeUnload by lazy { engine.dWebChromeClient.beforeUnloadSignal.toListener() }
 
   //#region 一些针对平台的接口
   fun getAndroidWebViewEngine() = engine

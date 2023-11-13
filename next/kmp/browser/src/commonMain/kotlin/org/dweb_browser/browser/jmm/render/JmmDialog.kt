@@ -15,21 +15,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.jmm.getWebViewVersion
+import org.dweb_browser.browser.jmm.getChromeWebViewVersion
 import org.dweb_browser.browser.jmm.model.LocalShowWebViewVersion
 import org.dweb_browser.helper.SupportUrl
 import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.isGreaterThan
 
+var showedWarningDialog = false
+
 @Composable
 internal fun WebviewVersionWarningDialog() {
+  if (showedWarningDialog) return
   var isShowDialog by LocalShowWebViewVersion.current
   val loadingUrl = LocalCommonUrl.current
   var myVersion by remember { mutableStateOf("") }
   val lowVersion = "96.0.4664.104" // TODO 目前暂定该版本信息最低要求为96.0.4664.104以上
   LaunchedEffect(Unit) {
-    val version = getWebViewVersion() ?: return@LaunchedEffect
+    val version = getChromeWebViewVersion() ?: return@LaunchedEffect
     if (lowVersion.isGreaterThan(version)) {
       myVersion = version
       isShowDialog = true

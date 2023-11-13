@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 plugins {
   alias(libs.plugins.kotlinxMultiplatform)
   alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.jetbrainsCompose)
   alias(libs.plugins.kotlinPluginSerialization)
 }
 
@@ -50,6 +51,14 @@ kotlin {
     api(kotlin("stdlib"))
     api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.atomicfu)
+
+    implementation(libs.jetbrains.compose.runtime)
+    implementation(libs.jetbrains.compose.foundation)
+    implementation(libs.jetbrains.compose.components.resources)
+
+    implementation(libs.jetbrains.compose.material)
+    implementation(libs.jetbrains.compose.material3)
+    implementation(libs.jetbrains.compose.materialIcons)
 
     implementation(projects.helper)
     implementation(projects.core)

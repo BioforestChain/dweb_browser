@@ -1,5 +1,5 @@
 package org.dweb_browser.browser.jmm
 
-actual fun getWebViewVersion(): String? {
-  return "no implement"
+actual fun getChromeWebViewVersion(): String? {
+  return null
 }

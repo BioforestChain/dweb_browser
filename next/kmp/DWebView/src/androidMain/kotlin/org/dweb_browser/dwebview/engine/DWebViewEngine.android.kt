@@ -1,42 +1,24 @@
 package org.dweb_browser.dwebview.engine
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
 import android.webkit.JsResult
-import android.webkit.PermissionRequest
-import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.core.content.FileProvider
-import androidx.lifecycle.lifecycleScope
-import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import org.dweb_browser.core.http.PureRequest
-import org.dweb_browser.core.ipc.helper.IpcHeaders
-import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
-import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.android.BaseActivity
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
-import java.io.File
 
 /**
  * DWebView ,将 WebView 与 dweb 的 dwebHttpServer 设计进行兼容性绑定的模块
@@ -126,71 +108,9 @@ class DWebViewEngine(
     settings.userAgentString = "$baseUserAgentString Dweb/$versionName (Android; ${dwebHost})"
   }
 
-  private val closeSignal = SimpleSignal()
-  val onCloseWindow = closeSignal.toListener()
 
-  internal val dWebViewClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    DWebViewClient(this).also {
-      scope.launch {
-        withMainContext {
-          it.addWebViewClient(internalWebViewClient)
-          super.setWebViewClient(it)
-        }
-      }
-    }
-  }
-
-  private val internalWebViewClient = object : WebViewClient() {
-    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-      if (!isWebUrlScheme(request.url.scheme ?: "http")) {
-        /// TODO 显示询问对话框
-        try {
-          val ins = Intent(Intent.ACTION_VIEW, request.url).also {
-            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-              it.addFlags(Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER)
-            }
-          }
-          context.packageManager.queryIntentActivities(ins, 0)
-          context.startActivity(ins)
-        } catch (_: Exception) {
-        }
-        return true
-      }
-      return super.shouldOverrideUrlLoading(view, request)
-    }
-
-    override fun shouldInterceptRequest(
-      view: WebView, request: WebResourceRequest
-    ): WebResourceResponse? {
-      // 转发请求
-      if (request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true) || (request.url.scheme == "dweb"))) {
-        val response = runBlockingCatching(ioAsyncExceptionHandler) {
-          remoteMM.nativeFetch(
-            PureRequest(
-              request.url.toString(), IpcMethod.GET, IpcHeaders(request.requestHeaders)
-            )
-          )
-        }.getOrThrow()
-
-        val contentType = (response.headers.get("Content-Type") ?: "").split(';', limit = 2)
-
-        debugDWebView("dwebProxy end", request.url)
-        val statusCode = response.status.value
-        if (statusCode in 301..399) {
-          return super.shouldInterceptRequest(view, request)
-        }
-        return WebResourceResponse(
-          contentType.firstOrNull(),
-          contentType.lastOrNull(),
-          response.status.value,
-          response.status.description,
-          response.headers.toMap().let { it - "Content-Type" }, // 修复 content-type 问题
-          response.body.toPureStream().getReader("DwebView shouldInterceptRequest").toInputStream(),
-        )
-      }
-      return super.shouldInterceptRequest(view, request)
-    }
+  internal val dWebViewClient = DWebViewClient(this).also {
+    it.addWebViewClient(DWebRequestResponse(this@DWebViewEngine))
   }
 
   fun addWebViewClient(client: WebViewClient): () -> Unit {
@@ -208,157 +128,17 @@ class DWebViewEngine(
   }
 
   override fun setWebViewClient(client: WebViewClient) {
-    dWebViewClient.addWebViewClient(client)
-  }
-
-  internal val dWebChromeClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    DWebChromeClient().also {
-      it.addWebChromeClient(internalWebChromeClient)
-      super.setWebChromeClient(it)
+    if (client != dWebViewClient) {
+      dWebViewClient.addWebViewClient(client)
     }
   }
-  private val internalWebChromeClient = object : WebChromeClient() {
 
-    override fun onShowFileChooser(
-      webView: WebView,
-      filePathCallback: ValueCallback<Array<Uri>>,
-      fileChooserParams: FileChooserParams
-    ) = activity?.let { context ->
-      val mimeTypes = fileChooserParams.acceptTypes.joinToString(",").ifEmpty { "*/*" }
-      val captureEnabled = fileChooserParams.isCaptureEnabled
-      if (captureEnabled) {
-        if (mimeTypes.startsWith("video/")) {
-          context.lifecycleScope.launch {
-            if (!context.requestSelfPermission(Manifest.permission.CAMERA)) {
-              filePathCallback.onReceiveValue(null)
-              return@launch
-            }
-            val tmpFile = File.createTempFile("temp_capture", ".mp4", context.cacheDir);
-            val tmpUri = FileProvider.getUriForFile(
-              context, "${context.packageName}.file.opener.provider", tmpFile
-            )
-
-            if (context.captureVideoLauncher.launch(tmpUri)) {
-              filePathCallback.onReceiveValue(arrayOf(tmpUri))
-            } else {
-              filePathCallback.onReceiveValue(null)
-            }
-          }
-          return true;
-        } else if (mimeTypes.startsWith("image/")) {
-          context.lifecycleScope.launch {
-            if (!context.requestSelfPermission(Manifest.permission.CAMERA)) {
-              filePathCallback.onReceiveValue(null)
-              return@launch
-            }
-
-            val tmpFile = File.createTempFile("temp_capture", ".jpg", context.cacheDir);
-            val tmpUri = FileProvider.getUriForFile(
-              context, "${context.packageName}.file.opener.provider", tmpFile
-            )
-
-            if (context.takePictureLauncher.launch(tmpUri)) {
-              filePathCallback.onReceiveValue(arrayOf(tmpUri))
-            } else {
-              filePathCallback.onReceiveValue(null)
-            }
-          }
-          return true;
-        } else if (mimeTypes.startsWith("audio/")) {
-          context.lifecycleScope.launch {
-            if (!context.requestSelfPermission(Manifest.permission.RECORD_AUDIO)) {
-              filePathCallback.onReceiveValue(null)
-              return@launch
-            }
-
-            val tmpFile = File.createTempFile("temp_capture", ".ogg", context.cacheDir);
-            val tmpUri = FileProvider.getUriForFile(
-              context, "${context.packageName}.file.opener.provider", tmpFile
-            )
-
-            if (context.recordSoundLauncher.launch(tmpUri)) {
-              filePathCallback.onReceiveValue(arrayOf(tmpUri))
-            } else {
-              filePathCallback.onReceiveValue(null)
-            }
-          }
-          return true;
-        }
-      }
-
-      context.lifecycleScope.launch {
-        try {
-          if (fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE) {
-            val uris = context.getMultipleContentsLauncher.launch(mimeTypes)
-            filePathCallback.onReceiveValue(uris.toTypedArray())
-          } else {
-            val uri = context.getContentLauncher.launch(mimeTypes)
-            if (uri != null) {
-              filePathCallback.onReceiveValue(arrayOf(uri))
-            } else {
-              filePathCallback.onReceiveValue(null)
-            }
-          }
-        } catch (e: Exception) {
-          filePathCallback.onReceiveValue(null)
-        }
-      }
-      return true
-    } ?: super.onShowFileChooser(webView, filePathCallback, fileChooserParams)
-
-
-    override fun onCloseWindow(window: WebView?) {
-      scope.launch {
-        closeSignal.emit()
-      }
-      super.onCloseWindow(window)
-    }
-
-    override fun onPermissionRequest(request: PermissionRequest) {
-      activity?.also { context ->
-        debugDWebView(
-          "onPermissionRequest",
-          "activity:$context request.resources:${request.resources.joinToString { it }}"
-        )
-        context.lifecycleScope.launch {
-          val requestPermissionsMap = mutableMapOf<String, String>();
-          // 参考资料： https://developer.android.com/reference/android/webkit/PermissionRequest#constants.1
-          for (res in request.resources) {
-            when (res) {
-              PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {
-                requestPermissionsMap[Manifest.permission.CAMERA] = res
-              }
-
-              PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
-                requestPermissionsMap[Manifest.permission.RECORD_AUDIO] = res
-              }
-
-              PermissionRequest.RESOURCE_MIDI_SYSEX -> {
-                requestPermissionsMap[Manifest.permission.BIND_MIDI_DEVICE_SERVICE] = res
-              }
-
-              PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID -> {
-                // TODO android.webkit.resource.PROTECTED_MEDIA_ID
-              }
-            }
-          }
-          if (requestPermissionsMap.isEmpty()) {
-            request.grant(arrayOf());
-            return@launch
-          }
-          val responsePermissionsMap =
-            context.requestMultiplePermissionsLauncher.launch(requestPermissionsMap.keys.toTypedArray());
-          val grants = responsePermissionsMap.filterValues { value -> value };
-          if (grants.isEmpty()) {
-            request.deny()
-          } else {
-            request.grant(grants.keys.map { requestPermissionsMap[it] }.toTypedArray())
-          }
-
-        }
-      } ?: request.deny()
-    }
+  internal val dWebChromeClient = DWebChromeClient(this).also {
+    it.addWebChromeClient(DWebFileChooser(activity))
+    it.addWebChromeClient(DWebPermissionRequest(activity))
   }
+
+  val onCloseWindow = dWebChromeClient.closeSignal.toListener()
 
   override fun setWebChromeClient(client: WebChromeClient?) {
     if (client == null) {
@@ -387,8 +167,8 @@ class DWebViewEngine(
     settings.mediaPlaybackRequiresUserGesture = false
     setLayerType(LAYER_TYPE_HARDWARE, null) // 增加硬件加速，避免滑动时画面出现撕裂
 
-    super.setWebViewClient(internalWebViewClient)
-    super.setWebChromeClient(internalWebChromeClient)
+    super.setWebViewClient(dWebViewClient)
+    super.setWebChromeClient(dWebChromeClient)
 
     if (options.onJsBeforeUnloadStrategy != DWebViewOptions.JsBeforeUnloadStrategy.Default) {
       dWebChromeClient.addWebChromeClient(object : WebChromeClient() {

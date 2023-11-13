@@ -84,6 +84,7 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
   }
 
   val size get() = listenerSet.size
+  fun isNotEmpty() = listenerSet.isNotEmpty()
 
   open fun listen(cb: Callback<Args>): OffListener<Args> = synchronized(this) {
     // TODO emit 时的cbs 应该要同步进行修改？

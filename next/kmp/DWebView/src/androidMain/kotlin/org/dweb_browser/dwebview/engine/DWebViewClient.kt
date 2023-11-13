@@ -16,15 +16,15 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.WebLoadErrorState
+import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.WebLoadSuccessState
-import org.dweb_browser.dwebview.WebViewState
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
 
 class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
-  private val scope get() = engine.remoteMM.ioAsyncScope
+  private val scope get() = engine.scope
   private val extends = Extends<WebViewClient>()
   fun addWebViewClient(client: WebViewClient, config: Extends.Config = Extends.Config()) =
     extends.add(client, config)
@@ -36,9 +36,9 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
 //        .also { debugDWebView("WebViewClient", "calling method: $methodName") }
 
 
-  override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
-    inners("doUpdateVisitedHistory").one { it.doUpdateVisitedHistory(view, url, isReload) }
-      ?: super.doUpdateVisitedHistory(view, url, isReload)
+  override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
+    inners("doUpdateVisitedHistory").forEach { it.doUpdateVisitedHistory(view, url, isReload) }
+    super.doUpdateVisitedHistory(view, url, isReload)
   }
 
   override fun onFormResubmission(view: WebView?, dontResend: Message?, resend: Message?) {
@@ -55,23 +55,26 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   }
 
   override fun onPageCommitVisible(view: WebView, url: String) {
-    inners("onPageCommitVisible").forEach { it.onPageCommitVisible(view, url) }
+    inners("onPageCommitVisible").forEach { it.onPageCommitVisible(view, url) };
+    super.onPageCommitVisible(view, url)
   }
 
-  val onStateChangeSignal = Signal<WebViewState>()
-  val onReady by lazy { onStateChangeSignal.toReadyListener() }
-  override fun onPageFinished(view: WebView?, url: String?) {
+  val loadStateChangeSignal = Signal<WebLoadState>()
+  val onReady by lazy { loadStateChangeSignal.toReadyListener() }
+  override fun onPageFinished(view: WebView, url: String?) {
     scope.launch {
-      onStateChangeSignal.emit(WebLoadSuccessState(url ?: "about:blank"))
+      loadStateChangeSignal.emit(WebLoadSuccessState(url ?: "about:blank"))
     }
-    inners("onPageFinished").forEach { it.onPageFinished(view, url) }
+    inners("onPageFinished").forEach { it.onPageFinished(view, url) };
+    super.onPageFinished(view, url)
   }
 
-  override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+  override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
     scope.launch {
-      onStateChangeSignal.emit(WebLoadSuccessState(url ?: "about:blank"))
+      loadStateChangeSignal.emit(WebLoadSuccessState(url ?: "about:blank"))
     }
-    inners("onPageStarted").forEach { it.onPageStarted(view, url, favicon) }
+    inners("onPageStarted").forEach { it.onPageStarted(view, url, favicon) };
+    super.onPageStarted(view, url, favicon)
   }
 
   override fun onReceivedClientCertRequest(view: WebView?, request: ClientCertRequest?) {
@@ -80,20 +83,18 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   }
 
   override fun onReceivedError(
-    view: WebView?, request: WebResourceRequest?, error: WebResourceError?
+    view: WebView, request: WebResourceRequest?, error: WebResourceError?
   ) {
     scope.launch {
-      onStateChangeSignal.emit(
+      loadStateChangeSignal.emit(
         WebLoadErrorState(
           view?.url ?: "about:blank",
           error?.let { "[${it.errorCode}]${it.description}" } ?: ""
         )
       )
     }
-    inners("onReceivedError").one { it.onReceivedError(view, request, error) }
-      ?: super.onReceivedError(
-        view, request, error
-      )
+    inners("onReceivedError").forEach { it.onReceivedError(view, request, error) }
+    super.onReceivedError(view, request, error)
   }
 
   override fun onReceivedHttpAuthRequest(

@@ -37,7 +37,7 @@ suspend fun IDWebView.Companion.create(
 ) = withMainContext { DWebView(DWebViewEngine(frame, remoteMM, options, configuration)) }
 
 class DWebView(
-  private val engine: DWebViewEngine,
+  internal val engine: DWebViewEngine,
 ) : IDWebView() {
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
@@ -51,6 +51,7 @@ class DWebView(
 
   override suspend fun getIcon() = withMainContext {
     engine.evaluateAsyncJavascriptCode(
+      // TODO fix this
       """
 function getIosIcon(preference_size = 64) {
   const iconLinks = [
@@ -137,12 +138,11 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
 
   private var _destroyed = false
   private var _destroySignal = SimpleSignal();
-  private val onLoad = Signal<String>()
 
   override val onDestroy by lazy { _destroySignal.toListener() }
-  override val onStateChange by lazy { engine.onStateChangeSignal.toListener() }
-
+  override val onLoadStateChange by lazy { engine.loadStateChangeSignal.toListener() }
   override val onReady get() = engine.onReady
+  override val onBeforeUnload by lazy { engine.beforeUnloadSignal.toListener() }
 
   override suspend fun destroy() {
     if (_destroyed) {

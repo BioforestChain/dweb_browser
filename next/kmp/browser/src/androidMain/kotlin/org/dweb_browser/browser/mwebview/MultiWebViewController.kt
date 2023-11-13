@@ -5,6 +5,7 @@ import androidx.compose.ui.platform.LocalDensity
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.encodeToString
@@ -24,7 +25,6 @@ import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * MWebView 是为其它模块提供 GUI 的程序模块，所以这里需要传入两个模块：localeMM 与 remoteMM
@@ -45,7 +45,7 @@ class MultiWebViewController(
   private val remoteMM: MicroModule,
 ) {
   companion object {
-    private var webviewId_acc = AtomicInteger(1)
+    private var webviewId_acc by atomic(1)
   }
 
   val webViewList = ChangeableList<MultiViewItem>()
@@ -95,7 +95,7 @@ class MultiWebViewController(
   @Synchronized
   fun appendWebViewAsItem(dWebView: DWebViewEngine) = runBlockingCatching {
     withMainContext {
-      val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
+      val webviewId = "#w${webviewId_acc++}"
       val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
       val coroutineScope = CoroutineScope(CoroutineName(webviewId))
       val navigator = WebViewNavigator(coroutineScope)

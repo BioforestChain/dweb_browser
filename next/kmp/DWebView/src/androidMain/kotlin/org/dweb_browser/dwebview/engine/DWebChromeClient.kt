@@ -13,13 +13,18 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebStorage
 import android.webkit.WebView
+import kotlinx.coroutines.launch
+import org.dweb_browser.dwebview.WebBeforeUnloadArgs
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
 import org.dweb_browser.helper.someOrNull
 
 @Suppress("DEPRECATION")
-class DWebChromeClient : WebChromeClient() {
+class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
+  private val scope get() = engine.scope
   private val extends = Extends<WebChromeClient>()
   fun addWebChromeClient(client: WebChromeClient, config: Extends.Config = Extends.Config()) =
     extends.add(client, config)
@@ -50,7 +55,12 @@ class DWebChromeClient : WebChromeClient() {
       ?: super.getVisitedHistory(callback)
   }
 
+  internal val closeSignal = SimpleSignal()
+
   override fun onCloseWindow(window: WebView?) {
+    scope.launch {
+      closeSignal.emit()
+    }
     inners("onCloseWindow").one { it.onCloseWindow(window) } ?: super.onCloseWindow(window)
   }
 
@@ -99,9 +109,29 @@ class DWebChromeClient : WebChromeClient() {
       )
   }
 
+  val beforeUnloadSignal = Signal<WebBeforeUnloadArgs>()
+
   override fun onJsBeforeUnload(
-    view: WebView?, url: String?, message: String?, result: JsResult?
+    view: WebView?,
+    url: String?,
+    message: String?,
+    result: JsResult?
   ): Boolean {
+    if (message.isNullOrEmpty() && beforeUnloadSignal.isNotEmpty() && result != null) {
+      val args = WebBeforeUnloadArgs(message!!)
+      scope.launch {
+        beforeUnloadSignal.emit(args)
+        val confirm = args.waitHookResults()
+        if (confirm) {
+          result.confirm()
+        } else {
+          result.cancel()
+        }
+      }
+
+      /// 默认对话框不会显示
+      return true
+    }
     return inners("onJsBeforeUnload").someOrNull { it.onJsBeforeUnload(view, url, message, result) }
       ?: super.onJsBeforeUnload(view, url, message, result)
   }
@@ -144,38 +174,36 @@ class DWebChromeClient : WebChromeClient() {
       ?: super.onPermissionRequestCanceled(request)
   }
 
-  override fun onProgressChanged(view: WebView?, newProgress: Int) {
-    inners("onProgressChanged").one { it.onProgressChanged(view, newProgress) }
-      ?: super.onProgressChanged(
-        view, newProgress
-      )
+  override fun onProgressChanged(view: WebView, newProgress: Int) {
+    inners("onProgressChanged").forEach { it.onProgressChanged(view, newProgress) }
+    super.onProgressChanged(view, newProgress)
   }
 
-  override fun onReceivedIcon(view: WebView?, icon: Bitmap?) {
-    inners("onReceivedIcon").one { it.onReceivedIcon(view, icon) }
-      ?: super.onReceivedIcon(view, icon)
+  override fun onReceivedIcon(view: WebView, icon: Bitmap?) {
+    inners("onReceivedIcon").forEach { it.onReceivedIcon(view, icon) }
+    super.onReceivedIcon(view, icon)
   }
 
-  override fun onReceivedTitle(view: WebView?, title: String?) {
-    inners("onReceivedTitle").one { it.onReceivedTitle(view, title) } ?: super.onReceivedTitle(
-      view, title
-    )
+  override fun onReceivedTitle(view: WebView, title: String?) {
+    inners("onReceivedTitle").forEach { it.onReceivedTitle(view, title) }
+    super.onReceivedTitle(view, title)
   }
 
   override fun onReceivedTouchIconUrl(view: WebView?, url: String?, precomposed: Boolean) {
-    inners("onReceivedTouchIconUrl").one { it.onReceivedTouchIconUrl(view, url, precomposed) }
-      ?: super.onReceivedTouchIconUrl(view, url, precomposed)
+    inners("onReceivedTouchIconUrl").forEach { it.onReceivedTouchIconUrl(view, url, precomposed) }
+    super.onReceivedTouchIconUrl(view, url, precomposed)
   }
 
   override fun onRequestFocus(view: WebView?) {
-    inners("onRequestFocus").one { it.onRequestFocus(view) } ?: super.onRequestFocus(view)
+    inners("onRequestFocus").forEach { it.onRequestFocus(view) }
+    super.onRequestFocus(view)
   }
 
   override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
-    inners("onShowCustomView").one { it.onShowCustomView(view, callback) }
-      ?: super.onShowCustomView(
-        view, callback
-      )
+    inners("onShowCustomView").forEach { it.onShowCustomView(view, callback) }
+    super.onShowCustomView(
+      view, callback
+    )
   }
 
   override fun onShowFileChooser(
