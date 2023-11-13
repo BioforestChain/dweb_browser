@@ -18,12 +18,12 @@ struct TabPageView: View {
     @EnvironmentObject var dragScale: WndDragScale
     @EnvironmentObject var browerArea: BrowserArea
 
-    var index: Int
-    var webCache: WebCache { webcacheStore.cache(at: index) }
+    var tabIndex: Int { webcacheStore.index(of: webCache)! }
+    var webCache: WebCache
     @ObservedObject var webWrapper: WebWrapper
 
     @State private var snapshotHeight: CGFloat = 0
-    private var isVisible: Bool { index == selectedTab.curIndex }
+    private var isVisible: Bool { tabIndex == selectedTab.curIndex }
     var body: some View {
         GeometryReader { geo in
             ZStack {
@@ -136,14 +136,14 @@ struct TabPageView: View {
                 }
             }
             .onChange(of: addressBar.needRefreshOfIndex, perform: { refreshIndex in
-                if refreshIndex == index {
+                if refreshIndex == tabIndex {
                     webWrapper.webView.reload()
                     addressBar.needRefreshOfIndex = -1
                 }
             })
 
             .onReceive(addressBar.$stopLoadingOfIndex) { stopIndex in
-                if stopIndex == index {
+                if stopIndex == tabIndex {
                     webWrapper.webView.stopLoading()
                 }
             }

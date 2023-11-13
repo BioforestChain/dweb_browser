@@ -9,15 +9,13 @@ import Combine
 import SwiftUI
 
 struct AddressBar: View {
-    var index: Int
-
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var openingLink: OpeningLink
-    @EnvironmentObject var keyboard: KeyBoard
     @EnvironmentObject var dragScale: WndDragScale
-
+    @EnvironmentObject var cacheStore: WebCacheStore
+    
     @ObservedObject var webWrapper: WebWrapper
     @ObservedObject var webCache: WebCache
 
@@ -26,7 +24,8 @@ struct AddressBar: View {
     @State private var displayText: String = ""
     @State private var loadingProgress: CGFloat = 0
     
-    private var isVisible: Bool { index == selectedTab.curIndex }
+    private var tabIndex: Int { cacheStore.index(of: webCache)! }
+    private var isVisible: Bool { tabIndex == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 && !addressBar.isFocused }
     private var textColor: Color { isAdressBarFocused ? .black : webCache.isBlank() ? .networkTipColor : .black }
 
@@ -91,21 +90,14 @@ struct AddressBar: View {
                 addressBar.isFocused = true
             }
 
-            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notify in
-                if isVisible {
-                    guard let value = notify.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
-                    keyboard.height = value.height
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-                if isVisible {
-                    keyboard.height = 0
-                }
-            }
             .onAppear {
                 inputText = webCache.lastVisitedUrl.absoluteString
                 displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
             }
+            .onChange(of: webCache.lastVisitedUrl, initial:false, { _, newValue in
+                inputText = newValue.absoluteString
+                displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
+            })
             .onChange(of: webCache.lastVisitedUrl) { url in
                 inputText = url.absoluteString
                 displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
@@ -176,7 +168,7 @@ struct AddressBar: View {
 
     var reloadButton: some View {
         Button {
-            addressBar.needRefreshOfIndex = index
+            addressBar.needRefreshOfIndex = tabIndex
         } label: {
             Image(systemName: "arrow.clockwise")
                 .foregroundColor(Color.addressTextColor)
@@ -185,7 +177,7 @@ struct AddressBar: View {
 
     var cancelLoadingButtion: some View {
         Button {
-            addressBar.stopLoadingOfIndex = index
+            addressBar.stopLoadingOfIndex = tabIndex
         } label: {
             Image(systemName: "xmark")
                 .foregroundColor(Color.addressTextColor)
