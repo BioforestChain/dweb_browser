@@ -64,20 +64,19 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
             })
     }
 
-    fun write(
+    private fun write(
         string: String? = null,
         image: String? = null,
         url: String? = null,
         labelValue: String? = "OcrText",
         onErrorCallback: (String) -> Unit
     ) {
-        val response: ClipboardWriteResponse
-        if (string != null) {
-            response = writeClipboard(label = labelValue, string, type = ClipboardType.STRING)
+        val response: ClipboardWriteResponse = if (string != null) {
+            writeClipboard(label = labelValue, string, type = ClipboardType.STRING)
         } else if (image != null) {
-            response = writeClipboard(label = labelValue, image, type = ClipboardType.IMAGE)
+            writeClipboard(label = labelValue, image, type = ClipboardType.IMAGE)
         } else if (url != null) {
-            response = writeClipboard(label = labelValue, url, type = ClipboardType.URL)
+            writeClipboard(label = labelValue, url, type = ClipboardType.URL)
         } else {
             onErrorCallback("No data provided")
             return
