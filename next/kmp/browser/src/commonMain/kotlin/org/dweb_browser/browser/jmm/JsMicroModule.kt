@@ -3,9 +3,11 @@ package org.dweb_browser.browser.jmm
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.fullPath
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.CommonAppManifest
+import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.IpcSupportProtocols
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -25,6 +27,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.connectAdapterManager
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.PermissionProvider
+import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.PromiseOut
@@ -82,7 +85,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
            * 也就是说。如果是 jsMM 内部自己去执行一个 connect，那么这里返回的 ipcForFromMM，其实还是通往 js-context 的， 而不是通往 toMM的。
            * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
            */
-          val originIpc = ipcBridge(jsMM.rmm.mmid, jsMM.jmm, jsMM.jmm.pid, jsMM.jmm.fromMMIDOriginIpcWM, null)
+          val originIpc = jsMM.jmm.ipcBridge(jsMM.rmm.mmid)
           fromMM.beConnect(originIpc, reason)
           toMM.beConnect(originIpc, reason)
           return@append ConnectResult(ipcForFromMM = originIpc, ipcForToMM = originIpc)
@@ -218,7 +221,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           val (targetIpc) = bootstrapContext.dns.connect(event.mmid)
           /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
           if (targetIpc.remote.mmid != mmid) {
-            ipcBridge(event.mmid, this@JsMicroModule, pid, fromMMIDOriginIpcWM, targetIpc)
+            ipcBridge(event.mmid, targetIpc)
           }
         } catch (e: Exception) {
           ipcConnectFail(mmid, e);
@@ -234,8 +237,71 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
   }
 
 
-  val fromMMIDOriginIpcWM = mutableMapOf<MMID, PromiseOut<Ipc>>();
+  private val fromMMIDOriginIpcWM = mutableMapOf<MMID, PromiseOut<Ipc>>();
 
+  class JmmIpc(port_id: Int, remote: IMicroModuleManifest) : Native2JsIpc(port_id, remote)
+
+  /**
+   * 桥接ipc到js内部：
+   * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
+   */
+  private fun _ipcBridge(fromMMID: MMID, targetIpc: Ipc?) = fromMMIDOriginIpcWM.getOrPut(fromMMID) {
+    PromiseOut<Ipc>().also { po ->
+      ioAsyncScope.launch {
+        try {
+
+          debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
+          /**
+           * 向js模块发起连接
+           */
+          val portId = nativeFetch(
+            URLBuilder("file://js.browser.dweb/create-ipc").apply {
+              parameters["process_id"] = pid
+              parameters["mmid"] = fromMMID
+            }.buildUnsafeString()
+          ).int()
+          val originIpc = JmmIpc(portId, this@JsMicroModule)
+
+          /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理
+          if (targetIpc != null) {
+            /**
+             * 将两个消息通道间接互联
+             */
+            originIpc.onMessage { (ipcMessage) ->
+              targetIpc.postMessage(ipcMessage)
+            }
+            targetIpc.onMessage { (ipcMessage) ->
+              originIpc.postMessage(ipcMessage)
+            }
+            /**
+             * 监听关闭事件
+             */
+            originIpc.onClose {
+              fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
+              targetIpc.close()
+            }
+            targetIpc.onClose {
+              fromMMIDOriginIpcWM.remove(originIpc.remote.mmid)
+              originIpc.close()
+            }
+          } else {
+            originIpc.onClose {
+              fromMMIDOriginIpcWM.remove(originIpc.remote.mmid)
+            }
+          }
+          po.resolve(originIpc);
+        } catch (e: Exception) {
+          debugJsMM("_ipcBridge Error", e)
+          po.reject(e)
+        }
+      }
+    }
+  }
+
+  private suspend fun ipcBridge(fromMMID: MMID, targetIpc: Ipc? = null) =
+    withContext(ioAsyncScope.coroutineContext) {
+      return@withContext _ipcBridge(fromMMID, targetIpc).waitPromise()
+    }
 
   private suspend fun ipcConnectFail(mmid: MMID, reason: Any): Boolean {
     val errMessage = if (reason is Exception) {
