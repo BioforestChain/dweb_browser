@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.device.model
+package org.dweb_browser.sys.device.model
 
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo

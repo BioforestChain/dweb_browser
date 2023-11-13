@@ -1,12 +1,13 @@
-package info.bagen.dwebbrowser.microService.sys.device.model
+package org.dweb_browser.sys.device.model
 
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
-import info.bagen.dwebbrowser.App
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.getAppContext
 
 @Serializable
 data class Battery(
@@ -61,7 +62,7 @@ class BatteryInfo {
   private val batteryStatusIntent: Intent?
     get() {
       val batFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-      return App.appContext.registerReceiver(null, batFilter)
+      return NativeMicroModule.getAppContext().registerReceiver(null, batFilter)
     }
 
   val batteryPercent: Int

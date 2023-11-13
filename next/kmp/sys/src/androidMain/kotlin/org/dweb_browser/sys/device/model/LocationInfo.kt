@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.device.model
+package org.dweb_browser.sys.device.model
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -7,7 +7,6 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Looper
-import info.bagen.dwebbrowser.App
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -80,7 +79,7 @@ class LocationInfo : LocationListener {
 
       try {
         val locationM =
-          App.appContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+          NativeMicroModule.getAppContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
         locationM.requestLocationUpdates(
           LocationManager.GPS_PROVIDER,
           MIN_TIME_BW_UPDATES,

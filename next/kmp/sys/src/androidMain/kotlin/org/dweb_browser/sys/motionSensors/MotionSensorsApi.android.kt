@@ -85,7 +85,7 @@ actual class MotionSensorsApi actual constructor(mm: NativeMicroModule) : Sensor
   }
 
   // TODO: 精度变化
-  override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) { }
+  override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
   actual val onAccelerometerChanges = accelerometerSignal.toListener()
 
