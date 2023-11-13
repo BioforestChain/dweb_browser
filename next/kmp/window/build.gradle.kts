@@ -39,10 +39,10 @@ kotlin {
     implementation(libs.jetbrains.compose.material3)
     implementation(libs.jetbrains.compose.materialIcons)
 
-    implementation(project(":helper"))
-    implementation(project(":helperCompose"))
-    implementation(project(":helperPlatform"))
-    implementation(project(":core"))
+    implementation(projects.helper)
+    implementation(projects.helperCompose)
+    implementation(projects.helperPlatform)
+    implementation(projects.core)
   }
   sourceSets.commonTest.dependencies {
     implementation(kotlin("test"))

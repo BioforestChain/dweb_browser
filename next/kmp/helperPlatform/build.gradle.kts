@@ -45,7 +45,7 @@ kotlin {
 
     implementation(libs.jetbrains.compose.material3)
 
-    implementation(project(":helper"))
+    implementation(projects.helper)
   }
   sourceSets.commonTest.dependencies {
     implementation(kotlin("test"))

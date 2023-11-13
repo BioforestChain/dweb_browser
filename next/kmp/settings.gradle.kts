@@ -19,21 +19,27 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "dweb-browser-kmp"
+
+// https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:type-safe-project-accessors
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 include("androidApp")
 project(":androidApp").projectDir = file("app/androidApp")
 //include("desktopApp")
 //project(":desktopApp").projectDir = file("app/desktopApp")
 
-include(":shared")
-include(":helper")
-include(":helperCompose")
-include(":helperPlatform")
-include(":window")
-include(":core")
-include(":DWebView")
-include(":browser")
+include(
+  ":shared",
+  ":helper",
+  ":helperCompose",
+  ":helperPlatform",
+  ":window",
+  ":core",
+  ":DWebView",
+  ":browser",
+  ":sys"
+)
 include("ziplib")
 project(":ziplib").projectDir = file("../../toolkit/dweb_browser_libs/rust_library/ziplib")
-include(":sys")
 include("reverse_proxy")
 project(":reverse_proxy").projectDir = file("../../toolkit/dweb_browser_libs/rust_library/reverse_proxy")

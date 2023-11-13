@@ -51,10 +51,10 @@ kotlin {
     api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.atomicfu)
 
-    implementation(project(":helper"))
-    implementation(project(":core"))
-    implementation(project(":helperPlatform"))
-    implementation(project(":reverse_proxy"))
+    implementation(projects.helper)
+    implementation(projects.core)
+    implementation(projects.helperPlatform)
+    implementation(projects.reverseProxy)
   }
   sourceSets.commonTest.dependencies {
     implementation(kotlin("test"))

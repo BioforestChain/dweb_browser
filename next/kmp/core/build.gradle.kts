@@ -39,9 +39,9 @@ kotlin {
     api(libs.ktor.io)
     api(libs.kotlin.serialization.json)
 
-    implementation(project(":helper"))
-    implementation(project(":helperPlatform"))
-    implementation(project(":helperCompose"))
+    implementation(projects.helper)
+    implementation(projects.helperCompose)
+    implementation(projects.helperPlatform)
   }
   sourceSets.commonTest.dependencies {
     implementation(kotlin("test"))
@@ -51,7 +51,6 @@ kotlin {
   }
   sourceSets.androidMain.dependencies {
     api(libs.data.gson)
-    implementation(project(":helperPlatform"))
   }
 }
 

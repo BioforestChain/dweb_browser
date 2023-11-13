@@ -56,15 +56,15 @@ kotlin {
           // test
           implementation(libs.compose.ui.preview)
 
-          implementation(project(":shared"))
-          implementation(project(":helper"))
-          implementation(project(":helperCompose"))
-          implementation(project(":helperPlatform"))
-          implementation(project(":core"))
-          implementation(project(":window"))
-          implementation(project(":sys"))
-          implementation(project(":browser"))
-          implementation(project(":DWebView"))
+          implementation(projects.shared)
+          implementation(projects.helper)
+          implementation(projects.helperCompose)
+          implementation(projects.helperPlatform)
+          implementation(projects.core)
+          implementation(projects.window)
+          implementation(projects.sys)
+          implementation(projects.browser)
+          implementation(projects.dWebView)
         }
       }
     }

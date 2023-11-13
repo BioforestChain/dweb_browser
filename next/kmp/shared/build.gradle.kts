@@ -35,15 +35,15 @@ kotlin {
     implementation(libs.jetbrains.compose.foundation)
     @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
     implementation(libs.jetbrains.compose.components.resources)
-
     implementation(libs.jetbrains.compose.material3)
-    implementation(project(":helper"))
-    implementation(project(":helperCompose"))
-    implementation(project(":helperPlatform"))
-    implementation(project(":window"))
-    implementation(project(":browser"))
-    implementation(project(":core"))
-    implementation(project(":sys"))
+
+    implementation(projects.helper)
+    implementation(projects.helperCompose)
+    implementation(projects.helperPlatform)
+    implementation(projects.window)
+    implementation(projects.browser)
+    implementation(projects.core)
+    implementation(projects.sys)
   }
 
   sourceSets.commonTest.dependencies {
