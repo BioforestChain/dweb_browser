@@ -94,18 +94,6 @@
       android:name="com.google.firebase.ml.vision.DEPENDENCIES"
       android:value="barcode" />
 
-    <activity
-      android:name="org.dweb_browser.sys.share.ShareActivity"
-      android:exported="true"
-      android:theme="@style/Theme.DwebBrowser.Transparent">
-      <intent-filter>
-        <action android:name="${applicationId}.share" />
-      </intent-filter>
-    </activity>
-    <activity
-      android:name="org.dweb_browser.sys.biometrics.BiometricsActivity"
-      android:exported="true"
-      android:theme="@style/Theme.DwebBrowser.Transparent" />
 
     <activity
       android:name=".microService.sys.barcodeScanning.ScanningActivity"

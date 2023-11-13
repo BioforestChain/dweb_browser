@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.notification
+package org.dweb_browser.sys.notification
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -11,15 +11,33 @@ import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.sys.deepLink.DWebReceiver
-import kotlinx.serialization.Serializable
-import org.dweb_browser.browser.desk.DesktopActivity
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.sys.R
 
-class NotifyManager {
+actual class NotificationManager {
+  actual fun createNotification(message: NotificationMsgItem) {
+    val channelType = when (message.msg_src) {
+      "app_message" -> ChannelType.DEFAULT
+      "push_message" -> ChannelType.IMPORTANT
+      else -> ChannelType.DEFAULT
+    }
+    createNewNotification(
+      title = message.title,
+      text = message.msg_content,
+      bigText = message.msg_content,
+      channelType = channelType,
+    )
+  }
+
+  actual fun updateNotification() {
+
+  }
+
+  actual fun cancelNotification() {
+
+  }
+
   enum class ChannelType(
     val typeName: String, val channelID: String, val property: Int, val importance: Int
   ) {
@@ -40,48 +58,26 @@ class NotifyManager {
     ),
   }
 
-  companion object {
-    private const val TAG: String = "NotifyManager"
-    val sInstance by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      NotifyManager()
-    }
-    var notifyId = 100 // 消息id，如果notify的id相同时，相当于修改而不是新增
-    var requestCode = 1 // 用于通知栏点击时，避免都是点击到最后一个
-    val context get() = NativeMicroModule.getAppContext()
+  private val mContext = NativeMicroModule.getAppContext()
+  private var notifyId = 100 // 消息id，如果notify的id相同时，相当于修改而不是新增
+  private var requestCode = 1 // 用于通知栏点击时，避免都是点击到最后一个
 
-    fun getDefaultPendingIntent(): PendingIntent {
-      val intent = Intent(context, DesktopActivity::class.java).apply {
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-      }
-      return PendingIntent.getActivity(
-        context,
-        ++requestCode,
-        intent,
-        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-      )
+  private fun getDefaultPendingIntent(): PendingIntent {
+    val intent = Intent().apply {
+      action = Intent.ACTION_VIEW
+      `package` = mContext.packageName
+      flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
     }
-
-    /**
-     * 打开DWeb需要通过调用broadcast后，由receiver打开
-     */
-    fun createBroadcastPendingIntent(appName: String, url: String): PendingIntent {
-      var intent = Intent(DWebReceiver.ACTION_OPEN_DWEB).apply {
-        putExtra("AppName", appName)
-        putExtra("URL", url)
-        `package` = App.appContext.packageName
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-      }
-      return PendingIntent.getBroadcast(
-        context,
-        ++requestCode,
-        intent,
-        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-      )
-    }
+    return PendingIntent.getActivity(
+      mContext,
+      ++requestCode,
+      intent,
+      PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+    )
   }
 
   // 用于创建一个消息通知
-  fun createNotification(
+  private fun createNewNotification(
     title: String,
     text: String,
     smallIcon: Int = R.mipmap.ic_launcher,
@@ -90,10 +86,10 @@ class NotifyManager {
     intent: PendingIntent = getDefaultPendingIntent()
   ) {
     val builder =
-      NotificationCompat.Builder(context, channelType.channelID).setContentTitle(title) // 通知标题
+      NotificationCompat.Builder(mContext, channelType.channelID).setContentTitle(title) // 通知标题
         .setContentText(text) // 通知内容
         .setSmallIcon(smallIcon) // 设置通知的小图标
-        //.setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)) // 设置通知的大图标
+        //.setLargeIcon(BitmapFactory.decodeResource(mContext.resources, R.mipmap.ic_launcher)) // 设置通知的大图标
         .setStyle(
           NotificationCompat.BigTextStyle().bigText(bigText)
         ).setContentIntent(intent).setPriority(channelType.property) // 设置通知的优先级
@@ -113,13 +109,13 @@ class NotifyManager {
       // channel.vibrationPattern = LongArray(3) { 1000L; 500L; 2000L } // //先震动1秒，然后停止0.5秒，再震动2秒则可设置数组为：new long[]{1000, 500, 2000}
 
       val notificationManager =
-        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        mContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
       notificationManager.createNotificationChannel(channel)
     }
 
-    with(NotificationManagerCompat.from(context)) {
+    with(NotificationManagerCompat.from(mContext)) {
       if (ActivityCompat.checkSelfPermission(
-          context, Manifest.permission.POST_NOTIFICATIONS
+          mContext, Manifest.permission.POST_NOTIFICATIONS
         ) != PackageManager.PERMISSION_GRANTED
       ) {
         // TODO: 权限申请
@@ -129,22 +125,3 @@ class NotifyManager {
     }
   }
 }
-
-/** 消息来源 */
-enum class MessageSource(value: String) {
-  APP("app_message"), PUSH("push_message")
-}
-
-
-/** 消息中心返回数据结构 */
-@Serializable
-data class NotificationMsgItem(
-  val app_id: String = "",
-  val title: String = "",
-  val msg_content: String = "",
-  val msg_src: String = "app_message",
-  val msg_priority: Int = 1,
-  val entry_queue_time: String = "",
-  val msg_status: String = "",
-  val msg_id: String = "",
-)

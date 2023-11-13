@@ -5,7 +5,7 @@ import info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM
 import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM
 import info.bagen.dwebbrowser.microService.sys.device.DeviceNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
-import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
+import org.dweb_browser.sys.notification.NotificationNMM
 import org.dweb_browser.sys.toast.ToastNMM
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
