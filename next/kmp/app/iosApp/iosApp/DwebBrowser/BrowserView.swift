@@ -63,7 +63,8 @@ struct BrowserView: View {
                 }
             }
             .environment(\.colorScheme, colorScheme)
-            .onReceive(KmpBridgeManager.shared.eventPublisher.filter{$0.name == KmpEvent.colorScheme}) { e in
+            .onReceive(KmpBridgeManager.shared.eventPublisher.debounce(for: 0.3, scheduler: DispatchQueue.main).filter{$0.name == KmpEvent.colorScheme}) { e in
+                Log("Color scheme")
                 guard let scheme = e.inputDatas?["colorScheme"] as? String else {
                     return
                 }

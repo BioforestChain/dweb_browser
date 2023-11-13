@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.biometrics
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.LocalAuthentication.LAContext
 import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthentication
@@ -8,6 +9,7 @@ actual object BiometricsApi {
 
   private val context = LAContext()
 
+  @OptIn(ExperimentalForeignApi::class)
   actual suspend fun isSupportBiometrics(
     biometricsData: BiometricsData, biometricsNMM: BiometricsNMM
   ): Boolean {

@@ -14,6 +14,7 @@ struct CellFrameInfo: Equatable {
 }
 
 struct CellFramePreferenceKey: PreferenceKey {
+    
     static var defaultValue: [CellFrameInfo] = []
 
     static func reduce(value: inout [CellFrameInfo], nextValue: () -> [CellFrameInfo]) {
@@ -54,9 +55,11 @@ struct TabGridView: View {
                                 .aspectRatio(cellWHratio, contentMode: .fit)
                                 .id(webCache.id)
                                 .background(GeometryReader { geometry in
-                                    Color.clear
+                                    Color
+                                        .clear
                                         .preference(key: CellFramePreferenceKey.self,
-                                                    value: [CellFrameInfo(index: webcacheStore.index(of: webCache) ?? 0, frame: geometry.frame(in: .named("ScrollView")))])
+                                                    value: [CellFrameInfo(index: webcacheStore.index(of: webCache) ?? 0, 
+                                                                          frame: geometry.frame(in: .named("ScrollView")))])
                                 })
 
                                 .onTapGesture {
@@ -78,10 +81,14 @@ struct TabGridView: View {
                     .padding(gridHSpace)
                     .scaleEffect(x: gridState.scale, y: gridState.scale)
                     .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
-                        if isFirstRecord {
-                            self.frames = newFrames
-                            isFirstRecord = false
+                        newFrames.forEach { info in
+                            if let index = frames.firstIndex(where: { $0.index == info.index}) {
+                                frames[index] = info
+                            } else {
+                                frames.append(info)
+                            }
                         }
+
                         detector.send(newFrames)
                     }
                 }
@@ -93,7 +100,7 @@ struct TabGridView: View {
                     }
                     Log("updating cell frames : \($0)")
                 }
-                .onChange(of: deleteCache.cacheId, perform: { _ in
+                .onChange(of: deleteCache.cacheId, { _, _ in
                     guard let cache = webcacheStore.caches.filter({ $0.id == deleteCache.cacheId }).first else { return }
                     guard let deleteIndex = webcacheStore.index(of: cache) else { return }
                     if deleteIndex <= selectedTab.curIndex {
@@ -111,11 +118,11 @@ struct TabGridView: View {
                         }
                     }
 
-                    _ = withAnimation(.easeIn) {
+                    withAnimation(.easeIn) {
                         webcacheStore.remove(by: deleteCache.cacheId)
                     }
                 })
-                .onChange(of: toolbarState.shouldExpand) { shouldExpand in
+                .onChange(of: toolbarState.shouldExpand, { _, shouldExpand in
                     if shouldExpand { // 准备放大动画
                         animation.snapshotImage = webcacheStore.cache(at: selectedTab.curIndex).snapshotImage
                         animation.progress = .startExpanding
@@ -125,8 +132,8 @@ struct TabGridView: View {
                             selectedCellFrame = CGRect(x: screen_width/2.0, y: screen_height/2.0, width: 5, height: 5)
                         }
                     }
-                }
-                .onChange(of: toolbarState.shouldExpand) { shouldExpand in
+                })
+                .onChange(of: toolbarState.shouldExpand, { _, shouldExpand in
                     if !shouldExpand { //缩小
                         let geoFrame = geo.frame(in: .global)
                         prepareToShrink(geoFrame: geoFrame, scrollproxy: scrollproxy) {
@@ -138,12 +145,7 @@ struct TabGridView: View {
                             }
                         }
                     }
-                }
-//                .onChange(of: webcacheStore.caches) { store in
-//                    if store.count == 0 { // 准备放大动画
-//
-//                    }
-//                }
+                })
             }
         }
     }
