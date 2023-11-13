@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.barcodeScanning
+package org.dweb_browser.browser.barcode
 
 import org.dweb_browser.helper.PromiseOut
 

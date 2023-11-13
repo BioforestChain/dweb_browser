@@ -18,6 +18,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    val scanningManager = ScanningManager()
     routes(
       // 处理二维码图像
       "/process" bind HttpMethod.Post to defineJsonResponse {
@@ -27,8 +28,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
         )
 
         val imgBitArray = request.body.toPureBinary()
-          ?: return@defineJsonResponse emptyList<String>().toJsonElement()
-        val result = getScanningController().recognize(
+        val result = scanningManager.recognize(
           imgBitArray,
           request.queryOrNull("rotation")?.toInt() ?: 0
         )
@@ -38,7 +38,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
 
       // 停止处理
       "/stop" bind HttpMethod.Get to defineBooleanResponse {
-        getScanningController().stop()
+        scanningManager.stop()
         return@defineBooleanResponse true
       },
     )

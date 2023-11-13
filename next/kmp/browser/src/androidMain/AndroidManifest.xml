@@ -18,5 +18,15 @@
       android:name=".desk.TaskbarActivity"
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
+
+    <activity
+      android:name="org.dweb_browser.browser.barcode.ScanningActivity"
+      android:exported="true"
+      android:launchMode="singleTask"
+      android:theme="@style/Theme.dwebbrowser">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+      </intent-filter>
+    </activity>
   </application>
 </manifest> 

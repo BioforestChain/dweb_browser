@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.microService
 
 import android.webkit.WebView
-import info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM
 import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.notification.NotificationNMM
 import org.dweb_browser.sys.toast.ToastNMM
@@ -33,6 +32,7 @@ import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
 import org.dweb_browser.sys.permission.PermissionApplicantTMM
 import org.dweb_browser.sys.permission.PermissionNMM
 import org.dweb_browser.sys.permission.PermissionProviderTNN
+import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
 
 suspend fun startDwebBrowser(): DnsNMM {

@@ -69,6 +69,12 @@ kotlin {
     implementation(libs.accompanist.permissions)
     implementation(libs.accompanist.insets.ui)
     implementation(libs.compose.ui.preview)
+    //扫码核心库
+    implementation(libs.camera.core)
+    implementation(libs.camera.view)
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.barcode)
   }
   sourceSets.iosMain.dependencies {
     implementation(projects.ziplib)

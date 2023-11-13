@@ -64,8 +64,9 @@
         android:name="android.app.shortcuts"
         android:resource="@xml/shortcuts" />
     </activity>
+
     <activity
-      android:name=".microService.sys.deepLink.DeepLinkActivity"
+      android:name=".DeepLinkActivity"
       android:exported="true"
       android:launchMode="singleTask"
       android:theme="@style/Theme.DwebBrowser.Transparent">
@@ -93,17 +94,6 @@
     <meta-data
       android:name="com.google.firebase.ml.vision.DEPENDENCIES"
       android:value="barcode" />
-
-
-    <activity
-      android:name=".microService.sys.barcodeScanning.ScanningActivity"
-      android:exported="true"
-      android:launchMode="singleTask"
-      android:theme="@style/Theme.dwebbrowser">
-      <intent-filter>
-        <action android:name="android.intent.action.VIEW" />
-      </intent-filter>
-    </activity>
 
     <provider
       android:name="androidx.core.content.FileProvider"

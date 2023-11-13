@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.barcodeScanning
+package org.dweb_browser.browser.barcode
 
 import android.content.Intent
 import android.net.Uri
@@ -9,18 +9,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.sys.barcodeScanning.ui.QRCodeScanView
-import info.bagen.dwebbrowser.microService.sys.barcodeScanning.ui.rememberQRCodeScanState
-import info.bagen.dwebbrowser.microService.sys.deepLink.DeepLinkActivity
-import info.bagen.dwebbrowser.microService.sys.deepLink.regexDeepLink
+import org.dweb_browser.browser.R
 import org.dweb_browser.core.module.BaseThemeActivity
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
+import org.dweb_browser.browser.barcode.ui.QRCodeScanView
+import org.dweb_browser.browser.barcode.ui.rememberQRCodeScanState
 
 class ScanningActivity : BaseThemeActivity() {
   companion object {
     const val IntentFromIPC = "fromIPC"
   }
+  private fun String.regexDeepLink() = Regex("dweb:.+").matchEntire(this)?.groupValues?.get(0)
 
   @OptIn(ExperimentalPermissionsApi::class)
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,10 +46,12 @@ class ScanningActivity : BaseThemeActivity() {
             ScanningController.controller.scanData = data
             if (!fromIpc) {
               data.regexDeepLink()?.let { dwebLink ->
-                startActivity(Intent(this@ScanningActivity, DeepLinkActivity::class.java).also {
+                startActivity(Intent().also {
+                  it.`package` = this@ScanningActivity.packageName
                   it.action = Intent.ACTION_VIEW
                   it.data = Uri.parse(dwebLink)
                   it.addCategory("android.intent.category.BROWSABLE")
+                  it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 })
               } ?: Toast.makeText(
                 this@ScanningActivity,

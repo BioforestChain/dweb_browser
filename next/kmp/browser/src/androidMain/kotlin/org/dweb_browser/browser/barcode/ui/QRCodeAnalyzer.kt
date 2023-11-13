@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.barcodeScanning.ui
+package org.dweb_browser.browser.barcode.ui
 
 import android.content.Context
 import android.graphics.Bitmap

@@ -77,4 +77,9 @@
   <string name="browser_engine_qihu">360</string>
   <string name="browser_history_today">Today</string>
   <string name="browser_history_yesterday">Yesterday</string>
+
+  <!-- 快捷方式 -->
+  <string name="shortcut_short_label">Scan</string>
+  <string name="shortcut_long_label">Scan</string>
+  <string name="shortcut_toast">no support data -> </string>
 </resources>

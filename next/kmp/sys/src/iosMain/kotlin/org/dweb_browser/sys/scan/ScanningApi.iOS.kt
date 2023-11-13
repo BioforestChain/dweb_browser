@@ -11,7 +11,6 @@ import platform.Foundation.create
 import platform.CoreImage.*
 import platform.posix.memcpy
 
-actual fun getScanningController(): ScanningApi = ScanningIOSController()
 
 @OptIn(ExperimentalForeignApi::class)
 public fun ByteArray.toNSData() : NSData = memScoped {
@@ -25,17 +24,17 @@ public fun NSData.toByteArray(): ByteArray = ByteArray(this@toByteArray.length.t
     }
 }
 
-class ScanningIOSController(): ScanningApi {
-    override fun cameraPermission(): Boolean {
+actual class ScanningManager actual constructor() {
+    actual fun cameraPermission(): Boolean {
         // TODO: 权限暂时全部开放
         return true
     }
 
-    override fun stop() {
+    actual fun stop() {
         // iOS不需要stop
     }
 
-    override fun recognize(img: ByteArray, rotation: Int): List<String> {
+    actual suspend fun recognize(img: ByteArray, rotation: Int): List<String> {
         val ciImage = CIImage(data = img.toNSData())
         val detector = CIDetector.detectorOfType("CIDetectorTypeQRCode", null, null)
         val detectResult = detector?.featuresInImage(image = ciImage, options = null) ?: return  emptyList()

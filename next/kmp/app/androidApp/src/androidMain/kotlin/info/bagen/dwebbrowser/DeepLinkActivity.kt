@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.deepLink
+package info.bagen.dwebbrowser
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -8,7 +8,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
-import info.bagen.dwebbrowser.App
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.web.ui.loading.LoadingView
 import org.dweb_browser.core.module.BaseThemeActivity

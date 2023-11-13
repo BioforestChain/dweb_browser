@@ -45,12 +45,12 @@ kotlin {
 
 
 
-          //扫码核心库
-          implementation(libs.camera.core)
-          implementation(libs.camera.view)
-          implementation(libs.camera.camera2)
-          implementation(libs.camera.lifecycle)
-          implementation(libs.camera.barcode)
+//          //扫码核心库
+//          implementation(libs.camera.core)
+//          implementation(libs.camera.view)
+//          implementation(libs.camera.camera2)
+//          implementation(libs.camera.lifecycle)
+//          implementation(libs.camera.barcode)
 
           // test
           implementation(libs.compose.ui.preview)

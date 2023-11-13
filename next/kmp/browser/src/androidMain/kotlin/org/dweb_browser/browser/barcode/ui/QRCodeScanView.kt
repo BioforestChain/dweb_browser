@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.barcodeScanning.ui
+package org.dweb_browser.browser.barcode.ui
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
@@ -91,8 +91,8 @@ import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.mlkit.vision.barcode.common.Barcode
-import info.bagen.dwebbrowser.R
 import kotlinx.coroutines.delay
+import org.dweb_browser.browser.R
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.browser.web.ui.view.PermissionSingleView
 import java.util.concurrent.Executors
