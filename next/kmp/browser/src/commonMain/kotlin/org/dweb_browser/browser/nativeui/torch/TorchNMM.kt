@@ -10,17 +10,17 @@ class TorchNMM : NativeMicroModule("torch.nativeui.browser.dweb", "torch") {
     categories =
       listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
   }
-  private val torchApi by lazy { TorchApi(this) }
+
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       // 打开关闭手电筒
       "/toggleTorch" bind HttpMethod.Get to defineBooleanResponse {
-        torchApi.toggleTorch()
+        TorchApi.toggleTorch()
         return@defineBooleanResponse true
       },
       // 查询状态
       "/torchState" bind HttpMethod.Get to defineBooleanResponse {
-        return@defineBooleanResponse torchApi.torchState()
+        return@defineBooleanResponse TorchApi.torchState()
       }).cors()
   }
   override suspend fun _shutdown() {

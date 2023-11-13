@@ -9,14 +9,15 @@ import platform.AVFoundation.hasTorch
 import platform.AVFoundation.torchActive
 import platform.AVFoundation.torchMode
 
-actual class TorchApi actual constructor(mm: TorchNMM) {
+actual object TorchApi {
   private val videoCaptureDevice = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
 
   @OptIn(ExperimentalForeignApi::class)
   actual fun toggleTorch() {
-    if(videoCaptureDevice?.hasTorch() == true) {
-      if(videoCaptureDevice.lockForConfiguration(null)) {
-        videoCaptureDevice.torchMode = if (videoCaptureDevice.torchActive) AVCaptureTorchModeOff else AVCaptureTorchModeOn
+    if (videoCaptureDevice?.hasTorch() == true) {
+      if (videoCaptureDevice.lockForConfiguration(null)) {
+        videoCaptureDevice.torchMode =
+          if (videoCaptureDevice.torchActive) AVCaptureTorchModeOff else AVCaptureTorchModeOn
       }
 
       videoCaptureDevice.unlockForConfiguration()
