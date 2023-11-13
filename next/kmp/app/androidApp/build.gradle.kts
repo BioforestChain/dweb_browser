@@ -43,8 +43,7 @@ kotlin {
           implementation(libs.accompanist.permissions)
           implementation(libs.accompanist.systemui.controller)
 
-          // 生物识别
-          implementation(libs.androidx.biometric)
+
 
           //扫码核心库
           implementation(libs.camera.core)

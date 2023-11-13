@@ -103,7 +103,7 @@
       </intent-filter>
     </activity>
     <activity
-      android:name=".microService.sys.biometrics.BiometricsActivity"
+      android:name="org.dweb_browser.sys.biometrics.BiometricsActivity"
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
 

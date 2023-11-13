@@ -68,6 +68,8 @@ kotlin {
     implementation(libs.accompanist.permissions)
     implementation(libs.accompanist.insets.ui)
     implementation(libs.compose.ui.preview)
+    // 生物识别
+    implementation(libs.androidx.biometric)
   }
 }
 

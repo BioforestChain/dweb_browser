@@ -2,7 +2,6 @@ package info.bagen.dwebbrowser.microService
 
 import android.webkit.WebView
 import info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM
-import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM
 import info.bagen.dwebbrowser.microService.sys.device.DeviceNMM
@@ -29,6 +28,7 @@ import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.platform.getKtorClientEngine
+import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
 import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
 import org.dweb_browser.sys.permission.PermissionApplicantTMM

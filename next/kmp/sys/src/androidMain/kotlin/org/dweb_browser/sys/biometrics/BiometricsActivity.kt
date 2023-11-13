@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.biometrics
+package org.dweb_browser.sys.biometrics
 
 import android.app.KeyguardManager
 import android.content.Intent
@@ -15,16 +15,12 @@ import androidx.biometric.BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC
 import androidx.biometric.BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
+import org.dweb_browser.sys.biometrics.BiometricsController.Companion.biometricsController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.decodeTo
 import java.util.concurrent.Executor
-
-@Serializable
-data class BiometricsResult(val success: Boolean, val message: String)
-
 
 class BiometricsActivity : FragmentActivity() {
 
@@ -45,12 +41,8 @@ class BiometricsActivity : FragmentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    mBiometricsData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      intent.getSerializableExtra("data", BiometricsData::class.java)
-    } else {
-      @Suppress("DEPRECATION") intent.getSerializableExtra("data")?.let {
-        it as BiometricsData
-      }
+    mBiometricsData = intent.getStringExtra("data")?.let {
+      it.decodeTo<BiometricsData>()
     }
     executor = ContextCompat.getMainExecutor(this)
     biometricPrompt = BiometricPrompt(this, executor,
@@ -62,9 +54,6 @@ class BiometricsActivity : FragmentActivity() {
         ) {
           super.onAuthenticationError(errorCode, errString)
           debugBiometrics("onAuthenticationError", "errString:$errString,errorCode:$errorCode")
-//                    Toast.makeText(applicationContext,
-//                        "Authentication error: $errString", Toast.LENGTH_SHORT)
-//                        .show()
           biometrics_promise_out.resolve(BiometricsResult(false, errString.toString()))
           this@BiometricsActivity.finish()
         }
