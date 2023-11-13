@@ -9,10 +9,6 @@ import Combine
 import Foundation
 import SwiftUI
 
-class KeyBoard: ObservableObject {
-    @Published var height: CGFloat = 0
-}
-
 class BrowserArea: ObservableObject {
     @Published var frame: CGRect = .zero
 }
