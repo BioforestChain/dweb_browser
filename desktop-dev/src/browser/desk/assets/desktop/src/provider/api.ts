@@ -9,6 +9,7 @@ export async function readAccept(ext: string = "") {
     .split(",")
     .map((mime) => {
       const mimeLower = mime.toLowerCase();
+      // @ts-ignore
       if (mime.includes("*")) {
         const mimeReg = new RegExp(mime.replace(/\*/g, ".+"), "i");
         return (type: string) => mimeLower === type.toLowerCase() || mimeReg.test(type);
@@ -121,7 +122,7 @@ export async function deleteWebLink(mmid: string) {
     search: {
       app_id: mmid,
     },
-    mmid: "web.browser.dweb"
+    mmid: "web.browser.dweb",
   });
 }
 

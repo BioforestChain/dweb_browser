@@ -1,4 +1,4 @@
-import { X_PLAOC_QUERY } from "../../../server/const.ts";
+import { X_PLAOC_QUERY } from "../../common/const.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { dwebServiceWorker } from "../index.ts";
@@ -17,6 +17,7 @@ export class ConfigPlugin extends BasePlugin {
         this.setInternalUrl(internalUrl);
         BasePlugin.internal_url_useable = true;
       }
+    // deno-lint-ignore no-empty
     } catch {}
   }
 

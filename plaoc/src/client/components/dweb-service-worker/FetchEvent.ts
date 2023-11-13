@@ -1,6 +1,6 @@
 
-import type { $MicroModuleManifest } from "npm:@dweb-browser/js-process";
-import { FetchEvent, IpcResponse } from "npm:@dweb-browser/js-process";
+import { FetchEvent, IpcResponse } from "dweb/core/ipc/index.ts";
+import type { $MicroModuleManifest } from "dweb/core/types.ts";
 import type { DwebServiceWorkerPlugin } from "./index.ts";
 
 export class ServiceWorkerFetchEvent extends Event {

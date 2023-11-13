@@ -1,16 +1,16 @@
-import type { $MicroModuleManifest } from "npm:@dweb-browser/js-process";
-import {
-  $ReadableStreamIpc,
-  IPC_ROLE,
-  PromiseOut,
-  ReadableStreamIpc,
-  ReadableStreamOut,
-  simpleEncoder,
-  streamReadAll
-} from "npm:@dweb-browser/js-process";
+
+import { ReadableStreamIpc } from "dweb/core/ipc-web/index.ts";
+import type { $MicroModuleManifest } from "dweb/core/types.ts";
+import { PromiseOut } from "dweb/helper/PromiseOut.ts";
+import { simpleEncoder } from "dweb/helper/encoding.ts";
+import { ReadableStreamOut, streamReadAll } from "dweb/helper/stream/readableStreamHelper.ts";
+
 // 回复信息给后端
-export const createMockModuleServerIpc: (wsUrl: URL, remote: $MicroModuleManifest) => Promise<$ReadableStreamIpc> = (wsUrl:URL,remote:$MicroModuleManifest) => {
-  const waitOpenPo = new PromiseOut<$ReadableStreamIpc>();
+export const createMockModuleServerIpc: (wsUrl: URL, remote: $MicroModuleManifest) => Promise<ReadableStreamIpc> = (
+  wsUrl: URL,
+  remote: $MicroModuleManifest
+) => {
+  const waitOpenPo = new PromiseOut<ReadableStreamIpc>();
 
   /// 通过ws链接到代理服务器
   const ws = new WebSocket(wsUrl);

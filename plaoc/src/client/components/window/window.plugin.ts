@@ -1,4 +1,5 @@
-import { IPC_ROLE, IpcResponse, ReadableStreamIpc } from "npm:@dweb-browser/js-process";
+import { ReadableStreamIpc } from "dweb/core/ipc-web/index.ts";
+import { IPC_ROLE, IpcResponse } from "dweb/core/ipc/index.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";

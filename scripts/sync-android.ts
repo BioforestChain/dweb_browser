@@ -10,5 +10,5 @@ export const androidSyncTask = SyncTask.from(
 );
 if (import.meta.main) {
   // syncServerTask.auto();
-  androidSyncTask.auto();
+  // androidSyncTask.auto();
 }

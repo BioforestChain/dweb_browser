@@ -1,4 +1,4 @@
-import { $ReadableStreamIpc } from "npm:@dweb-browser/js-process";
+import { ReadableStreamIpc } from "dweb/core/ipc-web/index.ts";
 import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { ListenerCallback } from "../base/BaseEvent.ts";
@@ -53,7 +53,7 @@ class UpdateControllerPlugin extends BasePlugin {
 
 class UpdateController extends EventTarget {
   mmid: $MMID = "download.browser.dweb";
-  readonly ipcPromise: Promise<$ReadableStreamIpc> = this.createIpc();
+  readonly ipcPromise: Promise<ReadableStreamIpc> = this.createIpc();
 
   constructor() {
     super();

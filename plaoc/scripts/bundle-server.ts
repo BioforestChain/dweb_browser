@@ -15,7 +15,7 @@ export const prod = new ESBuild({
   absWorkingDir,
   splitting: true,
   entryPoints: {
-    "plaoc.server": "src/index.ts",
+    "plaoc.server": "./src/index.ts",
     "urlpattern.polyfill": "src/helper/urlpattern.polyfill.ts",
   }, //[, "src/server/helper/urlpattern.polyfill.ts"],
   // outfile: "../../dist/server/plaoc.server.js",
@@ -29,8 +29,8 @@ export const prod = new ESBuild({
 export const dev = new ESBuild({
   absWorkingDir,
   entryPoints: {
-    "plaoc.server.dev": "src/server/index.ts",
-    "urlpattern.polyfill": "src/server/helper/urlpattern.polyfill.ts",
+    "plaoc.server.dev": "src/index.ts",
+    "urlpattern.polyfill": "src/helper/urlpattern.polyfill.ts",
   },
   outdir: "../../dist/server",
   plugins: [

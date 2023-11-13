@@ -1,4 +1,4 @@
-import type { $MMID } from "npm:@dweb-browser/js-process";
+import type { $MMID } from "dweb/core/types.ts";
 import { X_PLAOC_QUERY } from "../../common/const.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";

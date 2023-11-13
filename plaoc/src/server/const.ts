@@ -5,7 +5,8 @@ export const enum X_PLAOC_QUERY {
   API_PUBLIC_URL = "X-Plaoc-Public-Url",
   EXTERNAL_URL = "X-Plaoc-External-Url",
   SESSION_ID = "X-Plaoc-Session-Id",
-  GET_CONFIG_URL = "x-Plaoc-Config-Url"
+  GET_CONFIG_URL = "x-Plaoc-Config-Url",
+  X_PLAOC_QUERY = "X_PLAOC_QUERY",
 }
 
 export const enum OBSERVE {
