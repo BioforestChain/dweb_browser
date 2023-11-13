@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.share
+package org.dweb_browser.sys.share
 
 import android.app.PendingIntent
 import android.content.ComponentName
@@ -8,11 +8,10 @@ import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
-import info.bagen.dwebbrowser.App
+import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.help.types.MMID
 import java.io.File
 
 object SharePlugin {
@@ -28,20 +27,20 @@ object SharePlugin {
    */
   fun share(
     controller: ShareController,
-    title: String? = null,
-    text: String? = null,
-    url: String? = null,
+    shareOptions: ShareOptions,
     files: List<String>? = null,
     po: PromiseOut<String>,
   ) {
     debugShare(
-      "open_share", "title==>$title text==>$text  url==>$url,${url.isNullOrEmpty()} files==>$files"
+      "open_share", "shareOptions==>$shareOptions files==>$files"
     )
-    if (text.isNullOrEmpty() && url.isNullOrEmpty() && (files != null && files.isEmpty())) {
+    if (shareOptions.text.isNullOrEmpty() && shareOptions.url.isNullOrEmpty() &&
+      (files != null && files.isEmpty())
+    ) {
       po.resolve("Must provide a URL or Message or files")
       return
     }
-    if (!url.isNullOrEmpty() && !isFileUrl(url) && !isHttpUrl(url)) {
+    if (!shareOptions.url.isNullOrEmpty() && !isFileUrl(shareOptions.url) && !isHttpUrl(shareOptions.url)) {
       po.resolve("Unsupported url")
       return
     }
@@ -53,26 +52,26 @@ object SharePlugin {
         Intent.ACTION_SEND
       }
 
-      if (text != null) {
-        val sendText = if (url != null && isHttpUrl(url)) {
-          "$text $url"
+      if (shareOptions.text != null) {
+        val sendText = if (shareOptions.url != null && isHttpUrl(shareOptions.url)) {
+          "${shareOptions.text} ${shareOptions.url}"
         } else {
-          text
+          shareOptions.text
         }
         putExtra(Intent.EXTRA_TEXT, sendText)
         setTypeAndNormalize("text/plain")
       }
 
-      if (url != null && isHttpUrl(url) && text == null) {
-        putExtra(Intent.EXTRA_TEXT, url)
+      if (shareOptions.url != null && isHttpUrl(shareOptions.url) && shareOptions.text == null) {
+        putExtra(Intent.EXTRA_TEXT, shareOptions.url)
         setTypeAndNormalize("text/plain")
-      } else if (url != null && isFileUrl(url)) {
+      } else if (shareOptions.url != null && isFileUrl(shareOptions.url)) {
         val filesArray = mutableListOf<String>()
-        filesArray.add(url)
+        filesArray.add(shareOptions.url)
         shareFiles(filesArray, this, po)
       }
 
-      title?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
+      shareOptions.title?.let { putExtra(Intent.EXTRA_SUBJECT, it) }
 
       if (!files.isNullOrEmpty()) {
         shareFiles(files, this, po)
@@ -87,7 +86,7 @@ object SharePlugin {
     val pi = PendingIntent.getBroadcast(
       context, 0, Intent(Intent.EXTRA_CHOSEN_COMPONENT), flags
     )
-    val chooserIntent = Intent.createChooser(intent, title, pi.intentSender).apply {
+    val chooserIntent = Intent.createChooser(intent, shareOptions.title, pi.intentSender).apply {
       addCategory(Intent.CATEGORY_DEFAULT)
     }
 
@@ -100,6 +99,7 @@ object SharePlugin {
     files: List<String>, intent: Intent, po: PromiseOut<String>
   ): ArrayList<Uri> {
     val arrayListFiles = arrayListOf<Uri>()
+    val context = NativeMicroModule.getAppContext()
     try {
       files.forEach { file ->
         if (isFileUrl(file)) {
@@ -110,11 +110,9 @@ object SharePlugin {
           intent.type = type
           val fileUrl = Uri.parse(file)
           // android7 以上不能对外直接分享file://
-          val shareFile = App.appContext.let {
-            FileProvider.getUriForFile(
-              it, "${App.appContext.packageName}.file.opener.provider", File(fileUrl.path!!)
-            )
-          }
+          val shareFile = FileProvider.getUriForFile(
+            context, "${context.packageName}.file.opener.provider", File(fileUrl.path!!)
+          )
           arrayListFiles.add(shareFile)
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && arrayListFiles.size == 1) {
 //                        intent.setDataAndType(shareFile, type)

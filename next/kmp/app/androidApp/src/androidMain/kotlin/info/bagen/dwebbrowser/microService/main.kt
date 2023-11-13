@@ -6,7 +6,6 @@ import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM
 import info.bagen.dwebbrowser.microService.sys.device.DeviceNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
-import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import org.dweb_browser.sys.toast.ToastNMM
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
@@ -34,6 +33,7 @@ import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
 import org.dweb_browser.sys.permission.PermissionApplicantTMM
 import org.dweb_browser.sys.permission.PermissionNMM
 import org.dweb_browser.sys.permission.PermissionProviderTNN
+import org.dweb_browser.sys.share.ShareNMM
 
 suspend fun startDwebBrowser(): DnsNMM {
   /**

@@ -1,7 +1,9 @@
-package info.bagen.dwebbrowser.microService.sys.share
+package org.dweb_browser.sys.share
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.PromiseOut
 
 class ShareController {
@@ -29,4 +31,14 @@ class ShareController {
         activityResultLauncherTask.resolve(value)
       }
     }
+
+  fun openActivity() {
+    val context = NativeMicroModule.getAppContext()
+    val intent = Intent(context, ShareActivity::class.java)
+    intent.action = "${context.packageName}.share"
+    intent.`package` = context.packageName
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+    context.startActivity(intent)
+  }
 }

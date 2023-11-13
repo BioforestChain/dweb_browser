@@ -1,10 +1,5 @@
 package org.dweb_browser.sys.share
 
-import kotlinx.serialization.Serializable
-import org.dweb_browser.helper.PromiseOut
+import io.ktor.http.content.MultiPartData
 
-interface ShareApi {
-    suspend fun share(title: String?, text: String?, url: String?, files: List<ByteArray>?): String
-}
-
-expect fun getShareController(): ShareApi
+expect suspend fun share(shareOptions: ShareOptions, multiPartData: MultiPartData?): String

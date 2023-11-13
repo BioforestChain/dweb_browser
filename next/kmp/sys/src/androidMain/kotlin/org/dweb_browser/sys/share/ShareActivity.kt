@@ -1,10 +1,10 @@
-package info.bagen.dwebbrowser.microService.sys.share
+package org.dweb_browser.sys.share
 
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import info.bagen.dwebbrowser.microService.sys.share.ShareController.Companion.controller
+import org.dweb_browser.sys.share.ShareController.Companion.controller
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch

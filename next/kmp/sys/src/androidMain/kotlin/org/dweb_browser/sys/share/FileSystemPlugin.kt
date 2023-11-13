@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.sys.share
+package org.dweb_browser.sys.share
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
@@ -114,7 +114,7 @@ object FileSystemPlugin {
 
   fun getInputStream(path: String, eFileType: EFileType?): InputStream? {
     eFileType?.let {
-      val androidDirectory: File = this.getDirectory(eFileType)
+      val androidDirectory: File = getDirectory(eFileType)
       return FileInputStream(File(androidDirectory, path))
     } ?: run {
       val u: Uri = Uri.parse(path)

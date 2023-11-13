@@ -95,7 +95,7 @@
       android:value="barcode" />
 
     <activity
-      android:name=".microService.sys.share.ShareActivity"
+      android:name="org.dweb_browser.sys.share.ShareActivity"
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent">
       <intent-filter>
@@ -104,16 +104,6 @@
     </activity>
     <activity
       android:name="org.dweb_browser.sys.biometrics.BiometricsActivity"
-      android:exported="true"
-      android:theme="@style/Theme.DwebBrowser.Transparent" />
-
-    <activity
-      android:name=".microService.sys.fileSystem.FileSystemActivity"
-      android:exported="true"
-      android:theme="@style/Theme.DwebBrowser.Transparent" />
-
-    <activity
-      android:name=".microService.sys.permission.PermissionActivity"
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
 

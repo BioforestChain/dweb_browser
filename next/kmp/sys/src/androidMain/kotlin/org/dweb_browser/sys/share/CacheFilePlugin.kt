@@ -1,11 +1,11 @@
-package info.bagen.dwebbrowser.microService.sys.share
+package org.dweb_browser.sys.share
 
 import android.net.Uri
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 
-class CacheFilePlugin {
+object CacheFilePlugin {
 
   fun writeFile(
     path: String, eFileType: EFileType?, data: InputStream, recursive: Boolean
