@@ -55,6 +55,7 @@ struct BrowserView: View {
                         .environmentObject(openingLink)
                         .environmentObject(webcacheStore)
                         .environmentObject(dragScale)
+                        .environmentObject(toolBarState)
                 }
                 .onChange(of: geometry.frame(in: .global)) { frame in
                     wndArea.frame = frame
