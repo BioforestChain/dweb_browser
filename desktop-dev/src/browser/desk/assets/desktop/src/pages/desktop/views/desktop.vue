@@ -94,38 +94,85 @@ const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetA
     }
   }
   layoutInfoListRef.value = layoutInfoList;
+  // layoutInfoListRef.value = Array(4).fill({
+  //   type: "app",
+  //   data: {
+  //     id: "web.browser.dweb",
+  //     dweb_deeplinks: ["dweb://search", "dweb://openinbrowser"],
+  //     dweb_protocols: [],
+  //     dweb_permissions: [],
+  //     name: "Web Browser",
+  //     short_name: "Browser",
+  //     icons: [
+  //       {
+  //         src: "file:///sys/icons/web.browser.dweb.svg",
+  //         type: "image/svg+xml",
+  //       },
+  //     ],
+  //     categories: ["application", "web-browser"],
+  //     shortcuts: [],
+  //     version: "0.0.1",
+  //     mmid: "web.browser.dweb",
+  //     ipc_support_protocols: {
+  //       cbor: true,
+  //       protobuf: true,
+  //       raw: true,
+  //     },
+  //     running: false,
+  //     winStates: [],
+  //   },
+  //   xywh: {
+  //     w: 1,
+  //     h: 1,
+  //   },
+  // } as any);
 };
 
 onMounted(() => {
   updateApps();
 });
 
-window.addEventListener("resize", function () {
-  console.log("innerHeight updated:", window.innerHeight);
-  rowTemplateSize();
+const $desktop = ref<HTMLDivElement>();
+const rowSize = ref(98);
+
+let resizeOb: undefined | ResizeObserver;
+onMounted(() => {
+  resizeOb = new ResizeObserver((entries) => {
+    const { width, height } = entries[0].contentRect;
+    // console.log("xxxx=>", height, window.innerHeight);
+    rowTemplateSize(height);
+  });
+  resizeOb.observe($desktop.value!);
+});
+onUnmounted(() => {
+  if (resizeOb !== undefined) {
+    if ($desktop.value) {
+      resizeOb.unobserve($desktop.value);
+    }
+    resizeOb.disconnect();
+  }
 });
 
-const rowTemplateSize = () => {
+const rowTemplateSize = (height: number) => {
   if (layoutInfoListRef.value.length == 1) return 119;
-  const row = Math.ceil(layoutInfoListRef.value.length / (window.innerWidth / 120));
-  return window.innerHeight / row;
+  const row = Math.ceil(layoutInfoListRef.value.length / Math.floor(window.innerWidth / 94));
+  // console.log("row", row, window.innerHeight, Math.floor(window.innerWidth / 94));
+  const higth = height ?? window.innerHeight;
+  // console.log("panelhigth", higth, $desktop.value?.clientHeight);
+  const line = higth / row;
+  if (line > 120) return (rowSize.value = 120);
+  // console.log("result=>", line);
+  rowSize.value = line;
 };
-// watch([window.innerHeight, layoutInfoListRef.value.length], ([height, size], [prevHeight, prevSize]) => {
-//   const row = Math.ceil(prevSize / (window.innerWidth / 120));
-//   console.log("height", height, prevHeight);
-//   console.log("size", size, prevSize);
-//   console.log("row==>", row);
-//   rowTemplateSize.value = prevHeight / row;
-// });
 
 const bgStyle = {
   backgroundImage: `url(${wallpaper_url})`,
 } satisfies StyleValue;
 </script>
 <template>
-  <div class="desktop" draggable="false">
+  <div class="desktop" draggable="false" ref="$desktop">
     <div class="wallpaper" title="墙纸" :style="bgStyle"></div>
-    <TilePanel :rowTemplateSize="rowTemplateSize">
+    <TilePanel :rowTemplateSize="rowSize">
       <TileItem v-for="(info, index) in layoutInfoListRef" :key="index" :width="info.xywh.w" :height="info.xywh.h">
         <WidgetApp v-if="info.type === 'app'" :key="index" :index="index" :app-meta-data="info.data"></WidgetApp>
         <WidgetWebApp

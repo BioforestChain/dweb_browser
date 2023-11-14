@@ -51,7 +51,7 @@ watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
 const opening = ref(false);
 const closing = ref(false);
 const animationiteration = ref(false);
-watch(animationiteration,() => {
+watch(animationiteration, () => {
   if (animationiteration.value === true) {
     animationiteration.value = false;
     /// 如果running的状态发生改变，那么修改ing的值
@@ -90,19 +90,16 @@ const $menu = {
 };
 
 const doOpen = () =>
-  useThrottleFn(
-    async () => {
-      opening.value = true;
-      if ((await openApp(appid.value).catch(() => (opening.value = false))) === false) {
-        snackbar.text = `${appname.value} 启动失败`;
-        snackbar.timeOut = 1500;
-        snackbar.type = "error";
-        snackbar.show = true;
-      }
-      opening.value = false;
-    },
-    500
-  )();
+  useThrottleFn(async () => {
+    opening.value = true;
+    if ((await openApp(appid.value).catch(() => (opening.value = false))) === false) {
+      snackbar.text = `${appname.value} 启动失败`;
+      snackbar.timeOut = 1500;
+      snackbar.type = "error";
+      snackbar.show = true;
+    }
+    opening.value = false;
+  }, 500)();
 
 async function doQuit() {
   // 如果是移除 browserApp需要顺便把窗口移除
@@ -160,7 +157,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
             size="60px"
             :icon="appicon"
           ></AppIcon>
-          <div class="app-name line-clamp-2 backdrop-ios-glass ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
+          <div class="app-name  backdrop-ios-glass ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
             {{ appname }}
           </div>
         </div>
@@ -240,6 +237,9 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
     }
     .app-name {
       width: 76px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       font-size: 14px;
       margin-top: 10px;
 

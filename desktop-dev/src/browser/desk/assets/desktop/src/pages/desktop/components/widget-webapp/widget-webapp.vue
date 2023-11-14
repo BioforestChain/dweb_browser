@@ -35,7 +35,7 @@ const props = defineProps({
   },
 });
 const appid = computed(() => props.appMetaData.mmid);
-const appUrl = computed(() => props.appMetaData.name)
+const appUrl = computed(() => props.appMetaData.name);
 const appname = computed(() => props.appMetaData.short_name!!);
 const appicon = shallowRef<$AppIconInfo>({ src: "", monochrome: false, maskable: false });
 watch(
@@ -45,7 +45,6 @@ watch(
   }
 );
 watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
-
 
 const opening = ref(false);
 const closing = ref(false);
@@ -133,7 +132,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
             size="60px"
             :icon="appicon"
           ></AppIcon>
-          <div class="app-name line-clamp-2 backdrop-ios-glass ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
+          <div class="app-name backdrop-ios-glass ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
             {{ appname }}
           </div>
         </div>
