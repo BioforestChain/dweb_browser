@@ -170,10 +170,10 @@ class WebBeforeUnloadArgs(
     }
 
   private var isLocked = false
-  private fun lock() = synchronized(this) { isLocked = true }
+  private fun syncLock() = synchronized(this) { isLocked = true }
 
   private val result = CompletableDeferred<Boolean>()
-  internal suspend fun waitHookResults() = lock().let {
+  internal suspend fun waitHookResults() = syncLock().let {
     var isKeep = false;
     val results = hookReasons.values.map { it.result.await() }
     for (unload in results) {

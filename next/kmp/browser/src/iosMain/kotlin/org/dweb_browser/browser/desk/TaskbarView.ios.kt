@@ -158,13 +158,6 @@ class TaskbarView(private val taskbarController: TaskbarController) :
   }
 }
 
-fun Offset.toIntOffset(density: Float) = IntOffset((density * x).toInt(), (density * y).toInt())
-
 fun UIColor.Companion.fromColorInt(color: Int): UIColor {
-  return UIColor(
-    ((color ushr 16) and 0xFF) / 255.0,
-    ((color ushr 8) and 0xFF) / 255.0,
-    ((color) and 0xFF) / 255.0,
-    1.0
-  )
+  return UIColor(red = ((color ushr 16) and 0xFF) / 255.0, green = ((color ushr 8) and 0xFF) / 255.0, blue = ((color) and 0xFF) / 255.0, alpha = 1.0)
 }

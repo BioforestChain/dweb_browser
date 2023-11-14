@@ -66,11 +66,11 @@ class DWebViewEngine(
     setNavigationDelegate(object : NSObject(), WKNavigationDelegateProtocol {
       override fun webView(
         webView: WKWebView,
-        navigationAction: WKNavigationAction,
+        decidePolicyForNavigationAction: WKNavigationAction,
         decisionHandler: (WKNavigationActionPolicy) -> Unit
       ) {
         /// navigationAction.navigationType : https://developer.apple.com/documentation/webkit/wknavigationtype/
-        val message = when (navigationAction.navigationType) {
+        val message = when (decidePolicyForNavigationAction.navigationType) {
           // reload
           3L -> "重新加载此网站？"
           else -> "离开此网站？"
