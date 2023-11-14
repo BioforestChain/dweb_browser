@@ -316,13 +316,13 @@ class BrowserViewModel(
 
 
   private suspend fun createDwebViewEngine(url: String = "") = withMainContext {
-    DWebViewEngine(
+  DWebViewEngine(
       browserNMM.getAppContext(), browserNMM, DWebViewOptions(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
       )
-    )
+    ).also { it.isVerticalScrollBarEnabled = false }
   }
 
   private suspend fun appendWebViewAsItem(

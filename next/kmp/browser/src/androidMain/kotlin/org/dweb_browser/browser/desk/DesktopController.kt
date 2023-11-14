@@ -111,6 +111,8 @@ class DesktopController(
         onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
       )
     );
+    // 隐藏滚动条
+    webView.isVerticalScrollBarEnabled = false
     val state = WebViewState(WebContent.Url(initUrl))
     val coroutineScope = CoroutineScope(CoroutineName("desk/main-dwebview/$name"))
     val navigator = WebViewNavigator(coroutineScope)

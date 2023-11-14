@@ -25,7 +25,7 @@ import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.windowInstancesManager
 
 class BrowserController(
-  val browserNMM: BrowserNMM, private val browserServer: HttpDwebServer
+  private val browserNMM: BrowserNMM, private val browserServer: HttpDwebServer
 ) {
   private val browserStore = BrowserStore(browserNMM)
 
