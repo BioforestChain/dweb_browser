@@ -3,6 +3,16 @@ package org.dweb_browser.dwebview
 import android.content.Context
 import android.net.Uri
 import android.webkit.WebMessage
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
+import androidx.webkit.WebSettingsCompat.DARK_STRATEGY_USER_AGENT_DARKENING_ONLY
+import androidx.webkit.WebSettingsCompat.FORCE_DARK_AUTO
+import androidx.webkit.WebSettingsCompat.FORCE_DARK_OFF
+import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
+import androidx.webkit.WebViewFeature
+import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
@@ -33,9 +43,13 @@ suspend fun IDWebView.Companion.create(
    * 我们将这些功能都写到了BaseActivity上，如果没有提供该对象，则相关的功能将会被禁用
    */
   activity: BaseActivity? = null
-) = withMainContext { DWebView(DWebViewEngine(context, remoteMM, options, activity)) }
+): IDWebView =
+  withMainContext { create(DWebViewEngine(context, remoteMM, options, activity), options.url) }
 
-class DWebView(internal val engine: DWebViewEngine) : IDWebView() {
+internal fun IDWebView.Companion.create(engine: DWebViewEngine, initUrl: String?) =
+  DWebView(engine, initUrl)
+
+class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : IDWebView(initUrl) {
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
   }
@@ -145,6 +159,43 @@ class DWebView(internal val engine: DWebViewEngine) : IDWebView() {
     engine.setInitialScale((scale * 100).toInt())
   }
 
+  override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
+    if (!WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+      return
+    }
+    when (colorScheme) {
+      WebColorScheme.Normal -> {
+        WebSettingsCompat.setForceDark(engine.settings, FORCE_DARK_AUTO)
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+          WebSettingsCompat.setForceDarkStrategy(
+            engine.settings,
+            DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
+          )
+        }
+      }
+
+      WebColorScheme.Dark -> {
+        WebSettingsCompat.setForceDark(engine.settings, FORCE_DARK_ON)
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+          WebSettingsCompat.setForceDarkStrategy(
+            engine.settings,
+            DARK_STRATEGY_USER_AGENT_DARKENING_ONLY
+          )
+        }
+      }
+
+      WebColorScheme.Light -> {
+        WebSettingsCompat.setForceDark(engine.settings, FORCE_DARK_OFF)
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+          WebSettingsCompat.setForceDarkStrategy(
+            engine.settings,
+            DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
+          )
+        }
+      }
+    }
+  }
+
   override suspend fun evaluateAsyncJavascriptCode(
     script: String,
     afterEval: suspend () -> Unit
@@ -155,9 +206,19 @@ class DWebView(internal val engine: DWebViewEngine) : IDWebView() {
   override val onReady get() = engine.dWebViewClient.onReady
 
   override val onBeforeUnload by lazy { engine.dWebChromeClient.beforeUnloadSignal.toListener() }
-
-  //#region 一些针对平台的接口
-  fun getAndroidWebViewEngine() = engine
-  //#endregion
+  override val loadingProgressFlow by lazy { engine.dWebChromeClient.loadingProgressSharedFlow.asSharedFlow() }
+  override val closeWatcher = engine.closeWatcher
+  override val onCreateWindow by lazy { engine.createWindowSignal.toListener() }
 }
 
+suspend fun IDWebView.getIconBitmap(): ImageBitmap? {
+  require(this is DWebView)
+  return engine.favicon?.asImageBitmap()
+}
+
+//#region 一些针对平台的接口
+fun IDWebView.asAndroidWebView(): DWebViewEngine {
+  require(this is DWebView)
+  return engine
+}
+//#endregion

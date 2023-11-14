@@ -46,7 +46,7 @@ import platform.darwin.NSObject
 class DWebViewEngine(
   frame: CValue<CGRect>,
   val remoteMM: MicroModule,
-  private val options: DWebViewOptions,
+  internal val options: DWebViewOptions,
   configuration: WKWebViewConfiguration,
 ) : WKWebView(frame, configuration.also {
   if (options.url.isNotEmpty()) {
@@ -117,6 +117,7 @@ class DWebViewEngine(
   }
 
   companion object {
+    @Deprecated("use proxy for https://*.dweb")
     private fun tryRegistryUrlSchemeHandler(
       url: String,
       remoteMM: MicroModule,
@@ -137,7 +138,6 @@ class DWebViewEngine(
     if (uri.host.endsWith(".dweb") && (uri.protocol == URLProtocol.HTTP || uri.protocol == URLProtocol.HTTPS)) {
       uri = Url("${DURLSchemeHandler.getScheme(uri)}:${uri.encodedPathAndQuery}")
     }
-
     val nsUrl = NSURL.URLWithString(uri.toString()) ?: throw Exception("invalid url: $url")
     val navigation = loadRequest(NSURLRequest.requestWithURL(nsUrl))
       ?: throw Exception("fail to get WKNavigation when loadRequest")

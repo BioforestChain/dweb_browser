@@ -4,9 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Message
-import android.webkit.WebChromeClient
-import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
@@ -16,15 +13,14 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.accompanist.web.WebContent
-import com.google.accompanist.web.WebViewNavigator
-import com.google.accompanist.web.WebViewState
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.R
+import org.dweb_browser.browser.util.isDeepLink
+import org.dweb_browser.browser.util.isSystemUrl
+import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.util.KEY_LAST_SEARCH_KEY
@@ -32,19 +28,17 @@ import org.dweb_browser.browser.web.util.KEY_NO_TRACE
 import org.dweb_browser.browser.web.util.getBoolean
 import org.dweb_browser.browser.web.util.saveBoolean
 import org.dweb_browser.browser.web.util.saveString
-import org.dweb_browser.browser.util.isDeepLink
-import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.asAndroidWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
-import org.dweb_browser.dwebview.base.ViewItem
-import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
-import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.dwebview.create
+import org.dweb_browser.dwebview.getIconBitmap
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.resolvePath
@@ -176,20 +170,12 @@ class BrowserViewModel(
     parameters["api-base"] = browserServer.startResult.urlInfo.buildPublicUrl().toString()
   }
 
-  private suspend fun getNewTabBrowserView(url: String? = null): BrowserWebView {
-    val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebViewEngine())
-    url?.let { viewItem.state.content = WebContent.Url(it) } // 初始化时，直接提供地址
-    return BrowserWebView(
-      viewItem = viewItem, closeWatcher = closeWatcher
-    )
-  }
+  private suspend fun getNewTabBrowserView(url: String? = null) =
+    createBrowserWebView(createDwebView(url))
 
   val searchBackBrowserView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     CoroutineScope(ioAsyncExceptionHandler).async {
-      val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebViewEngine())
-      BrowserWebView(
-        viewItem = viewItem, closeWatcher = closeWatcher
-      )
+      createBrowserWebView(createDwebView())
     }
   }
 
@@ -204,7 +190,7 @@ class BrowserViewModel(
         }
 
         is BrowserIntent.WebViewGoBack -> {
-          uiState.currentBrowserBaseView.value?.viewItem?.navigator?.navigateBack()
+          uiState.currentBrowserBaseView.value?.viewItem?.webView?.goBack()
         }
 
         is BrowserIntent.UpdateCurrentBaseView -> {
@@ -252,11 +238,7 @@ class BrowserViewModel(
             return@launch
           } else {
             uiState.currentBrowserBaseView.value?.viewItem?.apply {
-              state.content = WebContent.Url(url = action.url,
-                additionalHttpHeaders = hashMapOf<String, String>().also { map ->
-                  map["temp"] = System.currentTimeMillis().toString()
-                } // 添加不同的 header 信息，会让WebView判定即使同一个url，也做新url处理
-              )
+              webView.loadUrl(action.url, true/* 强制加载 */)
             }
             loadingState?.value = false
           }
@@ -285,15 +267,16 @@ class BrowserViewModel(
 
         is BrowserIntent.ShareWebSiteInfo -> {
           uiState.currentBrowserBaseView.value?.let {
-            if (it.viewItem.state.lastLoadedUrl?.isSystemUrl() == true) {
+            val url = it.viewItem.webView.getUrl()
+            if (url.isSystemUrl()) {
               handleIntent(BrowserIntent.ShowSnackbarMessage("无效的分享"))
               return@let
             }
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
               type = "text/plain"
-              putExtra(Intent.EXTRA_TEXT, it.viewItem.state.lastLoadedUrl ?: "") // 分享内容
+              putExtra(Intent.EXTRA_TEXT, url) // 分享内容
               // putExtra(Intent.EXTRA_SUBJECT, "分享标题")
-              putExtra(Intent.EXTRA_TITLE, it.viewItem.state.pageTitle) // 分享标题
+              putExtra(Intent.EXTRA_TITLE, it.viewItem.webView.getTitle()) // 分享标题
             }
             action.activity.startActivity(Intent.createChooser(shareIntent, "分享到"))
           }
@@ -309,88 +292,39 @@ class BrowserViewModel(
             )
           }*/
         }
+
         else -> null
       }
     }
   }
 
 
-  private suspend fun createDwebViewEngine(url: String = "") = withMainContext {
-  DWebViewEngine(
-      browserNMM.getAppContext(), browserNMM, DWebViewOptions(
-        url = url,
-        /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
-        onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
-      )
-    ).also { it.isVerticalScrollBarEnabled = false }
-  }
+  private suspend fun createDwebView(url: String? = null) = IDWebView.create(
+    browserNMM.getAppContext(), browserNMM, DWebViewOptions(
+      url = url ?: "",
+      /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
+      detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
+    )
+  ).also { it.asAndroidWebView().isVerticalScrollBarEnabled = false }
 
-  private suspend fun appendWebViewAsItem(
-    dWebView: DWebViewEngine,
-    url: String? = null
-  ): Pair<ViewItem, CloseWatcher> = withMainContext {
+  private suspend fun createBrowserWebView(
+    dWebView: IDWebView
+  ): BrowserWebView = withMainContext {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
-    val state = WebViewState(WebContent.Url(url ?: getDesktopUrl().toString()))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
-    val navigator = WebViewNavigator(coroutineScope)
     val viewItem = DWebViewItem(
       webviewId = webviewId,
       webView = dWebView,
-      state = state,
       coroutineScope = coroutineScope,
-      navigator = navigator,
     )
-    val closeWatcherController = CloseWatcher(viewItem.webView)
-
-    viewItem.webView.webChromeClient = object : WebChromeClient() {
-      override fun onCreateWindow(
-        view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
-      ): Boolean {
-        val transport = resultMsg.obj;
-        if (transport is WebView.WebViewTransport) {
-          viewItem.coroutineScope.launch {
-            val dwebView = createDwebViewEngine()
-            transport.webView = dwebView
-            resultMsg.sendToTarget()
-
-            // 它是有内部链接的，所以等到它ok了再说
-            var mainUrl = dwebView.getUrlInMain()
-            if (mainUrl?.isEmpty() != true) {
-              dwebView.waitReady()
-              mainUrl = dwebView.getUrlInMain()
-            }
-
-            /// 内部特殊行为，有时候，我们需要知道 isUserGesture 这个属性，所以需要借助 onCreateWindow 这个回调来实现
-            /// 实现 CloseWatcher 提案 https://github.com/WICG/close-watcher/blob/main/README.md
-            if (closeWatcherController.consuming.remove(mainUrl)) {
-              val consumeToken = mainUrl!!
-              closeWatcherController.apply(isUserGesture).also {
-                withMainContext {
-                  dwebView.destroy()
-                  closeWatcherController.resolveToken(consumeToken, it)
-                }
-              }
-            } else {
-              /// 打开一个新窗口
-              val (newViewItem, closeWatcher) = appendWebViewAsItem(dwebView, mainUrl)
-              withMainContext {
-                val browserWebView = BrowserWebView(
-                  viewItem = newViewItem, closeWatcher = closeWatcher
-                )
-                if (uiState.browserViewList.add(browserWebView)) {
-                  uiState.focusBrowserView(browserWebView)
-                }
-              }
-            }
-          }
-          return true
-        }
-        return super.onCreateWindow(
-          view, isDialog, isUserGesture, resultMsg
-        )
+    dWebView.onCreateWindow {
+      val browserWebView = createBrowserWebView(it)
+      if (uiState.browserViewList.add(browserWebView)) {
+        uiState.focusBrowserView(browserWebView)
       }
     }
-    Pair(viewItem, closeWatcherController)
+
+    BrowserWebView(viewItem)
   }
 
   val isNoTrace = mutableStateOf(browserNMM.getAppContext().getBoolean(KEY_NO_TRACE, false))
@@ -403,16 +337,15 @@ class BrowserViewModel(
    * 添加到桌面功能
    */
   suspend fun addUrlToDesktop(context: Context) {
-    uiState.currentBrowserBaseView.value?.viewItem?.state?.let { state ->
-      state.lastLoadedUrl?.let { url ->
-        browserController.addUrlToDesktop(
-          context = context,
-          title = state.pageTitle ?: browserNMM.getAppContext()
-            .getString(R.string.browser_no_title),
-          url = url,
-          icon = state.pageIcon
-        )
-      }
+    uiState.currentBrowserBaseView.value?.also { browserWebView ->
+      val webView = browserWebView.viewItem.webView
+      val url = webView.getUrl()
+      browserController.addUrlToDesktop(
+        context = context,
+        title = webView.getTitle().ifEmpty { url },
+        url = url,
+        icon = webView.getIconBitmap()
+      )
     }
   }
 
@@ -475,14 +408,14 @@ class BrowserViewModel(
 /**
  * 将WebViewState转为WebSiteInfo
  */
-fun WebViewState.toWebSiteInfo(type: WebSiteType): WebSiteInfo? {
-  return this.lastLoadedUrl?.let { url ->
+suspend fun IDWebView.toWebSiteInfo(type: WebSiteType): WebSiteInfo? {
+  return this.getUrl().let { url ->
     if (!url.isSystemUrl()) { // 无痕模式，不保存历史搜索记录
       WebSiteInfo(
-        title = pageTitle ?: url,
+        title = getTitle().ifEmpty { url },
         url = url,
         type = type,
-        //icon = pageIcon?.asImageBitmap()
+        icon = getIconBitmap()
       )
     } else null
   }

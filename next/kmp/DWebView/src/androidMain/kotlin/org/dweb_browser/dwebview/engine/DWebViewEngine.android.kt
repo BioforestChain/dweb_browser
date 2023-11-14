@@ -5,16 +5,20 @@ import android.content.Context
 import android.net.Uri
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
-import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.runBlockingCatching
@@ -169,23 +173,6 @@ class DWebViewEngine(
 
     super.setWebViewClient(dWebViewClient)
     super.setWebChromeClient(dWebChromeClient)
-
-    if (options.onJsBeforeUnloadStrategy != DWebViewOptions.JsBeforeUnloadStrategy.Default) {
-      dWebChromeClient.addWebChromeClient(object : WebChromeClient() {
-        override fun onJsBeforeUnload(
-          view: WebView?, url: String?, message: String?, result: JsResult?
-        ): Boolean {
-          when (options.onJsBeforeUnloadStrategy) {
-            DWebViewOptions.JsBeforeUnloadStrategy.Cancel -> result?.cancel()
-            DWebViewOptions.JsBeforeUnloadStrategy.Confirm -> result?.confirm()
-            DWebViewOptions.JsBeforeUnloadStrategy.Default -> return super.onJsBeforeUnload(
-              view, url, message, result
-            )
-          }
-          return true
-        }
-      }, Extends.Config(order = Int.MIN_VALUE))
-    }
     if (options.url.isNotEmpty()) {
       /// 开始加载
       loadUrl(options.url)
@@ -197,8 +184,17 @@ class DWebViewEngine(
   /**
    * 避免 com.google.accompanist.web 在切换 Compose 上下文的时候重复加载同样的URL
    */
+  override fun loadUrl(url: String) {
+    val curLoadUrlArgs = "$url\n"
+    if (curLoadUrlArgs == preLoadedUrlArgs) {
+      return
+    }
+    preLoadedUrlArgs = curLoadUrlArgs
+    super.loadUrl(url)
+  }
+
   override fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
-    val curLoadUrlArgs = "$url\nHEADERS:" + additionalHttpHeaders.toList()
+    val curLoadUrlArgs = "$url\n" + additionalHttpHeaders.toList()
       .joinToString("\n") { it.first + ":" + it.second }
     if (curLoadUrlArgs == preLoadedUrlArgs) {
       return
@@ -236,6 +232,9 @@ class DWebViewEngine(
     }
     _destroyed = true
     debugDWebView("DESTROY")
+    if (!isAttachedToWindow) {
+      super.onDetachedFromWindow()
+    }
     super.destroy()
     runBlockingCatching {
       _destroySignal.emitAndClear(Unit)
@@ -243,10 +242,24 @@ class DWebViewEngine(
     scope.cancel()
   }
 
+  private var isAttachedToWindow = false
+
   override fun onDetachedFromWindow() {
-    if (options.onDetachedFromWindowStrategy == DWebViewOptions.DetachedFromWindowStrategy.Default) {
+    if (options.detachedStrategy == DWebViewOptions.DetachedStrategy.Default) {
+      isAttachedToWindow = true
       super.onDetachedFromWindow()
     }
   }
 
+  override fun onAttachedToWindow() {
+    scope.launch {
+      attachedStateFlow.emit(true)
+    }
+    super.onAttachedToWindow()
+    isAttachedToWindow = false
+  }
+
+  val attachedStateFlow = MutableStateFlow<Boolean>(false);
+  val closeWatcher = CloseWatcher(this)
+  val createWindowSignal = Signal<IDWebView>()
 }

@@ -14,9 +14,9 @@ fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowRender
   val win = LocalWindowController.current
   val uiState = controller.viewModel.uiState
   val webViews = uiState.browserViewList.filter {
-    it.viewItem.state.lastLoadedUrl?.let {
+    it.viewItem.webView.getUrl().let {
       runCatching { if (it.startsWith("https://web.browser.dweb")) null else Url(it) }
-    }?.getOrNull() != null
+    }.getOrNull() != null
   }
 
   win.GoBackHandler(
@@ -24,8 +24,8 @@ fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowRender
     if (webViews.isNotEmpty()) "确定要关闭这 ${webViews.size} 个网页？" else null
   ) {
     val viewItem = uiState.currentBrowserBaseView.value!!.viewItem
-    if (viewItem.navigator.canGoBack) {
-      viewItem.navigator.navigateBack()
+    if (viewItem.webView.canGoBack()) {
+      viewItem.webView.goBack()
     } else {
       viewModel.handleIntent(BrowserIntent.RemoveBaseView(uiState.browserViewList.indexOfFirst { it.viewItem == viewItem }))
     }

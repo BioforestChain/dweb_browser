@@ -1,9 +1,9 @@
 package org.dweb_browser.browser.web
 
 import android.content.Context
-import android.graphics.Bitmap
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -127,7 +127,7 @@ class BrowserController(
     }
   }
 
-  suspend fun addUrlToDesktop(context: Context, title: String, url: String, icon: Bitmap?) {
+  suspend fun addUrlToDesktop(context: Context, title: String, url: String, icon: ImageBitmap?) {
     // 由于已经放弃了DataStore，所有这边改为直接走WebLinkStore
     val linkId = WebLinkManifest.createLinkId(url)
     val icons = icon?.let { WebLinkManifest.bitmapToImageResource(context, it) }?.let { listOf(it) }

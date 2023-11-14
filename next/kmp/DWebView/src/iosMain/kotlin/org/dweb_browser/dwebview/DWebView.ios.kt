@@ -5,6 +5,7 @@ import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.SharedFlow
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.Signal
@@ -38,7 +39,7 @@ suspend fun IDWebView.Companion.create(
 
 class DWebView(
   internal val engine: DWebViewEngine,
-) : IDWebView() {
+) : IDWebView(engine.options.url) {
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
   }
@@ -143,6 +144,12 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   override val onLoadStateChange by lazy { engine.loadStateChangeSignal.toListener() }
   override val onReady get() = engine.onReady
   override val onBeforeUnload by lazy { engine.beforeUnloadSignal.toListener() }
+  override val loadingProgressFlow: SharedFlow<Float>
+    get() = TODO("Not yet implemented")
+  override val closeWatcher: ICloseWatcher
+    get() = TODO("Not yet implemented")
+  override val onCreateWindow: Signal.Listener<IDWebView>
+    get() = TODO("Not yet implemented")
 
   override suspend fun destroy() {
     if (_destroyed) {
@@ -201,6 +208,10 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
 
   override suspend fun setContentScale(scale: Float) {
     engine.setContentScaleFactor(scale.toDouble())
+  }
+
+  override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
+    TODO("Not yet implemented")
   }
 
   override suspend fun evaluateAsyncJavascriptCode(

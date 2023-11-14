@@ -52,8 +52,8 @@ class DWebRequestResponse(val engine: DWebViewEngine) : WebViewClient() {
 
       val contentType = (response.headers.get("Content-Type") ?: "").split(';', limit = 2)
 
-      debugDWebView("dwebProxy end", request.url)
       val statusCode = response.status.value
+      debugDWebView("dwebProxy end", "[$statusCode]${request.url}")
       if (statusCode in 301..399) {
         return super.shouldInterceptRequest(view, request)
       }

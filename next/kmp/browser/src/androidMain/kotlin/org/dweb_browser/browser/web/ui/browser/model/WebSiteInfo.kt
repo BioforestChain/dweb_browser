@@ -12,7 +12,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.web.ui.view.CaptureController
 import org.dweb_browser.dwebview.base.ViewItem
-import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 
 interface BrowserBaseView {
   val show: MutableState<Boolean> // 用于首页是否显示遮罩
@@ -29,14 +28,15 @@ data class BrowserMainView(
 ) : BrowserBaseView
 
 data class BrowserWebView(
+  val viewItem: ViewItem,
   override val show: MutableState<Boolean> = mutableStateOf(true),
   override val focus: MutableState<Boolean> = mutableStateOf(false),
   override val controller: CaptureController = CaptureController(),
   override var bitmap: ImageBitmap? = null,
   val loadState: MutableState<Boolean> = mutableStateOf(false),
-  val viewItem: ViewItem,
-  val closeWatcher: CloseWatcher,
-) : BrowserBaseView
+) : BrowserBaseView {
+  val closeWatcher get() = viewItem.webView.closeWatcher
+}
 
 data class HotspotInfo(
   val id: Int = 0,

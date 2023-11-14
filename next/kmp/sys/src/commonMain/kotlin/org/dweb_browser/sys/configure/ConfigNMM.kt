@@ -24,7 +24,7 @@ class ConfigNMM : NativeMicroModule("config.sys.dweb", "Device Info") {
       "/getLang" bind HttpMethod.Get to definePureResponse {
         debugConfig("getLang", request.href)
         val lang = store.get("language.${ipc.remote.mmid}")
-        return@definePureResponse PureResponse(HttpStatusCode.OK, body = PureStringBody(lang))
+        return@definePureResponse PureResponse(HttpStatusCode.OK, body = PureStringBody(lang ?: ""))
       }
     )
   }

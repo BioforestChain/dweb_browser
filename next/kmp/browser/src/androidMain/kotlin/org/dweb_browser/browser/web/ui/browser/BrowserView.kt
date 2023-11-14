@@ -1,9 +1,6 @@
 package org.dweb_browser.browser.web.ui.browser
 
 import android.annotation.SuppressLint
-import android.view.MotionEvent
-import android.view.ViewGroup
-import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -50,8 +47,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.web.LoadingState
-import com.google.accompanist.web.WebView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.R
@@ -70,8 +65,12 @@ import org.dweb_browser.browser.web.ui.browser.model.LocalShowSearchView
 import org.dweb_browser.browser.web.ui.browser.model.LocalWebViewInitialScale
 import org.dweb_browser.browser.web.ui.browser.model.parseInputText
 import org.dweb_browser.browser.web.ui.browser.search.SearchView
+import org.dweb_browser.dwebview.Render
+import org.dweb_browser.dwebview.rememberCanGoBack
+import org.dweb_browser.dwebview.rememberLoadingProgress
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.render.LocalWindowController
 
 internal val dimenTextFieldFontSize = 16.sp
 internal val dimenSearchHorizontalAlign = 5.dp
@@ -107,16 +106,17 @@ fun BrowserViewForWindow(
     LocalWebViewInitialScale provides initialScale
   ) {
     val bottomSheetModel = LocalModalBottomSheet.current
-    BackHandler {
+    val win = LocalWindowController.current
+    win.GoBackHandler {
       val watcher = viewModel.uiState.currentBrowserBaseView.value?.closeWatcher
       if (watcher?.canClose == true) {
         scope.launch {
           watcher.close()
         }
       } else {
-        viewModel.uiState.currentBrowserBaseView.value?.viewItem?.navigator?.let { navigator ->
-          if (navigator.canGoBack) {
-            navigator.navigateBack()
+        viewModel.uiState.currentBrowserBaseView.value?.viewItem?.webView?.let { webView ->
+          if (webView.canGoBack()) {
+            webView.goBack()
           }
         }
       }
@@ -188,7 +188,7 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
 @Composable
 fun ColumnScope.MiniTitle(viewModel: BrowserViewModel) {
   val browserBaseView = viewModel.uiState.currentBrowserBaseView.value
-  val inputText = parseInputText(browserBaseView?.viewItem?.state?.lastLoadedUrl ?: "")
+  val inputText = parseInputText(browserBaseView?.viewItem?.webView?.getUrl() ?: "")
 
   Text(
     text = inputText, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -268,20 +268,22 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       .fillMaxWidth()
       .height(dimenNavigationHeight)
   ) {
-    val navigator = viewModel.uiState.currentBrowserBaseView.value?.viewItem?.navigator ?: return
+    val webView = viewModel.uiState.currentBrowserBaseView.value?.viewItem?.webView ?: return
+    val canGoBack = webView.rememberCanGoBack()
+
     NavigatorButton(
       imageVector = Icons.Rounded.AddHome,
       resName = R.string.browser_nav_addhome,
-      show = viewModel.uiState.currentBrowserBaseView.value?.viewItem?.state?.lastLoadedUrl != null
+      show = webView.hasUrl()
     ) {
       scope.launch { viewModel.addUrlToDesktop(context) }
     }
     NavigatorButton(
-      imageVector = if (navigator.canGoBack) Icons.Rounded.Add else Icons.Rounded.QrCodeScanner,
-      resName = if (navigator.canGoBack) R.string.browser_nav_add else R.string.browser_nav_scan,
+      imageVector = if (canGoBack) Icons.Rounded.Add else Icons.Rounded.QrCodeScanner,
+      resName = if (canGoBack) R.string.browser_nav_add else R.string.browser_nav_scan,
       show = true
     ) {
-      if (navigator.canGoBack) {
+      if (canGoBack) {
         viewModel.handleIntent(BrowserIntent.AddNewMainView())
       } else {
         scope.launch { viewModel.openQRCodeScanning() }
@@ -370,7 +372,7 @@ private fun SearchBox(baseView: BrowserBaseView) {
     val inputText = when (baseView) {
       is BrowserWebView -> {
         ShowLinearProgressIndicator(baseView)
-        mutableStateOf(baseView.viewItem.state.lastLoadedUrl ?: "")
+        mutableStateOf(baseView.viewItem.webView.getUrl())
       }
 
       else -> mutableStateOf("")
@@ -410,19 +412,18 @@ private fun SearchBox(baseView: BrowserBaseView) {
 @Composable
 private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?) {
   browserWebView?.let {
-    when (val loadingState = it.viewItem.state.loadingState) {
-      is LoadingState.Loading -> {
+    when (val loadingProgress = it.viewItem.webView.rememberLoadingProgress()) {
+      0f, 1f -> {}
+      else -> {
         LinearProgressIndicator(
-          progress = loadingState.progress,
+          progress = { loadingProgress },
           modifier = Modifier
             .fillMaxWidth()
             .height(2.dp)
             .align(Alignment.BottomCenter),
-          color = MaterialTheme.colorScheme.primary
+          color = MaterialTheme.colorScheme.primary,
         )
       }
-
-      else -> {}
     }
   }
 }
@@ -435,7 +436,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
   var showSearchView by LocalShowSearchView.current
   if (showSearchView) {
     val inputText = viewModel.dwebLinkSearch.value.ifEmpty {
-      viewModel.uiState.currentBrowserBaseView.value?.viewItem?.state?.lastLoadedUrl ?: ""
+      viewModel.uiState.currentBrowserBaseView.value?.viewItem?.webView?.getUrl() ?: ""
     }
     val text =
       if (inputText.isSystemUrl() || inputText == stringResource(id = R.string.browser_search_hint)) {
@@ -469,26 +470,31 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolea
   }
   val webView = _webView ?: return
   val background = MaterialTheme.colorScheme.background
-  val isDark = isSystemInDarkTheme()
-  var isRemove = false
-  WebView(state = webView.viewItem.state,
-    modifier = Modifier
+//  val isDark = isSystemInDarkTheme()
+//  var isRemove = false
+  webView.viewItem.webView.Render(
+    Modifier
       .fillMaxSize()
       .background(background),
-    navigator = webView.viewItem.navigator,
-    onCreated = {
-      it.setDarkMode(isDark, background) // 为了保证浏览器背景色和系统主题一致
-      it.setOnTouchListener { _, event ->
-        if (event.action == MotionEvent.ACTION_MOVE) {
-          isRemove = true
-        } else if (event.action == MotionEvent.ACTION_UP) {
-          onClickOrMove(isRemove)
-        }
-        false
-      }
-    },
-    factory = {
-      webView.viewItem.webView.parent?.let { (it as ViewGroup).removeAllViews() }
-      webView.viewItem.webView
-    })
+  )
+//  WebView(state = webView.viewItem.state,
+//    modifier = Modifier
+//      .fillMaxSize()
+//      .background(background),
+//    navigator = webView.viewItem.navigator,
+//    onCreated = {
+//      it.setDarkMode(isDark, background) // 为了保证浏览器背景色和系统主题一致
+//      it.setOnTouchListener { _, event ->
+//        if (event.action == MotionEvent.ACTION_MOVE) {
+//          isRemove = true
+//        } else if (event.action == MotionEvent.ACTION_UP) {
+//          onClickOrMove(isRemove)
+//        }
+//        false
+//      }
+//    },
+//    factory = {
+//      webView.viewItem.webView.parent?.let { (it as ViewGroup).removeAllViews() }
+//      webView.viewItem.webView
+//    })
 }

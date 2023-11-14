@@ -77,6 +77,7 @@ kotlin {
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.webkit)
     implementation(libs.google.material)
 
     api(libs.accompanist.webview)

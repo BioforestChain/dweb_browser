@@ -46,7 +46,7 @@ class TaskbarView(private val taskbarController: TaskbarController) {
       remoteMM = taskbarController.deskNMM,
       options = DWebViewOptions(
         url = taskbarController.getTaskbarUrl().toString(),
-        onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
+        detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       )
     ).also {
       it.setBackgroundColor(Color.Transparent.toArgb())

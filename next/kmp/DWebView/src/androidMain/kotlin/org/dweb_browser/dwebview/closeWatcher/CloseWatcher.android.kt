@@ -7,11 +7,12 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.dwebview.ICloseWatcher
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.*
 
 @SuppressLint("JavascriptInterface")
-class CloseWatcher(val engine: DWebViewEngine) {
+class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
 
   companion object {
     val acc_id = atomic(1)
@@ -51,13 +52,13 @@ class CloseWatcher(val engine: DWebViewEngine) {
     )
   }
 
-  private val watchers = mutableListOf<Watcher>()
+  private val watchers = mutableListOf<ICloseWatcher.IWatcher>()
 
-  inner class Watcher {
-    val id = acc_id.getAndAdd(1).toString()
+  inner class Watcher : ICloseWatcher.IWatcher {
+    override val id = acc_id.getAndAdd(1).toString()
     private var _destroy = atomic(false)
     private val closeMutex = Mutex()
-    suspend fun tryClose(): Boolean = closeMutex.withLock {
+    override suspend fun tryClose(): Boolean = closeMutex.withLock {
       if (_destroy.value) {
         return false
       }
@@ -96,20 +97,20 @@ class CloseWatcher(val engine: DWebViewEngine) {
       return true
     }
 
-    fun destroy() = !_destroy.getAndSet(true)
+    override fun destroy() = !_destroy.getAndSet(true)
   }
 
   /**
    * 申请一个 CloseWatcher
    */
-  fun apply(isUserGesture: Boolean): Watcher {
+  fun apply(isUserGesture: Boolean): ICloseWatcher.IWatcher {
     if (isUserGesture || watchers.size == 0) {
       watchers.add(Watcher())
     }
     return watchers.last()
   }
 
-  fun resolveToken(consumeToken: String, watcher: Watcher) {
+  fun resolveToken(consumeToken: String, watcher: ICloseWatcher.IWatcher) {
     engine.evaluateJavascript(
       """
             $JS_POLYFILL_KIT._tasks?.get("$consumeToken")("${watcher.id}");
@@ -120,15 +121,17 @@ class CloseWatcher(val engine: DWebViewEngine) {
   /**
    * 现在是否有 CloseWatcher 在等待被关闭
    */
-  val canClose get() = watchers.size > 0
+  override val canClose get() = watchers.size > 0
 
   /**
    * 关闭指定的 CloseWatcher
    */
-  suspend fun close(watcher: Watcher = watchers.last()): Boolean {
+  override suspend fun close(watcher: ICloseWatcher.IWatcher): Boolean {
     if (watcher.tryClose()) {
       return watchers.remove(watcher)
     }
     return false
   }
+
+  override suspend fun close() = close(watchers.last())
 }

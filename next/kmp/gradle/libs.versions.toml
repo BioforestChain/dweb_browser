@@ -64,6 +64,7 @@ kotlinxSerializationVersion = "1.6.0"
 
 # jna
 java-jna-version = "5.13.0"
+webkit = "1.8.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -186,6 +187,7 @@ test-junit-vintage-engine = { group = "org.junit.vintage", name = "junit-vintage
 webrtc-kmp = { group = "com.shepeliev", name = "webrtc-kmp", version.ref = "webrtc-kmp-version" }
 # jna
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "java-jna-version" }
+androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

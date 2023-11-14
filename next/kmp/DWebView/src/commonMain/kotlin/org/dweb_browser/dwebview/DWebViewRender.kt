@@ -4,4 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-expect fun IDWebView.Render(modifier: Modifier = Modifier)
+expect fun IDWebView.Render(
+  modifier: Modifier = Modifier,
+  onCreate: () -> Unit = {},
+  onDispose: () -> Unit = {},
+)

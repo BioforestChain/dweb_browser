@@ -10,6 +10,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import okio.buffer
 import org.dweb_browser.core.http.dwebHttpGatewayServer
@@ -31,7 +32,7 @@ expect suspend fun IDWebView.Companion.create(
   options: DWebViewOptions = DWebViewOptions()
 ): IDWebView
 
-abstract class IDWebView {
+abstract class IDWebView(initUrl: String?) {
   @OptIn(ExperimentalResourceApi::class)
   companion object {
     private suspend fun findPort(): UShort {
@@ -83,10 +84,10 @@ abstract class IDWebView {
 
   protected abstract suspend fun startLoadUrl(url: String)
 
-  private val loadUrlTask = atomic<LoadUrlTask?>(null)
+  private val loadUrlTask = atomic(if (initUrl.isNullOrEmpty()) null else LoadUrlTask(initUrl))
 
-  suspend fun loadUrl(url: String, force: Boolean) = loadUrlTask.getAndUpdate { preTask ->
-    if (!force && preTask?.url == url) {
+  suspend fun loadUrl(url: String, force: Boolean = false) = loadUrlTask.getAndUpdate { preTask ->
+    if (!force && preTask != null && preTask.url == url) {
       return@getAndUpdate preTask
     } else {
       preTask?.deferred?.cancel(CancellationException("load new url: $url"));
@@ -129,6 +130,7 @@ abstract class IDWebView {
   }
 
   fun getUrl() = loadUrlTask.value?.url ?: "about:blank"
+  fun hasUrl() = loadUrlTask.value?.url.isNullOrBlank()
   abstract suspend fun getTitle(): String
   abstract suspend fun getIcon(): String
   abstract suspend fun destroy()
@@ -141,6 +143,7 @@ abstract class IDWebView {
   abstract suspend fun postMessage(data: String, ports: List<IWebMessagePort>)
 
   abstract suspend fun setContentScale(scale: Float)
+  abstract suspend fun setPrefersColorScheme(colorScheme: WebColorScheme)
 
   abstract suspend fun evaluateAsyncJavascriptCode(
     script: String,
@@ -151,6 +154,9 @@ abstract class IDWebView {
   abstract val onLoadStateChange: Signal.Listener<WebLoadState>
   abstract val onReady: Signal.Listener<String>
   abstract val onBeforeUnload: Signal.Listener<WebBeforeUnloadArgs>
+  abstract val loadingProgressFlow: SharedFlow<Float>
+  abstract val closeWatcher: ICloseWatcher
+  abstract val onCreateWindow: Signal.Listener<IDWebView>
 }
 
 class WebBeforeUnloadArgs(
@@ -202,9 +208,15 @@ fun Signal<WebLoadState>.toReadyListener() =
   createChild({ if (it is WebLoadSuccessState) it else null },
     { it.url }).toListener()
 
-internal class LoadUrlTask(
-  val url: String,
-  val deferred: CompletableDeferred<String> = CompletableDeferred()
-)
+internal data class LoadUrlTask(val url: String) {
+  val deferred = CompletableDeferred<String>()
+}
+
+
+enum class WebColorScheme {
+  Normal,
+  Dark,
+  Light,
+}
 
 typealias AsyncChannel = Channel<Result<String>>

@@ -14,7 +14,11 @@ import com.google.accompanist.web.rememberWebViewNavigator
 import com.google.accompanist.web.rememberWebViewState
 
 @Composable
-actual fun IDWebView.Render(modifier: Modifier) {
+actual fun IDWebView.Render(
+  modifier: Modifier,
+  onCreate: () -> Unit,
+  onDispose: () -> Unit,
+) {
   require(this is DWebView)
   val webView = engine
   val state = rememberWebViewState(getUrl())
@@ -35,8 +39,12 @@ actual fun IDWebView.Render(modifier: Modifier) {
       // viewItem.webView.resources.newTheme().obtainStyledAttributes(textColorHighlight )
       webView
     },
+    onCreated = {
+      onCreate()
+    },
     client = client,
     chromeClient = chromeClient,
     captureBackPresses = false,
   )
+  BeforeUnloadDialog()
 }

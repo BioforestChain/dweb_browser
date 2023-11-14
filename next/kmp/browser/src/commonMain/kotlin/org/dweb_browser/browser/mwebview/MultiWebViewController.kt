@@ -2,9 +2,6 @@ package org.dweb_browser.browser.mwebview
 
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.platform.LocalDensity
-import com.google.accompanist.web.WebContent
-import com.google.accompanist.web.WebViewNavigator
-import com.google.accompanist.web.WebViewState
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -13,18 +10,19 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.base.ViewItem
-import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
+
+typealias WEBVIEW_ID = String
 
 /**
  * MWebView 是为其它模块提供 GUI 的程序模块，所以这里需要传入两个模块：localeMM 与 remoteMM
@@ -57,8 +55,8 @@ class MultiWebViewController(
     val rid = win.id
     /// 提供渲染适配
     windowAdapterManager.provideRender(rid) { modifier ->
-      val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
-      Render(modifier, webViewScale)
+//      val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
+      Render(modifier, LocalDensity.current.density * scale)
     }
     /// 窗口销毁的时候
     win.onClose {
@@ -75,10 +73,8 @@ class MultiWebViewController(
   fun getWebView(webviewId: String) = webViewList.find { it.webviewId == webviewId }
 
   data class MultiViewItem(
-    override val webviewId: String,
-    override val webView: DWebViewEngine,
-    override val state: WebViewState,
-    override val navigator: WebViewNavigator,
+    override val webviewId: WEBVIEW_ID,
+    override val webView: IDWebView,
     override val coroutineScope: CoroutineScope,
     override var hidden: Boolean = false,
     val win: WindowController
@@ -90,32 +86,28 @@ class MultiWebViewController(
    * 打开WebView
    */
   suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
-  suspend fun createDwebView(url: String) = win.createDwebView(remoteMM, url)
+  private suspend fun createDwebView(url: String) = win.createDwebView(remoteMM, url)
 
-  @Synchronized
-  fun appendWebViewAsItem(dWebView: DWebViewEngine) = runBlockingCatching {
-    withMainContext {
-      val webviewId = "#w${webviewId_acc++}"
-      val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
-      val coroutineScope = CoroutineScope(CoroutineName(webviewId))
-      val navigator = WebViewNavigator(coroutineScope)
-      MultiViewItem(
-        webviewId = webviewId,
-        webView = dWebView,
-        state = state,
-        coroutineScope = coroutineScope,
-        navigator = navigator,
-        win = win,
-      ).also { viewItem ->
-        webViewList.add(viewItem)
-        dWebView.onCloseWindow {
-          closeWebView(webviewId)
-        }
-        webViewOpenSignal.emit(webviewId)
+  private suspend fun appendWebViewAsItem(dWebView: IDWebView): MultiViewItem {
+    val webviewId = "#w${webviewId_acc++}"
+    val coroutineScope = CoroutineScope(CoroutineName(webviewId))
+    return MultiViewItem(
+      webviewId = webviewId,
+      webView = dWebView,
+      coroutineScope = coroutineScope,
+      win = win,
+    ).also { viewItem ->
+      webViewList.add(viewItem)
+      dWebView.onDestroy {
+        closeWebView(webviewId)
       }
+      webViewOpenSignal.emit(webviewId)
     }
-  }.getOrThrow()
+  }
 
+  /**
+   * 关闭WebView
+   */
   /**
    * 关闭WebView
    */
@@ -132,6 +124,9 @@ class MultiWebViewController(
   /**
    * 移除所有列表
    */
+  /**
+   * 移除所有列表
+   */
   suspend fun destroyWebView(): Boolean {
     withMainContext {
       webViewList.forEach { viewItem ->
@@ -143,6 +138,9 @@ class MultiWebViewController(
     return true
   }
 
+  /**
+   * 将指定WebView移动到顶部显示
+   */
   /**
    * 将指定WebView移动到顶部显示
    */
@@ -162,7 +160,7 @@ class MultiWebViewController(
       viewItem["webviewId"] = JsonPrimitive(it.webviewId)
       viewItem["isActivated"] = JsonPrimitive(it.hidden)
       viewItem["mmid"] = JsonPrimitive(ipc.remote.mmid)
-      viewItem["url"] = JsonPrimitive((it.state.content as WebContent.Url).url)
+      viewItem["url"] = JsonPrimitive(it.webView.getUrl())
       views[it.webviewId] = JsonObject(viewItem)
     }
     val state = mutableMapOf<String, JsonElement>()
@@ -175,11 +173,11 @@ class MultiWebViewController(
     ipc.postMessage(IpcEvent.fromUtf8("state", Json.encodeToString(getState())))
   }
 
-  private val webViewCloseSignal = Signal<String>()
-  private val webViewOpenSignal = Signal<String>()
+  val webViewCloseSignal = Signal<WEBVIEW_ID>()
+  val webViewOpenSignal = Signal<WEBVIEW_ID>()
 
-  fun onWebViewClose(cb: Callback<String>) = webViewCloseSignal.listen(cb)
-  fun onWebViewOpen(cb: Callback<String>) = webViewOpenSignal.listen(cb)
+  val onWebViewClose = webViewCloseSignal.toListener()
+  val onWebViewOpen = webViewOpenSignal.toListener()
 
 
 }

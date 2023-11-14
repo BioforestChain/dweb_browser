@@ -46,10 +46,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
@@ -66,7 +67,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -75,6 +75,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -100,7 +101,7 @@ import org.dweb_browser.browser.web.ui.browser.model.WebSiteType
 import org.dweb_browser.browser.web.ui.browser.model.toWebSiteInfo
 import org.dweb_browser.browser.web.ui.browser.search.CustomTextField
 import org.dweb_browser.browser.web.ui.view.findActivity
-import org.dweb_browser.helper.BitmapUtil
+import org.dweb_browser.dwebview.getIconBitmap
 import org.dweb_browser.helper.PrivacyUrl
 import org.dweb_browser.helper.compose.rememberPlatformViewController
 import org.dweb_browser.helper.compose.theme.DimenBottomBarHeight
@@ -457,7 +458,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         ) {
           viewModel.uiState.currentBrowserBaseView.value?.let {
             scope.launch {
-              viewModel.changeBookLink(add = it.viewItem.state.toWebSiteInfo(WebSiteType.Book))
+              viewModel.changeBookLink(add = it.viewItem.webView.toWebSiteInfo(WebSiteType.Book))
             }
           }
         } // 添加书签
@@ -691,27 +692,31 @@ private fun MultiItemView(
         contentScale = ContentScale.FillWidth, //ContentScale.FillBounds,
         alignment = if (browserBaseView is BrowserMainView) Center else TopStart
       )
-      val contentPair = when (browserBaseView) {
-        is BrowserMainView -> {
-          Pair(
-            stringResource(id = R.string.browser_home_page),
-            BitmapUtil.decodeBitmapFromResource(context, R.drawable.ic_main_star)
-          )
-        }
-
-        is BrowserWebView -> {
-          if (browserBaseView.viewItem.state.lastLoadedUrl?.isSystemUrl() == true) {
-            Pair(
-              stringResource(id = R.string.browser_home_page),
-              BitmapUtil.decodeBitmapFromResource(context, R.drawable.ic_main_star)
+      var contentPair: Pair<String?, ImageBitmap?> by remember { mutableStateOf(Pair(null, null)) }
+      val homePageTitle = stringResource(id = R.string.browser_home_page)
+      val homePageIcon = ImageBitmap.imageResource(context.resources, R.drawable.ic_main_star)
+      LaunchedEffect(browserBaseView) {
+        when (browserBaseView) {
+          is BrowserMainView -> {
+            contentPair = Pair(
+              homePageTitle,
+              homePageIcon
             )
-          } else {
-            Pair(browserBaseView.viewItem.state.pageTitle, browserBaseView.viewItem.state.pageIcon)
           }
-        }
 
-        else -> {
-          Pair(null, null)
+          is BrowserWebView -> {
+            contentPair = if (browserBaseView.viewItem.webView.getUrl().isSystemUrl()) {
+              Pair(
+                homePageTitle,
+                homePageIcon
+              )
+            } else {
+              Pair(
+                browserBaseView.viewItem.webView.getTitle(),
+                browserBaseView.viewItem.webView.getIconBitmap()
+              )
+            }
+          }
         }
       }
       Row(
@@ -722,7 +727,7 @@ private fun MultiItemView(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = CenterVertically
       ) {
-        contentPair.second?.asImageBitmap()?.let { imageBitmap ->
+        contentPair.second?.let { imageBitmap ->
           Image(
             bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp)
           )

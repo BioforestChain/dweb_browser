@@ -2,6 +2,8 @@ package org.dweb_browser.browser.web.model
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.digest.SHA256
 import kotlinx.serialization.Serializable
@@ -26,8 +28,8 @@ data class WebLinkManifest(
       sha256.hasher().hash(url.toUtf8ByteArray()).toHexString(0, 4, HexFormat.Default)
     }.link.dweb"
 
-    fun bitmapToImageResource(context: Context, bitmap: Bitmap): ImageResource? {
-      return BitmapUtil.saveBitmapToIcons(context, bitmap)?.let { src ->
+    fun bitmapToImageResource(context: Context, bitmap: ImageBitmap): ImageResource? {
+      return BitmapUtil.saveBitmapToIcons(context, bitmap.asAndroidBitmap())?.let { src ->
         ImageResource(src = "$DESK_WEBLINK_ICONS$src")
       }
     }

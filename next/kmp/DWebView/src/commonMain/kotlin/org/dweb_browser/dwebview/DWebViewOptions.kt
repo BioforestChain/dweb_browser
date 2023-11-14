@@ -6,17 +6,11 @@ data class DWebViewOptions(
    */
   val url: String = "",
   /**
-   * WebChromeClient.onJsBeforeUnload 的策略
-   *
-   * 用户可以额外地进行策略补充
-   */
-  val onJsBeforeUnloadStrategy: JsBeforeUnloadStrategy = JsBeforeUnloadStrategy.Default,
-  /**
    * WebView.onDetachedFromWindow 的策略
    *
-   * 如果修改了它，就务必注意 WebView 的销毁需要自己去管控
+   * 如果修改了它，就务必注意 WebView 的销毁需要自己去管控 (手动执行 dwebview.destroy())
    */
-  val onDetachedFromWindowStrategy: DetachedFromWindowStrategy = DetachedFromWindowStrategy.Default,
+  val detachedStrategy: DetachedStrategy = DetachedStrategy.Default,
 ) {
   enum class JsBeforeUnloadStrategy {
     /**
@@ -35,7 +29,7 @@ data class DWebViewOptions(
     Confirm, ;
   }
 
-  enum class DetachedFromWindowStrategy {
+  enum class DetachedStrategy {
     /**
      * 默认行为，会触发销毁
      */

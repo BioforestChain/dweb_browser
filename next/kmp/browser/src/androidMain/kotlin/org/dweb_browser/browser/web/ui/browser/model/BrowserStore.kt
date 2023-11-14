@@ -2,21 +2,40 @@ package org.dweb_browser.browser.web.ui.browser.model
 
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.dweb_browser.browser.R
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
+import org.dweb_browser.helper.datetimeNow
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Serializable
 data class WebSiteInfo(
-  val id: Long = System.currentTimeMillis(),
+  val id: Long = datetimeNow(),
   var title: String,
   var url: String = "",
   val type: WebSiteType,
-  val timeMillis: Long = LocalDate.now().toEpochDay(),
+  val timeMillis: Long = datetimeNow(),
+  @Transient
   val icon: ImageBitmap? = null,
-)
+) {
+//  constructor(
+//    id: Long = datetimeNow(),
+//    title: String,
+//    url: String = "",
+//    type: WebSiteType,
+//    timeMillis: Long = datetimeNow(),
+//    icon: ImageBitmap? = null
+//  ) : this(
+//    id,
+//    title,
+//    url,
+//    type,
+//    timeMillis,
+//    icon?.asAndroidBitmap(),
+//  )
+}
 
 fun Long.formatToStickyName(callName: (Int) -> String): String {
   val currentOfEpochDay = LocalDate.now().toEpochDay()

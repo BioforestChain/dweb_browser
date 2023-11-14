@@ -108,7 +108,7 @@ class DesktopController(
     val webView = DWebViewEngine(
       activity ?: deskNMM.getAppContext(), deskNMM, DWebViewOptions(
         url = initUrl,
-        onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
+        detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       )
     );
     // 隐藏滚动条

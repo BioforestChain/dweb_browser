@@ -13,6 +13,7 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebStorage
 import android.webkit.WebView
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
 import org.dweb_browser.dwebview.debugDWebView
@@ -174,7 +175,12 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
       ?: super.onPermissionRequestCanceled(request)
   }
 
+  val loadingProgressSharedFlow = MutableSharedFlow<Float>(1)
+
   override fun onProgressChanged(view: WebView, newProgress: Int) {
+    scope.launch {
+      loadingProgressSharedFlow.emit(newProgress / 100f)
+    }
     inners("onProgressChanged").forEach { it.onProgressChanged(view, newProgress) }
     super.onProgressChanged(view, newProgress)
   }
