@@ -45,7 +45,7 @@ struct BrowserView: View {
                 .onAppear {
                     dragScale.onWidth = (geometry.size.width - 10) / screen_width
                 }
-                .onChange(of: size) { newSize in
+                .onChange(of: size) { _, newSize in
                     dragScale.onWidth = (newSize.width - 10) / screen_width
                 }
                 
@@ -57,7 +57,7 @@ struct BrowserView: View {
                         .environmentObject(dragScale)
                         .environmentObject(toolBarState)
                 }
-                .onChange(of: geometry.frame(in: .global)) { frame in
+                .onChange(of: geometry.frame(in: .global)) { _, frame in
                     wndArea.frame = frame
 //                    Log("window rect:(\(frame.origin)), (\(frame.size))")
                 }

@@ -98,11 +98,11 @@ struct AddressBar: View {
                 inputText = newValue.absoluteString
                 displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
             })
-            .onChange(of: webCache.lastVisitedUrl) { url in
+            .onChange(of: webCache.lastVisitedUrl) { _, url in
                 inputText = url.absoluteString
                 displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
             }
-            .onChange(of: addressBar.isFocused) { isFocused in
+            .onChange(of: addressBar.isFocused) { _, isFocused in
                 Log( " addressBar.isFocused onChange:\(isFocused)")
                 if !isFocused, isVisible {
                     isAdressBarFocused = isFocused
@@ -127,10 +127,10 @@ struct AddressBar: View {
                     textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
                 }
             }
-            .onChange(of: inputText) { text in
+            .onChange(of: inputText) { _, text in
                 addressBar.inputText = text
             }
-            .onChange(of: openingLink.clickedLink){ _ in
+            .onChange(of: openingLink.clickedLink){ _, _ in
                 loadingProgress = 0
             }
     }
@@ -151,7 +151,7 @@ struct AddressBar: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .onChange(of: webWrapper.estimatedProgress){ progress in
+            .onChange(of: webWrapper.estimatedProgress){ _, progress in
                 loadingProgress = progress
             }
         }

@@ -30,9 +30,9 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                             .offset(y: startOffsetY)
                             .offset(y: curDragOffsetY)
 
-                            .onChange(of: isPresented, perform: { _ in
+                            .onChange(of: isPresented) { _, presented in
                                 
-                                if isPresented {
+                                if presented {
                                     withAnimation(.spring()) {
                                         startOffsetY = 0
                                     }
@@ -42,7 +42,7 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                                         startOffsetY = wndHeight
                                     }
                                 }
-                            })
+                            }
                             .gesture(
                                 DragGesture()
                                     .onChanged { value in

@@ -37,7 +37,7 @@ struct TabPageView: View {
                     }
                 }
             }
-            .onChange(of: openingLink.clickedLink, perform: { link in
+            .onChange(of: openingLink.clickedLink) { _, link in
                 guard link != emptyURL else { return }
 
                 print("clickedLink has changed: \(link)")
@@ -49,45 +49,42 @@ struct TabPageView: View {
                     webcache.shouldShowWeb = true
                 }
                 openingLink.clickedLink = emptyURL
-            })
+            }
             .onAppear {
                 print("tabPage rect: \(geo.frame(in: .global))")
                 snapshotHeight = geo.frame(in: .global).height
             }
-            .onChange(of: toolbarState.goForwardTapped) { tapped in
+            .onChange(of: toolbarState.goForwardTapped) { _, tapped in
                 if tapped {
                     goForward()
                     toolbarState.goForwardTapped = false
                 }
             }
-            .onChange(of: toolbarState.goBackTapped) { tapped in
+            .onChange(of: toolbarState.goBackTapped) { _, tapped in
                 if tapped {
                     goBack()
                     toolbarState.goBackTapped = false
                 }
             }
 
-            .onChange(of: toolbarState.shouldExpand) { shouldExpand in
+            .onChange(of: toolbarState.shouldExpand) { _, shouldExpand in
                 if isVisible, !shouldExpand { // 截图，为缩小动画做准备
-                    if !webCache.shouldShowWeb {
-                        animation.snapshotImage = UIImage.snapshotImage(from: .defaultSnapshotURL)
-                        afterGetSnapshot()
-                    } else {
+                    var snapshot: UIImage? = nil
+                    if webCache.shouldShowWeb {
                         webWrapper.webView.scrollView.showsVerticalScrollIndicator = false
                         webWrapper.webView.scrollView.showsHorizontalScrollIndicator = false
                         webWrapper.webView.takeSnapshot(with: nil) { image, error in
                             webWrapper.webView.scrollView.showsVerticalScrollIndicator = true
                             webWrapper.webView.scrollView.showsHorizontalScrollIndicator = true
-                            guard let img = image else {
-                                animation.snapshotImage = UIImage.snapshotImage(from: .defaultSnapshotURL)
-                                afterGetSnapshot()
-                                return
+                            if image != nil {
+                                snapshot = image
+                                webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image!, imageName: webCache.id.uuidString)
                             }
-                            animation.snapshotImage = img
-                            webCache.snapshotUrl = UIImage.createLocalUrl(withImage: img, imageName: webCache.id.uuidString)
-                            afterGetSnapshot()
                         }
                     }
+                    animation.snapshotImage = snapshot ?? UIImage.snapshotImage(from: .defaultSnapshotURL)
+                    // obtainedCellFrame 和 obtainedSnapshot 这两个步骤并行开始，谁先完成不确定
+                    animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                 }
             }
         }
@@ -102,17 +99,18 @@ struct TabPageView: View {
                 print("onappear progress:\(webWrapper.webView.estimatedProgress)")
             }
 
-            .onChange(of: webWrapper.url) { url in
-                if let validUrl = url, webCache.lastVisitedUrl != validUrl {
+            .onChange(of: webWrapper.url) { _, newValue in
+                if let validUrl = newValue, webCache.lastVisitedUrl != validUrl {
                     webCache.lastVisitedUrl = validUrl
                 }
             }
-            .onChange(of: webWrapper.title) { title in
-                if let validTitle = title {
+
+            .onChange(of: webWrapper.title) { _, newValue in
+                if let validTitle = newValue {
                     webCache.title = validTitle
                 }
             }
-            .onChange(of: webWrapper.icon) { icon in
+            .onChange(of: webWrapper.icon) { _, icon in
                 webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
             }
             .onChange(of: webWrapper.canGoBack, perform: { canGoBack in
@@ -120,12 +118,12 @@ struct TabPageView: View {
                     toolbarState.canGoBack = canGoBack
                 }
             })
-            .onChange(of: webWrapper.canGoForward, perform: { canGoForward in
+            .onChange(of: webWrapper.canGoForward, perform: { _, canGoForward in
                 if isVisible {
                     toolbarState.canGoForward = canGoForward
                 }
             })
-            .onChange(of: webWrapper.estimatedProgress) { newValue in
+            .onChange(of: webWrapper.estimatedProgress) { _, newValue in
                 if newValue >= 1.0 {
                     webcacheStore.saveCaches()
                     if !TracelessMode.shared.isON {
@@ -135,12 +133,12 @@ struct TabPageView: View {
                     }
                 }
             }
-            .onChange(of: addressBar.needRefreshOfIndex, perform: { refreshIndex in
+            .onChange(of: addressBar.needRefreshOfIndex) { _, refreshIndex in
                 if refreshIndex == tabIndex {
                     webWrapper.webView.reload()
                     addressBar.needRefreshOfIndex = -1
                 }
-            })
+            }
 
             .onReceive(addressBar.$stopLoadingOfIndex) { stopIndex in
                 if stopIndex == tabIndex {
@@ -155,14 +153,6 @@ struct TabPageView: View {
 
     func goForward() {
         webWrapper.webView.goForward()
-    }
-
-    private func afterGetSnapshot() {
-        if animation.progress == .obtainedCellFrame {
-            animation.progress = .startShrinking
-        } else {
-            animation.progress = .obtainedSnapshot
-        }
     }
 }
 

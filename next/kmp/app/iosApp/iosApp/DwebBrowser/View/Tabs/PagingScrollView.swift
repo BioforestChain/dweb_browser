@@ -52,7 +52,7 @@ struct PagingScrollView: View {
                                 .offset(y: addressbarOffset)
                                 .animation(.default, value: addressbarOffset)
                                 .gesture(addressBar.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势
-                                .onChange(of: addressBar.shouldDisplay) { dispaly in
+                                .onChange(of: addressBar.shouldDisplay) { _, dispaly in
                                     addressbarOffset = dispaly ? 0 : dragScale.addressbarHeight
                                 }
                         }

@@ -66,9 +66,9 @@ struct MenuView: View {
         .background(Color.menubkColor)
         .cornerRadius(6)
         .padding(.horizontal, 16)
-        .onChange(of: isTraceless, perform: { newValue in
+        .onChange(of: isTraceless) { _, newValue in
             TracelessMode.shared.isON = newValue
-        })
+        }
     }
 
     private func addToBookmark() {

@@ -100,8 +100,8 @@ struct TabGridView: View {
                     }
                     Log("updating cell frames : \($0)")
                 }
-                .onChange(of: deleteCache.cacheId, { _, _ in
-                    guard let cache = webcacheStore.caches.filter({ $0.id == deleteCache.cacheId }).first else { return }
+                .onChange(of: deleteCache.cacheId, { _, operateId in
+                    guard let cache = webcacheStore.caches.filter({ $0.id == operateId }).first else { return }
                     guard let deleteIndex = webcacheStore.index(of: cache) else { return }
                     if deleteIndex <= selectedTab.curIndex {
                         if selectedTab.curIndex > 0 {

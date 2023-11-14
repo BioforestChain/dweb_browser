@@ -82,10 +82,10 @@ struct TabsContainerView: View {
                 }
             }
 
-            .onChange(of: selectedCellFrame) { newValue in
+            .onChange(of: selectedCellFrame) { _, newValue in
                 Log("selecte cell rect changes to : \(newValue)")
             }
-            .onChange(of: animation.progress) { progress in
+            .onChange(of: animation.progress) { _, progress in
                 if progress.isAnimating() {
                     showTabPage = false
                 }
