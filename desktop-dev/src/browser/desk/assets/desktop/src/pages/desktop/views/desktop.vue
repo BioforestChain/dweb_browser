@@ -2,12 +2,12 @@
 import wallpaper_url from "src/assets/wallpaper.webp";
 import { getWidgetInfo, watchDesktopAppInfo } from "src/provider/api.ts";
 import {
-MICRO_MODULE_CATEGORY,
-type $TileSizeType,
-type $WidgetAppData,
-type $WidgetCustomData
+  MICRO_MODULE_CATEGORY,
+  type $TileSizeType,
+  type $WidgetAppData,
+  type $WidgetCustomData,
 } from "src/types/app.type.ts";
-import { Ref, StyleValue, onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, Ref, ref, StyleValue } from "vue";
 import TileItem from "../components/tile-item/tile-item.vue";
 import TilePanel from "../components/tile-panel/tile-panel.vue";
 import WidgetApp from "../components/widget-app/widget-app.vue";
@@ -100,6 +100,24 @@ onMounted(() => {
   updateApps();
 });
 
+window.addEventListener("resize", function () {
+  console.log("innerHeight updated:", window.innerHeight);
+  rowTemplateSize();
+});
+
+const rowTemplateSize = () => {
+  if (layoutInfoListRef.value.length == 1) return 119;
+  const row = Math.ceil(layoutInfoListRef.value.length / (window.innerWidth / 120));
+  return window.innerHeight / row;
+};
+// watch([window.innerHeight, layoutInfoListRef.value.length], ([height, size], [prevHeight, prevSize]) => {
+//   const row = Math.ceil(prevSize / (window.innerWidth / 120));
+//   console.log("height", height, prevHeight);
+//   console.log("size", size, prevSize);
+//   console.log("row==>", row);
+//   rowTemplateSize.value = prevHeight / row;
+// });
+
 const bgStyle = {
   backgroundImage: `url(${wallpaper_url})`,
 } satisfies StyleValue;
@@ -107,7 +125,7 @@ const bgStyle = {
 <template>
   <div class="desktop" draggable="false">
     <div class="wallpaper" title="墙纸" :style="bgStyle"></div>
-    <TilePanel>
+    <TilePanel :rowTemplateSize="rowTemplateSize">
       <TileItem v-for="(info, index) in layoutInfoListRef" :key="index" :width="info.xywh.w" :height="info.xywh.h">
         <WidgetApp v-if="info.type === 'app'" :key="index" :index="index" :app-meta-data="info.data"></WidgetApp>
         <WidgetWebApp

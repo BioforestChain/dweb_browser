@@ -64,3 +64,4 @@ onUnmounted(() => {
   padding-inline: 0.5em;
 }
 </style>
+<!-- grid-template-rows: repeat(auto-fill, calc(1px * v-bind("props.rowTemplateSize"))); -->

@@ -1,15 +1,27 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="desktop">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>desktop</title>
-    <script type="module" src="./src/env.ts"></script>
-  </head>
 
-  <body>
-    <div id="app"></div>
-    <script type="module" src="./src/pages/desktop/main.ts"></script>
-    <link rel="stylesheet" href="./src/styles/tailwind.scss">
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>desktop</title>
+  <script type="module" src="./src/env.ts"></script>
+  <style>
+    html {
+      height: 100%;
+    }
+
+    body {
+      height: 100%;
+      overflow-y: scroll;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module" src="./src/pages/desktop/main.ts"></script>
+  <link rel="stylesheet" href="./src/styles/tailwind.scss">
+</body>
+
 </html>

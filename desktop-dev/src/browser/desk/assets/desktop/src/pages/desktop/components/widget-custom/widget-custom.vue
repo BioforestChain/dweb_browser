@@ -100,6 +100,7 @@ const html = computed(() => {
 .widget {
   display: flex;
   place-items: center;
+  margin: 2em auto;
   > :deep(*) {
     flex: 1;
     width: 100%;

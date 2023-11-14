@@ -1,23 +1,23 @@
 <script setup lang="ts">
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import {
-$WatchEffectAppMetadataToAppIconReturn,
-watchEffectAppMetadataToAppIcon,
+  $WatchEffectAppMetadataToAppIconReturn,
+  watchEffectAppMetadataToAppIcon,
 } from "src/components/app-icon/appMetaDataHelper.ts";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import {
-doToggleTaskbar,
-openApp,
-quitApp,
-resizeTaskbar,
-toggleDesktopView,
-toggleMaximize,
-watchTaskBarStatus,
-watchTaskbarAppInfo,
+  doToggleTaskbar,
+  openApp,
+  quitApp,
+  resizeTaskbar,
+  toggleDesktopView,
+  toggleMaximize,
+  watchTaskbarAppInfo,
+  watchTaskBarStatus,
 } from "src/provider/api.ts";
 import { $TaskBarState, $WidgetAppData } from "src/types/app.type.ts";
-import { ShallowRef, computed, onMounted, onUnmounted, ref, shallowRef, triggerRef } from "vue";
+import { computed, onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef } from "vue";
 import { icons } from "./icons/index.ts";
 import x_circle_svg from "./icons/x-circle.svg";
 
@@ -148,8 +148,8 @@ const signalIcon = computed(() => {
 });
 // 是否是单app 模式
 const isSingleIconMode = computed(() => {
-  if (isFocusTaskBar.value) return false
-  return signalIcon.value !== undefined
+  if (isFocusTaskBar.value) return false;
+  return signalIcon.value !== undefined;
 });
 // 只显示需要显示的app
 const showAppIcons = computed(() => {
