@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import squircle_svg_url from "../icon-squircle-box/squircle.svg";
 import { $AppIconInfo } from "./types.ts";
 
@@ -24,8 +24,29 @@ const props = defineProps({
     required: true,
   },
 });
+let svgSrc = ref("");
+
+// 动态改变svg 大小
+watch(
+  () => props.icon,
+  async (value) => {
+    if (value.src.includes("readFile")) {
+      const svgRaw = await (await fetch(value.src)).text();
+      const blob = btoa(svgRaw);
+      svgSrc.value = `url(data:image/svg+xml;base64,${blob})`;
+      return;
+    }
+    svgSrc.value = value.src;
+  }
+);
 const mono_css = computed(() => props.icon.monoimage ?? props.icon.monocolor ?? "none");
-const icon_css = computed(() => (props.icon.src ? `url(${JSON.stringify(props.icon.src)})` : "none"));
+const icon_css = computed(() => {
+  const src = props.icon.src;
+  if (src.includes("readFile")) {
+    return svgSrc.value;
+  }
+  return props.icon.src ? `url(${JSON.stringify(props.icon.src)})` : "none";
+});
 const squircle_css = `url(${squircle_svg_url})`;
 const bg_image = computed(() => {
   if (props.bgImage) {

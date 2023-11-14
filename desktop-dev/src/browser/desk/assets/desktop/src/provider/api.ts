@@ -1,6 +1,16 @@
 import { $TaskBarState, $WidgetAppData, $WidgetCustomData } from "../types/app.type.ts";
 import { searchWidget } from "./custom/search.widget.ts";
-import { nativeFetch, nativeFetchStream } from "./fetch.ts";
+import { buildApiRequestArgs, nativeFetch, nativeFetchStream } from "./fetch.ts";
+
+export async function readPathFile(path: string) {
+  return path.startsWith("file:")
+    ? buildApiRequestArgs("/readFile", {
+        search: {
+          url: path,
+        },
+      })[0].href
+    : path;
+}
 
 export async function readAccept(ext: string = "") {
   const { accept } = await nativeFetch<{ accept: string }>(`/readAccept.${ext}`, {});

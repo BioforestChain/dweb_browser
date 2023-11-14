@@ -2,8 +2,12 @@
 import { ref, watchEffect } from "vue";
 
 const props = defineProps({
-  src: {
+  size: {
     type: String,
+    default: "100%",
+  },
+  src: {
+    type: [String],
     required: true,
   },
   alt: String,
@@ -11,13 +15,12 @@ const props = defineProps({
 const svgRaw = ref("");
 watchEffect(async () => {
   if (!props.src) {
+    return (svgRaw.value = "");
+  }
+  try {
+    svgRaw.value = await (await fetch(props.src)).text();
+  } catch {
     svgRaw.value = "";
-  } else {
-    try {
-      svgRaw.value = await (await fetch(props.src)).text();
-    } catch {
-      svgRaw.value = "";
-    }
   }
 });
 </script>
@@ -27,8 +30,8 @@ watchEffect(async () => {
 
 <style scoped lang="scss">
 .icon {
-  width: 100%;
-  height: 100%;
+  width: v-bind(size);
+  height: v-bind(size);
   display: inline-block;
   > :deep(svg) {
     width: 100%;

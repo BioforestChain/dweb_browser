@@ -7,7 +7,7 @@ import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import { closeBrowser, detailApp, openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
 import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
 import type { $WidgetAppData } from "src/types/app.type.ts";
-import { computed, onMounted, reactive, ref, shallowRef, watch } from "vue";
+import { computed, reactive, ref, shallowRef, watch } from "vue";
 import AppUnInstallDialog from "../app-uninstall-dialog/app-uninstall-dialog.vue";
 import { ownReason, showOverlay } from "../widget-menu-overlay/widget-menu-overlay.vue";
 import delete_svg from "./delete.svg";
@@ -65,7 +65,6 @@ watch(animationiteration, () => {
 
 const emit = defineEmits(["uninstall"]);
 
-onMounted(() => {});
 let menuCloser: $CloseWatcher | null = null;
 //长按事件的回调
 const $menu = {
@@ -135,6 +134,12 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
     emit("uninstall");
   }
 };
+// 判断是否是svg 切换为svg组件渲染
+const isSvg = computed(() => {
+  const src = props.appMetaData.icons?.at(0)?.src;
+  if (src && src.endsWith("svg")) return true;
+  return false;
+});
 </script>
 <template>
   <div ref="$appHtmlRefHook" class="app" draggable="false">
@@ -147,7 +152,9 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
           @click="[$menu.close, doOpen]"
           @contextmenu="$menu.show"
         >
+          <SvgIcon v-if="isSvg" @click="doOpen" class="icon" size="60px" :src="appicon.src" alt="icon" />
           <AppIcon
+            v-else
             @click="doOpen"
             :class="{
               'animate-slow-bounce': opening,
@@ -157,7 +164,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
             size="60px"
             :icon="appicon"
           ></AppIcon>
-          <div class="app-name  backdrop-ios-glass ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
+          <div class="app-name backdrop-ios-glass ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
             {{ appname }}
           </div>
         </div>

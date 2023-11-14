@@ -13,6 +13,7 @@ import {
   resizeTaskbar,
   toggleDesktopView,
   toggleMaximize,
+  vibrateHeavyClick,
   watchTaskbarAppInfo,
   watchTaskBarStatus,
 } from "src/provider/api.ts";
@@ -76,7 +77,7 @@ const updateLayoutInfoList = (appList: $WidgetAppData[]) => {
 
     return Object.assign(res, { metaData, ref: ref });
   });
-  triggerRef(appRefList);
+  triggerRef(appRefList); // 强制触发深度更新
 };
 
 // 触发taskBar状态更新
@@ -107,6 +108,7 @@ const doExit = async (metaData: $WidgetAppData) => {
 const showMenuOverlayRef = ref<$WidgetAppData["mmid"] | undefined>();
 // 响应右键点击事件
 const tryOpenMenuOverlay = (metaData: $WidgetAppData) => {
+  vibrateHeavyClick();
   if (metaData.running) {
     showMenuOverlayRef.value = metaData.mmid;
   }
@@ -177,6 +179,16 @@ onMounted(() => {
     });
   }
 });
+
+// 判断是否是svg 切换为svg组件渲染
+const isSvg = (iconSrc?: string) => {
+  if (iconSrc && iconSrc.endsWith(".svg")) return true;
+  return false;
+};
+const getSvg = (index: number) => {
+  const iconUrl = appRefList.value.at(index)?.metaData.icons?.at(0)?.src ?? "";
+  return iconUrl;
+};
 const iconSize = "45px";
 </script>
 <template>
