@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import org.dweb_browser.core.module.BaseThemeActivity
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.sys.window.core.Rect
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 
@@ -32,9 +33,10 @@ class DesktopActivity : BaseThemeActivity() {
     desktopController?.activity = null
 
     return DeskNMM.controllersMap[sessionId]?.also { controllers ->
+      require(controllers.desktopController is DesktopController)
       controllers.desktopController.activity = this
       this.desktopController = controllers.desktopController
-      controllers.activityPo.resolve(this)
+      controllers.activityPo.resolve(PlatformViewController(this))
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 
@@ -42,6 +44,7 @@ class DesktopActivity : BaseThemeActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val (desktopController, taskbarController, microModule) = bindController(intent.getStringExtra("deskSessionId"))
+    require(desktopController is DesktopController && taskbarController is TaskbarController)
     /// 禁止自适应布局，执行后，可以将我们的内容嵌入到状态栏和导航栏，但是会发现我们的界面呗状态栏和导航栏给覆盖了，这时候就需要systemUiController来改颜色
     WindowCompat.setDecorFitsSystemWindows(window, false)
     setContent {

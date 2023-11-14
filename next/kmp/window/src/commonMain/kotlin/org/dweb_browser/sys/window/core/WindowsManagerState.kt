@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.Observable
-import org.dweb_browser.helper.platform.PlatformViewController
+import org.dweb_browser.helper.platform.IPlatformViewController
 import org.dweb_browser.sys.window.core.constant.WindowManagerPropertyKeys
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowPadding
@@ -22,14 +22,14 @@ import org.dweb_browser.sys.window.render.watchedBounds
 import kotlin.math.max
 
 class WindowsManagerState(
-  val viewController: PlatformViewController,
+  val viewController: IPlatformViewController,
 ) {
 //  val viewHeight get() = activity.window.decorView.height
 //  val viewWidth get() = activity.window.decorView.width
 //  val displayDensity get() = activity.resources.displayMetrics.density
 
-  val viewHeightDp get() = with(viewController) { getViewHeightPx() / getDisplayDensity() }
-  val viewWidthDp get() = with(viewController) { getViewWidthPx() / getDisplayDensity() }
+  suspend fun viewHeightDp() = with(viewController) { getViewHeightPx() / getDisplayDensity() }
+  suspend fun viewWidthDp() = with(viewController) { getViewWidthPx() / getDisplayDensity() }
 
   companion object {
     /// 一些提供给 WindowsManager 的扩展函数

@@ -1,58 +1,34 @@
 package org.dweb_browser.browser.desk
 
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.mutableStateListOf
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
-import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.build
-import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.std.http.HttpDwebServer
+import org.dweb_browser.helper.platform.IPlatformViewController
+import org.dweb_browser.helper.platform.PlatformViewController
+
+actual fun IDesktopController.Companion.create(
+  deskNMM: DeskNMM,
+  desktopServer: HttpDwebServer,
+  runningApps: ChangeableMap<MMID, RunningApp>
+): IDesktopController = DesktopController(deskNMM, desktopServer, runningApps)
 
 @Stable
 class DesktopController(
   private val deskNMM: DeskNMM,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>
-) {
-
-  internal val updateSignal = SimpleSignal()
-  val onUpdate = updateSignal.toListener()
-
-  init {
-    runningApps.onChange {
-      updateSignal.emit()
-    }
-  }
-
-  suspend fun getDesktopApps(): List<DeskAppMetaData> {
-    val apps = deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
-    val runApps = apps.map { metaData ->
-      return@map DeskAppMetaData().apply {
-        running = runningApps.containsKey(metaData.mmid)
-        winStates = desktopWindowsManager.getWindowStates(metaData.mmid)
-        winStates.firstOrNull()?.let { state ->
-          debugDesk(
-            "getDesktopApps", "winStates -> ${winStates.size}, ${state.mode}, ${state.focus}"
-          )
-        }
-        assign(metaData.manifest)
-      }
-    }
-    return runApps
-  }
+) : IDesktopController(deskNMM, desktopServer, runningApps) {
 
   private var activityTask = PromiseOut<DesktopActivity>()
 
@@ -69,13 +45,11 @@ class DesktopController(
       }
     }
 
-  private var preDesktopWindowsManager: DesktopWindowsManager? = null
-
   /**
    * 窗口管理器
    */
-  val desktopWindowsManager
-    get() = DesktopWindowsManager.getOrPutInstance(this.activity!!) { dwm ->
+  override val desktopWindowsManager
+    get() = DesktopWindowsManager.getOrPutInstance(PlatformViewController(this.activity!!)) { dwm ->
 
       dwm.hasMaximizedWins.onChange { updateSignal.emit() }
 
@@ -117,24 +91,5 @@ class DesktopController(
     val coroutineScope = CoroutineScope(CoroutineName("desk/main-dwebview/$name"))
     val navigator = WebViewNavigator(coroutineScope)
     MainDwebView(name, webView, state, navigator)
-  }
-
-  fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().build {
-    resolvePath("/desktop.html")
-    parameters["api-base"] = desktopServer.startResult.urlInfo.buildPublicUrl().toString()
-  }
-
-
-  private val _activitySignal = SimpleSignal()
-  val onActivity = _activitySignal.toListener()
-
-
-  data class AlertMessage(val title: String, val message: String)
-
-  internal val alertMessages = mutableStateListOf<AlertMessage>()
-  fun showAlert(reason: Throwable) {
-    val title = reason.cause?.message ?: "异常"
-    val message = reason.message ?: "未知原因"
-    alertMessages.add(AlertMessage(title, message))
   }
 }

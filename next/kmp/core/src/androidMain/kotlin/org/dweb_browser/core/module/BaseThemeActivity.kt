@@ -1,7 +1,6 @@
 package org.dweb_browser.core.module
 
 import android.os.Bundle
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.core.view.WindowCompat

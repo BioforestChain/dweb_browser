@@ -9,7 +9,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ChangeableSet
 import org.dweb_browser.helper.OffListener
-import org.dweb_browser.helper.platform.PlatformViewController
+import org.dweb_browser.helper.platform.IPlatformViewController
 import org.dweb_browser.helper.some
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
@@ -18,7 +18,7 @@ import org.dweb_browser.sys.window.core.constant.WindowsManagerScope
 import org.dweb_browser.sys.window.core.constant.debugWindow
 import kotlin.math.abs
 
-open class WindowsManager<T : WindowController>(internal val viewController: PlatformViewController) {
+open class WindowsManager<T : WindowController>(internal val viewController: IPlatformViewController) {
   val state = WindowsManagerState(viewController)
 
   /**

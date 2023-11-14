@@ -12,8 +12,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import org.dweb_browser.browser.R
 import org.dweb_browser.core.module.BaseThemeActivity
+import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.Render
+import org.dweb_browser.dwebview.asAndroidWebView
 import org.dweb_browser.helper.android.ActivityBlurHelper
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.runBlockingCatching
 
 class TaskbarActivity : BaseThemeActivity() {
@@ -23,10 +27,11 @@ class TaskbarActivity : BaseThemeActivity() {
   private var controller: TaskbarController? = null
   private fun bindController(sessionId: String?): DeskNMM.Companion.DeskControllers {
     /// 解除上一个 controller的activity绑定
-    controller?.activity = null
+    controller?.platformContext = null
 
     return DeskNMM.controllersMap[sessionId]?.also { controllers ->
-      controllers.taskbarController.activity = this
+      require(controllers.taskbarController is TaskbarController)
+      controllers.taskbarController.platformContext = PlatformViewController(this)
       controller = controllers.taskbarController
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
@@ -63,16 +68,12 @@ class TaskbarActivity : BaseThemeActivity() {
       DwebBrowserAppTheme {
         BackHandler { finish() }
         /// 任务栏视图
-        AndroidView(factory = {
-          taskbarController.taskbarView.taskbarDWebView.also { webView ->
-            webView.parent?.let { parent ->
-              (parent as ViewGroup).removeView(webView)
-            }
-            webView.setOnTouchListener { _, _ ->
-              false
-            }
-            webView.isHorizontalScrollBarEnabled = true
+        taskbarController.taskbarView.taskbarDWebView.Render(onCreate = {
+          val webView = taskbarController.taskbarView.taskbarDWebView.asAndroidWebView()
+          webView.setOnTouchListener { _, _ ->
+            false
           }
+          webView.isHorizontalScrollBarEnabled = true
         })
       }
     }
@@ -92,7 +93,7 @@ class TaskbarActivity : BaseThemeActivity() {
     controller?.also { taskBarController ->
       runBlockingCatching {
         taskBarController.taskbarView.toggleFloatWindow(openTaskbar = false) // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
-        taskBarController.activity = null
+        taskBarController.platformContext = null
       }
     }
   }

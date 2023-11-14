@@ -180,7 +180,7 @@ onMounted(() => {
 const iconSize = "45px";
 </script>
 <template>
-  <div class="taskbar" ref="taskbarEle">
+  <div class="taskbar min-w-[4.5rem]" ref="taskbarEle">
     <div class="panel p-4">
       <button
         class="app-icon-wrapper z-grid"

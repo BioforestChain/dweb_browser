@@ -103,7 +103,7 @@ import org.dweb_browser.browser.web.ui.browser.search.CustomTextField
 import org.dweb_browser.browser.web.ui.view.findActivity
 import org.dweb_browser.dwebview.getIconBitmap
 import org.dweb_browser.helper.PrivacyUrl
-import org.dweb_browser.helper.compose.rememberPlatformViewController
+import org.dweb_browser.helper.platform.rememberPlatformViewController
 import org.dweb_browser.helper.compose.theme.DimenBottomBarHeight
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getCornerRadiusTop

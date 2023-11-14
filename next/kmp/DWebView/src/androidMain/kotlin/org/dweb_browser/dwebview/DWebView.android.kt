@@ -42,7 +42,7 @@ suspend fun IDWebView.Companion.create(
    * 该参数的存在，是用来做一些跟交互式界面相关的行为的，交互式界面需要有一个上下文，比如文件选择、权限申请等行为。
    * 我们将这些功能都写到了BaseActivity上，如果没有提供该对象，则相关的功能将会被禁用
    */
-  activity: BaseActivity? = null
+  activity: org.dweb_browser.helper.android.BaseActivity? = null
 ): IDWebView =
   withMainContext { create(DWebViewEngine(context, remoteMM, options, activity), options.url) }
 

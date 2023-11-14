@@ -3,14 +3,19 @@ package org.dweb_browser.helper.android
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.platform.LocalPlatformViewController
+import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.runBlockingCatching
 
 abstract class BaseActivity : ComponentActivity() {
@@ -20,8 +25,7 @@ abstract class BaseActivity : ComponentActivity() {
    * 对 registerForActivityResult 的易用性封装
    */
   class QueueResultLauncher<I, O>(
-    val activity: BaseActivity,
-    val contract: ActivityResultContract<I, O>
+    val activity: BaseActivity, val contract: ActivityResultContract<I, O>
   ) {
     private lateinit var launcher: ActivityResultLauncher<I>;
 
@@ -72,6 +76,14 @@ abstract class BaseActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     queueResultLauncherRegistries.forEach { it() }
+  }
+
+  fun setContent(content: @Composable () -> Unit) {
+    (this as ComponentActivity).setContent {
+      CompositionLocalProvider(LocalPlatformViewController provides PlatformViewController(this)) {
+        content()
+      }
+    }
   }
 
   private val onDestroySignal = SimpleSignal()

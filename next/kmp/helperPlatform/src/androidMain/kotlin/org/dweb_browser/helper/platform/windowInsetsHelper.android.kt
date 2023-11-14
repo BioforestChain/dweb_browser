@@ -10,11 +10,11 @@ import android.view.WindowInsets
  */
 @SuppressLint("DiscouragedApi")
 actual fun getCornerRadiusTop(
-  viewController: PlatformViewController,
+  viewController: IPlatformViewController,
   density: Float,
   defaultValue: Float
 ): Float {
-  val context = viewController.androidContext;
+  val context = viewController.asAndroid().androidContext;
   var radius = defaultValue;
   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
     WindowInsets.CONSUMED.getRoundedCorner(RoundedCorner.POSITION_TOP_LEFT)?.also {
@@ -33,11 +33,11 @@ actual fun getCornerRadiusTop(
 
 @SuppressLint("DiscouragedApi")
 actual fun getCornerRadiusBottom(
-  viewController: PlatformViewController,
+  viewController: IPlatformViewController,
   density: Float,
   defaultValue: Float
 ): Float {
-  val context = viewController.androidContext;
+  val context = viewController.asAndroid().androidContext;
   var radius = defaultValue;
   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
     WindowInsets.CONSUMED.getRoundedCorner(RoundedCorner.POSITION_BOTTOM_RIGHT)?.also {

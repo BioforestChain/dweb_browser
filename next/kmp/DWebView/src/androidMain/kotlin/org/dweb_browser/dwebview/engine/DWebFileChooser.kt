@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.android.BaseActivity
 import java.io.File
 
-class DWebFileChooser(val activity: BaseActivity?) : WebChromeClient() {
+class DWebFileChooser(val activity: org.dweb_browser.helper.android.BaseActivity?) : WebChromeClient() {
   override fun onShowFileChooser(
     webView: WebView,
     filePathCallback: ValueCallback<Array<Uri>>,

@@ -76,10 +76,10 @@ class DWebViewEngine(
    * 该参数的存在，是用来做一些跟交互式界面相关的行为的，交互式界面需要有一个上下文，比如文件选择、权限申请等行为。
    * 我们将这些功能都写到了BaseActivity上，如果没有提供该对象，则相关的功能将会被禁用
    */
-  var activity: BaseActivity? = null
+  var activity: org.dweb_browser.helper.android.BaseActivity? = null
 ) : WebView(context) {
   init {
-    if (activity == null && context is BaseActivity) {
+    if (activity == null && context is org.dweb_browser.helper.android.BaseActivity) {
       activity = context
     }
   }

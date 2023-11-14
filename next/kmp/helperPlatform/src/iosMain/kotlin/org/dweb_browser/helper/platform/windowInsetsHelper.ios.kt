@@ -4,7 +4,7 @@ import platform.Foundation.valueForKey
 import platform.UIKit.UIScreen
 
 actual fun getCornerRadiusTop(
-  viewController: PlatformViewController, density: Float, defaultValue: Float
+  viewController: IPlatformViewController, density: Float, defaultValue: Float
 ): Float {
   val cornerRadius = UIScreen.mainScreen.valueForKey("_displayCornerRadius")
   println("cornerRadius:$cornerRadius")
@@ -12,5 +12,5 @@ actual fun getCornerRadiusTop(
 }
 
 actual fun getCornerRadiusBottom(
-  viewController: PlatformViewController, density: Float, defaultValue: Float
+  viewController: IPlatformViewController, density: Float, defaultValue: Float
 ) = getCornerRadiusTop(viewController, density, defaultValue)

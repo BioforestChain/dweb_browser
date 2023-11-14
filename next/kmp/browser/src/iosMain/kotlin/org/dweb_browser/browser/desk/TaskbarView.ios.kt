@@ -1,9 +1,5 @@
 package org.dweb_browser.browser.desk
 
-import android.annotation.SuppressLint
-import android.content.Intent
-import android.os.Bundle
-import android.view.ViewGroup
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -25,84 +21,52 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
-import org.dweb_browser.core.module.getAppContext
+import kotlinx.cinterop.ExperimentalForeignApi
+import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.clamp
+import org.dweb_browser.helper.platform.asIos
+import platform.CoreGraphics.CGRectMake
+import platform.UIKit.UIColor
+import platform.UIKit.addChildViewController
+import platform.WebKit.WKWebViewConfiguration
 
-class TaskbarView(private val taskbarController: TaskbarController) {
-  val state = TaskbarState()
+actual suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView =
+  TaskbarView(taskbarController)
 
-  val taskbarDWebView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    DWebViewEngine(
-      context = taskbarController.deskNMM.getAppContext(),
+class TaskbarView(private val taskbarController: TaskbarController) :
+  ITaskbarView(taskbarController) {
+  @OptIn(ExperimentalForeignApi::class)
+  override val taskbarDWebView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    require(taskbarController is TaskbarController)
+    DWebView(DWebViewEngine(
+//      frame = taskbarController.platformContext!!.iosController.view.frame,
+      frame = CGRectMake(0.0, 0.0, 0.0, 0.0),
       remoteMM = taskbarController.deskNMM,
       options = DWebViewOptions(
         url = taskbarController.getTaskbarUrl().toString(),
-        detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
-      )
+//        onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
+      ),
+      WKWebViewConfiguration()
     ).also {
-      it.setBackgroundColor(Color.Transparent.toArgb())
-    }
+      it.setBackgroundColor(UIColor.fromColorInt(Color.Transparent.toArgb()))
+    })
   }
 
-  /**
-   * 打开悬浮框
-   */
-  private fun openTaskbarActivity() = if (!state.floatActivityState) {
-    state.floatActivityState = true
-    true
-  } else false
-
-  private fun closeTaskbarActivity() = if (state.floatActivityState) {
-    state.floatActivityState = false
-    true
-  } else false
-
-  suspend fun toggleFloatWindow(openTaskbar: Boolean?): Boolean {
-    val toggle = openTaskbar ?: !state.floatActivityState
-    // 监听状态是否是float
-    taskbarController.getFocusApp()?.let { focusApp ->
-      taskbarController.stateSignal.emit(
-        TaskbarController.TaskBarState(toggle, focusApp)
-      )
-    }
-    return if (toggle) openTaskbarActivity() else closeTaskbarActivity()
-  }
-
-  private data class SafeBounds(
-    val left: Float,
-    val top: Float,
-    val right: Float,
-    val bottom: Float,
-  ) {
-    val hCenter get() = left + (right - left) / 2
-    val vCenter get() = top + (bottom - top) / 2
-  }
-
-  @SuppressLint("IntentWithNullActionLaunch")
   @Composable
-  fun FloatWindow() {
+  override fun FloatWindow() {
     val isActivityMode by state.composableHelper.stateOf { floatActivityState }
     if (isActivityMode) {
-      val context = LocalContext.current
+      val uiViewController = LocalUIViewController.current
       LaunchedEffect(state.composableHelper) {
-        context.startActivity(Intent(
-          context, TaskbarActivity::class.java
-        ).also { intent ->
-          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-          intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-          intent.putExtras(Bundle().apply {
-            putString("deskSessionId", taskbarController.deskSessionId)
-          })
-        })
+        uiViewController.addChildViewController(taskbarController.platformContext!!.asIos().uiViewController())
       }
       return
     }
@@ -169,17 +133,18 @@ class TaskbarView(private val taskbarController: TaskbarController) {
             setBoxY(boxY + dragAmount.y / density)
           })
         }) {
-        AndroidView(
-          factory = {
-            taskbarDWebView.also { webView ->
-              webView.parent?.let { parent ->
-                (parent as ViewGroup).removeView(webView)
-              }
-              webView.clearFocus()
-            }
-
-          }, modifier = Modifier
-        )
+//        AndroidView(
+//          factory = {
+//            taskbarDWebView.let { dwebview ->
+//              val webView = dwebview.getAndroidWebViewEngine()
+//              webView.parent?.let { parent ->
+//                (parent as ViewGroup).removeView(webView)
+//              }
+//              webView.clearFocus()
+//              webView
+//            }
+//          }, modifier = Modifier
+//        )
 //        // 这边屏蔽当前webview响应
 //        Box(modifier = Modifier
 //          .fillMaxSize()
@@ -194,3 +159,12 @@ class TaskbarView(private val taskbarController: TaskbarController) {
 }
 
 fun Offset.toIntOffset(density: Float) = IntOffset((density * x).toInt(), (density * y).toInt())
+
+fun UIColor.Companion.fromColorInt(color: Int): UIColor {
+  return UIColor(
+    ((color ushr 16) and 0xFF) / 255.0,
+    ((color ushr 8) and 0xFF) / 255.0,
+    ((color) and 0xFF) / 255.0,
+    1.0
+  )
+}

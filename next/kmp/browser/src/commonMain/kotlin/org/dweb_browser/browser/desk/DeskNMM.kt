@@ -1,8 +1,5 @@
 package org.dweb_browser.browser.desk
 
-import android.app.Activity
-import android.content.Intent
-import android.os.Bundle
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
@@ -18,7 +15,6 @@ import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.module.startAppActivity
 import org.dweb_browser.core.std.dns.ext.onActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.CORS_HEADERS
@@ -31,6 +27,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.consumeEachJsonLine
+import org.dweb_browser.helper.platform.IPlatformViewController
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.sys.window.core.ModalState
@@ -72,11 +69,11 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   companion object {
     data class DeskControllers(
-      val desktopController: DesktopController,
+      val desktopController: IDesktopController,
       val taskbarController: TaskbarController,
       val deskNMM: DeskNMM,
     ) {
-      val activityPo = PromiseOut<Activity>()
+      val activityPo = PromiseOut<IPlatformViewController>()
     }
 
     val controllersMap = mutableMapOf<String, DeskControllers>()
@@ -105,7 +102,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   private val openAppLock = ReasonLock()
   suspend fun IHandlerContext.openOrActivateAppWindow(
-    ipc: Ipc, desktopController: DesktopController
+    ipc: Ipc, desktopController: IDesktopController
   ): WindowController {
     val appId = ipc.remote.mmid;
     debugDesk("openOrActivateAppWindow", appId)
@@ -130,12 +127,11 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     appMainWindow
   }
 
-  suspend fun IHandlerContext.createModal(ipc: Ipc) =
-    openAppLock.withLock("write-modal") {
-      request.queryAs<ModalState>().also {
-        saveAndTryOpenModal(ipc, it)
-      }
+  suspend fun IHandlerContext.createModal(ipc: Ipc) = openAppLock.withLock("write-modal") {
+    request.queryAs<ModalState>().also {
+      saveAndTryOpenModal(ipc, it)
     }
+  }
 
   private suspend fun IHandlerContext.saveAndTryOpenModal(
     ipc: Ipc,
@@ -159,9 +155,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val desktopServer = this.createDesktopWebServer()
     val deskSessionId = randomUUID()
 
-    val desktopController = DesktopController(this, desktopServer, runningApps)
+    val desktopController = IDesktopController.create(this, desktopServer, runningApps)
     val taskBarController =
-      TaskbarController(deskSessionId, this, desktopController, taskbarServer, runningApps)
+      TaskbarController.create(deskSessionId, this, desktopController, taskbarServer, runningApps)
     val deskControllers = DeskControllers(desktopController, taskBarController, this)
     controllersMap[deskSessionId] = deskControllers
 
@@ -288,18 +284,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     deskControllers.activityPo.waitPromise()
   }
 
-  private fun startDesktopView(deskSessionId: String) {
-    /// 启动对应的Activity视图，如果在后端也需要唤醒到最前面，所以需要在AndroidManifest.xml 配置 launchMode 为 singleTask
-    startAppActivity(DesktopActivity::class.java) { intent ->
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-      // 不可以添加 Intent.FLAG_ACTIVITY_NEW_DOCUMENT ，否则 TaskbarActivity 就没发和 DesktopActivity 混合渲染、点击穿透
-      intent.putExtras(Bundle().apply {
-        putString("deskSessionId", deskSessionId)
-      })
-    }
-  }
-
   override suspend fun _shutdown() {
   }
 
@@ -342,3 +326,5 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     return desktopServer
   }
 }
+
+expect fun DeskNMM.startDesktopView(deskSessionId: String)

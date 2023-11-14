@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.desk
 
-import android.content.res.Resources
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -11,17 +10,40 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
+import org.dweb_browser.helper.platform.IPlatformViewController
 import org.dweb_browser.helper.resolvePath
 
-class TaskbarController(
-  val deskSessionId: String,
-  val deskNMM: DeskNMM,
-  private val desktopController: DesktopController,
+
+class TaskbarController private constructor(
+  open val deskNMM: DeskNMM,
+  open val deskSessionId: String,
+  private val desktopController: IDesktopController,
   private val taskbarServer: HttpDwebServer,
-  private val runningApps: ChangeableMap<MMID, RunningApp>
+  private val runningApps: ChangeableMap<MMID, RunningApp>,
 ) {
-  val taskbarView = TaskbarView(this)
-  private val taskbarStore = TaskbarStore(deskNMM)
+  companion object {
+
+    suspend fun create(
+      deskSessionId: String,
+      deskNMM: DeskNMM,
+      desktopController: IDesktopController,
+      taskbarServer: HttpDwebServer,
+      runningApps: ChangeableMap<MMID, RunningApp>
+    ) =
+      TaskbarController(
+        deskNMM,
+        deskSessionId,
+        desktopController,
+        taskbarServer,
+        runningApps
+      ).also {
+        it._taskbarView = ITaskbarView.create(it)
+      }
+  }
+
+  private lateinit var _taskbarView: ITaskbarView
+  val taskbarView get() = _taskbarView
+  val taskbarStore = TaskbarStore(deskNMM)
 
   /** 展示在taskbar中的应用列表 */
   private suspend fun getTaskbarShowAppList() = taskbarStore.getApps()
@@ -110,10 +132,10 @@ class TaskbarController(
     }
   }
 
-  private var activityTask = PromiseOut<TaskbarActivity>()
+  private var activityTask = PromiseOut<IPlatformViewController>()
   suspend fun waitActivityCreated() = activityTask.waitPromise()
 
-  var activity: TaskbarActivity? = null
+  var platformContext: IPlatformViewController? = null
     set(value) {
       if (field == value) {
         return
@@ -137,8 +159,4 @@ class TaskbarController(
 
   @Serializable
   data class TaskBarState(val focus: Boolean, val appId: String)
-
-  private val density by lazy { Resources.getSystem().displayMetrics.density }
-
-  private fun Int.toDpValue() = (this * density + 0.5f).toInt()
 }

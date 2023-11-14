@@ -8,7 +8,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.android.BaseActivity
 
-class DWebPermissionRequest(val activity: BaseActivity?) : WebChromeClient() {
+class DWebPermissionRequest(val activity: org.dweb_browser.helper.android.BaseActivity?) : WebChromeClient() {
   override fun onPermissionRequest(request: PermissionRequest) {
     activity?.also { context ->
       debugDWebView(

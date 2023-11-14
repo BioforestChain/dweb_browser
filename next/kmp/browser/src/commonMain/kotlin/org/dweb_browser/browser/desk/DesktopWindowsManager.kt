@@ -1,28 +1,22 @@
 package org.dweb_browser.browser.desk
 
-import org.dweb_browser.helper.platform.PlatformViewController
+import org.dweb_browser.helper.platform.IPlatformViewController
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.helper.setDefaultFloatWindowBounds
-import java.util.WeakHashMap
+import org.dweb_browser.helper.WeakHashMap
 import kotlin.math.sqrt
 
-class DesktopWindowsManager(val viewController: PlatformViewController) :
+expect fun DesktopWindowsManager.Companion.getOrPutInstance(
+  platformViewController: IPlatformViewController, onPut: (wm: DesktopWindowsManager) -> Unit
+): DesktopWindowsManager
+
+class DesktopWindowsManager(val viewController: IPlatformViewController) :
   WindowsManager<DesktopWindowController>(viewController) {
 
   companion object {
-    private val instances = WeakHashMap<DesktopActivity, DesktopWindowsManager>()
-    fun getOrPutInstance(
-      activity: DesktopActivity, onPut: (wm: DesktopWindowsManager) -> Unit
-    ): DesktopWindowsManager = instances.getOrPut(activity) {
-      DesktopWindowsManager(PlatformViewController(activity)).also { dwm ->
-        onPut(dwm);
-        activity.onDestroyActivity {
-          instances.remove(activity)
-        }
-      }
-    }
+    internal val instances = WeakHashMap<IPlatformViewController, DesktopWindowsManager>()
   }
 
   /// 初始化一些监听
@@ -35,9 +29,7 @@ class DesktopWindowsManager(val viewController: PlatformViewController) :
         val displayWidth = getViewWidthPx() / getDisplayDensity()
         val displayHeight = getViewHeightPx() / getDisplayDensity()
         newWindowState.setDefaultFloatWindowBounds(
-          displayWidth,
-          displayHeight,
-          allWindows.size.toFloat()
+          displayWidth, displayHeight, allWindows.size.toFloat()
         )
       }
       newWindowState.updateMutableBounds {

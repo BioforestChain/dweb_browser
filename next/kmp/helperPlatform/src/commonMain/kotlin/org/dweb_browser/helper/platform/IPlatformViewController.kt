@@ -2,11 +2,11 @@ package org.dweb_browser.helper.platform
 
 import kotlinx.coroutines.CoroutineScope
 
-expect class PlatformViewController private constructor(arg1: Any?, arg2: Any?) {
+interface IPlatformViewController {
   val lifecycleScope: CoroutineScope
-  fun getViewWidthPx(): Int;
-  fun getViewHeightPx(): Int;
-  fun getDisplayDensity(): Float;
+  suspend fun getViewWidthPx(): Int;
+  suspend fun getViewHeightPx(): Int;
+  suspend fun getDisplayDensity(): Float;
 
 //  val windowInsetsCompat: WindowInsets
 //

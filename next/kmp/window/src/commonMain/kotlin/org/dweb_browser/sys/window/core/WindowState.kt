@@ -100,10 +100,10 @@ class WindowState(
   @Serializable
   var bounds by WindowPropertyField.Bounds.toObserve(observable)
 
-  fun updateBounds(updater: Rect.() -> Rect) =
+  inline fun updateBounds(updater: Rect.() -> Rect) =
     updater.invoke(bounds).also { bounds = it }
 
-  fun updateMutableBounds(updater: Rect.Mutable.() -> Unit) =
+  inline fun updateMutableBounds(updater: Rect.Mutable.() -> Unit) =
     bounds.toMutable().also(updater).also { bounds = it.toImmutable() }
 
   /**
@@ -111,7 +111,7 @@ class WindowState(
    */
   var keyboardInsetBottom by WindowPropertyField.KeyboardInsetBottom.toObserve(observable)
 
-  /**
+  /**updateMutableBounds
    * 键盘是否可以覆盖内容显示
    * 默认是与内容有交集的，宁愿去 resize content 也不能覆盖
    */

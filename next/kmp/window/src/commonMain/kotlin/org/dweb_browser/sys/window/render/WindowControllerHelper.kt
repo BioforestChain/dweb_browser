@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +44,7 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.noLocalProvidedFor
-import org.dweb_browser.helper.compose.rememberPlatformViewController
+import org.dweb_browser.helper.platform.rememberPlatformViewController
 import org.dweb_browser.helper.compose.theme.md_theme_dark_inverseOnSurface
 import org.dweb_browser.helper.compose.theme.md_theme_dark_onSurface
 import org.dweb_browser.helper.compose.theme.md_theme_dark_surface
