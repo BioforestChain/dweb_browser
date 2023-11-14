@@ -18,6 +18,9 @@ kotlin {
     languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
   }
 
+  val defPath = project.file("$rootDir/helperPlatform/src/nativeInterop/cinterop")
+  val frameworkPath = project.file("$rootDir/helperPlatform/src/libs/dweb_platform_kit_ios.xcframework")
+
   listOf(
     iosX64(),
     iosArm64(),
@@ -26,6 +29,25 @@ kotlin {
     it.binaries.framework {
       baseName = "DwebHelperCompose"
       isStatic = true
+    }
+    it.compilations.getByName("main") {
+      val dwebPlatformKitIOS by cinterops.creating {
+        defFile("$defPath/dweb_platform_kit_ios.def")
+
+        if(it.targetName == "iosArm64") {
+          compilerOpts("-framework", "DwebIOS", "-F$frameworkPath/ios-arm64/")
+        } else {
+          compilerOpts("-framework", "DwebIOS", "-F$frameworkPath/ios-arm64_x86_64-simulator/")
+        }
+        extraOpts += listOf("-compiler-option", "-fmodules")
+      }
+    }
+    it.binaries.all {
+      if(it.targetName == "iosArm64") {
+        linkerOpts("-framework", "DwebIOS", "-F$frameworkPath/ios-arm64/")
+      } else {
+        linkerOpts("-framework", "DwebIOS", "-F$frameworkPath/ios-arm64_x86_64-simulator/")
+      }
     }
   }
 
