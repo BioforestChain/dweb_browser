@@ -1,4 +1,4 @@
-package org.dweb_browser.helper.compose.theme
+package org.dweb_browser.helper.platform.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

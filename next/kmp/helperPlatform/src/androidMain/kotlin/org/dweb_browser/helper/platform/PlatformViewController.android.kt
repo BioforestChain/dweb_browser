@@ -5,7 +5,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.android.BaseActivity
 
-class PlatformViewController(val activity: org.dweb_browser.helper.android.BaseActivity) : IPlatformViewController {
+class PlatformViewController(val activity: BaseActivity) : IPlatformViewController {
   private val context: Context = activity
 
   override suspend fun getViewWidthPx() = activity.window.decorView.width

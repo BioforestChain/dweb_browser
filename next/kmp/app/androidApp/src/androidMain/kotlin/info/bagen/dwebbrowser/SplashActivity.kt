@@ -29,9 +29,9 @@ import org.dweb_browser.browser.web.util.KEY_ENABLE_AGREEMENT
 import org.dweb_browser.browser.web.util.getBoolean
 import org.dweb_browser.browser.web.util.saveBoolean
 import org.dweb_browser.helper.compose.LocalCommonUrl
-import org.dweb_browser.core.module.interceptStartAppActivity
+import org.dweb_browser.core.module.interceptStartApp
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.core.module.NativeMicroModule
 import kotlin.system.exitProcess
@@ -50,7 +50,7 @@ class SplashActivity : AppCompatActivity() {
 
     WindowCompat.setDecorFitsSystemWindows(window, false) // 全屏
 
-    val grant = PromiseOut<Boolean>().also { NativeMicroModule.interceptStartAppActivity( it) }
+    val grant = PromiseOut<Boolean>().also { NativeMicroModule.interceptStartApp( it) }
 
     setContent {
       val scope = rememberCoroutineScope()

@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.android.BaseActivity
 import java.io.File
 
-class DWebFileChooser(val activity: org.dweb_browser.helper.android.BaseActivity?) : WebChromeClient() {
+class DWebFileChooser(val activity: BaseActivity?) : WebChromeClient() {
   override fun onShowFileChooser(
     webView: WebView,
     filePathCallback: ValueCallback<Array<Uri>>,
@@ -22,7 +22,7 @@ class DWebFileChooser(val activity: org.dweb_browser.helper.android.BaseActivity
     if (captureEnabled) {
       if (mimeTypes.startsWith("video/")) {
         context.lifecycleScope.launch {
-          if (!context.requestSelfPermission(Manifest.permission.CAMERA)) {
+          if (!context.requestPermission(Manifest.permission.CAMERA)) {
             filePathCallback.onReceiveValue(null)
             return@launch
           }
@@ -40,7 +40,7 @@ class DWebFileChooser(val activity: org.dweb_browser.helper.android.BaseActivity
         return true;
       } else if (mimeTypes.startsWith("image/")) {
         context.lifecycleScope.launch {
-          if (!context.requestSelfPermission(Manifest.permission.CAMERA)) {
+          if (!context.requestPermission(Manifest.permission.CAMERA)) {
             filePathCallback.onReceiveValue(null)
             return@launch
           }
@@ -59,7 +59,7 @@ class DWebFileChooser(val activity: org.dweb_browser.helper.android.BaseActivity
         return true;
       } else if (mimeTypes.startsWith("audio/")) {
         context.lifecycleScope.launch {
-          if (!context.requestSelfPermission(Manifest.permission.RECORD_AUDIO)) {
+          if (!context.requestPermission(Manifest.permission.RECORD_AUDIO)) {
             filePathCallback.onReceiveValue(null)
             return@launch
           }

@@ -18,7 +18,6 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(

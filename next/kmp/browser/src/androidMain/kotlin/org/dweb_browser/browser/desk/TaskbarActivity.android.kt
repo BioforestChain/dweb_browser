@@ -1,26 +1,19 @@
 package org.dweb_browser.browser.desk
 
-import android.annotation.SuppressLint
-import android.os.Bundle
 import android.view.Gravity
-import android.view.MotionEvent
-import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import org.dweb_browser.browser.R
-import org.dweb_browser.core.module.BaseThemeActivity
-import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.asAndroidWebView
 import org.dweb_browser.helper.android.ActivityBlurHelper
-import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.platform.PlatformViewController
+import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.runBlockingCatching
 
-class TaskbarActivity : BaseThemeActivity() {
+class TaskbarActivity : PureViewController() {
 
   private val blurHelper = ActivityBlurHelper(this)
 
@@ -36,75 +29,68 @@ class TaskbarActivity : BaseThemeActivity() {
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 
-  @SuppressLint("UseCompatLoadingForDrawables", "ClickableViewAccessibility")
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    val (_, taskbarController) = bindController(intent.getStringExtra("deskSessionId"))
-    /// 禁止自适应布局
-    WindowCompat.setDecorFitsSystemWindows(window, false)
-    val densityValue = resources.displayMetrics.density
+  init {
+    onCreate { params ->
+      val (_, taskbarController) = bindController(params.getString("deskSessionId"))
+      /// 禁止自适应布局
+      WindowCompat.setDecorFitsSystemWindows(window, false)
+      val densityValue = resources.displayMetrics.density
 
-    fun toPx(dp: Float) = (densityValue * dp).toInt()
+      fun toPx(dp: Float) = (densityValue * dp).toInt()
 
-    setContent {
-      window.attributes = window.attributes.also { attributes ->
-        taskbarController.taskbarView.state.composableHelper.apply {
-          val layoutWidth by stateOf { layoutWidth }
-          val layoutHeight by stateOf { layoutHeight }
-          val layoutX by stateOf { layoutX }
-          val layoutY by stateOf { layoutY }
-          val layoutLeftPadding by stateOf { layoutLeftPadding }
-          val layoutTopPadding by stateOf { layoutTopPadding }
-          window.setLayout(
-            toPx(layoutWidth),
-            toPx(layoutHeight),
-          )
+      setContent {
+        window.attributes = window.attributes.also { attributes ->
+          taskbarController.taskbarView.state.composableHelper.apply {
+            val layoutWidth by stateOf { layoutWidth }
+            val layoutHeight by stateOf { layoutHeight }
+            val layoutX by stateOf { layoutX }
+            val layoutY by stateOf { layoutY }
+            val layoutLeftPadding by stateOf { layoutLeftPadding }
+            val layoutTopPadding by stateOf { layoutTopPadding }
+            window.setLayout(
+              toPx(layoutWidth),
+              toPx(layoutHeight),
+            )
 
-          attributes.gravity = Gravity.TOP or Gravity.START
-          attributes.x = toPx(layoutX - layoutLeftPadding)
-          attributes.y = toPx(layoutY - layoutTopPadding)
+            attributes.gravity = Gravity.TOP or Gravity.START
+            attributes.x = toPx(layoutX - layoutLeftPadding)
+            attributes.y = toPx(layoutY - layoutTopPadding)
+          }
+        }
+        DwebBrowserAppTheme {
+          BackHandler { finish() }
+          /// 任务栏视图
+          taskbarController.taskbarView.taskbarDWebView.Render(onCreate = {
+            val webView = taskbarController.taskbarView.taskbarDWebView.asAndroidWebView()
+            webView.setOnTouchListener { _, _ ->
+              false
+            }
+            webView.isHorizontalScrollBarEnabled = true
+          })
         }
       }
-      DwebBrowserAppTheme {
-        BackHandler { finish() }
-        /// 任务栏视图
-        taskbarController.taskbarView.taskbarDWebView.Render(onCreate = {
-          val webView = taskbarController.taskbarView.taskbarDWebView.asAndroidWebView()
-          webView.setOnTouchListener { _, _ ->
-            false
-          }
-          webView.isHorizontalScrollBarEnabled = true
-        })
-      }
-    }
 
-    /// 启用模糊
-    blurHelper.config(
-      backgroundBlurRadius = (10 * densityValue).toInt(),
-      windowBackgroundDrawable = getDrawable(R.drawable.taskbar_window_background),
-      dimAmountNoBlur = 0.3f,
-      dimAmountWithBlur = 0.1f,
+      /// 启用模糊
+      blurHelper.config(
+        backgroundBlurRadius = (10 * densityValue).toInt(),
+        windowBackgroundDrawable = getDrawable(R.drawable.taskbar_window_background),
+        dimAmountNoBlur = 0.3f,
+        dimAmountWithBlur = 0.1f,
 //      blurBehindRadius = (5 * density).toInt(),
-    )
-  }
-
-  override fun onDestroy() {
-    super.onDestroy()
-    controller?.also { taskBarController ->
-      runBlockingCatching {
-        taskBarController.taskbarView.toggleFloatWindow(openTaskbar = false) // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
-        taskBarController.platformContext = null
+      )
+    }
+    onDestroy {
+      controller?.also { taskBarController ->
+        runBlockingCatching {
+          taskBarController.taskbarView.toggleFloatWindow(openTaskbar = false) // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
+          taskBarController.platformContext = null
+        }
       }
     }
-  }
-
-  @SuppressLint("RestrictedApi")
-  override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-    with(ev) {
-      if (x <= 0 || y <= 0 || x >= window.decorView.width || y >= window.decorView.height) {
+    onTouch {
+      if (it.x <= 0 || it.y <= 0 || it.x >= it.viewWidth || it.y >= it.viewHeight) {
         finish()
       }
     }
-    return super.dispatchTouchEvent(ev)
   }
 }

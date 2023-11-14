@@ -3,10 +3,8 @@ package org.dweb_browser.browser.desk
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.view.ViewGroup
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,23 +21,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.clamp
 
 actual suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView =
@@ -126,7 +118,6 @@ class TaskbarView private constructor(
         Offset(boxX, boxY)
       }.value
 
-      println("GGGG $boxX $boxY $boxWidth $boxHeight")
       Box(modifier = Modifier.zIndex(1000f).size(boxWidth.dp, boxHeight.dp).absoluteOffset() {
         boxOffset.toIntOffset(density)
       }.pointerInput(Unit) {

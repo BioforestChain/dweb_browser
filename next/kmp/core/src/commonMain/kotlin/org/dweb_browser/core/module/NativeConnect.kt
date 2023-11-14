@@ -3,6 +3,7 @@ package org.dweb_browser.core.module
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.helper.PromiseOut
 
 /**
  * 两个模块的连接结果：
@@ -31,4 +32,14 @@ suspend fun connectMicroModules(
     }
   }
   throw Exception("no support connect MicroModules, from:${fromMM.mmid} to:${toMM.mmid}")
+}
+
+
+internal var grant: PromiseOut<Boolean>? = null
+
+/**
+ * 启动拦截器，确保前置任务完成后，才会开始运行microModule
+ */
+fun NativeMicroModule.Companion.interceptStartApp(granter: PromiseOut<Boolean>) {
+  grant = granter
 }

@@ -2,37 +2,34 @@ package org.dweb_browser.browser.barcode
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import org.dweb_browser.browser.R
-import org.dweb_browser.core.module.BaseThemeActivity
-import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.browser.barcode.ui.QRCodeScanView
 import org.dweb_browser.browser.barcode.ui.rememberQRCodeScanState
+import org.dweb_browser.helper.platform.PureViewController
 
-class ScanningActivity : BaseThemeActivity() {
+@OptIn(ExperimentalPermissionsApi::class)
+class ScanningActivity : PureViewController() {
   companion object {
     const val IntentFromIPC = "fromIPC"
   }
+
   private fun String.regexDeepLink() = Regex("dweb:.+").matchEntire(this)?.groupValues?.get(0)
 
-  @OptIn(ExperimentalPermissionsApi::class)
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    // 隐藏系统工具栏
-    val windowInsetsController =
-      WindowCompat.getInsetsController(window, window.decorView)
-    windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+  init {
+    onCreate {
+      // 隐藏系统工具栏
+      val windowInsetsController =
+        WindowCompat.getInsetsController(window, window.decorView)
+      windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
 
-    val fromIpc = intent.getBooleanExtra(IntentFromIPC, false)
+      val fromIpc = intent.getBooleanExtra(IntentFromIPC, false)
 
-    setContent {
-      DwebBrowserAppTheme {
+      setContent {
         val qrCodeScanState = rememberQRCodeScanState()
         LaunchedEffect(Unit) { qrCodeScanState.show() }
 
@@ -63,10 +60,9 @@ class ScanningActivity : BaseThemeActivity() {
           })
       }
     }
+    onStop {
+      finish()
+    }
   }
 
-  override fun onStop() {
-    super.onStop()
-    finish()
-  }
 }
