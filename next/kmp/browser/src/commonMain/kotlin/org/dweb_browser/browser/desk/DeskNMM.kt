@@ -173,9 +173,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     routes(
       //
       "/readFile" bind HttpMethod.Get to definePureResponse {
-        val res = nativeFetch(request.query("url"))
-        println("url=>${request.query("url")} ${res.status} ${res.body.contentLength}")
-        res
+        nativeFetch(request.query("url"))
       },
       // readAccept
       "/readAccept." bindPrefix HttpMethod.Get to definePureResponse {

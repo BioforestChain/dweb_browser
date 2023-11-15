@@ -35,7 +35,7 @@ import org.dweb_browser.helper.resolvePath
 //): IDesktopController
 
 @Stable
-class DesktopController private constructor(
+open class DesktopController private constructor(
   private val deskNMM: DeskNMM,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
@@ -69,7 +69,7 @@ class DesktopController private constructor(
     return webView
   }
 
-  suspend fun desktopView() = _desktopView.waitPromise()
+  private suspend fun desktopView() = _desktopView.waitPromise()
 
   @Composable
   fun DesktopView(content: @Composable IDWebView.() -> Unit) {
@@ -88,17 +88,33 @@ class DesktopController private constructor(
     ) = DesktopController(deskNMM, desktopServer, runningApps)
   }
 
+  // 状态更新信号
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
 
+  // app排序
+  private val appSortList = DaskSortStore(deskNMM)
+
   init {
-    runningApps.onChange {
+    runningApps.onChange { map ->
       updateSignal.emit()
+      // 对排序app列表进行更新
+      map.removes.map {
+        appSortList.delete(it)
+      }
+      map.adds.map {
+        if(!appSortList.getApps().contains(it)) {
+          appSortList.push(it)
+        }
+      }
     }
   }
 
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
     val apps = deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
+    // 简单的排序再渲染
+    val sortList = appSortList.getApps()
+    apps.sortBy { sortList.indexOf(it.mmid) }
     val runApps = apps.map { metaData ->
       return@map DeskAppMetaData().apply {
         running = runningApps.containsKey(metaData.mmid)
@@ -114,7 +130,7 @@ class DesktopController private constructor(
     return runApps
   }
 
-  protected var preDesktopWindowsManager: DesktopWindowsManager? = null
+  private var preDesktopWindowsManager: DesktopWindowsManager? = null
 
   private val sync = SynchronizedObject()
 
@@ -144,13 +160,13 @@ class DesktopController private constructor(
       }
     }
 
-  fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().build {
+  private fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().build {
     resolvePath("/desktop.html")
     parameters["api-base"] = desktopServer.startResult.urlInfo.buildPublicUrl().toString()
   }
 
 
-  protected val _activitySignal = SimpleSignal()
+  private val _activitySignal = SimpleSignal()
   val onActivity = _activitySignal.toListener()
 
 

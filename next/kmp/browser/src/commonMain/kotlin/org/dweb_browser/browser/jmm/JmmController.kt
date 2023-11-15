@@ -225,7 +225,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
         parameters.append("path", "/data/apps/$jmm/usr/sys/session.json")
         parameters.append("create", "true")
       }, IpcMethod.POST, body = IPureBody.from(Json.encodeToString(buildJsonObject {
-        put("installTime", JsonPrimitive(datetimeNow()))
+        put("installTime", JsonPrimitive(jmmHistoryMetadata.installTime))
         put("installUrl", JsonPrimitive(jmmHistoryMetadata.originUrl))
       }))))
     }
