@@ -59,7 +59,7 @@ test-junit-bom = "5.9.2"
 animation-core-android = "1.5.4"
 material3Android = "1.2.0-alpha10"
 
-kotlinPluginSerializationVersion = "1.9.10"
+kotlinPluginSerializationVersion = "1.9.20"
 kotlinxSerializationVersion = "1.6.0"
 
 # jna

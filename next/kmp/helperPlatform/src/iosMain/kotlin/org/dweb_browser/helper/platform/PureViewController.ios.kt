@@ -5,18 +5,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.window.ComposeUIViewController
-import kotlinx.cinterop.BetaInteropApi
-import kotlinx.cinterop.ExportObjCClass
-import kotlinx.cinterop.ObjCAction
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import platform.UIKit.UIViewController
 
-//@OptIn(BetaInteropApi::class)
-//@ExportObjCClass
 class PureViewController(vc: UIViewController? = null) : IPureViewController {
   private val uiViewControllerDeferred = CompletableDeferred<UIViewController>()
   fun setUIViewController(vc: UIViewController) {
@@ -38,7 +32,6 @@ class PureViewController(vc: UIViewController? = null) : IPureViewController {
 
   private val createSignal = Signal<IPureViewCreateParams>()
 
-//  @ObjCAction
   suspend fun emitCreateSignal(/*params: PureViewCreateParams*/) {
 //    createSignal.emit(params)
   }
@@ -48,7 +41,7 @@ class PureViewController(vc: UIViewController? = null) : IPureViewController {
 
   private val stopSignal = SimpleSignal()
 
-////  @ObjCAction
+  ////  @ObjCAction
   suspend fun emitStopSignal() {
     stopSignal.emit()
   }
@@ -58,7 +51,6 @@ class PureViewController(vc: UIViewController? = null) : IPureViewController {
 
   private val resumeSignal = SimpleSignal()
 
-//  @ObjCAction
   suspend fun emitResumeSignal() {
     resumeSignal.emit()
   }
@@ -68,7 +60,6 @@ class PureViewController(vc: UIViewController? = null) : IPureViewController {
 
   private val destroySignal = SimpleSignal()
 
-//  @ObjCAction
   suspend fun emitDestroySignal() {
     destroySignal.emit()
   }
@@ -78,7 +69,6 @@ class PureViewController(vc: UIViewController? = null) : IPureViewController {
 
   private val touchSignal = Signal<TouchEvent>()
 
-//  @ObjCAction
   suspend fun emitTouchSignal(/*ev: TouchEvent*/) {
 //    touchSignal.emit(ev)
   }
@@ -91,9 +81,9 @@ class PureViewController(vc: UIViewController? = null) : IPureViewController {
   fun getContent() = ComposeUIViewController {
     CompositionLocalProvider(LocalPureViewBox provides PureViewBox(LocalUIViewController.current)) {
 //      DwebBrowserAppTheme {
-        for (content in contents) {
-          content()
-        }
+      for (content in contents) {
+        content()
+      }
 //      }
     }
   }
@@ -108,19 +98,13 @@ class PureViewController(vc: UIViewController? = null) : IPureViewController {
 }
 
 
-//@OptIn(BetaInteropApi::class)
-//@ExportObjCClass
 class PureViewCreateParams(private val params: Map<String, Any?>) :
   Map<String, Any?> by params, IPureViewCreateParams {
-//  @ObjCAction
   override fun getString(key: String): String? = get(key).let { require(it is String?);it }
 
-//  @ObjCAction
   override fun getInt(key: String): Int? = get(key).let { require(it is Int?);it }
 
-//  @ObjCAction
   override fun getFloat(key: String): Float? = get(key).let { require(it is Float?);it }
 
-//  @ObjCAction
   override fun getBoolean(key: String): Boolean? = get(key).let { require(it is Boolean?);it }
 };

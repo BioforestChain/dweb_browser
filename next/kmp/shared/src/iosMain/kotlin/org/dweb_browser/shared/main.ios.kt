@@ -11,10 +11,12 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeUIViewController
@@ -41,7 +43,6 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.nativeMicroModuleUIApplication
-import org.dweb_browser.core.module.startDelegate
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
@@ -52,6 +53,8 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
+import org.dweb_browser.helper.platform.LocalPureViewBox
+import org.dweb_browser.helper.platform.PureViewBox
 import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.withMainContext
@@ -175,54 +178,55 @@ suspend fun startDwebBrowser(app: UIApplication): DnsNMM {
 fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat) -> Unit) {
 
   var winController: WindowController? = null
+  CompositionLocalProvider(LocalPureViewBox provides PureViewBox(LocalUIViewController.current)) {
+    WindowPreviewer(modifier = Modifier.width(350.dp).height(500.dp), config = {
+      state.title = "应用长长的标题的标题的标题～～"
+      state.topBarContentColor = "#FF00FF"
+      state.themeColor = "#Fd9F9F"
+      state.iconUrl = "http://172.30.92.50:12207/m3-favicon-apple-touch.png"
+      state.iconMaskable = true
+      state.showMenuPanel = true
+      winController = this
+    }) { modifier ->
 
-  WindowPreviewer(modifier = Modifier.width(350.dp).height(500.dp), config = {
-    state.title = "应用长长的标题的标题的标题～～"
-    state.topBarContentColor = "#FF00FF"
-    state.themeColor = "#Fd9F9F"
-    state.iconUrl = "http://172.30.92.50:12207/m3-favicon-apple-touch.png"
-    state.iconMaskable = true
-    state.showMenuPanel = true
-    winController = this
-  }) { modifier ->
+      val colorScheme by winController?.watchedState { colorScheme } ?: return@WindowPreviewer
+      KmpNativeBridgeEventSender.sendColorScheme(colorScheme.scheme)
 
-    val colorScheme by winController?.watchedState { colorScheme } ?: return@WindowPreviewer
-    KmpNativeBridgeEventSender.sendColorScheme(colorScheme.scheme)
+      Box() {
+        val scope = rememberCoroutineScope()
+        onSizeChange(width.toDouble(), height.toDouble())
+        UIKitView(
+          factory = {
+            iosView
+          },
+          modifier = Modifier,
+          update = { view ->
+            println("update:::: $view")
+          })//    PreviewWindowTopBarContent(modifier)
 
-    Box() {
-      val scope = rememberCoroutineScope()
-      onSizeChange(width.toDouble(), height.toDouble())
-      UIKitView(
-        factory = {
-          iosView
-        },
-        modifier = Modifier,
-        update = { view ->
-          println("update:::: $view")
-        })//    PreviewWindowTopBarContent(modifier)
-
-      Column {
-        ElevatedButton(onClick = {
-          println("[iOS Test] Scan >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-          scope.launch {
-            TestEntry().doScanningTest()
+        Column {
+          ElevatedButton(onClick = {
+            println("[iOS Test] Scan >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            scope.launch {
+              TestEntry().doScanningTest()
+            }
+            println("[iOS Test] Scan <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+          }) {
+            Text("Scan Test")
           }
-          println("[iOS Test] Scan <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        }) {
-          Text("Scan Test")
+
+          ElevatedButton(onClick = {
+            println("[iOS Test] Share >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            scope.launch {
+              TestEntry().doShareTest()
+            }
+            println("[iOS Test] Share <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+          }) {
+            Text("Share Test")
+          }
         }
 
-        ElevatedButton(onClick = {
-          println("[iOS Test] Share >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-          scope.launch {
-            TestEntry().doShareTest()
-          }
-          println("[iOS Test] Share <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        }) {
-          Text("Share Test")
-        }
       }
-
     }
   }
 }
