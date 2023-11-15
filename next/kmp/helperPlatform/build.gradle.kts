@@ -4,6 +4,7 @@ plugins {
   id(libs.plugins.kotlinxMultiplatform.get().pluginId)
   id(libs.plugins.androidLibrary.get().pluginId)
   kotlin("plugin.serialization") version (libs.versions.kotlin.version)
+  id(libs.plugins.jetbrainsCompose.get().pluginId)
   id("com.google.osdetector") version "1.7.3"
 }
 
