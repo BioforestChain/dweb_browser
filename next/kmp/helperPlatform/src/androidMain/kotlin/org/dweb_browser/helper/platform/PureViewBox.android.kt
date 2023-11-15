@@ -5,7 +5,12 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.android.BaseActivity
 
-class PlatformViewController(val activity: BaseActivity) : IPlatformViewController {
+actual fun IPureViewBox.Companion.create(viewController: IPureViewController): IPureViewBox {
+  require(viewController is PureViewController)
+  return PureViewBox(viewController)
+}
+
+class PureViewBox(val activity: BaseActivity) : IPureViewBox {
   private val context: Context = activity
 
   override suspend fun getViewWidthPx() = activity.window.decorView.width
@@ -18,7 +23,7 @@ class PlatformViewController(val activity: BaseActivity) : IPlatformViewControll
   override val lifecycleScope: CoroutineScope = activity.lifecycleScope
 }
 
-fun IPlatformViewController.asAndroid(): PlatformViewController {
-  require(this is PlatformViewController)
+fun IPureViewBox.asAndroid(): PureViewBox {
+  require(this is PureViewBox)
   return this
 }

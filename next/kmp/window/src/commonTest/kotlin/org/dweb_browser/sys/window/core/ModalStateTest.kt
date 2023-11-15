@@ -8,7 +8,7 @@ import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
-import org.dweb_browser.helper.platform.IPlatformViewController
+import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.sys.window.core.BottomSheetsModal.Companion.createBottomSheetsModal
 import org.dweb_browser.sys.window.core.constant.WindowConstants
@@ -21,7 +21,7 @@ class ModalStateTest {
   class SimpleWindowController(
     override val coroutineScope: CoroutineScope = CoroutineScope(defaultAsyncExceptionHandler)
   ) : WindowController(WindowState(WindowConstants(owner = "", ownerVersion = ""))) {
-    override val viewController: IPlatformViewController get() = TODO("???")
+    override val viewController: IPureViewBox get() = TODO("???")
   }
 
   @Test

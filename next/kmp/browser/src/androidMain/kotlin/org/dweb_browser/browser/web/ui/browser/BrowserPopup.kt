@@ -103,7 +103,7 @@ import org.dweb_browser.browser.web.ui.browser.search.CustomTextField
 import org.dweb_browser.browser.web.ui.view.findActivity
 import org.dweb_browser.dwebview.getIconBitmap
 import org.dweb_browser.helper.PrivacyUrl
-import org.dweb_browser.helper.platform.rememberPlatformViewController
+import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getCornerRadiusTop
@@ -149,7 +149,7 @@ internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
     }
 
     val density = LocalDensity.current.density
-    val topLeftRadius = getCornerRadiusTop(rememberPlatformViewController(), density, 16f)
+    val topLeftRadius = getCornerRadiusTop(rememberPureViewBox(), density, 16f)
     BrowserModalBottomSheet(
       onDismissRequest = { scope.launch { bottomSheetModel.hide() } },
       shape = RoundedCornerShape(

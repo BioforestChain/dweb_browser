@@ -3,12 +3,16 @@ package org.dweb_browser.helper
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
 open class PromiseOut<T> : SynchronizedObject() {
+
   companion object {
+    private val defaultScope by lazy { CoroutineScope(defaultAsyncExceptionHandler + CoroutineName("PromiseOut")) }
     fun <T : Any> resolve(value: T) = PromiseOut<T>().also { it.resolve(value) }
     fun <T : Any> reject(e: Throwable) = PromiseOut<T>().also { it.reject(e) }
   }
@@ -18,6 +22,12 @@ open class PromiseOut<T> : SynchronizedObject() {
   open fun resolve(value: T) {
     synchronized(this) {
       _future.complete(value)
+    }
+  }
+
+  open fun resolve(value: Deferred<T>, scope: CoroutineScope = defaultScope) {
+    scope.launch {
+      resolve(value.await())
     }
   }
 

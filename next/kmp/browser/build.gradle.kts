@@ -96,3 +96,6 @@ android {
     res.srcDirs("src/androidMain/res", "src/commonMain/res", "src/main/res")
   }
 }
+dependencies {
+  implementation(project(":helperPlatform"))
+}

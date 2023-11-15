@@ -30,7 +30,7 @@ class WebViewEvaluator(
     val channel: AsyncChannel = Channel()
     val id = idAcc.getAndAdd(1)
     channelMap[id] = channel
-    engine.mainScope.launch {
+    engine.scope.launch {
       engine.evaluateAsyncJavascriptCode(
         """
             void (async()=>{return ($script)})()

@@ -1,32 +1,92 @@
 package org.dweb_browser.browser.desk
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
+import org.dweb_browser.helper.platform.IPureViewBox
+import org.dweb_browser.helper.platform.IPureViewController
+import org.dweb_browser.helper.platform.create
 import org.dweb_browser.helper.resolvePath
 
-expect fun IDesktopController.Companion.create(
-  deskNMM: DeskNMM,
-  desktopServer: HttpDwebServer,
-  runningApps: ChangeableMap<MMID, RunningApp>
-): IDesktopController
+//expect fun IDesktopController.Companion.create(
+//  deskNMM: DeskNMM,
+//  desktopServer: HttpDwebServer,
+//  runningApps: ChangeableMap<MMID, RunningApp>
+//): IDesktopController
 
 @Stable
-abstract class IDesktopController(
+class DesktopController private constructor(
   private val deskNMM: DeskNMM,
   private val desktopServer: HttpDwebServer,
-  private val runningApps: ChangeableMap<MMID, RunningApp>
+  private val runningApps: ChangeableMap<MMID, RunningApp>,
 ) {
-  companion object {}
+  var activity: IPureViewController? = null
+    set(value) {
+      if (field == value) {
+        return
+      }
+      field = value
+
+      if (_desktopView.isResolved) {
+        _desktopView = PromiseOut()
+      }
+      if (value != null) {
+        _desktopView.resolve(
+          deskNMM.ioAsyncScope.async { createDesktopView(value) },
+          deskNMM.ioAsyncScope
+        )
+      }
+    }
+  private var _desktopView = PromiseOut<IDWebView>()
+  private suspend fun createDesktopView(activity: IPureViewController): IDWebView {
+    val options = DWebViewOptions(
+      url = getDesktopUrl().toString(),
+      detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
+    );
+    val webView = activity.createDwebView(deskNMM, options)
+    // 隐藏滚动条
+    webView.setVerticalScrollBarVisible(false)
+    return webView
+  }
+
+  suspend fun desktopView() = _desktopView.waitPromise()
+
+  @Composable
+  fun DesktopView(content: @Composable IDWebView.() -> Unit) {
+    var view by remember { mutableStateOf<IDWebView?>(null) }
+    LaunchedEffect(this) {
+      view = desktopView()
+    }
+    view?.content()
+  }
+
+  companion object {
+    suspend fun create(
+      deskNMM: DeskNMM,
+      desktopServer: HttpDwebServer,
+      runningApps: ChangeableMap<MMID, RunningApp>
+    ) = DesktopController(deskNMM, desktopServer, runningApps)
+  }
 
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
@@ -56,10 +116,33 @@ abstract class IDesktopController(
 
   protected var preDesktopWindowsManager: DesktopWindowsManager? = null
 
+  private val sync = SynchronizedObject()
+
   /**
    * 窗口管理器
    */
-  abstract val desktopWindowsManager: DesktopWindowsManager
+  val desktopWindowsManager: DesktopWindowsManager
+    get() = synchronized(sync) {
+      DesktopWindowsManager.getOrPutInstance(IPureViewBox.create(this.activity!!)) { dwm ->
+
+        dwm.hasMaximizedWins.onChange { updateSignal.emit() }
+
+        /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
+        dwm.allWindows.onChange {
+          updateSignal.emit()
+          _activitySignal.emit()
+        }.removeWhen(dwm.viewController.lifecycleScope)
+
+        preDesktopWindowsManager?.also { preDwm ->
+          dwm.viewController.lifecycleScope.launch {
+            /// 窗口迁移
+            preDwm.moveWindows(dwm)
+            preDesktopWindowsManager = null
+          }
+        }
+        preDesktopWindowsManager = dwm
+      }
+    }
 
   fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().build {
     resolvePath("/desktop.html")

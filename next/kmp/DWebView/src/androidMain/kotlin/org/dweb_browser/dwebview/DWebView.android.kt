@@ -195,6 +195,14 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     }
   }
 
+  override suspend fun setVerticalScrollBarVisible(visible: Boolean) {
+    engine.isVerticalScrollBarEnabled = visible
+  }
+
+  override suspend fun setHorizontalScrollBarVisible(visible: Boolean) {
+    engine.isHorizontalScrollBarEnabled = visible
+  }
+
   override suspend fun evaluateAsyncJavascriptCode(
     script: String,
     afterEval: suspend () -> Unit

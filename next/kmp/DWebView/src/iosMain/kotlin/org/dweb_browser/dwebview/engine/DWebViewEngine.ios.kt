@@ -53,7 +53,7 @@ class DWebViewEngine(
     tryRegistryUrlSchemeHandler(options.url, remoteMM, it)
   }
 }) {
-  internal val mainScope = MainScope()
+  val scope = MainScope()
 
   val evaluator by lazy { WebViewEvaluator(this) }
 
@@ -92,12 +92,12 @@ class DWebViewEngine(
         didStartProvisionalNavigation: WKNavigation?
       ) {
         val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-        mainScope.launch { loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
+        scope.launch { loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
       }
 
       override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
         val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-        mainScope.launch { loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl)) }
+        scope.launch { loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl)) }
       }
 
       override fun webView(
@@ -107,7 +107,7 @@ class DWebViewEngine(
       ) {
         val currentUrl = webView.URL?.absoluteString ?: "about:blank"
         val errorMessage = "[${withError.code}]$currentUrl\n${withError.description}"
-        mainScope.launch { loadStateChangeSignal.emit(WebLoadErrorState(currentUrl, errorMessage)) }
+        scope.launch { loadStateChangeSignal.emit(WebLoadErrorState(currentUrl, errorMessage)) }
       }
     })
   }

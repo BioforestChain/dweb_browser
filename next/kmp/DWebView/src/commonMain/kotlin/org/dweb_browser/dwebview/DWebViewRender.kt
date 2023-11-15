@@ -6,6 +6,6 @@ import androidx.compose.ui.Modifier
 @Composable
 expect fun IDWebView.Render(
   modifier: Modifier = Modifier,
-  onCreate: () -> Unit = {},
-  onDispose: () -> Unit = {},
+  onCreate: (suspend IDWebView.() -> Unit)? = null,
+  onDispose: (suspend IDWebView.() -> Unit)? = null,
 )

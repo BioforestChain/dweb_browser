@@ -35,7 +35,6 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.dwebview.asAndroidWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.getIconBitmap
@@ -305,7 +304,7 @@ class BrowserViewModel(
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     )
-  ).also { it.asAndroidWebView().isVerticalScrollBarEnabled = false }
+  ).also { it.setVerticalScrollBarVisible(false) }
 
   private suspend fun createBrowserWebView(
     dWebView: IDWebView

@@ -6,9 +6,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.platform.IPlatformViewController
-import org.dweb_browser.helper.platform.PlatformViewController
-import platform.UIKit.UIScreen
+import org.dweb_browser.helper.platform.PureViewBox
 
 actual fun IDesktopController.Companion.create(
   deskNMM: DeskNMM,
@@ -24,9 +22,9 @@ class DesktopController(
   private val runningApps: ChangeableMap<MMID, RunningApp>
 ) : IDesktopController(deskNMM, desktopServer, runningApps) {
 
-  private var activityTask = PromiseOut<PlatformViewController>()
+  private var activityTask = PromiseOut<PureViewBox>()
 
-  var activity: PlatformViewController? = null
+  var activity: PureViewBox? = null
     set(value) {
       if (field == value) {
         return

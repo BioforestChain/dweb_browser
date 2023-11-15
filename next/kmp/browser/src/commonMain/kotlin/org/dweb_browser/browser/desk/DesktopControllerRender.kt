@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.desk
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,51 +11,35 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.accompanist.web.WebView
-import org.dweb_browser.browser.web.ui.view.CommonWebView
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.dwebview.Render
+import org.dweb_browser.helper.platform.SetSystemBarsColor
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.render.Render
 
 
 @Composable
 fun DesktopController.Render(taskbarController: TaskbarController, microModule: MicroModule) {
-  // 通过systemUiController来改systemBar颜色
-  val systemUiController = rememberSystemUiController()
-  val isDarkTheme = isSystemInDarkTheme()
-  SideEffect {
-    systemUiController.setSystemBarsColor(color = Color.Transparent, darkIcons = !isDarkTheme)
-  }
+  // TODO 这里的颜色应该是自动适应的，特别是窗口最大化的情况下，遮盖了顶部 status-bar 的时候，需要根据 status-bar 来改变颜色
+  SetSystemBarsColor(Color.Transparent, if (isSystemInDarkTheme()) Color.White else Color.Black)
 
   CompositionLocalProvider(
-    LocalDesktopView provides createMainDwebView(
-      "desktop", getDesktopUrl().toString()
-    ),
     LocalWindowMM provides microModule,
   ) {
     Box(modifier = Modifier.fillMaxSize()) {
-      /// 桌面视图
-      val desktopView = LocalDesktopView.current
-      WebView(
-        state = desktopView.state,
-        navigator = desktopView.navigator,
-        modifier = Modifier.fillMaxSize(),
-      ) {
-        desktopView.webView
+      DesktopView {
+        /// 窗口视图
+        Render(Modifier.fillMaxSize())
       }
-      /// 窗口视图
       desktopWindowsManager.Render()
-      CommonWebView()
     }
     /// 悬浮框
-    Box(modifier = Modifier.fillMaxSize(), Alignment.TopStart) {
-      taskbarController.taskbarView.FloatWindow()
+    Box(contentAlignment = Alignment.TopStart) {
+      taskbarController.TaskbarView { FloatWindow() }
     }
     /// 错误信息
     for (message in alertMessages) {

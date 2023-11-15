@@ -1,7 +1,6 @@
 package org.dweb_browser.sys.window.core
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -9,7 +8,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ChangeableSet
 import org.dweb_browser.helper.OffListener
-import org.dweb_browser.helper.platform.IPlatformViewController
+import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.some
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
@@ -18,18 +17,18 @@ import org.dweb_browser.sys.window.core.constant.WindowsManagerScope
 import org.dweb_browser.sys.window.core.constant.debugWindow
 import kotlin.math.abs
 
-open class WindowsManager<T : WindowController>(internal val viewController: IPlatformViewController) {
+open class WindowsManager<T : WindowController>(internal val viewController: IPureViewBox) {
   val state = WindowsManagerState(viewController)
 
   /**
    * 一个已经根据 zIndex 排序完成的只读列表
    */
-  val winList = mutableStateOf(emptyList<T>());
+  val winList = mutableStateListOf<T>();
 
   /**
    * 置顶窗口，一个已经根据 zIndex 排序完成的只读列表
    */
-  val winListTop = mutableStateOf(emptyList<T>());
+  val winListTop = mutableStateListOf<T>();
 
   /**
    * 存储最大化的窗口
@@ -55,7 +54,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPl
         return null
       }
 
-      return findInWinList(winList.value) ?: findInWinList(winListTop.value)
+      return findInWinList(winList) ?: findInWinList(winListTop)
     }
 
   /**
@@ -77,8 +76,8 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPl
       }
     }
 
-    findInWinList(winList.value)
-    findInWinList(winListTop.value)
+    findInWinList(winList)
+    findInWinList(winListTop)
     return lastFocusedWin
   }
 
@@ -148,7 +147,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPl
    */
   suspend fun moveWindows(
     other: WindowsManager<T>,
-    windows: Iterable<T> = winList.value.toList()/*拷贝一份避免并发修改导致的问题，这里默认使用 zIndex 的顺序来迁移，可以避免问题*/
+    windows: Iterable<T> = winList.toList()/*拷贝一份避免并发修改导致的问题，这里默认使用 zIndex 的顺序来迁移，可以避免问题*/
   ) {
     /// 窗口迁移
     for (win in windows) {
@@ -159,7 +158,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPl
     other.reOrderZIndex()
     debugWindow(
       "moveWindows",
-      "self:${this.winList.value.size}/${this.winListTop.value.size} => other: ${other.winList.value.size}/${other.winListTop.value.size}"
+      "self:${this.winList.size}/${this.winListTop.size} => other: ${other.winList.size}/${other.winListTop.size}"
     )
   }
 
@@ -179,11 +178,11 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPl
     }
 
     /// 对窗口的 zIndex 进行重新赋值
-    fun resetZIndex(
-      origin: MutableState<List<T>>, baseList: List<T>, setList: (newList: MutableList<T>) -> Unit
+    fun setByZIndex(
+      oldList: List<T>, newList: List<T>, setList: (newList: List<T>) -> Unit
     ): Int {
-      var changes = abs(baseList.size - origin.value.size) // 首先，只要有长度变动，就已经意味着改变了
-      val sortedList = baseList.sortedBy { it.state.zIndex }
+      var changes = abs(newList.size - oldList.size) // 首先，只要有长度变动，就已经意味着改变了
+      val sortedList = newList.sortedBy { it.state.zIndex }
       for ((index, win) in sortedList.withIndex()) {
         if (win.state.zIndex != index) {
           win.state.zIndex = index
@@ -191,14 +190,21 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPl
         }
       }
       if (changes > 0) {
-        origin.value = sortedList
-        setList(sortedList.toMutableList())
+        setList(sortedList)
       }
       return changes
     }
 
-    val anyChanges = resetZIndex(this.winList, winList) { winList = it } +  // changes 1
-        resetZIndex(this.winListTop, winListTop) { winListTop = it } // changes 2
+    val anyChanges =
+      // changes 1
+      setByZIndex(this.winList, winList) {
+        this.winList.clear();this.winList.addAll(it);
+        winList = it.toMutableList()
+      } + // changes 2
+          setByZIndex(this.winListTop, winListTop) {
+            this.winListTop.clear();this.winListTop.addAll(it);
+            winListTop = it.toMutableList()
+          }
 
     if (anyChanges > 0) {
       allWindows.emitChange()

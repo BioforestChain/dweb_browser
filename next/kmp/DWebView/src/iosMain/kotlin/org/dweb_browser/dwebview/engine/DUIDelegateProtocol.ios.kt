@@ -80,13 +80,13 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
         val isUserGesture = forNavigationAction.targetFrame == null || !forNavigationAction.targetFrame!!.mainFrame
         val watcher = engine.closeWatcher.apply(isUserGesture)
 
-        engine.mainScope.launch {
+        engine.scope.launch {
           withMainContext {
             engine.closeWatcher.resolveToken(consumeToken, watcher)
           }
         }
       } else {
-        engine.mainScope.launch {
+        engine.scope.launch {
           createWebviewSignal.emit(args)
         }
       }
@@ -105,7 +105,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
   }
 
   override fun webViewDidClose(webView: WKWebView) {
-    engine.mainScope.launch {
+    engine.scope.launch {
       closeSignal.emit(webView)
     }
   }
@@ -136,7 +136,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
       }
     }
 
-    engine.mainScope.launch {
+    engine.scope.launch {
       jsAlertSignal.emitForResult(
         JsParams(
           webView,
@@ -181,7 +181,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
       }
     }
 
-    engine.mainScope.launch {
+    engine.scope.launch {
       val (confirm, _) = jsConfirmSignal.emitForResult(
         JsParams(
           webView,
@@ -236,7 +236,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
       }
     }
 
-    engine.mainScope.launch {
+    engine.scope.launch {
       val (promptText, _) = jsPromptSignal.emitForResult(
         JsPromptParams(
           webView,
@@ -272,7 +272,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
       return
     }
 
-    engine.mainScope.launch {
+    engine.scope.launch {
       mediaTypes.forEach {
         val isAuthorized = when (AVCaptureDevice.authorizationStatusForMediaType(it)) {
           AVAuthorizationStatusNotDetermined -> AVCaptureDevice.requestAccessForMediaType(it)

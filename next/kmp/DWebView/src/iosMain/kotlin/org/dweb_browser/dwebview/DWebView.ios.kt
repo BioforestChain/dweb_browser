@@ -161,7 +161,7 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     runBlockingCatching {
       _destroySignal.emitAndClear(Unit)
     }.getOrNull()
-    engine.mainScope.cancel(null)
+    engine.scope.cancel(null)
     engine.removeFromSuperview()
   }
 
@@ -211,6 +211,14 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun setVerticalScrollBarVisible(visible: Boolean) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun setHorizontalScrollBarVisible(visible: Boolean) {
     TODO("Not yet implemented")
   }
 

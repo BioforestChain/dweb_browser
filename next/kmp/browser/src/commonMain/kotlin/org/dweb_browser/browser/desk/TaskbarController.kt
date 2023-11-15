@@ -1,8 +1,15 @@
 package org.dweb_browser.browser.desk
 
-import org.dweb_browser.browser.desk.types.DeskAppMetaData
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.helper.ChangeableMap
@@ -10,23 +17,26 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
-import org.dweb_browser.helper.platform.IPlatformViewController
+import org.dweb_browser.helper.platform.IPureViewBox
+import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.resolvePath
 
 
 class TaskbarController private constructor(
   open val deskNMM: DeskNMM,
   open val deskSessionId: String,
-  private val desktopController: IDesktopController,
+  private val desktopController: DesktopController,
   private val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
 ) {
+  internal val state = TaskbarState();
+
   companion object {
 
     suspend fun create(
       deskSessionId: String,
       deskNMM: DeskNMM,
-      desktopController: IDesktopController,
+      desktopController: DesktopController,
       taskbarServer: HttpDwebServer,
       runningApps: ChangeableMap<MMID, RunningApp>
     ) =
@@ -36,13 +46,23 @@ class TaskbarController private constructor(
         desktopController,
         taskbarServer,
         runningApps
-      ).also {
-        it._taskbarView = ITaskbarView.create(it)
-      }
+      )
   }
 
-  private lateinit var _taskbarView: ITaskbarView
-  val taskbarView get() = _taskbarView
+  private val _taskbarView =
+    deskNMM.ioAsyncScope.async { ITaskbarView.create(this@TaskbarController) }
+
+  suspend fun taskbarView() = _taskbarView.await()
+
+  @Composable
+  fun TaskbarView(content: @Composable ITaskbarView.() -> Unit) {
+    var view by remember { mutableStateOf<ITaskbarView?>(null) }
+    LaunchedEffect(this) {
+      view = taskbarView()
+    }
+    view?.content()
+  }
+
   val taskbarStore = TaskbarStore(deskNMM)
 
   /** 展示在taskbar中的应用列表 */
@@ -112,8 +132,8 @@ class TaskbarController private constructor(
    * @returns 如果视图发生了真实的改变（不论是否变成说要的结果），则返回 true
    */
   fun resize(reSize: ReSize) {
-    taskbarView.state.layoutWidth = reSize.width
-    taskbarView.state.layoutHeight = reSize.height
+    state.layoutWidth = reSize.width
+    state.layoutHeight = reSize.height
   }
 
   /**
@@ -132,10 +152,10 @@ class TaskbarController private constructor(
     }
   }
 
-  private var activityTask = PromiseOut<IPlatformViewController>()
+  private var activityTask = PromiseOut<IPureViewBox>()
   suspend fun waitActivityCreated() = activityTask.waitPromise()
 
-  var platformContext: IPlatformViewController? = null
+  var platformContext: IPureViewBox? = null
     set(value) {
       if (field == value) {
         return
@@ -159,4 +179,29 @@ class TaskbarController private constructor(
 
   @Serializable
   data class TaskBarState(val focus: Boolean, val appId: String)
+
+
+  /**
+   * 打开悬浮框
+   */
+  private fun openTaskbarActivity() = if (!state.floatActivityState) {
+    state.floatActivityState = true
+    true
+  } else false
+
+  private fun closeTaskbarActivity() = if (state.floatActivityState) {
+    state.floatActivityState = false
+    true
+  } else false
+
+  suspend fun toggleFloatWindow(openTaskbar: Boolean?): Boolean {
+    val toggle = openTaskbar ?: !state.floatActivityState
+    // 监听状态是否是float
+    getFocusApp()?.let { focusApp ->
+      stateSignal.emit(
+        TaskbarController.TaskBarState(toggle, focusApp)
+      )
+    }
+    return if (toggle) openTaskbarActivity() else closeTaskbarActivity()
+  }
 }

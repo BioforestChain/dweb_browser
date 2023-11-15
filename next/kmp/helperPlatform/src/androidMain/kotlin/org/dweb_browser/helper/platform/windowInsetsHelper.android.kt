@@ -10,7 +10,7 @@ import android.view.WindowInsets
  */
 @SuppressLint("DiscouragedApi")
 actual fun getCornerRadiusTop(
-  viewController: IPlatformViewController,
+  viewController: IPureViewBox,
   density: Float,
   defaultValue: Float
 ): Float {
@@ -33,7 +33,7 @@ actual fun getCornerRadiusTop(
 
 @SuppressLint("DiscouragedApi")
 actual fun getCornerRadiusBottom(
-  viewController: IPlatformViewController,
+  viewController: IPureViewBox,
   density: Float,
   defaultValue: Float
 ): Float {

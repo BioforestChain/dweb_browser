@@ -44,7 +44,7 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.noLocalProvidedFor
-import org.dweb_browser.helper.platform.rememberPlatformViewController
+import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.platform.theme.md_theme_dark_inverseOnSurface
 import org.dweb_browser.helper.platform.theme.md_theme_dark_onSurface
 import org.dweb_browser.helper.platform.theme.md_theme_dark_surface
@@ -350,7 +350,7 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
     rightWidth =
       max(safeDrawingPadding.calculateRightPadding(layoutDirection).value, windowFrameSize)
     borderRounded = WindowPadding.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
-    val platformViewController = rememberPlatformViewController()
+    val platformViewController = rememberPureViewBox()
     contentRounded = WindowPadding.CornerRadius.from(
       getCornerRadiusTop(platformViewController, density, 16f),
       getCornerRadiusBottom(platformViewController, density, 16f)

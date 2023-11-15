@@ -21,15 +21,15 @@ class ScanningActivity : PureViewController() {
   private fun String.regexDeepLink() = Regex("dweb:.+").matchEntire(this)?.groupValues?.get(0)
 
   init {
-    onCreate {
+    onCreate { params ->
       // 隐藏系统工具栏
       val windowInsetsController =
         WindowCompat.getInsetsController(window, window.decorView)
       windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
 
-      val fromIpc = intent.getBooleanExtra(IntentFromIPC, false)
+      val fromIpc = params.getBoolean(IntentFromIPC) ?: false
 
-      setContent {
+      addContent {
         val qrCodeScanState = rememberQRCodeScanState()
         LaunchedEffect(Unit) { qrCodeScanState.show() }
 

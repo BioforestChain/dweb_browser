@@ -1,6 +1,6 @@
 package org.dweb_browser.browser.desk
 
-import org.dweb_browser.helper.platform.IPlatformViewController
+import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -9,14 +9,14 @@ import org.dweb_browser.helper.WeakHashMap
 import kotlin.math.sqrt
 
 expect fun DesktopWindowsManager.Companion.getOrPutInstance(
-  platformViewController: IPlatformViewController, onPut: (wm: DesktopWindowsManager) -> Unit
+  platformViewController: IPureViewBox, onPut: (wm: DesktopWindowsManager) -> Unit
 ): DesktopWindowsManager
 
-class DesktopWindowsManager(val viewController: IPlatformViewController) :
+class DesktopWindowsManager(val viewController: IPureViewBox) :
   WindowsManager<DesktopWindowController>(viewController) {
 
   companion object {
-    internal val instances = WeakHashMap<IPlatformViewController, DesktopWindowsManager>()
+    internal val instances = WeakHashMap<IPureViewBox, DesktopWindowsManager>()
   }
 
   /// 初始化一些监听

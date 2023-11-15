@@ -27,12 +27,12 @@ class DeepLinkActivity : PureViewController() {
         }
         finish()
       }
+    }
 
-      setContent {
-        Box(contentAlignment = Alignment.Center) {
-          val loading = remember { mutableStateOf(true) }
-          LoadingView(show = loading)
-        }
+    addContent {
+      Box(contentAlignment = Alignment.Center) {
+        val loading = remember { mutableStateOf(true) }
+        LoadingView(show = loading)
       }
     }
   }

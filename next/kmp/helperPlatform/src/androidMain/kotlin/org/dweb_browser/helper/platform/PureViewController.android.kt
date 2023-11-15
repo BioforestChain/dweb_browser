@@ -3,10 +3,10 @@ package org.dweb_browser.helper.platform
 import android.content.Intent
 import android.os.Bundle
 import android.view.MotionEvent
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Signal
@@ -14,7 +14,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 
-abstract class PureViewController : BaseActivity(), IPureViewController {
+open class PureViewController : BaseActivity(), IPureViewController {
   private val createSignal = Signal<IPureViewCreateParams>()
   override val onCreate = createSignal.toListener()
   private val destroySignal = SimpleSignal()
@@ -26,10 +26,26 @@ abstract class PureViewController : BaseActivity(), IPureViewController {
   private val touchSignal = Signal<TouchEvent>()
   override val onTouch = touchSignal.toListener()
   final override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
     lifecycleScope.launch {
       createSignal.emit(PureViewCreateParams(intent))
     }
-    super.onCreate(savedInstanceState)
+    setContent {
+      CompositionLocalProvider(LocalPureViewBox provides PureViewBox(this)) {
+        DwebBrowserAppTheme {
+          for (content in contents) {
+            content()
+          }
+        }
+      }
+    }
+  }
+
+  final override fun onResume() {
+    super.onResume()
+    lifecycleScope.launch {
+      resumeSignal.emit()
+    }
   }
 
   final override fun onStop() {
@@ -37,13 +53,6 @@ abstract class PureViewController : BaseActivity(), IPureViewController {
       stopSignal.emit()
     }
     super.onStop()
-  }
-
-  final override fun onResume() {
-    lifecycleScope.launch {
-      resumeSignal.emit()
-    }
-    super.onResume()
   }
 
   final override fun onDestroy() {
@@ -67,16 +76,9 @@ abstract class PureViewController : BaseActivity(), IPureViewController {
     return super.dispatchTouchEvent(ev)
   }
 
-  final override fun setContent(content: @Composable () -> Unit) {
-    (this as ComponentActivity).setContent {
-      CompositionLocalProvider(LocalPlatformViewController provides PlatformViewController(this)) {
-        DwebBrowserAppTheme {
-//          WindowCompat.getInsetsController(window, window.decorView)
-//            .isAppearanceLightStatusBars = !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
-          content()
-        }
-      }
-    }
+  private val contents = mutableStateListOf<@Composable () -> Unit>()
+  override fun addContent(content: @Composable () -> Unit) = contents.add(content).let {
+    { contents.remove(content) }
   }
 }
 
@@ -90,4 +92,5 @@ class PureViewCreateParams(
   override fun getString(key: String): String? = get(key).let { require(it is String?);it }
   override fun getInt(key: String): Int? = get(key).let { require(it is Int?);it }
   override fun getFloat(key: String): Float? = get(key).let { require(it is Float?);it }
+  override fun getBoolean(key: String): Boolean? = get(key).let { require(it is Boolean?);it }
 }

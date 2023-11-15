@@ -2,11 +2,10 @@ package org.dweb_browser.browser.desk
 
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.getOrPut
-import org.dweb_browser.helper.platform.IPlatformViewController
-import org.dweb_browser.helper.platform.asIos
+import org.dweb_browser.helper.platform.IPureViewBox
 
 actual  fun DesktopWindowsManager.Companion.getOrPutInstance(
-  platformViewController: IPlatformViewController,
+  platformViewController: IPureViewBox,
   onPut: (wm: DesktopWindowsManager) -> Unit
 ) = instances.getOrPut(platformViewController) {
   DesktopWindowsManager(platformViewController).also { dwm ->

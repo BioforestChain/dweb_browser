@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.desk
 
+import android.annotation.SuppressLint
 import android.view.Gravity
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.getValue
@@ -8,11 +9,14 @@ import org.dweb_browser.browser.R
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.asAndroidWebView
 import org.dweb_browser.helper.android.ActivityBlurHelper
-import org.dweb_browser.helper.platform.PlatformViewController
+import org.dweb_browser.helper.platform.IPureViewBox
+import org.dweb_browser.helper.platform.PureViewBox
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.create
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.runBlockingCatching
 
+@SuppressLint("ClickableViewAccessibility")
 class TaskbarActivity : PureViewController() {
 
   private val blurHelper = ActivityBlurHelper(this)
@@ -24,7 +28,7 @@ class TaskbarActivity : PureViewController() {
 
     return DeskNMM.controllersMap[sessionId]?.also { controllers ->
       require(controllers.taskbarController is TaskbarController)
-      controllers.taskbarController.platformContext = PlatformViewController(this)
+      controllers.taskbarController.platformContext = PureViewBox(this)
       controller = controllers.taskbarController
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
@@ -34,13 +38,13 @@ class TaskbarActivity : PureViewController() {
       val (_, taskbarController) = bindController(params.getString("deskSessionId"))
       /// 禁止自适应布局
       WindowCompat.setDecorFitsSystemWindows(window, false)
-      val densityValue = resources.displayMetrics.density
+      val densityValue =
+        IPureViewBox.create(this@TaskbarActivity).getDisplayDensity();// resources.displayMetrics.density
 
       fun toPx(dp: Float) = (densityValue * dp).toInt()
-
-      setContent {
+      addContent {
         window.attributes = window.attributes.also { attributes ->
-          taskbarController.taskbarView.state.composableHelper.apply {
+          taskbarController.state.composableHelper.apply {
             val layoutWidth by stateOf { layoutWidth }
             val layoutHeight by stateOf { layoutHeight }
             val layoutX by stateOf { layoutX }
@@ -60,13 +64,14 @@ class TaskbarActivity : PureViewController() {
         DwebBrowserAppTheme {
           BackHandler { finish() }
           /// 任务栏视图
-          taskbarController.taskbarView.taskbarDWebView.Render(onCreate = {
-            val webView = taskbarController.taskbarView.taskbarDWebView.asAndroidWebView()
-            webView.setOnTouchListener { _, _ ->
-              false
-            }
-            webView.isHorizontalScrollBarEnabled = true
-          })
+          taskbarController.TaskbarView {
+            taskbarDWebView.Render(onCreate = {
+              setHorizontalScrollBarVisible(true)
+              asAndroidWebView().setOnTouchListener { _, _ ->
+                false
+              }
+            })
+          }
         }
       }
 
@@ -82,7 +87,7 @@ class TaskbarActivity : PureViewController() {
     onDestroy {
       controller?.also { taskBarController ->
         runBlockingCatching {
-          taskBarController.taskbarView.toggleFloatWindow(openTaskbar = false) // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
+          taskBarController.toggleFloatWindow(openTaskbar = false) // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
           taskBarController.platformContext = null
         }
       }

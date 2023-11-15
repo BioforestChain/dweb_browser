@@ -4,13 +4,19 @@ import androidx.compose.runtime.Composable
 import org.dweb_browser.helper.Signal
 
 interface IPureViewController {
+  companion object
+
   val onCreate: Signal.Listener<IPureViewCreateParams>
-  val onDestroy: Signal.Listener<Unit>
-  val onStop: Signal.Listener<Unit>
   val onResume: Signal.Listener<Unit>
+  val onStop: Signal.Listener<Unit>
+  val onDestroy: Signal.Listener<Unit>
+
+  //  fun setInteroperable(canTouch: Boolean)
   val onTouch: Signal.Listener<TouchEvent>
   suspend fun requestPermission(permission: String): Boolean
-  fun setContent(content: @Composable () -> Unit)
+
+  //  val contents: MutableList<@Composable () -> Unit>
+  fun addContent(content: @Composable () -> Unit): () -> Boolean
 }
 
 /**
@@ -25,4 +31,5 @@ interface IPureViewCreateParams : Map<String, Any?> {
   fun getString(key: String): String?
   fun getInt(key: String): Int?
   fun getFloat(key: String): Float?
+  fun getBoolean(key: String): Boolean?
 }

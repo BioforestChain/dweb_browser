@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.Observable
-import org.dweb_browser.helper.platform.IPlatformViewController
+import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.sys.window.core.constant.WindowManagerPropertyKeys
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowPadding
@@ -22,7 +22,7 @@ import org.dweb_browser.sys.window.render.watchedBounds
 import kotlin.math.max
 
 class WindowsManagerState(
-  val viewController: IPlatformViewController,
+  val viewController: IPureViewBox,
 ) {
 //  val viewHeight get() = activity.window.decorView.height
 //  val viewWidth get() = activity.window.decorView.width

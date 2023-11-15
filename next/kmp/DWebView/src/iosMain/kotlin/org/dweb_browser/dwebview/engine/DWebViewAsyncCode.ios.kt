@@ -37,11 +37,11 @@ class DWebViewAsyncCode(private val engine: DWebViewEngine) : NSObject(),
     if (channel != null) {
       val result = message.objectAtIndex(2u) as String
       if (isSuccess) {
-        engine.mainScope.launch {
+        engine.scope.launch {
           channel.send(Result.success(result))
         }
       } else {
-        engine.mainScope.launch {
+        engine.scope.launch {
           channel.send(Result.failure(Throwable(result)))
         }
       }

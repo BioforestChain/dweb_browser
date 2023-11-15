@@ -20,7 +20,6 @@ import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 
 /**
@@ -235,10 +234,10 @@ class DWebViewEngine(
       super.onDetachedFromWindow()
     }
     super.destroy()
-    runBlockingCatching {
+    scope.launch {
       _destroySignal.emitAndClear(Unit)
-    }.getOrNull()
-    scope.cancel()
+      scope.cancel()
+    }
   }
 
   private var isAttachedToWindow = false

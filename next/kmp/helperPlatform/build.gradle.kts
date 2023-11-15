@@ -81,6 +81,7 @@ kotlin {
     api(libs.androidx.appcompat)
     api(libs.androidx.animation.core.android)
     api(libs.androidx.lifecycle.runtime.ktx)
+    api(libs.accompanist.systemui.controller)
     api(libs.google.material)
     // 加载图片 coil
     api(libs.coil.core)

@@ -1,7 +1,6 @@
 package org.dweb_browser.dwebview.closeWatcher
 
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -106,7 +105,7 @@ internal class CloseWatcher(val engine: DWebViewEngine) {
 
   fun tryClose(id: String) {
     watchers.find { watcher -> watcher.id == id }?.also {
-      engine.mainScope.launch { close(it) }
+      engine.scope.launch { close(it) }
     }
   }
 }

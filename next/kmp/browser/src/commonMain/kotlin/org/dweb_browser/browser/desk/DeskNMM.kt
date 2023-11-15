@@ -27,7 +27,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.consumeEachJsonLine
-import org.dweb_browser.helper.platform.IPlatformViewController
+import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.sys.window.core.ModalState
@@ -69,11 +69,11 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   companion object {
     data class DeskControllers(
-      val desktopController: IDesktopController,
+      val desktopController: DesktopController,
       val taskbarController: TaskbarController,
       val deskNMM: DeskNMM,
     ) {
-      val activityPo = PromiseOut<IPlatformViewController>()
+      val activityPo = PromiseOut<IPureViewBox>()
     }
 
     val controllersMap = mutableMapOf<String, DeskControllers>()
@@ -102,7 +102,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   private val openAppLock = ReasonLock()
   suspend fun IHandlerContext.openOrActivateAppWindow(
-    ipc: Ipc, desktopController: IDesktopController
+    ipc: Ipc, desktopController: DesktopController
   ): WindowController {
     val appId = ipc.remote.mmid;
     debugDesk("openOrActivateAppWindow", appId)
@@ -155,7 +155,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val desktopServer = this.createDesktopWebServer()
     val deskSessionId = randomUUID()
 
-    val desktopController = IDesktopController.create(this, desktopServer, runningApps)
+    val desktopController = DesktopController.create(this, desktopServer, runningApps)
     val taskBarController =
       TaskbarController.create(deskSessionId, this, desktopController, taskbarServer, runningApps)
     val deskControllers = DeskControllers(desktopController, taskBarController, this)
@@ -268,7 +268,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       },
       // 在app为全屏的时候，调出周围的高斯模糊，调整完全的taskbar
       "/taskbar/toggle-float-button-mode" bind HttpMethod.Get to defineBooleanResponse {
-        taskBarController.taskbarView.toggleFloatWindow(
+        taskBarController.toggleFloatWindow(
           request.queryOrNull("open")?.toBooleanStrictOrNull()
         )
       }).protected(setOf("jmm.browser.dweb", mmid)).cors()

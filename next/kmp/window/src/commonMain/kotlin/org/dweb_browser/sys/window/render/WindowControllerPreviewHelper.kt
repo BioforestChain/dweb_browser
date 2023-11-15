@@ -11,8 +11,8 @@ import androidx.compose.ui.UiComposable
 import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.platform.rememberPlatformViewController
-import org.dweb_browser.helper.platform.IPlatformViewController
+import org.dweb_browser.helper.platform.rememberPureViewBox
+import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.core.WindowState
@@ -36,7 +36,7 @@ fun WindowPreviewer(
 
   class PreviewWindowController(
     state: WindowState,
-    override val viewController: IPlatformViewController
+    override val viewController: IPureViewBox
   ) : WindowController(state) {
     override val coroutineScope: CoroutineScope
       get() = scope
@@ -58,7 +58,7 @@ fun WindowPreviewer(
         y = 0f;
       }
     }
-    val platformViewController = rememberPlatformViewController()
+    val platformViewController = rememberPureViewBox()
     val win =
       remember(state) { PreviewWindowController(state, platformViewController) }.also(config)
     windowAdapterManager.provideRender(wid, content)

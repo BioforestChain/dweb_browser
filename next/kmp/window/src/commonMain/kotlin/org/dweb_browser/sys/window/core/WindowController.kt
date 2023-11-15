@@ -10,7 +10,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.platform.IPlatformViewController
+import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
@@ -55,7 +55,7 @@ abstract class WindowController(
   /**
    * 在Android中，一个窗口对象必然附加在某一个Context/Activity中
    */
-  abstract val viewController: IPlatformViewController
+  abstract val viewController: IPureViewBox
 
   /**
    * 需要提供一个生命周期对象

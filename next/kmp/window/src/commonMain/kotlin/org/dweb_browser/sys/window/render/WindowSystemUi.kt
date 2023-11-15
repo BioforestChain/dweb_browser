@@ -12,4 +12,4 @@ expect fun <T : WindowController> WindowsManager<T>.EffectKeyboard()
 expect fun <T : WindowController> WindowsManager<T>.EffectNavigationBar()
 
 @Composable
-expect fun NativeBackHandler(enabled: Boolean, onBack: () -> Unit)
+expect fun NativeBackHandler(enabled: Boolean = true, onBack: () -> Unit)

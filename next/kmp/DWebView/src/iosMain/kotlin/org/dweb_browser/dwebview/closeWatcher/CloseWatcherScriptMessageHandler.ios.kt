@@ -19,7 +19,7 @@ internal class CloseWatcherScriptMessageHandler(private val engine: DWebViewEngi
     val id = message.valueForKey("id") as String
 
     if (consumeToken.isNotEmpty()) {
-      engine.mainScope.launch {
+      engine.scope.launch {
         engine.closeWatcher.registryToken(consumeToken)
       }
     } else if (id.isNotEmpty()) {

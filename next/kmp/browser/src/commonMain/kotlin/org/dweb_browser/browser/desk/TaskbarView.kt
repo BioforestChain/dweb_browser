@@ -8,35 +8,12 @@ import org.dweb_browser.dwebview.IDWebView
 expect suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView
 
 abstract class ITaskbarView(private val taskbarController: TaskbarController) {
-  val state = TaskbarState()
+  val state = taskbarController.state
 
   abstract val taskbarDWebView: IDWebView
 
   companion object {}
 
-  /**
-   * 打开悬浮框
-   */
-  private fun openTaskbarActivity() = if (!state.floatActivityState) {
-    state.floatActivityState = true
-    true
-  } else false
-
-  private fun closeTaskbarActivity() = if (state.floatActivityState) {
-    state.floatActivityState = false
-    true
-  } else false
-
-  suspend fun toggleFloatWindow(openTaskbar: Boolean?): Boolean {
-    val toggle = openTaskbar ?: !state.floatActivityState
-    // 监听状态是否是float
-    taskbarController.getFocusApp()?.let { focusApp ->
-      taskbarController.stateSignal.emit(
-        TaskbarController.TaskBarState(toggle, focusApp)
-      )
-    }
-    return if (toggle) openTaskbarActivity() else closeTaskbarActivity()
-  }
 
   data class SafeBounds(
     val left: Float,

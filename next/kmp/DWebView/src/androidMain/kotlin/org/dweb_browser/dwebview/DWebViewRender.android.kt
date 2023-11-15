@@ -3,6 +3,7 @@ package org.dweb_browser.dwebview
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -12,12 +13,13 @@ import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewNavigator
 import com.google.accompanist.web.rememberWebViewState
+import kotlinx.coroutines.launch
 
 @Composable
 actual fun IDWebView.Render(
   modifier: Modifier,
-  onCreate: () -> Unit,
-  onDispose: () -> Unit,
+  onCreate: (suspend IDWebView.() -> Unit)?,
+  onDispose: (suspend IDWebView.() -> Unit)?,
 ) {
   require(this is DWebView)
   val webView = engine
@@ -40,11 +42,20 @@ actual fun IDWebView.Render(
       webView
     },
     onCreated = {
-      onCreate()
+      engine.scope.launch {
+        onCreate?.invoke(this@Render)
+      }
     },
     client = client,
     chromeClient = chromeClient,
     captureBackPresses = false,
   )
+  DisposableEffect(this) {
+    onDispose {
+      engine.scope.launch {
+        onDispose?.invoke(this@Render)
+      }
+    }
+  }
   BeforeUnloadDialog()
 }
