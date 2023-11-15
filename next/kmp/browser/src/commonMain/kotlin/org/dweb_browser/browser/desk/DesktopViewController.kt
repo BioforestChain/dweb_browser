@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
@@ -39,10 +38,19 @@ class DesktopViewControllerCore(val controller: IPureViewController) {
   }
 
   init {
+    val qaq = controller.addContent {
+      Box(Modifier.fillMaxSize().background(Color.Green), contentAlignment = Alignment.Center) {
+        Text("hhi")
+      }
+    }
     controller.onCreate { params ->
       val (desktopController, taskbarController, microModule) = bindController(params.getString("deskSessionId"))
 
       controller.addContent {
+        LaunchedEffect(Unit) {
+          delay(1000)
+          qaq()
+        }
         DwebBrowserAppTheme {
           desktopController.Render(taskbarController, microModule)
         }

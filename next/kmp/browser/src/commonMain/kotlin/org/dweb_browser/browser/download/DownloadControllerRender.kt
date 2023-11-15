@@ -19,7 +19,7 @@ fun DownloadController.Render(modifier: Modifier, windowRenderScope: WindowRende
     LocalDecompressModel provides this.decompressModel,
   ) {
     Box(modifier = with(windowRenderScope) {
-      Modifier
+      modifier
         .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
         .scale(scale)
     }) {

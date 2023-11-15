@@ -1,6 +1,7 @@
 import SwiftUI
 import WebRTC
 import Network
+import DwebShared
 
 let DWEB_OS = true
 
@@ -12,19 +13,28 @@ struct iOSApp: App {
     
 	var body: some Scene {
 		WindowGroup {
-            ZStack{
-                if DWEB_OS {
-                    DWebOS()
-                }else{
-                    DwebBrowser()
+            Text("").onAppear(perform: {
+                Main_iosKt.startDwebBrowser(app: UIApplication.shared) { dnsNmm , error in
+                    if error != nil {
+                        print("OKK \(dnsNmm)")
+                    }else{
+                        print(error)
+                    }
                 }
-            }
-            .sheet(isPresented: $isNetworkSegmentViewPresented) {
-                NetworkGuidView()
-            }
-            .onReceive(networkManager.$isNetworkAvailable) { isAvailable in
-                isNetworkSegmentViewPresented = !isAvailable
-            }
-		}
+            })
+//            ZStack{
+//                if DWEB_OS {
+//                    DWebOS()
+//                }else{
+//                    DwebBrowser()
+//                }
+//            }
+//            .sheet(isPresented: $isNetworkSegmentViewPresented) {
+//                NetworkGuidView()
+//            }
+//            .onReceive(networkManager.$isNetworkAvailable) { isAvailable in
+//                isNetworkSegmentViewPresented = !isAvailable
+//            }
+        }
 	}
 }

@@ -4,12 +4,12 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.bits.set
 import io.ktor.utils.io.close
-import io.ktor.utils.io.errors.EOFException
 import io.ktor.utils.io.write
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import okio.BufferedSink
 import okio.BufferedSource
+import okio.EOFException
 import okio.FileSystem
 
 expect val SystemFileSystem: FileSystem

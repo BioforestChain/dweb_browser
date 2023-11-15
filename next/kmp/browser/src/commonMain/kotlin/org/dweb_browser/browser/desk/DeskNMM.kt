@@ -327,4 +327,4 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 }
 
-expect fun DeskNMM.startDesktopView(deskSessionId: String)
+expect suspend fun DeskNMM.startDesktopView(deskSessionId: String)

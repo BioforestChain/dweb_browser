@@ -65,7 +65,6 @@ internal fun WindowMenuPanelByAlert(
   }
   if (isShowMenuPanel) {
     val winTheme = LocalWindowControllerTheme.current
-    val buttonColors = winTheme.ThemeButtonColors()
     AlertDialog(
       onDismissRequest = {
         toggleMenu(false)

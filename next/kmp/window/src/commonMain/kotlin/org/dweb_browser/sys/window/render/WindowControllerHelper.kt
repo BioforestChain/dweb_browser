@@ -298,7 +298,6 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
   val maximize by watchedIsMaximized()
   val bounds by watchedBounds()
   val bottomBarTheme by watchedState(watchKey = WindowPropertyKeys.BottomBarTheme) { bottomBarTheme }
-  val keyboardOverlaysContent by watchedState { keyboardOverlaysContent }
   val keyboardInsetBottom by watchedState { keyboardInsetBottom }
 
   val topHeight: Float;

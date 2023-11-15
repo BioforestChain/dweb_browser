@@ -3,8 +3,10 @@ package org.dweb_browser.core.module
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.IPureViewCreateParams
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.PureViewCreateParams
 import platform.UIKit.UIApplication
 import kotlin.reflect.KClass
 
@@ -14,9 +16,9 @@ fun NativeMicroModule.Companion.getUIApplication() = nativeMicroModuleUIApplicat
 fun NativeMicroModule.getUIApplication() = nativeMicroModuleUIApplication
 
 private val lockActivityState = Mutex()
-fun NativeMicroModule.startUIViewController(
-  cls: KClass<PureViewController>,
-  buildParams: MutableMap<String, Any?>.() -> Unit
+fun <T : IPureViewController> NativeMicroModule.startUIViewController(
+  cls: KClass<T>,
+  buildParams: MutableMap<String, Any?>.() -> Unit = {}
 ) {
   ioAsyncScope.launch {
     lockActivityState.withLock {
@@ -30,13 +32,7 @@ fun NativeMicroModule.startUIViewController(
   }
 }
 
-class PureViewCreateParams(private val params: Map<String, Any?>) :
-  Map<String, Any?> by params, IPureViewCreateParams {
-  override fun getString(key: String): String? = get(key).let { require(it is String?);it }
-  override fun getInt(key: String): Int? = get(key).let { require(it is Int?);it }
-  override fun getFloat(key: String): Float? = get(key).let { require(it is Float?);it }
-};
-external fun UIApplication.startDelegate(
-  delegate: KClass<PureViewController>,
+external fun <T : IPureViewController> UIApplication.startDelegate(
+  delegate: KClass<T>,
   params: PureViewCreateParams
 )

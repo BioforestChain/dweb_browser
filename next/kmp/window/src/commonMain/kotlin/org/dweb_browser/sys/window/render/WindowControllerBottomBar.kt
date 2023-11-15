@@ -155,7 +155,7 @@ internal fun WindowBottomResizeBar(
 
 @Composable
 internal fun WindowBottomMaximizedBar(
-  win: WindowController,
+  @Suppress("UNUSED_PARAMETER") win: WindowController,
   content: @Composable () -> Unit,
 ) {
   val windowEdge = LocalWindowPadding.current
@@ -191,7 +191,6 @@ internal fun WindowBottomImmersionThemeBar(
   win: WindowController,
   modifier: Modifier = Modifier,
 ) {
-  val winTheme = LocalWindowControllerTheme.current
   val coroutineScope = rememberCoroutineScope()
   Row(modifier = modifier
     .fillMaxSize()
@@ -223,7 +222,6 @@ internal fun WindowBottomNavigationThemeBar(
   val winTheme = LocalWindowControllerTheme.current
   val contentColor = winTheme.bottomContentColor
   val contentDisableColor = winTheme.bottomContentDisableColor
-  val backgroundColor = winTheme.bottomBackgroundColor
   val winPadding = LocalWindowPadding.current
   val bottomBarHeight = winPadding.bottom
   val infoHeight = min(bottomBarHeight * 0.25f, LocalWindowLimits.current.bottomBarBaseHeight)

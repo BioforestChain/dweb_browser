@@ -18,13 +18,12 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.platform.IPureViewBox
-import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.resolvePath
 
 
 class TaskbarController private constructor(
-  open val deskNMM: DeskNMM,
-  open val deskSessionId: String,
+  val deskNMM: DeskNMM,
+  val deskSessionId: String,
   private val desktopController: DesktopController,
   private val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,

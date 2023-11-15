@@ -182,7 +182,7 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
 }
 
 // A container for using a BrowserWebview in SwiftUI
-struct WebView: View, UIViewRepresentable {
+struct TabWebView: View, UIViewRepresentable {
     /// The BrowserWebview to display
     let webView: BrowserWebview
 
@@ -190,13 +190,13 @@ struct WebView: View, UIViewRepresentable {
         self.webView = webView
     }
 
-    func makeUIView(context: UIViewRepresentableContext<WebView>) -> BrowserWebview {
+    func makeUIView(context: UIViewRepresentableContext<TabWebView>) -> BrowserWebview {
         webView.scrollView.delegate = context.coordinator // Set the coordinator as the scroll view delegate
         webView.scrollView.isScrollEnabled = true // Enable web view's scrolling
         return webView
     }
 
-    func updateUIView(_ uiView: BrowserWebview, context: UIViewRepresentableContext<WebView>) {
+    func updateUIView(_ uiView: BrowserWebview, context: UIViewRepresentableContext<TabWebView>) {
         Log("visiting updateUIView function")
     }
 
@@ -205,9 +205,9 @@ struct WebView: View, UIViewRepresentable {
     }
 
     class Coordinator: NSObject, UIScrollViewDelegate {
-        var presentView: WebView
+        var presentView: TabWebView
 
-        init(_ presentView: WebView) {
+        init(_ presentView: TabWebView) {
             self.presentView = presentView
         }
 

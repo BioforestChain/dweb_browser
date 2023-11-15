@@ -24,8 +24,8 @@ enum class WindowColorScheme(val scheme: String) : Comparator<WindowColorScheme>
 
   fun next() = ALL_VALUE_LIST[(ALL_VALUE_LIST.indexOf(this) + 1) % ALL_VALUE_LIST.size]
 
-  override fun compare(o1: WindowColorScheme, o2: WindowColorScheme): Int {
-    return o1.scheme.compareTo(o2.scheme)
+  override fun compare(a: WindowColorScheme, b: WindowColorScheme): Int {
+    return a.scheme.compareTo(b.scheme)
   }
 
 }

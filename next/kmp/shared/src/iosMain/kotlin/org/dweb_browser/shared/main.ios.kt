@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.*
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -16,44 +18,157 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeUIViewController
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.dweb_browser.browser.desk.DeskNMM
+import org.dweb_browser.browser.download.DownloadNMM
+import org.dweb_browser.browser.jmm.JmmNMM
+import org.dweb_browser.browser.jsProcess.JsProcessNMM
+import org.dweb_browser.browser.mwebview.MultiWebViewNMM
+import org.dweb_browser.browser.nativeui.torch.TorchNMM
+import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.nativeMicroModuleUIApplication
+import org.dweb_browser.core.module.startDelegate
+import org.dweb_browser.core.std.dns.DnsNMM
+import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.core.std.file.FileNMM
+import org.dweb_browser.core.std.http.HttpNMM
+import org.dweb_browser.dwebview.DWebMessage
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.DWebViewOptions
-import org.dweb_browser.dwebview.DWebMessage
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.debugTest
+import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.withMainContext
-import org.dweb_browser.sys.*
+import org.dweb_browser.sys.KmpNativeBridgeEventSender
+import org.dweb_browser.sys.biometrics.BiometricsNMM
+import org.dweb_browser.sys.boot.BootNMM
+import org.dweb_browser.sys.clipboard.ClipboardNMM
+import org.dweb_browser.sys.configure.ConfigNMM
+import org.dweb_browser.sys.device.DeviceNMM
+import org.dweb_browser.sys.haptics.HapticsNMM
+import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
+import org.dweb_browser.sys.notification.NotificationNMM
+import org.dweb_browser.sys.permission.PermissionApplicantTMM
+import org.dweb_browser.sys.permission.PermissionNMM
+import org.dweb_browser.sys.permission.PermissionProviderTNN
+import org.dweb_browser.sys.scan.ScanningNMM
+import org.dweb_browser.sys.share.ShareNMM
+import org.dweb_browser.sys.toast.ToastNMM
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.WindowPreviewer
 import org.dweb_browser.sys.window.render.watchedState
 import platform.CoreGraphics.CGFloat
+import platform.UIKit.UIApplication
 import platform.UIKit.UIView
 import platform.UIKit.UIViewController
 import platform.WebKit.WKWebViewConfiguration
 
-//@Suppress("FunctionName", "unused")
-//fun MainViewController(
-//  iosView: UIView,
-//  onSizeChange: (CGFloat, CGFloat) -> Unit
-//): UIViewController = ComposeUIViewController {
-//  Box(Modifier.fillMaxSize().background(Color.Cyan)) {
-//    PreviewWindowTopBar(iosView, onSizeChange)
-//  }
-//}
+suspend fun startDwebBrowser(app: UIApplication): DnsNMM {
+  nativeMicroModuleUIApplication = app;
 
+  addDebugTags(listOf("/.+/"))
+
+  /// 初始化DNS服务
+  val dnsNMM = DnsNMM()
+  suspend fun MicroModule.setup() = this.also {
+    dnsNMM.install(this)
+  }
+
+  val permissionNMM = PermissionNMM().setup()
+
+  /// 安装系统应用
+  val jsProcessNMM = JsProcessNMM().setup()
+  val multiWebViewNMM = MultiWebViewNMM().setup()
+  val httpNMM = HttpNMM().also { it ->
+    dnsNMM.install(it)
+    /// 自定义 httpClient 的缓存
+    HttpClient(getKtorClientEngine()) {
+      install(HttpTimeout) {
+        // requestTimeoutMillis = 600_000L
+        connectTimeoutMillis = 5000L
+      }
+    }.also { client ->
+      nativeFetchAdaptersManager.setClientProvider(client)
+    }
+  }
+
+  /// 下载功能
+  val downloadNMM = DownloadNMM().setup()
+  val zipNMM = ZipNMM().setup()
+
+  /// 扫码
+  val scannerNMM = ScanningNMM().setup()
+  ///安装剪切板
+  val clipboardNMM = ClipboardNMM().setup()
+  ///设备信息
+  val deviceNMM = DeviceNMM().setup()
+  val configNMM = ConfigNMM().setup()
+  ///位置
+//  val locationNMM = LocationNMM().setup()
+//    /// 蓝牙
+//    val bluetoothNMM = BluetoothNMM().setup()
+  // 标准文件模块
+  val fileNMM = FileNMM().setup()
+  /// NFC
+//  val nfcNMM = NfcNMM().setup()
+  /// 通知
+  val notificationNMM = NotificationNMM().setup()
+  /// 弹窗
+  val toastNMM = ToastNMM().setup()
+  /// 分享
+  val shareNMM = ShareNMM().setup()
+  /// 振动效果
+  val hapticsNMM = HapticsNMM().setup()
+  /// 手电筒
+  val torchNMM = TorchNMM().also() { dnsNMM.install(it) }
+  /// 生物识别
+  val biometricsNMM = BiometricsNMM().setup()
+  /// 运动传感器
+  val motionSensorsNMM = MotionSensorsNMM().setup()
+
+
+  /// 安装Jmm
+  val jmmNMM = JmmNMM().setup()
+  val deskNMM = DeskNMM().setup()
+
+  /// 启动程序
+  val bootNMM = BootNMM(
+    listOf(
+      permissionNMM.mmid,// 权限管理
+      fileNMM.mmid,//
+      jmmNMM.mmid,//
+      httpNMM.mmid,//
+      downloadNMM.mmid, // 为了获取下载的数据
+      deskNMM.mmid,//
+    ),
+  ).setup()
+
+  if (debugTest.isEnable) {
+    PermissionProviderTNN().setup()
+    PermissionApplicantTMM().setup()
+  }
+
+  /// 启动
+  dnsNMM.bootstrap()
+  return dnsNMM
+}
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -86,27 +201,27 @@ fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat) -> Uni
           println("update:::: $view")
         })//    PreviewWindowTopBarContent(modifier)
 
-        Column {
-          ElevatedButton(onClick = {
-            println("[iOS Test] Scan >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            scope.launch {
-              TestEntry().doScanningTest()
-            }
-            println("[iOS Test] Scan <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-          }) {
-            Text("Scan Test")
+      Column {
+        ElevatedButton(onClick = {
+          println("[iOS Test] Scan >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+          scope.launch {
+            TestEntry().doScanningTest()
           }
-
-          ElevatedButton(onClick = {
-            println("[iOS Test] Share >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            scope.launch {
-              TestEntry().doShareTest()
-            }
-            println("[iOS Test] Share <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-          }) {
-            Text("Share Test")
-          }
+          println("[iOS Test] Scan <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+        }) {
+          Text("Scan Test")
         }
+
+        ElevatedButton(onClick = {
+          println("[iOS Test] Share >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+          scope.launch {
+            TestEntry().doShareTest()
+          }
+          println("[iOS Test] Share <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+        }) {
+          Text("Share Test")
+        }
+      }
 
     }
   }
@@ -228,7 +343,7 @@ fun PreviewWindowDWebViewContent(
           update = { view ->
             println("update:::: $view")
           })//    PreviewWindowTopBarContent(modifier)
-        val scope =  rememberCoroutineScope()
+        val scope = rememberCoroutineScope()
         ElevatedButton(onClick = {
           println("dwebview test start")
           engine.remoteMM.ioAsyncScope.launch {
@@ -236,7 +351,7 @@ fun PreviewWindowDWebViewContent(
               val channel = dWebView.createMessageChannel()
               channel.port2.onMessage {
                 println("port2 on message: ${it.data}")
-                if(it.data == "你好5") {
+                if (it.data == "你好5") {
                   channel.port2.close()
                 }
               }

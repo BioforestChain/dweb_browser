@@ -139,16 +139,16 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     // 从内存中恢复状态
     downloadNMM.ioAsyncScope.launch {
       // 状态改变的时候存储保存到内存
-      downloadManagers.onChange { (type, key, value) ->
+      downloadManagers.onChange { (type, _, value) ->
         when (type) {
           ChangeableType.Add -> {
-            store.set(value!!.id, value!!)
-            downloadList.add(0, value!!)
+            store.set(value!!.id, value)
+            downloadList.add(0, value)
           }
 
           ChangeableType.Remove -> {
             store.delete(value!!.id)
-            downloadList.remove(value!!)
+            downloadList.remove(value)
           }
 
           ChangeableType.PutAll -> {

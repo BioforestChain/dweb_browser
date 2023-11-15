@@ -5,12 +5,22 @@ import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import platform.UIKit.UIScreen
 import platform.UIKit.UIViewController
 
+actual fun IPureViewBox.Companion.create(viewController: IPureViewController): IPureViewBox {
+  require(viewController is PureViewController)
+  return when (val vc = viewController.getUIViewControllerSync()) {
+    null -> PureViewBox().also { it.lifecycleScope.launch { it.setUiViewController(viewController.getUIViewController()) } }
+    else -> PureViewBox(vc)
+  }
+}
+
 class PureViewBox(
-  private val uiScreen: UIScreen
+  uiViewController: UIViewController? = null,
+  private val uiScreen: UIScreen = UIScreen.mainScreen
 ) : IPureViewBox {
   private var defaultViewWidth = 0
   private var defaultViewHeight = 0
@@ -22,7 +32,14 @@ class PureViewBox(
     return true
   }
 
+  suspend fun hasUiViewController() = uiViewControllerDeferred.isCompleted
   suspend fun uiViewController() = uiViewControllerDeferred.await()
+
+  init {
+    if (uiViewController != null) {
+      setUiViewController(uiViewController)
+    }
+  }
 
 
   @OptIn(ExperimentalForeignApi::class)
