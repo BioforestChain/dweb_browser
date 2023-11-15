@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jmm
 
 import io.ktor.http.URLBuilder
+import io.ktor.http.encodedPath
 import io.ktor.utils.io.cancel
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -13,7 +14,6 @@ import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.download.model.ChangeableMutableMap
-import org.dweb_browser.browser.util.isUrl
 import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
@@ -31,8 +31,10 @@ import org.dweb_browser.helper.trueAlso
 
 class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+
   // 构建jmm历史记录
   val historyMetadataMaps: ChangeableMutableMap<String, JmmHistoryMetadata> = ChangeableMutableMap()
+
   // 构建历史的controller
   private val historyController = JmmHistoryController(jmmNMM, this)
 
@@ -43,7 +45,8 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
     historyMetadataMaps.putAll(store.getHistoryMetadata())
     historyMetadataMaps.forEach { _, historyMetadata ->
       if (historyMetadata.state.state == JmmStatus.Downloading ||
-        historyMetadata.state.state == JmmStatus.Paused) {
+        historyMetadata.state.state == JmmStatus.Paused
+      ) {
         historyMetadata.state.state = JmmStatus.Paused
       } else if (jmmNMM.bootstrapContext.dns.query(historyMetadata.metadata.id) == null) {
         historyMetadata.state.state = JmmStatus.Init // 如果没有找到，说明被卸载了
@@ -69,9 +72,10 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
         jmmAppInstallManifest.baseURI = it
       }
     }
+    // 如果bundle_url没有host
     if (!jmmAppInstallManifest.bundle_url.isUrlOrHost()) {
       jmmAppInstallManifest.bundle_url = URLBuilder(baseURI).run {
-        resolvePath(jmmAppInstallManifest.bundle_url)
+        this.replaceMetadata(jmmAppInstallManifest.bundle_url)
         buildString()
       }
     }
@@ -83,7 +87,8 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
         if (jmmNMM.bootstrapContext.dns.query(it.metadata.id) == null) {
           // 如果install app没有数据，那么判断当前的状态是否是下载或者暂停，如果不是这两个状态，直接当做新应用
           if (fromHistory || it.state.state == JmmStatus.Downloading ||
-            it.state.state == JmmStatus.Paused) {
+            it.state.state == JmmStatus.Paused
+          ) {
             null // 不替换，包括来自历史
           } else {
             jmmAppInstallManifest.createJmmHistoryMetadata(originUrl)
@@ -195,7 +200,10 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
     jmmNMM.nativeFetch("file://download.browser.dweb/exists?taskId=$taskId").boolean()
   } ?: false
 
-  suspend fun decompress(task: DownloadTask, jmmHistoryMetadata: JmmHistoryMetadata): Boolean {
+  private suspend fun decompress(
+    task: DownloadTask,
+    jmmHistoryMetadata: JmmHistoryMetadata
+  ): Boolean {
     var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
     jmm = jmm.substring(0, jmm.lastIndexOf("."))
     val sourcePath = jmmNMM.nativeFetch(buildUrlString("file://file.std.dweb/picker") {
@@ -222,4 +230,14 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       }))))
     }
   }
+
+  private fun URLBuilder.replaceMetadata(bundlePath: String) {
+    var resolve = bundlePath;
+    if (bundlePath.startsWith("./")) {
+      resolve = this.encodedPath.replace("metadata.json", bundlePath.substring(2))
+    }
+    this.resolvePath(resolve)
+  }
 }
+
+
