@@ -1,9 +1,13 @@
 pluginManagement {
   repositories {
-    google()
+    google {
+      mavenContent {
+        includeGroupByRegex(".*google.*")
+        includeGroupByRegex(".*android.*")
+      }
+    }
     gradlePluginPortal()
     mavenCentral()
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
   }
 }
 plugins {
@@ -12,9 +16,15 @@ plugins {
 
 dependencyResolutionManagement {
   repositories {
-    google()
+    google {
+      mavenContent {
+        includeGroupByRegex(".*google.*")
+        includeGroupByRegex(".*android.*")
+      }
+    }
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven("https://androidx.dev/storage/compose-compiler/repository")
   }
 }
 
