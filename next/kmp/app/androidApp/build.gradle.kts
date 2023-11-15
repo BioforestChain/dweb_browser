@@ -1,10 +1,9 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
 
 plugins {
-  alias(libs.plugins.kotlinxMultiplatform)
-  alias(libs.plugins.androidApplication)
-  alias(libs.plugins.jetbrainsCompose)
-  alias(libs.plugins.kotlinPluginSerialization)
+  id(libs.plugins.kotlinxMultiplatform.get().pluginId)
+  id(libs.plugins.androidApplication.get().pluginId)
+  kotlin("plugin.serialization") version (libs.versions.kotlin.version)
 }
 
 kotlin {
@@ -31,7 +30,6 @@ kotlin {
           // Jetbrains Compose
           implementation(libs.jetbrains.compose.runtime)
           implementation(libs.jetbrains.compose.foundation)
-          @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
           implementation(libs.jetbrains.compose.components.resources)
 
           implementation(libs.jetbrains.compose.material)
@@ -79,6 +77,15 @@ android {
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
   }
+
+  composeOptions {
+    kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
+  }
+
+  buildFeatures {
+    compose = true
+  }
+
   packaging {
     resources {
       excludes += "/META-INF/versions/9/previous-compilation-data.bin"

@@ -1,32 +1,15 @@
+import org.dweb_browser.buildsrc.commonMobileTarget
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-  alias(libs.plugins.kotlinxMultiplatform)
-  alias(libs.plugins.androidLibrary)
-  alias(libs.plugins.jetbrainsCompose)
-  alias(libs.plugins.kotlinPluginSerialization)
+  id(libs.plugins.kotlinxMultiplatform.get().pluginId)
+  id(libs.plugins.androidLibrary.get().pluginId)
+  kotlin("plugin.serialization") version (libs.versions.kotlin.version)
 }
 
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
-  androidTarget {
-    compilations.all {
-      kotlinOptions {
-        jvmTarget = libs.versions.jvmTarget.get()
-      }
-    }
-  }
-  jvmToolchain {
-    languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
-  }
-
-  listOf(
-    iosX64(), iosArm64(), iosSimulatorArm64()
-  ).forEach {
-    it.binaries.framework {
-      baseName = "DWebView"
-    }
-  }
+  commonMobileTarget()
 
 //  js(IR){
 //    binaries.executable()
@@ -44,8 +27,6 @@ kotlin {
 //      withJs()
 //    }
 //  }
-
-  applyDefaultHierarchyTemplate()
 
   sourceSets.commonMain.dependencies {
     api(kotlin("stdlib"))
@@ -95,5 +76,14 @@ android {
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()
   }
+
+  composeOptions {
+    kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
+  }
+
+  buildFeatures {
+    compose = true
+  }
+
   sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 }

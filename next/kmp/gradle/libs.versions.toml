@@ -189,6 +189,9 @@ webrtc-kmp = { group = "com.shepeliev", name = "webrtc-kmp", version.ref = "webr
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "java-jna-version" }
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 
+gradlePlugin-android = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+gradlePlugin-kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-version" }
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-version" }
