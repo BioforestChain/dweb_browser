@@ -9,10 +9,6 @@ pluginManagement {
     gradlePluginPortal()
     mavenCentral()
   }
-
-  plugins {
-    id("org.jetbrains.compose") version ("1.5.10")
-  }
 }
 plugins {
   id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
@@ -56,4 +52,5 @@ include(
 include("ziplib")
 project(":ziplib").projectDir = file("../../toolkit/dweb_browser_libs/rust_library/ziplib")
 include("reverse_proxy")
-project(":reverse_proxy").projectDir = file("../../toolkit/dweb_browser_libs/rust_library/reverse_proxy")
+project(":reverse_proxy").projectDir =
+  file("../../toolkit/dweb_browser_libs/rust_library/reverse_proxy")

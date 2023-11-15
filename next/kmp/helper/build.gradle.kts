@@ -1,9 +1,9 @@
 import org.dweb_browser.buildsrc.commonMobileTarget
 
 plugins {
-  id(libs.plugins.kotlinxMultiplatform.get().pluginId)
-  id(libs.plugins.androidLibrary.get().pluginId)
-  kotlin("plugin.serialization") version (libs.versions.kotlin.version)
+  alias(libs.plugins.kotlinxMultiplatform)
+  alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.kotlinPluginSerialization)
 }
 
 kotlin {
