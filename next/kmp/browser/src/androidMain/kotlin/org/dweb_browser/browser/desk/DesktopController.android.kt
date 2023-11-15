@@ -48,8 +48,8 @@ class DesktopController(
   /**
    * 窗口管理器
    */
-  override val desktopWindowsManager
-    get() = DesktopWindowsManager.getOrPutInstance(PlatformViewController(this.activity!!)) { dwm ->
+  override val desktopWindowsManager by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    DesktopWindowsManager.getOrPutInstance(PlatformViewController(this.activity!!)) { dwm ->
 
       dwm.hasMaximizedWins.onChange { updateSignal.emit() }
 
@@ -68,6 +68,7 @@ class DesktopController(
       }
       preDesktopWindowsManager = dwm
     }
+  }
 
   data class MainDwebView(
     val name: String,
