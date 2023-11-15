@@ -1,9 +1,10 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
 
 plugins {
-  id(libs.plugins.kotlinxMultiplatform.get().pluginId)
-  id(libs.plugins.androidApplication.get().pluginId)
-  kotlin("plugin.serialization") version (libs.versions.kotlin.version)
+  alias(libs.plugins.kotlinxMultiplatform)
+  alias(libs.plugins.androidApplication)
+  alias(libs.plugins.jetbrainsCompose)
+  alias(libs.plugins.kotlinPluginSerialization)
 }
 
 kotlin {
@@ -42,7 +43,6 @@ kotlin {
           implementation(libs.accompanist.systemui.controller)
 
 
-
 //          //扫码核心库
 //          implementation(libs.camera.core)
 //          implementation(libs.camera.view)
@@ -76,14 +76,6 @@ android {
     targetSdk = libs.versions.targetSdkVersion.get().toInt()
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
-  }
-
-  composeOptions {
-    kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
-  }
-
-  buildFeatures {
-    compose = true
   }
 
   packaging {

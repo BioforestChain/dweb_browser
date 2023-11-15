@@ -1,5 +1,3 @@
-package org.dweb_browser.buildsrc
-
 import org.gradle.api.JavaVersion
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget

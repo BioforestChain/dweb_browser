@@ -3,6 +3,7 @@ import org.dweb_browser.buildsrc.commonMobileTarget
 plugins {
   id(libs.plugins.kotlinxMultiplatform.get().pluginId)
   id(libs.plugins.androidLibrary.get().pluginId)
+  id("org.jetbrains.compose")
   kotlin("plugin.serialization") version (libs.versions.kotlin.version)
 }
 
