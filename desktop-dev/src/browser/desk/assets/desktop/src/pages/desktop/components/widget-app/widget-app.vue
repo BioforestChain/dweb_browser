@@ -134,12 +134,6 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
     emit("uninstall");
   }
 };
-// 判断是否是svg 切换为svg组件渲染
-const isSvg = computed(() => {
-  const src = props.appMetaData.icons?.at(0)?.src;
-  if (src && src.endsWith("svg")) return true;
-  return false;
-});
 </script>
 <template>
   <div ref="$appHtmlRefHook" class="app" draggable="false">
@@ -152,9 +146,7 @@ const isSvg = computed(() => {
           @click="[$menu.close, doOpen]"
           @contextmenu="$menu.show"
         >
-          <SvgIcon v-if="isSvg" @click="doOpen" class="icon" size="60px" :src="appicon.src" alt="icon" />
           <AppIcon
-            v-else
             @click="doOpen"
             :class="{
               'animate-slow-bounce': opening,

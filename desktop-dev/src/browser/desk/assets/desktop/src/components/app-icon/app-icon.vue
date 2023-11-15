@@ -30,7 +30,7 @@ let svgSrc = ref("");
 watch(
   () => props.icon,
   async (value) => {
-    if (value.src.includes("readFile")) {
+    if (value.src.includes("readFile") && value.src.endsWith(".svg")) {
       const svgRaw = await (await fetch(value.src)).text();
       const blob = btoa(svgRaw);
       svgSrc.value = `url(data:image/svg+xml;base64,${blob})`;
@@ -42,7 +42,7 @@ watch(
 const mono_css = computed(() => props.icon.monoimage ?? props.icon.monocolor ?? "none");
 const icon_css = computed(() => {
   const src = props.icon.src;
-  if (src.includes("readFile")) {
+  if (src.includes("readFile") && src.endsWith(".svg")) {
     return svgSrc.value;
   }
   return props.icon.src ? `url(${JSON.stringify(props.icon.src)})` : "none";
