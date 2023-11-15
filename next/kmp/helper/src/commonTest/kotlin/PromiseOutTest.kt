@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser
 
 import kotlinx.coroutines.*
-import kotlinx.datetime.Clock
 import org.dweb_browser.helper.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,7 +12,7 @@ class PromiseOutTest {
   fun testResolve() = runBlocking {
     val po = PromiseOut<Unit>()
 
-    val startTime = Clock.System.now().toEpochMilliseconds()
+    val startTime = datetimeNow()
 
     launch {
       delay(1000)
@@ -24,7 +23,7 @@ class PromiseOutTest {
     po.waitPromise()
     println("resolved")
 
-    assertEquals(Clock.System.now().toEpochMilliseconds() - startTime >= 1000L, true)
+    assertEquals(datetimeNow() - startTime >= 1000L, true)
   }
 
   @Test
@@ -49,7 +48,7 @@ class PromiseOutTest {
   @Test
   fun testMultiAwait() = runBlocking {
     val po = PromiseOut<Unit>()
-    val startTime = Clock.System.now().toEpochMilliseconds()
+    val startTime = datetimeNow()
 
     launch {
       delay(1000)
@@ -75,7 +74,7 @@ class PromiseOutTest {
     po.waitPromise()
     println("resolved 3")
 
-    assertEquals(Clock.System.now().toEpochMilliseconds() - startTime >= 1000L, true)
+    assertEquals(datetimeNow() - startTime >= 1000L, true)
   }
 
   @Test

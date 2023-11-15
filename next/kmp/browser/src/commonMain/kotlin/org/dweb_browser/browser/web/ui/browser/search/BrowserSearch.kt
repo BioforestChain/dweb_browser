@@ -1,8 +1,5 @@
 package org.dweb_browser.browser.web.ui.browser.search
 
-import android.annotation.SuppressLint
-import android.view.KeyEvent
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,21 +11,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -36,9 +32,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
-import org.dweb_browser.browser.R
+import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.browser.util.toRequestUrl
 import org.dweb_browser.browser.web.ui.browser.dimenSearchHeight
 import org.dweb_browser.browser.web.ui.browser.dimenTextFieldFontSize
@@ -64,11 +60,6 @@ internal fun SearchView(
   val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
   val webEngine = findWebEngine(text)
 
-  BackHandler {
-    focusManager.clearFocus()
-    onClose()
-  }
-
   Box(
     modifier = Modifier
       .fillMaxSize()
@@ -83,7 +74,7 @@ internal fun SearchView(
       homePreview?.let { it { moved -> focusManager.clearFocus(); if (!moved) onClose() } }
 
       Text(
-        text = stringResource(id = R.string.browser_search_cancel),
+        text = BrowserI18nResource.button_name_cancel(),
         modifier = Modifier
           .align(Alignment.TopEnd)
           .padding(20.dp)
@@ -117,6 +108,7 @@ internal fun SearchView(
   }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun BoxScope.BrowserTextField(
   text: MutableState<String>,
@@ -155,21 +147,21 @@ internal fun BoxScope.BrowserTextField(
       .clip(RoundedCornerShape(8.dp))
       .background(MaterialTheme.colorScheme.background)
       .focusRequester(focusRequester)
-      .onKeyEvent {
-        if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
-          inputText.toRequestUrl()?.let { url ->
-            onSearch(url)
-          } ?: webEngine?.let { webEngine ->
-            onSearch(String.format(webEngine.format, inputText))
-          } ?: focusManager.clearFocus(); keyboardController?.hide()
-          true
-        } else {
-          false
-        }
-      },
+    /*.onKeyEvent { // 键盘的操作，暂时屏蔽
+      if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
+        inputText.toRequestUrl()?.let { url ->
+          onSearch(url)
+        } ?: webEngine?.let { webEngine ->
+          onSearch("${webEngine.start}$inputText")
+        } ?: focusManager.clearFocus(); keyboardController?.hide()
+        true
+      } else {
+        false
+      }
+    }*/,
     label = {
       Text(
-        text = stringResource(id = R.string.browser_search_hint),
+        text = BrowserI18nResource.browser_search_hint(),
         fontSize = dimenTextFieldFontSize,
         textAlign = TextAlign.Start,
         maxLines = 1
@@ -177,7 +169,7 @@ internal fun BoxScope.BrowserTextField(
     },
     trailingIcon = {
       Image(
-        imageVector = ImageVector.vectorResource(R.drawable.ic_circle_close),
+        imageVector = Icons.Default.Close,
         contentDescription = "Close",
         modifier = Modifier
           .clickable { inputText = ""; onValueChanged(inputText) }
@@ -197,7 +189,7 @@ internal fun BoxScope.BrowserTextField(
         inputText.toRequestUrl()?.let { url ->
           onSearch(url)
         } ?: webEngine?.let { webEngine ->
-          onSearch(String.format(webEngine.format, inputText))
+          onSearch("${webEngine.start}$inputText")
         } ?: focusManager.clearFocus(); keyboardController?.hide()
       }
     )
@@ -250,7 +242,6 @@ fun CustomTextField(
   }
 }
 
-@SuppressLint("NewApi")
 @Composable
 internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
   show: MutableTransitionState<Boolean>,
@@ -273,13 +264,13 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
             .padding(vertical = 20.dp)
         ) {
           Text(
-            text = stringResource(id = R.string.browser_search_title),
+            text = BrowserI18nResource.browser_search_title(),
             modifier = Modifier.align(Alignment.Center),
             fontSize = 20.sp
           )
 
           Text(
-            text = stringResource(id = R.string.browser_search_cancel),
+            text = BrowserI18nResource.browser_search_cancel(),
             modifier = Modifier
               .align(Alignment.TopEnd)
               .clickable { onClose() },
@@ -299,7 +290,7 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
 private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
-      text = stringResource(id = R.string.browser_search_engine),
+      text = BrowserI18nResource.browser_search_engine(),
       color = MaterialTheme.colorScheme.outline,
       modifier = Modifier.padding(vertical = 10.dp)
     )
@@ -310,12 +301,12 @@ private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
         .background(MaterialTheme.colorScheme.background)
     ) {
       DefaultSearchWebEngine.forEachIndexed { index, webEngine ->
-        if (index > 0) VerticalDivider()
+        if (index > 0) Divider(modifier = Modifier.fillMaxWidth().height(1.dp))
         androidx.compose.material3.ListItem(
           headlineContent = {
             Text(text = webEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
           },
-          modifier = Modifier.clickable { onSearch(String.format(webEngine.format, text)) },
+          modifier = Modifier.clickable { onSearch("${webEngine.start}$text") },
           supportingContent = {
             Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
           },

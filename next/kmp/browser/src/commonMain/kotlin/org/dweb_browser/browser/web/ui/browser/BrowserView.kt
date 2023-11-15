@@ -1,16 +1,12 @@
 package org.dweb_browser.browser.web.ui.browser
 
-import android.annotation.SuppressLint
-import androidx.annotation.StringRes
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatSize
@@ -40,25 +36,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.R
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.isSystemUrl
+import org.dweb_browser.browser.web.model.BrowserBaseView
+import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.LocalModalBottomSheet
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.ModalBottomModel
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.SheetState
-import org.dweb_browser.browser.web.ui.browser.model.BrowserBaseView
-import org.dweb_browser.browser.web.ui.browser.model.BrowserIntent
 import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
-import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModelHelper
-import org.dweb_browser.browser.web.ui.browser.model.BrowserWebView
+import org.dweb_browser.browser.web.ui.browser.model.LocalBrowserPageState
 import org.dweb_browser.browser.web.ui.browser.model.LocalInputText
 import org.dweb_browser.browser.web.ui.browser.model.LocalShowIme
 import org.dweb_browser.browser.web.ui.browser.model.LocalShowSearchView
@@ -92,29 +85,38 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   })
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BrowserViewForWindow(
   viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope
 ) {
   val scope = rememberCoroutineScope()
+  val browserPagerState = viewModel.rememberBrowserPagerState()
   val initialScale =
     (LocalDensity.current.density * windowRenderScope.scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
   val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
 
+  LaunchedEffect(browserPagerState) {
+    viewModel.onPagerStateChange { page ->
+      browserPagerState.pagerStateContent.scrollToPage(page)
+      browserPagerState.pagerStateNavigator.scrollToPage(page)
+    }
+  }
+
   CompositionLocalProvider(
     LocalModalBottomSheet provides modalBottomModel,
-    LocalWebViewInitialScale provides initialScale
+    LocalWebViewInitialScale provides initialScale,
+    LocalBrowserPageState provides browserPagerState,
   ) {
-    val bottomSheetModel = LocalModalBottomSheet.current
     val win = LocalWindowController.current
     win.GoBackHandler {
-      val watcher = viewModel.uiState.currentBrowserBaseView.value?.closeWatcher
+      val watcher = viewModel.currentTab?.closeWatcher
       if (watcher?.canClose == true) {
         scope.launch {
           watcher.close()
         }
       } else {
-        viewModel.uiState.currentBrowserBaseView.value?.viewItem?.webView?.let { webView ->
+        viewModel.currentTab?.viewItem?.webView?.let { webView ->
           if (webView.canGoBack()) {
             webView.goBack()
           }
@@ -150,21 +152,15 @@ fun BrowserViewForWindow(
 @Composable
 private fun BrowserViewContent(viewModel: BrowserViewModel) {
   val localFocusManager = LocalFocusManager.current
-  val pagerStateNavigator = rememberPagerState {
-    viewModel.uiState.browserViewList.size
-  }
-  val pagerStateContent = rememberPagerState {
-    viewModel.uiState.browserViewList.size
-  }
-  viewModel.uiState.pagerStateNavigator.value = pagerStateNavigator
-  viewModel.uiState.pagerStateContent.value = pagerStateContent
-  LaunchedEffect(pagerStateNavigator.currentPageOffsetFraction) {
-    pagerStateContent.scrollToPage(
-      pagerStateNavigator.currentPage, pagerStateNavigator.currentPageOffsetFraction
+  val browserPagerState = LocalBrowserPageState.current
+  LaunchedEffect(browserPagerState.pagerStateNavigator.currentPageOffsetFraction) {
+    browserPagerState.pagerStateContent.scrollToPage(
+      browserPagerState.pagerStateNavigator.currentPage,
+      browserPagerState.pagerStateNavigator.currentPageOffsetFraction
     )
   }
-  LaunchedEffect(pagerStateContent.currentPage) {
-    viewModel.handleIntent(BrowserIntent.UpdateCurrentBaseView(pagerStateContent.currentPage))
+  LaunchedEffect(browserPagerState.pagerStateContent.currentPage) {
+    viewModel.updateCurrentBrowserView(browserPagerState.pagerStateContent.currentPage)
   }
 
   Box(modifier = Modifier
@@ -172,7 +168,7 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
     .clickableWithNoEffect { localFocusManager.clearFocus() }
   ) {
     HorizontalPager(modifier = Modifier,
-      state = pagerStateContent,
+      state = browserPagerState.pagerStateContent,
       pageSpacing = 0.dp,
       userScrollEnabled = false,
       reverseLayout = false,
@@ -180,14 +176,14 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
       beyondBoundsPageCount = 5,
 
       pageContent = { currentPage ->
-        BrowserViewContentWeb(viewModel, viewModel.uiState.browserViewList[currentPage])
+        BrowserViewContentWeb(viewModel, viewModel.getBrowserViewOrNull(currentPage)!!)
       })
   }
 }
 
 @Composable
 fun ColumnScope.MiniTitle(viewModel: BrowserViewModel) {
-  val browserBaseView = viewModel.uiState.currentBrowserBaseView.value
+  val browserBaseView = viewModel.currentTab
   val inputText = parseInputText(browserBaseView?.viewItem?.webView?.getUrl() ?: "")
 
   Text(
@@ -198,7 +194,12 @@ fun ColumnScope.MiniTitle(viewModel: BrowserViewModel) {
 @Composable
 private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
   Box(modifier = Modifier.align(Alignment.BottomCenter)) {
-    Column(modifier = Modifier
+    Column(modifier = Modifier.fillMaxWidth()) {
+      BrowserViewSearch(viewModel)
+      BrowserViewNavigatorBar(viewModel)
+    }
+    // 小标题暂时不需要，先屏蔽
+    /*Column(modifier = Modifier
       .fillMaxWidth()
       .height(dimenMinBottomHeight)
       .background(MaterialTheme.colorScheme.surfaceVariant)
@@ -217,14 +218,14 @@ private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
         BrowserViewSearch(viewModel)
         BrowserViewNavigatorBar(viewModel)
       }
-    }
+    }*/
   }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BrowserViewSearch(viewModel: BrowserViewModel) {
-  val pagerStateNavigator = viewModel.uiState.pagerStateNavigator.value ?: return
+  val pagerStateNavigator = LocalBrowserPageState.current.pagerStateNavigator
   val localShowIme = LocalShowIme.current
 
   LaunchedEffect(pagerStateNavigator.settledPage) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
@@ -233,7 +234,7 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
   }
   val localFocus = LocalFocusManager.current
   LaunchedEffect(Unit) {
-    if (!localShowIme.value && !viewModel.uiState.showSearchEngine.targetState) {
+    if (!localShowIme.value && !viewModel.showSearchEngine.targetState) {
       localFocus.clearFocus()
     }
   }
@@ -254,54 +255,52 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
     contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
     beyondBoundsPageCount = 0,
     pageContent = { currentPage ->
-      SearchBox(viewModel.uiState.browserViewList[currentPage])
+      SearchBox(viewModel.getBrowserViewOrNull(currentPage)!!)
     })
 }
 
 @Composable
 private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
-  val context = LocalContext.current
   val bottomSheetModel = LocalModalBottomSheet.current
   Row(
     modifier = Modifier
       .fillMaxWidth()
       .height(dimenNavigationHeight)
   ) {
-    val webView = viewModel.uiState.currentBrowserBaseView.value?.viewItem?.webView ?: return
+    val webView = viewModel.currentTab?.viewItem?.webView ?: return
     val canGoBack = webView.rememberCanGoBack()
 
     NavigatorButton(
       imageVector = Icons.Rounded.AddHome,
-      resName = R.string.browser_nav_addhome,
+      name = "AddHome",
       show = webView.hasUrl()
     ) {
-      scope.launch { viewModel.addUrlToDesktop(context) }
+      scope.launch { viewModel.addUrlToDesktop() }
     }
     NavigatorButton(
       imageVector = if (canGoBack) Icons.Rounded.Add else Icons.Rounded.QrCodeScanner,
-      resName = if (canGoBack) R.string.browser_nav_add else R.string.browser_nav_scan,
+      name = if (canGoBack) "Add" else "Scan",
       show = true
     ) {
-      if (canGoBack) {
-        viewModel.handleIntent(BrowserIntent.AddNewMainView())
-      } else {
-        scope.launch { viewModel.openQRCodeScanning() }
-      }
-    }
-    NavigatorButton(
-      imageVector = getMultiImageVector(viewModel.uiState.browserViewList.size), // resId = R.drawable.ic_main_multi,
-      resName = R.string.browser_nav_multi, show = true
-    ) {
-      viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(true))
-    }
-    NavigatorButton(
-      imageVector = Icons.Rounded.Menu, // resId = R.drawable.ic_main_option,
-      resName = R.string.browser_nav_option, show = true
-    ) {
       scope.launch {
-        bottomSheetModel.show()
+        if (canGoBack) {
+          viewModel.addNewMainView()
+        } else {
+          viewModel.openQRCodeScanning()
+        }
       }
+    }
+    NavigatorButton(
+      imageVector = getMultiImageVector(viewModel.listSize), // resId = R.drawable.ic_main_multi,
+      name = "MultiView", show = true
+    ) {
+      scope.launch { viewModel.updateMultiViewState(true) }
+    }
+    NavigatorButton(
+      imageVector = Icons.Rounded.Menu, name = "Options", show = true
+    ) {
+      scope.launch { bottomSheetModel.show() }
     }
   }
 }
@@ -321,7 +320,7 @@ private fun getMultiImageVector(size: Int) = when (size) {
 
 @Composable
 private fun RowScope.NavigatorButton(
-  imageVector: ImageVector, @StringRes resName: Int, show: Boolean, onClick: () -> Unit
+  imageVector: ImageVector, name: String, show: Boolean, onClick: () -> Unit
 ) {
   Box(modifier = Modifier
     .weight(1f)
@@ -332,7 +331,7 @@ private fun RowScope.NavigatorButton(
       Icon(
         modifier = Modifier.size(28.dp),
         imageVector = imageVector, //ImageVector.vectorResource(id = resId),//ImageBitmap.imageResource(id = resId),
-        contentDescription = stringResource(id = resName),
+        contentDescription = name,
         tint = if (show) {
           MaterialTheme.colorScheme.onSecondaryContainer
         } else {
@@ -350,10 +349,10 @@ private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: B
   }
 }
 
-@SuppressLint("UnrememberedMutableState")
 @Composable
 private fun SearchBox(baseView: BrowserBaseView) {
   var showSearchView by LocalShowSearchView.current
+  val searchHint = BrowserI18nResource.browser_search_hint()
 
   Box(modifier = Modifier
     .padding(
@@ -378,9 +377,7 @@ private fun SearchBox(baseView: BrowserBaseView) {
       else -> mutableStateOf("")
     }
     val search = if (inputText.value.isEmpty() || inputText.value.isSystemUrl()) {
-      Triple(
-        stringResource(id = R.string.browser_search_hint), TextAlign.Start, Icons.Default.Search
-      )
+      Triple(searchHint, TextAlign.Start, Icons.Default.Search)
     } else {
       Triple(
         parseInputText(inputText.value), TextAlign.Center, Icons.Default.FormatSize
@@ -416,7 +413,7 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
       0f, 1f -> {}
       else -> {
         LinearProgressIndicator(
-          progress = { loadingProgress },
+          progress = loadingProgress,
           modifier = Modifier
             .fillMaxWidth()
             .height(2.dp)
@@ -433,13 +430,15 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
  */
 @Composable
 fun BrowserSearchView(viewModel: BrowserViewModel) {
+  val scope = rememberCoroutineScope()
   var showSearchView by LocalShowSearchView.current
+  val searchHint = BrowserI18nResource.browser_search_hint()
   if (showSearchView) {
     val inputText = viewModel.dwebLinkSearch.value.ifEmpty {
-      viewModel.uiState.currentBrowserBaseView.value?.viewItem?.webView?.getUrl() ?: ""
+      viewModel.currentTab?.viewItem?.webView?.getUrl() ?: ""
     }
     val text =
-      if (inputText.isSystemUrl() || inputText == stringResource(id = R.string.browser_search_hint)) {
+      if (inputText.isSystemUrl() || inputText == searchHint) {
         ""
       } else {
         inputText
@@ -452,14 +451,15 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
     }, onClose = {
       showSearchView = false
     }, onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
-      showSearchView = false
-      BrowserViewModelHelper.saveLastKeyword(inputTextState, url)
-      viewModel.handleIntent(BrowserIntent.SearchWebView(url))
+      scope.launch {
+        showSearchView = false
+        viewModel.saveLastKeyword(inputTextState, url)
+        viewModel.searchWebView(url)
+      }
     })
   }
 }
 
-@SuppressLint("ClickableViewAccessibility")
 @Composable
 internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolean) -> Unit) {
   var _webView by remember {
@@ -470,31 +470,9 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolea
   }
   val webView = _webView ?: return
   val background = MaterialTheme.colorScheme.background
-//  val isDark = isSystemInDarkTheme()
-//  var isRemove = false
   webView.viewItem.webView.Render(
     Modifier
       .fillMaxSize()
       .background(background),
   )
-//  WebView(state = webView.viewItem.state,
-//    modifier = Modifier
-//      .fillMaxSize()
-//      .background(background),
-//    navigator = webView.viewItem.navigator,
-//    onCreated = {
-//      it.setDarkMode(isDark, background) // 为了保证浏览器背景色和系统主题一致
-//      it.setOnTouchListener { _, event ->
-//        if (event.action == MotionEvent.ACTION_MOVE) {
-//          isRemove = true
-//        } else if (event.action == MotionEvent.ACTION_UP) {
-//          onClickOrMove(isRemove)
-//        }
-//        false
-//      }
-//    },
-//    factory = {
-//      webView.viewItem.webView.parent?.let { (it as ViewGroup).removeAllViews() }
-//      webView.viewItem.webView
-//    })
 }

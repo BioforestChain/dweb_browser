@@ -9,7 +9,6 @@ import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
@@ -40,10 +39,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
       return@append request.respondLocalFile {
         if (filePath.startsWith("/web_icons/")) {
           debugBrowser("IconFile", "$fromMM => ${request.href}")
-          returnFile(
-            getAppContext().filesDir.absolutePath + "/icons",
-            filePath.substring("/web_icons/".length)
-          )
+          returnFile(getImageResourceRootPath(), filePath.substring("/web_icons/".length))
         } else returnNext()
       }
     }
@@ -56,9 +52,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     browserServer = this.createBrowserWebServer()
     val browserController = // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
       withMainContext {
-        BrowserController(
-          this@BrowserNMM, browserServer
-        )
+        BrowserController(this@BrowserNMM, browserServer)
       }
     loadWebLinkApps(browserController, webLinkStore)
 

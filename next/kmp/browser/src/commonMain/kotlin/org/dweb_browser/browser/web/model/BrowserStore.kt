@@ -1,14 +1,17 @@
-package org.dweb_browser.browser.web.ui.browser.model
+package org.dweb_browser.browser.web.model
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import org.dweb_browser.browser.R
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
+import org.dweb_browser.helper.compareNowDay
 import org.dweb_browser.helper.datetimeNow
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import org.dweb_browser.helper.datetimeNowToEpochDay
+import org.dweb_browser.helper.formatDatestamp
+import org.dweb_browser.helper.toEpochDay
 
 @Serializable
 data class WebSiteInfo(
@@ -16,35 +19,17 @@ data class WebSiteInfo(
   var title: String,
   var url: String = "",
   val type: WebSiteType,
-  val timeMillis: Long = datetimeNow(),
+  val timeMillis: Long = id.toEpochDay(),
   @Transient
   val icon: ImageBitmap? = null,
-) {
-//  constructor(
-//    id: Long = datetimeNow(),
-//    title: String,
-//    url: String = "",
-//    type: WebSiteType,
-//    timeMillis: Long = datetimeNow(),
-//    icon: ImageBitmap? = null
-//  ) : this(
-//    id,
-//    title,
-//    url,
-//    type,
-//    timeMillis,
-//    icon?.asAndroidBitmap(),
-//  )
-}
+)
 
-fun Long.formatToStickyName(callName: (Int) -> String): String {
-  val currentOfEpochDay = LocalDate.now().toEpochDay()
-  return if (this >= currentOfEpochDay) {
-    callName(R.string.browser_history_today)
-  } else if (this == currentOfEpochDay - 1) {
-    callName(R.string.browser_history_yesterday)
-  } else {
-    LocalDate.ofEpochDay(this).format(DateTimeFormatter.ofPattern("yyyy-MM-dd EEEE"))
+@Composable
+fun Long.formatToStickyName(): String {
+  return when (this.compareNowDay()) {
+    0L -> BrowserI18nResource.time_today()
+    -1L -> BrowserI18nResource.time_yesterday()
+    else -> this.formatDatestamp()
   }
 }
 
@@ -53,10 +38,14 @@ enum class WebSiteType(val id: Int) {
   ;
 }
 
+const val KEY_LAST_SEARCH_KEY = "browser.last.keyword"
+const val KEY_NO_TRACE = "browser.no.trace" // 无痕浏览
+
 class BrowserStore(mm: MicroModule) {
   private val storeKey = "browser/links"
   private val storeBook = mm.createStore("browser_book", false)
   private val storeHistory = mm.createStore("browser_history", false)
+  private val sharePreference = mm.createStore("SharePreference", false)
 
   /**
    * 书签部分，不需要特殊处理，直接保存即可
@@ -74,7 +63,7 @@ class BrowserStore(mm: MicroModule) {
    * 获取的时候：按照每天的map来获取最近7天的数据
    */
   suspend fun getHistoryLinks(): MutableMap<String, MutableList<WebSiteInfo>> {
-    val current = LocalDate.now().toEpochDay()
+    val current = datetimeNowToEpochDay()
     val maps = mutableMapOf<String, MutableList<WebSiteInfo>>()
     for (day in current downTo current - 6) { // 获取最近一周的数据
       val webSiteInfoList = storeHistory.getOrNull<MutableList<WebSiteInfo>>(day.toString())
@@ -88,4 +77,7 @@ class BrowserStore(mm: MicroModule) {
   suspend fun setHistoryLinks(key: String, data: MutableList<WebSiteInfo>) {
     storeHistory.set(key, data)
   }
+
+  suspend fun saveString(key: String, data: String) = sharePreference.set(key, data)
+  suspend fun getString(key: String) = sharePreference.getOrNull<String>(key)
 }

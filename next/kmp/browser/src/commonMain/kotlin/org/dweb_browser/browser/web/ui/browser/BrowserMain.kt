@@ -23,18 +23,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
-import org.dweb_browser.browser.R
-import org.dweb_browser.browser.web.ui.browser.model.BrowserMainView
+import org.dweb_browser.browser.common.AsyncImage
+import org.dweb_browser.browser.web.model.BrowserMainView
 import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
-import org.dweb_browser.browser.web.ui.view.Captureable
+import org.dweb_browser.browser.web.ui.capture.CaptureView
 
 @Composable
 internal fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: BrowserMainView) {
@@ -48,11 +45,11 @@ internal fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: Brows
     }
   }
 
-  Captureable(
+  CaptureView(
     controller = browserMainView.controller,
     onCaptured = { imageBitmap, _ ->
       imageBitmap?.let { bitmap ->
-        viewModel.uiState.currentBrowserBaseView.value?.bitmap = bitmap
+        viewModel.currentTab?.bitmap = bitmap
       }
     }) {
     HomePage(viewModel) // 暂时屏蔽下面的内容，直接显示空白主页
@@ -79,7 +76,7 @@ fun HomePage(viewModel: BrowserViewModel? = null) {
         Color(0xFF71D78E), Color(0xFF548FE3)
       )
       Text(
-        text = stringResource(id = R.string.app_name),
+        text = "Dweb-Browser",
         style = TextStyle(
           brush = Brush.linearGradient(gradient), fontSize = 36.sp
         ),

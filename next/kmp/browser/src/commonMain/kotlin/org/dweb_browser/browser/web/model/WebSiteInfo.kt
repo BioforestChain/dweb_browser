@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.browser.model
+package org.dweb_browser.browser.web.model
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -10,7 +10,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
-import org.dweb_browser.browser.web.ui.view.CaptureController
+import org.dweb_browser.browser.web.ui.capture.CaptureController
 import org.dweb_browser.dwebview.base.ViewItem
 
 interface BrowserBaseView {

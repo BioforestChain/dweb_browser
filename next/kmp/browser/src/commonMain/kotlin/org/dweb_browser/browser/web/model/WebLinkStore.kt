@@ -1,20 +1,15 @@
 package org.dweb_browser.browser.web.model
 
-import android.content.Context
-import android.graphics.Bitmap
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asAndroidBitmap
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.digest.SHA256
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
-import org.dweb_browser.helper.BitmapUtil
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.toUtf8ByteArray
 
-private const val DESK_WEBLINK_ICONS = "file:///web_icons/"
+const val DESK_WEBLINK_ICONS = "file:///web_icons/"
 
 @Serializable
 data class WebLinkManifest(
@@ -27,12 +22,6 @@ data class WebLinkManifest(
     suspend fun createLinkId(url: String) = "${
       sha256.hasher().hash(url.toUtf8ByteArray()).toHexString(0, 4, HexFormat.Default)
     }.link.dweb"
-
-    fun bitmapToImageResource(context: Context, bitmap: ImageBitmap): ImageResource? {
-      return BitmapUtil.saveBitmapToIcons(context, bitmap.asAndroidBitmap())?.let { src ->
-        ImageResource(src = "$DESK_WEBLINK_ICONS$src")
-      }
-    }
   }
 }
 

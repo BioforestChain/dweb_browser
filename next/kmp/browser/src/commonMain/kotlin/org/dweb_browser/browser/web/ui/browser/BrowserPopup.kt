@@ -1,12 +1,5 @@
 package org.dweb_browser.browser.web.ui.browser
 
-import android.Manifest
-import android.os.Build
-import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -36,7 +29,17 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -59,6 +62,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Alignment.Companion.TopStart
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
@@ -72,12 +76,7 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -86,37 +85,42 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.R
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.isSystemUrl
+import org.dweb_browser.browser.web.model.BrowserBaseView
+import org.dweb_browser.browser.web.model.BrowserMainView
+import org.dweb_browser.browser.web.model.BrowserWebView
+import org.dweb_browser.browser.web.model.WebSiteInfo
+import org.dweb_browser.browser.web.model.WebSiteType
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.BrowserModalBottomSheet
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.LocalModalBottomSheet
-import org.dweb_browser.browser.web.ui.browser.bottomsheet.SheetState
-import org.dweb_browser.browser.web.ui.browser.model.BrowserBaseView
-import org.dweb_browser.browser.web.ui.browser.model.BrowserIntent
-import org.dweb_browser.browser.web.ui.browser.model.BrowserMainView
 import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
-import org.dweb_browser.browser.web.ui.browser.model.BrowserWebView
-import org.dweb_browser.browser.web.ui.browser.model.WebSiteInfo
-import org.dweb_browser.browser.web.ui.browser.model.WebSiteType
 import org.dweb_browser.browser.web.ui.browser.model.toWebSiteInfo
 import org.dweb_browser.browser.web.ui.browser.search.CustomTextField
-import org.dweb_browser.browser.web.ui.view.findActivity
-import org.dweb_browser.dwebview.getIconBitmap
 import org.dweb_browser.helper.PrivacyUrl
-import org.dweb_browser.helper.platform.rememberPureViewBox
-import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
+import org.dweb_browser.helper.compose.rememberScreenSize
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getCornerRadiusTop
+import org.dweb_browser.helper.platform.rememberPureViewBox
+import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
 
 enum class PopupViewState(
   private val height: Dp = 0.dp,
   private val percentage: Float? = null,
   val title: String,
+  val imageVector: ImageVector,
+  val index: Int,
 ) {
-  Options(height = 120.dp, title = "选项"),
-  BookList(percentage = 0.9f, title = "书签列表"),
-  HistoryList(percentage = 0.9f, title = "历史记录"),
-  Share(percentage = 0.5f, title = "分享");
+  Options(height = 120.dp, title = "选项", imageVector = Icons.Default.Menu, index = 0),
+  BookList(percentage = 0.9f, title = "书签列表", imageVector = Icons.Default.Book, index = 1),
+  HistoryList(
+    percentage = 0.9f,
+    title = "历史记录",
+    imageVector = Icons.Default.History,
+    index = 2
+  ),
+  // Share(percentage = 0.5f, title = "分享"),
+  ;
 
   fun getLocalHeight(screenHeight: Dp? = null): Dp {
     return screenHeight?.let {
@@ -127,26 +131,17 @@ enum class PopupViewState(
   }
 }
 
-class TabItem(
-  @StringRes val titleRid: Int,
-  @DrawableRes val iconRid: Int,
-  val entry: PopupViewState
-) {
-  val title @Composable get() = stringResource(id = titleRid)
-  val icon @Composable get() = ImageVector.vectorResource(id = iconRid)
-}
-
 @Composable
 internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
   val bottomSheetModel = LocalModalBottomSheet.current
   val scope = rememberCoroutineScope()
 
   if (bottomSheetModel.show.value) {
-    BackHandler {
+    /*BackHandler { // 返回功能先屏蔽
       if (bottomSheetModel.state.value != SheetState.Hidden) {
         scope.launch { bottomSheetModel.hide() }
       }
-    }
+    }*/
 
     val density = LocalDensity.current.density
     val topLeftRadius = getCornerRadiusTop(rememberPureViewBox(), density, 16f)
@@ -221,7 +216,7 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
         .height(44.dp), verticalAlignment = CenterVertically
     ) {
       Icon(
-        imageVector = ImageVector.vectorResource(R.drawable.ic_main_back),
+        imageVector = Icons.Default.ArrowBack,// ImageVector.vectorResource(R.drawable.ic_main_back),
         contentDescription = "Back",
         modifier = Modifier
           .clickable { onBack() }
@@ -230,13 +225,13 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
         tint = MaterialTheme.colorScheme.onBackground
       )
       Text(
-        text = stringResource(id = R.string.browser_options_editbook),
+        text = BrowserI18nResource.browser_options_editBook(),
         modifier = Modifier.weight(1f),
         textAlign = TextAlign.Center,
         fontSize = 18.sp
       )
       Text(
-        text = stringResource(id = R.string.browser_options_store),
+        text = BrowserI18nResource.browser_options_store(),
         modifier = Modifier
           .clickable {
             webSiteInfo.value?.apply {
@@ -267,12 +262,12 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
     ) {
       RowItemTextField(
         leadingBitmap = item.icon,
-        leadingIcon = R.drawable.ic_main_book,
+        leadingIcon = Icons.Default.Book,
         inputText = inputTitle,
         focusRequester = focusRequester
       )
       Spacer(modifier = Modifier.height(16.dp))
-      RowItemTextField(leadingIcon = R.drawable.ic_main_link, inputText = inputUrl)
+      RowItemTextField(leadingIcon = Icons.Default.Link, inputText = inputUrl)
       Spacer(modifier = Modifier.height(16.dp))
       Box(
         modifier = Modifier
@@ -289,7 +284,7 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
         contentAlignment = Center
       ) {
         Text(
-          text = stringResource(id = R.string.browser_search_delete),
+          text = BrowserI18nResource.browser_options_delete(),
           color = MaterialTheme.colorScheme.error,
           fontSize = 16.sp,
           fontWeight = FontWeight(400)
@@ -302,7 +297,7 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
 @Composable
 fun RowItemTextField(
   leadingBitmap: ImageBitmap? = null,
-  @DrawableRes leadingIcon: Int,
+  leadingIcon: ImageVector,
   inputText: MutableState<String>,
   focusRequester: FocusRequester? = null,
 ) {
@@ -332,7 +327,7 @@ fun RowItemTextField(
           )
         } ?: run {
           Icon(
-            imageVector = ImageVector.vectorResource(leadingIcon),
+            imageVector = leadingIcon,
             contentDescription = "Icon",
             modifier = Modifier
               .padding(horizontal = 12.dp, vertical = 11.dp)
@@ -351,37 +346,30 @@ fun RowItemTextField(
 @Composable
 private fun PopTabRowContent(
   viewModel: BrowserViewModel,
-  selectedTabIndex: MutableState<Int>,
+  selectedTabIndex: MutableState<PopupViewState>,
   openBookManager: (WebSiteInfo) -> Unit
 ) {
   val popupViewState = remember { mutableStateOf(PopupViewState.Options) }
-  val tabs = listOf(
-    TabItem(R.string.browser_nav_option, R.drawable.ic_main_option, PopupViewState.Options),
-    TabItem(R.string.browser_nav_book, R.drawable.ic_main_book, PopupViewState.BookList),
-    TabItem(R.string.browser_nav_history, R.drawable.ic_main_history, PopupViewState.HistoryList),
-  )
 
   LaunchedEffect(selectedTabIndex) {
     snapshotFlow { selectedTabIndex.value }.collect {
-      if (it < tabs.size && it >= 0) {
-        popupViewState.value = tabs[it].entry
-      }
+      popupViewState.value = it
     }
   }
 
   Column {
     TabRow(
-      selectedTabIndex = selectedTabIndex.value,
+      selectedTabIndex = selectedTabIndex.value.index,
       containerColor = MaterialTheme.colorScheme.background,
       divider = {}
     ) {
-      tabs.forEachIndexed { index, tabItem ->
+      PopupViewState.values().forEachIndexed { index, tabItem ->
         Tab(
-          selected = selectedTabIndex.value == index,
-          onClick = { selectedTabIndex.value = index },
+          selected = selectedTabIndex.value == tabItem,
+          onClick = { selectedTabIndex.value = tabItem },
           icon = {
             Icon(
-              imageVector = tabItem.icon,
+              imageVector = tabItem.imageVector,
               contentDescription = tabItem.title,
               modifier = Modifier.size(24.dp)
             )
@@ -414,7 +402,7 @@ private fun PopContentView(
         onSearch = {
           scope.launch {
             bottomSheetModel.hide()
-            viewModel.handleIntent(BrowserIntent.SearchWebView(it))
+            viewModel.searchWebView(it)
           }
         }
       )
@@ -422,7 +410,7 @@ private fun PopContentView(
       PopupViewState.HistoryList -> BrowserListOfHistory(viewModel) {
         scope.launch {
           bottomSheetModel.hide()
-          viewModel.handleIntent(BrowserIntent.SearchWebView(it))
+          viewModel.searchWebView(it)
         }
       }
 
@@ -434,17 +422,7 @@ private fun PopContentView(
 @Composable
 private fun PopContentOptionItem(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
-  val activity = LocalContext.current.findActivity()
   val bottomSheetModel = LocalModalBottomSheet.current
-  // 判断权限
-  val launcher =
-    rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
-      onResult = { isGranted ->
-        //判断权限申请结果，并根据结果显示不同画面，由于 onResult 不是一个 @Composable lambda，所以不能直接显示 Composable 需要通过修改 state 等方式间接显示 Composable
-        if (isGranted) {
-          viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo(activity))
-        }
-      })
   LazyColumn(modifier = Modifier.fillMaxSize()) {
     item {
       Column(
@@ -453,10 +431,10 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           .padding(horizontal = 16.dp, vertical = 12.dp)
       ) {
         RowItemMenuView(
-          text = stringResource(id = R.string.browser_options_book),
-          trailingIcon = R.drawable.ic_main_book
+          text = BrowserI18nResource.browser_options_addToBook(), // stringResource(id = R.string.browser_options_book),
+          trailingIcon = Icons.Default.Book
         ) {
-          viewModel.uiState.currentBrowserBaseView.value?.let {
+          viewModel.currentTab?.let {
             scope.launch {
               viewModel.changeBookLink(add = it.viewItem.webView.toWebSiteInfo(WebSiteType.Book))
             }
@@ -465,35 +443,33 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
 
         Spacer(modifier = Modifier.height(12.dp))
         RowItemMenuView(
-          text = stringResource(id = R.string.browser_options_share),
-          trailingIcon = R.drawable.ic_main_share
+          text = BrowserI18nResource.browser_options_share(),
+          trailingIcon = Icons.Default.Share
         ) {
-          if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-            viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo(activity))
-          } else {
-            launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)/*请求权限*/
-          }
+          scope.launch { viewModel.shareWebSiteInfo() }
         } // 分享
 
         Spacer(modifier = Modifier.height(12.dp))
         RowItemMenuView(
-          text = stringResource(id = R.string.browser_options_notrace),
+          text = BrowserI18nResource.browser_options_noTrace(),
           trailingContent = { modifier ->
             Switch(
               modifier = modifier
                 .padding(horizontal = 12.dp, vertical = 10.dp)
                 .size(width = 50.dp, height = 30.dp),
               checked = viewModel.isNoTrace.value,
-              onCheckedChange = { viewModel.saveBrowserMode(it) }
+              onCheckedChange = {
+                scope.launch { viewModel.saveBrowserMode(it) }
+              }
             )
           }) {} // 无痕浏览
 
         Spacer(modifier = Modifier.height(12.dp))
         RowItemMenuView(
-          text = stringResource(id = R.string.browser_options_privacy),
+          text = BrowserI18nResource.browser_options_privacy(), // stringResource(id = R.string.browser_options_privacy),
           trailingContent = { modifier ->
             Icon(
-              imageVector = ImageVector.vectorResource(R.drawable.ic_more),
+              imageVector = Icons.Default.ExpandMore, // ImageVector.vectorResource(R.drawable.ic_more),
               contentDescription = "Manager",
               modifier = modifier
                 .padding(horizontal = 12.dp, vertical = 15.dp)
@@ -505,8 +481,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         ) {
           scope.launch {
             bottomSheetModel.hide()
-            // localCommonUrl.value = PrivacyUrl
-            viewModel.handleIntent(BrowserIntent.SearchWebView(PrivacyUrl))
+            viewModel.searchWebView(PrivacyUrl)
           }
         } // 隐私政策
       }
@@ -517,7 +492,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
 @Composable
 private fun RowItemMenuView(
   text: String,
-  @DrawableRes trailingIcon: Int? = null,
+  trailingIcon: ImageVector? = null,
   trailingContent: (@Composable (Modifier) -> Unit)? = null,
   onClick: () -> Unit
 ) {
@@ -543,7 +518,7 @@ private fun RowItemMenuView(
 
     trailingIcon?.let { icon ->
       Icon(
-        imageVector = ImageVector.vectorResource(icon),
+        imageVector = icon,
         contentDescription = "Icon",
         modifier = Modifier
           .align(CenterEnd)
@@ -560,30 +535,29 @@ private fun RowItemMenuView(
  */
 @Composable
 internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
-  val browserViewList = viewModel.uiState.browserViewList
-
-  AnimatedVisibility(visibleState = viewModel.uiState.multiViewShow) {
-    BackHandler {
+  val scope = rememberCoroutineScope()
+  AnimatedVisibility(visibleState = viewModel.showMultiView) {
+    /*BackHandler { // 暂时注释 backhandler
       viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false))
-    }
+    }*/
     // 高斯模糊做背景
     Box(
       modifier = Modifier
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.background)
     ) {
-      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-        viewModel.uiState.currentBrowserBaseView.value?.bitmap?.let { bitmap ->
-          Image(
-            bitmap = bitmap,
-            contentDescription = "BackGround",
-            alignment = TopStart,
-            contentScale = ContentScale.FillWidth,
-            modifier = Modifier
-              .fillMaxSize()
-              .blur(radius = 16.dp)
-          )
-        }
+      //if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
+      viewModel.currentTab?.bitmap?.let { bitmap ->
+        Image(
+          bitmap = bitmap,
+          contentDescription = "BackGround",
+          alignment = TopStart,
+          contentScale = ContentScale.FillWidth,
+          modifier = Modifier
+            .fillMaxSize()
+            .blur(radius = 16.dp)
+        )
+        //}
       }
     }
 
@@ -592,7 +566,7 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
         .fillMaxSize()
         .clickable(enabled = false) {}
     ) {
-      if (browserViewList.size == 1) {
+      if (viewModel.listSize == 1) {
         Box(
           modifier = Modifier
             .fillMaxWidth()
@@ -603,7 +577,7 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
               .align(TopCenter)
               .padding(top = 20.dp)
           ) {
-            MultiItemView(viewModel, browserViewList[0], true)
+            MultiItemView(viewModel, viewModel.getBrowserViewOrNull(0)!!, true)
           }
         }
       } else {
@@ -615,8 +589,8 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
           contentPadding = PaddingValues(vertical = 20.dp, horizontal = 20.dp),
           horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-          items(browserViewList.size) {
-            MultiItemView(viewModel, browserViewList[it], index = it)
+          items(viewModel.listSize) {
+            MultiItemView(viewModel, viewModel.getBrowserViewOrNull(it)!!, index = it)
           }
         }
       }
@@ -628,25 +602,27 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
         verticalAlignment = CenterVertically
       ) {
         Icon(
-          imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_add),
+          imageVector = Icons.Default.Add, // ImageVector.vectorResource(id = R.drawable.ic_main_add),
           contentDescription = "Add",
           modifier = Modifier
             .padding(start = 8.dp, end = 8.dp)
             .size(28.dp)
             .align(CenterVertically)
-            .clickable { viewModel.handleIntent(BrowserIntent.AddNewMainView()) },
+            .clickable { scope.launch { viewModel.addNewMainView() } },
           tint = MaterialTheme.colorScheme.primary,
         )
+        val content = BrowserI18nResource.browser_multi_count()
         Text(
-          text = "${browserViewList.size} ${stringResource(id = R.string.browser_tabs_count)}",
+          text = "${viewModel.listFilter()} $content",
           modifier = Modifier.weight(1f),
           textAlign = TextAlign.Center
         )
+        val done = BrowserI18nResource.browser_multi_done()
         Text(
-          text = stringResource(id = R.string.browser_done),
+          text = done,
           modifier = Modifier
             .padding(start = 8.dp, end = 8.dp)
-            .clickable { viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false)) },
+            .clickable { scope.launch { viewModel.updateMultiViewState(false) } },
           color = MaterialTheme.colorScheme.primary,
           fontWeight = FontWeight.Bold
         )
@@ -655,6 +631,7 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
   }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun MultiItemView(
   viewModel: BrowserViewModel,
@@ -662,13 +639,15 @@ private fun MultiItemView(
   onlyOne: Boolean = false,
   index: Int = 0
 ) {
-  val context = LocalContext.current
-  val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+  // 未解决
+  // val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+  val screenSize = rememberScreenSize()
+  val scope = rememberCoroutineScope()
   val sizeTriple = if (onlyOne) {
-    val with = screenWidth - 120.dp
+    val with = screenSize.screenWidth.dp - 120.dp
     Triple(with, with * 9 / 6 - 60.dp, with * 9 / 6)
   } else {
-    val with = (screenWidth - 60.dp) / 2
+    val with = (screenSize.screenWidth.dp - 60.dp) / 2
     Triple(with, with * 9 / 6 - 40.dp, with * 9 / 6)
   }
   Box(modifier = Modifier.size(width = sizeTriple.first, height = sizeTriple.third)) {
@@ -685,16 +664,16 @@ private fun MultiItemView(
           .size(width = sizeTriple.first, height = sizeTriple.second)
           .clip(RoundedCornerShape(16.dp))
           .background(MaterialTheme.colorScheme.surface)
-          .clickable {
-            viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false, index))
-          }
+          .clickable { scope.launch { viewModel.updateMultiViewState(false, index) } }
           .align(CenterHorizontally),
         contentScale = ContentScale.FillWidth, //ContentScale.FillBounds,
         alignment = if (browserBaseView is BrowserMainView) Center else TopStart
       )
-      var contentPair: Pair<String?, ImageBitmap?> by remember { mutableStateOf(Pair(null, null)) }
-      val homePageTitle = stringResource(id = R.string.browser_home_page)
-      val homePageIcon = ImageBitmap.imageResource(context.resources, R.drawable.ic_main_star)
+      // var contentPair: Pair<String?, ImageBitmap?> by remember { mutableStateOf(Pair(null, null)) }
+      var contentPair: Pair<String?, ImageVector?> by remember { mutableStateOf(Pair(null, null)) }
+      val homePageTitle = BrowserI18nResource.browser_multi_startup()
+      val homePageIcon =
+        Icons.Default.Star //ImageBitmap.imageResource(context.resources, R.drawable.ic_main_star)
       LaunchedEffect(browserBaseView) {
         when (browserBaseView) {
           is BrowserMainView -> {
@@ -713,7 +692,8 @@ private fun MultiItemView(
             } else {
               Pair(
                 browserBaseView.viewItem.webView.getTitle(),
-                browserBaseView.viewItem.webView.getIconBitmap()
+                //browserBaseView.viewItem.webView.getIconBitmap() // 图片渲染问题
+                null
               )
             }
           }
@@ -728,13 +708,14 @@ private fun MultiItemView(
         verticalAlignment = CenterVertically
       ) {
         contentPair.second?.let { imageBitmap ->
-          Image(
+          /*Image(
             bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp)
-          )
+          )*/
+          Icon(imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp))
           Spacer(modifier = Modifier.width(2.dp))
         }
         Text(
-          text = contentPair.first ?: stringResource(id = R.string.browser_no_title),
+          text = contentPair.first ?: BrowserI18nResource.browser_multi_no_title(),
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
           fontSize = 12.sp
@@ -744,13 +725,15 @@ private fun MultiItemView(
 
     if (!onlyOne || browserBaseView is BrowserWebView) {
       Image(
-        imageVector = ImageVector.vectorResource(R.drawable.ic_circle_close),
+        imageVector = Icons.Default.Close, //ImageVector.vectorResource(R.drawable.ic_circle_close),
         contentDescription = "Close",
         modifier = Modifier
           .padding(8.dp)
           .clip(CircleShape)
           .align(Alignment.TopEnd)
-          .clickable { viewModel.handleIntent(BrowserIntent.RemoveBaseView(index)) }
+          .clickable {
+            scope.launch { viewModel.removeBrowserWebView(browserBaseView as BrowserWebView) }
+          }
           .size(20.dp)
       )
     }

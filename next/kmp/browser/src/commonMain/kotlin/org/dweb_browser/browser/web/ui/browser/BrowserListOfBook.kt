@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.web.ui.browser
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,28 +8,27 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.R
+import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
-import org.dweb_browser.browser.web.ui.browser.model.WebSiteInfo
 import org.dweb_browser.helper.*
 
 @Composable
 fun BrowserListOfBook(
   viewModel: BrowserViewModel,
-  @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+  modifier: Modifier = Modifier,
   noFoundTip: (@Composable () -> Unit)? = null,
   onOpenSetting: (WebSiteInfo) -> Unit,
   onSearch: (String) -> Unit
@@ -50,7 +48,7 @@ fun BrowserListOfBook(
   noFoundTip?.let { it() }
     ?: Box(modifier = Modifier.fillMaxWidth()) {
       Text(
-        text = stringResource(id = R.string.browser_empty_list),
+        text = BrowserI18nResource.browser_empty_list(),
         modifier = Modifier
           .align(Alignment.TopCenter)
           .padding(top = 100.dp)
@@ -61,7 +59,7 @@ fun BrowserListOfBook(
 @Composable
 private fun BookListContent(
   bookList: MutableList<WebSiteInfo>,
-  @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+  modifier: Modifier = Modifier,
   onDelete: (WebSiteInfo) -> Unit,
   onOpenSetting: (WebSiteInfo) -> Unit,
   onSearch: (String) -> Unit
@@ -72,7 +70,9 @@ private fun BookListContent(
       .padding(16.dp)
   ) {
     itemsIndexed(bookList) { index, webSiteInfo ->
-      if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.surface)
+      if (index > 0) Divider(
+        modifier = Modifier.width(1.dp), color = MaterialTheme.colorScheme.surface
+      )
       ListSwipeItem(
         webSiteInfo = webSiteInfo,
         onRemove = { onDelete(it) }
@@ -95,13 +95,14 @@ internal fun ListSwipeItem(
   onRemove: (WebSiteInfo) -> Unit,
   listItemView: @Composable RowScope.() -> Unit
 ) {
-  val dismissState = // rememberDismissState() // 不能用这个，不然会导致移除后remember仍然存在，显示错乱问题
+  // 未解决
+/*  val dismissState = // rememberDismissState() // 不能用这个，不然会导致移除后remember仍然存在，显示错乱问题
     DismissState(
       initialValue = DismissValue.Default,
-      density = LocalDensity.current,
       confirmValueChange = { true },
       positionalThreshold = SwipeToDismissDefaults.fixedPositionalThreshold
-    )
+    )*/
+  val dismissState = rememberDismissState()
   LaunchedEffect(dismissState) {
     snapshotFlow { dismissState.currentValue }.collect {
       if (it != DismissValue.Default) {
@@ -153,7 +154,7 @@ private fun RowItemBook(
       )
     } ?: run {
       Icon(
-        imageVector = ImageVector.vectorResource(R.drawable.ic_main_book),
+        imageVector = Icons.Default.Book,// ImageVector.vectorResource(R.drawable.ic_main_book),
         contentDescription = "Book",
         modifier = Modifier
           .padding(horizontal = 12.dp)
@@ -169,7 +170,7 @@ private fun RowItemBook(
       overflow = TextOverflow.Ellipsis
     )
     Icon(
-      imageVector = ImageVector.vectorResource(R.drawable.ic_more),
+      imageVector = Icons.Default.ExpandMore, // ImageVector.vectorResource(R.drawable.ic_more),
       contentDescription = "Manager",
       modifier = Modifier
         .clickable { onOpenSetting(webSiteInfo) }

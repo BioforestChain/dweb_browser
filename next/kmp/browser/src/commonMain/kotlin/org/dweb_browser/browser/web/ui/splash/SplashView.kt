@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -38,7 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.dweb_browser.browser.R
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.helper.PrivacyUrl
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -87,6 +86,9 @@ fun SplashPrivacyDialog(
 private fun SplashPrivacyView(
   openWebView: (String) -> Unit, onConfirm: () -> Unit, onDismiss: () -> Unit
 ) {
+  val privacyContent1 = BrowserI18nResource.privacy_content_1()
+  val privacyContent2 = BrowserI18nResource.privacy_content_2()
+  val privacyPolicy = BrowserI18nResource.privacy_policy()
   Column(
     modifier = Modifier
       .fillMaxWidth()
@@ -95,24 +97,22 @@ private fun SplashPrivacyView(
       .padding(24.dp)
   ) {
     Text(
-      text = stringResource(id = R.string.privacy_title),
+      text = BrowserI18nResource.privacy_title(),
       fontWeight = FontWeight.Bold,
       fontSize = 24.sp
     )
     Spacer(modifier = Modifier.height(12.dp))
 
     val annotatedString = buildAnnotatedString {
-      append(stringResource(id = R.string.privacy_content_1))
+      append(privacyContent1)
       pushStringAnnotation("ysxy", PrivacyUrl)
       withStyle(
-        SpanStyle(
-          color = Color.Black, fontWeight = FontWeight.Bold
-        )
+        SpanStyle(color = Color.Black, fontWeight = FontWeight.Bold)
       ) {
-        append(stringResource(id = R.string.privacy_policy))
+        append(privacyPolicy)
       }
       pop()
-      append(stringResource(id = R.string.privacy_content_2))
+      append(privacyContent2)
     }
     ClickableText(
       text = annotatedString,
@@ -125,8 +125,8 @@ private fun SplashPrivacyView(
     Spacer(modifier = Modifier.height(24.dp))
 
     BottomButton(
-      dismissStr = stringResource(id = R.string.button_not_agree),
-      confirmStr = stringResource(id = R.string.button_agree_continue),
+      dismissStr = BrowserI18nResource.privacy_button_refuse(),
+      confirmStr = BrowserI18nResource.privacy_button_agree(),
       onDismiss = onDismiss,
       onConfirm = onConfirm
     )
@@ -174,18 +174,18 @@ private fun SplashPrivacyDeny(onDismiss: () -> Unit, onConfirm: () -> Unit) {
       .padding(24.dp)
   ) {
     Text(
-      text = stringResource(id = R.string.privacy_title),
+      text = BrowserI18nResource.privacy_title(),
       fontWeight = FontWeight.Bold,
       fontSize = 24.sp
     )
     Spacer(modifier = Modifier.height(12.dp))
 
-    Text(text = stringResource(id = R.string.privacy_content_deny))
+    Text(text = BrowserI18nResource.privacy_content_deny())
     Spacer(modifier = Modifier.height(24.dp))
 
     BottomButton(
-      dismissStr = stringResource(id = R.string.button_exit_app),
-      confirmStr = stringResource(id = R.string.button_i_know),
+      dismissStr = BrowserI18nResource.privacy_button_exit(),
+      confirmStr = BrowserI18nResource.privacy_button_i_know(),
       onDismiss = onDismiss,
       onConfirm = onConfirm
     )

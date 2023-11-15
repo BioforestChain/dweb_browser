@@ -10,12 +10,11 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
-fun now() = Clock.System.now().toString()
+fun now() = datetimeNow().toString()
   .padEndAndSub(23) // kmp中LocalDateTime跟android不一样 // LocalDateTime.toString().padEndAndSub(23)
 
 fun printError(tag: String, msg: Any?, err: Throwable? = null) {

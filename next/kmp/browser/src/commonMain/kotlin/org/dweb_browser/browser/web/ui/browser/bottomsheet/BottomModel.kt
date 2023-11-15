@@ -5,8 +5,9 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.delay
-import org.dweb_browser.browser.web.ui.browser.model.WebSiteInfo
-import org.dweb_browser.browser.web.ui.browser.model.noLocalProvidedFor
+import org.dweb_browser.browser.web.model.WebSiteInfo
+import org.dweb_browser.browser.web.ui.browser.PopupViewState
+import org.dweb_browser.helper.compose.noLocalProvidedFor
 
 val LocalModalBottomSheet = compositionLocalOf<ModalBottomModel> {
   noLocalProvidedFor("LocalModalBottomSheet")
@@ -26,7 +27,7 @@ data class ModalBottomModel(
   val state: MutableState<SheetState>,
 ) {
   val show: MutableState<Boolean> = mutableStateOf(false)
-  val tabIndex = mutableIntStateOf(0)
+  val tabIndex = mutableStateOf(PopupViewState.Options)
   val pageIndex = mutableIntStateOf(0)
   val webSiteInfo: MutableState<WebSiteInfo?> = mutableStateOf(null)
 
