@@ -30,25 +30,37 @@ struct BrowserView: View {
                             .frame(height: dragScale.toolbarHeight)
                             .background(Color.bkColor)
                     }
- 
-                .background(Color.bkColor)
-                .environmentObject(webcacheStore)
-                .environmentObject(openingLink)
-                .environmentObject(selectedTab)
-                .environmentObject(addressBar)
-                .environmentObject(toolBarState)
-                .environmentObject(dragScale)
-                .environmentObject(wndArea)
+                    
+                    .background(Color.bkColor)
+                    .environmentObject(webcacheStore)
+                    .environmentObject(openingLink)
+                    .environmentObject(selectedTab)
+                    .environmentObject(addressBar)
+                    .environmentObject(toolBarState)
+                    .environmentObject(dragScale)
+                    .environmentObject(wndArea)
+                }
+                .frame(width: size.width, height: size.height)
+                
+                .onAppear {
+                    dragScale.onWidth = (geometry.size.width - 10) / screen_width
+                }
+                .onChange(of: size) { newSize in
+                    dragScale.onWidth = (newSize.width - 10) / screen_width
+                }
+                
+                .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
+                    SheetSegmentView(isShowingWeb: showWeb())
+                        .environmentObject(selectedTab)
+                        .environmentObject(openingLink)
+                        .environmentObject(webcacheStore)
+                        .environmentObject(dragScale)
+                }
+                .onChange(of: geometry.frame(in: .global)) { frame in
+                    wndArea.frame = frame
+                    print("window rect:(\(frame.origin)), (\(frame.size))")
+                }
             }
-            .frame(width: size.width, height: size.height)
-
-            .onAppear {
-                dragScale.onWidth = (geometry.size.width - 10) / screen_width
-            }
-            .onChange(of: size) { newSize in
-                dragScale.onWidth = (newSize.width - 10) / screen_width
-            }
-            
             .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
                 SheetSegmentView(isShowingWeb: showWeb())
                     .environmentObject(selectedTab)
@@ -56,20 +68,8 @@ struct BrowserView: View {
                     .environmentObject(webcacheStore)
                     .environmentObject(dragScale)
             }
-            .onChange(of: geometry.frame(in: .global)) { frame in
-                wndArea.frame = frame
-                print("window rect:(\(frame.origin)), (\(frame.size))")
-            }
-        }
-        .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
-            SheetSegmentView(isShowingWeb: showWeb())
-                .environmentObject(selectedTab)
-                .environmentObject(openingLink)
-                .environmentObject(webcacheStore)
-                .environmentObject(dragScale)
         }
     }
-
     func showWeb() -> Bool {
         if webcacheStore.caches.count == 0 {
             return true
