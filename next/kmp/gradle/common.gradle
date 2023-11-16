@@ -1,0 +1,20 @@
+def xxxName = ""
+
+kotlin {
+  androidTarget {
+    compilations.all {
+      kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+      }
+    }
+  }
+  jvmToolchain {
+    languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_17.toString()))
+  }
+
+  iosX64()
+  iosArm64()
+  iosSimulatorArm64()
+
+  applyDefaultHierarchyTemplate()
+}
