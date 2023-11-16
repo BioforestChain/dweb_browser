@@ -1,14 +1,12 @@
-import org.dweb_browser.buildsrc.commonMobileTarget
+apply(from = rootProject.file("gradle/common.gradle"))
 
 plugins {
-  id(libs.plugins.kotlinxMultiplatform.get().pluginId)
-  id(libs.plugins.androidLibrary.get().pluginId)
-  kotlin("plugin.serialization") version (libs.versions.kotlin.version)
+  alias(libs.plugins.kotlinxMultiplatform)
+  alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.kotlinPluginSerialization)
 }
 
 kotlin {
-  commonMobileTarget()
-
   sourceSets.commonMain.dependencies {
     api(kotlin("stdlib"))
     api(libs.kotlinx.coroutines.core)

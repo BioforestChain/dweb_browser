@@ -1,14 +1,13 @@
-import org.dweb_browser.buildsrc.commonMobileTarget
+apply(from = rootProject.file("gradle/common.gradle"))
 
 plugins {
-  id(libs.plugins.kotlinxMultiplatform.get().pluginId)
-  id(libs.plugins.androidLibrary.get().pluginId)
-  kotlin("plugin.serialization") version (libs.versions.kotlin.version)
+  alias(libs.plugins.kotlinxMultiplatform)
+  alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.jetbrainsCompose)
+  alias(libs.plugins.kotlinPluginSerialization)
 }
 
 kotlin {
-  commonMobileTarget()
-
   sourceSets.commonMain.dependencies {
     implementation(libs.jetbrains.compose.runtime)
     implementation(libs.jetbrains.compose.foundation)
@@ -31,13 +30,5 @@ android {
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()
-  }
-
-  composeOptions {
-    kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
-  }
-
-  buildFeatures {
-    compose = true
   }
 }
