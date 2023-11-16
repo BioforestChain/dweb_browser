@@ -22,7 +22,6 @@ class JmmHistoryController(
       // val list = jmmController.historyMetadataMaps.toMutableList().sortedByDescending { it.installTime }
       // jmmHistoryMetadata.addAll(list)
       jmmController.historyMetadataMaps.onChange { item ->
-        println("lin.huang -> jmmHistoryMetadata item=$item")
         when (item.first) {
           ChangeableType.Add -> {
             jmmHistoryMetadata.add(0, item.third!!)

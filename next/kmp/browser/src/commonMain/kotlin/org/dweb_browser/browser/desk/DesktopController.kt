@@ -11,7 +11,6 @@ import androidx.compose.runtime.setValue
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -27,6 +26,7 @@ import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.create
 import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.helper.runBlockingCatching
 
 //expect fun IDesktopController.Companion.create(
 //  deskNMM: DeskNMM,
@@ -103,7 +103,7 @@ open class DesktopController private constructor(
         appSortList.delete(it)
       }
       map.adds.map {
-        if(!appSortList.getApps().contains(it)) {
+        if (!appSortList.getApps().contains(it)) {
           appSortList.push(it)
         }
       }
@@ -150,7 +150,7 @@ open class DesktopController private constructor(
         }.removeWhen(dwm.viewController.lifecycleScope)
 
         preDesktopWindowsManager?.also { preDwm ->
-          dwm.viewController.lifecycleScope.launch {
+          runBlockingCatching {
             /// 窗口迁移
             preDwm.moveWindows(dwm)
             preDesktopWindowsManager = null
