@@ -137,9 +137,7 @@ fun BrowserViewForWindow(
           .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
           .scale(scale)
       }) {
-        // BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
         BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
-        // BrowserPopView(viewModel)    // 用于处理弹出框
         BrowserMultiPopupView(viewModel)// 用于显示多界面
         BrowserSearchView(viewModel)
         BrowserBottomSheet(viewModel)
@@ -174,7 +172,6 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
       reverseLayout = false,
       contentPadding = PaddingValues(0.dp),
       beyondBoundsPageCount = 5,
-
       pageContent = { currentPage ->
         BrowserViewContentWeb(viewModel, viewModel.getBrowserViewOrNull(currentPage)!!)
       })

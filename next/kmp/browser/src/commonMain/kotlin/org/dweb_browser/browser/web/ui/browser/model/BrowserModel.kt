@@ -38,8 +38,10 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.build
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 
@@ -79,12 +81,12 @@ class BrowserViewModel(
   private val browserNMM: NativeMicroModule,
   private val browserServer: HttpDwebServer,
 ) {
-  private var webviewIdAcc: AtomicInt = atomic(0)
+  private var webviewIdAcc: AtomicInt = atomic(1)
   private val currentBrowserBaseView: MutableState<BrowserWebView?> = mutableStateOf(null)
   private val browserViewList: MutableList<BrowserWebView> = mutableStateListOf() // 多浏览器列表
   val currentTab get() = currentBrowserBaseView.value
   val listSize get() = browserViewList.size
-  val dwebLinkSearch: MutableState<String> = mutableStateOf("")
+  val dwebLinkSearch: MutableState<String> = mutableStateOf("") // 为了获取desk传过来的地址信息
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false)
   val showMultiView: MutableTransitionState<Boolean> = MutableTransitionState(false)
   val isNoTrace by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -106,18 +108,30 @@ class BrowserViewModel(
   fun getBrowserViewOrNull(currentPage: Int) =
     if (currentPage in 0..listSize) browserViewList[currentPage] else null
 
+  private fun getBrowserMainUrl() = browserServer.startResult.urlInfo.buildInternalUrl().build {
+    resolvePath("/index.html")
+    parameters["api-base"] = browserServer.startResult.urlInfo.buildPublicUrl().toString()
+  }
+
   @OptIn(ExperimentalFoundationApi::class)
   @Composable
   fun rememberBrowserPagerState(): BrowserPagerState {
+    debugBrowser("BrowserModel", "rememberBrowserPagerState -> $listSize")
     val pagerStateContent = rememberPagerState { listSize }
     val pagerStateNavigator = rememberPagerState { listSize }
     return BrowserPagerState(pagerStateContent, pagerStateNavigator)
   }
 
-  @Composable
-  fun rememberBrowserSearchEngine(): MutableTransitionState<Boolean> {
-    return MutableTransitionState(false)
-  }
+  /*  init {
+      browserController.onCloseWindow {
+        withMainContext {
+          browserViewList.forEach { webview ->
+            webview.viewItem.webView.destroy()
+          }
+          browserViewList.clear()
+        }
+      }
+    }*/
 
   val searchBackBrowserView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     CoroutineScope(ioAsyncExceptionHandler).async {
@@ -127,18 +141,16 @@ class BrowserViewModel(
 
   private suspend fun createDwebView(url: String? = null) = IDWebView.create(
     browserNMM, DWebViewOptions(
-      url = url ?: "",
+      url = url ?: getBrowserMainUrl().toString(),
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     )
-  ) // .also { it.asAndroidWebView().isVerticalScrollBarEnabled = false } // 先屏蔽
+  ) // .also { it.asAndroidWebView().isVerticalScrollBarEnabled = false } // 未解决
 
   private suspend fun getNewTabBrowserView(url: String? = null) =
     createBrowserWebView(createDwebView(url))
 
-  private suspend fun createBrowserWebView(
-    dWebView: IDWebView
-  ): BrowserWebView = withMainContext {
+  private suspend fun createBrowserWebView(dWebView: IDWebView): BrowserWebView = withMainContext {
     val webviewId = "#w${webviewIdAcc.getAndAdd(1)}"
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val viewItem = DWebViewItem(
@@ -165,25 +177,22 @@ class BrowserViewModel(
   internal suspend fun createNewTab(search: String? = null, url: String? = null) {
     // 先判断search是否不为空，然后在判断search是否是地址，
     dwebLinkSearch.value = "" // 先清空搜索的内容
-    if (search?.isDeepLink() == true || url?.isDeepLink() == true) {
-      withMainContext {
-        if (browserViewList.isEmpty()) {
-          val item = getNewTabBrowserView()
-          browserViewList.add(item)
-          currentBrowserBaseView.value = item
-        }
-        searchWebView(search ?: url ?: "")
-      }
-    } else if (search?.isUrlOrHost() == true || url?.isUrlOrHost() == true) {
+    if (search?.isUrlOrHost() == true || url?.isUrlOrHost() == true) {
       addNewMainView(search ?: url)
     } else {
-      withMainContext {
-        dwebLinkSearch.value = search ?: url ?: ""
-        if (browserViewList.isEmpty()) {
-          val item = getNewTabBrowserView()
-          browserViewList.add(item)
-          currentBrowserBaseView.value = item
-        }
+      val loadUrl = if (search?.isDeepLink() == false) {
+        dwebLinkSearch.value = search
+        search
+      } else if (url?.isDeepLink() == false) {
+        dwebLinkSearch.value = url
+        url
+      } else {
+        getBrowserMainUrl().toString()
+      }
+      if (browserViewList.isEmpty()) {
+        addNewMainView(loadUrl)
+      } else {
+        searchWebView(loadUrl)
       }
     }
   }
@@ -214,7 +223,7 @@ class BrowserViewModel(
   private val pagerChangeSignal: Signal<Int> = Signal()
   val onPagerStateChange = pagerChangeSignal.toListener()
   suspend fun updateMultiViewState(show: Boolean, index: Int? = null) {
-    showMultiView.targetState = false
+    showMultiView.targetState = show
     delay(100) // window没渲染，导致scroll操作没效果，所以这边增加点等待
     index?.let { pagerChangeSignal.emit(index) }
   }

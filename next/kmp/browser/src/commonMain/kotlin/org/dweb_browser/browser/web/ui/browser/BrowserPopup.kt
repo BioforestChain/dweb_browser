@@ -94,6 +94,7 @@ import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.model.WebSiteType
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.BrowserModalBottomSheet
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.LocalModalBottomSheet
+import org.dweb_browser.browser.web.ui.browser.bottomsheet.SheetState
 import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
 import org.dweb_browser.browser.web.ui.browser.model.toWebSiteInfo
 import org.dweb_browser.browser.web.ui.browser.search.CustomTextField
@@ -103,6 +104,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getCornerRadiusTop
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
+import org.dweb_browser.sys.window.render.LocalWindowController
 
 enum class PopupViewState(
   private val height: Dp = 0.dp,
@@ -135,13 +137,14 @@ enum class PopupViewState(
 internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
   val bottomSheetModel = LocalModalBottomSheet.current
   val scope = rememberCoroutineScope()
+  val win = LocalWindowController.current
 
   if (bottomSheetModel.show.value) {
-    /*BackHandler { // 返回功能先屏蔽
+    win.GoBackHandler {
       if (bottomSheetModel.state.value != SheetState.Hidden) {
         scope.launch { bottomSheetModel.hide() }
       }
-    }*/
+    }
 
     val density = LocalDensity.current.density
     val topLeftRadius = getCornerRadiusTop(rememberPureViewBox(), density, 16f)
@@ -536,10 +539,13 @@ private fun RowItemMenuView(
 @Composable
 internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
+  val win = LocalWindowController.current
   AnimatedVisibility(visibleState = viewModel.showMultiView) {
-    /*BackHandler { // 暂时注释 backhandler
-      viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false))
-    }*/
+    win.GoBackHandler {
+      if (viewModel.showMultiView.targetState) {
+        viewModel.updateMultiViewState(false)
+      }
+    }
     // 高斯模糊做背景
     Box(
       modifier = Modifier
