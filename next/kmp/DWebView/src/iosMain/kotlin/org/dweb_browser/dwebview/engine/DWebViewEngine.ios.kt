@@ -2,16 +2,20 @@ package org.dweb_browser.dwebview.engine
 
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
+import io.ktor.http.hostWithPort
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.http.getFullAuthority
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewWebMessage
+import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
 import org.dweb_browser.dwebview.WebLoadErrorState
 import org.dweb_browser.dwebview.WebLoadStartState
@@ -21,6 +25,7 @@ import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSError
@@ -52,6 +57,7 @@ class DWebViewEngine(
   if (options.url.isNotEmpty()) {
     tryRegistryUrlSchemeHandler(options.url, remoteMM, it)
   }
+//  it.websiteDataStore.proxyConfigurations = listOf(NSProxyConfiguration)
 }) {
   val scope = MainScope()
 
@@ -60,6 +66,9 @@ class DWebViewEngine(
   val loadStateChangeSignal = Signal<WebLoadState>()
   val onReady by lazy { loadStateChangeSignal.toReadyListener() }
   val beforeUnloadSignal = Signal<WebBeforeUnloadArgs>()
+  val loadingProgressSharedFlow = MutableSharedFlow<Float>()
+  val closeSignal = SimpleSignal()
+  val createWindowSignal = Signal<IDWebView>()
 
   init {
     @Suppress("CONFLICTING_OVERLOADS")
@@ -127,20 +136,26 @@ class DWebViewEngine(
       /// 如果是 dweb 域名，这是需要加入网关的链接前缀才能被正常加载
       if (baseUri.host.endsWith(".dweb") && (baseUri.protocol == URLProtocol.HTTP || baseUri.protocol == URLProtocol.HTTPS)) {
         val dwebSchemeHandler = DURLSchemeHandler(remoteMM, baseUri)
+        println("QAQ setURLSchemeHandler: ${dwebSchemeHandler.scheme}")
         configuration.setURLSchemeHandler(dwebSchemeHandler, dwebSchemeHandler.scheme)
       }
     }
   }
 
   fun loadUrl(url: String) {
-    var uri = Url(url)
-
-    if (uri.host.endsWith(".dweb") && (uri.protocol == URLProtocol.HTTP || uri.protocol == URLProtocol.HTTPS)) {
-      uri = Url("${DURLSchemeHandler.getScheme(uri)}:${uri.encodedPathAndQuery}")
+    scope.launch {
+      val safeUrl = if (url.contains(".dweb")) {
+        val uri = Url(url)
+        if (uri.host.endsWith(".dweb") && (uri.protocol == URLProtocol.HTTP || uri.protocol == URLProtocol.HTTPS)) {
+          val fullAuthority = uri.getFullAuthority()
+          Url("${DURLSchemeHandler.getScheme(fullAuthority)}://${fullAuthority}${uri.encodedPathAndQuery}").toString()
+        } else url
+      } else url
+      val nsUrl = NSURL(string = safeUrl)
+      println("QAQ loadUrl: $nsUrl")
+      val navigation = loadRequest(NSURLRequest(uRL = nsUrl))
+        ?: throw Exception("fail to get WKNavigation when loadRequest: $nsUrl")
     }
-    val nsUrl = NSURL.URLWithString(uri.toString()) ?: throw Exception("invalid url: $url")
-    val navigation = loadRequest(NSURLRequest.requestWithURL(nsUrl))
-      ?: throw Exception("fail to get WKNavigation when loadRequest")
   }
 
   init {

@@ -4,9 +4,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.platform.IPureViewController
-import org.dweb_browser.helper.platform.IPureViewCreateParams
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.PureViewCreateParams
+import org.dweb_browser.helper.platform.nativeRootUIViewController_start
 import platform.UIKit.UIApplication
 import kotlin.reflect.KClass
 
@@ -15,19 +15,14 @@ lateinit var nativeMicroModuleUIApplication: UIApplication
 fun NativeMicroModule.Companion.getUIApplication() = nativeMicroModuleUIApplication
 fun NativeMicroModule.getUIApplication() = nativeMicroModuleUIApplication
 
-private val lockActivityState = Mutex()
-fun <T : IPureViewController> NativeMicroModule.startUIViewController(
-  cls: KClass<T>,
-  buildParams: MutableMap<String, Any?>.() -> Unit = {}
-) {
+val lockActivityState = Mutex()
+fun NativeMicroModule.startUIViewController(pureViewController: PureViewController) {
   ioAsyncScope.launch {
     lockActivityState.withLock {
       if (grant?.waitPromise() == false) {
         return@withLock // TODO 用户拒绝协议应该做的事情
       }
-
-      val params = PureViewCreateParams(mutableMapOf<String, Any?>().also(buildParams))
-      getUIApplication().startDelegate(cls, params)
+      nativeRootUIViewController_start(pureViewController)
     }
   }
 }

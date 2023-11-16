@@ -5,11 +5,11 @@ import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
@@ -27,7 +27,7 @@ actual suspend fun IDWebView.Companion.create(
   mm: MicroModule,
   options: DWebViewOptions
 ): IDWebView =
-  create(CGRectMake(0.0, 0.0, 0.0, 0.0), mm, options, WKWebViewConfiguration())
+  create(CGRectMake(0.0, 0.0, 0.0, 0.0), mm, options, withMainContext { WKWebViewConfiguration() })
 
 @OptIn(ExperimentalForeignApi::class)
 suspend fun IDWebView.Companion.create(
@@ -35,11 +35,18 @@ suspend fun IDWebView.Companion.create(
   remoteMM: MicroModule,
   options: DWebViewOptions = DWebViewOptions(),
   configuration: WKWebViewConfiguration,
-) = withMainContext { DWebView(DWebViewEngine(frame, remoteMM, options, configuration)) }
+) = withMainContext { create(DWebViewEngine(frame, remoteMM, options, configuration), options.url) }
+
+@OptIn(ExperimentalForeignApi::class)
+internal fun IDWebView.Companion.create(
+  engine: DWebViewEngine,
+  initUrl: String? = null,
+) = DWebView(engine, initUrl)
 
 class DWebView(
   internal val engine: DWebViewEngine,
-) : IDWebView(engine.options.url) {
+  initUrl: String? = null
+) : IDWebView(initUrl ?: engine.options.url) {
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
   }
@@ -144,12 +151,10 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   override val onLoadStateChange by lazy { engine.loadStateChangeSignal.toListener() }
   override val onReady get() = engine.onReady
   override val onBeforeUnload by lazy { engine.beforeUnloadSignal.toListener() }
-  override val loadingProgressFlow: SharedFlow<Float>
-    get() = TODO("Not yet implemented")
+  override val loadingProgressFlow by lazy { engine.loadingProgressSharedFlow.asSharedFlow() }
   override val closeWatcher: ICloseWatcher
-    get() = TODO("Not yet implemented")
-  override val onCreateWindow: Signal.Listener<IDWebView>
-    get() = TODO("Not yet implemented")
+    get() = engine.closeWatcher
+  override val onCreateWindow by lazy { engine.createWindowSignal.toListener() }
 
   override suspend fun destroy() {
     if (_destroyed) {
@@ -211,15 +216,15 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
-    TODO("Not yet implemented")
+    WARNING("Not yet implemented setPrefersColorScheme")
   }
 
   override suspend fun setVerticalScrollBarVisible(visible: Boolean) {
-    TODO("Not yet implemented")
+    WARNING("Not yet implemented setVerticalScrollBarVisible")
   }
 
   override suspend fun setHorizontalScrollBarVisible(visible: Boolean) {
-    TODO("Not yet implemented")
+    WARNING("Not yet implemented setHorizontalScrollBarVisible")
   }
 
   override suspend fun evaluateAsyncJavascriptCode(

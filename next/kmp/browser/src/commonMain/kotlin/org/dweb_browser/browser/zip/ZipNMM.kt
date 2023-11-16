@@ -7,6 +7,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.WARNING
 
 class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
   init {
@@ -43,6 +44,6 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
   }
 
   override suspend fun _shutdown() {
-    TODO("Not yet implemented")
+    WARNING("Not yet implemented")
   }
 }

@@ -7,5 +7,8 @@
   "dotnet.defaultSolution": "next/dweb-browser/DwebBrowser.sln",
   "[svg]": {
     "editor.defaultFormatter": "jock.svg"
+  },
+  "[swift]": {
+    "editor.defaultFormatter": "vknabel.vscode-apple-swift-format"
   }
 }

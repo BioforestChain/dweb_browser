@@ -7,6 +7,7 @@ import org.dweb_browser.core.http.receiveMultipart
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
 
@@ -52,7 +53,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
   }
 
   override suspend fun _shutdown() {
-    TODO("Not yet implemented")
+    WARNING("Not yet implemented")
   }
 
 }

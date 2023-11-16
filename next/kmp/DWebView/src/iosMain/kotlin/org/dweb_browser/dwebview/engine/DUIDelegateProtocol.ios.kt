@@ -1,8 +1,12 @@
 package org.dweb_browser.dwebview.engine
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.launch
+import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.withMainContext
@@ -34,12 +38,11 @@ import platform.WebKit.WKWindowFeatures
 import platform.darwin.NSObject
 
 class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUIDelegateProtocol {
-  private val closeSignal = Signal<WKWebView>()
   private val jsAlertSignal = Signal<Pair<JsParams, SignalResult<Unit>>>()
   private val jsConfirmSignal = Signal<Pair<JsParams, SignalResult<Boolean>>>()
   private val jsPromptSignal = Signal<Pair<JsPromptParams, SignalResult<String?>>>()
-  private val createWebviewSignal = Signal<CreateWebViewParams>()
-  val createWebViewListener = createWebviewSignal.toListener()
+  private val closeSignal = engine.closeSignal
+  private val createWindowSignal = engine.createWindowSignal
 
   internal data class JsParams(
     val webView: WKWebView,
@@ -62,51 +65,51 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
     val completionHandler: (WKWebView?) -> Unit
   )
 
+  @OptIn(ExperimentalForeignApi::class)
   override fun webView(
     webView: WKWebView,
     createWebViewWithConfiguration: WKWebViewConfiguration,
     forNavigationAction: WKNavigationAction,
     windowFeatures: WKWindowFeatures
   ): WKWebView? {
-    var result: WKWebView? = null
-    val completionHandler: (WKWebView?) -> Unit = {
-      result = it
-    }
-    val args = CreateWebViewParams(webView, createWebViewWithConfiguration, forNavigationAction, windowFeatures, completionHandler)
-    var url = forNavigationAction.request.URL?.absoluteString
-    val createAction: () -> Unit = {
-      if(url != null && engine.closeWatcher.consuming.remove(url)) {
-        val consumeToken = url!!
-        val isUserGesture = forNavigationAction.targetFrame == null || !forNavigationAction.targetFrame!!.mainFrame
-        val watcher = engine.closeWatcher.apply(isUserGesture)
+    val url = forNavigationAction.request.URL?.absoluteString
+    return if (url != null && engine.closeWatcher.consuming.remove(url)) {
+      val isUserGesture =
+        forNavigationAction.targetFrame == null || !forNavigationAction.targetFrame!!.mainFrame
+      val watcher = engine.closeWatcher.apply(isUserGesture)
 
-        engine.scope.launch {
-          withMainContext {
-            engine.closeWatcher.resolveToken(consumeToken, watcher)
-          }
-        }
-      } else {
-        engine.scope.launch {
-          createWebviewSignal.emit(args)
+      engine.scope.launch {
+        withMainContext {
+          engine.closeWatcher.resolveToken(url, watcher)
         }
       }
-    }
-
-    if(url == null) {
-      engine.onReady {
-        url = forNavigationAction.request.URL?.absoluteString
-        createAction()
-      }
+      null
     } else {
-      createAction()
+      val createDwebviewEngin = DWebViewEngine(
+        engine.frame, // TODO use windowFeatures.x/y/width/height
+        engine.remoteMM,
+        DWebViewOptions(url ?: ""),
+        createWebViewWithConfiguration
+      )
+      val dwebView = IDWebView.create(
+        createDwebviewEngin
+      )
+      engine.scope.launch {
+        createWindowSignal.emit(dwebView)
+      }
+      createDwebviewEngin
     }
 
-    return result
+    // if (url != null) {
+    // engine.onReady {
+    //   url = forNavigationAction.request.URL?.absoluteString
+    //   createAction()
+    // }
   }
 
   override fun webViewDidClose(webView: WKWebView) {
     engine.scope.launch {
-      closeSignal.emit(webView)
+      closeSignal.emit()
     }
   }
 

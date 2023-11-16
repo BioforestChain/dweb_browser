@@ -22,7 +22,7 @@ class Query {
     class QueryValueItemDecoder(private val value: String) : Decoder {
       override val serializersModule: SerializersModule = Query.serializersModule
       override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented beginStructure")
       }
 
       override fun decodeBoolean(): Boolean {
@@ -42,7 +42,7 @@ class Query {
       }
 
       override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeEnum")
       }
 
       override fun decodeFloat(): Float {
@@ -50,7 +50,7 @@ class Query {
       }
 
       override fun decodeInline(descriptor: SerialDescriptor): Decoder {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeInline")
       }
 
       override fun decodeInt(): Int {
@@ -245,7 +245,7 @@ class Query {
       }
 
       override fun decodeInlineElement(descriptor: SerialDescriptor, index: Int): Decoder {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeInlineElement")
       }
 
       override fun decodeIntElement(descriptor: SerialDescriptor, index: Int): Int {
@@ -308,7 +308,7 @@ class Query {
       }
 
       override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeEnum")
       }
 
       override fun decodeFloat(): Float {
@@ -316,7 +316,7 @@ class Query {
       }
 
       override fun decodeInline(descriptor: SerialDescriptor): Decoder {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeInline")
       }
 
       override fun decodeInt(): Int {

@@ -38,7 +38,7 @@ class DesktopViewControllerCore(val controller: IPureViewController) {
   }
 
   init {
-    val qaq = controller.addContent {
+    val qaq = controller.addContent2 {
       Box(Modifier.fillMaxSize().background(Color.Green), contentAlignment = Alignment.Center) {
         Text("hhi")
       }
@@ -46,7 +46,7 @@ class DesktopViewControllerCore(val controller: IPureViewController) {
     controller.onCreate { params ->
       val (desktopController, taskbarController, microModule) = bindController(params.getString("deskSessionId"))
 
-      controller.addContent {
+      controller.addContent2 {
         LaunchedEffect(Unit) {
           delay(1000)
           qaq()

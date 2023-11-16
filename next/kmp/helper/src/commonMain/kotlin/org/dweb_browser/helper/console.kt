@@ -26,6 +26,10 @@ fun debugger(vararg params: Any?) {
   println("DEBUGGER 请打断点")
 }
 
+expect fun eprintln(message: String)
+
+fun WARNING(message: String) = eprintln("WARNING: $message")
+
 val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
   printError(ctx.toString(), e.message, e)
   debugger(ctx, e)

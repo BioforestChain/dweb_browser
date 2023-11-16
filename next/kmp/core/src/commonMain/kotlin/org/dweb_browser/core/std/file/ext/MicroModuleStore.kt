@@ -22,7 +22,6 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.buildUnsafeString
-import org.dweb_browser.helper.debugger
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.toUtf8ByteArray
@@ -81,12 +80,14 @@ class MicroModuleStore(
     try {
       val readRequest = mm.nativeFetch("file://file.std.dweb/read?path=$queryPath&create=true")
       val data = readRequest.binary().let {
-        cipher?.decrypt(it) ?: it
+        println("data:${it.joinToString(",")} size:${it.size} empty:${it.isEmpty()}")
+        if (it.isEmpty()) it else cipher?.decrypt(it) ?: it
       }
 
-      Cbor.decodeFromByteArray(data)
+      if (data.isEmpty()) mutableMapOf()
+      else Cbor.decodeFromByteArray(data)
     } catch (e: Throwable) {
-      debugger(e)
+      // debugger(e)
       mutableMapOf()
     }
   }

@@ -5,5 +5,5 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 actual fun SetSystemBarsColor(bgColor: Color, fgColor: Color) {
-  TODO("TODO SetSystemBarsColor.ios")
+//  TODO("TODO SetSystemBarsColor.ios")
 }

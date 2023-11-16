@@ -1,8 +1,6 @@
 package org.dweb_browser.dwebview.engine
 
-import io.ktor.http.URLBuilder
 import io.ktor.http.Url
-import io.ktor.http.takeFrom
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -10,7 +8,6 @@ import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.pin
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureBinaryBody
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.ipc.helper.IpcHeaders
@@ -19,6 +16,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.getFullAuthority
 import org.dweb_browser.helper.NSInputStreamToByteReadChannel
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachArrayRange
 import platform.Foundation.HTTPBodyStream
 import platform.Foundation.HTTPMethod
@@ -32,11 +30,12 @@ import platform.WebKit.WKURLSchemeTaskProtocol
 import platform.WebKit.WKWebView
 import platform.darwin.NSObject
 
+@Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
 class DURLSchemeHandler(private val microModule: MicroModule, private val baseUri: Url) :
   NSObject(), WKURLSchemeHandlerProtocol {
 
-  private val host get() = baseUri.getFullAuthority()
-  val scheme get() = getScheme(host)
+  internal val host by lazy { baseUri.getFullAuthority() }
+  val scheme by lazy { getScheme(host) }
 
   companion object {
     fun getScheme(host: String) = host.replaceFirst(":", "+")
@@ -47,7 +46,14 @@ class DURLSchemeHandler(private val microModule: MicroModule, private val baseUr
   @Suppress("CONFLICTING_OVERLOADS")
   override fun webView(webView: WKWebView, startURLSchemeTask: WKURLSchemeTaskProtocol) {
     try {
-      val url = URLBuilder(baseUri).takeFrom(startURLSchemeTask.request.URL!!.resourceSpecifier!!)
+
+      val pureUrl =
+        buildUrlString(startURLSchemeTask.request.URL?.absoluteString ?: baseUri.toString()) {
+          protocol = baseUri.protocol
+          host = baseUri.host
+          port = baseUri.port
+        }
+      println("QAQ startURLSchemeTask: $pureUrl")
       val headers = IpcHeaders()
       startURLSchemeTask.request.allHTTPHeaderFields!!.toMap().map {
         headers.init(it.key as String, it.value as String)
@@ -63,7 +69,7 @@ class DURLSchemeHandler(private val microModule: MicroModule, private val baseUr
       } ?: IPureBody.Empty
 
       val pureRequest = PureRequest(
-        url.buildString(),
+        pureUrl,
         IpcMethod.valueOf(startURLSchemeTask.request.HTTPMethod!!.uppercase()),
         headers,
         pureBody
@@ -71,6 +77,7 @@ class DURLSchemeHandler(private val microModule: MicroModule, private val baseUr
 
       microModule.ioAsyncScope.launch {
         val response = microModule.nativeFetch(pureRequest)
+        println("QAQ didReceiveResponse: [${response.status}]$pureUrl")
 
         startURLSchemeTask.didReceiveResponse(
           NSHTTPURLResponse(
@@ -90,15 +97,14 @@ class DURLSchemeHandler(private val microModule: MicroModule, private val baseUr
               }
           }
 
-          is PureBinaryBody -> {
+          else -> {
             startURLSchemeTask.didReceiveData(
               body.toPureBinary().toNSData()
             )
           }
-
-          else -> {}
         }
 
+        println("QAQ didFinish: [${response.status}]$pureUrl")
         startURLSchemeTask.didFinish()
       }
 
@@ -121,7 +127,7 @@ class DURLSchemeHandler(private val microModule: MicroModule, private val baseUr
 
   @Suppress("CONFLICTING_OVERLOADS")
   override fun webView(webView: WKWebView, stopURLSchemeTask: WKURLSchemeTaskProtocol) {
-    TODO("Not yet implemented")
+    TODO("Not yet implemented webView(webView: WKWebView, stopURLSchemeTask: WKURLSchemeTaskProtocol)")
   }
 
   @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
