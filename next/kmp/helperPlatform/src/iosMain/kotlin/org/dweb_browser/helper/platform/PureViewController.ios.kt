@@ -9,7 +9,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import platform.UIKit.UIViewController
 
 class PureViewController(
@@ -90,22 +89,15 @@ class PureViewController(
   fun getContent() = ComposeUIViewController {
     CompositionLocalProvider(LocalPureViewBox provides PureViewBox(LocalUIViewController.current)) {
 //      DwebBrowserAppTheme {
-        for (content in contents) {
-          content()
-        }
+      for (content in contents) {
+        content()
+      }
 //      }
     }
   }
 
   private val contents = mutableStateListOf<@Composable () -> Unit>();
-  override fun addContent(content: @Composable () -> Unit): () -> Boolean {
-    contents.add(content)
-    return {
-      contents.remove(content)
-    }
-  }
-
-  override val addContent2: (content: @Composable () -> Unit) -> () -> Boolean = { content ->
+  override val addContent: (content: @Composable () -> Unit) -> () -> Boolean = { content ->
     contents.add(content);
     {
       contents.remove(content)

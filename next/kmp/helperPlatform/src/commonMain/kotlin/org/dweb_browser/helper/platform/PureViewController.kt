@@ -16,8 +16,7 @@ interface IPureViewController {
   suspend fun requestPermission(permission: String): Boolean
 
   //  val contents: MutableList<@Composable () -> Unit>
-  fun addContent(content: @Composable () -> Unit): () -> Boolean
-  val addContent2: (content: @Composable () -> Unit) -> (() -> Boolean)
+  val addContent: (content: @Composable () -> Unit) -> (() -> Boolean)
 }
 
 /**

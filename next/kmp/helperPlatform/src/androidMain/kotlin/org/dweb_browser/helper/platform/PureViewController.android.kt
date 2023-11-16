@@ -77,8 +77,11 @@ open class PureViewController : BaseActivity(), IPureViewController {
   }
 
   private val contents = mutableStateListOf<@Composable () -> Unit>()
-  override fun addContent(content: @Composable () -> Unit) = contents.add(content).let {
-    { contents.remove(content) }
+  override val addContent: (content: @Composable () -> Unit) -> () -> Boolean = { content ->
+    contents.add(content);
+    {
+      contents.remove(content)
+    }
   }
 }
 
