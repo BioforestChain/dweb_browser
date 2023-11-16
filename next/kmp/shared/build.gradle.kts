@@ -1,14 +1,21 @@
-import org.dweb_browser.buildsrc.commonMobileTarget
+apply(from = rootProject.file("gradle/common.gradle"))
 
 plugins {
-  id(libs.plugins.kotlinxMultiplatform.get().pluginId)
-  id(libs.plugins.androidLibrary.get().pluginId)
-  id("org.jetbrains.compose")
-  kotlin("plugin.serialization") version (libs.versions.kotlin.version)
+  alias(libs.plugins.kotlinxMultiplatform)
+  alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.jetbrainsCompose)
+  alias(libs.plugins.kotlinPluginSerialization)
 }
 
 kotlin {
-  commonMobileTarget("DwebShared")
+  listOf(
+    iosX64(), iosArm64(), iosSimulatorArm64()
+  ).forEach {
+    it.binaries.framework {
+      baseName = "DwebShared"
+      isStatic = true
+    }
+  }
 
   sourceSets.commonMain.dependencies {
     implementation(libs.jetbrains.compose.runtime)

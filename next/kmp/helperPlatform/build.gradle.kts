@@ -1,4 +1,4 @@
-import org.dweb_browser.buildsrc.mobileXCFrameworkTarget
+apply(from = rootProject.file("gradle/common.gradle"))
 
 plugins {
   alias(libs.plugins.kotlinxMultiplatform)
@@ -9,8 +9,6 @@ plugins {
 }
 
 kotlin {
-  mobileXCFrameworkTarget()
-
   sourceSets.commonMain.dependencies {
     api(libs.jetbrains.compose.runtime)
     api(libs.jetbrains.compose.foundation)

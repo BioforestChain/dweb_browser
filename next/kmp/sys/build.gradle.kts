@@ -1,4 +1,4 @@
-import org.dweb_browser.buildsrc.commonMobileTarget
+apply(from = rootProject.file("gradle/common.gradle"))
 
 plugins {
   alias(libs.plugins.kotlinxMultiplatform)
@@ -8,8 +8,6 @@ plugins {
 }
 
 kotlin {
-  commonMobileTarget()
-
   sourceSets.commonMain.dependencies {
     implementation(libs.jetbrains.compose.runtime)
     implementation(libs.jetbrains.compose.foundation)

@@ -1,5 +1,4 @@
-import org.dweb_browser.buildsrc.commonMobileTarget
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+apply(from = rootProject.file("gradle/common.gradle"))
 
 plugins {
   alias(libs.plugins.kotlinxMultiplatform)
@@ -8,9 +7,7 @@ plugins {
   alias(libs.plugins.kotlinPluginSerialization)
 }
 
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
-  commonMobileTarget()
 
 //  js(IR){
 //    binaries.executable()
