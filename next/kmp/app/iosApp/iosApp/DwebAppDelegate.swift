@@ -12,6 +12,7 @@ class DwebAppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         Log("Launch! home path:\(NSHomeDirectory())")
         KmpBridgeManager.shared.registerIMPs()
+        DwebDeskVCStroe.shared.startUpNMMs(application)
         return true
     }
 }

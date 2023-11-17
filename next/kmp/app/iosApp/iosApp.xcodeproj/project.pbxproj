@@ -11,6 +11,9 @@
 		058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */; };
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
 		4840D2C42AF10E6800102701 /* KmpBridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */; };
+		485AC7E82B07155E0073EA72 /* DwebRootUIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485AC7E72B07155E0073EA72 /* DwebRootUIViewController.swift */; };
+		485AC7EA2B0715970073EA72 /* DwebDeskVCStroe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485AC7E92B0715970073EA72 /* DwebDeskVCStroe.swift */; };
+		485AC7EC2B0716370073EA72 /* CommonVCWrapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485AC7EB2B0716370073EA72 /* CommonVCWrapView.swift */; };
 		4876C7182AFDD94E00CDF8BF /* DwebAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */; };
 		48C46BDD2AF4CFA0005CBA38 /* UIApplication+Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BDC2AF4CFA0005CBA38 /* UIApplication+Window.swift */; };
 		48C46BDF2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */; };
@@ -117,6 +120,9 @@
 		058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2152FB032600AC8F00CF470E /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KmpBridgeManager.swift; sourceTree = "<group>"; };
+		485AC7E72B07155E0073EA72 /* DwebRootUIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebRootUIViewController.swift; sourceTree = "<group>"; };
+		485AC7E92B0715970073EA72 /* DwebDeskVCStroe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebDeskVCStroe.swift; sourceTree = "<group>"; };
+		485AC7EB2B0716370073EA72 /* CommonVCWrapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonVCWrapView.swift; sourceTree = "<group>"; };
 		4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebAppDelegate.swift; sourceTree = "<group>"; };
 		48C46BDC2AF4CFA0005CBA38 /* UIApplication+Window.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+Window.swift"; sourceTree = "<group>"; };
 		48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpEventShareResposeAction.swift; sourceTree = "<group>"; };
@@ -221,8 +227,18 @@
 				4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */,
 				48C46BE02AF4D515005CBA38 /* KmpEvent.swift */,
 				48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */,
+				485AC7E62B07153B0073EA72 /* NMMs */,
 			);
 			path = kmp;
+			sourceTree = "<group>";
+		};
+		485AC7E62B07153B0073EA72 /* NMMs */ = {
+			isa = PBXGroup;
+			children = (
+				485AC7E72B07155E0073EA72 /* DwebRootUIViewController.swift */,
+				485AC7E92B0715970073EA72 /* DwebDeskVCStroe.swift */,
+			);
+			path = NMMs;
 			sourceTree = "<group>";
 		};
 		7555FF72242A565900829871 = {
@@ -347,6 +363,7 @@
 				F03444622AE26FAA004F732E /* AddressBarView.swift */,
 				F03444632AE26FAA004F732E /* AddressBarTyping */,
 				F034446B2AE26FAA004F732E /* Sheet */,
+				485AC7EB2B0716370073EA72 /* CommonVCWrapView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -605,12 +622,14 @@
 				F03444D12AE2713D004F732E /* DownloadImageViewModel.swift in Sources */,
 				F03444AC2AE26FAB004F732E /* HistoryViewModel.swift in Sources */,
 				4840D2C42AF10E6800102701 /* KmpBridgeManager.swift in Sources */,
+				485AC7E82B07155E0073EA72 /* DwebRootUIViewController.swift in Sources */,
 				F03444D42AE2713D004F732E /* DownloadAppView.swift in Sources */,
 				7555FF83242A565900829871 /* DWebOS.swift in Sources */,
 				F03444A92AE26FAB004F732E /* BookmarkView.swift in Sources */,
 				F03444912AE26FAB004F732E /* AnimationProgress.swift in Sources */,
 				F034449B2AE26FAB004F732E /* TabPageView.swift in Sources */,
 				48C46BDF2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift in Sources */,
+				485AC7EA2B0715970073EA72 /* DwebDeskVCStroe.swift in Sources */,
 				F034443C2AE26F64004F732E /* DwebBrowser.swift in Sources */,
 				F034449C2AE26FAB004F732E /* TabGridView.swift in Sources */,
 				F03444982AE26FAB004F732E /* TabsContainerView.swift in Sources */,
@@ -625,6 +644,7 @@
 				F034448B2AE26FAB004F732E /* Color+Hex.swift in Sources */,
 				F03444C52AE2704A004F732E /* HapticsHelper.swift in Sources */,
 				F03444B92AE26FAC004F732E /* InstalledApp.swift in Sources */,
+				485AC7EC2B0716370073EA72 /* CommonVCWrapView.swift in Sources */,
 				F03444B52AE26FAB004F732E /* MenuView.swift in Sources */,
 				48C46C672AFA2A58005CBA38 /* Loger.swift in Sources */,
 				4876C7182AFDD94E00CDF8BF /* DwebAppDelegate.swift in Sources */,
