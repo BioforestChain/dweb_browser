@@ -10,7 +10,10 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.rememberCanGoBack
@@ -67,6 +70,26 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: F
           }
         }
 
+        /// 为了防止在窗口状态下，webview返回时失真问题。所以在webview加载完成后出发刷新
+        var winRefresh by remember(initialScale) { mutableStateOf(false) }
+        DisposableEffect(initialScale) {
+          val off = viewItem.onReadyListener {
+            winRefresh = true
+          }
+          onDispose {
+            off()
+          }
+        }
+        LaunchedEffect(initialScale) {
+          snapshotFlow { winRefresh }.collect {
+            if (winRefresh) {
+              delay(100)
+              viewItem.webView.setContentScale(initialScale - getNextInt() / 100.0f)
+              winRefresh = false
+            }
+          }
+        }
+
         Box(
           modifier = Modifier.fillMaxSize()
         ) {
@@ -79,5 +102,13 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: F
     }
 
   }
+}
 
+private var atomic = atomic(1)
+private fun getNextInt(): Int {
+  return if (atomic.value == 2) {
+    atomic.decrementAndGet()
+  } else {
+    atomic.incrementAndGet()
+  }
 }

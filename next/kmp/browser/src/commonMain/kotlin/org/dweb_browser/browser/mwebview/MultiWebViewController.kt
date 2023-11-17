@@ -18,6 +18,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -78,7 +79,10 @@ class MultiWebViewController(
     override val coroutineScope: CoroutineScope,
     override var hidden: Boolean = false,
     val win: WindowController
-  ) : ViewItem {}
+  ) : ViewItem {
+    internal val onReady = SimpleSignal()
+    val onReadyListener = onReady.toListener()
+  }
 
   private var downLoadTaskId: String? = null
 
@@ -97,6 +101,9 @@ class MultiWebViewController(
       coroutineScope = coroutineScope,
       win = win,
     ).also { viewItem ->
+      viewItem.webView.onReady { // 为了防止在窗口状态下，webview返回时失真问题。所以在webview加载完成后出发刷新
+        viewItem.onReady.emit()
+      }
       webViewList.add(viewItem)
       dWebView.onDestroy {
         closeWebView(webviewId)
