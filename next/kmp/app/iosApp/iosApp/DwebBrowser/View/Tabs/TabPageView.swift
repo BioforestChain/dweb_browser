@@ -78,10 +78,13 @@ struct TabPageView: View {
                                 snapshot = image
                                 webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image!, imageName: webCache.id.uuidString)
                             }
+                            animation.snapshotImage = snapshot ?? UIImage.snapshotImage(from: .defaultSnapshotURL)
+                            // obtainedCellFrame 和 obtainedSnapshot 这两个步骤并行开始，谁先完成不确定
+                            animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                         }
                     }
-                    animation.snapshotImage = snapshot ?? UIImage.snapshotImage(from: .defaultSnapshotURL)
                     // obtainedCellFrame 和 obtainedSnapshot 这两个步骤并行开始，谁先完成不确定
+                    animation.snapshotImage = snapshot ?? UIImage.snapshotImage(from: .defaultSnapshotURL)
                     animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                 }
             }
