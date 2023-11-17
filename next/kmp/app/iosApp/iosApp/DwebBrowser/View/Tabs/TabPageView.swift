@@ -29,9 +29,7 @@ struct TabPageView: View {
             ZStack {
                 if webCache.shouldShowWeb {
                     webComponent
-                }
-
-                if !webCache.shouldShowWeb {
+                } else {
                     Color.bkColor.overlay {
                         HomePageView()
                     }
@@ -91,61 +89,56 @@ struct TabPageView: View {
     }
 
     var webComponent: some View {
-        Text("xxx")
-//        TabWebView(webView: webWrapper.webView)
-//            .onAppear {
-//                if webWrapper.estimatedProgress < 0.001 {
-//                    webWrapper.webView.load(URLRequest(url: webCache.lastVisitedUrl))
-//                }
-//                print("onappear progress:\(webWrapper.webView.estimatedProgress)")
-//            }
-//
-//            .onChange(of: webWrapper.url) { _, newValue in
-//                if let validUrl = newValue, webCache.lastVisitedUrl != validUrl {
-//                    webCache.lastVisitedUrl = validUrl
-//                }
-//            }
-//
-//            .onChange(of: webWrapper.title) { _, newValue in
-//                if let validTitle = newValue {
-//                    webCache.title = validTitle
-//                }
-//            }
-//            .onChange(of: webWrapper.icon) { _, icon in
-//                webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
-//            }
-//            .onChange(of: webWrapper.canGoBack, perform: { canGoBack in
-//                if isVisible {
-//                    toolbarState.canGoBack = canGoBack
-//                }
-//            })
-//            .onChange(of: webWrapper.canGoForward, perform: { _, canGoForward in
-//                if isVisible {
-//                    toolbarState.canGoForward = canGoForward
-//                }
-//            })
-//            .onChange(of: webWrapper.estimatedProgress) { _, newValue in
-//                if newValue >= 1.0 {
-//                    webcacheStore.saveCaches()
-//                    if !TracelessMode.shared.isON {
-//                        let manager = HistoryCoreDataManager()
-//                        let history = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
-//                        manager.insertHistory(history: history)
-//                    }
-//                }
-//            }
-//            .onChange(of: addressBar.needRefreshOfIndex) { _, refreshIndex in
-//                if refreshIndex == tabIndex {
-//                    webWrapper.webView.reload()
-//                    addressBar.needRefreshOfIndex = -1
-//                }
-//            }
-//
-//            .onReceive(addressBar.$stopLoadingOfIndex) { stopIndex in
-//                if stopIndex == tabIndex {
-//                    webWrapper.webView.stopLoading()
-//                }
-//            }
+        TabWebView(webView: webWrapper.webView)
+        .onAppear {
+            if webWrapper.estimatedProgress < 0.001 {
+                webWrapper.webView.load(URLRequest(url: webCache.lastVisitedUrl))
+            }
+        }
+        .onChange(of: webWrapper.url) { _, newValue in
+            if let validUrl = newValue, webCache.lastVisitedUrl != validUrl {
+                webCache.lastVisitedUrl = validUrl
+            }
+        }
+        .onChange(of: webWrapper.title) { _, newValue in
+            if let validTitle = newValue {
+                webCache.title = validTitle
+            }
+        }
+        .onChange(of: webWrapper.icon) { _, icon in
+            webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
+        }
+        .onChange(of: webWrapper.canGoBack, { _, canGoBack in
+            if isVisible {
+                toolbarState.canGoBack = canGoBack
+            }
+        })
+        .onChange(of: webWrapper.canGoForward) { _, canGoForward in
+            if isVisible {
+                toolbarState.canGoForward = canGoForward
+            }
+        }
+        .onChange(of: webWrapper.estimatedProgress) { _, newValue in
+            if newValue >= 1.0 {
+                webcacheStore.saveCaches()
+                if !TracelessMode.shared.isON {
+                    let manager = HistoryCoreDataManager()
+                    let history = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
+                    manager.insertHistory(history: history)
+                }
+            }
+        }
+        .onChange(of: addressBar.needRefreshOfIndex) { _, refreshIndex in
+            if refreshIndex == tabIndex {
+                webWrapper.webView.reload()
+                addressBar.needRefreshOfIndex = -1
+            }
+        }
+        .onChange(of: addressBar.stopLoadingOfIndex) { _, stopIndex in
+            if stopIndex == tabIndex {
+                webWrapper.webView.stopLoading()
+            }
+        }
     }
 
     func goBack() {
