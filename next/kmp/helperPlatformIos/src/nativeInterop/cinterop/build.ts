@@ -3,21 +3,28 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { WalkFiles } from "../../../../../../plaoc/cli/helper/walk-dir.ts";
+import { which } from "../../../../../../scripts/helper/WhichCommand.ts";
 import { doArchiveTask } from "./archive.ts";
 import { doCreateXcTask } from "./create-xc.ts";
 import { __dirname, runTasks } from "./util.ts";
 
 export const doBuildTask = async () => {
+  const xcodebuild = await which("xcodebuild");
+
+  if(!xcodebuild) {
+    return;
+  }
+
   const writeFileHash = calcHash();
   if (!writeFileHash) {
     console.log("build cached!!");
     return 0;
   }
-  await runTasks(doArchiveTask, doCreateXcTask);
-
-  writeFileHash();
-  console.log("build success!!");
-  return 0;
+  return await runTasks(doArchiveTask, doCreateXcTask, async () => {
+    writeFileHash();
+    console.log("build success!!");
+    return 0;
+  });
 };
 const calcHash = (): (() => void) | undefined => {
   const hashBuilder = crypto.createHash("sha256");
@@ -28,7 +35,7 @@ const calcHash = (): (() => void) | undefined => {
   }
   const fileHash = hashBuilder.digest("hex");
 
-  const buildCacheHash = path.resolve(__dirname, "./build/build-cache.hash");
+  const buildCacheHash = path.resolve(__dirname, "./archives/build-cache.temp");
   const nochange = fs.existsSync(buildCacheHash) && fs.readFileSync(buildCacheHash, "utf-8") === fileHash;
   if (!nochange) {
     return () => {

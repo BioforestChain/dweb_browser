@@ -1,8 +1,12 @@
 import path from "node:path";
+import fs from "node:fs";
 import { __dirname, exec } from "./util.ts";
 
 export const doCreateXcTask = async () => {
-  await Deno.remove(path.resolve(__dirname, "xcframeworks"), { recursive: true });
+  const xcframeworksDir = path.resolve(__dirname, "xcframeworks");
+  if(fs.existsSync(xcframeworksDir)) {
+    await Deno.remove(xcframeworksDir, { recursive: true });
+  }
   return exec([
     "xcodebuild",
     "-create-xcframework",

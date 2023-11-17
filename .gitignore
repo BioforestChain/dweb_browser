@@ -17,6 +17,7 @@ local.properties
 build/
 *.log
 android/app/src/main/assets/plaoc-demo/
+*.temp
 
 # desktop
 *.provisionprofile
