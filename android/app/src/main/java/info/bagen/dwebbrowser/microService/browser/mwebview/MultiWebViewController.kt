@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import android.annotation.SuppressLint
-import android.view.KeyEvent
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -21,12 +20,10 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.browserUI.download.DownLoadObserver
-import org.dweb_browser.browserUI.microService.browser.web.debugBrowser
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.ChangeableList
-import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.runBlockingCatching
@@ -103,8 +100,8 @@ class MultiWebViewController(
     override var hidden: Boolean = false,
     val win: WindowController
   ) : ViewItem {
-    internal val onTouch = SimpleSignal()
-    val touchListener = onTouch.toListener()
+    internal val onReady = SimpleSignal()
+    val onReadyListener = onReady.toListener()
   }
 
   var downLoadObserver: DownLoadObserver? = null
@@ -142,11 +139,8 @@ class MultiWebViewController(
         navigator = navigator,
         win = win,
       ).also { viewItem ->
-        viewItem.webView.setOnTouchListener { v, event ->
-          if (event.action == KeyEvent.ACTION_UP) {
-            viewItem.coroutineScope.launch { viewItem.onTouch.emit() }
-          }
-          false
+        viewItem.webView.onReady { // 为了防止在窗口状态下，webview返回时失真问题。所以在webview加载完成后出发刷新
+          viewItem.coroutineScope.launch { viewItem.onReady.emit() }
         }
         webViewList.add(viewItem)
         dWebView.onCloseWindow {

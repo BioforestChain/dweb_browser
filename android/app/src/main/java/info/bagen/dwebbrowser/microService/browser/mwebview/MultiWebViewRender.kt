@@ -27,9 +27,9 @@ import java.util.concurrent.atomic.AtomicInteger
 private var atomic: AtomicInteger = AtomicInteger(1)
 private fun getNextInt(): Int {
   return if (atomic.toInt() == 2) {
+    atomic.decrementAndGet()
+  } else {
     atomic.incrementAndGet()
-  } else  {
-    atomic.addAndGet(1)
   }
 }
 
@@ -64,7 +64,7 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: I
           MultiWebViewChromeClient(controller, viewItem, isLastView(viewItem))
         }
         DisposableEffect(initialScale) {
-          val off = viewItem.touchListener {
+          val off = viewItem.onReadyListener {
             winRefresh = true
           }
           onDispose {
@@ -75,10 +75,6 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: I
           snapshotFlow { winRefresh }.collect {
             if (winRefresh) {
               delay(100)
-              debugMultiWebView(
-                "snapshotFlow",
-                "$initialScale, (${viewItem.webView.scaleX},${viewItem.webView.scaleY})"
-              )
               viewItem.webView.setInitialScale(initialScale - getNextInt())
               winRefresh = false
             }
