@@ -67,25 +67,22 @@ struct TabPageView: View {
 
             .onChange(of: toolbarState.shouldExpand) { _, shouldExpand in
                 if isVisible, !shouldExpand { // 截图，为缩小动画做准备
-                    var snapshot: UIImage? = nil
+                    animation.snapshotImage = UIImage.snapshotImage(from: .defaultSnapshotURL)
                     if webCache.shouldShowWeb {
                         webWrapper.webView.scrollView.showsVerticalScrollIndicator = false
                         webWrapper.webView.scrollView.showsHorizontalScrollIndicator = false
-                        webWrapper.webView.takeSnapshot(with: nil) { image, error in
+                        webWrapper.webView.takeSnapshot(with: nil) { image, _ in
                             webWrapper.webView.scrollView.showsVerticalScrollIndicator = true
                             webWrapper.webView.scrollView.showsHorizontalScrollIndicator = true
-                            if image != nil {
-                                snapshot = image
-                                webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image!, imageName: webCache.id.uuidString)
+                            if let img = image {
+                                animation.snapshotImage = img
+                                webCache.snapshotUrl = UIImage.createLocalUrl(withImage: img, imageName: webCache.id.uuidString)
                             }
-                            animation.snapshotImage = snapshot ?? UIImage.snapshotImage(from: .defaultSnapshotURL)
-                            // obtainedCellFrame 和 obtainedSnapshot 这两个步骤并行开始，谁先完成不确定
                             animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                         }
+                    } else {
+                        animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                     }
-                    // obtainedCellFrame 和 obtainedSnapshot 这两个步骤并行开始，谁先完成不确定
-                    animation.snapshotImage = snapshot ?? UIImage.snapshotImage(from: .defaultSnapshotURL)
-                    animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                 }
             }
         }
@@ -93,55 +90,55 @@ struct TabPageView: View {
 
     var webComponent: some View {
         TabWebView(webView: webWrapper.webView)
-        .onAppear {
-            if webWrapper.estimatedProgress < 0.001 {
-                webWrapper.webView.load(URLRequest(url: webCache.lastVisitedUrl))
-            }
-        }
-        .onChange(of: webWrapper.url) { _, newValue in
-            if let validUrl = newValue, webCache.lastVisitedUrl != validUrl {
-                webCache.lastVisitedUrl = validUrl
-            }
-        }
-        .onChange(of: webWrapper.title) { _, newValue in
-            if let validTitle = newValue {
-                webCache.title = validTitle
-            }
-        }
-        .onChange(of: webWrapper.icon) { _, icon in
-            webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
-        }
-        .onChange(of: webWrapper.canGoBack, { _, canGoBack in
-            if isVisible {
-                toolbarState.canGoBack = canGoBack
-            }
-        })
-        .onChange(of: webWrapper.canGoForward) { _, canGoForward in
-            if isVisible {
-                toolbarState.canGoForward = canGoForward
-            }
-        }
-        .onChange(of: webWrapper.estimatedProgress) { _, newValue in
-            if newValue >= 1.0 {
-                webcacheStore.saveCaches()
-                if !TracelessMode.shared.isON {
-                    let manager = HistoryCoreDataManager()
-                    let history = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
-                    manager.insertHistory(history: history)
+            .onAppear {
+                if webWrapper.estimatedProgress < 0.001 {
+                    webWrapper.webView.load(URLRequest(url: webCache.lastVisitedUrl))
                 }
             }
-        }
-        .onChange(of: addressBar.needRefreshOfIndex) { _, refreshIndex in
-            if refreshIndex == tabIndex {
-                webWrapper.webView.reload()
-                addressBar.needRefreshOfIndex = -1
+            .onChange(of: webWrapper.url) { _, newValue in
+                if let validUrl = newValue, webCache.lastVisitedUrl != validUrl {
+                    webCache.lastVisitedUrl = validUrl
+                }
             }
-        }
-        .onChange(of: addressBar.stopLoadingOfIndex) { _, stopIndex in
-            if stopIndex == tabIndex {
-                webWrapper.webView.stopLoading()
+            .onChange(of: webWrapper.title) { _, newValue in
+                if let validTitle = newValue {
+                    webCache.title = validTitle
+                }
             }
-        }
+            .onChange(of: webWrapper.icon) { _, icon in
+                webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
+            }
+            .onChange(of: webWrapper.canGoBack) { _, canGoBack in
+                if isVisible {
+                    toolbarState.canGoBack = canGoBack
+                }
+            }
+            .onChange(of: webWrapper.canGoForward) { _, canGoForward in
+                if isVisible {
+                    toolbarState.canGoForward = canGoForward
+                }
+            }
+            .onChange(of: webWrapper.estimatedProgress) { _, newValue in
+                if newValue >= 1.0 {
+                    webcacheStore.saveCaches()
+                    if !TracelessMode.shared.isON {
+                        let manager = HistoryCoreDataManager()
+                        let history = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
+                        manager.insertHistory(history: history)
+                    }
+                }
+            }
+            .onChange(of: addressBar.needRefreshOfIndex) { _, refreshIndex in
+                if refreshIndex == tabIndex {
+                    webWrapper.webView.reload()
+                    addressBar.needRefreshOfIndex = -1
+                }
+            }
+            .onChange(of: addressBar.stopLoadingOfIndex) { _, stopIndex in
+                if stopIndex == tabIndex {
+                    webWrapper.webView.stopLoading()
+                }
+            }
     }
 
     func goBack() {
