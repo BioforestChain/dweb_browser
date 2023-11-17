@@ -94,7 +94,7 @@ struct AddressBar: View {
                 inputText = webCache.lastVisitedUrl.absoluteString
                 displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
             }
-            .onChange(of: webCache.lastVisitedUrl, initial:false, { _, newValue in
+            .onChange(of: webCache.lastVisitedUrl, perform: { newValue in
                 inputText = newValue.absoluteString
                 displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
             })

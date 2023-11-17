@@ -8,13 +8,12 @@
 import SwiftUI
 
 struct HistoryCell: View {
-    @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var dragScale: WndDragScale
-    
+    @EnvironmentObject var toolBarState: ToolBarState
+
     var linkRecord: LinkRecord
     var isLast: Bool
-//    @Binding var shouldShowWeb: Bool
     var loadMoreAction: ()->Void
     private var dividerWidth: CGFloat { isLast ? 0 : 1000.0 }
     var body: some View {
@@ -48,7 +47,7 @@ struct HistoryCell: View {
                  .onTapGesture {
                      guard let link = URL(string: linkRecord.link) else { return }
                      openingLink.clickedLink = link
-                     presentationMode.wrappedValue.dismiss()
+                     toolBarState.showMoreMenu = false
                  }
         }
         .background(Color.menubkColor)

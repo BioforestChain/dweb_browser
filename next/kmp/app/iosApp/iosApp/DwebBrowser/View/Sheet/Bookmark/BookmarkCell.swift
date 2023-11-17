@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct BookmarkCell: View {
-    @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var dragScale: WndDragScale
+    @EnvironmentObject var toolBarState: ToolBarState
 
     var linkRecord: LinkRecord
     var isLast: Bool
@@ -50,7 +50,7 @@ struct BookmarkCell: View {
                  .onTapGesture {
                      guard let link = URL(string: linkRecord.link) else { return }
                      openingLink.clickedLink = link
-                     presentationMode.wrappedValue.dismiss()
+                     toolBarState.showMoreMenu = false
                  }
         }
     }

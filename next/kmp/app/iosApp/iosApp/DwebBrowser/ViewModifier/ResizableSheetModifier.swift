@@ -35,7 +35,10 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                                     withAnimation(.spring()) {
                                         startOffsetY = 0
                                     }
+                                } else {
+                                    startOffsetY = wndHeight
                                 }
+                                
                             })
                             .gesture(
                                 DragGesture()
