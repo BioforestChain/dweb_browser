@@ -1,6 +1,7 @@
 package org.dweb_browser.helper.platform
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
 import org.dweb_browser.helper.Signal
 
 interface IPureViewController {
@@ -15,8 +16,13 @@ interface IPureViewController {
   val onTouch: Signal.Listener<TouchEvent>
   suspend fun requestPermission(permission: String): Boolean
 
-  //  val contents: MutableList<@Composable () -> Unit>
-  val addContent: (content: @Composable () -> Unit) -> (() -> Boolean)
+  fun getContents(): MutableList<@Composable () -> Unit>
+  fun addContent(content: @Composable () -> Unit): () -> Boolean {
+    getContents().add(content);
+    return {
+      getContents().remove(content)
+    }
+  }
 }
 
 /**

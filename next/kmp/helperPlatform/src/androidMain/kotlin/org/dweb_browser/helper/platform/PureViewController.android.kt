@@ -75,13 +75,9 @@ open class PureViewController : BaseActivity(), IPureViewController {
     }
     return super.dispatchTouchEvent(ev)
   }
-
-  private val contents = mutableStateListOf<@Composable () -> Unit>()
-  override val addContent: (content: @Composable () -> Unit) -> () -> Boolean = { content ->
-    contents.add(content);
-    {
-      contents.remove(content)
-    }
+   private val contents = mutableStateListOf<@Composable () -> Unit>()
+  override fun getContents(): MutableList<() -> Unit> {
+    return contents
   }
 }
 
