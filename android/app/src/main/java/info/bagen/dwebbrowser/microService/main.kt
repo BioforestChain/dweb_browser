@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService
 
 import android.webkit.WebView
+import com.google.android.datatransport.BuildConfig
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
@@ -53,10 +54,14 @@ suspend fun startDwebBrowser(): DnsNMM {
   "js-process",
   "desk",
    */
-  when (DEVELOPER.CURRENT) {
+  /*when (DEVELOPER.CURRENT) {
     DEVELOPER.KVirtual -> addDebugTags(listOf("JsMM", "http", "/.+/"))
     DEVELOPER.WaterBang -> addDebugTags(listOf("/.+/"))
+    DEVELOPER.HLOppo -> addDebugTags(listOf("/.+/"))
     else -> addDebugTags(listOf())
+  }*/
+  if (info.bagen.dwebbrowser.BuildConfig.isDebug) {
+    addDebugTags(listOf("/.+/"))
   }
 
   LocalFileFetch.INSTANCE // 注入 localFileFetch

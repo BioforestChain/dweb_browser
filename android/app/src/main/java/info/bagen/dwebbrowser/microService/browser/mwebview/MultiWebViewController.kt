@@ -1,5 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
+import android.annotation.SuppressLint
+import android.view.KeyEvent
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -11,6 +13,7 @@ import info.bagen.dwebbrowser.R
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -18,11 +21,14 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.browserUI.download.DownLoadObserver
+import org.dweb_browser.browserUI.microService.browser.web.debugBrowser
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.ChangeableList
+import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.microservice.core.MicroModule
@@ -97,6 +103,8 @@ class MultiWebViewController(
     override var hidden: Boolean = false,
     val win: WindowController
   ) : ViewItem {
+    internal val onTouch = SimpleSignal()
+    val touchListener = onTouch.toListener()
   }
 
   var downLoadObserver: DownLoadObserver? = null
@@ -118,6 +126,7 @@ class MultiWebViewController(
     dWebView
   }
 
+  @SuppressLint("ClickableViewAccessibility")
   @Synchronized
   fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching {
     withMainContext {
@@ -133,6 +142,12 @@ class MultiWebViewController(
         navigator = navigator,
         win = win,
       ).also { viewItem ->
+        viewItem.webView.setOnTouchListener { v, event ->
+          if (event.action == KeyEvent.ACTION_UP) {
+            viewItem.coroutineScope.launch { viewItem.onTouch.emit() }
+          }
+          false
+        }
         webViewList.add(viewItem)
         dWebView.onCloseWindow {
           closeWebView(webviewId)

@@ -1,24 +1,39 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
+import android.annotation.SuppressLint
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.google.accompanist.web.WebView
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.window.render.LocalWindowController
 import org.dweb_browser.window.render.watchedIsMaximized
+import java.util.concurrent.atomic.AtomicInteger
 
+private var atomic: AtomicInteger = AtomicInteger(1)
+private fun getNextInt(): Int {
+  return if (atomic.toInt() == 2) {
+    atomic.incrementAndGet()
+  } else  {
+    atomic.addAndGet(1)
+  }
+}
+
+@SuppressLint("ClickableViewAccessibility")
 @Composable
 fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: Int) {
   val controller = this;
@@ -44,11 +59,30 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: I
 //        val nativeUiController = viewItem.nativeUiController.effect()
         val state = viewItem.state
         val navigator = viewItem.navigator
-
+        var winRefresh by remember(initialScale) { mutableStateOf(false) }
         val chromeClient = remember {
-          MultiWebViewChromeClient(
-            controller, viewItem, isLastView(viewItem)
-          )
+          MultiWebViewChromeClient(controller, viewItem, isLastView(viewItem))
+        }
+        DisposableEffect(initialScale) {
+          val off = viewItem.touchListener {
+            winRefresh = true
+          }
+          onDispose {
+            off()
+          }
+        }
+        LaunchedEffect(initialScale) {
+          snapshotFlow { winRefresh }.collect {
+            if (winRefresh) {
+              delay(100)
+              debugMultiWebView(
+                "snapshotFlow",
+                "$initialScale, (${viewItem.webView.scaleX},${viewItem.webView.scaleY})"
+              )
+              viewItem.webView.setInitialScale(initialScale - getNextInt())
+              winRefresh = false
+            }
+          }
         }
 
         /// 返回按钮的拦截只跟最后一个视图有关系，直到这最后一个视图被关闭了
@@ -61,13 +95,13 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: I
           val canGoBack =
             if (isMaximized) true else chromeClient.closeWatcherController.canClose || navigator.canGoBack
           win.GoBackHandler(canGoBack) {
-            if (chromeClient.closeWatcherController.canClose) {
+            if (navigator.canGoBack) {
+              debugMultiWebView("NAV/${viewItem.webviewId}", "go back")
+              navigator.navigateBack()
+            } else if (chromeClient.closeWatcherController.canClose) {
               viewItem.coroutineScope.launch {
                 chromeClient.closeWatcherController.close()
               }
-            } else if (navigator.canGoBack) {
-              debugMultiWebView("NAV/${viewItem.webviewId}", "go back")
-              navigator.navigateBack()
             } else if (list.size > 1) {
               viewItem.coroutineScope.launch {
                 closeWebView(viewItem.webviewId)

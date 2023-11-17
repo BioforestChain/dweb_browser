@@ -38,7 +38,6 @@ android {
       res.setSrcDirs(listOf("src/androidTest/res"))
     }
   }
-
   signingConfigs {
     create("release") {
       // 使用 keytool -printcert -jarfile app_release.apk 直接打印 jar 签名信息
@@ -54,9 +53,10 @@ android {
       enableV4Signing = false
     }
   }
-
+  android.buildFeatures.buildConfig = true
   buildTypes {
     release {
+      buildConfigField("Boolean", "isDebug", "false")
       signingConfig = signingConfigs.getByName("release")
       isMinifyEnabled = true //开启代码混淆
       setProguardFiles(listOf("proguard-rules.pro"))
@@ -66,6 +66,7 @@ android {
       archivesName = "Dweb Browser_v${libs.versions.versionName.get()}"
     }
     debug {
+      buildConfigField("Boolean", "isDebug", "true")
       signingConfig = signingConfigs.getByName("debug")
       val userName = System.getProperty("user.name")
         .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
@@ -187,7 +188,9 @@ dependencies {
   /// 依赖
   implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-  implementation(libs.qiniu.upload)
+  // implementation(libs.qiniu.upload)
+
+  // debugImplementation(libs.leack.carnary)
 
   implementation(project(":helper"))
   implementation(project(":microService"))

@@ -3,8 +3,8 @@ compileSdkVersion = "34" # Int
 buildToolsVersion = "29.0.2"
 minSdkVersion = "28" # Int
 targetSdkVersion = "34" # Int
-versionCode = "37" # Int
-versionName = "2.231030.1"
+versionCode = "39" # Int
+versionName = "2.231117.1"
 kotlinCompilerExtensionVersion = "1.5.3-dev-k1.9.10-593b4c95fce"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
@@ -59,6 +59,8 @@ kotlinxSerializationVersion = "1.6.0"
 #crash report --> acra --> https://github.com/ACRA/acra
 acraVersion = "5.11.2"
 qiniuVersion = "8.6.0"
+
+leakcanary = "2.12"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -168,6 +170,8 @@ test-junit-vintage-engine = { group = "org.junit.vintage", name = "junit-vintage
 crash-report-email = { group = "ch.acra", name = "acra-mail", version.ref = "acraVersion" }
 crash-report-http = { group = "ch.acra", name = "acra-http", version.ref = "acraVersion" }
 qiniu-upload = { group = "com.qiniu", name = "qiniu-android-sdk", version.ref = "qiniuVersion" }
+
+leack-carnary = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary"}
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

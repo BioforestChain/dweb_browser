@@ -70,7 +70,7 @@ class App : Application() {
   override fun onCreate() {
     super.onCreate()
     appContext = this
-    CrashUtil.instance.init(this) // 初始化捕获异常
+    // CrashUtil.instance.init(this) // 初始化捕获异常
     // PlaocUtil.addShortcut(this) // 添加桌面快捷方式
     // startService(Intent(this@App, DwebBrowserService::class.java))
     // DwebBrowserUtil.INSTANCE.bindDwebBrowserService()

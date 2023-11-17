@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.util
 import android.content.Context
 import android.os.Build
 import android.os.Process
-import com.qiniu.android.storage.UploadManager
+// import com.qiniu.android.storage.UploadManager
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -31,15 +31,15 @@ class CrashUtil : UncaughtExceptionHandler {
     appContext = context
     setDefaultUncaughtExceptionHandler(this)
 
-    ioAsyncScope.launch(ioAsyncExceptionHandler) {
-      val regex = "^crash_.*\\.log$".toRegex() // 以crash_打头，.log 结尾
-      val uploadManager = UploadManager()
-      appContext.cacheDir.listFiles()?.forEach { file ->
-        if (file.isFile && regex.matches(file.name)) {
-          upload(file, uploadManager) {}
-        }
-      }
-    }
+//    ioAsyncScope.launch(ioAsyncExceptionHandler) {
+//      val regex = "^crash_.*\\.log$".toRegex() // 以crash_打头，.log 结尾
+//      val uploadManager = UploadManager()
+//      appContext.cacheDir.listFiles()?.forEach { file ->
+//        if (file.isFile && regex.matches(file.name)) {
+//          upload(file, uploadManager) {}
+//        }
+//      }
+//    }
   }
 
   override fun uncaughtException(p0: Thread, p1: Throwable) {
@@ -62,31 +62,31 @@ class CrashUtil : UncaughtExceptionHandler {
       printStream.close()
       fos.close()
       // Thread.getDefaultUncaughtExceptionHandler()?.uncaughtException(p0, p1)
-      val uploadManager = UploadManager()
-      upload(file, uploadManager) {
-        Process.killProcess(Process.myPid())
-      }
+//      val uploadManager = UploadManager()
+//      upload(file, uploadManager) {
+//        Process.killProcess(Process.myPid())
+//      }
     } catch (e: Exception) {
       e.printStackTrace()
       Process.killProcess(Process.myPid())
     }
   }
 
-  private fun upload(file: File, uploadManager: UploadManager, handlerCallback: () -> Unit) {
-    uploadManager.put(
-      file,
-      "crash_${Build.MANUFACTURER}/${file.name}",
-      UPTOKEN_Z0,
-      { _, respInfo, jsonData ->
-        if (respInfo.isOK) {
-          // println("异常上报成功")
-          file.deleteRecursively()
-        } else {
-          println("异常上报失败 ${respInfo.error}")
-        }
-        handlerCallback()
-      },
-      null
-    )
-  }
+//  private fun upload(file: File, uploadManager: UploadManager, handlerCallback: () -> Unit) {
+//    uploadManager.put(
+//      file,
+//      "crash_${Build.MANUFACTURER}/${file.name}",
+//      UPTOKEN_Z0,
+//      { _, respInfo, jsonData ->
+//        if (respInfo.isOK) {
+//          // println("异常上报成功")
+//          file.deleteRecursively()
+//        } else {
+//          println("异常上报失败 ${respInfo.error}")
+//        }
+//        handlerCallback()
+//      },
+//      null
+//    )
+//  }
 }
