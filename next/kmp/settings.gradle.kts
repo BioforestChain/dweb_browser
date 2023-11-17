@@ -43,6 +43,7 @@ include(
   ":helper",
   ":helperCompose",
   ":helperPlatform",
+  ":helperPlatformIos",
   ":window",
   ":core",
   ":DWebView",

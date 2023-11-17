@@ -9,7 +9,9 @@
 /* Begin PBXBuildFile section */
 		058557BB273AAA24004C7B11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557BA273AAA24004C7B11 /* Assets.xcassets */; };
 		058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */; };
-		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
+		1A0D794E6805F75B088C0939 /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0D7C84CC71A12D5FCBBF78 /* iOSApp.swift */; };
+		3D763C262B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; };
+		3D763C272B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4840D2C42AF10E6800102701 /* KmpBridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */; };
 		485AC7E82B07155E0073EA72 /* DwebRootUIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485AC7E72B07155E0073EA72 /* DwebRootUIViewController.swift */; };
 		485AC7EA2B0715970073EA72 /* DwebDeskVCStroe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485AC7E92B0715970073EA72 /* DwebDeskVCStroe.swift */; };
@@ -92,16 +94,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		7555FFB4242A642300829871 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		F0C9E2E92AE8E8460035AEE0 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -109,6 +101,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				F0C9E2E82AE8E8460035AEE0 /* WebRTC.xcframework in Embed Frameworks */,
+				3D763C272B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -118,7 +111,9 @@
 /* Begin PBXFileReference section */
 		058557BA273AAA24004C7B11 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		2152FB032600AC8F00CF470E /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
+		1A0D7C84CC71A12D5FCBBF78 /* iOSApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
+		3D50D2E12B0706DF008891FC /* DwebPlatformIosKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = DwebPlatformIosKit.xcframework; path = ../../DwebPlatformIosKit.xcframework; sourceTree = "<group>"; };
+		3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = DwebPlatformIosKit.xcframework; path = ../../helperPlatformIos/src/nativeInterop/cinterop/xcframeworks/DwebPlatformIosKit.xcframework; sourceTree = "<group>"; };
 		4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KmpBridgeManager.swift; sourceTree = "<group>"; };
 		485AC7E72B07155E0073EA72 /* DwebRootUIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebRootUIViewController.swift; sourceTree = "<group>"; };
 		485AC7E92B0715970073EA72 /* DwebDeskVCStroe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebDeskVCStroe.swift; sourceTree = "<group>"; };
@@ -207,6 +202,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F0C9E2E72AE8E8460035AEE0 /* WebRTC.xcframework in Frameworks */,
+				3D763C262B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -219,6 +215,296 @@
 				058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		1A0D70E4A32C076B38ABADCD /* assets */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = assets;
+			sourceTree = "<group>";
+		};
+		1A0D71601E8FA2BAF0813377 /* DwebPlatformIosKit.framework */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7AA7E79DFCED899DA65F /* _CodeSignature */,
+				1A0D7A37E7C158FDF83ABE91 /* Headers */,
+				1A0D7210A8AE39EF7E6136D6 /* Modules */,
+			);
+			name = DwebPlatformIosKit.framework;
+			path = "X-Build/Products/Debug-iphonesimulator/DwebPlatformIosKit.framework";
+			sourceTree = "<group>";
+		};
+		1A0D7210A8AE39EF7E6136D6 /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7562548718785F897EB9 /* DwebPlatformIosKit.swiftmodule */,
+			);
+			path = Modules;
+			sourceTree = "<group>";
+		};
+		1A0D7278AE625FC768D8697C /* web */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = web;
+			sourceTree = "<group>";
+		};
+		1A0D728D3E6C18A169726E46 /* dwebview */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = dwebview;
+			sourceTree = "<group>";
+		};
+		1A0D72B1F605D4B495055E78 /* js-process.main */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "js-process.main";
+			sourceTree = "<group>";
+		};
+		1A0D72B5E84881D303C93A05 /* jmm */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7891250274FDCE0CEEB7 /* assets */,
+			);
+			path = jmm;
+			sourceTree = "<group>";
+		};
+		1A0D72DD18211EAEB9687F1E /* attachments */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = attachments;
+			sourceTree = "<group>";
+		};
+		1A0D730952732B01EFA71D52 /* icons */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = icons;
+			sourceTree = "<group>";
+		};
+		1A0D7355623A49432096CCFF /* attachments */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = attachments;
+			sourceTree = "<group>";
+		};
+		1A0D73A472196F5C9B570C91 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D77E9170DA120F78D87C1 /* aarch64 */,
+				1A0D79C01DB7A759C28D7689 /* x86_64 */,
+				1A0D79B9E68D00E19E76C6BE /* Relocations */,
+				1A0D797F5ACA697DE7760178 /* DWARF */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		1A0D74028A20232EADFF355F /* 089ed51a876e32ee5c786a58ddb45509.xcbuilddata */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7355623A49432096CCFF /* attachments */,
+			);
+			name = 089ed51a876e32ee5c786a58ddb45509.xcbuilddata;
+			path = "X-Build/Intermediates.noindex/XCBuildData/089ed51a876e32ee5c786a58ddb45509.xcbuilddata";
+			sourceTree = "<group>";
+		};
+		1A0D74DC388BADC5B999DAA4 /* js-runtime */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "js-runtime";
+			sourceTree = "<group>";
+		};
+		1A0D74E7A500B088F5641E9D /* 8cd223b07a0f399a74fdb68a0a1948c4.xcbuilddata */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D779C1BF3A15C3BAC47CA /* attachments */,
+			);
+			name = 8cd223b07a0f399a74fdb68a0a1948c4.xcbuilddata;
+			path = "X-Build/Intermediates.noindex/XCBuildData/8cd223b07a0f399a74fdb68a0a1948c4.xcbuilddata";
+			sourceTree = "<group>";
+		};
+		1A0D7524FD31A079253042CB /* js-process.worker */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "js-process.worker";
+			sourceTree = "<group>";
+		};
+		1A0D7562548718785F897EB9 /* DwebPlatformIosKit.swiftmodule */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = DwebPlatformIosKit.swiftmodule;
+			sourceTree = "<group>";
+		};
+		1A0D75E816E24D85EF810B35 /* Intermediates.noindex */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7EB6DD582C12EC91550D /* iosApp.build */,
+			);
+			path = Intermediates.noindex;
+			sourceTree = "<group>";
+		};
+		1A0D769BE1373FDBAECD1845 /* desk */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7B2ABC7EDA84AB06B57A /* assets */,
+			);
+			path = desk;
+			sourceTree = "<group>";
+		};
+		1A0D774B76DCAC8FE69C6E55 /* compose-resources */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D74DC388BADC5B999DAA4 /* js-runtime */,
+				1A0D7E1E9F2DDD547FB07B79 /* offscreen-web-canvas */,
+				1A0D728D3E6C18A169726E46 /* dwebview */,
+				1A0D782A17E10144AD0A7A61 /* browser */,
+				1A0D730952732B01EFA71D52 /* icons */,
+			);
+			name = "compose-resources";
+			path = "X-Build/Products/Debug-iphonesimulator/iosApp.app/compose-resources";
+			sourceTree = "<group>";
+		};
+		1A0D779C1BF3A15C3BAC47CA /* attachments */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = attachments;
+			sourceTree = "<group>";
+		};
+		1A0D77E9170DA120F78D87C1 /* aarch64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = aarch64;
+			path = Relocations/aarch64;
+			sourceTree = "<group>";
+		};
+		1A0D78166BAE4927CA8FE43F /* xcschemes */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = xcschemes;
+			path = iosApp.xcodeproj/project.xcworkspace/xcuserdata/kzf.xcuserdatad/xcschemes;
+			sourceTree = "<group>";
+		};
+		1A0D782A17E10144AD0A7A61 /* browser */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D769BE1373FDBAECD1845 /* desk */,
+				1A0D7524FD31A079253042CB /* js-process.worker */,
+				1A0D72B5E84881D303C93A05 /* jmm */,
+				1A0D7278AE625FC768D8697C /* web */,
+				1A0D72B1F605D4B495055E78 /* js-process.main */,
+			);
+			path = browser;
+			sourceTree = "<group>";
+		};
+		1A0D7891250274FDCE0CEEB7 /* assets */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = assets;
+			sourceTree = "<group>";
+		};
+		1A0D797F5ACA697DE7760178 /* DWARF */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = DWARF;
+			sourceTree = "<group>";
+		};
+		1A0D79B9E68D00E19E76C6BE /* Relocations */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Relocations;
+			sourceTree = "<group>";
+		};
+		1A0D79C01DB7A759C28D7689 /* x86_64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = x86_64;
+			path = Relocations/x86_64;
+			sourceTree = "<group>";
+		};
+		1A0D7A37E7C158FDF83ABE91 /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Headers;
+			sourceTree = "<group>";
+		};
+		1A0D7AA7E79DFCED899DA65F /* _CodeSignature */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = _CodeSignature;
+			sourceTree = "<group>";
+		};
+		1A0D7B29AE9646118B75178A /* Index.noindex */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D75E816E24D85EF810B35 /* Intermediates.noindex */,
+			);
+			name = Index.noindex;
+			path = "X-Build/Index.noindex";
+			sourceTree = "<group>";
+		};
+		1A0D7B2ABC7EDA84AB06B57A /* assets */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = assets;
+			sourceTree = "<group>";
+		};
+		1A0D7C1D83E8971F21DC4C0E /* Contents */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D73A472196F5C9B570C91 /* Resources */,
+			);
+			path = Contents;
+			sourceTree = "<group>";
+		};
+		1A0D7E174AA209E150155FA3 /* DwebPlatformIosKit.framework.dSYM */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7C1D83E8971F21DC4C0E /* Contents */,
+			);
+			name = DwebPlatformIosKit.framework.dSYM;
+			path = "X-Build/Products/Debug-iphonesimulator/DwebPlatformIosKit.framework.dSYM";
+			sourceTree = "<group>";
+		};
+		1A0D7E1E9F2DDD547FB07B79 /* offscreen-web-canvas */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D70E4A32C076B38ABADCD /* assets */,
+			);
+			path = "offscreen-web-canvas";
+			sourceTree = "<group>";
+		};
+		1A0D7E6605E4A76DF13A9E8E /* 0b48ad188dc0e848302c4a43b0a08154.xcbuilddata */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D72DD18211EAEB9687F1E /* attachments */,
+			);
+			name = 0b48ad188dc0e848302c4a43b0a08154.xcbuilddata;
+			path = "X-Build/Intermediates.noindex/XCBuildData/0b48ad188dc0e848302c4a43b0a08154.xcbuilddata";
+			sourceTree = "<group>";
+		};
+		1A0D7EB6DD582C12EC91550D /* iosApp.build */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = iosApp.build;
 			sourceTree = "<group>";
 		};
 		4840D2C22AF10E6800102701 /* kmp */ = {
@@ -247,6 +533,14 @@
 				7555FF7D242A565900829871 /* iosApp */,
 				7555FF7C242A565900829871 /* Products */,
 				7555FFB0242A642200829871 /* Frameworks */,
+				1A0D78166BAE4927CA8FE43F /* xcschemes */,
+				1A0D7B29AE9646118B75178A /* Index.noindex */,
+				1A0D774B76DCAC8FE69C6E55 /* compose-resources */,
+				1A0D74028A20232EADFF355F /* 089ed51a876e32ee5c786a58ddb45509.xcbuilddata */,
+				1A0D7E6605E4A76DF13A9E8E /* 0b48ad188dc0e848302c4a43b0a08154.xcbuilddata */,
+				1A0D71601E8FA2BAF0813377 /* DwebPlatformIosKit.framework */,
+				1A0D7E174AA209E150155FA3 /* DwebPlatformIosKit.framework.dSYM */,
+				1A0D74E7A500B088F5641E9D /* 8cd223b07a0f399a74fdb68a0a1948c4.xcbuilddata */,
 			);
 			sourceTree = "<group>";
 		};
@@ -265,9 +559,9 @@
 				058557BA273AAA24004C7B11 /* Assets.xcassets */,
 				7555FF8C242A565B00829871 /* Info.plist */,
 				7555FF82242A565900829871 /* DWebOS.swift */,
-				2152FB032600AC8F00CF470E /* iOSApp.swift */,
 				4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */,
 				058557D7273AAEEB004C7B11 /* Preview Content */,
+				1A0D7C84CC71A12D5FCBBF78 /* iOSApp.swift */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -275,6 +569,8 @@
 		7555FFB0242A642200829871 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3D50D2E12B0706DF008891FC /* DwebPlatformIosKit.xcframework */,
+				3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */,
 				F0C9E2E62AE8E8460035AEE0 /* WebRTC.xcframework */,
 			);
 			name = Frameworks;
@@ -505,7 +801,6 @@
 				7555FF77242A565900829871 /* Sources */,
 				7555FF78242A565900829871 /* Frameworks */,
 				7555FF79242A565900829871 /* Resources */,
-				7555FFB4242A642300829871 /* Embed Frameworks */,
 				F0C9E2E92AE8E8460035AEE0 /* Embed Frameworks */,
 			);
 			buildRules = (
@@ -609,7 +904,6 @@
 				F03444872AE26FAB004F732E /* View+snapshot.swift in Sources */,
 				F03444AE2AE26FAB004F732E /* SheetSegmentView.swift in Sources */,
 				F03444B72AE26FAC004F732E /* const.swift in Sources */,
-				2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */,
 				48C46BDD2AF4CFA0005CBA38 /* UIApplication+Window.swift in Sources */,
 				F034449D2AE26FAB004F732E /* GridCellView.swift in Sources */,
 				F03444B32AE26FAB004F732E /* MenuCell.swift in Sources */,
@@ -665,6 +959,7 @@
 				F034448D2AE26FAB004F732E /* UIImage+Trans.swift in Sources */,
 				F03444D32AE2713D004F732E /* CustomUIScrollView.swift in Sources */,
 				F03444B22AE26FAB004F732E /* NetworkGuidView.swift in Sources */,
+				1A0D794E6805F75B088C0939 /* iOSApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

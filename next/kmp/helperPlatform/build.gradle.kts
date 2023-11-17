@@ -47,6 +47,7 @@ kotlin {
   }
   sourceSets.iosMain.dependencies {
     api(libs.ktor.client.darwin)
+    api(projects.helperPlatformIos)
   }
 }
 

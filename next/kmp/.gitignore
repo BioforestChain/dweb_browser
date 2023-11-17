@@ -12,3 +12,5 @@ X-Build
 /shared/src/commonMain/resources/browser
 release
 /app/androidApp/dwebbrowser.jks
+*.xcarchive
+*.xcframework
