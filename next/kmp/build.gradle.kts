@@ -5,6 +5,7 @@ plugins {
   alias(libs.plugins.kotlinAndroid) apply false
   alias(libs.plugins.kotlinxMultiplatform) apply false
   alias(libs.plugins.kotlinJvm) apply false
+  alias(libs.plugins.kotlinPluginSerialization) apply false
 }
 
 //tasks.register("clean", Delete::class) {

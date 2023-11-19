@@ -37,6 +37,7 @@ import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
+import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
@@ -196,6 +197,8 @@ suspend fun startDwebBrowser(app: UIApplication): DnsNMM {
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()
   val deskNMM = DeskNMM().setup()
+
+  val browserNMM = BrowserNMM().setup()
 
   /// 启动程序
   val bootNMM = BootNMM(

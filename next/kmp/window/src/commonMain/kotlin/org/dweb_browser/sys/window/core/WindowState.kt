@@ -17,7 +17,7 @@ import org.dweb_browser.sys.window.core.constant.WindowPropertyField
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 
 @Suppress("UNCHECKED_CAST")
-class WindowStateSerializer : KSerializer<WindowState> {
+object WindowStateSerializer : KSerializer<WindowState> {
   override val descriptor = buildClassSerialDescriptor("WindowState") {
     for ((_, field) in WindowPropertyField.ALL_KEYS) {
       element(field.fieldKey.fieldName, field.descriptor, field.annotations, field.isOptional)
@@ -97,7 +97,6 @@ class WindowState(
    * 窗口会被限制最小值,会被限制显示区域。
    * 终止,窗口最终会被绘制在用户可见可控的区域中
    */
-  @Serializable
   var bounds by WindowPropertyField.Bounds.toObserve(observable)
 
   inline fun updateBounds(updater: Rect.() -> Rect) =
