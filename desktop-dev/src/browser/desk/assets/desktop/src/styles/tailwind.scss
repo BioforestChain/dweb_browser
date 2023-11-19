@@ -4,10 +4,6 @@
 @tailwind utilities;
 @tailwind variants;
 
-:root {
-  overflow: scroll !important;
-}
-
 :root,
 .v-application {
   background: transparent !important;
