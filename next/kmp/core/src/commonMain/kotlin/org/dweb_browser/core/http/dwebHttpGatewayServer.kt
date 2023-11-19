@@ -82,19 +82,20 @@ class DwebHttpGatewayServer private constructor() {
                   val res = WebSocketUpgrade(call, null) {
                     val ws = this;
                     val streamReader = response.stream().getReader("Http1Server websocket")
-                    launch {
-                      /// 将从客户端收到的数据，转成 200 的标准传输到 request 的 bodyStream 中
-                      for (frame in ws.incoming) {
-                        requestBodyController.enqueue(frame.data)
-                      }
-                      /// 等到双工关闭，同时也关闭读取层
-                      streamReader.cancel(null)
-                    }
                     /// 将从服务端收到的数据，转成 200 的标准传输到 websocket 的 frame 中
-                    streamReader.consumeEachArrayRange { byteArray, _ ->
-                      ws.send(Frame.Binary(true, byteArray))
+                    launch {
+                      streamReader.consumeEachArrayRange { byteArray, _ ->
+                        ws.send(Frame.Binary(true, byteArray))
+                      }
+                      ws.close()
                     }
-                    ws.close()
+                    /// 将从客户端收到的数据，转成 200 的标准传输到 request 的 bodyStream 中
+                    for (frame in ws.incoming) {// 注意，这里ws.incoming要立刻进行，不能在launch中异步执行，否则ws将无法完成连接建立
+                      requestBodyController.enqueue(frame.data)
+                    }
+                    /// 等到双工关闭，同时也关闭读取层
+                    streamReader.cancel(null)
+
                   }
                   call.respond(res)
                 }

@@ -28,5 +28,6 @@ actual suspend inline fun ByteReadChannel.consumeEachArrayRange(
       }
     } while (true)
   } catch (e: EOFException) {
+    e.printStackTrace()
   }
 }
