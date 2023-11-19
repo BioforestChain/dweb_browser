@@ -21,10 +21,12 @@ import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.compose.transparentColor
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
+import platform.UIKit.UIColor
 import platform.UIKit.UIDevice
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
@@ -204,6 +206,10 @@ class DWebViewEngine(
     if (options.url.isNotEmpty()) {
       loadUrl(options.url)
     }
+
+    setOpaque(false)
+    setBackgroundColor(UIColor.transparentColor)
+    scrollView.setBackgroundColor(UIColor.transparentColor)
   }
 
   fun evalAsyncJavascript(code: String): Deferred<String> {

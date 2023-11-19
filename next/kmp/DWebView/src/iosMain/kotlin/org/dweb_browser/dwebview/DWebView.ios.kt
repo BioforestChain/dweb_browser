@@ -19,6 +19,7 @@ import platform.Foundation.NSString
 import platform.Foundation.create
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
+import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
 
@@ -220,11 +221,11 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   }
 
   override suspend fun setVerticalScrollBarVisible(visible: Boolean) {
-    WARNING("Not yet implemented setVerticalScrollBarVisible")
+    engine.scrollView.showsVerticalScrollIndicator = visible
   }
 
   override suspend fun setHorizontalScrollBarVisible(visible: Boolean) {
-    WARNING("Not yet implemented setHorizontalScrollBarVisible")
+    engine.scrollView.showsHorizontalScrollIndicator = visible
   }
 
   override suspend fun evaluateAsyncJavascriptCode(
@@ -268,3 +269,7 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   ): Deferred<T> = engine.callAsyncJavaScript(functionBody, arguments, inFrame, inContentWorld)
 }
 
+fun IDWebView.asIosWebView(): WKWebView {
+  require(this is DWebView)
+  return engine
+}
