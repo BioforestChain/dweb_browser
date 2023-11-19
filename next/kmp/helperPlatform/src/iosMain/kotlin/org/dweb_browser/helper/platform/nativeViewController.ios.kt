@@ -56,7 +56,6 @@ suspend fun nativeRootUIViewController_start(pureViewController: PureViewControl
           pureViewController.setUIViewController(parentVc)
           val viewVc = pureViewController.getContent()
           /// 对这个vc进行视图的初始化操作
-//          parentVc.showViewController(viewVc,null)
           parentVc.addChildViewController(viewVc)
           parentVc.view.addSubview(viewVc.view)
           viewVc.view.setFrame(parentVc.view.frame)

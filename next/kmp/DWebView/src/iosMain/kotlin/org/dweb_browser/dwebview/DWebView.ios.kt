@@ -220,11 +220,11 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     WARNING("Not yet implemented setPrefersColorScheme")
   }
 
-  override suspend fun setVerticalScrollBarVisible(visible: Boolean) {
+  override suspend fun setVerticalScrollBarVisible(visible: Boolean) = withMainContext {
     engine.scrollView.showsVerticalScrollIndicator = visible
   }
 
-  override suspend fun setHorizontalScrollBarVisible(visible: Boolean) {
+  override suspend fun setHorizontalScrollBarVisible(visible: Boolean) = withMainContext {
     engine.scrollView.showsHorizontalScrollIndicator = visible
   }
 
