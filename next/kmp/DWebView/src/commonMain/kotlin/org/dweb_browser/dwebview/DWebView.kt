@@ -7,7 +7,7 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharedFlow
@@ -45,7 +45,7 @@ abstract class IDWebView(initUrl: String?) {
     suspend fun getProxyAddress() = proxyAddress.await()
 
     init {
-      CoroutineScope(ioAsyncExceptionHandler).launch {
+      GlobalScope.launch(ioAsyncExceptionHandler) {
         println("reverse_proxy starting")
         val proxyServerPort = async { findPort() }
         val frontendServerPort = async { findPort() }

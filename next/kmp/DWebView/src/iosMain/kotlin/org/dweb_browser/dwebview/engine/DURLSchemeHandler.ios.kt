@@ -53,7 +53,6 @@ class DURLSchemeHandler(private val microModule: MicroModule, private val baseUr
           host = baseUri.host
           port = baseUri.port
         }
-      println("QAQ startURLSchemeTask: $pureUrl")
       val headers = IpcHeaders()
       startURLSchemeTask.request.allHTTPHeaderFields!!.toMap().map {
         headers.init(it.key as String, it.value as String)
@@ -77,7 +76,6 @@ class DURLSchemeHandler(private val microModule: MicroModule, private val baseUr
 
       microModule.ioAsyncScope.launch {
         val response = microModule.nativeFetch(pureRequest)
-        println("QAQ didReceiveResponse: [${response.status}]$pureUrl")
 
         startURLSchemeTask.didReceiveResponse(
           NSHTTPURLResponse(
@@ -104,7 +102,6 @@ class DURLSchemeHandler(private val microModule: MicroModule, private val baseUr
           }
         }
 
-        println("QAQ didFinish: [${response.status}]$pureUrl")
         startURLSchemeTask.didFinish()
       }
 

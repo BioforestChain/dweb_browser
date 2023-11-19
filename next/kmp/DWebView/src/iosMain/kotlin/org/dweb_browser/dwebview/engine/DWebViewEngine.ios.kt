@@ -2,7 +2,6 @@ package org.dweb_browser.dwebview.engine
 
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
-import io.ktor.http.hostWithPort
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
@@ -10,17 +9,13 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.http.getFullAuthority
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewWebMessage
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
-import org.dweb_browser.dwebview.WebLoadErrorState
-import org.dweb_browser.dwebview.WebLoadStartState
 import org.dweb_browser.dwebview.WebLoadState
-import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.toReadyListener
@@ -28,23 +23,17 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
-import platform.Foundation.NSError
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
 import platform.UIKit.UIDevice
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
-import platform.WebKit.WKNavigation
-import platform.WebKit.WKNavigationAction
-import platform.WebKit.WKNavigationActionPolicy
-import platform.WebKit.WKNavigationDelegateProtocol
 import platform.WebKit.WKPreferences
 import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.WebKit.javaScriptEnabled
-import platform.darwin.NSObject
 
 
 @OptIn(ExperimentalForeignApi::class)
@@ -70,56 +59,66 @@ class DWebViewEngine(
   val closeSignal = SimpleSignal()
   val createWindowSignal = Signal<IDWebView>()
 
-  init {
-    @Suppress("CONFLICTING_OVERLOADS")
-    setNavigationDelegate(object : NSObject(), WKNavigationDelegateProtocol {
-      override fun webView(
-        webView: WKWebView,
-        decidePolicyForNavigationAction: WKNavigationAction,
-        decisionHandler: (WKNavigationActionPolicy) -> Unit
-      ) {
-        /// navigationAction.navigationType : https://developer.apple.com/documentation/webkit/wknavigationtype/
-        val message = when (decidePolicyForNavigationAction.navigationType) {
-          // reload
-          3L -> "重新加载此网站？"
-          else -> "离开此网站？"
-        }
-        val confirm = runBlocking {
-          val args = WebBeforeUnloadArgs(message)
-          beforeUnloadSignal.emit(args)
-          args.waitHookResults()
-        }
-        if (confirm) {
-          decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
-        } else {
-          decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
-        }
-      }
-
-      override fun webView(
-        webView: WKWebView,
-        didStartProvisionalNavigation: WKNavigation?
-      ) {
-        val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-        scope.launch { loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
-      }
-
-      override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
-        val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-        scope.launch { loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl)) }
-      }
-
-      override fun webView(
-        webView: WKWebView,
-        didFailNavigation: WKNavigation?,
-        withError: NSError
-      ) {
-        val currentUrl = webView.URL?.absoluteString ?: "about:blank"
-        val errorMessage = "[${withError.code}]$currentUrl\n${withError.description}"
-        scope.launch { loadStateChangeSignal.emit(WebLoadErrorState(currentUrl, errorMessage)) }
-      }
-    })
-  }
+//  init {
+//    @Suppress("CONFLICTING_OVERLOADS")
+//    setNavigationDelegate(object : NSObject(), WKNavigationDelegateProtocol {
+//      override fun webView(
+//        webView: WKWebView,
+//        decidePolicyForNavigationAction: WKNavigationAction,
+//        decisionHandler: (WKNavigationActionPolicy) -> Unit
+//      ) {
+//        var confirm = true
+//        /// navigationAction.navigationType : https://developer.apple.com/documentation/webkit/wknavigationtype/
+//        if (beforeUnloadSignal.isNotEmpty()) {
+//          val message = when (decidePolicyForNavigationAction.navigationType) {
+//            // reload
+//            3L -> "重新加载此网站？"
+//            else -> "离开此网站？"
+//          }
+//          confirm = runBlocking {
+//            val args = WebBeforeUnloadArgs(message)
+//            beforeUnloadSignal.emit(args)
+//            args.waitHookResults()
+//          }
+//        }
+//        println("QAQ decidePolicyForNavigationAction: $confirm")
+//        if (confirm) {
+////          if (decidePolicyForNavigationAction.targetFrame == null) {
+////            loadRequest(decidePolicyForNavigationAction.request)
+////          }
+//          decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
+//        } else {
+//          decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
+//        }
+//      }
+//
+//      override fun webView(
+//        webView: WKWebView,
+//        didStartProvisionalNavigation: WKNavigation?
+//      ) {
+//        println("QAQ didStartProvisionalNavigation: $didStartProvisionalNavigation")
+//        val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
+//        scope.launch { loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
+//      }
+//
+//      override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
+//        println("QAQ didFinishNavigation: $didFinishNavigation")
+//        val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
+//        scope.launch { loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl)) }
+//      }
+//
+//      override fun webView(
+//        webView: WKWebView,
+//        didFailNavigation: WKNavigation?,
+//        withError: NSError
+//      ) {
+//        println("QAQ didFailNavigation: $didFailNavigation")
+//        val currentUrl = webView.URL?.absoluteString ?: "about:blank"
+//        val errorMessage = "[${withError.code}]$currentUrl\n${withError.description}"
+//        scope.launch { loadStateChangeSignal.emit(WebLoadErrorState(currentUrl, errorMessage)) }
+//      }
+//    })
+//  }
 
   internal val closeWatcher: CloseWatcher by lazy {
     CloseWatcher(this)
