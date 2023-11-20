@@ -146,6 +146,7 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun setPrefersColorScheme(colorScheme: WebColorScheme)
   abstract suspend fun setVerticalScrollBarVisible(visible: Boolean)
   abstract suspend fun setHorizontalScrollBarVisible(visible: Boolean)
+//  abstract suspend fun setSafeArea(top: Float, left: Float, bottom: Float, right: Float)
 
   abstract suspend fun evaluateAsyncJavascriptCode(
     script: String,

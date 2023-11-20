@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.window.core
+package org.dweb_browser.helper
 
 import kotlinx.serialization.Serializable
 

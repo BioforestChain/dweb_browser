@@ -11,23 +11,11 @@ data class DWebViewOptions(
    * 如果修改了它，就务必注意 WebView 的销毁需要自己去管控 (手动执行 dwebview.destroy())
    */
   val detachedStrategy: DetachedStrategy = DetachedStrategy.Default,
+  /**
+   * 对于显示裁切（刘海屏、挖孔屏）的显示策略
+   */
+  val displayCutoutStrategy: DisplayCutoutStrategy = DisplayCutoutStrategy.Ignore,
 ) {
-  enum class JsBeforeUnloadStrategy {
-    /**
-     * 默认行为，会弹出原生的弹窗提示用户是否要离开页面
-     */
-    Default,
-
-    /**
-     * 不会弹出提示框，总是取消，留下
-     */
-    Cancel,
-
-    /**
-     * 不会弹出提示框，总是确认，离开
-     */
-    Confirm, ;
-  }
 
   enum class DetachedStrategy {
     /**
@@ -38,6 +26,14 @@ data class DWebViewOptions(
     /**
      * 忽略默认行为，不做任何事情
      */
+    Ignore,
+  }
+
+  enum class DisplayCutoutStrategy {
+    // 默认跟随显示屏裁切
+    Default,
+
+    // 忽略显示屏裁切
     Ignore,
   }
 }

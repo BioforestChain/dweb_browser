@@ -9,6 +9,7 @@ import kotlinx.serialization.Transient
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.ReasonLock
+import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI

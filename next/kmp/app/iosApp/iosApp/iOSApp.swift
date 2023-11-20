@@ -14,7 +14,7 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             if DWEB_DESK {
-                DwebFrameworkContentView(vc: $deskVCStore.vc).ignoresSafeArea(.all, edges: .bottom)
+                DwebFrameworkContentView(vc: $deskVCStore.vc).ignoresSafeArea(.all, edges: .all)
             } else {
                 ZStack{
                     if DWEB_OS {
@@ -40,7 +40,7 @@ struct DwebFrameworkContentView: View {
     var body: some View {
         ZStack {
             if let vc = vc {
-                CommonVCWrapView<DwebRootUIViewController>(vc: vc).ignoresSafeArea(.all, edges: .bottom)
+                CommonVCWrapView<DwebRootUIViewController>(vc: vc).ignoresSafeArea(.all, edges: .all)
             } else {
                 Text("Loading...")
             }

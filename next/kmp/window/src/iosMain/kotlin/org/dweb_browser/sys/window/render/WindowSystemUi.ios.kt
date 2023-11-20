@@ -5,11 +5,11 @@ import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowController
 
 @Composable
-actual fun <T:WindowController> WindowsManager<T>.EffectKeyboard() {
+actual fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
 }
 
 @Composable
-actual fun <T:WindowController>WindowsManager<T>.EffectNavigationBar() {
+actual fun <T : WindowController> WindowsManager<T>.EffectNavigationBar() {
 }
 
 @Composable

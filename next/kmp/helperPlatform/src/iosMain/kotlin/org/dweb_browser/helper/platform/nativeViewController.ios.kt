@@ -6,6 +6,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.withMainContext
+import platform.UIKit.UIColor
 import platform.UIKit.UIViewController
 import platform.UIKit.addChildViewController
 import platform.UIKit.didMoveToParentViewController
@@ -58,7 +59,7 @@ suspend fun nativeRootUIViewController_start(pureViewController: PureViewControl
           /// 对这个vc进行视图的初始化操作
           parentVc.addChildViewController(viewVc)
           parentVc.view.addSubview(viewVc.view)
-          viewVc.view.setFrame(parentVc.view.frame)
+          viewVc.view.setFrame(parentVc.view.bounds)
           viewVc.didMoveToParentViewController(parentVc)
           parentVc
         }

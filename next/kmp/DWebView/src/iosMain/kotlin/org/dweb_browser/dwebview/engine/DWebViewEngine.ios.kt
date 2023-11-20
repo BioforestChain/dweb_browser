@@ -28,6 +28,7 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
 import platform.UIKit.UIColor
 import platform.UIKit.UIDevice
+import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
 import platform.WebKit.WKPreferences
@@ -210,6 +211,10 @@ class DWebViewEngine(
     setOpaque(false)
     setBackgroundColor(UIColor.transparentColor)
     scrollView.setBackgroundColor(UIColor.transparentColor)
+    if (options.displayCutoutStrategy == DWebViewOptions.DisplayCutoutStrategy.Ignore) {
+      scrollView.contentInsetAdjustmentBehavior =
+        UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
+    }
   }
 
   fun evalAsyncJavascript(code: String): Deferred<String> {

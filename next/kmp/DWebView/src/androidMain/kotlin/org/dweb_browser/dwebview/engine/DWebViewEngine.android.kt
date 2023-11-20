@@ -5,9 +5,12 @@ import android.content.Context
 import android.net.Uri
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
+import android.view.WindowInsets
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.core.view.DisplayCutoutCompat
+import androidx.core.view.WindowInsetsCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -15,11 +18,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Default
+import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Ignore
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.toAndroidRect
 import org.dweb_browser.helper.withMainContext
 
 /**
@@ -260,4 +267,19 @@ class DWebViewEngine(
   val attachedStateFlow = MutableStateFlow<Boolean>(false);
   val closeWatcher = CloseWatcher(this)
   val createWindowSignal = Signal<IDWebView>()
+
+  private var safeArea = Bounds.Zero
+  override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
+    return when (options.displayCutoutStrategy) {
+      Default -> super.onApplyWindowInsets(insets)
+      Ignore -> {
+        val windowInsetsCompat =
+          WindowInsetsCompat.Builder(WindowInsetsCompat.toWindowInsetsCompat(insets, this)).run {
+            setDisplayCutout(DisplayCutoutCompat(safeArea.toAndroidRect(), null))
+            build()
+          }
+        windowInsetsCompat.toWindowInsets() ?: super.onApplyWindowInsets(insets)
+      }
+    }
+  }
 }

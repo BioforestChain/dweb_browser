@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.sys.window.core.Rect
+import org.dweb_browser.helper.Rect
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.constant.WindowStyle
 import org.dweb_browser.sys.window.core.constant.debugWindow

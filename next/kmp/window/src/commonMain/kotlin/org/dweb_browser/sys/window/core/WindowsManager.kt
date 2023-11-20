@@ -244,7 +244,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPu
   }
 
   private fun <T : WindowController, R> winLifecycleScopeAsync(
-    @Suppress("UNUSED_PARAMETER")   win: T, block: suspend CoroutineScope.() -> R
+    @Suppress("UNUSED_PARAMETER") win: T, block: suspend CoroutineScope.() -> R
   ) = viewController.lifecycleScope.async {
     // TODO 检测 win 的所属权
     block()

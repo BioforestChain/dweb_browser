@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
-import org.dweb_browser.sys.window.core.Rect
+import org.dweb_browser.helper.Rect
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.constant.debugWindow
@@ -20,7 +20,8 @@ import org.dweb_browser.sys.window.core.constant.debugWindow
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 actual fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
-  state.imeVisible = LocalWindowsImeVisible.current.value // 由于小米手机的安全键盘存在问题，会出现WindowInsets.isImeVisible不正确的情况
+  state.imeVisible =
+    LocalWindowsImeVisible.current.value // 由于小米手机的安全键盘存在问题，会出现WindowInsets.isImeVisible不正确的情况
   val ime = WindowInsets.imeAnimationTarget // 直接使用ime，数据不稳定，会变化，改为imeAnimationTarget就是固定值
   val density = LocalDensity.current
   val view = LocalView.current
@@ -39,7 +40,10 @@ actual fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
     }
 
     // 输入法高度即为 heightDiff
-    debugWindow("ManagerState/IME", "imeVisible:${state.imeVisible}, imeBounds:${state.imeBoundingRect}")
+    debugWindow(
+      "ManagerState/IME",
+      "imeVisible:${state.imeVisible}, imeBounds:${state.imeBoundingRect}"
+    )
   }
 
 }

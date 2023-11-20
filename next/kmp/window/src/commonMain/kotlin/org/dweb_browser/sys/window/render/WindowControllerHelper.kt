@@ -54,7 +54,7 @@ import org.dweb_browser.helper.platform.theme.md_theme_light_surface
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.getCornerRadiusBottom
 import org.dweb_browser.helper.platform.getCornerRadiusTop
-import org.dweb_browser.sys.window.core.Rect
+import org.dweb_browser.helper.Rect
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.WindowsManager
