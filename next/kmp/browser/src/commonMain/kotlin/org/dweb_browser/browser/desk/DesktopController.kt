@@ -92,28 +92,16 @@ open class DesktopController private constructor(
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
 
-  // app排序
-  private val appSortList = DaskSortStore(deskNMM)
-
   init {
     runningApps.onChange { map ->
       updateSignal.emit()
-      // 对排序app列表进行更新
-      map.removes.map {
-        appSortList.delete(it)
-      }
-      map.adds.map {
-        if (!appSortList.getApps().contains(it)) {
-          appSortList.push(it)
-        }
-      }
     }
   }
 
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
     val apps = deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
     // 简单的排序再渲染
-    val sortList = appSortList.getApps()
+    val sortList = deskNMM.appSortList.getApps()
     apps.sortBy { sortList.indexOf(it.mmid) }
     val runApps = apps.map { metaData ->
       return@map DeskAppMetaData().apply {

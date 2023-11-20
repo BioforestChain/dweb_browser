@@ -79,6 +79,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val controllersMap = mutableMapOf<String, DeskControllers>()
   }
 
+  // app排序
+  val appSortList = DaskSortStore(this)
   private suspend fun listenApps() = ioAsyncScope.launch {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
@@ -90,6 +92,15 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     launch {
       doObserve("/observe/install-apps") {
         runningApps.emitChangeBackground(adds, updates, removes)
+        // 对排序app列表进行更新
+        removes.map {
+          appSortList.delete(it)
+        }
+        adds.map {
+          if (!appSortList.getApps().contains(it)) {
+            appSortList.push(it)
+          }
+        }
       }
     }
   }

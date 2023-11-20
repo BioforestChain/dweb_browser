@@ -88,7 +88,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
     scope.launch {
       loadStateChangeSignal.emit(
         WebLoadErrorState(
-          view?.url ?: "about:blank",
+          view.url ?: "about:blank",
           error?.let { "[${it.errorCode}]${it.description}" } ?: ""
         )
       )
