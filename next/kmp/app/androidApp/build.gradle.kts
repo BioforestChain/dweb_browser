@@ -102,6 +102,8 @@ android {
       enableV4Signing = false
     }
   }
+
+  android.buildFeatures.buildConfig = true
   buildTypes {
     getByName("release") {
       signingConfig = signingConfigs.getByName("release")

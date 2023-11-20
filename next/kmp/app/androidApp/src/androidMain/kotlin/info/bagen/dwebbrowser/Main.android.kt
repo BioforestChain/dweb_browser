@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService
+package info.bagen.dwebbrowser
 
 import android.webkit.WebView
 import org.dweb_browser.sys.configure.ConfigNMM
@@ -58,14 +58,15 @@ suspend fun startDwebBrowser(): DnsNMM {
   "JsMM",
   "http",
    */
-  when (DEVELOPER.CURRENT) {
+  /*when (DEVELOPER.CURRENT) {
     DEVELOPER.GAUBEE -> addDebugTags(listOf("/.+/"))
     DEVELOPER.WaterbangXiaoMi -> addDebugTags(listOf("/.+/"))
     DEVELOPER.WaterBang -> addDebugTags(listOf("/.+/"))
     DEVELOPER.Kingsword09 -> addDebugTags(listOf("/.+/"))
     DEVELOPER.HLOppo -> addDebugTags(listOf("/.+/"))
     else -> addDebugTags(listOf())
-  }
+  }*/
+  if (BuildConfig.DEBUG) addDebugTags(listOf("/.+/"))
 
   /// 初始化DNS服务
   val dnsNMM = DnsNMM()

@@ -21,7 +21,7 @@ class DeepLinkActivity : PureViewController() {
       lifecycleScope.launch {
         intent.dataString?.let { uri ->
           uri.regexDeepLink()?.let { dwebUri ->
-            val dnsNMM = App.startMicroModuleProcess().waitPromise()
+            val dnsNMM = DwebBrowserApp.startMicroModuleProcess().waitPromise()
             dnsNMM.nativeFetch(dwebUri)
           }
         }

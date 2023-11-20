@@ -45,7 +45,7 @@ class SplashActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     val splashScreen = installSplashScreen() // 必须放在setContent之前
     splashScreen.setKeepOnScreenCondition { mKeepOnAtomicBool.get() } // 使用mKeepOnAtomicBool状态控制欢迎界面
-    App.startMicroModuleProcess() // 启动MicroModule
+    DwebBrowserApp.startMicroModuleProcess() // 启动MicroModule
     val enable = this.getBoolean(KEY_ENABLE_AGREEMENT, false) // 获取隐私协议状态
 
     WindowCompat.setDecorFitsSystemWindows(window, false) // 全屏
@@ -73,7 +73,7 @@ class SplashActivity : AppCompatActivity() {
 
         SplashPrivacyDialog(
           openHome = {
-            App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
+            DwebBrowserApp.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
             grant.resolve(true)
           },
           openWebView = { url -> localPrivacy.value = url },

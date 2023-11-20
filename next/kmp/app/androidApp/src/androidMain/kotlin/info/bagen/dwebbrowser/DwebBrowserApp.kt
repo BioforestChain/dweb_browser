@@ -6,7 +6,6 @@ import android.content.Intent
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import info.bagen.dwebbrowser.microService.startDwebBrowser
 import org.dweb_browser.browser.barcode.ScanningActivity
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -14,7 +13,7 @@ import org.dweb_browser.core.module.nativeMicroModuleAppContext
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.helper.PromiseOut
 
-class App : Application() {
+class DwebBrowserApp : Application() {
   companion object {
     lateinit var appContext: Context
 

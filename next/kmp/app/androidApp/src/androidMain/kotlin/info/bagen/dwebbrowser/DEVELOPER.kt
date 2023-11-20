@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService
+package info.bagen.dwebbrowser
 
 import android.os.Build
 
