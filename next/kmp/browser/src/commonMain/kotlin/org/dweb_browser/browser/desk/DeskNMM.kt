@@ -116,12 +116,12 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     ipc: Ipc, desktopController: DesktopController
   ): WindowController {
     val appId = ipc.remote.mmid;
-    debugDesk("openOrActivateAppWindow", appId)
+    debugDesk("ActivateAppWindow", appId)
     try {
       /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
       val appMainWindow = getAppMainWindow(ipc)
-
       /// 将所有的窗口聚焦
+      appMainWindow.mainWindow.focus()
       desktopController.desktopWindowsManager.focusWindow(appId)
       return appMainWindow
     } catch (e: Exception) {
