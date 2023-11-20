@@ -9,12 +9,14 @@
 /* Begin PBXBuildFile section */
 		3D50D2D92B064BA5008891FC /* DwebPlatformIosKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3D50D2E02B064BB9008891FC /* QAQ.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D50D2DF2B064BB9008891FC /* QAQ.swift */; };
+		48DB304B2B0B32C2004F8CC3 /* DIKWebProxyConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48DB304A2B0B32C2004F8CC3 /* DIKWebProxyConfiguration.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3D50D2D52B064BA5008891FC /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebPlatformIosKit.h; sourceTree = "<group>"; };
 		3D50D2DF2B064BB9008891FC /* QAQ.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QAQ.swift; sourceTree = "<group>"; };
+		48DB304A2B0B32C2004F8CC3 /* DIKWebProxyConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DIKWebProxyConfiguration.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +101,7 @@
 			children = (
 				3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */,
 				3D50D2DF2B064BB9008891FC /* QAQ.swift */,
+				48DB304A2B0B32C2004F8CC3 /* DIKWebProxyConfiguration.swift */,
 			);
 			path = DwebPlatformIosKit;
 			sourceTree = "<group>";
@@ -184,6 +187,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3D50D2E02B064BB9008891FC /* QAQ.swift in Sources */,
+				48DB304B2B0B32C2004F8CC3 /* DIKWebProxyConfiguration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
