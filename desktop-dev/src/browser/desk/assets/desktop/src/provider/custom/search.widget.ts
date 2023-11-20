@@ -6,7 +6,7 @@ const css = String.raw;
 export const searchWidget = {
   appId: `browser.dweb`,
   widgetName: "search",
-  templateHtml: html`<form action="dweb://search" method="get" part="form">
+  templateHtml: html`<form action="dweb://search" method="get" part="form" onsubmit="dwebSearch(event)">
     <input name="q" part="input glass ani" />
     <button type="submit" part="btn btn-primary">
       <span class="icon"> ${search_svg_raw} </span>
@@ -40,3 +40,20 @@ export const searchWidget = {
     },
   ],
 } satisfies $WidgetCustomData;
+
+Object.assign(globalThis, {
+  dwebSearch(event: SubmitEvent) {
+    const btnEle = event.submitter as HTMLButtonElement;
+    const formEle = btnEle.form!;
+    event.preventDefault();
+    const formData = new FormData(formEle);
+    const q = formData.get("q") as string;
+    if (q.startsWith("dweb:")) {
+      fetch(q, { mode: "no-cors" });
+    } else {
+      const query = new URLSearchParams(formData).toString();
+      fetch(formEle.action + "?" + query, { method: formEle.method, mode: "no-cors" });
+    }
+    return false;
+  },
+});
