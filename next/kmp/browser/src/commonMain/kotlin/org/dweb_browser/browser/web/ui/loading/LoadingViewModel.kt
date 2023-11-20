@@ -1,12 +1,19 @@
 package org.dweb_browser.browser.web.ui.loading
 
-import android.annotation.SuppressLint
-import android.os.CountDownTimer
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
+import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import kotlin.native.concurrent.ThreadLocal
 
-class LoadingViewModel {
-  private var mTimer: CountDownTimer? = null
+@ThreadLocal
+object LoadingViewModel {
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+  private var isRunning: Boolean = false
 
   private val white1 = Color(0xFFCCCCCC)
   private val white2 = Color(0xD6CCCCCC)
@@ -25,7 +32,6 @@ class LoadingViewModel {
   private val black6 = Color(0x5C000000)
   private val black7 = Color(0x3D000000)
   private val black8 = Color(0x1F000000)
-
 
   val mColor = mutableListOf(
     white1,
@@ -65,27 +71,20 @@ class LoadingViewModel {
   /**
    * 支付倒计时
    */
-  fun startTimer(time: Long) {
-    if (mTimer != null) {
-      mTimer?.cancel()
-      mTimer = null
-    }
-    mTimer = object : CountDownTimer(time, 100) {
-      @SuppressLint("SetTextI18n")
-      override fun onTick(millisUntilFinished: Long) {
+  fun startTimer() {
+    isRunning = true
+    ioAsyncScope.launch {
+      while (isRunning) {
+        delay(100)
         val data = mColor.removeAt(mColor.size - 1)
         mColor.add(0, data)
-        mTicker.value = System.currentTimeMillis()
+        mTicker.value = datetimeNow()
       }
-
-      override fun onFinish() {
-
-      }
-    }.start()
+    }
   }
 
   fun timerDestroy() {
-    mTimer?.cancel()
-    mTimer = null
+    isRunning = false
+    mTicker.value = datetimeNow()
   }
 }

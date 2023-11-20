@@ -52,7 +52,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     browserServer = this.createBrowserWebServer()
     val browserController = // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
       withMainContext {
-        BrowserController(this@BrowserNMM, browserServer)
+        BrowserController(this@BrowserNMM, browserServer, webLinkStore)
       }
     loadWebLinkApps(browserController, webLinkStore)
 

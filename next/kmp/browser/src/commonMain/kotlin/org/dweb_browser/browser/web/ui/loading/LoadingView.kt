@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.web.ui.loading
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -20,28 +19,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.helper.compose.rememberScreenSize
+import org.dweb_browser.sys.window.render.NativeBackHandler
 import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
 fun LoadingView(show: MutableState<Boolean>) {
-  val viewModel = LoadingViewModel()
   val whiteBackground = !isSystemInDarkTheme()
   if (show.value) {
     LaunchedEffect(Unit) {
-      viewModel.setBackground(whiteBackground)
-      viewModel.startTimer(System.currentTimeMillis())
+      LoadingViewModel.setBackground(whiteBackground)
+      LoadingViewModel.startTimer()
     }
-    DisposableEffect(viewModel) {
+    DisposableEffect(LoadingViewModel) {
       // When the effect leaves the Composition, remove the observer
       onDispose {
-        viewModel.timerDestroy()
+        LoadingViewModel.timerDestroy()
       }
     }
-    BackHandler { show.value = false }
-    val width = LocalConfiguration.current.screenWidthDp
+    NativeBackHandler {
+      if (show.value) show.value = false
+    }
+    val width = rememberScreenSize().screenWidth
     val count = 8
     val rotateAngle = (360 / count).toDouble()
     Box(
@@ -70,16 +71,16 @@ fun LoadingView(show: MutableState<Boolean>) {
           val drawWidth = 0.50 * r
           //圆弧形的矩形 宽度
           val strokeWidth = 0.32 * r
-          if (viewModel.mTicker.value > 0) {
+          if (LoadingViewModel.mTicker.value > 0) {
             for (index in 1..count) {
               val startX =
-                (r + (r - drawWidth) * cos(Math.toRadians(rotateAngle * index))).toFloat()
+                (r + (r - drawWidth) * cos(rotateAngle * index)).toFloat()
               val startY =
-                (r - (r - drawWidth) * sin(Math.toRadians(rotateAngle * index))).toFloat()
-              val endX = (r + r * cos(Math.toRadians(rotateAngle * index))).toFloat()
-              val endY = (r - r * sin(Math.toRadians(rotateAngle * index))).toFloat()
+                (r - (r - drawWidth) * sin(rotateAngle * index)).toFloat()
+              val endX = (r + r * cos(rotateAngle * index)).toFloat()
+              val endY = (r - r * sin(rotateAngle * index)).toFloat()
               drawLine(
-                color = viewModel.mColor[index - 1],
+                color = LoadingViewModel.mColor[index - 1],
                 start = Offset(startX, startY),
                 end = Offset(endX, endY),
                 cap = StrokeCap.Round,

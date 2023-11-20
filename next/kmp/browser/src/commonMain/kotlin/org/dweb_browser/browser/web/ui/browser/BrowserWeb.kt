@@ -12,11 +12,13 @@ import androidx.compose.ui.Modifier
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.toWebColorScheme
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.WebSiteType
 import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
 import org.dweb_browser.browser.web.ui.browser.model.LocalWebViewInitialScale
 import org.dweb_browser.browser.web.ui.browser.model.toWebSiteInfo
+import org.dweb_browser.browser.web.ui.loading.LoadingView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedState
@@ -68,8 +70,9 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
   }
 
   val initialScale = LocalWebViewInitialScale.current
-  LaunchedEffect(Unit) {
-    browserWebView.viewItem.webView.setContentScale(initialScale / 100f)
+
+  LaunchedEffect(initialScale) {
+    browserWebView.viewItem.webView.setContentScale(initialScale)
   }
   browserWebView.viewItem.webView.Render(
     modifier = Modifier
@@ -96,5 +99,5 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
           }
     }*/
   )
-  // LoadingView(browserWebView.loadState) // 先不显示加载框。
+  LoadingView(browserWebView.loadState) // 先不显示加载框。
 }

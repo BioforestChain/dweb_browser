@@ -7,6 +7,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.web.model.BrowserStore
 import org.dweb_browser.browser.web.model.WebLinkManifest
+import org.dweb_browser.browser.web.model.WebLinkStore
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
 import org.dweb_browser.core.help.types.MMID
@@ -23,7 +24,8 @@ import org.dweb_browser.sys.window.core.windowInstancesManager
 
 class BrowserController(
   private val browserNMM: BrowserNMM,
-  private val browserServer: HttpDwebServer
+  private val browserServer: HttpDwebServer,
+  private val webLinkStore: WebLinkStore,
 ) {
   private val browserStore = BrowserStore(browserNMM)
 
@@ -99,7 +101,7 @@ class BrowserController(
     viewModel.createNewTab(search, url)
   }
 
-  suspend fun addUrlToDesktop(title: String, url: String, icon: String) {
+  suspend fun addUrlToDesktop(title: String, url: String, icon: String): Boolean {
     // 由于已经放弃了DataStore，所有这边改为直接走WebLinkStore
     val linkId = WebLinkManifest.createLinkId(url)
     // val icons = icon?.toImageResource()?.let { listOf(it) } ?: emptyList()
@@ -107,11 +109,13 @@ class BrowserController(
       WebLinkManifest(id = linkId, title = title, url = url, icons = emptyList())
     addWebLinkSignal.emit(webLinkManifest)
     // 先判断是否存在，如果存在就不重复执行
-    /*if (DownloadDBStore.checkWebLinkNotExists(context, url)) {
-      DownloadDBStore.saveWebLink(context, createDeskWebLink(context, title, url, icon))
-    }*/
+    if (webLinkStore.get(linkId) == null) {
+      webLinkStore.set(linkId, webLinkManifest)
+      return true
+    }
+    return false
   }
 
-  suspend fun saveStringToStore(key: String, data:String) = browserStore.saveString(key, data)
+  suspend fun saveStringToStore(key: String, data: String) = browserStore.saveString(key, data)
   suspend fun getStringFromStore(key: String) = browserStore.getString(key)
 }

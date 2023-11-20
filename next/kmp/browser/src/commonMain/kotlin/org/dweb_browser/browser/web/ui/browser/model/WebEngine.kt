@@ -35,19 +35,19 @@ val DefaultSearchWebEngine: List<WebEngine>
       name = "百度",
       host = "m.baidu.com",
       //iconRes = R.drawable.ic_engine_baidu,
-      start = "https://m.baidu.com/s?word=%s"
+      start = "https://m.baidu.com/s?word="
     ),
     WebEngine(
       name = "搜狗",
       host = "wap.sogou.com",
       //iconRes = R.drawable.ic_engine_sougou,
-      start = "https://wap.sogou.com/web/searchList.jsp?keyword=%s"
+      start = "https://wap.sogou.com/web/searchList.jsp?keyword="
     ),
     WebEngine(
       name = "360",
       host = "m.so.com",
       //iconRes = R.drawable.ic_engine_360,
-      start = "https://m.so.com/s?q=%s"
+      start = "https://m.so.com/s?q="
     ),
   )
 

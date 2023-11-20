@@ -45,6 +45,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.isSystemUrl
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserBaseView
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.LocalModalBottomSheet
@@ -92,8 +93,8 @@ fun BrowserViewForWindow(
 ) {
   val scope = rememberCoroutineScope()
   val browserPagerState = viewModel.rememberBrowserPagerState()
-  val initialScale =
-    (LocalDensity.current.density * windowRenderScope.scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
+  val initialScale = windowRenderScope.scale * LocalDensity.current.density
+    //(LocalDensity.current.density * windowRenderScope.scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
   val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
 
   LaunchedEffect(browserPagerState) {
@@ -271,7 +272,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
     NavigatorButton(
       imageVector = Icons.Rounded.AddHome,
       name = "AddHome",
-      show = webView.hasUrl()
+      show = !webView.getUrl().isSystemUrl() // webView.hasUrl()
     ) {
       scope.launch { viewModel.addUrlToDesktop() }
     }

@@ -20,7 +20,6 @@ import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowPadding
 import org.dweb_browser.sys.window.render.LocalWindowsManager
 import org.dweb_browser.sys.window.render.watchedBounds
-import kotlin.math.max
 
 class WindowsManagerState(
   val viewController: IPureViewBox,
@@ -67,49 +66,52 @@ class WindowsManagerState(
       watchedState(WindowManagerPropertyKeys.ImeBoundingRect) { this.imeBoundingRect }
 
     fun Modifier.windowImeOutsetBounds() = composed {
-      composed {
-        this
-          .runCatching {
-            val wsm = LocalWindowsManager.current
-            val win = LocalWindowController.current
-            val imeVisible by wsm.watchedState { imeVisible }
-            val modifierOffsetY: Float
-            val keyboardInsetBottom: Float
-            // 键盘不显示
-            if (!imeVisible) {
+      this
+        .runCatching {
+          val wsm = LocalWindowsManager.current
+          val win = LocalWindowController.current
+          val imeVisible by wsm.watchedState { imeVisible }
+          val modifierOffsetY: Float
+          val keyboardInsetBottom: Float
+          // 键盘不显示
+          if (!imeVisible) {
+            modifierOffsetY = 0f
+            keyboardInsetBottom = 0f
+          } else {
+            val winBounds by win.watchedBounds()
+            val imeBounds by wsm.watchedImeBounds()
+            val winOuterY = winBounds.y + winBounds.height //
+
+            if (winOuterY <= imeBounds.y) {
+              // 两个矩形没有交集 或者是全屏状态下
               modifierOffsetY = 0f
               keyboardInsetBottom = 0f
-            } else {
-              val winBounds by win.watchedBounds()
-              val imeBounds by wsm.watchedImeBounds()
-              val winOuterY = winBounds.y + winBounds.height
-
-              if (winOuterY <= imeBounds.y) {
-                // 两个矩形没有交集
-                modifierOffsetY = 0f
+            } else { /// 尝试进行偏移修饰
+              if (win.isMaximized()) {
+                modifierOffsetY = imeBounds.height - LocalWindowPadding.current.bottom - 10f
+                keyboardInsetBottom = imeBounds.height - LocalWindowPadding.current.bottom - 10f
+              } else {
+                modifierOffsetY = -LocalWindowPadding.current.bottom
                 keyboardInsetBottom = 0f
               }
-              /// 尝试进行偏移修饰
-              else {
-                val offsetY = winOuterY - imeBounds.y
-                // 窗口可以通过向上偏移来确保键盘与窗口同时显示
-                if (offsetY <= winBounds.y) {
-                  modifierOffsetY = -offsetY
-                  keyboardInsetBottom = 0f
-                } else {
-                  modifierOffsetY = -winBounds.y
-                  val winPadding = LocalWindowPadding.current
-                  val offsetY2 = offsetY - winPadding.bottom
-                  // 窗口可以牺牲底部区域的显示，多出来的就是键盘的插入高度
-                  keyboardInsetBottom = max(offsetY2 - winBounds.y, 0f)
-                }
-              }
+//              val offsetY = winOuterY - imeBounds.y
+//              // 窗口可以通过向上偏移来确保键盘与窗口同时显示
+//              if (offsetY <= winBounds.y) {
+//                modifierOffsetY = -offsetY
+//                keyboardInsetBottom = 0f
+//              } else {
+//                modifierOffsetY = -winBounds.y
+//                val winPadding = LocalWindowPadding.current
+//                val offsetY2 = offsetY - winPadding.bottom
+//                // 窗口可以牺牲底部区域的显示，多出来的就是键盘的插入高度
+//                keyboardInsetBottom = max(offsetY2 - winBounds.y, 0f)
+//              }
             }
-            win.state.keyboardInsetBottom = keyboardInsetBottom
-            this.offset(y = modifierOffsetY.dp)
           }
-          .getOrDefault(this)
-      }
+          win.state.keyboardInsetBottom = keyboardInsetBottom
+          this.offset(y = modifierOffsetY.dp)
+        }
+        .getOrDefault(this)
     }
   }
 

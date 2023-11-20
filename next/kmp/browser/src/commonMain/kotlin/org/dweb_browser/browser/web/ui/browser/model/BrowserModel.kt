@@ -52,7 +52,7 @@ val LocalShowSearchView = compositionLocalOf {
   mutableStateOf(false)
 }
 
-val LocalWebViewInitialScale = compositionLocalOf<Int> {
+val LocalWebViewInitialScale = compositionLocalOf<Float> {
   noLocalProvidedFor("WebViewInitialScale")
 }
 
@@ -275,14 +275,14 @@ class BrowserViewModel(
   /**
    * 添加到桌面功能
    */
-  suspend fun addUrlToDesktop() {
-    currentBrowserBaseView.value?.also { browserWebView ->
+  suspend fun addUrlToDesktop(): Boolean {
+    return currentBrowserBaseView.value?.let { browserWebView ->
       val webView = browserWebView.viewItem.webView
       val url = webView.getUrl()
       browserController.addUrlToDesktop(
         title = webView.getTitle().ifEmpty { url }, url = url, icon = webView.getIcon()
       )
-    }
+    } ?: false
   }
 
   suspend fun saveBrowserMode(noTrace: Boolean) {
