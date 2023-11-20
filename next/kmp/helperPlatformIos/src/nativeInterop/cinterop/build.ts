@@ -15,6 +15,26 @@ export const doBuildTask = async () => {
     return;
   }
 
+  //#region 用于判断xcode是否安装，存在安装了xcode commandLineTools确没安装xcode的情况
+  const pkgutil = await which("pkgutil");
+
+  if(!pkgutil) {
+    return;
+  }
+
+  const task = new Deno.Command(pkgutil, {
+    args: ["--pkg-info=com.apple.pkg.CLTools_Executables"],
+    stdin: "inherit",
+    stdout: "inherit",
+  });
+  
+  const code = (await task.output()).code;
+
+  if(code !== 0) {
+    return;
+  }
+  //#endregion
+
   const writeFileHash = calcHash();
   if (!writeFileHash) {
     console.log("build cached!!");
