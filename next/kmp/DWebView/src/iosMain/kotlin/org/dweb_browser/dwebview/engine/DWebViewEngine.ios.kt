@@ -49,6 +49,7 @@ class DWebViewEngine(
   if (options.url.isNotEmpty()) {
     tryRegistryUrlSchemeHandler(options.url, remoteMM, it)
   }
+  registryDwebSchemeHandler(remoteMM, it)
 //  it.websiteDataStore.proxyConfigurations = listOf(NSProxyConfiguration)
 }) {
   val scope = MainScope()
@@ -130,17 +131,20 @@ class DWebViewEngine(
   companion object {
     @Deprecated("use proxy for https://*.dweb")
     private fun tryRegistryUrlSchemeHandler(
-      url: String,
-      remoteMM: MicroModule,
-      configuration: WKWebViewConfiguration
+      url: String, remoteMM: MicroModule, configuration: WKWebViewConfiguration
     ) {
       val baseUri = Url(url)
       /// 如果是 dweb 域名，这是需要加入网关的链接前缀才能被正常加载
       if (baseUri.host.endsWith(".dweb") && (baseUri.protocol == URLProtocol.HTTP || baseUri.protocol == URLProtocol.HTTPS)) {
-        val dwebSchemeHandler = DURLSchemeHandler(remoteMM, baseUri)
+        val dwebSchemeHandler = DwebHttpURLSchemeHandler(remoteMM, baseUri)
         println("QAQ setURLSchemeHandler: ${dwebSchemeHandler.scheme}")
         configuration.setURLSchemeHandler(dwebSchemeHandler, dwebSchemeHandler.scheme)
       }
+    }
+
+    fun registryDwebSchemeHandler(remoteMM: MicroModule, configuration: WKWebViewConfiguration) {
+      val dwebSchemeHandler = DwebURLSchemeHandler(remoteMM)
+      configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb")
     }
   }
 
@@ -150,7 +154,7 @@ class DWebViewEngine(
         val uri = Url(url)
         if (uri.host.endsWith(".dweb") && (uri.protocol == URLProtocol.HTTP || uri.protocol == URLProtocol.HTTPS)) {
           val fullAuthority = uri.getFullAuthority()
-          Url("${DURLSchemeHandler.getScheme(fullAuthority)}://${fullAuthority}${uri.encodedPathAndQuery}").toString()
+          Url("${DwebHttpURLSchemeHandler.getScheme(fullAuthority)}://${fullAuthority}${uri.encodedPathAndQuery}").toString()
         } else url
       } else url
       val nsUrl = NSURL(string = safeUrl)
@@ -175,9 +179,7 @@ class DWebViewEngine(
       removeAllScriptMessageHandlers()
       removeAllUserScripts()
       addScriptMessageHandler(
-        LogScriptMessageHandler(),
-        DWebViewWebMessage.webMessagePortContentWorld,
-        "log"
+        LogScriptMessageHandler(), DWebViewWebMessage.webMessagePortContentWorld, "log"
       )
       val dWebViewAsyncCode = DWebViewAsyncCode(this@DWebViewEngine)
       addScriptMessageHandler(dWebViewAsyncCode, "asyncCode")

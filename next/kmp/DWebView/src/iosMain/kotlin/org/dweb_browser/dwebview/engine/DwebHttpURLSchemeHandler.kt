@@ -31,7 +31,7 @@ import platform.WebKit.WKWebView
 import platform.darwin.NSObject
 
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-class DURLSchemeHandler(private val microModule: MicroModule, private val baseUri: Url) :
+class DwebHttpURLSchemeHandler(private val microModule: MicroModule, private val baseUri: Url) :
   NSObject(), WKURLSchemeHandlerProtocol {
 
   internal val host by lazy { baseUri.getFullAuthority() }
