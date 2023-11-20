@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 import { WalkFiles } from "../../../../../../plaoc/cli/helper/walk-dir.ts";
@@ -11,29 +12,23 @@ import { __dirname, runTasks } from "./util.ts";
 export const doBuildTask = async () => {
   const xcodebuild = await which("xcodebuild");
 
-  if(!xcodebuild) {
+  if (!xcodebuild) {
     return;
   }
 
-  //#region 用于判断xcode是否安装，存在安装了xcode commandLineTools确没安装xcode的情况
-  const pkgutil = await which("pkgutil");
+  let isExists = false;
+  const xcodePaths = ["/Applications/Xcode.app", os.homedir() + "/Applications/Xcode.app"];
 
-  if(!pkgutil) {
-    return;
+  for await (const xodePath of xcodePaths) {
+    isExists = fs.existsSync(xodePath);
+    if(isExists) {
+      break;
+    }
   }
 
-  const task = new Deno.Command(pkgutil, {
-    args: ["--pkg-info=com.apple.pkg.CLTools_Executables"],
-    stdin: "inherit",
-    stdout: "inherit",
-  });
-  
-  const code = (await task.output()).code;
-
-  if(code !== 0) {
+  if (!isExists) {
     return;
   }
-  //#endregion
 
   const writeFileHash = calcHash();
   if (!writeFileHash) {
