@@ -17,24 +17,19 @@ struct TabPageView: View {
     @EnvironmentObject var webcacheStore: WebCacheStore
     @EnvironmentObject var dragScale: WndDragScale
     @EnvironmentObject var browerArea: BrowserArea
-
+    @Environment(\.colorScheme) var colorScheme
+    
     var tabIndex: Int { webcacheStore.index(of: webCache)! }
     var webCache: WebCache
     @ObservedObject var webWrapper: WebWrapper
 
+    private let screemScale = UIScreen.main.scale
+    
     @State private var snapshotHeight: CGFloat = 0
     private var isVisible: Bool { tabIndex == selectedTab.curIndex }
     var body: some View {
         GeometryReader { geo in
-            ZStack {
-                if webCache.shouldShowWeb {
-                    webComponent
-                } else {
-                    Color.bkColor.overlay {
-                        HomePageView()
-                    }
-                }
-            }
+            content
             .onChange(of: openingLink.clickedLink) { _, link in
                 guard link != emptyURL else { return }
 
@@ -67,22 +62,41 @@ struct TabPageView: View {
 
             .onChange(of: toolbarState.shouldExpand) { _, shouldExpand in
                 if isVisible, !shouldExpand { // 截图，为缩小动画做准备
-                    animation.snapshotImage = UIImage.snapshotImage(from: .defaultSnapshotURL)
-                    if webCache.shouldShowWeb {
-                        webWrapper.webView.scrollView.showsVerticalScrollIndicator = false
-                        webWrapper.webView.scrollView.showsHorizontalScrollIndicator = false
-                        webWrapper.webView.takeSnapshot(with: nil) { image, _ in
-                            webWrapper.webView.scrollView.showsVerticalScrollIndicator = true
-                            webWrapper.webView.scrollView.showsHorizontalScrollIndicator = true
-                            if let img = image {
-                                animation.snapshotImage = img
-                                webCache.snapshotUrl = UIImage.createLocalUrl(withImage: img, imageName: webCache.id.uuidString)
+                        animation.snapshotImage = UIImage.snapshotImage(from: .defaultSnapshotURL)
+                        if webCache.shouldShowWeb {
+                            webWrapper.webView.scrollView.showsVerticalScrollIndicator = false
+                            webWrapper.webView.scrollView.showsHorizontalScrollIndicator = false
+                            webWrapper.webView.takeSnapshot(with: nil) { image, _ in
+                                webWrapper.webView.scrollView.showsVerticalScrollIndicator = true
+                                webWrapper.webView.scrollView.showsHorizontalScrollIndicator = true
+                                if let img = image {
+                                    animation.snapshotImage = img
+                                    webCache.snapshotUrl = UIImage.createLocalUrl(withImage: img, imageName: webCache.id.uuidString)
+                                }
+                                animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                             }
+                        } else {
+                            let toSnapView = content
+                                .environment(\.colorScheme, colorScheme)
+                                .frame(width: geo.size.width, height: geo.size.height)
+                            let render = ImageRenderer(content: toSnapView)
+                            render.scale = screemScale
+                            animation.snapshotImage = render.uiImage ?? UIImage.snapshotImage(from: .defaultSnapshotURL)
+                            webCache.snapshotUrl = UIImage.createLocalUrl(withImage: animation.snapshotImage, imageName: webCache.id.uuidString)
                             animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                         }
-                    } else {
-                        animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                     }
+            }
+        }
+    }
+    
+    var content: some View {
+        ZStack {
+            if webCache.shouldShowWeb {
+                webComponent
+            } else {
+                Color.bkColor.overlay {
+                    HomePageView()
                 }
             }
         }
