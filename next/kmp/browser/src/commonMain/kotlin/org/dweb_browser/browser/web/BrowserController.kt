@@ -9,7 +9,7 @@ import org.dweb_browser.browser.web.model.BrowserStore
 import org.dweb_browser.browser.web.model.WebLinkManifest
 import org.dweb_browser.browser.web.model.WebLinkStore
 import org.dweb_browser.browser.web.model.WebSiteInfo
-import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
+import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.helper.Signal

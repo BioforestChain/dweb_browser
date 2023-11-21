@@ -1,14 +1,9 @@
-package org.dweb_browser.browser.web.util
+package org.dweb_browser.helper
 
 import android.content.Context
 import androidx.core.content.edit
 
-private const val SHARED_PREFERENCES_NAME = "dwebBrowser"
-const val KEY_ENABLE_AGREEMENT = "enable.agreement" // 判断是否第一次运行程序
-const val KEY_FIRST_LAUNCH = "app.first.launch" // 判断是否第一次运行程序
-const val KEY_MEDIA_IS_LOADED = "media.is.loaded" // 判断media数据是否已经加载过了
-const val KEY_NO_TRACE = "browser.no.trace" // 无痕浏览
-const val KEY_LAST_SEARCH_KEY = "browser.last.keyword" // 最后一次使用引擎搜索的关键字
+private const val SHARED_PREFERENCES_NAME = "DwebBrowser"
 
 /// TODO 这里统一使用 NativeMicroModule 替代 Context
 fun Context.saveString(key: String, value: String) {

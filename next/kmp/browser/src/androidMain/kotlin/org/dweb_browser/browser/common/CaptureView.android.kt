@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.capture
+package org.dweb_browser.browser.common
 
 import android.app.Activity
 import android.content.Context

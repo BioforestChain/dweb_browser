@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.browser
+package org.dweb_browser.browser.web.ui
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -45,20 +45,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserBaseView
 import org.dweb_browser.browser.web.model.BrowserWebView
-import org.dweb_browser.browser.web.ui.browser.bottomsheet.LocalModalBottomSheet
-import org.dweb_browser.browser.web.ui.browser.bottomsheet.ModalBottomModel
-import org.dweb_browser.browser.web.ui.browser.bottomsheet.SheetState
-import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
-import org.dweb_browser.browser.web.ui.browser.model.LocalBrowserPageState
-import org.dweb_browser.browser.web.ui.browser.model.LocalInputText
-import org.dweb_browser.browser.web.ui.browser.model.LocalShowIme
-import org.dweb_browser.browser.web.ui.browser.model.LocalShowSearchView
-import org.dweb_browser.browser.web.ui.browser.model.LocalWebViewInitialScale
-import org.dweb_browser.browser.web.ui.browser.model.parseInputText
-import org.dweb_browser.browser.web.ui.browser.search.SearchView
+import org.dweb_browser.browser.web.ui.bottomsheet.LocalModalBottomSheet
+import org.dweb_browser.browser.web.ui.bottomsheet.ModalBottomModel
+import org.dweb_browser.browser.web.ui.bottomsheet.SheetState
+import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.ui.model.LocalBrowserPageState
+import org.dweb_browser.browser.web.ui.model.LocalInputText
+import org.dweb_browser.browser.web.ui.model.LocalShowIme
+import org.dweb_browser.browser.web.ui.model.LocalShowSearchView
+import org.dweb_browser.browser.web.ui.model.LocalWebViewInitialScale
+import org.dweb_browser.browser.web.ui.model.parseInputText
+import org.dweb_browser.browser.web.ui.search.SearchView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.rememberCanGoBack
 import org.dweb_browser.dwebview.rememberLoadingProgress

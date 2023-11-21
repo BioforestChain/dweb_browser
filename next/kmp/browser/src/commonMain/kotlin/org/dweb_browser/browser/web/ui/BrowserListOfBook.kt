@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.browser
+package org.dweb_browser.browser.web.ui
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.WebSiteInfo
-import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
+import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.helper.*
 
 @Composable

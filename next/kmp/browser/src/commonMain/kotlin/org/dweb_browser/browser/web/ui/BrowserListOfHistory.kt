@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.browser
+package org.dweb_browser.browser.web.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.model.formatToStickyName
-import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
+import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.helper.*
 
 @OptIn(ExperimentalFoundationApi::class)

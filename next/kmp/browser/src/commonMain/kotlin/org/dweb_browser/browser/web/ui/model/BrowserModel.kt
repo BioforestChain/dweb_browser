@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.browser.model
+package org.dweb_browser.browser.web.ui.model
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi

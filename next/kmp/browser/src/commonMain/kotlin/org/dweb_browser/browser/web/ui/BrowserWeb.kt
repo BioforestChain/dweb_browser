@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.browser
+package org.dweb_browser.browser.web.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,13 +12,12 @@ import androidx.compose.ui.Modifier
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.toWebColorScheme
-import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.WebSiteType
-import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
-import org.dweb_browser.browser.web.ui.browser.model.LocalWebViewInitialScale
-import org.dweb_browser.browser.web.ui.browser.model.toWebSiteInfo
-import org.dweb_browser.browser.web.ui.loading.LoadingView
+import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.ui.model.LocalWebViewInitialScale
+import org.dweb_browser.browser.web.ui.model.toWebSiteInfo
+import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedState

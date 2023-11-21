@@ -7,7 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.web.ui.loading.LoadingView
+import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.platform.PureViewController
 

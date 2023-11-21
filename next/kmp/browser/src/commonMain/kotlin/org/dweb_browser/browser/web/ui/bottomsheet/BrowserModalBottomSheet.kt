@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.browser.bottomsheet
+package org.dweb_browser.browser.web.ui.bottomsheet
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background

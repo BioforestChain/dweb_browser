@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.browser.search
+package org.dweb_browser.browser.web.ui.search
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
@@ -36,12 +36,12 @@ import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.browser.util.toRequestUrl
-import org.dweb_browser.browser.web.ui.browser.dimenSearchHeight
-import org.dweb_browser.browser.web.ui.browser.dimenTextFieldFontSize
-import org.dweb_browser.browser.web.ui.browser.model.DefaultSearchWebEngine
-import org.dweb_browser.browser.web.ui.browser.model.WebEngine
-import org.dweb_browser.browser.web.ui.browser.model.findWebEngine
-import org.dweb_browser.browser.web.ui.browser.model.parseInputText
+import org.dweb_browser.browser.web.ui.dimenSearchHeight
+import org.dweb_browser.browser.web.ui.dimenTextFieldFontSize
+import org.dweb_browser.browser.web.ui.model.DefaultSearchWebEngine
+import org.dweb_browser.browser.web.ui.model.WebEngine
+import org.dweb_browser.browser.web.ui.model.findWebEngine
+import org.dweb_browser.browser.web.ui.model.parseInputText
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 
 /**

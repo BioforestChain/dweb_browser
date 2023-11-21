@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.splash
+package org.dweb_browser.browser.common
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.browser
+package org.dweb_browser.browser.web.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -92,12 +92,12 @@ import org.dweb_browser.browser.web.model.BrowserMainView
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.model.WebSiteType
-import org.dweb_browser.browser.web.ui.browser.bottomsheet.BrowserModalBottomSheet
-import org.dweb_browser.browser.web.ui.browser.bottomsheet.LocalModalBottomSheet
-import org.dweb_browser.browser.web.ui.browser.bottomsheet.SheetState
-import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
-import org.dweb_browser.browser.web.ui.browser.model.toWebSiteInfo
-import org.dweb_browser.browser.web.ui.browser.search.CustomTextField
+import org.dweb_browser.browser.web.ui.bottomsheet.BrowserModalBottomSheet
+import org.dweb_browser.browser.web.ui.bottomsheet.LocalModalBottomSheet
+import org.dweb_browser.browser.web.ui.bottomsheet.SheetState
+import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.ui.model.toWebSiteInfo
+import org.dweb_browser.browser.web.ui.search.CustomTextField
 import org.dweb_browser.helper.PrivacyUrl
 import org.dweb_browser.helper.compose.rememberScreenSize
 import org.dweb_browser.helper.ioAsyncExceptionHandler

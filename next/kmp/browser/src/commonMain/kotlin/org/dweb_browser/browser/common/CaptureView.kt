@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.capture
+package org.dweb_browser.browser.common
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.browser.model
+package org.dweb_browser.browser.web.ui.model
 
 import io.ktor.http.Url
 import io.ktor.http.fullPath

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.loading
+package org.dweb_browser.browser.common.loading
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color

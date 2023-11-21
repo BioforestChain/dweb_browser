@@ -23,11 +23,10 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.web.ui.splash.SplashPrivacyDialog
+import org.dweb_browser.browser.common.SplashPrivacyDialog
 import org.dweb_browser.browser.web.ui.view.CommonWebView
-import org.dweb_browser.browser.web.util.KEY_ENABLE_AGREEMENT
-import org.dweb_browser.browser.web.util.getBoolean
-import org.dweb_browser.browser.web.util.saveBoolean
+import org.dweb_browser.helper.getBoolean
+import org.dweb_browser.helper.saveBoolean
 import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.core.module.interceptStartApp
 import org.dweb_browser.helper.PromiseOut
@@ -39,6 +38,7 @@ import kotlin.system.exitProcess
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
   private var mKeepOnAtomicBool = java.util.concurrent.atomic.AtomicBoolean(true)
+  private val keyEnableAgreement = "enable.agreement" // 判断是否第一次运行程序
 
   @SuppressLint("ObjectAnimatorBinding", "CoroutineCreationDuringComposition")
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +46,7 @@ class SplashActivity : AppCompatActivity() {
     val splashScreen = installSplashScreen() // 必须放在setContent之前
     splashScreen.setKeepOnScreenCondition { mKeepOnAtomicBool.get() } // 使用mKeepOnAtomicBool状态控制欢迎界面
     DwebBrowserApp.startMicroModuleProcess() // 启动MicroModule
-    val enable = this.getBoolean(KEY_ENABLE_AGREEMENT, false) // 获取隐私协议状态
+    val enable = this.getBoolean(keyEnableAgreement, false) // 获取隐私协议状态
 
     WindowCompat.setDecorFitsSystemWindows(window, false) // 全屏
 
@@ -73,7 +73,7 @@ class SplashActivity : AppCompatActivity() {
 
         SplashPrivacyDialog(
           openHome = {
-            DwebBrowserApp.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
+            DwebBrowserApp.appContext.saveBoolean(keyEnableAgreement, true)
             grant.resolve(true)
           },
           openWebView = { url -> localPrivacy.value = url },

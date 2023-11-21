@@ -10,7 +10,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
-import org.dweb_browser.browser.web.ui.capture.CaptureController
+import org.dweb_browser.browser.common.CaptureController
 import org.dweb_browser.dwebview.base.ViewItem
 
 interface BrowserBaseView {
