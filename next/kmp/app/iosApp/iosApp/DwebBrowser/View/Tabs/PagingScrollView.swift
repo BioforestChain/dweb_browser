@@ -63,3 +63,47 @@ struct PagingScrollView: View {
         }
     }
 }
+
+
+struct OffsetViewView: View {
+    @State private var scrollOffset: CGFloat = 0
+
+    var body: some View {
+        ScrollView {
+            ScrollViewReader { proxy in
+                VStack {
+                    ForEach(0..<50) { index in
+                        Text("Item \(index)")
+                            .frame(height: 50)
+                    }
+                }
+                .onAppear {
+                    // Scroll to a specific view when the view appears
+                    proxy.scrollTo(25, anchor: .top)
+                }
+                .background(
+                    GeometryReader { geometry in
+                        Color.clear.onAppear {
+                            // Update the scrollOffset based on geometry information
+                            scrollOffset = geometry.frame(in: .named("scroll")).minY
+                        }
+                    }
+                )
+            }
+        }
+        .coordinateSpace(name: "scroll")
+        .overlay(
+            Text("Scroll Offset: \(scrollOffset)")
+                .padding()
+                .background(Color.yellow)
+                .cornerRadius(10)
+                .opacity(0.8)
+                .padding()
+                .frame(width:100)
+        )
+    }
+}
+
+#Preview{
+    OffsetViewView()
+}

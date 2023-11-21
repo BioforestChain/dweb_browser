@@ -105,6 +105,11 @@ struct ImagePartialView: View {
   }
 }
 
+
+
+
+
+
 struct GridCell_Previews: PreviewProvider {
     static var previews: some View {
         ImagePartialView(image: Image(uiImage: UIImage(named: "dweb_icon")! ))

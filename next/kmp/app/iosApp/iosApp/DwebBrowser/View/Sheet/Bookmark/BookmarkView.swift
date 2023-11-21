@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct BookmarkView: View {
     @StateObject var viewModel = BookmarkViewModel()
@@ -44,4 +45,51 @@ struct BookmarkView: View {
             }
         }
     }
+}
+
+
+
+struct BookmarkView2: View {
+    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(\.modelContext) var modelContext
+    @Query var bookmarks: [Bookmark]
+    
+    var body: some View {
+        ZStack{
+            List {
+                ForEach(bookmarks) {  bookmark in
+                    HStack(alignment: .center){
+                        WebsiteIconImage(iconUrl: URL(string: bookmark.iconUrl)!)
+                            .frame(width: dragScale.properValue(floor: 16, ceiling: 28), height: dragScale.properValue(floor: 16, ceiling: 28))
+                            .cornerRadius(4)
+                            .padding(.leading, 12)
+                        Text(bookmark.title)
+
+                    }
+                }
+                .onDelete(perform: deleteBookmarkData)
+                .textCase(nil)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+            }
+            
+            Button("add bookmark", action: addBookMark)
+        }
+        
+    }
+    
+    func deleteBookmarkData(indexSet: IndexSet){
+        
+    }
+    
+    func addBookMark(){
+        let baidu = Bookmark(link: "https://www.baidu.com", iconUrl: URL.defaultSnapshotURL.absoluteString)
+        let apple = Bookmark(link: "https://www.apple.com", iconUrl: URL.defaultSnapshotURL.absoluteString)
+        modelContext.insert(baidu)
+        modelContext.insert(apple)
+    }
+}
+
+#Preview {
+    BookmarkView2()
 }

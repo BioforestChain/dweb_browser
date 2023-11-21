@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+import SwiftData
 enum SheetCategory: String {
     case menu = "menu_set"
     case bookmark
@@ -42,7 +42,9 @@ struct SheetSegmentView: View {
             if selectedCategory == .menu {
                 MenuView()
             } else if selectedCategory == .bookmark {
-                BookmarkView()
+                BookmarkView2()
+                    .modelContainer(for: Bookmark.self)
+
             } else if selectedCategory == .history {
                 HistoryView()
             }
