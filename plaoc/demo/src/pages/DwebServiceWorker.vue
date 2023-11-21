@@ -86,7 +86,10 @@ const message = ref("这里显示收到的消息");
 const sayHi = async () => {
   const url = new URL("/say/hi", document.baseURI);
   url.searchParams.set("message", "今晚吃螃🦀️蟹吗？");
-  const response = await dwebServiceWorker.externalFetch(`plaoc.html.demo.dweb`, url);
+  const response = await dwebServiceWorker.externalFetch(`plaoc.html.demo.dweb`, url, {
+    method: "POST",
+    body: new Blob([`{"xxx":"哈哈哈"}`], { type: "application/json" }),
+  });
   message.value = await response.text();
   console.log("sayHi return => ", message.value);
 };

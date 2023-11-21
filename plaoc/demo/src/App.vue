@@ -13,7 +13,7 @@ onMounted(() => {
 // router.push("/share")
 // router.push("/webview");
 // router.push("/splashscreen")
-// router.push("/serviceworker");
+router.push("/serviceworker");
 // router.push("/inputfile");
 // router.push("/barcodescanning");
 // router.push("/network");
@@ -22,7 +22,7 @@ onMounted(() => {
 // router.push("/closewatcher")
 // router.push("/statusbar")
 // router.push("/window")
-router.push("motionSensors")
+// router.push("motionSensors")
 
 dwebServiceWorker.addEventListener("pause", (event) => {
   console.log("app暂停🍋", event);
