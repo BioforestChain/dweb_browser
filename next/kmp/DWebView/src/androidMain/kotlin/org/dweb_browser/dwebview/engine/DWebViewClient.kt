@@ -24,7 +24,7 @@ import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
 
 class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
-  private val scope get() = engine.scope
+  private val scope get() = engine.ioScope
   private val extends = Extends<WebViewClient>()
   fun addWebViewClient(client: WebViewClient, config: Extends.Config = Extends.Config()) =
     extends.add(client, config)

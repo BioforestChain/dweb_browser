@@ -26,7 +26,8 @@ class TaskbarView private constructor(
       val webView = IDWebView.create(
         CGRectMake(0.0, 0.0, 100.0, 100.0), taskbarController.deskNMM, DWebViewOptions(
           url = taskbarController.getTaskbarUrl().toString(),
-//        onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
+          privateNet = true,
+          detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore
         ), WKWebViewConfiguration()
       )
       TaskbarView(taskbarController, webView)

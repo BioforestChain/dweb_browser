@@ -108,7 +108,7 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
 
   fun tryClose(id: String) {
     watchers.find { watcher -> watcher.id == id }?.also {
-      engine.scope.launch { close(it) }
+      engine.mainScope.launch { close(it) }
     }
   }
 }

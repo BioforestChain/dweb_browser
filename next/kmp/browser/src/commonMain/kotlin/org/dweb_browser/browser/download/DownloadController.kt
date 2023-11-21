@@ -249,13 +249,13 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
    */
   private suspend fun fileCreateByPath(url: String): String {
     var index = 0
-    var path: String
     val fileName = url.substring(url.lastIndexOf("/") + 1)
-    do {
-      path = "/data/download/${index++}_${fileName}"
-      val boolean = fileExists(path)
-    } while (boolean)
-    return path
+    while (true) {
+      val path = "/data/download/${index++}_${fileName}"
+      if (!fileExists(path)) {
+        return path
+      }
+    }
   }
 
   private suspend fun fileExists(path: String): Boolean {
@@ -368,7 +368,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     // 重要记录点 存储到硬盘
     downloadManagers.put(taskId, downloadTask)
     downloadNMM.ioAsyncScope.launch {
-      debugDownload("middleware", "id:$taskId current:${downloadTask.status.current}")
+      debugDownload("middleware", "start id:$taskId current:${downloadTask.status.current}")
       downloadTask.downloadSignal.emit(downloadTask)
       try {
         input.consumeEachArrayRange { byteArray, last ->
@@ -395,7 +395,9 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
             downloadTask.downloadSignal.emit(downloadTask)
             output.writePacket(ByteReadPacket(byteArray))
           }
+          debugDownload("middleware", "progress id:$taskId current:${downloadTask.status.current}")
         }
+        debugDownload("middleware", "end id:$taskId")
       } catch (e: Throwable) {
         // 这里捕获的一般是 connection reset by peer 当前没有重试机制，用户再次点击即为重新下载
         debugDownload("middleware", "${e.message}")

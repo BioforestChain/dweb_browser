@@ -73,15 +73,16 @@ class IpcBodySender(
       /**
        * 某个 IPC 它所能读取的 ipcBody
        */
-      data class UsableIpcBodyMapper(
-        private val map: MutableMap</*streamId*/String, IpcBodySender> = mutableMapOf()
-      ) {
-        fun add(streamId: String, ipcBody: IpcBodySender): Boolean {
-          if (map.contains(streamId)) {
-            return false
+      class UsableIpcBodyMapper {
+        private val map = SafeHashMap</*streamId*/String, IpcBodySender>()
+
+        fun add(streamId: String, ipcBody: IpcBodySender): Boolean = map.sync {
+          if (contains(streamId)) {
+            false
+          } else {
+            set(streamId, ipcBody)
+            true
           }
-          map[streamId] = ipcBody
-          return true
         }
 
         fun get(streamId: String) = map[streamId]

@@ -16,7 +16,7 @@ class DWebCloseWatcher(private val engine: DWebViewEngine) : WebChromeClient() {
   ): Boolean {
     val transport = resultMsg.obj;
     if (transport is WebView.WebViewTransport) {
-      engine.scope.launch {
+      engine.ioScope.launch {
         val dwebView =
           DWebViewEngine(engine.context, engine.remoteMM, DWebViewOptions(), engine.activity)
         transport.webView = dwebView

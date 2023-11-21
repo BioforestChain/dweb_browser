@@ -17,12 +17,12 @@ actual fun IDWebView.Render(
   require(this is DWebView)
   val webView = engine
   UIKitView(factory = {
-    engine.scope.launch {
+    engine.mainScope.launch {
       onCreate?.invoke(this@Render);
     }
     webView
   }, modifier, update = {}, onRelease = {
-    engine.scope.launch {
+    engine.mainScope.launch {
       onDispose?.invoke(this@Render);
     }
   })

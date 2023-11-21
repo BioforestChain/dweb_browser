@@ -2,11 +2,12 @@ package org.dweb_browser.dwebview
 
 import io.ktor.server.engine.embeddedServer
 import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.getAndUpdate
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -28,11 +29,12 @@ import org.jetbrains.compose.resources.resource
 val debugDWebView = Debugger("dwebview")
 
 expect suspend fun IDWebView.Companion.create(
-  mm: MicroModule,
-  options: DWebViewOptions = DWebViewOptions()
+  mm: MicroModule, options: DWebViewOptions = DWebViewOptions()
 ): IDWebView
 
 abstract class IDWebView(initUrl: String?) {
+  abstract val scope: CoroutineScope
+
   @OptIn(ExperimentalResourceApi::class)
   companion object {
     private suspend fun findPort(): UShort {
@@ -81,56 +83,38 @@ abstract class IDWebView(initUrl: String?) {
     }
   }
 
+  /**
+   * 输入要加载的url，返回即将加载的url（url可能会重定向或者重写）
+   */
+  internal abstract suspend fun startLoadUrl(url: String): String
 
-  protected abstract suspend fun startLoadUrl(url: String)
+  private val loadUrlTask =
+    atomic(LoadUrlTask(if (initUrl.isNullOrEmpty()) "about:blank" else initUrl).apply {
+      deferred.complete(url)
+    })
 
-  private val loadUrlTask = atomic(if (initUrl.isNullOrEmpty()) null else LoadUrlTask(initUrl))
-
-  suspend fun loadUrl(url: String, force: Boolean = false) = loadUrlTask.getAndUpdate { preTask ->
-    if (!force && preTask != null && preTask.url == url) {
-      return@getAndUpdate preTask
-    } else {
-      preTask?.deferred?.cancel(CancellationException("load new url: $url"));
-    }
+  suspend fun loadUrl(url: String, force: Boolean = false): String {
     val newTask = LoadUrlTask(url)
-    loadUrl(newTask)
-    newTask.deferred.invokeOnCompletion {
-      loadUrlTask.getAndUpdate { preTask ->
-        if (preTask == newTask) null else preTask
+
+    val curTask = loadUrlTask.updateAndGet { preTask ->
+      if (!force && preTask != null && preTask.url == url) {
+        preTask
+      } else {
+        preTask?.deferred?.cancel(CancellationException("load new url: $url"));
+        newTask
       }
     }
-    newTask
-  }!!.deferred.await()
-
-  private suspend fun loadUrl(task: LoadUrlTask): String {
-    startLoadUrl(task.url)
-
-    val off = onLoadStateChange {
-      when (it) {
-        is WebLoadErrorState -> {
-          task.deferred.completeExceptionally(Exception(it.errorMessage))
-        }
-
-        is WebLoadStartState -> {
-          if (it.url != task.url) {
-            task.deferred.cancel(CancellationException("start load url: ${it.url}"))
-          }
-        }
-
-        is WebLoadSuccessState -> {
-          task.deferred.complete(it.url)
-        }
-      }
+    if (curTask == newTask) {
+      newTask.startTask(this)
     }
-    try {
-      return task.deferred.await()
-    } finally {
-      off()
-    }
+    return curTask.deferred.await()
   }
 
-  fun getUrl() = loadUrlTask.value?.url ?: "about:blank"
-  fun hasUrl() = loadUrlTask.value?.url.isNullOrBlank()
+  abstract suspend fun resolveUrl(url: String): String
+
+
+  fun getUrl() = loadUrlTask.value.url
+  fun hasUrl() = loadUrlTask.value.url.isNullOrBlank()
   abstract suspend fun getTitle(): String
   abstract suspend fun getIcon(): String
   abstract suspend fun destroy()
@@ -149,8 +133,7 @@ abstract class IDWebView(initUrl: String?) {
 //  abstract suspend fun setSafeArea(top: Float, left: Float, bottom: Float, right: Float)
 
   abstract suspend fun evaluateAsyncJavascriptCode(
-    script: String,
-    afterEval: suspend () -> Unit = {}
+    script: String, afterEval: suspend () -> Unit = {}
   ): String
 
   abstract val onDestroy: Signal.Listener<Unit>
@@ -166,11 +149,10 @@ class WebBeforeUnloadArgs(
   val message: String,
 ) : SynchronizedObject() {
   private val hookReasons = mutableMapOf<Any, WebBeforeUnloadHook>()
-  internal fun hook(reason: Any) =
-    synchronized(this) {
-      if (isLocked) throw Exception("fail to hook, event already passed.")
-      hookReasons.getOrPut(reason) { WebBeforeUnloadHook(message) }
-    }
+  internal fun hook(reason: Any) = synchronized(this) {
+    if (isLocked) throw Exception("fail to hook, event already passed.")
+    hookReasons.getOrPut(reason) { WebBeforeUnloadHook(message) }
+  }
 
   private var isLocked = false
   private fun syncLock() = synchronized(this) { isLocked = true }
@@ -208,18 +190,39 @@ class WebLoadSuccessState(val url: String) : WebLoadState();
 class WebLoadErrorState(val url: String, val errorMessage: String) : WebLoadState();
 
 fun Signal<WebLoadState>.toReadyListener() =
-  createChild({ if (it is WebLoadSuccessState) it else null },
-    { it.url }).toListener()
+  createChild({ if (it is WebLoadSuccessState) it else null }, { it.url }).toListener()
 
 internal data class LoadUrlTask(val url: String) {
   val deferred = CompletableDeferred<String>()
+  fun startTask(dwebView: IDWebView) {
+    dwebView.scope.launch {
+      val loadingUrl = dwebView.startLoadUrl(url)
+      dwebView.onLoadStateChange {
+        when (it) {
+          is WebLoadErrorState -> {
+            deferred.completeExceptionally(Exception(it.errorMessage))
+            offListener()
+          }
+
+          is WebLoadStartState -> {
+            if (it.url != loadingUrl) {
+              deferred.cancel(CancellationException("start load url: ${it.url}"))
+            }
+          }
+
+          is WebLoadSuccessState -> {
+            deferred.complete(it.url)
+            offListener()
+          }
+        }
+      }
+    }
+  }
 }
 
 
 enum class WebColorScheme {
-  Normal,
-  Dark,
-  Light,
+  Normal, Dark, Light,
 }
 
 typealias AsyncChannel = Channel<Result<String>>

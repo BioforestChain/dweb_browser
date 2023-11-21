@@ -1,6 +1,5 @@
 package org.dweb_browser.dwebview.engine
 
-import io.ktor.http.Url
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -14,9 +13,7 @@ import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.http.getFullAuthority
 import org.dweb_browser.helper.NSInputStreamToByteReadChannel
-import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachArrayRange
 import platform.Foundation.HTTPBodyStream
 import platform.Foundation.HTTPMethod
@@ -31,28 +28,22 @@ import platform.WebKit.WKWebView
 import platform.darwin.NSObject
 
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-class DwebHttpURLSchemeHandler(private val microModule: MicroModule, private val baseUri: Url) :
-  NSObject(), WKURLSchemeHandlerProtocol {
-
-  internal val host by lazy { baseUri.getFullAuthority() }
-  val scheme by lazy { getScheme(host) }
-
-  companion object {
-    fun getScheme(host: String) = host.replaceFirst(":", "+")
-    fun getScheme(url: Url) = getScheme(url.getFullAuthority())
-  }
+class DwebHttpURLSchemeHandler(private val microModule: MicroModule) : NSObject(),
+  WKURLSchemeHandlerProtocol {
 
   @OptIn(BetaInteropApi::class)
   @Suppress("CONFLICTING_OVERLOADS")
   override fun webView(webView: WKWebView, startURLSchemeTask: WKURLSchemeTaskProtocol) {
     try {
+      val url = startURLSchemeTask.request.URL?.absoluteString ?: return run {
+        startURLSchemeTask.didFinish()
+      }
 
-      val pureUrl =
-        buildUrlString(startURLSchemeTask.request.URL?.absoluteString ?: baseUri.toString()) {
-          protocol = baseUri.protocol
-          host = baseUri.host
-          port = baseUri.port
-        }
+      /**
+       * 剔除 dweb+http: dweb+https: 前面这部分
+       */
+      val pureUrl = url.replace("dweb+", "")
+
       val headers = IpcHeaders()
       startURLSchemeTask.request.allHTTPHeaderFields!!.toMap().map {
         headers.init(it.key as String, it.value as String)
@@ -61,8 +52,7 @@ class DwebHttpURLSchemeHandler(private val microModule: MicroModule, private val
       val pureBody = startURLSchemeTask.request.HTTPBodyStream?.let {
         PureStreamBody(
           NSInputStreamToByteReadChannel(
-            microModule.ioAsyncScope,
-            it
+            microModule.ioAsyncScope, it
           )
         )
       } ?: IPureBody.Empty
@@ -108,10 +98,7 @@ class DwebHttpURLSchemeHandler(private val microModule: MicroModule, private val
     } catch (e: Throwable) {
       startURLSchemeTask.didReceiveResponse(
         NSHTTPURLResponse(
-          startURLSchemeTask.request.URL ?: NSURL(string = ""),
-          502,
-          "HTTP/1.1",
-          null
+          startURLSchemeTask.request.URL ?: NSURL(string = ""), 502, "HTTP/1.1", null
         )
       )
       startURLSchemeTask.didReceiveData(
@@ -131,10 +118,8 @@ class DwebHttpURLSchemeHandler(private val microModule: MicroModule, private val
   internal fun ByteArray.toNSData(): NSData {
     if (isEmpty()) return NSData()
     val pinned = pin()
-    return NSData.create(
-      bytesNoCopy = pinned.addressOf(0),
+    return NSData.create(bytesNoCopy = pinned.addressOf(0),
       length = size.toULong(),
-      deallocator = { _, _ -> pinned.unpin() }
-    )
+      deallocator = { _, _ -> pinned.unpin() })
   }
 }

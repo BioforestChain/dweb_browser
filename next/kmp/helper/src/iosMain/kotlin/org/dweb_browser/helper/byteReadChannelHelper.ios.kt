@@ -13,7 +13,7 @@ actual suspend inline fun ByteReadChannel.consumeEachArrayRange(
       awaitContent()
       val lastChunkReported = availableForRead == 0 && isClosedForWrite
       if (lastChunkReported) {
-        controller.visitor(byteArrayOf(), false)
+        controller.visitor(byteArrayOf(), true)
       } else {
         val bytes = readPacket(availableForRead).readBytes()
         controller.visitor(bytes, false)

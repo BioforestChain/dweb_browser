@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.debugIpc
+
 
 class IpcResponse(
   val req_id: Int,
@@ -13,6 +15,11 @@ class IpcResponse(
   val body: IpcBody,
   val ipc: Ipc,
 ) : IpcMessage(IPC_MESSAGE_TYPE.RESPONSE) {
+  override fun toString() = "IpcResponse@$req_id/[$statusCode]".let { str ->
+    if (debugIpc.isEnable) "$str{${
+      headers.toList().joinToString(", ") { it.first + ":" + it.second }
+    }}" + "" else str
+  }
 
   init {
     if (body is IpcBodySender) {

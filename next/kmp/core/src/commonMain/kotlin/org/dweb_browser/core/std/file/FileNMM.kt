@@ -11,15 +11,12 @@ import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.helper.Debugger
@@ -134,9 +131,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
   @OptIn(ExperimentalResourceApi::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     getDataVirtualFsDirectory().also {
+      debugFile("DIR/DATA", it.getFsBasePath(this))
       fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
     }
     getCacheVirtualFsDirectory().also {
+      debugFile("DIR/CACHE", it.getFsBasePath(this))
       fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
     }
     /// nativeFetch 适配 file:///*/** 的请求

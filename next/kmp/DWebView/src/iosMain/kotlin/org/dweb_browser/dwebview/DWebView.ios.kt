@@ -3,7 +3,6 @@ package org.dweb_browser.dwebview
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.core.module.MicroModule
@@ -17,8 +16,6 @@ import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSArray
 import platform.Foundation.NSString
 import platform.Foundation.create
-import platform.WebKit.WKContentWorld
-import platform.WebKit.WKFrameInfo
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
@@ -48,9 +45,13 @@ class DWebView(
   internal val engine: DWebViewEngine,
   initUrl: String? = null
 ) : IDWebView(initUrl ?: engine.options.url) {
+  override val scope get() = engine.ioScope
+
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
   }
+
+  override suspend fun resolveUrl(url: String) = engine.resolveUrl(url)
 
 
   override suspend fun getTitle(): String {
@@ -59,7 +60,7 @@ class DWebView(
 
 
   override suspend fun getIcon() = withMainContext {
-    engine.evaluateAsyncJavascriptCode(
+    evaluateAsyncJavascriptCode(
       // TODO fix this
       """
 function getIosIcon(preference_size = 64) {
@@ -167,7 +168,7 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     runBlockingCatching {
       _destroySignal.emitAndClear(Unit)
     }.getOrNull()
-    engine.scope.cancel(null)
+    engine.mainScope.cancel(null)
     engine.removeFromSuperview()
   }
 
@@ -198,7 +199,7 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   }
 
   override suspend fun createMessageChannel(): IWebMessageChannel {
-    val deferred = evalAsyncJavascript<NSArray>(
+    val deferred = engine.evalAsyncJavascript<NSArray>(
       "nativeCreateMessageChannel()", null,
       DWebViewWebMessage.webMessagePortContentWorld
     )
@@ -231,7 +232,9 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   override suspend fun evaluateAsyncJavascriptCode(
     script: String,
     afterEval: suspend () -> Unit
-  ) = engine.evaluateAsyncJavascriptCode(script, afterEval)
+  ) = withMainContext {
+    engine.callAsyncJavaScript<String>("return JSON.stringify(await($script))??'undefined'", afterEval = afterEval)
+  }
 
   @OptIn(BetaInteropApi::class)
   override suspend fun postMessage(data: String, ports: List<IWebMessagePort>) {
@@ -244,29 +247,14 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
         put(NSString.create(string = "data"), NSString.create(string = data))
         put(NSString.create(string = "ports"), NSArray.create(portIdList))
       }
-      callAsyncJavaScript<Unit>(
+      engine.callAsyncJavaScript<Unit>(
         "nativeWindowPostMessage(data,ports)",
         arguments.toMap(),
         null,
         DWebViewWebMessage.webMessagePortContentWorld
-      ).await()
+      )
     }
   }
-
-  fun evalAsyncJavascript(code: String): Deferred<String> = engine.evalAsyncJavascript(code)
-
-  fun <T> evalAsyncJavascript(
-    code: String,
-    wkFrameInfo: WKFrameInfo?,
-    wkContentWorld: WKContentWorld
-  ): Deferred<T> = engine.evalAsyncJavascript(code, wkFrameInfo, wkContentWorld)
-
-  fun <T> callAsyncJavaScript(
-    functionBody: String,
-    arguments: Map<Any?, *>?,
-    inFrame: WKFrameInfo?,
-    inContentWorld: WKContentWorld,
-  ): Deferred<T> = engine.callAsyncJavaScript(functionBody, arguments, inFrame, inContentWorld)
 }
 
 fun IDWebView.asIosWebView(): WKWebView {

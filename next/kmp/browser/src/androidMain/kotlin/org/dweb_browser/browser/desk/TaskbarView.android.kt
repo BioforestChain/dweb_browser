@@ -25,6 +25,7 @@ class TaskbarView private constructor(
         options = DWebViewOptions(
           url = taskbarController.getTaskbarUrl().toString(),
           detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
+          privateNet = true,
         )
       )
       return TaskbarView(taskbarController, dwebView)

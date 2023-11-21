@@ -18,7 +18,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
 
   override suspend fun start() {
     withMainContext {
-      webview.evalAsyncJavascript<Unit>(
+      webview.engine.evalAsyncJavascript<Unit>(
         "nativeStart($portId)",
         null,
         DWebViewWebMessage.webMessagePortContentWorld
@@ -33,12 +33,12 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
         put(NSString.create(string = "portId"), NSNumber(portId))
       }
 
-      webview.callAsyncJavaScript<Unit>(
+      webview.engine.callAsyncJavaScript<Unit>(
         "nativeClose(portId)",
         arguments.toMap(),
         null,
         DWebViewWebMessage.webMessagePortContentWorld
-      ).await()
+      )
     }
   }
 
@@ -48,7 +48,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
         require(it is DWebMessagePort)
         it.portId
       }.joinToString(",")
-      webview.evalAsyncJavascript<Unit>(
+      webview.engine.evalAsyncJavascript<Unit>(
         "nativePortPostMessage($portId, ${
           Json.encodeToString(
             event.data

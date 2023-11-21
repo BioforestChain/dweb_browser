@@ -25,7 +25,7 @@ import org.dweb_browser.helper.someOrNull
 
 @Suppress("DEPRECATION")
 class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
-  private val scope get() = engine.scope
+  private val scope get() = engine.ioScope
   private val extends = Extends<WebChromeClient>()
   fun addWebChromeClient(client: WebChromeClient, config: Extends.Config = Extends.Config()) =
     extends.add(client, config)

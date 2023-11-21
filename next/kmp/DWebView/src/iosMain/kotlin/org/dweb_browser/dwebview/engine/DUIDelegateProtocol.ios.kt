@@ -78,7 +78,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
         forNavigationAction.targetFrame == null || !forNavigationAction.targetFrame!!.mainFrame
       val watcher = engine.closeWatcher.apply(isUserGesture)
 
-      engine.scope.launch {
+      engine.mainScope.launch {
         withMainContext {
           engine.closeWatcher.resolveToken(url, watcher)
         }
@@ -94,7 +94,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
       val dwebView = IDWebView.create(
         createDwebviewEngin
       )
-      engine.scope.launch {
+      engine.mainScope.launch {
         createWindowSignal.emit(dwebView)
       }
       createDwebviewEngin
@@ -108,7 +108,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
   }
 
   override fun webViewDidClose(webView: WKWebView) {
-    engine.scope.launch {
+    engine.mainScope.launch {
       closeSignal.emit()
     }
   }
@@ -139,7 +139,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
       }
     }
 
-    engine.scope.launch {
+    engine.mainScope.launch {
       jsAlertSignal.emitForResult(
         JsParams(
           webView,
@@ -184,7 +184,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
       }
     }
 
-    engine.scope.launch {
+    engine.mainScope.launch {
       val (confirm, _) = jsConfirmSignal.emitForResult(
         JsParams(
           webView,
@@ -239,7 +239,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
       }
     }
 
-    engine.scope.launch {
+    engine.mainScope.launch {
       val (promptText, _) = jsPromptSignal.emitForResult(
         JsPromptParams(
           webView,
@@ -275,7 +275,7 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
       return
     }
 
-    engine.scope.launch {
+    engine.mainScope.launch {
       mediaTypes.forEach {
         val isAuthorized = when (AVCaptureDevice.authorizationStatusForMediaType(it)) {
           AVAuthorizationStatusNotDetermined -> AVCaptureDevice.requestAccessForMediaType(it)

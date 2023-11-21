@@ -21,10 +21,8 @@ import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(
-  mm: MicroModule,
-  options: DWebViewOptions
-): IDWebView =
-  create(NativeMicroModule.Companion.getAppContext(), mm, options)
+  mm: MicroModule, options: DWebViewOptions
+): IDWebView = create(NativeMicroModule.Companion.getAppContext(), mm, options)
 
 suspend fun IDWebView.Companion.create(
   /**
@@ -49,9 +47,13 @@ internal fun IDWebView.Companion.create(engine: DWebViewEngine, initUrl: String?
   DWebView(engine, initUrl)
 
 class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : IDWebView(initUrl) {
+  override val scope get() = engine.ioScope
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
+    url
   }
+
+  override suspend fun resolveUrl(url: String) = engine.resolveUrl(url)
 
 
   override suspend fun getTitle() = withMainContext {
@@ -167,8 +169,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
         WebSettingsCompat.setForceDark(engine.settings, FORCE_DARK_AUTO)
         if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
           WebSettingsCompat.setForceDarkStrategy(
-            engine.settings,
-            DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
+            engine.settings, DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
           )
         }
       }
@@ -177,8 +178,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
         WebSettingsCompat.setForceDark(engine.settings, FORCE_DARK_ON)
         if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
           WebSettingsCompat.setForceDarkStrategy(
-            engine.settings,
-            DARK_STRATEGY_USER_AGENT_DARKENING_ONLY
+            engine.settings, DARK_STRATEGY_USER_AGENT_DARKENING_ONLY
           )
         }
       }
@@ -187,8 +187,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
         WebSettingsCompat.setForceDark(engine.settings, FORCE_DARK_OFF)
         if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
           WebSettingsCompat.setForceDarkStrategy(
-            engine.settings,
-            DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
+            engine.settings, DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
           )
         }
       }
@@ -204,8 +203,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   }
 
   override suspend fun evaluateAsyncJavascriptCode(
-    script: String,
-    afterEval: suspend () -> Unit
+    script: String, afterEval: suspend () -> Unit
   ): String = engine.evaluateAsyncJavascriptCode(script, afterEval)
 
   override val onDestroy = engine.onDestroy

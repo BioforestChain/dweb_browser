@@ -5,25 +5,30 @@ import io.ktor.http.Url
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.http.getFullAuthority
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewWebMessage
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
+import org.dweb_browser.dwebview.WebLoadErrorState
+import org.dweb_browser.dwebview.WebLoadStartState
 import org.dweb_browser.dwebview.WebLoadState
+import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.transparentColor
-import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.helper.mainAsyncExceptionHandler
 import platform.CoreGraphics.CGRect
+import platform.Foundation.NSError
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
 import platform.UIKit.UIColor
@@ -31,6 +36,10 @@ import platform.UIKit.UIDevice
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
+import platform.WebKit.WKNavigation
+import platform.WebKit.WKNavigationAction
+import platform.WebKit.WKNavigationActionPolicy
+import platform.WebKit.WKNavigationDelegateProtocol
 import platform.WebKit.WKPreferences
 import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
@@ -40,21 +49,19 @@ import platform.WebKit.javaScriptEnabled
 
 
 @OptIn(ExperimentalForeignApi::class)
+@Suppress("CONFLICTING_OVERLOADS")
 class DWebViewEngine(
   frame: CValue<CGRect>,
   val remoteMM: MicroModule,
   internal val options: DWebViewOptions,
   configuration: WKWebViewConfiguration,
 ) : WKWebView(frame, configuration.also {
-  if (options.url.isNotEmpty()) {
-    tryRegistryUrlSchemeHandler(options.url, remoteMM, it)
-  }
+  registryDwebHttpUrlSchemeHandler(remoteMM, it)
   registryDwebSchemeHandler(remoteMM, it)
 //  it.websiteDataStore.proxyConfigurations = listOf(NSProxyConfiguration)
-}) {
-  val scope = MainScope()
-
-  val evaluator by lazy { WebViewEvaluator(this) }
+}), WKNavigationDelegateProtocol {
+  internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
+  internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
 
   val loadStateChangeSignal = Signal<WebLoadState>()
   val onReady by lazy { loadStateChangeSignal.toReadyListener() }
@@ -63,83 +70,81 @@ class DWebViewEngine(
   val closeSignal = SimpleSignal()
   val createWindowSignal = Signal<IDWebView>()
 
-//  init {
-//    @Suppress("CONFLICTING_OVERLOADS")
-//    setNavigationDelegate(object : NSObject(), WKNavigationDelegateProtocol {
-//      override fun webView(
-//        webView: WKWebView,
-//        decidePolicyForNavigationAction: WKNavigationAction,
-//        decisionHandler: (WKNavigationActionPolicy) -> Unit
-//      ) {
-//        var confirm = true
-//        /// navigationAction.navigationType : https://developer.apple.com/documentation/webkit/wknavigationtype/
-//        if (beforeUnloadSignal.isNotEmpty()) {
-//          val message = when (decidePolicyForNavigationAction.navigationType) {
-//            // reload
-//            3L -> "重新加载此网站？"
-//            else -> "离开此网站？"
+  override fun webView(
+    webView: WKWebView,
+    decidePolicyForNavigationAction: WKNavigationAction,
+    decisionHandler: (WKNavigationActionPolicy) -> Unit
+  ) {
+    var confirm = true
+    /// navigationAction.navigationType : https://developer.apple.com/documentation/webkit/wknavigationtype/
+    if (beforeUnloadSignal.isNotEmpty()) {
+      val message = when (decidePolicyForNavigationAction.navigationType) {
+        // reload
+        3L -> "重新加载此网站？"
+        else -> "离开此网站？"
+      }
+      confirm = runBlocking {
+        val args = WebBeforeUnloadArgs(message)
+        beforeUnloadSignal.emit(args)
+        args.waitHookResults()
+      }
+    }
+    println("QAQ decidePolicyForNavigationAction: $confirm")
+    if (confirm) {
+//          if (decidePolicyForNavigationAction.targetFrame == null) {
+//            loadRequest(decidePolicyForNavigationAction.request)
 //          }
-//          confirm = runBlocking {
-//            val args = WebBeforeUnloadArgs(message)
-//            beforeUnloadSignal.emit(args)
-//            args.waitHookResults()
-//          }
-//        }
-//        println("QAQ decidePolicyForNavigationAction: $confirm")
-//        if (confirm) {
-////          if (decidePolicyForNavigationAction.targetFrame == null) {
-////            loadRequest(decidePolicyForNavigationAction.request)
-////          }
-//          decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
-//        } else {
-//          decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
-//        }
-//      }
-//
-//      override fun webView(
-//        webView: WKWebView,
-//        didStartProvisionalNavigation: WKNavigation?
-//      ) {
-//        println("QAQ didStartProvisionalNavigation: $didStartProvisionalNavigation")
-//        val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-//        scope.launch { loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
-//      }
-//
-//      override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
-//        println("QAQ didFinishNavigation: $didFinishNavigation")
-//        val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-//        scope.launch { loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl)) }
-//      }
-//
-//      override fun webView(
-//        webView: WKWebView,
-//        didFailNavigation: WKNavigation?,
-//        withError: NSError
-//      ) {
-//        println("QAQ didFailNavigation: $didFailNavigation")
-//        val currentUrl = webView.URL?.absoluteString ?: "about:blank"
-//        val errorMessage = "[${withError.code}]$currentUrl\n${withError.description}"
-//        scope.launch { loadStateChangeSignal.emit(WebLoadErrorState(currentUrl, errorMessage)) }
-//      }
-//    })
-//  }
+      decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
+    } else {
+      decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
+    }
+  }
+
+  override fun webView(
+    webView: WKWebView, didStartProvisionalNavigation: WKNavigation?
+  ) {
+    println("QAQ didStartProvisionalNavigation: $didStartProvisionalNavigation")
+    val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
+    mainScope.launch { loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
+  }
+
+  override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
+    println("QAQ didFinishNavigation: $didFinishNavigation")
+    val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
+    mainScope.launch { loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl)) }
+  }
+
+  override fun webView(
+    webView: WKWebView, didFailNavigation: WKNavigation?, withError: NSError
+  ) {
+    println("QAQ didFailNavigation: $didFailNavigation")
+    val currentUrl = webView.URL?.absoluteString ?: "about:blank"
+    val errorMessage = "[${withError.code}]$currentUrl\n${withError.description}"
+    mainScope.launch { loadStateChangeSignal.emit(WebLoadErrorState(currentUrl, errorMessage)) }
+  }
+
+  init {
+    setNavigationDelegate(this)
+  }
 
   internal val closeWatcher: CloseWatcher by lazy {
     CloseWatcher(this)
   }
 
   companion object {
-    @Deprecated("use proxy for https://*.dweb")
-    private fun tryRegistryUrlSchemeHandler(
-      url: String, remoteMM: MicroModule, configuration: WKWebViewConfiguration
+    /**
+     * 注册 dweb+http(s)? 的链接拦截，因为IOS不能拦截 `http(s)?:*.dweb`。
+     * 所以这里定义了这个特殊的 scheme 来替代 http(s)?:*.dweb
+     *
+     * PS：IOS17+可以拦截 https:*.dweb。但是这需要依赖与网络技术栈
+     * 所以 http(s)?:*.dweb 在 IOS上 反而是一个更加安全的、仅走内存控制的技术，通常用于内部模块使用
+     */
+    private fun registryDwebHttpUrlSchemeHandler(
+      remoteMM: MicroModule, configuration: WKWebViewConfiguration
     ) {
-      val baseUri = Url(url)
-      /// 如果是 dweb 域名，这是需要加入网关的链接前缀才能被正常加载
-      if (baseUri.host.endsWith(".dweb") && (baseUri.protocol == URLProtocol.HTTP || baseUri.protocol == URLProtocol.HTTPS)) {
-        val dwebSchemeHandler = DwebHttpURLSchemeHandler(remoteMM, baseUri)
-        println("QAQ setURLSchemeHandler: ${dwebSchemeHandler.scheme}")
-        configuration.setURLSchemeHandler(dwebSchemeHandler, dwebSchemeHandler.scheme)
-      }
+      val dwebSchemeHandler = DwebHttpURLSchemeHandler(remoteMM)
+      configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb+http")
+      configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb+https")
     }
 
     fun registryDwebSchemeHandler(remoteMM: MicroModule, configuration: WKWebViewConfiguration) {
@@ -148,20 +153,21 @@ class DWebViewEngine(
     }
   }
 
-  fun loadUrl(url: String) {
-    scope.launch {
-      val safeUrl = if (url.contains(".dweb")) {
-        val uri = Url(url)
-        if (uri.host.endsWith(".dweb") && (uri.protocol == URLProtocol.HTTP || uri.protocol == URLProtocol.HTTPS)) {
-          val fullAuthority = uri.getFullAuthority()
-          Url("${DwebHttpURLSchemeHandler.getScheme(fullAuthority)}://${fullAuthority}${uri.encodedPathAndQuery}").toString()
-        } else url
-      } else url
-      val nsUrl = NSURL(string = safeUrl)
-      println("QAQ loadUrl: $nsUrl")
-      val navigation = loadRequest(NSURLRequest(uRL = nsUrl))
-        ?: throw Exception("fail to get WKNavigation when loadRequest: $nsUrl")
-    }
+  fun loadUrl(url: String): String {
+    val safeUrl = resolveUrl(url)
+    val nsUrl = NSURL(string = safeUrl)
+    val nav = loadRequest(NSURLRequest(uRL = nsUrl))
+    println("QAQ loadUrl end: $nsUrl => $nav")
+    return safeUrl
+  }
+
+  fun resolveUrl(url: String): String {
+    val safeUrl = if (url.contains(".dweb") && Url(url).let { url ->
+        url.host.endsWith(".dweb") && (url.protocol == URLProtocol.HTTP || (options.privateNet && url.protocol == URLProtocol.HTTPS))
+      }) {
+      "dweb+$url"
+    } else url
+    return safeUrl
   }
 
   init {
@@ -178,11 +184,6 @@ class DWebViewEngine(
     configuration.userContentController.apply {
       removeAllScriptMessageHandlers()
       removeAllUserScripts()
-      addScriptMessageHandler(
-        LogScriptMessageHandler(), DWebViewWebMessage.webMessagePortContentWorld, "log"
-      )
-      val dWebViewAsyncCode = DWebViewAsyncCode(this@DWebViewEngine)
-      addScriptMessageHandler(dWebViewAsyncCode, "asyncCode")
       addScriptMessageHandler(CloseWatcherScriptMessageHandler(this@DWebViewEngine), "closeWatcher")
       addScriptMessageHandler(
         DWebViewWebMessage.WebMessagePortMessageHanlder(),
@@ -195,13 +196,6 @@ class DWebViewEngine(
           WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentEnd,
           false,
           DWebViewWebMessage.webMessagePortContentWorld
-        )
-      )
-      addUserScript(
-        WKUserScript(
-          dWebViewAsyncCode.asyncCodePrepareCode,
-          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentEnd,
-          false,
         )
       )
     }
@@ -247,36 +241,32 @@ class DWebViewEngine(
     return deferred
   }
 
-  fun <T> callAsyncJavaScript(
+  suspend fun <T> callAsyncJavaScript(
     functionBody: String,
-    arguments: Map<Any?, *>?,
-    inFrame: WKFrameInfo?,
-    inContentWorld: WKContentWorld,
-  ): Deferred<T> {
+    arguments: Map<Any?, *>? = null,
+    inFrame: WKFrameInfo? = null,
+    inContentWorld: WKContentWorld = WKContentWorld.pageWorld,
+    afterEval: (suspend () -> Unit)? = null
+  ): T {
     val deferred = CompletableDeferred<T>()
-
+    println("callAsyncJavaScript-start: $functionBody")
     callAsyncJavaScript(functionBody, arguments, inFrame, inContentWorld) { result, error ->
+      println("callAsyncJavaScript-return: functionBody:$functionBody result:$result error:$error")
       if (error == null) {
         deferred.complete(result as T)
       } else {
         deferred.completeExceptionally(Throwable(error.localizedDescription))
       }
     }
+    afterEval?.invoke()
 
-    return deferred
+    return deferred.await()
   }
 
   //#region 用于 CloseWatcher
   fun evaluateJavascriptSync(script: String) {
     evaluateJavaScript(script) { _, _ -> }
   }
-
-  suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit = {}) =
-    withMainContext {
-      val deferred = evalAsyncJavascript(script)
-      afterEval()
-      deferred.await()
-    }
 
   //#endregion
 }

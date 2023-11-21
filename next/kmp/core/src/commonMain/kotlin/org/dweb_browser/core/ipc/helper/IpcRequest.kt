@@ -7,6 +7,7 @@ import org.dweb_browser.core.help.isWebSocket
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.IpcRequestInit
+import org.dweb_browser.core.ipc.debugIpc
 
 class IpcRequest(
   val req_id: Int,
@@ -22,6 +23,12 @@ class IpcRequest(
     if (body is IpcBodySender) {
       IpcBodySender.IPC.usableByIpc(ipc, body)
     }
+  }
+
+  override fun toString() = "IpcRequest@$req_id/$method/$url".let { str ->
+    if (debugIpc.isEnable) "$str{${
+      headers.toList().joinToString(", ") { it.first + ":" + it.second }
+    }}" + "" else str
   }
 
   companion object {
@@ -110,7 +117,6 @@ class IpcRequest(
     IpcReqMessage(req_id, method, url, headers.toMap(), body.metaBody)
   }
 
-  override fun toString() = "#IpcRequest/$method/$url"
 }
 
 @Serializable

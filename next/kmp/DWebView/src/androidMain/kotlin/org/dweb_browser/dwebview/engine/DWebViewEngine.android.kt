@@ -26,6 +26,7 @@ import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toAndroidRect
 import org.dweb_browser.helper.withMainContext
 
@@ -89,13 +90,14 @@ class DWebViewEngine(
     }
   }
 
-  internal val scope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
+  internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
+  internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
 
   suspend fun waitReady() {
     dWebViewClient.onReady.awaitOnce()
   }
 
-  private val evaluator = WebViewEvaluator(this, scope)
+  private val evaluator = WebViewEvaluator(this, ioScope)
   suspend fun getUrlInMain() = withMainContext { url }
 
   /**
@@ -190,7 +192,8 @@ class DWebViewEngine(
    * 避免 com.google.accompanist.web 在切换 Compose 上下文的时候重复加载同样的URL
    */
   override fun loadUrl(url: String) {
-    val curLoadUrlArgs = "$url\n"
+    val safeUrl = resolveUrl(url)
+    val curLoadUrlArgs = "$safeUrl\n"
     if (curLoadUrlArgs == preLoadedUrlArgs) {
       return
     }
@@ -199,14 +202,20 @@ class DWebViewEngine(
   }
 
   override fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
-    val curLoadUrlArgs = "$url\n" + additionalHttpHeaders.toList()
+    val safeUrl = resolveUrl(url)
+    val curLoadUrlArgs = "$safeUrl\n" + additionalHttpHeaders.toList()
       .joinToString("\n") { it.first + ":" + it.second }
     if (curLoadUrlArgs == preLoadedUrlArgs) {
       return
     }
     preLoadedUrlArgs = curLoadUrlArgs
-    super.loadUrl(url, additionalHttpHeaders)
+    super.loadUrl(safeUrl, additionalHttpHeaders)
   }
+
+  fun resolveUrl(url: String): String {
+    return url
+  }
+
 
   /**
    * 执行同步JS代码
@@ -241,9 +250,9 @@ class DWebViewEngine(
       super.onDetachedFromWindow()
     }
     super.destroy()
-    scope.launch {
+    ioScope.launch {
       _destroySignal.emitAndClear(Unit)
-      scope.cancel()
+      ioScope.cancel()
     }
   }
 
@@ -257,7 +266,7 @@ class DWebViewEngine(
   }
 
   override fun onAttachedToWindow() {
-    scope.launch {
+    ioScope.launch {
       attachedStateFlow.emit(true)
     }
     super.onAttachedToWindow()

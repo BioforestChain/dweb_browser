@@ -175,8 +175,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       return builder.build()
     }
 
-    fun buildInternalUrl(): Url {
-      return Url(internal_origin);
+    fun buildInternalUrl(builder: (URLBuilder.() -> Unit)? = null): Url {
+      return when (builder) {
+        null -> Url(internal_origin)
+        else -> URLBuilder(internal_origin).run { builder();build() };
+      }
     }
   }
 

@@ -24,7 +24,6 @@ import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.closeHttpDwebServer
 import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.build
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.resolvePath
@@ -85,8 +84,9 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     }
 
     val apis = createJsProcessWeb(mainServer, this)
-    val bootstrapUrl = mainServer.startResult.urlInfo.buildInternalUrl()
-      .build { resolvePath("$INTERNAL_PATH/bootstrap.js") }.toString()
+    val bootstrapUrl =
+      apis.dWebView.resolveUrl(mainServer.startResult.urlInfo.buildInternalUrl { resolvePath("$INTERNAL_PATH/bootstrap.js") }
+        .toString())
 
     this.onAfterShutdown {
       apis.destroy()
@@ -284,12 +284,10 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     /**
      * 开始执行代码
      */
-    apis.runProcessMain(
-      processHandler.info.process_id, RunProcessMainOptions(
-        main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
-          .build { resolvePath(entry ?: "/index.js") }.toString()
-      )
-    )
+    apis.runProcessMain(processHandler.info.process_id,
+      RunProcessMainOptions(main_url = apis.dWebView.resolveUrl(httpDwebServer.startResult.urlInfo.buildInternalUrl {
+        resolvePath(entry ?: "/index.js")
+      }.toString())))
 
     return CreateProcessAndRunResult(streamIpc, processHandler)
   }

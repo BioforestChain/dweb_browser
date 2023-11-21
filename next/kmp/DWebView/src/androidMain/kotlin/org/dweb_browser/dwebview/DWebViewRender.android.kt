@@ -24,7 +24,7 @@ actual fun IDWebView.Render(
   require(this is DWebView)
   val webView = engine
   val state = rememberWebViewState(getUrl())
-  val navigator = rememberWebViewNavigator(webView.scope)
+  val navigator = rememberWebViewNavigator(webView.ioScope)
   val client = remember { AccompanistWebViewClient() }
   val chromeClient = remember { AccompanistWebChromeClient() }
   WebView(
@@ -42,7 +42,7 @@ actual fun IDWebView.Render(
       webView
     },
     onCreated = {
-      engine.scope.launch {
+      engine.ioScope.launch {
         onCreate?.invoke(this@Render)
       }
     },
@@ -52,7 +52,7 @@ actual fun IDWebView.Render(
   )
   DisposableEffect(this) {
     onDispose {
-      engine.scope.launch {
+      engine.ioScope.launch {
         onDispose?.invoke(this@Render)
       }
     }

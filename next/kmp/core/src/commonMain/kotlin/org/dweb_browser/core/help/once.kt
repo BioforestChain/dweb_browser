@@ -1,13 +1,13 @@
 package org.dweb_browser.core.help
 
 import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.getAndUpdate
+import kotlinx.atomicfu.update
 
 inline fun <R> suspendOnce(crossinline runnable: suspend () -> R): suspend () -> R {
   val hasRun = atomic(false)
   var result: Any? = null
   return {
-    hasRun.getAndUpdate { run ->
+    hasRun.update { run ->
       if (!run) {
         result = runnable()
       }
@@ -23,7 +23,7 @@ inline fun <A, R> suspendOnce1(
   val hasRun = atomic(false)
   var result: R? = null
   return {
-    hasRun.getAndUpdate { run ->
+    hasRun.update { run ->
       if (!run) {
         result = runnable(it)
       }

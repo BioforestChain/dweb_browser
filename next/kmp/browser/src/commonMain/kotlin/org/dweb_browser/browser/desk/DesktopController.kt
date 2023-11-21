@@ -61,6 +61,7 @@ open class DesktopController private constructor(
   private suspend fun createDesktopView(activity: IPureViewController): IDWebView {
     val options = DWebViewOptions(
       url = getDesktopUrl().toString(),
+      privateNet = true,
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Ignore,
     );

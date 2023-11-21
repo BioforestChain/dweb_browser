@@ -17,7 +17,6 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
 import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
-import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
@@ -78,19 +77,23 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     process_id: String,
     mmid: String,
     reason: String
-  ) = dWebView.evaluateAsyncJavascriptCode(
-    "createIpcFail($process_id,$mmid,$reason)"
-  ).let {}
+  ) {
+    dWebView.evaluateAsyncJavascriptCode(
+      "createIpcFail($process_id,$mmid,$reason)"
+    )
+  }
 
-  suspend fun runProcessMain(process_id: Int, options: RunProcessMainOptions) =
+  suspend fun runProcessMain(process_id: Int, options: RunProcessMainOptions) {
     dWebView.evaluateAsyncJavascriptCode(
       "runProcessMain($process_id, { main_url:`${options.main_url}` })"
-    ).let {}
+    )
+  }
 
-  suspend fun destroyProcess(process_id: Int) =
+  suspend fun destroyProcess(process_id: Int) {
     dWebView.evaluateAsyncJavascriptCode(
       "destroyProcess($process_id)"
-    ).let {}
+    )
+  }
 
   suspend fun createIpc(process_id: Int, mmid: MMID) = withContext(Dispatchers.Main) {
     val channel = dWebView.createMessageChannel()
@@ -131,18 +134,12 @@ suspend fun createJsProcessWeb(
   mainServer: HttpDwebServer,
   mm: NativeMicroModule
 ): JsProcessWebApi {
-  val afterReadyPo = PromiseOut<Unit>()
   /// WebView 实例
   val urlInfo = mainServer.startResult.urlInfo
 
   val jsProcessUrl = urlInfo.buildInternalUrl().build { resolvePath("/index.html") }.toString()
-  val dWebView = IDWebView.create(mm, DWebViewOptions(url = jsProcessUrl))
+  val dWebView = IDWebView.create(mm, DWebViewOptions(privateNet = true))
+  dWebView.loadUrl(jsProcessUrl)
 
-  dWebView.onReady {
-    afterReadyPo.resolve(Unit)
-  }
-  val api = JsProcessWebApi(dWebView)
-
-  afterReadyPo.waitPromise()
-  return api
+  return JsProcessWebApi(dWebView)
 }
