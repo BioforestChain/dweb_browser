@@ -262,8 +262,8 @@ abstract class Ipc {
   }
 
   private fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
-    val req_id = this.allocReqId();
-    val ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
+    val reqId = this.allocReqId();
+    val ipcRequest = IpcRequest.fromRequest(reqId, this, url, init);
     return ipcRequest;
   }
 
@@ -284,10 +284,10 @@ abstract class Ipc {
     return result.waitPromise();
   }
 
-  fun allocReqId() = req_id_acc.getAndAdd(1)
+  private fun allocReqId() = req_id_acc.getAndAdd(1)
 
   /** 自定义注册 请求与响应 的id */
-  fun registerReqId(req_id: Int = this.allocReqId()): PromiseOut<IpcResponse> {
+  private fun registerReqId(req_id: Int = this.allocReqId()): PromiseOut<IpcResponse> {
     return _reqResMap.getOrPut(req_id) {
       return PromiseOut()
     }

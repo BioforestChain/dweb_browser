@@ -79,8 +79,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val controllersMap = mutableMapOf<String, DeskControllers>()
   }
 
-  // app排序
-  val appSortList = DaskSortStore(this)
   private suspend fun listenApps() = ioAsyncScope.launch {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
@@ -89,6 +87,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         it.cb()
       }
     }
+    // app排序
+    val appSortList = DaskSortStore(this@DeskNMM)
     launch {
       doObserve("/observe/install-apps") {
         runningApps.emitChangeBackground(adds, updates, removes)
@@ -97,7 +97,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           appSortList.delete(it)
         }
         adds.map {
-          if (!appSortList.getApps().contains(it)) {
+          if (!appSortList.has(it)) {
             appSortList.push(it)
           }
         }
@@ -121,7 +121,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
       val appMainWindow = getAppMainWindow(ipc)
       /// 将所有的窗口聚焦
-      appMainWindow.mainWindow.focus()
+      appMainWindow.state.observable.onChange {
+        println("ActivateAppWindowxx=> ${it.key.name} ${it.oldValue} ${it.newValue}")
+      }
       desktopController.desktopWindowsManager.focusWindow(appId)
       return appMainWindow
     } catch (e: Exception) {
@@ -266,7 +268,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       // 负责resize taskbar大小
       "/taskbar/resize" bind HttpMethod.Get to defineJsonResponse {
         val size = request.queryAs<TaskbarController.ReSize>()
-        debugDesk("/taskbar/resize", "$size")
+        debugDesk("get/taskbar/resize", "$size")
         taskBarController.resize(size)
         size.toJsonElement()
       },

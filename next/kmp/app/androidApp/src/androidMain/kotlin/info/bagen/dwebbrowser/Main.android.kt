@@ -139,14 +139,14 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 启动程序
   val bootNMM = BootNMM(
     listOf(
-      permissionNMM.mmid,// 权限管理
-      fileNMM.mmid,//
-      jmmNMM.mmid,//
       httpNMM.mmid,//
+      fileNMM.mmid,//
+      permissionNMM.mmid,// 权限管理
+      jmmNMM.mmid,//
       nativeUiNMM.mmid,//
       downloadNMM.mmid, // 为了获取下载的数据
+      browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
       deskNMM.mmid,//
-      browserNMM.mmid // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
     ),
   ).setup()
 

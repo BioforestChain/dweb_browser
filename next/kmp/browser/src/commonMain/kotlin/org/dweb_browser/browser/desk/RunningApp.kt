@@ -81,6 +81,8 @@ class RunningApp(
           bootstrapContext.dns.close(ipc.remote.mmid)
         }
       }
+    } else {
+      mainWin?.focus()
     }
     mainWin!!
   }

@@ -20,23 +20,22 @@ class TaskbarStore(mm: MicroModule) {
 }
 
 class DaskSortStore(mm: MicroModule) {
-  private val store = mm.createStore("deskSort", false)// createStore("taskbar/apps", false)
+  private val store = mm.createStore("DeskSort", false)// createStore("taskbar/apps", false)
 
   suspend fun getApps(): MutableList<String> {
-    return store.getOrPut("appSort") {
-      return@getOrPut mutableListOf()
-    }
+    val sortedList = store.getAll<Int>().entries.sortedBy { it.value }
+    return sortedList.map { it.key }.toMutableList()
+  }
+
+  suspend fun has(mmid: MMID): Boolean {
+    return store.getAll<Int>().containsKey(mmid)
   }
 
   suspend fun push(mmid: MMID) {
-    val list = getApps()
-    list.add(mmid)
-    store.set("appSort", list)
+    store.set(mmid, store.getAll<Int>().size + 1)
   }
 
   suspend fun delete(mmid: MMID) {
-    val list = getApps()
-    list.remove(mmid)
-    store.set("appSort", list)
+    store.delete(mmid)
   }
 }

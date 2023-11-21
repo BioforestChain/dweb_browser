@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -112,7 +114,8 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
       Box(
         modifier = Modifier.zIndex(1000f).size(boxWidth.dp, boxHeight.dp)
           .offset(x = boxOffset.x.dp, y = boxOffset.y.dp)
-          .background(Color.Green.copy(alpha = 0.2f))
+          .clip(RoundedCornerShape(16.dp))
+          .background(Color.Black.copy(alpha = 0.2f))
           .pointerInput(Unit) {
             detectDragGestures(onDragEnd = {
               inDrag = false

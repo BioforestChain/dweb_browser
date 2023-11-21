@@ -51,7 +51,7 @@ class TaskbarController private constructor(
   private val _taskbarView =
     deskNMM.ioAsyncScope.async { ITaskbarView.create(this@TaskbarController) }
 
-  suspend fun taskbarView() = _taskbarView.await()
+  private suspend fun taskbarView() = _taskbarView.await()
 
   @Composable
   fun TaskbarView(content: @Composable ITaskbarView.() -> Unit) {
@@ -62,7 +62,7 @@ class TaskbarController private constructor(
     view?.content()
   }
 
-  val taskbarStore = TaskbarStore(deskNMM)
+  private val taskbarStore = TaskbarStore(deskNMM)
 
   /** 展示在taskbar中的应用列表 */
   private suspend fun getTaskbarShowAppList() = taskbarStore.getApps()
@@ -71,7 +71,7 @@ class TaskbarController private constructor(
   val onUpdate = updateSignal.toListener()
 
   // 触发状态更新
-  internal val stateSignal = Signal<TaskBarState>()
+  private val stateSignal = Signal<TaskBarState>()
   val onStatus = stateSignal.toListener()
 
   init {
@@ -95,10 +95,7 @@ class TaskbarController private constructor(
         taskbarStore.setApps(apps)
         updateSignal.emit()
       }
-
-      desktopController.onUpdate { updateSignal.emit() }
     }
-
   }
 
   suspend fun getTaskbarAppList(limit: Int): List<DeskAppMetaData> {

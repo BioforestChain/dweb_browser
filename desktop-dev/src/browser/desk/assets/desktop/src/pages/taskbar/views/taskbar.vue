@@ -170,36 +170,24 @@ onMounted(() => {
         const { width: _width, height: _height } = entry.contentRect;
         const height = Math.ceil(_height);
         const width = Math.ceil(_width);
+        console.log("ResizeObserver", height, width);
         await resizeTaskbar(width, height);
       }
     });
     resizeOb.observe(element);
     requestAnimationFrame(() => {
+      console.log("requestAnimationFrame", element.clientWidth, element.clientHeight);
       resizeTaskbar(element.clientWidth, element.clientHeight);
     });
   }
 });
 
-// 判断是否是svg 切换为svg组件渲染
-const isSvg = (iconSrc?: string) => {
-  if (iconSrc && iconSrc.endsWith(".svg")) return true;
-  return false;
-};
-const getSvg = (index: number) => {
-  const iconUrl = appRefList.value.at(index)?.metaData.icons?.at(0)?.src ?? "";
-  return iconUrl;
-};
 const iconSize = "45px";
 </script>
 <template>
   <div class="taskbar min-w-[4.5rem]" ref="taskbarEle">
-    <div class="panel p-4">
-      <button
-        class="app-icon-wrapper z-grid"
-        v-for="(appIcon, index) in showAppIcons"
-        :key="index"
-        :class="{ active: appIcon.metaData.running }"
-      >
+    <div class="panel" v-for="(appIcon, index) in showAppIcons" :key="index">
+      <button class="app-icon-wrapper z-grid" :class="{ active: appIcon.metaData.running }">
         <transition name="scale">
           <AppIcon
             class="z-view"
@@ -228,7 +216,7 @@ const iconSize = "45px";
     </div>
     <template v-if="!isSingleIconMode">
       <hr v-if="appRefList.length !== 0" class="my-divider" />
-      <button class="desktop-button app-icon-wrapper z-grid m-4" @click="toggleDesktopButton">
+      <button class="desktop-button app-icon-wrapper z-grid" @click="toggleDesktopButton">
         <AppIcon
           class="z-view"
           :icon="icons.layout_panel_top"
@@ -261,6 +249,7 @@ const iconSize = "45px";
   flex: 1;
   flex-wrap: wrap;
   justify-content: space-around;
+  padding: 0.4rem;
 }
 .my-divider {
   width: 90%;
@@ -272,6 +261,7 @@ const iconSize = "45px";
   flex-shrink: 0;
 }
 .desktop-button {
+  padding: 0.4rem;
   box-sizing: content-box;
   flex-shrink: 0;
 }

@@ -8,9 +8,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.apache.commons.compress.utils.IOUtils
 import java.io.*
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 import java.util.*
-import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
@@ -46,37 +44,6 @@ object ZipUtil {
     return target
   }
 
-  /**
-   * 将tar压缩成tar.gz文件
-   *
-   * @param list
-   * @param outPutPath
-   * @param fileName
-   */
-  @Throws(IOException::class)
-  fun compress(list: List<File>, outPutPath: String, fileName: String): File? {
-    val outPutFile = File(outPutPath + File.separator.toString() + fileName + ".tar.gz")
-    val tempTar = File("temp.tar")
-    FileInputStream(pack(list, tempTar)).use { fis ->
-      BufferedInputStream(fis, BUFFER_SIZE).use { bis ->
-        FileOutputStream(outPutFile).use { fos ->
-          GZIPOutputStream(fos).use { gzp ->
-            var count: Int
-            val data = ByteArray(BUFFER_SIZE)
-            while (bis.read(data, 0, BUFFER_SIZE).also { count = it } != -1) {
-              gzp.write(data, 0, count)
-            }
-          }
-        }
-      }
-    }
-    try {
-      Files.deleteIfExists(tempTar.toPath())
-    } catch (e: IOException) {
-      e.printStackTrace()
-    }
-    return outPutFile
-  }
 
   fun ergodicDecompress(
     filePath: String, outputDir: String, isDeleted: Boolean = true, mmid: String? = null

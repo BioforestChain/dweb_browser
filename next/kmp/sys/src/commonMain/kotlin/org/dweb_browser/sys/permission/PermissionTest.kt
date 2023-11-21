@@ -66,7 +66,7 @@ class PermissionApplicantTMM :
   init {
     short_name = name
     categories = listOf(
-      MICRO_MODULE_CATEGORY.Application,
+//      MICRO_MODULE_CATEGORY.Application,
     )
     icons = listOf(
       ImageResource(src = "file:///sys/icons/test-pink.svg", type = "image/svg+xml")
