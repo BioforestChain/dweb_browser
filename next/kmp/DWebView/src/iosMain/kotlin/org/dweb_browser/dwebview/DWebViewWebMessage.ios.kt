@@ -85,7 +85,7 @@ internal class DWebViewWebMessage(val webview: DWebView) {
 
   }
 
-  internal class WebMessagePortMessageHanlder : NSObject(), WKScriptMessageHandlerProtocol {
+  internal class WebMessagePortMessageHandler : NSObject(), WKScriptMessageHandlerProtocol {
     override fun userContentController(
       userContentController: WKUserContentController,
       didReceiveScriptMessage: WKScriptMessage
@@ -94,19 +94,21 @@ internal class DWebViewWebMessage(val webview: DWebView) {
         val message = didReceiveScriptMessage.body as NSObject
         val type = message.valueForKey("type") as String
 
-        if(type == "message") {
+        if (type == "message") {
           val id = (message.valueForKey("id") as NSNumber).intValue
           val data = message.valueForKey("data") as String
           val ports = mutableListOf<DWebMessagePort>()
 
           val originPort = allPorts[id] ?: throw Exception("no found port by id:$id")
 
-          val messageScope = CoroutineScope(CoroutineName("webMessage") + defaultAsyncExceptionHandler)
+          val messageScope =
+            CoroutineScope(CoroutineName("webMessage") + defaultAsyncExceptionHandler)
           messageScope.launch {
-            originPort.onMessage.signal.emit(DWebMessage(data, ports))
+            originPort._started.value.emit(DWebMessage(data, ports))
           }
         }
-      } catch(_: Throwable) {}
+      } catch (_: Throwable) {
+      }
     }
   }
 }

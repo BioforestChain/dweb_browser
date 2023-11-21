@@ -25,7 +25,7 @@ actual suspend fun IDWebView.Companion.create(
   mm: MicroModule,
   options: DWebViewOptions
 ): IDWebView =
-  create(CGRectMake(0.0, 0.0, 0.0, 0.0), mm, options, withMainContext { WKWebViewConfiguration() })
+  create(CGRectMake(0.0, 0.0, 100.0, 100.0), mm, options, withMainContext { WKWebViewConfiguration() })
 
 @OptIn(ExperimentalForeignApi::class)
 suspend fun IDWebView.Companion.create(

@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview.engine
 
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
+import io.ktor.http.hostWithPort
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
@@ -11,6 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewWebMessage
@@ -153,7 +155,7 @@ class DWebViewEngine(
     }
   }
 
-  fun loadUrl(url: String): String {
+  suspend fun loadUrl(url: String): String {
     val safeUrl = resolveUrl(url)
     val nsUrl = NSURL(string = safeUrl)
     val nav = loadRequest(NSURLRequest(uRL = nsUrl))
@@ -161,12 +163,41 @@ class DWebViewEngine(
     return safeUrl
   }
 
-  fun resolveUrl(url: String): String {
-    val safeUrl = if (url.contains(".dweb") && Url(url).let { url ->
-        url.host.endsWith(".dweb") && (url.protocol == URLProtocol.HTTP || (options.privateNet && url.protocol == URLProtocol.HTTPS))
-      }) {
-      "dweb+$url"
-    } else url
+  suspend fun resolveUrl(inputUrl: String): String {
+    val safeUrl = if (inputUrl.contains(".dweb")) {
+      Url(inputUrl).let { url ->
+        /// 处理 http(s)?:*.dweb
+        if (url.host.endsWith(".dweb")) {
+          if (url.protocol == URLProtocol.HTTP || (options.privateNet && url.protocol == URLProtocol.HTTPS)) {
+            "dweb+$url"
+          } else inputUrl
+        } else {
+          /// 处理 http://*.dweb-port.localhost:gateway-port
+          val httpLocalhostGatewaySuffix = dwebHttpGatewayServer.getHttpLocalhostGatewaySuffix()
+          val inputHostWithPort = url.hostWithPort
+          if (url.protocol == URLProtocol.HTTP && inputHostWithPort.endsWith(
+              httpLocalhostGatewaySuffix
+            )
+          ) {
+            "dweb+" + inputUrl.replace(inputHostWithPort,
+              inputHostWithPort.substring(
+                0,
+                inputHostWithPort.length - httpLocalhostGatewaySuffix.length
+              )
+                .let { dwebHost ->
+                  val hostInfo = dwebHost.split('-')
+                  val port = hostInfo.last().toUShortOrNull()
+                  if (port != null) {
+                    hostInfo.toMutableList().run {
+                      removeLast()
+                      joinToString("-")
+                    } + ":$port"
+                  } else dwebHost
+                })
+          } else inputUrl
+        }
+      }
+    } else inputUrl
     return safeUrl
   }
 
@@ -186,7 +217,7 @@ class DWebViewEngine(
       removeAllUserScripts()
       addScriptMessageHandler(CloseWatcherScriptMessageHandler(this@DWebViewEngine), "closeWatcher")
       addScriptMessageHandler(
-        DWebViewWebMessage.WebMessagePortMessageHanlder(),
+        DWebViewWebMessage.WebMessagePortMessageHandler(),
         DWebViewWebMessage.webMessagePortContentWorld,
         "webMessagePort"
       )
@@ -201,7 +232,9 @@ class DWebViewEngine(
     }
 
     if (options.url.isNotEmpty()) {
-      loadUrl(options.url)
+      mainScope.launch {
+        loadUrl(options.url)
+      }
     }
 
     setOpaque(false)

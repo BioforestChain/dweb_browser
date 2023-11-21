@@ -1,6 +1,7 @@
 package org.dweb_browser.dwebview
 
 import kotlinx.cinterop.BetaInteropApi
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Signal
@@ -10,20 +11,26 @@ import platform.Foundation.NSString
 import platform.Foundation.create
 
 class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMessagePort {
-  private val onMessageSignal = Signal<DWebMessage>()
-
   init {
     DWebViewWebMessage.allPorts[portId] = this
   }
 
-  override suspend fun start() {
-    withMainContext {
-      webview.engine.evalAsyncJavascript<Unit>(
-        "nativeStart($portId)",
-        null,
-        DWebViewWebMessage.webMessagePortContentWorld
-      ).await()
+  internal val _started = lazy {
+    val onMessageSignal = Signal<DWebMessage>()
+    webview.scope.launch {
+      withMainContext {
+        webview.engine.evalAsyncJavascript<Unit>(
+          "nativeStart($portId)",
+          null,
+          DWebViewWebMessage.webMessagePortContentWorld
+        ).await()
+      }
     }
+    onMessageSignal
+  }
+
+  override suspend fun start() {
+    _started.value
   }
 
   @OptIn(BetaInteropApi::class)
@@ -58,5 +65,5 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
     }
   }
 
-  override val onMessage = onMessageSignal.toListener()
+  override val onMessage = _started.value.toListener()
 }

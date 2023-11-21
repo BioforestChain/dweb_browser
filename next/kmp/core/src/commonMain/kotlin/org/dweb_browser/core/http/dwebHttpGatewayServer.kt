@@ -17,6 +17,7 @@ import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.core.help.asPureRequest
 import org.dweb_browser.core.help.fromPureResponse
 import org.dweb_browser.core.help.isWebSocket
+import org.dweb_browser.core.help.suspendOnce
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.std.http.debugHttp
 import org.dweb_browser.core.std.http.findRequestGateway
@@ -138,6 +139,9 @@ class DwebHttpGatewayServer private constructor() {
     }
     return startResult.value.await()
   }
+
+  suspend fun getPort() = startServer()
+  val getHttpLocalhostGatewaySuffix = suspendOnce { ".localhost:${startServer()}" }
 
   suspend fun getUrl() = "http://127.0.0.1:${startServer()}"
 
