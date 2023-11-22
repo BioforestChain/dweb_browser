@@ -44,14 +44,6 @@ android {
     minSdk = libs.versions.minSdkVersion.get().toInt()
   }
 
-  composeOptions {
-    kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
-  }
-
-  buildFeatures {
-    compose = true
-  }
-
   sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
   sourceSets["main"].res.srcDirs("src/androidMain/res")
   sourceSets["main"].resources.srcDirs("src/androidMain/resources","src/commonMain/resources")
