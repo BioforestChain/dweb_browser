@@ -50,7 +50,7 @@ import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmTabs
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.helper.formatDatestamp
+import org.dweb_browser.helper.formatDatestampByMilliseconds
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.sys.window.core.WindowRenderScope
 
@@ -143,7 +143,7 @@ fun JmmViewItem(
       Row {
         Text(text = jmmHistoryMetadata.metadata.bundle_size.toSpaceSize())
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = jmmHistoryMetadata.installTime.formatDatestamp())
+        Text(text = jmmHistoryMetadata.installTime.formatDatestampByMilliseconds())
         Spacer(modifier = Modifier.width(8.dp))
         Icon(
           imageVector = if (showMore) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,

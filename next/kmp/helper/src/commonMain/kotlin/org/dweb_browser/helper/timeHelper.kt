@@ -27,20 +27,26 @@ fun Long.toEpochDay(): Long {
 /**
  * 比对天数差，返回0表示同一天，正数表示大于当前时间的天数，负数表示小于当前时间的天数
  */
-fun Long.compareNowDay(): Long {
+fun Long.compareNowDayByMilliseconds(): Long {
   val lastInstant = Instant.fromEpochMilliseconds(this)
   val nowInstant = Clock.System.now()
   return lastInstant.minus(nowInstant, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
 }
 
-fun Long.formatTimestamp(): String {
+fun Long.formatTimestampByMilliseconds(): String {
   val instant = Instant.fromEpochMilliseconds(this)
   val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
   return "${localDateTime.date} ${localDateTime.time}"
 }
 
-fun Long.formatDatestamp(): String {
+fun Long.formatDatestampByMilliseconds(): String {
   val instant = Instant.fromEpochMilliseconds(this)
+  val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+  return localDateTime.date.toString()
+}
+
+fun Long.formatDatestampByEpochDay(): String {
+  val instant = Instant.fromEpochDays(this)
   val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
   return localDateTime.date.toString()
 }
@@ -84,4 +90,12 @@ private fun Instant.toEpochDay(): Long {
 
 private fun isLeapYear(year: Int): Boolean {
   return (year and 3) == 0 && (year % 100 != 0 || year % 400 == 0)
+}
+
+/**
+ * 将天数的转为Instant对象
+ */
+private fun Instant.Companion.fromEpochDays(days: Long): Instant {
+  val milliseconds = days * 24 * 60 * 60 * 1000
+  return fromEpochMilliseconds(milliseconds)
 }

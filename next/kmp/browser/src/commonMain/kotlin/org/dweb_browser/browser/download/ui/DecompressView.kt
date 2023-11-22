@@ -28,7 +28,7 @@ import org.dweb_browser.browser.download.DownloadController
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.noLocalProvidedFor
-import org.dweb_browser.helper.formatTimestamp
+import org.dweb_browser.helper.formatTimestampByMilliseconds
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 val LocalDecompressModel = compositionLocalOf<DecompressModel> {
@@ -105,7 +105,7 @@ private fun AppHeadInfo() {
       item {
         TableRow(
           title = BrowserI18nResource.unzip_title_createTime(),
-          content = task.createTime.formatTimestamp()
+          content = task.createTime.formatTimestampByMilliseconds()
         )
       }
       item {

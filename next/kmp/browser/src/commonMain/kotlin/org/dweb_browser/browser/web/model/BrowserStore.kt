@@ -7,10 +7,9 @@ import kotlinx.serialization.Transient
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
-import org.dweb_browser.helper.compareNowDay
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.datetimeNowToEpochDay
-import org.dweb_browser.helper.formatDatestamp
+import org.dweb_browser.helper.formatDatestampByEpochDay
 import org.dweb_browser.helper.toEpochDay
 
 @Serializable
@@ -26,10 +25,10 @@ data class WebSiteInfo(
 
 @Composable
 fun Long.formatToStickyName(): String {
-  return when (this.compareNowDay()) {
+  return when (datetimeNowToEpochDay() - this) {
     0L -> BrowserI18nResource.time_today()
     -1L -> BrowserI18nResource.time_yesterday()
-    else -> this.formatDatestamp()
+    else -> this.formatDatestampByEpochDay()
   }
 }
 
