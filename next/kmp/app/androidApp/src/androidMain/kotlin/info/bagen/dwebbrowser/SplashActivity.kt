@@ -24,7 +24,7 @@ import androidx.core.view.WindowCompat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.SplashPrivacyDialog
-import org.dweb_browser.browser.web.ui.view.CommonWebView
+import org.dweb_browser.browser.common.CommonWebView
 import org.dweb_browser.helper.getBoolean
 import org.dweb_browser.helper.saveBoolean
 import org.dweb_browser.helper.compose.LocalCommonUrl

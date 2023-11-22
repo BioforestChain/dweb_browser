@@ -1,11 +1,9 @@
 package info.bagen.dwebbrowser
 
 import android.webkit.WebView
-import org.dweb_browser.sys.configure.ConfigNMM
-import org.dweb_browser.sys.notification.NotificationNMM
-import org.dweb_browser.sys.toast.ToastNMM
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import org.dweb_browser.browser.common.barcode.QRCodeScanNMM
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
@@ -26,14 +24,17 @@ import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
+import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.device.DeviceNMM
 import org.dweb_browser.sys.haptics.HapticsNMM
 import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
+import org.dweb_browser.sys.notification.NotificationNMM
 import org.dweb_browser.sys.permission.PermissionApplicantTMM
 import org.dweb_browser.sys.permission.PermissionNMM
 import org.dweb_browser.sys.permission.PermissionProviderTNN
 import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
+import org.dweb_browser.sys.toast.ToastNMM
 
 suspend fun startDwebBrowser(): DnsNMM {
   /**
@@ -101,6 +102,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 扫码
   val scannerNMM = ScanningNMM().setup()
+  val qrCodeScanNMM = QRCodeScanNMM().setup()
   ///安装剪切板
   val clipboardNMM = ClipboardNMM().setup()
   ///设备信息

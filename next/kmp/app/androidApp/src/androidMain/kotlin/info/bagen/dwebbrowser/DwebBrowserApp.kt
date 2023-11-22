@@ -6,7 +6,7 @@ import android.content.Intent
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import org.dweb_browser.browser.barcode.ScanningActivity
+import org.dweb_browser.browser.common.barcode.ScanningActivity
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.nativeMicroModuleAppContext

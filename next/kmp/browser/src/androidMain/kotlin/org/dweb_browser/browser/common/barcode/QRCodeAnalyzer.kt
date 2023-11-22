@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.barcode.ui
+package org.dweb_browser.browser.common.barcode
 
 import android.content.Context
 import android.graphics.Bitmap

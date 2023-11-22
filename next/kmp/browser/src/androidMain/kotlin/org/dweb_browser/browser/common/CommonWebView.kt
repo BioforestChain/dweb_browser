@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.view
+package org.dweb_browser.browser.common
 
 import android.annotation.SuppressLint
 import android.os.Build

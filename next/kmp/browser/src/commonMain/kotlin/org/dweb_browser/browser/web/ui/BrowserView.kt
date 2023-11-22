@@ -44,6 +44,11 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
+import org.dweb_browser.browser.common.barcode.QRCodeScanView
+import org.dweb_browser.browser.common.barcode.QRCodeState
+import org.dweb_browser.browser.common.barcode.openDeepLink
+import org.dweb_browser.browser.common.barcode.rememberQRCodeModel
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.model.BrowserBaseView
 import org.dweb_browser.browser.web.model.BrowserWebView
@@ -93,8 +98,9 @@ fun BrowserViewForWindow(
   val scope = rememberCoroutineScope()
   val browserPagerState = viewModel.rememberBrowserPagerState()
   val initialScale = windowRenderScope.scale * LocalDensity.current.density
-    //(LocalDensity.current.density * windowRenderScope.scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
+  //(LocalDensity.current.density * windowRenderScope.scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
   val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
+  val qrCodeScanModel = rememberQRCodeModel()
 
   LaunchedEffect(browserPagerState) {
     viewModel.onPagerStateChange { page ->
@@ -107,6 +113,7 @@ fun BrowserViewForWindow(
     LocalModalBottomSheet provides modalBottomModel,
     LocalWebViewInitialScale provides initialScale,
     LocalBrowserPageState provides browserPagerState,
+    LocalQRCodeModel provides qrCodeScanModel,
   ) {
     val win = LocalWindowController.current
     win.GoBackHandler {
@@ -141,6 +148,14 @@ fun BrowserViewForWindow(
         BrowserMultiPopupView(viewModel)// 用于显示多界面
         BrowserSearchView(viewModel)
         BrowserBottomSheet(viewModel)
+        QRCodeScanView(
+          qrCodeScanModel = qrCodeScanModel,
+          onSuccess = {
+            openDeepLink(it)
+            scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) }
+          },
+          onCancel = { scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) } }
+        )
       }
     }
   }
@@ -260,6 +275,7 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
 private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
   val bottomSheetModel = LocalModalBottomSheet.current
+  val qrCodeScanState = LocalQRCodeModel.current
   Row(
     modifier = Modifier
       .fillMaxWidth()
@@ -284,7 +300,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
         if (canGoBack) {
           viewModel.addNewMainView()
         } else {
-          viewModel.openQRCodeScanning()
+          qrCodeScanState.stateChange.emit(QRCodeState.Scanning)
         }
       }
     }

@@ -4,6 +4,9 @@
 
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.CAMERA" />
+
+  <uses-feature android:name="android.hardware.camera.any" />
 
   <application>
     <activity
@@ -20,7 +23,7 @@
       android:theme="@style/Theme.DwebBrowser.Transparent" />
 
     <activity
-      android:name="org.dweb_browser.browser.barcode.ScanningActivity"
+      android:name="org.dweb_browser.browser.common.barcode.ScanningActivity"
       android:exported="true"
       android:launchMode="singleTask"
       android:theme="@style/Theme.dwebbrowser">

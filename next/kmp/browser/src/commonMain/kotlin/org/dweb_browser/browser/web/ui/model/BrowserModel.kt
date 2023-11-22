@@ -249,14 +249,6 @@ class BrowserViewModel(
     focusBrowserView(itemView)
   }
 
-  suspend fun openQRCodeScanning() {
-    val data = browserNMM.nativeFetch("file://barcode-scanning.sys.dweb/open").body.toPureString()
-    // 如果是url，进行跳转，如果不是，就直接弹出对话框
-    if (data.isNotEmpty()) {
-      searchWebView(data)
-    }
-  }
-
   suspend fun shareWebSiteInfo() {
     currentBrowserBaseView.value?.let {
       val url = it.viewItem.webView.getUrl()
