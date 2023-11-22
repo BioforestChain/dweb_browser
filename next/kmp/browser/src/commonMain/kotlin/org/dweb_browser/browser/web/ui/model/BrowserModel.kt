@@ -157,7 +157,7 @@ class BrowserViewModel(
       webviewId = webviewId,
       webView = dWebView,
       coroutineScope = coroutineScope,
-    )
+    ).also { it.webView.setVerticalScrollBarVisible(false) }
     dWebView.onCreateWindow {
       val browserWebView = createBrowserWebView(it)
       if (browserViewList.add(browserWebView)) {

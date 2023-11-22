@@ -66,7 +66,7 @@ class TaskbarController private constructor(
 
   /** 展示在taskbar中的应用列表 */
   private suspend fun getTaskbarShowAppList() = taskbarStore.getApps()
-  internal suspend fun getFocusApp() = getTaskbarShowAppList().firstOrNull()
+  private suspend fun getFocusApp() = getTaskbarShowAppList().firstOrNull()
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
 
@@ -90,11 +90,15 @@ class TaskbarController private constructor(
         if (apps.size > 4) {
           apps.removeLastOrNull()
         }
-
         /// 保存到数据库
         taskbarStore.setApps(apps)
+        // 窗口打开时触发
         updateSignal.emit()
       }
+    }
+    // 监听窗口状态改变
+    desktopController.onUpdate {
+      updateSignal.emit()
     }
   }
 
@@ -195,7 +199,7 @@ class TaskbarController private constructor(
     // 监听状态是否是float
     getFocusApp()?.let { focusApp ->
       stateSignal.emit(
-        TaskbarController.TaskBarState(toggle, focusApp)
+        TaskBarState(toggle, focusApp)
       )
     }
     return if (toggle) openTaskbarActivity() else closeTaskbarActivity()

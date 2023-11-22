@@ -30,7 +30,6 @@ class DesktopViewControllerCore(val controller: IPureViewController) {
   init {
     controller.onCreate { params ->
       val (desktopController, taskbarController, microModule) = bindController(params.getString("deskSessionId"))
-
       controller.addContent {
         DwebBrowserAppTheme {
           desktopController.Render(taskbarController, microModule)

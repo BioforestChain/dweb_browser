@@ -10,7 +10,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -141,7 +144,7 @@ open class DesktopController private constructor(
         }.removeWhen(dwm.viewController.lifecycleScope)
 
         preDesktopWindowsManager?.also { preDwm ->
-          runBlockingCatching {
+          deskNMM.ioAsyncScope.launch(Dispatchers.Main) {
             /// 窗口迁移
             preDwm.moveWindows(dwm)
             preDesktopWindowsManager = null

@@ -22,7 +22,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPu
   /**
    * 一个已经根据 zIndex 排序完成的只读列表
    */
-  val winList = mutableStateListOf<T>();
+  val winList = mutableStateListOf<T>()
 
   /**
    * 置顶窗口，一个已经根据 zIndex 排序完成的只读列表
@@ -146,7 +146,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPu
    */
   suspend fun moveWindows(
     other: WindowsManager<T>,
-    windows: Iterable<T> = winList.toList()/*拷贝一份避免并发修改导致的问题，这里默认使用 zIndex 的顺序来迁移，可以避免问题*/
+    windows: Iterable<T> = winList /*拷贝一份避免并发修改导致的问题，这里默认使用 zIndex 的顺序来迁移，可以避免问题*/
   ) {
     /// 窗口迁移
     for (win in windows) {
