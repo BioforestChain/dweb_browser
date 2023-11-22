@@ -1,5 +1,3 @@
-def xxxName = ""
-
 kotlin {
   androidTarget {
     compilations.all {

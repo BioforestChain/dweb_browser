@@ -8,6 +8,7 @@ import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -20,11 +21,13 @@ import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.file.getApplicationRootDir
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SystemFileSystem
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getKtorServerEngine
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.resource
+import reverse_proxy.VoidCallback
 
 val debugDWebView = Debugger("dwebview")
 
@@ -35,7 +38,7 @@ expect suspend fun IDWebView.Companion.create(
 abstract class IDWebView(initUrl: String?) {
   abstract val scope: CoroutineScope
 
-  @OptIn(ExperimentalResourceApi::class)
+  @OptIn(ExperimentalResourceApi::class, DelicateCoroutinesApi::class)
   companion object {
     private suspend fun findPort(): UShort {
       val server = embeddedServer(getKtorServerEngine(), port = 0) {};
@@ -49,9 +52,7 @@ abstract class IDWebView(initUrl: String?) {
     init {
       GlobalScope.launch(ioAsyncExceptionHandler) {
         println("reverse_proxy starting")
-        val proxyServerPort = async { findPort() }
-        val frontendServerPort = async { findPort() }
-        val backendServerPort = async { dwebHttpGatewayServer.startServer().toUShort() }
+        val backendServerPort = dwebHttpGatewayServer.startServer().toUShort()
         val dwebResourceDir = FileNMM.Companion.getApplicationRootDir().resolve("dwebview").also {
           if (!SystemFileSystem.exists(it)) {
             SystemFileSystem.createDirectories(it)
@@ -69,15 +70,14 @@ abstract class IDWebView(initUrl: String?) {
               .close()
           }
         }
-        println("reverse_proxy running proxyServerPort=${proxyServerPort.await()}, frontendServerPort=${frontendServerPort.await()}, backendServerPort=${backendServerPort.await()}")
-        proxyAddress.complete("http://127.0.0.1:${proxyServerPort.await()}")
-        reverse_proxy.start(
-          proxyServerPort.await(),
-          frontendServerPort.await(),
-          frontendCertsPath.toString(),
-          frontendKeyPath.toString(),
-          backendServerPort.await(),
-        )
+
+        val proxyReadyCallback = object: VoidCallback {
+          override fun callback(proxyPort: UShort, frontendPort: UShort) {
+            println("reverse_proxy running proxyServerPort=${proxyPort}, frontendServerPort=${frontendPort}, backendServerPort=${backendServerPort}")
+            proxyAddress.complete("http://127.0.0.1:${proxyPort}")
+          }
+        }
+        reverse_proxy.start(frontendCertsPath.toString(), frontendKeyPath.toString(), backendServerPort, proxyReadyCallback)
         println("reverse_proxy stopped")
       }
     }

@@ -317,7 +317,13 @@ fun parseHost(value: String?): String? {
       return queryXWebHost
     }
 
-    if (Regex("""\.dweb(:\d+)?$""").matches(value)) {
+    if (value.split(":").let {
+        when (it.size) {
+          1 -> true
+          2 -> it.last().let { port -> port == port.toUShortOrNull().toString() }
+          else -> false
+        } && it.first().endsWith(".dweb")
+      }) {
       return value
     }
   }

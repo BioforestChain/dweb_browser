@@ -1,7 +1,9 @@
 package org.dweb_browser.dwebview.engine
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.net.http.SslError
+import android.os.Build
 import android.os.Message
 import android.view.KeyEvent
 import android.webkit.ClientCertRequest
@@ -14,6 +16,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import io.ktor.http.Url
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.WebLoadErrorState
 import org.dweb_browser.dwebview.WebLoadState
@@ -22,6 +25,7 @@ import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
+import org.dweb_browser.helper.withMainContext
 
 class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   private val scope get() = engine.ioScope
@@ -86,12 +90,14 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
     view: WebView, request: WebResourceRequest?, error: WebResourceError?
   ) {
     scope.launch {
-      loadStateChangeSignal.emit(
-        WebLoadErrorState(
-          view.url ?: "about:blank",
-          error?.let { "[${it.errorCode}]${it.description}" } ?: ""
+      withMainContext {
+        loadStateChangeSignal.emit(
+          WebLoadErrorState(
+            view.url ?: "about:blank",
+            error?.let { "[${it.errorCode}]${it.description}" } ?: ""
+          )
         )
-      )
+      }
     }
     inners("onReceivedError").forEach { it.onReceivedError(view, request, error) }
     super.onReceivedError(view, request, error)
@@ -124,7 +130,19 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
     } ?: super.onReceivedLoginRequest(view, realm, account, args)
   }
 
+  @SuppressLint("WebViewClientOnReceivedSslError")
   override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
+    if (view != null && view.url != null) {
+      val url = Url(view.url!!)
+
+      if (url.host.endsWith(".dweb")) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+          println("webviewClient onReceivedSslError $error ${error?.certificate?.x509Certificate?.publicKey?.encoded}")
+        }
+        handler?.proceed()
+        return
+      }
+    }
     inners("onReceivedSslError").one { it.onReceivedSslError(view, handler, error) }
       ?: super.onReceivedSslError(view, handler, error)
   }

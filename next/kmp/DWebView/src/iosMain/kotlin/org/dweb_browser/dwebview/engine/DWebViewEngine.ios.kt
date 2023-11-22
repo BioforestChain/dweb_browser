@@ -3,6 +3,7 @@ package org.dweb_browser.dwebview.engine
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.hostWithPort
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
@@ -29,10 +30,20 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.transparentColor
 import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.platform.ios.DwebHelper
+import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSError
 import platform.Foundation.NSURL
+import platform.Foundation.NSURLAuthenticationChallenge
+import platform.Foundation.NSURLAuthenticationMethodServerTrust
+import platform.Foundation.NSURLCredential
 import platform.Foundation.NSURLRequest
+import platform.Foundation.NSURLSessionAuthChallengeDisposition
+import platform.Foundation.NSURLSessionAuthChallengePerformDefaultHandling
+import platform.Foundation.NSURLSessionAuthChallengeUseCredential
+import platform.Foundation.create
+import platform.Foundation.serverTrust
 import platform.UIKit.UIColor
 import platform.UIKit.UIDevice
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
@@ -42,16 +53,19 @@ import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationAction
 import platform.WebKit.WKNavigationActionPolicy
 import platform.WebKit.WKNavigationDelegateProtocol
+import platform.WebKit.WKNavigationResponse
+import platform.WebKit.WKNavigationResponsePolicy
 import platform.WebKit.WKPreferences
 import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
+import platform.WebKit.WKWebpagePreferences
 import platform.WebKit.javaScriptEnabled
 
 
-@OptIn(ExperimentalForeignApi::class)
 @Suppress("CONFLICTING_OVERLOADS")
+@OptIn(ExperimentalForeignApi::class)
 class DWebViewEngine(
   frame: CValue<CGRect>,
   val remoteMM: MicroModule,
@@ -60,7 +74,16 @@ class DWebViewEngine(
 ) : WKWebView(frame, configuration.also {
   registryDwebHttpUrlSchemeHandler(remoteMM, it)
   registryDwebSchemeHandler(remoteMM, it)
-//  it.websiteDataStore.proxyConfigurations = listOf(NSProxyConfiguration)
+  remoteMM.ioAsyncScope.launch {
+    val url = Url(IDWebView.getProxyAddress())
+    withMainContext {
+      @Suppress("USELESS_CAST")
+      DwebHelper().setProxyWithConfiguration(
+        // 强制类型转换，不然WKWebViewConfiguration会提示类型对不上
+        it as objcnames.classes.WKWebViewConfiguration, url.host, url.port.toUShort()
+      )
+    }
+  }
 }), WKNavigationDelegateProtocol {
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
@@ -71,63 +94,6 @@ class DWebViewEngine(
   val loadingProgressSharedFlow = MutableSharedFlow<Float>()
   val closeSignal = SimpleSignal()
   val createWindowSignal = Signal<IDWebView>()
-
-  override fun webView(
-    webView: WKWebView,
-    decidePolicyForNavigationAction: WKNavigationAction,
-    decisionHandler: (WKNavigationActionPolicy) -> Unit
-  ) {
-    var confirm = true
-    /// navigationAction.navigationType : https://developer.apple.com/documentation/webkit/wknavigationtype/
-    if (beforeUnloadSignal.isNotEmpty()) {
-      val message = when (decidePolicyForNavigationAction.navigationType) {
-        // reload
-        3L -> "重新加载此网站？"
-        else -> "离开此网站？"
-      }
-      confirm = runBlocking {
-        val args = WebBeforeUnloadArgs(message)
-        beforeUnloadSignal.emit(args)
-        args.waitHookResults()
-      }
-    }
-    println("QAQ decidePolicyForNavigationAction: $confirm")
-    if (confirm) {
-//          if (decidePolicyForNavigationAction.targetFrame == null) {
-//            loadRequest(decidePolicyForNavigationAction.request)
-//          }
-      decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
-    } else {
-      decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
-    }
-  }
-
-  override fun webView(
-    webView: WKWebView, didStartProvisionalNavigation: WKNavigation?
-  ) {
-    println("QAQ didStartProvisionalNavigation: $didStartProvisionalNavigation")
-    val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-    mainScope.launch { loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
-  }
-
-  override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
-    println("QAQ didFinishNavigation: $didFinishNavigation")
-    val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-    mainScope.launch { loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl)) }
-  }
-
-  override fun webView(
-    webView: WKWebView, didFailNavigation: WKNavigation?, withError: NSError
-  ) {
-    println("QAQ didFailNavigation: $didFailNavigation")
-    val currentUrl = webView.URL?.absoluteString ?: "about:blank"
-    val errorMessage = "[${withError.code}]$currentUrl\n${withError.description}"
-    mainScope.launch { loadStateChangeSignal.emit(WebLoadErrorState(currentUrl, errorMessage)) }
-  }
-
-  init {
-    setNavigationDelegate(this)
-  }
 
   internal val closeWatcher: CloseWatcher by lazy {
     CloseWatcher(this)
@@ -179,21 +145,18 @@ class DWebViewEngine(
               httpLocalhostGatewaySuffix
             )
           ) {
-            "dweb+" + inputUrl.replace(inputHostWithPort,
-              inputHostWithPort.substring(
-                0,
-                inputHostWithPort.length - httpLocalhostGatewaySuffix.length
-              )
-                .let { dwebHost ->
-                  val hostInfo = dwebHost.split('-')
-                  val port = hostInfo.last().toUShortOrNull()
-                  if (port != null) {
-                    hostInfo.toMutableList().run {
-                      removeLast()
-                      joinToString("-")
-                    } + ":$port"
-                  } else dwebHost
-                })
+            "dweb+" + inputUrl.replace(inputHostWithPort, inputHostWithPort.substring(
+              0, inputHostWithPort.length - httpLocalhostGatewaySuffix.length
+            ).let { dwebHost ->
+                val hostInfo = dwebHost.split('-')
+                val port = hostInfo.last().toUShortOrNull()
+                if (port != null) {
+                  hostInfo.toMutableList().run {
+                    removeLast()
+                    joinToString("-")
+                  } + ":$port"
+                } else dwebHost
+              })
           } else inputUrl
         }
       }
@@ -206,6 +169,7 @@ class DWebViewEngine(
     if (UIDevice.currentDevice.systemVersion.compareTo("16.4", true) >= 0) {
       this.setInspectable(true)
     }
+    setNavigationDelegate(this)
     setUIDelegate(DUIDelegateProtocol(this))
 
     val preferences = WKPreferences()
@@ -301,5 +265,108 @@ class DWebViewEngine(
     evaluateJavaScript(script) { _, _ -> }
   }
 
+  //#endregion
+
+  //#region NavigationDelegate
+  override fun webViewWebContentProcessDidTerminate(webView: WKWebView) {
+    mainScope.launch {
+      closeSignal.emit()
+    }
+  }
+
+  override fun webView(
+    webView: WKWebView,
+    decidePolicyForNavigationResponse: WKNavigationResponse,
+    decisionHandler: (WKNavigationResponsePolicy) -> Unit
+  ) {
+    decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyAllow)
+  }
+
+  override fun webView(
+    webView: WKWebView,
+    decidePolicyForNavigationAction: WKNavigationAction,
+    preferences: WKWebpagePreferences,
+    decisionHandler: (WKNavigationActionPolicy, WKWebpagePreferences?) -> Unit
+  ) {
+    decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow, preferences)
+  }
+
+  override fun webView(
+    webView: WKWebView,
+    decidePolicyForNavigationAction: WKNavigationAction,
+    decisionHandler: (WKNavigationActionPolicy) -> Unit
+  ) {
+    var confirm = true
+    /// navigationAction.navigationType : https://developer.apple.com/documentation/webkit/wknavigationtype/
+    if (beforeUnloadSignal.isNotEmpty()) {
+      val message = when (decidePolicyForNavigationAction.navigationType) {
+        // reload
+        3L -> "重新加载此网站？"
+        else -> "离开此网站？"
+      }
+      confirm = runBlocking {
+        val args = WebBeforeUnloadArgs(message)
+        beforeUnloadSignal.emit(args)
+        args.waitHookResults()
+      }
+    }
+    println("QAQ decidePolicyForNavigationAction: $confirm")
+    if (confirm) {
+//          if (decidePolicyForNavigationAction.targetFrame == null) {
+//            loadRequest(decidePolicyForNavigationAction.request)
+//          }
+      decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
+    } else {
+      decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
+    }
+  }
+
+  override fun webView(
+    webView: WKWebView, didStartProvisionalNavigation: WKNavigation?
+  ) {
+    println("QAQ didStartProvisionalNavigation: $didStartProvisionalNavigation")
+    val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
+    mainScope.launch { loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
+  }
+
+  override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
+    println("QAQ didFinishNavigation: $didFinishNavigation")
+    val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
+    mainScope.launch { loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl)) }
+  }
+
+  override fun webView(
+    webView: WKWebView, didFailNavigation: WKNavigation?, withError: NSError
+  ) {
+    println("QAQ didFailNavigation: $didFailNavigation")
+    val currentUrl = webView.URL?.absoluteString ?: "about:blank"
+    val errorMessage = "[${withError.code}]$currentUrl\n${withError.description}"
+    mainScope.launch { loadStateChangeSignal.emit(WebLoadErrorState(currentUrl, errorMessage)) }
+  }
+
+//  override fun webView(
+//    webView: WKWebView,
+//    authenticationChallenge: NSURLAuthenticationChallenge,
+//    shouldAllowDeprecatedTLS: (Boolean) -> Unit
+//  ) {
+//    shouldAllowDeprecatedTLS(true)
+//  }
+
+  @OptIn(BetaInteropApi::class)
+  override fun webView(
+    webView: WKWebView,
+    didReceiveAuthenticationChallenge: NSURLAuthenticationChallenge,
+    completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
+  ) {
+    if (didReceiveAuthenticationChallenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
+      completionHandler(
+        NSURLSessionAuthChallengeUseCredential,
+        NSURLCredential.create(trust = didReceiveAuthenticationChallenge.protectionSpace.serverTrust)
+      )
+      return
+    }
+
+    completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, null)
+  }
   //#endregion
 }

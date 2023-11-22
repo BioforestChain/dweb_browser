@@ -13,7 +13,7 @@ export const doBuildTask = async () => {
   const xcodebuild = await which("xcodebuild");
 
   if (!xcodebuild) {
-    return;
+    Deno.exit(0);
   }
 
   let isExists = false;
@@ -21,13 +21,13 @@ export const doBuildTask = async () => {
 
   for await (const xodePath of xcodePaths) {
     isExists = fs.existsSync(xodePath);
-    if(isExists) {
+    if (isExists) {
       break;
     }
   }
 
   if (!isExists) {
-    return;
+    Deno.exit(0);
   }
 
   const writeFileHash = calcHash();

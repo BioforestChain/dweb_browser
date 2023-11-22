@@ -61,7 +61,6 @@ import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.platform.LocalPureViewBox
 import org.dweb_browser.helper.platform.PureViewBox
 import org.dweb_browser.helper.platform.getKtorClientEngine
-import org.dweb_browser.helper.platform.ios.add
 import org.dweb_browser.helper.platform.nativeRootUIViewController_onCreateSignal
 import org.dweb_browser.helper.platform.nativeRootUIViewController_onDestroySignal
 import org.dweb_browser.helper.platform.nativeRootUIViewController_onInitSignal
@@ -130,10 +129,9 @@ fun dwebRootUIViewController_onDestroy(id: Int) {
 }
 
 suspend fun startDwebBrowser(app: UIApplication): DnsNMM {
-  add(1, 2);
   nativeMicroModuleUIApplication = app;
 
-  addDebugTags(listOf(""))
+  addDebugTags(listOf("/.+/"))
 
   /// 初始化DNS服务
   val dnsNMM = DnsNMM()

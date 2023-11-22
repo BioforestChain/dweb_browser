@@ -11,7 +11,12 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.DisplayCutoutCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.webkit.ProxyConfig
+import androidx.webkit.ProxyController
+import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,8 +31,8 @@ import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toAndroidRect
+import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.withMainContext
 
 /**
@@ -66,7 +71,7 @@ import org.dweb_browser.helper.withMainContext
  * 否则，可以像 Plaoc 一样，专注于传统前后端分离的 WebApp，那么可以尽可能采用 internal_origin。
  *
  */
-@SuppressLint("SetJavaScriptEnabled", "ViewConstructor")
+@SuppressLint("SetJavaScriptEnabled", "ViewConstructor", "RequiresFeature")
 class DWebViewEngine(
   /**
    * 一个WebView的上下文
@@ -84,6 +89,11 @@ class DWebViewEngine(
    */
   var activity: org.dweb_browser.helper.android.BaseActivity? = null
 ) : WebView(context) {
+
+  companion object {
+    private var isProxyServerStart = false
+  }
+
   init {
     if (activity == null && context is org.dweb_browser.helper.android.BaseActivity) {
       activity = context
@@ -180,9 +190,36 @@ class DWebViewEngine(
 
     super.setWebViewClient(dWebViewClient)
     super.setWebChromeClient(dWebChromeClient)
-    if (options.url.isNotEmpty()) {
-      /// 开始加载
-      loadUrl(options.url)
+
+    if(!isProxyServerStart) {
+      remoteMM.ioAsyncScope.launch {
+        withMainContext {
+          val canProxyOverride = WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)
+          if(canProxyOverride) {
+            val address = IDWebView.getProxyAddress()
+            debugDWebView("reverse_proxy proxyAddress", address)
+            val proxyConfig = ProxyConfig.Builder().addProxyRule(address)
+              .addDirect()
+              .build()
+            ProxyController.getInstance().setProxyOverride(proxyConfig, {
+              isProxyServerStart = true
+              if (options.url.isNotEmpty()) {
+                /// 开始加载
+                debugDWebView("ProxyController runnable", options.url)
+                loadUrl(options.url)
+              }
+            }, {
+              debugDWebView("reverse_proxy listener", "start")
+            })
+          }
+        }
+      }
+    } else {
+      if (options.url.isNotEmpty()) {
+        /// 开始加载
+        debugDWebView("ProxyController runnable", options.url)
+        loadUrl(options.url)
+      }
     }
   }
 
@@ -254,6 +291,9 @@ class DWebViewEngine(
       _destroySignal.emitAndClear(Unit)
       ioScope.cancel()
     }
+//    ProxyController.getInstance().clearProxyOverride({}, {
+//      println("ProxyController clearProxy Runnable")
+//    })
   }
 
   private var isAttachedToWindow = false
