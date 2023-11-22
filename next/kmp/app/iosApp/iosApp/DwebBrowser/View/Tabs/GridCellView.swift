@@ -63,6 +63,7 @@ struct GridCell: View {
                     .padding(.vertical, 3)
                     .frame(height: geo.size.height * cellTitleHeightRatio)
                 }
+                .contentShape(Rectangle())
             }
 
             deleteButton

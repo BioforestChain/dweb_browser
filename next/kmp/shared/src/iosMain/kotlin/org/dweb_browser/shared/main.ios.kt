@@ -133,7 +133,7 @@ suspend fun startDwebBrowser(app: UIApplication): DnsNMM {
   add(1, 2);
   nativeMicroModuleUIApplication = app;
 
-  addDebugTags(listOf("/.+/"))
+  addDebugTags(listOf(""))
 
   /// 初始化DNS服务
   val dnsNMM = DnsNMM()
@@ -253,27 +253,27 @@ fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat) -> Uni
             println("update:::: $view")
           })//    PreviewWindowTopBarContent(modifier)
 
-        Column {
-          ElevatedButton(onClick = {
-            println("[iOS Test] Scan >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            scope.launch {
-              TestEntry().doScanningTest()
-            }
-            println("[iOS Test] Scan <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-          }) {
-            Text("Scan Test")
-          }
-
-          ElevatedButton(onClick = {
-            println("[iOS Test] Share >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            scope.launch {
-              TestEntry().doShareTest()
-            }
-            println("[iOS Test] Share <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-          }) {
-            Text("Share Test")
-          }
-        }
+//        Column {
+//          ElevatedButton(onClick = {
+//            println("[iOS Test] Scan >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+//            scope.launch {
+//              TestEntry().doScanningTest()
+//            }
+//            println("[iOS Test] Scan <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+//          }) {
+//            Text("Scan Test")
+//          }
+//
+//          ElevatedButton(onClick = {
+//            println("[iOS Test] Share >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+//            scope.launch {
+//              TestEntry().doShareTest()
+//            }
+//            println("[iOS Test] Share <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+//          }) {
+//            Text("Share Test")
+//          }
+//        }
 
       }
     }

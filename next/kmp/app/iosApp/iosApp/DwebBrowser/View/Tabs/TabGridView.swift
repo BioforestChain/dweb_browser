@@ -160,7 +160,7 @@ struct TabGridView: View {
 
             let webCache = webcacheStore.cache(at: selectedTab.curIndex)
             withAnimation(.linear(duration: 0.1)) {
-                scrollproxy.scrollTo(webCache.id)
+                scrollproxy.scrollTo(webCache.id, anchor: .top)
             }
         }
 
