@@ -191,7 +191,6 @@ const iconSize = "45px";
         <transition name="scale">
           <AppIcon
             class="z-view"
-            :mmid="appIcon.metaData.mmid + index"
             :icon="appIcon.ref.value"
             :size="iconSize"
             bg-color="#FFF"

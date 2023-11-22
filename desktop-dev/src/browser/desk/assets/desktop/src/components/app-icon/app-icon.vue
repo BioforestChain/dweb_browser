@@ -5,10 +5,6 @@ import squircle_svg_url from "../icon-squircle-box/squircle.svg";
 import { $AppIconInfo } from "./types.ts";
 
 const props = defineProps({
-  mmid: {
-    type: String,
-    default: "%",
-  },
   size: {
     type: String,
     default: "100%",
