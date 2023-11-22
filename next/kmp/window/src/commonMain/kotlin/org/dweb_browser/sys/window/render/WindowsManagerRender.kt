@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.key
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
 import org.dweb_browser.sys.window.core.WindowController
@@ -12,7 +11,6 @@ import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun <T : WindowController> WindowsManager<T>.Render() {
   CompositionLocalProvider(
@@ -25,7 +23,7 @@ fun <T : WindowController> WindowsManager<T>.Render() {
       EffectNavigationBar()
 
       /// 普通层级的窗口
-      debugWindow("WindowsManager.Render", "winList: ${winList.size}")
+      debugWindow("WindowsManager.Render", "winList: ${winList.size} ${this@Render}")
       for (win in winList) {
         key(win.id) {
           /// 渲染窗口

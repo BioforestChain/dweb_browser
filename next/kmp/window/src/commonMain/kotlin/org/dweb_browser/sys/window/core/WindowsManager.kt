@@ -2,7 +2,6 @@ package org.dweb_browser.sys.window.core
 
 import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.ChangeableMap
@@ -84,7 +83,6 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPu
   /**
    * 将一个窗口添加进来管理
    */
-  @OptIn(ExperimentalCoroutinesApi::class)
   protected open fun addNewWindow(win: T, autoFocus: Boolean = true) {
     // 更新窗口的管理者角色
     win.upsetManager(this);
@@ -117,6 +115,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPu
         off()
       }
     }
+
     /// 第一次装载窗口，默认将它聚焦到最顶层
     if (autoFocus) {
       focusWindow(win) // void job
@@ -198,11 +197,13 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPu
     val anyChanges =
       // changes 1
       setByZIndex(this.winList, winList) {
-        this.winList.clear();this.winList.addAll(it);
+        this.winList.clear()
+        this.winList.addAll(it)
         winList = it.toMutableList()
       } + // changes 2
           setByZIndex(this.winListTop, winListTop) {
-            this.winListTop.clear();this.winListTop.addAll(it);
+            this.winListTop.clear()
+            this.winListTop.addAll(it)
             winListTop = it.toMutableList()
           }
 
@@ -239,7 +240,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPu
    */
   suspend fun moveToTop(win: WindowController) {
     /// 窗口被聚焦，那么遍历所有的窗口，为它们重新生成zIndex值
-    win.state.zIndex += allWindows.size;
+    win.state.zIndex += allWindows.size
     reOrderZIndex()
   }
 

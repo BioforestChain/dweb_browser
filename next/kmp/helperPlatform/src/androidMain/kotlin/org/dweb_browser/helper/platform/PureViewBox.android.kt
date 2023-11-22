@@ -3,14 +3,19 @@ package org.dweb_browser.helper.platform
 import android.content.Context
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
+import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.android.BaseActivity
 
 actual fun IPureViewBox.Companion.create(viewController: IPureViewController): IPureViewBox {
   require(viewController is PureViewController)
-  return PureViewBox(viewController)
+  return PureViewBox.instances.getOrPut(viewController) { PureViewBox(viewController) }
 }
 
 class PureViewBox(val activity: BaseActivity) : IPureViewBox {
+  companion object {
+    internal val instances = WeakHashMap<BaseActivity, IPureViewBox>()
+  }
+
   private val context: Context = activity
 
   override suspend fun getViewWidthPx() = activity.window.decorView.width

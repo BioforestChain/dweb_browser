@@ -1,11 +1,11 @@
 package org.dweb_browser.browser.desk
 
+import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.sys.window.core.WindowsManager
-import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.helper.setDefaultFloatWindowBounds
-import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.sys.window.core.windowAdapterManager
 import kotlin.math.sqrt
 
 expect fun DesktopWindowsManager.Companion.getOrPutInstance(
