@@ -12,7 +12,7 @@ import org.dweb_browser.helper.android.ActivityBlurHelper
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.PureViewBox
 import org.dweb_browser.helper.platform.PureViewController
-import org.dweb_browser.helper.platform.create
+import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.runBlockingCatching
 
@@ -39,7 +39,7 @@ class TaskbarActivity : PureViewController() {
       /// 禁止自适应布局
       WindowCompat.setDecorFitsSystemWindows(window, false)
       val densityValue =
-        IPureViewBox.create(this@TaskbarActivity).getDisplayDensity();// resources.displayMetrics.density
+        IPureViewBox.from(this@TaskbarActivity).getDisplayDensity();// resources.displayMetrics.density
 
       fun toPx(dp: Float) = (densityValue * dp).toInt()
       addContent {

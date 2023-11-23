@@ -6,7 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.android.BaseActivity
 
-actual fun IPureViewBox.Companion.create(viewController: IPureViewController): IPureViewBox {
+actual fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox {
   require(viewController is PureViewController)
   return PureViewBox.instances.getOrPut(viewController) { PureViewBox(viewController) }
 }

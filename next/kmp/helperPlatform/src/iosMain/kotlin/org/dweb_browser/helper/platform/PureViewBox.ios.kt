@@ -5,16 +5,18 @@ import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import platform.UIKit.UIScreen
 import platform.UIKit.UIViewController
 
-actual fun IPureViewBox.Companion.create(viewController: IPureViewController): IPureViewBox {
+actual fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox {
   require(viewController is PureViewController)
-  return when (val vc = viewController.getUIViewControllerSync()) {
-    null -> PureViewBox().also { it.lifecycleScope.launch { it.setUiViewController(viewController.getUIViewController()) } }
-    else -> PureViewBox(vc)
+  return PureViewBox.instances.getOrPut(viewController.uiViewController) {
+    PureViewBox(
+      viewController.uiViewController
+    )
   }
 }
 
@@ -22,6 +24,10 @@ class PureViewBox(
   uiViewController: UIViewController? = null,
   private val uiScreen: UIScreen = UIScreen.mainScreen
 ) : IPureViewBox {
+  companion object {
+    internal val instances = WeakHashMap<UIViewController, IPureViewBox>()
+  }
+
   private var defaultViewWidth = 0
   private var defaultViewHeight = 0
   private var defaultDisplayDensity = 1f

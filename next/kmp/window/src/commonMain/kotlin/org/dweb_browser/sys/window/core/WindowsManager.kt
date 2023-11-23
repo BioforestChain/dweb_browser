@@ -1,6 +1,8 @@
 package org.dweb_browser.sys.window.core
 
 import androidx.compose.runtime.mutableStateListOf
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import org.dweb_browser.core.help.types.MMID
@@ -19,10 +21,13 @@ import kotlin.math.abs
 open class WindowsManager<T : WindowController>(internal val viewController: IPureViewBox) {
   val state = WindowsManagerState(viewController)
 
+  private val _winList = mutableStateListOf<T>()
+  private val _winListSync = SynchronizedObject()
+
   /**
    * 一个已经根据 zIndex 排序完成的只读列表
    */
-  val winList = mutableStateListOf<T>()
+  val winList get() = synchronized(_winListSync) { _winList }
 
   /**
    * 置顶窗口，一个已经根据 zIndex 排序完成的只读列表
@@ -145,11 +150,19 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPu
    * 将窗口迁移到另一个管理器中，并且维护这些窗口的状态
    */
   suspend fun moveWindows(
-    other: WindowsManager<T>,
-    windows: Iterable<T> = winList /*拷贝一份避免并发修改导致的问题，这里默认使用 zIndex 的顺序来迁移，可以避免问题*/
+    other: WindowsManager<T>, windows: Iterable<T>? = null
   ) {
+    val wins = when (windows) {
+      null -> {/*拷贝一份避免并发修改导致的问题，这里默认使用 zIndex 的顺序来迁移，可以避免问题*/
+        synchronized(_winListSync) {
+          _winList.toList()
+        }
+      }
+
+      else -> windows
+    }
     /// 窗口迁移
-    for (win in windows) {
+    for (win in wins) {
       removeWindow(win, false)
       other.addNewWindow(win, false)
     }

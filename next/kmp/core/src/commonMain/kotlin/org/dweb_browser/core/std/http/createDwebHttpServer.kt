@@ -4,16 +4,16 @@ import io.ktor.http.URLBuilder
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.buildUnsafeString
-import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.help.suspendOnce
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.buildUnsafeString
 
 /// 对外提供一套建议的操作来创建、使用、维护这个http服务
 
@@ -90,7 +90,7 @@ class HttpDwebServer(
   val startResult: HttpNMM.ServerStartResult
 ) {
   private val listenPo = PromiseOut<ReadableStreamIpc>()
-  val listen = suspendOnce {
+  val listen = SuspendOnce {
     if (listenPo.isFinished) {
       throw Exception("Listen method has been called more than once without closing.");
     }
@@ -99,11 +99,11 @@ class HttpDwebServer(
       startResult
     )
     listenPo.resolve(streamIpc)
-    return@suspendOnce streamIpc
+    return@SuspendOnce streamIpc
   }
 
 
-  val close = suspendOnce {
+  val close = SuspendOnce {
     listenPo.waitPromise().close()// 主动关闭
     nmm.closeHttpDwebServer(options) // 并且发送关闭指令（对方也会将我进行关闭，但我仍然需要执行主动关闭，确保自己的资源正确释放，对方不释放是它自己的事情）
   }

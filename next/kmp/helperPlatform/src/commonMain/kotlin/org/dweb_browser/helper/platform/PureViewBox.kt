@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import kotlinx.coroutines.CoroutineScope
 
-expect fun IPureViewBox.Companion.create(viewController: IPureViewController): IPureViewBox
+expect fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox
 interface IPureViewBox {
   companion object {}
 

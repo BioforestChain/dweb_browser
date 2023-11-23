@@ -11,7 +11,6 @@ import androidx.compose.runtime.setValue
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.createDwebView
@@ -27,9 +26,8 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
-import org.dweb_browser.helper.platform.create
+import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.helper.runBlockingCatching
 
 //expect fun IDesktopController.Companion.create(
 //  deskNMM: DeskNMM,
@@ -133,7 +131,7 @@ open class DesktopController private constructor(
    */
   val desktopWindowsManager: DesktopWindowsManager
     get() = synchronized(sync) {
-      DesktopWindowsManager.getOrPutInstance(IPureViewBox.create(this.activity!!)) { dwm ->
+      DesktopWindowsManager.getOrPutInstance(IPureViewBox.from(this.activity!!)) { dwm ->
 
         dwm.hasMaximizedWins.onChange { updateSignal.emit() }
 

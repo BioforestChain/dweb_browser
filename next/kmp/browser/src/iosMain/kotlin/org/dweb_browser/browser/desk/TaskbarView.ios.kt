@@ -1,17 +1,18 @@
 package org.dweb_browser.browser.desk
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.interop.LocalUIViewController
+import androidx.compose.runtime.DisposableEffect
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.helper.platform.asIos
+import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.nativeRootUIViewController_addOrUpdate
+import org.dweb_browser.helper.platform.nativeRootUIViewController_remove
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRectMake
 import platform.UIKit.UIColor
-import platform.UIKit.addChildViewController
 import platform.WebKit.WKWebViewConfiguration
 
 actual suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView =
@@ -34,19 +35,36 @@ class TaskbarView private constructor(
     }
   }
 
+  private val pvc = PureViewController().also { pvc ->
+    pvc.addContent {
+      NormalFloatWindow()
+    }
+  }
+  private val scope = taskbarController.deskNMM.ioAsyncScope
+
   @Composable
   override fun LocalFloatWindow() {
-    NormalFloatWindow()
+    DisposableEffect(Unit) {
+      scope.launch {
+        nativeRootUIViewController_addOrUpdate(pvc, zIndex = Int.MAX_VALUE - 1)
+      }
+      onDispose {
+        scope.launch {
+          nativeRootUIViewController_remove(pvc)
+        }
+      }
+    }
   }
 
   @Composable
   override fun GlobalFloatWindow() {
-    val uiViewController = LocalUIViewController.current
-    LaunchedEffect(state.composableHelper) {
-      uiViewController.addChildViewController(
-        taskbarController.platformContext!!.asIos().uiViewController()
-      )
-    }
+    LocalFloatWindow()
+//    val uiViewController = LocalUIViewController.current
+//    LaunchedEffect(state.composableHelper) {
+//      uiViewController.addChildViewController(
+//        taskbarController.platformContext!!.asIos().uiViewController()
+//      )
+//    }
   }
 }
 

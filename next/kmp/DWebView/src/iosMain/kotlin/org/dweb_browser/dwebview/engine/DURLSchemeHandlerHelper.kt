@@ -83,16 +83,20 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule) {
       }
 
     } catch (e: Throwable) {
-      task.didReceiveResponse(
-        NSHTTPURLResponse(
-          taskRequest.URL ?: NSURL(string = ""), 502, "HTTP/1.1", null
+      println("QAQ!!!")
+      e.printStackTrace()
+      try {
+        task.didReceiveResponse(
+          NSHTTPURLResponse(
+            taskRequest.URL ?: NSURL(string = ""), 502, "HTTP/1.1", null
+          )
         )
-      )
-      task.didReceiveData(
-        NSData.create((e.message ?: e.stackTraceToString()).toByteArray().toNSData())
-      )
+        task.didReceiveData(
+          NSData.create((e.message ?: e.stackTraceToString()).toByteArray().toNSData())
+        )
 
-      task.didFinish()
+        task.didFinish()
+      }catch (e:Throwable){}
     }
   }
 

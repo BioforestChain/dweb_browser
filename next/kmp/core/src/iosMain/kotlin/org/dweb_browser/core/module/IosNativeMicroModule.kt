@@ -6,7 +6,7 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.PureViewCreateParams
-import org.dweb_browser.helper.platform.nativeRootUIViewController_start
+import org.dweb_browser.helper.platform.nativeRootUIViewController_addOrUpdate
 import platform.UIKit.UIApplication
 import kotlin.reflect.KClass
 
@@ -22,7 +22,7 @@ fun NativeMicroModule.startUIViewController(pureViewController: PureViewControll
       if (grant?.waitPromise() == false) {
         return@withLock // TODO 用户拒绝协议应该做的事情
       }
-      nativeRootUIViewController_start(pureViewController)
+      nativeRootUIViewController_addOrUpdate(pureViewController)
     }
   }
 }

@@ -17,10 +17,10 @@ import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.core.help.asPureRequest
 import org.dweb_browser.core.help.fromPureResponse
 import org.dweb_browser.core.help.isWebSocket
-import org.dweb_browser.core.help.suspendOnce
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.std.http.debugHttp
 import org.dweb_browser.core.std.http.findRequestGateway
+import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getKtorServerEngine
@@ -141,7 +141,7 @@ class DwebHttpGatewayServer private constructor() {
   }
 
   suspend fun getPort() = startServer()
-  val getHttpLocalhostGatewaySuffix = suspendOnce { ".localhost:${startServer()}" }
+  val getHttpLocalhostGatewaySuffix = SuspendOnce { ".localhost:${startServer()}" }
 
   suspend fun getUrl() = "http://127.0.0.1:${startServer()}"
 

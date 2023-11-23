@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
-import org.dweb_browser.helper.platform.create
+import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 
 fun Rect.toModifier(
@@ -23,7 +23,7 @@ class DesktopViewControllerCore(val controller: IPureViewController) {
     return DeskNMM.controllersMap[sessionId]?.also { controllers ->
       controllers.desktopController.activity = controller
       this.desktopController = controllers.desktopController
-      controllers.activityPo.resolve(IPureViewBox.create(controller))
+      controllers.activityPo.resolve(IPureViewBox.from(controller))
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 

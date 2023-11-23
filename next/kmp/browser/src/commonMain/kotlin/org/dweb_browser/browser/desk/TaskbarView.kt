@@ -56,7 +56,7 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
    */
   @Composable
   open fun NormalFloatWindow() {
-    BoxWithConstraints {
+    BoxWithConstraints(Modifier.background(Color.Transparent)) {
       val screenWidth = maxWidth.value
       val screenHeight = maxHeight.value
       val density = LocalDensity.current.density

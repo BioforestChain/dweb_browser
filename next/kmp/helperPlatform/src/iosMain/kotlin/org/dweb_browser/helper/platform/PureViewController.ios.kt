@@ -1,50 +1,50 @@
 package org.dweb_browser.helper.platform
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.LocalUIViewController
+import androidx.compose.ui.interop.UIKitView
+import androidx.compose.ui.uikit.ComposeUIViewControllerDelegate
 import androidx.compose.ui.window.ComposeUIViewController
+import androidx.compose.ui.zIndex
+import kotlinx.atomicfu.atomic
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import platform.UIKit.UIViewController
+import platform.UIKit.UIView
+
+private var vcIdAcc by atomic(0);
 
 class PureViewController(
-  vc: UIViewController? = null,
-  id: Int = -1,
   val createParams: PureViewCreateParams = PureViewCreateParams(mapOf())
 ) : IPureViewController {
-  private val uiViewControllerDeferred = CompletableDeferred<UIViewController>()
-  private var vcId = -1
-  internal fun setVcId(id: Int) {
-    vcId = id
-  }
+  constructor(params: Map<String, Any?>) : this(PureViewCreateParams(params))
 
-  internal fun setUIViewController(vc: UIViewController) {
-    uiViewControllerDeferred.complete(vc)
-  }
+  var prop = DwebUIViewControllerProperty(vcIdAcc++, -1, false)
+  val vcId get() = prop.vcId
 
   init {
-    if (vc != null) {
-      setUIViewController(vc)
-    }
-    vcId = id;
+    println("QAQ init PureViewController: vcId=$vcId")
+  }
 
-    nativeRootUIViewController_onCreateSignal.listen {
-      if (it == vcId) {
-        createSignal.emit(createParams)
-      }
+  private var _isInit = false
+  var isInit
+    get() = _isInit
+    private set(value) {
+      _isInit = value
     }
-    nativeRootUIViewController_onPauseSignal.listen {
+
+  init {
+    nativeRootUIViewController_onInitSignal.listen {
       if (it == vcId) {
-        stopSignal.emit()
-      }
-    }
-    nativeRootUIViewController_onResumeSignal.listen {
-      if (it == vcId) {
-        resumeSignal.emit()
+        offListener()
+        isInit = true
+        initDeferred.complete(Unit)
       }
     }
     nativeRootUIViewController_onDestroySignal.listen {
@@ -54,11 +54,8 @@ class PureViewController(
     }
   }
 
-  suspend fun getUIViewController() = uiViewControllerDeferred.await()
-
-  @OptIn(ExperimentalCoroutinesApi::class)
-  fun getUIViewControllerSync() =
-    if (uiViewControllerDeferred.isCompleted) uiViewControllerDeferred.getCompleted() else null
+  private val initDeferred = CompletableDeferred<Unit>()
+  suspend fun waitInit() = initDeferred.await()
 
   private val createSignal = Signal<IPureViewCreateParams>()
 
@@ -86,13 +83,41 @@ class PureViewController(
     TODO("Not yet implemented requestPermission")
   }
 
-  fun getContent() = ComposeUIViewController {
-    CompositionLocalProvider(LocalPureViewBox provides PureViewBox(LocalUIViewController.current)) {
-//      DwebBrowserAppTheme {
-      for (content in contents) {
-        content()
+  private val scope = nativeRootUIViewController_scope
+
+  @OptIn(ExperimentalForeignApi::class)
+  val uiViewController by lazy {
+    ComposeUIViewController({
+      delegate = object : ComposeUIViewControllerDelegate {
+        override fun viewDidLoad() {
+          scope.launch { createSignal.emit(createParams) }
+        }
+
+        override fun viewWillAppear(animated: Boolean) {
+          scope.launch { resumeSignal.emit() }
+        }
+
+        override fun viewDidAppear(animated: Boolean) {
+          scope.launch { stopSignal.emit() }
+        }
       }
+    }) {
+      UIKitView(
+        factory = {
+          UIView().also {
+            it.userInteractionEnabled = false
+          }
+        },
+        Modifier.fillMaxSize().zIndex(0f),
+        interactive = true
+      )
+      CompositionLocalProvider(LocalPureViewBox provides PureViewBox(LocalUIViewController.current)) {
+//      DwebBrowserAppTheme {
+        for (content in contents) {
+          content()
+        }
 //      }
+      }
     }
   }
 
@@ -102,8 +127,8 @@ class PureViewController(
   }
 }
 
-class PureViewCreateParams(private val params: Map<String, Any?>) :
-  Map<String, Any?> by params, IPureViewCreateParams {
+class PureViewCreateParams(private val params: Map<String, Any?>) : Map<String, Any?> by params,
+  IPureViewCreateParams {
   override fun getString(key: String): String? = get(key).let { require(it is String?);it }
   override fun getInt(key: String): Int? = get(key).let { require(it is Int?);it }
   override fun getFloat(key: String): Float? = get(key).let { require(it is Float?);it }

@@ -27,7 +27,6 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -57,16 +56,14 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
-import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.platform.LocalPureViewBox
 import org.dweb_browser.helper.platform.PureViewBox
 import org.dweb_browser.helper.platform.getKtorClientEngine
-import org.dweb_browser.helper.platform.nativeRootUIViewController_onCreateSignal
 import org.dweb_browser.helper.platform.nativeRootUIViewController_onDestroySignal
 import org.dweb_browser.helper.platform.nativeRootUIViewController_onInitSignal
-import org.dweb_browser.helper.platform.nativeRootUIViewController_onPauseSignal
-import org.dweb_browser.helper.platform.nativeRootUIViewController_onResumeSignal
-import org.dweb_browser.helper.platform.nativeRootUIViewController_setCreateHook
+import org.dweb_browser.helper.platform.nativeRootUIViewController_scope
+import org.dweb_browser.helper.platform.nativeRootUIViewController_setAddHook
+import org.dweb_browser.helper.platform.nativeRootUIViewController_setRemoveHook
 import org.dweb_browser.helper.platform.nativeRootUIViewController_setUpdateHook
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.withMainContext
@@ -95,30 +92,13 @@ import platform.UIKit.UIView
 import platform.UIKit.UIViewController
 import platform.WebKit.WKWebViewConfiguration
 
-val dwebRootUIViewController_setCreateHook = ::nativeRootUIViewController_setCreateHook
+val dwebRootUIViewController_setAddHook = ::nativeRootUIViewController_setAddHook
+val dwebRootUIViewController_setRemoveHook = ::nativeRootUIViewController_setRemoveHook
 val dwebRootUIViewController_setUpdateHook = ::nativeRootUIViewController_setUpdateHook
-private val scope = CoroutineScope(defaultAsyncExceptionHandler);
-fun dwebRootUIViewController_onInit(id: Int, vc: UIViewController) {
+private val scope = nativeRootUIViewController_scope
+fun dwebRootUIViewController_onInit(id: Int) {
   scope.launch {
-    nativeRootUIViewController_onInitSignal.emit(Pair(id, vc))
-  }
-}
-
-fun dwebRootUIViewController_onCreate(id: Int) {
-  scope.launch {
-    nativeRootUIViewController_onCreateSignal.emit(id)
-  }
-}
-
-fun dwebRootUIViewController_onResume(id: Int) {
-  scope.launch {
-    nativeRootUIViewController_onResumeSignal.emit(id)
-  }
-}
-
-fun dwebRootUIViewController_onPause(id: Int) {
-  scope.launch {
-    nativeRootUIViewController_onPauseSignal.emit(id)
+    nativeRootUIViewController_onInitSignal.emit(id)
   }
 }
 

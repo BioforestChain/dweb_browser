@@ -10,13 +10,13 @@ struct iOSApp: App {
     @StateObject private var networkManager = NetworkManager()
     @State private var isNetworkSegmentViewPresented = false
     @ObservedObject private var deskVCStore = DwebDeskVCStroe.shared
-    
+
     var body: some Scene {
         WindowGroup {
             if DWEB_DESK {
-                DwebFrameworkContentView(vc: $deskVCStore.vc).ignoresSafeArea(.all, edges: .all)
+                DwebFrameworkContentView(vcs: $deskVCStore.vcs).ignoresSafeArea(.all, edges: .all)
             } else {
-                ZStack{
+                ZStack {
                     if DWEB_OS {
                         DWebOS()
                     } else {
@@ -34,17 +34,19 @@ struct iOSApp: App {
     }
 }
 
-
 struct DwebFrameworkContentView: View {
-    @Binding var vc: DwebRootUIViewController?
+    @Binding var vcs: [Int32: DwebPureViewController]
     var body: some View {
         ZStack {
-            if let vc = vc {
-                CommonVCWrapView<DwebRootUIViewController>(vc: vc).ignoresSafeArea(.all, edges: .all)
-            } else {
+            if vcs.isEmpty {
                 Text("Loading...")
+            } else {
+                ForEach(Array(vcs.values), id: \.prop.vcId) { pureVc in
+                    if pureVc.prop.visible {
+                        CommonVCWrapView(vc: pureVc.vc, prop: pureVc.prop).zIndex(Double(pureVc.prop.zIndex))
+                    }
+                }
             }
         }
     }
 }
-
