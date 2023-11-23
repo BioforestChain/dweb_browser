@@ -1,6 +1,5 @@
 package org.dweb_browser.dwebview
 
-import io.ktor.server.engine.embeddedServer
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -10,23 +9,14 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
-import okio.buffer
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.file.FileNMM
-import org.dweb_browser.core.std.file.getApplicationRootDir
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.SystemFileSystem
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.platform.getKtorServerEngine
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.resource
 import reverse_proxy.VoidCallback
 
 val debugDWebView = Debugger("dwebview")
@@ -38,47 +28,27 @@ expect suspend fun IDWebView.Companion.create(
 abstract class IDWebView(initUrl: String?) {
   abstract val scope: CoroutineScope
 
-  @OptIn(ExperimentalResourceApi::class, DelicateCoroutinesApi::class)
+  @OptIn(DelicateCoroutinesApi::class)
   companion object {
-    private suspend fun findPort(): UShort {
-      val server = embeddedServer(getKtorServerEngine(), port = 0) {};
-      server.start(false)
-      return server.resolvedConnectors().first().port.toUShort().also { server.stop() }
-    }
-
     private val proxyAddress = CompletableDeferred<String>()
     suspend fun getProxyAddress() = proxyAddress.await()
 
     init {
       GlobalScope.launch(ioAsyncExceptionHandler) {
-        println("reverse_proxy starting")
+        debugDWebView("reverse_proxy", "starting")
         val backendServerPort = dwebHttpGatewayServer.startServer().toUShort()
-        val dwebResourceDir = FileNMM.Companion.getApplicationRootDir().resolve("dwebview").also {
-          if (!SystemFileSystem.exists(it)) {
-            SystemFileSystem.createDirectories(it)
-          }
-        }
-        val frontendCertsPath = dwebResourceDir.resolve("dweb.pem").also {
-          if (!SystemFileSystem.exists(it)) {
-            SystemFileSystem.sink(it).buffer().write(resource("dwebview/dweb.pem").readBytes())
-              .close()
-          }
-        }
-        val frontendKeyPath = dwebResourceDir.resolve("dweb.rsa").also {
-          if (!SystemFileSystem.exists(it)) {
-            SystemFileSystem.sink(it).buffer().write(resource("dwebview/dweb.rsa").readBytes())
-              .close()
-          }
-        }
 
-        val proxyReadyCallback = object: VoidCallback {
+        val proxyReadyCallback = object : VoidCallback {
           override fun callback(proxyPort: UShort, frontendPort: UShort) {
-            println("reverse_proxy running proxyServerPort=${proxyPort}, frontendServerPort=${frontendPort}, backendServerPort=${backendServerPort}")
+            debugDWebView(
+              "reverse_proxy",
+              "running proxyServerPort=${proxyPort}, frontendServerPort=${frontendPort}, backendServerPort=${backendServerPort}"
+            )
             proxyAddress.complete("http://127.0.0.1:${proxyPort}")
           }
         }
-        reverse_proxy.start(frontendCertsPath.toString(), frontendKeyPath.toString(), backendServerPort, proxyReadyCallback)
-        println("reverse_proxy stopped")
+        reverse_proxy.start(backendServerPort, proxyReadyCallback)
+        debugDWebView("reverse_proxy", "stopped")
       }
     }
   }
@@ -97,7 +67,7 @@ abstract class IDWebView(initUrl: String?) {
     val newTask = LoadUrlTask(url)
 
     val curTask = loadUrlTask.updateAndGet { preTask ->
-      if (!force && preTask != null && preTask.url == url) {
+      if (!force && preTask.url == url) {
         preTask
       } else {
         preTask?.deferred?.cancel(CancellationException("load new url: $url"));
@@ -114,7 +84,7 @@ abstract class IDWebView(initUrl: String?) {
 
 
   fun getUrl() = loadUrlTask.value.url
-  fun hasUrl() = loadUrlTask.value.url.isNullOrBlank()
+  fun hasUrl() = loadUrlTask.value.url.isBlank()
   abstract suspend fun getTitle(): String
   abstract suspend fun getIcon(): String
   abstract suspend fun destroy()
