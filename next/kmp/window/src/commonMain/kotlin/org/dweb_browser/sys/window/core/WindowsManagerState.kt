@@ -16,6 +16,7 @@ import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.sys.window.core.constant.WindowManagerPropertyKeys
+import org.dweb_browser.sys.window.core.constant.debugWindow
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowPadding
 import org.dweb_browser.sys.window.render.LocalWindowsManager
@@ -88,8 +89,8 @@ class WindowsManagerState(
               keyboardInsetBottom = 0f
             } else { /// 尝试进行偏移修饰
               if (win.isMaximized()) {
-                modifierOffsetY = imeBounds.height - LocalWindowPadding.current.bottom - 10f
-                keyboardInsetBottom = imeBounds.height - LocalWindowPadding.current.bottom - 10f
+                modifierOffsetY = 0f
+                keyboardInsetBottom = imeBounds.height - LocalWindowPadding.current.bottom
               } else {
                 modifierOffsetY = -LocalWindowPadding.current.bottom
                 keyboardInsetBottom = 0f

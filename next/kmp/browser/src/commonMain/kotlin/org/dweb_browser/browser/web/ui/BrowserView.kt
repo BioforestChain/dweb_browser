@@ -90,7 +90,6 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   })
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BrowserViewForWindow(
   viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope
@@ -133,13 +132,31 @@ fun BrowserViewForWindow(
         BrowserViewContent(viewModel)   // 中间主体部分
       }
       Box(modifier = with(windowRenderScope) {
-        Modifier
-          .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
-          .scale(scale)
+        if (win.isMaximized()) {
+          Modifier.fillMaxSize()
+        } else {
+          Modifier
+            .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
+            .scale(scale)
+        }
       }) {
         BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
         BrowserMultiPopupView(viewModel)// 用于显示多界面
-        BrowserSearchView(viewModel)
+        // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
+        BrowserSearchView(
+          viewModel = viewModel,
+          modifier = if (win.isMaximized()) {
+            Modifier
+              .fillMaxWidth()
+              .background(MaterialTheme.colorScheme.background)
+              .size(windowRenderScope.widthDp, windowRenderScope.heightDp)
+              .align(Alignment.BottomCenter)
+          } else {
+            Modifier.fillMaxWidth()
+              .background(MaterialTheme.colorScheme.background)
+              .align(Alignment.BottomCenter)
+          }
+        )
         BrowserBottomSheet(viewModel)
         QRCodeScanView(
           qrCodeScanModel = qrCodeScanModel,
@@ -186,7 +203,8 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
   }
 }
 
-@Composable
+// 小标题暂时不需要，先屏蔽
+/*@Composable
 fun ColumnScope.MiniTitle(viewModel: BrowserViewModel) {
   val browserBaseView = viewModel.currentTab
   val inputText = parseInputText(browserBaseView?.viewItem?.webView?.getUrl() ?: "")
@@ -194,11 +212,14 @@ fun ColumnScope.MiniTitle(viewModel: BrowserViewModel) {
   Text(
     text = inputText, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterHorizontally)
   )
-}
+}*/
 
 @Composable
 private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
-  Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+  Box(
+    modifier = Modifier.align(Alignment.BottomCenter)
+      .background(MaterialTheme.colorScheme.background)
+  ) {
     Column(modifier = Modifier.fillMaxWidth()) {
       BrowserViewSearch(viewModel)
       BrowserViewNavigatorBar(viewModel)
@@ -435,10 +456,11 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
  * 提供给外部调用的  搜索界面，可以含有BrowserViewModel
  */
 @Composable
-fun BrowserSearchView(viewModel: BrowserViewModel) {
+fun BrowserSearchView(viewModel: BrowserViewModel, modifier: Modifier = Modifier) {
   val scope = rememberCoroutineScope()
   var showSearchView by LocalShowSearchView.current
   val searchHint = BrowserI18nResource.browser_search_hint()
+  val focusManager = LocalFocusManager.current
   if (showSearchView) {
     val inputText = viewModel.dwebLinkSearch.value.ifEmpty {
       viewModel.currentTab?.viewItem?.webView?.getUrl() ?: ""
@@ -452,17 +474,30 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
 
     val inputTextState = LocalInputText.current
 
-    SearchView(text = text, homePreview = { onMove ->
-      HomeWebviewPage(viewModel, onMove)
-    }, onClose = {
-      showSearchView = false
-    }, onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
-      scope.launch {
+    Box(modifier = Modifier.fillMaxSize()
+      .background(MaterialTheme.colorScheme.background)
+      .clickableWithNoEffect {
+        focusManager.clearFocus()
         showSearchView = false
-        viewModel.saveLastKeyword(inputTextState, url)
-        viewModel.searchWebView(url)
       }
-    })
+    ) {
+      SearchView(
+        text = text,
+        modifier = modifier,
+        homePreview = { onMove ->
+          HomeWebviewPage(viewModel, onMove)
+        },
+        onClose = {
+          showSearchView = false
+        },
+        onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
+          scope.launch {
+            showSearchView = false
+            viewModel.saveLastKeyword(inputTextState, url)
+            viewModel.searchWebView(url)
+          }
+        })
+    }
   }
 }
 

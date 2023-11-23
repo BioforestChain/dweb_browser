@@ -79,7 +79,7 @@ fun <T> WindowController.watchedState(
   watchKeys: Set<WindowPropertyKeys>? = null,
   getter: WindowState .() -> T,
 ): State<T> = remember(key) {
-  val rememberState = mutableStateOf(getter.invoke(state), policy);
+  val rememberState = mutableStateOf(getter.invoke(state), policy)
   val off = state.observable.onChange {
     if ((if (watchKey != null) watchKey == it.key else true) && (if (watchKeys != null) watchKeys.contains(
         it.key
@@ -267,7 +267,7 @@ fun WindowController.calcWindowBoundsByLimits(
     /**
      * 获取可触摸的空间
      */
-    val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues();
+    val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
     val winWidth = max(bounds.width, limits.minWidth)
     val winHeight = max(bounds.height, limits.minHeight)
     val safeLeftPadding = safeGesturesPadding.calculateLeftPadding(layoutDirection).value
@@ -287,7 +287,7 @@ fun WindowController.calcWindowBoundsByLimits(
         height = winHeight,
       )
     }
-  };
+  }
 }
 
 /**
@@ -300,12 +300,12 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
   val bottomBarTheme by watchedState(watchKey = WindowPropertyKeys.BottomBarTheme) { bottomBarTheme }
   val keyboardInsetBottom by watchedState { keyboardInsetBottom }
 
-  val topHeight: Float;
+  val topHeight: Float
   val bottomHeight: Float
-  val leftWidth: Float;
-  val rightWidth: Float;
-  val borderRounded: WindowPadding.CornerRadius;
-  val contentRounded: WindowPadding.CornerRadius;
+  val leftWidth: Float
+  val rightWidth: Float
+  val borderRounded: WindowPadding.CornerRadius
+  val contentRounded: WindowPadding.CornerRadius
   val contentSize: WindowPadding.ContentSize
 
   /// 一些共有的计算
@@ -317,7 +317,7 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
   val bottomThemeHeight = when (bottomBarTheme) {
     WindowBottomBarTheme.Immersion -> limits.bottomBarBaseHeight// 因为底部要放置一些信息按钮，所以我们会给到底部一个基本的高度
     WindowBottomBarTheme.Navigation -> max(limits.bottomBarBaseHeight, 32f) // 要有足够的高度放按钮和基本信息
-  };
+  }
 
   fun max(val1: Float, val2: Float, val3: Float) = max(max(val1, val2), val3)
 
@@ -337,7 +337,7 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
       safeGesturesPadding.calculateBottomPadding().value,
       bottomThemeHeight,
       windowFrameSize,
-    );
+    )
     /**
      * 即便是最大化模式下，我们仍然需要有一个强调边框。
      * 这个边框存在的意义有：
@@ -359,14 +359,13 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
       bounds.height - topHeight - keyboardInsetBottom - bottomHeight,
     )
   } else {
-
     borderRounded =
-      WindowPadding.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
+      WindowPadding.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的物理圆角
     contentRounded = borderRounded / sqrt(2f)
-    topHeight = max(limits.topBarBaseHeight, windowFrameSize);
+    topHeight = max(limits.topBarBaseHeight, windowFrameSize)
     bottomHeight = max(bottomThemeHeight, windowFrameSize)
-    leftWidth = windowFrameSize;
-    rightWidth = windowFrameSize;
+    leftWidth = windowFrameSize
+    rightWidth = windowFrameSize
     contentSize = WindowPadding.ContentSize(
       bounds.width - leftWidth - rightWidth,
       bounds.height - topHeight - keyboardInsetBottom - bottomHeight,
@@ -418,7 +417,7 @@ data class WindowPadding(
   }
 
   data class ContentSize(val width: Float, val height: Float)
-};
+}
 
 /**
  * 计算窗口在对应布局时的内容缩放比例
@@ -437,13 +436,13 @@ fun WindowController.calcContentScale(limits: WindowLimits, winEdge: WindowPaddi
    * 将动画进度还原成所需的缩放值
    */
   fun Double.toScale(minScale: Double, maxScale: Double = 1.0) =
-    ((maxScale - minScale) * this) + minScale;
+    ((maxScale - minScale) * this) + minScale
 
   val scaleProgress = max(
     calcProgress(limits.minWidth, winEdge.contentBounds.width, limits.maxWidth),
     calcProgress(limits.minHeight, winEdge.contentBounds.height, limits.maxHeight),
   )
-  return scaleProgress.toScale(limits.minScale).let { if (it.isNaN()) 1f else it.toFloat() };
+  return scaleProgress.toScale(limits.minScale).let { if (it.isNaN()) 1f else it.toFloat() }
 }
 
 val LocalWindowControllerTheme =
@@ -585,8 +584,8 @@ fun WindowController.buildTheme(): WindowControllerTheme {
       .convert(ColorSpaces.Srgb)
     Pair(Pair(smartThemeColor, themeContentColor), Pair(onThemeColor, onThemeContentColor))
   }
-  val (themeColor, themeContentColor) = themeColors.first;
-  val (onThemeColor, onThemeContentColor) = themeColors.second;
+  val (themeColor, themeContentColor) = themeColors.first
+  val (onThemeColor, onThemeContentColor) = themeColors.second
 
   val topBackgroundColor by watchedState(
     isDark, watchKey = WindowPropertyKeys.TopBarBackgroundColor

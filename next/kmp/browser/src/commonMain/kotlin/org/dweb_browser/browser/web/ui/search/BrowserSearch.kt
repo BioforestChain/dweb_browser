@@ -43,13 +43,15 @@ import org.dweb_browser.browser.web.ui.model.WebEngine
 import org.dweb_browser.browser.web.ui.model.findWebEngine
 import org.dweb_browser.browser.web.ui.model.parseInputText
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.sys.window.core.WindowRenderScope
 
 /**
  * 组件： 搜索组件
  */
 @Composable
-internal fun SearchView(
+internal fun BoxScope.SearchView(
   text: String,
+  modifier: Modifier = Modifier,
   homePreview: (@Composable (onMove: (Boolean) -> Unit) -> Unit)? = null,
   searchPreview: (@Composable () -> Unit)? = null,
   onClose: () -> Unit,
@@ -60,51 +62,40 @@ internal fun SearchView(
   val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
   val webEngine = findWebEngine(text)
 
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background)
-      .clickableWithNoEffect { focusManager.clearFocus(); onClose() }
-  ) {
-    Box(
+  Box(modifier = modifier) {
+    homePreview?.let { it { moved -> focusManager.clearFocus(); if (!moved) onClose() } }
+
+    Text(
+      text = BrowserI18nResource.button_name_cancel(),
       modifier = Modifier
-        .fillMaxWidth()
-        .background(MaterialTheme.colorScheme.background)
-    ) {
-      homePreview?.let { it { moved -> focusManager.clearFocus(); if (!moved) onClose() } }
+        .align(Alignment.TopEnd)
+        .padding(20.dp)
+        .clickable { onClose() },
+      fontSize = 16.sp,
+      color = MaterialTheme.colorScheme.primary
+    )
 
-      Text(
-        text = BrowserI18nResource.button_name_cancel(),
-        modifier = Modifier
-          .align(Alignment.TopEnd)
-          .padding(20.dp)
-          .clickable { onClose() },
-        fontSize = 16.sp,
-        color = MaterialTheme.colorScheme.primary
-      )
+    searchPreview?.let { it() } ?: SearchPreview(
+      show = searchPreviewState,
+      text = inputText,
+      onClose = {
+        focusManager.clearFocus()
+        onClose()
+      },
+      onSearch = {
+        focusManager.clearFocus()
+        onSearch(it)
+      }
+    )
+  }
 
-      searchPreview?.let { it() } ?: SearchPreview(
-        show = searchPreviewState,
-        text = inputText,
-        onClose = {
-          focusManager.clearFocus()
-          onClose()
-        },
-        onSearch = {
-          focusManager.clearFocus()
-          onSearch(it)
-        }
-      )
-    }
-
-    key(inputText) {
-      BrowserTextField(
-        text = inputText,
-        webEngine = webEngine,
-        onSearch = { onSearch(it) },
-        onValueChanged = { inputText.value = it; searchPreviewState.targetState = it.isNotEmpty() }
-      )
-    }
+  key(inputText) {
+    BrowserTextField(
+      text = inputText,
+      webEngine = webEngine,
+      onSearch = { onSearch(it) },
+      onValueChanged = { inputText.value = it; searchPreviewState.targetState = it.isNotEmpty() }
+    )
   }
 }
 
