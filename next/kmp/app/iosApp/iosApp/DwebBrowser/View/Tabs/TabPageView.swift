@@ -97,6 +97,7 @@ struct TabPageView: View {
             } else {
                 Color.bkColor.overlay {
                     HomePageView()
+                        .environmentObject(dragScale)
                 }
             }
         }

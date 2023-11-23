@@ -40,17 +40,29 @@ struct GridCell: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             GeometryReader { geo in
+
                 VStack(spacing: 0) {
-                    Image(uiImage: webCache.snapshotImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: geo.size.width, height: geo.size.height * cellImageHeightRatio)
-                        .cornerRadius(gridcellCornerR)
-                        .overlay(RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.dwebTint, lineWidth: 2)
-                            .opacity(isSelected ? 1 : 0)
-                        )
-                        .clipped()
+                    if webCache.shouldShowWeb {
+                        Image(uiImage: webCache.snapshotImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geo.size.width, height: geo.size.height * cellImageHeightRatio)
+                            .cornerRadius(gridcellCornerR)
+                            .overlay(RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.dwebTint, lineWidth: 2)
+                                .opacity(isSelected ? 1 : 0)
+                            )
+                            .clipped()
+                    } else {
+                        HomePageView(scale: geo.size.width / screen_width * 1.2)
+                            .frame(width: geo.size.width, height: geo.size.height * cellImageHeightRatio)
+                            .background(Color.bkColor)
+                            .cornerRadius(gridcellCornerR)
+                            .overlay(RoundedRectangle(cornerRadius: 10)
+                                .stroke(isSelected ? Color.dwebTint : Color.bkColor, lineWidth: 2)
+                            )
+                            .clipped()
+                    }
                     HStack {
                         WebsiteIconImage(iconUrl: webCache.webIconUrl)
                             .aspectRatio(contentMode: .fit)
