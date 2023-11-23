@@ -155,7 +155,8 @@ fun BrowserViewForWindow(
             Modifier.fillMaxWidth()
               .background(MaterialTheme.colorScheme.background)
               .align(Alignment.BottomCenter)
-          }
+          },
+          windowRenderScope = windowRenderScope
         )
         BrowserBottomSheet(viewModel)
         QRCodeScanView(
@@ -456,7 +457,9 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
  * 提供给外部调用的  搜索界面，可以含有BrowserViewModel
  */
 @Composable
-fun BrowserSearchView(viewModel: BrowserViewModel, modifier: Modifier = Modifier) {
+fun BrowserSearchView(
+  viewModel: BrowserViewModel, modifier: Modifier = Modifier, windowRenderScope: WindowRenderScope
+) {
   val scope = rememberCoroutineScope()
   var showSearchView by LocalShowSearchView.current
   val searchHint = BrowserI18nResource.browser_search_hint()
@@ -485,7 +488,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel, modifier: Modifier = Modifier
         text = text,
         modifier = modifier,
         homePreview = { onMove ->
-          HomeWebviewPage(viewModel, onMove)
+          HomeWebviewPage(viewModel, windowRenderScope, onMove)
         },
         onClose = {
           showSearchView = false
@@ -502,7 +505,11 @@ fun BrowserSearchView(viewModel: BrowserViewModel, modifier: Modifier = Modifier
 }
 
 @Composable
-internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolean) -> Unit) {
+internal fun HomeWebviewPage(
+  viewModel: BrowserViewModel,
+  windowRenderScope: WindowRenderScope,
+  onClickOrMove: (Boolean) -> Unit
+) {
   var _webView by remember {
     mutableStateOf<BrowserWebView?>(null)
   }
@@ -510,10 +517,27 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolea
     _webView = viewModel.searchBackBrowserView.await()
   }
   val webView = _webView ?: return
-  val background = MaterialTheme.colorScheme.background
-  webView.viewItem.webView.Render(
-    Modifier
+
+  val initialScale = LocalWebViewInitialScale.current
+
+  LaunchedEffect(initialScale) {
+    webView.viewItem.webView.setContentScale(initialScale)
+  }
+  DisposableEffect(initialScale) {
+    val off = webView.viewItem.webView.onReady {
+      webView.viewItem.webView.setContentScale(initialScale)
+    }
+    onDispose { off() }
+  }
+  Box(
+    modifier = Modifier
       .fillMaxSize()
-      .background(background),
-  )
+      .padding(bottom = dimenSearchHeight * windowRenderScope.scale)
+  ) {
+    webView.viewItem.webView.Render(
+      Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background),
+    )
+  }
 }
