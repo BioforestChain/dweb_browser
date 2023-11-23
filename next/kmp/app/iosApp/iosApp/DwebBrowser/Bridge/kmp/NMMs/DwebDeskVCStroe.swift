@@ -14,6 +14,14 @@ class DwebDeskVCStroe: ObservableObject {
 
     @Published var vcs = [Int32: DwebPureViewController]()
 
+    func getSortedVcs() -> [UIViewController] {
+        return Array(vcs.values.sorted(by: {
+            $1.prop.zIndex < $0.prop.zIndex
+        }).map {
+            $0.vc
+        })
+    }
+
     init() {
         regiserDeskEvent()
     }
@@ -34,7 +42,6 @@ class DwebDeskVCStroe: ObservableObject {
             Log("add UIViewController: vcId=\(prop.vcId) zIndex=\(prop.zIndex) visible=\(prop.visible)")
             let pureVc = DwebPureViewController(vc: vc, prop: prop)
             self.vcs[prop.vcId] = pureVc
-            
         }
         return KotlinUnit()
     }

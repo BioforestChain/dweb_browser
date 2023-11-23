@@ -105,6 +105,7 @@ class PureViewController(
       UIKitView(
         factory = {
           UIView().also {
+            it.setTag(257);
             it.userInteractionEnabled = false
           }
         },
