@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.browser.util.isDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
@@ -27,7 +28,6 @@ import org.dweb_browser.browser.web.model.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browser.web.model.KEY_NO_TRACE
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.model.WebSiteType
-import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.NativeMicroModule
@@ -76,6 +76,7 @@ val LocalBrowserPageState = compositionLocalOf<BrowserPagerState> {
   noLocalProvidedFor("LocalBrowserPageState")
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 class BrowserViewModel(
   private val browserController: BrowserController,
   private val browserNMM: NativeMicroModule,
@@ -113,25 +114,59 @@ class BrowserViewModel(
     parameters["api-base"] = browserServer.startResult.urlInfo.buildPublicUrl().toString()
   }
 
-  @OptIn(ExperimentalFoundationApi::class)
-  @Composable
-  fun rememberBrowserPagerState(): BrowserPagerState {
-    debugBrowser("BrowserModel", "rememberBrowserPagerState -> $listSize")
-    val pagerStateContent = rememberPagerState { listSize }
-    val pagerStateNavigator = rememberPagerState { listSize }
-    return BrowserPagerState(pagerStateContent, pagerStateNavigator)
+  private suspend fun focusBrowserView(view: BrowserWebView) {
+    val index = browserViewList.indexOf(view)
+    focusBrowserView(index)
   }
 
-  /*  init {
-      browserController.onCloseWindow {
-        withMainContext {
-          browserViewList.forEach { webview ->
-            webview.viewItem.webView.destroy()
-          }
-          browserViewList.clear()
+  private val pagerChangeSignal: Signal<Int> = Signal()
+  private val onPagerChange = pagerChangeSignal.toListener()
+
+  private suspend fun focusBrowserView(index: Int) = browserController.ioAsyncScope.launch {
+    if (index in 0 until listSize) {
+      currentBrowserBaseView.value = browserViewList[index]
+      showMultiView.targetState = false
+      showSearchEngine.targetState = false
+      debugBrowser("focusBrowserView", "index=$index, size=${listSize}")
+      pagerChangeSignal.emit(index)
+    }
+  }
+
+  private var browserPagerState: BrowserPagerState? = null
+
+  @Composable
+  fun rememberBrowserPagerState(): BrowserPagerState {
+    val pagerStateContent = rememberPagerState { listSize }
+    val pagerStateNavigator = rememberPagerState { listSize }
+    return BrowserPagerState(pagerStateContent, pagerStateNavigator).also {
+      browserPagerState = it
+    }
+  }
+
+  init {
+    browserController.onCloseWindow {
+      withMainContext {
+        browserViewList.forEach { webview ->
+          webview.viewItem.webView.destroy()
         }
+        browserViewList.clear()
       }
-    }*/
+    }
+    onPagerChange { pagerIndex ->
+      delay(100) // 避免执行的时候界面还未加载导致滑动没起作用
+      withMainContext {
+        browserPagerState?.pagerStateContent?.scrollToPage(pagerIndex)
+        browserPagerState?.pagerStateNavigator?.scrollToPage(pagerIndex)
+      }
+    }
+  }
+
+  suspend fun updateMultiViewState(show: Boolean, index: Int? = null) {
+    showMultiView.targetState = show
+    if (!show) {
+      index?.let { focusBrowserView(index) }
+    }
+  }
 
   val searchBackBrowserView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     CoroutineScope(ioAsyncExceptionHandler).async {
@@ -167,18 +202,14 @@ class BrowserViewModel(
     BrowserWebView(viewItem)
   }
 
-  private suspend fun focusBrowserView(view: BrowserWebView) {
-    val index = browserViewList.indexOf(view)
-    currentBrowserBaseView.value = view
-    debugBrowser("focusBrowserView", "index=$index, size=${listSize}")
-    updateMultiViewState(false, index)
-  }
-
-  internal suspend fun createNewTab(search: String? = null, url: String? = null) {
+  internal suspend fun openBrowserView(
+    search: String? = null, url: String? = null
+  ): BrowserWebView? {
     // 先判断search是否不为空，然后在判断search是否是地址，
+    debugBrowser("openBrowserView", "search=$search, url=$url")
     dwebLinkSearch.value = "" // 先清空搜索的内容
     if (search?.isUrlOrHost() == true || url?.isUrlOrHost() == true) {
-      addNewMainView(search ?: url)
+      return this.addNewMainView(search ?: url)
     } else {
       val loadUrl = if (search?.isDeepLink() == false) {
         dwebLinkSearch.value = search
@@ -190,14 +221,12 @@ class BrowserViewModel(
         getBrowserMainUrl().toString()
       }
       if (browserViewList.isEmpty()) {
-        addNewMainView(loadUrl)
+        return this.addNewMainView(loadUrl)
       } else {
-        searchWebView(loadUrl)
+        return searchWebView(loadUrl)
       }
     }
   }
-
-  fun openDwebBrowser(mmid: MMID) = browserController.openDwebBrowser(mmid)
 
   suspend fun removeBrowserWebView(browserWebView: BrowserWebView) {
     browserViewList.remove(browserWebView) // 需要释放掉
@@ -220,14 +249,6 @@ class BrowserViewModel(
     }
   }
 
-  private val pagerChangeSignal: Signal<Int> = Signal()
-  val onPagerStateChange = pagerChangeSignal.toListener()
-  suspend fun updateMultiViewState(show: Boolean, index: Int? = null) {
-    showMultiView.targetState = show
-    delay(100) // window没渲染，导致scroll操作没效果，所以这边增加点等待
-    index?.let { pagerChangeSignal.emit(index) }
-  }
-
   suspend fun searchWebView(url: String) = withContext(ioAsyncExceptionHandler) {
     showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
     val loadingState = currentBrowserBaseView.value?.loadState
@@ -241,12 +262,14 @@ class BrowserViewModel(
       }
       loadingState?.value = false
     }
+    currentBrowserBaseView.value
   }
 
   suspend fun addNewMainView(url: String? = null) = withMainContext {
-    val itemView = getNewTabBrowserView(url)
-    browserViewList.add(itemView)
-    focusBrowserView(itemView)
+    getNewTabBrowserView(url).also { itemView ->
+      browserViewList.add(itemView)
+      focusBrowserView(itemView)
+    }
   }
 
   suspend fun shareWebSiteInfo() {

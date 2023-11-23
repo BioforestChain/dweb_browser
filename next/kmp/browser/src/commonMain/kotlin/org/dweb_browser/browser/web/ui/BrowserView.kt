@@ -102,13 +102,6 @@ fun BrowserViewForWindow(
   val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
   val qrCodeScanModel = rememberQRCodeModel()
 
-  LaunchedEffect(browserPagerState) {
-    viewModel.onPagerStateChange { page ->
-      browserPagerState.pagerStateContent.scrollToPage(page)
-      browserPagerState.pagerStateNavigator.scrollToPage(page)
-    }
-  }
-
   CompositionLocalProvider(
     LocalModalBottomSheet provides modalBottomModel,
     LocalWebViewInitialScale provides initialScale,

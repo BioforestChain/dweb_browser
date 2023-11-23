@@ -62,7 +62,6 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Alignment.Companion.TopStart
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
@@ -637,7 +636,6 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
   }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun MultiItemView(
   viewModel: BrowserViewModel,

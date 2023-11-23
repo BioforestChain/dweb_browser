@@ -14,7 +14,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
-fun now() = datetimeNow().toString()
+fun now() = datetimeNow().formatTimestampByMilliseconds()
   .padEndAndSub(23) // kmp中LocalDateTime跟android不一样 // LocalDateTime.toString().padEndAndSub(23)
 
 fun printError(tag: String, msg: Any?, err: Throwable? = null) {

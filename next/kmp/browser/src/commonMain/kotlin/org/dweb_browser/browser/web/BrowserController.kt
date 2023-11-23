@@ -10,7 +10,6 @@ import org.dweb_browser.browser.web.model.WebLinkManifest
 import org.dweb_browser.browser.web.model.WebLinkStore
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
-import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
@@ -37,7 +36,7 @@ class BrowserController(
 
   private var winLock = Mutex(false)
 
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+  val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   val bookLinks: MutableList<WebSiteInfo> = mutableListOf()
   val historyLinks: MutableMap<String, MutableList<WebSiteInfo>> = mutableMapOf()
@@ -75,7 +74,7 @@ class BrowserController(
       // 如果没有tab，那么创建一个新的
       // TODO 这里的tab应该从存储中恢复
       if (viewModel.currentTab == null) {
-        viewModel.createNewTab()
+        viewModel.openBrowserView()
       }
       /// 提供渲染适配
       windowAdapterManager.provideRender(wid) { modifier ->
@@ -94,11 +93,8 @@ class BrowserController(
 
   var viewModel = BrowserViewModel(this, browserNMM, browserServer)
 
-  fun openDwebBrowser(mmid: MMID) =
-    ioAsyncScope.launch { browserNMM.bootstrapContext.dns.open(mmid) }
-
   suspend fun openBrowserView(search: String? = null, url: String? = null) = winLock.withLock {
-    viewModel.createNewTab(search, url)
+    viewModel.openBrowserView(search, url)
   }
 
   suspend fun addUrlToDesktop(title: String, url: String, icon: String): Boolean {
