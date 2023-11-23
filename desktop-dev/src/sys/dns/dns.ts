@@ -155,6 +155,9 @@ export class DnsNMM extends NativeMicroModule {
     const query_appId = zq.object({
       app_id: zq.mmid(),
     });
+    const query_category = zq.object({
+      category: zq.string()
+    });
     const onFetchHanlder = fetchMatch()
       .deeplink("open", async (event) => {
         const app_id = event.url.pathname.replace("open/", "");
@@ -178,6 +181,12 @@ export class DnsNMM extends NativeMicroModule {
           return Response.json(app.metadata.config);
         }
         return Response.json(app.toManifest());
+      })
+      .get("/search", async (event) => {
+        const { category } = query_category(event.searchParams);
+        const type = category as MICRO_MODULE_CATEGORY;
+        const arrApp = [...this.search(type)].map((mm) => mm.toManifest())
+        return Response.json(arrApp);
       })
       .get("/observe/install-apps", async (event) => {
         const responseBody = new ReadableStreamOut<Uint8Array>();
@@ -262,8 +271,10 @@ export class DnsNMM extends NativeMicroModule {
         }
         const pathname = "/" + normalizePath.join("/");
         const url = new URL(
-          (dweb_deeplink + pathname).replace(/\:{1}\/{2}/, ":").replace(/\/{2,}/g, "/").replace(/\/$/, "") +
-            (hasSearch ? "?" + normalizeQuery.toString() : "")
+          (dweb_deeplink + pathname)
+            .replace(/\:{1}\/{2}/, ":")
+            .replace(/\/{2,}/g, "/")
+            .replace(/\/$/, "") + (hasSearch ? "?" + normalizeQuery.toString() : "")
         );
         return url;
       };
@@ -279,7 +290,7 @@ export class DnsNMM extends NativeMicroModule {
     for (const app of this.installApps.values()) {
       if (undefined !== app.dweb_deeplinks.find((dl) => deeplinkUrl.startsWith(dl.replace(/\:{1}\/{2}/, ":")))) {
         /// 在win平台，deeplink链接会变成 dweb:search/?q=xxx ，需要把/去掉
-        if(process.platform === "win32") {
+        if (process.platform === "win32") {
           deeplinkUrl = deeplinkUrl.replace(/\/{1}\?{1}/, "?");
         }
         const req = buildRequestX(deeplinkUrl);

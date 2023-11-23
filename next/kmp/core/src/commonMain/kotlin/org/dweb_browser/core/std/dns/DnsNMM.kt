@@ -12,6 +12,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import org.dweb_browser.core.help.buildRequestX
+import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
@@ -259,6 +260,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }.removeWhen(this.onAfterShutdown)
 
     val queryAppId = PureRequest.query("app_id")
+    val queryCategory = PureRequest.query("category")
     val openApp = defineBooleanResponse {
       val mmid = request.queryAppId()
       debugDNS("open/$mmid", request.url.fullPath)
@@ -280,8 +282,15 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       //
       "/query" bind HttpMethod.Get to defineJsonResponse {
         val mmid = request.queryAppId()
-        Json.encodeToString("")
         query(mmid, ipc.remote)?.toManifest()?.toJsonElement() ?: JsonNull
+      },
+      "/search" bind HttpMethod.Get to defineJsonResponse {
+        val category = request.queryCategory()
+        val manifests = mutableListOf<CommonAppManifest>()
+         search(category as MICRO_MODULE_CATEGORY).map { app ->
+           manifests.add(app.toManifest())
+         }
+        manifests.toJsonElement()
       },
       //
       "/observe/install-apps" bind HttpMethod.Get to defineJsonLineResponse {
