@@ -3,6 +3,7 @@ package info.bagen.dwebbrowser
 import android.webkit.WebView
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.websocket.WebSockets
 import org.dweb_browser.browser.common.barcode.QRCodeScanNMM
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
@@ -18,6 +19,7 @@ import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
+import org.dweb_browser.core.std.websocketClient.WebSocketClientNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.platform.getKtorClientEngine
@@ -88,6 +90,7 @@ suspend fun startDwebBrowser(): DnsNMM {
         // requestTimeoutMillis = 600_000L
         connectTimeoutMillis = 5000L
       }
+      install(WebSockets)
     }.also { client ->
       nativeFetchAdaptersManager.setClientProvider(client)
     }
@@ -130,6 +133,9 @@ suspend fun startDwebBrowser(): DnsNMM {
   val biometricsNMM = BiometricsNMM().setup()
   /// 运动传感器
   val motionSensorsNMM = MotionSensorsNMM().setup()
+
+  /// websocket-client
+  val webSocketClientNMM = WebSocketClientNMM().setup()
 
   /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
   val nativeUiNMM = NativeUiNMM().setup()

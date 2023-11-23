@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeUIViewController
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -50,6 +51,7 @@ import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
+import org.dweb_browser.core.std.websocketClient.WebSocketClientNMM
 import org.dweb_browser.dwebview.DWebMessage
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -132,6 +134,7 @@ suspend fun startDwebBrowser(app: UIApplication): DnsNMM {
         // requestTimeoutMillis = 600_000L
         connectTimeoutMillis = 5000L
       }
+      install(WebSockets)
     }.also { client ->
       nativeFetchAdaptersManager.setClientProvider(client)
     }
@@ -170,6 +173,9 @@ suspend fun startDwebBrowser(app: UIApplication): DnsNMM {
   val biometricsNMM = BiometricsNMM().setup()
   /// 运动传感器
   val motionSensorsNMM = MotionSensorsNMM().setup()
+
+  /// websocket-client
+  val webSocketClientNMM = WebSocketClientNMM().setup()
 
 
   /// 安装Jmm

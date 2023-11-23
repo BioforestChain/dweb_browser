@@ -18,6 +18,7 @@ kotlin {
     api(libs.ktor.client.cio)
     api(libs.ktor.server.core)
     api(libs.ktor.io)
+    api(libs.ktor.client.core)
     api(libs.kotlin.serialization.json)
 
     implementation(projects.helper)
