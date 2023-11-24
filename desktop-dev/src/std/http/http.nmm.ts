@@ -19,7 +19,7 @@ import { PortListener } from "./portListener.ts";
 import { initWebSocketServer } from "./portListener.ws.ts";
 import { WebServerRequest } from "./types.ts";
 
-Electron.app.commandLine.appendSwitch("ignore-connections-limit","api.plaoc.html.demo.dweb-443.localhost")
+Electron.app.commandLine.appendSwitch("ignore-connections-limit", "api.plaoc.html.demo.dweb-443.localhost");
 interface $Gateway {
   listener: PortListener;
   urlInfo: ServerUrlInfo;
@@ -69,7 +69,6 @@ export class HttpServerNMM extends NativeMicroModule {
     initWebSocketServer.call(this, info.server);
 
     this._info.server.on("request", (req, res) => {
-
       const host = this.getHostByReq(req.url, Object.entries(req.headers));
       {
         // 在网关中寻址能够处理该 host 的监听者
@@ -112,7 +111,7 @@ export class HttpServerNMM extends NativeMicroModule {
     this.registerCommonIpcOnMessageHandler({
       pathname: "/start",
       matchMode: "full",
-      input: { port: "number?", subdomain: "string?" },
+      input: { subdomain: "string?" },
       output: "object",
       handler: async (args, ipc) => {
         return await this.start(ipc, args);
@@ -123,7 +122,7 @@ export class HttpServerNMM extends NativeMicroModule {
     this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
       matchMode: "full",
-      input: { port: "number?", subdomain: "string?" },
+      input: { subdomain: "string?" },
       output: "boolean",
       handler: async (args, ipc) => {
         return await this.close(ipc, args);
@@ -148,7 +147,7 @@ export class HttpServerNMM extends NativeMicroModule {
 
   private getServerUrlInfo(ipc: Ipc, options: $DwebHttpServerOptions) {
     const mmid = ipc.remote.mmid;
-    const { subdomain: options_subdomain = "", port = 80 } = options;
+    const { subdomain: options_subdomain = "" } = options;
     const subdomainPrefix =
       options_subdomain === "" || options_subdomain.endsWith(".") ? options_subdomain : `${options_subdomain}.`;
     if (port <= 0 || port >= 65536) {
@@ -175,7 +174,7 @@ export class HttpServerNMM extends NativeMicroModule {
     });
     const token = Buffer.from(crypto.getRandomValues(new Uint8Array(64))).toString();
     const gateway: $Gateway = { listener, urlInfo: serverUrlInfo, token };
-    this._gatewayTable.set({[serverUrlInfo.host]:gateway,[token]:gateway});
+    this._gatewayTable.set({ [serverUrlInfo.host]: gateway, [token]: gateway });
     return new ServerStartResult(token, serverUrlInfo);
   }
 
@@ -274,9 +273,6 @@ export class HttpServerNMM extends NativeMicroModule {
     }
 
     let host = url_host || query_x_web_host || header_x_dweb_host || header_user_agent_host || header_host;
-    if (typeof host === "string" && host.includes(":") === false) {
-      host += ":" + this._info?.protocol.port;
-    }
     if (typeof host !== "string") {
       /** 如果有需要，可以内部实现这个 key 为 "*" 的 listener 来提供默认服务 */
       host = "*";

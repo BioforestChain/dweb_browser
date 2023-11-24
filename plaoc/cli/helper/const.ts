@@ -19,7 +19,7 @@ export type $MetadataJsonGeneratorOptions = {
   version?: string;
   id?: string;
   dir?: string;
-  serve?:string
+  serve?: string;
 };
 
 /**
@@ -39,8 +39,8 @@ export const defaultMetadata: $JmmAppInstallManifest = {
     root: "/usr",
     entry: "/server/plaoc.server.js",
   },
-  minTarget: 1,
-  maxTarget:1,
+  minTarget: 2,
+  maxTarget: 2,
   name: "Demo",
   short_name: "plaoc demo",
   description: "This is WebApp bundle by plaoc",

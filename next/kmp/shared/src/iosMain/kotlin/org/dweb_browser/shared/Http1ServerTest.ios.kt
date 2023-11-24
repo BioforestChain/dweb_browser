@@ -18,7 +18,7 @@ import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.std.http.debugHttp
-import org.dweb_browser.core.std.http.findRequestGateway
+import org.dweb_browser.core.std.http.findDwebGateway
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -51,7 +51,7 @@ class Http1ServerTest {
               /// 将 ktor的request 构建成 pureRequest
               call.request.asPureRequest().also { rawRequest ->
                 val rawUrl = rawRequest.href
-                val host = findRequestGateway(rawRequest)
+                val host = findDwebGateway(rawRequest)
                 val url = if (rawUrl.startsWith("/") && host !== null) {
                   "${if (rawRequest.isWebSocket()) "ws" else "http"}://$host$rawUrl"
                 } else rawUrl

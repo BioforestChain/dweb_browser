@@ -3,11 +3,12 @@ import { $BuildRequestInit } from "../../helper/request.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import type { ImpactOptions, NotificationOptions, VibrateOptions } from "./haptics.type.ts";
 
+declare global {
+  const webkit: any;
+}
+
 export class HapticsPlugin extends BasePlugin {
-  private static isIOSDWebBrowser: boolean =
-    "webkit" in globalThis &&
-    // deno-lint-ignore no-explicit-any
-    typeof (globalThis as any).webkit.messageHandlers.haptics.postMessage === "function";
+  private static isIOSDWebBrowser: boolean = typeof self?.webkit?.messageHandlers?.haptics?.postMessage === "function";
 
   constructor() {
     super(HapticsPlugin.isIOSDWebBrowser ? "haptics.browser.dweb" : "haptics.sys.dweb");

@@ -208,7 +208,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       // 获取isMaximized 的值
       "/toggleMaximize" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.query("app_id")
-        return@defineBooleanResponse desktopController.getDesktopWindowsManager().toggleMaximize(mmid)
+        return@defineBooleanResponse desktopController.getDesktopWindowsManager()
+          .toggleMaximize(mmid)
       },
       // 关闭app
       "/closeApp" bind HttpMethod.Get to defineBooleanResponse {
@@ -298,7 +299,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   private val API_PREFIX = "/api/"
   private suspend fun createTaskbarWebServer(): HttpDwebServer {
     val taskbarServer =
-      createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar", port = 433))
+      createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar"))
     taskbarServer.listen().onRequest { (request, ipc) ->
       val pathName = request.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {
@@ -315,7 +316,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   private suspend fun createDesktopWebServer(): HttpDwebServer {
     val desktopServer =
-      createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop", port = 433))
+      createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop"))
     desktopServer.listen().onRequest { (request, ipc) ->
       val pathName = request.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {

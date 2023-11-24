@@ -3,13 +3,15 @@ package org.dweb_browser.core.std.http
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
+import io.ktor.http.URLProtocol
 import io.ktor.http.Url
-import io.ktor.http.authority
 import io.ktor.http.fullPath
 import io.ktor.util.decodeBase64String
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.help.isWebSocket
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
@@ -68,7 +70,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
    * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
    */
   private suspend fun httpHandler(request: PureRequest): PureResponse {
-    val host = findRequestGateway(request) ?: return noGatewayResponse
+    val info = findDwebGateway(request) ?: return noGatewayResponse
 
     /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
     /// TODO 30s 没有任何 body 写入的话，认为网关超时
@@ -78,9 +80,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
      * WARNING 我们底层使用 KtorCIO，它是完全以流的形式来将response的内容传输给web
      * 所以这里要小心，不要去读取 response 对象，否则 pos 会被偏移
      */
-    val response = gatewayMap[host]?.let { gateway ->
-      gateway.listener.hookHttpRequest(request)
-    }
+    val response = gatewayMap[info.host]?.listener?.hookHttpRequest(request)
     debugHttp("httpHandler end", request.href)
 
     return response ?: PureResponse(HttpStatusCode.NotFound)
@@ -88,25 +88,34 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
   private val noGatewayResponse
     get() = PureResponse(
-      HttpStatusCode.Unauthorized,
-      IpcHeaders(mutableMapOf(Pair("WWW-Authenticate", """Basic realm="dweb"""")))
+      HttpStatusCode.BadGateway,
+      IpcHeaders(
+        mutableMapOf(
+          "Content-Type" to "text/html"
+        )
+      ),
+      IPureBody.from("no found gateway")
     )
 
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 启动http后端服务
-    dwebServer.createServer({ request ->
-      findRequestGateway(request)?.let {
-        gatewayMap[it]
-      }
-    }, { gateway, request ->
-      gateway.listener.hookHttpRequest(request)
-    }, { request, gateway ->
-      if (gateway == null) {
-        if (request.url.fullPath == "/debug") {
-          PureResponse(HttpStatusCode.OK, body = PureStringBody(request.headers.toString()))
-        } else noGatewayResponse
-      } else PureResponse(HttpStatusCode.NotFound)
-    })
+    dwebServer.createServer(
+      gatewayHandler = { request ->
+        findDwebGateway(request)?.let { info ->
+          println("QAQ findRequestGateway: $info in ${gatewayMap.keys.joinToString(", ")}")
+          gatewayMap[info.host]
+        }
+      },
+      httpHandler = { gateway, request ->
+        gateway.listener.hookHttpRequest(request)
+      },
+      errorHandler = { request, gateway ->
+        if (gateway == null) {
+          if (request.url.fullPath == "/debug") {
+            PureResponse(HttpStatusCode.OK, body = PureStringBody(request.headers.toString()))
+          } else noGatewayResponse
+        } else PureResponse(HttpStatusCode.NotFound)
+      })
 
     /// 为 nativeFetch 函数提供支持
     nativeFetchAdaptersManager.append { fromMM, request ->
@@ -129,9 +138,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       // 开启一个服务
       "/start" bind HttpMethod.Get to defineJsonResponse {
         start(
-          ipc, DwebHttpServerOptions(
-            request.query("port").toInt(), request.query("subdomain")
-          )
+          ipc, DwebHttpServerOptions(request.query("subdomain"))
         ).toJsonElement()
       },
       // 监听一个服务
@@ -187,10 +194,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val mmid = ipc.remote.mmid
     val subdomainPrefix =
       if (options.subdomain == "" || options.subdomain.endsWith(".")) options.subdomain else "${options.subdomain}."
-    val port =
-      if (options.port <= 0 || options.port >= 65536) throw Exception("invalid dweb http port: ${options.port}")
-      else options.port
-    val host = "$subdomainPrefix$mmid:$port"
+    val host = "$subdomainPrefix$mmid"
     val internal_origin = "https://$host"
     val public_origin = dwebServer.origin
     return ServerUrlInfo(host, internal_origin, public_origin)
@@ -269,16 +273,32 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 }
 
 val reg_host = Regex("Host", RegexOption.IGNORE_CASE)
+val reg_referer = Regex("Referer", RegexOption.IGNORE_CASE)
 val reg_x_dweb_host = Regex("X-Dweb-Host", RegexOption.IGNORE_CASE)
 val reg_authorization = Regex("Authorization", RegexOption.IGNORE_CASE)
-fun findRequestGateway(request: PureRequest): String? {
+
+data class DwebGatewayInfo(val host: String, val protocol: URLProtocol)
+
+fun findDwebGateway(request: PureRequest): DwebGatewayInfo? {
+  if (request.url.host.endsWith(".dweb")) {
+    return DwebGatewayInfo(host = request.url.host, protocol = request.url.protocol)
+  }
   var header_host: String? = null
   var header_x_dweb_host: String? = null
   var header_auth_host: String? = null
   val query_x_dweb_host: String? = request.queryOrNull("X-Dweb-Host")?.decodeURIComponent()
+  var is_https = false
   for ((key, value) in request.headers) {
+    println("QAQ request.headers key=$key, value=$value")
     if (reg_host.matches(key)) {
-      header_host = parseHost(value)
+      // 解析subDomain
+      header_host = if (value.endsWith(".dweb")) {
+        value
+      } else if (value.endsWith(".${dwebServer.authority}")) {
+        value.substring(0, value.length - dwebServer.authority.length - 1)
+      } else null
+    } else if (reg_referer.matches(key)) {
+      is_https = value.startsWith("https://")
     } else if (reg_x_dweb_host.matches(key)) {
       header_x_dweb_host = value
     } else if (reg_authorization.matches(key)) {
@@ -298,47 +318,11 @@ fun findRequestGateway(request: PureRequest): String? {
   }
   val x_dweb_host = query_x_dweb_host ?: header_auth_host ?: header_x_dweb_host ?: header_host
   return x_dweb_host?.let { host ->
-    /// 如果没有端口，补全端口
-    if (!host.contains(":")) {
-      host + ":" + Http1Server.PORT;
-    } else host
-  }
-}
-
-fun parseHost(value: String?): String? {
-  if (value != null) {
-    // 解析subDomain
-    if (value.endsWith(".${dwebServer.authority}")) {
-      var queryXWebHost = value.substring(0, value.length - dwebServer.authority.length - 1)
-      val portStartIndex = queryXWebHost.lastIndexOf("-")
-      queryXWebHost = queryXWebHost.substring(
-        0, portStartIndex
-      ) + ":" + queryXWebHost.substring(portStartIndex + 1)
-      return queryXWebHost
+    val isWs = request.isWebSocket()
+    val protocol = when (is_https) {
+      true -> if (isWs) URLProtocol.WSS else URLProtocol.HTTPS
+      false -> if (isWs) URLProtocol.WS else URLProtocol.HTTP
     }
-
-    if (value.split(":").let {
-        when (it.size) {
-          1 -> true
-          2 -> it.last().let { port -> port == port.toUShortOrNull().toString() }
-          else -> false
-        } && it.first().endsWith(".dweb")
-      }) {
-      return value
-    }
+    DwebGatewayInfo(host, protocol)
   }
-  return null
-}
-
-
-fun Url.getFullAuthority(hostOrAuthority: String = authority): String {
-  var authority1 = hostOrAuthority
-  if (!authority1.contains(":")) {
-    if (protocol.name == "http") {
-      authority1 += ":80"
-    } else if (protocol.name == "https") {
-      authority1 += ":443"
-    }
-  }
-  return authority1
 }

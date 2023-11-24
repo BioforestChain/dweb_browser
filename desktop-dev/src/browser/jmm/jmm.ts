@@ -160,7 +160,6 @@ export class JmmNMM extends NativeMicroModule {
   private async _createJMMWebServer() {
     const wwwServer = await createHttpDwebServer(this, {
       subdomain: "www",
-      port: 6363,
     });
     const serverIpc = await wwwServer.listen();
     serverIpc.onFetch(async (event) => {

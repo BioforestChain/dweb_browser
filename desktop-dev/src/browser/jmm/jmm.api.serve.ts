@@ -63,7 +63,6 @@ export async function createApiServer(this: JmmNMM) {
   // 为 下载页面做 准备
   this.apiServer = await createHttpDwebServer(this, {
     subdomain: "api",
-    port: 6363,
   });
   const serverIpc = await this.apiServer.listen();
 

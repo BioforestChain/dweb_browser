@@ -59,7 +59,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     /**
      * 当前JsMicroModule的版本
      */
-    const val VERSION = 1
+    const val VERSION = 2
     const val PATCH = 0
 
     init {

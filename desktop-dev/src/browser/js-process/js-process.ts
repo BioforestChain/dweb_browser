@@ -400,7 +400,7 @@ export class JsProcessNMM extends NativeMicroModule {
       })
     );
     // 关闭代码通道
-    await closeHttpDwebServer(this, { port: 80, subdomain: mmid });
+    await closeHttpDwebServer(this, { subdomain: mmid });
     return true;
   }
 }

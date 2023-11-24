@@ -19,7 +19,6 @@ import org.dweb_browser.helper.buildUnsafeString
 
 @Serializable
 data class DwebHttpServerOptions(
-  val port: Int = 80,
   val subdomain: String = "",
 ) {
 //  constructor(
@@ -30,7 +29,6 @@ data class DwebHttpServerOptions(
 
 suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions): HttpNMM.ServerStartResult {
   val urlString = URLBuilder("file://http.std.dweb/start").apply {
-    parameters["port"] = options.port.toString()
     parameters["subdomain"] = options.subdomain
   }.buildUnsafeString()
 
@@ -79,7 +77,6 @@ suspend fun MicroModule.listenHttpDwebServer(
 suspend fun MicroModule.closeHttpDwebServer(options: DwebHttpServerOptions) =
   this.nativeFetch(
     URLBuilder("file://http.std.dweb/close").apply {
-      parameters["port"] = options.port.toString()
       parameters["subdomain"] = options.subdomain
     }.buildUnsafeString(),
   ).boolean()
@@ -101,7 +98,6 @@ class HttpDwebServer(
     listenPo.resolve(streamIpc)
     return@SuspendOnce streamIpc
   }
-
 
   val close = SuspendOnce {
     listenPo.waitPromise().close()// 主动关闭

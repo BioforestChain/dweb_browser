@@ -76,13 +76,20 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
     header(key, value)
   }
   when (val pureBody = response.body) {
-    is PureEmptyBody -> this.call.respondNullable<String?>(response.status, null)
+    is PureEmptyBody -> this.call.respondNullable<String?>(
+      status = response.status, message = null
+    )
+
     is PureStringBody -> this.call.respondText(
-      text = pureBody.toPureString(), status = response.status
+      contentType = contentType,
+      text = pureBody.toPureString(),
+      status = response.status
     )
 
     is PureBinaryBody -> this.call.respondBytes(
-      bytes = pureBody.toPureBinary(), status = response.status
+      contentType = contentType,
+      bytes = pureBody.toPureBinary(),
+      status = response.status
     )
 
     is PureStreamBody -> this.call.respondBytesWriter(

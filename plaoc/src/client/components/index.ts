@@ -1,3 +1,7 @@
+//
+import "./global.type.ts";
+
+//
 export { createMockModuleServerIpc } from "../common/websocketIpc.ts";
 export * from "./barcode-scanning/index.ts";
 export * from "./biometrics/index.ts";
@@ -11,6 +15,7 @@ export * from "./dweb-service-worker/index.ts";
 export * from "./dweb-update-controller/index.ts";
 export * from "./file-system/index.ts";
 export * from "./haptics/index.ts";
+export * from "./motionSensors/index.ts";
 export * from "./mwebvivew/index.ts";
 export * from "./navigation-bar/index.ts";
 export * from "./network/index.ts";
@@ -22,5 +27,3 @@ export * from "./toast/index.ts";
 export * from "./torch/index.ts";
 export * from "./virtual-keyboard/index.ts";
 export * from "./window/index.ts";
-export * from "./motionSensors/index.ts";
-

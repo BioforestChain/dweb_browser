@@ -19,7 +19,7 @@ import org.dweb_browser.core.help.fromPureResponse
 import org.dweb_browser.core.help.isWebSocket
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.std.http.debugHttp
-import org.dweb_browser.core.std.http.findRequestGateway
+import org.dweb_browser.core.std.http.findDwebGateway
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -54,11 +54,11 @@ class DwebHttpGatewayServer private constructor() {
           /// 将 ktor的request 构建成 pureRequest
           call.request.asPureRequest().also { rawRequest ->
             val rawUrl = rawRequest.href
-            val host = findRequestGateway(rawRequest)
-            val url = if (rawUrl.startsWith("/") && host !== null) {
-              "${if (rawRequest.isWebSocket()) "ws" else "http"}://$host$rawUrl"
-            } else rawUrl
-            var request = rawRequest.copy(href = url);
+            val url = when (val info = findDwebGateway(rawRequest)) {
+              null -> rawUrl
+              else -> "${info.protocol.name}://${info.host}$rawUrl"
+            }
+            var request = if (url != rawUrl) rawRequest.copy(href = url) else rawRequest;
 
             var proxyRequestBody: ReadableStream.ReadableStreamController? = null
             if (request.isWebSocket()) {

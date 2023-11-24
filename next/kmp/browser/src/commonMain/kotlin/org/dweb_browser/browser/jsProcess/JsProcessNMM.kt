@@ -284,10 +284,12 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     /**
      * 开始执行代码
      */
-    apis.runProcessMain(processHandler.info.process_id,
+    apis.runProcessMain(
+      processHandler.info.process_id,
       RunProcessMainOptions(main_url = apis.dWebView.resolveUrl(httpDwebServer.startResult.urlInfo.buildInternalUrl {
         resolvePath(entry ?: "/index.js")
-      }.toString())))
+      }.toString()))
+    )
 
     return CreateProcessAndRunResult(streamIpc, processHandler)
   }
@@ -316,7 +318,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     }
 
     // 关闭代码通道
-    closeHttpDwebServer(DwebHttpServerOptions(80, mmid))
+    closeHttpDwebServer(DwebHttpServerOptions(mmid))
     return true;
   }
 }

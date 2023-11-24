@@ -1,6 +1,5 @@
 package org.dweb_browser.core.ipc.helper
 
-import io.ktor.utils.io.ByteChannelSequentialBase
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.atomicfu.atomic
@@ -33,9 +32,7 @@ class ReadableStream(
   /**
    * 内部的输出器
    */
-  private val _stream = createByteChannel().also {
-    it as ByteChannelSequentialBase
-  }
+  private val _stream = createByteChannel()
 
   class ReadableStreamChannel(
     val stream: ReadableStream,

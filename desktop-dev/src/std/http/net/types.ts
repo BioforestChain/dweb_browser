@@ -1,5 +1,4 @@
 export interface $DwebHttpServerOptions {
-  port?: number;
   subdomain?: string;
 }
 

@@ -15,7 +15,6 @@ import {
 import { queue } from "./helper/queue.ts";
 import { MiddlewareImporter } from "./middleware-importer.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
-import { isMobile } from "./shim/is-mobile.ts";
 
 const main = async () => {
   /**
@@ -74,8 +73,8 @@ const main = async () => {
   /// 生成 index-url
   const wwwStartResult = await wwwServer.getStartResult();
   const apiStartResult = await apiServer.getStartResult();
-  const usePublic =
-    plaocConfig.config.usePublicUrl ?? (isMobile() ? (navigator.userAgent.includes("Android") ? false : true) : true);
+  const usePublic = plaocConfig.config.usePublicUrl ?? false;
+  console.log("usePublic", usePublic);
   const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(usePublic, (url) => {
     url.pathname = "/index.html";
     url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildUrl(usePublic).href);

@@ -44,7 +44,7 @@ export class ServerUrlInfo {
   buildPublicHtmlUrl(builder?: $UrlBuilder) {
     return this._buildUrl(
       this._buildUrl(this.public_origin, (url) => {
-        url.host = `${this.host.replaceAll(":","-")}.${url.host}`
+        url.host = `${this.host}.${url.host}`;
       }).toString(),
       builder
     );

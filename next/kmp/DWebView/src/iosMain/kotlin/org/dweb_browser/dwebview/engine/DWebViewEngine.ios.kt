@@ -138,7 +138,7 @@ class DWebViewEngine(
             "dweb+$url"
           } else inputUrl
         } else {
-          /// 处理 http://*.dweb-port.localhost:gateway-port
+          /// 处理 http://{*.dweb}-{port}.localhost:{gateway-port} ，直接翻译成 dweb+http://{*.dweb}:{port}
           val httpLocalhostGatewaySuffix = dwebHttpGatewayServer.getHttpLocalhostGatewaySuffix()
           val inputHostWithPort = url.hostWithPort
           if (url.protocol == URLProtocol.HTTP && inputHostWithPort.endsWith(

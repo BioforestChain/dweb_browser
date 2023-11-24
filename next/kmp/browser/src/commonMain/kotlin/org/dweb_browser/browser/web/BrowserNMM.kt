@@ -81,7 +81,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
 
   private val API_PREFIX = "/api/"
   private suspend fun createBrowserWebServer(): HttpDwebServer {
-    val browserServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "", port = 433))
+    val browserServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = ""))
     browserServer.listen().onRequest { (request, ipc) ->
       val pathName = request.uri.encodedPath
       debugBrowser("createBrowserWebServer", pathName)

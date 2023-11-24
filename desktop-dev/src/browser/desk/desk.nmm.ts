@@ -222,7 +222,6 @@ export class DeskNMM extends NativeMicroModule {
   private async _createTaskbarWebServer(context: $BootstrapContext) {
     const taskbarServer = await createHttpDwebServer(this, {
       subdomain: "taskbar",
-      port: 433,
     });
     {
       const API_PREFIX = "/api/";
@@ -259,7 +258,6 @@ export class DeskNMM extends NativeMicroModule {
   private async _createDesktopWebServer() {
     const desktopServer = await createHttpDwebServer(this, {
       subdomain: "desktop",
-      port: 433,
     });
     {
       const API_PREFIX = "/api/";
