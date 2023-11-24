@@ -1,14 +1,14 @@
 package org.dweb_browser.core.std.file
 
 import okio.Path.Companion.toPath
-import platform.Foundation.NSApplicationDirectory
 import platform.Foundation.NSCachesDirectory
+import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
 
 
 actual fun FileNMM.Companion.getApplicationRootDir() = NSSearchPathForDirectoriesInDomains(
-  NSApplicationDirectory, NSUserDomainMask, true
+  NSDocumentDirectory, NSUserDomainMask, true
 ).first().toString().toPath()
 
 /**
