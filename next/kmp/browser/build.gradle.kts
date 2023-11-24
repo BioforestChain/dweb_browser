@@ -1,10 +1,5 @@
-apply(from = rootProject.file("gradle/common.gradle"))
-
 plugins {
-  alias(libs.plugins.kotlinxMultiplatform)
-  alias(libs.plugins.androidLibrary)
-  alias(libs.plugins.jetbrainsCompose)
-  alias(libs.plugins.kotlinPluginSerialization)
+  id("mobile-compose-target")
 }
 
 kotlin {
@@ -73,7 +68,4 @@ android {
   sourceSets["main"].apply {
     res.srcDirs("src/androidMain/res", "src/commonMain/res", "src/main/res")
   }
-}
-dependencies {
-  implementation(project(":helperPlatform"))
 }

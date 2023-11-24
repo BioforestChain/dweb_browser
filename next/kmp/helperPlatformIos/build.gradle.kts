@@ -1,19 +1,17 @@
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
-apply(from = rootProject.file("gradle/common.gradle"))
-
 plugins {
-  alias(libs.plugins.kotlinxMultiplatform)
-  alias(libs.plugins.androidLibrary)
-  alias(libs.plugins.jetbrainsCompose)
-  alias(libs.plugins.kotlinPluginSerialization)
+  id("mobile-compose-target")
 }
 
 kotlin {
-
-  iosX64 { configureIos() }
-  iosArm64 { configureIos() }
-  iosSimulatorArm64 { configureIos() }
+  listOf(
+    iosX64(),
+    iosArm64(),
+    iosSimulatorArm64()
+  ).forEach {
+    it.configureIos()
+  }
 
   sourceSets.commonMain.dependencies {
     api(libs.jetbrains.compose.runtime)
