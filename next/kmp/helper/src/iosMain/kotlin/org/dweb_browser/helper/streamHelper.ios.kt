@@ -1,6 +1,5 @@
 package org.dweb_browser.helper
 
-import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -18,10 +17,9 @@ fun NSInputStreamToByteReadChannel(
   scope: CoroutineScope,
   nsInputStream: NSInputStream
 ): ByteReadChannel {
-  val byteChannel = ByteChannel(true);
+  val byteChannel = createByteChannel()
   val bytes = malloc(4096u) ?: throw Exception("malloc fail");
   scope.launch {
-
     while (nsInputStream.hasBytesAvailable) {
       val readSize = nsInputStream.read(bytes.reinterpret<uint8_tVar>(), 4096u)
       byteChannel.writePacket(ByteReadPacket(bytes.readBytes(readSize.toInt())))

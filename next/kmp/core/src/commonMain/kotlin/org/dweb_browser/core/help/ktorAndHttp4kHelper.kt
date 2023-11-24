@@ -23,9 +23,6 @@ import io.ktor.utils.io.copyAndClose
 import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.writeAvailable
 import kotlinx.atomicfu.atomic
-import org.dweb_browser.helper.consumeEachArrayRange
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureBinaryBody
 import org.dweb_browser.core.http.PureEmptyBody
@@ -38,6 +35,10 @@ import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.ipc.helper.debugStream
+import org.dweb_browser.helper.ByteReadChannelDelegate
+import org.dweb_browser.helper.consumeEachArrayRange
+import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.readByteArray
 
 fun debugHelper(tag: String, msg: Any = "", err: Throwable? = null) =
   printDebug("helper", tag, msg, err)
@@ -89,8 +90,12 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
       status = response.status,
       contentLength = contentLength,
     ) {
-      pureBody.toPureStream().getReader("ktorAndHttp4kHelper toApplicationResponse")
-        .copyAndClose(this)
+      val nativeStream = when (val stream =
+        pureBody.toPureStream().getReader("ktorAndHttp4kHelper toApplicationResponse")) {
+        is ByteReadChannelDelegate -> stream.sourceByteReadChannel
+        else -> stream
+      }
+      nativeStream.copyAndClose(this)
     }
   }
 }
@@ -146,7 +151,7 @@ fun PureRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequest
     httpRequestBuilder.headers.append(key, value)
   }
   // get请求不能传递body，否则iOS会报错：GET method must not have a body
-  if(this.method != IpcMethod.GET) {
+  if (this.method != IpcMethod.GET) {
     httpRequestBuilder.setBody(this.body.toPureStream().getReader("toHttpRequestBuilder"))
   }
 }

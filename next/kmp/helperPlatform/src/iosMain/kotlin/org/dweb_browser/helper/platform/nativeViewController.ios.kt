@@ -3,68 +3,84 @@ package org.dweb_browser.helper.platform
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.defaultAsyncExceptionHandler
+import org.dweb_browser.helper.mainAsyncExceptionHandler
 import platform.UIKit.UIViewController
 
 data class DwebUIViewControllerProperty(val vcId: Int, val zIndex: Int, val visible: Boolean)
 
-private var ios_rootUIViewControllerAddHook: (UIViewController, DwebUIViewControllerProperty) -> Unit =
+private var addHook: (UIViewController, DwebUIViewControllerProperty) -> Unit =
   { _, _ -> }
+private var updateHook: (DwebUIViewControllerProperty) -> Unit = {}
+private var removeHook: (vcId: Int) -> Unit = {}
 
-val nativeRootUIViewController_scope = CoroutineScope(defaultAsyncExceptionHandler);
-fun nativeRootUIViewController_setAddHook(hook: (UIViewController, DwebUIViewControllerProperty) -> Unit) {
-  ios_rootUIViewControllerAddHook = hook
-}
+@Suppress( "unused")
+class NativeViewController private constructor(){
+  companion object{
+    val nativeViewController =NativeViewController();
+  }
+  val scope = CoroutineScope(mainAsyncExceptionHandler);
+  fun setAddHook(hook: (UIViewController, DwebUIViewControllerProperty) -> Unit) {
+    addHook = hook
+  }
 
-private var ios_rootUIViewControllerUpdateHook: (DwebUIViewControllerProperty) -> Unit = {}
+  fun setUpdateHook(hook: (DwebUIViewControllerProperty) -> Unit) {
+    updateHook = hook
+  }
 
-fun nativeRootUIViewController_setUpdateHook(hook: (DwebUIViewControllerProperty) -> Unit) {
-  ios_rootUIViewControllerUpdateHook = hook
-}
-
-private var ios_rootUIViewControllerRemoveHook: (vcId: Int) -> Unit = {}
-
-fun nativeRootUIViewController_setRemoveHook(hook: (vcId: Int) -> Unit) {
-  ios_rootUIViewControllerRemoveHook = hook
-}
+  fun setRemoveHook(hook: (vcId: Int) -> Unit) {
+    removeHook = hook
+  }
 
 
-private val allVcs = SafeHashSet<PureViewController>()
-fun getNativeVcMaxZIndex() =
-  allVcs.reduceOrNull { a, b -> if (a.prop.zIndex > b.prop.zIndex) a else b }?.prop?.zIndex ?: 0
+  private val allVcs = SafeHashSet<PureViewController>()
+  private fun getMaxZIndex() =
+    allVcs.reduceOrNull { a, b -> if (a.prop.zIndex > b.prop.zIndex) a else b }?.prop?.zIndex ?: 0
 
-val nativeRootUIViewController_onInitSignal = Signal<Int>();
-val nativeRootUIViewController_onDestroySignal = Signal<Int>();
-private val vscLock = Mutex()
+  internal val onInitSignal = Signal<Int>();
+  fun emitOnInit(vcId: Int) {
+    scope.launch {
+      onInitSignal.emit(vcId)
+    }
+  }
 
-suspend fun nativeRootUIViewController_addOrUpdate(
-  pureViewController: PureViewController, zIndex: Int? = null, visible: Boolean = true
-) = vscLock.withLock {
-  fun updateProp() = pureViewController.prop.copy(
-    zIndex = zIndex ?: getNativeVcMaxZIndex() + 1, visible = visible
-  ).also { pureViewController.prop = it }
+  internal val onDestroySignal = Signal<Int>();
+  fun emitOnDestroy(vcId: Int) {
+    scope.launch {
+      onDestroySignal.emit(vcId)
+    }
+  }
 
-  coroutineScope {
-    val prop = updateProp()
+  private val vscLock = Mutex()
+
+  suspend fun addOrUpdate(
+    pureViewController: PureViewController, zIndex: Int? = null, visible: Boolean = true
+  ) = vscLock.withLock {
+    fun updateProp() = pureViewController.prop.copy(
+      zIndex = zIndex ?: (getMaxZIndex() + 1), visible = visible
+    ).also { pureViewController.prop = it }
+
+    coroutineScope {
+      val prop = updateProp()
+      if (pureViewController.isInit) {
+        updateHook(prop)
+      } else {
+        /// 设置init监听，等待vc构建完成
+        val waitInit = async { pureViewController.waitInit() }
+        // 唤醒swift进行重新绘制一个新的UIViewController
+        addHook(pureViewController.getUiViewController(), prop)
+        waitInit.await()
+      }
+    }
+  }
+
+  suspend fun remove(pureViewController: PureViewController) = vscLock.withLock {
     if (pureViewController.isInit) {
-      ios_rootUIViewControllerUpdateHook(prop)
-    } else {
-      /// 设置init监听，等待vc构建完成
-      val waitInit = async { pureViewController.waitInit() }
-      // 唤醒swift进行重新绘制一个新的UIViewController
-      ios_rootUIViewControllerAddHook(pureViewController.uiViewController, prop)
-      waitInit.await()
+      removeHook(pureViewController.vcId)
     }
   }
 }
-
-suspend fun nativeRootUIViewController_remove(pureViewController: PureViewController) =
-  vscLock.withLock {
-    if (pureViewController.isInit) {
-      ios_rootUIViewControllerRemoveHook(pureViewController.vcId)
-    }
-  }

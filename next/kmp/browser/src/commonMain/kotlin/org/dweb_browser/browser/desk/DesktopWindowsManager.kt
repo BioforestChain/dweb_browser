@@ -2,6 +2,7 @@ package org.dweb_browser.browser.desk
 
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.platform.IPureViewBox
+import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.helper.setDefaultFloatWindowBounds
@@ -9,14 +10,16 @@ import org.dweb_browser.sys.window.core.windowAdapterManager
 import kotlin.math.sqrt
 
 expect fun DesktopWindowsManager.Companion.getOrPutInstance(
-  platformViewController: IPureViewBox, onPut: (wm: DesktopWindowsManager) -> Unit
+  platformViewController: IPureViewController,
+  viewBox: IPureViewBox,
+  onPut: (wm: DesktopWindowsManager) -> Unit
 ): DesktopWindowsManager
 
-class DesktopWindowsManager(val viewController: IPureViewBox) :
-  WindowsManager<DesktopWindowController>(viewController) {
+class DesktopWindowsManager internal constructor(val viewController: IPureViewController, val viewBox: IPureViewBox) :
+  WindowsManager<DesktopWindowController>(viewBox) {
 
   companion object {
-    internal val instances = WeakHashMap<IPureViewBox, DesktopWindowsManager>()
+    internal val instances = WeakHashMap<IPureViewController, DesktopWindowsManager>()
   }
 
   /// 初始化一些监听
@@ -25,7 +28,7 @@ class DesktopWindowsManager(val viewController: IPureViewBox) :
     windowAdapterManager.append { newWindowState ->
       /// 新窗口的bounds可能都是没有配置的，所以这时候默认给它们设置一个有效的值
 
-      with(viewController) {
+      with(viewBox) {
         val displayWidth = getViewWidthPx() / getDisplayDensity()
         val displayHeight = getViewHeightPx() / getDisplayDensity()
         newWindowState.setDefaultFloatWindowBounds(
@@ -33,7 +36,7 @@ class DesktopWindowsManager(val viewController: IPureViewBox) :
         )
       }
       newWindowState.updateMutableBounds {
-        with(viewController) {
+        with(viewBox) {
           val displayWidth = getViewWidthPx() / getDisplayDensity()
           val displayHeight = getViewHeightPx() / getDisplayDensity()
           if (width.isNaN()) {
@@ -66,7 +69,7 @@ class DesktopWindowsManager(val viewController: IPureViewBox) :
       win
     }
       /// 生命周期销毁的时候，移除窗口适配器
-      .removeWhen(viewController.lifecycleScope)
+      .removeWhen(viewBox.lifecycleScope)
 
   }
 }

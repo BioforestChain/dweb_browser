@@ -20,7 +20,7 @@ class TaskbarStore(mm: MicroModule) {
 }
 
 class DaskSortStore(mm: MicroModule) {
-  private val store = mm.createStore("DeskSort", false)// createStore("taskbar/apps", false)
+  private val store = mm.createStore("desk_sort", false)// createStore("taskbar/apps", false)
 
   suspend fun getApps(): MutableList<String> {
     val sortedList = store.getAll<Int>().entries.sortedBy { it.value }

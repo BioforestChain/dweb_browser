@@ -121,7 +121,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
       val appMainWindow = getAppMainWindow(ipc)
       /// 将所有的窗口聚焦
-      desktopController.desktopWindowsManager.focusWindow(appId)
+      desktopController.getDesktopWindowsManager().focusWindow(appId)
       return appMainWindow
     } catch (e: Exception) {
       desktopController.showAlert(e)
@@ -208,7 +208,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       // 获取isMaximized 的值
       "/toggleMaximize" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.query("app_id")
-        return@defineBooleanResponse desktopController.desktopWindowsManager.toggleMaximize(mmid)
+        return@defineBooleanResponse desktopController.getDesktopWindowsManager().toggleMaximize(mmid)
       },
       // 关闭app
       "/closeApp" bind HttpMethod.Get to defineBooleanResponse {

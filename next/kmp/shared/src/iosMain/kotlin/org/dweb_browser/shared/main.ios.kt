@@ -61,12 +61,7 @@ import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.platform.LocalPureViewBox
 import org.dweb_browser.helper.platform.PureViewBox
 import org.dweb_browser.helper.platform.getKtorClientEngine
-import org.dweb_browser.helper.platform.nativeRootUIViewController_onDestroySignal
-import org.dweb_browser.helper.platform.nativeRootUIViewController_onInitSignal
-import org.dweb_browser.helper.platform.nativeRootUIViewController_scope
-import org.dweb_browser.helper.platform.nativeRootUIViewController_setAddHook
-import org.dweb_browser.helper.platform.nativeRootUIViewController_setRemoveHook
-import org.dweb_browser.helper.platform.nativeRootUIViewController_setUpdateHook
+import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.KmpNativeBridgeEventSender
@@ -94,22 +89,7 @@ import platform.UIKit.UIView
 import platform.UIKit.UIViewController
 import platform.WebKit.WKWebViewConfiguration
 
-val dwebRootUIViewController_setAddHook = ::nativeRootUIViewController_setAddHook
-val dwebRootUIViewController_setRemoveHook = ::nativeRootUIViewController_setRemoveHook
-val dwebRootUIViewController_setUpdateHook = ::nativeRootUIViewController_setUpdateHook
-private val scope = nativeRootUIViewController_scope
-fun dwebRootUIViewController_onInit(id: Int) {
-  scope.launch {
-    nativeRootUIViewController_onInitSignal.emit(id)
-  }
-}
-
-fun dwebRootUIViewController_onDestroy(id: Int) {
-  scope.launch {
-    nativeRootUIViewController_onDestroySignal.emit(id)
-  }
-}
-
+val dwebViewController = nativeViewController
 suspend fun startDwebBrowser(app: UIApplication): DnsNMM {
   nativeMicroModuleUIApplication = app;
 

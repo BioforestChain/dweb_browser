@@ -27,7 +27,6 @@ class TaskbarActivity : PureViewController() {
     controller?.platformContext = null
 
     return DeskNMM.controllersMap[sessionId]?.also { controllers ->
-      require(controllers.taskbarController is TaskbarController)
       controllers.taskbarController.platformContext = PureViewBox(this)
       controller = controllers.taskbarController
     } ?: throw Exception("no found controller by sessionId: $sessionId")

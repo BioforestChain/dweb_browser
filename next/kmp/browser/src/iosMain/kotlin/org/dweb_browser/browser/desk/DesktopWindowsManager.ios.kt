@@ -1,19 +1,18 @@
 package org.dweb_browser.browser.desk
 
-import kotlinx.coroutines.launch
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.IPureViewBox
+import org.dweb_browser.helper.platform.IPureViewController
 
-actual  fun DesktopWindowsManager.Companion.getOrPutInstance(
-  platformViewController: IPureViewBox,
+actual fun DesktopWindowsManager.Companion.getOrPutInstance(
+  platformViewController: IPureViewController,
+  viewBox: IPureViewBox,
   onPut: (wm: DesktopWindowsManager) -> Unit
 ) = instances.getOrPut(platformViewController) {
-  DesktopWindowsManager(platformViewController).also { dwm ->
+  DesktopWindowsManager(platformViewController, viewBox).also { dwm ->
     onPut(dwm)
-    /// TODO 需要有生命周期钩子来确保它能被移除，避免内存溢出
-    platformViewController.lifecycleScope.launch {
-//      platformViewController.asIos().uiViewController().viewDid
+    platformViewController.onDestroy {
+      instances.remove(platformViewController)
     }
-//    instances.remove(platformViewController.platformContext)
   }
 }

@@ -34,7 +34,9 @@ fun DesktopController.Render(taskbarController: TaskbarController, microModule: 
         /// 窗口视图
         Render(Modifier.fillMaxSize())
       }
-      desktopWindowsManager.Render()
+      DesktopWindowsManager {
+        Render()
+      }
     }
     /// 悬浮框
     Box(contentAlignment = Alignment.TopStart) {

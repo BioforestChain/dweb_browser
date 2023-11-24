@@ -1,11 +1,15 @@
 package org.dweb_browser.helper.platform
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
+import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.Signal
-
+/**
+ * 视图 后端
+ */
 interface IPureViewController {
   companion object
+
+  val lifecycleScope: CoroutineScope
 
   val onCreate: Signal.Listener<IPureViewCreateParams>
   val onResume: Signal.Listener<Unit>

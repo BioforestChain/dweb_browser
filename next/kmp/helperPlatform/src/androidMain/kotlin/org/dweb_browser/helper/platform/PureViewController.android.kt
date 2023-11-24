@@ -7,7 +7,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
@@ -15,6 +17,8 @@ import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 
 open class PureViewController : BaseActivity(), IPureViewController {
+  override val lifecycleScope: CoroutineScope
+    get() = (this as LifecycleOwner).lifecycleScope
   private val createSignal = Signal<IPureViewCreateParams>()
   override val onCreate = createSignal.toListener()
   private val destroySignal = SimpleSignal()
@@ -75,10 +79,15 @@ open class PureViewController : BaseActivity(), IPureViewController {
     }
     return super.dispatchTouchEvent(ev)
   }
-   private val contents = mutableStateListOf<@Composable () -> Unit>()
+
+  private val contents = mutableStateListOf<@Composable () -> Unit>()
   override fun getContents(): MutableList<() -> Unit> {
     return contents
   }
+}
+fun IPureViewController.asAndroid(): PureViewController {
+  require(this is PureViewController)
+  return this
 }
 
 fun Bundle.toMap() = mapOf(*keySet().map {

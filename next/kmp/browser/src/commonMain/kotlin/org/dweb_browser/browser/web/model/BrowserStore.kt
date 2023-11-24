@@ -44,7 +44,7 @@ class BrowserStore(mm: MicroModule) {
   private val storeKey = "browser/links"
   private val storeBook = mm.createStore("browser_book", false)
   private val storeHistory = mm.createStore("browser_history", false)
-  private val sharePreference = mm.createStore("SharePreference", false)
+  private val sharePreference = mm.createStore("share_preference", false)
 
   /**
    * 书签部分，不需要特殊处理，直接保存即可

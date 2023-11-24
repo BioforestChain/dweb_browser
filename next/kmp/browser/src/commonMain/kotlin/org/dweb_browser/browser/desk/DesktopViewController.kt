@@ -16,7 +16,7 @@ fun Rect.toModifier(
 
 class DesktopViewControllerCore(val controller: IPureViewController) {
   private var desktopController: DesktopController? = null
-  private fun bindController(sessionId: String?): DeskNMM.Companion.DeskControllers {
+  private suspend fun bindController(sessionId: String?): DeskNMM.Companion.DeskControllers {
     /// 解除上一个 controller的activity绑定
     desktopController?.activity = null
 

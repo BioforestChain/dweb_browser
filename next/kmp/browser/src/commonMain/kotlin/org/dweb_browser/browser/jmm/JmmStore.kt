@@ -20,8 +20,8 @@ import org.dweb_browser.helper.datetimeNow
 data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String)
 
 class JmmStore(microModule: MicroModule) {
-  private val storeApp = microModule.createStore("JmmApps", false)
-  private val storeHistoryMetadata = microModule.createStore("HistoryMetadata", false)
+  private val storeApp = microModule.createStore("jmm_apps", false)
+  private val storeHistoryMetadata = microModule.createStore("history_metadata", false)
 
   suspend fun getOrPutApp(key: MMID, value: JsMicroModuleDBItem): JsMicroModuleDBItem {
     return storeApp.getOrPut(key) { value }

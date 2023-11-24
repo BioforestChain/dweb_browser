@@ -1,6 +1,5 @@
 package org.dweb_browser.helper
 
-import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.bits.set
 import io.ktor.utils.io.close
@@ -15,7 +14,7 @@ import okio.FileSystem
 expect val SystemFileSystem: FileSystem
 
 fun BufferedSource.toByteReadChannel(scope: CoroutineScope = CoroutineScope(ioAsyncExceptionHandler)): ByteReadChannel {
-  val channel = ByteChannel(true)
+  val channel = createByteChannel()
   scope.launch {
     var end = false
     while (!end) {

@@ -4,7 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import kotlinx.coroutines.CoroutineScope
 
-expect fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox
+expect suspend fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox
+
+/**
+ * 视图 前端
+ */
 interface IPureViewBox {
   companion object {}
 

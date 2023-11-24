@@ -8,8 +8,7 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.platform.PureViewController
-import org.dweb_browser.helper.platform.nativeRootUIViewController_addOrUpdate
-import org.dweb_browser.helper.platform.nativeRootUIViewController_remove
+import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRectMake
 import platform.UIKit.UIColor
@@ -46,11 +45,11 @@ class TaskbarView private constructor(
   override fun LocalFloatWindow() {
     DisposableEffect(Unit) {
       scope.launch {
-        nativeRootUIViewController_addOrUpdate(pvc, zIndex = Int.MAX_VALUE - 1)
+        nativeViewController.addOrUpdate(pvc, zIndex = Int.MAX_VALUE - 1)
       }
       onDispose {
         scope.launch {
-          nativeRootUIViewController_remove(pvc)
+          nativeViewController.remove(pvc)
         }
       }
     }

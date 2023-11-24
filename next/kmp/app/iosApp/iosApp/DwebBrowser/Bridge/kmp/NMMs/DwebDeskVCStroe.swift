@@ -31,22 +31,21 @@ class DwebDeskVCStroe: ObservableObject {
     }
 
     private func regiserDeskEvent() {
-        _ = Main_iosKt.dwebRootUIViewController_setAddHook(addHook(vc:prop:))
-        _ = Main_iosKt.dwebRootUIViewController_setUpdateHook(updateHook(prop:))
-        _ = Main_iosKt.dwebRootUIViewController_setRemoveHook(removeHook(vcId:))
+        Main_iosKt.dwebViewController.setAddHook(hook: addHook(vc:prop:))
+        Main_iosKt.dwebViewController.setUpdateHook(hook: updateHook(prop:))
+        Main_iosKt.dwebViewController.setRemoveHook(hook: removeHook(vcId:))
     }
 
-    private func addHook(vc: UIViewController, prop: HelperPlatformDwebUIViewControllerProperty) -> KotlinUnit {
+    private func addHook(vc: UIViewController, prop: HelperPlatformDwebUIViewControllerProperty) -> Void {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             Log("add UIViewController: vcId=\(prop.vcId) zIndex=\(prop.zIndex) visible=\(prop.visible)")
             let pureVc = DwebPureViewController(vc: vc, prop: prop)
             self.vcs[prop.vcId] = pureVc
         }
-        return KotlinUnit()
     }
 
-    private func updateHook(prop: HelperPlatformDwebUIViewControllerProperty) -> KotlinUnit {
+    private func updateHook(prop: HelperPlatformDwebUIViewControllerProperty) -> Void {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
 
@@ -56,16 +55,14 @@ class DwebDeskVCStroe: ObservableObject {
                 self.vcs[prop.vcId] = pureVc
             }
         }
-        return KotlinUnit()
     }
 
-    private func removeHook(vcId: KotlinInt) -> KotlinUnit {
+    private func removeHook(vcId: KotlinInt) -> Void {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
 
             Log("remove UIViewController: vcId=\(vcId)")
             vcs.removeValue(forKey: Int32(truncating: vcId))
         }
-        return KotlinUnit()
     }
 }

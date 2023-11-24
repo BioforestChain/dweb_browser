@@ -1,6 +1,6 @@
 package org.dweb_browser.core.ipc.helper
 
-import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteChannelSequentialBase
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.atomicfu.atomic
@@ -9,10 +9,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.core.http.PureStream
+import org.dweb_browser.helper.ByteReadChannelDelegate
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toUtf8ByteArray
-import org.dweb_browser.core.http.PureStream
 
 fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) = println("$tag $msg")
 //  printDebug("stream", tag, msg, err)
@@ -31,13 +33,21 @@ class ReadableStream(
   /**
    * 内部的输出器
    */
-  private val _stream = ByteChannel(true)
+  private val _stream = createByteChannel().also {
+    it as ByteChannelSequentialBase
+  }
 
-  val stream: PureStream = PureStream(object : ByteReadChannel by _stream {
+  class ReadableStreamChannel(
+    val stream: ReadableStream,
+    override val sourceByteReadChannel: ByteReadChannel
+  ) :
+    ByteReadChannel by sourceByteReadChannel, ByteReadChannelDelegate {
     override fun cancel(cause: Throwable?): Boolean {
-      return this@ReadableStream.closeRead(cause)
+      return stream.closeRead(cause)
     }
-  })
+  }
+
+  val stream: PureStream = PureStream(ReadableStreamChannel(this, _stream))
 
   private val controller = ReadableStreamController(this)
   private val closePo = PromiseOut<Unit>()

@@ -7,7 +7,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 import io.ktor.http.fromFilePath
 import io.ktor.http.headers
-import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
@@ -34,6 +33,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachArrayRange
+import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
@@ -362,7 +362,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
    * 下载 task 中间件
    */
   private fun middleware(downloadTask: DownloadTask, input: ByteReadChannel): ByteReadChannel {
-    val output = ByteChannel(true)
+    val output = createByteChannel()
     downloadTask.status.state = DownloadState.Downloading
     val taskId = downloadTask.id
     // 重要记录点 存储到硬盘

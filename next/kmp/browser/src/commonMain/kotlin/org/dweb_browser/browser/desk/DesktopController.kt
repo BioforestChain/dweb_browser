@@ -9,10 +9,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -110,7 +111,7 @@ open class DesktopController private constructor(
     val runApps = apps.map { metaData ->
       return@map DeskAppMetaData().apply {
         running = runningApps.containsKey(metaData.mmid)
-        winStates = desktopWindowsManager.getWindowStates(metaData.mmid)
+        winStates = getDesktopWindowsManager().getWindowStates(metaData.mmid)
         winStates.firstOrNull()?.let { state ->
           debugDesk(
             "getDesktopApps", "winStates -> ${winStates.size}, ${state.mode}, ${state.focus}"
@@ -125,32 +126,42 @@ open class DesktopController private constructor(
   private var preDesktopWindowsManager: DesktopWindowsManager? = null
 
   private val sync = SynchronizedObject()
+  private val wmLock = Mutex()
 
   /**
    * 窗口管理器
    */
-  val desktopWindowsManager: DesktopWindowsManager
-    get() = synchronized(sync) {
-      DesktopWindowsManager.getOrPutInstance(IPureViewBox.from(this.activity!!)) { dwm ->
+  suspend fun getDesktopWindowsManager() = wmLock.withLock {
+    val vc = this.activity!!
+    DesktopWindowsManager.getOrPutInstance(vc, IPureViewBox.from(vc)) { dwm ->
+      dwm.hasMaximizedWins.onChange { updateSignal.emit() }
 
-        dwm.hasMaximizedWins.onChange { updateSignal.emit() }
+      /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
+      dwm.allWindows.onChange {
+        updateSignal.emit()
+        _activitySignal.emit()
+      }.removeWhen(dwm.viewController.lifecycleScope)
 
-        /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
-        dwm.allWindows.onChange {
-          updateSignal.emit()
-          _activitySignal.emit()
-        }.removeWhen(dwm.viewController.lifecycleScope)
-
-        preDesktopWindowsManager?.also { preDwm ->
-          deskNMM.ioAsyncScope.launch(Dispatchers.Main) {
-            /// 窗口迁移
-            preDwm.moveWindows(dwm)
-            preDesktopWindowsManager = null
-          }
+      preDesktopWindowsManager?.also { preDwm ->
+        deskNMM.ioAsyncScope.launch(Dispatchers.Main) {
+          /// 窗口迁移
+          preDwm.moveWindows(dwm)
+          preDesktopWindowsManager = null
         }
-        preDesktopWindowsManager = dwm
       }
+      preDesktopWindowsManager = dwm
     }
+  }
+
+  @Composable
+  fun DesktopWindowsManager(content: @Composable DesktopWindowsManager.() -> Unit) {
+    var windowsManager by remember { mutableStateOf<DesktopWindowsManager?>(null) }
+    LaunchedEffect(Unit) {
+      windowsManager = getDesktopWindowsManager()
+    }
+    windowsManager?.content()
+  }
+
 
   private fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().build {
     resolvePath("/desktop.html")

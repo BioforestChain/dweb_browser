@@ -26,7 +26,7 @@ data class WebLinkManifest(
 }
 
 class WebLinkStore(microModule: MicroModule) {
-  private val store = microModule.createStore("WebLinkApps", false)
+  private val store = microModule.createStore("web_link_apps", false)
 
   suspend fun getOrPut(key: MMID, value: WebLinkManifest): WebLinkManifest {
     return store.getOrPut(key) { value }

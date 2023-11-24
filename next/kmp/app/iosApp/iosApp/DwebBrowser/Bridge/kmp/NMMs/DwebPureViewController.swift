@@ -15,10 +15,10 @@ class DwebPureViewController{
     init(vc: UIViewController, prop: HelperPlatformDwebUIViewControllerProperty) {
         self.vc = vc
         self.prop = prop
-        Main_iosKt.dwebRootUIViewController_onInit(id: prop.vcId)
+        Main_iosKt.dwebViewController.emitOnInit(vcId: prop.vcId)
     }
 
     deinit {
-        Main_iosKt.dwebRootUIViewController_onDestroy(id: prop.vcId) // onDestroy
+        Main_iosKt.dwebViewController.emitOnDestroy(vcId: prop.vcId)
     }
 }

@@ -18,8 +18,8 @@ import org.dweb_browser.sys.window.core.constant.WindowsManagerScope
 import org.dweb_browser.sys.window.core.constant.debugWindow
 import kotlin.math.abs
 
-open class WindowsManager<T : WindowController>(internal val viewController: IPureViewBox) {
-  val state = WindowsManagerState(viewController)
+open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewBox) {
+  val state = WindowsManagerState(viewBox)
 
   private val _winList = mutableStateListOf<T>()
   private val _winListSync = SynchronizedObject()
@@ -37,10 +37,10 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPu
   /**
    * 存储最大化的窗口
    */
-  val hasMaximizedWins = ChangeableSet<T>(viewController.lifecycleScope.coroutineContext)
+  val hasMaximizedWins = ChangeableSet<T>(viewBox.lifecycleScope.coroutineContext)
 
   val allWindows =
-    ChangeableMap<T, WindowsManagerScope>(viewController.lifecycleScope.coroutineContext);
+    ChangeableMap<T, WindowsManagerScope>(viewBox.lifecycleScope.coroutineContext);
 
   /**
    * 寻找最后一个聚焦的窗口
@@ -259,7 +259,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPu
 
   private fun <T : WindowController, R> winLifecycleScopeAsync(
     @Suppress("UNUSED_PARAMETER") win: T, block: suspend CoroutineScope.() -> R
-  ) = viewController.lifecycleScope.async {
+  ) = viewBox.lifecycleScope.async {
     // TODO 检测 win 的所属权
     block()
   }
@@ -370,34 +370,34 @@ open class WindowsManager<T : WindowController>(internal val viewController: IPu
   fun windowSetStyle(
     win: WindowController,
     style: WindowStyle,
-  ) = viewController.lifecycleScope.async {
+  ) = viewBox.lifecycleScope.async {
     win.simpleSetStyle(style)
   }
 
-  fun windowEmitGoBack(win: WindowController) = viewController.lifecycleScope.async {
+  fun windowEmitGoBack(win: WindowController) = viewBox.lifecycleScope.async {
     win.simpleEmitGoBack()
   }
 
-  fun windowEmitGoForward(win: WindowController) = viewController.lifecycleScope.async {
+  fun windowEmitGoForward(win: WindowController) = viewBox.lifecycleScope.async {
     win.simpleEmitGoForward()
   }
 
-  fun windowHideCloseTip(win: WindowController) = viewController.lifecycleScope.async {
+  fun windowHideCloseTip(win: WindowController) = viewBox.lifecycleScope.async {
     win.simpleHideCloseTip()
   }
 
   fun windowToggleMenuPanel(win: WindowController, show: Boolean?) =
-    viewController.lifecycleScope.async {
+    viewBox.lifecycleScope.async {
       win.simpleToggleMenuPanel(show)
     }
 
   fun windowToggleAlwaysOnTop(win: WindowController, onTop: Boolean?) =
-    viewController.lifecycleScope.async {
+    viewBox.lifecycleScope.async {
       win.simpleToggleAlwaysOnTop(onTop)
     }
 
   fun windowToggleColorScheme(win: WindowController, colorScheme: WindowColorScheme?) =
-    viewController.lifecycleScope.async {
+    viewBox.lifecycleScope.async {
       win.simpleToggleColorScheme(colorScheme)
     }
 }

@@ -148,15 +148,15 @@ class DWebViewEngine(
             "dweb+" + inputUrl.replace(inputHostWithPort, inputHostWithPort.substring(
               0, inputHostWithPort.length - httpLocalhostGatewaySuffix.length
             ).let { dwebHost ->
-                val hostInfo = dwebHost.split('-')
-                val port = hostInfo.last().toUShortOrNull()
-                if (port != null) {
-                  hostInfo.toMutableList().run {
-                    removeLast()
-                    joinToString("-")
-                  } + ":$port"
-                } else dwebHost
-              })
+              val hostInfo = dwebHost.split('-')
+              val port = hostInfo.last().toUShortOrNull()
+              if (port != null) {
+                hostInfo.toMutableList().run {
+                  removeLast()
+                  joinToString("-")
+                } + ":$port"
+              } else dwebHost
+            })
           } else inputUrl
         }
       }
@@ -358,15 +358,17 @@ class DWebViewEngine(
     didReceiveAuthenticationChallenge: NSURLAuthenticationChallenge,
     completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
   ) {
-    if (didReceiveAuthenticationChallenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
-      completionHandler(
-        NSURLSessionAuthChallengeUseCredential,
-        NSURLCredential.create(trust = didReceiveAuthenticationChallenge.protectionSpace.serverTrust)
-      )
-      return
+    /// 这里在IO线程处理，否则会警告：This method should not be called on the main thread as it may lead to UI unresponsiveness.
+    remoteMM.ioAsyncScope.launch {
+      if (didReceiveAuthenticationChallenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
+        completionHandler(
+          NSURLSessionAuthChallengeUseCredential,
+          NSURLCredential.create(trust = didReceiveAuthenticationChallenge.protectionSpace.serverTrust)
+        )
+      } else {
+        completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, null)
+      }
     }
-
-    completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, null)
   }
   //#endregion
 }

@@ -9,7 +9,7 @@ class DesktopWindowController(
   state: WindowState,
 ) : WindowController(state, manager) {
   override val manager get() = _manager as DesktopWindowsManager
-  override val viewController = manager.viewController
+  override val viewController = manager.viewBox
   override val coroutineScope get() = viewController.lifecycleScope
   override fun upsetManager(manager: WindowsManager<*>?) {
     when (val deskManager = manager) {
