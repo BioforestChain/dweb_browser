@@ -1,8 +1,11 @@
 package org.dweb_browser.browser.web.ui.model
 
+import androidx.compose.ui.graphics.ImageBitmap
 import io.ktor.http.Url
 import io.ktor.http.fullPath
 import kotlinx.serialization.Serializable
+import org.dweb_browser.browser.BrowserIconResource
+import org.dweb_browser.browser.getIconResource
 
 /**
  * 该文件主要定义搜索引擎和引擎默认值，以及配置存储
@@ -14,7 +17,7 @@ data class WebEngine(
   val host: String,
   val start: String,
   var timeMillis: String = "",
-  val iconRes: Int = 0,// = R.drawable.ic_web,
+  val iconRes: ImageBitmap? = getIconResource(BrowserIconResource.WebEngineDefault),
 ) {
   fun fit(url: String): Boolean {
     val current = Url("${start}test")
@@ -34,19 +37,19 @@ val DefaultSearchWebEngine: List<WebEngine>
     WebEngine(
       name = "百度",
       host = "m.baidu.com",
-      //iconRes = R.drawable.ic_engine_baidu,
+      iconRes = getIconResource(BrowserIconResource.WebEngineBaidu),
       start = "https://m.baidu.com/s?word="
     ),
     WebEngine(
       name = "搜狗",
       host = "wap.sogou.com",
-      //iconRes = R.drawable.ic_engine_sougou,
+      iconRes = getIconResource(BrowserIconResource.WebEngineSougou),
       start = "https://wap.sogou.com/web/searchList.jsp?keyword="
     ),
     WebEngine(
       name = "360",
       host = "m.so.com",
-      //iconRes = R.drawable.ic_engine_360,
+      iconRes = getIconResource(BrowserIconResource.WebEngine360),
       start = "https://m.so.com/s?q="
     ),
   )

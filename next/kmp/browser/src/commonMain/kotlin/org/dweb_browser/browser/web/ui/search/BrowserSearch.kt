@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.browser.util.toRequestUrl
 import org.dweb_browser.browser.web.ui.dimenSearchHeight
 import org.dweb_browser.browser.web.ui.dimenTextFieldFontSize
@@ -43,7 +42,6 @@ import org.dweb_browser.browser.web.ui.model.WebEngine
 import org.dweb_browser.browser.web.ui.model.findWebEngine
 import org.dweb_browser.browser.web.ui.model.parseInputText
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.sys.window.core.WindowRenderScope
 
 /**
  * 组件： 搜索组件
@@ -302,11 +300,13 @@ private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
             Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
           },
           leadingContent = {
-            AsyncImage(
-              model = webEngine.iconRes,
-              contentDescription = null,
-              modifier = Modifier.size(40.dp)
-            )
+            webEngine.iconRes?.let { imageBitmap ->
+              Image(
+                bitmap = imageBitmap,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp)
+              )
+            }
           }
         )
       }

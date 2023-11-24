@@ -15,7 +15,6 @@ import org.dweb_browser.browser.common.CaptureParams
 import org.dweb_browser.browser.common.CaptureView
 import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.common.toWebColorScheme
-import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.WebSiteType
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
@@ -59,7 +58,6 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
   CaptureView(
     controller = browserWebView.controller,
     onCaptured = { imageBitmap, throwable ->
-      debugBrowser("onCaptured", "imageBitmap=$imageBitmap, throwable->$throwable")
       imageBitmap?.let { browserWebView.bitmap = imageBitmap }
     }
   ) {
@@ -87,7 +85,6 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.background),
       onCreate = {
-        // 未解决
         val webView = browserWebView.viewItem.webView
         var webViewY = 0 // 用于截图的时候进行定位截图
         webView.setOnTouchListener { _, event ->

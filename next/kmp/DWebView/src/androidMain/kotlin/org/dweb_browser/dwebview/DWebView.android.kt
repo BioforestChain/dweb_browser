@@ -234,11 +234,10 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
       onScrollChange(this, scrollX, scrollY, oldScrollX, oldScrollY)
     }
   }
-}
 
-suspend fun IDWebView.getIconBitmap(): ImageBitmap? {
-  require(this is DWebView)
-  return engine.favicon?.asImageBitmap()
+  override fun getFavoriteIcon(): ImageBitmap? {
+    return this.asAndroidWebView().favicon?.asImageBitmap()
+  }
 }
 
 //#region 一些针对平台的接口

@@ -18,6 +18,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.dweb_browser.browser.LocalBitmapManager
 import org.dweb_browser.browser.util.isDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.util.isUrlOrHost
@@ -180,7 +181,7 @@ class BrowserViewModel(
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     )
-  ) // .also { it.asAndroidWebView().isVerticalScrollBarEnabled = false } // 未解决
+  ).also { it.setVerticalScrollBarVisible(false) }
 
   private suspend fun getNewTabBrowserView(url: String? = null) =
     createBrowserWebView(createDwebView(url))
@@ -319,15 +320,19 @@ class BrowserViewModel(
    * 修改：该对象已经变更，可直接保存，所以不需要传
    * 删除：需要删除数据
    */
-  suspend fun changeBookLink(add: WebSiteInfo? = null, del: WebSiteInfo? = null) {
-    add?.apply {
-      browserController.bookLinks.add(this)
+  fun changeBookLink(add: WebSiteInfo? = null, del: WebSiteInfo? = null) =
+    browserController.ioAsyncScope.launch {
+      add?.apply {
+        browserController.bookLinks.add(this)
+        this.icon?.let { icon -> LocalBitmapManager.saveImageBitmap(this.id, icon) }
+        browserController.saveBookLinks()
+      }
+      del?.apply {
+        browserController.bookLinks.remove(this)
+        browserController.saveBookLinks()
+        LocalBitmapManager.deleteImageBitmap(this.id)
+      }
     }
-    del?.apply {
-      browserController.bookLinks.remove(this)
-    }
-    browserController.saveBookLinks()
-  }
 
   /**
    * 操作历史数据
@@ -388,7 +393,7 @@ suspend fun IDWebView.toWebSiteInfo(type: WebSiteType): WebSiteInfo? {
         title = getTitle().ifEmpty { url },
         url = url,
         type = type,
-        icon = null //getIconBitmap() // 这也有一个
+        icon = getFavoriteIcon() // 这也有一个
       )
     } else null
   }

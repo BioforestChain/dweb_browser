@@ -19,7 +19,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
@@ -33,57 +32,50 @@ fun BrowserListOfBook(
   onOpenSetting: (WebSiteInfo) -> Unit,
   onSearch: (String) -> Unit
 ) {
+  /*val scope = rememberCoroutineScope()
+  LazyColumn {
   val bookLinks = viewModel.getBookLinks()
-  val scope = rememberCoroutineScope()
-  if (bookLinks.isNotEmpty()) {
-    BookListContent(
-      bookList = bookLinks,
-      modifier = modifier,
-      onDelete = { scope.launch { viewModel.changeBookLink(del = it) } },
-      onOpenSetting = onOpenSetting
-    ) { onSearch(it) }
-    return
-  }
-
-  noFoundTip?.let { it() }
-    ?: Box(modifier = Modifier.fillMaxWidth()) {
+    itemsIndexed(bookLinks) { index: Int, webSiteInfo: WebSiteInfo ->
       Text(
-        text = BrowserI18nResource.browser_empty_list(),
-        modifier = Modifier
-          .align(Alignment.TopCenter)
-          .padding(top = 100.dp)
+        "${webSiteInfo.title}",
+        modifier.clickableWithNoEffect { bookLinks.remove(webSiteInfo) }.padding(8.dp)
       )
     }
-}
+  }*/
 
-@Composable
-private fun BookListContent(
-  bookList: MutableList<WebSiteInfo>,
-  modifier: Modifier = Modifier,
-  onDelete: (WebSiteInfo) -> Unit,
-  onOpenSetting: (WebSiteInfo) -> Unit,
-  onSearch: (String) -> Unit
-) {
   LazyColumn(
     modifier = modifier
       .background(MaterialTheme.colorScheme.background)
       .padding(16.dp)
+      .clip(RoundedCornerShape(6.dp))
   ) {
-    itemsIndexed(bookList) { index, webSiteInfo ->
+    val bookLinks = viewModel.getBookLinks()
+    if (bookLinks.isEmpty()) {
+      item {
+        noFoundTip?.let { it() }
+          ?: Box(modifier = Modifier.fillMaxWidth()) {
+            Text(
+              text = BrowserI18nResource.browser_empty_list(),
+              modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 100.dp)
+            )
+          }
+      }
+      return@LazyColumn
+    }
+
+    itemsIndexed(bookLinks) { index, webSiteInfo ->
       if (index > 0) Divider(
         modifier = Modifier.width(1.dp), color = MaterialTheme.colorScheme.surface
       )
-      ListSwipeItem(
+      RowItemBook(webSiteInfo, { onSearch(it.url) }) { onOpenSetting(it) }
+      /*ListSwipeItem(
         webSiteInfo = webSiteInfo,
-        onRemove = { onDelete(it) }
+        onRemove = { *//*viewModel.changeBookLink(del = it)*//* }
       ) {
-        val shape = when (index) {
-          0 -> RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
-          bookList.size - 1 -> RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp)
-          else -> RoundedCornerShape(0.dp)
-        }
-        RowItemBook(webSiteInfo, shape, { onSearch(it.url) }) { onOpenSetting(it) }
-      }
+        RowItemBook(webSiteInfo, { onSearch(it.url) }) { onOpenSetting(it) }
+      }*/
     }
   }
 }
@@ -95,14 +87,7 @@ internal fun ListSwipeItem(
   onRemove: (WebSiteInfo) -> Unit,
   listItemView: @Composable RowScope.() -> Unit
 ) {
-  // 未解决
-/*  val dismissState = // rememberDismissState() // 不能用这个，不然会导致移除后remember仍然存在，显示错乱问题
-    DismissState(
-      initialValue = DismissValue.Default,
-      confirmValueChange = { true },
-      positionalThreshold = SwipeToDismissDefaults.fixedPositionalThreshold
-    )*/
-  val dismissState = rememberDismissState()
+  val dismissState = rememberDismissState() // 不能用这个，不然会导致移除后remember仍然存在，显示错乱问题
   LaunchedEffect(dismissState) {
     snapshotFlow { dismissState.currentValue }.collect {
       if (it != DismissValue.Default) {
@@ -110,9 +95,8 @@ internal fun ListSwipeItem(
       }
     }
   }
-  Row { listItemView() }
 
-  /*SwipeToDismiss(
+  SwipeToDismiss(
     state = dismissState,
     background = { // "背景 "，即原来显示的内容被划走一部分时显示什么
       Box(
@@ -125,13 +109,12 @@ internal fun ListSwipeItem(
       listItemView()
     },
     directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart)
-  )*/
+  )
 }
 
 @Composable
 private fun RowItemBook(
   webSiteInfo: WebSiteInfo,
-  shape: RoundedCornerShape,
   onClick: (WebSiteInfo) -> Unit,
   onOpenSetting: (WebSiteInfo) -> Unit
 ) {
@@ -139,7 +122,6 @@ private fun RowItemBook(
     modifier = Modifier
       .fillMaxWidth()
       .height(50.dp)
-      .clip(shape)
       .background(MaterialTheme.colorScheme.surface)
       .clickable { onClick(webSiteInfo) },
     verticalAlignment = Alignment.CenterVertically

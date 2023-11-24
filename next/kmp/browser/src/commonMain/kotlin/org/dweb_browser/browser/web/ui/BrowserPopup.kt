@@ -39,7 +39,6 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -85,6 +84,8 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.BrowserIconResource
+import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.model.BrowserBaseView
 import org.dweb_browser.browser.web.model.BrowserMainView
@@ -207,7 +208,6 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
  */
 @Composable
 private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) {
-  val scope = rememberCoroutineScope()
   val webSiteInfo = LocalModalBottomSheet.current.webSiteInfo
   val inputTitle = remember { mutableStateOf(webSiteInfo.value?.title ?: "") }
   val inputUrl = remember { mutableStateOf(webSiteInfo.value?.url ?: "") }
@@ -239,9 +239,7 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
             webSiteInfo.value?.apply {
               title = inputTitle.value
               url = inputUrl.value
-              scope.launch(ioAsyncExceptionHandler) {
-                viewModel.changeBookLink()
-              }
+              viewModel.changeBookLink()
               onBack()
             }
           }
@@ -278,10 +276,8 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
           .clip(RoundedCornerShape(6.dp))
           .background(MaterialTheme.colorScheme.surfaceVariant)
           .clickable {
-            scope.launch(ioAsyncExceptionHandler) {
-              viewModel.changeBookLink(del = item)
-              onBack()
-            }
+            viewModel.changeBookLink(del = item)
+            onBack()
           },
         contentAlignment = Center
       ) {
@@ -643,8 +639,6 @@ private fun MultiItemView(
   onlyOne: Boolean = false,
   index: Int = 0
 ) {
-  // 未解决
-  // val screenWidth = LocalConfiguration.current.screenWidthDp.dp
   val screenSize = rememberScreenSize()
   val scope = rememberCoroutineScope()
   val sizeTriple = if (onlyOne) {
@@ -673,11 +667,9 @@ private fun MultiItemView(
         contentScale = ContentScale.FillWidth, //ContentScale.FillBounds,
         alignment = if (browserBaseView is BrowserMainView) Center else TopStart
       )
-      // var contentPair: Pair<String?, ImageBitmap?> by remember { mutableStateOf(Pair(null, null)) }
-      var contentPair: Pair<String?, ImageVector?> by remember { mutableStateOf(Pair(null, null)) }
+      var contentPair: Pair<String?, ImageBitmap?> by remember { mutableStateOf(Pair(null, null)) }
       val homePageTitle = BrowserI18nResource.browser_multi_startup()
-      val homePageIcon =
-        Icons.Default.Star //ImageBitmap.imageResource(context.resources, R.drawable.ic_main_star)
+      val homePageIcon = getIconResource(BrowserIconResource.BrowserStar)
       LaunchedEffect(browserBaseView) {
         when (browserBaseView) {
           is BrowserMainView -> {
@@ -696,8 +688,7 @@ private fun MultiItemView(
             } else {
               Pair(
                 browserBaseView.viewItem.webView.getTitle(),
-                //browserBaseView.viewItem.webView.getIconBitmap() // 图片渲染问题
-                null
+                browserBaseView.viewItem.webView.getFavoriteIcon() // 图片渲染问题
               )
             }
           }
@@ -712,10 +703,9 @@ private fun MultiItemView(
         verticalAlignment = CenterVertically
       ) {
         contentPair.second?.let { imageBitmap ->
-          /*Image(
+          Image(
             bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp)
-          )*/
-          Icon(imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp))
+          )
           Spacer(modifier = Modifier.width(2.dp))
         }
         Text(

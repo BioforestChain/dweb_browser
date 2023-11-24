@@ -1,10 +1,13 @@
 package org.dweb_browser.browser.web
 
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.browser.LocalBitmapManager
 import org.dweb_browser.browser.web.model.BrowserStore
 import org.dweb_browser.browser.web.model.WebLinkManifest
 import org.dweb_browser.browser.web.model.WebLinkStore
@@ -38,8 +41,8 @@ class BrowserController(
 
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
-  val bookLinks: MutableList<WebSiteInfo> = mutableListOf()
-  val historyLinks: MutableMap<String, MutableList<WebSiteInfo>> = mutableMapOf()
+  val bookLinks: MutableList<WebSiteInfo> = mutableStateListOf()
+  val historyLinks: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf()
 
   init {
     ioAsyncScope.launch {
@@ -48,6 +51,10 @@ class BrowserController(
       }
       browserStore.getHistoryLinks().forEach { (key, webSiteInfoList) ->
         historyLinks[key] = webSiteInfoList
+      }
+      // TODO 遍历获取book的image
+      bookLinks.forEach { webSiteInfo ->
+        webSiteInfo.icon = LocalBitmapManager.loadImageBitmap(webSiteInfo.id)
       }
     }
   }

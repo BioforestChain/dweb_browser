@@ -1,5 +1,6 @@
 package org.dweb_browser.dwebview
 
+import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -130,6 +131,11 @@ abstract class IDWebView(initUrl: String?) {
    * @param Int oldScrollY
    */
   abstract fun setOnScrollChangeListener(onScrollChange: (IDWebView, Int, Int, Int, Int) -> Unit)
+
+  /**
+   * 获取webview返回到favorite icon
+   */
+  abstract fun getFavoriteIcon() : ImageBitmap?
 }
 
 class WebBeforeUnloadArgs(

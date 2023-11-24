@@ -20,7 +20,7 @@ data class WebSiteInfo(
   val type: WebSiteType,
   val timeMillis: Long = id.toEpochDay(),
   @Transient
-  val icon: ImageBitmap? = null,
+  var icon: ImageBitmap? = null,
 )
 
 @Composable

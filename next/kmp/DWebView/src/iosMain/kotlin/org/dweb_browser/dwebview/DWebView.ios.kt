@@ -1,5 +1,6 @@
 package org.dweb_browser.dwebview
 
+import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -262,6 +263,10 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
 
   override fun setOnScrollChangeListener(onScrollChange: (IDWebView, Int, Int, Int, Int) -> Unit) {
     WARNING("Not yet implemented setOnScrollChangeListener")
+  }
+
+  override fun getFavoriteIcon(): ImageBitmap? {
+    TODO("Not yet implemented")
   }
 }
 
