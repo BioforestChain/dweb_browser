@@ -1,9 +1,5 @@
-apply(from = rootProject.file("gradle/common.gradle"))
-
 plugins {
-  alias(libs.plugins.kotlinxMultiplatform)
-  alias(libs.plugins.androidLibrary)
-  alias(libs.plugins.kotlinPluginSerialization)
+  id("mobile-target")
 }
 
 kotlin {

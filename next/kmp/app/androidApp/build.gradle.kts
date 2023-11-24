@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
+import com.android.build.api.dsl.ApplicationExtension
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-  alias(libs.plugins.kotlinxMultiplatform)
-  alias(libs.plugins.androidApplication)
-  alias(libs.plugins.jetbrainsCompose)
-  alias(libs.plugins.kotlinPluginSerialization)
+  id("multiplatform-compose")
+  id(libs.plugins.androidApplication.get().pluginId)
 }
 
 kotlin {

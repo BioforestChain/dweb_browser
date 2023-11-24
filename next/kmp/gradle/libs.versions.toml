@@ -192,6 +192,7 @@ androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "w
 
 gradlePlugin-android = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 gradlePlugin-kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-version" }
+gradlePlugin-jetbrainsCompose = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "jetbrains-compose-version" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -201,6 +202,6 @@ kotlinxMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPluginSerializationVersion" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 kspAndroid = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "jetbrains-compose-version" }
+
 
 [bundles]

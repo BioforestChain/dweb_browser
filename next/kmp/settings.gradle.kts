@@ -53,7 +53,10 @@ include(
 File(rootDir, "../../toolkit/dweb_browser_libs/rust_library").eachDir { dir ->
   if (File(dir, "build.gradle.kts").exists()) {
     include(dir.name)
-    project(":${dir.name}").projectDir = file(dir)
+    project(":${dir.name}").apply {
+      projectDir = file(dir)
+      buildFileName = "build-mobile.gradle.kts"
+    }
   }
 }
 

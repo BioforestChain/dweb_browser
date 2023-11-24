@@ -109,7 +109,7 @@ class WebSocketClientNMM : NativeMicroModule("websocket-client.std.dweb", "WebSo
         }
       },
       "/close" bind HttpMethod.Get to defineBooleanResponse {
-        websocketsMap[request.query("sessionId")]?.cancel()
+        websocketsMap.remove(request.query("sessionId"))?.cancel()
 
         true
       }
