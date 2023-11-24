@@ -29,9 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import org.dweb_browser.browser.common.AsyncImage
+import org.dweb_browser.browser.common.CaptureParams
+import org.dweb_browser.browser.common.CaptureView
 import org.dweb_browser.browser.web.model.BrowserMainView
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
-import org.dweb_browser.browser.common.CaptureView
 
 @Composable
 internal fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: BrowserMainView) {
@@ -40,7 +41,7 @@ internal fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: Brows
     delay(100)
     snapshotFlow { lazyListState.isScrollInProgress }.collect { scroll ->
       if (!scroll) {
-        delay(200); browserMainView.controller.capture()
+        delay(200); browserMainView.controller.capture(CaptureParams.Normal)
       }
     }
   }

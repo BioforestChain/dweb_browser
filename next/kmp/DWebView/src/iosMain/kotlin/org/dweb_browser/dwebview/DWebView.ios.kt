@@ -255,6 +255,14 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
       )
     }
   }
+
+  override fun setOnTouchListener(onTouch: (IDWebView, MotionEventAction) -> Boolean) {
+    WARNING("Not yet implemented setOnTouchListener")
+  }
+
+  override fun setOnScrollChangeListener(onScrollChange: (IDWebView, Int, Int, Int, Int) -> Unit) {
+    WARNING("Not yet implemented setOnScrollChangeListener")
+  }
 }
 
 fun IDWebView.asIosWebView(): WKWebView {

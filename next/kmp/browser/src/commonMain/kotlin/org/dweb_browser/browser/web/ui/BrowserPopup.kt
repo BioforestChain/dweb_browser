@@ -618,7 +618,7 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
         )
         val content = BrowserI18nResource.browser_multi_count()
         Text(
-          text = "${viewModel.listFilter()} $content",
+          text = "${viewModel.listSize} $content",
           modifier = Modifier.weight(1f),
           textAlign = TextAlign.Center
         )

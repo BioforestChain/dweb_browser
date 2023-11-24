@@ -14,9 +14,3 @@ actual fun CaptureView(
 ) {
 
 }
-
-
-actual class CaptureController actual constructor() {
-  actual fun capture() {
-  }
-}

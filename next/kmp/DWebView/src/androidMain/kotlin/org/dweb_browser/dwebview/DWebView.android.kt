@@ -1,5 +1,6 @@
 package org.dweb_browser.dwebview
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.webkit.WebMessage
@@ -214,6 +215,25 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   override val loadingProgressFlow by lazy { engine.dWebChromeClient.loadingProgressSharedFlow.asSharedFlow() }
   override val closeWatcher = engine.closeWatcher
   override val onCreateWindow by lazy { engine.createWindowSignal.toListener() }
+
+  @SuppressLint("ClickableViewAccessibility")
+  override fun setOnTouchListener(onTouch: (IDWebView, MotionEventAction) -> Boolean) {
+    engine.setOnTouchListener { _, event ->
+      val motionEvent = when (event.action) {
+        android.view.MotionEvent.ACTION_DOWN -> MotionEventAction.ACTION_DOWN
+        android.view.MotionEvent.ACTION_UP -> MotionEventAction.ACTION_UP
+        android.view.MotionEvent.ACTION_MOVE -> MotionEventAction.ACTION_MOVE
+        else -> return@setOnTouchListener false
+      }
+      onTouch(this, motionEvent)
+    }
+  }
+
+  override fun setOnScrollChangeListener(onScrollChange: (IDWebView, Int, Int, Int, Int) -> Unit) {
+    engine.setOnScrollChangeListener { _, scrollX, scrollY, oldScrollX, oldScrollY ->
+      onScrollChange(this, scrollX, scrollY, oldScrollX, oldScrollY)
+    }
+  }
 }
 
 suspend fun IDWebView.getIconBitmap(): ImageBitmap? {

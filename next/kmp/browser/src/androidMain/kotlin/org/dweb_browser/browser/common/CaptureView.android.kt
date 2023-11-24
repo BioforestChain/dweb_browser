@@ -14,7 +14,7 @@ import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.doOnLayout
 import kotlinx.coroutines.flow.*
+import org.dweb_browser.dwebview.asAndroidWebView
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -40,27 +41,6 @@ actual fun CaptureView(
   )
 }
 
-actual class CaptureController {
-
-  /**
-   * Medium for providing capture requests
-   */
-  private val _captureRequests = MutableSharedFlow<Bitmap.Config>(extraBufferCapacity = 1)
-  internal val captureRequests = _captureRequests.asSharedFlow()
-
-  /**
-   * Creates and send a Bitmap capture request with specified [config].
-   *
-   * Make sure to call this method as a part of callback function and not as a part of the
-   * [Composable] function itself.
-   *
-   * @param config Bitmap config of the desired bitmap. Defaults to [Bitmap.Config.ARGB_8888]
-   */
-  actual fun capture() {
-    _captureRequests.tryEmit(Bitmap.Config.ARGB_8888)
-  }
-}
-
 /**
  * Sets the [content] in [ComposeView] and handles the capture of a [content].
  */
@@ -72,12 +52,22 @@ private inline fun ComposeView.applyCapture(
 ) = apply {
   setContent {
     content()
-    LaunchedEffect(controller, onCaptured) {
-      controller.captureRequests.mapNotNull { config -> drawToBitmapPostLaidOut(context, config) }
-        .onEach { pair: Pair<Bitmap?, Throwable?> ->
-          //bitmap -> onCaptured(bitmap.asImageBitmap(), null)
-          onCaptured(pair.first?.asImageBitmap(), pair.second)
-        }.catch { error -> onCaptured(null, error) }.launchIn(this)
+    DisposableEffect(controller, onCaptured) {
+      val off = controller.onCaptureResult { captureParam ->
+        try {
+          when (captureParam.viewType) {
+            CaptureParams.ViewType.Normal -> drawToBitmapPostLaidOut(
+              context, Bitmap.Config.ARGB_8888
+            )
+
+            CaptureParams.ViewType.WebView -> captureParam.webView?.asAndroidWebView()
+              ?.drawToBitmapPostLaidOut(captureParam.webViewY)
+          }?.let { pair -> onCaptured(pair.first?.asImageBitmap(), pair.second) }
+        } catch (e: Throwable) {
+          onCaptured(null, e)
+        }
+      }
+      onDispose { off() }
     }
   }
 }

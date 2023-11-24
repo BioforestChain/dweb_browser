@@ -113,6 +113,23 @@ abstract class IDWebView(initUrl: String?) {
   abstract val loadingProgressFlow: SharedFlow<Float>
   abstract val closeWatcher: ICloseWatcher
   abstract val onCreateWindow: Signal.Listener<IDWebView>
+
+  /**
+   * 响应webview的事件
+   * @param IDWebView
+   * @param MotionEventAction 手势移动，按下，抬起等动作
+   */
+  abstract fun setOnTouchListener(onTouch: (IDWebView, MotionEventAction) -> Boolean)
+
+  /**
+   * onScrollChange表示滚动的信息
+   * @param IDWebView
+   * @param Int scrollX
+   * @param Int scrollY
+   * @param Int oldScrollX
+   * @param Int oldScrollY
+   */
+  abstract fun setOnScrollChangeListener(onScrollChange: (IDWebView, Int, Int, Int, Int) -> Unit)
 }
 
 class WebBeforeUnloadArgs(
@@ -190,9 +207,13 @@ internal data class LoadUrlTask(val url: String) {
   }
 }
 
-
 enum class WebColorScheme {
   Normal, Dark, Light,
 }
 
 typealias AsyncChannel = Channel<Result<String>>
+
+// 触发按键的事件
+enum class MotionEventAction {
+  ACTION_DOWN, ACTION_UP, ACTION_MOVE
+}
