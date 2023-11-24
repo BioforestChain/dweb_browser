@@ -13,7 +13,7 @@
 		3D763C262B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; };
 		3D763C272B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4840D2C42AF10E6800102701 /* KmpBridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */; };
-		485AC7E82B07155E0073EA72 /* DwebRootUIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485AC7E72B07155E0073EA72 /* DwebRootUIViewController.swift */; };
+		485AC7E82B07155E0073EA72 /* DwebPureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485AC7E72B07155E0073EA72 /* DwebPureViewController.swift */; };
 		485AC7EA2B0715970073EA72 /* DwebDeskVCStroe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485AC7E92B0715970073EA72 /* DwebDeskVCStroe.swift */; };
 		485AC7EC2B0716370073EA72 /* CommonVCWrapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 485AC7EB2B0716370073EA72 /* CommonVCWrapView.swift */; };
 		4876C7182AFDD94E00CDF8BF /* DwebAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */; };
@@ -115,7 +115,7 @@
 		3D50D2E12B0706DF008891FC /* DwebPlatformIosKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = DwebPlatformIosKit.xcframework; path = ../../DwebPlatformIosKit.xcframework; sourceTree = "<group>"; };
 		3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = DwebPlatformIosKit.xcframework; path = ../../helperPlatformIos/src/nativeInterop/cinterop/xcframeworks/DwebPlatformIosKit.xcframework; sourceTree = "<group>"; };
 		4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KmpBridgeManager.swift; sourceTree = "<group>"; };
-		485AC7E72B07155E0073EA72 /* DwebRootUIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebRootUIViewController.swift; sourceTree = "<group>"; };
+		485AC7E72B07155E0073EA72 /* DwebPureViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebPureViewController.swift; sourceTree = "<group>"; };
 		485AC7E92B0715970073EA72 /* DwebDeskVCStroe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebDeskVCStroe.swift; sourceTree = "<group>"; };
 		485AC7EB2B0716370073EA72 /* CommonVCWrapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonVCWrapView.swift; sourceTree = "<group>"; };
 		4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebAppDelegate.swift; sourceTree = "<group>"; };
@@ -521,7 +521,7 @@
 		485AC7E62B07153B0073EA72 /* NMMs */ = {
 			isa = PBXGroup;
 			children = (
-				485AC7E72B07155E0073EA72 /* DwebRootUIViewController.swift */,
+				485AC7E72B07155E0073EA72 /* DwebPureViewController.swift */,
 				485AC7E92B0715970073EA72 /* DwebDeskVCStroe.swift */,
 			);
 			path = NMMs;
@@ -916,7 +916,7 @@
 				F03444D12AE2713D004F732E /* DownloadImageViewModel.swift in Sources */,
 				F03444AC2AE26FAB004F732E /* HistoryViewModel.swift in Sources */,
 				4840D2C42AF10E6800102701 /* KmpBridgeManager.swift in Sources */,
-				485AC7E82B07155E0073EA72 /* DwebRootUIViewController.swift in Sources */,
+				485AC7E82B07155E0073EA72 /* DwebPureViewController.swift in Sources */,
 				F03444D42AE2713D004F732E /* DownloadAppView.swift in Sources */,
 				7555FF83242A565900829871 /* DWebOS.swift in Sources */,
 				F03444A92AE26FAB004F732E /* BookmarkView.swift in Sources */,
