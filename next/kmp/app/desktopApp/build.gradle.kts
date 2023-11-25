@@ -3,7 +3,6 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 plugins {
   alias(libs.plugins.kotlinxMultiplatform)
   alias(libs.plugins.jetbrainsCompose)
-  id ("com.google.osdetector") version "1.7.3"
 }
 
 kotlin {

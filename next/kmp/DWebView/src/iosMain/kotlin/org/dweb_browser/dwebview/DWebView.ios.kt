@@ -11,6 +11,7 @@ import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
 import platform.CoreGraphics.CGRectMake
@@ -26,7 +27,11 @@ actual suspend fun IDWebView.Companion.create(
   mm: MicroModule,
   options: DWebViewOptions
 ): IDWebView =
-  create(CGRectMake(0.0, 0.0, 100.0, 100.0), mm, options, withMainContext { WKWebViewConfiguration() })
+  create(
+    CGRectMake(0.0, 0.0, 100.0, 100.0),
+    mm,
+    options,
+    withMainContext { WKWebViewConfiguration() })
 
 @OptIn(ExperimentalForeignApi::class)
 suspend fun IDWebView.Companion.create(
@@ -173,33 +178,23 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     engine.removeFromSuperview()
   }
 
-  override suspend fun canGoBack(): Boolean {
-    return engine.canGoBack
-  }
+  override suspend fun canGoBack() = withMainContext { engine.canGoBack }
 
-  override suspend fun canGoForward(): Boolean {
-    return engine.canGoForward
-  }
+  override suspend fun canGoForward() = withMainContext { engine.canGoForward }
 
-  override suspend fun goBack(): Boolean {
-    return if (engine.canGoBack) {
+  override suspend fun goBack() = withMainContext {
+    engine.canGoBack.trueAlso {
       engine.goBack()
-      true
-    } else {
-      false
     }
   }
 
-  override suspend fun goForward(): Boolean {
-    return if (engine.canGoForward) {
+  override suspend fun goForward() = withMainContext {
+    engine.canGoForward.trueAlso {
       engine.goForward()
-      true
-    } else {
-      false
     }
   }
 
-  override suspend fun createMessageChannel(): IWebMessageChannel {
+  override suspend fun createMessageChannel() = withMainContext {
     val deferred = engine.evalAsyncJavascript<NSArray>(
       "nativeCreateMessageChannel()", null,
       DWebViewWebMessage.webMessagePortContentWorld
@@ -211,7 +206,7 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     val port1 = DWebMessagePort(port1_id.toInt(), this)
     val port2 = DWebMessagePort(port2_id.toInt(), this)
 
-    return DWebMessageChannel(port1, port2)
+    DWebMessageChannel(port1, port2)
   }
 
   override suspend fun setContentScale(scale: Float) {
@@ -234,7 +229,10 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     script: String,
     afterEval: suspend () -> Unit
   ) = withMainContext {
-    engine.callAsyncJavaScript<String>("return JSON.stringify(await($script))??'undefined'", afterEval = afterEval)
+    engine.callAsyncJavaScript<String>(
+      "return JSON.stringify(await($script))??'undefined'",
+      afterEval = afterEval
+    )
   }
 
   @OptIn(BetaInteropApi::class)
@@ -265,8 +263,9 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     WARNING("Not yet implemented setOnScrollChangeListener")
   }
 
-  override fun getFavoriteIcon(): ImageBitmap? {
-    TODO("Not yet implemented")
+  override suspend fun getFavoriteIcon(): ImageBitmap? = withMainContext {
+    WARNING("Not yet implemented")
+    null
   }
 }
 

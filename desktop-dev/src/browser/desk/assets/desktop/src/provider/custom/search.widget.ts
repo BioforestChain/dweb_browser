@@ -48,12 +48,17 @@ Object.assign(globalThis, {
     event.preventDefault();
     const formData = new FormData(formEle);
     const q = formData.get("q") as string;
+    const method = formEle.method;
+    let url: string;
     if (q.startsWith("dweb:")) {
-      fetch(q, { mode: "no-cors" });
+      url = q;
     } else {
       const query = new URLSearchParams(formData).toString();
-      fetch(formEle.action + "?" + query, { method: formEle.method, mode: "no-cors" });
+      url = formEle.action + "?" + query;
     }
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url);
+    xhr.send();
     return false;
   },
 });

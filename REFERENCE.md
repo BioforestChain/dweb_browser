@@ -1,1 +1,2 @@
-https://androidx.dev/storage/compose-compiler/repository
+- [kotlinCompilerExtensionVersion](https://androidx.dev/storage/compose-compiler/repository)
+- [compose-bom](https://developer.android.com/jetpack/compose/bom/bom-mapping)

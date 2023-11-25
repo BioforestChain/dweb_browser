@@ -1,6 +1,5 @@
 plugins {
   id("mobile-compose-target")
-  id("com.google.osdetector") version "1.7.3"
 }
 
 kotlin {
@@ -13,7 +12,6 @@ kotlin {
     api(libs.ktor.client.cio)
     api(libs.ktor.client.encoding)
     api(libs.ktor.server.websockets)
-    api(libs.webrtc.kmp)
 
     implementation(libs.jetbrains.compose.material3)
 

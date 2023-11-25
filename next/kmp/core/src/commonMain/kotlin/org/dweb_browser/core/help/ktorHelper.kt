@@ -98,7 +98,7 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
       contentLength = contentLength,
     ) {
       val nativeStream = when (val stream =
-        pureBody.toPureStream().getReader("ktorAndHttp4kHelper toApplicationResponse")) {
+        pureBody.toPureStream().getReader("toApplicationResponse")) {
         is ByteReadChannelDelegate -> stream.sourceByteReadChannel
         else -> stream
       }

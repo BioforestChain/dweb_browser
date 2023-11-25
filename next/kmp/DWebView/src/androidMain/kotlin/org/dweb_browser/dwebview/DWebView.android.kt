@@ -235,7 +235,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     }
   }
 
-  override fun getFavoriteIcon(): ImageBitmap? {
+  override suspend fun getFavoriteIcon(): ImageBitmap? {
     return this.asAndroidWebView().favicon?.asImageBitmap()
   }
 }

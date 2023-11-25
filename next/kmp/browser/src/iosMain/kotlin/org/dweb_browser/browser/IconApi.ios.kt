@@ -1,7 +1,7 @@
 package org.dweb_browser.browser
 
 import androidx.compose.ui.graphics.ImageBitmap
-import org.dweb_browser.helper.eprintln
+import org.dweb_browser.helper.WARNING
 
 actual fun getIconResource(resource: BrowserIconResource): ImageBitmap? {
 //  resource()
@@ -16,7 +16,7 @@ actual fun getIconResource(resource: BrowserIconResource): ImageBitmap? {
 //    BitmapUtil.decodeBitmapFromResource(NativeMicroModule.getAppContext(), iconResource)
 //      ?.asImageBitmap()
 //  }
-  eprintln("Not yet implemented getIconResource")
+  WARNING("Not yet implemented getIconResource")
   return null
 }
 

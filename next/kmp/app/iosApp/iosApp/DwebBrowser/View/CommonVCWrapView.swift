@@ -82,11 +82,6 @@ class TouchUIViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
         performUpdate(vcs)
         view.isOpaque = false
-        let label = UILabel()
-        label.text = "nih"
-        label.frame = CGRect(x: 0, y: 100, width: 100, height: 20)
-        label.backgroundColor = .red
-        view.addSubview(label)
     }
 
     @available(*, unavailable)

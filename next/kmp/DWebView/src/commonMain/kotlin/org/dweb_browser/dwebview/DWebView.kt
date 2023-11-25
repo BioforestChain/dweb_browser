@@ -135,7 +135,7 @@ abstract class IDWebView(initUrl: String?) {
   /**
    * 获取webview返回到favorite icon
    */
-  abstract fun getFavoriteIcon() : ImageBitmap?
+  abstract suspend fun getFavoriteIcon() : ImageBitmap?
 }
 
 class WebBeforeUnloadArgs(

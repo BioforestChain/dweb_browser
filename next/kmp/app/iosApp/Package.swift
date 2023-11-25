@@ -13,7 +13,6 @@ let package = Package(
             targets: ["DwebBrowser"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/stasel/WebRTC.git", .upToNextMajor(from: "118.0.0"))
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -21,7 +20,6 @@ let package = Package(
         .target(
             name: "DwebBrowser",
             dependencies: [
-                .product(name: "WebRTC", package: "WebRTC")
             ],
             path: "iosApp"
         )
