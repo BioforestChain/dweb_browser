@@ -26,8 +26,3 @@ fun NativeMicroModule.startUIViewController(pureViewController: PureViewControll
     }
   }
 }
-
-external fun <T : IPureViewController> UIApplication.startDelegate(
-  delegate: KClass<T>,
-  params: PureViewCreateParams
-)
