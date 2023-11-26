@@ -43,7 +43,7 @@ import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
-import org.dweb_browser.helper.compose.noLocalProvidedFor
+import org.dweb_browser.helper.platform.noLocalProvidedFor
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.platform.theme.md_theme_dark_inverseOnSurface
 import org.dweb_browser.helper.platform.theme.md_theme_dark_onSurface

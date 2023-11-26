@@ -17,11 +17,11 @@ extension UIView {
     @objc func myPointInside(inside point: CGPoint, with event: UIEvent?) -> Bool {
         if tag == COMPOSE_WINDOW_VIEW {
             var isInside = false
-            for (index, subview) in subviews.enumerated() {
+            for subview in subviews {
                 if subview.isHidden { continue }
+                if !subview.isUserInteractionEnabled { continue }
                 let subviewpoint = convert(point, to: subview)
                 isInside = subview.point(inside: subviewpoint, with: event)
-//                print("  \(index). myPointInside.subview subview=\(subview) isInside=\(isInside)")
                 if isInside {
                     break
                 }
@@ -39,25 +39,8 @@ extension UIView {}
 struct CommonVCWrapView: UIViewControllerRepresentable {
     let vc: UIViewController
     let prop: HelperPlatformDwebUIViewControllerProperty
-    static func processComposeWindow(_ vc: UIViewController) {
-        for (index, subview) in vc.view.subviews.enumerated() {
-            for (index2, subview2) in subview.subviews.enumerated() {
-                /// 如果compose中的视图不再捕捉手势，那么这个容器也不再捕捉手势，让手势自然穿透
-                if subview2.tag == 257 {
-                    subview.isHidden = true
-                }
-            }
-        }
-    }
-
     func makeUIViewController(context: Context) -> UIViewController {
         vc.view.backgroundColor = .clear
-        if prop.vcId == 1 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                CommonVCWrapView.processComposeWindow(vc)
-            }
-        }
-
         return vc
     }
 
@@ -93,9 +76,6 @@ class TouchUIViewController: UIViewController {
                 view.bringSubviewToFront(vc.view)
                 continue
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                CommonVCWrapView.processComposeWindow(vc)
-            }
             addChild(vc)
             view.addSubview(vc.view)
             vc.view.tag = COMPOSE_WINDOW_VIEW
@@ -118,6 +98,5 @@ struct TouchVC: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         TouchUIViewController.shared.performUpdate(DwebDeskVCStroe.shared.getSortedVcs())
-        print("updateUIViewController")
     }
 }

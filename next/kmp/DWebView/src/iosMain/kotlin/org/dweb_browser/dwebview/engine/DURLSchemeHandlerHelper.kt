@@ -103,7 +103,6 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule) {
     task: WKURLSchemeTaskProtocol,
     pureUrl: String
   ) {
-    println("QAQ!!!")
     e.printStackTrace()
     if (stopped.containsKey(task)) return
     val taskRequest = task.request

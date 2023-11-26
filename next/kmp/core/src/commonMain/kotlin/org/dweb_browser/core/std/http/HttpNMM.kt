@@ -102,7 +102,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     dwebServer.createServer(
       gatewayHandler = { request ->
         findDwebGateway(request)?.let { info ->
-          println("QAQ findRequestGateway: $info in ${gatewayMap.keys.joinToString(", ")}")
           gatewayMap[info.host]
         }
       },
@@ -289,7 +288,6 @@ fun findDwebGateway(request: PureRequest): DwebGatewayInfo? {
   val query_x_dweb_host: String? = request.queryOrNull("X-Dweb-Host")?.decodeURIComponent()
   var is_https = false
   for ((key, value) in request.headers) {
-    println("QAQ request.headers key=$key, value=$value")
     if (reg_host.matches(key)) {
       // 解析subDomain
       header_host = if (value.endsWith(".dweb")) {

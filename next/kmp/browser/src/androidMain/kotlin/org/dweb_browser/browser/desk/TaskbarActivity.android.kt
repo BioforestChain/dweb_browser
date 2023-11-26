@@ -14,7 +14,6 @@ import org.dweb_browser.helper.platform.PureViewBox
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
-import org.dweb_browser.helper.runBlockingCatching
 
 @SuppressLint("ClickableViewAccessibility")
 class TaskbarActivity : PureViewController() {
@@ -38,7 +37,8 @@ class TaskbarActivity : PureViewController() {
       /// 禁止自适应布局
       WindowCompat.setDecorFitsSystemWindows(window, false)
       val densityValue =
-        IPureViewBox.from(this@TaskbarActivity).getDisplayDensity();// resources.displayMetrics.density
+        IPureViewBox.from(this@TaskbarActivity)
+          .getDisplayDensity();// resources.displayMetrics.density
 
       fun toPx(dp: Float) = (densityValue * dp).toInt()
       addContent {
@@ -85,10 +85,8 @@ class TaskbarActivity : PureViewController() {
     }
     onDestroy {
       controller?.also { taskBarController ->
-        runBlockingCatching {
-          taskBarController.toggleFloatWindow(openTaskbar = false) // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
-          taskBarController.platformContext = null
-        }
+        taskBarController.toggleFloatWindow(openTaskbar = false) // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
+        taskBarController.platformContext = null
       }
     }
     onTouch {

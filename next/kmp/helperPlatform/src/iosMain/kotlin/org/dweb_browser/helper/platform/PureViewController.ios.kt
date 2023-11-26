@@ -3,7 +3,9 @@ package org.dweb_browser.helper.platform
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.interop.UIKitView
@@ -49,7 +51,6 @@ class PureViewController(
         offListener()
         isInit = true
         initDeferred.complete(Unit)
-        println("QAQ PureViewController initialized: prop=$prop")
       }
     }
     nativeViewController.onDestroySignal.listen {
@@ -97,6 +98,11 @@ class PureViewController(
   @OptIn(ExperimentalForeignApi::class)
   val getUiViewController = SuspendOnce {
     withMainContext {
+      val bgPlaceholderView = UIView().also {
+        it.setHidden(true)
+        it.userInteractionEnabled = false
+      }
+      val backgroundView = mutableStateOf<UIView?>(null)
       ComposeUIViewController({
         delegate = object : ComposeUIViewControllerDelegate {
           override fun viewDidLoad() {
@@ -108,22 +114,28 @@ class PureViewController(
           }
 
           override fun viewDidAppear(animated: Boolean) {
-            scope.launch { stopSignal.emit() }
+            backgroundView.value = bgPlaceholderView.superview!!.apply {
+              setHidden(true)
+              userInteractionEnabled = false
+              // 不能只是调整 layer.zPosition = -1.0，这只是视觉层面最底层，但是事件捕捉还在前面
+              superview!!.sendSubviewToBack(this)
+            }
+            scope.launch {
+              stopSignal.emit()
+            }
           }
         }
       }) {
         UIKitView(
-          factory = {
-            UIView().also {
-              it.setTag(257);
-              it.userInteractionEnabled = false
-            }
-          },
+          factory = { bgPlaceholderView },
           Modifier.fillMaxSize().zIndex(0f),
           interactive = true
         )
 
-        CompositionLocalProvider(LocalPureViewBox provides PureViewBox(LocalUIViewController.current)) {
+        CompositionLocalProvider(
+          LocalPureViewBox provides PureViewBox(LocalUIViewController.current),
+          LocalUIKitBackgroundView provides backgroundView.value,
+        ) {
 //      DwebBrowserAppTheme {
           for (content in contents) {
             content()
@@ -139,6 +151,8 @@ class PureViewController(
     return contents
   }
 }
+
+val LocalUIKitBackgroundView = compositionLocalOf<UIView?> { null }
 
 class PureViewCreateParams(private val params: Map<String, Any?>) : Map<String, Any?> by params,
   IPureViewCreateParams {

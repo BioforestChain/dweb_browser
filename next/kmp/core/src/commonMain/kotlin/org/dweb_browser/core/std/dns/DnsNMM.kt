@@ -333,7 +333,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     for (protocol in mm.dweb_protocols) {
       addInstallApps(protocol, mm)
     }
-    println("QAQ mm.getSafeDwebPermissionProviders()${mm.mmid}: ${mm.getSafeDwebPermissionProviders().size}")
     for (provider in mm.getSafeDwebPermissionProviders()) {
       permissionAdapterManager.append(adapter = provider)
     }

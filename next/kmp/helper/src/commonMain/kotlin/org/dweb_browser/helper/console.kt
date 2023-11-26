@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
@@ -46,6 +47,10 @@ suspend inline fun <T> withMainContext(crossinline block: suspend () -> T): T {
     withContext(mainAsyncExceptionHandler) { block() }
   }
 }
+
+inline fun CoroutineScope.launchInMain(
+  crossinline block: suspend () -> Unit
+) = launch { withMainContext(block) }
 
 @Deprecated(
   "请尽量不要使用阻塞，除非你很清楚自己要什么",

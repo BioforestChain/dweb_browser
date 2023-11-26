@@ -9,7 +9,7 @@ import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmStatusEvent
-import org.dweb_browser.helper.compose.noLocalProvidedFor
+import org.dweb_browser.helper.platform.noLocalProvidedFor
 import org.dweb_browser.helper.falseAlso
 
 internal val LocalShowWebViewVersion = compositionLocalOf {

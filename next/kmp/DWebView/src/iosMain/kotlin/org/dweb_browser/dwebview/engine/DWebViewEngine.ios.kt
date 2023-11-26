@@ -125,7 +125,6 @@ class DWebViewEngine(
     val safeUrl = resolveUrl(url)
     val nsUrl = NSURL(string = safeUrl)
     val nav = loadRequest(NSURLRequest(uRL = nsUrl))
-    println("QAQ loadUrl end: $nsUrl => $nav")
     return safeUrl
   }
 
@@ -246,9 +245,7 @@ class DWebViewEngine(
     afterEval: (suspend () -> Unit)? = null
   ): T {
     val deferred = CompletableDeferred<T>()
-    println("callAsyncJavaScript-start: $functionBody")
     callAsyncJavaScript(functionBody, arguments, inFrame, inContentWorld) { result, error ->
-      println("callAsyncJavaScript-return: functionBody:$functionBody result:$result error:$error")
       if (error == null) {
         deferred.complete(result as T)
       } else {
@@ -310,7 +307,6 @@ class DWebViewEngine(
         args.waitHookResults()
       }
     }
-    println("QAQ decidePolicyForNavigationAction: $confirm")
     if (confirm) {
 //          if (decidePolicyForNavigationAction.targetFrame == null) {
 //            loadRequest(decidePolicyForNavigationAction.request)
@@ -324,13 +320,11 @@ class DWebViewEngine(
   override fun webView(
     webView: WKWebView, didStartProvisionalNavigation: WKNavigation?
   ) {
-    println("QAQ didStartProvisionalNavigation: $didStartProvisionalNavigation")
     val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
     mainScope.launch { loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
   }
 
   override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
-    println("QAQ didFinishNavigation: $didFinishNavigation")
     val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
     mainScope.launch { loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl)) }
   }
@@ -338,7 +332,6 @@ class DWebViewEngine(
   override fun webView(
     webView: WKWebView, didFailNavigation: WKNavigation?, withError: NSError
   ) {
-    println("QAQ didFailNavigation: $didFailNavigation")
     val currentUrl = webView.URL?.absoluteString ?: "about:blank"
     val errorMessage = "[${withError.code}]$currentUrl\n${withError.description}"
     mainScope.launch { loadStateChangeSignal.emit(WebLoadErrorState(currentUrl, errorMessage)) }

@@ -1,4 +1,4 @@
-package org.dweb_browser.helper.compose
+package org.dweb_browser.helper.platform
 
 
 fun noLocalProvidedFor(name: String): Nothing {

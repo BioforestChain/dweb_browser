@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.datetime.LocalDate
 import org.dweb_browser.browser.download.DownloadController
 import org.dweb_browser.browser.download.DownloadTask
-import org.dweb_browser.helper.compose.noLocalProvidedFor
+import org.dweb_browser.helper.platform.noLocalProvidedFor
 
 val LocalDownloadModel = compositionLocalOf<DownloadModel> {
   noLocalProvidedFor("LocalDownloadModel")

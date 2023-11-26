@@ -80,7 +80,6 @@ class MicroModuleStore(
     try {
       val readRequest = mm.nativeFetch("file://file.std.dweb/read?path=$queryPath&create=true")
       val data = readRequest.binary().let {
-        println("data:${it.joinToString(",")} size:${it.size} empty:${it.isEmpty()}")
         if (it.isEmpty()) it else cipher?.decrypt(it) ?: it
       }
 

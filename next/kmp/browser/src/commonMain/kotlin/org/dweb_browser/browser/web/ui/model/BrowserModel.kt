@@ -40,7 +40,7 @@ import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.build
-import org.dweb_browser.helper.compose.noLocalProvidedFor
+import org.dweb_browser.helper.platform.noLocalProvidedFor
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.runBlockingCatching
