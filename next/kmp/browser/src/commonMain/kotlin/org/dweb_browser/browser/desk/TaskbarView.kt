@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.clamp
 
 expect suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView
@@ -50,6 +49,9 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
     val hCenter get() = left + (right - left) / 2
     val vCenter get() = top + (bottom - top) / 2
   }
+
+  @Composable
+  abstract fun TaskbarViewRender()
 
   /**
    * 普通的浮动窗口，背景透明
@@ -128,7 +130,7 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
               setBoxY(boxY + dragAmount.y / density)
             })
           }) {
-        taskbarDWebView.Render()
+        TaskbarViewRender()
 //        // 这边屏蔽当前webview响应
 //        Box(modifier = Modifier
 //          .fillMaxSize()
@@ -141,24 +143,8 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
     }
   }
 
-  /**
-   * 全局的浮动窗口，背景高斯模糊
-   */
   @Composable
-  abstract fun GlobalFloatWindow()
-  @Composable
-  abstract fun LocalFloatWindow()
-
-
-  @Composable
-  fun FloatWindow() {
-    val isActivityMode by state.composableHelper.stateOf { floatActivityState }
-    if (isActivityMode) {
-      GlobalFloatWindow()
-    } else {
-      LocalFloatWindow()
-    }
-  }
+  abstract fun FloatWindow()
 }
 
 fun Offset.toIntOffset(density: Float) = IntOffset((density * x).toInt(), (density * y).toInt())

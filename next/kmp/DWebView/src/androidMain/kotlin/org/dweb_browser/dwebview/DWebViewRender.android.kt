@@ -1,7 +1,6 @@
 package org.dweb_browser.dwebview
 
 import android.view.ViewGroup
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
@@ -30,7 +29,7 @@ actual fun IDWebView.Render(
   WebView(
     state = state,
     navigator = navigator,
-    modifier = Modifier.fillMaxSize(),
+    modifier = modifier,
     factory = {
       // 修复 activity 已存在父级时导致的异常
       webView.parent?.let { parentView ->
@@ -42,18 +41,20 @@ actual fun IDWebView.Render(
       webView
     },
     onCreated = {
-      engine.ioScope.launch {
-        onCreate?.invoke(this@Render)
+      onCreate?.also {
+        engine.ioScope.launch { onCreate.invoke(this@Render) }
       }
     },
     client = client,
     chromeClient = chromeClient,
     captureBackPresses = false,
   )
-  DisposableEffect(this) {
-    onDispose {
-      engine.ioScope.launch {
-        onDispose?.invoke(this@Render)
+  onDispose?.also {
+    DisposableEffect(this) {
+      onDispose {
+        engine.ioScope.launch {
+          onDispose()
+        }
       }
     }
   }

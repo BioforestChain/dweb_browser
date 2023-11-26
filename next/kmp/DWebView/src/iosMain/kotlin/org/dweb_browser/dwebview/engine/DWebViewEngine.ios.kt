@@ -85,8 +85,8 @@ class DWebViewEngine(
     }
   }
 }), WKNavigationDelegateProtocol {
-  internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-  internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
+  val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
+  val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
 
   val loadStateChangeSignal = Signal<WebLoadState>()
   val onReady by lazy { loadStateChangeSignal.toReadyListener() }

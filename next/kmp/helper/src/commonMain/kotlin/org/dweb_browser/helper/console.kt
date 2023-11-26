@@ -47,6 +47,10 @@ suspend inline fun <T> withMainContext(crossinline block: suspend () -> T): T {
   }
 }
 
+@Deprecated(
+  "请尽量不要使用阻塞，除非你很清楚自己要什么",
+  ReplaceWith("runCatching(context, block)", "kotlinx.coroutines.runCatching")
+)
 fun <T> runBlockingCatching(
   context: CoroutineContext, block: suspend CoroutineScope.() -> T
 ) = runCatching {
@@ -55,6 +59,10 @@ fun <T> runBlockingCatching(
   commonAsyncExceptionHandler.handleException(context, it)
 }
 
+@Deprecated(
+  "请尽量不要使用阻塞，除非你很清楚自己要什么",
+  ReplaceWith("runCatching(block)", "kotlinx.coroutines.runCatching")
+)
 fun <T> runBlockingCatching(
   block: suspend CoroutineScope.() -> T
 ) = runCatching {

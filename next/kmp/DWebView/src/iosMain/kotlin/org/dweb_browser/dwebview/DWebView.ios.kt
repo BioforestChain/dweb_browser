@@ -18,7 +18,6 @@ import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSArray
 import platform.Foundation.NSString
 import platform.Foundation.create
-import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
 
@@ -269,7 +268,7 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   }
 }
 
-fun IDWebView.asIosWebView(): WKWebView {
+fun IDWebView.asIosWebView(): DWebViewEngine {
   require(this is DWebView)
   return engine
 }

@@ -1,14 +1,12 @@
 package org.dweb_browser.helper.platform
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.get
-import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 import platform.UIKit.UIScreen
 import platform.UIKit.UIViewController
@@ -35,17 +33,17 @@ class PureViewBox(
   private var defaultDisplayDensity = 1f
 
   @OptIn(ExperimentalForeignApi::class)
-  override suspend fun getViewWidthPx() = runBlockingCatching {
-    (withMainContext { memScoped { uiViewController.view.frame.ptr[0].size.width.toFloat() } } * getDisplayDensity()).toInt()
+  override suspend fun getViewWidthPx() = runCatching {
+    (withMainContext { uiViewController.view.frame.useContents { size.width } } * getDisplayDensity()).toInt()
   }.getOrDefault(defaultViewWidth)
 
   @OptIn(ExperimentalForeignApi::class)
-  override suspend fun getViewHeightPx() = runBlockingCatching {
-    (withMainContext { memScoped { uiViewController.view.frame.ptr[0].size.height.toFloat() } } * getDisplayDensity()).toInt()
+  override suspend fun getViewHeightPx() = runCatching {
+    (withMainContext { uiViewController.view.frame.useContents { size.height } } * getDisplayDensity()).toInt()
   }.getOrDefault(defaultViewHeight)
 
   override suspend fun getDisplayDensity() =
-    runBlockingCatching { withMainContext { uiScreen.scale.toFloat() } }.getOrDefault(
+    runCatching { withMainContext { uiScreen.scale.toFloat() } }.getOrDefault(
       defaultDisplayDensity
     )
 

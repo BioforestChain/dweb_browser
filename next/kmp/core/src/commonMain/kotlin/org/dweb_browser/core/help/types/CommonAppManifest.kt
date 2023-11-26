@@ -22,7 +22,7 @@ object CommonAppManifestSerializer : PropMetasSerializer<CommonAppManifest>(Comm
 class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
   PropMetas.Constructor<CommonAppManifest>(p, P), ICommonAppManifest {
   companion object {
-    internal val P = PropMetas("CommonAppManifest", { CommonAppManifest(it) })
+    internal val P = PropMetas("CommonAppManifest") { CommonAppManifest(it) }
     private val P_id = P.required("id", "")
     private val P_dweb_deeplinks = P.list<DWEB_DEEPLINK>("dweb_deeplinks")
     private val P_dweb_protocols = P.list<DWEB_PROTOCOL>("dweb_protocols")

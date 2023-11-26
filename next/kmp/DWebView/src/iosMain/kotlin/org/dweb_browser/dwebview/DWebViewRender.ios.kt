@@ -6,7 +6,6 @@ import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
 
-
 @OptIn(ExperimentalForeignApi::class)
 @Composable
 actual fun IDWebView.Render(
@@ -16,14 +15,19 @@ actual fun IDWebView.Render(
 ) {
   require(this is DWebView)
   val webView = engine
-  UIKitView(factory = {
-    engine.mainScope.launch {
-      onCreate?.invoke(this@Render);
-    }
-    webView
-  }, modifier, update = {}, onRelease = {
-    engine.mainScope.launch {
-      onDispose?.invoke(this@Render);
-    }
-  })
+  UIKitView(
+    factory = {
+      webView.also {
+        onCreate?.also {
+          engine.ioScope.launch { onCreate(); }
+        }
+      }
+    },
+    modifier,
+    update = {},
+    onRelease = {
+      onDispose?.also {
+        engine.ioScope.launch { onDispose(); }
+      }
+    })
 }

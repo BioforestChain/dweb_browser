@@ -21,7 +21,7 @@ extension UIView {
                 if subview.isHidden { continue }
                 let subviewpoint = convert(point, to: subview)
                 isInside = subview.point(inside: subviewpoint, with: event)
-                print("  \(index). myPointInside.subview subview=\(subview) isInside=\(isInside)")
+//                print("  \(index). myPointInside.subview subview=\(subview) isInside=\(isInside)")
                 if isInside {
                     break
                 }
