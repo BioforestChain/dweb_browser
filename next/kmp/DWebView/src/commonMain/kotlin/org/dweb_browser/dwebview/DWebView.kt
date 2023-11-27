@@ -71,7 +71,7 @@ abstract class IDWebView(initUrl: String?) {
       if (!force && preTask.url == url) {
         preTask
       } else {
-        preTask?.deferred?.cancel(CancellationException("load new url: $url"));
+        preTask.deferred.cancel(CancellationException("load new url: $url"));
         newTask
       }
     }
