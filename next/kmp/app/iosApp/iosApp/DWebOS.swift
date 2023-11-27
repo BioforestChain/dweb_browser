@@ -3,7 +3,6 @@ import SwiftUI
 import UIKit
 
 struct DWebOS: View {
-    let greet = Greeting().greet()
     var body: some View {
         ZStack {
             ComposeView()
@@ -28,7 +27,7 @@ struct ComposeView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-        print(context)
+        Log("\(context)")
     }
 }
 

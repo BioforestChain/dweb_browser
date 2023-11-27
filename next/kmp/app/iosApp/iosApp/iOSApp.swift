@@ -1,8 +1,13 @@
 import Network
 import SwiftUI
 
-let DWEB_OS = true
-let DWEB_DESK = true
+enum RenderType {
+    case none
+    case webOS
+    case deskOS
+}
+
+let renderType = RenderType.deskOS
 
 @main
 struct iOSApp: App {
@@ -13,44 +18,39 @@ struct iOSApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if DWEB_DESK {
-                DwebFrameworkContentView(vcs: $deskVCStore.vcs).ignoresSafeArea(.all, edges: .all)
-            } else {
-                ZStack {
-                    if DWEB_OS {
-                        DWebOS()
-                    } else {
-                        DwebBrowser()
-                    }
-                }
+            content
                 .sheet(isPresented: $isNetworkSegmentViewPresented) {
                     NetworkGuidView()
                 }
                 .onReceive(networkManager.$isNetworkAvailable) { isAvailable in
                     isNetworkSegmentViewPresented = !isAvailable
                 }
-            }
         }
+    }
+
+    var content: some View {
+        ZStack(alignment: .center, content: {
+            switch renderType {
+            case .webOS:
+                DWebOS()
+            case .deskOS:
+                DwebFrameworkContentView(vcs: $deskVCStore.vcs)
+                    .ignoresSafeArea(.all, edges: .all)
+            default:
+                DwebBrowser()
+            }
+        })
     }
 }
 
 struct DwebFrameworkContentView: View {
-    @Binding var vcs: [Int32: DwebPureViewController]
+    @Binding var vcs: [DwebVCData]
     var body: some View {
         ZStack {
             if vcs.isEmpty {
                 Text("Loading...")
             } else {
-//                ForEach(Array(vcs.values), id: \.prop.vcId) { pureVc in
-//                    if pureVc.prop.visible {
-//                        CommonVCWrapView(vc: pureVc.vc, prop: pureVc.prop).zIndex(Double(pureVc.prop.zIndex))
-//                    }
-//                }
-                TouchVC(vcs:Array(vcs.values.sorted(by: {
-                    $1.prop.zIndex < $0.prop.zIndex
-                }).map {
-                    $0.vc
-                }))
+                DwebDeskRootView(vcs: vcs.map { $0.vc })
             }
         }
     }

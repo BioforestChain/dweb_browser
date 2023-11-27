@@ -9,18 +9,20 @@
 import DwebShared
 import UIKit
 
+class DwebVCData {
+    var vc: UIViewController
+    var prop: HelperPlatformDwebUIViewControllerProperty
+
+    init(vc: UIViewController, prop: HelperPlatformDwebUIViewControllerProperty) {
+        self.vc = vc
+        self.prop = prop
+    }
+}
+
 class DwebDeskVCStroe: ObservableObject {
     static let shared = DwebDeskVCStroe()
 
-    @Published var vcs = [Int32: DwebPureViewController]()
-
-    func getSortedVcs() -> [UIViewController] {
-        return Array(vcs.values.sorted(by: {
-            $1.prop.zIndex < $0.prop.zIndex
-        }).map {
-            $0.vc
-        })
-    }
+    @Published var vcs = [DwebVCData]()
 
     init() {
         regiserDeskEvent()
@@ -39,30 +41,41 @@ class DwebDeskVCStroe: ObservableObject {
     private func addHook(vc: UIViewController, prop: HelperPlatformDwebUIViewControllerProperty) -> Void {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            Log("add UIViewController: vcId=\(prop.vcId) zIndex=\(prop.zIndex) visible=\(prop.visible)")
-            let pureVc = DwebPureViewController(vc: vc, prop: prop)
-            self.vcs[prop.vcId] = pureVc
+            Log("vcId=\(prop.vcId) zIndex=\(prop.zIndex) visible=\(prop.visible)")
+            let data = DwebVCData(vc: vc, prop: prop)
+            Main_iosKt.dwebViewController.emitOnInit(vcId: prop.vcId)
+            self.vcs.append(data)
+            self.updateSortVCDatas()
         }
     }
 
     private func updateHook(prop: HelperPlatformDwebUIViewControllerProperty) -> Void {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-
-            Log("update UIViewController: vcId=\(prop.vcId) zIndex=\(prop.zIndex) visible=\(prop.visible)")
-            if let pureVc = self.vcs.removeValue(forKey: prop.vcId) {
-                pureVc.prop = prop
-                self.vcs[prop.vcId] = pureVc
+            Log("vcId=\(prop.vcId) zIndex=\(prop.zIndex) visible=\(prop.visible)")
+            
+            let index = self.vcs.firstIndex { $0.prop.vcId == prop.vcId }
+            
+            guard let index = index else {
+                assert(false, "异常的vcId：\(prop.vcId)未找到")
+                return
             }
+            
+            self.vcs[index].prop = prop
+            self.updateSortVCDatas()
         }
     }
-
+    
     private func removeHook(vcId: KotlinInt) -> Void {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-
-            Log("remove UIViewController: vcId=\(vcId)")
-            vcs.removeValue(forKey: Int32(truncating: vcId))
+            Log("vcId=\(vcId)")
+            vcs.removeAll { $0.prop.vcId == Int32(truncating: vcId) }
+            Main_iosKt.dwebViewController.emitOnDestroy(vcId: Int32(truncating: vcId))
         }
+    }
+    
+    private func updateSortVCDatas() {
+        vcs.sort { $0.prop.zIndex < $1.prop.zIndex }
     }
 }
