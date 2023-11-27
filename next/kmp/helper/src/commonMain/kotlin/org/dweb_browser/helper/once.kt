@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package org.dweb_browser.helper
 
 import kotlinx.atomicfu.atomic

@@ -23,7 +23,7 @@ fun printError(tag: String, msg: Any?, err: Throwable? = null) {
   err?.printStackTrace()
 }
 
-fun debugger(vararg params: Any?) {
+fun debugger(@Suppress("UNUSED_PARAMETER") vararg params: Any?) {
   println("DEBUGGER 请打断点")
 }
 

@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.core.module.MicroModule
@@ -208,9 +209,17 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     DWebMessageChannel(port1, port2)
   }
 
-  override suspend fun setContentScale(scale: Float) {
-    engine.setContentScaleFactor(scale.toDouble())
-  }
+  @OptIn(ExperimentalForeignApi::class)
+  override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
+    withMainContext {
+      engine.transform.useContents {
+        b = scale.toDouble()
+        c = scale.toDouble()
+      }
+//    CGAffineTransformMake()
+//    engine.setTransform(CGAffineTransform)
+//    engine.scrollView.setContentScaleFactor(scale.toDouble())
+    }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
     WARNING("Not yet implemented setPrefersColorScheme")

@@ -28,7 +28,7 @@ interface IVirtualFsDirectory {
  */
 fun commonVirtualFsDirectoryFactory(firstSegment: String, nativeFsPath: Path) =
   object : IVirtualFsDirectory {
-    override fun isMatch(segment: String) = firstSegment == segment
+    override fun isMatch(firstSegment: String) = firstSegment == firstSegment
     override fun getFsBasePath(remote: IMicroModuleManifest) = nativeFsPath.resolve(remote.mmid)
   }
 

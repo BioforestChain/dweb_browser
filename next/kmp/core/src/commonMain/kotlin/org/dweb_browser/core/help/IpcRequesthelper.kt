@@ -52,7 +52,6 @@ fun buildRequestX(
 internal fun buildRequestX(
   url: String, method: IpcMethod, headers: IpcHeaders, anyBody: Any?
 ): PureRequest {
-  val isWs = isWebSocket(method, headers)
   val pureBody: IPureBody = when (anyBody) {
     is String -> if (anyBody.isEmpty()) IPureBody.Empty else PureStringBody(anyBody)
     is ByteArray -> if (anyBody.isEmpty()) IPureBody.Empty else PureStreamBody(

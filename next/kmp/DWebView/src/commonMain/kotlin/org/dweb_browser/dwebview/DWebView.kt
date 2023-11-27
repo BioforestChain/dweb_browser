@@ -97,7 +97,7 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun createMessageChannel(): IWebMessageChannel
   abstract suspend fun postMessage(data: String, ports: List<IWebMessagePort>)
 
-  abstract suspend fun setContentScale(scale: Float)
+  abstract suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float)
   abstract suspend fun setPrefersColorScheme(colorScheme: WebColorScheme)
   abstract suspend fun setVerticalScrollBarVisible(visible: Boolean)
   abstract suspend fun setHorizontalScrollBarVisible(visible: Boolean)
@@ -135,7 +135,7 @@ abstract class IDWebView(initUrl: String?) {
   /**
    * 获取webview返回到favorite icon
    */
-  abstract suspend fun getFavoriteIcon() : ImageBitmap?
+  abstract suspend fun getFavoriteIcon(): ImageBitmap?
 }
 
 class WebBeforeUnloadArgs(

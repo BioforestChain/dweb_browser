@@ -57,7 +57,7 @@ class MultiWebViewController(
     /// 提供渲染适配
     windowAdapterManager.provideRender(rid) { modifier ->
 //      val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
-      Render(modifier, LocalDensity.current.density * scale)
+      Render(modifier, LocalDensity.current.density * scale, width, height)
     }
     /// 窗口销毁的时候
     win.onClose {

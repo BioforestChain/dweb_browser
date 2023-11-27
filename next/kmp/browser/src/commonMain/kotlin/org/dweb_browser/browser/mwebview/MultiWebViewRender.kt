@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -22,7 +23,12 @@ import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedIsMaximized
 
 @Composable
-fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: Float) {
+fun MultiWebViewController.Render(
+  modifier: Modifier = Modifier,
+  initialScale: Float,
+  width: Float,
+  height: Float,
+) {
   val controller = this;
   val win = LocalWindowController.current
   Box(modifier) {
@@ -80,11 +86,17 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: F
             off()
           }
         }
-        LaunchedEffect(initialScale) {
+        val density = LocalDensity.current.density
+        LaunchedEffect(initialScale, width, height) {
           snapshotFlow { winRefresh }.collect {
             if (winRefresh) {
               delay(100)
-              viewItem.webView.setContentScale(initialScale - getNextInt() / 100.0f)
+              viewItem.webView.setContentScale(
+                initialScale - getNextInt() / 100.0f,
+                width,
+                height,
+                density
+              )
               winRefresh = false
             }
           }
@@ -93,8 +105,8 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: F
         Box(
           modifier = Modifier.fillMaxSize()
         ) {
-          LaunchedEffect(initialScale) {
-            viewItem.webView.setContentScale(initialScale)
+          LaunchedEffect(initialScale, width, height) {
+            viewItem.webView.setContentScale(initialScale, width, height, density)
           }
           viewItem.webView.Render(Modifier.fillMaxSize())
         }

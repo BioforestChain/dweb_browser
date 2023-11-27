@@ -19,6 +19,7 @@ actual class WeakHashMap<K : Any, V> {
   }
 
   actual fun get(key: K): V? = synchronized(lock) {
+    @Suppress("UNCHECKED_CAST")
     _weakMap.objectForKey(key) as V?
   }
 

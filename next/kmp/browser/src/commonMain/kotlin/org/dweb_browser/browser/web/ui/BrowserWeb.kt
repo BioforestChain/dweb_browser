@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.web.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -9,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.CaptureParams
@@ -61,44 +63,51 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
       imageBitmap?.let { browserWebView.bitmap = imageBitmap }
     }
   ) {
-    val win = LocalWindowController.current
-    val colorScheme by win.watchedState { colorScheme }
-    LaunchedEffect(colorScheme) {
-      browserWebView.viewItem.webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
-    }
+    BoxWithConstraints {
+      val win = LocalWindowController.current
+      val colorScheme by win.watchedState { colorScheme }
+      LaunchedEffect(colorScheme) {
+        browserWebView.viewItem.webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
+      }
 
-    val initialScale = LocalWebViewInitialScale.current
+      val initialScale = LocalWebViewInitialScale.current
+      val density = LocalDensity.current.density
 
-    LaunchedEffect(initialScale) {
-      browserWebView.viewItem.webView.setContentScale(initialScale)
-      delay(500)
-      browserWebView.controller.capture(
-        CaptureParams(
-          viewType = CaptureParams.ViewType.WebView,
-          webView = browserWebView.viewItem.webView
+      LaunchedEffect(initialScale, maxWidth, maxHeight) {
+        browserWebView.viewItem.webView.setContentScale(
+          initialScale,
+          maxWidth.value,
+          maxHeight.value,
+          density,
         )
-      )
-    }
+        delay(500)
+        browserWebView.controller.capture(
+          CaptureParams(
+            viewType = CaptureParams.ViewType.WebView,
+            webView = browserWebView.viewItem.webView
+          )
+        )
+      }
 
-    browserWebView.viewItem.webView.Render(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background),
-      onCreate = {
-        val webView = browserWebView.viewItem.webView
-        var webViewY = 0 // 用于截图的时候进行定位截图
-        webView.setOnTouchListener { _, event ->
-          if (event == MotionEventAction.ACTION_UP) {
-            scope.launch {
-              browserWebView.controller.capture(
-                CaptureParams(CaptureParams.ViewType.WebView, webViewY, webView)
-              )
+      browserWebView.viewItem.webView.Render(
+        modifier = Modifier
+          .fillMaxSize()
+          .background(MaterialTheme.colorScheme.background),
+        onCreate = {
+          val webView = browserWebView.viewItem.webView
+          var webViewY = 0 // 用于截图的时候进行定位截图
+          webView.setOnTouchListener { _, event ->
+            if (event == MotionEventAction.ACTION_UP) {
+              scope.launch {
+                browserWebView.controller.capture(
+                  CaptureParams(CaptureParams.ViewType.WebView, webViewY, webView)
+                )
+              }
             }
+            false
           }
-          false
-        }
-        webView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
-          webViewY = scrollY // 用于截图的时候进行定位截图
+          webView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+            webViewY = scrollY // 用于截图的时候进行定位截图
 //          if (scrollY == 0 || oldScrollY == 0) return@setOnScrollChangeListener
 //          localFocusManager.clearFocus() // TODO 清除焦点
 //          if (oldScrollY < scrollY - 5) {
@@ -106,9 +115,10 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
 //          } else if (oldScrollY > scrollY + 5) {
 //            viewModel.handleIntent(BrowserIntent.UpdateBottomViewState(true))  // TODO 下滑，需要显示底部栏
 //          }
+          }
         }
-      }
-    )
+      )
+    }
   }
   LoadingView(browserWebView.loadState) // 先不显示加载框。
 }

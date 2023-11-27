@@ -45,6 +45,7 @@ class MicroModuleStore(
     mm.ioAsyncScope.launch {
       for (task in taskQueues) {
         try {
+          @Suppress("UNCHECKED_CAST")
           (task.deferred as CompletableDeferred<Any>).complete(task.action() as Any)
         } catch (e: Throwable) {
           task.deferred.completeExceptionally(e)

@@ -3,6 +3,7 @@ package org.dweb_browser.dwebview
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
+import android.view.ViewGroup
 import android.webkit.WebMessage
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -157,9 +158,11 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     engine.postWebMessage(WebMessage(data, ports.map { it.into() }.toTypedArray()), Uri.EMPTY)
   }
 
-  override suspend fun setContentScale(scale: Float) = withMainContext {
-    engine.setInitialScale((scale * 100).toInt())
-  }
+  override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
+    withMainContext {
+      engine.setInitialScale((scale * 100).toInt())
+      engine.layoutParams = ViewGroup.LayoutParams((width * density).toInt(), (height * density).toInt())
+    }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
     if (!WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {

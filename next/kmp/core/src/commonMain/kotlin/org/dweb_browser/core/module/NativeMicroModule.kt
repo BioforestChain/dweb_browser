@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
@@ -233,13 +234,13 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
 
-  class CborPacketHandlerContext constructor(context: HandlerContext) : IHandlerContext by context {
+  @OptIn(ExperimentalSerializationApi::class)
+  class CborPacketHandlerContext(context: HandlerContext) : IHandlerContext by context {
     internal val responseReadableStream = ReadableStreamOut()
     suspend fun emit(data: ByteArray) {
       responseReadableStream.controller.enqueue(data.size.toLittleEndianByteArray(), data)
     }
 
-    @kotlinx.serialization.ExperimentalSerializationApi
     suspend inline fun <reified T> emit(lineData: T) = emit(Cbor.encodeToByteArray(lineData))
 
     suspend fun end(reason: Throwable? = null) {
