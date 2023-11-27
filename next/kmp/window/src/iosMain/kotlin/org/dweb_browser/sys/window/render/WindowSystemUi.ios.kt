@@ -18,3 +18,8 @@ actual fun NativeBackHandler(
   onBack: () -> Unit
 ) {
 }
+
+@Composable
+actual fun <T : WindowController> WindowsManager<T>.EffectSafeModel() {
+
+}

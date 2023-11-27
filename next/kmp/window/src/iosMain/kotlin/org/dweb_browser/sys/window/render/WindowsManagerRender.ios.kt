@@ -91,6 +91,8 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
     EffectKeyboard()
     /// 底部导航栏的互操作
     EffectNavigationBar()
+    /// 窗口截屏安全限制
+    EffectSafeModel()
     /// 普通层级的窗口
     debugWindow("WindowsManager.Render", "winList: ${winList.size}")
     for (win in winList) {

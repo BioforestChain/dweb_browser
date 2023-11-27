@@ -1,20 +1,28 @@
 package org.dweb_browser.sys.window.render
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.view.Window
+import android.view.WindowManager
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Rect
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
+import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.watchedState
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -77,3 +85,26 @@ actual fun <T : WindowController> WindowsManager<T>.EffectNavigationBar() {
 actual fun NativeBackHandler(enabled: Boolean, onBack: () -> Unit) {
   androidx.activity.compose.BackHandler(enabled, onBack)
 }
+
+@Composable
+actual fun <T : WindowController> WindowsManager<T>.EffectSafeModel() {
+  val window = findWindow()
+  val safeMode by watchedState { safeMode }
+  if (safeMode) {
+    window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+  } else {
+    window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+  }
+}
+
+@Composable
+private fun findWindow(): Window? =
+  (LocalView.current.parent as? DialogWindowProvider)?.window
+    ?: LocalView.current.context.findWindow()
+
+private tailrec fun Context.findWindow(): Window? =
+  when (this) {
+    is Activity -> window
+    is ContextWrapper -> baseContext.findWindow()
+    else -> null
+  }

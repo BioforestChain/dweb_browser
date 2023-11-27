@@ -130,4 +130,8 @@ class WindowsManagerState(
 
   var imeVisible by observable.observe(WindowManagerPropertyKeys.ImeVisible, false)
 
+  /**
+   * safeMode 用于桌面的处理
+   */
+  var safeMode by observable.observe(WindowManagerPropertyKeys.SafeMode, false)
 }

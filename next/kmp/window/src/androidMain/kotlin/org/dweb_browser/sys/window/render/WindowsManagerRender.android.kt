@@ -3,9 +3,11 @@ package org.dweb_browser.sys.window.render
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.delay
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
@@ -21,6 +23,8 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
       EffectKeyboard()
       /// 底部导航栏的互操作
       EffectNavigationBar()
+      /// 窗口截屏安全限制
+      EffectSafeModel()
 
       /// 普通层级的窗口
       debugWindow("WindowsManager.Render", "winList: ${winList.size}")

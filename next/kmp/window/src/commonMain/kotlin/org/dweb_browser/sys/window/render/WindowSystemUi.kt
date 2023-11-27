@@ -13,3 +13,9 @@ expect fun <T : WindowController> WindowsManager<T>.EffectNavigationBar()
 
 @Composable
 expect fun NativeBackHandler(enabled: Boolean = true, onBack: () -> Unit)
+
+/**
+ * 截屏、录像控制
+ */
+@Composable
+expect fun <T : WindowController> WindowsManager<T>.EffectSafeModel()
