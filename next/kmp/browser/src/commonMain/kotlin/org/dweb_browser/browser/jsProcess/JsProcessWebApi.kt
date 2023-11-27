@@ -79,7 +79,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     reason: String
   ) {
     dWebView.evaluateAsyncJavascriptCode(
-      "createIpcFail($process_id,$mmid,$reason)"
+      """createIpcFail(`$process_id`,`$mmid`,`${reason}`)"""
     )
   }
 

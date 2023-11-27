@@ -44,7 +44,7 @@ class MessagePort(private val port: IWebMessagePort) {
     val messageScope = CoroutineScope(CoroutineName("webMessage") + ioAsyncExceptionHandler)
   }
 
-  val messageChannel = Channel<DWebMessage>(capacity = Channel.UNLIMITED)
+  private val messageChannel = Channel<DWebMessage>(capacity = Channel.UNLIMITED)
 
   private suspend fun installMessageSignal() {
     port.onMessage {

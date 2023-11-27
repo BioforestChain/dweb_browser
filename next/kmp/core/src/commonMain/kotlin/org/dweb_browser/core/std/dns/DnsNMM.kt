@@ -3,6 +3,7 @@ package org.dweb_browser.core.std.dns
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
+import io.ktor.server.plugins.NotFoundException
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.cancel
@@ -384,7 +385,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       if (it.key != mpid && it.key == fromMM.mmid) null else it.value
     } ?: run {
       debugDNS("open start", "$mpid(by ${fromMM.mmid})")
-      val app = query(mpid, fromMM) ?: throw Exception("no found app: $mpid")
+      val app = query(mpid, fromMM) ?: throw NotFoundException("no found app: $mpid")
       val afterBootstrap = PromiseOut<Unit>().alsoLaunchIn(ioAsyncScope) {
         bootstrapMicroModule(app)
         debugDNS("open end", "$mpid(by ${fromMM.mmid})")
