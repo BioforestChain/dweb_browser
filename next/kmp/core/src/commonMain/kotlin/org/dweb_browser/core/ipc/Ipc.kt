@@ -40,13 +40,13 @@ val debugIpc = Debugger("ipc")
 
 abstract class Ipc {
   companion object {
-    private var uid_acc = atomic(1)
-    private var req_id_acc = atomic(0);
+    private var uid_acc by atomic(1)
+    private var req_id_acc by atomic(0)
     private val ipcMessageCoroutineScope =
       CoroutineScope(CoroutineName("ipc-message") + ioAsyncExceptionHandler)
   }
 
-  val uid = uid_acc.getAndAdd(1)
+  val uid = uid_acc++
 
   /**
    * 是否支持 messagePack 协议传输：
@@ -81,9 +81,9 @@ abstract class Ipc {
   suspend fun postMessage(message: IpcMessage) {
     if (this._closed) {
       debugIpc("fail to post message, already closed")
-      return;
+      return
     }
-    this._doPostMessage(message);
+    this._doPostMessage(message)
   }
 
 
@@ -95,7 +95,7 @@ abstract class Ipc {
     )
   }
 
-  protected val _messageSignal = Signal<IpcMessageArgs>();
+  protected val _messageSignal = Signal<IpcMessageArgs>()
   fun onMessage(cb: OnIpcMessage) = _messageSignal.listen(cb)
 
   /**
@@ -103,14 +103,14 @@ abstract class Ipc {
    */
   suspend fun emitMessage(args: IpcMessageArgs) = _messageSignal.emit(args)
 
-  abstract suspend fun _doPostMessage(data: IpcMessage): Unit;
+  abstract suspend fun _doPostMessage(data: IpcMessage)
 
   private fun <T : Any> _createSignal(): Signal<T> {
     val signal = Signal<T>()
     this.onClose {
       signal.clear()
     }
-    return signal;
+    return signal
   }
 
   private val _requestSignal by lazy {
@@ -122,7 +122,7 @@ abstract class Ipc {
               IpcRequestMessageArgs(
                 args.message, args.ipc
               )
-            );
+            )
           }
         }
       }
@@ -140,7 +140,7 @@ abstract class Ipc {
               IpcResponseMessageArgs(
                 args.message, args.ipc
               )
-            );
+            )
           }
         }
       }
@@ -156,7 +156,7 @@ abstract class Ipc {
     val streamChannel = Channel<IpcStreamMessageArgs>(capacity = Channel.UNLIMITED)
     ipcMessageCoroutineScope.launch {
       for (message in streamChannel) {
-        signal.emit(message);
+        signal.emit(message)
       }
     }
     _messageSignal.listen { args ->
@@ -169,7 +169,7 @@ abstract class Ipc {
       }
     }
     onClose {
-      streamChannel.close();
+      streamChannel.close()
     }
     signal
   }
@@ -185,7 +185,7 @@ abstract class Ipc {
               IpcEventMessageArgs(
                 args.message, args.ipc
               )
-            );
+            )
           }
         }
       }
@@ -195,12 +195,12 @@ abstract class Ipc {
   fun onEvent(cb: OnIpcEventMessage) = _eventSignal.listen(cb)
 
 
-  abstract suspend fun _doClose(): Unit;
+  abstract suspend fun _doClose(): Unit
 
   private var _closed = false
   suspend fun close() {
     if (this._closed) {
-      return;
+      return
     }
     this._closed = true
     this._doClose()
@@ -212,7 +212,7 @@ abstract class Ipc {
 
   val isClosed get() = _closed
 
-  val closeSignal = SimpleSignal();
+  val closeSignal = SimpleSignal()
   val onClose = this.closeSignal.toListener()
 
 
@@ -250,21 +250,22 @@ abstract class Ipc {
         val result = reqResMap.remove(response.req_id)
           ?: throw Exception("no found response by req_id: ${response.req_id}")
         result.resolve(response)
+        println("QAQ complete response with req_id: ${response.req_id}")
       }
     }
   }
 
   suspend fun request(ipcRequest: IpcRequest): IpcResponse {
-    val result = PromiseOut<IpcResponse>();
-    _reqResMap[ipcRequest.req_id] = result;
+    val result = PromiseOut<IpcResponse>()
+    _reqResMap[ipcRequest.req_id] = result
     this.postMessage(ipcRequest)
     return result.waitPromise()
   }
 
   private fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
-    val reqId = this.allocReqId();
-    val ipcRequest = IpcRequest.fromRequest(reqId, this, url, init);
-    return ipcRequest;
+    val reqId = this.allocReqId()
+    val ipcRequest = IpcRequest.fromRequest(reqId, this, url, init)
+    return ipcRequest
   }
 
   suspend fun request(request: PureRequest) = this.request(
@@ -279,19 +280,19 @@ abstract class Ipc {
 
   suspend fun request(url: String, init: IpcRequestInit): IpcResponse {
     val ipcRequest = this._buildIpcRequest(url, init)
-    val result = this.registerReqId(ipcRequest.req_id);
-    this.postMessage(ipcRequest);
-    return result.waitPromise();
+    val result = this.registerReqId(ipcRequest.req_id)
+    this.postMessage(ipcRequest)
+    return result.waitPromise()
   }
 
-  private fun allocReqId() = req_id_acc.getAndAdd(1)
+  private fun allocReqId() = req_id_acc++
 
   /** 自定义注册 请求与响应 的id */
   private fun registerReqId(req_id: Int = this.allocReqId()): PromiseOut<IpcResponse> {
     return _reqResMap.getOrPut(req_id) {
       return PromiseOut()
     }
-  };
+  }
 
   /// 应用级别的 Ready协议，使用ping-pong方式来等待对方准备完毕，这不是必要的，确保双方都准寻这个协议才有必要去使用
   /// 目前使用这个协议的主要是Web端（它同时还使用了 Activity协议）
@@ -319,7 +320,7 @@ abstract class Ipc {
   }
 
   suspend fun ready(self: MicroModule) {
-    this.readyListener.waitPromise();// get once
+    this.readyListener.waitPromise()// get once
   }
 }
 

@@ -9,7 +9,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.helper.launchWithMain
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
 import platform.AVFoundation.AVAuthorizationStatusDenied
 import platform.AVFoundation.AVAuthorizationStatusNotDetermined
@@ -78,10 +78,8 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
         forNavigationAction.targetFrame == null || !forNavigationAction.targetFrame!!.mainFrame
       val watcher = engine.closeWatcher.apply(isUserGesture)
 
-      engine.mainScope.launch {
-        withMainContext {
-          engine.closeWatcher.resolveToken(url, watcher)
-        }
+      engine.mainScope.launchWithMain {
+        engine.closeWatcher.resolveToken(url, watcher)
       }
       null
     } else {

@@ -20,7 +20,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.asIosWebView
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.helper.launchInMain
+import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.platform.LocalUIKitBackgroundView
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
@@ -72,7 +72,7 @@ class TaskbarView private constructor(
   override fun TaskbarViewRender() {  //创建毛玻璃效果层
     val isActivityMode by state.composableHelper.stateOf(getter = { floatActivityState })
     val visualEffectView = remember {
-      UIVisualEffectView(effect = UIBlurEffect.effectWithStyle(style = UIBlurEffectStyle.UIBlurEffectStyleLight)) as UIVisualEffectView
+      UIVisualEffectView(effect = UIBlurEffect.effectWithStyle(style = UIBlurEffectStyle.UIBlurEffectStyleLight))
     }
     val density = LocalDensity.current.density
     LaunchedEffect(isActivityMode) {
@@ -112,36 +112,33 @@ class TaskbarView private constructor(
   @OptIn(ExperimentalForeignApi::class)
   @Composable
   fun BackgroundViewRender(backgroundView: UIView) {
-    val onTap = remember {
-      println("QAQ UITapGestureRecognizer")
-      UITapGestureRecognizer().apply {
-        val bgTapGesture = UIBackgroundViewTapGesture {
-          println("QAQ isActivityMode = false")
-          scope.launch {
-            taskbarController.toggleFloatWindow(openTaskbar = false)
-          }
+    val bgTapGesture = remember {
+      UIBackgroundViewTapGesture {
+        scope.launch {
+          taskbarController.toggleFloatWindow(openTaskbar = false)
         }
-
+      }
+    }
+    val onTap = remember {
+      UITapGestureRecognizer().apply {
         addTarget(target = bgTapGesture, action = NSSelectorFromString("tapBackground:"))
       }
     }
     val sync = remember { Mutex() }
     DisposableEffect(Unit) {
-      println("QAQ BackgroundViewRender")
-      scope.launchInMain {
+      scope.launchWithMain {
         sync.withLock {
           if (backgroundView.userInteractionEnabled) {
-            println("QAQ DOUBLE BackgroundViewRender")
           }
           backgroundView.setHidden(false)
           backgroundView.userInteractionEnabled = true
 
-          backgroundView.backgroundColor = UIColor.blackColor.colorWithAlphaComponent(alpha = 0.5)
           backgroundView.addGestureRecognizer(onTap)
+          backgroundView.backgroundColor = UIColor.blackColor.colorWithAlphaComponent(alpha = 0.5)
         }
       }
       onDispose {
-        scope.launchInMain {
+        scope.launchWithMain {
           sync.withLock {
             backgroundView.removeGestureRecognizer(onTap)
             backgroundView.backgroundColor = UIColor.clearColor

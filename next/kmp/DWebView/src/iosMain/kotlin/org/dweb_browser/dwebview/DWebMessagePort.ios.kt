@@ -1,10 +1,10 @@
 package org.dweb_browser.dwebview
 
 import kotlinx.cinterop.BetaInteropApi
-import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.withMainContext
 import platform.Foundation.NSNumber
 import platform.Foundation.NSString
@@ -17,14 +17,12 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
 
   internal val _started = lazy {
     val onMessageSignal = Signal<DWebMessage>()
-    webview.scope.launch {
-      withMainContext {
-        webview.engine.evalAsyncJavascript<Unit>(
-          "nativeStart($portId)",
-          null,
-          DWebViewWebMessage.webMessagePortContentWorld
-        ).await()
-      }
+    webview.scope.launchWithMain {
+      webview.engine.evalAsyncJavascript<Unit>(
+        "nativeStart($portId)",
+        null,
+        DWebViewWebMessage.webMessagePortContentWorld
+      ).await()
     }
     onMessageSignal
   }

@@ -23,9 +23,9 @@ import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
-import org.dweb_browser.helper.withMainContext
 
 class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   private val scope get() = engine.ioScope
@@ -89,15 +89,13 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   override fun onReceivedError(
     view: WebView, request: WebResourceRequest?, error: WebResourceError?
   ) {
-    scope.launch {
-      withMainContext {
-        loadStateChangeSignal.emit(
-          WebLoadErrorState(
-            view.url ?: "about:blank",
-            error?.let { "[${it.errorCode}]${it.description}" } ?: ""
-          )
+    scope.launchWithMain {
+      loadStateChangeSignal.emit(
+        WebLoadErrorState(
+          view.url ?: "about:blank",
+          error?.let { "[${it.errorCode}]${it.description}" } ?: ""
         )
-      }
+      )
     }
     inners("onReceivedError").forEach { it.onReceivedError(view, request, error) }
     super.onReceivedError(view, request, error)
