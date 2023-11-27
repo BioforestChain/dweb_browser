@@ -1,8 +1,21 @@
 import org.gradle.api.JavaVersion
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
+
+fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
+  kotlinOptions {
+    freeCompilerArgs += "-Xexpect-actual-classes"
+  }
+}
 
 fun KotlinMultiplatformExtension.mobileTarget() {
+  targets.all {
+    compilations.all {
+      configureCompilation()
+    }
+  }
   androidTarget {
     compilations.all {
       kotlinOptions {
