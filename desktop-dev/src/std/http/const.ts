@@ -53,11 +53,11 @@ export class ServerUrlInfo {
   /**
    * 导出特殊的平台URL，尽可能保证 pathname 与 query 的信息与  DwebUrl 一致
    * 所以在不同平台上有不同的解决方案：
-   * 1. 在 desktop 平台上，我们使用 `http://{subdomain.}{mmid}-{port}.localhost/{pathname}{?query}` 来将 Dweb-Host 信息放在 hostname 里
+   * 1. 在 desktop 平台上，我们使用 `http://{subdomain.}{mmid}.localhost/{pathname}{?query}` 来将 Dweb-Host 信息放在 hostname 里
    *    在 NWJS/Electron 中要实现对 DwebUrl 对捕捉是可行的。但综合考量，因为桌面端性能足够，直接使用网络层来传输就够了。
-   * 2. 在 ios 平台上，我们使用 `{subdomain.}{mmid}+{port}:/{pathname}{?query}` 来将 Dweb-Host 信息放在 scheme 里
+   * 2. 在 ios 平台上，我们使用 `{subdomain.}{mmid}:/{pathname}{?query}` 来将 Dweb-Host 信息放在 scheme 里
    *    IOS 虽然可以完整捕捉网络请求，但是 IOS 无法拦截 https/http 请求，虽然可以用 loadSimulatedRequest 来实现网页域名锁定，但是对于后续的请求因为无法拦截，对于使用者来说，是一种心智负担。
-   * 3. 在 Android 平台上，我们直接使用 DwebUrl，也就是 `https://{subdomain.}{mmid}:port/{pathname}{?query}`，但因为无法捕捉 request-body，因此只能处理 GET、HEAD 请求。
+   * 3. 在 Android 平台上，我们直接使用 DwebUrl，也就是 `https://{subdomain.}{mmid}/{pathname}{?query}`，但因为无法捕捉 request-body，因此只能处理 GET、HEAD 请求。
    *    虽然可以用注入 service-worker 做到捕捉body，但是这样适得其反，延迟与成本过高，因此对于 POST/PUT 等需要携带 body 的其它请求，需要使用 publicUrl。
    * @param builder
    * @returns

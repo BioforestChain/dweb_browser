@@ -74,7 +74,7 @@ export class HttpServerNMM extends NativeMicroModule {
         // 在网关中寻址能够处理该 host 的监听者
         const gateway = this._gatewayTable.get(host);
         if (gateway == undefined) {
-          console.error("http", `[http-server onRequest 既没分发也没有匹配 gatewaty请求] ${req.url}`);
+          console.error("http", `[http-server onRequest 既没分发也没有匹配 ${host}] ${req.url}`);
           return defaultErrorResponse(
             req,
             res,
@@ -150,13 +150,10 @@ export class HttpServerNMM extends NativeMicroModule {
     const { subdomain: options_subdomain = "" } = options;
     const subdomainPrefix =
       options_subdomain === "" || options_subdomain.endsWith(".") ? options_subdomain : `${options_subdomain}.`;
-    if (port <= 0 || port >= 65536) {
-      throw new Error(`invalid dweb http port: ${port}`);
-    }
 
     const public_origin = this._dwebServer.origin;
-    const host = `${subdomainPrefix}${mmid}:${port}`;
-    const internal_origin = `http://${subdomainPrefix}${mmid}-${port}.${this._dwebServer.authority}`;
+    const host = `${subdomainPrefix}${mmid}`;
+    const internal_origin = `http://${subdomainPrefix}${mmid}.${this._dwebServer.authority}`;
     return new ServerUrlInfo(host, internal_origin, public_origin);
   }
 
@@ -232,8 +229,8 @@ export class HttpServerNMM extends NativeMicroModule {
     if (url) {
       const hostname = url.hostname;
       if (hostname.endsWith(".dweb")) {
-        const port = url.port || (url.protocol === "https:" ? "443" : "80");
-        url_host = `${hostname}:${port}`;
+        // const port = url.port || (url.protocol === "https:" ? "443" : "80");
+        url_host = `${hostname}`;
       }
     }
     for (const [key, value] of headers) {
@@ -246,9 +243,6 @@ export class HttpServerNMM extends NativeMicroModule {
             /// 所以这里只需要将 host 中的信息提取出来
             if (value.endsWith(`.${this._dwebServer.authority}`)) {
               query_x_web_host = value.slice(0, -this._dwebServer.authority.length - 1);
-              const portStartIndex = query_x_web_host.lastIndexOf("-");
-              query_x_web_host =
-                query_x_web_host.slice(0, portStartIndex) + ":" + query_x_web_host.slice(portStartIndex + 1);
             }
           }
           break;

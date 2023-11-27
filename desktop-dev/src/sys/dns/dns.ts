@@ -171,11 +171,11 @@ export class DnsNMM extends NativeMicroModule {
       })
       .get("/close", async (event) => {
         const { app_id } = query_appId(event.searchParams);
-        return Response.json(await this.close(app_id as $MMID));
+        return Response.json(await this.close(app_id));
       })
       .get("/query", async (event) => {
         const { app_id } = query_appId(event.searchParams);
-        const app = this.query(app_id as $MMID);
+        const app = this.query(app_id);
         if (!app) return new Response(`not found app for ${app_id}`, { status: 404 });
         if (app instanceof JsMicroModule) {
           return Response.json(app.metadata.config);
