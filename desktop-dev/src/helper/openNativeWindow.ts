@@ -125,7 +125,7 @@ export const createNativeWindow = async (sessionId: string, createOptions: $Crea
   });
 
   if (userAgent) {
-    win.webContents.setUserAgent(userAgent(win.webContents.userAgent));
+    win.webContents.setUserAgent(userAgent(`${win.webContents.userAgent} Dweb/${win.id} (desktop;dweb;)`));
   }
   /// 在开发模式下，显示 mwebview 的开发者工具
   if (!Electron.app.isPackaged) {
