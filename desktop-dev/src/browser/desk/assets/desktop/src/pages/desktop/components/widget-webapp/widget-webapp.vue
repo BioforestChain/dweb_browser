@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { vOnLongPress } from "@vueuse/components";
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
@@ -121,6 +122,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
           @click="[$menu.close, doOpen]"
           @contextmenu="$menu.show"
+          v-on-long-press.prevent="$menu.show"
         >
           <AppIcon
             @click="doOpen"

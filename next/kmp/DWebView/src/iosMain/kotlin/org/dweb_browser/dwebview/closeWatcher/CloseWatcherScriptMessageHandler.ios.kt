@@ -15,14 +15,14 @@ internal class CloseWatcherScriptMessageHandler(private val engine: DWebViewEngi
     didReceiveScriptMessage: WKScriptMessage
   ) {
     val message = didReceiveScriptMessage.body as NSObject
-    val consumeToken = message.valueForKey("token") as String
-    val id = message.valueForKey("id") as String
+    val consumeToken = message.valueForKey("token") as String?
+    val id = message.valueForKey("id") as String?
 
-    if (consumeToken.isNotEmpty()) {
+    if (consumeToken?.isNotEmpty() == true) {
       engine.mainScope.launch {
         engine.closeWatcher.registryToken(consumeToken)
       }
-    } else if (id.isNotEmpty()) {
+    } else if (id?.isNotEmpty() == true) {
       engine.closeWatcher.tryClose(id)
     }
   }

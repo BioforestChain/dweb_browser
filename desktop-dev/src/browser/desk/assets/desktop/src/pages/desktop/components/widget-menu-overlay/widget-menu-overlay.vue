@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vOnLongPress } from "@vueuse/components";
 import { shallowRef, triggerRef } from "vue";
 const props = defineProps({
   showReason: {
@@ -56,7 +57,13 @@ export const showOverlay = (reason: {}, toggle = true) => {
 </script>
 <template>
   <Transition name="fade" @beforeEnter="beforeEnter" @afterLeave="afterLeave">
-    <div class="overlay ios-ani" v-if="overlayReasons.size" @click="emits('close')" @contextmenu="emits('close')"></div>
+    <div
+      class="overlay ios-ani"
+      v-if="overlayReasons.size"
+      @click="emits('close')"
+      @contextmenu="emits('close')"
+      v-on-long-press.prevent="emits('close')"
+    ></div>
   </Transition>
 </template>
 <style scoped lang="scss">

@@ -14,6 +14,7 @@ import delete_svg from "./delete.svg";
 import details_svg from "./details.svg";
 import quit_svg from "./quit.svg";
 import share_svg from "./share.svg";
+import { vOnLongPress } from '@vueuse/components'
 
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 
@@ -145,6 +146,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
           @click="[$menu.close, doOpen]"
           @contextmenu="$menu.show"
+          v-on-long-press.prevent="$menu.show"
         >
           <AppIcon
             @click="doOpen"
