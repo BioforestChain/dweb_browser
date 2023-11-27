@@ -37,7 +37,9 @@ import platform.WebKit.WKWebViewConfiguration
 import platform.WebKit.WKWindowFeatures
 import platform.darwin.NSObject
 
-class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUIDelegateProtocol {
+class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDelegateProtocol {
+
+  //#region UIDelegate
   private val jsAlertSignal = Signal<Pair<JsParams, SignalResult<Unit>>>()
   private val jsConfirmSignal = Signal<Pair<JsParams, SignalResult<Boolean>>>()
   private val jsPromptSignal = Signal<Pair<JsPromptParams, SignalResult<String?>>>()
@@ -375,4 +377,5 @@ class DUIDelegateProtocol(private val engine: DWebViewEngine) : NSObject(), WKUI
 
     return null
   }
+  //#endregion
 }

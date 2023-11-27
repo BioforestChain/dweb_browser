@@ -46,7 +46,10 @@ import platform.Foundation.create
 import platform.Foundation.serverTrust
 import platform.UIKit.UIColor
 import platform.UIKit.UIDevice
+import platform.UIKit.UIScrollView
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
+import platform.UIKit.UIScrollViewDelegateProtocol
+import platform.UIKit.UIView
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
 import platform.WebKit.WKNavigation
@@ -63,7 +66,6 @@ import platform.WebKit.WKWebViewConfiguration
 import platform.WebKit.WKWebpagePreferences
 import platform.WebKit.javaScriptEnabled
 
-
 @Suppress("CONFLICTING_OVERLOADS")
 @OptIn(ExperimentalForeignApi::class)
 class DWebViewEngine(
@@ -79,12 +81,12 @@ class DWebViewEngine(
     withMainContext {
       @Suppress("USELESS_CAST")
       DwebHelper().setProxyWithConfiguration(
-        // 强制类型转换，不然WKWebViewConfiguration会提示类型对不上
+        // 强制类型转换成 `objcnames.classes.WKWebViewConfiguration`，不然会提示类型对不上
         it as objcnames.classes.WKWebViewConfiguration, url.host, url.port.toUShort()
       )
     }
   }
-}), WKNavigationDelegateProtocol {
+}), WKNavigationDelegateProtocol, UIScrollViewDelegateProtocol {
   val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
 
@@ -169,7 +171,8 @@ class DWebViewEngine(
       this.setInspectable(true)
     }
     setNavigationDelegate(this)
-    setUIDelegate(DUIDelegateProtocol(this))
+    setUIDelegate(DWebUIDelegate(this))
+    scrollView.setDelegate(this)
 
     val preferences = WKPreferences()
     preferences.javaScriptEnabled = true
@@ -362,6 +365,12 @@ class DWebViewEngine(
         completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, null)
       }
     }
+  }
+  //#endregion
+
+  //#region UIScrollViewDelegate
+  override fun scrollViewWillBeginZooming(scrollView: UIScrollView, withView: UIView?) {
+    scrollView.pinchGestureRecognizer?.setEnabled(false)
   }
   //#endregion
 }
