@@ -29,7 +29,7 @@ class DwebDeskVCStroe: ObservableObject {
     }
 
     func startUpNMMs(_ app: UIApplication) {
-        Main_iosKt.startDwebBrowser(app: app) { Log("Main_iosKt.startDwebBrowser launch: \($1?.localizedDescription ?? "Success")") }
+        Main_iosKt.startDwebBrowser(app: app, debugMode: false) { Log("Main_iosKt.startDwebBrowser launch: \($1?.localizedDescription ?? "Success")") }
     }
 
     private func regiserDeskEvent() {
@@ -38,7 +38,7 @@ class DwebDeskVCStroe: ObservableObject {
         Main_iosKt.dwebViewController.setRemoveHook(hook: removeHook(vcId:))
     }
 
-    private func addHook(vc: UIViewController, prop: HelperPlatformDwebUIViewControllerProperty) -> Void {
+    private func addHook(vc: UIViewController, prop: HelperPlatformDwebUIViewControllerProperty) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             Log("vcId=\(prop.vcId) zIndex=\(prop.zIndex) visible=\(prop.visible)")
@@ -49,24 +49,24 @@ class DwebDeskVCStroe: ObservableObject {
         }
     }
 
-    private func updateHook(prop: HelperPlatformDwebUIViewControllerProperty) -> Void {
+    private func updateHook(prop: HelperPlatformDwebUIViewControllerProperty) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             Log("vcId=\(prop.vcId) zIndex=\(prop.zIndex) visible=\(prop.visible)")
-            
+
             let index = self.vcs.firstIndex { $0.prop.vcId == prop.vcId }
-            
+
             guard let index = index else {
-                assert(false, "异常的vcId：\(prop.vcId)未找到")
+                assertionFailure("异常的vcId：\(prop.vcId)未找到")
                 return
             }
-            
+
             self.vcs[index].prop = prop
             self.updateSortVCDatas()
         }
     }
-    
-    private func removeHook(vcId: KotlinInt) -> Void {
+
+    private func removeHook(vcId: KotlinInt) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             Log("vcId=\(vcId)")
@@ -74,7 +74,7 @@ class DwebDeskVCStroe: ObservableObject {
             Main_iosKt.dwebViewController.emitOnDestroy(vcId: Int32(truncating: vcId))
         }
     }
-    
+
     private func updateSortVCDatas() {
         vcs.sort { $0.prop.zIndex < $1.prop.zIndex }
     }

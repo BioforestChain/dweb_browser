@@ -27,12 +27,6 @@ data class QRCodeDecoderResult(
 }
 
 class QRCodeScanModel {
-  private var qrCodeScanNMM: QRCodeScanNMM? = null
-
-  fun init(qrCodeScanNMM: QRCodeScanNMM) {
-    this.qrCodeScanNMM = qrCodeScanNMM
-  }
-
   val state = mutableStateOf(QRCodeState.Hide)
   var imageBitmap: ImageBitmap? = null
   var qrCodeDecoderResult: QRCodeDecoderResult? = null

@@ -70,10 +70,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
+import org.dweb_browser.browser.common.barcode.QRCodeScanModel
 import org.dweb_browser.browser.common.barcode.QRCodeScanView
 import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
-import org.dweb_browser.browser.common.barcode.rememberQRCodeModel
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.model.BrowserBaseView
 import org.dweb_browser.browser.web.model.BrowserWebView
@@ -124,7 +124,7 @@ fun BrowserViewForWindow(
   val initialScale = windowRenderScope.scale * LocalDensity.current.density
   //(LocalDensity.current.density * windowRenderScope.scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
   val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
-  val qrCodeScanModel = rememberQRCodeModel()
+  val qrCodeScanModel = remember { QRCodeScanModel() }
 
   CompositionLocalProvider(
     LocalModalBottomSheet provides modalBottomModel,

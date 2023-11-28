@@ -59,9 +59,9 @@ import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.platform.LocalPureViewBox
+import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewBox
 import org.dweb_browser.helper.platform.getKtorClientEngine
-import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.KmpNativeBridgeEventSender
@@ -90,10 +90,12 @@ import platform.UIKit.UIViewController
 import platform.WebKit.WKWebViewConfiguration
 
 val dwebViewController = nativeViewController
-suspend fun startDwebBrowser(app: UIApplication): DnsNMM {
+suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   nativeMicroModuleUIApplication = app;
 
-  addDebugTags(listOf("/.+/"))
+  if (debugMode) {
+    addDebugTags(listOf("/.+/"))
+  }
 
   /// 初始化DNS服务
   val dnsNMM = DnsNMM()

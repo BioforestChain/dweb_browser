@@ -77,11 +77,6 @@ val LocalQRCodeModel = compositionLocalOf<QRCodeScanModel> {
 }
 
 @Composable
-fun rememberQRCodeModel(): QRCodeScanModel {
-  return remember { QRCodeScanModel() }
-}
-
-@Composable
 fun QRCodeScanView(
   qrCodeScanModel: QRCodeScanModel,
   modifier: Modifier = Modifier,

@@ -74,18 +74,9 @@ class DWebViewEngine(
   internal val options: DWebViewOptions,
   configuration: WKWebViewConfiguration,
 ) : WKWebView(frame, configuration.also {
+  /// 设置scheme，这需要在传入WKWebView之前就要运作
   registryDwebHttpUrlSchemeHandler(remoteMM, it)
   registryDwebSchemeHandler(remoteMM, it)
-  remoteMM.ioAsyncScope.launch {
-    val url = Url(IDWebView.getProxyAddress())
-    withMainContext {
-      @Suppress("USELESS_CAST")
-      DwebHelper().setProxyWithConfiguration(
-        // 强制类型转换成 `objcnames.classes.WKWebViewConfiguration`，不然会提示类型对不上
-        it as objcnames.classes.WKWebViewConfiguration, url.host, url.port.toUShort()
-      )
-    }
-  }
 }), WKNavigationDelegateProtocol, UIScrollViewDelegateProtocol {
   val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
@@ -110,15 +101,18 @@ class DWebViewEngine(
      * 所以 http(s)?:*.dweb 在 IOS上 反而是一个更加安全的、仅走内存控制的技术，通常用于内部模块使用
      */
     private fun registryDwebHttpUrlSchemeHandler(
-      remoteMM: MicroModule, configuration: WKWebViewConfiguration
+      microModule: MicroModule, configuration: WKWebViewConfiguration
     ) {
-      val dwebSchemeHandler = DwebHttpURLSchemeHandler(remoteMM)
+      val dwebSchemeHandler = DwebHttpURLSchemeHandler(microModule)
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb+http")
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb+https")
     }
 
-    fun registryDwebSchemeHandler(remoteMM: MicroModule, configuration: WKWebViewConfiguration) {
-      val dwebSchemeHandler = DwebURLSchemeHandler(remoteMM)
+    fun registryDwebSchemeHandler(
+      microModule: MicroModule,
+      configuration: WKWebViewConfiguration
+    ) {
+      val dwebSchemeHandler = DwebURLSchemeHandler(microModule)
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb")
     }
   }
@@ -166,6 +160,17 @@ class DWebViewEngine(
   }
 
   init {
+    /// 启动代理
+    remoteMM.ioAsyncScope.launch {
+      val url = Url(IDWebView.getProxyAddress())
+      withMainContext {
+        @Suppress("USELESS_CAST")
+        DwebHelper().setProxyWithConfiguration(
+          // 强制类型转换成 `objcnames.classes.WKWebViewConfiguration`，不然会提示类型对不上
+          configuration as objcnames.classes.WKWebViewConfiguration, url.host, url.port.toUShort()
+        )
+      }
+    }
     /// 测试的时候使用
     if (UIDevice.currentDevice.systemVersion.compareTo("16.4", true) >= 0) {
       this.setInspectable(true)

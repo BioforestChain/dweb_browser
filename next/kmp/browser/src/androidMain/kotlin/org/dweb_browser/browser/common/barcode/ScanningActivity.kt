@@ -2,6 +2,7 @@ package org.dweb_browser.browser.common.barcode
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import org.dweb_browser.helper.platform.PureViewController
@@ -23,7 +24,7 @@ class ScanningActivity : PureViewController() {
       val fromIpc = params.getBoolean(IntentFromIPC) ?: false
 
       addContent {
-        val qrCodeScanModel = rememberQRCodeModel()
+        val qrCodeScanModel = remember { QRCodeScanModel() }
         LaunchedEffect(Unit) {
           qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
         }

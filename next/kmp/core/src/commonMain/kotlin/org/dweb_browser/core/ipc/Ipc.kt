@@ -2,6 +2,7 @@ package org.dweb_browser.core.ipc
 
 import io.ktor.http.Url
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -30,7 +31,7 @@ import org.dweb_browser.core.ipc.helper.OnIpcResponseMessage
 import org.dweb_browser.core.ipc.helper.OnIpcStreamMessage
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
@@ -135,6 +136,7 @@ abstract class Ipc {
     _createSignal<IpcResponseMessageArgs>().also { signal ->
       _messageSignal.listen { args ->
         if (args.message is IpcResponse) {
+          println("QAQ emit IpcResponse: ${args.message.req_id}")
           ipcMessageCoroutineScope.launch {
             signal.emit(
               IpcResponseMessageArgs(
@@ -245,27 +247,26 @@ abstract class Ipc {
     request(PureRequest(method = IpcMethod.GET, href = url.toString()))
 
   private val _reqResMap by lazy {
-    mutableMapOf<Int, PromiseOut<IpcResponse>>().also { reqResMap ->
+    SafeHashMap<Int, CompletableDeferred<IpcResponse>>().also { reqResMap ->
       onResponse { (response) ->
         val result = reqResMap.remove(response.req_id)
           ?: throw Exception("no found response by req_id: ${response.req_id}")
-        result.resolve(response)
+        result.complete(response)
         println("QAQ complete response with req_id: ${response.req_id}")
       }
     }
   }
 
   suspend fun request(ipcRequest: IpcRequest): IpcResponse {
-    val result = PromiseOut<IpcResponse>()
+    val result = CompletableDeferred<IpcResponse>()
     _reqResMap[ipcRequest.req_id] = result
     this.postMessage(ipcRequest)
-    return result.waitPromise()
+    return result.await()
   }
 
   private fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
     val reqId = this.allocReqId()
-    val ipcRequest = IpcRequest.fromRequest(reqId, this, url, init)
-    return ipcRequest
+    return IpcRequest.fromRequest(reqId, this, url, init)
   }
 
   suspend fun request(request: PureRequest) = this.request(
@@ -282,35 +283,35 @@ abstract class Ipc {
     val ipcRequest = this._buildIpcRequest(url, init)
     val result = this.registerReqId(ipcRequest.req_id)
     this.postMessage(ipcRequest)
-    return result.waitPromise()
+    return result.await()
   }
 
   private fun allocReqId() = req_id_acc++
 
   /** 自定义注册 请求与响应 的id */
-  private fun registerReqId(req_id: Int = this.allocReqId()): PromiseOut<IpcResponse> {
+  private fun registerReqId(req_id: Int = this.allocReqId()): CompletableDeferred<IpcResponse> {
     return _reqResMap.getOrPut(req_id) {
-      return PromiseOut()
+      return CompletableDeferred()
     }
   }
 
   /// 应用级别的 Ready协议，使用ping-pong方式来等待对方准备完毕，这不是必要的，确保双方都准寻这个协议才有必要去使用
   /// 目前使用这个协议的主要是Web端（它同时还使用了 Activity协议）
   private val readyListener by lazy {
-    val ready = PromiseOut<IpcEvent>()
+    val ready = CompletableDeferred<IpcEvent>()
     this.onEvent { (event, ipc) ->
 
       if (event.name == "ping") {
         ipc.postMessage(IpcEvent("pong", event.data, event.encoding))
       } else if (event.name == "pong") {
-        ready.resolve(event)
+        ready.complete(event)
       }
     }
     CoroutineScope(defaultAsyncExceptionHandler).launch {
       val ipc = this@Ipc
       val pingDelay = 200L
       var timeout = 30000L
-      while (!ready.isResolved && !ipc.isClosed && timeout > 0L) {
+      while (!ready.isCompleted && !ipc.isClosed && timeout > 0L) {
         ipc.postMessage(IpcEvent.fromUtf8("ping", ""))
         delay(pingDelay)
         timeout -= pingDelay
@@ -320,7 +321,7 @@ abstract class Ipc {
   }
 
   suspend fun ready(self: MicroModule) {
-    this.readyListener.waitPromise()// get once
+    this.readyListener.await()// get once
   }
 }
 

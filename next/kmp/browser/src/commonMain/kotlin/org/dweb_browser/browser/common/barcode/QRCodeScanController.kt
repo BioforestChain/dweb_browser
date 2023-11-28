@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.common.barcode
 
 import androidx.compose.ui.graphics.ImageBitmap
+import org.dweb_browser.helper.WARNING
 
 class QRCodeScanController {
   private var qrCodeScanNMM: QRCodeScanNMM? = null
@@ -17,8 +18,8 @@ class QRCodeScanController {
    * 获取权限
    */
   suspend fun checkPermission(): Boolean {
+    WARNING("Not yet implement")
     return true
-    TODO("Not yet implement")
     //return qrCodeScanNMM?.nativeFetch("file://permission.sys.dweb")?.boolean() ?: true
   }
 
@@ -26,7 +27,8 @@ class QRCodeScanController {
    * 解析图片
    */
   suspend fun process(imageBitmap: ImageBitmap): List<String>? {
-    TODO("Not yet implement")
+    WARNING("Not yet implement")
+    return null
     /*return qrCodeScanNMM?.let {
       it.nativeFetch(
         PureRequest(
