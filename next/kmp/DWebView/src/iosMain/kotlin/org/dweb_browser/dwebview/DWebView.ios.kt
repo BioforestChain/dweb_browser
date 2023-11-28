@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.useContents
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.core.module.MicroModule
@@ -14,6 +13,7 @@ import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
+import platform.CoreGraphics.CGAffineTransformMakeScale
 import platform.CoreGraphics.CGRect
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSArray
@@ -212,13 +212,10 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   @OptIn(ExperimentalForeignApi::class)
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
     withMainContext {
-      engine.transform.useContents {
-        b = scale.toDouble()
-        c = scale.toDouble()
-      }
-//    CGAffineTransformMake()
-//    engine.setTransform(CGAffineTransform)
-//    engine.scrollView.setContentScaleFactor(scale.toDouble())
+      println("scale: $scale")
+      val frame = engine.frame;
+      engine.transform = CGAffineTransformMakeScale(scale.toDouble(), scale.toDouble())
+      engine.setFrame(frame)
     }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {

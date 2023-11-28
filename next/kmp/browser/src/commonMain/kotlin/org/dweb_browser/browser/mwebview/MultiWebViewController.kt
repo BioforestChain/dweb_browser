@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.mwebview
 
 import androidx.compose.runtime.Stable
-import androidx.compose.ui.platform.LocalDensity
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -56,8 +55,7 @@ class MultiWebViewController(
     val rid = win.id
     /// 提供渲染适配
     windowAdapterManager.provideRender(rid) { modifier ->
-//      val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
-      Render(modifier, LocalDensity.current.density * scale, width, height)
+      Render(modifier, scale, width, height)
     }
     /// 窗口销毁的时候
     win.onClose {

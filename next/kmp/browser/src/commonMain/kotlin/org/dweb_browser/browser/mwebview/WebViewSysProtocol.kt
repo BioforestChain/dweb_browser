@@ -26,9 +26,8 @@ suspend fun MultiWebViewNMM.webViewSysProtocol() {
 
         windowAdapterManager.provideRender(rid) { modifier ->
           val density = LocalDensity.current.density
-          val webContentScale = density * scale
-          LaunchedEffect(webContentScale, width, height) {
-            webView.setContentScale(webContentScale, width, height, density)
+          LaunchedEffect(scale, width, height) {
+            webView.setContentScale(scale, width, height, density)
           }
           webView.Render(modifier)
         }.removeWhen(ipc.onClose)

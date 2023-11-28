@@ -121,8 +121,7 @@ fun BrowserViewForWindow(
 ) {
   val scope = rememberCoroutineScope()
   val browserPagerState = viewModel.rememberBrowserPagerState()
-  val initialScale = windowRenderScope.scale * LocalDensity.current.density
-  //(LocalDensity.current.density * windowRenderScope.scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
+  val initialScale = windowRenderScope.scale
   val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
   val qrCodeScanModel = remember { QRCodeScanModel() }
 
