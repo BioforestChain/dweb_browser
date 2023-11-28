@@ -1,9 +1,9 @@
 package org.dweb_browser.browser.common
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
-import org.dweb_browser.browser.common.CaptureController
 
 @Composable
 actual fun CaptureView(
@@ -12,5 +12,7 @@ actual fun CaptureView(
   onCaptured: (ImageBitmap?, Throwable?) -> Unit,
   content: @Composable () -> Unit
 ) {
-
+  Box {
+    content()
+  }
 }
