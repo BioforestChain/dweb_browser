@@ -1,6 +1,8 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import android.annotation.SuppressLint
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -12,7 +14,6 @@ import info.bagen.dwebbrowser.R
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -25,7 +26,6 @@ import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.microservice.core.MicroModule
@@ -100,8 +100,7 @@ class MultiWebViewController(
     override var hidden: Boolean = false,
     val win: WindowController
   ) : ViewItem {
-    internal val onReady = SimpleSignal()
-    val onReadyListener = onReady.toListener()
+    var currentScale: Int = 100 // 表示不缩放
   }
 
   var downLoadObserver: DownLoadObserver? = null
@@ -139,14 +138,28 @@ class MultiWebViewController(
         navigator = navigator,
         win = win,
       ).also { viewItem ->
-        viewItem.webView.onReady { // 为了防止在窗口状态下，webview返回时失真问题。所以在webview加载完成后出发刷新
-          viewItem.coroutineScope.launch { viewItem.onReady.emit() }
-        }
         webViewList.add(viewItem)
         dWebView.onCloseWindow {
           closeWebView(webviewId)
         }
         webViewOpenSignal.emit(webviewId)
+
+        // 为了防止数据视图过大问题。
+        viewItem.webView.webViewClient = object : WebViewClient() {
+          override fun onScaleChanged(view: WebView?, oldScale: Float, newScale: Float) {
+            if ((newScale * 100).toInt() > viewItem.currentScale) {
+              val oldScaleInt = (oldScale * 100).toInt()
+              val scale = if (oldScaleInt != viewItem.currentScale - 1) {
+                viewItem.currentScale - 1
+              } else {
+                viewItem.currentScale
+              }
+              view?.setInitialScale(scale)
+            } else {
+              super.onScaleChanged(view, oldScale, newScale)
+            }
+          }
+        }
       }
     }
   }.getOrThrow()
