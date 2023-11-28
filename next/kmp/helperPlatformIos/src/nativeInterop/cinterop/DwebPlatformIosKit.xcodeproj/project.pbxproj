@@ -8,13 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		3D50D2D92B064BA5008891FC /* DwebPlatformIosKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		46282D682B0B603700A45995 /* DwebHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46282D672B0B603700A45995 /* DwebHelper.swift */; };
+		46282D682B0B603700A45995 /* DwebHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46282D672B0B603700A45995 /* DwebHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3D50D2D52B064BA5008891FC /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebPlatformIosKit.h; sourceTree = "<group>"; };
-		46282D672B0B603700A45995 /* DwebHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "\U0010DwebHelper.swift"; sourceTree = "<group>"; };
+		46282D672B0B603700A45995 /* DwebHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,7 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */,
-				46282D672B0B603700A45995 /* DwebHelper.swift */,
+				46282D672B0B603700A45995 /* DwebHelper.swift */,
 			);
 			path = DwebPlatformIosKit;
 			sourceTree = "<group>";
@@ -183,7 +183,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				46282D682B0B603700A45995 /* DwebHelper.swift in Sources */,
+				46282D682B0B603700A45995 /* DwebHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
