@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.konan.target.KonanTarget
+import java.io.ByteArrayOutputStream
 
 plugins {
   id("mobile-compose-target")
@@ -95,8 +96,24 @@ tasks.register("cinteropSync") {
 /// 项目一开始要做sync的时候
 gradle.projectsEvaluated {
   println("beforeProject: $name")
+  val output = ByteArrayOutputStream()
+
+  exec {
+    commandLine("which", "deno")
+    standardOutput = output
+    isIgnoreExitValue = true
+  }
+
+  val denoBinPath = output.toString().trim()
+  val userHome = System.getProperty("user.home")
+  var deno = denoBinPath.ifBlank { "$userHome/.deno/bin/deno" }
+
+  if(!file(deno).exists()) {
+    deno = "deno"
+  }
+
   exec {
     workingDir = projectDir.resolve("./src/nativeInterop/cinterop")
-    commandLine("deno", "run", "-A", "./build.ts")
+    commandLine(deno, "run", "-A", "./build.ts")
   }
 }
