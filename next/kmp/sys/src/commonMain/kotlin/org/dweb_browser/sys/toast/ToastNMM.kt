@@ -35,7 +35,7 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
   }
 
   override suspend fun _shutdown() {
-    TODO("Not yet implemented")
+
   }
 }
 

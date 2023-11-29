@@ -84,7 +84,7 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb", "haptics") {
   data class ResponseData(val message: String = "ok")
 
   override suspend fun _shutdown() {
-    TODO("Not yet implemented")
+
   }
 
   private fun String.removeArrayMark() = this.replace("[", "").replace("]", "")

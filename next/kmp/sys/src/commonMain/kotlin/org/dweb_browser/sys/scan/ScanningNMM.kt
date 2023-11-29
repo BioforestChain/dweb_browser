@@ -45,7 +45,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
   }
 
   override suspend fun _shutdown() {
-    TODO("Not yet implemented")
+
   }
 
 }

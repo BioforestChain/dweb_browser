@@ -30,6 +30,6 @@ class ConfigNMM : NativeMicroModule("config.sys.dweb", "Device Info") {
   }
 
   override suspend fun _shutdown() {
-    TODO("Not yet implemented")
+
   }
 }

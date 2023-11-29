@@ -27,6 +27,6 @@ class NotificationNMM : NativeMicroModule("notification.sys.dweb", "notification
   }
 
   override suspend fun _shutdown() {
-    TODO("Not yet implemented")
+
   }
 }

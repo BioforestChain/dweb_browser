@@ -1,5 +1,7 @@
 package org.dweb_browser.sys.toast
 
-actual suspend fun showToast(text: String, durationType: DurationType, positionType: PositionType) {
+import org.dweb_browser.helper.WARNING
 
+actual suspend fun showToast(text: String, durationType: DurationType, positionType: PositionType) {
+  WARNING("Not yet implemented showToast")
 }
