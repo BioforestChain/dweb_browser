@@ -20,7 +20,6 @@ fun BufferedSource.toByteReadChannel(scope: CoroutineScope = CoroutineScope(ioAs
     while (!end) {
       channel.write { freeSpace, startOffset, endExclusive ->
         var size = 0;
-        println("write start $startOffset..<$endExclusive")
         for (i in startOffset..<endExclusive) {
           try {
             freeSpace[i] = readByte()
@@ -30,7 +29,6 @@ fun BufferedSource.toByteReadChannel(scope: CoroutineScope = CoroutineScope(ioAs
             break
           }
         }
-        println("write end $size")
         size
       }
     }
