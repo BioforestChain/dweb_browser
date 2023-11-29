@@ -3,8 +3,6 @@ package org.dweb_browser.browser.desk
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -21,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
@@ -51,7 +48,7 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
   }
 
   @Composable
-  abstract fun TaskbarViewRender()
+  abstract fun TaskbarViewRender(draggableHelper: DraggableHelper, modifier: Modifier)
 
   /**
    * 普通的浮动窗口，背景透明
@@ -82,12 +79,16 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
         setter = { layoutY = it })
       val boxWidth by state.composableHelper.stateOf { layoutWidth }
       val boxHeight by state.composableHelper.stateOf { layoutHeight }
-      fun setBoxX(toX: Float) {
-        boxX = clamp(safeBounds.left, toX, safeBounds.right - boxWidth)
+      val setBoxX = remember(safeBounds) {
+        { toX: Float ->
+          boxX = clamp(safeBounds.left, toX, safeBounds.right - boxWidth)
+        }
       }
 
-      fun setBoxY(toY: Float) {
-        boxY = clamp(safeBounds.top, toY, safeBounds.bottom - boxHeight)
+      val setBoxY = remember(safeBounds) {
+        { toY: Float ->
+          boxY = clamp(safeBounds.top, toY, safeBounds.bottom - boxHeight)
+        }
       }
       if (boxX.isNaN()) {
         setBoxX(safeBounds.right)
@@ -101,50 +102,37 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
         Offset(boxX, boxY)
       }.value
 
-
-//      println("boxX:$boxX boxY:$boxY boxWidth:$boxWidth boxHeight:$boxHeight")
-//      Box(
-//        modifier = Modifier.zIndex(1000f).size(boxWidth.dp, boxHeight.dp)
-//          .offset(x = 0.dp, y = boxOffset.y.dp)
-//          .background(Color.Blue.copy(alpha = 0.2f))
-//      )
-//      Box(
-//        modifier = Modifier.zIndex(1000f).size(boxWidth.dp, boxHeight.dp)
-//          .offset(x = boxOffset.x.dp, y = 0.dp)
-//          .background(Color.Blue.copy(alpha = 0.2f))
-//      )
-      Box(
-        modifier = Modifier.zIndex(1000f).size(boxWidth.dp, boxHeight.dp)
-          .offset(x = boxOffset.x.dp, y = boxOffset.y.dp)
-          .clip(RoundedCornerShape(16.dp))
-          .background(Color.Black.copy(alpha = 0.2f))
-          .pointerInput(Unit) {
-            detectDragGestures(onDragEnd = {
-              inDrag = false
-              // 处理贴边
-              setBoxX(if (boxX > safeBounds.hCenter) safeBounds.right else safeBounds.left)
-            }, onDragStart = {
-              inDrag = true
-            }, onDrag = { _, dragAmount ->
-              setBoxX(boxX + dragAmount.x / density)
-              setBoxY(boxY + dragAmount.y / density)
-            })
-          }) {
-        TaskbarViewRender()
-//        // 这边屏蔽当前webview响应
-//        Box(modifier = Modifier
-//          .fillMaxSize()
-//          .clickableWithNoEffect {
-//            floatWindowState.value = false
-//            taskbarDWebView.requestFocus()
-//            openTaskActivity()
-//          })
+      val draggableHelper = remember(setBoxX, setBoxY) {
+        DraggableHelper(onDragStart = {
+          inDrag = true
+        }, onDrag = { dragAmount ->
+          setBoxX(boxX + dragAmount.x)
+          setBoxY(boxY + dragAmount.y)
+        }, onDragEnd = {
+          inDrag = false
+          // 处理贴边
+          setBoxX(if (boxX > safeBounds.hCenter) safeBounds.right else safeBounds.left)
+        })
       }
+
+      TaskbarViewRender(
+        draggableHelper,
+        Modifier.zIndex(1000f).size(boxWidth.dp, boxHeight.dp)
+          .offset(x = boxOffset.x.dp, y = boxOffset.y.dp).clip(RoundedCornerShape(16.dp))
+          .background(Color.Black.copy(alpha = 0.2f))
+      )
     }
   }
+
+  class DraggableHelper(
+    val onDragStart: (startPos: Offset) -> Unit,
+    val onDrag: (dragAmount: Offset) -> Unit,
+    val onDragEnd: () -> Unit
+  )
 
   @Composable
   abstract fun FloatWindow()
 }
+
 
 fun Offset.toIntOffset(density: Float) = IntOffset((density * x).toInt(), (density * y).toInt())

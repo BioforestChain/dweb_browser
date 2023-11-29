@@ -6,12 +6,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.zIndex
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -34,6 +35,11 @@ import platform.QuartzCore.kCALayerMinXMinYCorner
 import platform.UIKit.UIBlurEffect
 import platform.UIKit.UIBlurEffectStyle
 import platform.UIKit.UIColor
+import platform.UIKit.UIGestureRecognizerStateBegan
+import platform.UIKit.UIGestureRecognizerStateCancelled
+import platform.UIKit.UIGestureRecognizerStateChanged
+import platform.UIKit.UIGestureRecognizerStateEnded
+import platform.UIKit.UIPanGestureRecognizer
 import platform.UIKit.UITapGestureRecognizer
 import platform.UIKit.UIView
 import platform.UIKit.UIVisualEffectView
@@ -69,7 +75,7 @@ class TaskbarView private constructor(
 
   @OptIn(ExperimentalForeignApi::class)
   @Composable
-  override fun TaskbarViewRender() {  //创建毛玻璃效果层
+  override fun TaskbarViewRender(draggableHelper: DraggableHelper, modifier: Modifier) {  //创建毛玻璃效果层
     val isActivityMode by state.composableHelper.stateOf(getter = { floatActivityState })
     val visualEffectView = remember {
       UIVisualEffectView(effect = UIBlurEffect.effectWithStyle(style = UIBlurEffectStyle.UIBlurEffectStyleLight))
@@ -80,8 +86,18 @@ class TaskbarView private constructor(
         visualEffectView.setHidden(!isActivityMode)
       }
     }
-    taskbarDWebView.Render(Modifier.zIndex(2f).onSizeChanged {
-      val wkWebView = taskbarDWebView.asIosWebView()
+    val wkWebView = taskbarDWebView.asIosWebView()
+    val dragGesture = remember {
+      UIDragGesture(
+        view = wkWebView,
+        draggableHelper = draggableHelper,
+      )
+    }
+    val dragGestureRecognizer = remember {
+      UIPanGestureRecognizer(target = dragGesture, action = NSSelectorFromString("dragView:"))
+    }
+    dragGesture.draggableHelper = draggableHelper
+    taskbarDWebView.Render(modifier.onSizeChanged {
       wkWebView.mainScope.launch {
         val width = (it.width / density).toDouble()
         val height = (it.height / density).toDouble()
@@ -90,8 +106,10 @@ class TaskbarView private constructor(
         )
       }
     }, onCreate = {
-      val wkWebView = asIosWebView()
+
       withMainContext {
+        wkWebView.addGestureRecognizer(dragGestureRecognizer)
+
         visualEffectView.setFrame(wkWebView.frame)
 
         wkWebView.scrollView.insertSubview(visualEffectView, 0)
@@ -109,6 +127,9 @@ class TaskbarView private constructor(
     }
   }
 
+  /**
+   * 渲染背景遮罩层，并且提供事件绑定
+   */
   @OptIn(ExperimentalForeignApi::class)
   @Composable
   fun BackgroundViewRender(backgroundView: UIView) {
@@ -120,16 +141,13 @@ class TaskbarView private constructor(
       }
     }
     val onTap = remember {
-      UITapGestureRecognizer().apply {
-        addTarget(target = bgTapGesture, action = NSSelectorFromString("tapBackground:"))
-      }
+      UITapGestureRecognizer(target = bgTapGesture, action = NSSelectorFromString("tapBackground:"))
     }
     val sync = remember { Mutex() }
     DisposableEffect(Unit) {
       scope.launchWithMain {
         sync.withLock {
-          if (backgroundView.userInteractionEnabled) {
-          }
+
           backgroundView.setHidden(false)
           backgroundView.userInteractionEnabled = true
 
@@ -170,5 +188,40 @@ class UIBackgroundViewTapGesture(val onTap: () -> Unit) : NSObject() {
   @ObjCAction
   fun tapBackground(gesture: UITapGestureRecognizer) {
     onTap()
+  }
+}
+
+class UIDragGesture(
+  private val view: UIView,
+  var draggableHelper: ITaskbarView.DraggableHelper,
+) : NSObject() {
+  @OptIn(ExperimentalForeignApi::class)
+  fun getPoint(gesture: UIPanGestureRecognizer): Offset {
+    val point = gesture.translationInView(view = view)
+    val offset = point.useContents {
+      Offset(x.toFloat(), y.toFloat())
+    }
+    return offset
+  }
+
+  private var prePoint = Offset.Zero
+
+  @OptIn(BetaInteropApi::class)
+  @ObjCAction
+  fun dragView(gesture: UIPanGestureRecognizer) {
+
+    when (gesture.state) {
+      UIGestureRecognizerStateBegan -> {
+        draggableHelper.onDragStart(getPoint(gesture).also { prePoint = it })
+      }
+
+      UIGestureRecognizerStateChanged -> draggableHelper.onDrag(getPoint(gesture).let {
+        val diff = it - prePoint
+        prePoint = it
+        diff
+      })
+
+      UIGestureRecognizerStateEnded, UIGestureRecognizerStateCancelled -> draggableHelper.onDragEnd()
+    }
   }
 }

@@ -2,10 +2,15 @@ package org.dweb_browser.browser.desk
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
@@ -34,8 +39,18 @@ class TaskbarView private constructor(
   }
 
   @Composable
-  override fun TaskbarViewRender() {
-    taskbarDWebView.Render()
+  override fun TaskbarViewRender(draggableHelper: DraggableHelper, modifier: Modifier) {
+    val density = LocalDensity.current.density
+    Box(modifier = modifier.pointerInput(Unit) {
+      detectDragGestures(onDragEnd = draggableHelper.onDragEnd,
+        onDragCancel = draggableHelper.onDragEnd,
+        onDragStart = draggableHelper.onDragStart,
+        onDrag = { _, dragAmount ->
+          draggableHelper.onDrag(dragAmount.div(density))
+        })
+    }) {
+      taskbarDWebView.Render()
+    }
   }
 
   @Composable
