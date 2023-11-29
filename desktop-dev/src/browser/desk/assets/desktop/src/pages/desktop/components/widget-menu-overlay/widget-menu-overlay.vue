@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { vOnLongPress } from "@vueuse/components";
+import { dispatchContextMenuEvent } from "src/provider/shim.ts";
 import { shallowRef, triggerRef } from "vue";
 const props = defineProps({
   showReason: {
@@ -62,7 +63,7 @@ export const showOverlay = (reason: {}, toggle = true) => {
       v-if="overlayReasons.size"
       @click="emits('close')"
       @contextmenu="emits('close')"
-      v-on-long-press.prevent="emits('close')"
+      v-on-long-press.prevent="dispatchContextMenuEvent"
     ></div>
   </Transition>
 </template>

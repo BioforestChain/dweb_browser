@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vOnLongPress } from "@vueuse/components";
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import {
   $WatchEffectAppMetadataToAppIconReturn,
@@ -17,11 +18,11 @@ import {
   watchTaskbarAppInfo,
   watchTaskBarStatus,
 } from "src/provider/api.ts";
+import { dispatchContextMenuEvent } from "src/provider/shim.ts";
 import { $TaskBarState, $WidgetAppData } from "src/types/app.type.ts";
 import { computed, onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef } from "vue";
 import { icons } from "./icons/index.ts";
 import x_circle_svg from "./icons/x-circle.svg";
-import { vOnLongPress } from '@vueuse/components'
 
 /** 打开桌面面板 */
 const toggleDesktopButton = async () => {
@@ -199,7 +200,7 @@ const iconSize = "45px";
             @click="doOpen(appIcon.metaData)"
             @dblclick="doToggleMaximize(appIcon.metaData)"
             @contextmenu="tryOpenMenuOverlay(appIcon.metaData)"
-            v-on-long-press.prevent="tryOpenMenuOverlay(appIcon.metaData)"
+            v-on-long-press.prevent="dispatchContextMenuEvent"
           >
             <button
               v-if="showMenuOverlayRef === appIcon.metaData.mmid"

@@ -1,11 +1,12 @@
 <script lang="ts" setup>
+import { vOnLongPress } from "@vueuse/components";
 import { useThrottleFn } from "@vueuse/core";
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import { closeBrowser, detailApp, openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
-import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
+import { $CloseWatcher, CloseWatcher, dispatchContextMenuEvent } from "src/provider/shim.ts";
 import type { $WidgetAppData } from "src/types/app.type.ts";
 import { computed, reactive, ref, shallowRef, watch } from "vue";
 import AppUnInstallDialog from "../app-uninstall-dialog/app-uninstall-dialog.vue";
@@ -14,7 +15,6 @@ import delete_svg from "./delete.svg";
 import details_svg from "./details.svg";
 import quit_svg from "./quit.svg";
 import share_svg from "./share.svg";
-import { vOnLongPress } from '@vueuse/components'
 
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 
@@ -146,7 +146,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
           @click="[$menu.close, doOpen]"
           @contextmenu="$menu.show"
-          v-on-long-press.prevent="$menu.show"
+          v-on-long-press.prevent="dispatchContextMenuEvent"
         >
           <AppIcon
             @click="doOpen"

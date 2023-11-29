@@ -5,7 +5,7 @@ import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMeta
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import { openBrowser, vibrateHeavyClick } from "src/provider/api.ts";
-import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
+import { $CloseWatcher, CloseWatcher, dispatchContextMenuEvent } from "src/provider/shim.ts";
 import { $WidgetAppData } from "src/types/app.type";
 import { computed, onMounted, reactive, ref, shallowRef, watch, watchEffect } from "vue";
 import WebAppUnInstallDialog from "../webapp-uninstall-dialog/webapp-uninstall-dialog.vue";
@@ -122,7 +122,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
           @click="[$menu.close, doOpen]"
           @contextmenu="$menu.show"
-          v-on-long-press.prevent="$menu.show"
+          v-on-long-press.prevent="dispatchContextMenuEvent"
         >
           <AppIcon
             @click="doOpen"
