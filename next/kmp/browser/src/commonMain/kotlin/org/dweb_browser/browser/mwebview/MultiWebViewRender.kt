@@ -82,8 +82,12 @@ fun MultiWebViewController.Render(
             viewItem.webView.setContentScale(scale, width, height, density)
           }
           viewItem.webView.Render(Modifier.fillMaxSize())
+          AfterViewItemRender(viewItem)
         }
       }
     }
   }
 }
+
+@Composable
+expect fun MultiWebViewController.AfterViewItemRender(viewItem: MultiWebViewController.MultiViewItem)

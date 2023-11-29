@@ -8,8 +8,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
@@ -30,26 +30,23 @@ fun RenderWindowInNewLayer(
   zIndexBase: Int
 ) {
   val nativeScope = nativeViewController.scope
+  val maxWidth = rememberUpdatedState(currentMaxWidth)
+  val maxHeight = rememberUpdatedState(currentMaxHeight)
   val params = remember {
     mutableMapOf(
-      "maxWidth" to mutableStateOf(currentMaxWidth),
-      "maxHeight" to mutableStateOf(currentMaxHeight),
+      "maxWidth" to maxWidth,
+      "maxHeight" to maxHeight,
     )
-  }
-  LaunchedEffect(currentMaxWidth, currentMaxHeight) {
-    params["maxWidth"]!!.value = currentMaxWidth
-    params["maxHeight"]!!.value = currentMaxHeight
   }
   val microModule = LocalWindowMM.current
   val pvc = remember {
     PureViewController(params).also { pvc ->
       pvc.onCreate { params ->
-        pvc.addContent {
-          @Suppress("UNCHECKED_CAST")
+        @Suppress("UNCHECKED_CAST") pvc.addContent {
           val maxWidth by params["maxWidth"] as State<Float>
-
-          @Suppress("UNCHECKED_CAST")
           val maxHeight by params["maxHeight"] as State<Float>
+          // TODO: 等待 currentCompositionLocalContext 可用
+          // https://youtrack.jetbrains.com/issue/KT-63869/androidx.compose.runtime.ComposeRuntimeError-Compose-Runtime-internal-error.-Unexpected-or-incorrect-use-of-the-Compose-internal
           CompositionLocalProvider(
             LocalWindowsManager provides windowsManager,
             LocalWindowMM provides microModule,

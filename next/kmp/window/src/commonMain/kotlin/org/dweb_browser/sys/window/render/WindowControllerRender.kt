@@ -80,6 +80,7 @@ fun WindowController.Render(
     LocalWindowControllerTheme provides theme,
     LocalWindowController provides win,
   ) {
+
     /// 显示模态层，模态层不受 isVisible 的控制
     val modal by win.openingModal
     modal?.Render()
@@ -112,70 +113,76 @@ fun WindowController.Render(
     if (opacity == 0f) {
       return@CompositionLocalProvider
     }
-    /// 开始绘制窗口
-    Box(
-      modifier = with(winBounds) {
-        modifier
-          .offset(x.dp, y.dp)
-          .size(width.dp, height.dp)
-      }
-        .graphicsLayer {
-          alpha = opacity
-          scaleX = scale
-          scaleY = scale
-        }
-        .shadow(
-          elevation = elevation.dp, shape = winPadding.boxRounded.toRoundedCornerShape()
-        ),
+
+    val windowFrameStyle = WindowFrameStyle(scale, opacity)
+    CompositionLocalProvider(
+      LocalWindowFrameStyle provides windowFrameStyle,
     ) {
-      //#region 窗口内容
-      Column(
-        Modifier
-          .background(theme.winFrameBrush)
-          .clip(winPadding.boxRounded.toRoundedCornerShape())
-          .clickable {
-            win.emitFocusOrBlur(true)
-          }) {
-        /// 标题栏
-        WindowTopBar(win)
-        /// 显示内容
-        Box(
+      /// 开始绘制窗口
+      Box(
+        modifier = with(winBounds) {
+          modifier
+            .offset(x.dp, y.dp)
+            .size(width.dp, height.dp)
+        }
+          .graphicsLayer {
+            alpha = opacity
+            scaleX = scale
+            scaleY = scale
+          }
+          .shadow(
+            elevation = elevation.dp, shape = winPadding.boxRounded.toRoundedCornerShape()
+          ),
+      ) {
+        //#region 窗口内容
+        Column(
           Modifier
-            .weight(1f)
-            .zIndex(2f)
-            .padding(start = winPadding.left.dp, end = winPadding.right.dp)// TODO 这里要注意布局方向
-        ) {
-          val windowRenderScope = remember(limits, winPadding) {
-            WindowRenderScope(
-              winPadding.contentBounds.width,
-              winPadding.contentBounds.height,
-              win.calcContentScale(limits, winPadding)
+            .background(theme.winFrameBrush)
+            .clip(winPadding.boxRounded.toRoundedCornerShape())
+            .clickable {
+              win.emitFocusOrBlur(true)
+            }) {
+          /// 标题栏
+          WindowTopBar(win)
+          /// 显示内容
+          Box(
+            Modifier
+              .weight(1f)
+              .zIndex(2f)
+              .padding(start = winPadding.left.dp, end = winPadding.right.dp)// TODO 这里要注意布局方向
+          ) {
+            val windowRenderScope = remember(limits, winPadding) {
+              WindowRenderScope(
+                winPadding.contentBounds.width,
+                winPadding.contentBounds.height,
+                win.calcContentScale(limits, winPadding)
+              )
+            }
+            windowAdapterManager.Renderer(
+              win.state.constants.wid,
+              windowRenderScope,
+              Modifier.clip(winPadding.contentRounded.toRoundedCornerShape())
             )
           }
-          windowAdapterManager.Renderer(
-            win.state.constants.wid,
-            windowRenderScope,
-            Modifier.clip(winPadding.contentRounded.toRoundedCornerShape())
+          /// 显示底部控制条
+          WindowBottomBar(win, Modifier.zIndex(1f))
+        }
+        //#endregion
+
+        /**
+         * 窗口是否聚焦
+         */
+        val isFocus by win.watchedState { focus }
+
+        /// 失去焦点的时候，提供 movable 的遮罩（在移动中需要确保遮罩存在）
+        if (inMove or !isFocus) {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .background(MaterialTheme.colorScheme.onSurface.copy(alpha = if (isFocus) 0f else 0.2f))
+              .windowMoveAble(win)
           )
         }
-        /// 显示底部控制条
-        WindowBottomBar(win, Modifier.zIndex(1f))
-      }
-      //#endregion
-
-      /**
-       * 窗口是否聚焦
-       */
-      val isFocus by win.watchedState { focus }
-
-      /// 失去焦点的时候，提供 movable 的遮罩（在移动中需要确保遮罩存在）
-      if (inMove or !isFocus) {
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = if (isFocus) 0f else 0.2f))
-            .windowMoveAble(win)
-        )
       }
     }
   }

@@ -40,9 +40,13 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.http.toFetchResponse
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Observable
+import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
+import org.dweb_browser.helper.getOrPut
+import org.dweb_browser.helper.platform.getCornerRadiusBottom
+import org.dweb_browser.helper.platform.getCornerRadiusTop
 import org.dweb_browser.helper.platform.noLocalProvidedFor
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.platform.theme.md_theme_dark_inverseOnSurface
@@ -51,10 +55,6 @@ import org.dweb_browser.helper.platform.theme.md_theme_dark_surface
 import org.dweb_browser.helper.platform.theme.md_theme_light_inverseOnSurface
 import org.dweb_browser.helper.platform.theme.md_theme_light_onSurface
 import org.dweb_browser.helper.platform.theme.md_theme_light_surface
-import org.dweb_browser.helper.getOrPut
-import org.dweb_browser.helper.platform.getCornerRadiusBottom
-import org.dweb_browser.helper.platform.getCornerRadiusTop
-import org.dweb_browser.helper.Rect
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.WindowsManager
@@ -213,6 +213,10 @@ val LocalWindowsManager =
   compositionLocalOf<WindowsManager<*>> { noLocalProvidedFor("WindowsManager") }
 val LocalWindowsImeVisible =
   compositionLocalOf { mutableStateOf(false) } // 由于小米手机键盘收起会有异常，所以自行维护键盘的显示和隐藏
+
+val LocalWindowFrameStyle = compositionLocalOf { WindowFrameStyle(1f, 1f) }
+
+data class WindowFrameStyle(val scale: Float, val opacity: Float)
 
 data class WindowLimits(
   val minWidth: Float,
