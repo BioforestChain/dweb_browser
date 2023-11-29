@@ -11,15 +11,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.canRead
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.printError
-import org.dweb_browser.helper.readByteArray
-import org.dweb_browser.helper.toLittleEndianByteArray
-import org.dweb_browser.helper.toUtf8
-import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
@@ -39,10 +30,17 @@ import org.dweb_browser.core.ipc.helper.IpcStreamPaused
 import org.dweb_browser.core.ipc.helper.IpcStreamPulling
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.ipc.helper.jsonToIpcMessage
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.canRead
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.readByteArray
+import org.dweb_browser.helper.toLittleEndianByteArray
+import org.dweb_browser.helper.toUtf8
+import org.dweb_browser.helper.toUtf8ByteArray
 
 
-fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
-  printDebug("stream-ipc", tag, msg, err)
+val debugStreamIpc = Debugger("stream-ipc")
 
 /**
  * 基于 WebReadableStream 的IPC
@@ -143,7 +141,7 @@ class ReadableStreamIpc(
         }
         debugStreamIpc("END", "$stream")
       } catch (e: Exception) {
-        printError("ReadableStreamIpc", "output stream closed", e)
+        debugStreamIpc("ReadableStreamIpc", "output stream closed:${e.stackTraceToString()}")
       }
       // 流是双向的，对方关闭的时候，自己也要关闭掉
       this.close()

@@ -13,8 +13,13 @@ import kotlin.jvm.JvmInline
  * Renderer：窗口由 window.sys.dweb 被创建后，要求窗口拥有着对内容进行渲染
  */
 private const val RENDERER_EVENT_NAME = "renderer"
-fun IpcEvent.Companion.createRenderer(data: String) = fromUtf8(RENDERER_EVENT_NAME, data)
+private const val RENDERER_DESTROY_EVENT_NAME = "renderer-destroy"
+fun IpcEvent.Companion.createRenderer(wid: String) = fromUtf8(RENDERER_EVENT_NAME, wid)
+fun IpcEvent.Companion.createRendererDestroy(wid: String) =
+  fromUtf8(RENDERER_DESTROY_EVENT_NAME, wid)
+
 fun IpcEvent.isRenderer() = name == RENDERER_EVENT_NAME
+fun IpcEvent.isRendererDestroy() = name == RENDERER_DESTROY_EVENT_NAME
 
 private val mainWindowIdWM = WeakHashMap<NativeMicroModule, CompletableDeferred<UUID>>()
 private fun getMainWindowIdWMDeferred(mm: NativeMicroModule) =
@@ -33,6 +38,8 @@ fun NativeMicroModule.onRenderer(cb: suspend RendererContext.() -> Unit) = onCon
       val context = RendererContext(args)
       getMainWindowIdWMDeferred(this@onRenderer).complete(context.wid)
       context.cb()
+    } else if (args.event.isRendererDestroy()) {
+      mainWindowIdWM.remove(this@onRenderer)?.cancel()
     }
   }
 }

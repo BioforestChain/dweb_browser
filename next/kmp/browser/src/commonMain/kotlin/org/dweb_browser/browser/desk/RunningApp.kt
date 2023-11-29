@@ -8,8 +8,9 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowConstants
-import org.dweb_browser.sys.window.ext.createRenderer
 import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.ext.createRenderer
+import org.dweb_browser.sys.window.ext.createRendererDestroy
 
 /**
  * 在Desk视角，运行中的Application实例
@@ -51,6 +52,8 @@ class RunningApp(
     val wid = newWin.id
     /// 窗口销毁的时候
     newWin.onClose {
+      /// 通知模块，销毁渲染
+      ipc.postMessage(IpcEvent.createRendererDestroy(wid))
       // 移除渲染适配器
       windowAdapterManager.renderProviders.remove(wid)
       // 从引用中移除
