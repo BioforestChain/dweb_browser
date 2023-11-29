@@ -26,7 +26,6 @@ fun MultiWebViewController.Render(
   width: Float,
   height: Float,
 ) {
-  val controller = this;
   val win = LocalWindowController.current
   Box(modifier) {
     var list by remember {

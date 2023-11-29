@@ -212,7 +212,6 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   @OptIn(ExperimentalForeignApi::class)
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
     withMainContext {
-      println("scale: $scale")
       val frame = engine.frame;
       engine.transform = CGAffineTransformMakeScale(scale.toDouble(), scale.toDouble())
       engine.setFrame(frame)

@@ -1,11 +1,16 @@
 package info.bagen.dwebbrowser
 
-import kotlinx.coroutines.*
-import org.dweb_browser.helper.*
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.datetimeNow
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.getAndUpdate
 
 class PromiseOutTest {
   @Test
@@ -91,12 +96,12 @@ class PromiseOutTest {
       val po = PromiseOut<Unit>()
       GlobalScope.launch {
         delay(100)
-        result1.getAndUpdate { cur -> cur.inc() }
+        result1.update { cur -> cur.inc() }
         po.resolve(Unit)
       }
       GlobalScope.launch {
         po.waitPromise()
-        result2.getAndUpdate { cur -> cur.inc()}
+        result2.update { cur -> cur.inc()}
       }
     }
 

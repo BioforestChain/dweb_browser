@@ -1,19 +1,19 @@
 package org.dweb_browser.helper.platform.offscreenwebcanvas
 
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.helper.SafeInt
 
 internal class OffscreenWebCanvasCore {
 
   val channel = OffscreenWebCanvasMessageChannel()
-  private val ridAcc = atomic(0)
+  private var ridAcc by SafeInt(1)
 
   suspend fun runJsCodeWithResult(
     returnType: ReturnType, jsCode: String,
   ): Any? {
-    val rid = ridAcc.incrementAndGet()
+    val rid = ridAcc++
     val evalResult = CompletableDeferred<Any?>()
     val resultPrefix = "$rid:"
     val errorPrefix = "throw:"

@@ -12,7 +12,6 @@ import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.uikit.ComposeUIViewControllerDelegate
 import androidx.compose.ui.window.ComposeUIViewController
 import androidx.compose.ui.zIndex
-import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -20,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
@@ -28,7 +28,7 @@ import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeVie
 import org.dweb_browser.helper.withMainContext
 import platform.UIKit.UIView
 
-private var vcIdAcc by atomic(0);
+private var vcIdAcc by SafeInt(0);
 
 class PureViewController(
   val createParams: PureViewCreateParams = PureViewCreateParams(mapOf())

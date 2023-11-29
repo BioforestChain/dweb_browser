@@ -1,7 +1,8 @@
 package org.dweb_browser.core.ipc
 
 import io.ktor.http.Url
-import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +33,7 @@ import org.dweb_browser.core.ipc.helper.OnIpcStreamMessage
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeHashMap
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
@@ -41,8 +43,8 @@ val debugIpc = Debugger("ipc")
 
 abstract class Ipc {
   companion object {
-    private var uid_acc by atomic(1)
-    private var req_id_acc by atomic(0)
+    private var uid_acc by SafeInt(1)
+    private var req_id_acc by SafeInt(0)
     private val ipcMessageCoroutineScope =
       CoroutineScope(CoroutineName("ipc-message") + ioAsyncExceptionHandler)
   }
@@ -114,15 +116,13 @@ abstract class Ipc {
     return signal
   }
 
-  private val _requestSignal by lazy {
+  private val _requestSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     _createSignal<IpcRequestMessageArgs>().also { signal ->
       _messageSignal.listen { args ->
         if (args.message is IpcRequest) {
           ipcMessageCoroutineScope.launch {
             signal.emit(
-              IpcRequestMessageArgs(
-                args.message, args.ipc
-              )
+              IpcRequestMessageArgs(args.message, args.ipc)
             )
           }
         }
@@ -132,11 +132,10 @@ abstract class Ipc {
 
   fun onRequest(cb: OnIpcRequestMessage) = _requestSignal.listen(cb)
 
-  private val _responseSignal by lazy {
+  private val _responseSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     _createSignal<IpcResponseMessageArgs>().also { signal ->
       _messageSignal.listen { args ->
         if (args.message is IpcResponse) {
-          println("QAQ emit IpcResponse: ${args.message.req_id}")
           ipcMessageCoroutineScope.launch {
             signal.emit(
               IpcResponseMessageArgs(
@@ -151,7 +150,7 @@ abstract class Ipc {
 
   private fun onResponse(cb: OnIpcResponseMessage) = _responseSignal.listen(cb)
 
-  private val _streamSignal by lazy {
+  private val _streamSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     val signal = _createSignal<IpcStreamMessageArgs>()
     /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
     /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
@@ -178,7 +177,7 @@ abstract class Ipc {
 
   fun onStream(cb: OnIpcStreamMessage) = _streamSignal.listen(cb)
 
-  private val _eventSignal by lazy {
+  private val _eventSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     _createSignal<IpcEventMessageArgs>().also { signal ->
       _messageSignal.listen { args ->
         if (args.message is IpcEvent) {
@@ -246,13 +245,12 @@ abstract class Ipc {
   suspend fun request(url: Url) =
     request(PureRequest(method = IpcMethod.GET, href = url.toString()))
 
-  private val _reqResMap by lazy {
+  private val _reqResMap by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     SafeHashMap<Int, CompletableDeferred<IpcResponse>>().also { reqResMap ->
       onResponse { (response) ->
         val result = reqResMap.remove(response.req_id)
           ?: throw Exception("no found response by req_id: ${response.req_id}")
         result.complete(response)
-        println("QAQ complete response with req_id: ${response.req_id}")
       }
     }
   }
@@ -281,12 +279,11 @@ abstract class Ipc {
 
   suspend fun request(url: String, init: IpcRequestInit): IpcResponse {
     val ipcRequest = this._buildIpcRequest(url, init)
-    val result = this.registerReqId(ipcRequest.req_id)
-    this.postMessage(ipcRequest)
-    return result.await()
+    return request(ipcRequest)
   }
 
-  private fun allocReqId() = req_id_acc++
+  private val reqIdSyncObj = SynchronizedObject()
+  private fun allocReqId() = synchronized(reqIdSyncObj) { ++req_id_acc }
 
   /** 自定义注册 请求与响应 的id */
   private fun registerReqId(req_id: Int = this.allocReqId()): CompletableDeferred<IpcResponse> {
@@ -297,7 +294,7 @@ abstract class Ipc {
 
   /// 应用级别的 Ready协议，使用ping-pong方式来等待对方准备完毕，这不是必要的，确保双方都准寻这个协议才有必要去使用
   /// 目前使用这个协议的主要是Web端（它同时还使用了 Activity协议）
-  private val readyListener by lazy {
+  private val readyListener by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     val ready = CompletableDeferred<IpcEvent>()
     this.onEvent { (event, ipc) ->
 

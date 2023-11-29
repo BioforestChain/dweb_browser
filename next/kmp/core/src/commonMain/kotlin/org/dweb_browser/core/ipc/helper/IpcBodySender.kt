@@ -2,7 +2,6 @@ package org.dweb_browser.core.ipc.helper
 
 import io.ktor.util.cio.toByteArray
 import io.ktor.utils.io.cancel
-import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
@@ -23,6 +22,7 @@ import org.dweb_browser.core.http.PureString
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.SafeHashMap
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WeakHashMap
@@ -287,7 +287,7 @@ class IpcBodySender(
 
     private val streamIdWM by lazy { WeakHashMap<PureStream, String>() }
 
-    private var stream_id_acc by atomic(1);
+    private var stream_id_acc by SafeInt(1);
     private val env = randomUUID()
     private fun getStreamId(stream: PureStream): String = streamIdWM.getOrPut(stream) {
       "rs-$env-${stream_id_acc++}"

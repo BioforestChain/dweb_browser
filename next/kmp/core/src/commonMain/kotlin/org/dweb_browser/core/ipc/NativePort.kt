@@ -1,11 +1,11 @@
 package org.dweb_browser.core.ipc
 
-import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import org.dweb_browser.helper.Callback
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
@@ -44,15 +44,15 @@ class SharedCloseSignal {
 }
 
 class NativePort<I, O>(
-  private val channel_in: Channel<I>,
-  private val channel_out: Channel<O>,
+  private val channelIn: Channel<I>,
+  private val channelOut: Channel<O>,
   private val cs: SharedCloseSignal
 ) {
   companion object {
-    private var uid_acc = atomic(1);
+    private var uid_acc by SafeInt(1);
   }
 
-  private val uid = uid_acc.getAndAdd(1)
+  private val uid = uid_acc++
   override fun toString() = "#p$uid"
 
   private var started = false
@@ -70,7 +70,7 @@ class NativePort<I, O>(
     }
 
     debugNativeIpc("port-message-start/$this")
-    for (message in channel_in) {
+    for (message in channelIn) {
       debugNativeIpc("port-message-in/$this << $message")
       _messageSignal.emit(message)
       debugNativeIpc("port-message-waiting/$this")
@@ -88,7 +88,7 @@ class NativePort<I, O>(
 
   private suspend fun _close() {
     /// 关闭输出就行了
-    channel_out.close()
+    channelOut.close()
     _closeSignal.emitAndClear()
     debugNativeIpc("port-closed/${this}")
   }
@@ -100,9 +100,9 @@ class NativePort<I, O>(
    */
   @OptIn(DelicateCoroutinesApi::class)
   suspend fun postMessage(msg: O) {
-    debugNativeIpc("message-out/$this >>", "$msg ${!channel_out.isClosedForSend}")
-    if (!channel_out.isClosedForSend) {
-      channel_out.send(msg)
+    debugNativeIpc("message-out/$this >>", "$msg ${!channelOut.isClosedForSend}")
+    if (!channelOut.isClosedForSend) {
+      channelOut.send(msg)
     } else {
       debugNativeIpc("postMessage", " handle the closed channel case!")
     }

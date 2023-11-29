@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jsProcess
 
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -17,6 +16,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
 import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
@@ -30,7 +30,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
   /**
    * 执行js"多步骤"代码时的并发编号
    */
-  private var hidAcc = atomic(1);
+  private var hidAcc by SafeInt(1);
 
   suspend fun createProcess(
     env_script_url: String,
@@ -45,7 +45,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val metadata_json_str = Json.encodeToString(metadata_json)
     val env_json_str = Json.encodeToString(env_json)
 
-    val hid = hidAcc.addAndGet(1);
+    val hid = hidAcc++
     val processInfo_json = dWebView.evaluateAsyncJavascriptCode("""
             new Promise((resolve,reject)=>{
                 addEventListener("message", async function doCreateProcess(event) {
@@ -100,7 +100,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val port1 = channel.port1
     val port2 = channel.port2
     val jsIpcPortId = saveNative2JsIpcPort(port2)
-    val hid = hidAcc.getAndAdd(1);
+    val hid = hidAcc++
     dWebView.evaluateAsyncJavascriptCode("""
         new Promise((resolve,reject)=>{
             addEventListener("message", async function doCreateIpc(event) {

@@ -22,7 +22,6 @@ import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.copyAndClose
 import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.writeAvailable
-import kotlinx.atomicfu.atomic
 import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureBinaryBody
 import org.dweb_browser.core.http.PureEmptyBody
@@ -36,6 +35,7 @@ import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.ipc.helper.debugStream
 import org.dweb_browser.helper.ByteReadChannelDelegate
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.readByteArray
@@ -107,12 +107,12 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
   }
 }
 
-var debugStreamAccId = atomic(1)
+var debugStreamAccId by SafeInt(1)
 
 private suspend fun ByteReadPacket.copyToWithFlush(
   output: ByteWriteChannel, bufferSize: Int = DEFAULT_BUFFER_SIZE
 ): Long {
-  val id = debugStreamAccId.incrementAndGet();
+  val id = debugStreamAccId++
   debugStream("copyToWithFlush", "SS[$id] start")
   var bytesCopied: Long = 0
 //  val buffer = ByteArray(bufferSize)
@@ -188,7 +188,7 @@ suspend fun HttpResponse.toPureResponse(
 }
 
 fun ByteReadChannel.consumeToReadableStream() = ReadableStream(onOpenReader = { controller ->
-  val id = debugStreamAccId.incrementAndGet();
+  val id = debugStreamAccId++;
   debugStream("toReadableStream", "SS[$id] start")
   this@consumeToReadableStream.consumeEachArrayRange { byteArray, last ->
     controller.enqueue(byteArray)

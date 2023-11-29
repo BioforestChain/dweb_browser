@@ -50,9 +50,6 @@ data class WindowRenderScope internal constructor(
     height: Float,
     scale: Float,
   ) : this(width, height, scale, width.dp, height.dp)
-  init {
-    println("QAQ WindowRenderScope width=$width, height=$height, scale=$scale")
-  }
 }
 typealias WindowRenderProvider = @Composable WindowRenderScope.(modifier: Modifier) -> Unit
 

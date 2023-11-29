@@ -1,16 +1,16 @@
 package info.bagen.dwebbrowser
 
 import io.ktor.utils.io.cancel
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.dweb_browser.core.ipc.helper.ReadableStream
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.canReadContent
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.readAvailableByteArray
-import org.dweb_browser.core.ipc.helper.ReadableStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -33,7 +33,7 @@ class ReadableStreamTestTest {
       println("onClose xxx")
     })
 
-    var result by atomic(0)
+    var result by SafeInt(0)
 
     val reader = stream.stream.getReader("")
     while (reader.canReadContent()) {

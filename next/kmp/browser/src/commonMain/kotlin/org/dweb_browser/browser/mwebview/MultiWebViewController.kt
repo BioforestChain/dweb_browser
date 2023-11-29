@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.mwebview
 
 import androidx.compose.runtime.Stable
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.encodeToString
@@ -16,6 +15,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.ChangeableList
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.withMainContext
@@ -43,7 +43,7 @@ class MultiWebViewController(
   private val remoteMM: MicroModule,
 ) {
   companion object {
-    private var webviewId_acc by atomic(1)
+    private var webviewId_acc by SafeInt(1)
   }
 
   val webViewList = ChangeableList<MultiViewItem>()

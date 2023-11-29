@@ -6,11 +6,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.dwebview.ICloseWatcher
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.withMainContext
 
 internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   companion object {
-    private val acc_id = atomic(1)
+    private var acc_id by SafeInt(1)
     const val JS_POLYFILL_KIT = "__native_close_watcher_kit__"
   }
 
@@ -19,7 +20,7 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   val watchers = mutableListOf<ICloseWatcher.IWatcher>()
 
   inner class Watcher : ICloseWatcher.IWatcher {
-    override val id = acc_id.getAndAdd(1).toString()
+    override val id = (acc_id++).toString()
     private var _destroy = atomic(false)
     private val closeMutex = Mutex()
     override suspend fun tryClose(): Boolean = closeMutex.withLock {

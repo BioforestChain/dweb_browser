@@ -10,8 +10,6 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import io.ktor.http.Url
-import kotlinx.atomicfu.AtomicInt
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -38,10 +36,11 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.create
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.build
-import org.dweb_browser.helper.platform.noLocalProvidedFor
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.platform.noLocalProvidedFor
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
@@ -83,7 +82,7 @@ class BrowserViewModel(
   private val browserNMM: NativeMicroModule,
   private val browserServer: HttpDwebServer,
 ) {
-  private var webviewIdAcc: AtomicInt = atomic(1)
+  private var webviewIdAcc by SafeInt(1)
   private val currentBrowserBaseView: MutableState<BrowserWebView?> = mutableStateOf(null)
   private val browserViewList: MutableList<BrowserWebView> = mutableStateListOf() // 多浏览器列表
   val currentTab get() = currentBrowserBaseView.value
@@ -187,7 +186,7 @@ class BrowserViewModel(
     createBrowserWebView(createDwebView(url))
 
   private suspend fun createBrowserWebView(dWebView: IDWebView): BrowserWebView = withMainContext {
-    val webviewId = "#w${webviewIdAcc.getAndAdd(1)}"
+    val webviewId = "#w${webviewIdAcc++}"
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val viewItem = DWebViewItem(
       webviewId = webviewId,

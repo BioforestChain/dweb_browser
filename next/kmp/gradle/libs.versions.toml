@@ -31,7 +31,7 @@ ktor-version = "2.3.6"
 
 kotlinx-coroutines = "1.7.3"
 kotlinx-datetime-version = "0.4.1"
-kotlinx-atomicfu-version = "0.22.0"
+kotlinx-atomicfu-version = "0.23.1"
 kotlinx-io-version = "0.3.0"
 okio-version = "3.6.0"
 cryptography-version = "0.2.0"

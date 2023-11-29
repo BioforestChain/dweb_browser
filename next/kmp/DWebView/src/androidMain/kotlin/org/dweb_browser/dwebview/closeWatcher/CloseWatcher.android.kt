@@ -15,7 +15,7 @@ import org.dweb_browser.helper.*
 class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
 
   companion object {
-    val acc_id = atomic(1)
+    var acc_id by SafeInt(1)
     const val JS_POLYFILL_KIT = "__native_close_watcher_kit__"
   }
 
@@ -55,7 +55,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   private val watchers = mutableListOf<ICloseWatcher.IWatcher>()
 
   inner class Watcher : ICloseWatcher.IWatcher {
-    override val id = acc_id.getAndAdd(1).toString()
+    override val id = (acc_id++).toString()
     private var _destroy = atomic(false)
     private val closeMutex = Mutex()
     override suspend fun tryClose(): Boolean = closeMutex.withLock {

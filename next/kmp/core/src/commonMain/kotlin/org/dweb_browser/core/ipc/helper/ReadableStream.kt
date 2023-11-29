@@ -11,6 +11,7 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.helper.ByteReadChannelDelegate
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toUtf8ByteArray
@@ -111,7 +112,7 @@ class ReadableStream(
 
 
   companion object {
-    private var id_acc by atomic(1)
+    private var id_acc by SafeInt(1)
   }
 
   val uid = "#s${id_acc++}${if (cid != null) "($cid)" else ""}"

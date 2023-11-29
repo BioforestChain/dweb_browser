@@ -20,6 +20,7 @@ import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.helper.Query
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getKtorServerEngine
 import org.dweb_browser.helper.platform.httpFetcher
@@ -70,7 +71,7 @@ data class PureRequest(
 fun IpcRequest.toPure() = PureRequest(url, method, headers, body.raw)
 
 
-var midAcc by atomic(0)
+var midAcc by SafeInt(0)
 val multipartProxyResponseMap by lazy {
   mutableMapOf<Int, CompletableDeferred<MultiPartData>>()
 }
