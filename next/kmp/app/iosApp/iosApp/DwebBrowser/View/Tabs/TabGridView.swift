@@ -98,7 +98,7 @@ struct TabGridView: View {
                     if $0.count > 0 {
                         self.frames = $0
                     }
-                    Log("updating cell frames : \($0)")
+//                    Log("updating cell frames : \($0)")
                 }
                 .onChange(of: deleteCache.cacheId, { _, operateId in
                     guard let cache = webcacheStore.caches.filter({ $0.id == operateId }).first else { return }

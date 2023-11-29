@@ -1,5 +1,6 @@
 import Network
 import SwiftUI
+import DwebShared
 
 enum RenderType {
     case none
@@ -15,6 +16,7 @@ struct iOSApp: App {
     @StateObject private var networkManager = NetworkManager()
     @State private var isNetworkSegmentViewPresented = false
     @ObservedObject private var deskVCStore = DwebDeskVCStore.shared
+    @State var webContainerSize: CGSize = CGSize(width: 350, height: 500)
 
     var body: some Scene {
         WindowGroup {
@@ -27,7 +29,7 @@ struct iOSApp: App {
                 }
         }
     }
-
+    
     var content: some View {
         ZStack(alignment: .center, content: {
             switch renderType {
@@ -40,7 +42,16 @@ struct iOSApp: App {
                 DwebBrowser()
             }
         })
+        .task {
+            let v = UIHostingController(rootView: BrowserView(size: $webContainerSize)).view!
+            Main_iosKt.regiserIosMainView(iosView: v)
+            Main_iosKt.registerIosOnSize { (w,h) in
+                webContainerSize.width = CGFloat(truncating: w)
+                webContainerSize.height = CGFloat(truncating: h)
+            }
+        }
     }
+    
 }
 
 struct DwebFrameworkContentView: View {

@@ -90,6 +90,8 @@ import platform.UIKit.UIApplication
 import platform.UIKit.UIView
 import platform.UIKit.UIViewController
 import platform.WebKit.WKWebViewConfiguration
+import org.dweb_browser.browser.web.iOSMainView
+import org.dweb_browser.browser.web.onSizeChange
 
 val dwebViewController = nativeViewController
 val dwebDeepLinkHook = deepLinkHook
@@ -196,6 +198,15 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   return dnsNMM
 }
 
+
+public fun regiserIosMainView(iosView: UIView) {
+  iOSMainView = iosView
+}
+
+public fun registerIosOnSize(onSize: (CGFloat, CGFloat) -> Unit) {
+  onSizeChange = onSize
+}
+
 @OptIn(ExperimentalForeignApi::class)
 @Composable
 fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat) -> Unit) {
@@ -225,30 +236,7 @@ fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat) -> Uni
           modifier = Modifier,
           update = { view ->
             println("update:::: $view")
-          })//    PreviewWindowTopBarContent(modifier)
-
-//        Column {
-//          ElevatedButton(onClick = {
-//            println("[iOS Test] Scan >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-//            scope.launch {
-//              TestEntry().doScanningTest()
-//            }
-//            println("[iOS Test] Scan <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-//          }) {
-//            Text("Scan Test")
-//          }
-//
-//          ElevatedButton(onClick = {
-//            println("[iOS Test] Share >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-//            scope.launch {
-//              TestEntry().doShareTest()
-//            }
-//            println("[iOS Test] Share <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-//          }) {
-//            Text("Share Test")
-//          }
-//        }
-
+          })
       }
     }
   }

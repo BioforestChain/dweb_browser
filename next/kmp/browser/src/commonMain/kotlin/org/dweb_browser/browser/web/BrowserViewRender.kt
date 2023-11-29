@@ -5,7 +5,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.web.ui.BrowserViewForWindow
+import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.browser.web.ui.model.LocalShowSearchView
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -36,3 +36,7 @@ fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowRender
 
   BrowserViewForWindow(controller.viewModel, modifier, windowRenderScope)
 }
+
+@Composable
+expect fun BrowserViewForWindow(viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope)
+
