@@ -29,6 +29,7 @@ import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.device.DeviceNMM
 import org.dweb_browser.sys.haptics.HapticsNMM
+import org.dweb_browser.sys.location.LocationNMM
 import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
 import org.dweb_browser.sys.notification.NotificationNMM
 import org.dweb_browser.sys.permission.PermissionApplicantTMM
@@ -112,7 +113,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val deviceNMM = DeviceNMM().setup()
   val configNMM = ConfigNMM().setup()
   ///位置
-//  val locationNMM = LocationNMM().setup()
+  val locationNMM = LocationNMM().setup()
 //    /// 蓝牙
 //    val bluetoothNMM = BluetoothNMM().setup()
   // 标准文件模块
@@ -155,6 +156,7 @@ suspend fun startDwebBrowser(): DnsNMM {
       downloadNMM.mmid, // 为了获取下载的数据
       browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
       deskNMM.mmid,//
+      locationNMM.mmid,
     ),
   ).setup()
 

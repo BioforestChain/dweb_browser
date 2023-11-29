@@ -44,6 +44,8 @@ kotlin {
     implementation(libs.androidx.biometric)
     //扫码核心库
     implementation(libs.camera.barcode)
+    // 获取定位
+    implementation(libs.google.location)
   }
 }
 
