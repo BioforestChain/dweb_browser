@@ -18,11 +18,12 @@ private var addHook: (UIViewController, DwebUIViewControllerProperty) -> Unit =
 private var updateHook: (DwebUIViewControllerProperty) -> Unit = {}
 private var removeHook: (vcId: Int) -> Unit = {}
 
-@Suppress( "unused")
-class NativeViewController private constructor(){
-  companion object{
-    val nativeViewController =NativeViewController();
+@Suppress("unused")
+class NativeViewController private constructor() {
+  companion object {
+    val nativeViewController = NativeViewController();
   }
+
   val scope = CoroutineScope(mainAsyncExceptionHandler);
   fun setAddHook(hook: (UIViewController, DwebUIViewControllerProperty) -> Unit) {
     addHook = hook

@@ -14,7 +14,7 @@ struct iOSApp: App {
     @UIApplicationDelegateAdaptor(DwebAppDelegate.self) var appDelegate
     @StateObject private var networkManager = NetworkManager()
     @State private var isNetworkSegmentViewPresented = false
-    @ObservedObject private var deskVCStore = DwebDeskVCStroe.shared
+    @ObservedObject private var deskVCStore = DwebDeskVCStore.shared
 
     var body: some Scene {
         WindowGroup {

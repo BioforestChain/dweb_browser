@@ -19,8 +19,8 @@ class DwebVCData {
     }
 }
 
-class DwebDeskVCStroe: ObservableObject {
-    static let shared = DwebDeskVCStroe()
+class DwebDeskVCStore: ObservableObject {
+    static let shared = DwebDeskVCStore()
 
     @Published var vcs = [DwebVCData]()
 

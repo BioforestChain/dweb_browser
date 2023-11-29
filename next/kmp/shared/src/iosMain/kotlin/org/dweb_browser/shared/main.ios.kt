@@ -48,6 +48,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.nativeMicroModuleUIApplication
 import org.dweb_browser.core.std.dns.DnsNMM
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
@@ -58,6 +59,7 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
+import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.LocalPureViewBox
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewBox
@@ -90,6 +92,7 @@ import platform.UIKit.UIViewController
 import platform.WebKit.WKWebViewConfiguration
 
 val dwebViewController = nativeViewController
+val dwebDeepLinkHook = deepLinkHook
 suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   nativeMicroModuleUIApplication = app;
 
@@ -98,7 +101,12 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   }
 
   /// 初始化DNS服务
-  val dnsNMM = DnsNMM()
+  val dnsNMM = DnsNMM().also { dnsNMM ->
+    // 启动的时候就开始监听deeplink
+    dwebDeepLinkHook.deeplinkSignal.listen {
+      dnsNMM.nativeFetch(it)
+    }
+  }
   suspend fun MicroModule.setup() = this.also {
     dnsNMM.install(this)
   }
