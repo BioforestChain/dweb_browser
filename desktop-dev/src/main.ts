@@ -18,6 +18,8 @@ import { ConfigNMM } from "./sys/config/config.ts";
 import { DeviceNMM } from "./sys/device/device.main.ts";
 import { DnsNMM } from "./sys/dns/dns.ts";
 import "./sys/dns/localeFileFetch.ts";
+import { HapticsNMM } from "./sys/haptics/haptics.ts";
+import { WindowNMM } from "./sys/window/window.ts";
 
 /**
  * 设置 debugger 过滤条件
@@ -64,6 +66,8 @@ dns.install(new ConfigNMM())
 const webBrowser = new WebBrowserNMM();
 dns.install(webBrowser);
 dns.install(new BarcodeScanningNMM());
+dns.install(new HapticsNMM())
+dns.install(new WindowNMM())
 // dns.install(new BiometricsNMM());
 dns.install(new BluetoothNMM());
 const jmm = new JmmNMM();

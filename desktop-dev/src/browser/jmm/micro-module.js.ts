@@ -117,7 +117,7 @@ export class JsMicroModule extends MicroModule {
    */
   private _process_id?: string;
 
-  static readonly VERSION: number = 1;
+  static readonly VERSION: number = 2;
   static readonly PATCH: number = 0;
 
   /** 每个 JMM 启动都要依赖于某一个js */
