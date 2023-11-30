@@ -17,7 +17,6 @@ struct BrowserView: View {
     @StateObject var dragScale = WndDragScale()
     @StateObject var wndArea = BrowserArea()
 
-    @Binding var size: CGSize
     @State private var colorScheme = ColorScheme.light
     var body: some View {
         ZStack {
@@ -40,12 +39,10 @@ struct BrowserView: View {
                     .environmentObject(dragScale)
                     .environmentObject(wndArea)
                 }
-                .frame(width: size.width, height: size.height)
-                
                 .onAppear {
                     dragScale.onWidth = (geometry.size.width - 10) / screen_width
                 }
-                .onChange(of: size) { _, newSize in
+                .onChange(of: geometry.size) { _, newSize in
                     dragScale.onWidth = (newSize.width - 10) / screen_width
                 }
                 

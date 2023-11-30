@@ -16,7 +16,6 @@ struct iOSApp: App {
     @StateObject private var networkManager = NetworkManager()
     @State private var isNetworkSegmentViewPresented = false
     @ObservedObject private var deskVCStore = DwebDeskVCStore.shared
-    @State var webContainerSize: CGSize = CGSize(width: 350, height: 500)
 
     var body: some Scene {
         WindowGroup {
@@ -44,11 +43,7 @@ struct iOSApp: App {
         })
         .task {
             Main_iosKt.regiserIosMainView {
-                return UIHostingController(rootView: BrowserView(size: $webContainerSize)).view!
-            }
-            Main_iosKt.registerIosOnSize { (w,h) in
-                webContainerSize.width = CGFloat(truncating: w)
-                webContainerSize.height = CGFloat(truncating: h)
+                return UIHostingController(rootView: BrowserView()).view!
             }
         }
     }

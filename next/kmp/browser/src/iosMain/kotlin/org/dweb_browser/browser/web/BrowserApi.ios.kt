@@ -16,6 +16,8 @@ import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowFrameStyle
 import platform.CoreGraphics.CGAffineTransformMake
 import platform.CoreGraphics.CGFloat
+import platform.CoreGraphics.CGRect
+import platform.CoreGraphics.CGRectMake
 import platform.UIKit.UIColor
 import platform.UIKit.UILabel
 import platform.UIKit.UIView
@@ -25,7 +27,6 @@ actual fun getImageResourceRootPath(): String = ""
 
 
 public var iOSMainView: (() -> UIView)? = null
-public var onSizeChange: ((CGFloat, CGFloat) -> Unit)? = null
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -45,10 +46,6 @@ actual fun CommonBrowserView(
     }
   }
 
-  val w = windowRenderScope.width
-  val h = windowRenderScope.height
-  onSizeChange?.let { it(w.toDouble(), h.toDouble()) }
-
   Box {
     UIKitView(
       factory = {
@@ -56,21 +53,31 @@ actual fun CommonBrowserView(
       },
       background = Color.White,
       modifier = modifier,
-      update = { view ->
-        println("update:::: $view")
-      }
+//      update = { view ->
+//        println("update:::: $view")
+//      }
     )
-    afterViewItemRender(iOSView)
+    observerSizeAction(windowRenderScope, iOSView)
+    observerScaleAction(iOSView)
   }
 }
 
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-fun afterViewItemRender(view: UIView) {
+fun observerSizeAction(windowRenderScope: WindowRenderScope, iOSView: UIView) {
+  LaunchedEffect(windowRenderScope) {
+    val rect = CGRectMake(0.0,0.0,windowRenderScope.width.toDouble(), windowRenderScope.height.toDouble())
+    iOSView.setFrame(rect)
+  }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+@Composable
+fun observerScaleAction(iOSView: UIView) {
   val windowFrameStyle = LocalWindowFrameStyle.current
   LaunchedEffect(windowFrameStyle) {
-    val superView = view.superview ?: return@LaunchedEffect
+    val superView = iOSView.superview ?: return@LaunchedEffect
     superView.alpha = windowFrameStyle.opacity.toDouble()
     val newFrame = superView.frame.useContents {
       var scale = windowFrameStyle.scale.toDouble()
