@@ -12,18 +12,21 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
 
     @State private var startOffsetY: CGFloat = 0
     @State private var curDragOffsetY: CGFloat = 0
+    @State private var alpha: CGFloat = 0.0
+
     var sheetView: SheetView
     func body(content: Content) -> some View {
         ZStack {
             GeometryReader { geo in
                 let wndHeight = geo.frame(in: .local).height
                 let sheetHeight = wndHeight * 0.96
+                let _ = {
+                    startOffsetY = wndHeight
+                }
                 content
-                    .onAppear {
-                        startOffsetY = wndHeight
-                    }
                     .overlay {
                         sheetView
+                            .opacity(alpha)
                             .frame(height: sheetHeight)
                             .cornerRadius(10)
                             .padding(.horizontal, 4)
@@ -34,19 +37,23 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                                 
                                 if presented {
                                     withAnimation(.spring()) {
-                                        startOffsetY = 0
+                                        startOffsetY = wndHeight * 0.04
+                                        alpha = 1.0
+                                        Log("\(startOffsetY)")
                                     }
                                 } else {
                                     withAnimation(.spring()) {
                                         curDragOffsetY = 0
                                         startOffsetY = wndHeight
+                                        alpha = 0.0
                                     }
                                 }
                             }
                             .gesture(
                                 DragGesture()
                                     .onChanged { value in
-                                        if value.startLocation.y < 30 {
+                                        Log("\(value)")
+                                        if value.startLocation.y < wndHeight * 0.04 + 30 {
                                             if value.translation.height < 0 {
                                                 curDragOffsetY = 0
                                             } else {

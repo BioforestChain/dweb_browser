@@ -75,6 +75,8 @@ struct BrowserView: View {
                 }
             }
         }
+        .clipped()
+        
     }
 
     func showWeb() -> Bool {
