@@ -3,15 +3,16 @@ package org.dweb_browser.browser.nativeui.statusBar
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import org.dweb_browser.helper.android.InsetsJson
-import org.dweb_browser.helper.android.toJsonAble
 import org.dweb_browser.browser.nativeui.helper.debugNativeUi
 import org.dweb_browser.browser.nativeui.helper.toWindowsInsets
+import org.dweb_browser.helper.android.InsetsJson
+import org.dweb_browser.helper.android.toJsonAble
 import org.dweb_browser.helper.compose.ColorJson
 import org.dweb_browser.helper.compose.toJsonAble
 
@@ -55,7 +56,9 @@ class StatusBarController(
 
       it.HandleChange {
         debugNativeUi("StatusBar", "CHANGED")
-        observer.notifyObserver()
+        LaunchedEffect(Unit) {
+          observer.notifyObserver()
+        }
       }
     }
 

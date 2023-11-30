@@ -35,7 +35,6 @@ import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.printError
-import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.toBase64Url
 import kotlin.random.Random
 
@@ -175,13 +174,15 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         val jsWebIpc = connect(host)
         jsWebIpc.emitMessage(IpcMessageArgs(ipcRequest, jsWebIpc))
       } else {
-        runBlockingCatching(ioAsyncExceptionHandler) {
-          /// 在js-worker一侧：与其它模块的通讯，统一使用 connect 之后再发送 request 来实现。
-          // 转发请求
-          val request = ipcRequest.toRequest()
-          val response = nativeFetch(request)
-          val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
-          ipc.postMessage(ipcResponse)
+        runCatching {
+          withContext(ioAsyncExceptionHandler) {
+            /// 在js-worker一侧：与其它模块的通讯，统一使用 connect 之后再发送 request 来实现。
+            // 转发请求
+            val request = ipcRequest.toRequest()
+            val response = nativeFetch(request)
+            val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
+            ipc.postMessage(ipcResponse)
+          }
         }.onFailure {
           debugJsMM("onProxyRequest", "fail ${ipcRequest.uri} ${it}")
           ipc.postMessage(

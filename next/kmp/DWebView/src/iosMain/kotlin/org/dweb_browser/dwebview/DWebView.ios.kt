@@ -10,7 +10,6 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGAffineTransformMakeScale
@@ -171,9 +170,7 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     _destroyed = true
     debugDWebView("DESTROY")
     loadUrl("about:blank", true)
-    runBlockingCatching {
-      _destroySignal.emitAndClear(Unit)
-    }.getOrNull()
+    _destroySignal.emitAndClear(Unit)
     engine.mainScope.cancel(null)
     engine.removeFromSuperview()
   }

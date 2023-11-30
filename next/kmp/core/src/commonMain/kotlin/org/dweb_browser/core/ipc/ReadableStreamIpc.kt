@@ -141,7 +141,7 @@ class ReadableStreamIpc(
         }
         debugStreamIpc("END", "$stream")
       } catch (e: Exception) {
-        debugStreamIpc("ReadableStreamIpc", "output stream closed:${e.stackTraceToString()}")
+        debugStreamIpc("ReadableStreamIpc", "output stream closed:${e.message}")
       }
       // 流是双向的，对方关闭的时候，自己也要关闭掉
       this.close()

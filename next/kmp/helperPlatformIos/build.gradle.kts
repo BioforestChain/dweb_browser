@@ -1,6 +1,6 @@
+import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.ByteArrayOutputStream
-import org.gradle.internal.os.OperatingSystem
 
 plugins {
   id("mobile-compose-target")
@@ -8,9 +8,7 @@ plugins {
 
 kotlin {
   listOf(
-    iosX64(),
-    iosArm64(),
-    iosSimulatorArm64()
+    iosX64(), iosArm64(), iosSimulatorArm64()
   ).forEach {
     it.configureIos()
   }
@@ -98,7 +96,7 @@ tasks.register("cinteropSync") {
 gradle.projectsEvaluated {
   println("beforeProject: $name")
 
-  if(OperatingSystem.current().isMacOsX) {
+  if (OperatingSystem.current().isMacOsX) {
     val output = ByteArrayOutputStream()
 
     exec {
@@ -109,11 +107,9 @@ gradle.projectsEvaluated {
 
     val denoBinPath = output.toString().trim()
     val userHome = System.getProperty("user.home")
-    var deno = denoBinPath.ifBlank { "$userHome/.deno/bin/deno" }
-
-    if(!file(deno).exists()) {
-      deno = "deno"
-    }
+    val deno = listOf(
+      denoBinPath, "$userHome/.deno/bin/deno", "/opt/homebrew/bin/deno"
+    ).filter { it.isNotEmpty() }.firstOrNull { file(it).exists() } ?: "deno"
 
     exec {
       workingDir = projectDir.resolve("./src/nativeInterop/cinterop")

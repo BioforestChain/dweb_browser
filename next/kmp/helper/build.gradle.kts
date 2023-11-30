@@ -1,6 +1,5 @@
 plugins {
-  id("mobile-target")
-}
+  id("mobile-target")}
 
 kotlin {
   sourceSets.commonMain.dependencies {
@@ -46,3 +45,4 @@ android {
     minSdk = libs.versions.minSdkVersion.get().toInt()
   }
 }
+

@@ -4,6 +4,7 @@ package org.dweb_browser.browser.jsProcess
 //import org.dweb_browser.dwebview.engine.DWebViewEngine
 import io.ktor.http.HttpMethod
 import io.ktor.http.fullPath
+import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
@@ -27,7 +28,6 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.helper.runBlockingCatching
 
 fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("js-process", tag, msg, err)
@@ -38,9 +38,9 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
   }
 
   private val JS_PROCESS_WORKER_CODE by lazy {
-    runBlockingCatching {
+    ioAsyncScope.async {
       nativeFetch("file:///sys/browser/js-process.worker/index.js").binary()
-    }.getOrThrow()
+    }
   }
 
   private val JS_CORS_HEADERS = mapOf(
@@ -64,7 +64,11 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           if (internalPath == "/bootstrap.js") {
             ipc.postMessage(
               IpcResponse.fromBinary(
-                request.req_id, 200, IpcHeaders(JS_CORS_HEADERS), JS_PROCESS_WORKER_CODE, ipc
+                request.req_id,
+                200,
+                IpcHeaders(JS_CORS_HEADERS),
+                JS_PROCESS_WORKER_CODE.await(),
+                ipc
               )
             )
           } else {

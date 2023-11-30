@@ -7,6 +7,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.ktor.utils.io.jvm.javaio.toInputStream
+import kotlinx.coroutines.runBlocking
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
@@ -14,7 +15,6 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.runBlockingCatching
 
 class DWebRequestResponse(val engine: DWebViewEngine) : WebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
@@ -42,13 +42,13 @@ class DWebRequestResponse(val engine: DWebViewEngine) : WebViewClient() {
   ): WebResourceResponse? {
     // 转发请求
     if (request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true) || (request.url.scheme == "dweb"))) {
-      val response = runBlockingCatching(ioAsyncExceptionHandler) {
+      val response = runBlocking(ioAsyncExceptionHandler) {
         engine.remoteMM.nativeFetch(
           PureRequest(
             request.url.toString(), IpcMethod.GET, IpcHeaders(request.requestHeaders)
           )
         )
-      }.getOrThrow()
+      }
 
       val contentType = (response.headers.get("Content-Type") ?: "").split(';', limit = 2)
 

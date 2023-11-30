@@ -7,7 +7,6 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -21,6 +20,7 @@ import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.http.PureString
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.helper.AsyncSetter
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleCallback
@@ -47,7 +47,7 @@ import org.dweb_browser.helper.runBlockingCatching
  * 因此我们定义了两个集合，一个是 ipc 的 usableIpcBodyMap；一个是 ipcBodySender 这边的 usedIpcMap
  *
  */
-class IpcBodySender(
+class IpcBodySender private constructor(
   override val raw: IPureBody,
   ipc: Ipc,
 ) : IpcBody() {
@@ -232,30 +232,21 @@ class IpcBodySender(
   private val openSignal = SimpleSignal()
   fun onStreamOpen(cb: SimpleCallback) = openSignal.listen(cb)
 
-  private var _isStreamOpened = false
-    set(value) {
-      if (field != value) {
-        field = value
-        runBlockingCatching {
-          openSignal.emitAndClear()
-        }.getOrThrow()
-      }
-    }
-  private var _isStreamClosed = false
-    set(value) {
-      if (field != value) {
-        field = value
-        runBlockingCatching {
-          closeSignal.emitAndClear()
-        }.getOrThrow()
-      }
-    }
+  private val _streamOpened = AsyncSetter(false) {
+    openSignal.emitAndClear()
+  }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
-  private inline fun emitStreamClose() {
+  private val _isStreamOpened by _streamOpened
+
+  private val _streamClosed = AsyncSetter(false) {
+    closeSignal.emitAndClear()
+  }
+  private val _isStreamClosed by _streamClosed
+
+  private suspend inline fun emitStreamClose() {
     if (_isStreamClosed) return
-    _isStreamOpened = true
-    _isStreamClosed = true
+    _streamOpened.set(true)
+    _streamClosed.set(true)
     streamCtorSignal.resetReplayCache()
   }
 
@@ -354,7 +345,7 @@ class IpcBodySender(
         debugIpcBody("sender/PULLING/$stream", stream_id)
 
         // 开光了，流已经开始被读取
-        _isStreamOpened = true
+        _streamOpened.set(true)
         debugIpcBody(
           "sender/READ/$stream", "${byteArray.size} >> $stream_id"
         )

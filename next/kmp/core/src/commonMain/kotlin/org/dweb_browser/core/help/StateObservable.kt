@@ -3,13 +3,12 @@ package org.dweb_browser.core.help
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.helper.Callback
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.compose.IsChange
-import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.ReadableStream
+import org.dweb_browser.helper.Callback
+import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.compose.IsChange
 
 open class StateObservable(
   needFirstCall: Boolean = false,
@@ -36,9 +35,7 @@ open class StateObservable(
     }.stream
   }
 
-  fun notifyObserver() {
-    runBlockingCatching {
-      changeSignal.emit(getStateJson())
-    }.getOrNull()
+  suspend fun notifyObserver() {
+    changeSignal.emit(getStateJson())
   }
 }

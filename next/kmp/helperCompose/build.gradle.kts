@@ -27,3 +27,4 @@ android {
     minSdk = libs.versions.minSdkVersion.get().toInt()
   }
 }
+

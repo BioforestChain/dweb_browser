@@ -58,7 +58,7 @@ class ReadableStreamTestTest {
     val readableStream = ReadableStream(onStart = { controller ->
       GlobalScope.launch {
         var i = 0
-        while (true) {
+        while (true)          {
           controller.enqueue(byteArrayOf(i++.toByte()))
           delay(400)
         }

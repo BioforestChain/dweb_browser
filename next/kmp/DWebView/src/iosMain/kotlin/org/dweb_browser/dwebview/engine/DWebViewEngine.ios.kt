@@ -12,7 +12,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -301,7 +300,8 @@ class DWebViewEngine(
     decidePolicyForNavigationAction: WKNavigationAction,
     decisionHandler: (WKNavigationActionPolicy) -> Unit
   ) {
-    var confirm = true
+    var confirmReferred =
+      CompletableDeferred(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
     /// navigationAction.navigationType : https://developer.apple.com/documentation/webkit/wknavigationtype/
     if (beforeUnloadSignal.isNotEmpty()) {
       val message = when (decidePolicyForNavigationAction.navigationType) {
@@ -309,19 +309,20 @@ class DWebViewEngine(
         3L -> "重新加载此网站？"
         else -> "离开此网站？"
       }
-      confirm = runBlocking {
+      confirmReferred = CompletableDeferred()
+      ioScope.launch {
         val args = WebBeforeUnloadArgs(message)
         beforeUnloadSignal.emit(args)
-        args.waitHookResults()
+        confirmReferred.complete(if (args.waitHookResults()) WKNavigationActionPolicy.WKNavigationActionPolicyAllow else WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
       }
     }
-    if (confirm) {
-//          if (decidePolicyForNavigationAction.targetFrame == null) {
-//            loadRequest(decidePolicyForNavigationAction.request)
-//          }
-      decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
+    /// decisionHandler
+    if (confirmReferred.isCompleted) {
+      decisionHandler(confirmReferred.getCompleted())
     } else {
-      decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
+      ioScope.launch {
+        decisionHandler(confirmReferred.await())
+      }
     }
   }
 

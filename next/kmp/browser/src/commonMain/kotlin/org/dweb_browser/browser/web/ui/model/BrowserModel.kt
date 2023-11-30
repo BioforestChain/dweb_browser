@@ -42,7 +42,6 @@ import org.dweb_browser.helper.build
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.noLocalProvidedFor
 import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 
 /**
@@ -91,9 +90,11 @@ class BrowserViewModel(
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false)
   val showMultiView: MutableTransitionState<Boolean> = MutableTransitionState(false)
   val isNoTrace by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    runBlockingCatching {
-      mutableStateOf(browserController.getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false)
-    }.getOrThrow()
+    mutableStateOf(false).also { state ->
+      browserNMM.ioAsyncScope.async {
+        state.value = browserController.getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false
+      }
+    }
   }
 
   fun getBookLinks() = browserController.bookLinks

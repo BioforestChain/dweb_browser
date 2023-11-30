@@ -161,7 +161,7 @@ class TaskbarView private constructor(
     }
     /// 背景遮罩的显示与隐藏
     DisposableEffect(Unit) {
-      scope.launchWithMain {
+      val job = scope.launchWithMain {
         onToggleBgView(true)
         backgroundView.setHidden(false)
         backgroundView.userInteractionEnabled = true
@@ -170,6 +170,7 @@ class TaskbarView private constructor(
         backgroundView.backgroundColor = UIColor.blackColor.colorWithAlphaComponent(alpha = 0.5)
       }
       onDispose {
+        job.cancel()
         scope.launchWithMain {
           backgroundView.removeGestureRecognizer(onTap)
           backgroundView.backgroundColor = UIColor.clearColor

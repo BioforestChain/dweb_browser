@@ -2,15 +2,16 @@ package org.dweb_browser.browser.nativeui.virtualKeyboard
 
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.core.view.WindowInsetsCompat
+import org.dweb_browser.browser.nativeui.helper.toWindowsInsets
 import org.dweb_browser.helper.android.InsetsJson
 import org.dweb_browser.helper.android.toJsonAble
-import org.dweb_browser.browser.nativeui.helper.toWindowsInsets
 
 @Stable
 class VirtualKeyboardController(
@@ -43,7 +44,9 @@ class VirtualKeyboardController(
     observer.stateChanges.also {
       observerWatchStates(it)
       it.HandleChange {
-        observer.notifyObserver()
+        LaunchedEffect(Unit) {
+          observer.notifyObserver()
+        }
       }
     }
 
