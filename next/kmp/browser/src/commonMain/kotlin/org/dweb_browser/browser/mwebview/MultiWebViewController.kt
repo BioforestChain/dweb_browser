@@ -17,7 +17,6 @@ import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -78,8 +77,7 @@ class MultiWebViewController(
     override var hidden: Boolean = false,
     val win: WindowController
   ) : ViewItem {
-    internal val onReady = SimpleSignal()
-    val onReadyListener = onReady.toListener()
+    var currentScale: Int = 0
   }
 
   private var downLoadTaskId: String? = null
@@ -99,13 +97,11 @@ class MultiWebViewController(
       coroutineScope = coroutineScope,
       win = win,
     ).also { viewItem ->
-      viewItem.webView.onReady { // 为了防止在窗口状态下，webview返回时失真问题。所以在webview加载完成后出发刷新
-        viewItem.onReady.emit()
-      }
       webViewList.add(viewItem)
       dWebView.onDestroy {
         closeWebView(webviewId)
       }
+      viewItem.addWebViewClient() // 目前是需要在onScaleChanged回调中执行一些操作
       webViewOpenSignal.emit(webviewId)
     }
   }
@@ -183,6 +179,10 @@ class MultiWebViewController(
 
   val onWebViewClose = webViewCloseSignal.toListener()
   val onWebViewOpen = webViewOpenSignal.toListener()
-
-
 }
+
+/**
+ * 用于补充添加 WebView 中 WebViewClient 的一些特殊处理
+ * 目前作用是:在 onScaleChanged 回调中执行一些操作
+ */
+expect fun MultiWebViewController.MultiViewItem.addWebViewClient()

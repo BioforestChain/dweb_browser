@@ -79,6 +79,8 @@ fun MultiWebViewController.Render(
           modifier = Modifier.fillMaxSize()
         ) {
           LaunchedEffect(scale, width, height) {
+            debugMultiWebView("lin.huang", "MultiWebViewRender -> $scale, $width, $height")
+            viewItem.currentScale = (scale * density * 100).toInt()
             viewItem.webView.setContentScale(scale, width, height, density)
           }
           viewItem.webView.Render(Modifier.fillMaxSize())

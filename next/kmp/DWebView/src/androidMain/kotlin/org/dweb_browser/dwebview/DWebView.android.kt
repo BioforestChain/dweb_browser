@@ -160,7 +160,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
     withMainContext {
-      engine.setInitialScale((scale * 100).toInt())
+      engine.setInitialScale((scale * density * 100).toInt())
       engine.layoutParams = ViewGroup.LayoutParams((width * density).toInt(), (height * density).toInt())
     }
 
