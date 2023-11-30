@@ -19,6 +19,7 @@ import { DeviceNMM } from "./sys/device/device.main.ts";
 import { DnsNMM } from "./sys/dns/dns.ts";
 import "./sys/dns/localeFileFetch.ts";
 import { HapticsNMM } from "./sys/haptics/haptics.ts";
+import { ToastNMM } from "./sys/toast/toast.ts";
 import { WindowNMM } from "./sys/window/window.ts";
 
 /**
@@ -68,6 +69,7 @@ dns.install(webBrowser);
 dns.install(new BarcodeScanningNMM());
 dns.install(new HapticsNMM())
 dns.install(new WindowNMM())
+dns.install(new ToastNMM())
 // dns.install(new BiometricsNMM());
 dns.install(new BluetoothNMM());
 const jmm = new JmmNMM();

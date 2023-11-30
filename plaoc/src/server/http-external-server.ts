@@ -112,7 +112,7 @@ export class Server_external extends HttpServer {
               throw err;
             }
             // 激活对面窗口
-            ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
+            ipc.postMessage(IpcEvent.fromText(ExternalState.RENDERER, ExternalState.RENDERER));
             this.needActivity = false;
             await ipc.request(`file://${mmid}${ExternalState.WAIT_EXTERNAL_READY}`);
             return ipc;
@@ -120,7 +120,7 @@ export class Server_external extends HttpServer {
           const ipc = await this.externalWaitters.get(mmid);
           if (ipc && this.needActivity) {
             // 激活对面窗口
-            ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
+            ipc.postMessage(IpcEvent.fromText(ExternalState.RENDERER, ExternalState.RENDERER));
           }
           const ext_options = this._getOptions();
           // 请求跟外部app通信，并拿到返回值
@@ -154,6 +154,7 @@ export class Server_external extends HttpServer {
 // 负责监听对方是否接收了请求
 export enum ExternalState {
   ACTIVITY = "activity", // 激活app
+  RENDERER = "renderer", // 窗口激活时发出，这里可以拿到应用的窗口句柄（wid）
   WAIT_CLOSE = "/external-close", // 关闭连接
   WAIT_EXTERNAL_READY = "/wait-external-ready",
 }

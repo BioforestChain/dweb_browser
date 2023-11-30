@@ -216,13 +216,6 @@ export class JsProcessMicroModule implements $MicroModule {
     const args = normalizeFetchArgs(url, init);
     const hostName = args.parsed_url.hostname;
     if (!(hostName.endsWith(".dweb") && args.parsed_url.protocol === "file:")) {
-      // 当不存在的时候能给出错误返回，不要卡死
-      if (hostName && !hostName.includes("dns.std.dweb")) {
-        const res = await this.nativeFetch(`file://dns.std.dweb/query?app_id=${hostName}`)
-        if (res.status !== 200) {
-          return res
-        }
-      }
       const ipc_response = await this._nativeRequest(args.parsed_url, args.request_init);
       return ipc_response.toResponse(args.parsed_url.href);
     }
