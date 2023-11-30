@@ -34,6 +34,7 @@ import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.createWindowAdapterManager
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * MWebView 是为其它模块提供 GUI 的程序模块，所以这里需要传入两个模块：localeMM 与 remoteMM
@@ -145,15 +146,11 @@ class MultiWebViewController(
         webViewOpenSignal.emit(webviewId)
 
         // 为了防止数据视图过大问题。
+        val minusLong = AtomicLong(0)
         viewItem.webView.webViewClient = object : WebViewClient() {
           override fun onScaleChanged(view: WebView?, oldScale: Float, newScale: Float) {
             if ((newScale * 100).toInt() > viewItem.currentScale) {
-              val oldScaleInt = (oldScale * 100).toInt()
-              val scale = if (oldScaleInt != viewItem.currentScale - 1) {
-                viewItem.currentScale - 1
-              } else {
-                viewItem.currentScale
-              }
+              val scale = viewItem.currentScale.minus(minusLong.incrementAndGet().mod(2) - 1)
               view?.setInitialScale(scale)
             } else {
               super.onScaleChanged(view, oldScale, newScale)
