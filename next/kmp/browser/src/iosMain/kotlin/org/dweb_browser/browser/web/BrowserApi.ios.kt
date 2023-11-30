@@ -29,7 +29,7 @@ actual fun ImageBitmap.toImageResource(): ImageResource? = null
 actual fun getImageResourceRootPath(): String = ""
 
 
-public var iOSMainView: UIView? = null
+public var iOSMainView: (()->UIView)? = null
 public var onSizeChange: ((CGFloat, CGFloat) -> Unit)? = null
 
 @OptIn(ExperimentalForeignApi::class)
@@ -38,7 +38,7 @@ actual fun CommonBrowserView(viewModel: BrowserViewModel, modifier: Modifier, wi
   if (iOSMainView == null) {
     Text("iOS Load Fail")
   } else {
-
+    val view = iOSMainView!!()
     val w = windowRenderScope.width
     val h = windowRenderScope.height
     println("Mike: w:${windowRenderScope.width} h:${windowRenderScope.height} s:${windowRenderScope.scale}")
@@ -47,7 +47,7 @@ actual fun CommonBrowserView(viewModel: BrowserViewModel, modifier: Modifier, wi
     Box {
       UIKitView(
         factory = {
-          iOSMainView!!
+          view
         },
         modifier = modifier,
         update = { view ->

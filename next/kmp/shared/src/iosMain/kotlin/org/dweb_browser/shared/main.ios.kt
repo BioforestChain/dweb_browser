@@ -199,7 +199,7 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
 }
 
 
-public fun regiserIosMainView(iosView: UIView) {
+public fun regiserIosMainView(iosView: ()->UIView) {
   iOSMainView = iosView
 }
 

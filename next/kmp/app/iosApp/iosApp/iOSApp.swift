@@ -43,8 +43,9 @@ struct iOSApp: App {
             }
         })
         .task {
-            let v = UIHostingController(rootView: BrowserView(size: $webContainerSize)).view!
-            Main_iosKt.regiserIosMainView(iosView: v)
+            Main_iosKt.regiserIosMainView {
+                return UIHostingController(rootView: BrowserView(size: $webContainerSize)).view!
+            }
             Main_iosKt.registerIosOnSize { (w,h) in
                 webContainerSize.width = CGFloat(truncating: w)
                 webContainerSize.height = CGFloat(truncating: h)
