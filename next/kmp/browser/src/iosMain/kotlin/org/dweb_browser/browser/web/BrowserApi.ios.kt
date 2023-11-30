@@ -34,7 +34,7 @@ public var onSizeChange: ((CGFloat, CGFloat) -> Unit)? = null
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-actual fun BrowserViewForWindow(viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope) {
+actual fun CommonBrowserView(viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope) {
   if (iOSMainView == null) {
     Text("iOS Load Fail")
   } else {

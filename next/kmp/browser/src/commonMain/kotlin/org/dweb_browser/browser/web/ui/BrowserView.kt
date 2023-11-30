@@ -115,6 +115,87 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   })
 
+@Composable
+fun BrowserViewForWindow(
+  viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope
+) {
+  val scope = rememberCoroutineScope()
+  val browserPagerState = viewModel.rememberBrowserPagerState()
+  val initialScale = windowRenderScope.scale
+  val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
+  val qrCodeScanModel = remember { QRCodeScanModel() }
+
+  CompositionLocalProvider(
+    LocalModalBottomSheet provides modalBottomModel,
+    LocalWebViewInitialScale provides initialScale,
+    LocalBrowserPageState provides browserPagerState,
+    LocalQRCodeModel provides qrCodeScanModel,
+  ) {
+    val win = LocalWindowController.current
+    win.GoBackHandler {
+      val watcher = viewModel.currentTab?.closeWatcher
+      if (watcher?.canClose == true) {
+        scope.launch {
+          watcher.close()
+        }
+      } else {
+        viewModel.currentTab?.viewItem?.webView?.let { webView ->
+          if (webView.canGoBack()) {
+            webView.goBack()
+          }
+        }
+      }
+    }
+
+    Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(bottom = dimenBottomHeight * windowRenderScope.scale)
+      ) {
+        BrowserViewContent(viewModel)   // 中间主体部分
+      }
+      Box(modifier = with(windowRenderScope) {
+        if (win.isMaximized()) {
+          Modifier.fillMaxSize()
+        } else {
+          Modifier
+            .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
+            .scale(scale)
+        }
+      }) {
+        BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
+        BrowserMultiPopupView(viewModel)// 用于显示多界面
+        // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
+        BrowserSearchView(
+          viewModel = viewModel,
+          modifier = if (win.isMaximized()) {
+            Modifier
+              .fillMaxWidth()
+              .background(MaterialTheme.colorScheme.background)
+              .size(windowRenderScope.widthDp, windowRenderScope.heightDp)
+              .align(Alignment.BottomCenter)
+          } else {
+            Modifier.fillMaxWidth()
+              .background(MaterialTheme.colorScheme.background)
+              .align(Alignment.BottomCenter)
+          },
+          windowRenderScope = windowRenderScope
+        )
+        BrowserBottomSheet(viewModel)
+        QRCodeScanView(
+          qrCodeScanModel = qrCodeScanModel,
+          onSuccess = {
+            openDeepLink(it)
+            scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) }
+          },
+          onCancel = { scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) } }
+        )
+      }
+    }
+  }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BrowserViewContent(viewModel: BrowserViewModel) {

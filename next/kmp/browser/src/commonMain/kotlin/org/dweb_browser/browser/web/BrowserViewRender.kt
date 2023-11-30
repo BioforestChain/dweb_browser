@@ -34,9 +34,9 @@ fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowRender
     }
   }
 
-  BrowserViewForWindow(controller.viewModel, modifier, windowRenderScope)
+  CommonBrowserView(controller.viewModel, modifier, windowRenderScope)
 }
 
 @Composable
-expect fun BrowserViewForWindow(viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope)
+expect fun CommonBrowserView(viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope)
 
