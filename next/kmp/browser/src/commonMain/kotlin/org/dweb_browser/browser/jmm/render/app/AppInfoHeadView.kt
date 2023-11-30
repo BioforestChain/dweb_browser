@@ -13,12 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,13 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.browser.jmm.render.HeadHeight
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
-import org.dweb_browser.core.std.dns.httpFetch
 
 /**
  * 顶部的头像和应用名称
@@ -46,19 +38,8 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
       .padding(horizontal = HorizontalPadding, vertical = VerticalPadding),
     verticalAlignment = Alignment.CenterVertically
   ) {
-    var logoModel by remember {
-      mutableStateOf<Any>(jmmAppInstallManifest.logo)
-    }
-    val scope = rememberCoroutineScope()
-    DisposableEffect(jmmAppInstallManifest.logo) {
-      val job = scope.launch {
-        logoModel = httpFetch(jmmAppInstallManifest.logo).body.toPureBinary()
-      }
-      onDispose { job.cancel() }
-    }
-
     AsyncImage(
-      model = logoModel,
+      model = jmmAppInstallManifest.logo,
       contentDescription = "AppIcon",
       modifier = Modifier
         .size(size)

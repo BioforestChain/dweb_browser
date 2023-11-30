@@ -214,6 +214,7 @@ class DWebViewEngine(
       scrollView.contentInsetAdjustmentBehavior =
         UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
     }
+    scrollView.bounces = false
   }
 
   fun evalAsyncJavascript(code: String): Deferred<String> {

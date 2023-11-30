@@ -11,7 +11,7 @@ import org.dweb_browser.helper.android.getCoilImageLoader
 
 @Composable
 actual fun AsyncImage(
-  model: Any?,
+  model: String,
   contentDescription: String?,
   modifier: Modifier,
   alignment: Alignment,

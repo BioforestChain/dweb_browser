@@ -23,7 +23,7 @@ import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.compose.ImageLoadResult
 import org.dweb_browser.helper.compose.ImageLoader
-import org.dweb_browser.helper.compose.rememberImageLoader
+import org.dweb_browser.helper.compose.LocalImageLoader
 import org.dweb_browser.helper.compose.rememberVectorPainterWithTint
 import org.dweb_browser.helper.platform.offscreenwebcanvas.FetchHook
 import squircleshape.SquircleShape
@@ -144,8 +144,8 @@ private fun AppIconOuter(
   BoxWithConstraints {
     val icon = when (iconSrc) {
       is String -> {
-        val imageLoader = iconLoader ?: rememberImageLoader()
-        imageLoader.load(iconSrc, maxWidth, maxHeight, iconFetchHook)
+        val imageLoader = iconLoader ?: LocalImageLoader.current
+        imageLoader.Load(iconSrc, maxWidth, maxHeight, iconFetchHook)
       }
 
       is ImageLoadResult -> {

@@ -50,7 +50,7 @@ import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.compose.rememberImageLoader
+import org.dweb_browser.helper.compose.LocalImageLoader
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
@@ -356,13 +356,13 @@ data class AlertModal internal constructor(
         when (val url = iconUrl) {
           null -> Icon(imageVector = Icons.Default.WarningAmber, contentDescription = iconAlt)
           else -> {
-            val imageLoader = rememberImageLoader()
+            val imageLoader = LocalImageLoader.current
 
             /**
              * IconButtonTokens.IconSize
              */
             val iconSize = 24.dp
-            imageLoader.load(url, iconSize, iconSize).with(onError = {
+            imageLoader.Load(url, iconSize, iconSize).with(onError = {
               Icon(imageVector = Icons.Default.ErrorOutline, contentDescription = iconAlt)
             }, onBusy = {
               CircularProgressIndicator(

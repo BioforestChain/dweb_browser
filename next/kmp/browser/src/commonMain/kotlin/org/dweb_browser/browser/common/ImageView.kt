@@ -11,7 +11,7 @@ import androidx.compose.ui.layout.ContentScale
 
 @Composable
 expect fun AsyncImage(
-  model: Any?,
+  model: String,
   contentDescription: String?,
   modifier: Modifier = Modifier,
   alignment: Alignment = Alignment.Center,
