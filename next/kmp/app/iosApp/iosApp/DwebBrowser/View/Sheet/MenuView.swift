@@ -20,26 +20,28 @@ struct MenuView: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: dragScale.properValue(floor: 5, ceiling: 16)) {
-                Button {
-                    addToBookmark()
-                } label: {
-                    MenuCell(title: "添加书签", imageName: "bookmark")
+            ScrollView{
+                VStack(spacing: dragScale.properValue(floor: 5, ceiling: 16)) {
+                    Button {
+                        addToBookmark()
+                    } label: {
+                        MenuCell(title: "添加书签", imageName: "bookmark")
+                    }
+                    
+                    ShareLink(item: webCache.lastVisitedUrl.absoluteString) {
+                        MenuCell(title: "分享", imageName: "share")
+                    }
+                    
+                    tracelessView
                 }
-
-                ShareLink(item: webCache.lastVisitedUrl.absoluteString) {
-                    MenuCell(title: "分享", imageName: "share")
-                }
-
-                tracelessView
+                .padding(.vertical, dragScale.properValue(floor: 10, ceiling: 32))
+                .background(Color.bkColor)
+                .frame(maxWidth: .infinity)
+                
+                toast
+                    .opacity(toastOpacity)
+                    .scaleEffect(dragScale.onWidth)
             }
-            .padding(.vertical, dragScale.properValue(floor: 10, ceiling: 32))
-            .background(Color.bkColor)
-            .frame(maxWidth: .infinity)
-
-            toast
-                .opacity(toastOpacity)
-                .scaleEffect(dragScale.onWidth)
         }
     }
 

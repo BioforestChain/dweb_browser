@@ -12,66 +12,75 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
 
     @State private var startOffsetY: CGFloat = 0
     @State private var curDragOffsetY: CGFloat = 0
-    @State private var alpha: CGFloat = 0.0
+    @State private var sheetHeight: CGFloat = 0
 
     var sheetView: SheetView
     func body(content: Content) -> some View {
         ZStack {
             GeometryReader { geo in
                 let wndHeight = geo.frame(in: .local).height
-                let sheetHeight = wndHeight * 0.96
-                let _ = {
-                    startOffsetY = wndHeight
-                }
+                let wndWidth = geo.frame(in: .local).width
                 content
+                    .onAppear {
+                        sheetHeight = wndHeight * 0.98
+                        startOffsetY = wndHeight
+                    }
                     .overlay {
                         sheetView
-                            .opacity(alpha)
                             .frame(height: sheetHeight)
+                            .background(.blue)
+                            .overlay {
+                                Rectangle()
+                                    .fill(Color.white.opacity(0.01))
+                                    .frame(height: 30)
+                                    .position(x: wndWidth / 2 ,y: 15)
+                                    .gesture(
+                                        DragGesture()
+                                            .onChanged { value in
+                                                Log("\(value)")
+                                                if value.startLocation.y < 30 {
+                                                    if value.translation.height < 0 {
+                                                        curDragOffsetY = 0
+                                                    } else {
+                                                        withAnimation(.spring()) {
+                                                            curDragOffsetY = value.translation.height
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            .onEnded { _ in
+                                                withAnimation(.spring()) {
+                                                    if curDragOffsetY > 50 {
+                                                        startOffsetY = wndHeight
+                                                        isPresented = false
+                                                    }
+                                                    curDragOffsetY = 0
+                                                }
+                                            })
+
+                            }
                             .cornerRadius(10)
                             .padding(.horizontal, 4)
                             .offset(y: startOffsetY)
                             .offset(y: curDragOffsetY)
+                            .onChange(of: isPresented) {_, _ in
+                                if isPresented {
 
-                            .onChange(of: isPresented) { _, presented in
-                                
-                                if presented {
                                     withAnimation(.spring()) {
-                                        startOffsetY = wndHeight * 0.04
-                                        alpha = 1.0
-                                        Log("\(startOffsetY)")
+                                        startOffsetY = 0
                                     }
                                 } else {
-                                    withAnimation(.spring()) {
-                                        curDragOffsetY = 0
-                                        startOffsetY = wndHeight
-                                        alpha = 0.0
-                                    }
+                                    startOffsetY = wndHeight
                                 }
+
                             }
-                            .gesture(
-                                DragGesture()
-                                    .onChanged { value in
-                                        Log("\(value)")
-                                        if value.startLocation.y < wndHeight * 0.04 + 30 {
-                                            if value.translation.height < 0 {
-                                                curDragOffsetY = 0
-                                            } else {
-                                                withAnimation(.spring()) {
-                                                    curDragOffsetY = value.translation.height
-                                                }
-                                            }
-                                        }
-                                    }
-                                    .onEnded { _ in
-                                        withAnimation(.spring()) {
-                                            if curDragOffsetY > 50 {
-                                                startOffsetY = wndHeight
-                                                isPresented = false
-                                            }
-                                            curDragOffsetY = 0
-                                        }
-                                    })
+                            .onChange(of: geo.size.height, { oldHeight, newHeight in
+                                print("wnd size is updated :\(newHeight)")
+                                sheetHeight = newHeight * 0.98
+                                startOffsetY = oldHeight == startOffsetY ? newHeight : 0
+                            })
+
+
                     }
             }
         }
