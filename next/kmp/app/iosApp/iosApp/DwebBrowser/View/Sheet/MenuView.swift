@@ -11,6 +11,7 @@ struct MenuView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var webcacheStore: WebCacheStore
     @EnvironmentObject var dragScale: WndDragScale
+    @Environment(\.modelContext) var modelContext
 
     @State private var isTraceless: Bool = TracelessMode.shared.isON
     @State var toastOpacity: CGFloat = 0.0
@@ -20,26 +21,28 @@ struct MenuView: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: dragScale.properValue(floor: 5, ceiling: 16)) {
-                Button {
-                    addToBookmark()
-                } label: {
-                    MenuCell(title: "添加书签", imageName: "bookmark")
-                }
+            ScrollView(.vertical) {
+                VStack(spacing: dragScale.properValue(floor: 5, ceiling: 16)) {
+                    Button {
+                        addToBookmark()
+                    } label: {
+                        MenuCell(title: "添加书签", imageName: "bookmark")
+                    }
 
-                ShareLink(item: webCache.lastVisitedUrl.absoluteString) {
-                    MenuCell(title: "分享", imageName: "share")
-                }
+                    ShareLink(item: webCache.lastVisitedUrl.absoluteString) {
+                        MenuCell(title: "分享", imageName: "share")
+                    }
 
-                tracelessView
+                    tracelessView
+                }
+                .padding(.vertical, dragScale.properValue(floor: 10, ceiling: 32))
+                .background(Color.bkColor)
+                .frame(maxWidth: .infinity)
+
+                toast
+                    .opacity(toastOpacity)
+                    .scaleEffect(dragScale.onWidth)
             }
-            .padding(.vertical, dragScale.properValue(floor: 10, ceiling: 32))
-            .background(Color.bkColor)
-            .frame(maxWidth: .infinity)
-
-            toast
-                .opacity(toastOpacity)
-                .scaleEffect(dragScale.onWidth)
         }
     }
 
@@ -72,19 +75,16 @@ struct MenuView: View {
     }
 
     private func addToBookmark() {
-        let manager = BookmarkCoreDataManager()
-        let bookmark = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
-        if manager.insertBookmark(bookmark: bookmark) {
-            withAnimation {
-                toastOpacity = 1.0
-            }
+        let bookmark = Bookmark(link: webCache.lastVisitedUrl.absoluteString, iconUrl: webCache.webIconUrl.absoluteString, title: webCache.title)
+        modelContext.insert(bookmark)
+        withAnimation {
+            toastOpacity = 1.0
+        }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                withAnimation {
-                    toastOpacity = 0
-                }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            withAnimation {
+                toastOpacity = 0
             }
         }
     }
 }
-

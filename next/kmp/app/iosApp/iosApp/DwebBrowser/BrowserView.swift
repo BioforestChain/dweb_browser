@@ -30,7 +30,6 @@ struct BrowserView: View {
                             .frame(height: dragScale.toolbarHeight)
                             .background(Color.bkColor)
                     }
-                    
                     .background(Color.bkColor)
                     .environmentObject(webcacheStore)
                     .environmentObject(openingLink)
@@ -41,14 +40,7 @@ struct BrowserView: View {
                     .environmentObject(wndArea)
                 }
                 .frame(width: size.width, height: size.height)
-                
-                .onAppear {
-                    dragScale.onWidth = (geometry.size.width - 10) / screen_width
-                }
-                .onChange(of: size) { newSize in
-                    dragScale.onWidth = (newSize.width - 10) / screen_width
-                }
-                
+
                 .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
                     SheetSegmentView(isShowingWeb: showWeb())
                         .environmentObject(selectedTab)
@@ -57,13 +49,32 @@ struct BrowserView: View {
                         .environmentObject(dragScale)
                         .environmentObject(toolBarState)
                 }
-                .onChange(of: geometry.frame(in: .global)) { frame in
+
+                .clipped()
+                .onAppear {
+                    dragScale.onWidth = (geometry.size.width - 10) / screen_width
+                }
+                .onChange(of: size) { _, newSize in
+                    dragScale.onWidth = (newSize.width - 10) / screen_width
+                }
+                .onChange(of: geometry.frame(in: .global)) { _, frame in
                     wndArea.frame = frame
-                    print("window rect:(\(frame.origin)), (\(frame.size))")
+                }
+            }
+            .environment(\.colorScheme, colorScheme)
+            .onReceive(KmpBridgeManager.shared.eventPublisher.debounce(for: 0.3, scheduler: DispatchQueue.main).filter { $0.name == KmpEvent.colorScheme }) { e in
+                guard let scheme = e.inputDatas?["colorScheme"] as? String else {
+                    return
+                }
+                if scheme == "dark" {
+                    colorScheme = .dark
+                } else {
+                    colorScheme = .light
                 }
             }
         }
     }
+
     func showWeb() -> Bool {
         if webcacheStore.caches.count == 0 {
             return true
