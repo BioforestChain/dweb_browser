@@ -25,11 +25,13 @@ import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.toReadyListener
+import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.transparentColor
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.ios.DwebHelper
+import org.dweb_browser.helper.toIosUIEdgeInsets
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSError
@@ -64,6 +66,9 @@ import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.WebKit.WKWebpagePreferences
 import platform.WebKit.javaScriptEnabled
+
+@OptIn(ExperimentalForeignApi::class)
+private val dwebHelper = DwebHelper()
 
 @Suppress("CONFLICTING_OVERLOADS")
 @OptIn(ExperimentalForeignApi::class)
@@ -108,12 +113,12 @@ class DWebViewEngine(
     }
 
     fun registryDwebSchemeHandler(
-      microModule: MicroModule,
-      configuration: WKWebViewConfiguration
+      microModule: MicroModule, configuration: WKWebViewConfiguration
     ) {
       val dwebSchemeHandler = DwebURLSchemeHandler(microModule)
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb")
     }
+
   }
 
   suspend fun loadUrl(url: String): String {
@@ -163,8 +168,7 @@ class DWebViewEngine(
     remoteMM.ioAsyncScope.launch {
       val url = Url(IDWebView.getProxyAddress())
       withMainContext {
-        @Suppress("USELESS_CAST")
-        DwebHelper().setProxyWithConfiguration(
+        @Suppress("USELESS_CAST") dwebHelper.setProxyWithConfiguration(
           // 强制类型转换成 `objcnames.classes.WKWebViewConfiguration`，不然会提示类型对不上
           configuration as objcnames.classes.WKWebViewConfiguration, url.host, url.port.toUShort()
         )
@@ -214,6 +218,8 @@ class DWebViewEngine(
       scrollView.contentInsetAdjustmentBehavior =
         UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
     }
+    println("scrollView.insetsLayoutMarginsFromSafeArea=${scrollView.insetsLayoutMarginsFromSafeArea}")
+    scrollView.insetsLayoutMarginsFromSafeArea = true
     scrollView.bounces = false
   }
 
@@ -379,5 +385,26 @@ class DWebViewEngine(
   override fun scrollViewWillBeginZooming(scrollView: UIScrollView, withView: UIView?) {
     scrollView.pinchGestureRecognizer?.setEnabled(false)
   }
+  //#endregion
+
+  //#region SafeAreaInsets
+
+
+  /**
+   * css.env(safe-area-inset-*)
+   * https://github.com/WebKit/WebKit/blob/a544a2189b62dab2a7b73034a3f298508619c448/Source/WebKit/UIProcess/API/ios/WKWebViewIOS.mm#L794
+   */
+  var safeArea: Bounds? = null
+    set(value) {
+      field = value
+      when (value) {
+        null -> dwebHelper.disableSafeAreaInsetsWithWebView(this as objcnames.classes.WKWebView)
+        else -> dwebHelper.enableSafeAreaInsetsWithWebView(
+          this as objcnames.classes.WKWebView,
+          value.toIosUIEdgeInsets()
+        )
+      }
+    }
+
   //#endregion
 }

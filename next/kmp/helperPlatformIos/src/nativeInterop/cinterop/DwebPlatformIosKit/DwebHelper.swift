@@ -14,6 +14,15 @@ import WebKit
         var proxyConfig = ProxyConfiguration(httpCONNECTProxy: endpoint, tlsOptions: .none)
         configuration.websiteDataStore.proxyConfigurations = [proxyConfig]
     }
+
+    @objc open func enableSafeAreaInsets(webView: WKWebView, insets: UIEdgeInsets) {
+        webView.setValue(true, forKey: "_haveSetUnobscuredSafeAreaInsets")
+        webView.setValue(insets, forKey: "_unobscuredSafeAreaInsets")
+    }
+
+    @objc open func disableSafeAreaInsets(webView: WKWebView) {
+        webView.setValue(false, forKey: "_haveSetUnobscuredSafeAreaInsets")
+    }
 }
 
 @objc open class URLSchemeTaskHelper: NSObject {

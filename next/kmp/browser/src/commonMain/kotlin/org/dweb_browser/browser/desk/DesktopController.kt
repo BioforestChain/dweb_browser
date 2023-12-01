@@ -1,5 +1,7 @@
 package org.dweb_browser.browser.desk
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -8,6 +10,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -21,6 +25,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
@@ -81,7 +86,22 @@ open class DesktopController private constructor(
     LaunchedEffect(this) {
       view = desktopView()
     }
-    view?.content()
+    view?.also { view ->
+      val safeContent = WindowInsets.safeContent
+      val density = LocalDensity.current
+      val layoutDirection = LocalLayoutDirection.current
+      LaunchedEffect(safeContent, density, layoutDirection) {
+        view.setSafeAreaInset(
+          Bounds(
+            left = safeContent.getLeft(density, layoutDirection) / density.density,
+            top = safeContent.getTop(density) / density.density,
+            right = safeContent.getRight(density, layoutDirection) / density.density,
+            bottom = safeContent.getBottom(density) / density.density,
+          )
+        )
+      }
+      view.content()
+    }
   }
 
   companion object {

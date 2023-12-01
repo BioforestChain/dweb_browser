@@ -24,7 +24,7 @@ data class DWebViewOptions(
   /**
    * 对于显示裁切（刘海屏、挖孔屏）的显示策略
    */
-  val displayCutoutStrategy: DisplayCutoutStrategy = DisplayCutoutStrategy.Ignore,
+  val displayCutoutStrategy: DisplayCutoutStrategy = DisplayCutoutStrategy.Default,
 ) {
 
   enum class DetachedStrategy {

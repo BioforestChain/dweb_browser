@@ -314,7 +314,7 @@ class DWebViewEngine(
   val closeWatcher = CloseWatcher(this)
   val createWindowSignal = Signal<IDWebView>()
 
-  private var safeArea = Bounds.Zero
+   var safeArea = Bounds.Zero
   override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
     return when (options.displayCutoutStrategy) {
       Default -> super.onApplyWindowInsets(insets)

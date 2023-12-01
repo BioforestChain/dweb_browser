@@ -31,9 +31,9 @@ fun DesktopController.Render(taskbarController: TaskbarController, microModule: 
   ) {
     Box(modifier = Modifier.fillMaxSize()) {
       DesktopView {
-        /// 窗口视图
         Render(Modifier.fillMaxSize())
       }
+      /// 窗口视图
       DesktopWindowsManager {
         Render()
       }

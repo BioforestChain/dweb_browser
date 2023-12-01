@@ -20,6 +20,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(
@@ -161,7 +162,8 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
     withMainContext {
       engine.setInitialScale((scale * density * 100).toInt())
-      engine.layoutParams = ViewGroup.LayoutParams((width * density).toInt(), (height * density).toInt())
+      engine.layoutParams =
+        ViewGroup.LayoutParams((width * density).toInt(), (height * density).toInt())
     }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
@@ -240,6 +242,10 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   override suspend fun getFavoriteIcon(): ImageBitmap? {
     return this.asAndroidWebView().favicon?.asImageBitmap()
+  }
+
+  override suspend fun setSafeAreaInset(bounds: Bounds) {
+    engine.safeArea = bounds
   }
 }
 

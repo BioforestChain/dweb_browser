@@ -78,13 +78,17 @@ class ImageLoader {
     ): (@Composable () -> ImageLoadResult)? {
       val key =
         "url=$url; containerWidth=$containerWidth; containerHeight=$containerHeight; hook=$hook"
-      return map[key]?.result
+
+      return map[key]?.let {
+//        println("QAQ use cache $key")
+        it.result
+      }
     }
 
     fun save(cache: CacheItem) {
+//      println("QAQ save cache ${cache.key}")
       map[cache.key] = cache
     }
-
   }
 
   private val caches = CacheMap()

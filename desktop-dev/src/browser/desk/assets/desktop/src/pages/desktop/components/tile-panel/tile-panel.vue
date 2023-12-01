@@ -62,6 +62,7 @@ onUnmounted(() => {
   align-items: center;
   justify-items: stretch;
   padding-inline: 0.5em;
+  padding-top: env(safe-area-inset-top);
 }
 </style>
 <!-- grid-template-rows: repeat(auto-fill, calc(1px * v-bind("props.rowTemplateSize"))); -->

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -106,6 +107,8 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun evaluateAsyncJavascriptCode(
     script: String, afterEval: suspend () -> Unit = {}
   ): String
+
+  abstract suspend fun setSafeAreaInset(bounds: Bounds)
 
   abstract val onDestroy: Signal.Listener<Unit>
   abstract val onLoadStateChange: Signal.Listener<WebLoadState>

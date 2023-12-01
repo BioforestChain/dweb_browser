@@ -8,6 +8,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.trueAlso
@@ -18,6 +19,7 @@ import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSArray
 import platform.Foundation.NSString
 import platform.Foundation.create
+import platform.UIKit.UIUserInterfaceStyle
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
 
@@ -215,7 +217,11 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
-    WARNING("Not yet implemented setPrefersColorScheme")
+    engine.overrideUserInterfaceStyle = when (colorScheme) {
+      WebColorScheme.Dark -> UIUserInterfaceStyle.UIUserInterfaceStyleDark
+      WebColorScheme.Light -> UIUserInterfaceStyle.UIUserInterfaceStyleLight
+      WebColorScheme.Normal -> UIUserInterfaceStyle.UIUserInterfaceStyleUnspecified
+    }
   }
 
   override suspend fun setVerticalScrollBarVisible(visible: Boolean) = withMainContext {
@@ -267,6 +273,10 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   override suspend fun getFavoriteIcon(): ImageBitmap? = withMainContext {
     WARNING("Not yet implemented")
     null
+  }
+
+  override suspend fun setSafeAreaInset(bounds: Bounds) {
+    engine.safeArea = bounds
   }
 }
 
