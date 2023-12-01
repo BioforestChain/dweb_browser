@@ -16,7 +16,8 @@ struct BrowserView: View {
     @StateObject var webcacheStore = WebCacheStore()
     @StateObject var dragScale = WndDragScale()
     @StateObject var wndArea = BrowserArea()
-
+    @Binding var searchKey: String?
+    
     @State private var colorScheme = ColorScheme.light
     var body: some View {
         ZStack {
@@ -70,6 +71,13 @@ struct BrowserView: View {
                 } else {
                     colorScheme = .light
                 }
+            }
+            .onChange(of: searchKey) { _, newValue in
+                guard let key = newValue, !key.isEmpty else {
+                    return
+                }
+                addressBar.searchInputText = key
+                addressBar.isFocused = true
             }
         }
         .clipped()

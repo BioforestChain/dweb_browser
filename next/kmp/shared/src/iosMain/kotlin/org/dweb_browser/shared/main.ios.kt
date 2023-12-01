@@ -39,6 +39,7 @@ import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.web.iOSMainView
+import org.dweb_browser.browser.web.doSearch
 import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
@@ -200,6 +201,10 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
 
 public fun regiserIosMainView(iosView: ()->UIView) {
   iOSMainView = iosView
+}
+
+public fun regiserIosSearch(search: (String)->Unit) {
+  doSearch = search
 }
 
 @OptIn(ExperimentalForeignApi::class)

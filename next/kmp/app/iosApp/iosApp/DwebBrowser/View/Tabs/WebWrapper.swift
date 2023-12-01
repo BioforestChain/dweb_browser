@@ -214,7 +214,7 @@ struct TabWebView: View, UIViewRepresentable {
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
             let verticalOffset = scrollView.contentOffset.y
             // 处理滚动距离的逻辑
-            Log("Vertical Offset: \(verticalOffset)")
+//            Log("Vertical Offset: \(verticalOffset)")
         }
     }
 }

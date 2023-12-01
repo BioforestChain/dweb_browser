@@ -17,6 +17,8 @@ struct iOSApp: App {
     @State private var isNetworkSegmentViewPresented = false
     @ObservedObject private var deskVCStore = DwebDeskVCStore.shared
 
+    @State var searchKey: String?
+    
     var body: some Scene {
         WindowGroup {
             content
@@ -43,7 +45,12 @@ struct iOSApp: App {
         })
         .task {
             Main_iosKt.regiserIosMainView {
-                return UIHostingController(rootView: BrowserView()).view!
+                return UIHostingController(rootView: BrowserView(searchKey: $searchKey)).view!
+            }
+            
+            Main_iosKt.regiserIosSearch { key in
+                Log("\(key)")
+                searchKey = key
             }
         }
     }

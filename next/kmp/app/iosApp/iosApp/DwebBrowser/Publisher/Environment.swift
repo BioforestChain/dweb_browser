@@ -40,6 +40,7 @@ class AddressBarState: ObservableObject {
     @Published var shouldDisplay: Bool = true
     @Published var needRefreshOfIndex: Int = -1
     @Published var stopLoadingOfIndex: Int = -1
+    @Published var searchInputText: String? = nil
 
 }
 

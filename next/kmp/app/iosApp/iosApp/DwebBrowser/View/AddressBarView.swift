@@ -111,6 +111,11 @@ struct AddressBar: View {
                     }
                 }
             }
+            .onChange(of: addressBar.searchInputText) { _, searchInputText in
+                if !(searchInputText?.isEmpty ?? true) {
+                    inputText = searchInputText!
+                }
+            }
             .onSubmit {
                 let url = URL.createUrl(inputText)
                 DispatchQueue.main.async {

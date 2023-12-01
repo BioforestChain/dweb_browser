@@ -27,6 +27,7 @@ actual fun getImageResourceRootPath(): String = ""
 
 
 public var iOSMainView: (() -> UIView)? = null
+public var doSearch: ((String) -> Unit)? = null
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -45,6 +46,14 @@ actual fun CommonBrowserView(
       }
     }
   }
+  
+  doSearch?.let {
+    if (!viewModel.dwebLinkSearch.value.isEmpty()) {
+      println("MMMM send iOS key:${viewModel.dwebLinkSearch.value}")
+      it(viewModel.dwebLinkSearch.value.toString())
+    }
+  }
+
 
   Box {
     UIKitView(

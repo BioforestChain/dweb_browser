@@ -13,8 +13,8 @@ import WebKit
 public class BridgeManager: NSObject {
     static let shared = BridgeManager()
     @objc public var browserView: UIView?
-    
-    let browserSubView = BrowserView()
+
+    let browserSubView = BrowserView(searchKey: .constant(nil))
     
     @StateObject var networkManager = NetworkManager()
     
