@@ -58,7 +58,7 @@ actual fun CommonBrowserView(
 //      }
     )
     observerSizeAction(windowRenderScope, iOSView)
-    observerScaleAction(iOSView)
+    observerScaleAction(iOSView,windowRenderScope.width,windowRenderScope.height)
   }
 }
 
@@ -74,17 +74,29 @@ fun observerSizeAction(windowRenderScope: WindowRenderScope, iOSView: UIView) {
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-fun observerScaleAction(iOSView: UIView) {
+fun observerScaleAction(iOSView: UIView, width: Float, height: Float) {
   val windowFrameStyle = LocalWindowFrameStyle.current
   LaunchedEffect(windowFrameStyle) {
     val superView = iOSView.superview ?: return@LaunchedEffect
     superView.alpha = windowFrameStyle.opacity.toDouble()
+    var originX: CGFloat = 0.0
+    var originY: CGFloat = 0.0
     val newFrame = superView.frame.useContents {
       var scale = windowFrameStyle.scale.toDouble()
+      originX = this.origin.x
+      originY = this.origin.y
       val tx = size.width * (scale - 1) / 2
       val ty = size.height * (scale - 1) / 2
       CGAffineTransformMake(scale, 0.0, 0.0, scale, tx, ty)
     }
     superView.transform = newFrame
+    superView.setFrame(
+      platform.CoreGraphics.CGRectMake(
+        originX,
+        originY,
+        width.toDouble(),
+        height.toDouble()
+      )
+    )
   }
 }
