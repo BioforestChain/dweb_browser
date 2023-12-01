@@ -68,7 +68,7 @@ export const defaultMetadata: $JmmAppInstallManifest = {
   version: "1.0.0",
   categories: [],
   languages: [],
-  home: "https://dweb-browser.org/plaoc",
+  homepage_url: "https://dweb-browser.org/plaoc",
   plugins: [],
   permissions: [],
   dir: "ltr",

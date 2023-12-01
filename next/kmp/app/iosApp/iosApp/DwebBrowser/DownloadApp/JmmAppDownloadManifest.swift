@@ -33,7 +33,7 @@ struct JmmAppDownloadManifest: Codable {
     var bundle_size: Int64
     var change_log: String
     var author: [String]
-    var home: String
+    var homepage_url: String
     var release_date: String
     var permissions: [String]
     var plugins: [String]
@@ -41,7 +41,7 @@ struct JmmAppDownloadManifest: Codable {
     var download_status: DownloadStatus
     var download_progress: Double
 
-    init(id: String, version: String, categories: [String], server: MainServer, baseURI: String? = nil, dweb_deeplinks: [String]? = nil, dir: TextDirectionType, lang: String, name: String, short_name: String, description: String, icons: [ImageSource], screenshots: [ImageSource], display: DisplayModeType, orientation: OrientationType, theme_color: String, background_color: String, shortcuts: [ShortcutItem], logo: String, images: [String], bundle_url: String, bundle_hash: String, bundle_size: Int64, change_log: String, author: [String], home: String, release_date: String, permissions: [String], plugins: [String], languages: [String]? = nil, download_status: DownloadStatus, download_progress: Double) {
+    init(id: String, version: String, categories: [String], server: MainServer, baseURI: String? = nil, dweb_deeplinks: [String]? = nil, dir: TextDirectionType, lang: String, name: String, short_name: String, description: String, icons: [ImageSource], screenshots: [ImageSource], display: DisplayModeType, orientation: OrientationType, theme_color: String, background_color: String, shortcuts: [ShortcutItem], logo: String, images: [String], bundle_url: String, bundle_hash: String, bundle_size: Int64, change_log: String, author: [String], homepage_url: String, release_date: String, permissions: [String], plugins: [String], languages: [String]? = nil, download_status: DownloadStatus, download_progress: Double) {
         self.id = id
         self.version = version
         self.categories = categories
@@ -67,7 +67,7 @@ struct JmmAppDownloadManifest: Codable {
         self.bundle_size = bundle_size
         self.change_log = change_log
         self.author = author
-        self.home = home
+        self.homepage_url = homepage_url
         self.release_date = release_date
         self.permissions = permissions
         self.plugins = plugins
@@ -102,7 +102,7 @@ struct JmmAppDownloadManifest: Codable {
         case bundle_size
         case change_log
         case author
-        case home
+        case homepage_url
         case release_date
         case permissions
         case plugins
@@ -138,7 +138,7 @@ struct JmmAppDownloadManifest: Codable {
         try container.encode(bundle_size, forKey: .bundle_size)
         try container.encode(change_log, forKey: .change_log)
         try container.encode(author, forKey: .author)
-        try container.encode(home, forKey: .home)
+        try container.encode(homepage_url, forKey: .homepage_url)
         try container.encode(release_date, forKey: .release_date)
         try container.encode(permissions, forKey: .permissions)
         try container.encode(plugins, forKey: .plugins)
@@ -174,14 +174,14 @@ struct JmmAppDownloadManifest: Codable {
         let bundle_size = try? container.decode(Int64.self, forKey: .bundle_size)
         let change_log = try? container.decode(String.self, forKey: .change_log)
         let author = try? container.decode([String].self, forKey: .author)
-        let home = try? container.decode(String.self, forKey: .home)
+        let homepage_url = try? container.decode(String.self, forKey: .homepage_url)
         let release_date = try? container.decode(String.self, forKey: .release_date)
         let permissions = try? container.decode([String].self, forKey: .permissions)
         let plugins = try? container.decode([String].self, forKey: .plugins)
         let languages = try? container.decode([String].self, forKey: .languages)
         let download_status = try? container.decode(DownloadStatus.self, forKey: .download_status)
         let download_progress = try? container.decode(Double.self, forKey: .download_progress)
-        self.init(id: id!, version: version!, categories: categories!, server: server!, baseURI: baseURI ?? "", dweb_deeplinks: dweb_deeplinks ?? [], dir: dir!, lang: lang!, name: name!, short_name: short_name!, description: description!, icons: icons!, screenshots: screenshots!, display: display!, orientation: orientation!, theme_color: theme_color!, background_color: background_color!, shortcuts: shortcuts!, logo: logo!, images: images!, bundle_url: bundle_url!, bundle_hash: bundle_hash!, bundle_size: bundle_size!, change_log: change_log!, author: author!, home: home!, release_date: release_date!, permissions: permissions ?? [], plugins: plugins ?? [], languages: languages ?? [], download_status: download_status ?? DownloadStatus.IDLE, download_progress: download_progress ?? 0.0)
+        self.init(id: id!, version: version!, categories: categories!, server: server!, baseURI: baseURI ?? "", dweb_deeplinks: dweb_deeplinks ?? [], dir: dir!, lang: lang!, name: name!, short_name: short_name!, description: description!, icons: icons!, screenshots: screenshots!, display: display!, orientation: orientation!, theme_color: theme_color!, background_color: background_color!, shortcuts: shortcuts!, logo: logo!, images: images!, bundle_url: bundle_url!, bundle_hash: bundle_hash!, bundle_size: bundle_size!, change_log: change_log!, author: author!, homepage_url: homepage_url!, release_date: release_date!, permissions: permissions ?? [], plugins: plugins ?? [], languages: languages ?? [], download_status: download_status ?? DownloadStatus.IDLE, download_progress: download_progress ?? 0.0)
     }
 }
 

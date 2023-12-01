@@ -33,6 +33,7 @@ class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
     private val P_short_name = P.required("short_name", "")
     private val P_description = P.optional<String>("description")
     private val P_icons = P.list<ImageResource>("icons")
+    private val P_homepage_url = P.optional<String>("homepage_url")
     private val P_screenshots = P.mutableListOptional<ImageResource>("screenshots")
     private val P_display = P.optional<DisplayMode>("display")
     private val P_orientation = P.optional<String>("orientation")
@@ -52,6 +53,7 @@ class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
   override var name by P_name(p)
   override var short_name by P_short_name(p)
   override var description by P_description(p)
+  override var homepage_url by P_homepage_url(p)
   override var icons by P_icons(p)
   override var screenshots by P_screenshots(p)
   override var display by P_display(p)
@@ -73,6 +75,7 @@ interface ICommonAppManifest {
   var name: String// 应用名称
   var short_name: String // 应用副标题
   var description: String?
+  var homepage_url: String?
   var icons: List<ImageResource>
   var screenshots: List<ImageResource>?
   var display: DisplayMode?

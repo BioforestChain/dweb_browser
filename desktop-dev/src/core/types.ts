@@ -20,6 +20,7 @@ export interface $CommonAppManifest
     | "name"
     | "short_name"
     | "description"
+    | "homepage_url"
     | "icons"
     | "screenshots"
     | "display"
@@ -282,6 +283,11 @@ export interface WebAppManifest {
    */
   description?: string | undefined;
 
+  /**
+   *
+   * #see https://developer.chrome.com/docs/extensions/mv3/manifest/homepage_url/
+   */
+  homepage_url?: string | undefined;
   /**
    * The `icons` member is an array of `ImageResource`s that can serve as iconic representations of the web
    * application in various contexts.

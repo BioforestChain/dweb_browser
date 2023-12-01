@@ -44,8 +44,6 @@ export interface $JmmAppInstallManifest extends $JmmAppManifest {
   change_log: string;
   /** 安装时展示的作者信息 */
   author: string[];
-  /** 安装时展示的主页链接 */
-  home: string;
   /** 安装时展示的发布日期 */
   release_date: string;
   /**

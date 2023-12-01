@@ -43,9 +43,6 @@ class JmmAppInstallManifest private constructor(
     /** 安装时展示的作者信息 */
     private val P_author = P.list<String>("author")
 
-    /** 安装时展示的主页链接 */
-    private val P_home = P.required<String>("home", "")
-
     /** 修改日志 */
     private val P_change_log = P.required<String>("change_log", "")
 
@@ -77,7 +74,6 @@ class JmmAppInstallManifest private constructor(
   override var bundle_signature by P_bundle_signature(p);
   override var public_key_url by P_public_key_url(p);
   override var author by P_author(p);
-  override var home by P_home(p);
   override var change_log by P_change_log(p);
   override var release_date by P_release_date(p);
   override var permissions by P_permissions(p);
@@ -96,7 +92,6 @@ internal interface IJmmAppInstallManifest : IJmmAppManifest {
   var bundle_signature: String
   var public_key_url: String
   var author: List<String>
-  var home: String
   var change_log: String
   var release_date: String
   var permissions: List<String>
