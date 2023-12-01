@@ -10,7 +10,8 @@ import WebKit
 
 @objc open class DwebHelper: NSObject {
     @objc open func setProxy(configuration: WKWebViewConfiguration, host: String, port: UInt16) {
-        let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!)
+        let endpoint = NWEndpoint.hostPort(
+            host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!)
         var proxyConfig = ProxyConfiguration(httpCONNECTProxy: endpoint, tlsOptions: .none)
         configuration.websiteDataStore.proxyConfigurations = [proxyConfig]
     }
@@ -27,7 +28,9 @@ import WebKit
 
 @objc open class URLSchemeTaskHelper: NSObject {
     var taskMap = [URLRequest: EasyURLSchemeTask]()
-    @objc open func startURLSchemeTask(_ webView: WKWebView, task: WKURLSchemeTask) -> EasyURLSchemeTask {
+    @objc open func startURLSchemeTask(_ webView: WKWebView, task: WKURLSchemeTask)
+        -> EasyURLSchemeTask
+    {
         let easy = EasyURLSchemeTask(webView: webView, task: task)
         taskMap[task.request] = easy
         return easy
@@ -57,25 +60,49 @@ import WebKit
 
     @objc open func didReceiveResponse(_ response: URLResponse) -> Bool {
         if isStoped { return false }
-        task.didReceive(response)
+        do {
+            try ObjC.catchException {
+                self.task.didReceive(response)
+            }
+        } catch {
+            return false
+        }
         return true
     }
 
     @objc open func didReceiveData(_ data: Data) -> Bool {
         if isStoped { return false }
-        task.didReceive(data)
+        do {
+            try ObjC.catchException {
+                self.task.didReceive(data)
+            }
+        } catch {
+            return false
+        }
         return true
     }
 
     @objc open func didFinish() -> Bool {
         if isStoped { return false }
-        task.didFinish()
+        do {
+            try ObjC.catchException {
+                self.task.didFinish()
+            }
+        } catch {
+            return false
+        }
         return true
     }
 
     @objc open func didFailWithError(_ error: Error) -> Bool {
         if isStoped { return false }
-        task.didFailWithError(error)
+        do {
+            try ObjC.catchException {
+                self.task.didFailWithError(error)
+            }
+        } catch {
+            return false
+        }
         return true
     }
 }

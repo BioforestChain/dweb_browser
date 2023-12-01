@@ -8,12 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		3D50D2D92B064BA5008891FC /* DwebPlatformIosKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		3DCF04232B19FD6C00A9D3EF /* DwebPlatformIosKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */; };
 		46282D682B0B603700A45995 /* DwebHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46282D672B0B603700A45995 /* DwebHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3D50D2D52B064BA5008891FC /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebPlatformIosKit.h; sourceTree = "<group>"; };
+		3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DwebPlatformIosKit.m; sourceTree = "<group>"; };
 		46282D672B0B603700A45995 /* DwebHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -99,6 +101,7 @@
 			children = (
 				3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */,
 				46282D672B0B603700A45995 /* DwebHelper.swift */,
+				3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */,
 			);
 			path = DwebPlatformIosKit;
 			sourceTree = "<group>";
@@ -184,6 +187,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				46282D682B0B603700A45995 /* DwebHelper.swift in Sources */,
+				3DCF04232B19FD6C00A9D3EF /* DwebPlatformIosKit.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,6 +230,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEFINES_MODULE = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -250,6 +255,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -292,6 +298,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEFINES_MODULE = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -309,6 +316,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
