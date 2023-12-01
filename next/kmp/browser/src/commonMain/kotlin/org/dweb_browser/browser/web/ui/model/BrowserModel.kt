@@ -5,10 +5,12 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
 import io.ktor.http.Url
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +25,7 @@ import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserWebView
+import org.dweb_browser.browser.web.model.ConstUrl
 import org.dweb_browser.browser.web.model.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browser.web.model.KEY_NO_TRACE
 import org.dweb_browser.browser.web.model.WebSiteInfo
@@ -203,28 +206,39 @@ class BrowserViewModel(
     BrowserWebView(viewItem)
   }
 
-  internal suspend fun openBrowserView(
-    search: String? = null, url: String? = null
-  ): BrowserWebView? {
+  internal suspend fun openBrowserView(search: String? = null, url: String? = null) {
     // 先判断search是否不为空，然后在判断search是否是地址，
     debugBrowser("openBrowserView", "search=$search, url=$url")
-    dwebLinkSearch.value = "" // 先清空搜索的内容
-    if (search?.isUrlOrHost() == true || url?.isUrlOrHost() == true) {
-      return this.addNewMainView(search ?: url)
+    dwebLinkSearch.value = search ?: url ?: ConstUrl.BLANK.url
+  }
+
+  /**
+   * 为了适应 ios，从而将 webview 的处理独立开
+   */
+  private suspend fun parseDwebLinkSearch(url: String): Boolean {
+    debugBrowser("lin.huang", "parseDwebLinkSearch url=$url, main=${getBrowserMainUrl()}")
+    if (url.isEmpty() || (url == ConstUrl.BLANK.url && browserViewList.isNotEmpty())) return false
+    return if (url == ConstUrl.BLANK.url && browserViewList.isEmpty()) {
+      addNewMainView(getBrowserMainUrl().toString())
+      false
+    } else if (url.isUrlOrHost()) {
+      addNewMainView(url)
+      false
     } else {
-      val loadUrl = if (search?.isDeepLink() == false) {
-        dwebLinkSearch.value = search
-        search
-      } else if (url?.isDeepLink() == false) {
-        dwebLinkSearch.value = url
-        url
-      } else {
-        getBrowserMainUrl().toString()
-      }
-      if (browserViewList.isEmpty()) {
-        return this.addNewMainView(loadUrl)
-      } else {
-        return searchWebView(loadUrl)
+      // searchWebView(url)
+      true
+    }
+  }
+
+  @Composable
+  fun BrowserSearchConfig() {
+    // 增加判断是否有传入需要检索的内容，如果有，就进行显示搜索界面
+    val showSearchView = LocalShowSearchView.current
+    LaunchedEffect(showSearchView) {
+      snapshotFlow { dwebLinkSearch.value }.collect { searchUrl ->
+        if (parseDwebLinkSearch(searchUrl)) {
+          showSearchView.value = true
+        }
       }
     }
   }

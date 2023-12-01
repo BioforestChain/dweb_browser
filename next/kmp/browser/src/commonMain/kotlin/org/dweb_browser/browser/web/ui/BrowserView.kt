@@ -77,6 +77,7 @@ import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.model.BrowserBaseView
 import org.dweb_browser.browser.web.model.BrowserWebView
+import org.dweb_browser.browser.web.model.ConstUrl
 import org.dweb_browser.browser.web.ui.bottomsheet.LocalModalBottomSheet
 import org.dweb_browser.browser.web.ui.bottomsheet.ModalBottomModel
 import org.dweb_browser.browser.web.ui.bottomsheet.SheetState
@@ -124,6 +125,8 @@ fun BrowserViewForWindow(
   val initialScale = windowRenderScope.scale
   val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
   val qrCodeScanModel = remember { QRCodeScanModel() }
+
+  viewModel.BrowserSearchConfig() // 用于控制是否显示搜索框
 
   CompositionLocalProvider(
     LocalModalBottomSheet provides modalBottomModel,
@@ -287,14 +290,6 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
   LaunchedEffect(Unit) {
     if (!localShowIme.value && !viewModel.showSearchEngine.targetState) {
       localFocus.clearFocus()
-    }
-  }
-
-  // 增加判断是否有传入需要检索的内容，如果有，就进行显示搜索界面
-  val showSearchView = LocalShowSearchView.current
-  LaunchedEffect(showSearchView) {
-    snapshotFlow { viewModel.dwebLinkSearch.value }.collect {
-      showSearchView.value = it.isNotEmpty()
     }
   }
 
@@ -489,8 +484,9 @@ fun BrowserSearchView(
   val searchHint = BrowserI18nResource.browser_search_hint()
   val focusManager = LocalFocusManager.current
   if (showSearchView) {
-    val inputText = viewModel.dwebLinkSearch.value.ifEmpty {
-      viewModel.currentTab?.viewItem?.webView?.getUrl() ?: ""
+    val inputText = when (val dwebLink = viewModel.dwebLinkSearch.value) {
+      ConstUrl.BLANK.url -> viewModel.currentTab?.viewItem?.webView?.getUrl() ?: ""
+      else -> dwebLink
     }
     val text =
       if (inputText.isSystemUrl() || inputText == searchHint) {
@@ -505,6 +501,7 @@ fun BrowserSearchView(
       .background(MaterialTheme.colorScheme.background)
       .clickableWithNoEffect {
         focusManager.clearFocus()
+        viewModel.dwebLinkSearch.value = ""
         showSearchView = false
       }
     ) {
@@ -515,10 +512,12 @@ fun BrowserSearchView(
           HomeWebviewPage(viewModel, windowRenderScope, onMove)
         },
         onClose = {
+          viewModel.dwebLinkSearch.value = ""
           showSearchView = false
         },
         onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
           scope.launch {
+            viewModel.dwebLinkSearch.value = ""
             showSearchView = false
             viewModel.saveLastKeyword(inputTextState, url)
             viewModel.searchWebView(url)
