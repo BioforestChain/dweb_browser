@@ -30,7 +30,7 @@ androidx-biometric = "1.2.0-alpha05"
 ktor-version = "2.3.6"
 
 kotlinx-coroutines = "1.7.3"
-kotlinx-datetime-version = "0.4.1"
+kotlinx-datetime-version = "0.5.0"
 kotlinx-atomicfu-version = "0.23.1"
 kotlinx-io-version = "0.3.0"
 okio-version = "3.6.0"
@@ -54,7 +54,7 @@ test-junit-bom = "5.9.2"
 animation-core-android = "1.5.4"
 material3Android = "1.2.0-alpha11"
 
-kotlinxSerializationVersion = "1.6.1"
+kotlinxSerializationVersion = "1.6.2"
 
 # jna
 java-jna-version = "5.13.0"
