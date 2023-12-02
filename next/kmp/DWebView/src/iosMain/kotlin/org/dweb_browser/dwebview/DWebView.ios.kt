@@ -11,9 +11,9 @@ import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.platform.setScale
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
-import platform.CoreGraphics.CGAffineTransformMakeScale
 import platform.CoreGraphics.CGRect
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSArray
@@ -210,11 +210,7 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
 
   @OptIn(ExperimentalForeignApi::class)
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
-    withMainContext {
-      val frame = engine.frame;
-      engine.transform = CGAffineTransformMakeScale(scale.toDouble(), scale.toDouble())
-      engine.setFrame(frame)
-    }
+    engine.setScale(scale);
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
     engine.overrideUserInterfaceStyle = when (colorScheme) {
