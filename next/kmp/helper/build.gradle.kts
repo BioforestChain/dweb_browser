@@ -29,8 +29,6 @@ kotlin {
   sourceSets.androidMain.dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.commons.compress)
-    api(libs.data.store)
-    api(libs.data.store.preferences)
     api(libs.whyoleg.cryptography.provider.jdk)
   }
   sourceSets.iosMain.dependencies {

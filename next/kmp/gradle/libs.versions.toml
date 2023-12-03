@@ -41,8 +41,6 @@ google-material = "1.10.0"
 google-location = "21.0.1"
 data-gson = "2.10.1"
 data-moshi-pack = "1.0.1"
-data-store = "1.0.0"
-data-store-preferences = "1.1.0-alpha06"
 coil-version = "2.5.0"
 camera-version = "1.4.0-alpha02"
 camera-barcode = "17.2.0"
@@ -52,13 +50,13 @@ jetbrains-compose-version = "1.5.11"
 # 测试
 test-junit-bom = "5.9.2"
 animation-core-android = "1.5.4"
-material3Android = "1.2.0-alpha11"
+material3Android = "1.2.0-alpha12"
 
 kotlinxSerializationVersion = "1.6.2"
 
 # jna
 java-jna-version = "5.13.0"
-webkit = "1.8.0"
+webkit = "1.9.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -141,10 +139,6 @@ google-location = { group = "com.google.android.gms", name = "play-services-loca
 data-gson = { group = "com.google.code.gson", name = "gson", version.ref = "data-gson" }
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationVersion" }
 kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-cbor", version.ref = "kotlinxSerializationVersion" }
-data-moshi-pack = { group = "com.daveanthonythomas.moshipack", name = "moshipack", version.ref = "data-moshi-pack" }
-# 键值存储
-data-store = { group = "androidx.datastore", name = "datastore", version.ref = "data-store" }
-data-store-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "data-store-preferences" }
 # 加载图片 coil
 coil-core = { group = "io.coil-kt", name = "coil", version.ref = "coil-version" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil-version" }
