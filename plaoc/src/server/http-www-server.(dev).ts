@@ -1,28 +1,18 @@
-import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "npm:@dweb-browser/js-process@0.1.4";
+import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "npm:@dweb-browser/js-process@0.1.6";
 import { X_PLAOC_QUERY } from "./const.ts";
 import { Server_www as _Server_www } from "./http-www-server.ts";
-import { isMobile } from "./shim/is-mobile.ts";
 
 /**
  * 给前端的文件服务
  * 这里是开发版，提供了两种额外的功能
  * 1. proxy：将外部http-url替代原有的静态文件，动态加载外部静态文件（主要是代理html，确保域名正确性，script则是用原本的http服务提供）
- * 2. emulator：为client所提供的插件提供模拟
  */
 export class Server_www extends _Server_www {
   override async getStartResult() {
     const result = await super.getStartResult();
-    // TODO 未来如果有需求，可以用 flags 传入参数来控制这个模拟器的初始化参数
-    /// 默认强制启动《emulator模拟器插件》
-    if (isMobile() === false) {
-      result.urlInfo.buildExtQuerys.set(X_PLAOC_QUERY.EMULATOR, "*");
-    }
     return result;
   }
 
-  protected async _onEmulator(request: FetchEvent, _emulatorFlags: string): Promise<$OnFetchReturn> {
-    return super._provider(request, "server/emulator");
-  }
   private xPlaocProxy: string | null = null;
   override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
     // 请求申请
@@ -31,18 +21,6 @@ export class Server_www extends _Server_www {
       request.pathname.startsWith("/config.sys.dweb")
     ) {
       return super._provider(request);
-    }
-
-    let isEnableEmulator = request.searchParams.get(X_PLAOC_QUERY.EMULATOR);
-    if (isEnableEmulator === null) {
-      const ref = request.headers.get("referer");
-      if (ref !== null) {
-        isEnableEmulator = new URL(ref).searchParams.get(X_PLAOC_QUERY.EMULATOR);
-      }
-    }
-    /// 加载模拟器的外部框架
-    if (isEnableEmulator !== null) {
-      return this._onEmulator(request, isEnableEmulator);
     }
 
     let xPlaocProxy = request.searchParams.get(X_PLAOC_QUERY.PROXY) ?? this.xPlaocProxy;

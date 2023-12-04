@@ -5,7 +5,7 @@ import {
   FetchEvent,
   IpcResponse,
   jsProcess,
-} from "npm:@dweb-browser/js-process@0.1.4";
+} from "npm:@dweb-browser/js-process@0.1.6";
 import { $PlaocConfig } from "./const.ts";
 import { HttpServer, cors } from "./helper/http-helper.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
@@ -29,7 +29,6 @@ export class Server_www extends HttpServer {
   protected _getOptions(): $DwebHttpServerOptions {
     return {
       subdomain: "www",
-      port: 443,
     };
   }
   async start() {
@@ -53,7 +52,7 @@ export class Server_www extends HttpServer {
 
     let remoteIpcResponse;
     // 进入plaoc转发器
-    if (this.jsonPlaoc && root !== "server/emulator") {
+    if (this.jsonPlaoc) {
       const proxyRequest = await this._plaocForwarder(request, this.jsonPlaoc);
       pathname = proxyRequest.url.pathname;
       const plaocShims = new Set((proxyRequest.url.searchParams.get("plaoc-shim") ?? "").split(",").filter(Boolean));

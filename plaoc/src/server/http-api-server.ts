@@ -13,7 +13,7 @@ import {
   ReadableStreamIpc,
   jsProcess,
   mapHelper,
-} from "npm:@dweb-browser/js-process@0.1.4";
+} from "npm:@dweb-browser/js-process@0.1.6";
 
 import { HttpServer } from "./helper/http-helper.ts";
 import { mwebview_destroy } from "./helper/mwebview-helper.ts";
@@ -28,7 +28,6 @@ export class Server_api extends HttpServer {
   protected _getOptions(): $DwebHttpServerOptions {
     return {
       subdomain: "api",
-      port: 443,
     };
   }
 

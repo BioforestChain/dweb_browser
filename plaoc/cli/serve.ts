@@ -1,12 +1,7 @@
-import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import adp from "npm:appdata-path";
-import { Command, EnumType, colors, createHash, debounce } from "./deps.ts";
+import { Command, EnumType, colors, createHash } from "./deps.ts";
 import { $ServeOptions, SERVE_MODE } from "./helper/const.ts";
-import { clearChangeState, fileHasChange, initFileState } from "./helper/file-hash-change.ts";
 import {
   BackendServerGenerator,
   BundleZipGenerator,
@@ -15,7 +10,6 @@ import {
   PlaocJsonGenerator,
 } from "./helper/generator.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
-import { WalkFiles } from "./helper/walk-dir.ts";
 
 const serveMode = new EnumType(SERVE_MODE);
 
@@ -120,69 +114,4 @@ export const doServe = async (flags: $ServeOptions) => {
     .on("close", () => {
       Deno.exit(1);
     });
-
-  /// 将文件直接同步到jmm-apps
-  const ROOT_PACKAGE = await import("../../package.json", {
-    assert: { type: "json" },
-  });
-
-  const CUR_ENV_PATH = import.meta.url;
-  /// 这里是判定是否是面向plaoc的框架开发者在开发emulator，方便他们将emulator同步到目标应用目录
-  if (
-    CUR_ENV_PATH.endsWith(".ts") &&
-    /// 通过 npm 被安装
-    CUR_ENV_PATH.includes("/node_module/") === false &&
-    /// 通过 deno 的 npm: 协议被安装
-    CUR_ENV_PATH.includes("/deno/npm/") === false
-  ) {
-    const emulatorSrcDir = fileURLToPath(import.meta.resolve("../dist/server/emulator"));
-    if (fs.existsSync(emulatorSrcDir)) {
-      const emulatorDestDir = path.join(
-        adp.getAppDataPath(ROOT_PACKAGE.default.productName),
-        "jmm-apps",
-        data.id,
-        "usr/server/emulator"
-      );
-      console.log(
-        colors.gray(
-          `${colors.bgBlue("ℹ️")}  由于您是plaoc的内部开发者，所以现在 ${colors.underline.cyan(
-            path.relative(Deno.cwd(), emulatorSrcDir)
-          )} 会被自动同步到 ${colors.underline.cyan(
-            JSON.stringify(emulatorDestDir)
-          )}。也就是说，手动刷新页面就可以看到 emulator 项目实时编译结果`
-        )
-      );
-
-      const doSync = debounce(() => {
-        let hasChange = false;
-        for (const entry of WalkFiles(emulatorSrcDir)) {
-          if (fileHasChange(entry.entrypath, entry.read())) {
-            hasChange = true;
-            break;
-          }
-        }
-
-        if (hasChange) {
-          clearChangeState();
-          if (fs.existsSync(emulatorDestDir)) {
-            fs.rmSync(emulatorDestDir, { recursive: true });
-          }
-          for (const entry of WalkFiles(emulatorSrcDir)) {
-            initFileState(entry.entrypath, entry.read());
-
-            const src = path.resolve(emulatorSrcDir, entry.relativepath);
-            const dest = path.resolve(emulatorDestDir, entry.relativepath);
-            fs.mkdirSync(path.dirname(dest), { recursive: true });
-            fs.copyFileSync(src, dest);
-          }
-          console.log(colors.green("synced"), colors.yellow(new Date().toLocaleTimeString()));
-        }
-      }, 200);
-
-      fs.watch(emulatorSrcDir, { recursive: true }, (_type, _filename) => {
-        doSync();
-      });
-      doSync();
-    }
-  }
 };

@@ -328,7 +328,7 @@ export class FetchEvent {
 
 export class FetchError extends Error {
   constructor(message: string, options?: $FetchErrorOptions) {
-    super(message, options);
+    super(message);
     this.code = options?.status ?? 500;
   }
   readonly code: number;

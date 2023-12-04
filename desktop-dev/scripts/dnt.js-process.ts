@@ -33,8 +33,8 @@ export const doBuild = async (args = Deno.args, _version?: string) => {
       // see JS docs for overview and more options
       deno: false,
     },
-    mappings: {},
-    // importMap: resolveTo("./src/browser/js-process/assets/worker/import_map.json"),
+    // mappings: {},
+    importMap: resolveTo("./src/browser/js-process/assets/worker/import_map.json"),
     typeCheck: false,
     test: false,
     esModule: true,
@@ -57,9 +57,9 @@ export const doBuild = async (args = Deno.args, _version?: string) => {
       types: "./src/module.ts",
       exports: {
         ".": {
-          types: "./src/module.ts",
-          import: "./esm/module.js",
-          require: "./script/module.js",
+          types: "./src/browser/js-process/assets/module.ts",
+          import: "./esm/browser/js-process/assets/module.js",
+          require: "./script/browser/js-process/assets/module.js",
         },
       },
       dependencies: {

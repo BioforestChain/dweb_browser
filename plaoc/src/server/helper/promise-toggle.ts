@@ -1,4 +1,4 @@
-import { PromiseOut } from "npm:@dweb-browser/js-process@0.1.4";
+import { PromiseOut } from "npm:@dweb-browser/js-process@0.1.6";
 
 export class PromiseToggle<T1, T2> {
   constructor(initState: { type: "open"; value: T1 } | { type: "close"; value: T2 }) {

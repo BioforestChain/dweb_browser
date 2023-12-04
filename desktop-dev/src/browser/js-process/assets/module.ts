@@ -1,13 +1,13 @@
 //#region helper
-export { isWebSocket } from "@dweb-browser/desktop/core/helper/ipcRequestHelper.ts";
-export type { $MMID, $MicroModuleManifest } from "@dweb-browser/desktop/core/helper/types.ts";
-export * from "@dweb-browser/desktop/helper/PromiseOut.ts";
-export * from "@dweb-browser/desktop/helper/binaryHelper.ts";
-// export * from "@dweb-browser/desktop/helper/color.ts"; // 没用到
-export * from "@dweb-browser/desktop/helper/createSignal.ts";
-export * from "@dweb-browser/desktop/helper/encoding.ts";
-export * from "@dweb-browser/desktop/helper/mapHelper.ts";
-export * from "@dweb-browser/desktop/helper/stream/readableStreamHelper.ts";
+export { isWebSocket } from "../../../core/helper/ipcRequestHelper.ts";
+export type { $MMID, $MicroModuleManifest } from "../../../core/helper/types.ts";
+export * from "../../../helper/PromiseOut.ts";
+export * from "../../../helper/binaryHelper.ts";
+// export * from "../../../helper/color.ts"; // 没用到
+export * from "../../../helper/createSignal.ts";
+export * from "../../../helper/encoding.ts";
+export * from "../../../helper/mapHelper.ts";
+export * from "../../../helper/stream/readableStreamHelper.ts";
 //#endregion
 
 //#region runtime types

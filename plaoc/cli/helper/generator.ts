@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "npm:jszip";
-import { $JmmAppInstallManifest, $MMID } from "./../deps.ts";
+import type { $JmmAppInstallManifest, $MMID } from "./../deps.ts";
 import { $MetadataJsonGeneratorOptions, SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { WalkFiles } from "./walk-dir.ts";
@@ -242,12 +242,13 @@ export class BundleZipGenerator {
         data: data,
       });
     };
-    // if (dev) {
-    //   await addFiles_DistToUsr("server/plaoc.server.dev.js", "server/plaoc.server.js");
-    //   await addFiles_DistToUsr("server/emulator");
-    // } else {
-    await addFiles_DistToUsr("server");
-    // }
+    if (dev) {
+      await addFiles_DistToUsr("server/plaoc.server.dev.js", "server/plaoc.server.js");
+    } else {
+      await addFiles_DistToUsr("server/plaoc.server.js");
+    }
+    await addFiles_DistToUsr("server/chunk.js");
+    await addFiles_DistToUsr("server/urlpattern.polyfill.js");
     return entries;
   }
   /**

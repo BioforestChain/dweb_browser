@@ -1,4 +1,4 @@
-import { jsProcess, PromiseOut } from "npm:@dweb-browser/js-process@0.1.4";
+import { jsProcess, PromiseOut } from "npm:@dweb-browser/js-process@0.1.6";
 import { X_PLAOC_QUERY } from "./const.ts";
 import "./helper/polyfill.ts";
 import { Server_api } from "./http-api-server.ts";

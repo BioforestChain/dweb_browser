@@ -1,4 +1,4 @@
-import { jsProcess } from "npm:@dweb-browser/js-process@0.1.4";
+import { jsProcess } from "npm:@dweb-browser/js-process@0.1.6";
 import { $PlaocConfig } from "./const.ts";
 
 export class PlaocConfig{

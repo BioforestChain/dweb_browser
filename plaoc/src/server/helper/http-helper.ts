@@ -6,7 +6,7 @@ import {
   ServerStartResult,
   http,
   jsProcess,
-} from "npm:@dweb-browser/js-process@0.1.4";
+} from "npm:@dweb-browser/js-process@0.1.6";
 
 export type $IpcHeaders = InstanceType<typeof IpcHeaders>;
 export { IpcHeaders };

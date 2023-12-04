@@ -1,4 +1,4 @@
-import type { $MMID, $MicroModuleManifest, $OnFetch } from "npm:@dweb-browser/js-process@0.1.4";
+import type { $MMID, $MicroModuleManifest, $OnFetch } from "npm:@dweb-browser/js-process@0.1.6";
 import {
   $DwebHttpServerOptions,
   $Ipc,
@@ -13,7 +13,7 @@ import {
   isWebSocket,
   jsProcess,
   mapHelper,
-} from "npm:@dweb-browser/js-process@0.1.4";
+} from "npm:@dweb-browser/js-process@0.1.6";
 import { HttpServer } from "./helper/http-helper.ts";
 import { PromiseToggle } from "./helper/promise-toggle.ts";
 
@@ -42,7 +42,6 @@ export class Server_external extends HttpServer {
   protected _getOptions() {
     return {
       subdomain: "external",
-      port: 443,
     } satisfies $DwebHttpServerOptions;
   }
   readonly token = crypto.randomUUID();
@@ -126,7 +125,7 @@ export class Server_external extends HttpServer {
           // 请求跟外部app通信，并拿到返回值
           event.headers.append("X-Dweb-Host", jsProcess.mmid);
           return await jsProcess.nativeFetch(
-            `http://${ext_options.subdomain}.${mmid}:${ext_options.port}${event.pathname}${event.search}`,
+            `https://${ext_options.subdomain}.${mmid}${event.pathname}${event.search}`,
             {
               method: event.method,
               headers: event.headers,
