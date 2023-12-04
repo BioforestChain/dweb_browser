@@ -20,4 +20,14 @@ extension String {
 
         return predicate.evaluate(with: self) || predicate2.evaluate(with: self)
     }
+    
+    /**
+     * 判断字符串是否携带了scheme，true为携带，false为未携带
+     */
+    func matchesSchemePattern() -> Bool {
+        let pattern = /\b[a-zA-Z]+:\/\/\b/
+        let matches = self.ranges(of: pattern)
+        
+        return !matches.isEmpty
+    }
 }
