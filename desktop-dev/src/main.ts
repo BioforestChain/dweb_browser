@@ -130,7 +130,7 @@ app.whenReady().then(async () => {
   appIcon.setContextMenu(contextMenu);
 
   Electron.protocol.handle("dweb", (req) => {
-    return dns.nativeFetch(req.url);
+    return dns.nativeFetch(req.url.replace(/^dweb:\/\//, "dweb:"));
   });
   Electron.session.defaultSession.setProxy({
     proxyRules: `https=${await HttpServerNMM.proxyHost.promise}`
