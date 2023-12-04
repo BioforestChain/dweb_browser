@@ -17,7 +17,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   private async createIpc() {
     let pub_url = BasePlugin.public_url;
     pub_url = pub_url.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-    const url = new URL(pub_url.replace(/^http:/, "ws:"));
+    const url = new URL(pub_url.replace(/^http/, "ws"));
 
     const mmid = url.searchParams.get("X-Dweb-Host")?.slice(9) as $MMID;
     const hash = BasePlugin.external_url;

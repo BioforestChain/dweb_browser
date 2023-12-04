@@ -21,7 +21,7 @@ export class StateObserver<RAW, STATE> {
 
   async *jsonlines(options?: { signal?: AbortSignal }) {
     const pub_url = BasePlugin.public_url;
-    const url = new URL(pub_url.replace(/^http:/, "ws:"));
+    const url = new URL(pub_url.replace(/^http/, "ws"));
     // 内部的监听
     url.pathname = `/${this.plugin.mmid}/observe`;
     const ws = new WebSocket((await this.buildWsUrl(url)) ?? url);
