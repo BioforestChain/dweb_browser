@@ -31,7 +31,6 @@ public class BrowserWebview: WKWebView {
 // dweb deeplink
 let dwebDeeplinkScript = """
 var originalFetch = fetch;
-var message_hanlder_name = "favicons";
 function dwebFetch(input, init) {
     if (input.toString().startsWith === 'dweb:') {
       window.location.href = input;
