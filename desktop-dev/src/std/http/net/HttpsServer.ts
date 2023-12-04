@@ -9,6 +9,9 @@ import { ProxyServer } from "./ProxyServer.ts";
  * 差别在于服务只在本地运作
  */
 export class HttpsServer extends NetServer<$HttpsServerInfo> {
+  static readonly PREFIX = "https://";
+  static readonly PROTOCOL = "https:";
+  static readonly PORT = 443;
   private _chrome_proxy_clear?: () => unknown;
   private _info?: $HttpsServerInfo;
   get info() {
@@ -16,9 +19,17 @@ export class HttpsServer extends NetServer<$HttpsServerInfo> {
   }
   private _proxy = new ProxyServer();
 
+  private bindingPort = -1;
+  get authority() {
+    return `localhost:${this.bindingPort}`;
+  }
+  get origin() {
+    return `${HttpsServer.PREFIX}${this.authority}`;
+  }
+
   async create() {
     /// 启动一个通用的网关服务
-    const local_port = await findPort([22605]);
+    const local_port = await findPort([(this.bindingPort = 22605)]);
     const info = (this._info = await httpsCreateServer(
       {
         SNICallback: (hostname, callback) => {
@@ -31,8 +42,9 @@ export class HttpsServer extends NetServer<$HttpsServerInfo> {
       }
     ));
 
-    /// 启动一个通用的代理服务
-    await this._proxy.create({ port: local_port, host: "localhost" });
+    // info.server.listen(local_port)
+    // /// 启动一个通用的代理服务
+    // await this._proxy.create({ port: local_port, host: "localhost" });
 
     return info;
   }

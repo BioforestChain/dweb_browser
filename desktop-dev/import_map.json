@@ -8,7 +8,7 @@
     "popmotion": "https://esm.sh/v124/popmotion@11.0.5",
     "colors": "https://deno.land/std@0.193.0/fmt/colors.ts",
     "comlink": "https://esm.sh/v124/comlink@4.4.1",
-    "electron": "https://esm.sh/v124/electron@25.3.0",
+    "electron": "https://esm.sh/v124/electron@25.9.6",
     "mica-electron": "https://esm.sh/v124/mica-electron@1.4.9",
     "extract-zip": "https://esm.sh/v124/extract-zip@2.0.1",
     "jszip": "https://esm.sh/v124/jszip@3.10.1",
@@ -22,6 +22,7 @@
     "ts-pattern": "https://esm.sh/v124/ts-pattern@5.0.1",
     "ts-pattern/": "https://esm.sh/v124/ts-pattern@5.0.1/",
     "tar": "https://esm.sh/v124/tar@6.1.15",
-    "uuid": "https://deno.land/std@0.193.0/uuid/mod.ts"
+    "uuid": "https://deno.land/std@0.193.0/uuid/mod.ts",
+    "selfsigned": "https://esm.sh/v124/selfsigned@2.4.1"
   }
 }

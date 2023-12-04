@@ -36,7 +36,7 @@ export class ProxyServer {
       });
     });
 
-    this._chrome_proxy_clear = await setChromeProxy(proxy_port);
+    // this._chrome_proxy_clear = await setChromeProxy(proxy_port);
 
     return info;
   }

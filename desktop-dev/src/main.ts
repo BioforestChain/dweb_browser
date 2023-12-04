@@ -102,7 +102,10 @@ const menu = Electron.Menu;
 const Tray = Electron.Tray;
 let appIcon = null;
 
-app.whenReady().then(() => {
+// 允许自签名证书
+app.commandLine.appendSwitch('ignore-certificate-errors');
+
+app.whenReady().then(async () => {
   const devIcon = isWindows ? "./electron/icons/win/icon.ico" : "./electron/icons/png/16x16.png";
   const depsIcon = isWindows ? "./resources/icons/win/icon.ico": "./resources/icons/png/16x16.png";
   const iconPath = isElectronDev
@@ -125,6 +128,13 @@ app.whenReady().then(() => {
   // 对于 Linux 再次调用此命令，因为我们修改了上下文菜单
   appIcon.setToolTip("dweb_browser");
   appIcon.setContextMenu(contextMenu);
+
+  Electron.protocol.handle("dweb", (req) => {
+    return dns.nativeFetch(req.url);
+  });
+  Electron.session.defaultSession.setProxy({
+    proxyRules: `https=${await HttpServerNMM.proxyHost.promise}`
+  });
 });
 
 // 设置deeplink

@@ -1,14 +1,17 @@
 import forge from "node-forge";
-import fs from "node:fs";
-import path from "node:path";
+import selfsigned from "selfsigned";
 
 // 读取 CA证书，后面需要根据它创建域名证书
-const caKey = forge.pki.decryptRsaPrivateKey(
-  fs.readFileSync(path.resolve(__dirname, "../../../cert/rootCA-key.pem"), "utf8")
-);
-const caCert = forge.pki.certificateFromPem(
-  fs.readFileSync(path.resolve(__dirname, "../../../cert/rootCA.pem"), "utf8")
-);
+// const caKey = forge.pki.decryptRsaPrivateKey(
+//   fs.readFileSync(path.resolve(__dirname, "../../../../cert/rootCA-key.pem"), "utf8")
+// );
+// const caCert = forge.pki.certificateFromPem(
+//   fs.readFileSync(path.resolve(__dirname, "../../../../cert/rootCA.pem"), "utf8")
+// );
+const pems = selfsigned.generate(undefined, { days: 10000 });
+const caKey = forge.pki.decryptRsaPrivateKey(pems.private);
+const caCert = forge.pki.certificateFromPem(pems.cert);
+
 const certCache = new Map<
   string,
   {
@@ -41,7 +44,7 @@ export function createServerCertificate(domain: string) {
   cert.validity.notAfter = new Date();
   cert.validity.notAfter.setFullYear(cert.validity.notAfter.getFullYear() + 2); // 给1~2年的有效期
   cert.setIssuer(caCert.subject.attributes);
-  let _subject = JSON.parse(JSON.stringify(caCert.subject.attributes[0]));
+  const _subject = JSON.parse(JSON.stringify(caCert.subject.attributes[0]));
   _subject.value = domain;
   cert.setSubject([_subject]);
   cert.setExtensions([

@@ -14,10 +14,13 @@ import { ServerStartResult, ServerUrlInfo } from "./const.ts";
 import { defaultErrorResponse } from "./defaultErrorResponse.ts";
 import { MemoryTable } from "./helper/$memoryTable.ts";
 import { Http1Server } from "./net/Http1Server.ts";
+import { HttpsServer } from "./net/HttpsServer.ts";
 import type { $DwebHttpServerOptions } from "./net/createNetServer.ts";
 import { PortListener } from "./portListener.ts";
 import { initWebSocketServer } from "./portListener.ws.ts";
 import { WebServerRequest } from "./types.ts";
+import { DwebDomainProxyServer } from "./net/DwebDomainProxyServer.ts"
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 
 Electron.app.commandLine.appendSwitch("ignore-connections-limit", "api.plaoc.html.demo.dweb-443.localhost");
 interface $Gateway {
@@ -39,7 +42,7 @@ export class HttpServerNMM extends NativeMicroModule {
   name = "HTTP Server Provider";
   override short_name = "HTTP";
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service];
-  private _dwebServer = new Http1Server();
+  private _dwebServer = new HttpsServer();
 
   protected _gatewayTable = new MemoryTable<$Gateway>();
   private _info:
@@ -61,12 +64,18 @@ export class HttpServerNMM extends NativeMicroModule {
   getFullReqUrl = (req: WebServerRequest) => {
     return this._info!.protocol.prefix + (req.headers["host"] ?? this._info!.host) + req.url;
   };
+
+  public static readonly proxyHost: PromiseOut<string> = new PromiseOut();
+
   protected async _bootstrap() {
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
     const info = (this._info = await this._dwebServer.create());
     const getFullReqUrl = this.getFullReqUrl;
 
     initWebSocketServer.call(this, info.server);
+    const proxy = new DwebDomainProxyServer();
+    await proxy.createProxyServer(this._dwebServer);
+    HttpServerNMM.proxyHost.resolve(proxy.host);
 
     this._info.server.on("request", (req, res) => {
       const host = this.getHostByReq(req.url, Object.entries(req.headers));
@@ -153,7 +162,8 @@ export class HttpServerNMM extends NativeMicroModule {
 
     const public_origin = this._dwebServer.origin;
     const host = `${subdomainPrefix}${mmid}`;
-    const internal_origin = `http://${subdomainPrefix}${mmid}.${this._dwebServer.authority}`;
+    // const internal_origin = `http://${subdomainPrefix}${mmid}.${this._dwebServer.authority}`;
+    const internal_origin = `https://${host}`;
     return new ServerUrlInfo(host, internal_origin, public_origin);
   }
 
@@ -233,7 +243,9 @@ export class HttpServerNMM extends NativeMicroModule {
         url_host = `${hostname}`;
       }
     }
+    
     for (const [key, value] of headers) {
+      console.always("getHostByReq", `key: ${key} value: ${value}`);
       switch (key) {
         case "host":
         case "Host": {
@@ -266,7 +278,7 @@ export class HttpServerNMM extends NativeMicroModule {
       }
     }
 
-    let host = url_host || query_x_web_host || header_x_dweb_host || header_user_agent_host || header_host;
+    let host = url_host || query_x_web_host || header_x_dweb_host || header_host || header_user_agent_host;
     if (typeof host !== "string") {
       /** 如果有需要，可以内部实现这个 key 为 "*" 的 listener 来提供默认服务 */
       host = "*";
