@@ -125,7 +125,7 @@ class DWebViewEngine(
       dwebHost = uri.host!!
     }
     val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
-    settings.userAgentString = "$baseUserAgentString Dweb/$versionName (Android; ${dwebHost})"
+    settings.userAgentString = "$baseUserAgentString Dweb/2.0 (Android/$versionName; ${dwebHost})"
   }
 
 
