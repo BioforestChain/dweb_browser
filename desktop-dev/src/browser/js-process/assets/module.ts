@@ -3,11 +3,13 @@ export { isWebSocket } from "../../../core/helper/ipcRequestHelper.ts";
 export type { $MMID, $MicroModuleManifest } from "../../../core/helper/types.ts";
 export * from "../../../helper/PromiseOut.ts";
 export * from "../../../helper/binaryHelper.ts";
+export type { $JmmAppInstallManifest, $JmmAppManifest } from "../../jmm/types.ts";
 // export * from "../../../helper/color.ts"; // 没用到
 export * from "../../../helper/createSignal.ts";
 export * from "../../../helper/encoding.ts";
 export * from "../../../helper/mapHelper.ts";
 export * from "../../../helper/stream/readableStreamHelper.ts";
+export * from "../../../helper/$debounce.ts"
 //#endregion
 
 //#region runtime types

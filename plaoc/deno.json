@@ -12,7 +12,7 @@
     "build:client:watch": "deno run --watch -A ./scripts/npm-build.ts client --watch",
     "build:cli": "deno run -A ./scripts/npm-bin.ts cli && deno task cp:cli",
     "build:is-dweb": "deno run -A ./scripts/npm-build.ts is-dweb",
-    "cp:cli": "cp -r ./dist ./build/cli/esm/plaoc",
+    "cp:cli": "cp -r ./dist ./build/cli/",
     "build:server": "deno run -A ./scripts/bundle-server.ts",
     "build:watch:server": "deno task build:server --watch",
     "build:s": "deno run -A ./scripts/npm-build.server.ts && deno task build:server",

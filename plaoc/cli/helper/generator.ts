@@ -226,6 +226,7 @@ export class BundleZipGenerator {
       /// 本地文件
       else {
         const addpath_full = fileURLToPath(import.meta.resolve(`../../dist/${addpath}`));
+        console.log("addpath_full=>",addpath_full)
         if (fs.statSync(addpath_full).isFile()) {
           data = fs.readFileSync(addpath_full);
         } else {
@@ -247,7 +248,7 @@ export class BundleZipGenerator {
     } else {
       await addFiles_DistToUsr("server/plaoc.server.js");
     }
-    await addFiles_DistToUsr("server/chunk.js");
+    // await addFiles_DistToUsr("server/chunk.js");
     await addFiles_DistToUsr("server/urlpattern.polyfill.js");
     return entries;
   }

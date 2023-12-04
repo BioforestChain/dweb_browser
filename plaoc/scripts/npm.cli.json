@@ -6,7 +6,7 @@
     "watchDir": "./src/cli",
     "denoShim": true,
     "name": "@plaoc/cli",
-    "version": "0.5.6",
+    "version": "0.5.7",
     "lib": [
       "ES2022",
       "DOM"
