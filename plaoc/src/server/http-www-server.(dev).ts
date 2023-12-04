@@ -39,10 +39,11 @@ export class Server_www extends _Server_www {
     const proxyUrl = new URL(request.pathname + request.search, xPlaocProxy);
     // console.log("native fetch start:", proxyUrl.href);
     const remoteIpcResponse = await jsProcess.nativeRequest(proxyUrl);
-    // console.log("native fetch end:", proxyUrl.href);
+    // console.log("native fetch end:", proxyUrl.href,remoteIpcResponse.headers.get("Content-Type"));
     const headers = new IpcHeaders(remoteIpcResponse.headers);
     /// 对 html 做强制代理，似的能加入一些特殊的头部信息，确保能正确访问内部的资源
-    if (remoteIpcResponse.headers.get("Content-Type")?.startsWith("text/html")) {
+    const contentType = remoteIpcResponse.headers.get("Content-Type");
+    if (contentType && (contentType.startsWith("text/html") || !contentType.includes("javascript"))) {
       // 强制声明解除安全性限制
       headers.init("Access-Control-Allow-Private-Network", "true");
       // 移除在iframe中渲染的限制

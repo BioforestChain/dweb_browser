@@ -81,8 +81,10 @@ export class MultiWebviewNMM extends NativeMicroModule {
     if (this.openLock) return;
     this.openLock = true;
     const mww = await getOrOpenMWebViewWindow(clientIpc);
+    const tmp = new URL(url)
+    tmp.host = `${tmp.host}.localhost:22605`
     const view = mww.createBrowserView(url);
-    view.webContents.executeJavaScript(`console.log("🍓可以复制到浏览器开发：","${url}")`)
+    view.webContents.executeJavaScript(`console.log("🍓可以复制到浏览器开发：","${tmp.href}")`)
     // console.always("_open", view.webContents.id,mww.ipc.remote.mmid);
     this.openLock = false;
     return view.webContents.id;

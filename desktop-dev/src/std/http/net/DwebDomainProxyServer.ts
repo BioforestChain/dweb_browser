@@ -1,7 +1,7 @@
 import http from "node:http";
 import net from "node:net";
 import { findPort } from "../../../helper/findPort.ts";
-import { HttpsServer } from "./HttpsServer.ts";
+import type { HttpsServer } from "./HttpsServer.ts";
 import { $HttpServerInfo } from "./createNetServer.ts";
 
 export class DwebDomainProxyServer {

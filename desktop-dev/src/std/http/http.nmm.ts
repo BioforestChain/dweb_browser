@@ -244,7 +244,6 @@ export class HttpServerNMM extends NativeMicroModule {
     }
     
     for (const [key, value] of headers) {
-      // console.always("getHostByReq", `key: ${key} value: ${value}`);
       switch (key) {
         case "host":
         case "Host": {
