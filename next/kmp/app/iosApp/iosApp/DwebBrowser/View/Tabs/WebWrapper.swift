@@ -11,7 +11,9 @@ public class BrowserWebview: WKWebView {
         configuration.userContentController.add(self, name: "favicons")
 
         let faviconsScript = WKUserScript(source: watchIosIconScript, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        let deeplinkScript = WKUserScript(source: dwebDeeplinkScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         configuration.userContentController.addUserScript(faviconsScript)
+        configuration.userContentController.addUserScript(deeplinkScript)
 
         self.navigationDelegate = self
     }
@@ -25,6 +27,21 @@ public class BrowserWebview: WKWebView {
         fatalError("init(coder:) has not been implemented")
     }
 }
+
+// dweb deeplink
+let dwebDeeplinkScript = """
+var originalFetch = fetch;
+var message_hanlder_name = "favicons";
+function dwebFetch(input, init) {
+    if (input.toString().startsWith === 'dweb:') {
+      window.location.href = input;
+      return;
+    }
+
+    return originalFetch(input, init);
+}
+window.fetch = dwebFetch;
+"""
 
 // 监听获取图标的 JavaScript 代码
 let watchIosIconScript = """
@@ -119,12 +136,22 @@ extension BrowserWebview: WKScriptMessageHandler, WKNavigationDelegate {
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         evaluateJavaScript("void watchIosIcon()")
     }
+
+    public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if let url = navigationAction.request.url, url.scheme == "dweb" {
+            DwebDeepLink.shared.openDeepLink(url: url.absoluteString)
+            decisionHandler(WKNavigationActionPolicy.cancel)
+            return
+        }
+
+        decisionHandler(WKNavigationActionPolicy.allow)
+    }
 }
 
 @dynamicMemberLookup
 class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     var id = UUID()
-    
+
     @Published var webView: BrowserWebview {
         didSet {
             setupObservers()
