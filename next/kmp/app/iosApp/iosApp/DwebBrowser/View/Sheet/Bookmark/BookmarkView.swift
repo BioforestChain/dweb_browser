@@ -5,43 +5,58 @@
 //  Created by ui03 on 2023/4/22.
 //
 
+import SwiftData
 import SwiftUI
 
 struct BookmarkView: View {
-    @StateObject var viewModel = BookmarkViewModel()
-    
+    @EnvironmentObject var dragScale: WndDragScale
+    @EnvironmentObject var openingLink: OpeningLink
+    @EnvironmentObject var toolBarState: ToolBarState
+
+    @Environment(\.modelContext) var modelContext
+    @Query var bookmarks: [Bookmark]
+
     var body: some View {
-        if viewModel.dataSources.count > 0 {
-            VStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.white)
-                    .shadow(radius: 2)
-                    .overlay(
-                        List {
-                            ForEach(viewModel.dataSources) {  link in
-                                BookmarkCell(linkRecord: link, isLast: link.id == viewModel.dataSources.last?.id, loadMoreAction: {viewModel.loadMoreHistoryData()})
-                            }
-                            .onDelete { indexSet in
-                                deleteBookmarkData(at: viewModel.dataSources, offsets: indexSet)
-                            }
-                            .textCase(nil)
-                            .listRowInsets(EdgeInsets())
-                            .listRowSeparator(.hidden)
+
+        ZStack {
+            if bookmarks.count > 0 {
+                List {
+                    ForEach(bookmarks, id: \.self) { bookmark in
+                        HStack {
+                            WebsiteIconImage(iconUrl: URL(string: bookmark.iconUrl)!)
+                                .frame(width: dragScale.properValue(floor: 14, ceiling: 24),
+                                       height: dragScale.properValue(floor: 14, ceiling: 24))
+                                .cornerRadius(4)
+
+                            Text(bookmark.title)
+                                .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
+                                .lineLimit(1)
+                                .padding(.leading, 6)
+                            Spacer()
                         }
-                    )
-            }
-        } else {
-            NoResultView(config: .bookmark)
-        }
-    }
-    
-    private func deleteBookmarkData(at items: [LinkRecord], offsets: IndexSet) {
-        
-        offsets.forEach { index in
-            if index < items.count {
-                let model = items[index]
-                viewModel.deleteSingleHistory(for: model.id.uuidString)
+                        .onTapGesture {
+                            guard let bookmarkUrl = URL(string: bookmark.link) else { return }
+                            openingLink.clickedLink = bookmarkUrl
+                            toolBarState.showMoreMenu = false
+                        }
+                    }
+                    .onDelete(perform: deleteBookmarkData)
+                }
+            } else {
+                NoResultView(config: .bookmark)
             }
         }
     }
+
+    func deleteBookmarkData(_ indexSet: IndexSet) {
+        for index in indexSet {
+            let bookmark = bookmarks[index]
+            modelContext.delete(bookmark)
+        }
+    }
+}
+
+#Preview {
+    BookmarkView()
+        .modelContainer(for: Bookmark.self)
 }

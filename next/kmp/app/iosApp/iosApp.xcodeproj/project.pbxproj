@@ -60,8 +60,6 @@
 		F03444A62AE26FAB004F732E /* SearchResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444672AE26FAA004F732E /* SearchResultView.swift */; };
 		F03444A72AE26FAB004F732E /* SearchTypingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444682AE26FAA004F732E /* SearchTypingView.swift */; };
 		F03444A92AE26FAB004F732E /* BookmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034446D2AE26FAA004F732E /* BookmarkView.swift */; };
-		F03444AA2AE26FAB004F732E /* BookmarkCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034446E2AE26FAA004F732E /* BookmarkCell.swift */; };
-		F03444AB2AE26FAB004F732E /* BookmarkViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034446F2AE26FAA004F732E /* BookmarkViewModel.swift */; };
 		F03444AC2AE26FAB004F732E /* HistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444702AE26FAA004F732E /* HistoryViewModel.swift */; };
 		F03444AD2AE26FAB004F732E /* NoResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444712AE26FAA004F732E /* NoResultView.swift */; };
 		F03444AE2AE26FAB004F732E /* SheetSegmentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444722AE26FAA004F732E /* SheetSegmentView.swift */; };
@@ -91,6 +89,7 @@
 		F03444D22AE2713D004F732E /* DownloadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444CC2AE2713D004F732E /* DownloadButtonView.swift */; };
 		F03444D32AE2713D004F732E /* CustomUIScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444CD2AE2713D004F732E /* CustomUIScrollView.swift */; };
 		F03444D42AE2713D004F732E /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444CE2AE2713D004F732E /* DownloadAppView.swift */; };
+		F046B2922B19B09300D8FD01 /* BookmarkModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F046B2912B19B09300D8FD01 /* BookmarkModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -162,8 +161,6 @@
 		F03444672AE26FAA004F732E /* SearchResultView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultView.swift; sourceTree = "<group>"; };
 		F03444682AE26FAA004F732E /* SearchTypingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTypingView.swift; sourceTree = "<group>"; };
 		F034446D2AE26FAA004F732E /* BookmarkView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkView.swift; sourceTree = "<group>"; };
-		F034446E2AE26FAA004F732E /* BookmarkCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkCell.swift; sourceTree = "<group>"; };
-		F034446F2AE26FAA004F732E /* BookmarkViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkViewModel.swift; sourceTree = "<group>"; };
 		F03444702AE26FAA004F732E /* HistoryViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
 		F03444712AE26FAA004F732E /* NoResultView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NoResultView.swift; sourceTree = "<group>"; };
 		F03444722AE26FAA004F732E /* SheetSegmentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SheetSegmentView.swift; sourceTree = "<group>"; };
@@ -193,6 +190,7 @@
 		F03444CC2AE2713D004F732E /* DownloadButtonView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadButtonView.swift; sourceTree = "<group>"; };
 		F03444CD2AE2713D004F732E /* CustomUIScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIScrollView.swift; sourceTree = "<group>"; };
 		F03444CE2AE2713D004F732E /* DownloadAppView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppView.swift; sourceTree = "<group>"; };
+		F046B2912B19B09300D8FD01 /* BookmarkModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -621,6 +619,7 @@
 		F034444A2AE26FA9004F732E /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				F046B2912B19B09300D8FD01 /* BookmarkModel.swift */,
 				F034444B2AE26FA9004F732E /* AnimationProgress.swift */,
 				F034444C2AE26FA9004F732E /* CoreData */,
 			);
@@ -719,8 +718,6 @@
 			isa = PBXGroup;
 			children = (
 				F034446D2AE26FAA004F732E /* BookmarkView.swift */,
-				F034446E2AE26FAA004F732E /* BookmarkCell.swift */,
-				F034446F2AE26FAA004F732E /* BookmarkViewModel.swift */,
 			);
 			path = Bookmark;
 			sourceTree = "<group>";
@@ -928,7 +925,6 @@
 				F034449C2AE26FAB004F732E /* TabGridView.swift in Sources */,
 				F03444982AE26FAB004F732E /* TabsContainerView.swift in Sources */,
 				F03444A72AE26FAB004F732E /* SearchTypingView.swift in Sources */,
-				F03444AA2AE26FAB004F732E /* BookmarkCell.swift in Sources */,
 				F034448A2AE26FAB004F732E /* Date+format.swift in Sources */,
 				F03444B12AE26FAB004F732E /* Tools.swift in Sources */,
 				F034448F2AE26FAB004F732E /* Url+Validator.swift in Sources */,
@@ -950,9 +946,9 @@
 				F03444B42AE26FAB004F732E /* LinkConfig.swift in Sources */,
 				F03444A62AE26FAB004F732E /* SearchResultView.swift in Sources */,
 				F03444A52AE26FAB004F732E /* WebSearcher.swift in Sources */,
+				F046B2922B19B09300D8FD01 /* BookmarkModel.swift in Sources */,
 				F03444B02AE26FAB004F732E /* HistoryCell.swift in Sources */,
 				F034448E2AE26FAB004F732E /* View+ancester+keyboard.swift in Sources */,
-				F03444AB2AE26FAB004F732E /* BookmarkViewModel.swift in Sources */,
 				F03444902AE26FAB004F732E /* UIImage+Cache.swift in Sources */,
 				F03444BE2AE26FAC004F732E /* WindowifyModifer.swift in Sources */,
 				F03444A22AE26FAB004F732E /* AddressBarView.swift in Sources */,
@@ -1087,6 +1083,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
+
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1129,6 +1126,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
+
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
