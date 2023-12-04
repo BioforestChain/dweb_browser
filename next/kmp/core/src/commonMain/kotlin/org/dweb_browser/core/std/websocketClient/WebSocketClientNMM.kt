@@ -61,7 +61,7 @@ class WebSocketClientNMM : NativeMicroModule("websocket-client.std.dweb", "WebSo
 //    }
 
     routes(
-      "/connect" bind HttpMethod.Get to defineJsonResponse {
+      "/connect" bind HttpMethod.Get by defineJsonResponse {
         val url = Url(request.query("url"))
         val protocol = URLProtocol.byName[url.protocol.name]
 
@@ -89,7 +89,7 @@ class WebSocketClientNMM : NativeMicroModule("websocket-client.std.dweb", "WebSo
 
         DwebResult(true, sessionId).toJsonElement()
       },
-      "/onMessage" bind HttpMethod.Get to defineJsonLineResponse {
+      "/onMessage" bind HttpMethod.Get by defineJsonLineResponse {
         val sessionId = request.query("sessionId")
         val session = websocketsMap[sessionId]!!
         
@@ -99,7 +99,7 @@ class WebSocketClientNMM : NativeMicroModule("websocket-client.std.dweb", "WebSo
           }
         }
       },
-      "/send" bind HttpMethod.Post to defineEmptyResponse {
+      "/send" bind HttpMethod.Post by defineEmptyResponse {
         val sessionId = request.query("sessionId")
         val session = websocketsMap[sessionId]!!
         val reader = request.body.toPureStream().getReader("websocket client: $sessionId")
@@ -108,7 +108,7 @@ class WebSocketClientNMM : NativeMicroModule("websocket-client.std.dweb", "WebSo
           session.send(byteArray)
         }
       },
-      "/close" bind HttpMethod.Get to defineBooleanResponse {
+      "/close" bind HttpMethod.Get by defineBooleanResponse {
         websocketsMap.remove(request.query("sessionId"))?.cancel()
 
         true

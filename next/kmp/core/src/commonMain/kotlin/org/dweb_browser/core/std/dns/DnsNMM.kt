@@ -9,8 +9,6 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import org.dweb_browser.core.help.buildRequestX
 import org.dweb_browser.core.help.types.CommonAppManifest
@@ -271,21 +269,21 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     /// 定义路由功能
     routes("open" bindDwebDeeplink openApp,
       // 打开应用
-      "/open" bind HttpMethod.Get to openApp,
+      "/open" bind HttpMethod.Get by openApp,
       // 关闭应用
       // TODO 能否关闭一个应该应该由应用自己决定
-      "/close" bind HttpMethod.Get to defineBooleanResponse {
+      "/close" bind HttpMethod.Get by defineBooleanResponse {
         val mmid = request.queryAppId()
         debugDNS("close/$mmid", request.url.fullPath)
         close(mmid)
         true
       },
       //
-      "/query" bind HttpMethod.Get to defineJsonResponse {
+      "/query" bind HttpMethod.Get by defineJsonResponse {
         val mmid = request.queryAppId()
         query(mmid, ipc.remote)?.toManifest()?.toJsonElement() ?: JsonNull
       },
-      "/search" bind HttpMethod.Get to defineJsonResponse {
+      "/search" bind HttpMethod.Get by defineJsonResponse {
         val category = request.queryCategory()
         val manifests = mutableListOf<CommonAppManifest>()
          search(category as MICRO_MODULE_CATEGORY).map { app ->
@@ -294,7 +292,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         manifests.toJsonElement()
       },
       //
-      "/observe/install-apps" bind HttpMethod.Get to defineJsonLineResponse {
+      "/observe/install-apps" bind HttpMethod.Get by defineJsonLineResponse {
         allApps.onChange { changes ->
           emit(
             ChangeState(
@@ -304,7 +302,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         }.removeWhen(onDispose)
       },
       //
-      "/observe/running-apps" bind HttpMethod.Get to defineJsonLineResponse {
+      "/observe/running-apps" bind HttpMethod.Get by defineJsonLineResponse {
         _runningApps.onChange { changes ->
           emit(
             ChangeState(

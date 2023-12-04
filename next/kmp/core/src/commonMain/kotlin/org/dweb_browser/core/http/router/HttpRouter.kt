@@ -8,26 +8,28 @@ import org.dweb_browser.core.http.toPure
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.http.CommonRoute
+import org.dweb_browser.core.std.http.IRoute
 import org.dweb_browser.core.std.http.MatchMode
-import org.dweb_browser.core.std.http.RouteConfig
+import org.dweb_browser.core.std.http.PathRoute
 import org.dweb_browser.helper.remove
 
 class HttpRouter(private val mm: MicroModule) {
-  private val routes = mutableMapOf<RouteConfig, HttpHandlerChain>()
+  private val routes = mutableMapOf<IRoute, HttpHandlerChain>()
 
-  fun addRoutes(vararg list: RoutingHttpHandler) {
+  fun addRoutes(vararg list: RouteHandler) {
     list.forEach {
-      routes[it.routeConfig] = it.handler
+      routes[it.route] = it.handler
     }
   }
 
-  fun addRoutes(rs: Map<RouteConfig, HttpHandlerChain>) {
+  fun addRoutes(rs: Map<IRoute, HttpHandlerChain>) {
     rs.forEach {
       routes[it.key] = it.value
     }
   }
 
-  fun removeRoutes(rs: Map<RouteConfig, HttpHandlerChain>) {
+  fun removeRoutes(rs: Map<IRoute, HttpHandlerChain>) {
     rs.forEach {
       routes.remove(it.key, it.value)
     }
@@ -114,22 +116,26 @@ class HttpRouter(private val mm: MicroModule) {
 }
 
 
-data class RoutingHttpHandler(val routeConfig: RouteConfig, val handler: HttpHandlerChain)
+data class RouteHandler(val route: IRoute, val handler: HttpHandlerChain)
 
+infix fun String.bind(method: HttpMethod) = bind(IpcMethod.from(method))
 
-class PathMethod(
-  private val path: String, private val method: HttpMethod, private val matchMode: MatchMode
-) {
-  infix fun to(action: HttpHandlerChain) = RoutingHttpHandler(
-    RouteConfig(pathname = path, method = IpcMethod.from(method), matchMode = matchMode), action
-  )
-}
+infix fun String.bind(method: IpcMethod) =
+  CommonRoute(pathname = this, method = method, matchMode = MatchMode.FULL)
 
-infix fun String.bind(method: HttpMethod) = PathMethod(this, method, MatchMode.FULL)
-infix fun String.bindPrefix(method: HttpMethod) = PathMethod(this, method, MatchMode.PREFIX)
+infix fun String.bindPrefix(method: HttpMethod) = bindPrefix(IpcMethod.from(method))
+infix fun String.bindPrefix(method: IpcMethod) =
+  CommonRoute(pathname = this, method = method, matchMode = MatchMode.PREFIX)
+
 infix fun String.bindDwebDeeplink(action: HttpHandler) = bindDwebDeeplink(action.toChain())
-infix fun String.bindDwebDeeplink(action: HttpHandlerChain) = RoutingHttpHandler(
-  RouteConfig(
+infix fun String.bindDwebDeeplink(action: HttpHandlerChain) = RouteHandler(
+  CommonRoute(
     dwebDeeplink = true, pathname = this, method = IpcMethod.GET, matchMode = MatchMode.FULL
   ), action
 )
+
+infix fun String.by(action: HttpHandlerChain) =
+  RouteHandler(PathRoute(this, MatchMode.FULL), action)
+
+infix fun String.byPrefix(action: HttpHandlerChain) =
+  RouteHandler(PathRoute(this, MatchMode.PREFIX), action)

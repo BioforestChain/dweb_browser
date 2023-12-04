@@ -41,16 +41,16 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions): Htt
 suspend fun MicroModule.listenHttpDwebServer(
   microModule: IMicroModuleManifest,
   startResult: HttpNMM.ServerStartResult,
-  routes: Array<RouteConfig> = arrayOf(
-    RouteConfig(pathname = "", method = IpcMethod.GET),
-    RouteConfig(pathname = "", method = IpcMethod.POST),
-    RouteConfig(pathname = "", method = IpcMethod.PUT),
-    RouteConfig(pathname = "", method = IpcMethod.DELETE),
-    RouteConfig(pathname = "", method = IpcMethod.OPTIONS),
-    RouteConfig(pathname = "", method = IpcMethod.PATCH),
-    RouteConfig(pathname = "", method = IpcMethod.HEAD),
-    RouteConfig(pathname = "", method = IpcMethod.CONNECT),
-    RouteConfig(pathname = "", method = IpcMethod.TRACE)
+  routes: Array<CommonRoute> = arrayOf(
+    CommonRoute(pathname = "", method = IpcMethod.GET),
+    CommonRoute(pathname = "", method = IpcMethod.POST),
+    CommonRoute(pathname = "", method = IpcMethod.PUT),
+    CommonRoute(pathname = "", method = IpcMethod.DELETE),
+    CommonRoute(pathname = "", method = IpcMethod.OPTIONS),
+    CommonRoute(pathname = "", method = IpcMethod.PATCH),
+    CommonRoute(pathname = "", method = IpcMethod.HEAD),
+    CommonRoute(pathname = "", method = IpcMethod.CONNECT),
+    CommonRoute(pathname = "", method = IpcMethod.TRACE)
   )
 ): ReadableStreamIpc {
   val httpIpc = this.connect("http.std.dweb")

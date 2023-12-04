@@ -1,14 +1,14 @@
 package org.dweb_browser.core.std.http
 
 import io.ktor.http.HttpStatusCode
-import org.dweb_browser.helper.SimpleCallback
-import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.helper.SimpleCallback
+import org.dweb_browser.helper.SimpleSignal
 
 class Gateway(
   val listener: PortListener, val urlInfo: HttpNMM.ServerUrlInfo, val token: String
@@ -19,7 +19,7 @@ class Gateway(
   ) {
     private val _routerSet = mutableSetOf<StreamIpcRouter>();
 
-    fun addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc): () -> Boolean {
+    fun addRouter(config: CommonRoute, streamIpc: ReadableStreamIpc): () -> Boolean {
       val route = StreamIpcRouter(config, streamIpc);
       this._routerSet.add(route)
       return {
@@ -53,12 +53,12 @@ class Gateway(
     }
   }
 
-  class StreamIpcRouter(val config: RouteConfig, val streamIpc: ReadableStreamIpc) {
+  class StreamIpcRouter(val config: CommonRoute, val streamIpc: ReadableStreamIpc) {
     suspend fun handler(request: PureRequest) = if (config.isMatch(request)) {
       streamIpc.request(request)
     } else if (request.method == IpcMethod.OPTIONS) {
       // 处理options请求
-      PureResponse(HttpStatusCode.OK, IpcHeaders.from(CORS_HEADERS.toMap()))
+      PureResponse(HttpStatusCode.OK, IpcHeaders(CORS_HEADERS.toMap()))
     } else null
   }
 }

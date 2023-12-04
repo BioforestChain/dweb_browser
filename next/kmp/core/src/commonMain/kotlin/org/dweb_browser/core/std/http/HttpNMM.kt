@@ -1,11 +1,13 @@
 package org.dweb_browser.core.std.http
 
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.fullPath
+import io.ktor.http.protocolWithAuthority
 import io.ktor.util.decodeBase64String
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -17,18 +19,22 @@ import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.http.router.by
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.debugFetch
+import org.dweb_browser.core.std.dns.httpFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.http.HttpNMM.Companion.dwebServer
 import org.dweb_browser.core.std.http.net.Http1Server
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.encodeURI
+import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toBase64Url
@@ -135,19 +141,19 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     /// 模块 API 接口
     routes(
       // 开启一个服务
-      "/start" bind HttpMethod.Get to defineJsonResponse {
+      "/start" bind HttpMethod.Get by defineJsonResponse {
         start(
           ipc, DwebHttpServerOptions(request.query("subdomain"))
         ).toJsonElement()
       },
       // 监听一个服务
-      "/listen" bind HttpMethod.Post to definePureStreamHandler {
+      "/listen" bind HttpMethod.Post by definePureStreamHandler {
         val token = request.query("token")
-        val routes = Json.decodeFromString<List<RouteConfig>>(request.query("routes"))
+        val routes = Json.decodeFromString<List<CommonRoute>>(request.query("routes"))
         listen(token, request, routes)
       },
       // 主动关闭一个服务
-      "/close" bind HttpMethod.Get to defineBooleanResponse {
+      "/close" bind HttpMethod.Get by defineBooleanResponse {
         close(ipc, request.queryAs())
       },
     );
@@ -236,7 +242,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
    *  绑定流监听
    */
   private fun listen(
-    token: String, message: PureRequest, routes: List<RouteConfig>
+    token: String, message: PureRequest, routes: List<CommonRoute>
   ): PureStream {
     debugHttp("LISTEN", tokenMap.keys.toList())
     val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")

@@ -71,7 +71,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
         browserController.openBrowserView(url = request.query("url"))
         openMainWindow()
       },
-      "/uninstall" bind HttpMethod.Get to defineBooleanResponse {
+      "/uninstall" bind HttpMethod.Get by defineBooleanResponse {
         debugBrowser("do uninstall", request.href)
         val mmid = request.query("app_id")
         bootstrapContext.dns.uninstall(mmid) && webLinkStore.delete(mmid)

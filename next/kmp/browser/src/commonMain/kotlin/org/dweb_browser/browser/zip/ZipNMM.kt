@@ -20,7 +20,7 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
-      "/decompress" bind HttpMethod.Get to defineBooleanResponse {
+      "/decompress" bind HttpMethod.Get by defineBooleanResponse {
         val sourcePath = nativeFetch(
           "file://file.std.dweb/realPath?path=${request.query("sourcePath")}"
         ).text()

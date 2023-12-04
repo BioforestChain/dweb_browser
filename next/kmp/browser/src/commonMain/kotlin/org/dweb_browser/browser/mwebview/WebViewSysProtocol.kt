@@ -15,7 +15,7 @@ suspend fun MultiWebViewNMM.webViewSysProtocol() {
 
     routes(
       /// 提供句柄与链接，将链接进行渲染
-      "/open" bind HttpMethod.Post to defineEmptyResponse {
+      "/open" bind HttpMethod.Post by defineEmptyResponse {
         val rid = request.query("rid")
         val url = request.query("url")
         val wid = request.query("wid")

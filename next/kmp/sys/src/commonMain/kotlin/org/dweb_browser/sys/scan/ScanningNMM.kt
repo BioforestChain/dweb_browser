@@ -21,7 +21,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
     val scanningManager = ScanningManager()
     routes(
       // 处理二维码图像
-      "/process" bind HttpMethod.Post to defineJsonResponse {
+      "/process" bind HttpMethod.Post by defineJsonResponse {
         debugScanning(
           "process",
           " ${request.queryOrNull("rotation")?.toInt() ?: 0} ${request.body.contentLength}"
@@ -37,7 +37,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
       },
 
       // 停止处理
-      "/stop" bind HttpMethod.Get to defineBooleanResponse {
+      "/stop" bind HttpMethod.Get by defineBooleanResponse {
         scanningManager.stop()
         return@defineBooleanResponse true
       },

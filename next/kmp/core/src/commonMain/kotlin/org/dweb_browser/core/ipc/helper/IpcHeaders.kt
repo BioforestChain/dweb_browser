@@ -9,19 +9,20 @@ import org.dweb_browser.helper.ProxySerializer
 object IpcHeadersSerializer :
   ProxySerializer<IpcHeaders, Map<String, String>>("IpcHeaders", MapSerializer(
     String.serializer(), String.serializer()
-  ), { toMap() }, { IpcHeaders.from(this) })
+  ), { toMap() }, { IpcHeaders(this) })
 
 @Serializable(IpcHeadersSerializer::class)
 class IpcHeaders() {
   private val headersMap: MutableMap<String, String> = mutableMapOf()
 
   constructor(headers: Map<String, String>) : this() {
-    append(headers)
+    append(headers.entries)
   }
 
-  companion object {
-    fun from(headers: Map<String, String>) = IpcHeaders(headers.toMutableMap())
+  constructor(filter: List<Pair<String, String>>) : this() {
+    append(filter)
   }
+
 
   constructor(headers: Headers) : this() {
     for (header in headers.entries()) {
@@ -29,7 +30,13 @@ class IpcHeaders() {
     }
   }
 
-  fun append(headers: Map<String, String>) {
+  fun append(headers: Collection<Map.Entry<String, String>>) {
+    for ((key, value) in headers) {
+      headersMap[key.asKey()] = value
+    }
+  }
+
+  fun append(headers: Collection<Pair<String, String>>) {
     for ((key, value) in headers) {
       headersMap[key.asKey()] = value
     }

@@ -43,7 +43,7 @@ suspend fun NativeMicroModule.createBottomSheets(
   val callbackUrlId = randomUUID()
   val callbackUrlPathname = "/internal/callback/bottom-sheets/$callbackUrlId"
   val onCallback = MutableSharedFlow<ModalCallback>()
-  callbackRouter.addRoutes(callbackUrlPathname bind HttpMethod.Post to defineEmptyResponse {
+  callbackRouter.addRoutes(callbackUrlPathname bind HttpMethod.Post by defineEmptyResponse {
     onCallback.emit(request.body.toPureString().decodeTo())
   });
 
@@ -74,7 +74,7 @@ suspend fun NativeMicroModule.createAlert(
   val callbackUrlId = randomUUID()
   val callbackUrlPathname = "/internal/callback/alert/$callbackUrlId"
   val onCallback = MutableSharedFlow<ModalCallback>()
-  val callbackRouter = routes(callbackUrlPathname bind HttpMethod.Post to defineEmptyResponse {
+  val callbackRouter = routes(callbackUrlPathname bind HttpMethod.Post by defineEmptyResponse {
     onCallback.emit(request.body.toPureString().decodeTo())
   });
 

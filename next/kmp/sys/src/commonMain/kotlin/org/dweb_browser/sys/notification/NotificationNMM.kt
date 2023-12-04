@@ -18,7 +18,7 @@ class NotificationNMM : NativeMicroModule("notification.sys.dweb", "notification
     val notificationManager = NotificationManager()
     routes(
       /** 创建消息*/
-      "/create" bind HttpMethod.Get to definePureResponse {
+      "/create" bind HttpMethod.Get by definePureResponse {
         val messageItem = request.queryAs<NotificationMsgItem>()
         notificationManager.createNotification(messageItem)
         PureResponse(HttpStatusCode.OK)

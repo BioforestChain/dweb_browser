@@ -53,7 +53,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     }
     routes(
       // 开始下载
-      "/create" bind HttpMethod.Get to defineStringResponse {
+      "/create" bind HttpMethod.Get by defineStringResponse {
         val mmid = ipc.remote.mmid
         val params = request.queryAs<DownloadTaskParams>()
         val downloadTask = controller.createTaskFactory(params, mmid)
@@ -64,14 +64,14 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         downloadTask.id
       },
       // 开始/恢复 下载
-      "/start" bind HttpMethod.Get to defineBooleanResponse {
+      "/start" bind HttpMethod.Get by defineBooleanResponse {
         val taskId = request.query("taskId")
         debugDownload("/start", "$taskId")
         val task = controller.downloadManagers.get(taskId) ?: return@defineBooleanResponse false
         controller.startDownload(task)
       },
       // 监控下载进度
-      "/watch/progress" bind HttpMethod.Get to defineJsonLineResponse {
+      "/watch/progress" bind HttpMethod.Get by defineJsonLineResponse {
         val taskId = request.query("taskId")
         val downloadTask = controller.downloadManagers.get(taskId)
           ?: return@defineJsonLineResponse emit("not Found download task!")
@@ -85,24 +85,24 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         downloadTask.downloadSignal.emit(downloadTask)
       },
       // 暂停下载
-      "/pause" bind HttpMethod.Get to defineBooleanResponse {
+      "/pause" bind HttpMethod.Get by defineBooleanResponse {
         val taskId = request.query("taskId")
         val task = controller.downloadManagers.get(taskId) ?: return@defineBooleanResponse false
         controller.pauseDownload(task)
         true
       },
       // 取消下载
-      "/cancel" bind HttpMethod.Get to defineBooleanResponse {
+      "/cancel" bind HttpMethod.Get by defineBooleanResponse {
         val taskId = request.query("taskId")
         controller.cancelDownload(taskId)
       },
       // 移除任务
-      "/remove" bind HttpMethod.Delete to defineEmptyResponse {
+      "/remove" bind HttpMethod.Delete by defineEmptyResponse {
         val taskId = request.query("taskId")
         controller.removeDownload(taskId)
       },
       // taskId是否存在
-      "/exists" bind HttpMethod.Get to defineBooleanResponse {
+      "/exists" bind HttpMethod.Get by defineBooleanResponse {
         val taskId = request.query("taskId")
         controller.downloadManagers.get(taskId)?.status?.state?.let { state ->
           state != DownloadState.Completed && state != DownloadState.Canceled

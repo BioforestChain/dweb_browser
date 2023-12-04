@@ -20,7 +20,7 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(/** 检查识别支持生物识别*/
-      "/check" bind HttpMethod.Get to defineBooleanResponse {
+      "/check" bind HttpMethod.Get by defineBooleanResponse {
         val type = request.queryOrNull("type") ?: ""
         val biometricsData = request.queryAs<BiometricsData>()
         debugBiometrics("check", "type=$type, data=$biometricsData")
@@ -29,7 +29,7 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
         )
       },
       /** 生物识别*/
-      "/biometrics" bind HttpMethod.Get to defineJsonResponse {
+      "/biometrics" bind HttpMethod.Get by defineJsonResponse {
         val biometricsResult = BiometricsApi.biometricsResultContent(this@BiometricsNMM)
         debugBiometrics("biometrics", biometricsResult.toJsonElement())
         return@defineJsonResponse biometricsResult.toJsonElement()

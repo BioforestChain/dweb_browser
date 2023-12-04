@@ -32,7 +32,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 分享*/
-      "/share" bind HttpMethod.Post to defineJsonResponse {
+      "/share" bind HttpMethod.Post by defineJsonResponse {
         val shareOptions = ShareOptions(
           title = request.queryOrNull("title"),
           text = request.queryOrNull("text"),

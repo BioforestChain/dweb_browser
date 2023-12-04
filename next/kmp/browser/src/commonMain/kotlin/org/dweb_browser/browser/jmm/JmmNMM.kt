@@ -73,8 +73,8 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     routes(
       // 安装
       "install" bindDwebDeeplink routeInstallHandler,
-      "/install" bind HttpMethod.Get to routeInstallHandler,
-      "/uninstall" bind HttpMethod.Get to defineBooleanResponse {
+      "/install" bind HttpMethod.Get by routeInstallHandler,
+      "/uninstall" bind HttpMethod.Get by defineBooleanResponse {
         val mmid = request.query("app_id")
         val data = store.getApp(mmid) ?: return@defineBooleanResponse false
         val installMetadata = data.installManifest
@@ -85,7 +85,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         true
       },
       // app详情
-      "/detail" bind HttpMethod.Get to defineBooleanResponse {
+      "/detail" bind HttpMethod.Get by defineBooleanResponse {
         val mmid = request.query("app_id")
         debugJMM("detailApp", mmid)
         val info = store.getApp(mmid) ?: return@defineBooleanResponse false

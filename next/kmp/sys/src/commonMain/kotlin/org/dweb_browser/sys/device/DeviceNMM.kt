@@ -24,7 +24,7 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 获取设备唯一标识uuid*/
-      "/uuid" bind HttpMethod.Get to defineJsonResponse {
+      "/uuid" bind HttpMethod.Get by defineJsonResponse {
         val uuid = store.getOrPut(UUID_KEY) {
           DeviceApi().deviceUUID()
         }

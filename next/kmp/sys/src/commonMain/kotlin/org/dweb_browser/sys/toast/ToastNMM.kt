@@ -15,7 +15,7 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 显示弹框*/
-      "/show" bind HttpMethod.Get to defineBooleanResponse {
+      "/show" bind HttpMethod.Get by defineBooleanResponse {
         val duration = request.queryOrNull("duration") ?: EToast.Short.type
         val message = request.query("message")
         val position = request.queryOrNull("position") ?: PositionType.BOTTOM.position

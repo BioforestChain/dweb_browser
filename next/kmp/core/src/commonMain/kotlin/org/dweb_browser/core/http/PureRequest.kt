@@ -11,7 +11,6 @@ import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
 import io.ktor.server.util.getOrFail
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -31,7 +30,7 @@ data class PureRequest(
   val method: IpcMethod,
   val headers: IpcHeaders = IpcHeaders(),
   val body: IPureBody = IPureBody.Empty,
-  val origin: Any? = null
+  val from: Any? = null
 ) {
   val url by lazy {
     href.toIpcUrl()
@@ -59,11 +58,11 @@ data class PureRequest(
       method: IpcMethod,
       body: T,
       headers: IpcHeaders = IpcHeaders(),
-      origin: Any? = null
+      from: Any? = null
     ) = PureRequest(
       href, method, headers.apply { init("Content-Type", "application/json") }, IPureBody.from(
         Json.encodeToString(body)
-      ), origin = origin
+      ), from = from
     )
   }
 }
@@ -99,8 +98,8 @@ val multipartProxyServer by lazy {
   }
 }
 
-suspend fun PureRequest.receiveMultipart() = if (origin is ApplicationRequest) {
-  origin.call.receiveMultipart()
+suspend fun PureRequest.receiveMultipart() = if (from is ApplicationRequest) {
+  from.call.receiveMultipart()
 } else {
   val pureRequest = this
   val mid = midAcc++

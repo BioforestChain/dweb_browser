@@ -34,7 +34,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
 
     routes(
       // 打开一个 webview，并将它以 窗口window 的标准进行展示
-      "/open" bind HttpMethod.Get to defineJsonResponse {
+      "/open" bind HttpMethod.Get by defineJsonResponse {
         val url = request.query("url")
         val wid = request.query("wid")
 
@@ -51,18 +51,18 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
         controller.getState()
       },
       // 关闭指定 webview 窗口
-      "/close" bind HttpMethod.Get to defineBooleanResponse {
+      "/close" bind HttpMethod.Get by defineBooleanResponse {
         val webviewId = request.query("webview_id")
         val remoteMmid = ipc.remote.mmid
         debugMultiWebView("/close", "webviewId:$webviewId,mmid:$remoteMmid")
         closeDwebView(remoteMmid, webviewId)
       },
-      "/close/app" bind HttpMethod.Get to defineBooleanResponse {
+      "/close/app" bind HttpMethod.Get by defineBooleanResponse {
         val controller = controllerMap[ipc.remote.mmid] ?: return@defineBooleanResponse false;
         controller.destroyWebView()
       },
       // 界面没有关闭，用于重新唤醒
-      "/activate" bind HttpMethod.Get to defineBooleanResponse {
+      "/activate" bind HttpMethod.Get by defineBooleanResponse {
         val remoteMmid = ipc.remote.mmid
         val controller = controllerMap[remoteMmid] ?: return@defineBooleanResponse false
         debugMultiWebView("/activate", "激活 ${controller.ipc.remote.mmid}")

@@ -15,7 +15,7 @@ class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Se
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       // 获取加速计 (push模式)
-      "/observe/accelerometer" bind HttpMethod.Get to defineJsonLineResponse {
+      "/observe/accelerometer" bind HttpMethod.Get by defineJsonLineResponse {
         val interval = request.queryAsOrNull<Int>("interval")
         val motionSensors = MotionSensorsApi(this@MotionSensorsNMM)
         motionSensors.startAccelerometerListener(interval)
@@ -29,7 +29,7 @@ class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Se
         }
       },
       // 获取陀螺仪 (push模式)
-      "/observe/gyroscope" bind HttpMethod.Get to defineJsonLineResponse {
+      "/observe/gyroscope" bind HttpMethod.Get by defineJsonLineResponse {
         val motionSensors = MotionSensorsApi(this@MotionSensorsNMM)
         val interval = request.queryAsOrNull<Int>("interval")
 

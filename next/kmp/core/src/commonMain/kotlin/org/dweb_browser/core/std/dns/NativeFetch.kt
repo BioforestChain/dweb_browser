@@ -1,6 +1,7 @@
 package org.dweb_browser.core.std.dns
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.websocket.ws
 import io.ktor.client.request.prepareRequest
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpStatusCode
@@ -48,11 +49,11 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
     this.client = client
   }
 
-  class HttpFetch(val manager: NativeFetchAdaptersManager) {
+  class HttpFetch(private val manager: NativeFetchAdaptersManager) {
     val client get() = manager.client
     suspend operator fun invoke(request: PureRequest) = fetch(request)
-    suspend operator fun invoke(url: String) =
-      fetch(PureRequest(method = IpcMethod.GET, href = url))
+    suspend operator fun invoke(url: String, method: IpcMethod = IpcMethod.GET) =
+      fetch(PureRequest(method = method, href = url))
 
     suspend fun fetch(request: PureRequest): PureResponse {
       try {
@@ -134,10 +135,22 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
     }
   }
 
+
+  class HttpWebSocket(private val manager: NativeFetchAdaptersManager) {
+    val client get() = manager.client
+    suspend fun webSocket(request: PureRequest): PureResponse {
+      client.ws {
+      }
+      TODO("")
+    }
+  }
+
   val httpFetch = HttpFetch(this)
+  val httpWebSocket = HttpWebSocket(this)
 }
 
 val httpFetch = nativeFetchAdaptersManager.httpFetch
+val httpWebSocket = nativeFetchAdaptersManager.httpWebSocket
 
 suspend fun MicroModule.nativeFetch(request: PureRequest): PureResponse {
   for (fetchAdapter in nativeFetchAdaptersManager.adapters) {

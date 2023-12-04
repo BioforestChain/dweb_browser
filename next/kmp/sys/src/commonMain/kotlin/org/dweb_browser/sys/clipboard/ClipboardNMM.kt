@@ -37,7 +37,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(/** 读取剪切板*/
-      "/read" bind HttpMethod.Get to definePureResponse {
+      "/read" bind HttpMethod.Get by definePureResponse {
         val read = read()
         debugClipboard("/read", read)
         PureResponse(HttpStatusCode.OK, body = PureStringBody(read))
@@ -46,7 +46,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
        * 写入剪切板
        * fetch("file://clipboard.sys.dweb/write?xxx=xxx")
        * */
-      "/write" bind HttpMethod.Get to defineBooleanResponse {
+      "/write" bind HttpMethod.Get by defineBooleanResponse {
 
         val string = request.queryOrNull("string")
         val image = request.queryOrNull("image")

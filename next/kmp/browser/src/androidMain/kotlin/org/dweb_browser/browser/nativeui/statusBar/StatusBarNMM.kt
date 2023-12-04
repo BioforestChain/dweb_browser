@@ -24,11 +24,11 @@ class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb", "stat
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 获取状态栏 */
-      "/getState" bind HttpMethod.Get to defineJsonResponse {
+      "/getState" bind HttpMethod.Get by defineJsonResponse {
         return@defineJsonResponse getController(ipc.remote.mmid).toJsonElement()
       },
       /** 设置状态栏 */
-      "/setState" bind HttpMethod.Get to defineEmptyResponse {
+      "/setState" bind HttpMethod.Get by defineEmptyResponse {
         val controller = getController(ipc.remote.mmid)
         QueryHelper.color(request)?.also { controller.colorState.value = it }
         QueryHelper.style(request)?.also { controller.styleState.value = it }
@@ -39,7 +39,7 @@ class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb", "stat
       /**
        * 开始数据订阅
        */
-      "/observe" bind HttpMethod.Get to definePureResponse {
+      "/observe" bind HttpMethod.Get by definePureResponse {
         val inputStream = getController(ipc.remote.mmid).observer.startObserve(ipc)
         return@definePureResponse PureResponse(
           HttpStatusCode.OK, body = PureStreamBody(inputStream)

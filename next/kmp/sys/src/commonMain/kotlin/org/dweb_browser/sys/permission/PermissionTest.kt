@@ -46,10 +46,10 @@ class PermissionProviderTNN :
     /// 该接口仅供测试
     routes(
       // 将服务发布到公网
-      "/publish" bind HttpMethod.Get to defineStringResponse {
+      "/publish" bind HttpMethod.Get by defineStringResponse {
         "发布成功 ${datetimeNow()}"
       },
-      "/unPublish" bind HttpMethod.Get to defineStringResponse {
+      "/unPublish" bind HttpMethod.Get by defineStringResponse {
         deletePermission(ipc.remote.mmid, dweb_permissions.first().pid!!)
         "权限已回撤 ${datetimeNow()}"
       }

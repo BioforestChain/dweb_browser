@@ -25,7 +25,7 @@ import org.dweb_browser.core.http.router.HttpHandlerChain
 import org.dweb_browser.core.http.router.HttpRouter
 import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.http.router.MiddlewareHttpHandler
-import org.dweb_browser.core.http.router.RoutingHttpHandler
+import org.dweb_browser.core.http.router.RouteHandler
 import org.dweb_browser.core.http.router.TypedHttpHandler
 import org.dweb_browser.core.http.router.toChain
 import org.dweb_browser.core.ipc.NativeIpc
@@ -72,7 +72,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   private fun getProtocolRouters(protocol: DWEB_PROTOCOL) =
     protocolRouters.getOrPut(protocol) { mutableListOf() }
 
-  fun routes(vararg list: RoutingHttpHandler) = HttpRouter(this).also { it ->
+  fun routes(vararg list: RouteHandler) = HttpRouter(this).also { it ->
     it.addRoutes(*list)
     getProtocolRouters("*") += it
   }
@@ -83,7 +83,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 
   class ProtocolBuilderContext(mm: MicroModule) {
     internal val router = HttpRouter(mm)
-    fun routes(vararg list: RoutingHttpHandler) = router.apply { addRoutes(*list) }
+    fun routes(vararg list: RouteHandler) = router.apply { addRoutes(*list) }
   }
 
   suspend fun protocol(

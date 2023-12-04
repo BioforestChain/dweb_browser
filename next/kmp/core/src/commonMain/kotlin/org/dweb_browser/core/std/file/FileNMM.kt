@@ -184,7 +184,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     }
     routes(
       // 使用Duplex打开文件句柄，当这个Duplex关闭的时候，自动释放文件句柄
-      "/open" bind HttpMethod.Get to defineCborPackageResponse {
+      "/open" bind HttpMethod.Get by defineCborPackageResponse {
         val handler = SystemFileSystem.openReadWrite(getPath())
         // TODO 这里需要定义完整的操作指令
         request.body.toPureStream().getReader("open file")
@@ -226,12 +226,12 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         end()
       },
       // 创建文件夹
-      "/createDir" bind HttpMethod.Post to defineBooleanResponse {
+      "/createDir" bind HttpMethod.Post by defineBooleanResponse {
         SystemFileSystem.createDirectories(getPath(), true)
         true
       },
       // 列出列表
-      "/listDir" bind HttpMethod.Get to defineJsonResponse {
+      "/listDir" bind HttpMethod.Get by defineJsonResponse {
         val vfsPath = getVfsPath()
         val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
 
@@ -246,7 +246,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         }
       },
       // 读取文件，一次性读取，可以指定开始位置
-      "/read" bind HttpMethod.Get to definePureStreamHandler {
+      "/read" bind HttpMethod.Get by definePureStreamHandler {
         val filepath = getPath()
         val create = request.queryAsOrNull<Boolean>("create") ?: false
         debugFile("/read", "create=$create filepath=$filepath")
@@ -262,7 +262,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         PureStream(fileSource.toByteReadChannel(ioAsyncScope))
       },
       // 写入文件，一次性写入
-      "/write" bind HttpMethod.Post to defineEmptyResponse {
+      "/write" bind HttpMethod.Post by defineEmptyResponse {
         val filepath = getPath()
         debugFile("/write", filepath)
         val create = request.queryAsOrNull<Boolean>("create") ?: false
@@ -274,7 +274,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         request.body.toPureStream().getReader("write to file").copyTo(fileSource)
       },
       // 追加文件，一次性追加
-      "/append" bind HttpMethod.Put to defineEmptyResponse {
+      "/append" bind HttpMethod.Put by defineEmptyResponse {
         val filepath = getPath()
         debugFile("/append", filepath)
         val create = request.queryAsOrNull<Boolean>("create") ?: false
@@ -286,7 +286,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         request.body.toPureStream().getReader("write to file").copyTo(fileSource)
       },
       // 路径是否存在
-      "/exist" bind HttpMethod.Get to defineBooleanResponse {
+      "/exist" bind HttpMethod.Get by defineBooleanResponse {
         try {
           SystemFileSystem.exists(getPath())
         } catch (e: ResponseException) {
@@ -294,10 +294,10 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         }
       },
       // 获取路径的基本信息
-      "/info" bind HttpMethod.Get to defineJsonResponse {
+      "/info" bind HttpMethod.Get by defineJsonResponse {
         getPathInfo()
       },
-      "/remove" bind HttpMethod.Delete to defineBooleanResponse {
+      "/remove" bind HttpMethod.Delete by defineBooleanResponse {
         val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
         if (recursive) {
           SystemFileSystem.deleteRecursively(getPath(), false)
@@ -306,7 +306,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         }
         true
       },
-      "/move" bind HttpMethod.Get to defineBooleanResponse {
+      "/move" bind HttpMethod.Get by defineBooleanResponse {
         val sourcePath = getPath("sourcePath")
         val targetPath = getPath("targetPath")
         debugFile("/move", "sourcePath:$sourcePath => $targetPath")
@@ -320,13 +320,13 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         SystemFileSystem.atomicMove(sourcePath, targetPath)
         true
       },
-      "/copy" bind HttpMethod.Post to defineBooleanResponse {
+      "/copy" bind HttpMethod.Post by defineBooleanResponse {
         SystemFileSystem.copy(
           getPath("sourcePath"), getPath("targetPath")
         )
         true
       },
-      "/watch" bind HttpMethod.Get to defineJsonLineResponse {
+      "/watch" bind HttpMethod.Get by defineJsonLineResponse {
         val vfsPath = getVfsPath()
         val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
 
@@ -341,14 +341,14 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           }
         }
       },
-      "/picker" bind HttpMethod.Get to defineStringResponse {
+      "/picker" bind HttpMethod.Get by defineStringResponse {
         val realPath = getPath()
         val name = realPath.name
         val pickerPathString = "/picker/${randomUUID()}/${name}"
         pickerPathToRealPathMap[pickerPathString] = realPath
         pickerPathString
       },
-      "/realPath" bind HttpMethod.Get to defineStringResponse {
+      "/realPath" bind HttpMethod.Get by defineStringResponse {
         return@defineStringResponse getPath().toString()
       },
     )

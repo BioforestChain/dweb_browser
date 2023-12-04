@@ -53,7 +53,7 @@ fun ApplicationRequest.asPureRequest(): PureRequest {
       || ipcHeaders.get("Content-Length") == "0"
     ) IPureBody.Empty
     else PureStreamBody(receiveChannel()),
-    origin = this,
+    from = this,
   )
 }
 

@@ -21,7 +21,7 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb", "haptics") {
 //    val query_duration = Query.string().required("duration")
     routes(
       /** 触碰轻质量物体 */
-      "/impactLight" bind HttpMethod.Get to defineJsonResponse {
+      "/impactLight" bind HttpMethod.Get by defineJsonResponse {
         val style = when (request.queryOrNull("style")) {
           "MEDIUM" -> HapticsImpactType.MEDIUM
           "HEAVY" -> HapticsImpactType.HEAVY
@@ -31,7 +31,7 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb", "haptics") {
         ResponseData().toJsonElement()
       },
       /** 警告分隔的振动通知 */
-      "/notification" bind HttpMethod.Get to defineJsonResponse {
+      "/notification" bind HttpMethod.Get by defineJsonResponse {
         val type = when (request.queryOrNull("style")) {
           "SUCCESS" -> HapticsNotificationType.SUCCESS
           "WARNING" -> HapticsNotificationType.WARNING
@@ -41,32 +41,32 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb", "haptics") {
         ResponseData().toJsonElement()
       },
       /** 单击手势的反馈振动 */
-      "/vibrateClick" bind HttpMethod.Get to defineJsonResponse {
+      "/vibrateClick" bind HttpMethod.Get by defineJsonResponse {
         vibrateManage.vibrateClick()
         ResponseData().toJsonElement()
       },
       /** 禁用手势的反馈振动，与headShak特效一致 */
-      "/vibrateDisabled" bind HttpMethod.Get to defineJsonResponse {
+      "/vibrateDisabled" bind HttpMethod.Get by defineJsonResponse {
         vibrateManage.vibrateDisabled()
         ResponseData().toJsonElement()
       },
       /** 双击手势的反馈振动 */
-      "/vibrateDoubleClick" bind HttpMethod.Get to defineJsonResponse {
+      "/vibrateDoubleClick" bind HttpMethod.Get by defineJsonResponse {
         vibrateManage.vibrateDoubleClick()
         ResponseData().toJsonElement()
       },
       /** 重击手势的反馈振动，比如菜单键/长按/3DTouch */
-      "/vibrateHeavyClick" bind HttpMethod.Get to defineJsonResponse {
+      "/vibrateHeavyClick" bind HttpMethod.Get by defineJsonResponse {
         vibrateManage.vibrateHeavyClick()
         ResponseData().toJsonElement()
       },
       /** 滴答 */
-      "/vibrateTick" bind HttpMethod.Get to defineJsonResponse {
+      "/vibrateTick" bind HttpMethod.Get by defineJsonResponse {
         vibrateManage.vibrateTick()
         ResponseData().toJsonElement()
       },
       /** 自定义传递 振动频率 */
-      "/customize" bind HttpMethod.Get to defineJsonResponse {
+      "/customize" bind HttpMethod.Get by defineJsonResponse {
         val duration = request.query("duration")
         try {
           val array = duration.removeArrayMark().split(",")

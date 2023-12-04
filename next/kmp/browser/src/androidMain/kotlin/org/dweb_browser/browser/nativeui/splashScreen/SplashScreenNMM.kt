@@ -22,7 +22,7 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb",
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 显示*/
-      "/show" bind HttpMethod.Get to definePureResponse {
+      "/show" bind HttpMethod.Get by definePureResponse {
 //                val options = querySplashScreenSettings(request)
 //                val currentController = currentController(ipc.remote.mmid)
 //                val microModule = bootstrapContext.dns.query(ipc.remote.mmid)
@@ -44,7 +44,7 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb",
         )
       },
       /** 隐藏*/
-      "/hide" bind HttpMethod.Get to defineEmptyResponse {
+      "/hide" bind HttpMethod.Get by defineEmptyResponse {
 //                val options = queryHideOptions(request)
 //                val currentActivity = currentController(ipc.remote.mmid)?.activity
 //                debugSplashScreen("hide", "apiRouting hide===>${options}")
