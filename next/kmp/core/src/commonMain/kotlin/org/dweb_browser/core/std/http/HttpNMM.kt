@@ -156,8 +156,162 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       "/close" bind HttpMethod.Get by defineBooleanResponse {
         close(ipc, request.queryAs())
       },
+      "/websocket" by definePureResponse {
+        TODO("")
+      },
+      "/fetch" by definePureResponse {
+        if (request.url.protocol != URLProtocol.HTTP || request.url.protocol != URLProtocol.HTTPS) {
+          throwException(
+            HttpStatusCode.BadRequest,
+            "invalid request protocol: ${request.url.protocol.name}"
+          )
+        }
+        /// 如果是options类型的请求，直接放行，不做任何同域验证
+        if (request.method == IpcMethod.OPTIONS) {
+          return@definePureResponse httpFetch(request)
+        }
+        val isSameOrigin =
+          request.url.host.let { host -> host == ipc.remote.mmid || host.endsWith(".${ipc.remote.mmid}") }
+        /// 否则如果域名，那么才能直接放行
+        if (isSameOrigin) {
+          return@definePureResponse httpFetch(request)
+        }
+        /// 如果不是同域，需要进行跨域判定
+
+        // 首先根据标准，判断是否需要进行 options 请求请求options获取 allow-method
+        val needPreflightRequest = when (request.method) {
+          IpcMethod.GET, IpcMethod.POST, IpcMethod.HEAD -> {
+            var isSimple = true
+            for ((key, value) in request.headers) {
+              if (key in preflightRequestHeaderKeys) {
+                isSimple = false
+                break
+              }
+              if (!isSimpleHeader(key, value)) {
+                isSimple = false
+                break
+              }
+            }
+            isSimple
+          }
+
+          else -> false
+        }
+
+        /**
+         * 如果需要发起“预检请求”，那么根据预检请求返回一个专门用于 cors 的 request 对象
+         */
+        val corsRequest = if (needPreflightRequest) {
+          val optionsResponse = httpFetch(request.href, IpcMethod.OPTIONS)
+
+          val get = optionsResponse.headers::get;
+          val allowOrigin = get(HttpHeaders.AccessControlAllowOrigin)
+          val allowMethods = get(HttpHeaders.AccessControlAllowMethods)
+          val allowHeaders by lazy {
+            get(HttpHeaders.AccessControlAllowHeaders)?.split(',')?.toSet() ?: setOf()
+          }
+          // TODO 缓存
+          // val maxAge = get(HttpHeaders.AccessControlMaxAge)
+
+          when (allowOrigin) {
+            null -> false
+            "*" -> true
+            else -> allowOrigin.split(",").find { it == request.url.protocolWithAuthority } == null
+          }.falseAlso {
+            throwException(HttpStatusCode.NotAcceptable, "no-cors by origin")
+          }
+
+          when (allowMethods) {
+            null -> when (request.method) {
+              IpcMethod.GET, IpcMethod.POST, IpcMethod.HEAD -> true;
+              else -> false
+            }
+
+            "*" -> true
+            else -> request.method.method in allowMethods.split(',')
+          }.falseAlso {
+            throwException(HttpStatusCode.NotAcceptable, "no-cors by method")
+          }
+
+
+          PureRequest(request.href, request.method, IpcHeaders(request.headers.toList().filter {
+            if (isSimpleHeader(it.first, it.second))
+              true
+            else it.first in allowHeaders
+          }), body = request.body, from = request.from)
+        } else {
+          request
+        }
+        // 正式发起请求
+        val corsResponse = httpFetch(corsRequest)
+        if (corsRequest.headers.has("Cookie") || corsRequest.headers.has("Authorization") && corsResponse.headers.get(
+            "HttpHeaders.AccessControlAllowCredentials"
+          ) != "true"
+        ) {
+          throwException(HttpStatusCode.NoContent)
+        }
+        /// AccessControlExposeHeaders 默认不需要工作
+        return@definePureResponse corsResponse
+      }
     );
   }
+
+  private val simpleRequestHeaderKeys = setOf(
+    "Accept",
+    "Accept-Encoding",
+    "Accept-Language",
+    "Access-Control-Request-Headers",
+    "Access-Control-Request-Method",
+    "Connection",
+    "Content-Length",
+    "Content-Type",
+    "Range",
+    "Cookie",
+    "Cookie2",
+    "Date",
+    "DNT",
+    "Expect",
+    "Host",
+    "Keep-Alive",
+    "Origin",
+    "Referer",
+    "Set-Cookie",
+    "TE",
+    "Trailer",
+    "Transfer-Encoding",
+    "Upgrade",
+    "Via",
+    "ETag",
+    "Downlink",
+    "Save-Data",
+    "Viewport-Width",
+    "Width",
+    "DPR",
+    "User-Agent",
+    /// 这里不支持 X-* 字段，所以不考虑
+  )
+
+  private val preflightRequestHeaderKeys = setOf(
+    "Access-Control-Request-Headers",
+    "Access-Control-Request-Method",
+  )
+
+  private val simpleRequestContentType = setOf(
+    "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"
+  )
+
+  private fun isSimpleHeader(key: String, value: String): Boolean {
+    if (key == "Content-Type" && value.split(";", limit = 2)
+        .first() !in simpleRequestContentType
+    ) {
+      return false
+    }
+    if (key.startsWith("sec-", ignoreCase = true) || key.startsWith("proxy-", ignoreCase = true)) {
+      return true
+    }
+    return key in simpleRequestHeaderKeys
+  }
+
 
   @Serializable
   data class ServerUrlInfo(
