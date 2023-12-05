@@ -14,8 +14,8 @@ export class JsonlinesStreamResponse<RAW, STATE> {
   ) {}
 
   async *jsonlines(path: string, options?: { signal?: AbortSignal, searchParams?: URLSearchParams }) {
-    const pub_url = BasePlugin.public_url;
-    const url = new URL(pub_url.replace(/^http/, "ws"));
+    const api_url = BasePlugin.api_url;
+    const url = new URL(api_url.replace(/^http/, "ws"));
     // 内部的监听
     url.pathname = `/${this.plugin.mmid}${path}`;
     options?.searchParams?.forEach((v, k) => {

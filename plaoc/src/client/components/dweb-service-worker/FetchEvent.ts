@@ -13,6 +13,7 @@ export class ServiceWorkerFetchEvent extends Event {
   /**查询连接者的信息 */
   async getRemoteManifest():Promise<$MicroModuleManifest> {
     const { request } = this.fetchEvent;
+    // 获取来建立连接的人的mmid
     const mmid = request.headers.get("x-Dweb-Host");
     console.log("getRemoteManifest查询id=>",mmid)
     const res = await this.plugin.buildApiRequest("/query",{

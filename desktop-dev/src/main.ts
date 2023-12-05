@@ -4,6 +4,7 @@ import { webcrypto } from "node:crypto";
 import path from "node:path";
 import process from "node:process";
 import { DeskNMM } from "./browser/desk/desk.nmm.ts";
+import { DownloadNMM } from "./browser/download/download.nmm.ts";
 import { JmmNMM } from "./browser/jmm/jmm.ts";
 import { JsProcessNMM } from "./browser/js-process/js-process.ts";
 import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.nmm.ts";
@@ -70,6 +71,7 @@ dns.install(new BarcodeScanningNMM());
 dns.install(new HapticsNMM())
 dns.install(new WindowNMM())
 dns.install(new ToastNMM())
+dns.install(new DownloadNMM())
 // dns.install(new BiometricsNMM());
 dns.install(new BluetoothNMM());
 const jmm = new JmmNMM();

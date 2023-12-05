@@ -69,8 +69,8 @@ class UpdateController extends EventTarget {
   }
 
   private async createIpc() {
-    const pub_url = BasePlugin.public_url;
-    const url = new URL(pub_url.replace(/^http/, "ws"));
+    const api_url = BasePlugin.api_url;
+    const url = new URL(api_url.replace(/^http/, "ws"));
     url.pathname = `${this.mmid}/listen`;
     const ipc = await createMockModuleServerIpc(url, {
       mmid: this.mmid,

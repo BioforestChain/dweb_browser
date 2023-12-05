@@ -48,7 +48,6 @@ export class SharePlugin extends BasePlugin {
       },
       method: "POST",
       body: data,
-      base: BasePlugin.public_url,
     })
       .fetch()
       .object<ShareResult>();

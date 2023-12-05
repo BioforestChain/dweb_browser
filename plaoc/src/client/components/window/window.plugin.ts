@@ -159,11 +159,12 @@ export class WindowPlugin extends BasePlugin {
     once = false
   ) {
     const callbackId = `${type}-${Math.random().toString(26).substring(2)}`;
-    const callbackUrl = new URL(`/internal/callback?id=${callbackId}`, BasePlugin.public_url);
+    const callbackUrl = new URL(`/internal/callback?id=${callbackId}`, BasePlugin.api_url);
     // 注册回调地址
-    const registryUrl = new URL("/internal/registry-callback", BasePlugin.public_url);
+    const registryUrl = new URL("/internal/registry-callback", BasePlugin.api_url);
     registryUrl.protocol = "ws";
     registryUrl.searchParams.set("id", callbackId);
+    console.log("window#createModalArgs=>", registryUrl.href);
     const callbackIpc = await this.wsToIpc(registryUrl.href);
     const onCallback = new Signal<$Callback<[$ModalCallback]>>();
     callbackIpc.onRequest(async (request, ipc) => {

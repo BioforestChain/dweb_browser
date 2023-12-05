@@ -15,11 +15,9 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
 
   readonly ipcPromise: Promise<ReadableStreamIpc> = this.createIpc();
   private async createIpc() {
-    let pub_url = BasePlugin.public_url;
-    pub_url = pub_url.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-    const url = new URL(pub_url.replace(/^http/, "ws"));
-
-    const mmid = url.searchParams.get("X-Dweb-Host")?.slice(9) as $MMID;
+    const api_url = BasePlugin.api_url.replace("://api", "://external");
+    const url = new URL(api_url.replace(/^http/, "ws"));
+    const mmid = location.host.slice(9) as $MMID;
     const hash = BasePlugin.external_url;
     url.pathname = `/${hash}`;
     const ipc = await createMockModuleServerIpc(url, {

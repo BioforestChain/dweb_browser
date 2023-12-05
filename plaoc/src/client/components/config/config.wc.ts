@@ -1,5 +1,4 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
 import { configPlugin } from "./config.plugin.ts";
 
 export class HTMLDwebConfigElement extends HTMLElement {
@@ -14,21 +13,6 @@ export class HTMLDwebConfigElement extends HTMLElement {
   @cacheGetter()
   get getLang() {
     return this.plugin.getLang;
-  }
-
-  get public_url() {
-    return this.plugin.public_url;
-  }
-  getPublicUrl() {
-    return BasePlugin.public_url;
-  }
-  static get observedAttributes() {
-    return ["api-url"];
-  }
-  attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
-    if (name === "api-url") {
-      configPlugin.setInternalUrl(newValue);
-    }
   }
 }
 if (!customElements.get(HTMLDwebConfigElement.tagName)) {

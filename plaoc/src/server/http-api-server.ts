@@ -81,6 +81,7 @@ export class Server_api extends HttpServer {
   private callbacks = new Map<string, PromiseOut<$Ipc>>();
   protected async _onInternal(event: FetchEvent): Promise<$OnFetchReturn> {
     const pathname = event.pathname.slice(INTERNAL_PREFIX.length);
+    // 返回窗口的操作id给前端
     if (pathname === "window-info") {
       return Response.json({ wid: await this.widPo.promise });
     }

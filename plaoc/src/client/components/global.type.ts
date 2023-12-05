@@ -1,7 +1,8 @@
 declare global {
-  // deno-lint-ignore no-explicit-any
   interface Window {
+    // deno-lint-ignore no-explicit-any
     webkit: any;
   }
 }
-export {};
+export { };
+

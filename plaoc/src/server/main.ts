@@ -72,16 +72,12 @@ const main = async () => {
 
   /// 生成 index-url
   const wwwStartResult = await wwwServer.getStartResult();
-  const apiStartResult = await apiServer.getStartResult();
-  const usePublic = plaocConfig.config.usePublicUrl ?? false;
-  console.log("usePublic", usePublic);
-  const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(usePublic, (url) => {
+  await apiServer.getStartResult();
+  const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(false, (url) => {
     url.pathname = "/index.html";
-    url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildUrl(usePublic).href);
-    url.searchParams.set(X_PLAOC_QUERY.API_PUBLIC_URL, apiStartResult.urlInfo.buildPublicUrl().href);
     url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);
   });
-  console.log("open in browser:", indexUrl.href, usePublic);
+  console.log("open in browser:", indexUrl.href);
   await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
   indexUrlPo.resolve(indexUrl.href);
   widPo.resolve("renderer");

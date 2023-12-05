@@ -6,16 +6,9 @@ import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
 export abstract class BasePlugin {
   static internal_url: string = location?.href ?? "http://localhost";
   private static urlData = new URLSearchParams(location.search);
-  static public_url = BasePlugin.getUrl(X_PLAOC_QUERY.API_PUBLIC_URL);
+  static api_url = location.origin.replace("//www","//api");
   static external_url = BasePlugin.getUrl(X_PLAOC_QUERY.EXTERNAL_URL);
   static internal_url_useable = false;
-  /** internal_url or public_url */
-  static get url() {
-    if (this.internal_url_useable) {
-      return this.internal_url;
-    }
-    return this.public_url;
-  }
 
   constructor(readonly mmid: $MMID) {}
 
@@ -23,7 +16,7 @@ export abstract class BasePlugin {
     return this.buildApiRequest(url, init).fetch();
   }
   buildApiRequest(pathname: string, init?: $BuildRequestWithBaseInit) {
-    const url = new URL(init?.base ?? BasePlugin.url);
+    const url = new URL(init?.base ?? BasePlugin.api_url);
     url.pathname = `${init?.pathPrefix ?? this.mmid}${pathname}`;
     return buildRequest(url, init);
   }
