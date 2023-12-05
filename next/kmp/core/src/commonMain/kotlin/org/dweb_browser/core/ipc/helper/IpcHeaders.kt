@@ -16,11 +16,11 @@ class IpcHeaders() {
   private val headersMap: MutableMap<String, String> = mutableMapOf()
 
   constructor(headers: Map<String, String>) : this() {
-    append(headers.entries)
+    appendMap(headers.entries)
   }
 
   constructor(filter: List<Pair<String, String>>) : this() {
-    append(filter)
+    appendPair(filter)
   }
 
 
@@ -30,13 +30,13 @@ class IpcHeaders() {
     }
   }
 
-  fun append(headers: Collection<Map.Entry<String, String>>) {
+  private fun appendMap(headers: Collection<Map.Entry<String, String>>) {
     for ((key, value) in headers) {
       headersMap[key.asKey()] = value
     }
   }
 
-  fun append(headers: Collection<Pair<String, String>>) {
+  private fun appendPair(headers: Collection<Pair<String, String>>) {
     for ((key, value) in headers) {
       headersMap[key.asKey()] = value
     }
