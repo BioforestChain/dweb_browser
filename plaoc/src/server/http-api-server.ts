@@ -13,7 +13,7 @@ import {
   ReadableStreamIpc,
   jsProcess,
   mapHelper,
-} from "npm:@dweb-browser/js-process@0.1.6";
+} from "./deps.ts";
 
 import { HttpServer } from "./helper/http-helper.ts";
 import { mwebview_destroy } from "./helper/mwebview-helper.ts";

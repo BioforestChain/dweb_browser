@@ -1,5 +1,5 @@
-import { $OnFetch } from "npm:@dweb-browser/js-process@0.1.6";
 import { BaseRouter } from "./base-router.ts";
+import { $OnFetch } from "./deps.ts";
 
 export class Router extends BaseRouter {
   constructor() {

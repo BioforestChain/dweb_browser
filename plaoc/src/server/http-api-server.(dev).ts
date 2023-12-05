@@ -1,4 +1,5 @@
-import type { $ReadableStreamIpc } from "npm:@dweb-browser/js-process@0.1.6";
+import { X_PLAOC_QUERY } from "./const.ts";
+import type { $ReadableStreamIpc } from "./deps.ts";
 import {
   $IpcResponse,
   $MMID,
@@ -7,8 +8,7 @@ import {
   PromiseOut,
   jsProcess,
   simpleEncoder
-} from "npm:@dweb-browser/js-process@0.1.6";
-import { X_PLAOC_QUERY } from "./const.ts";
+} from "./deps.ts";
 import { Server_api as _Server_api } from "./http-api-server.ts";
 export class Server_api extends _Server_api {
   readonly streamMap = new Map<string, $ReadableStreamOut<Uint8Array>>();

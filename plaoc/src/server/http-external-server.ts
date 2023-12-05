@@ -1,19 +1,19 @@
-import type { $MMID, $MicroModuleManifest, $OnFetch } from "npm:@dweb-browser/js-process@0.1.6";
+import type { $MMID, $MicroModuleManifest, $OnFetch } from "./deps.ts";
 import {
-  $DwebHttpServerOptions,
-  $Ipc,
-  $IpcRequest,
-  $OnFetchReturn,
-  $ReadableStreamIpc,
-  FetchEvent,
-  IPC_ROLE,
-  IpcEvent,
-  IpcResponse,
-  ReadableStreamIpc,
-  isWebSocket,
-  jsProcess,
-  mapHelper,
-} from "npm:@dweb-browser/js-process@0.1.6";
+    $DwebHttpServerOptions,
+    $Ipc,
+    $IpcRequest,
+    $OnFetchReturn,
+    $ReadableStreamIpc,
+    FetchEvent,
+    IPC_ROLE,
+    IpcEvent,
+    IpcResponse,
+    ReadableStreamIpc,
+    isWebSocket,
+    jsProcess,
+    mapHelper,
+} from "./deps.ts";
 import { HttpServer } from "./helper/http-helper.ts";
 import { PromiseToggle } from "./helper/promise-toggle.ts";
 

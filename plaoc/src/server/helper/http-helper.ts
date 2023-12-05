@@ -1,12 +1,12 @@
 import {
-  $DwebHttpServerOptions,
-  $ReadableStreamIpc,
-  HttpDwebServer,
-  IpcHeaders,
-  ServerStartResult,
-  http,
-  jsProcess,
-} from "npm:@dweb-browser/js-process@0.1.6";
+    $DwebHttpServerOptions,
+    $ReadableStreamIpc,
+    HttpDwebServer,
+    IpcHeaders,
+    ServerStartResult,
+    http,
+    jsProcess,
+} from "../deps.ts";
 
 export type $IpcHeaders = InstanceType<typeof IpcHeaders>;
 export { IpcHeaders };

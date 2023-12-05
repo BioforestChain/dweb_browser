@@ -1,12 +1,12 @@
-import {
-  $DwebHttpServerOptions,
-  $OnFetch,
-  $OnFetchReturn,
-  FetchEvent,
-  IpcResponse,
-  jsProcess,
-} from "npm:@dweb-browser/js-process@0.1.6";
 import { $PlaocConfig } from "./const.ts";
+import {
+    $DwebHttpServerOptions,
+    $OnFetch,
+    $OnFetchReturn,
+    FetchEvent,
+    IpcResponse,
+    jsProcess,
+} from "./deps.ts";
 import { HttpServer, cors } from "./helper/http-helper.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
 import { setupDB } from "./shim/db.shim.ts";

@@ -1,5 +1,5 @@
-import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "npm:@dweb-browser/js-process@0.1.6";
 import { X_PLAOC_QUERY } from "./const.ts";
+import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "./deps.ts";
 import { Server_www as _Server_www } from "./http-www-server.ts";
 
 /**

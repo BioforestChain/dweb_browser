@@ -1,4 +1,4 @@
-import { createSignal, jsProcess } from "npm:@dweb-browser/js-process@0.1.6";
+import { createSignal, jsProcess } from "../deps.ts";
 
 /**开启新页面 */
 export const mwebview_open = async (wid: string, url: string) => {
