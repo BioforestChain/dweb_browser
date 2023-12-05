@@ -84,6 +84,7 @@ const main = async () => {
   console.log("open in browser:", indexUrl.href, usePublic);
   await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
   indexUrlPo.resolve(indexUrl.href);
+  widPo.resolve("renderer");
   tryOpenView();
   //#endregion
 };

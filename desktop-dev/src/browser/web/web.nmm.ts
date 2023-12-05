@@ -30,7 +30,7 @@ export class WebBrowserNMM extends NativeMicroModule {
     }).href;
     const browserUrl = await tryDevUrl(host, "http://localhost:3500");
     // 激活的逻辑
-    this.onActivity(async (event, ipc) => {
+    this.onRenderer(async (event, ipc) => {
       this.win = await this.openBrowserWindow(browserUrl);
       this.win?.addListener("close", (_) => {
         this.win = undefined;

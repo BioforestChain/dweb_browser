@@ -226,7 +226,6 @@ export class BundleZipGenerator {
       /// 本地文件
       else {
         const addpath_full = fileURLToPath(import.meta.resolve(`../../dist/${addpath}`));
-        console.log("addpath_full=>",addpath_full)
         if (fs.statSync(addpath_full).isFile()) {
           data = fs.readFileSync(addpath_full);
         } else {

@@ -44,7 +44,7 @@ export class DwebDomainProxyServer {
             });
           };
 
-          console.always("createProxyServer", hostname);
+          // console.always("createProxyServer", hostname);
           if (hostname.endsWith(".dweb")) {
             doProxy(gatewayPort, gatewayHostname);
           } else if (port) {

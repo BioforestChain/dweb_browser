@@ -143,11 +143,16 @@ export abstract class MicroModule implements $MicroModule {
       if (event.name == MWEBVIEW_LIFECYCLE_EVENT.Activity) {
         this._activitySignal.emit(event, ipc);
       }
+      if (event.name == MWEBVIEW_LIFECYCLE_EVENT.Renderer) {
+        this._activitySignal.emit(event, ipc)
+      }
     });
     this._connectSignal.emit(ipc, reason);
   }
   protected _activitySignal = createSignal<$OnActivity>();
   protected onActivity = this._activitySignal.listen;
+  protected _rendererSignal = createSignal<$OnActivity>();
+  protected onRenderer = this._activitySignal.listen;
 
   private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
     const args = normalizeFetchArgs(url, init);
