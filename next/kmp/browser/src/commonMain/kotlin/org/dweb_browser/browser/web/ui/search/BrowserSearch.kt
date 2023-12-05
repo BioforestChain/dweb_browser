@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.toRequestUrl
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.ui.dimenSearchHeight
 import org.dweb_browser.browser.web.ui.dimenTextFieldFontSize
 import org.dweb_browser.browser.web.ui.model.DefaultSearchWebEngine
@@ -61,7 +63,12 @@ internal fun BoxScope.SearchView(
   val webEngine = findWebEngine(text)
 
   Box(modifier = modifier) {
-    homePreview?.let { it { moved -> focusManager.clearFocus(); if (!moved) onClose() } }
+    homePreview?.let {
+      it { moved ->
+        focusManager.clearFocus()
+        if (!moved) onClose()
+      }
+    }
 
     Text(
       text = BrowserI18nResource.button_name_cancel(),
@@ -121,8 +128,6 @@ internal fun BoxScope.BrowserTextField(
     onValueChange = { inputText = it.trim(); onValueChanged(inputText) },
     modifier = Modifier
       .fillMaxWidth()
-      //.navigationBarsPadding()
-      //.imePadding()
       .background(MaterialTheme.colorScheme.background)
       .align(Alignment.BottomCenter)
       .padding(
@@ -136,18 +141,19 @@ internal fun BoxScope.BrowserTextField(
       .clip(RoundedCornerShape(8.dp))
       .background(MaterialTheme.colorScheme.background)
       .focusRequester(focusRequester)
-    /*.onKeyEvent { // 键盘的操作，暂时屏蔽
-      if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
-        inputText.toRequestUrl()?.let { url ->
-          onSearch(url)
-        } ?: webEngine?.let { webEngine ->
-          onSearch("${webEngine.start}$inputText")
-        } ?: focusManager.clearFocus(); keyboardController?.hide()
-        true
-      } else {
-        false
-      }
-    }*/,
+//    .onKeyEvent { // 键盘的操作，暂时屏蔽
+//      if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
+//        inputText.toRequestUrl()?.let { url ->
+//          onSearch(url)
+//        } ?: webEngine?.let { webEngine ->
+//          onSearch("${webEngine.start}$inputText")
+//        } ?: focusManager.clearFocus(); keyboardController?.hide()
+//        true
+//      } else {
+//        false
+//      }
+//    }
+    ,
     label = {
       Text(
         text = BrowserI18nResource.browser_search_hint(),

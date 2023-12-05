@@ -17,18 +17,21 @@ import org.dweb_browser.browser.common.CaptureParams
 import org.dweb_browser.browser.common.CaptureView
 import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.common.toWebColorScheme
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.WebSiteType
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
-import org.dweb_browser.browser.web.ui.model.LocalWebViewInitialScale
 import org.dweb_browser.browser.web.ui.model.toWebSiteInfo
 import org.dweb_browser.dwebview.MotionEventAction
 import org.dweb_browser.dwebview.Render
+import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedState
 
 @Composable
-internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
+internal fun BrowserWebView(
+  viewModel: BrowserViewModel, browserWebView: BrowserWebView, windowRenderScope: WindowRenderScope
+) {
   val scope = rememberCoroutineScope()
   DisposableEffect(browserWebView.viewItem.webView) { // 点击跳转时，加载状态变化，将底部栏显示
     val job = scope.launch {
@@ -58,24 +61,24 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
   }
 
   CaptureView(
+    modifier = Modifier.fillMaxSize(),
     controller = browserWebView.controller,
     onCaptured = { imageBitmap, throwable ->
       imageBitmap?.let { browserWebView.bitmap = imageBitmap }
     }
   ) {
-    BoxWithConstraints {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
       val win = LocalWindowController.current
       val colorScheme by win.watchedState { colorScheme }
       LaunchedEffect(colorScheme) {
         browserWebView.viewItem.webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
       }
 
-      val initialScale = LocalWebViewInitialScale.current
       val density = LocalDensity.current.density
 
-      LaunchedEffect(initialScale, maxWidth, maxHeight) {
+      LaunchedEffect(windowRenderScope.scale, maxWidth, maxHeight) {
         browserWebView.viewItem.webView.setContentScale(
-          initialScale,
+          windowRenderScope.scale,
           maxWidth.value,
           maxHeight.value,
           density,

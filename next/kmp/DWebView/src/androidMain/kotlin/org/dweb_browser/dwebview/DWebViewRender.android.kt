@@ -1,8 +1,11 @@
 package org.dweb_browser.dwebview
 
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,34 +29,35 @@ actual fun IDWebView.Render(
   val navigator = rememberWebViewNavigator(webView.ioScope)
   val client = remember { AccompanistWebViewClient() }
   val chromeClient = remember { AccompanistWebChromeClient() }
-  WebView(
-    state = state,
-    navigator = navigator,
-    modifier = modifier,
-    factory = {
-      // 修复 activity 已存在父级时导致的异常
-      webView.parent?.let { parentView ->
-        (parentView as ViewGroup).removeAllViews()
-      }
-      webView.setBackgroundColor(Color.Transparent.toArgb())
-      // viewItem.webView.activity.resources.obtainAttributes() androidx.appcompat.R.attr.colorAccent
-      // viewItem.webView.resources.newTheme().obtainStyledAttributes(textColorHighlight )
-      webView
-    },
-    onCreated = {
-      onCreate?.also {
-        engine.ioScope.launch { onCreate.invoke(this@Render) }
-      }
-    },
-    client = client,
-    chromeClient = chromeClient,
-    captureBackPresses = false,
-  )
-  onDispose?.also {
-    DisposableEffect(this) {
-      onDispose {
-        engine.ioScope.launch {
-          onDispose()
+  BoxWithConstraints {
+    val contentScale by contentScale
+    WebView(
+      state = state,
+      navigator = navigator,
+      modifier = modifier.requiredSize(maxWidth / contentScale, maxHeight / contentScale),
+      factory = {
+        // 修复 activity 已存在父级时导致的异常
+        webView.parent?.let { parentView ->
+          (parentView as ViewGroup).removeAllViews()
+        }
+        webView.setBackgroundColor(Color.Transparent.toArgb())
+        webView
+      },
+      onCreated = {
+        onCreate?.also {
+          engine.ioScope.launch { onCreate.invoke(this@Render) }
+        }
+      },
+      client = client,
+      chromeClient = chromeClient,
+      captureBackPresses = false,
+    )
+    onDispose?.also {
+      DisposableEffect(this) {
+        onDispose {
+          engine.ioScope.launch {
+            onDispose()
+          }
         }
       }
     }

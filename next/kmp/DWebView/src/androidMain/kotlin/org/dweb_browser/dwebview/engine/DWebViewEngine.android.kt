@@ -13,6 +13,9 @@ import androidx.core.view.DisplayCutoutCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.webkit.ProxyConfig
 import androidx.webkit.ProxyController
+import androidx.webkit.UserAgentMetadata
+import androidx.webkit.UserAgentMetadata.BrandVersion
+import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -33,6 +36,7 @@ import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toAndroidRect
 import org.dweb_browser.helper.withMainContext
+
 
 /**
  * DWebView ,将 WebView 与 dweb 的 dwebHttpServer 设计进行兼容性绑定的模块
@@ -125,9 +129,23 @@ class DWebViewEngine(
       dwebHost = uri.host!!
     }
     val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
-    settings.userAgentString = "$baseUserAgentString Dweb/2.0 (Android/$versionName; ${dwebHost})"
+    if (WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)) {
+      val oldUserAgent = WebSettingsCompat.getUserAgentMetadata(settings)
+      val userAgent = UserAgentMetadata.Builder(oldUserAgent).setBrandVersionList(
+        oldUserAgent.brandVersionList + BrandVersion.Builder()
+          .setBrand("jmm.browser.dweb")
+          .setFullVersion("2.0")
+          .setMajorVersion("2")
+          .build() + BrandVersion.Builder()
+          .setBrand("DwebBrowser")
+          .setFullVersion(versionName)
+          .build()
+      ).build()
+      WebSettingsCompat.setUserAgentMetadata(settings, userAgent)
+    } else {
+      settings.userAgentString = "$baseUserAgentString DwebBrowser/$versionName jmm.browser.dweb/2.0"
+    }
   }
-
 
   internal val dWebViewClient = DWebViewClient(this).also {
     it.addWebViewClient(DWebRequestResponse(this@DWebViewEngine))
@@ -314,7 +332,7 @@ class DWebViewEngine(
   val closeWatcher = CloseWatcher(this)
   val createWindowSignal = Signal<IDWebView>()
 
-   var safeArea = Bounds.Zero
+  var safeArea = Bounds.Zero
   override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
     return when (options.displayCutoutStrategy) {
       Default -> super.onApplyWindowInsets(insets)

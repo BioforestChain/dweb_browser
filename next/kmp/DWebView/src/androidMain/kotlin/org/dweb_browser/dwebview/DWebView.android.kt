@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.view.ViewGroup
 import android.webkit.WebMessage
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.webkit.WebSettingsCompat
@@ -159,11 +160,16 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     engine.postWebMessage(WebMessage(data, ports.map { it.into() }.toTypedArray()), Uri.EMPTY)
   }
 
+  val contentScale = mutableFloatStateOf(1f)
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
     withMainContext {
-      engine.setInitialScale((scale * density * 100).toInt())
-      engine.layoutParams =
-        ViewGroup.LayoutParams((width * density).toInt(), (height * density).toInt())
+      this.contentScale.floatValue = scale
+      engine.scaleX = scale
+      engine.scaleY = scale
+//      engine.setInitialScale((scale * density * 100).toInt())
+//      engine.layoutParams = ViewGroup.LayoutParams(
+//        (width / scale * density).toInt(), (height / scale * density).toInt()
+//      )
     }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {

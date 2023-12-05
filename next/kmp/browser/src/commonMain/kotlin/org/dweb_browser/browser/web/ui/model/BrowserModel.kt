@@ -54,10 +54,6 @@ val LocalShowSearchView = compositionLocalOf {
   mutableStateOf(false)
 }
 
-val LocalWebViewInitialScale = compositionLocalOf<Float> {
-  noLocalProvidedFor("WebViewInitialScale")
-}
-
 val LocalShowIme = compositionLocalOf {
   mutableStateOf(false)
 }

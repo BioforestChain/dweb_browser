@@ -54,7 +54,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,6 +74,7 @@ import org.dweb_browser.browser.common.barcode.QRCodeScanView
 import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserBaseView
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.ConstUrl
@@ -86,7 +86,6 @@ import org.dweb_browser.browser.web.ui.model.LocalBrowserPageState
 import org.dweb_browser.browser.web.ui.model.LocalInputText
 import org.dweb_browser.browser.web.ui.model.LocalShowIme
 import org.dweb_browser.browser.web.ui.model.LocalShowSearchView
-import org.dweb_browser.browser.web.ui.model.LocalWebViewInitialScale
 import org.dweb_browser.browser.web.ui.model.parseInputText
 import org.dweb_browser.browser.web.ui.search.SearchView
 import org.dweb_browser.dwebview.Render
@@ -122,7 +121,6 @@ fun BrowserViewForWindow(
 ) {
   val scope = rememberCoroutineScope()
   val browserPagerState = viewModel.rememberBrowserPagerState()
-  val initialScale = windowRenderScope.scale
   val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
   val qrCodeScanModel = remember { QRCodeScanModel() }
 
@@ -130,7 +128,6 @@ fun BrowserViewForWindow(
 
   CompositionLocalProvider(
     LocalModalBottomSheet provides modalBottomModel,
-    LocalWebViewInitialScale provides initialScale,
     LocalBrowserPageState provides browserPagerState,
     LocalQRCodeModel provides qrCodeScanModel,
   ) {
@@ -156,7 +153,7 @@ fun BrowserViewForWindow(
           .fillMaxSize()
           .padding(bottom = dimenBottomHeight * windowRenderScope.scale)
       ) {
-        BrowserViewContent(viewModel)   // 中间主体部分
+        BrowserViewContent(viewModel, windowRenderScope)   // 中间主体部分
       }
       Box(modifier = with(windowRenderScope) {
         if (win.isMaximized()) {
@@ -201,7 +198,7 @@ fun BrowserViewForWindow(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun BrowserViewContent(viewModel: BrowserViewModel) {
+fun BrowserViewContent(viewModel: BrowserViewModel, windowRenderScope: WindowRenderScope) {
   val localFocusManager = LocalFocusManager.current
   val browserPagerState = LocalBrowserPageState.current
   LaunchedEffect(browserPagerState.pagerStateNavigator.currentPageOffsetFraction) {
@@ -216,7 +213,9 @@ fun BrowserViewContent(viewModel: BrowserViewModel) {
 
   Box(modifier = Modifier
     .fillMaxSize()
-    .clickableWithNoEffect { localFocusManager.clearFocus() }
+    .clickableWithNoEffect {
+      localFocusManager.clearFocus()
+    }
   ) {
     HorizontalPager(modifier = Modifier,
       state = browserPagerState.pagerStateContent,
@@ -226,7 +225,11 @@ fun BrowserViewContent(viewModel: BrowserViewModel) {
       contentPadding = PaddingValues(0.dp),
       beyondBoundsPageCount = 5,
       pageContent = { currentPage ->
-        BrowserViewContentWeb(viewModel, viewModel.getBrowserViewOrNull(currentPage)!!)
+        BrowserViewContentWeb(
+          viewModel,
+          viewModel.getBrowserViewOrNull(currentPage)!!,
+          windowRenderScope
+        )
       })
   }
 }
@@ -390,9 +393,11 @@ private fun RowScope.NavigatorButton(
 }
 
 @Composable
-private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
+private fun BrowserViewContentWeb(
+  viewModel: BrowserViewModel, browserWebView: BrowserWebView, windowRenderScope: WindowRenderScope
+) {
   key(browserWebView.viewItem.webviewId) {
-    BrowserWebView(viewModel = viewModel, browserWebView = browserWebView)
+    BrowserWebView(viewModel = viewModel, browserWebView = browserWebView, windowRenderScope)
   }
 }
 
@@ -552,11 +557,10 @@ internal fun HomeWebviewPage(
         .background(MaterialTheme.colorScheme.background),
     )
 
-    val initialScale = LocalWebViewInitialScale.current
     val density = LocalDensity.current.density
-    LaunchedEffect(initialScale, maxWidth, maxHeight) {
+    LaunchedEffect(windowRenderScope.scale, maxWidth, maxHeight) {
       webView.viewItem.webView.setContentScale(
-        initialScale,
+        windowRenderScope.scale,
         maxWidth.value,
         maxHeight.value,
         density
