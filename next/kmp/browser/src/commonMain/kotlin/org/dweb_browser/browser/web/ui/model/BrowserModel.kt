@@ -216,7 +216,6 @@ class BrowserViewModel(
    * 为了适应 ios，从而将 webview 的处理独立开
    */
   private suspend fun parseDwebLinkSearch(url: String): Boolean {
-    debugBrowser("lin.huang", "parseDwebLinkSearch url=$url, main=${getBrowserMainUrl()}")
     if (url.isEmpty() || (url == ConstUrl.BLANK.url && browserViewList.isNotEmpty())) return false
     return if (url == ConstUrl.BLANK.url && browserViewList.isEmpty()) {
       addNewMainView(getBrowserMainUrl().toString())
