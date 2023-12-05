@@ -1,6 +1,6 @@
+import DwebShared
 import Network
 import SwiftUI
-import DwebShared
 
 enum RenderType {
     case none
@@ -18,7 +18,8 @@ struct iOSApp: App {
     @ObservedObject private var deskVCStore = DwebDeskVCStore.shared
 
     @State var searchKey: String?
-    
+    @State private var showAlert = false
+
     var body: some Scene {
         WindowGroup {
             content
@@ -30,7 +31,7 @@ struct iOSApp: App {
                 }
         }
     }
-    
+
     var content: some View {
         ZStack(alignment: .center, content: {
             switch renderType {
@@ -43,18 +44,49 @@ struct iOSApp: App {
                 DwebBrowser()
             }
         })
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("更新提示"), message: Text("有新版本可用，请您前往App Store更新。"), primaryButton: .cancel(), secondaryButton: .default(Text("前往更新"), action: {
+                let appStoreURL = "itms-apps://itunes.apple.com/app/id6443558874"
+                UIApplication.shared.open(URL(string: appStoreURL)!, options: [:], completionHandler: nil)
+            }))
+        }
         .task {
             Main_iosKt.regiserIosMainView {
-                return UIHostingController(rootView: BrowserView(searchKey: $searchKey)).view!
+                UIHostingController(rootView: BrowserView(searchKey: $searchKey)).view!
             }
-            
-            Main_iosKt.regiserIosSearch { key in
-                Log("\(key)")
-                searchKey = key
-            }
+            Main_iosKt.regiserIosSearch { searchKey = $0}
+        }
+        .task {
+            await checkUpdate()
         }
     }
-    
+
+    func checkUpdate() async {
+        let appstoreVersion = await fetchAppVersion()
+        let localVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        if let remoteV = appstoreVersion, let localV = localVersion, remoteV > localV {
+            showAlert = true
+        }
+    }
+
+    struct AppInfo: Codable {
+        let results: [Result]
+        struct Result: Codable {
+            let version: String
+        }
+    }
+
+    func fetchAppVersion() async -> String? {
+        let url = URL(string: "https://itunes.apple.com/lookup?id=6443558874")!
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let appInfo = try JSONDecoder().decode(AppInfo.self, from: data)
+            return appInfo.results.first?.version
+        } catch {
+            print("Error: \(error.localizedDescription)")
+            return nil
+        }
+    }
 }
 
 struct DwebFrameworkContentView: View {
