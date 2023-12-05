@@ -30,7 +30,7 @@ actual class LocationApi : LocationCallback() {
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
   private val list: ChangeableList<PromiseOut<Boolean>> = ChangeableList()
   private var starting = atomic(false)
-  private val locationChanged = Signal<Location>()
+  private val locationChanged = Signal<GeolocationPosition>()
   private val onLocationChanged = locationChanged.toListener()
 
   init {
@@ -62,21 +62,22 @@ actual class LocationApi : LocationCallback() {
     }
   }
 
-  private fun processLocation(lastLocation: android.location.Location): Location {
-    val latLng = LatLng(
-      lastLocation.latitude,
-      lastLocation.longitude
+  private fun processLocation(lastLocation: android.location.Location): GeolocationPosition {
+    val geolocationCoordinates = GeolocationCoordinates(
+      accuracy = lastLocation.accuracy.toDouble(),
+      latitude = lastLocation.latitude,
+      longitude = lastLocation.longitude
     )
-    return Location(
-      coordinates = latLng,
-      coordinatesAccuracyMeters = lastLocation.accuracy.toDouble()
+    return GeolocationPosition(
+      state = GeolocationPositionState.Success,
+      coords = geolocationCoordinates,
     )
   }
 
   @SuppressLint("MissingPermission")
-  actual suspend fun getCurrentLocation(): Location {
+  actual suspend fun getCurrentLocation(): GeolocationPosition {
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    val promiseOut = PromiseOut<Location>()
+    val promiseOut = PromiseOut<GeolocationPosition>()
     fusedLocationClient.lastLocation.addOnSuccessListener { lastLocation ->
       val location = processLocation(lastLocation)
       debugLocation("LocationResult", "addOnSuccessListener->$location")
@@ -85,7 +86,7 @@ actual class LocationApi : LocationCallback() {
     return promiseOut.waitPromise()
   }
 
-  actual suspend fun observeLocation(callback: suspend (Location) -> Boolean) {
+  actual suspend fun observeLocation(callback: suspend (GeolocationPosition) -> Boolean) {
     val promiseOut = PromiseOut<Boolean>()
     list.add(promiseOut)
     val off = onLocationChanged { location ->
