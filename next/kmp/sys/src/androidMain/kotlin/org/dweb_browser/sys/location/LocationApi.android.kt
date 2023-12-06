@@ -10,6 +10,7 @@ import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.ChangeableList
@@ -86,7 +87,7 @@ actual class LocationApi : LocationCallback() {
     return promiseOut.waitPromise()
   }
 
-  actual suspend fun observeLocation(callback: suspend (GeolocationPosition) -> Boolean) {
+  actual suspend fun observeLocation(mmid: MMID, fps: Int, callback: suspend (GeolocationPosition) -> Boolean) {
     val promiseOut = PromiseOut<Boolean>()
     list.add(promiseOut)
     val off = onLocationChanged { location ->
@@ -96,5 +97,9 @@ actual class LocationApi : LocationCallback() {
     promiseOut.waitPromise()
     list.remove(promiseOut)
     off()
+  }
+
+  actual fun removeLocationObserve(mmid: MMID) {
+    TODO("Not yet implemented")
   }
 }

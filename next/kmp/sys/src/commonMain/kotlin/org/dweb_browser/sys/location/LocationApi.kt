@@ -2,17 +2,18 @@ package org.dweb_browser.sys.location
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.datetimeNow
 
 @Serializable
 data class GeolocationPositionState(val code:Int, val message:String?) {
   companion object {
-    val Success = GeolocationPositionState(1, "Success")
-    val PERMISSION_DENIED = GeolocationPositionState(2, "permission denied")
-    val POSITION_UNAVAILABLE = GeolocationPositionState(3, "position unavailable")
-    val TIMEOUT = GeolocationPositionState(4, "timeout")
-    fun createOther(message: String?) = GeolocationPositionState(5, message)
+    val Success = GeolocationPositionState(0, "Success")
+    val PERMISSION_DENIED = GeolocationPositionState(1, "permission denied")
+    val POSITION_UNAVAILABLE = GeolocationPositionState(2, "position unavailable")
+    val TIMEOUT = GeolocationPositionState(3, "timeout")
+    fun createOther(message: String?) = GeolocationPositionState(4, message)
   }
 }
 
@@ -38,6 +39,12 @@ data class GeolocationPosition(
 
   @Transient
   val onClose = closeSignal.toListener()
+
+  companion object {
+    fun createErrorObj(state: GeolocationPositionState): GeolocationPosition {
+      return GeolocationPosition(state, GeolocationCoordinates(0.0, 0.0,0.0))
+    }
+  }
 }
 
 /**
@@ -53,5 +60,10 @@ expect class LocationApi() {
    * 监听位置信息，位置信息变化及时通知
    * 返回的Boolean表示是否正常发送，如果发送遗产，关闭监听。
    */
-  suspend fun observeLocation(callback: suspend (GeolocationPosition) -> Boolean)
+  suspend fun observeLocation(mmid: MMID, fps: Int, callback: suspend (GeolocationPosition) -> Boolean)
+
+  /**
+   * 移除定位监听
+   */
+  fun removeLocationObserve(mmid: MMID)
 }

@@ -48,6 +48,10 @@
 	<string>用于支持扫一扫等功能</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Access requires authentication</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>用于提供位置相关的服务</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>用于提供位置相关的服务</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

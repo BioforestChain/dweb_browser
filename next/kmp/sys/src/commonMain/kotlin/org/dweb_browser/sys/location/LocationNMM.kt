@@ -25,7 +25,14 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
       },
       "/observe" bind HttpMethod.Get by defineJsonLineResponse {
         debugLocation("observe", "enter")
-        locationApi.observeLocation {
+        val remoteMmid = ipc.remote.mmid
+        val fps = try {
+          request.query("fps").toInt()
+        } catch (e: NumberFormatException) {
+          debugLocation("observe", "fps error")
+          5
+        }
+        locationApi.observeLocation(remoteMmid, fps) {
           try {
             emit(it.toJsonElement())
             true // 这边表示正常，继续监听
@@ -35,6 +42,11 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
             false // 这边表示异常，关闭监听
           }
         }
+      },
+      "/removeObserve" bind HttpMethod.Get by defineJsonLineResponse {
+        debugLocation("removeObserve", "enter")
+        val remoteMmid = ipc.remote.mmid
+        locationApi.removeLocationObserve(remoteMmid)
       }
     )
   }

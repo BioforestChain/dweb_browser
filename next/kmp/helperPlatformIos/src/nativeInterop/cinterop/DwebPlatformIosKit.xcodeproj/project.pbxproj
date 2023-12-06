@@ -10,6 +10,8 @@
 		3D50D2D92B064BA5008891FC /* DwebPlatformIosKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3DCF04232B19FD6C00A9D3EF /* DwebPlatformIosKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */; };
 		46282D682B0B603700A45995 /* DwebHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46282D672B0B603700A45995 /* DwebHelper.swift */; };
+		48E148E42B1D68EC00B69C64 /* DwebLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */; };
+		48E148E72B1DB00300B69C64 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E148E62B1DB00300B69C64 /* Logger.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -17,6 +19,8 @@
 		3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebPlatformIosKit.h; sourceTree = "<group>"; };
 		3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DwebPlatformIosKit.m; sourceTree = "<group>"; };
 		46282D672B0B603700A45995 /* DwebHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebHelper.swift; sourceTree = "<group>"; };
+		48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebLocationManager.swift; sourceTree = "<group>"; };
+		48E148E62B1DB00300B69C64 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,11 +103,21 @@
 		3D50D2D72B064BA5008891FC /* DwebPlatformIosKit */ = {
 			isa = PBXGroup;
 			children = (
-				3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */,
 				46282D672B0B603700A45995 /* DwebHelper.swift */,
+				48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */,
+				3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */,
 				3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */,
+				48E148E52B1DAFC400B69C64 /* Tools */,
 			);
 			path = DwebPlatformIosKit;
+			sourceTree = "<group>";
+		};
+		48E148E52B1DAFC400B69C64 /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+				48E148E62B1DB00300B69C64 /* Logger.swift */,
+			);
+			path = Tools;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -186,8 +200,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				48E148E42B1D68EC00B69C64 /* DwebLocationManager.swift in Sources */,
 				46282D682B0B603700A45995 /* DwebHelper.swift in Sources */,
 				3DCF04232B19FD6C00A9D3EF /* DwebPlatformIosKit.m in Sources */,
+				48E148E72B1DB00300B69C64 /* Logger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,6 +353,8 @@
 				ENABLE_MODULE_VERIFIER = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "用于提供位置相关的服务";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "用于提供位置相关的服务";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -346,6 +364,7 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				OTHER_SWIFT_FLAGS = "-DDEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = org.bnqkl.DwebPlatformIosKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -370,6 +389,8 @@
 				ENABLE_MODULE_VERIFIER = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "用于提供位置相关的服务";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "用于提供位置相关的服务";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -379,6 +400,7 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				OTHER_SWIFT_FLAGS = "-DDEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = org.bnqkl.DwebPlatformIosKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
