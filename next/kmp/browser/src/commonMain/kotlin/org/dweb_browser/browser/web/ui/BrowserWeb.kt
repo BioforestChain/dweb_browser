@@ -93,9 +93,7 @@ internal fun BrowserWebView(
       }
 
       browserWebView.viewItem.webView.Render(
-        modifier = Modifier
-          .fillMaxSize()
-          .background(MaterialTheme.colorScheme.background),
+        modifier = Modifier.fillMaxSize(),
         onCreate = {
           val webView = browserWebView.viewItem.webView
           var webViewY = 0 // 用于截图的时候进行定位截图

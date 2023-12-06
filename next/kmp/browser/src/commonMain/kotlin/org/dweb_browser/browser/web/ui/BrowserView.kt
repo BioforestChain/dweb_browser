@@ -552,9 +552,7 @@ internal fun HomeWebviewPage(
       .padding(bottom = dimenSearchHeight * windowRenderScope.scale)
   ) {
     webView.viewItem.webView.Render(
-      Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background),
+      Modifier.fillMaxSize(),
     )
 
     val density = LocalDensity.current.density
