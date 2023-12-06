@@ -12,7 +12,7 @@ class UpdateControllerPlugin extends BasePlugin {
     super("jmm.browser.dweb");
   }
   // 获取监听的消息
-  listen = new UpdateController();
+  // listen = new UpdateController();
 
   /**
    *  调出下载界面
@@ -28,50 +28,51 @@ class UpdateControllerPlugin extends BasePlugin {
     }).boolean();
   }
 
-  // 暂停
-  @bindThis
-  async pause(): Promise<boolean> {
-    return await this.fetchApi("/pause", {
-      pathPrefix: this.listen.mmid,
-    }).boolean();
-  }
-  // 恢复
-  @bindThis
-  async resume(): Promise<boolean> {
-    return await this.fetchApi("/resume", {
-      pathPrefix: this.listen.mmid,
-    }).boolean();
-  }
-  // 取消
-  @bindThis
-  async cancel(): Promise<boolean> {
-    return await this.fetchApi("/cancel", {
-      pathPrefix: this.listen.mmid,
-    }).boolean();
-  }
+  // // 暂停
+  // @bindThis
+  // async pause(): Promise<boolean> {
+  //   return await this.fetchApi("/pause", {
+  //     pathPrefix: this.listen.mmid,
+  //   }).boolean();
+  // }
+  // // 恢复
+  // @bindThis
+  // async resume(): Promise<boolean> {
+  //   return await this.fetchApi("/resume", {
+  //     pathPrefix: this.listen.mmid,
+  //   }).boolean();
+  // }
+  // // 取消
+  // @bindThis
+  // async cancel(): Promise<boolean> {
+  //   return await this.fetchApi("/cancel", {
+  //     pathPrefix: this.listen.mmid,
+  //   }).boolean();
+  // }
 }
 
 class UpdateController extends EventTarget {
   mmid: $MMID = "download.browser.dweb";
-  readonly ipcPromise: Promise<ReadableStreamIpc> = this.createIpc();
+  // readonly ipcPromise: Promise<ReadableStreamIpc> = this.createIpc();
 
   constructor() {
     super();
-    this.ipcPromise.then((ipc) => {
-      ipc.onEvent((event) => {
-        if (event.name === UpdateControllerEvent.progress) {
-          return this.dispatchEvent(new CustomEvent(event.name, { detail: { progress: event.text } }));
-        }
-        // start/end/cancel
-        this.dispatchEvent(new Event(event.name));
-      });
-    });
+    // this.ipcPromise.then((ipc) => {
+    //   ipc.onEvent((event) => {
+    //     if (event.name === UpdateControllerEvent.progress) {
+    //       return this.dispatchEvent(new CustomEvent(event.name, { detail: { progress: event.text } }));
+    //     }
+    //     // start/end/cancel
+    //     this.dispatchEvent(new Event(event.name));
+    //   });
+    // });
   }
 
   private async createIpc() {
     const api_url = BasePlugin.api_url;
     const url = new URL(api_url.replace(/^http/, "ws"));
-    url.pathname = `${this.mmid}/listen`;
+    url.pathname = `${this.mmid}/watch/progress`;
+    // url.searchParams.append()
     const ipc = await createMockModuleServerIpc(url, {
       mmid: this.mmid,
       ipc_support_protocols: {

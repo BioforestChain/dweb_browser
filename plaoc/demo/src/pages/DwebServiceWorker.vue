@@ -20,22 +20,22 @@ onMounted(async () => {
     console.log("app resume", event);
   });
 
-  const updateContoller = updateControllerPlugin.listen;
+  // const updateContoller = updateControllerPlugin.listen;
 
-  updateContoller.addEventListener("start", (event) => {
-    console.log("Dweb Service Worker updateContoller start =>", event);
-  });
-  updateContoller.addEventListener("end", (event) => {
-    console.log("Dweb Service Worker updateContoller end =>", event);
-  });
-  updateContoller.addEventListener("progress", (event) => {
-    const progressRate = event.detail.progress;
-    progress.value = parseFloat(progressRate);
-    console.log("Dweb Service Worker updateContoller progress =>", progressRate, parseFloat(progressRate));
-  });
-  updateContoller.addEventListener("cancel", (event) => {
-    console.log("Dweb Service Worker updateContoller cancel =>", event);
-  });
+  // updateContoller.addEventListener("start", (event) => {
+  //   console.log("Dweb Service Worker updateContoller start =>", event);
+  // });
+  // updateContoller.addEventListener("end", (event) => {
+  //   console.log("Dweb Service Worker updateContoller end =>", event);
+  // });
+  // updateContoller.addEventListener("progress", (event) => {
+  //   const progressRate = event.detail.progress;
+  //   progress.value = parseFloat(progressRate);
+  //   console.log("Dweb Service Worker updateContoller progress =>", progressRate, parseFloat(progressRate));
+  // });
+  // updateContoller.addEventListener("cancel", (event) => {
+  //   console.log("Dweb Service Worker updateContoller cancel =>", event);
+  // });
 });
 
 const close = defineLogAction(
@@ -54,21 +54,21 @@ const restart = defineLogAction(
 
 const pause = defineLogAction(
   async () => {
-    return await updateControllerPlugin.pause();
+    // return await updateControllerPlugin.pause();
   },
   { name: "pause", args: [], logPanel: $logPanel }
 );
 
 const resume = defineLogAction(
   async () => {
-    return await updateControllerPlugin.resume();
+    // return await updateControllerPlugin.resume();
   },
   { name: "resume", args: [], logPanel: $logPanel }
 );
 
 const cancel = defineLogAction(
   async () => {
-    return await updateControllerPlugin.cancel();
+    // return await updateControllerPlugin.cancel();
   },
   { name: "cancel", args: [], logPanel: $logPanel }
 );

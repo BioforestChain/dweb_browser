@@ -126,32 +126,20 @@ export class Server_api extends HttpServer {
    */
   protected async _onApi(
     event: FetchEvent,
-    connect: (mmid: $MMID) => Promise<$Ipc> = (mmid: $MMID) => jsProcess.connect(mmid),
-    useIpcBody = true
   ): Promise<$OnFetchReturn> {
     const { pathname, search } = event;
     // 转发file请求到目标NMM
     const path = `file:/${pathname}${search}`;
     const mmid = new URL(path).host;
-    const targetIpc = await connect(mmid as $MMID);
-    const ipcProxyRequest = useIpcBody
-      ? new IpcRequest(
-          //
-          targetIpc.allocReqId(),
-          path,
-          event.method,
-          event.headers,
-          event.ipcRequest.body,
-          targetIpc
-        )
-      : IpcRequest.fromStream(
-          targetIpc.allocReqId(),
-          path,
-          event.method,
-          event.headers,
-          await event.ipcRequest.body.stream(),
-          targetIpc
-        );
+    const targetIpc = await jsProcess.connect(mmid as $MMID);
+    const ipcProxyRequest = new IpcRequest(
+      targetIpc.allocReqId(),
+      path,
+      event.method,
+      event.headers,
+      event.ipcRequest.body,
+      targetIpc
+    )
     targetIpc.postMessage(ipcProxyRequest);
     const ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.req_id).promise;
     return ipcProxyResponse.toResponse();
