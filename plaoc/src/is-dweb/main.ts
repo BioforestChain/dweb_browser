@@ -8,7 +8,7 @@ export const isDweb = () => {
 export const dwebTarget = () => {
   if (isDweb()) {
     const brands = self.navigator.userAgentData.brands.filter((value) => {
-      value.brand === "jmm.browser.dweb";
+      return value.brand === "jmm.browser.dweb";
     });
 
     if (brands && brands.length > 0) {
