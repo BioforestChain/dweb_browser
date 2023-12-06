@@ -6,6 +6,7 @@ import org.dweb_browser.browser.jmm.model.JmmInstallerModel
 import org.dweb_browser.browser.jmm.ui.Render
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
@@ -64,6 +65,6 @@ class JmmInstallerController(
   suspend fun exists() = jmmController.exists(jmmHistoryMetadata.taskId)
 
   suspend fun closeSelf() {
-    getView().close()
+    jmmNMM.getOrOpenMainWindow().closeRoot()
   }
 }

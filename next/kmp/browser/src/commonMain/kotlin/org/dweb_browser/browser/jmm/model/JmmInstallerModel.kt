@@ -57,5 +57,6 @@ class JmmInstallerModel(
 
   fun open() = controller.ioAsyncScope.launch {
     controller.openApp(uiState.jmmHistoryMetadata.metadata.id)
+    controller.closeSelf() // 打开应用后，需要关闭当前安装界面
   }
 }
