@@ -1,5 +1,5 @@
+import { $OnFetch } from "../deps.ts";
 import { BaseRouter } from "./base-router.ts";
-import { $OnFetch } from "./deps.ts";
 
 export class Router extends BaseRouter {
   constructor() {

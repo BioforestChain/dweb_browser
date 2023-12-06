@@ -4,11 +4,9 @@ import { createSignal } from "../../helper/createSignal.ts";
 import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
 
 export abstract class BasePlugin {
-  static internal_url: string = location?.href ?? "http://localhost";
   private static urlData = new URLSearchParams(location.search);
   static api_url = location.origin.replace("//www","//api");
   static external_url = BasePlugin.getUrl(X_PLAOC_QUERY.EXTERNAL_URL);
-  static internal_url_useable = false;
 
   constructor(readonly mmid: $MMID) {}
 
@@ -35,15 +33,6 @@ export abstract class BasePlugin {
     }
     localStorage.setItem("url:" + urlType, url);
     return url;
-  }
-  /**获取plaoc内置url */
-  static async getBaseUrl() {
-    if (typeof location === "undefined") {
-      return "file:///";
-    }
-    const url = new URL(location.href);
-    url.pathname = `/${X_PLAOC_QUERY.GET_CONFIG_URL}`;
-    return await buildRequest(url).fetch().object<{ [key in X_PLAOC_QUERY]: string }>();
   }
 }
 

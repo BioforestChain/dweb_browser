@@ -9,7 +9,6 @@ const chalk = new Chalk({ level: 3 });
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
 const absWorkingDir = resolveTo("../src/server");
-console.log("absWorkingDir", absWorkingDir);
 export const prod = new ESBuild({
   absWorkingDir,
   splitting: true,

@@ -92,12 +92,12 @@ export const doBuidCore = async (config: {
       keywords: ["plaoc", "dweb", "middleware"],
       exports: {
         ".": {
-          types: "./types/server/index.d.ts",
-          default: "./esm/server/index.js",
+          types: "./types/index.d.ts",
+          default: "./esm/index.js",
         },
         "./middleware": {
-          import: "./esm/server/middlewares/index.js",
-          types: "./types/server/middlewares/index.d.ts",
+          import: "./esm/middlewares/index.js",
+          types: "./types/middlewares/index.d.ts",
         },
       },
       devDependencies: config.devDependencies ?? {},
