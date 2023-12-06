@@ -1,11 +1,15 @@
 package org.dweb_browser.browser.jmm.render
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JmmStatus
@@ -106,34 +111,65 @@ internal fun BoxScope.BottomDownloadButton() {
         disabledContentColor = MaterialTheme.colorScheme.onErrorContainer,
       ),
     ) {
-      Text(
-        text = JmmStatusText(jmmHistoryMetadata.state, jmmCurrent)
-      )
+      val jmmStateText = JmmStatusText(jmmHistoryMetadata.state, jmmCurrent)
+      jmmStateText.third?.let { size ->
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.Center
+        ) {
+          Text(text = jmmStateText.first)
+          Text(text = size, modifier = Modifier.width(72.dp), textAlign = TextAlign.End)
+          Text(text = jmmStateText.second)
+        }
+      } ?: run {
+        Text(text = jmmStateText.first + jmmStateText.second)
+      }
     }
   }
 }
 
 @Composable
-fun JmmStatusText(state: JmmStatusEvent, current: Long): String {
+fun JmmStatusText(state: JmmStatusEvent, current: Long): Triple<String, String, String?> {
   return when (state.state) {
-    JmmStatus.Init, JmmStatus.Canceled -> {
-      BrowserI18nResource.install_button_download() + " ${state.total.toSpaceSize()}"
-    }
+    JmmStatus.Init, JmmStatus.Canceled -> Triple(
+      first = BrowserI18nResource.install_button_download(),
+      second = " " + state.total.toSpaceSize(),
+      third = null
+    )
 
-    JmmStatus.NewVersion -> {
-      BrowserI18nResource.install_button_update() + " ${state.total.toSpaceSize()}"
-    }
+    JmmStatus.NewVersion -> Triple(
+      first = BrowserI18nResource.install_button_update(),
+      second = " " + state.total.toSpaceSize(),
+      third = null
+    )
 
-    JmmStatus.Downloading -> {
-      BrowserI18nResource.install_button_downloading() + " ${current.toSpaceSize()} / ${state.total.toSpaceSize()}"
-    }
+    JmmStatus.Downloading -> Triple(
+      first = BrowserI18nResource.install_button_downloading(),
+      second = " / " + state.total.toSpaceSize(),
+      third = current.toSpaceSize()
+    )
 
-    JmmStatus.Paused -> {
-      BrowserI18nResource.install_button_paused() + " ${current.toSpaceSize()} / ${state.total.toSpaceSize()}"
-    }
+    JmmStatus.Paused -> Triple(
+      first = BrowserI18nResource.install_button_paused(),
+      second = " / " + state.total.toSpaceSize(),
+      third = current.toSpaceSize()
+    )
 
-    JmmStatus.Completed -> BrowserI18nResource.install_button_installing()
-    JmmStatus.INSTALLED -> BrowserI18nResource.install_button_open()
-    JmmStatus.Failed -> BrowserI18nResource.install_button_retry()
+    JmmStatus.Completed -> Triple(
+      first = BrowserI18nResource.install_button_installing(),
+      second = "",
+      third = null
+    )
+    JmmStatus.INSTALLED -> Triple(
+      first = BrowserI18nResource.install_button_open(),
+      second = "",
+      third = null
+    )
+    JmmStatus.Failed -> Triple(
+      first = BrowserI18nResource.install_button_retry(),
+      second = "",
+      third = null
+    )
   }
 }
