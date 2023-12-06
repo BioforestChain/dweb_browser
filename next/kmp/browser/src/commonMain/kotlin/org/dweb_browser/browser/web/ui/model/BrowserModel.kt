@@ -212,16 +212,15 @@ class BrowserViewModel(
    * 为了适应 ios，从而将 webview 的处理独立开
    */
   private suspend fun parseDwebLinkSearch(url: String): Boolean {
-    if (url.isEmpty() || (url == ConstUrl.BLANK.url && browserViewList.isNotEmpty())) return false
-    return if (url == ConstUrl.BLANK.url && browserViewList.isEmpty()) {
+    if (url == ConstUrl.BLANK.url && browserViewList.isNotEmpty()) return false
+    return if ((url.isEmpty() || url == ConstUrl.BLANK.url) && browserViewList.isEmpty()) {
       addNewMainView(getBrowserMainUrl().toString())
       false
     } else if (url.isUrlOrHost()) {
       addNewMainView(url)
       false
     } else {
-      // searchWebView(url)
-      true
+      url.isNotEmpty()
     }
   }
 
@@ -229,10 +228,17 @@ class BrowserViewModel(
   fun BrowserSearchConfig() {
     // 增加判断是否有传入需要检索的内容，如果有，就进行显示搜索界面
     val showSearchView = LocalShowSearchView.current
-    LaunchedEffect(showSearchView) {
+    LaunchedEffect(dwebLinkSearch) {
       snapshotFlow { dwebLinkSearch.value }.collect { searchUrl ->
         if (parseDwebLinkSearch(searchUrl)) {
           showSearchView.value = true
+        }
+      }
+    }
+    LaunchedEffect(showSearchView) {
+      snapshotFlow { showSearchView.value }.collect { show ->
+        if (!show) {
+          dwebLinkSearch.value = ""
         }
       }
     }
@@ -376,13 +382,14 @@ class BrowserViewModel(
  * 根据内容解析成需要显示的内容
  */
 internal fun parseInputText(text: String, needHost: Boolean = true): String {
-  val url = Url(text)
   for (item in DefaultAllWebEngine) {
-    if (item.fit(text)) return url.parameters[item.queryName()]!!
+    if (item.fit(text)) return Url(text).parameters[item.queryName()]!!
   }
-  if (text.startsWith("dweb:") || text.startsWith("about:")) {
+  if (text.startsWith("dweb:") || text.startsWith("about:") ||
+    (text.isUrlOrHost() && !text.startsWith("http") /*表示域名*/)) {
     return text
   }
+  val url = Url(text)
   return if (needHost && url.host.isNotEmpty()) {
     url.host
   } else if (url.parameters["text"]?.isNotEmpty() == true) {

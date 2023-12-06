@@ -123,6 +123,7 @@ fun BrowserViewForWindow(
   val browserPagerState = viewModel.rememberBrowserPagerState()
   val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
   val qrCodeScanModel = remember { QRCodeScanModel() }
+  val showSearchView = LocalShowSearchView.current
 
   viewModel.BrowserSearchConfig() // 用于控制是否显示搜索框
 
@@ -135,6 +136,7 @@ fun BrowserViewForWindow(
     win.GoBackHandler {
       val watcher = viewModel.currentTab?.closeWatcher
       if (watcher?.canClose == true) {
+        showSearchView.value = false
         scope.launch {
           watcher.close()
         }
@@ -506,7 +508,6 @@ fun BrowserSearchView(
       .background(MaterialTheme.colorScheme.background)
       .clickableWithNoEffect {
         focusManager.clearFocus()
-        viewModel.dwebLinkSearch.value = ""
         showSearchView = false
       }
     ) {
@@ -517,12 +518,10 @@ fun BrowserSearchView(
           HomeWebviewPage(viewModel, windowRenderScope, onMove)
         },
         onClose = {
-          viewModel.dwebLinkSearch.value = ""
           showSearchView = false
         },
         onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
           scope.launch {
-            viewModel.dwebLinkSearch.value = ""
             showSearchView = false
             viewModel.saveLastKeyword(inputTextState, url)
             viewModel.searchWebView(url)

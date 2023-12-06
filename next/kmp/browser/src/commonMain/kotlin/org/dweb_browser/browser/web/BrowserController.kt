@@ -78,12 +78,6 @@ class BrowserController(
         mode = WindowMode.MAXIMIZE
         setFromManifest(browserNMM)
       }
-      // 如果没有tab，那么创建一个新的
-      // TODO 这里的tab应该从存储中恢复
-      if (viewModel.currentTab == null) {
-//        viewModel.openBrowserView()
-        viewModel.addNewMainView()
-      }
       /// 提供渲染适配
       windowAdapterManager.provideRender(wid) { modifier ->
         Render(modifier, this)
