@@ -18,7 +18,7 @@ fun <T : BaseActivity> NativeMicroModule.startAppActivity(
 ) {
   ioAsyncScope.launch {
     lockActivityState.withLock {
-      if (grant?.waitPromise() == false) {
+      if (grant?.await() == false) {
         return@withLock // TODO 用户拒绝协议应该做的事情ØÏ
       }
 

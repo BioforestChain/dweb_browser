@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -21,51 +19,71 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.common.SplashPrivacyDialog
 import org.dweb_browser.browser.common.CommonWebView
-import org.dweb_browser.helper.getBoolean
-import org.dweb_browser.helper.saveBoolean
-import org.dweb_browser.helper.compose.LocalCommonUrl
-import org.dweb_browser.core.module.interceptStartApp
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.browser.common.SplashPrivacyDialog
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.interceptStartApp
+import org.dweb_browser.helper.compose.LocalCommonUrl
+import org.dweb_browser.helper.getBoolean
+import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.saveBoolean
 import kotlin.system.exitProcess
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
-  private var mKeepOnAtomicBool = java.util.concurrent.atomic.AtomicBoolean(true)
+  private var mKeepOnAtomicBool by atomic(true)
   private val keyEnableAgreement = "enable.agreement" // 判断是否第一次运行程序
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @SuppressLint("ObjectAnimatorBinding", "CoroutineCreationDuringComposition")
   override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    val splashScreen = installSplashScreen() // 必须放在setContent之前
-    splashScreen.setKeepOnScreenCondition { mKeepOnAtomicBool.get() } // 使用mKeepOnAtomicBool状态控制欢迎界面
-    DwebBrowserApp.startMicroModuleProcess() // 启动MicroModule
-    val enable = this.getBoolean(keyEnableAgreement, false) // 获取隐私协议状态
-
+//    enableEdgeToEdge() // 全屏
     WindowCompat.setDecorFitsSystemWindows(window, false) // 全屏
 
-    val grant = PromiseOut<Boolean>().also { NativeMicroModule.interceptStartApp( it) }
+    super.onCreate(savedInstanceState)
 
-    setContent {
-      val scope = rememberCoroutineScope()
-      val localPrivacy = LocalCommonUrl.current
-      LaunchedEffect(mKeepOnAtomicBool) { // 最多显示1s就需要隐藏欢迎界面
-        delay(1000L)
-        if (enable) { // 如果已经同意协议了，不需要关闭欢迎界面，直接跳转主页
-          grant.resolve(true)
+    val enable = this.getBoolean(keyEnableAgreement, false) // 获取隐私协议状态
+    // 启动屏幕的安装 必须放在setContent之前
+    val splashScreen = installSplashScreen().also {
+      it.setKeepOnScreenCondition { mKeepOnAtomicBool } // 使用mKeepOnAtomicBool状态控制欢迎界面
+    }
+    // 上启动锁
+    val grant = CompletableDeferred<Boolean>().also { grant ->
+      NativeMicroModule.interceptStartApp(grant);
+      grant.invokeOnCompletion {
+        if (grant.isCompleted && grant.getCompleted()) {
+          mKeepOnAtomicBool = false
         } else {
-          mKeepOnAtomicBool.getAndSet(false)
+          // 如果不同意协议就把整个应用停了
+          finish()
+          CoroutineScope(mainAsyncExceptionHandler).launch {
+            delay(100)
+            exitProcess(0)
+          }
         }
       }
+    }
+    if (enable) {
+      grant.complete(true)
+    } else {
+      mKeepOnAtomicBool = false
+    }
+
+    /// 启动应用
+    DwebBrowserApp.startMicroModuleProcess() // 启动MicroModule
+
+
+    setContent {
+      val localPrivacy = LocalCommonUrl.current
 
       DwebBrowserAppTheme {
-
         SplashMainView()
         if (enable) {
           return@DwebBrowserAppTheme
@@ -74,16 +92,11 @@ class SplashActivity : AppCompatActivity() {
         SplashPrivacyDialog(
           openHome = {
             DwebBrowserApp.appContext.saveBoolean(keyEnableAgreement, true)
-            grant.resolve(true)
+            grant.complete(true)
           },
           openWebView = { url -> localPrivacy.value = url },
           closeApp = {
-            grant.resolve(false)
-            finish()
-            scope.launch(ioAsyncExceptionHandler) {  // 如果不同意协议就把整个应用停了
-              delay(100)
-              exitProcess(0)
-            }
+            grant.complete(false)
           }
         )
         CommonWebView()
