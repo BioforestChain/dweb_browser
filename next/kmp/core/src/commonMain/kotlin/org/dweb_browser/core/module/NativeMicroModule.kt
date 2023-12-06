@@ -39,6 +39,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.toLittleEndianByteArray
+import org.dweb_browser.helper.trueAlso
 
 val debugNMM = Debugger("NMM")
 
@@ -102,31 +103,32 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   /**
    * 实现一整套简易的路由响应规则
    */
-  override suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) {
-    super.beforeBootstrap(bootstrapContext)
-    onConnect { (clientIpc) ->
-      clientIpc.onRequest { (ipcRequest) ->
-        debugNMM("NMM/Handler", ipcRequest.url)
-        /// 根据host找到对应的路由模块
-        val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
-        var response: PureResponse? = null
-        if (routers != null) for (router in routers) {
-          val res = router.withFilter(ipcRequest)
-            ?.invoke(HandlerContext(ipcRequest.toRequest(), clientIpc));
-          if (res != null) {
-            response = res
-            break
+  override suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) =
+    super.beforeBootstrap(bootstrapContext).trueAlso {
+      onConnect { (clientIpc) ->
+        clientIpc.onRequest { (ipcRequest) ->
+          debugNMM("NMM/Handler", ipcRequest.url)
+          /// 根据host找到对应的路由模块
+          val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
+          var response: PureResponse? = null
+          if (routers != null) for (router in routers) {
+            val res = router.withFilter(ipcRequest)
+              ?.invoke(HandlerContext(ipcRequest.toRequest(), clientIpc));
+            if (res != null) {
+              response = res
+              break
+            }
           }
-        }
 
-        clientIpc.postMessage(
-          IpcResponse.fromResponse(
-            ipcRequest.req_id, response ?: PureResponse(HttpStatusCode.BadGateway), clientIpc
+          clientIpc.postMessage(
+            IpcResponse.fromResponse(
+              ipcRequest.req_id, response ?: PureResponse(HttpStatusCode.BadGateway), clientIpc
+            )
           )
-        )
+        }
       }
     }
-  }
+
 
   fun defineEmptyResponse(
     middlewareHttpHandler: MiddlewareHttpHandler? = null,

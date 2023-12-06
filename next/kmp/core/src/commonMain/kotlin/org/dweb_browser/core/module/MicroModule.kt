@@ -5,6 +5,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
@@ -42,9 +44,10 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
   val running get() = runningStateLock.value == MMState.BOOTSTRAP
 
-  protected open suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) {
+  protected open suspend fun beforeBootstrap(bootstrapContext: BootstrapContext): Boolean {
     if (this.runningStateLock.state == MMState.BOOTSTRAP) {
-      throw Exception("module ${this.mmid} already running");
+      debugMicroModule("module ${this.mmid} already running");
+      return false
     }
     this.runningStateLock.waitPromise() // 确保已经完成上一个状态
     this.runningStateLock = StatePromiseOut(MMState.BOOTSTRAP)
@@ -53,6 +56,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     if (!_scope.isActive) {
       _scope = getModuleCoroutineScope()
     }
+    return true
   }
 
 
@@ -84,18 +88,22 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     }
   }
 
-  suspend fun bootstrap(bootstrapContext: BootstrapContext) {
-    this.beforeBootstrap(bootstrapContext)
-    try {
-      this._bootstrap(bootstrapContext);
-    } finally {
-      this.afterBootstrap(bootstrapContext);
+  private val lifecycleLock = Mutex()
+
+  suspend fun bootstrap(bootstrapContext: BootstrapContext) = lifecycleLock.withLock {
+    if (this.beforeBootstrap(bootstrapContext)) {
+      try {
+        this._bootstrap(bootstrapContext);
+      } finally {
+        this.afterBootstrap(bootstrapContext);
+      }
     }
   }
 
-  protected open suspend fun beforeShutdown() {
+  protected open suspend fun beforeShutdown(): Boolean {
     if (this.runningStateLock.state == MMState.SHUTDOWN) {
-      throw Exception("module $mmid already shutdown");
+      debugMicroModule("module $mmid already shutdown");
+      return false
     }
     this.runningStateLock.waitPromise() // 确保已经完成上一个状态
     this.runningStateLock = StatePromiseOut(MMState.SHUTDOWN)
@@ -105,6 +113,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       it.close()
     }
     _ipcSet.clear()
+    return true
   }
 
   protected abstract suspend fun _shutdown()
@@ -118,12 +127,13 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   }
 
 
-  suspend fun shutdown() {
-    this.beforeShutdown()
-    try {
-      this._shutdown()
-    } finally {
-      this.afterShutdown()
+  suspend fun shutdown() = lifecycleLock.withLock {
+    if (this.beforeShutdown()) {
+      try {
+        this._shutdown()
+      } finally {
+        this.afterShutdown()
+      }
     }
   }
 

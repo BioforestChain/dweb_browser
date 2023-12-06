@@ -22,6 +22,7 @@ import platform.Foundation.create
 import platform.UIKit.UIUserInterfaceStyle
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
+import kotlin.native.runtime.NativeRuntimeApi
 
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun IDWebView.Companion.create(
@@ -49,9 +50,11 @@ internal fun IDWebView.Companion.create(
 ) = DWebView(engine, initUrl)
 
 class DWebView(
-  internal val engine: DWebViewEngine,
+  engine: DWebViewEngine,
   initUrl: String? = null
 ) : IDWebView(initUrl ?: engine.options.url) {
+  private var _engine: DWebViewEngine? = engine
+  internal val engine get() = _engine ?: throw NullPointerException("dwebview already been destroy")
   override val scope get() = engine.ioScope
 
   override suspend fun startLoadUrl(url: String) = withMainContext {
@@ -165,6 +168,7 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     get() = engine.closeWatcher
   override val onCreateWindow by lazy { engine.createWindowSignal.toListener() }
 
+  @OptIn(NativeRuntimeApi::class)
   override suspend fun destroy() {
     if (_destroyed) {
       return
@@ -174,7 +178,11 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     loadUrl("about:blank", true)
     _destroySignal.emitAndClear(Unit)
     engine.mainScope.cancel(null)
+    engine.navigationDelegate = null
     engine.removeFromSuperview()
+    engine.webViewWebContentProcessDidTerminate(webView = engine)
+    _engine = null
+    kotlin.native.runtime.GC.collect()
   }
 
   override suspend fun canGoBack() = withMainContext { engine.canGoBack }

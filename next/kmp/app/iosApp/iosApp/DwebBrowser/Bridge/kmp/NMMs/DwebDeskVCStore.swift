@@ -43,7 +43,6 @@ class DwebDeskVCStore: ObservableObject {
 
     private func navigationBarHok(visible: KotlinBoolean) {
         navgationBarVisible = visible.boolValue ? .visible : .hidden
-        print("navgationBarVisible = \(visible.boolValue) \(visible.boolValue ? Visibility.visible : Visibility.hidden) -> \(navgationBarVisible)")
     }
 
     private func addHook(vc: UIViewController, prop: HelperPlatformDwebUIViewControllerProperty) {
@@ -78,8 +77,10 @@ class DwebDeskVCStore: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             Log("vcId=\(vcId)")
-            vcs.removeAll { $0.prop.vcId == Int32(truncating: vcId) }
-            Main_iosKt.dwebViewController.emitOnDestroy(vcId: Int32(truncating: vcId))
+            let vcId = Int32(truncating: vcId)
+            vcs.removeAll { $0.prop.vcId == vcId }
+
+            Main_iosKt.dwebViewController.emitOnDestroy(vcId: vcId)
         }
     }
 

@@ -123,6 +123,14 @@ class PureViewController(
             }
             scope.launch { stopSignal.emit() }
           }
+
+          override fun viewWillDisappear(animated: Boolean) {
+            println("QAQ viewWillDisappear animated=$animated")
+          }
+
+          override fun viewDidDisappear(animated: Boolean) {
+            println("QAQ viewDidDisappear animated=$animated")
+          }
         }
       }) {
         UIKitView(
