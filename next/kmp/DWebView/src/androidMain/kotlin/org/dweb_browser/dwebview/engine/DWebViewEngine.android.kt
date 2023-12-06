@@ -139,6 +139,7 @@ class DWebViewEngine(
           .build() + BrandVersion.Builder()
           .setBrand("DwebBrowser")
           .setFullVersion(versionName)
+          .setMajorVersion(versionName.split(".")[0])
           .build()
       ).build()
       WebSettingsCompat.setUserAgentMetadata(settings, userAgent)
