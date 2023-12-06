@@ -40,6 +40,7 @@ struct iOSApp: App {
             case .deskOS:
                 DwebFrameworkContentView(vcs: $deskVCStore.vcs)
                     .ignoresSafeArea(.all, edges: .all)
+                    .persistentSystemOverlays(DwebDeskVCStore.shared.navgationBarVisible)
             default:
                 DwebBrowser()
             }

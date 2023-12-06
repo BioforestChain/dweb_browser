@@ -4,15 +4,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.interop.LocalUIViewController
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
+import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.ios.SecureViewController
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.watchedState
+import org.dweb_browser.sys.window.core.constant.debugWindow
 import platform.UIKit.UIViewController
 
 @Composable
@@ -22,8 +26,24 @@ actual fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
 
 @Composable
 actual fun <T : WindowController> WindowsManager<T>.EffectNavigationBar() {
-  WARNING("Not yet implemented EffectNavigationBar")
-
+  val scope = rememberCoroutineScope()
+  DisposableEffect(hasMaximizedWins) {
+    debugWindow("WindowsManager.Render", "start watch maximize")
+    val off = hasMaximizedWins.onChange {
+      val visible = it.isEmpty()
+      /// 如果有窗口处于全屏模式，将操作系统的导航栏标记为隐藏，反之显示
+      nativeViewController.navigationBar(visible)
+      debugWindow("navigationBar visible", visible)
+    }
+    scope.launch {
+      off.emitSelf(hasMaximizedWins)
+    }
+    onDispose {
+      debugWindow("WindowsManager.Render", "stop watch maximize")
+      nativeViewController.navigationBar(true)
+      off()
+    }
+  }
 }
 
 @Composable

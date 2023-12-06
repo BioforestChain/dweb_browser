@@ -7,6 +7,7 @@
 //
 
 import DwebShared
+import SwiftUI
 import UIKit
 
 class DwebVCData {
@@ -23,6 +24,7 @@ class DwebDeskVCStore: ObservableObject {
     static let shared = DwebDeskVCStore()
 
     @Published var vcs = [DwebVCData]()
+    @Published var navgationBarVisible: Visibility = .visible
 
     init() {
         regiserDeskEvent()
@@ -33,9 +35,15 @@ class DwebDeskVCStore: ObservableObject {
     }
 
     private func regiserDeskEvent() {
+        Main_iosKt.dwebViewController.setNavigationBarHook(hook: navigationBarHok(visible:))
         Main_iosKt.dwebViewController.setAddHook(hook: addHook(vc:prop:))
         Main_iosKt.dwebViewController.setUpdateHook(hook: updateHook(prop:))
         Main_iosKt.dwebViewController.setRemoveHook(hook: removeHook(vcId:))
+    }
+
+    private func navigationBarHok(visible: KotlinBoolean) {
+        navgationBarVisible = visible.boolValue ? .visible : .hidden
+        print("navgationBarVisible = \(visible.boolValue) \(visible.boolValue ? Visibility.visible : Visibility.hidden) -> \(navgationBarVisible)")
     }
 
     private func addHook(vc: UIViewController, prop: HelperPlatformDwebUIViewControllerProperty) {

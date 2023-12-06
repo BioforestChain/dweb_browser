@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.http.toFetchResponse
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.WeakHashMap
@@ -294,6 +295,8 @@ fun WindowController.calcWindowBoundsByLimits(
   }
 }
 
+expect val WindowController.canOverlayNavigationBar: Boolean
+
 /**
  * 根据约束配置，计算出最终的窗口边距布局
  */
@@ -311,6 +314,7 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
   val borderRounded: WindowPadding.CornerRadius
   val contentRounded: WindowPadding.CornerRadius
   val contentSize: WindowPadding.ContentSize
+  val safeAreaInsets: Bounds
 
   /// 一些共有的计算
   val windowFrameSize = if (maximize) 3f else 5f
@@ -330,18 +334,20 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
     val density = LocalDensity.current.density
     val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
     val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
-    topHeight = max(safeDrawingPadding.calculateTopPadding().value, windowFrameSize)
+    val safeAreaInsetTop = safeDrawingPadding.calculateTopPadding().value
+    val safeAreaInsetBottom = safeDrawingPadding.calculateBottomPadding().value
+    topHeight = max(safeAreaInsetTop, windowFrameSize)
 
     /**
      * 底部是系统导航栏，这里我们使用触摸安全的区域来控制底部高度，这样可以避免底部抖动
      * 不该使用 safeDrawing，它会包含 ime 的高度
      */
-    bottomHeight = max(
+    bottomHeight = if (canOverlayNavigationBar) max(
       // 这里默认使用 safeGestures ，因为它只包含底部导航栏的高度，是稳定的
-      safeGesturesPadding.calculateBottomPadding().value,
+      safeAreaInsetBottom,
       bottomThemeHeight,
       windowFrameSize,
-    )
+    ) else max(bottomThemeHeight, windowFrameSize) + safeAreaInsetBottom
     /**
      * 即便是最大化模式下，我们仍然需要有一个强调边框。
      * 这个边框存在的意义有：
@@ -362,6 +368,7 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
       bounds.width - leftWidth - rightWidth,
       bounds.height - topHeight - keyboardInsetBottom - bottomHeight,
     )
+    safeAreaInsets = Bounds.Zero.copy(bottom = safeAreaInsetBottom)
   } else {
     borderRounded =
       WindowPadding.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的物理圆角
@@ -374,9 +381,17 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
       bounds.width - leftWidth - rightWidth,
       bounds.height - topHeight - keyboardInsetBottom - bottomHeight,
     )
+    safeAreaInsets = Bounds.Zero
   }
   return WindowPadding(
-    topHeight, bottomHeight, leftWidth, rightWidth, borderRounded, contentRounded, contentSize
+    topHeight,
+    bottomHeight,
+    leftWidth,
+    rightWidth,
+    borderRounded,
+    contentRounded,
+    contentSize,
+    safeAreaInsets
   )
 }
 
@@ -395,7 +410,9 @@ data class WindowPadding(
   /**
    * 内容圆角
    */
-  val contentRounded: CornerRadius, val contentBounds: ContentSize
+  val contentRounded: CornerRadius,
+  val contentBounds: ContentSize,
+  val safeAreaInsets: Bounds,
 ) {
   val start get() = left
   val end get() = right

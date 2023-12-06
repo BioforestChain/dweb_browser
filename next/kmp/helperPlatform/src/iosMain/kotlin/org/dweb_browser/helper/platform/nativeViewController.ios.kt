@@ -17,6 +17,7 @@ private var addHook: (UIViewController, DwebUIViewControllerProperty) -> Unit =
   { _, _ -> }
 private var updateHook: (DwebUIViewControllerProperty) -> Unit = {}
 private var removeHook: (vcId: Int) -> Unit = {}
+private var navigationBarHook: (visible: Boolean) -> Unit = {}
 
 @Suppress("unused")
 class NativeViewController private constructor() {
@@ -25,6 +26,12 @@ class NativeViewController private constructor() {
   }
 
   val scope = CoroutineScope(mainAsyncExceptionHandler);
+  val navigationBar get() = navigationBarHook
+
+  fun setNavigationBarHook(hook: (visible: Boolean) -> Unit) {
+    navigationBarHook = hook
+  }
+
   fun setAddHook(hook: (UIViewController, DwebUIViewControllerProperty) -> Unit) {
     addHook = hook
   }

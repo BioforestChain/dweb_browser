@@ -47,6 +47,7 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -224,10 +225,18 @@ internal fun WindowBottomNavigationThemeBar(
   val contentDisableColor = winTheme.bottomContentDisableColor
   val winPadding = LocalWindowPadding.current
   val bottomBarHeight = winPadding.bottom
+  val safeAreaInsets = winPadding.safeAreaInsets
   val infoHeight = min(bottomBarHeight * 0.25f, LocalWindowLimits.current.bottomBarBaseHeight)
   val isMaximized by win.watchedIsMaximized()
   val buttonRoundedSize = infoHeight * 2
   Box(modifier = Modifier.fillMaxSize()) {
+    var paddingTop = infoHeight / 3
+    var paddingBottom = infoHeight / 2
+    if (safeAreaInsets.bottom != 0f) {
+      val totalPadding = paddingTop + paddingBottom
+      paddingTop = max(0f, totalPadding - safeAreaInsets.bottom)
+      paddingBottom = totalPadding - paddingTop
+    }
     /// 按钮
     Row(modifier = Modifier
       .zIndex(1f)
@@ -239,7 +248,7 @@ internal fun WindowBottomNavigationThemeBar(
         })
       }
       .fillMaxSize()
-      .padding(bottom = (infoHeight / 2).dp, top = (infoHeight / 3).dp)
+      .padding(top = paddingTop.dp, bottom = paddingBottom.dp)
       //
     ) {
       val canGoBack by win.watchedState(watchKey = WindowPropertyKeys.CanGoBack) { canGoBack }
