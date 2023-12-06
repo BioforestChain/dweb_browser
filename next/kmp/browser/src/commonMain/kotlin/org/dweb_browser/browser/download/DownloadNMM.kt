@@ -20,7 +20,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
   init {
     short_name = "下载管理"
     categories = listOf(
-      MICRO_MODULE_CATEGORY.Application,
+//      MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Network_Service,
     )
     icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))

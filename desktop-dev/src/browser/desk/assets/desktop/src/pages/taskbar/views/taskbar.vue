@@ -187,7 +187,7 @@ onMounted(() => {
 const iconSize = "45px";
 </script>
 <template>
-  <div class="taskbar min-w-[4.5rem]" ref="taskbarEle">
+  <div class="taskbar min-w-[4.0rem]" ref="taskbarEle">
     <div class="panel" v-for="(appIcon, index) in showAppIcons" :key="index">
       <button class="app-icon-wrapper z-grid" :class="{ active: appIcon.metaData.running }">
         <transition name="scale">
@@ -212,9 +212,9 @@ const iconSize = "45px";
             </button>
           </AppIcon>
         </transition>
-        <div class="running-dot z-view" v-if="appIcon.metaData.running">
+        <!-- <div class="running-dot z-view" v-if="appIcon.metaData.running">
           <span class="dot"></span>
-        </div>
+        </div> -->
       </button>
     </div>
     <template v-if="!isSingleIconMode">
@@ -238,7 +238,7 @@ const iconSize = "45px";
   align-items: center;
   justify-content: center;
   height: min-content;
-  // width: min-content;
+  width: min-content;
   max-height: v-bind(maxHeight);
   -webkit-app-region: drag;
   cursor: move;
@@ -281,25 +281,25 @@ button {
   }
 }
 .active {
-  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
-  border-radius: 16px;
+  box-shadow: rgb(0 0 0 / 40%) 0px 2px 4px, rgb(0 0 0 / 30%) 0px 7px 13px -3px, rgb(0 0 0 / 20%) 0px -3px 0px inset;
+  border-radius: 5px;
 }
-.running-dot {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  pointer-events: none;
-  .dot {
-    display: inline-block;
-    --dot-size: 0.35em;
-    width: var(--dot-size);
-    height: var(--dot-size);
-    border-radius: 50%;
-    background-color: rgba($color: #fff, $alpha: 0.5);
-    transform: translateX(calc((1em - var(--dot-size) * 2 / 3)));
-  }
-}
+//.running-dot {
+//  width: 100%;
+//  display: flex;
+//  align-items: center;
+//  justify-content: flex-end;
+//  pointer-events: none;
+//  .dot {
+//    display: inline-block;
+//   --dot-size: 0.35em;
+//    width: var(--dot-size);
+//    height: var(--dot-size);
+//    border-radius: 50%;
+//    background-color: rgba($color: #fff, $alpha: 0.5);
+//    transform: translateX(calc((1em - var(--dot-size) * 2 / 3)));
+//  }
+//}
 .exit-button {
   width: 100%;
   height: 100%;
