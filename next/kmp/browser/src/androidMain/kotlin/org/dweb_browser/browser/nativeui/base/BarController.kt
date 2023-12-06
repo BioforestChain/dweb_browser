@@ -1,18 +1,16 @@
 package org.dweb_browser.browser.nativeui.base
 
-
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
+import org.dweb_browser.browser.nativeui.NativeUiController
 import org.dweb_browser.helper.compose.IsChange
 import org.dweb_browser.helper.compose.ColorJson
 
-
 abstract class BarController(
-  activity: ComponentActivity,
-  nativeUiController: org.dweb_browser.browser.nativeui.NativeUiController,
-) : org.dweb_browser.browser.nativeui.base.InsetsController(activity, nativeUiController) {
+  activity: ComponentActivity, nativeUiController: NativeUiController,
+) : InsetsController(activity, nativeUiController) {
 
   /**
    * 背景色

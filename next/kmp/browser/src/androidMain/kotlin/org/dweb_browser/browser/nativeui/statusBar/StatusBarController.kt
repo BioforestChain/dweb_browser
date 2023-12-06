@@ -9,6 +9,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import org.dweb_browser.browser.nativeui.NativeUiController
+import org.dweb_browser.browser.nativeui.base.BarController
 import org.dweb_browser.browser.nativeui.helper.debugNativeUi
 import org.dweb_browser.browser.nativeui.helper.toWindowsInsets
 import org.dweb_browser.helper.android.InsetsJson
@@ -17,9 +19,8 @@ import org.dweb_browser.helper.compose.ColorJson
 import org.dweb_browser.helper.compose.toJsonAble
 
 class StatusBarController(
-  activity: ComponentActivity,
-  nativeUiController: org.dweb_browser.browser.nativeui.NativeUiController,
-) : org.dweb_browser.browser.nativeui.base.BarController(activity, nativeUiController) {
+  activity: ComponentActivity, nativeUiController: NativeUiController
+) : BarController(activity, nativeUiController) {
 
   /**
    * 使得当前 StatusBarController 生效

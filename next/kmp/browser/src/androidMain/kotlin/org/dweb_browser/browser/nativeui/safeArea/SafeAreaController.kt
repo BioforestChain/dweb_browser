@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.nativeui.safeArea
 
-
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
@@ -10,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import org.dweb_browser.browser.nativeui.NativeUiController
+import org.dweb_browser.browser.nativeui.base.InsetsController
 import org.dweb_browser.browser.nativeui.helper.debugNativeUi
 import org.dweb_browser.browser.nativeui.helper.plus
 import org.dweb_browser.helper.android.InsetsJson
@@ -19,9 +20,8 @@ import org.dweb_browser.helper.android.toJsonAble
  * 安全区域，被 设备的顶部流海、状态栏、导航栏等原生UI所影响后，分割出inner、outer两个部分
  */
 class SafeAreaController(
-  activity: ComponentActivity,
-  nativeUiController: org.dweb_browser.browser.nativeui.NativeUiController
-) : org.dweb_browser.browser.nativeui.base.InsetsController(activity, nativeUiController) {
+  activity: ComponentActivity, nativeUiController: NativeUiController
+) : InsetsController(activity, nativeUiController) {
   /**
    * 刘海屏
    */

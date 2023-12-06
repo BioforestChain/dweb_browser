@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.browser.common.createDwebView
+import org.dweb_browser.browser.nativeui.NativeUiController
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.MicroModule
@@ -75,12 +76,10 @@ class MultiWebViewController(
     override val webView: IDWebView,
     override val coroutineScope: CoroutineScope,
     override var hidden: Boolean = false,
-    val win: WindowController
+    val win: WindowController,
   ) : ViewItem {
-    var currentScale: Int = 0
+    var nativeUiController: NativeUiController? = null
   }
-
-  private var downLoadTaskId: String? = null
 
   /**
    * 打开WebView
@@ -101,14 +100,10 @@ class MultiWebViewController(
       dWebView.onDestroy {
         closeWebView(webviewId)
       }
-      viewItem.addWebViewClient() // 目前是需要在onScaleChanged回调中执行一些操作
       webViewOpenSignal.emit(webviewId)
     }
   }
 
-  /**
-   * 关闭WebView
-   */
   /**
    * 关闭WebView
    */
@@ -125,9 +120,6 @@ class MultiWebViewController(
   /**
    * 移除所有列表
    */
-  /**
-   * 移除所有列表
-   */
   suspend fun destroyWebView(): Boolean {
     withMainContext {
       webViewList.forEach { viewItem ->
@@ -135,13 +127,9 @@ class MultiWebViewController(
       }
     }
     webViewList.clear()
-//    this.downLoadTaskId?.close() // 移除下载状态监听
     return true
   }
 
-  /**
-   * 将指定WebView移动到顶部显示
-   */
   /**
    * 将指定WebView移动到顶部显示
    */
@@ -180,9 +168,3 @@ class MultiWebViewController(
   val onWebViewClose = webViewCloseSignal.toListener()
   val onWebViewOpen = webViewOpenSignal.toListener()
 }
-
-/**
- * 用于补充添加 WebView 中 WebViewClient 的一些特殊处理
- * 目前作用是:在 onScaleChanged 回调中执行一些操作
- */
-expect fun MultiWebViewController.MultiViewItem.addWebViewClient()

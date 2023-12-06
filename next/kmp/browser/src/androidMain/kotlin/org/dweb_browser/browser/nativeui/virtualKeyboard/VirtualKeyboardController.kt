@@ -9,15 +9,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.core.view.WindowInsetsCompat
+import org.dweb_browser.browser.nativeui.NativeUiController
+import org.dweb_browser.browser.nativeui.base.InsetsController
 import org.dweb_browser.browser.nativeui.helper.toWindowsInsets
 import org.dweb_browser.helper.android.InsetsJson
 import org.dweb_browser.helper.android.toJsonAble
 
 @Stable
 class VirtualKeyboardController(
-  activity: ComponentActivity,
-  nativeUiController: org.dweb_browser.browser.nativeui.NativeUiController,
-) : org.dweb_browser.browser.nativeui.base.InsetsController(activity, nativeUiController) {
+  activity: ComponentActivity, nativeUiController: NativeUiController
+) : InsetsController(activity, nativeUiController) {
 
   val focusRequester = FocusRequester()
 

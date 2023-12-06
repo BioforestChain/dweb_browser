@@ -1,7 +1,5 @@
 package org.dweb_browser.browser.nativeui
 
-
-import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
@@ -14,10 +12,12 @@ import org.dweb_browser.browser.nativeui.navigationBar.NavigationBarController
 import org.dweb_browser.browser.nativeui.safeArea.SafeAreaController
 import org.dweb_browser.browser.nativeui.statusBar.StatusBarController
 import org.dweb_browser.browser.nativeui.virtualKeyboard.VirtualKeyboardController
+import org.dweb_browser.helper.platform.IPureViewController
+import org.dweb_browser.helper.platform.PureViewController
 
-class NativeUiController(
-  val activity: ComponentActivity,
-) {
+actual class NativeUiController actual constructor(pureViewController: IPureViewController) {
+  val activity = (pureViewController as PureViewController)
+
   val windowInsetsController by lazy {
     WindowCompat.getInsetsController(
       activity.window, activity.window.decorView
@@ -36,7 +36,7 @@ class NativeUiController(
 
 
   @Composable
-  fun effect(): org.dweb_browser.browser.nativeui.NativeUiController {
+  actual fun effect(): NativeUiController {
     /**
      * 这个 NativeUI 的逻辑是工作在全屏幕下，所以会使得默认覆盖 系统 UI
      */
@@ -59,13 +59,11 @@ class NativeUiController(
     return this
   }
 
-
   companion object {
     init {
       QueryHelper.init() // 初始化
     }
   }
-
 }
 
 

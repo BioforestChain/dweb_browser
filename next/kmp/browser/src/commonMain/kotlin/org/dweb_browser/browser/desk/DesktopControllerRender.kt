@@ -15,19 +15,26 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import org.dweb_browser.browser.nativeui.LocalPureViewController
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.Render
+import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.SetSystemBarsColor
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.render.Render
 
 @Composable
-fun DesktopController.Render(taskbarController: TaskbarController, microModule: MicroModule) {
+fun DesktopController.Render(
+  taskbarController: TaskbarController,
+  microModule: MicroModule,
+  iPureViewController: IPureViewController
+) {
   // TODO 这里的颜色应该是自动适应的，特别是窗口最大化的情况下，遮盖了顶部 status-bar 的时候，需要根据 status-bar 来改变颜色
   SetSystemBarsColor(Color.Transparent, if (isSystemInDarkTheme()) Color.White else Color.Black)
 
   CompositionLocalProvider(
     LocalWindowMM provides microModule,
+    LocalPureViewController provides iPureViewController
   ) {
     Box(modifier = Modifier.fillMaxSize()) {
       DesktopView {

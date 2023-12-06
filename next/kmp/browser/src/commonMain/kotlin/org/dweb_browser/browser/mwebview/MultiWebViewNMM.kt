@@ -27,6 +27,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
 
   companion object {
     private val controllerMap = mutableMapOf<MMID, MultiWebViewController>()
+    fun getCurrentWebViewController(mmid: MMID) = controllerMap[mmid]
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

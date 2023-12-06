@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.browser.nativeui.NativeUiController
 import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
@@ -32,7 +33,7 @@ class DesktopViewControllerCore(val controller: IPureViewController) {
       val (desktopController, taskbarController, microModule) = bindController(params.getString("deskSessionId"))
       controller.addContent {
         DwebBrowserAppTheme {
-          desktopController.Render(taskbarController, microModule)
+          desktopController.Render(taskbarController, microModule, controller)
         }
       }
     }

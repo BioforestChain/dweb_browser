@@ -9,10 +9,11 @@ import org.dweb_browser.core.help.StateObservable
 import org.dweb_browser.helper.compose.IsChange
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.nativeui.NativeUiController
 
 abstract class InsetsController(
   val activity: ComponentActivity,
-  val nativeUiController: org.dweb_browser.browser.nativeui.NativeUiController,
+  val nativeUiController: NativeUiController,
 ) {
   /**
    * 是否层叠渲染

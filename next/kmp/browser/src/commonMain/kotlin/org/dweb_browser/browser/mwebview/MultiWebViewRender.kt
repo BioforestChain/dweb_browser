@@ -13,6 +13,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.nativeui.LocalPureViewController
+import org.dweb_browser.browser.nativeui.NativeUiController
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.rememberCanGoBack
 import org.dweb_browser.dwebview.rememberCanGoForward
@@ -27,6 +29,7 @@ fun MultiWebViewController.Render(
   height: Float,
 ) {
   val win = LocalWindowController.current
+  val pureViewController = LocalPureViewController.current
   Box(modifier) {
     var list by remember {
       mutableStateOf(webViewList.toList())
@@ -46,6 +49,7 @@ fun MultiWebViewController.Render(
     list.forEach { viewItem ->
       key(viewItem.webviewId) {
         val webView = viewItem.webView
+        viewItem.nativeUiController = NativeUiController(pureViewController)
 
         /// 返回按钮的拦截只跟最后一个视图有关系，直到这最后一个视图被关闭了
         if (viewItem == list.last()) {

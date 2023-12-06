@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.nativeui.navigationBar
 
-
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -11,6 +10,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import org.dweb_browser.browser.nativeui.NativeUiController
+import org.dweb_browser.browser.nativeui.base.BarController
 import org.dweb_browser.helper.android.InsetsJson
 import org.dweb_browser.helper.android.toJsonAble
 import org.dweb_browser.browser.nativeui.helper.debugNativeUi
@@ -18,12 +19,10 @@ import org.dweb_browser.browser.nativeui.helper.toWindowsInsets
 import org.dweb_browser.helper.compose.ColorJson
 import org.dweb_browser.helper.compose.toJsonAble
 
-
 @Stable
 class NavigationBarController(
-  activity: ComponentActivity,
-  nativeUiController: org.dweb_browser.browser.nativeui.NativeUiController,
-) : org.dweb_browser.browser.nativeui.base.BarController(activity, nativeUiController) {
+  activity: ComponentActivity, nativeUiController: NativeUiController
+) : BarController(activity, nativeUiController) {
 
   @Composable
   override fun effect(): NavigationBarController {

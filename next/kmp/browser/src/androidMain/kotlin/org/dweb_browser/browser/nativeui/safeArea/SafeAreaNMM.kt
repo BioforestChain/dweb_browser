@@ -4,6 +4,7 @@ import org.dweb_browser.browser.nativeui.helper.QueryHelper
 import org.dweb_browser.browser.nativeui.helper.fromMultiWebView
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import org.dweb_browser.browser.nativeui.NativeUiController
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -19,7 +20,7 @@ class SafeAreaNMM : NativeMicroModule("safe-area.nativeui.browser.dweb", "safeAr
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
   }
 
-  private fun getController(mmid: MMID) = org.dweb_browser.browser.nativeui.NativeUiController.fromMultiWebView(mmid).safeArea
+  private fun getController(mmid: MMID) = NativeUiController.fromMultiWebView(mmid).safeArea
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
