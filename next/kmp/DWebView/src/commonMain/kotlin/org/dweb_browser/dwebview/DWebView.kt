@@ -13,6 +13,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Bounds
@@ -30,8 +31,12 @@ expect suspend fun IDWebView.Companion.create(
 abstract class IDWebView(initUrl: String?) {
   abstract val scope: CoroutineScope
 
+  @Serializable
+  data class UserAgentBrandData(val brand: String, val version: String)
+
   @OptIn(DelicateCoroutinesApi::class)
   companion object {
+    val brands = mutableListOf<UserAgentBrandData>()
     private val proxyAddress = CompletableDeferred<String>()
     suspend fun getProxyAddress() = proxyAddress.await()
 

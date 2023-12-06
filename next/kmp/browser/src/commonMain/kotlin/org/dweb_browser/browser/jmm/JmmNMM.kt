@@ -13,6 +13,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
+import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.sys.window.ext.onRenderer
@@ -20,6 +21,17 @@ import org.dweb_browser.sys.window.ext.onRenderer
 val debugJMM = Debugger("JMM")
 
 class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
+  companion object {
+    init {
+      IDWebView.Companion.brands.add(
+        IDWebView.UserAgentBrandData(
+          "jmm.browser.dweb",
+          "${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"
+        )
+      )
+    }
+  }
+
   init {
     short_name = "模块管理";
     dweb_deeplinks = listOf("dweb://install")

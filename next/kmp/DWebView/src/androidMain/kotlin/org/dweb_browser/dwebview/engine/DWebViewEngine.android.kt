@@ -19,19 +19,25 @@ import androidx.webkit.UserAgentMetadata.BrandVersion
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import io.ktor.http.HttpHeaders
+import io.ktor.util.encodeBase64
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.encodeToJsonElement
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Default
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Ignore
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.dwebview.polyfill.UserAgentData
 import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.launchWithMain
@@ -125,29 +131,60 @@ class DWebViewEngine(
 
     // 初始化设置 ua，这个是无法动态修改的
     val uri = Uri.parse(options.url)
-    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") &&
-      uri.host?.endsWith(".dweb") == true
+    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") && uri.host?.endsWith(
+        ".dweb"
+      ) == true
     ) {
       dwebHost = uri.host!!
     }
     val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
     if (WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)) {
       val oldUserAgent = WebSettingsCompat.getUserAgentMetadata(settings)
+      val brandList = mutableListOf<BrandVersion>()
+
+      IDWebView.brands.forEach {
+        brandList.add(
+          BrandVersion.Builder().setBrand(it.brand).setFullVersion(it.version).setMajorVersion(
+            if (it.version.contains(".")) it.version.split(".").first() else it.version
+          ).build()
+        )
+      }
+      brandList.add(
+        BrandVersion.Builder().setBrand("DwebBrowser").setFullVersion(versionName)
+          .setMajorVersion(versionName.split(".").first()).build()
+      )
+
       val userAgent = UserAgentMetadata.Builder(oldUserAgent).setBrandVersionList(
-        oldUserAgent.brandVersionList + BrandVersion.Builder()
-          .setBrand("jmm.browser.dweb")
-          .setFullVersion("2.0")
-          .setMajorVersion("2")
-          .build() + BrandVersion.Builder()
-          .setBrand("DwebBrowser")
-          .setFullVersion(versionName)
-          .setMajorVersion(versionName.split(".")[0])
-          .build()
-      ).build()
+        oldUserAgent.brandVersionList + brandList).build()
       WebSettingsCompat.setUserAgentMetadata(settings, userAgent)
     } else {
-      settings.userAgentString =
-        "$baseUserAgentString DwebBrowser/$versionName jmm.browser.dweb/2.0"
+      val brandList = mutableListOf<IDWebView.UserAgentBrandData>()
+      IDWebView.brands.forEach {
+        brandList.add(IDWebView.UserAgentBrandData(it.brand, if(it.version.contains(".")) it.version.split(".").first() else it.version))
+      }
+      brandList.add(IDWebView.UserAgentBrandData("DwebBrowser", versionName.split(".").first()))
+
+      addDocumentStartJavaScript(
+        """
+        ${UserAgentData.polyfillScript}
+        if (location.protocol === 'https:' && !navigator.userAgentData) {
+          let userAgentData = new NavigatorUAData(navigator, ${JsonLoose.encodeToJsonElement(brandList)});
+          Object.defineProperty(Navigator.prototype, 'userAgentData', {
+            enumerable: true,
+            configurable: true,
+            get: function getUseAgentData() {
+              return userAgentData;
+            }
+          });
+          Object.defineProperty(window, 'NavigatorUAData', {
+            enumerable: false,
+            configurable: true,
+            writable: true,
+            value: NavigatorUAData
+          });
+        }
+      """.trimIndent()
+      )
     }
   }
 
@@ -255,6 +292,28 @@ class DWebViewEngine(
     }
     preLoadedUrlArgs = curLoadUrlArgs
     super.loadUrl(url)
+
+    if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+      super.loadUrl(url)
+    } else {
+      ioScope.launch {
+        val response = remoteMM.nativeFetch(url)
+        val contentType = response.headers.get(HttpHeaders.ContentType)
+        debugDWebView("xxxxx", "开始加载js $contentType")
+        if (contentType?.startsWith("text/html") == true) {
+          val documentHtml = remoteMM.nativeFetch(url).body.toPureString()
+          super.loadDataWithBaseURL(
+            url,//document.baseURI
+            (getDocumentStartJsScript() + documentHtml).encodeBase64(),
+            "text/html",
+            "base64",
+            url//location.href
+          )
+        } else {
+          super.loadUrl(url)
+        }
+      }
+    }
   }
 
   override fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
@@ -265,7 +324,11 @@ class DWebViewEngine(
       return
     }
     preLoadedUrlArgs = curLoadUrlArgs
-    super.loadUrl(safeUrl, additionalHttpHeaders)
+    if (additionalHttpHeaders.isEmpty()) {
+      loadUrl(safeUrl)
+    } else {
+      super.loadUrl(safeUrl, additionalHttpHeaders)
+    }
   }
 
   fun resolveUrl(url: String): String {
@@ -292,6 +355,18 @@ class DWebViewEngine(
         script, afterEval
       )
     }
+
+  private val documentStartJsList = mutableListOf<String>()
+  private fun getDocumentStartJsScript() =
+    documentStartJsList.joinToString("\n") { "<script>document.currentScript?.parentElement?.removeChild(document.currentScript);(async()=>{ try{$it}catch(e){console.error(e)} })();</script>" }
+
+  private fun addDocumentStartJavaScript(script: String) {
+    if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+      WebViewCompat.addDocumentStartJavaScript(this, script, setOf("*"))
+    } else {
+      documentStartJsList += script
+    }
+  }
 
   private var _destroyed = false
   private var _destroySignal = SimpleSignal();

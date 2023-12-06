@@ -12,6 +12,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -24,8 +25,10 @@ import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
+import org.dweb_browser.dwebview.polyfill.UserAgentData
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.transparentColor
@@ -34,6 +37,7 @@ import org.dweb_browser.helper.platform.ios.DwebHelper
 import org.dweb_browser.helper.toIosUIEdgeInsets
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
+import platform.Foundation.NSBundle
 import platform.Foundation.NSError
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLAuthenticationChallenge
@@ -205,6 +209,9 @@ class DWebViewEngine(
       )
     }
 
+    // 初始化设置 userAgent
+    setUA()
+
     if (options.url.isNotEmpty()) {
       mainScope.launch {
         loadUrl(options.url)
@@ -269,6 +276,49 @@ class DWebViewEngine(
     afterEval?.invoke()
 
     return deferred.await()
+  }
+
+  /**
+   * 初始化设置 userAgent
+   */
+  private fun setUA() {
+    val versionName = NSBundle.mainBundle.objectForInfoDictionaryKey("CFBundleShortVersionString") as String
+    val brandList = mutableListOf<IDWebView.UserAgentBrandData>()
+    IDWebView.brands.forEach {
+      brandList.add(IDWebView.UserAgentBrandData(it.brand, if (it.version.contains(".")) it.version.split(".").first() else it.version))
+    }
+    brandList.add(IDWebView.UserAgentBrandData("DwebBrowser", versionName.split(".").first()))
+    addDocumentStartJavaScript(
+      """
+        ${UserAgentData.polyfillScript}
+        if ((location.protocol === 'https:' || location.protocol === 'dweb+https:') && !navigator.userAgentData) {
+          let userAgentData = new NavigatorUAData(navigator, ${JsonLoose.encodeToString(brandList)});
+          Object.defineProperty(Navigator.prototype, 'userAgentData', {
+            enumerable: true,
+            configurable: true,
+            get: function getUseAgentData() {
+              return userAgentData;
+            }
+          });
+          Object.defineProperty(globalThis, 'NavigatorUAData', {
+            enumerable: false,
+            configurable: true,
+            writable: true,
+            value: NavigatorUAData
+          });
+        }
+      """.trimIndent()
+    )
+  }
+
+  private fun addDocumentStartJavaScript(script: String) {
+    configuration.userContentController.addUserScript(
+      WKUserScript(
+        script,
+        WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
+        false
+      )
+    )
   }
 
   //#region 用于 CloseWatcher
