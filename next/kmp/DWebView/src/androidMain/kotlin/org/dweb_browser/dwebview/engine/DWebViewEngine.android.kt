@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview.engine
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Rect
 import android.net.Uri
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
@@ -16,6 +17,7 @@ import androidx.webkit.ProxyController
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.UserAgentMetadata.BrandVersion
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -74,7 +76,7 @@ import org.dweb_browser.helper.withMainContext
  * 否则，可以像 Plaoc 一样，专注于传统前后端分离的 WebApp，那么可以尽可能采用 internal_origin。
  *
  */
-@SuppressLint("SetJavaScriptEnabled", "ViewConstructor", "RequiresFeature")
+@SuppressLint("SetJavaScriptEnabled", "ViewConstructor", "RequiresFeature", "DiscouragedPrivateApi")
 class DWebViewEngine(
   /**
    * 一个WebView的上下文
@@ -144,7 +146,8 @@ class DWebViewEngine(
       ).build()
       WebSettingsCompat.setUserAgentMetadata(settings, userAgent)
     } else {
-      settings.userAgentString = "$baseUserAgentString DwebBrowser/$versionName jmm.browser.dweb/2.0"
+      settings.userAgentString =
+        "$baseUserAgentString DwebBrowser/$versionName jmm.browser.dweb/2.0"
     }
   }
 
@@ -333,7 +336,42 @@ class DWebViewEngine(
   val closeWatcher = CloseWatcher(this)
   val createWindowSignal = Signal<IDWebView>()
 
+  private val setDisplayCutoutSafeArea by lazy {
+    val webView = this
+    val field = WebView::class.java.getDeclaredField("mProvider");
+    field.isAccessible = true;
+    if (field.type.toString() != "class com.android.webview.chromium.WebViewChromium") return@lazy null
+    val mProvider = field.get(webView);
+    for (field1 in mProvider.javaClass.fields.iterator()) {
+      if (field1.type.toString() == "class org.chromium.android_webview.AwContents") {
+        val awContents = field1.get(mProvider)
+        for (field2 in awContents.javaClass.fields.iterator()) {
+          if (field2.type.toString() == "interface org.chromium.content_public.browser.WebContents") {
+            val webContents = field2.get(awContents)
+            for (method3 in webContents.javaClass.methods.iterator()) {
+              val meta =
+                "(${method3.parameterTypes.joinToString(", ")})->${method3.returnType}"
+              if (meta == "(class android.graphics.Rect)->void") {
+                println("found setDisplayCutoutSafeArea=${method3}")
+                method3.isAccessible = true
+                return@lazy { rect: Rect ->
+                  println("run setDisplayCutoutSafeArea($rect)")
+                  method3.invoke(webContents, rect)
+                  Unit
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    null
+  }
   var safeArea = Bounds.Zero
+    set(value) {
+      field = value
+      setDisplayCutoutSafeArea?.invoke(value.toAndroidRect())
+    }
   override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
     return when (options.displayCutoutStrategy) {
       Default -> super.onApplyWindowInsets(insets)

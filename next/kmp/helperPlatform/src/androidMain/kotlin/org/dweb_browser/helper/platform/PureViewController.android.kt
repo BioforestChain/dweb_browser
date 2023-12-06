@@ -35,7 +35,10 @@ open class PureViewController : BaseActivity(), IPureViewController {
       createSignal.emit(PureViewCreateParams(intent))
     }
     setContent {
-      CompositionLocalProvider(LocalPureViewBox provides PureViewBox(this)) {
+      CompositionLocalProvider(
+        LocalPureViewController provides this,
+        LocalPureViewBox provides PureViewBox(this)
+      ) {
         DwebBrowserAppTheme {
           for (content in contents) {
             content()
@@ -85,6 +88,7 @@ open class PureViewController : BaseActivity(), IPureViewController {
     return contents
   }
 }
+
 fun IPureViewController.asAndroid(): PureViewController {
   require(this is PureViewController)
   return this

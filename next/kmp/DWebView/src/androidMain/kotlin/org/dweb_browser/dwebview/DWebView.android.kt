@@ -250,7 +250,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     return this.asAndroidWebView().favicon?.asImageBitmap()
   }
 
-  override suspend fun setSafeAreaInset(bounds: Bounds) {
+  override suspend fun setSafeAreaInset(bounds: Bounds) = withMainContext {
     engine.safeArea = bounds
   }
 }

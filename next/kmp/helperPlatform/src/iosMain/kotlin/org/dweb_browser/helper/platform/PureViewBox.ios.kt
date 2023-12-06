@@ -21,7 +21,7 @@ actual suspend fun IPureViewBox.Companion.from(viewController: IPureViewControll
 }
 
 class PureViewBox(
-  private val uiViewController: UIViewController,
+  val uiViewController: UIViewController,
   private val uiScreen: UIScreen = UIScreen.mainScreen
 ) : IPureViewBox {
   companion object {

@@ -1,8 +1,10 @@
 package org.dweb_browser.helper.platform
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.Signal
+
 /**
  * 视图 后端
  */
@@ -42,4 +44,8 @@ interface IPureViewCreateParams : Map<String, Any?> {
   fun getInt(key: String): Int?
   fun getFloat(key: String): Float?
   fun getBoolean(key: String): Boolean?
+}
+
+val LocalPureViewController = compositionLocalOf<IPureViewController> {
+  noLocalProvidedFor("LocalPureViewController")
 }

@@ -25,6 +25,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
+import org.dweb_browser.helper.platform.ios.BgPlaceholderView
 import org.dweb_browser.helper.withMainContext
 import platform.UIKit.UIView
 
@@ -98,11 +99,14 @@ class PureViewController(
   @OptIn(ExperimentalForeignApi::class)
   val getUiViewController = SuspendOnce {
     withMainContext {
-      val bgPlaceholderView = UIView().also {
-        it.setHidden(true)
-        it.userInteractionEnabled = false
-      }
       val backgroundView = mutableStateOf<UIView?>(null)
+      val bgPlaceholderView = BgPlaceholderView()
+      bgPlaceholderView.setCallback { bgView ->
+        backgroundView.value = bgView
+        bgView?.apply {
+          bgView.setHidden(true)
+        }
+      }
       ComposeUIViewController({
         delegate = object : ComposeUIViewControllerDelegate {
           override fun viewDidLoad() {
@@ -114,15 +118,10 @@ class PureViewController(
           }
 
           override fun viewDidAppear(animated: Boolean) {
-            backgroundView.value = bgPlaceholderView.superview!!.apply {
-              setHidden(true)
-              userInteractionEnabled = false
-              // 不能只是调整 layer.zPosition = -1.0，这只是视觉层面最底层，但是事件捕捉还在前面
-              superview!!.sendSubviewToBack(this)
+            backgroundView.value?.also { bgView ->
+              bgView.superview?.sendSubviewToBack(bgView)
             }
-            scope.launch {
-              stopSignal.emit()
-            }
+            scope.launch { stopSignal.emit() }
           }
         }
       }) {
@@ -133,6 +132,7 @@ class PureViewController(
         )
 
         CompositionLocalProvider(
+          LocalPureViewController provides this,
           LocalPureViewBox provides PureViewBox(LocalUIViewController.current),
           LocalUIKitBackgroundView provides backgroundView.value,
         ) {

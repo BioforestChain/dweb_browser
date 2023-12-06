@@ -2,13 +2,13 @@ package org.dweb_browser.sys.window.core.constant
 
 //import android.annotation.SuppressLint
 import androidx.compose.runtime.compositionLocalOf
-import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.platform.noLocalProvidedFor
 
 val debugWindow = Debugger("window")
 
-val LocalWindowMM = compositionLocalOf<MicroModule> {
+val LocalWindowMM = compositionLocalOf<NativeMicroModule> {
   noLocalProvidedFor("Window MicroModule")
 }
 

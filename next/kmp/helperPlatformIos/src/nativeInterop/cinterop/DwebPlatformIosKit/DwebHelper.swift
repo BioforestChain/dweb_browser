@@ -106,3 +106,64 @@ import WebKit
         return true
     }
 }
+
+@objc open class BgPlaceholderView: UIView {
+    private var willMoveNewSuperview: ((UIView?) -> Void)? = nil
+    @objc open func setCallback(_ willMoveNewSuperview: @escaping (UIView?) -> Void) {
+        self.willMoveNewSuperview = willMoveNewSuperview
+    }
+
+    override open func willMove(toSuperview newSuperview: UIView?) {
+        super.willMove(toSuperview: newSuperview)
+        willMoveNewSuperview?(newSuperview)
+    }
+}
+
+/**
+ * 原理参考 https://github.com/RyukieSama/Swifty/blob/master/Swifty/Classes/UIKit/UIView/View/ScreenShieldView.swift
+ */
+@objc open class SecureViewController: NSObject {
+    private let vc: UIViewController
+    private let field = UITextField()
+
+    @objc public init(vc: UIViewController, onNewView: ((UIView) -> Void)?) {
+        self.vc = vc
+        let oldView = vc.view!
+        let newView = field.subviews.first!
+        while let subview = field.subviews.first {
+            subview.removeFromSuperview()
+        }
+        DispatchQueue.main.async {
+            newView.frame = oldView.frame
+            newView.bounds = oldView.bounds
+            newView.isUserInteractionEnabled = oldView.isUserInteractionEnabled
+            onNewView?(newView)
+
+            // 替换 viewController 的 rootView
+            vc.view = newView
+            // 将原本的view附加到新的view内
+            newView.addSubview(oldView)
+
+            /// 加入布局约束
+            let layoutDefaultLowPriority = UILayoutPriority(rawValue: UILayoutPriority.defaultLow.rawValue-1)
+            let layoutDefaultHighPriority = UILayoutPriority(rawValue: UILayoutPriority.defaultHigh.rawValue-1)
+
+            oldView.translatesAutoresizingMaskIntoConstraints = false
+            oldView.setContentHuggingPriority(layoutDefaultLowPriority, for: .vertical)
+            oldView.setContentHuggingPriority(layoutDefaultLowPriority, for: .horizontal)
+            oldView.setContentCompressionResistancePriority(layoutDefaultHighPriority, for: .vertical)
+            oldView.setContentCompressionResistancePriority(layoutDefaultHighPriority, for: .horizontal)
+
+            let top = NSLayoutConstraint(item: oldView, attribute: .top, relatedBy: .equal, toItem: newView, attribute: .top, multiplier: 1, constant: 0)
+            let bottom = NSLayoutConstraint(item: oldView, attribute: .bottom, relatedBy: .equal, toItem: newView, attribute: .bottom, multiplier: 1, constant: 0)
+            let leading = NSLayoutConstraint(item: oldView, attribute: .leading, relatedBy: .equal, toItem: newView, attribute: .leading, multiplier: 1, constant: 0)
+            let trailing = NSLayoutConstraint(item: oldView, attribute: .trailing, relatedBy: .equal, toItem: newView, attribute: .trailing, multiplier: 1, constant: 0)
+
+            newView.addConstraints([top, bottom, leading, trailing])
+        }
+    }
+
+    @objc open func setSafeMode(_ safe: Bool) {
+        field.isSecureTextEntry = safe
+    }
+}

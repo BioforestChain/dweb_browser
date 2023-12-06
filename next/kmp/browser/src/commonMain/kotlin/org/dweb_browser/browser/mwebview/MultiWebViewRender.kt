@@ -13,7 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.nativeui.LocalPureViewController
+import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.browser.nativeui.NativeUiController
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.rememberCanGoBack
