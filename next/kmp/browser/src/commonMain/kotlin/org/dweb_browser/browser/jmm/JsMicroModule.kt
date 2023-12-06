@@ -6,6 +6,8 @@ import io.ktor.http.fullPath
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.IpcSupportProtocols
@@ -18,6 +20,7 @@ import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
+import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
@@ -224,6 +227,22 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           if (targetIpc.remote.mmid != mmid) {
             ipcBridge(event.mmid, targetIpc)
           }
+
+          /**
+           * 连接成功，正式告知它数据返回。注意，create-ipc虽然也会resolve任务，但是我们还是需要一个明确的done事件，来确保逻辑闭环
+           * 否则如果遇到ipc重用，create-ipc是不会触发的
+           */
+          @Serializable
+          data class DnsConnectDone(val connect: MMID, val result: MMID)
+
+          val done = DnsConnectDone(
+            connect = event.mmid,
+            result = when (targetIpc) {
+              is JmmIpc -> targetIpc.fromMMID
+              else -> targetIpc.remote.mmid
+            }
+          )
+          jsIpc.postMessage(IpcEvent.fromUtf8("dns/connect/done", Json.encodeToString(done)))
         } catch (e: Exception) {
           ipcConnectFail(mmid, e);
           printError("dns/connect", e)
@@ -240,7 +259,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
   private val fromMMIDOriginIpcWM = mutableMapOf<MMID, PromiseOut<Ipc>>();
 
-  class JmmIpc(port_id: Int, remote: IMicroModuleManifest) : Native2JsIpc(port_id, remote)
+  class JmmIpc(port_id: Int, remote: IMicroModuleManifest, val fromMMID: MMID) :
+    Native2JsIpc(port_id, remote)
 
   /**
    * 桥接ipc到js内部：
@@ -261,7 +281,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
               parameters["mmid"] = fromMMID
             }.buildUnsafeString()
           ).int()
-          val originIpc = JmmIpc(portId, this@JsMicroModule)
+          val originIpc = JmmIpc(portId, this@JsMicroModule, fromMMID)
 
           /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理
           if (targetIpc != null) {

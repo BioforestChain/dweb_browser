@@ -199,7 +199,7 @@ export class JsProcessMicroModule implements $MicroModule {
         const mmid = data[1];
         const reason = data[2];
         this._ipcConnectsMap.get(mmid)?.reject(reason);
-      } 
+      }
     };
     workerGlobal.addEventListener("message", _beConnect);
 
@@ -207,6 +207,18 @@ export class JsProcessMicroModule implements $MicroModule {
     this.name = `js process of ${this.mmid}`;
     this.host = this.meta.envString("host");
     this.fetchIpc = new MessagePortIpc(this.nativeFetchPort, this, IPC_ROLE.SERVER);
+    this.fetchIpc.onEvent((ipcEvent) => {
+      if (ipcEvent.name === "dns/connect/done") {
+        const { connect, result } = JSON.parse(ipcEvent.data);
+        const task = this._ipcConnectsMap.get(connect);
+        if (task.is_resolved === false) {
+          const resultTask = this._ipcConnectsMap.get(result);
+          if (resultTask !== task) {
+            task.resolve(resultTask.promise);
+          }
+        }
+      }
+    });
   }
 
   /// 这个通道只能用于基础的通讯
