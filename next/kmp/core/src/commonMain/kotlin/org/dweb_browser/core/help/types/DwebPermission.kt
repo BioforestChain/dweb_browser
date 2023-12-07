@@ -1,6 +1,7 @@
 package org.dweb_browser.core.help.types
 
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.std.permission.PermissionType
 import org.dweb_browser.helper.ImageResource
 
 @Serializable
@@ -35,5 +36,6 @@ data class DwebPermission(
   /**
    * 权限描述
    */
-  val description: String? = null
+  val description: String? = null,
+  val permissionType: List<PermissionType>,
 )

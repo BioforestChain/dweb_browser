@@ -11,6 +11,13 @@ val debugPermission = Debugger("permission")
 typealias PERMISSION_ID = String
 
 /**
+ * 权限的列表，用于不同平台根据类型进行权限获取
+ */
+enum class PermissionType {
+  CALENDAR, CAMERA, CONTACTS, LOCATION, MICROPHONE, PHONE, SENSORS, SMS, STORAGE;
+}
+
+/**
  * 授权记录
  *
  * 这里默认提供常见的基于时间授权过期

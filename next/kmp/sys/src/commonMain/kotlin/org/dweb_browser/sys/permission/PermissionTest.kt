@@ -37,7 +37,7 @@ class PermissionProviderTNN :
     )
     dweb_permissions = listOf(
       DwebPermission(
-        pid = "$mmid/publish", routes = listOf("file://$mmid/publish"), title = "将服务发布到公网中"
+        pid = "$mmid/publish", routes = listOf("file://$mmid/publish"), title = "将服务发布到公网中", permissionType = emptyList()
       )
     )
   }

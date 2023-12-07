@@ -45,7 +45,8 @@ class PermissionProvider(
   /**
    * 权限描述，用户第一次进行授权时，会默认展开的提示。未来默认收起，但是可以点击title展开
    */
-  val description: SimpleI18nResource? = null
+  val description: SimpleI18nResource? = null,
+  val permissionType: List<PermissionType>,
 ) {
   /**
    * 权限提供者
@@ -100,6 +101,7 @@ class PermissionProvider(
         badges = permission.badges.map { StrictImageResource.from(it, baseUrl) },
         title = SimpleI18nResource(Language.current to (permission.title ?: providerModule.name)),
         description = permission.description?.let { SimpleI18nResource(Language.current to it) },
+        permissionType = permission.permissionType,
       )
     }
   }

@@ -82,6 +82,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
        * 这里只能查询“模块自己定义的权限”
        */
       "/query" bind HttpMethod.Get by defineJsonResponse {
+        debugPermission("query", "enter")
         request.mapOfPermissions { permission ->
           permissionTable.query(ipc.remote.mmid, permission)
         }.toJsonElement()
@@ -91,6 +92,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
        * 这里只能检查“请求者的权限状态”，无法查询其它模块的状态
        */
       "/check" bind HttpMethod.Get by defineJsonResponse {
+        debugPermission("check", "enter")
         request.mapOfPermissions { permission ->
           permissionTable.check(ipc.remote.mmid, permission)
         }.toJsonElement()
@@ -99,6 +101,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
        * 请求者 申请权限
        */
       "/request" bind HttpMethod.Get by defineJsonResponse {
+        debugPermission("request", "enter")
         /**
          * 需要通过hooks询问结果的
          */
@@ -145,6 +148,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
        * 这样会导致下一次调用强制询问的发生
        */
       "/delete" bind HttpMethod.Get by defineJsonResponse {
+        debugPermission("delete", "enter")
         val providerMmid = ipc.remote.mmid
         val applicantMmid = request.query("mmid")
         request.mapOfPermissions { permission ->
