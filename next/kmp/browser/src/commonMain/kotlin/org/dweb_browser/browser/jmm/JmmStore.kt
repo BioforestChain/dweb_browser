@@ -93,14 +93,6 @@ data class JmmHistoryMetadata(
     }
   }
 
-  suspend fun updateState(jmmStatus: JmmStatus, store: JmmStore) {
-    state.state = jmmStatus
-    jmmStatusSignal.emit(state)
-    if (jmmStatus != JmmStatus.Downloading) {
-      store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
-    }
-  }
-
   suspend fun installComplete(store: JmmStore) {
     taskId = null
     state.state = JmmStatus.INSTALLED

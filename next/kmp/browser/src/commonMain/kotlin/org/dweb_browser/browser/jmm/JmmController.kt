@@ -23,7 +23,6 @@ import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachJsonLine
-import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
@@ -43,7 +42,8 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
 
   suspend fun loadHistoryMetadataUrl() {
     historyMetadataMaps.putAll(store.getHistoryMetadata())
-    historyMetadataMaps.forEach { _, historyMetadata ->
+    historyMetadataMaps.forEach { key, historyMetadata ->
+      debugJMM("lin.huang", "$key, $historyMetadata")
       if (historyMetadata.state.state == JmmStatus.Downloading ||
         historyMetadata.state.state == JmmStatus.Paused
       ) {
@@ -113,11 +113,23 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
     JmmInstallerController(jmmNMM, historyMetadata, this, fromHistory).openRender()
   }
 
-  suspend fun uninstall(mmid: MMID, version: String) {
+  suspend fun uninstall(mmid: MMID): Boolean {
+    val data = store.getApp(mmid) ?: return false
+    val (bundleUrl, version) = data.installManifest.let { Pair(it.bundle_url, it.version) }
+    debugJMM("uninstall", "$mmid-$bundleUrl $version")
     // 在dns中移除app
     jmmNMM.bootstrapContext.dns.uninstall(mmid)
     // 在存储中移除整个app
-    remove("/data/apps/${mmid}-${version}")
+    remove("/data/apps/${mmid}-$version")
+    // 从磁盘中移除整个
+    store.deleteApp(mmid)
+    historyMetadataMaps.cMaps.values.find { it.metadata.id == mmid }?.let { historyMetadata ->
+      debugJMM("uninstall", "change history state -> $historyMetadata")
+      historyMetadata.state.state = JmmStatus.Init
+      historyMetadata.jmmStatusSignal.emit(JmmStatusEvent(state = JmmStatus.Init))
+      store.saveHistoryMetadata(historyMetadata.originUrl, historyMetadata)
+    }
+    return true
   }
 
   suspend fun remove(filepath: String): Boolean {

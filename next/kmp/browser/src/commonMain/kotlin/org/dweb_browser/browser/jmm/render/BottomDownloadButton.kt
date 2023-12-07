@@ -15,6 +15,7 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -41,11 +42,12 @@ internal fun BoxScope.BottomDownloadButton() {
   val jmmHistoryMetadata = viewModel.uiState.jmmHistoryMetadata
   var jmmState by remember { mutableStateOf(jmmHistoryMetadata.state.state) }
   var jmmCurrent by remember { mutableLongStateOf(jmmHistoryMetadata.state.current) }
-  LaunchedEffect(viewModel.uiState.jmmHistoryMetadata) {
-    jmmHistoryMetadata.onJmmStatusChanged {
+  DisposableEffect(viewModel.uiState.jmmHistoryMetadata) {
+    val off = jmmHistoryMetadata.onJmmStatusChanged {
       jmmState = it.state
       jmmCurrent = it.current
     }
+    onDispose { off() }
   }
 
   Box(

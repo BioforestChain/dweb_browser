@@ -196,7 +196,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     )
     recover(task, 0L)
     downloadManagers.put(task.id, task)
-    debugDownload("初始化成功！", "${task.id} -> $task")
+    debugDownload("createTaskFactory", "${task.id} -> $task")
     return task
   }
 

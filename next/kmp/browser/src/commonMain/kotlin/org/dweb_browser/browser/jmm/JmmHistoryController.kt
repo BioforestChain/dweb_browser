@@ -19,16 +19,14 @@ class JmmHistoryController(
 
   init {
     jmmController.ioAsyncScope.launch {
-      // val list = jmmController.historyMetadataMaps.toMutableList().sortedByDescending { it.installTime }
-      // jmmHistoryMetadata.addAll(list)
-      jmmController.historyMetadataMaps.onChange { item ->
-        when (item.first) {
+      jmmController.historyMetadataMaps.onChange { (changeableType, _, historyMetadata) ->
+        when (changeableType) {
           ChangeableType.Add -> {
-            jmmHistoryMetadata.add(0, item.third!!)
+            jmmHistoryMetadata.add(0, historyMetadata!!)
           }
 
           ChangeableType.Remove -> {
-            jmmHistoryMetadata.remove(item.third!!)
+            jmmHistoryMetadata.remove(historyMetadata!!)
           }
 
           ChangeableType.PutAll -> {
@@ -72,17 +70,24 @@ class JmmHistoryController(
       JmmStatus.INSTALLED -> {
         jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${historyMetadata.metadata.id}")
       }
+
       JmmStatus.Downloading -> {
         jmmController.pause(historyMetadata.taskId)
       }
+
       JmmStatus.Paused -> {
         jmmController.start(historyMetadata)
       }
+
       JmmStatus.Completed, JmmStatus.Canceled -> {}
-      else -> { jmmController.createDownloadTask(historyMetadata) }
+      else -> {
+        jmmController.createDownloadTask(historyMetadata)
+        jmmController.start(historyMetadata)
+      }
     }
   }
 
   suspend fun unInstall(metadata: JmmHistoryMetadata) {
+    jmmController.uninstall(metadata.metadata.id)
   }
 }

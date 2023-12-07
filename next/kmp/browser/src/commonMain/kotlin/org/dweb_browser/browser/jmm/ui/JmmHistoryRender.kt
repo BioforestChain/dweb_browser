@@ -25,7 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -71,7 +71,7 @@ fun JmmHistoryController.ManagerViewRender(
     }
 
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-      JmmTabs.values().forEachIndexed { index, jmmTab ->
+      JmmTabs.entries.forEachIndexed { index, jmmTab ->
         SegmentedButton(
           selected = index == curTab.index,
           onClick = { curTab = JmmTabs.entries[index] },
@@ -89,6 +89,7 @@ fun JmmHistoryController.ManagerViewRender(
 @Composable
 fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
   val scope = rememberCoroutineScope()
+  // 这个后续需要优化，目前下载完成后，历史展示没有直接刷新
   val list = jmmHistoryMetadata.filter {
     (tab == JmmTabs.Installed && it.state.state == JmmStatus.INSTALLED) ||
         (tab == JmmTabs.NoInstall && it.state.state != JmmStatus.INSTALLED)
@@ -105,9 +106,9 @@ fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
     itemsIndexed(list) { _, metadata ->
       JmmViewItem(
         jmmHistoryMetadata = metadata,
-        buttonClick = { scope.launch { this@JmmTabsView.buttonClick(metadata) }},
-        uninstall = { scope.launch { this@JmmTabsView.unInstall(metadata) }},
-        detail = { scope.launch { this@JmmTabsView.openInstallerView(metadata) }}
+        buttonClick = { scope.launch { this@JmmTabsView.buttonClick(metadata) } },
+        uninstall = { scope.launch { this@JmmTabsView.unInstall(metadata) } },
+        detail = { scope.launch { this@JmmTabsView.openInstallerView(metadata) } }
       )
     }
   }
@@ -123,10 +124,11 @@ fun JmmViewItem(
   var showMore by remember(jmmHistoryMetadata) { mutableStateOf(false) }
   var jmmStatus by remember(jmmHistoryMetadata) { mutableStateOf(jmmHistoryMetadata.state.state) }
 
-  LaunchedEffect(jmmHistoryMetadata) {
-    jmmHistoryMetadata.onJmmStatusChanged {
+  DisposableEffect(jmmHistoryMetadata) {
+    val off = jmmHistoryMetadata.onJmmStatusChanged {
       jmmStatus = it.state
     }
+    onDispose { off() }
   }
 
   ListItem(
@@ -174,7 +176,7 @@ fun JmmViewItem(
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.primary)
             .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clickable{ buttonClick() }
+            .clickable { buttonClick() }
         )
       }
     },

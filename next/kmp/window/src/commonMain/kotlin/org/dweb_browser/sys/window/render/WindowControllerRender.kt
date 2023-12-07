@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowRenderScope
@@ -139,7 +140,7 @@ fun WindowController.Render(
           Modifier
             .background(theme.winFrameBrush)
             .clip(winPadding.boxRounded.toRoundedCornerShape())
-            .clickable {
+            .clickableWithNoEffect {
               win.emitFocusOrBlur(true)
             }) {
           /// 标题栏
