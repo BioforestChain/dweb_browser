@@ -13,14 +13,19 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebStorage
 import android.webkit.WebView
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
+import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
+import org.dweb_browser.helper.some
 import org.dweb_browser.helper.someOrNull
 
 @Suppress("DEPRECATION")
@@ -73,13 +78,36 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   }
 
   override fun onCreateWindow(
-    view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?
+    view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
   ): Boolean {
-    return inners("onCreateWindow").mapFindNoNull {
+    val transport = resultMsg.obj;
+    if (transport is WebView.WebViewTransport) {
+      engine.mainScope.launch {
+        val dwebView =
+          DWebViewEngine(engine.context, engine.remoteMM, DWebViewOptions(), engine.activity)
+        transport.webView = dwebView
+        resultMsg.sendToTarget()
+
+        // 它是有内部链接的，所以等到它ok了再说
+        var mainUrl = dwebView.url
+        while (mainUrl == null) {
+          delay(10)
+          mainUrl = dwebView.url
+        }
+        val beforeCreateWindowEvent =
+          DWebViewEngine.BeforeCreateWindow(dwebView, mainUrl, isUserGesture, isDialog)
+        engine.beforeCreateWindow.emit(beforeCreateWindowEvent)
+        if (!beforeCreateWindowEvent.isConsumed) {
+          engine.createWindowSignal.emit(IDWebView.create(dwebView, mainUrl))
+        }
+      }
+      return true
+    }
+    return inners("onCreateWindow").map {
       it.onCreateWindow(
         view, isDialog, isUserGesture, resultMsg
       )
-    } ?: super.onCreateWindow(view, isDialog, isUserGesture, resultMsg)
+    }.some { it }
   }
 
   override fun onGeolocationPermissionsHidePrompt() {

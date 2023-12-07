@@ -3,7 +3,6 @@ package org.dweb_browser.dwebview.engine
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Rect
-import android.net.Uri
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
 import android.view.WindowInsets
@@ -127,18 +126,6 @@ class DWebViewEngine(
    * 初始化设置 userAgent
    */
   private fun setUA() {
-    val baseUserAgentString = settings.userAgentString
-    val baseDwebHost = remoteMM.mmid
-    var dwebHost = baseDwebHost
-
-    // 初始化设置 ua，这个是无法动态修改的
-    val uri = Uri.parse(options.url)
-    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") && uri.host?.endsWith(
-        ".dweb"
-      ) == true
-    ) {
-      dwebHost = uri.host!!
-    }
     val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
     if (WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)) {
       val oldUserAgent = WebSettingsCompat.getUserAgentMetadata(settings)
@@ -157,12 +144,18 @@ class DWebViewEngine(
       )
 
       val userAgent = UserAgentMetadata.Builder(oldUserAgent).setBrandVersionList(
-        oldUserAgent.brandVersionList + brandList).build()
+        oldUserAgent.brandVersionList + brandList
+      ).build()
       WebSettingsCompat.setUserAgentMetadata(settings, userAgent)
     } else {
       val brandList = mutableListOf<IDWebView.UserAgentBrandData>()
       IDWebView.brands.forEach {
-        brandList.add(IDWebView.UserAgentBrandData(it.brand, if(it.version.contains(".")) it.version.split(".").first() else it.version))
+        brandList.add(
+          IDWebView.UserAgentBrandData(
+            it.brand,
+            if (it.version.contains(".")) it.version.split(".").first() else it.version
+          )
+        )
       }
       brandList.add(IDWebView.UserAgentBrandData("DwebBrowser", versionName.split(".").first()))
 
@@ -170,7 +163,11 @@ class DWebViewEngine(
         """
         ${UserAgentData.polyfillScript}
         if (location.protocol === 'https:' && !navigator.userAgentData) {
-          let userAgentData = new NavigatorUAData(navigator, ${JsonLoose.encodeToJsonElement(brandList)});
+          let userAgentData = new NavigatorUAData(navigator, ${
+          JsonLoose.encodeToJsonElement(
+            brandList
+          )
+        });
           Object.defineProperty(Navigator.prototype, 'userAgentData', {
             enumerable: true,
             configurable: true,
@@ -410,6 +407,22 @@ class DWebViewEngine(
 
   val attachedStateFlow = MutableStateFlow<Boolean>(false);
   val closeWatcher = CloseWatcher(this)
+
+  internal class BeforeCreateWindow(
+    val dwebView: DWebViewEngine,
+    val url: String,
+    val isUserGesture: Boolean,
+    val isDialog: Boolean,
+  ) {
+    var isConsumed = false
+      private set
+
+    fun consume() {
+      isConsumed = true
+    }
+  }
+
+  internal val beforeCreateWindow by lazy { Signal<BeforeCreateWindow>() }
   val createWindowSignal = Signal<IDWebView>()
 
   private val setDisplayCutoutSafeArea by lazy {
@@ -448,6 +461,7 @@ class DWebViewEngine(
       field = value
       setDisplayCutoutSafeArea?.invoke(value.toAndroidRect())
     }
+
   override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
     return when (options.displayCutoutStrategy) {
       Default -> super.onApplyWindowInsets(insets)

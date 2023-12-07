@@ -65,6 +65,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
 
   val loadStateChangeSignal = Signal<WebLoadState>()
   val onReady by lazy { loadStateChangeSignal.toReadyListener() }
+
   override fun onPageFinished(view: WebView, url: String?) {
     scope.launch {
       loadStateChangeSignal.emit(WebLoadSuccessState(url ?: "about:blank"))

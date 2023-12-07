@@ -22,6 +22,21 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   val consuming = mutableSetOf<String>()
   private val mainScope = MainScope()
 
+  private val install = SuspendOnce {
+    engine.beforeCreateWindow.listen { event ->
+      if (engine.closeWatcher.consuming.remove(event.url)) {
+        event.consume()
+        val consumeToken = event.url
+        engine.closeWatcher.apply(event.isUserGesture).also {
+          withMainContext {
+            event.dwebView.destroy()
+            engine.closeWatcher.resolveToken(consumeToken, it)
+          }
+        }
+      }
+    }
+  }
+
   init {
     engine.addJavascriptInterface(
       object {
@@ -29,13 +44,16 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
          * js 创建 CloseWatcher
          */
         @JavascriptInterface
-        fun registryToken(consumeToken: String) {
+        fun registryToken(consumeToken: String?) {// 这里用 String? 是为了避免 js 传输错误参数，理论上应该用 Any?
           if (consumeToken.isNullOrBlank()) {
             throw Exception("CloseWatcher.registryToken invalid arguments");
           }
           consuming.add(consumeToken)
           mainScope.launch {
-            engine.evaluateJavascript("open('$consumeToken')", {})
+            install()
+            engine.evaluateJavascript("open('$consumeToken')") {
+              println(it)
+            }
           }
         }
 
@@ -43,7 +61,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
          * js主动关闭 CloseWatcher
          */
         @JavascriptInterface
-        fun tryClose(id: String) =
+        fun tryClose(id: String?) = // 这里用 String? 是为了避免 js 传输错误参数，理论上应该用 Any?
           watchers.find { watcher -> watcher.id == id }?.also {
             mainScope.launch { close(it) }
           }
@@ -121,7 +139,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   /**
    * 现在是否有 CloseWatcher 在等待被关闭
    */
-  override val canClose get() = watchers.size > 0
+  override val canClose get() = watchers.isNotEmpty()
 
   /**
    * 关闭指定的 CloseWatcher

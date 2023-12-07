@@ -86,7 +86,7 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   /**
    * 现在是否有 CloseWatcher 在等待被关闭
    */
-  override val canClose get() = watchers.size > 0
+  override val canClose get() = watchers.isNotEmpty()
 
   /**
    * 关闭指定的 CloseWatcher
