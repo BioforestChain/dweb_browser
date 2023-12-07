@@ -97,14 +97,14 @@ struct ToolbarView: View {
                 }
                 Spacer()
                 if webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb {
-                    BiColorButton(imageName: "scan", disabled: false) {
-                        Log("scan qrcode")
-                        isPresentingScanner = true
-                    }
-                } else {
                     BiColorButton(imageName: "add", disabled: false) {
                         Log("open new tab was clicked")
                         toolbarState.createTabTapped = true
+                    }
+                } else {
+                    BiColorButton(imageName: "scan", disabled: false) {
+                        Log("scan qrcode")
+                        isPresentingScanner = true
                     }
                 }
                 Spacer()
