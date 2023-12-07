@@ -8,6 +8,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import platform.UIKit.UIViewController
 
@@ -30,6 +31,14 @@ class NativeViewController private constructor() {
 
   fun setNavigationBarHook(hook: (visible: Boolean) -> Unit) {
     navigationBarHook = hook
+  }
+
+  private val onGoBackSignal = SimpleSignal();
+  val onGoBack = onGoBackSignal.toListener()
+  fun emitOnGoBack() {
+    scope.launch {
+      onGoBackSignal.emit()
+    }
   }
 
   fun setAddHook(hook: (UIViewController, DwebUIViewControllerProperty) -> Unit) {

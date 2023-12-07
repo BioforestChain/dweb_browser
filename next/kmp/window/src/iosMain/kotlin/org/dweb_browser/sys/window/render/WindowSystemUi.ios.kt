@@ -8,7 +8,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.interop.LocalUIViewController
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
@@ -51,7 +50,11 @@ actual fun NativeBackHandler(
   enabled: Boolean,
   onBack: () -> Unit
 ) {
-  WARNING("Not yet implemented NativeBackHandler")
+  nativeViewController.onGoBack {
+    if (enabled) {
+      onBack()
+    }
+  }
 }
 
 
