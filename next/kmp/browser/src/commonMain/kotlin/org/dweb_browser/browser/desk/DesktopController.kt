@@ -35,12 +35,6 @@ import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.resolvePath
 
-//expect fun IDesktopController.Companion.create(
-//  deskNMM: DeskNMM,
-//  desktopServer: HttpDwebServer,
-//  runningApps: ChangeableMap<MMID, RunningApp>
-//): IDesktopController
-
 @Stable
 open class DesktopController private constructor(
   private val deskNMM: DeskNMM,

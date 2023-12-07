@@ -65,7 +65,7 @@ class TaskbarActivity : PureViewController() {
           /// 任务栏视图
           taskbarController.TaskbarView {
             taskbarDWebView.Render(onCreate = {
-              setHorizontalScrollBarVisible(true)
+              setHorizontalScrollBarVisible(false)
               asAndroidWebView().setOnTouchListener { _, _ ->
                 false
               }
