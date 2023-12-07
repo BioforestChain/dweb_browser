@@ -17,6 +17,7 @@ import { DOWNLOAD_STATUS } from "./const.ts";
 import { JMM_APPS_PATH, JMM_DB, createApiServer } from "./jmm.api.serve.ts";
 import { JmmServer } from "./jmm.www.serve.ts";
 import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
+import { NativeWindow } from "../../helper/userAgentDataInject.ts"
 
 nativeFetchAdaptersManager.append((remote, parsedUrl) => {
   /// fetch("file:///jmm/") 匹配
@@ -63,6 +64,11 @@ export class JmmNMM extends NativeMicroModule {
   downloadStatus: DOWNLOAD_STATUS = 0;
   jmmServer: JmmServer | undefined;
   apiServer: HttpDwebServer | undefined;
+
+  constructor() {
+    super();
+    NativeWindow.brands.push({brand: this.mmid, version: `${JsMicroModule.VERSION}.${JsMicroModule.PATCH}`});
+  }
 
   resume: {
     handler: Function;

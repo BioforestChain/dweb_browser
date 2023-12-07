@@ -6,6 +6,7 @@ import { createSignal } from "../../helper/createSignal.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { createNativeWindow } from "../../helper/openNativeWindow.ts";
 import { $AllWebviewState } from "./types.ts";
+import { setUserAgentData } from "../../helper/userAgentDataInject.ts"
 
 export type $MWebviewWindow = Awaited<ReturnType<typeof _createMWebViewWindow>>;
 
@@ -75,16 +76,16 @@ export class MWebviewController {
 
     /// 绑定变更，将状态同步通过ipc发送
     this.onChange.listen(() => {
-      const allWebviewState: $AllWebviewState = {wid:"",views:{}};
+      const allWebviewState: $AllWebviewState = { wid: "", views: {} };
       for (const viewItem of this.getAllBrowserView()) {
         allWebviewState.views[viewItem.zIndex] = {
           webviewId: viewItem.view.webContents.id.toString(),
-          index:viewItem.zIndex,
+          index: viewItem.zIndex,
           mmid: this.ipc.remote.mmid,
           isActivated: viewItem.isVisiable,
         };
       }
-      allWebviewState.wid = this.win.id.toString()
+      allWebviewState.wid = this.win.id.toString();
       ipc.postMessage(IpcEvent.fromText("state", JSON.stringify(allWebviewState)));
     });
   }
@@ -155,6 +156,11 @@ export class MWebviewController {
       isVisiable: true,
       cornerRadius: 0,
     });
+
+    //#region 设置userAgentData
+    setUserAgentData(view.webContents);
+    //#endregion
+
     view.webContents.on("destroyed", () => {
       /// 如果webContents的destroyed是因为win的destroyed，那么不发生任何动作
       if (this.win.isDestroyed()) {
