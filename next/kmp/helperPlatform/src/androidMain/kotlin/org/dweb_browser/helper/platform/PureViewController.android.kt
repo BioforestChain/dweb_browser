@@ -27,6 +27,8 @@ open class PureViewController : BaseActivity(), IPureViewController {
   override val onStop = stopSignal.toListener()
   private val resumeSignal = SimpleSignal()
   override val onResume = resumeSignal.toListener()
+  private val pauseSignal = SimpleSignal()
+  override val onPause = pauseSignal.toListener()
   private val touchSignal = Signal<TouchEvent>()
   override val onTouch = touchSignal.toListener()
   final override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +54,13 @@ open class PureViewController : BaseActivity(), IPureViewController {
     super.onResume()
     lifecycleScope.launch {
       resumeSignal.emit()
+    }
+  }
+
+  final override fun onPause() {
+    super.onPause()
+    lifecycleScope.launch {
+      pauseSignal.emit()
     }
   }
 

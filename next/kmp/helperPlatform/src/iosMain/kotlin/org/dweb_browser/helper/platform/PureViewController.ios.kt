@@ -77,8 +77,10 @@ class PureViewController(
   override val onStop = stopSignal.toListener()
 
   private val resumeSignal = SimpleSignal()
-
   override val onResume = resumeSignal.toListener()
+
+  private val pauseSignal = SimpleSignal() // TODO 没有调用实现
+  override val onPause = pauseSignal.toListener()
 
   private val destroySignal = SimpleSignal()
 

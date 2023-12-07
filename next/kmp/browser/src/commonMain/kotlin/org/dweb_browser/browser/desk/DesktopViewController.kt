@@ -42,7 +42,6 @@ class DesktopViewControllerCore(val controller: IPureViewController) {
             snapshotFlow { resumeState.value }.collect {
               // 增加字段，为了恢复 taskbarFloatView
               if (it) taskbarController.toggleFloatWindow(false)
-              resumeState.value = false
             }
           }
           desktopController.Render(taskbarController, microModule)
@@ -52,6 +51,10 @@ class DesktopViewControllerCore(val controller: IPureViewController) {
 
     controller.onResume {
       resumeState.value = true
+    }
+
+    controller.onPause {
+      resumeState.value = false
     }
 
     controller.onDestroy {
