@@ -22,7 +22,9 @@ struct ToolbarView: View {
     @State private var isPresentingScanner = false
 //    @State private var showMoreSheet = false
     @State private var cancellables: Set<AnyCancellable> = []
-
+    
+    private var isShowingWebsite: Bool { webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb }
+    
     var body: some View {
         GeometryReader { geo in
             ZStack {
@@ -33,18 +35,18 @@ struct ToolbarView: View {
                 }
             }.frame(height: geo.size.height)
         }
-        .onAppear {
-            selectedTab.$curIndex
-                .sink { newIndex in
-                    Log("Value changed: \(newIndex)")
-                    tabIndexChanged(to: newIndex)
-                }
-                .store(in: &cancellables) // Store the subscription
-        }
-        .onDisappear {
-            cancellables.forEach { $0.cancel() }
-            cancellables.removeAll()
-        }
+//        .onAppear {
+//            selectedTab.$curIndex
+//                .sink { newIndex in
+//                    Log("Value changed: \(newIndex)")
+//                    tabIndexChanged(to: newIndex)
+//                }
+//                .store(in: &cancellables) // Store the subscription
+//        }
+//        .onDisappear {
+//            cancellables.forEach { $0.cancel() }
+//            cancellables.removeAll()
+//        }
     }
 
     var threeButtons: some View {
@@ -88,15 +90,23 @@ struct ToolbarView: View {
         ZStack {
             HStack(alignment: .center) {
                 Spacer()
-                BiColorButton(imageName: "back", disabled: !toolbarState.canGoBack) {
-                    toolbarState.goBackTapped = true
+
+                Button(action: {
+                    toolbarState.creatingDesktopLink = true                    
+                    print("trying to appnd an link on desktop")
+                }) {
+                    Image(systemName: "apps.iphone.badge.plus")
+                        .renderingMode(.template)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .background(Color.bkColor)
+                        .foregroundColor(isShowingWebsite ? Color.ToolbarColor : Color.gray)
+                        .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
                 }
+                .disabled(!isShowingWebsite)
+               
                 Spacer()
-                BiColorButton(imageName: "forward", disabled: !toolbarState.canGoForward) {
-                    toolbarState.goForwardTapped = true
-                }
-                Spacer()
-                if webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb {
+                if isShowingWebsite {
                     BiColorButton(imageName: "add", disabled: false) {
                         Log("open new tab was clicked")
                         toolbarState.createTabTapped = true

@@ -22,6 +22,7 @@ actual fun getImageResourceRootPath(): String = ""
 
 public var iOSMainView: (() -> UIView)? = null
 public var doSearch: ((String) -> Unit)? = null
+public var _browserViewModel: BrowserViewModel? = null
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -47,6 +48,7 @@ actual fun CommonBrowserView(
       it(viewModel.dwebLinkSearch.value.toString())
     }
   }
+  _browserViewModel = viewModel
 
 
   Box {

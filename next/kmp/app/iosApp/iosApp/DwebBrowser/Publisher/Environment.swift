@@ -52,6 +52,7 @@ class ToolBarState: ObservableObject {
     @Published var goForwardTapped = false
     @Published var createTabTapped = false
     @Published var showMoreMenu = false
+    @Published var creatingDesktopLink = false
 }
 
 class ShiftAnimation: ObservableObject {

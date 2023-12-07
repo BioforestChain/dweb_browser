@@ -46,7 +46,6 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.noLocalProvidedFor
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.withMainContext
-
 /**
  * 用于显示搜索的界面，也就是点击搜索框后界面
  */
@@ -314,6 +313,12 @@ class BrowserViewModel(
         title = webView.getTitle().ifEmpty { url }, url = url, icon = webView.getIcon()
       )
     } ?: false
+  }
+
+  suspend fun createDesktopLink(link: String, title: String, iconString: String){
+    browserController.addUrlToDesktop(
+      title = title, url = link, icon = iconString
+    )
   }
 
   suspend fun saveBrowserMode(noTrace: Boolean) {

@@ -3,7 +3,6 @@ import Network
 import SwiftUI
 
 enum RenderType {
-    case none
     case webOS
     case deskOS
 }
@@ -41,8 +40,7 @@ struct iOSApp: App {
                 DwebFrameworkContentView(vcs: $deskVCStore.vcs)
                     .ignoresSafeArea(.all, edges: .all)
                     .persistentSystemOverlays(DwebDeskVCStore.shared.navgationBarVisible)
-            default:
-                DwebBrowser()
+            
             }
         })
         .alert(isPresented: $showAlert) {

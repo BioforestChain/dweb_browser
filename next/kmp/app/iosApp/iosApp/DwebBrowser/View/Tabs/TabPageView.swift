@@ -7,6 +7,7 @@
 
 import Combine
 import SwiftUI
+import DwebShared
 
 struct TabPageView: View {
     @EnvironmentObject var animation: ShiftAnimation
@@ -152,6 +153,13 @@ struct TabPageView: View {
             .onChange(of: addressBar.stopLoadingOfIndex) { _, stopIndex in
                 if stopIndex == tabIndex {
                     webWrapper.webView.stopLoading()
+                }
+            }
+            .onChange(of: toolbarState.creatingDesktopLink) { _, isCreating in
+                if isCreating{
+                    Task{
+                        try await Main_iosKt.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString)
+                    }
                 }
             }
     }
