@@ -515,8 +515,10 @@ class BottomSheetsModal private constructor(
     val winTheme = LocalWindowControllerTheme.current
     val contentColor = winTheme.topContentColor
 
+    // TODO 这个在Android/IOS上有BUG，会变成两倍大小，需要官方修复
+    // https://issuetracker.google.com/issues/307160202
     val windowInsetTop = remember(defaultWindowInsets) {
-      (defaultWindowInsets.getTop(density) / density.density).dp
+      (defaultWindowInsets.getTop(density) / density.density / 2).dp
     }
     val windowInsetBottom = remember(defaultWindowInsets) {
       (defaultWindowInsets.getBottom(density) / density.density).dp
@@ -524,7 +526,7 @@ class BottomSheetsModal private constructor(
 
     ModalBottomSheet(
       sheetState = sheetState,
-      modifier = Modifier.padding(top = windowInsetTop),// TODO 这个在Android上有BUG，会变成两倍大小，需要官方修复
+      modifier = Modifier.padding(top = windowInsetTop),
       dragHandle = {
         Box(
           modifier = Modifier
