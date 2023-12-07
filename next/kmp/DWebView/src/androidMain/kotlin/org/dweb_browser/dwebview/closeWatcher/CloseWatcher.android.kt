@@ -51,9 +51,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
           consuming.add(consumeToken)
           mainScope.launch {
             install()
-            engine.evaluateJavascript("open('$consumeToken')") {
-              println(it)
-            }
+            engine.evaluateJavascript("open('$consumeToken')", null)
           }
         }
 

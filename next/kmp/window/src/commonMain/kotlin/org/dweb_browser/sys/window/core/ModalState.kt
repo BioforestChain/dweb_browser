@@ -3,10 +3,9 @@ package org.dweb_browser.sys.window.core
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -226,20 +225,16 @@ sealed class ModalState() {
     }
   }
 
-  init {
-    // 强制重制状态
+  private fun resetState() {
     close()
+  }
+
+  init {
+    // 强制重制状态，确保反序列化出来的对象能正确工作
+    resetState()
   }
 }
 
-interface IAlertModalArgs {
-  val title: String
-  val message: String
-  val iconUrl: String?
-  val iconAlt: String?
-  val confirmText: String?
-  val dismissText: String?
-}
 
 @Serializable
 sealed class ModalCallback {
@@ -260,6 +255,17 @@ data class CloseAlertModalCallback(override val sessionId: Int, val confirm: Boo
 @Serializable
 @SerialName("destroy")
 data class DestroyModalCallback(override val sessionId: Int) : ModalCallback();
+
+//#region Alert
+
+interface IAlertModalArgs {
+  val title: String
+  val message: String
+  val iconUrl: String?
+  val iconAlt: String?
+  val confirmText: String?
+  val dismissText: String?
+}
 
 @Serializable
 @SerialName("alert")
@@ -361,6 +367,9 @@ data class AlertModal internal constructor(
             /**
              * IconButtonTokens.IconSize
              */
+            /**
+             * IconButtonTokens.IconSize
+             */
             val iconSize = 24.dp
             imageLoader.Load(url, iconSize, iconSize).with(onError = {
               Icon(imageVector = Icons.Default.ErrorOutline, contentDescription = iconAlt)
@@ -385,6 +394,9 @@ data class AlertModal internal constructor(
     )
   }
 }
+//#endregion
+
+//#region BottomSheet
 
 interface IBottomSheetModal {
   /// 这几个参数是未来使用FullScreenBottomSheets来实现，就是顶部有一条信息栏，将 bottom-sheets 拉上去的时候，融合信息栏，信息栏会变成 top-bar
@@ -392,6 +404,7 @@ interface IBottomSheetModal {
   val iconUrl: String?
   val iconAlt: String?
 }
+
 
 @Serializable
 @SerialName("bottom-sheets")
@@ -493,49 +506,61 @@ class BottomSheetsModal private constructor(
 
     val density = LocalDensity.current
     val defaultWindowInsets = BottomSheetDefaults.windowInsets
-    val modalWindowInsets = remember(defaultWindowInsets) {
-      defaultWindowInsets.only(WindowInsetsSides.Top)
+    val modalWindowInsets = remember {
+      WindowInsets(0, 0, 0, 0)
     }
 
     val win = parent;
     val winPadding = LocalWindowPadding.current
     val winTheme = LocalWindowControllerTheme.current
     val contentColor = winTheme.topContentColor
-    /// TODO 等1.5.10稳定版放出，IOS才能使用这个组件
-    ModalBottomSheet(sheetState = sheetState, dragHandle = {
-      Box(
-        modifier = Modifier
-          .height(48.dp)
-          .fillMaxSize()
-          .padding(horizontal = 14.dp),
-        Alignment.Center
-      ) {
-        BottomSheetDefaults.DragHandle()
-        /// 应用图标
+
+    val windowInsetTop = remember(defaultWindowInsets) {
+      (defaultWindowInsets.getTop(density) / density.density).dp
+    }
+    val windowInsetBottom = remember(defaultWindowInsets) {
+      (defaultWindowInsets.getBottom(density) / density.density).dp
+    }
+
+    ModalBottomSheet(
+      sheetState = sheetState,
+      modifier = Modifier.padding(top = windowInsetTop),// TODO 这个在Android上有BUG，会变成两倍大小，需要官方修复
+      dragHandle = {
         Box(
-          modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart
+          modifier = Modifier
+            .height(48.dp)
+            .fillMaxSize()
+            .padding(horizontal = 14.dp),
+          Alignment.Center
         ) {
-          win.IconRender(
-            modifier = Modifier.size(28.dp), primaryColor = contentColor
+          BottomSheetDefaults.DragHandle()
+          /// 应用图标
+          Box(
+            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart
+          ) {
+            win.IconRender(
+              modifier = Modifier.size(28.dp), primaryColor = contentColor
+            )
+          }
+          /// 应用身份
+          win.IdRender(
+            Modifier
+              .align(Alignment.BottomEnd)
+              .height(22.dp)
+              .padding(vertical = 2.dp)
+              .alpha(0.4f),
+            contentColor = contentColor
           )
         }
-        /// 应用身份
-        win.IdRender(
-          Modifier
-            .align(Alignment.BottomEnd)
-            .height(22.dp)
-            .padding(vertical = 2.dp)
-            .alpha(0.4f),
-          contentColor = contentColor
-        )
-      }
-    }, windowInsets = modalWindowInsets, onDismissRequest = { onModalDismissRequest(true) }) {
+      },
+      windowInsets = modalWindowInsets,
+      onDismissRequest = { onModalDismissRequest(true) }) {
       /// 显示内容
       BoxWithConstraints(
         Modifier.padding(
           start = winPadding.left.dp,
           end = winPadding.right.dp,
-          bottom = (defaultWindowInsets.getBottom(density) / density.density).dp
+          bottom = windowInsetBottom + windowInsetTop
         )
       ) {
         val windowRenderScope = remember(winPadding) {
@@ -547,9 +572,8 @@ class BottomSheetsModal private constructor(
           Modifier.clip(winPadding.contentRounded.toRoundedCornerShape())
         )
       }
-
     }
 
   }
 }
-
+//#endregion
