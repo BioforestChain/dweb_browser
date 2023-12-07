@@ -366,14 +366,14 @@ class DWebViewEngine(
     }
   }
 
-  private var _destroyed = false
+  var isDestroyed = false
   private var _destroySignal = SimpleSignal();
   val onDestroy = _destroySignal.toListener()
   override fun destroy() {
-    if (_destroyed) {
+    if (isDestroyed) {
       return
     }
-    _destroyed = true
+    isDestroyed = true
     debugDWebView("DESTROY")
     if (!isAttachedToWindow) {
       super.onDetachedFromWindow()
