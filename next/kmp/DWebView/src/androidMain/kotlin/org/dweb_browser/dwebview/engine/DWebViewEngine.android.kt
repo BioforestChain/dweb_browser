@@ -105,6 +105,8 @@ class DWebViewEngine(
     private var isProxyServerStart = false
   }
 
+  private var documentStartJsList = mutableListOf<String>()
+
   init {
     if (activity == null && context is org.dweb_browser.helper.android.BaseActivity) {
       activity = context
@@ -356,7 +358,6 @@ class DWebViewEngine(
       )
     }
 
-  private val documentStartJsList = mutableListOf<String>()
   private fun getDocumentStartJsScript() =
     documentStartJsList.joinToString("\n") { "<script>document.currentScript?.parentElement?.removeChild(document.currentScript);(async()=>{ try{$it}catch(e){console.error(e)} })();</script>" }
 

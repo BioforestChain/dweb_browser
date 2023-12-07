@@ -208,12 +208,12 @@ export class JsProcessMicroModule implements $MicroModule {
     this.host = this.meta.envString("host");
     this.fetchIpc = new MessagePortIpc(this.nativeFetchPort, this, IPC_ROLE.SERVER);
     this.fetchIpc.onEvent((ipcEvent) => {
-      if (ipcEvent.name === "dns/connect/done") {
+      if (ipcEvent.name === "dns/connect/done" && typeof ipcEvent.data === "string") {
         const { connect, result } = JSON.parse(ipcEvent.data);
         const task = this._ipcConnectsMap.get(connect);
-        if (task.is_resolved === false) {
+        if (task && task.is_resolved === false) {
           const resultTask = this._ipcConnectsMap.get(result);
-          if (resultTask !== task) {
+          if (resultTask && resultTask !== task) {
             task.resolve(resultTask.promise);
           }
         }
