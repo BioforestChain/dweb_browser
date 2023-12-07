@@ -177,12 +177,14 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     debugDWebView("DESTROY")
     loadUrl("about:blank", true)
     _destroySignal.emitAndClear(Unit)
-    engine.mainScope.cancel(null)
-    engine.navigationDelegate = null
-    engine.removeFromSuperview()
-    engine.webViewWebContentProcessDidTerminate(webView = engine)
-    _engine = null
-    kotlin.native.runtime.GC.collect()
+    withMainContext {
+      engine.mainScope.cancel(null)
+      engine.navigationDelegate = null
+      engine.removeFromSuperview()
+      engine.webViewWebContentProcessDidTerminate(webView = engine)
+      _engine = null
+      kotlin.native.runtime.GC.collect()
+    }
   }
 
   override suspend fun canGoBack() = withMainContext { engine.canGoBack }

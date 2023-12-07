@@ -3,16 +3,11 @@ package org.dweb_browser.helper
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import platform.Foundation.NSMapTable
-import platform.Foundation.NSPointerFunctionsStrongMemory
-import platform.Foundation.NSPointerFunctionsWeakMemory
+
 
 actual class WeakHashMap<K : Any, V> {
   private val lock = SynchronizedObject()
-  private val _weakMap = NSMapTable(
-    keyOptions = NSPointerFunctionsWeakMemory,
-    valueOptions = NSPointerFunctionsStrongMemory,
-    capacity = 0u
-  )
+  private val _weakMap = NSMapTable.weakToStrongObjectsMapTable()
 
   actual fun containsKey(key: K): Boolean {
     return _weakMap.objectForKey(key) != null

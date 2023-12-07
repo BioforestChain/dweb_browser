@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   kotlinOptions {
     freeCompilerArgs += "-Xexpect-actual-classes"
+    freeCompilerArgs += "-Xallocator=std"
   }
 }
 
