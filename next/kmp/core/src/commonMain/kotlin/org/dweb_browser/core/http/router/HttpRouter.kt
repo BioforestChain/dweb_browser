@@ -3,8 +3,10 @@ package org.dweb_browser.core.http.router
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.toPure
+import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.module.MicroModule
@@ -45,21 +47,11 @@ class HttpRouter(private val mm: MicroModule) {
     return null
   }
 
-  private val cors_handler: MiddlewareHttpHandler = { next ->
-    val res = next()
-    res.headers.run {
-      init("Access-Control-Allow-Credentials", "true")
-      init("Access-Control-Allow-Origin", "*")
-      init("Access-Control-Allow-Headers", "*")
-      init("Access-Control-Allow-Methods", "*")
-    }
-    res
-  }
-
   /**
    * 允许跨域
    */
   fun cors(): HttpRouter {
+    routes += corsRoute
     for (handler in routes.values) {
       handler.use(cors_handler)
     }
@@ -76,6 +68,26 @@ class HttpRouter(private val mm: MicroModule) {
           else next()
         }
       }
+
+
+    private val cors_handler: MiddlewareHttpHandler = { next ->
+      val res = next()
+      res.headers.cors()
+      res
+    }
+
+    private fun IpcHeaders.cors() {
+      init("Access-Control-Allow-Credentials", "true")
+      init("Access-Control-Allow-Origin", "*")
+      init("Access-Control-Allow-Headers", "*")
+      init("Access-Control-Allow-Methods", "*")
+    }
+
+    private val corsRoute: Pair<IRoute, HttpHandlerChain> = object : IRoute {
+      override fun isMatch(request: PureRequest) = request.method == IpcMethod.OPTIONS
+    } to HttpHandlerChain {
+      PureResponse().apply { headers.cors() }
+    }
   }
 
   /**
