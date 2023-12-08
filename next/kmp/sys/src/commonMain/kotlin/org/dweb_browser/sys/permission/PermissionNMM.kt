@@ -197,9 +197,10 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
     }
     permissionStdProtocol(hooks)
 
+    // TODO 临时用于扫码的时候请求权限
     routes(
       "/request" bind HttpMethod.Get by defineBooleanResponse {
-        debugPermission("request")
+        debugPermission("request", "temp routes")
         val permission = request.query("permission")
         return@defineBooleanResponse requestPermission(PermissionType.valueOf(permission))
       }
