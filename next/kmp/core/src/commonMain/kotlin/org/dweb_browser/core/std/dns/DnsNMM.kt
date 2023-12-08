@@ -113,7 +113,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
    * TODO 一个MMID被多个模块同时实现时，需要提供选择器
    */
   private fun getPreferenceApp(mpid: MPID, fromMM: IMicroModuleManifest) =
-    installApps(mpid).firstOrNull { it.mmid != fromMM.mmid }
+    installApps(mpid).map { it to if (it.mmid != fromMM.mmid) 1 else 0 }.maxByOrNull { it.second }
 
   suspend fun bootstrap() {
     if (!this.running) {
@@ -286,9 +286,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       "/search" bind HttpMethod.Get by defineJsonResponse {
         val category = request.queryCategory()
         val manifests = mutableListOf<CommonAppManifest>()
-         search(category as MICRO_MODULE_CATEGORY).map { app ->
-           manifests.add(app.toManifest())
-         }
+        search(category as MICRO_MODULE_CATEGORY).map { app ->
+          manifests.add(app.toManifest())
+        }
         manifests.toJsonElement()
       },
       //
