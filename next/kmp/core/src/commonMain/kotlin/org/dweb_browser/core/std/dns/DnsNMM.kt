@@ -113,7 +113,8 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
    * TODO 一个MMID被多个模块同时实现时，需要提供选择器
    */
   private fun getPreferenceApp(mpid: MPID, fromMM: IMicroModuleManifest) =
-    installApps(mpid).map { it to if (it.mmid != fromMM.mmid) 1 else 0 }.maxByOrNull { it.second }
+    installApps(mpid).map { it to if (it.mmid != fromMM.mmid) 1 else 0 }
+      .maxByOrNull { it.second }?.first
 
   suspend fun bootstrap() {
     if (!this.running) {
