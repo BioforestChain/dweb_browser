@@ -13,9 +13,9 @@ import io.ktor.server.request.httpMethod
 import io.ktor.server.request.uri
 import io.ktor.server.response.ApplicationResponse
 import io.ktor.server.response.header
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondBytesWriter
-import io.ktor.server.response.respondNullable
 import io.ktor.server.response.respondText
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
@@ -76,8 +76,8 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
     header(key, value)
   }
   when (val pureBody = response.body) {
-    is PureEmptyBody -> this.call.respondNullable<String?>(
-      status = response.status, message = null
+    is PureEmptyBody -> this.call.respond(
+      status = response.status, message = io.ktor.client.utils.EmptyContent
     )
 
     is PureStringBody -> this.call.respondText(
