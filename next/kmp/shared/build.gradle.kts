@@ -21,6 +21,7 @@ kotlin {
     implementation(projects.helper)
     implementation(projects.helperCompose)
     implementation(projects.helperPlatform)
+    implementation(projects.dWebView)
     implementation(projects.window)
     implementation(projects.browser)
     implementation(projects.core)

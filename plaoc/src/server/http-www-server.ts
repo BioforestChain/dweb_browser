@@ -100,7 +100,7 @@ export class Server_www extends HttpServer {
     const ipcResponse = new IpcResponse(
       request.req_id,
       remoteIpcResponse.statusCode,
-      cors(remoteIpcResponse.headers),
+      remoteIpcResponse.headers,
       remoteIpcResponse.body,
       request.ipc
     );
