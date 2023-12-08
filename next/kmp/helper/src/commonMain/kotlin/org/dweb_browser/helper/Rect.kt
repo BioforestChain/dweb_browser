@@ -27,4 +27,6 @@ data class Rect(
   ) {
     fun toImmutable() = Rect(x, y, width, height)
   }
+
+  fun toBounds() = Bounds(top = y, left = x, bottom = y + height, right = x + width)
 }

@@ -1,15 +1,15 @@
 package org.dweb_browser.sys.scan
 
 import android.graphics.BitmapFactory
-import android.graphics.Point
-import android.graphics.Rect
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
-import kotlinx.serialization.Serializable
+import org.dweb_browser.helper.Point
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.toPoint
+import org.dweb_browser.helper.toRect
+import org.dweb_browser.helper.toUtf8
 
-class BarcodeResult(val data: ByteArray, val boundingBox: Rect, val cornerPoints: List<Point>)
 
 actual class ScanningManager actual constructor() {
   actual fun cameraPermission(): Boolean {
@@ -20,14 +20,9 @@ actual class ScanningManager actual constructor() {
     BarcodeScanning.getClient().close()
   }
 
-  actual suspend fun recognize(img: ByteArray, rotation: Int): List<String> {
+  actual suspend fun recognize(img: ByteArray, rotation: Int): List<BarcodeResult> {
     val image = InputImage.fromBitmap(BitmapFactory.decodeByteArray(img, 0, img.size), rotation)
-    val result = mutableListOf<String>()
-    process(image).forEach {
-      result.add(it.toJsonElement().toString())
-    }
-    debugScanning("process", "result=> $result")
-    return result
+    return process(image)
   }
 
   private suspend fun process(image: InputImage): List<BarcodeResult> {
@@ -35,10 +30,14 @@ actual class ScanningManager actual constructor() {
     BarcodeScanning.getClient().process(image)
       .addOnSuccessListener { barcodes ->
         task.resolve(barcodes.map {
+          val cornerPoints = it.cornerPoints;
           BarcodeResult(
-            it.rawBytes!!,
-            it.boundingBox!!,
-            it.cornerPoints!!.toList()
+            it.rawBytes?.toUtf8() ?: "",
+            it.boundingBox?.toRect() ?: Rect.Zero,
+            topLeft = cornerPoints?.get(0)?.toPoint() ?: Point.Zero,
+            topRight = cornerPoints?.get(0)?.toPoint() ?: Point.Zero,
+            bottomLeft = cornerPoints?.get(0)?.toPoint() ?: Point.Zero,
+            bottomRight = cornerPoints?.get(0)?.toPoint() ?: Point.Zero,
           )
         })
       }
