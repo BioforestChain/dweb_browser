@@ -220,7 +220,6 @@ class DWebViewEngine(
 
     setOpaque(false)
     setBackgroundColor(UIColor.transparentColor)
-    scrollView.setBackgroundColor(UIColor.transparentColor)
     if (options.displayCutoutStrategy == DWebViewOptions.DisplayCutoutStrategy.Ignore) {
       scrollView.contentInsetAdjustmentBehavior =
         UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
