@@ -17,7 +17,6 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 
   constructor() {
     super();
-    this.createClose();
   }
 
   private createClose() {
@@ -109,8 +108,9 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
               const value = await this.plugin
                 .process(imageBlob, rotation, formats)
                 .then((res) => res)
-                .catch(() => {
+                .catch((e) => {
                   this._activity = false;
+                  console.log("process error=>",e)
                   return reject("502 service error");
                 });
               const result = Array.from(value ?? []);

@@ -4,14 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import org.dweb_browser.sys.share.ShareController.Companion.controller
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import org.dweb_browser.helper.Callback
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.sys.share.ShareController.Companion.controller
 
 class ShareActivity : ComponentActivity() {
 
@@ -31,7 +29,7 @@ class ShareActivity : ComponentActivity() {
           "data:${result.data} resultCode:${result.resultCode} code:$code"
         )
         ioAsyncScope.launch {
-          getShareSignal.emit(data?.dataString ?: "OK")
+          controller.getShareSignal.emit(data?.dataString ?: "OK")
         }
       }
   }
@@ -50,9 +48,4 @@ class ShareActivity : ComponentActivity() {
     controller.shareLauncher = null
     ioAsyncScope.cancel()
   }
-
-  private val getShareSignal = Signal<String>()
-
-  fun getShareData(cb: Callback<String>) = getShareSignal.listen(cb)
-
 }

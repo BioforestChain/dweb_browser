@@ -92,9 +92,6 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
         var mainUrl = dwebView.url
         while (mainUrl == null) {
           delay(10)
-          if (!dwebView.isDestroyed) {
-            return@launch
-          }
           mainUrl = dwebView.url
         }
         val beforeCreateWindowEvent =

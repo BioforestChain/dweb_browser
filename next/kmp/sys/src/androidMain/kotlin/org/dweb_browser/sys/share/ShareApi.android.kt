@@ -34,6 +34,10 @@ actual suspend fun share(shareOptions: ShareOptions, multiPartData: MultiPartDat
   ShareController.controller.waitActivityResultLauncherCreated()
 
   val result = PromiseOut<String>()
+  // activity回调请求
+  ShareController.controller.getShareData {
+    result.resolve(it)
+  }
   SharePlugin.share(ShareController.controller, shareOptions, files, result)
   val data = result.waitPromise()
   debugShare("share", "result => $data")

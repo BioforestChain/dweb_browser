@@ -41,12 +41,12 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
         val multiPartData = try {
           request.receiveMultipart()
         } catch (e: Exception) {
-          debugShare("share", "receiveMultipart error -> ${e.message}")
+          debugShare("/share", "receiveMultipart error -> ${e.message}")
           null
         }
 
         val result = share(shareOptions, multiPartData)
-        debugShare("share", "result => $result")
+        debugShare("/share", "result => $result")
         return@defineJsonResponse ShareResult(result == "OK", result).toJsonElement()
       },
     ).cors()

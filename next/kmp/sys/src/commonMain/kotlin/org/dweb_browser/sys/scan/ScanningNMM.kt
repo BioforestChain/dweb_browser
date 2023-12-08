@@ -23,7 +23,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
       // 处理二维码图像
       "/process" bind HttpMethod.Post by defineJsonResponse {
         debugScanning(
-          "process",
+          "/process",
           " ${request.queryOrNull("rotation")?.toInt() ?: 0} ${request.body.contentLength}"
         )
 
