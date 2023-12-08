@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jsProcess
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -140,6 +141,10 @@ suspend fun createJsProcessWeb(
   val jsProcessUrl = urlInfo.buildInternalUrl().build { resolvePath("/index.html") }.toString()
   val dWebView = IDWebView.create(mm, DWebViewOptions(privateNet = true))
   dWebView.loadUrl(jsProcessUrl)
+  /// 确保API可用
+  while (dWebView.evaluateAsyncJavascriptCode("typeof createProcess==='function'") == "false") {
+    delay(5)
+  }
 
   return JsProcessWebApi(dWebView)
 }
