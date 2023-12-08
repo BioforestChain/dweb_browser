@@ -43,7 +43,6 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   suspend fun loadHistoryMetadataUrl() {
     historyMetadataMaps.putAll(store.getHistoryMetadata())
     historyMetadataMaps.forEach { key, historyMetadata ->
-      debugJMM("lin.huang", "$key, $historyMetadata")
       if (historyMetadata.state.state == JmmStatus.Downloading ||
         historyMetadata.state.state == JmmStatus.Paused
       ) {

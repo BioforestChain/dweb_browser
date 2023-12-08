@@ -78,13 +78,13 @@ val LocalQRCodeModel = compositionLocalOf<QRCodeScanModel> {
 
 @Composable
 fun QRCodeScanView(
-  qrCodeScanModel: QRCodeScanModel,
   modifier: Modifier = Modifier,
   enableBeep: Boolean = true, // 扫码成功后是否打开提示音
   //flashLight: Boolean = false, // 闪关灯默认状态
   onSuccess: (String) -> Unit, // 成功返回扫码结果
   onCancel: (String) -> Unit, // 失败返回失败原因
 ) {
+  val qrCodeScanModel = LocalQRCodeModel.current
   DisposableEffect(qrCodeScanModel) {
     val off = qrCodeScanModel.onStateChange {
       if (it != QRCodeState.Scanning || qrCodeScanModel.checkPermission()) {

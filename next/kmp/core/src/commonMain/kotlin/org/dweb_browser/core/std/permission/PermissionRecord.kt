@@ -13,8 +13,9 @@ typealias PERMISSION_ID = String
 /**
  * 权限的列表，用于不同平台根据类型进行权限获取
  */
+@Serializable
 enum class PermissionType {
-  CALENDAR, CAMERA, CONTACTS, LOCATION, MICROPHONE, PHONE, SENSORS, SMS, STORAGE;
+  CALENDAR, CAMERA, CONTACTS, LOCATION, MICROPHONE, PHONE, SENSORS, SMS, STORAGE, CALL;
 }
 
 /**

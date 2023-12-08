@@ -37,5 +37,8 @@ data class DwebPermission(
    * 权限描述
    */
   val description: String? = null,
+  /**
+   * 用于平台请求权限类型
+   */
   val permissionType: List<PermissionType>,
 )

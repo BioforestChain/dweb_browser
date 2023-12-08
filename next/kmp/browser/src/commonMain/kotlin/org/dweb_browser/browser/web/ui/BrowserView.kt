@@ -186,7 +186,6 @@ fun BrowserViewForWindow(
         )
         BrowserBottomSheet(viewModel)
         QRCodeScanView(
-          qrCodeScanModel = qrCodeScanModel,
           onSuccess = {
             openDeepLink(it)
             scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) }

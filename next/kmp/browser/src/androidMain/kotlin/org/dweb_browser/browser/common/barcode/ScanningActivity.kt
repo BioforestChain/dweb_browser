@@ -1,18 +1,18 @@
 package org.dweb_browser.browser.common.barcode
 
+import android.Manifest
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import kotlinx.coroutines.delay
 import org.dweb_browser.helper.platform.PureViewController
 
 class ScanningActivity : PureViewController() {
   companion object {
     const val IntentFromIPC = "fromIPC"
   }
-
-
 
   init {
     onCreate { params ->
@@ -25,14 +25,10 @@ class ScanningActivity : PureViewController() {
 
       addContent {
         val qrCodeScanModel = remember { QRCodeScanModel() }
-        LaunchedEffect(Unit) {
-          qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
-        }
         CompositionLocalProvider(
           LocalQRCodeModel provides qrCodeScanModel
         ) {
           QRCodeScanView(
-            qrCodeScanModel = qrCodeScanModel,
             onSuccess = { data ->
               if (!fromIpc) {
                 openDeepLink(data)
@@ -41,6 +37,13 @@ class ScanningActivity : PureViewController() {
             },
             onCancel = { finish() }
           )
+        }
+
+        LaunchedEffect(qrCodeScanModel) {
+          val result = requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+          if (result) {
+            qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
+          }
         }
       }
     }

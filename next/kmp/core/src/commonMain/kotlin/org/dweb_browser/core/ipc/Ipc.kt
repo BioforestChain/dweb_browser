@@ -297,7 +297,7 @@ abstract class Ipc {
   private val readyListener by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     val ready = CompletableDeferred<IpcEvent>()
     this.onEvent { (event, ipc) ->
-
+      debugIpc("lin.huang", "readyListener:onEvent -> ${event.name}, ${ipc.remote.mmid}")
       if (event.name == "ping") {
         ipc.postMessage(IpcEvent("pong", event.data, event.encoding))
       } else if (event.name == "pong") {
@@ -318,6 +318,7 @@ abstract class Ipc {
   }
 
   suspend fun ready(self: MicroModule) {
+    debugIpc("lin.huang", "ready ${this.remote.mmid}")
     this.readyListener.await()// get once
   }
 }

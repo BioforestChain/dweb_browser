@@ -1,6 +1,8 @@
 package org.dweb_browser.browser.common.barcode
 
 import androidx.compose.ui.graphics.ImageBitmap
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.permission.PermissionType
 import org.dweb_browser.helper.WARNING
 
 class QRCodeScanController {
@@ -18,9 +20,8 @@ class QRCodeScanController {
    * 获取权限
    */
   suspend fun checkPermission(): Boolean {
-    WARNING("Not yet implement")
-    return true
-    //return qrCodeScanNMM?.nativeFetch("file://permission.sys.dweb")?.boolean() ?: true
+    return qrCodeScanNMM?.nativeFetch("file://permission.sys.dweb/request?permission=${PermissionType.CAMERA.name}")
+      ?.boolean() ?: true
   }
 
   /**

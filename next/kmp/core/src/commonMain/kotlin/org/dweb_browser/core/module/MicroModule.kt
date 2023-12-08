@@ -153,6 +153,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   protected val _ipcSet = mutableSetOf<Ipc>();
 
   fun addToIpcSet(ipc: Ipc): Boolean {
+    debugMicroModule("lin.huang", "addToIpcSet => ${runningStateLock.isResolved}, ${runningStateLock.value}, ${this.mmid}")
     if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
       ipc.readyInMicroModule("addToIpcSet")
     }

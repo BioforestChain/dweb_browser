@@ -22,5 +22,10 @@
         <action android:name="${applicationId}.share" />
       </intent-filter>
     </activity>
+
+    <activity
+      android:name=".permission.PermissionActivity"
+      android:exported="true"
+      android:theme="@style/Theme.DwebBrowser.Transparent" />
   </application>
 </manifest> 

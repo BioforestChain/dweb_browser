@@ -13,9 +13,9 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Switch
@@ -29,15 +29,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.ktor.http.HttpMethod
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.AuthorizationRecord
 import org.dweb_browser.core.std.permission.PermissionHooks
 import org.dweb_browser.core.std.permission.PermissionProvider
+import org.dweb_browser.core.std.permission.PermissionType
+import org.dweb_browser.core.std.permission.debugPermission
 import org.dweb_browser.core.std.permission.permissionStdProtocol
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.sys.window.core.helper.pickLargest
@@ -51,7 +55,7 @@ import org.dweb_browser.sys.window.render.AppIcon
 class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Management") {
   init {
     short_name = "Permission";
-    dweb_protocols = listOf("permission.std.dweb")
+    //dweb_protocols = listOf("permission.std.dweb")
     categories = listOf(
 //      MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,
@@ -192,6 +196,14 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
       }
     }
     permissionStdProtocol(hooks)
+
+    routes(
+      "/request" bind HttpMethod.Get by defineBooleanResponse {
+        debugPermission("request")
+        val permission = request.query("permission")
+        return@defineBooleanResponse requestPermission(PermissionType.valueOf(permission))
+      }
+    )
 
     onRenderer {
       getMainWindow().state.setFromManifest(this@PermissionNMM)
