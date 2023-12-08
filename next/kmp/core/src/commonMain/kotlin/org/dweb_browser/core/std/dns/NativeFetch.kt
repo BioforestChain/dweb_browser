@@ -117,6 +117,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
             }
             // 线程里面的错误需要在线程里捕捉
           } catch (e: Throwable) {
+            debugFetch("httpFetch error", e.stackTraceToString())
             val response = PureResponse(
               HttpStatusCode.ServiceUnavailable,
               body = PureStringBody(request.url.toString() + "\n" + e.stackTraceToString())
