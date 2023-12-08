@@ -2,6 +2,24 @@ import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { SupportedFormat } from "./barcode-scanning.type.ts";
 
+export interface BarcodeResult {
+  data: string;
+  boundingBox: Rect;
+  topLeft: Point;
+  topRight: Point;
+  bottomLeft: Point;
+  bottomRight: Point;
+}
+interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+interface Point {
+  x: number;
+  y: number;
+}
 export class BarcodeScannerPlugin extends BasePlugin {
   constructor() {
     super("barcode-scanning.sys.dweb");
@@ -15,19 +33,38 @@ export class BarcodeScannerPlugin extends BasePlugin {
    * @returns
    */
   @bindThis
-  async process(blob: Blob, rotation = 0, formats = SupportedFormat.QR_CODE): Promise<string[]> {
-    const value = await this.buildApiRequest("/process", {
+  async process(formats = SupportedFormat.QR_CODE) {
+    const wsUrl = await this.buildApiRequest("/process", {
       search: {
-        rotation,
         formats,
       },
-      method: "POST",
-      body: blob,
-    })
-      .fetch()
-      .object<string[]>();
-    const result = Array.from(value ?? []);
-    return result;
+      method: "GET",
+    }).url.replace("http", "ws");
+    const ws = new WebSocket(wsUrl);
+    ws.binaryType = "blob";
+
+    const rotation_ab = new ArrayBuffer(4);
+    const rotation_i32 = new Int32Array(rotation_ab);
+    const controller = {
+      setRotation(rotation: number) {
+        rotation_i32[0] = rotation;
+        ws.send(rotation_ab);
+      },
+      sendImageData(data: Uint8Array | Blob) {
+        ws.send(data);
+      },
+      onmessage: undefined as ((message: BarcodeResult[]) => void) | undefined,
+      stop() {
+        ws.close();
+      },
+    };
+    ws.onmessage = async (ev) => {
+      if (controller.onmessage) {
+        controller.onmessage(JSON.parse(await (ev.data as Blob).text()) as BarcodeResult[]);
+      }
+    };
+
+    return controller;
   }
   /**
    * 停止扫码

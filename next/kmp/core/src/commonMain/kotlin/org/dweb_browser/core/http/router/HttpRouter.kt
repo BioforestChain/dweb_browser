@@ -11,6 +11,7 @@ import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.http.CommonRoute
+import org.dweb_browser.core.std.http.DuplexRoute
 import org.dweb_browser.core.std.http.IRoute
 import org.dweb_browser.core.std.http.MatchMode
 import org.dweb_browser.core.std.http.PathRoute
@@ -151,3 +152,6 @@ infix fun String.by(action: HttpHandlerChain) =
 
 infix fun String.byPrefix(action: HttpHandlerChain) =
   RouteHandler(PathRoute(this, MatchMode.PREFIX), action)
+
+infix fun String.byDuplex(action: HttpHandlerChain) =
+  RouteHandler(DuplexRoute(this, MatchMode.FULL), action)

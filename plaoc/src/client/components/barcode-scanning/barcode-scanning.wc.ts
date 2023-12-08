@@ -1,3 +1,4 @@
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { CameraDirection } from "../camera/camera.type.ts";
 import { CloseWatcher } from "../close-watcher/index.ts";
@@ -81,8 +82,10 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   }
 
   // deno-lint-ignore no-explicit-any
-  private stopCamera(error: any) {
-    console.error(error);
+  private stopCamera(error?: any) {
+    if (error) {
+      console.error(error);
+    }
     this._stop();
   }
 
@@ -90,45 +93,40 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * 不断识图的任务
    * @returns
    */
-  taskPhoto(rotation: number, formats: SupportedFormat): Promise<string[]> {
+  async taskPhoto(rotation: number, formats: SupportedFormat): Promise<string[]> {
     this._activity = true;
-    return new Promise((resolve, reject) => {
-      const task = () => {
-        if (!this._canvas) {
-          console.error("service close！");
-          return resolve([]);
-        }
-        if (!this._activity) {
-          console.error("user close！");
-          return resolve([]);
-        }
-        this._canvas.toBlob(
-          async (imageBlob) => {
+    const task = new PromiseOut<string[]>();
+
+    const canvas = this._canvas;
+    if (!canvas) {
+      console.error("service close！");
+      task.resolve([]);
+    } else if (!this._activity) {
+      console.error("user close！");
+      task.resolve([]);
+    } else {
+      this._activity = true;
+      const controller = await this.plugin.process(formats);
+      controller.setRotation(rotation);
+      controller.onmessage = (message) => {
+        this._activity = false;
+        task.resolve(message.map((it) => it.data));
+        controller.stop();
+        this.stopCamera();
+      };
+      requestAnimationFrame(function getFrameData() {
+        canvas.toBlob(
+          (imageBlob) => {
             if (imageBlob) {
-              const value = await this.plugin
-                .process(imageBlob, rotation, formats)
-                .then((res) => res)
-                .catch((e) => {
-                  this._activity = false;
-                  console.log("process error=>", e);
-                  this.stopScanning();
-                  return reject("502 service error");
-                });
-              const result = Array.from(value ?? []);
-              if (result.length > 0) {
-                this.stopCamera(result);
-                this._activity = false;
-                return resolve(result);
-              }
-              return task();
+              controller.sendImageData(imageBlob);
             }
           },
           "image/jpeg",
           0.5 // lossy compression
         );
-      };
-      task();
-    });
+      });
+    }
+    return task.promise;
   }
 
   /**
