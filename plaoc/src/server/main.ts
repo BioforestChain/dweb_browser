@@ -8,6 +8,7 @@ import "./shim/crypto.shims.ts";
 
 import {
   all_webview_status,
+  apply_window,
   mwebview_activate,
   mwebview_open,
   sync_mwebview_status,
@@ -80,7 +81,9 @@ const main = async () => {
   console.log("open in browser:", indexUrl.href);
   await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
   indexUrlPo.resolve(indexUrl.href);
-  widPo.resolve("renderer");
+  const win_id = await apply_window()
+  console.log("win_id=>",win_id)
+  widPo.resolve(win_id);
   tryOpenView();
   //#endregion
 };

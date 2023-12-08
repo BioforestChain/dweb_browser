@@ -15,7 +15,6 @@ class QRCodeScanNMM : NativeMicroModule("qrcode-scan.browser.dweb", "QRCode-Scan
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    TODO("Not yet implemented")
   }
 
   override suspend fun _shutdown() {

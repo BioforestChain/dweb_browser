@@ -1,5 +1,10 @@
 import { createSignal, jsProcess } from "../deps.ts";
 
+
+export const  apply_window = async () => {
+  return await jsProcess.nativeFetch("file://window.sys.dweb/mainWindow").text()
+}
+
 /**开启新页面 */
 export const mwebview_open = async (wid: string, url: string) => {
   const openUrl = new URL(`file://mwebview.browser.dweb/open`);

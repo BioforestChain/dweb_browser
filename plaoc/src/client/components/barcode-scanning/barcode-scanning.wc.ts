@@ -110,7 +110,8 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
                 .then((res) => res)
                 .catch((e) => {
                   this._activity = false;
-                  console.log("process error=>",e)
+                  console.log("process error=>", e);
+                  this.stopScanning();
                   return reject("502 service error");
                 });
               const result = Array.from(value ?? []);
