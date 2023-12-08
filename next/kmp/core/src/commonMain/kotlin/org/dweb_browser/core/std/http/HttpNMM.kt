@@ -1,5 +1,9 @@
 package org.dweb_browser.core.std.http
 
+import io.ktor.client.plugins.websocket.ws
+import io.ktor.client.plugins.websocket.wss
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.invoke
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -9,6 +13,10 @@ import io.ktor.http.Url
 import io.ktor.http.fullPath
 import io.ktor.http.protocolWithAuthority
 import io.ktor.util.decodeBase64String
+import io.ktor.utils.io.reader
+import io.ktor.websocket.FrameType
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.isWebSocket
@@ -17,6 +25,7 @@ import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
+import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.by
@@ -32,6 +41,7 @@ import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.http.HttpNMM.Companion.dwebServer
 import org.dweb_browser.core.std.http.net.Http1Server
 import org.dweb_browser.helper.SafeHashMap
+import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.falseAlso
@@ -39,6 +49,7 @@ import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.helper.trueAlso
 import kotlin.random.Random
 
 fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
@@ -103,7 +114,50 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       IPureBody.from("no found gateway")
     )
 
+  private suspend fun initHttpListener() {
+    val options = DwebHttpServerOptions("")
+    val selfIpc = connect(mmid)
+    val serverUrlInfo = getServerUrlInfo(selfIpc, options)
+    val listener = Gateway.PortListener(selfIpc, serverUrlInfo.host)
+
+    listener.onDestroy {
+      close(selfIpc, options)
+    }
+    /// ipc 在关闭的时候，自动释放所有的绑定
+    selfIpc.onClose {
+      listener.destroy()
+    }
+
+    selfIpc.onRequest { (ipcRequest, ipc) ->
+      println(ipcRequest.req_id)
+    }
+
+    val token = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
+    val gateway = Gateway(listener, serverUrlInfo, token)
+    gatewayMap[serverUrlInfo.host] = gateway
+    tokenMap[token] = gateway
+
+    val routes = arrayOf(
+      CommonRoute(pathname = "", method = IpcMethod.GET),
+      CommonRoute(pathname = "", method = IpcMethod.POST),
+      CommonRoute(pathname = "", method = IpcMethod.PUT),
+      CommonRoute(pathname = "", method = IpcMethod.DELETE),
+      CommonRoute(pathname = "", method = IpcMethod.OPTIONS),
+      CommonRoute(pathname = "", method = IpcMethod.PATCH),
+      CommonRoute(pathname = "", method = IpcMethod.HEAD),
+      CommonRoute(pathname = "", method = IpcMethod.CONNECT),
+      CommonRoute(pathname = "", method = IpcMethod.TRACE)
+    )
+
+    for (routeConfig in routes) {
+      gateway.listener.addRouter(routeConfig, selfIpc).removeWhen(selfIpc.onClose)
+    }
+  }
+
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    ioAsyncScope.launch {
+      initHttpListener();
+    }
     /// 启动http后端服务
     dwebServer.createServer(
       gatewayHandler = { request ->
@@ -135,6 +189,14 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         request.headers.set("X-Dweb-Host", request.url.run { "$host:$port" })
         // 无需走网络层，直接内部处理掉
         httpHandler(request)
+      } else if ((request.url.protocol == URLProtocol.WS || request.url.protocol == URLProtocol.WSS) && request.url.host.endsWith(
+          ".dweb"
+        )
+      ) {
+        // 头部里添加 X-Dweb-Host
+        request.headers.set("X-Dweb-Host", request.url.run { "$host:$port" })
+        // 无需走网络层，直接内部处理掉
+        httpHandler(request)
       } else null
     }.removeWhen(onAfterShutdown)
 
@@ -156,43 +218,123 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       "/close" bind HttpMethod.Get by defineBooleanResponse {
         close(ipc, request.queryAs())
       },
-      "/websocket" by definePureResponse {
-        TODO("")
-      },
-      "/fetch" by definePureResponse {
-        if (request.url.protocol != URLProtocol.HTTP || request.url.protocol != URLProtocol.HTTPS) {
+      "/websocket" by definePureStreamHandler {
+        debugHttp("websocketxxxx", "xxxx")
+
+        val rawUrl = request.query("url")
+        val url = Url(rawUrl)
+        val protocol = URLProtocol.byName[url.protocol.name]
+
+        if (protocol != URLProtocol.WS && protocol != URLProtocol.WSS) {
           throwException(
             HttpStatusCode.BadRequest,
             "invalid request protocol: ${request.url.protocol.name}"
           )
         }
-        /// 如果是options类型的请求，直接放行，不做任何同域验证
+
+        val deferred = CompletableDeferred<PureStream>()
+
+//        for ((key, value) in request.headers) {
+//          if(key != HttpHeaders.Upgrade) {
+//            httpRequestBuilder.headers.append(key, value)
+//          }
+//        }
+        when (protocol) {
+          URLProtocol.WS -> {
+            httpFetch.client.ws(rawUrl) {
+              reader {
+                deferred.complete(PureStream(channel))
+              }
+            }
+          }
+
+          URLProtocol.WSS -> {
+            httpFetch.client.wss(rawUrl) {
+              reader {
+                for (frame in incoming){
+//                  when(frame.frameType){
+//                    FrameType.TEXT-> {
+////                      frame.data
+//                      frame.data.usePinned {
+//
+//                      }
+//                    }
+//                    FrameType.BINARY -> {}
+//                    FrameType.CLOSE -> {
+//
+//                    }
+//                  }
+
+                  deferred.complete(PureStream(channel))
+                }
+              }
+            }
+          }
+        }
+
+        return@definePureStreamHandler deferred.await()
+      },
+      "/fetch" by definePureResponse {
+        val url = Url(request.query("url"))
         if (request.method == IpcMethod.OPTIONS) {
-          return@definePureResponse httpFetch(request)
+          val requestOrigin = request.headers.get(HttpHeaders.Origin)
+          val requestMethod = request.headers.get(HttpHeaders.AccessControlRequestMethod)
+          val requestHeaders = request.headers.get(HttpHeaders.AccessControlRequestHeaders)
+
+          val optionsHeaders = IpcHeaders();
+          optionsHeaders.set(HttpHeaders.AccessControlAllowCredentials, "true")
+          optionsHeaders.set(HttpHeaders.AccessControlAllowOrigin, requestOrigin!!)
+          optionsHeaders.set(HttpHeaders.AccessControlAllowMethods, requestMethod!!)
+          optionsHeaders.set(HttpHeaders.AccessControlAllowHeaders, requestHeaders!!)
+          return@definePureResponse PureResponse(HttpStatusCode.OK, optionsHeaders)
+        }
+
+        if (url.protocol != URLProtocol.HTTP && url.protocol != URLProtocol.HTTPS) {
+          throwException(
+            HttpStatusCode.BadRequest,
+            "invalid request protocol: ${url.protocol.name}"
+          )
+        }
+        val pureRequest = PureRequest(
+          href = url.toString(),
+          method = request.method,
+          headers = request.headers,
+          body = request.body,
+          from = request.from
+        )
+        /// 如果是options类型的请求，直接放行，不做任何同域验证
+        if (pureRequest.method == IpcMethod.OPTIONS) {
+          return@definePureResponse httpFetch(pureRequest)
         }
         val isSameOrigin =
-          request.url.host.let { host -> host == ipc.remote.mmid || host.endsWith(".${ipc.remote.mmid}") }
+          url.host.let { host -> host == ipc.remote.mmid || host.endsWith(".${ipc.remote.mmid}") }
         /// 否则如果域名，那么才能直接放行
         if (isSameOrigin) {
-          return@definePureResponse httpFetch(request)
+          return@definePureResponse httpFetch(pureRequest)
         }
         /// 如果不是同域，需要进行跨域判定
 
         // 首先根据标准，判断是否需要进行 options 请求请求options获取 allow-method
-        val needPreflightRequest = when (request.method) {
+        val needPreflightRequest = when (pureRequest.method) {
           IpcMethod.GET, IpcMethod.POST, IpcMethod.HEAD -> {
             var isSimple = true
-            for ((key, value) in request.headers) {
-              if (key in preflightRequestHeaderKeys) {
-                isSimple = false
-                break
-              }
+            for ((key, value) in pureRequest.headers) {
+//              if (key in preflightRequestHeaderKeys) {
+//                isSimple = false
+//                break
+//              }
               if (!isSimpleHeader(key, value)) {
                 isSimple = false
                 break
               }
             }
-            isSimple
+
+            // No ReadableStream object is used in the request.
+            if (pureRequest.body is PureStreamBody) {
+              isSimple = false
+            }
+
+            !isSimple
           }
 
           else -> false
@@ -202,8 +344,33 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
          * 如果需要发起“预检请求”，那么根据预检请求返回一个专门用于 cors 的 request 对象
          */
         val corsRequest = if (needPreflightRequest) {
-          val optionsResponse = httpFetch(request.href, IpcMethod.OPTIONS)
+          var accessControlRequestHeaders = ""
+          val needPreflightHeaders = IpcHeaders()
+          for ((key, value) in pureRequest.headers) {
+            if (!isSimpleHeader(key, value)) {
+              accessControlRequestHeaders += "$key,"
+            } else {
+              // CORS-preflight requests must never include credentials.
+              if (key !in credentialsHeaderKeys) {
+                needPreflightHeaders.set(key, value)
+              }
+            }
+          }
 
+          accessControlRequestHeaders.isNotBlank().trueAlso {
+            accessControlRequestHeaders.replaceAfterLast(",", "")
+            needPreflightHeaders.set(
+              HttpHeaders.AccessControlRequestHeaders,
+              accessControlRequestHeaders
+            )
+          }
+          needPreflightHeaders.set(
+            HttpHeaders.AccessControlRequestMethod,
+            pureRequest.method.method
+          )
+
+          val optionsResponse =
+            httpFetch(PureRequest(pureRequest.href, IpcMethod.OPTIONS, needPreflightHeaders))
           val get = optionsResponse.headers::get;
           val allowOrigin = get(HttpHeaders.AccessControlAllowOrigin)
           val allowMethods = get(HttpHeaders.AccessControlAllowMethods)
@@ -216,7 +383,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           when (allowOrigin) {
             null -> false
             "*" -> true
-            else -> allowOrigin.split(",").find { it == request.url.protocolWithAuthority } == null
+            else -> allowOrigin.split(",")
+              .find { it == pureRequest.url.protocolWithAuthority } == null
           }.falseAlso {
             throwException(HttpStatusCode.NotAcceptable, "no-cors by origin")
           }
@@ -233,24 +401,33 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             throwException(HttpStatusCode.NotAcceptable, "no-cors by method")
           }
 
-
-          PureRequest(request.href, request.method, IpcHeaders(request.headers.toList().filter {
-            if (isSimpleHeader(it.first, it.second))
-              true
-            else it.first in allowHeaders
-          }), body = request.body, from = request.from)
+          PureRequest(
+            url.toString(),
+            pureRequest.method,
+            IpcHeaders(pureRequest.headers.toList().filter {
+              if (isSimpleHeader(it.first, it.second))
+                true
+              else it.first in allowHeaders
+            }),
+            body = pureRequest.body,
+            from = pureRequest.from
+          )
         } else {
-          request
+          pureRequest
         }
         // 正式发起请求
         val corsResponse = httpFetch(corsRequest)
         if (corsRequest.headers.has("Cookie") || corsRequest.headers.has("Authorization") && corsResponse.headers.get(
-            "HttpHeaders.AccessControlAllowCredentials"
+            HttpHeaders.AccessControlAllowCredentials
           ) != "true"
         ) {
           throwException(HttpStatusCode.NoContent)
         }
         /// AccessControlExposeHeaders 默认不需要工作
+        val requestOrigin = request.headers.get(HttpHeaders.Origin)
+        corsResponse.headers.set(HttpHeaders.AccessControlAllowOrigin, requestOrigin!!)
+        corsResponse.headers.set(HttpHeaders.AccessControlAllowCredentials, "true")
+
         return@definePureResponse corsResponse
       }
     );
@@ -289,6 +466,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     "DPR",
     "User-Agent",
     /// 这里不支持 X-* 字段，所以不考虑
+  )
+
+  private val credentialsHeaderKeys = setOf(
+    "Cookie",
+    "Authorization"
   )
 
   private val preflightRequestHeaderKeys = setOf(
@@ -403,7 +585,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     debugHttp("LISTEN/start", "host: ${gateway.urlInfo.host}, token: $token")
 
     val streamIpc = ReadableStreamIpc(
-      gateway.listener.ipc.remote, "http-gateway/${gateway.urlInfo.host}"
+      gateway.listener.mainIpc.remote, "http-gateway/${gateway.urlInfo.host}"
     )
     /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
     streamIpc.bindIncomeStream(message.body.toPureStream())

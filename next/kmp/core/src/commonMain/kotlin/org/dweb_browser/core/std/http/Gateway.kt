@@ -15,12 +15,12 @@ class Gateway(
 ) {
 
   class PortListener(
-    val ipc: Ipc, val host: String
+    val mainIpc: Ipc, val host: String
   ) {
     private val _routerSet = mutableSetOf<StreamIpcRouter>();
 
-    fun addRouter(config: CommonRoute, streamIpc: ReadableStreamIpc): () -> Boolean {
-      val route = StreamIpcRouter(config, streamIpc);
+    fun addRouter(config: CommonRoute, ipc: Ipc): () -> Boolean {
+      val route = StreamIpcRouter(config, ipc);
       this._routerSet.add(route)
       return {
         this._routerSet.remove(route)
@@ -47,16 +47,19 @@ class Gateway(
 
     suspend fun destroy() {
       _routerSet.map {
-        it.streamIpc.input.closeRead()
+        when (val ipc = it.ipc) {
+          is ReadableStreamIpc -> ipc.input.closeRead()
+          else -> ipc.close()
+        }
       }
       destroySignal.emit()
     }
   }
 
-  class StreamIpcRouter(val config: CommonRoute, val streamIpc: ReadableStreamIpc) {
+  class StreamIpcRouter(val config: CommonRoute, val ipc: Ipc) {
     suspend fun handler(request: PureRequest) = if (config.isMatch(request)) {
-      streamIpc.request(request)
-    } else if (request.method == IpcMethod.OPTIONS) {
+      ipc.request(request)
+    } else if (request.method == IpcMethod.OPTIONS && request.url.host != "http.std.dweb") {
       // 处理options请求
       PureResponse(HttpStatusCode.OK, IpcHeaders(CORS_HEADERS.toMap()))
     } else null
