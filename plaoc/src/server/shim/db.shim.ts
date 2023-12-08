@@ -1,5 +1,6 @@
 /// <reference lib="dom"/>
 export const setupDB = async (sessionId: string) => {
+  document.currentScript?.parentElement?.removeChild(document.currentScript);
   const KEY = "--plaoc-session-id--";
   if (localStorage.getItem(KEY) !== sessionId) {
     localStorage.clear();
