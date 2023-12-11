@@ -298,7 +298,6 @@ class DWebViewEngine(
       ioScope.launch {
         val response = remoteMM.nativeFetch(url)
         val contentType = response.headers.get(HttpHeaders.ContentType)
-        debugDWebView("xxxxx", "开始加载js $contentType")
         if (contentType?.startsWith("text/html") == true) {
           val documentHtml = remoteMM.nativeFetch(url).body.toPureString()
           super.loadDataWithBaseURL(

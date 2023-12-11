@@ -22,8 +22,8 @@ data class CommonRoute(
     request.href.substring("dweb://".length).split('?', limit = 2)[0]
   } else {
     request.url.encodedPath
-  }.let { target ->
-    PathRoute.isMatch(request, target, matchMode)
+  }.let {
+    PathRoute.isMatch(request, pathname, matchMode)
   }
 
   override fun isMatch(request: PureRequest): Boolean {

@@ -3,11 +3,8 @@
 import { jsonlinesStreamRead } from "helper/stream/jsonlinesStreamHelper.ts";
 
 /// about:newtab
-const BASE_URL =
-  location.protocol === "about:" || location.protocol === "chrome:"
-    ? new URL(`http://browser.dweb.localhost/${location.href.replace(new RegExp(location.protocol + "/+"), "")}`)
-    : new URL(location.href);
-const apiUrl = new URL(BASE_URL.searchParams.get("api-base") ?? BASE_URL);
+
+const apiUrl = new URL(location.origin);
 /**
  * 默认网关是自己
  */
@@ -24,7 +21,7 @@ export const nativeFetch = async <T extends unknown>(pathname: string, init?: $B
   const res = await fetch(...buildApiRequestArgs(pathname, init));
   if (res.ok) {
     const data = await res.json();
-    return (data) as T;
+    return data as T;
   } else {
     const errorCache = await res.text();
     /// 501 Not Implemented

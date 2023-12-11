@@ -175,7 +175,6 @@ class TaskbarController private constructor(
   fun getTaskbarUrl() =
     taskbarServer.startResult.urlInfo.buildInternalUrl().build {
       resolvePath("/taskbar.html")
-      parameters["api-base"] = taskbarServer.startResult.urlInfo.buildPublicUrl().toString()
     }
 
   @Serializable

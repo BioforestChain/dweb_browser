@@ -10,6 +10,7 @@ import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
+import org.dweb_browser.core.http.router.byDuplex
 import org.dweb_browser.core.http.toPure
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcResponse
@@ -228,7 +229,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineJsonResponse desktopController.getDesktopApps().toJsonElement()
       },
       // 监听所有app数据
-      "/desktop/observe/apps" bind HttpMethod.Get by defineJsonLineResponse {
+      "/desktop/observe/apps" byDuplex defineJsonLineResponse {
         desktopController.onUpdate {
           try {
             emit(desktopController.getDesktopApps())
@@ -244,7 +245,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineJsonResponse taskBarController.getTaskbarAppList(limit).toJsonElement()
       },
       // 监听所有taskbar数据
-      "/taskbar/observe/apps" bind HttpMethod.Get by defineJsonLineResponse {
+      "/taskbar/observe/apps" byDuplex defineJsonLineResponse {
         val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
         debugDesk("/taskbar/observe/apps", limit)
         taskBarController.onUpdate {
@@ -257,7 +258,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         taskBarController.updateSignal.emit()
       },
       // 监听所有taskbar状态
-      "/taskbar/observe/status" bind HttpMethod.Get by defineJsonLineResponse {
+      "/taskbar/observe/status" byDuplex defineJsonLineResponse {
         debugDesk("/taskbar/observe/status")
         taskBarController.onStatus { status ->
           emit(status)

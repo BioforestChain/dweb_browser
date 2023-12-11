@@ -185,7 +185,9 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     routes(
       // 使用Duplex打开文件句柄，当这个Duplex关闭的时候，自动释放文件句柄
       "/open" bind HttpMethod.Get by defineCborPackageResponse {
-        val handler = SystemFileSystem.openReadWrite(getPath())
+        val path = getPath()
+        debugFile("/open",path)
+        val handler = SystemFileSystem.openReadWrite(path)
         // TODO 这里需要定义完整的操作指令
         request.body.toPureStream().getReader("open file")
           .consumeEachCborPacket<FileOp<*>> { op ->
@@ -227,7 +229,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       },
       // 创建文件夹
       "/createDir" bind HttpMethod.Post by defineBooleanResponse {
-        SystemFileSystem.createDirectories(getPath(), true)
+        val path = getPath()
+        if (SystemFileSystem.exists(path)) {
+          return@defineBooleanResponse  true
+        }
+        SystemFileSystem.createDirectories(path, true)
         true
       },
       // 列出列表

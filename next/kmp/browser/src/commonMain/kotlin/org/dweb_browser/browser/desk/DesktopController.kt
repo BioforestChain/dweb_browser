@@ -179,7 +179,6 @@ open class DesktopController private constructor(
 
   private fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().build {
     resolvePath("/desktop.html")
-    parameters["api-base"] = desktopServer.startResult.urlInfo.buildPublicUrl().toString()
   }
 
 
