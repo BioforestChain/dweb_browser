@@ -74,7 +74,6 @@ import org.dweb_browser.browser.common.barcode.QRCodeScanView
 import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserBaseView
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.ConstUrl
@@ -94,6 +93,7 @@ import org.dweb_browser.dwebview.rememberLoadingProgress
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.render.NativeBackHandler
 
 internal val dimenTextFieldFontSize = 16.sp
 internal val dimenSearchHorizontalAlign = 5.dp
@@ -124,6 +124,7 @@ fun BrowserViewForWindow(
   val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
   val qrCodeScanModel = remember { QRCodeScanModel() }
   val showSearchView = LocalShowSearchView.current
+  val focusManager = LocalFocusManager.current
 
   viewModel.BrowserSearchConfig() // 用于控制是否显示搜索框
 
@@ -132,22 +133,32 @@ fun BrowserViewForWindow(
     LocalBrowserPageState provides browserPagerState,
     LocalQRCodeModel provides qrCodeScanModel,
   ) {
+    // 窗口 BottomSheet 的按钮
     val win = LocalWindowController.current
-    win.GoBackHandler {
-      val watcher = viewModel.currentTab?.closeWatcher
-      if (watcher?.canClose == true) {
-        showSearchView.value = false
-        scope.launch {
-          watcher.close()
-        }
-      } else {
-        viewModel.currentTab?.viewItem?.webView?.let { webView ->
-          if (webView.canGoBack()) {
-            webView.goBack()
-          }
+    fun backHandler() {
+      val browserWebView = viewModel.currentTab ?: return
+      scope.launch {
+        if (showSearchView.value) { // 如果显示搜索界面，优先关闭搜索界面
+          focusManager.clearFocus()
+          showSearchView.value = false
+        } else if (modalBottomModel.state.value != SheetState.Hidden) {
+          modalBottomModel.hide()
+        } else if (viewModel.showMultiView.targetState) {
+          viewModel.updateMultiViewState(false)
+        } else if (qrCodeScanModel.state.value != QRCodeState.Hide) {
+          qrCodeScanModel.state.value = QRCodeState.Hide
+        } else if (browserWebView.viewItem.webView.canGoBack()) {
+          browserWebView.viewItem.webView.goBack()
+        } else {
+          win.hide()
         }
       }
     }
+
+    // 窗口级返回操作
+    win.GoBackHandler { backHandler() }
+    // 系统级的返回操作
+    NativeBackHandler { backHandler() }
 
     Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
       Box(
