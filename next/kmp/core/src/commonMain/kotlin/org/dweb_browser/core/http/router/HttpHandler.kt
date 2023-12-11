@@ -1,6 +1,8 @@
 package org.dweb_browser.core.http.router
 
 import io.ktor.http.HttpStatusCode
+import org.dweb_browser.core.http.IPureChannel
+import org.dweb_browser.core.http.PureChannelContext
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
@@ -66,4 +68,17 @@ class HttpHandlerChain(val handler: HttpHandler) {
       )
     }
   }
+}
+
+
+interface IChannelHandlerContext : IHandlerContext, IPureChannel {
+  val pureChannelContext: PureChannelContext
+}
+
+open class ChannelHandlerContext(
+  context: IHandlerContext,
+  pureChannel: IPureChannel,
+  override val pureChannelContext: PureChannelContext
+) :
+  IChannelHandlerContext, IHandlerContext by context, IPureChannel by pureChannel {
 }

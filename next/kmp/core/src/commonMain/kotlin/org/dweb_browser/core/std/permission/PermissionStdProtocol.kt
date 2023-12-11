@@ -33,9 +33,11 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
   val permissionTable = PermissionTable(this)
 
   nativeFetchAdaptersManager.append(100) { fromMM, request ->
-    if (request.url.protocol.name == "file" && request.url.host.endsWith(".dweb")
-      // 如果是提供者请求提供者，那么直接跳过，这里只处理客户请求提供者
-      && fromMM.mmid != request.url.host
+    if (
+    // 如果是提供者请求提供者，那么直接跳过，这里只处理客户请求提供者
+      fromMM.mmid != request.url.host &&
+      // 目前只拦截 dweb 协议
+      request.url.protocol.name == "file" && request.url.host.endsWith(".dweb")
     ) {
       for (adapter in permissionAdapterManager.adapters) {
         if (

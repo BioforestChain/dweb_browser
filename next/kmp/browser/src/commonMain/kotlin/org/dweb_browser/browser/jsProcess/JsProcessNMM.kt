@@ -226,7 +226,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         request.req_id,
         // 转发给远端来处理
         /// TODO 对代码进行翻译处理
-        streamIpc.request(request.toRequest()).let {
+        streamIpc.request(request.toPure(true)).let {
           /// 加入跨域配置
           val response = it;
           for ((key, value) in JS_CORS_HEADERS) {

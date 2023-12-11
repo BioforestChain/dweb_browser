@@ -4,19 +4,25 @@ package org.dweb_browser.helper
 
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlin.coroutines.coroutineContext
 
 class SuspendOnce<R>(val runnable: suspend () -> R) {
   private val hasRun = atomic(false)
-  private var result: Any? = null
+  private lateinit var result: Deferred<R>
   val haveRun get() = hasRun.value
   suspend operator fun invoke(): R {
     hasRun.update { run ->
       if (!run) {
-        result = runnable()
+        result = CoroutineScope(coroutineContext).async {
+          runnable()
+        }
       }
       true
     }
-    return result as R
+    return result.await()
   }
 }
 

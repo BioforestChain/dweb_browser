@@ -112,8 +112,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
           var response: PureResponse? = null
           if (routers != null) for (router in routers) {
-            val res = router.withFilter(ipcRequest)
-              ?.invoke(HandlerContext(ipcRequest.toRequest(), clientIpc));
+            val pureRequest = ipcRequest.toPure(false)
+            val res = router.withFilter(pureRequest)
+              ?.invoke(HandlerContext(pureRequest, clientIpc));
             if (res != null) {
               response = res
               break

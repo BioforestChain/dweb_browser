@@ -17,21 +17,27 @@ import kotlin.reflect.KProperty
  * val id = ++idAcc
  */
 class SafeInt(
-  private var value: Int = 0,
+  private var field: Int = 0,
 ) {
   private val sync: SynchronizedObject = SynchronizedObject()
 
-  operator fun getValue(thisRef: Any?, property: KProperty<*>) = synchronized(sync) { value }
+  operator fun getValue(thisRef: Any?, property: KProperty<*>) = value
 
   operator fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) = synchronized(sync) {
-    this.value = value
+    this.field = value
   }
 
-  operator fun inc() = synchronized(sync) { value++;this }
-  operator fun dec() = synchronized(sync) { value--;this }
+  val value get() = synchronized(sync) { field }
+
+  operator fun inc() = synchronized(sync) { field++;this }
+  operator fun dec() = synchronized(sync) { field--;this }
   override fun equals(other: Any?): Boolean = when (other) {
-    is SafeInt -> other.value == value
-    is Number -> other == value
+    is SafeInt -> other.field == field
+    is Number -> other == field
     else -> false
+  }
+
+  override fun hashCode(): Int {
+    return value
   }
 }

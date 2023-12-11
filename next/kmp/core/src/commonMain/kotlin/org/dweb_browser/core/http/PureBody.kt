@@ -56,7 +56,7 @@ sealed interface IPureBody {
   }
 }
 
-class PureBinaryBody(private val data: PureBinary) : IPureBody {
+class PureBinaryBody(val data: PureBinary) : IPureBody {
   override val contentLength
     get() = data.size.toLong()
 
@@ -68,26 +68,35 @@ class PureBinaryBody(private val data: PureBinary) : IPureBody {
   override suspend fun toPureString() = data.toUtf8()
 }
 
-class PureStreamBody(private val stream: PureStream) : IPureBody {
+class PureStreamBody(val stream: PureStream) : IPureBody {
   constructor(stream: ByteReadChannel) : this(PureStream(stream))
-  constructor(binary: ByteArray) : this(ByteReadChannel(binary))
+  constructor(binary: ByteArray) : this(ByteReadChannel(binary)) {
+    byteArray = binary
+  }
 
-  override val contentLength = null
+  override var contentLength: Long? = null
+    private set
 
   override fun toPureStream() = stream
 
   private var byteArray: ByteArray? = null
+    set(value) {
+      field = value
+      contentLength = value?.size?.toLong()
+    }
   private val lock = Mutex()
   override suspend fun toPureBinary() = lock.withLock {
     byteArray ?: stream.getReader("PureStreamBody toPureBinary").toByteArray()
-      .also { byteArray = it }
+      .also {
+        byteArray = it;
+      }
   }
 
   override suspend fun toPureString() = toPureBinary().toUtf8()
 }
 
 
-class PureStringBody(private val data: PureString) : IPureBody {
+class PureStringBody(val data: PureString) : IPureBody {
 
   override val contentLength: Long
     get() = data.length.toLong()
@@ -118,3 +127,4 @@ class PureEmptyBody : IPureBody {
     private val emptyByteArray = ByteArray(0)
   }
 }
+

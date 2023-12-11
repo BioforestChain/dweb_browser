@@ -181,7 +181,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           withContext(ioAsyncExceptionHandler) {
             /// 在js-worker一侧：与其它模块的通讯，统一使用 connect 之后再发送 request 来实现。
             // 转发请求
-            val request = ipcRequest.toRequest()
+            val request = ipcRequest.toPure(true)
             val response = nativeFetch(request)
             val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
             ipc.postMessage(ipcResponse)

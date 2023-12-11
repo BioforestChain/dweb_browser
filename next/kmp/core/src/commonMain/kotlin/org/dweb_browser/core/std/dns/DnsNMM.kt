@@ -19,8 +19,10 @@ import org.dweb_browser.core.help.types.MPID
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
+import org.dweb_browser.core.http.PureUrl
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
+import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
@@ -260,8 +262,8 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       } else null
     }.removeWhen(this.onAfterShutdown)
 
-    val queryAppId = PureRequest.query("app_id")
-    val queryCategory = PureRequest.query("category")
+    val queryAppId = PureUrl.query("app_id")
+    val queryCategory = PureUrl.query("category")
     val openApp = defineBooleanResponse {
       val mmid = request.queryAppId()
       debugDNS("open/$mmid", request.url.fullPath)
@@ -294,24 +296,24 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         manifests.toJsonElement()
       },
       //
-      "/observe/install-apps" bind HttpMethod.Get by defineJsonLineResponse {
+      "/observe/install-apps" byChannel { ctx ->
         allApps.onChange { changes ->
-          emit(
+          ctx.sendJsonLine(
             ChangeState(
               changes.adds, changes.updates, changes.removes
             )
           )
-        }.removeWhen(onDispose)
+        }.removeWhen(onClose)
       },
       //
-      "/observe/running-apps" bind HttpMethod.Get by defineJsonLineResponse {
+      "/observe/running-apps" byChannel {ctx ->
         _runningApps.onChange { changes ->
-          emit(
+          ctx.sendJsonLine(
             ChangeState(
               changes.adds, changes.updates, changes.removes
             )
           )
-        }
+        }.removeWhen(onClose)
       })
     /// 启动 boot 模块
     val bootIpc = connect("boot.sys.dweb");

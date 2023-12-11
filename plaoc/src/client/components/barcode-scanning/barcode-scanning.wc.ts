@@ -97,8 +97,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     this._activity = true;
     const task = new PromiseOut<string[]>();
 
-    const canvas = this._canvas;
-    if (!canvas) {
+    if (!this._canvas) {
       console.error("service close！");
       task.resolve([]);
     } else if (!this._activity) {
@@ -114,16 +113,22 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
         controller.stop();
         this.stopCamera();
       };
+      // deno-lint-ignore no-this-alias
+      const self = this;
       requestAnimationFrame(function getFrameData() {
-        canvas.toBlob(
-          (imageBlob) => {
-            if (imageBlob) {
-              controller.sendImageData(imageBlob);
-            }
-          },
-          "image/jpeg",
-          0.5 // lossy compression
-        );
+        const canvas = self._canvas;
+        if (canvas) {
+          canvas.toBlob(
+            (imageBlob) => {
+              if (imageBlob) {
+                controller.sendImageData(imageBlob);
+              }
+            },
+            "image/jpeg",
+            0.8 // lossy compression
+          );
+          setTimeout(getFrameData, 100);
+        }
       });
     }
     return task.promise;

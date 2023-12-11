@@ -3,12 +3,11 @@ package org.dweb_browser.core.http.router
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.PureChannelContext
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.toPure
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
-import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.http.CommonRoute
 import org.dweb_browser.core.std.http.DuplexRoute
@@ -38,9 +37,9 @@ class HttpRouter(private val mm: MicroModule) {
     }
   }
 
-  fun withFilter(request: IpcRequest): HttpHandlerChain? {
+  suspend fun withFilter(request: PureRequest): HttpHandlerChain? {
     for ((config, handler) in routes) {
-      if (config.isMatch(request.toPure())) {
+      if (config.isMatch(request)) {
         return handler
       }
     }
@@ -153,5 +152,17 @@ infix fun String.by(action: HttpHandlerChain) =
 infix fun String.byPrefix(action: HttpHandlerChain) =
   RouteHandler(PathRoute(this, MatchMode.PREFIX), action)
 
-infix fun String.byDuplex(action: HttpHandlerChain) =
-  RouteHandler(DuplexRoute(this, MatchMode.FULL), action)
+infix fun String.byChannel(
+  by: suspend IChannelHandlerContext.(PureChannelContext) -> Unit
+) = RouteHandler(
+  DuplexRoute(this, MatchMode.FULL),
+  HttpHandlerChain {
+    request.byChannel {
+      val ctx = ChannelHandlerContext(
+        this@HttpHandlerChain,
+        this,
+        start(),
+      )
+      ctx.by(ctx.pureChannelContext)
+    }
+  })

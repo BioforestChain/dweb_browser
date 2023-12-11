@@ -12,9 +12,12 @@ import okio.Path.Companion.toPath
 import okio.buffer
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.http.PureStream
+import org.dweb_browser.core.http.queryAsOrNull
+import org.dweb_browser.core.http.router.IChannelHandlerContext
 import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
@@ -332,17 +335,17 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         )
         true
       },
-      "/watch" bind HttpMethod.Get by defineJsonLineResponse {
+      "/watch" byChannel {
         val vfsPath = getVfsPath()
         val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
 
         // TODO 开启文件监听，将这个路径添加到监听列表中
 
         if (request.queryAsOrNull<Boolean>("first") != false) {
-          emitPath(FileWatchEventName.First, vfsPath.fsFullPath, vfsPath);
+          sendPath(FileWatchEventName.First, vfsPath.fsFullPath, vfsPath);
           if (recursive) {
             for (childPath in SystemFileSystem.listRecursively(vfsPath.fsFullPath)) {
-              emitPath(FileWatchEventName.First, childPath, vfsPath)
+              sendPath(FileWatchEventName.First, childPath, vfsPath)
             }
           }
         }
@@ -397,10 +400,10 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     val path: String,
   )
 
-  suspend fun JsonLineHandlerContext.emitPath(
+  suspend fun IChannelHandlerContext.sendPath(
     type: FileWatchEventName, path: Path, vfsPath: VirtualFsPath
   ) {
-    emit(
+    pureChannelContext.sendJsonLine(
       FileWatchEvent(
         type,
         vfsPath.toVirtualPathString(path),

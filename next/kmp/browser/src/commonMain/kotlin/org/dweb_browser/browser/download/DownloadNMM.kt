@@ -4,7 +4,9 @@ import io.ktor.http.HttpMethod
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.queryAs
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -66,22 +68,22 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       // 开始/恢复 下载
       "/start" bind HttpMethod.Get by defineBooleanResponse {
         val taskId = request.query("taskId")
-        debugDownload("/start", "$taskId")
+        debugDownload("/start", taskId)
         val task = controller.downloadManagers.get(taskId) ?: return@defineBooleanResponse false
         controller.startDownload(task)
       },
       // 监控下载进度
-      "/watch/progress" bind HttpMethod.Get by defineJsonLineResponse {
+      "/watch/progress" byChannel { ctx ->
         val taskId = request.query("taskId")
         val downloadTask = controller.downloadManagers.get(taskId)
-          ?: return@defineJsonLineResponse emit("not Found download task!")
+          ?: return@byChannel close(Throwable("not Found download task!"))
         debugDownload("/watch/progress", "taskId=$taskId")
         // 给别人的需要给picker地址
         val pickFilepath =
           nativeFetch("file://file.std.dweb/picker?path=${downloadTask.filepath}").text()
         downloadTask.onDownload {
-          emit(it.copy(filepath = pickFilepath))
-        }
+          ctx.sendJsonLine(it.copy(filepath = pickFilepath))
+        }.removeWhen(onClose)
         downloadTask.downloadSignal.emit(downloadTask)
       },
       // 暂停下载

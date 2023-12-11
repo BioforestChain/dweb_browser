@@ -18,6 +18,7 @@ import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.http.PureStringBody
+import org.dweb_browser.core.http.queryAs
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.by
 import org.dweb_browser.core.ipc.Ipc
@@ -31,18 +32,17 @@ import org.dweb_browser.core.std.dns.httpFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.http.HttpNMM.Companion.dwebServer
 import org.dweb_browser.core.std.http.net.Http1Server
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.falseAlso
-import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.helper.toJsonElement
 import kotlin.random.Random
 
-fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
-  printDebug("http", tag, msg, err)
+val debugHttp = Debugger("http")
 
 
 class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {

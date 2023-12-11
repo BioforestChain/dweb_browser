@@ -7,11 +7,12 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
+import org.dweb_browser.core.http.queryAs
+import org.dweb_browser.core.http.queryAsOrNull
 import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
-import org.dweb_browser.core.http.router.byDuplex
-import org.dweb_browser.core.http.toPure
+import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
@@ -229,14 +230,20 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineJsonResponse desktopController.getDesktopApps().toJsonElement()
       },
       // 监听所有app数据
-      "/desktop/observe/apps" byDuplex defineJsonLineResponse {
-        desktopController.onUpdate {
+      "/desktop/observe/apps" byChannel { ctx ->
+        val off = desktopController.onUpdate {
+          debugDesk("/desktop/observe/apps", "onUpdate")
           try {
-            emit(desktopController.getDesktopApps())
+            val apps = desktopController.getDesktopApps()
+            debugDesk("/desktop/observe/apps") { "apps:$apps" }
+            ctx.sendJsonLine(desktopController.getDesktopApps())
           } catch (e: Throwable) {
-            end(reason = e)
+            close(cause = e)
           }
-        }.removeWhen(onDispose)
+        }
+        onClose {
+          off()
+        }
         desktopController.updateSignal.emit()
       },
       // 获取所有taskbar数据
@@ -245,24 +252,29 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineJsonResponse taskBarController.getTaskbarAppList(limit).toJsonElement()
       },
       // 监听所有taskbar数据
-      "/taskbar/observe/apps" byDuplex defineJsonLineResponse {
+      "/taskbar/observe/apps" byChannel { ctx ->
         val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
         debugDesk("/taskbar/observe/apps", limit)
+        val pureChannel = ctx.getChannel()
         taskBarController.onUpdate {
           try {
-            emit(taskBarController.getTaskbarAppList(limit))
+            debugDesk("/taskbar/observe/apps") { "onUpdate $pureChannel=>${request.body.toPureString()}" }
+            val apps = taskBarController.getTaskbarAppList(limit)
+            debugDesk("/taskbar/observe/apps") { "apps:$apps" }
+            ctx.sendJsonLine(apps)
           } catch (e: Exception) {
-            end(reason = e)
+            close(cause = e)
           }
-        }.removeWhen(onDispose)
+        }.removeWhen(onClose)
+        debugDesk("/taskbar/observe/apps") { "firstEmit $pureChannel=>${request.body.toPureString()}" }
         taskBarController.updateSignal.emit()
       },
       // 监听所有taskbar状态
-      "/taskbar/observe/status" byDuplex defineJsonLineResponse {
+      "/taskbar/observe/status" byChannel { ctx ->
         debugDesk("/taskbar/observe/status")
         taskBarController.onStatus { status ->
-          emit(status)
-        }.removeWhen(onDispose)
+          ctx.sendJsonLine(status)
+        }.removeWhen(onClose)
       },
       // 负责resize taskbar大小
       "/taskbar/resize" bind HttpMethod.Get by defineJsonResponse {
@@ -309,7 +321,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       } else {
         "file:///sys/browser/desk${pathName}?mode=stream"
       }
-      val response = nativeFetch(request.toPure().copy(href = url))
+      val response = nativeFetch(request.toPure(true).copy(href = url))
       ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
     }
     return taskbarServer
@@ -326,7 +338,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       } else {
         "file:///sys/browser/desk${request.uri.encodedPath}?mode=stream"
       }
-      val response = nativeFetch(request.toPure().copy(href = url))
+      val response = nativeFetch(request.toPure(true).copy(href = url))
       ipc.postMessage(
         IpcResponse.fromResponse(
           request.req_id, PureResponse.build(response) { appendHeaders(CORS_HEADERS) }, ipc

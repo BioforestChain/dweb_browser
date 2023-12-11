@@ -96,7 +96,7 @@ class IpcResponse(
     )
   }
 
-  fun toResponse() =
+  fun toPure() =
     PureResponse(HttpStatusCode.fromValue(statusCode), this.headers, body = body.raw)
 
   val ipcResMessage by lazy {

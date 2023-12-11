@@ -8,6 +8,7 @@ fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   kotlinOptions {
     freeCompilerArgs += "-Xexpect-actual-classes"
 //    freeCompilerArgs += "-Xallocator=std"
+//    freeCompilerArgs += "-Xcontext-receivers"
   }
 }
 

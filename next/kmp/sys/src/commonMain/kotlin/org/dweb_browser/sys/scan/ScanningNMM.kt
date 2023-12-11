@@ -2,13 +2,13 @@ package org.dweb_browser.sys.scan
 
 import io.ktor.http.HttpMethod
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.PureBinaryFrame
+import org.dweb_browser.core.http.PureTextFrame
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.core.http.router.byDuplex
+import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.toInt
 import org.dweb_browser.helper.toJsonElement
 
 fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -23,21 +23,21 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val scanningManager = ScanningManager()
     routes(
-      "/process" byDuplex defineJsonLineResponse {
+      "/process" byChannel { ctx ->
         var rotation = 0;
-        request.body.toPureStream().getReader("barcode-scanning")
-          .consumeEachArrayRange { byteArray, last ->
-            if (byteArray.size == 4) {
-              rotation = byteArray.toInt()
-            } else {
+        for (frame in ctx) {
+          when (frame) {
+            is PureTextFrame -> rotation = frame.data.toInt();
+            is PureBinaryFrame -> {
               val result = scanningManager.recognize(
-                byteArray,
+                frame.data,
                 rotation
               );
               // 不论 result 是否为空数组，都进行响应
-              emit(result.toJsonElement())
+              ctx.sendJson(result)
             }
           }
+        }
       },
       // 处理二维码图像
       "/process" bind HttpMethod.Post by defineJsonResponse {

@@ -2,7 +2,9 @@ package org.dweb_browser.browser.desk
 
 import io.ktor.http.HttpMethod
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.http.queryAs
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.toJsonElement
@@ -40,18 +42,18 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
         getAppMainWindow(ipc).removeModal(this@windowProtocol, request.query("modalId"))
       },
       /** 窗口的状态监听 */
-      "/observe" bind HttpMethod.Get by defineJsonLineResponse {
+      "/observe" byChannel { ctx ->
         val win = getWindow()
         debugWindow("/observe", "wid: ${win.id} ,mmid: ${ipc.remote.mmid}")
         win.state.observable.onChange {
           try {
-            emit(win.state.toJsonElement())
+            ctx.sendJsonLine(win.state.toJsonElement())
           } catch (e: Exception) {
             e.printStackTrace()
-            end()
+            close(cause = e)
           }
         }.also {
-          it.removeWhen(onDispose)
+          it.removeWhen(onClose)
           it.emitSelf(
             Observable.Change(
               WindowPropertyKeys.Constants, null, null

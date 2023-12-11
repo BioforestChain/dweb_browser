@@ -28,7 +28,7 @@ fun ByteReadPacket.readInt(): Int {
     throw Exception("fail to read int($readLen/4 byte) in stream")
   }
 
-  return bytes.toInt()
+  return bytes.toLittleEndianInt()
 }
 
 fun ByteReadPacket.readByteArray(size: Int): ByteArray {
@@ -46,16 +46,16 @@ fun String.toUtf8ByteArray(): ByteArray = this.encodeToByteArray()
 /**
  * Converts 4 [Byte]s with [LITTLE_ENDIAN] ordering to a [Int]
  * */
-fun bytesToInt(b0: Byte, b1: Byte, b2: Byte, b3: Byte): Int {
+fun bytesToLittleEndianInt(b0: Byte, b1: Byte, b2: Byte, b3: Byte): Int {
   return ((b0.toInt() and 0xff)) or
       ((b1.toInt() and 0xff) shl 8) or
       ((b2.toInt() and 0xff) shl 16) or
       ((b3.toInt()) shl 24)
 }
 
-fun ByteArray.toInt(): Int {
+fun ByteArray.toLittleEndianInt(): Int {
   if (this.size == 4) {
-    return bytesToInt(this[0], this[1], this[2], this[3])
+    return bytesToLittleEndianInt(this[0], this[1], this[2], this[3])
   }
 
   throw Exception("bytearray is not 4 byte to ordering to a int")

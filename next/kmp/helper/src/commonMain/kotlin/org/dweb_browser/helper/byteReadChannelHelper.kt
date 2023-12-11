@@ -64,7 +64,7 @@ suspend inline fun ByteReadChannel.consumeEachByteArrayPacket(visitor: ChannelCo
   while (controller.continueFlag) {
     val sizePacket = readPacket(4)
     val sizeBytes = sizePacket.readByteArray()
-    val size = sizeBytes.toInt()
+    val size = sizeBytes.toLittleEndianInt()
     val packet = readPacket(size)
     controller.visitor(packet.readByteArray())
   }

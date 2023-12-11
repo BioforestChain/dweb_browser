@@ -1,8 +1,8 @@
 package org.dweb_browser.sys.motionSensors
 
-import io.ktor.http.HttpMethod
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.http.queryAsOrNull
+import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 
@@ -15,30 +15,30 @@ class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Se
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       // 获取加速计 (push模式)
-      "/observe/accelerometer" bind HttpMethod.Get by defineJsonLineResponse {
+      "/observe/accelerometer" byChannel { ctx ->
         val interval = request.queryAsOrNull<Int>("interval")
         val motionSensors = MotionSensorsApi(this@MotionSensorsNMM)
         motionSensors.startAccelerometerListener(interval)
 
         motionSensors.onAccelerometerChanges {
-          emit(it)
+          ctx.sendJsonLine(it)
         }
 
-        onDispose {
+        onClose {
           motionSensors.unregisterListener()
         }
       },
       // 获取陀螺仪 (push模式)
-      "/observe/gyroscope" bind HttpMethod.Get by defineJsonLineResponse {
+      "/observe/gyroscope" byChannel { ctx ->
         val motionSensors = MotionSensorsApi(this@MotionSensorsNMM)
         val interval = request.queryAsOrNull<Int>("interval")
 
         motionSensors.startGyroscopeListener(interval)
         motionSensors.onGyroscopeChanges {
-          emit(it)
+          ctx.sendJsonLine(it)
         }
 
-        onDispose {
+        onClose {
           motionSensors.unregisterListener()
         }
       }).cors()

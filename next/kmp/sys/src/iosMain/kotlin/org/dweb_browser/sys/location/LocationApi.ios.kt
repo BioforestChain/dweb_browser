@@ -23,15 +23,20 @@ actual class LocationApi {
   actual suspend fun getCurrentLocation(): GeolocationPosition {
     val promiseOut = PromiseOut<GeolocationPosition>()
     DwebLocationRequestApi().requestLocationWithCompleted { location, code, error ->
-        val geolocation = location as platform.CoreLocation.CLLocation?
-        val geo = iOSLocationConvertToGeoGeolocationPosition(geolocation, code.toInt(), error)
-        promiseOut.resolve(geo)
-      }
+      val geolocation = location as platform.CoreLocation.CLLocation?
+      val geo = iOSLocationConvertToGeoGeolocationPosition(geolocation, code.toInt(), error)
+      promiseOut.resolve(geo)
+    }
     return promiseOut.waitPromise()
   }
 
+  // TODO 这里没有看到任何对于异常情况自动解除监听的行为
   @OptIn(ExperimentalForeignApi::class)
-  actual suspend fun observeLocation(mmid: MMID, fps: Int, callback: suspend (GeolocationPosition) -> Boolean) {
+  actual suspend fun observeLocation(
+    mmid: MMID,
+    fps: Int,
+    callback: suspend (GeolocationPosition) -> Boolean
+  ) {
     DwebLocationRequestApi().requestTrack(mmid, fps.toLong()) { location, code, error ->
       val geolocation = location as platform.CoreLocation.CLLocation?
       val geo = iOSLocationConvertToGeoGeolocationPosition(geolocation, code.toInt(), error)
@@ -50,13 +55,17 @@ actual class LocationApi {
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  fun iOSLocationConvertToGeoGeolocationPosition(location: CLLocation?, code: Int, msg: String?): GeolocationPosition {
+  fun iOSLocationConvertToGeoGeolocationPosition(
+    location: CLLocation?,
+    code: Int,
+    msg: String?
+  ): GeolocationPosition {
 
     val state = when (code) {
-      0-> GeolocationPositionState.Success
-      1-> GeolocationPositionState.PERMISSION_DENIED
-      2-> GeolocationPositionState.POSITION_UNAVAILABLE
-      3-> GeolocationPositionState.TIMEOUT
+      0 -> GeolocationPositionState.Success
+      1 -> GeolocationPositionState.PERMISSION_DENIED
+      2 -> GeolocationPositionState.POSITION_UNAVAILABLE
+      3 -> GeolocationPositionState.TIMEOUT
       else -> GeolocationPositionState.createOther(msg)
     }
 
@@ -64,7 +73,7 @@ actual class LocationApi {
     var time: Long = 0
 
     location?.let {
-      val accuracy =  maxOf(location.horizontalAccuracy, location.verticalAccuracy)
+      val accuracy = maxOf(location.horizontalAccuracy, location.verticalAccuracy)
       val latitude = location!!.coordinate.useContents {
         this.latitude
       }
@@ -82,6 +91,6 @@ actual class LocationApi {
       time = location!!.timestamp.timeIntervalSince1970().toLong()
     }
 
-    return  GeolocationPosition(state, coords, time)
+    return GeolocationPosition(state, coords, time)
   }
 }

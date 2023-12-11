@@ -4,6 +4,7 @@ import io.ktor.http.HttpMethod
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.PermissionType
@@ -33,7 +34,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
         debugLocation("location", "enter")
         locationApi.getCurrentLocation().toJsonElement()
       },
-      "/observe" bind HttpMethod.Get by defineJsonLineResponse {
+      "/observe" byChannel { ctx ->
         debugLocation("observe", "enter")
         val remoteMmid = ipc.remote.mmid
         val fps = try {
@@ -44,16 +45,19 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
         }
         locationApi.observeLocation(remoteMmid, fps) {
           try {
-            emit(it.toJsonElement())
+            ctx.sendJsonLine(it.toJsonElement())
             true // 这边表示正常，继续监听
           } catch (e: Exception) {
             debugLocation("observe", e.message ?: "close observe")
-            end()
+            close(cause = e)
             false // 这边表示异常，关闭监听
           }
         }
+        onClose {
+          locationApi.removeLocationObserve(remoteMmid)
+        }
       },
-      "/removeObserve" bind HttpMethod.Get by defineJsonLineResponse {
+      "/removeObserve" bind HttpMethod.Get by defineEmptyResponse {
         debugLocation("removeObserve", "enter")
         val remoteMmid = ipc.remote.mmid
         locationApi.removeLocationObserve(remoteMmid)

@@ -152,18 +152,24 @@ fun addDebugTags(tags: Iterable<String>) {
   }
 }
 
+fun isScopeEnableDebug(scope: String) =
+  debugTags.contains(scope) || debugTagsRegex.firstOrNull { regex -> regex.matches(scope) } != null
 
-fun printDebug(scope: String, tag: String, message: Any?, err: Throwable? = null) {
-  if (err == null && !debugTags.contains(scope) && debugTagsRegex.firstOrNull { regex ->
-      regex.matches(
-        scope
-      )
-    } == null) {
+fun printDebug(scope: String, tag: String, message: Any?, error: Throwable? = null) {
+  if (error == null && !isScopeEnableDebug(scope)) {
     return
   }
-  var msg = message
-  if (msg is Lazy<*>) {
-    msg = msg.value
+  var err = error;
+  val msg = when (message) {
+    is Lazy<*> -> {
+      try {
+        message.value
+      } catch (e: Throwable) {
+        err = e
+      }
+    }
+
+    else -> message
   }
   printError("${now()} | ${scope.padEndAndSub(16)} | ${tag.padEndAndSub(22)} |", msg, err)
 }
@@ -175,6 +181,19 @@ fun String.padEndAndSub(length: Int): String {
 class Debugger(val scope: String) {
   operator fun invoke(tag: String, msg: Any = "", err: Throwable? = null) {
     printDebug(scope, tag, msg, err)
+  }
+
+  inline operator fun invoke(tag: String, msgGetter: () -> Any?) {
+    if (isScopeEnableDebug(scope)) {
+      var error: Throwable? = null
+      val msg = try {
+        msgGetter()
+      } catch (e: Throwable) {
+        error = e
+        null
+      }
+      printDebug(scope, tag, msg, error)
+    }
   }
 
   val isEnable

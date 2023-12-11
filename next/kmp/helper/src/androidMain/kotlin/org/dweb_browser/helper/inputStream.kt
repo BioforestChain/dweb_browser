@@ -17,7 +17,7 @@ fun InputStream.readInt(): Int {
   if (readLen < 4) {
     throw Exception("fail to read int($readLen/4 byte) in stream")
   }
-  return bytes.toInt()
+  return bytes.toLittleEndianInt()
 }
 
 fun InputStream.readByteArray(size: Int): ByteArray {
