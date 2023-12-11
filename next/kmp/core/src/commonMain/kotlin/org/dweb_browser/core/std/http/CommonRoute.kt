@@ -18,13 +18,8 @@ data class CommonRoute(
   private fun protocolMatcher(request: PureRequest) =
     if (dwebDeeplink) request.href.startsWith("dweb:") else true
 
-  private fun pathnameMatcher(request: PureRequest) = if (dwebDeeplink) {
-    request.href.substring("dweb://".length).split('?', limit = 2)[0]
-  } else {
-    request.url.encodedPath
-  }.let {
-    PathRoute.isMatch(request, pathname, matchMode)
-  }
+  private fun pathnameMatcher(request: PureRequest) =
+    PathRoute.isMatch(request, pathname, matchMode, dwebDeeplink)
 
   override fun isMatch(request: PureRequest): Boolean {
     return methodMatcher(request)
@@ -39,25 +34,38 @@ data class CommonRoute(
 }
 
 @Serializable
-data class PathRoute(val pathname: String, val matchMode: MatchMode = MatchMode.PREFIX) : IRoute {
+data class PathRoute(
+  val pathname: String,
+  val matchMode: MatchMode = MatchMode.PREFIX,
+  val dwebDeeplink: Boolean = false
+) : IRoute {
   companion object {
-    fun isMatch(request: PureRequest, pathname: String, matchMode: MatchMode) =
-      request.url.encodedPath.let { target ->
-        when (matchMode) {
-          MatchMode.PREFIX -> target.startsWith(pathname)
-          MatchMode.FULL -> target == pathname
-        }
+    fun isMatch(
+      request: PureRequest,
+      pathname: String,
+      matchMode: MatchMode,
+      dwebDeeplink: Boolean
+    ) = if (dwebDeeplink) {
+      request.href.substring("dweb://".length).split('?', limit = 2)[0]
+    } else {
+      request.url.encodedPath
+    }.let { target ->
+      when (matchMode) {
+        MatchMode.PREFIX -> target.startsWith(pathname)
+        MatchMode.FULL -> target == pathname
       }
+    }
   }
 
-  override fun isMatch(request: PureRequest) = PathRoute.isMatch(request, pathname, matchMode)
+  override fun isMatch(request: PureRequest) =
+    isMatch(request, pathname, matchMode, dwebDeeplink)
 }
 
 @Serializable
 data class DuplexRoute(val pathname: String, val matchMode: MatchMode = MatchMode.PREFIX) :
   IRoute {
   override fun isMatch(request: PureRequest) =
-    request.isWebSocket() && PathRoute.isMatch(request, pathname, matchMode)
+    request.isWebSocket() && PathRoute.isMatch(request, pathname, matchMode, false)
 }
 
 interface IRoute {
