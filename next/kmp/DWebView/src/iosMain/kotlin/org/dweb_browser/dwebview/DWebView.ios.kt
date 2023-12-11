@@ -12,6 +12,7 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.platform.setScale
+import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
@@ -257,6 +258,26 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
     withMainContext {
       val arguments = mutableMapOf<NSString, NSObject>().apply {
         put(NSString.create(string = "data"), NSString.create(string = data))
+        put(NSString.create(string = "ports"), NSArray.create(portIdList))
+      }
+      engine.callAsyncJavaScript<Unit>(
+        "nativeWindowPostMessage(data,ports)",
+        arguments.toMap(),
+        null,
+        DWebViewWebMessage.webMessagePortContentWorld
+      )
+    }
+  }
+
+  @OptIn(BetaInteropApi::class)
+  override suspend fun postMessage(data: ByteArray, ports: List<IWebMessagePort>) {
+    val portIdList = ports.map {
+      require(it is DWebMessagePort)
+      it.portId
+    }
+    withMainContext {
+      val arguments = mutableMapOf<NSString, NSObject>().apply {
+        put(NSString.create(string = "data"), NSString.create(string = data.toUtf8()))
         put(NSString.create(string = "ports"), NSArray.create(portIdList))
       }
       engine.callAsyncJavaScript<Unit>(

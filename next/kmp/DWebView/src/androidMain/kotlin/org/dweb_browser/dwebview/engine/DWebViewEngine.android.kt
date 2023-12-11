@@ -300,13 +300,15 @@ class DWebViewEngine(
         val contentType = response.headers.get(HttpHeaders.ContentType)
         if (contentType?.startsWith("text/html") == true) {
           val documentHtml = remoteMM.nativeFetch(url).body.toPureString()
-          super.loadDataWithBaseURL(
-            url,//document.baseURI
-            (getDocumentStartJsScript() + documentHtml).encodeBase64(),
-            "text/html",
-            "base64",
-            url//location.href
-          )
+          withMainContext {
+            super.loadDataWithBaseURL(
+              url,//document.baseURI
+              getDocumentStartJsScript() + documentHtml,
+              "text/html",
+              "base64",
+              url//location.href
+            )
+          }
         } else {
           super.loadUrl(url)
         }

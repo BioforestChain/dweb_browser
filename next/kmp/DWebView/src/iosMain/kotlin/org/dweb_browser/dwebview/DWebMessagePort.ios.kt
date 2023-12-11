@@ -5,6 +5,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.launchWithMain
+import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.withMainContext
 import platform.Foundation.NSNumber
 import platform.Foundation.NSString
@@ -49,17 +50,31 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
 
   override suspend fun postMessage(event: DWebMessage) {
     withMainContext {
-      val ports = event.ports.map {
-        require(it is DWebMessagePort)
-        it.portId
-      }.joinToString(",")
-      webview.engine.evalAsyncJavascript<Unit>(
-        "nativePortPostMessage($portId, ${
-          Json.encodeToString(
-            event.data
-          )
-        }, [$ports])", null, DWebViewWebMessage.webMessagePortContentWorld
-      ).await()
+      if(event is DWebMessage.DWebMessageBytes) {
+        val ports = event.ports.map {
+          require(it is DWebMessagePort)
+          it.portId
+        }.joinToString(",")
+        webview.engine.evalAsyncJavascript<Unit>(
+          "nativePortPostMessage($portId, ${
+            Json.encodeToString(
+              event.data.toUtf8() 
+            )
+          }, [$ports])", null, DWebViewWebMessage.webMessagePortContentWorld
+        ).await()
+      } else if(event is DWebMessage.DWebMessageString) {
+        val ports = event.ports.map {
+          require(it is DWebMessagePort)
+          it.portId
+        }.joinToString(",")
+        webview.engine.evalAsyncJavascript<Unit>(
+          "nativePortPostMessage($portId, ${
+            Json.encodeToString(
+              event.data
+            )
+          }, [$ports])", null, DWebViewWebMessage.webMessagePortContentWorld
+        ).await()
+      }
     }
   }
 

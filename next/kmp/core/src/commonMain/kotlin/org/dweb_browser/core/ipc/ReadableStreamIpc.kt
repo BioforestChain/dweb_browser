@@ -9,26 +9,15 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
-import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcEventJsonAble
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
-import org.dweb_browser.core.ipc.helper.IpcReqMessage
-import org.dweb_browser.core.ipc.helper.IpcRequest
-import org.dweb_browser.core.ipc.helper.IpcResMessage
-import org.dweb_browser.core.ipc.helper.IpcResponse
-import org.dweb_browser.core.ipc.helper.IpcStreamAbort
-import org.dweb_browser.core.ipc.helper.IpcStreamData
-import org.dweb_browser.core.ipc.helper.IpcStreamDataJsonAble
-import org.dweb_browser.core.ipc.helper.IpcStreamEnd
-import org.dweb_browser.core.ipc.helper.IpcStreamPaused
-import org.dweb_browser.core.ipc.helper.IpcStreamPulling
 import org.dweb_browser.core.ipc.helper.ReadableStream
+import org.dweb_browser.core.ipc.helper.cborToIpcMessage
+import org.dweb_browser.core.ipc.helper.ipcMessageToCbor
+import org.dweb_browser.core.ipc.helper.ipcMessageToJson
 import org.dweb_browser.core.ipc.helper.jsonToIpcMessage
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SimpleSignal
@@ -99,9 +88,6 @@ class ReadableStreamIpc(
       throw Exception("in come stream already binding.");
     }
     this._incomeStream = stream
-    if (supportMessagePack) {
-      throw Exception("还未实现 MessagePack 的编解码能力")
-    }
     if (isClosed) {
       throw Exception("")
     }
@@ -122,21 +108,40 @@ class ReadableStreamIpc(
           // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
           val chunk = reader.readPacket(size)
           debugStreamIpc("bindIncomeStream/chunk", "${chunk.remaining} => $stream")
+          debugStreamIpc("bindIncomeStream/supportCbor", "$supportCbor")
 
-          when (val message =
-            jsonToIpcMessage(chunk.readByteArray().toUtf8(), this@ReadableStreamIpc)) {
-            is IpcMessage -> {
-              debugStreamIpc("bindIncomeStream/message", "$message => $stream")
-              debugStreamIpc(
-                "ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}"
-              )
-              _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
+          if(supportCbor) {
+            when (val message =
+              cborToIpcMessage(chunk.readByteArray(), this@ReadableStreamIpc)) {
+              is IpcMessage -> {
+                debugStreamIpc("bindIncomeStream/message", "$message => $stream")
+                debugStreamIpc(
+                  "ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}"
+                )
+                _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
+              }
+
+              "close" -> close()
+              "ping" -> enqueue(PONG_DATA)
+              "pong" -> debugStreamIpc("PONG", "$stream")
+              else -> throw Exception("unknown message: $message")
             }
+          } else {
+            when (val message =
+              jsonToIpcMessage(chunk.readByteArray().toUtf8(), this@ReadableStreamIpc)) {
+              is IpcMessage -> {
+                debugStreamIpc("bindIncomeStream/message", "$message => $stream")
+                debugStreamIpc(
+                  "ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}"
+                )
+                _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
+              }
 
-            "close" -> close()
-            "ping" -> enqueue(PONG_DATA)
-            "pong" -> debugStreamIpc("PONG", "$stream")
-            else -> throw Exception("unknown message: $message")
+              "close" -> close()
+              "ping" -> enqueue(PONG_DATA)
+              "pong" -> debugStreamIpc("PONG", "$stream")
+              else -> throw Exception("unknown message: $message")
+            }
           }
         }
         debugStreamIpc("END", "$stream")
@@ -154,23 +159,14 @@ class ReadableStreamIpc(
   }
 
   override suspend fun _doPostMessage(data: IpcMessage) {
-    if (supportMessagePack) {
-      throw Exception("no support support Message Pack")
+    if (supportCbor) {
+      val message = ipcMessageToCbor(data)
+      debugStreamIpc("post", "${message.size} => $input => $data")
+      enqueue(message.size.toLittleEndianByteArray(), message)// 必须合并起来发送，否则中间可能插入其他写入
+      return
     }
-    val message = when (data) {
-      is IpcRequest -> Json.encodeToString(data.ipcReqMessage).toUtf8ByteArray()
-      is IpcResponse -> Json.encodeToString(data.ipcResMessage).toUtf8ByteArray()
-      is IpcStreamData -> Json.encodeToString(data).toUtf8ByteArray()
-      is IpcEvent -> Json.encodeToString(data).toUtf8ByteArray()
-      is IpcEventJsonAble -> Json.encodeToString(data).toUtf8ByteArray()
-      is IpcReqMessage -> Json.encodeToString(data).toUtf8ByteArray()
-      is IpcResMessage -> Json.encodeToString(data).toUtf8ByteArray()
-      is IpcStreamAbort -> Json.encodeToString(data).toUtf8ByteArray()
-      is IpcStreamDataJsonAble -> Json.encodeToString(data).toUtf8ByteArray()
-      is IpcStreamEnd -> Json.encodeToString(data).toUtf8ByteArray()
-      is IpcStreamPaused -> Json.encodeToString(data).toUtf8ByteArray()
-      is IpcStreamPulling -> Json.encodeToString(data).toUtf8ByteArray()
-    }
+
+    val message = ipcMessageToJson(data).toUtf8ByteArray()
     debugStreamIpc("post", "${message.size} => $input => $data")
     enqueue(message.size.toLittleEndianByteArray(), message)// 必须合并起来发送，否则中间可能插入其他写入
   }

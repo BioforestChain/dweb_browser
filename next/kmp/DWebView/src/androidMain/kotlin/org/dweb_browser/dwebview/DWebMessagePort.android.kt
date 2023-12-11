@@ -1,8 +1,9 @@
 package org.dweb_browser.dwebview
 
-import android.webkit.WebMessage
-import android.webkit.WebMessagePort
-import android.webkit.WebMessagePort.WebMessageCallback
+import android.annotation.SuppressLint
+import androidx.webkit.WebMessageCompat
+import androidx.webkit.WebMessagePortCompat
+import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -12,25 +13,40 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 
-class DWebMessagePort private constructor(internal val port: WebMessagePort) : IWebMessagePort {
+@SuppressLint("RestrictedApi")
+class DWebMessagePort private constructor(internal val port: WebMessagePortCompat) :
+  IWebMessagePort {
   companion object {
-    private val wm = WeakHashMap<WebMessagePort, DWebMessagePort>()
-    fun from(port: WebMessagePort) = wm.getOrPut(port) { DWebMessagePort(port) }
-    fun IWebMessagePort.into(): WebMessagePort {
+    private val wm = WeakHashMap<WebMessagePortCompat, DWebMessagePort>()
+    fun from(port: WebMessagePortCompat): DWebMessagePort =
+      wm.getOrPut(port) { DWebMessagePort(port) }
+
+    fun IWebMessagePort.into(): WebMessagePortCompat {
       require(this is DWebMessagePort)
       return port
     }
   }
 
+  @SuppressLint("RequiresFeature")
   private val _started = lazy {
     val messageChannel = Channel<DWebMessage>(capacity = Channel.UNLIMITED)
-    port.setWebMessageCallback(object : WebMessageCallback() {
-      override fun onMessage(port: WebMessagePort?, message: WebMessage) {
+
+    port.setWebMessageCallback(object : WebMessagePortCompat.WebMessageCallbackCompat() {
+      override fun onMessage(port: WebMessagePortCompat, message: WebMessageCompat?) {
+        if (message?.type == WebMessageCompat.TYPE_ARRAY_BUFFER) {
+          if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_ARRAY_BUFFER)) {
+            messageChannel.trySend(
+              DWebMessage.DWebMessageBytes(
+                message.arrayBuffer,
+                message.ports?.map { from(it) } ?: emptyList()))
+            return
+          }
+        }
+
         messageChannel.trySend(
-          DWebMessage(
-            message.data,
-            message.ports?.map { from(it) } ?: emptyList()
-          )
+          DWebMessage.DWebMessageString(
+            message?.data ?: "",
+            message?.ports?.map { from(it) } ?: emptyList())
         ).getOrElse { err ->
           err?.printStackTrace()
         }
@@ -53,17 +69,23 @@ class DWebMessagePort private constructor(internal val port: WebMessagePort) : I
     _started.value
   }
 
+  @SuppressLint("RequiresFeature")
   override suspend fun close() {
     port.close()
   }
 
   override val onMessage get() = _started.value.toListener()
+  @SuppressLint("RequiresFeature")
   override suspend fun postMessage(event: DWebMessage) {
-    port.postMessage(
-      WebMessage(
-        event.data,
-        event.ports.map { (it as DWebMessagePort).port }.toTypedArray()
+    if(event is DWebMessage.DWebMessageBytes) {
+      port.postMessage(WebMessageCompat(event.data, event.ports.map { (it as DWebMessagePort).port }.toTypedArray()))
+    } else if(event is DWebMessage.DWebMessageString) {
+      port.postMessage(
+        WebMessageCompat(
+          event.data,
+          event.ports.map { (it as DWebMessagePort).port }.toTypedArray()
+        )
       )
-    )
+    }
   }
 }

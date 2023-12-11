@@ -1,37 +1,33 @@
 package org.dweb_browser.dwebview.ipcWeb
 
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
-import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcEventJsonAble
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
-import org.dweb_browser.core.ipc.helper.IpcReqMessage
-import org.dweb_browser.core.ipc.helper.IpcRequest
-import org.dweb_browser.core.ipc.helper.IpcResMessage
-import org.dweb_browser.core.ipc.helper.IpcResponse
-import org.dweb_browser.core.ipc.helper.IpcStreamAbort
-import org.dweb_browser.core.ipc.helper.IpcStreamData
-import org.dweb_browser.core.ipc.helper.IpcStreamDataJsonAble
-import org.dweb_browser.core.ipc.helper.IpcStreamEnd
-import org.dweb_browser.core.ipc.helper.IpcStreamPaused
-import org.dweb_browser.core.ipc.helper.IpcStreamPulling
+import org.dweb_browser.core.ipc.helper.IpcMessageConst.closeCborByteArray
+import org.dweb_browser.core.ipc.helper.IpcMessageConst.pingCborByteArray
+import org.dweb_browser.core.ipc.helper.IpcMessageConst.pongCborByteArray
+import org.dweb_browser.core.ipc.helper.bytesToIpcMessage
+import org.dweb_browser.core.ipc.helper.cborToIpcMessage
+import org.dweb_browser.core.ipc.helper.ipcMessageToCbor
+import org.dweb_browser.core.ipc.helper.ipcMessageToJson
 import org.dweb_browser.core.ipc.helper.jsonToIpcMessage
 import org.dweb_browser.dwebview.DWebMessage
+import org.dweb_browser.dwebview.DWebMessageBytesEncode
 import org.dweb_browser.dwebview.IWebMessagePort
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.toUtf8
 
 val debugMessagePortIpc = Debugger("message-port-ipc")
 
@@ -71,7 +67,10 @@ class MessagePort(private val port: IWebMessagePort) {
 
   val onWebMessage = _messageSignal.toListener()
   suspend fun postMessage(data: String) {
-    port.postMessage(DWebMessage(data))
+    port.postMessage(DWebMessage.DWebMessageString(data))
+  }
+  suspend fun postMessage(data: ByteArray) {
+    port.postMessage(DWebMessage.DWebMessageBytes(data))
   }
 
   private var _isClosed = false
@@ -95,21 +94,53 @@ open class MessagePortIpc(
     suspend fun from(
       port: IWebMessagePort, remote: IMicroModuleManifest, roleType: IPC_ROLE
     ) = MessagePortIpc(MessagePort.from(port), remote, roleType)
+
+    private val closeByteArray = "close".toByteArray()
+    private val pingByteArray = "ping".toByteArray()
+    private val pongByteArray = "pong".toByteArray()
   }
 
   init {
     port.onWebMessage { event ->
       val ipc = this@MessagePortIpc
-      when (val message = jsonToIpcMessage(event.data, ipc)) {
-        "close" -> close()
-        "ping" -> port.postMessage("pong")
-        "pong" -> debugMessagePortIpc("PONG", "$ipc")
-        is IpcMessage -> {
-          debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
-          _messageSignal.emit(IpcMessageArgs(message, ipc))
-        }
+      if(event is DWebMessage.DWebMessageString) {
+        when (val message = jsonToIpcMessage(event.data, ipc)) {
+          "close" -> close()
+          "ping" -> port.postMessage("pong")
+          "pong" -> debugMessagePortIpc("PONG", "$ipc")
+          is IpcMessage -> {
+            debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
+            _messageSignal.emit(IpcMessageArgs(message, ipc))
+          }
 
-        else -> throw Exception("unknown message: $message")
+          else -> throw Exception("unknown message: $message")
+        }
+      } else if(event is DWebMessage.DWebMessageBytes) {
+        when(event.encode) {
+          DWebMessageBytesEncode.Normal -> when (val message = bytesToIpcMessage(event.data, ipc)) {
+            closeByteArray -> close()
+            pingByteArray -> port.postMessage(pongByteArray)
+            pongByteArray -> debugMessagePortIpc("PONG", "$ipc")
+            is IpcMessage -> {
+              debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
+              _messageSignal.emit(IpcMessageArgs(message, ipc))
+            }
+
+            else -> throw Exception("unknown message: $message")
+          }
+          DWebMessageBytesEncode.Cbor -> when (val message = cborToIpcMessage(event.data, ipc)) {
+            closeCborByteArray -> close()
+            pingCborByteArray -> port.postMessage(pongCborByteArray)
+            pongCborByteArray -> debugMessagePortIpc("PONG", "$ipc")
+            is IpcMessage -> {
+              debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
+              _messageSignal.emit(IpcMessageArgs(message, ipc))
+            }
+
+            else -> throw Exception("unknown message: $message")
+          }
+          else -> {}
+        }
       }
     }.removeWhen(onDestroy)
   }
@@ -120,21 +151,13 @@ open class MessagePortIpc(
   }
 
   override suspend fun _doPostMessage(data: IpcMessage) {
-    val message = when (data) {
-      is IpcRequest -> Json.encodeToString(data.ipcReqMessage)
-      is IpcResponse -> Json.encodeToString(data.ipcResMessage)
-      is IpcStreamData -> Json.encodeToString(data)
-      is IpcEvent -> Json.encodeToString(data)
-      is IpcEventJsonAble -> Json.encodeToString(data)
-      is IpcReqMessage -> Json.encodeToString(data)
-      is IpcResMessage -> Json.encodeToString(data)
-      is IpcStreamAbort -> Json.encodeToString(data)
-      is IpcStreamDataJsonAble -> Json.encodeToString(data)
-      is IpcStreamEnd -> Json.encodeToString(data)
-      is IpcStreamPaused -> Json.encodeToString(data)
-      is IpcStreamPulling -> Json.encodeToString(data)
-      else -> throw Exception("unknown message: $data")
+    if(supportCbor) {
+      val message = ipcMessageToCbor(data)
+      this.port.postMessage(message)
+      return
     }
+
+    val message = ipcMessageToJson(data)
     this.port.postMessage(message)
   }
 

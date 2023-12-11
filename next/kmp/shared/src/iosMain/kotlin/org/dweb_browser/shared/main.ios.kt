@@ -371,6 +371,7 @@ fun PreviewWindowDWebViewContent(
             withMainContext {
               val channel = dWebView.createMessageChannel()
               channel.port2.onMessage {
+                require(it is DWebMessage.DWebMessageString)
                 println("port2 on message: ${it.data}")
                 if (it.data == "你好5") {
                   channel.port2.close()
@@ -380,7 +381,7 @@ fun PreviewWindowDWebViewContent(
                 var i = 0
                 while (i++ < 5) {
                   println("postMessage $i")
-                  channel.port1.postMessage(DWebMessage("你好$i"))
+                  channel.port1.postMessage(DWebMessage.DWebMessageString("你好$i"))
                   delay(100)
                   if (i > 3) {
                     channel.port2.start()

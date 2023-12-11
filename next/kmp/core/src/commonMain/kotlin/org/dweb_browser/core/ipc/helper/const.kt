@@ -110,13 +110,13 @@ enum class IPC_DATA_ENCODING(val encoding: Int) {
   /** 二进制, 与 UTF8/BASE64 是对等关系*/
   BINARY(1 shl 3),
 
-//    /** BINARY-MESSAGEPACK 编码的二进制，本质上是 OBJECT */
-//    MESSAGEPACK(1 shl 4),
+//    /** BINARY-CBOR 编码的二进制，本质上是 OBJECT */
+//    CBOR(1 shl 4),
 //
 //    /** UTF8-JSON 编码的字符串，本质上是 OBJECT */
 //    JSON(1 shl 5),
 //
-//    /** 结构化对象，与 JSON、MessagePack 是对等关系 */
+//    /** 结构化对象，与 JSON、Cbor 是对等关系 */
 //    OBJECT(1 shl 6),
   ;
 

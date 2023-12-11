@@ -192,6 +192,7 @@ class DWebViewEngine(
     configuration.preferences = preferences
     configuration.userContentController.apply {
       removeAllScriptMessageHandlers()
+      removeAllScriptMessageHandlersFromContentWorld(DWebViewWebMessage.webMessagePortContentWorld)
       removeAllUserScripts()
       addScriptMessageHandler(CloseWatcherScriptMessageHandler(this@DWebViewEngine), "closeWatcher")
       addScriptMessageHandler(

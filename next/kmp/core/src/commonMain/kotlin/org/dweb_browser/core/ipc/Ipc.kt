@@ -52,10 +52,10 @@ abstract class Ipc {
   val uid = uid_acc++
 
   /**
-   * 是否支持 messagePack 协议传输：
-   * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 MessagePack 的编解码
+   * 是否支持 cbor 协议传输：
+   * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 cbor 的编解码
    */
-  open val supportMessagePack: Boolean = false
+  open val supportCbor: Boolean = false
 
   /**
    * 是否支持 Protobuf 协议传输：
@@ -70,7 +70,7 @@ abstract class Ipc {
   open val supportRaw: Boolean = false
 
   /** 是否支持 二进制 传输 */
-  open val supportBinary: Boolean = false // get() = supportMessagePack || supportProtobuf
+  open val supportBinary: Boolean = false // get() = supportCbor || supportProtobuf
 
   abstract val remote: IMicroModuleManifest
 

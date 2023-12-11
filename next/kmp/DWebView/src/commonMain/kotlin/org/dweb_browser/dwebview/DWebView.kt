@@ -102,6 +102,7 @@ abstract class IDWebView(initUrl: String?) {
 
   abstract suspend fun createMessageChannel(): IWebMessageChannel
   abstract suspend fun postMessage(data: String, ports: List<IWebMessagePort>)
+  abstract suspend fun postMessage(data: ByteArray, ports: List<IWebMessagePort>)
 
   abstract suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float)
   abstract suspend fun setPrefersColorScheme(colorScheme: WebColorScheme)

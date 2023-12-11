@@ -14,7 +14,21 @@ interface IWebMessagePort {
   val onMessage: Signal.Listener<DWebMessage>
 }
 
-data class DWebMessage(
-  val data: String,
-  val ports: List<IWebMessagePort> = emptyList()
-)
+enum class DWebMessageBytesEncode {
+  Normal,
+  Cbor,
+  Protobuf
+}
+
+sealed class DWebMessage {
+  data class DWebMessageString(
+    val data: String,
+    val ports: List<IWebMessagePort> = emptyList()
+  ) : DWebMessage()
+
+  data class DWebMessageBytes(
+    val data: ByteArray,
+    val ports: List<IWebMessagePort> = emptyList(),
+    val encode: DWebMessageBytesEncode = DWebMessageBytesEncode.Normal
+  ) : DWebMessage()
+}

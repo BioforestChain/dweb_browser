@@ -8,12 +8,14 @@ import android.webkit.WebMessage
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.webkit.WebMessageCompat
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
 import androidx.webkit.WebSettingsCompat.DARK_STRATEGY_USER_AGENT_DARKENING_ONLY
 import androidx.webkit.WebSettingsCompat.FORCE_DARK_AUTO
 import androidx.webkit.WebSettingsCompat.FORCE_DARK_OFF
 import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
+import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.core.module.MicroModule
@@ -152,12 +154,19 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     }
   }
 
+  @SuppressLint("RequiresFeature")
   override suspend fun createMessageChannel(): IWebMessageChannel = withMainContext {
-    DWebMessageChannel(engine.createWebMessageChannel())
+    DWebMessageChannel(WebViewCompat.createWebMessageChannel(engine))
   }
 
+  @SuppressLint("RequiresFeature")
   override suspend fun postMessage(data: String, ports: List<IWebMessagePort>) = withMainContext {
-    engine.postWebMessage(WebMessage(data, ports.map { it.into() }.toTypedArray()), Uri.EMPTY)
+    WebViewCompat.postWebMessage(engine, WebMessageCompat(data, ports.map { it.into() }.toTypedArray()), Uri.EMPTY)
+  }
+
+  @SuppressLint("RequiresFeature")
+  override suspend fun postMessage(data: ByteArray, ports: List<IWebMessagePort>) = withMainContext {
+    WebViewCompat.postWebMessage(engine, WebMessageCompat(data, ports.map { it.into() }.toTypedArray()), Uri.EMPTY)
   }
 
   val contentScale = mutableFloatStateOf(1f)
