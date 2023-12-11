@@ -37,7 +37,6 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                                     .gesture(
                                         DragGesture()
                                             .onChanged { value in
-                                                Log("\(value)")
                                                 if value.startLocation.y < 30 {
                                                     if value.translation.height < 0 {
                                                         curDragOffsetY = 0

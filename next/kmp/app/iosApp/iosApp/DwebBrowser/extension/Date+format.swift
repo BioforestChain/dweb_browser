@@ -72,6 +72,17 @@ extension Date {
     }
     
     //根据Date生成显示时间
+    func historyTime() -> String {  
+        let timeString = Date.getYearMonthDay(from: self)
+        let weekDay = Date.getWeeday(from: self)
+
+        if timeString == "今天" || timeString == "昨天" {
+            return timeString
+        }
+        return "\(timeString)  \(weekDay)"
+    }
+    
+    //根据Date生成显示时间
     static func getYearMonthDay(from date: Date) -> String {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month, .day], from: date)

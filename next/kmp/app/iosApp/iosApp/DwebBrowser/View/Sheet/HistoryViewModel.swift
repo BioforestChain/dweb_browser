@@ -8,10 +8,19 @@
 
 import SwiftUI
 
-struct DateGroup<ID, ELement>: Identifiable where ID: Hashable {
+class DateGroup<ID, ELement>: Identifiable where ID: Hashable  {
     
     let id: ID
-    let items: [ELement]
+    var items: [ELement] = []
+    
+    init(id: ID, items: [ELement]) {
+        self.id = id
+        self.items = items
+    }
+    
+    func remove(index: IndexSet) {
+        items.remove(atOffsets: index)
+    }
 }
 
 

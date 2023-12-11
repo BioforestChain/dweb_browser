@@ -15,8 +15,6 @@ struct iOSApp: App {
     @StateObject private var networkManager = NetworkManager()
     @State private var isNetworkSegmentViewPresented = false
     @ObservedObject private var deskVCStore = DwebDeskVCStore.shared
-
-    @State var searchKey: String?
     @State private var showAlert = false
 
     var body: some Scene {
@@ -48,12 +46,6 @@ struct iOSApp: App {
                 let appStoreURL = "itms-apps://itunes.apple.com/app/id6443558874"
                 UIApplication.shared.open(URL(string: appStoreURL)!, options: [:], completionHandler: nil)
             }))
-        }
-        .task {
-            Main_iosKt.regiserIosMainView {
-                UIHostingController(rootView: BrowserView(searchKey: $searchKey)).view!
-            }
-            Main_iosKt.regiserIosSearch { searchKey = $0}
         }
         .task {
             await checkUpdate()

@@ -12,10 +12,13 @@
 		3D763C262B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; };
 		3D763C272B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4840D2C42AF10E6800102701 /* KmpBridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */; };
+		48491C702B21B95B00128B72 /* DwebBrowserIosIMP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48491C6F2B21B95B00128B72 /* DwebBrowserIosIMP.swift */; };
+		48491C722B2302B800128B72 /* UIImage+Resize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48491C712B2302B800128B72 /* UIImage+Resize.swift */; };
 		4850503C2B14669900080723 /* TouchThroughView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4850503B2B14669900080723 /* TouchThroughView.swift */; };
 		4850503E2B1466C700080723 /* DwebDeskRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4850503D2B1466C700080723 /* DwebDeskRootView.swift */; };
 		485050412B146B5700080723 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 485050402B146B5700080723 /* Preview Assets.xcassets */; };
 		4876C7182AFDD94E00CDF8BF /* DwebAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */; };
+		489455EF2B269594000A6254 /* DwebBrowserHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 489455EE2B269594000A6254 /* DwebBrowserHistoryStore.swift */; };
 		48C46BDD2AF4CFA0005CBA38 /* UIApplication+Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BDC2AF4CFA0005CBA38 /* UIApplication+Window.swift */; };
 		48C46BDF2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */; };
 		48C46BE12AF4D515005CBA38 /* KmpEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BE02AF4D515005CBA38 /* KmpEvent.swift */; };
@@ -109,10 +112,13 @@
 		1A0D7C84CC71A12D5FCBBF78 /* iOSApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = DwebPlatformIosKit.xcframework; path = ../../helperPlatformIos/src/nativeInterop/cinterop/xcframeworks/DwebPlatformIosKit.xcframework; sourceTree = "<group>"; };
 		4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KmpBridgeManager.swift; sourceTree = "<group>"; };
+		48491C6F2B21B95B00128B72 /* DwebBrowserIosIMP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserIosIMP.swift; sourceTree = "<group>"; };
+		48491C712B2302B800128B72 /* UIImage+Resize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Resize.swift"; sourceTree = "<group>"; };
 		4850503B2B14669900080723 /* TouchThroughView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchThroughView.swift; sourceTree = "<group>"; };
 		4850503D2B1466C700080723 /* DwebDeskRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebDeskRootView.swift; sourceTree = "<group>"; };
 		485050402B146B5700080723 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebAppDelegate.swift; sourceTree = "<group>"; };
+		489455EE2B269594000A6254 /* DwebBrowserHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserHistoryStore.swift; sourceTree = "<group>"; };
 		48C46BDC2AF4CFA0005CBA38 /* UIApplication+Window.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+Window.swift"; sourceTree = "<group>"; };
 		48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpEventShareResposeAction.swift; sourceTree = "<group>"; };
 		48C46BE02AF4D515005CBA38 /* KmpEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpEvent.swift; sourceTree = "<group>"; };
@@ -226,6 +232,8 @@
 				48F54EDC2B1723C3003A64AC /* DwebDeepLink.swift */,
 				48F54EDA2B17233E003A64AC /* DwebDeskVCStore.swift */,
 				4850503D2B1466C700080723 /* DwebDeskRootView.swift */,
+				48491C6F2B21B95B00128B72 /* DwebBrowserIosIMP.swift */,
+				489455EE2B269594000A6254 /* DwebBrowserHistoryStore.swift */,
 			);
 			path = NMMs;
 			sourceTree = "<group>";
@@ -308,6 +316,7 @@
 				F03444472AE26FA9004F732E /* View+ancester+keyboard.swift */,
 				F03444482AE26FA9004F732E /* Url+Validator.swift */,
 				F03444492AE26FA9004F732E /* UIImage+Cache.swift */,
+				48491C712B2302B800128B72 /* UIImage+Resize.swift */,
 				48C46BDC2AF4CFA0005CBA38 /* UIApplication+Window.swift */,
 			);
 			path = extension;
@@ -578,11 +587,13 @@
 				F034449A2AE26FAB004F732E /* PagingScrollView.swift in Sources */,
 				F03444BC2AE26FAC004F732E /* WatermarkModifier.swift in Sources */,
 				F03444A42AE26FAB004F732E /* InnerAppGridView.swift in Sources */,
+				489455EF2B269594000A6254 /* DwebBrowserHistoryStore.swift in Sources */,
 				F034449F2AE26FAB004F732E /* CodeScanner.swift in Sources */,
 				F03444922AE26FAB004F732E /* Browser.xcdatamodeld in Sources */,
 				F03444AD2AE26FAB004F732E /* NoResultView.swift in Sources */,
 				F03444AF2AE26FAB004F732E /* HistoryView.swift in Sources */,
 				F03444C42AE2704A004F732E /* DownloadAppManager.swift in Sources */,
+				48491C702B21B95B00128B72 /* DwebBrowserIosIMP.swift in Sources */,
 				F03444A02AE26FAB004F732E /* CodeScannerView.swift in Sources */,
 				F03444B62AE26FAB004F732E /* HomePageView.swift in Sources */,
 				48C46BE12AF4D515005CBA38 /* KmpEvent.swift in Sources */,
@@ -602,6 +613,7 @@
 				F03444B32AE26FAB004F732E /* MenuCell.swift in Sources */,
 				F03444B82AE26FAC004F732E /* Environment.swift in Sources */,
 				F03444962AE26FAB004F732E /* BookmarkCoreDataManager.swift in Sources */,
+				48491C722B2302B800128B72 /* UIImage+Resize.swift in Sources */,
 				F03444952AE26FAB004F732E /* HistoryCoreDataManager.swift in Sources */,
 				F03444882AE26FAB004F732E /* PagingScroll.swift in Sources */,
 				F03444A12AE26FAB004F732E /* ScannerViewController.swift in Sources */,

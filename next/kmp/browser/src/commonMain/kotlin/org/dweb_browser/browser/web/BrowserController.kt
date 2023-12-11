@@ -9,6 +9,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.LocalBitmapManager
 import org.dweb_browser.browser.web.model.BrowserStore
+import org.dweb_browser.browser.web.model.KEY_NO_TRACE
 import org.dweb_browser.browser.web.model.WebLinkManifest
 import org.dweb_browser.browser.web.model.WebLinkStore
 import org.dweb_browser.browser.web.model.WebSiteInfo
@@ -18,6 +19,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
@@ -43,9 +45,11 @@ class BrowserController(
 
   val bookLinks: MutableList<WebSiteInfo> = mutableStateListOf()
   val historyLinks: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf()
+  var isNoTrace: Boolean = false
 
   init {
     ioAsyncScope.launch {
+      isNoTrace = getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false
       browserStore.getBookLinks().forEach { webSiteInfo ->
         bookLinks.add(webSiteInfo)
       }
@@ -53,10 +57,19 @@ class BrowserController(
         historyLinks[key] = webSiteInfoList
       }
       // TODO 遍历获取book的image
-      bookLinks.forEach { webSiteInfo ->
-        webSiteInfo.icon = LocalBitmapManager.loadImageBitmap(webSiteInfo.id)
-      }
+//      bookLinks.forEach { webSiteInfo ->
+//        webSiteInfo.icon = LocalBitmapManager.loadImageBitmap(webSiteInfo.id)?.toByteArray()
+//      }
     }
+  }
+
+  suspend fun loadMoreHistory(off: Int) {
+      browserStore.getDaysHistoryLinks(off).forEach {(key, webSiteInfoList) ->
+        if (historyLinks.keys.contains(key)) {
+          var data = (webSiteInfoList + historyLinks[key]) as MutableList<WebSiteInfo>
+          historyLinks[key] = data
+        }
+      }
   }
 
   suspend fun saveBookLinks() = browserStore.setBookLinks(bookLinks)

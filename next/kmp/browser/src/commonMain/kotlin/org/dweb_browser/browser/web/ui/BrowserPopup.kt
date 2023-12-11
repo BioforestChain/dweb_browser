@@ -261,7 +261,7 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
         .padding(start = 16.dp, end = 16.dp, top = 56.dp)
     ) {
       RowItemTextField(
-        leadingBitmap = item.icon,
+        leadingBitmap = item.iconImage,
         leadingIcon = Icons.Default.Book,
         inputText = inputTitle,
         focusRequester = focusRequester

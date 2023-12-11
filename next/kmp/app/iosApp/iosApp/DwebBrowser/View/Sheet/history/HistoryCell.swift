@@ -6,14 +6,14 @@
 //
 
 import SwiftUI
-
+import DwebShared
 struct HistoryCell: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var dragScale: WndDragScale
     @EnvironmentObject var toolBarState: ToolBarState
     
-    var linkRecord: LinkRecord
+    var linkRecord: BrowserWebSiteInfo
     var isLast: Bool
 //    @Binding var shouldShowWeb: Bool
     var loadMoreAction: ()->Void
@@ -26,7 +26,7 @@ struct HistoryCell: View {
                     .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
                     .foregroundColor(Color.menuTitleColor)
                 
-                Text(linkRecord.link)
+                Text(linkRecord.url)
                     .font(.system(size: dragScale.scaledFontSize(maxSize: 11)))
                     .foregroundColor(Color(hexString: "ACB5BF"))
                 
@@ -47,7 +47,7 @@ struct HistoryCell: View {
             
             Color(white: 0.01, opacity: 0.01) // 添加一个空的透明视图
                  .onTapGesture {
-                     guard let link = URL(string: linkRecord.link) else { return }
+                     guard let link = URL(string: linkRecord.url) else { return }
                      openingLink.clickedLink = link
                      toolBarState.showMoreMenu = false
 //                     presentationMode.wrappedValue.dismiss()

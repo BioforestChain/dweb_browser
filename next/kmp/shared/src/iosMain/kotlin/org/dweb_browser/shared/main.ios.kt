@@ -38,9 +38,6 @@ import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browser.web.BrowserNMM
-import org.dweb_browser.browser.web._browserViewModel
-import org.dweb_browser.browser.web.doSearch
-import org.dweb_browser.browser.web.iOSMainView
 import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
@@ -201,18 +198,6 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   return dnsNMM
 }
 
-
-public fun regiserIosMainView(iosView: ()->UIView) {
-  iOSMainView = iosView
-}
-
-public fun regiserIosSearch(search: (String)->Unit) {
-  doSearch = search
-}
-
-suspend fun createDesktopLink(link: String, title: String, iconString: String): Unit  {
-  _browserViewModel?.createDesktopLink(link, title, iconString)
-}
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable

@@ -16,7 +16,6 @@ struct BrowserView: View {
     @StateObject var webcacheStore = WebCacheStore()
     @StateObject var dragScale = WndDragScale()
     @StateObject var wndArea = BrowserArea()
-    @Binding var searchKey: String?
     
     @State private var colorScheme = ColorScheme.light
     var body: some View {
@@ -57,7 +56,6 @@ struct BrowserView: View {
                 }
                 .onChange(of: geometry.frame(in: .global)) { _, frame in
                     wndArea.frame = frame
-//                    Log("window rect:(\(frame.origin)), (\(frame.size))")
                 }
             }
             .environment(\.colorScheme, colorScheme)
@@ -72,16 +70,23 @@ struct BrowserView: View {
                     colorScheme = .light
                 }
             }
-            .onChange(of: searchKey) { _, newValue in
-                guard let key = newValue, !key.isEmpty else {
-                    return
-                }
-                addressBar.searchInputText = key
-                addressBar.isFocused = true
+            .task({
+                doSearchIfNeed()
+            })
+            .onChange(of: DwebBrowserIosIMP.shared.searchKey) { _, newValue in
+                doSearchIfNeed(key: newValue)
             }
         }
         .clipped()
         
+    }
+    
+    private func doSearchIfNeed(key: String? = DwebBrowserIosIMP.shared.searchKey) {
+        guard let key = key, !key.isEmpty else {
+            return
+        }
+        addressBar.searchInputText = key
+        addressBar.isFocused = true
     }
 
     func showWeb() -> Bool {

@@ -17,7 +17,7 @@ struct ComposeView: UIViewControllerRepresentable {
     @State var size: CGSize = CGSize(width: 350, height: 500)
     func makeUIViewController(context: Context) -> UIViewController {
         
-        let controller = Main_iosKt.MainViewController(iosView: UIHostingController(rootView: BrowserView(searchKey: .constant(nil))).view) { (w,h) in
+        let controller = Main_iosKt.MainViewController(iosView: UIHostingController(rootView: BrowserView()).view) { (w,h) in
             size.width = CGFloat(truncating: w)
             size.height = CGFloat(truncating: h)
             Log("changing size, size: \(size)")

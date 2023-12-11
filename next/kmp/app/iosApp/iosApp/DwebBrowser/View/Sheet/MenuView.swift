@@ -5,8 +5,8 @@
 //  Created by ui03 on 2023/5/6.
 //
 
+import DwebShared
 import SwiftUI
-
 struct MenuView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var webcacheStore: WebCacheStore
@@ -18,6 +18,8 @@ struct MenuView: View {
     var webCache: WebCache { webcacheStore.cache(at: selectedTab.curIndex) }
 
     @State private var offsetY: CGFloat = 300
+
+    let service = DwebBrowserIosSupport().browserService
 
     var body: some View {
         ZStack {
@@ -75,8 +77,17 @@ struct MenuView: View {
     }
 
     private func addToBookmark() {
-        let bookmark = Bookmark(link: webCache.lastVisitedUrl.absoluteString, iconUrl: webCache.webIconUrl.absoluteString, title: webCache.title)
-        modelContext.insert(bookmark)
+        Task(priority: .background) {
+            let (data, response) = try await URLSession.shared.data(from: webCache.webIconUrl)
+            guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+                Log("Invalid or unsuccessful HTTP response")
+                return
+            }
+            let scale = UIScreen.main.scale
+            let image = UIImage(data: data)?.resize(toSize: CGSize(width: 32, height: 32))
+            service.addBookmark(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString, icon: image?.pngData())
+        }
+        
         withAnimation {
             toastOpacity = 1.0
         }

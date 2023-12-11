@@ -10,6 +10,7 @@ import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.datetimeNowToEpochDay
 import org.dweb_browser.helper.formatDatestampByEpochDay
+import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.toEpochDay
 
 @Serializable
@@ -19,9 +20,12 @@ data class WebSiteInfo(
   var url: String = "",
   val type: WebSiteType,
   val timeMillis: Long = id.toEpochDay(),
+  var icon: ByteArray? = null,
+) {
   @Transient
-  var icon: ImageBitmap? = null,
-)
+  var iconImage: ImageBitmap? = null
+    get() =  icon?.toImageBitmap() ?: null
+}
 
 @Composable
 fun Long.formatToStickyName(): String {
@@ -72,6 +76,23 @@ class BrowserStore(mm: MicroModule) {
     }
     return maps
   }
+
+  /**
+   * 取下一个7天的历史数据
+   * off: 到今天的偏移天数
+   */
+  suspend fun getDaysHistoryLinks(off: Int): MutableMap<String, MutableList<WebSiteInfo>> {
+    val current = datetimeNowToEpochDay() + off
+    val maps = mutableMapOf<String, MutableList<WebSiteInfo>>()
+    for (day in current downTo current - 6) { // 获取最近一周的数据
+      val webSiteInfoList = storeHistory.getOrNull<MutableList<WebSiteInfo>>(day.toString())
+      if (webSiteInfoList?.isNotEmpty() == true) {
+        maps[day.toString()] = webSiteInfoList
+      }
+    }
+    return maps
+  }
+
 
   suspend fun setHistoryLinks(key: String, data: MutableList<WebSiteInfo>) {
     storeHistory.set(key, data)

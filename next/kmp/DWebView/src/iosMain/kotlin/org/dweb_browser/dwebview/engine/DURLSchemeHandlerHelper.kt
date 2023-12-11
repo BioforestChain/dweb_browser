@@ -16,6 +16,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.NSInputStreamToByteReadChannel
 import org.dweb_browser.helper.consumeEachArrayRange
+import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import org.dweb_browser.helper.platform.ios.URLSchemeTaskHelper
 import platform.Foundation.HTTPBodyStream
 import platform.Foundation.HTTPMethod
@@ -113,14 +114,5 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule) {
       webView = webView as objcnames.classes.WKWebView,
       task = task as objcnames.protocols.WKURLSchemeTaskProtocol
     )
-  }
-
-  @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
-  internal fun ByteArray.toNSData(): NSData {
-    if (isEmpty()) return NSData()
-    val pinned = pin()
-    return NSData.create(bytesNoCopy = pinned.addressOf(0),
-      length = size.toULong(),
-      deallocator = { _, _ -> pinned.unpin() })
   }
 }

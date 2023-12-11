@@ -7,15 +7,16 @@
 
 import SwiftData
 import SwiftUI
+import DwebShared
 
 struct BookmarkView: View {
     @EnvironmentObject var dragScale: WndDragScale
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var toolBarState: ToolBarState
 
-    @Environment(\.modelContext) var modelContext
-    @Query var bookmarks: [Bookmark]
-
+    private let service = DwebBrowserIosSupport().browserService
+    @State private var bookmarks: [BrowserWebSiteInfo] = (DwebBrowserIosSupport().browserService.loadBookmarks() as? [BrowserWebSiteInfo]) ?? []
+    
     var body: some View {
 
         ZStack {
@@ -23,7 +24,9 @@ struct BookmarkView: View {
                 List {
                     ForEach(bookmarks, id: \.self) { bookmark in
                         HStack {
-                            WebsiteIconImage(iconUrl: URL(string: bookmark.iconUrl)!)
+                            let image = DwebBrowserIosSupport().browserService.webSiteInfoIconToUIImage(web: bookmark) ?? UIImage(systemName: "book")!
+                            Image(uiImage: image)
+                                .resizable()
                                 .frame(width: dragScale.properValue(floor: 14, ceiling: 24),
                                        height: dragScale.properValue(floor: 14, ceiling: 24))
                                 .cornerRadius(4)
@@ -35,7 +38,7 @@ struct BookmarkView: View {
                             Spacer()
                         }
                         .onTapGesture {
-                            guard let bookmarkUrl = URL(string: bookmark.link) else { return }
+                            guard let bookmarkUrl = URL(string: bookmark.url) else { return }
                             openingLink.clickedLink = bookmarkUrl
                             toolBarState.showMoreMenu = false
                         }
@@ -50,8 +53,8 @@ struct BookmarkView: View {
 
     func deleteBookmarkData(_ indexSet: IndexSet) {
         for index in indexSet {
-            let bookmark = bookmarks[index]
-            modelContext.delete(bookmark)
+            let element = bookmarks.remove(at: index)
+            service.removeBookmark(bookmark: element.id)
         }
     }
 }

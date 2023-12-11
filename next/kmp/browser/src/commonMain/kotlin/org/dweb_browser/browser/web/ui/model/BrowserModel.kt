@@ -44,6 +44,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.noLocalProvidedFor
+import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.withMainContext
 /**
@@ -88,11 +89,7 @@ class BrowserViewModel(
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false)
   val showMultiView: MutableTransitionState<Boolean> = MutableTransitionState(false)
   val isNoTrace by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    mutableStateOf(false).also { state ->
-      browserNMM.ioAsyncScope.async {
-        state.value = browserController.getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false
-      }
-    }
+    mutableStateOf(browserController.isNoTrace)
   }
 
   fun getBookLinks() = browserController.bookLinks
@@ -340,18 +337,20 @@ class BrowserViewModel(
    * 修改：该对象已经变更，可直接保存，所以不需要传
    * 删除：需要删除数据
    */
-  fun changeBookLink(add: WebSiteInfo? = null, del: WebSiteInfo? = null) =
+  fun changeBookLink(add: WebSiteInfo? = null, del: WebSiteInfo? = null) {
+    println("MMIke changeBookLink: add: ${add?.title} del:${del?.title}")
     browserController.ioAsyncScope.launch {
       add?.apply {
         browserController.bookLinks.add(this)
-        this.icon?.let { icon -> LocalBitmapManager.saveImageBitmap(this.id, icon) }
+//        this.iconImage?.let { icon -> LocalBitmapManager.saveImageBitmap(this.id, icon) }
         browserController.saveBookLinks()
       }
       del?.apply {
         browserController.bookLinks.remove(this)
         browserController.saveBookLinks()
-        LocalBitmapManager.deleteImageBitmap(this.id)
+//        LocalBitmapManager.deleteImageBitmap(this.id)
       }
+    }
     }
 
   /**
@@ -380,6 +379,10 @@ class BrowserViewModel(
         browserController.saveHistoryLinks(key, this)
       }
     }
+  }
+
+  suspend fun loadMoreHistory(off: Int) {
+    browserController.loadMoreHistory(off)
   }
 }
 
@@ -414,7 +417,7 @@ suspend fun IDWebView.toWebSiteInfo(type: WebSiteType): WebSiteInfo? {
         title = getTitle().ifEmpty { url },
         url = url,
         type = type,
-        icon = getFavoriteIcon() // 这也有一个
+        icon = getFavoriteIcon()?.toByteArray() // 这也有一个
       )
     } else null
   }

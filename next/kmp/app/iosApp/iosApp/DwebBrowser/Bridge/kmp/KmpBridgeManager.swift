@@ -19,6 +19,7 @@ class KmpBridgeManager {
     
     func registerIMPs() {
         KmpNativeBridge.Companion.shared.registerIos(imp: self)
+        DwebBrowserIosSupport().registerIosService(imp: DwebBrowserIosIMP.shared)
     }
 }
 

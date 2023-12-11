@@ -126,7 +126,7 @@ private fun RowItemBook(
       .clickable { onClick(webSiteInfo) },
     verticalAlignment = Alignment.CenterVertically
   ) {
-    webSiteInfo.icon?.let { imageBitmap ->
+    webSiteInfo.iconImage?.let { imageBitmap ->
       Image(
         bitmap = imageBitmap,
         contentDescription = "Icon",

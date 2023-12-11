@@ -138,9 +138,7 @@ struct TabPageView: View {
                 if newValue >= 1.0 {
                     webcacheStore.saveCaches()
                     if !TracelessMode.shared.isON {
-                        let manager = HistoryCoreDataManager()
-                        let history = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
-                        manager.insertHistory(history: history)
+                        DwebBrowserHistoryStore.shared.addHistoryRecord(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString)
                     }
                 }
             }
@@ -158,7 +156,7 @@ struct TabPageView: View {
             .onChange(of: toolbarState.creatingDesktopLink) { _, isCreating in
                 if isCreating{
                     Task{
-                        try await Main_iosKt.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString)
+                        try await DwebBrowserIosSupport().browserService.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString)
                     }
                 }
             }
