@@ -62,6 +62,7 @@ import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
+import org.dweb_browser.sys.window.core.constant.debugWindow
 import org.dweb_browser.sys.window.core.helper.asWindowStateColorOr
 import kotlin.math.max
 import kotlin.math.min
@@ -344,10 +345,11 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
      */
     bottomHeight = if (canOverlayNavigationBar) max(
       // 这里默认使用 safeGestures ，因为它只包含底部导航栏的高度，是稳定的
-      safeAreaInsetBottom,
+      // safeAreaInsetBottom, // android由于界面会被顶起，键盘并不需要计算高度，所以这个不需要
       bottomThemeHeight,
       windowFrameSize,
     ) else max(bottomThemeHeight, windowFrameSize) + safeAreaInsetBottom
+
     /**
      * 即便是最大化模式下，我们仍然需要有一个强调边框。
      * 这个边框存在的意义有：
