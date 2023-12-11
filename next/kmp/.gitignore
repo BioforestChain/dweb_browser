@@ -11,6 +11,7 @@ xcuserdata
 X-Build
 /shared/src/commonMain/resources/browser
 release
+debug
 /app/androidApp/dwebbrowser.jks
 *.xcarchive
 *.xcframework

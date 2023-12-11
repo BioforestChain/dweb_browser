@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.util
 
-
 /**
  * 判断输入内容是否是域名或者有效的网址
  */
@@ -40,3 +39,8 @@ fun String.toRequestUrl() = if (this.isUrl() || this.isDeepLink()) {
 fun String.isSystemUrl() = this.startsWith("file:///android_asset") ||
     this.startsWith("chrome://") || this.startsWith("about:") ||
     this.startsWith("https://web.browser.dweb") // || this.isDeepLink()
+
+/**
+ * 判断字符串是否是 dweb link
+ */
+fun String.regexDeepLink() = Regex("dweb:.+").matchEntire(this.trim())?.groupValues?.firstOrNull()

@@ -5,13 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.loading.LoadingView
+import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.platform.PureViewController
-
-fun String.regexDeepLink() = Regex("dweb:.+").matchEntire(this)?.groupValues?.get(0)
 
 class DeepLinkActivity : PureViewController() {
   init {

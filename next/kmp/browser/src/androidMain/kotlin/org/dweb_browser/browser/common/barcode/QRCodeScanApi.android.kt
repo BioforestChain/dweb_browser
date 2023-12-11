@@ -37,6 +37,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import org.dweb_browser.browser.R
+import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import java.util.concurrent.Executors
@@ -180,8 +181,6 @@ actual fun transformPoint(
     QRCodeDecoderResult.Point(x * ratio - left, y * ratio - top)
   }
 }
-
-private fun String.regexDeepLink() = Regex("dweb:.+").matchEntire(this)?.groupValues?.get(0)
 
 actual fun openDeepLink(data: String) {
   val context = NativeMicroModule.getAppContext()
