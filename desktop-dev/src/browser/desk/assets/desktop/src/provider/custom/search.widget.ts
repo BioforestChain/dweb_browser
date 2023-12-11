@@ -41,6 +41,10 @@ export const searchWidget = {
   ],
 } satisfies $WidgetCustomData;
 
+const startsWithIgnoreCase = (url: string) => {
+  return /^dweb:/i.test(url)
+}
+
 Object.assign(globalThis, {
   dwebSearch(event: SubmitEvent) {
     const btnEle = event.submitter as HTMLButtonElement;
@@ -50,8 +54,9 @@ Object.assign(globalThis, {
     const q = formData.get("q") as string;
     const method = formEle.method;
     let url: string;
-    if (q.startsWith("dweb:")) {
-      url = q;
+
+    if (startsWithIgnoreCase(q)) {
+      url = q.replace(/^dweb:/i, "dweb:");
     } else {
       const query = new URLSearchParams(formData).toString();
       url = formEle.action + "?" + query;
