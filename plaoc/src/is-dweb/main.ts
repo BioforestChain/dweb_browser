@@ -7,7 +7,12 @@ export const isDweb = () => {
 
 export const dwebTarget = () => {
   if (isDweb()) {
-    const brands = self.navigator.userAgentData.brands.filter((value) => {
+    const userAgentData = self.navigator.userAgentData;
+
+    if (!userAgentData) {
+      return 1.0;
+    }
+    const brands = userAgentData.brands.filter((value) => {
       return value.brand === "jmm.browser.dweb";
     });
 
@@ -23,6 +28,6 @@ declare global {
   interface Navigator {
     userAgentData: {
       brands: { brand: string; version: string }[];
-    };
+    } | null;
   }
 }
