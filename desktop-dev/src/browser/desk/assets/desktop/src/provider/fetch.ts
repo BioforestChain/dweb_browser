@@ -1,6 +1,6 @@
 /// about:blank
 
-import { jsonlinesStreamRead } from "helper/stream/jsonlinesStreamHelper.ts";
+import { jsonlinesStreamReadText } from "helper/stream/jsonlinesStreamHelper.ts";
 
 /// about:newtab
 
@@ -41,10 +41,9 @@ export const nativeFetchStream = <T>(
   const [url] = buildApiRequestArgs(pathname, init);
   const wsUrl = url.href.replace("http", "ws");
   const ws = new WebSocket(wsUrl);
-  ws.binaryType = "arraybuffer";
 
-  return jsonlinesStreamRead<T>(
-    new ReadableStream<Uint8Array>({
+  return jsonlinesStreamReadText<T>(
+    new ReadableStream<string>({
       start(controller) {
         ws.onerror = (e) => {
           controller.error(e);
@@ -53,7 +52,11 @@ export const nativeFetchStream = <T>(
           controller.close();
         };
         ws.onmessage = (msgEvent) => {
-          controller.enqueue(msgEvent.data);
+          const data = msgEvent.data;
+          console.log("ws on message", data, wsUrl);
+          if (typeof data === "string") {
+            controller.enqueue(data);
+          }
         };
       },
       cancel() {

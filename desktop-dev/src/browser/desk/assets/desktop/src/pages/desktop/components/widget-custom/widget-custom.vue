@@ -9,10 +9,6 @@ const props = defineProps({
     type: Object as () => $WidgetCustomData,
     required: true,
   },
-  index: {
-    type: Number,
-    required: true,
-  },
 });
 const createStyleHelper = (forceStyle = false) => {
   if (document.adoptedStyleSheets && !forceStyle) {

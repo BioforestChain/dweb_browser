@@ -42,6 +42,20 @@ onUnmounted(() => {
 });
 </script>
 <template>
+  <!-- <button
+    onclick="location.reload()"
+    style="
+      position: fixed;
+      z-index: 10000;
+      left: 40%;
+      top: 60%;
+      border: 1px solid;
+      border-radius: 4px;
+      padding: 2px 16px;
+    "
+  >
+    reload
+  </button> -->
   <div class="tile-panel" ref="$panel">
     <slot></slot>
   </div>

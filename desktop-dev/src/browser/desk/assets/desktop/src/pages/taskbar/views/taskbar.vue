@@ -42,7 +42,7 @@ const appRefList = shallowRef<
 
 // 监听app消息的更新
 const updateApps = async () => {
-  const appInfoWatcher = watchTaskbarAppInfo();
+  const appInfoWatcher = await watchTaskbarAppInfo();
   onUnmounted(() => {
     appInfoWatcher.return();
   });
@@ -53,7 +53,7 @@ const updateApps = async () => {
 };
 
 const updateTaskbarStatus = async () => {
-  const taskBarStatusWatcher = watchTaskBarStatus();
+  const taskBarStatusWatcher = await watchTaskBarStatus();
   onUnmounted(() => {
     taskBarStatusWatcher.return();
   });

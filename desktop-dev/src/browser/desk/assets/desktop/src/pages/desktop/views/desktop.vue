@@ -37,6 +37,7 @@ type $LayoutInfo = (
     }
 ) & {
   xywh: $XYWH;
+  id: string;
 };
 
 interface $XYWH {
@@ -55,7 +56,7 @@ const updateApps = async () => {
 
   updateLayoutInfoList(widgetList, appList);
 
-  const appInfoWatcher = watchDesktopAppInfo();
+  const appInfoWatcher = await watchDesktopAppInfo();
   void (async () => {
     onUnmounted(() => {
       appInfoWatcher.return();
@@ -75,6 +76,7 @@ const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetA
       type: "widget",
       data,
       xywh: { w: data.size.column, h: data.size.row },
+      id: data.appId,
     });
   }
 
@@ -84,16 +86,20 @@ const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetA
         type: "webapp",
         data,
         xywh: { w: 1, h: 1 },
+        id: data.mmid,
       });
     } else {
       layoutInfoList.push({
         type: "app",
         data,
         xywh: { w: 1, h: 1 },
+        id: data.mmid,
       });
     }
   }
-  layoutInfoListRef.value = layoutInfoList;
+
+  const typeOrders = ["widget", "app", "webapp"];
+  layoutInfoListRef.value = layoutInfoList.sort((a, b) => typeOrders.indexOf(a.type) - typeOrders.indexOf(b.type));
   // layoutInfoListRef.value = Array(4).fill({
   //   type: "app",
   //   data: {
@@ -173,20 +179,10 @@ const bgStyle = {
   <div class="desktop" draggable="false" ref="$desktop">
     <div class="wallpaper" title="墙纸" :style="bgStyle"></div>
     <TilePanel :rowTemplateSize="rowSize">
-      <TileItem v-for="(info, index) in layoutInfoListRef" :key="index" :width="info.xywh.w" :height="info.xywh.h">
-        <WidgetApp v-if="info.type === 'app'" :key="index" :index="index" :app-meta-data="info.data"></WidgetApp>
-        <WidgetWebApp
-          v-if="info.type === 'webapp'"
-          :key="index"
-          :index="index"
-          :app-meta-data="info.data"
-        ></WidgetWebApp>
-        <WidgetCustom
-          v-if="info.type === 'widget'"
-          :key="index"
-          :index="index"
-          :widget-meta-data="info.data"
-        ></WidgetCustom>
+      <TileItem v-for="info in layoutInfoListRef" :key="info.id" :width="info.xywh.w" :height="info.xywh.h" :title="`${info.id}/${info.xywh.w}/${info.xywh.h}`">
+        <WidgetApp v-if="info.type === 'app'" :app-meta-data="info.data"></WidgetApp>
+        <WidgetWebApp v-if="info.type === 'webapp'" :app-meta-data="info.data"></WidgetWebApp>
+        <WidgetCustom v-if="info.type === 'widget'" :widget-meta-data="info.data"></WidgetCustom>
       </TileItem>
       <WidgetAppOverlay></WidgetAppOverlay>
     </TilePanel>

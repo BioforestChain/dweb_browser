@@ -31,14 +31,14 @@ export async function readAccept(ext: string = "") {
 let _readAcceptSvg: undefined | ReturnType<typeof readAccept>;
 export const readAcceptSvg = () => (_readAcceptSvg ??= readAccept("svg"));
 
-export function watchDesktopAppInfo() {
+export async function watchDesktopAppInfo() {
   return nativeFetchStream<$WidgetAppData[]>("/desktop/observe/apps");
 }
-export function watchTaskbarAppInfo() {
+export async function watchTaskbarAppInfo() {
   return nativeFetchStream<$WidgetAppData[]>("/taskbar/observe/apps");
 }
 
-export function watchTaskBarStatus() {
+export async function watchTaskBarStatus() {
   return nativeFetchStream<$TaskBarState>("/taskbar/observe/status");
 }
 

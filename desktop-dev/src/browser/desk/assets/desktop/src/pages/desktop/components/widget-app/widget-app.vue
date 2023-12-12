@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { vOnLongPress, vOnClickOutside } from "@vueuse/components";
+import { vOnClickOutside, vOnLongPress } from "@vueuse/components";
 import { useThrottleFn } from "@vueuse/core";
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
@@ -31,10 +31,6 @@ const snackbar = reactive({
 const props = defineProps({
   appMetaData: {
     type: Object as () => $WidgetAppData,
-    required: true,
-  },
-  index: {
-    type: Number,
     required: true,
   },
 });

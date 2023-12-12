@@ -30,10 +30,6 @@ const props = defineProps({
     type: Object as () => $WidgetAppData,
     required: true,
   },
-  index: {
-    type: Number,
-    required: true,
-  },
 });
 const appid = computed(() => props.appMetaData.mmid);
 const appUrl = computed(() => props.appMetaData.name);

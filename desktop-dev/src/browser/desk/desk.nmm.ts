@@ -8,7 +8,7 @@ import { ChangeableMap, changeState } from "../../helper/ChangeableMap.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { P, fetchMatch } from "../../helper/patternHelper.ts";
-import { jsonlinesStreamRead, jsonlinesStreamReadAll } from "../../helper/stream/jsonlinesStreamHelper.ts";
+import { jsonlinesStreamReadBinary, jsonlinesStreamReadBinaryAll } from "../../helper/stream/jsonlinesStreamHelper.ts";
 import { ReadableStreamOut, streamReadAll } from "../../helper/stream/readableStreamHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
 import { createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
@@ -148,7 +148,7 @@ export class DeskNMM extends NativeMicroModule {
         /// 监听变更，推送数据
         const off = this.runingApps.onChange(doWriteJsonline);
         /// 监听关闭，停止监听
-        void jsonlinesStreamReadAll(await event.ipcRequest.body.stream(), {
+        void jsonlinesStreamReadBinaryAll(await event.ipcRequest.body.stream(), {
           map(item: { limit?: number }) {
             limit = json_limit.parse(item).limit ?? Infinity;
           },
@@ -170,7 +170,7 @@ export class DeskNMM extends NativeMicroModule {
         /// 监听变更，推送数据
         const off = this.runingApps.onChange(doWriteJsonline);
         /// 监听关闭，停止监听
-        void jsonlinesStreamReadAll(await event.ipcRequest.body.stream()).finally(() => {
+        void jsonlinesStreamReadBinaryAll(await event.ipcRequest.body.stream()).finally(() => {
           off();
           /// 如果传来的数据解析异常了，websocket就断掉
           responseBody.controller.close();
@@ -201,7 +201,7 @@ export class DeskNMM extends NativeMicroModule {
       (async () => {
         const res = await opendAppIpc.request("/observe/install-apps");
         const stream = await res.body.stream();
-        for await (const state of jsonlinesStreamRead<changeState<$MMID>>(stream)) {
+        for await (const state of jsonlinesStreamReadBinary<changeState<$MMID>>(stream)) {
           this.runingApps.emitChange(state);
         }
       })();
@@ -210,7 +210,7 @@ export class DeskNMM extends NativeMicroModule {
       (async () => {
         const res = await opendAppIpc.request("/observe/running-apps");
         const stream = await res.body.stream();
-        for await (const state of jsonlinesStreamRead<changeState<$MMID>>(stream)) {
+        for await (const state of jsonlinesStreamReadBinary<changeState<$MMID>>(stream)) {
           state.add.forEach((mmid) => {
             this.addRunningApp(mmid);
           });

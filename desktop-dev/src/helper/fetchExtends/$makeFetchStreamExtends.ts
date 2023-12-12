@@ -1,4 +1,4 @@
-import { toJsonlinesStream } from "../stream/jsonlinesStreamHelper.ts";
+import { binaryToJsonlinesStream } from "../stream/jsonlinesStreamHelper.ts";
 
 const $makeFetchExtends = <M extends unknown = unknown>(exts: $FetchExtends<M>) => {
   return exts;
@@ -10,7 +10,7 @@ export const fetchStreamExtends = $makeFetchExtends({
   async jsonlines<T = unknown>() {
     return (
       // 首先要能拿到数据流
-      toJsonlinesStream<T>(await this.stream())
+      binaryToJsonlinesStream<T>(await this.stream())
     );
   },
   /** 获取 Response 的 body 为 ReadableStream */
