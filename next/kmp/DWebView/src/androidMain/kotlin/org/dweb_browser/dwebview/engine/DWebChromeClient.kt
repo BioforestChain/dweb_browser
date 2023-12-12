@@ -77,6 +77,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
       )
   }
 
+
   override fun onCreateWindow(
     view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
   ): Boolean {
@@ -89,11 +90,20 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
         resultMsg.sendToTarget()
 
         // 它是有内部链接的，所以等到它ok了再说
+        // 这里用 shouldOverrideUrlLoading/onPageStarted 可能拦截不到的，所以最好的方式就是用定时器来轮询
         var mainUrl = dwebView.url
-        while (mainUrl == null || !dwebView.isDestroyed) {
-          delay(100)
-          mainUrl = dwebView.url
+        try {
+          while (mainUrl == null) {
+            if (dwebView.isDestroyed) {
+              return@launch
+            }
+            delay(5)
+            mainUrl = dwebView.url
+          }
+        } catch (e: Throwable) {
+          return@launch
         }
+
         val beforeCreateWindowEvent =
           DWebViewEngine.BeforeCreateWindow(dwebView, mainUrl, isUserGesture, isDialog)
         engine.beforeCreateWindow.emit(beforeCreateWindowEvent)
@@ -161,7 +171,14 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
       /// 默认对话框不会显示
       return true
     }
-    return inners("onJsBeforeUnload").someOrNull { it.onJsBeforeUnload(view, url, message, result) }
+    return inners("onJsBeforeUnload").someOrNull {
+      it.onJsBeforeUnload(
+        view,
+        url,
+        message,
+        result
+      )
+    }
       ?: super.onJsBeforeUnload(view, url, message, result)
   }
 

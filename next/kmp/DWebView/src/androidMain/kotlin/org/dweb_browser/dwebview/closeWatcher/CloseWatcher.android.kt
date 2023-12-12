@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -37,6 +38,8 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
     }
   }
 
+  private val openLock = Mutex()
+
   init {
     engine.addJavascriptInterface(
       object {
@@ -50,8 +53,11 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
           }
           consuming.add(consumeToken)
           mainScope.launch {
-            install()
-            engine.evaluateJavascript("open('$consumeToken')", null)
+            openLock.withLock {
+              install()
+              engine.evaluateJavascript("open('$consumeToken')", null)
+              delay(60) // 经过测试，两次open至少需要50ms才能正确执行，所以这里用一个稍微大一点的数字来确保正确性
+            }
           }
         }
 

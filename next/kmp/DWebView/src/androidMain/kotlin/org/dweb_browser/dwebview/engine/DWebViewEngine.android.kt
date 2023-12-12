@@ -300,7 +300,7 @@ class DWebViewEngine(
         withMainContext {
           if (contentType?.startsWith("text/html") == true) {
             super.evaluateJavascript(getDocumentStartJsScript()) {
-              debugDWebView("inject userAgent","🍊")
+              debugDWebView("inject userAgent", "🍊")
             }
           }
         }
@@ -359,7 +359,8 @@ class DWebViewEngine(
     }
   }
 
-   var isDestroyed = false
+  var isDestroyed = false
+    private set
   private var _destroySignal = SimpleSignal();
   val onDestroy = _destroySignal.toListener()
   override fun destroy() {
