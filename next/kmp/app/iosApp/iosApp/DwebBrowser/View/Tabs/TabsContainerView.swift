@@ -53,10 +53,10 @@ struct TabsContainerView: View {
                         animationImage
                             .transition(.identityHack)
                             .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
-                            .frame(width: browserArea.frame.width,
-                                   height: browserArea.frame.height - dragScale.toolbarHeight - dragScale.addressbarHeight)
-                            .position(x: browserArea.frame.width / 2.0,
-                                      y: browserArea.frame.height / 2.0 - dragScale.addressbarHeight/2 - dragScale.toolbarHeight/2)
+                            .frame(width: geo.size.width,
+                                   height: geo.size.height - dragScale.addressbarHeight)
+                            .position(x: geo.size.width / 2.0,
+                                      y: geo.size.height / 2.0 - dragScale.addressbarHeight/2)
                     } else {
                         animationImage
                             .transition(.identityHack)
