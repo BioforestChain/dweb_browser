@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 
 enum class BrowserIconResource {
   WebEngineDefault, WebEngineBaidu, WebEngineSougou, WebEngine360,
-  BrowserStar,
+  BrowserStar, BrowserLauncher
   ;
 }
 

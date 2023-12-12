@@ -27,6 +27,7 @@ actual fun getIconResource(resource: BrowserIconResource): ImageBitmap? {
     BrowserIconResource.WebEngineSougou -> R.drawable.ic_engine_sougou
     BrowserIconResource.WebEngine360 -> R.drawable.ic_engine_360
     BrowserIconResource.BrowserStar -> R.drawable.ic_main_star
+    BrowserIconResource.BrowserLauncher -> R.mipmap.ic_launcher
   }
   return iconResourceMap.getOrPut(iconResource) {
     BitmapUtil.decodeBitmapFromResource(NativeMicroModule.getAppContext(), iconResource)

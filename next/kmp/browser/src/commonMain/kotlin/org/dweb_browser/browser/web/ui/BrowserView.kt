@@ -4,11 +4,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -60,19 +60,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.BrowserIconResource
 import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
 import org.dweb_browser.browser.common.barcode.QRCodeScanModel
 import org.dweb_browser.browser.common.barcode.QRCodeScanView
 import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
+import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.model.BrowserBaseView
 import org.dweb_browser.browser.web.model.BrowserWebView
@@ -87,7 +90,6 @@ import org.dweb_browser.browser.web.ui.model.LocalShowIme
 import org.dweb_browser.browser.web.ui.model.LocalShowSearchView
 import org.dweb_browser.browser.web.ui.model.parseInputText
 import org.dweb_browser.browser.web.ui.search.SearchView
-import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.rememberCanGoBack
 import org.dweb_browser.dwebview.rememberLoadingProgress
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -547,7 +549,23 @@ internal fun HomeWebviewPage(
   windowRenderScope: WindowRenderScope,
   onClickOrMove: (Boolean) -> Unit
 ) {
-  var _webView by remember {
+  Box(modifier = Modifier.fillMaxSize()) {
+    Column(
+      modifier = Modifier.align(Alignment.Center),
+      horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+      Image(
+        getIconResource(BrowserIconResource.BrowserLauncher)!!,
+        contentDescription = null,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+        contentScale = ContentScale.FillWidth
+      )
+      Spacer(modifier = Modifier.fillMaxWidth().height(8.dp))
+      Text(text = "Dweb Browser", fontWeight = FontWeight.Black)
+    }
+  }
+
+  /*var _webView by remember {
     mutableStateOf<BrowserWebView?>(null)
   }
   LaunchedEffect(Unit) {
@@ -558,7 +576,7 @@ internal fun HomeWebviewPage(
   BoxWithConstraints(
     modifier = Modifier
       .fillMaxSize()
-      .padding(bottom = dimenSearchHeight * windowRenderScope.scale)
+      .padding(bottom = dimenSearchHeight * windowRenderScope.scale).background(Color.Red)
   ) {
     webView.viewItem.webView.Render(
       Modifier.fillMaxSize(),
@@ -573,5 +591,5 @@ internal fun HomeWebviewPage(
         density
       )
     }
-  }
+  }*/
 }
