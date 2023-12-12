@@ -14,7 +14,10 @@ import io.ktor.http.fullPath
 import io.ktor.http.protocolWithAuthority
 import io.ktor.util.decodeBase64String
 import io.ktor.utils.io.reader
+import io.ktor.websocket.Frame
 import io.ktor.websocket.FrameType
+import io.ktor.websocket.readBytes
+import io.ktor.websocket.readText
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -30,6 +33,7 @@ import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.http.queryAs
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.by
+import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcHeaders
@@ -218,9 +222,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       "/close" bind HttpMethod.Get by defineBooleanResponse {
         close(ipc, request.queryAs())
       },
-      "/websocket" by definePureStreamHandler {
+      "/websocket" byChannel { ctx ->
         debugHttp("websocketxxxx", "xxxx")
-
         val rawUrl = request.query("url")
         val url = Url(rawUrl)
         val protocol = URLProtocol.byName[url.protocol.name]
@@ -232,18 +235,23 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           )
         }
 
-        val deferred = CompletableDeferred<PureStream>()
-
-//        for ((key, value) in request.headers) {
-//          if(key != HttpHeaders.Upgrade) {
-//            httpRequestBuilder.headers.append(key, value)
-//          }
-//        }
         when (protocol) {
           URLProtocol.WS -> {
             httpFetch.client.ws(rawUrl) {
               reader {
-                deferred.complete(PureStream(channel))
+                for (frame in incoming) {
+                  when (frame.frameType) {
+                    FrameType.TEXT -> {
+                      ctx.sendText((frame as Frame.Text).readText())
+                    }
+
+                    FrameType.BINARY -> {
+                      ctx.sendBinary((frame as Frame.Binary).readBytes())
+                    }
+
+                    else -> {}
+                  }
+                }
               }
             }
           }
@@ -251,28 +259,23 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           URLProtocol.WSS -> {
             httpFetch.client.wss(rawUrl) {
               reader {
-                for (frame in incoming){
-//                  when(frame.frameType){
-//                    FrameType.TEXT-> {
-////                      frame.data
-//                      frame.data.usePinned {
-//
-//                      }
-//                    }
-//                    FrameType.BINARY -> {}
-//                    FrameType.CLOSE -> {
-//
-//                    }
-//                  }
+                for (frame in incoming) {
+                  when (frame.frameType) {
+                    FrameType.TEXT -> {
+                      ctx.sendText((frame as Frame.Text).readText())
+                    }
 
-                  deferred.complete(PureStream(channel))
+                    FrameType.BINARY -> {
+                      ctx.sendBinary((frame as Frame.Binary).readBytes())
+                    }
+
+                    else -> {}
+                  }
                 }
               }
             }
           }
         }
-
-        return@definePureStreamHandler deferred.await()
       },
       "/fetch" by definePureResponse {
         val url = Url(request.query("url"))

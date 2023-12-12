@@ -2,11 +2,19 @@ package org.dweb_browser.browser.desk
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.PureBinaryFrame
+import org.dweb_browser.core.http.PureChannel
+import org.dweb_browser.core.http.PureClientChannel
+import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
+import org.dweb_browser.core.http.PureTextFrame
 import org.dweb_browser.core.http.queryAs
 import org.dweb_browser.core.http.queryAsOrNull
 import org.dweb_browser.core.http.router.IHandlerContext
@@ -14,6 +22,8 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -28,10 +38,10 @@ import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ReasonLock
-import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.sys.window.core.ModalState
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowInstancesManager
@@ -82,17 +92,41 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   private suspend fun listenApps() = ioAsyncScope.launch {
-    val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
-      val res = openedAppIpc.request(urlPath)
-      res.stream().getReader("Desk listenApps").consumeEachJsonLine<ChangeState<MMID>> {
-        it.cb()
+      debugDesk("doObserve", "xxx => $urlPath")
+      val channelDef = CompletableDeferred<PureChannel>()
+      val req = PureRequest(
+        urlPath,
+        IpcMethod.GET,
+        IpcHeaders(mapOf("Upgrade" to "websocket")),
+        channel = channelDef
+      )
+      val channel = PureClientChannel(Channel(), Channel(), req)
+      channelDef.complete(channel)
+      if (nativeFetch(req).isOk()) {
+        channel.start().run {
+          for (frame in this) {
+            when (frame) {
+              is PureTextFrame -> {
+                Json.decodeFromString<ChangeState<MMID>>(frame.data).also {
+                  it.cb()
+                }
+              }
+
+              is PureBinaryFrame -> {
+                Json.decodeFromString<ChangeState<MMID>>(frame.data.toUtf8()).also {
+                  it.cb()
+                }
+              }
+            }
+          }
+        }
       }
     }
     // app排序
     val appSortList = DaskSortStore(this@DeskNMM)
     launch {
-      doObserve("/observe/install-apps") {
+      doObserve("file://dns.std.dweb/observe/install-apps") {
         runningApps.emitChangeBackground(adds, updates, removes)
         // 对排序app列表进行更新
         removes.map {

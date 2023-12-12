@@ -297,7 +297,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       },
       //
       "/observe/install-apps" byChannel { ctx ->
+        debugDNS("/observe/install-apps", "byChannel")
         allApps.onChange { changes ->
+          debugDNS("allApps", "onChange adds: ${changes.adds} updates: ${changes.updates} removes: ${changes.removes}")
           ctx.sendJsonLine(
             ChangeState(
               changes.adds, changes.updates, changes.removes
