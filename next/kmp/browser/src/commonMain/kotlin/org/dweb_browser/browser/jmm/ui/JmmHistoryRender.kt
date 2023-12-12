@@ -25,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -142,9 +141,6 @@ fun JmmViewItem(
         Icon(
           imageVector = if (showMore) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
           contentDescription = "More",
-          modifier = Modifier.clickableWithNoEffect {
-            showMore = !showMore
-          }
         )
       }
     },
@@ -172,6 +168,9 @@ fun JmmViewItem(
         )
       }
     },
+    modifier = Modifier.clickableWithNoEffect {
+      showMore = !showMore
+    }
   )
   if (showMore) {
     Row(

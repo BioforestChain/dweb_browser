@@ -66,6 +66,7 @@ class JmmHistoryController(
     )
 
   suspend fun buttonClick(historyMetadata: JmmHistoryMetadata) {
+    this.openInstallerView(historyMetadata)
     when (historyMetadata.state.state) {
       JmmStatus.INSTALLED -> {
         jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${historyMetadata.metadata.id}")

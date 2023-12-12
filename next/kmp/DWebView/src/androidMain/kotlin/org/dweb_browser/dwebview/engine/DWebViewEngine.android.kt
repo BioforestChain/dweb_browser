@@ -296,7 +296,6 @@ class DWebViewEngine(
       withMainContext {
         if (contentType?.startsWith("text/html") == true && !WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
           val documentHtml = remoteMM.nativeFetch(url).body.toPureString()
-          println("xxxx=> $url")
           super.loadDataWithBaseURL(
             url,//document.baseURI
             getDocumentStartJsScript() + documentHtml,
@@ -304,9 +303,6 @@ class DWebViewEngine(
             "",
             url//location.href
           )
-        //          super.evaluateJavascript(getDocumentStartJsScript()) {
-//            debugDWebView("inject userAgent", "🍊")
-//          }
         }
       }
 
