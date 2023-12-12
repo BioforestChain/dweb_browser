@@ -14,6 +14,9 @@ import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
+import org.dweb_browser.core.ipc.helper.IpcMessageConst.closeCborByteArray
+import org.dweb_browser.core.ipc.helper.IpcMessageConst.pingCborByteArray
+import org.dweb_browser.core.ipc.helper.IpcMessageConst.pongCborByteArray
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.ipc.helper.cborToIpcMessage
 import org.dweb_browser.core.ipc.helper.ipcMessageToCbor
@@ -73,6 +76,10 @@ class ReadableStreamIpc(
     pong.size.toLittleEndianByteArray() + pong
   }
 
+  private val CBOR_PONG_DATA by lazy {
+    pongCborByteArray.size.toLittleEndianByteArray() + pongCborByteArray
+  }
+
   class AbortAble {
     val signal = SimpleSignal()
   }
@@ -121,9 +128,9 @@ class ReadableStreamIpc(
                 _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
               }
 
-              "close" -> close()
-              "ping" -> enqueue(PONG_DATA)
-              "pong" -> debugStreamIpc("PONG", "$stream")
+              closeCborByteArray -> close()
+              pingCborByteArray -> enqueue(CBOR_PONG_DATA)
+              pongCborByteArray -> debugStreamIpc("PONG", "$stream")
               else -> throw Exception("unknown message: $message")
             }
           } else {
