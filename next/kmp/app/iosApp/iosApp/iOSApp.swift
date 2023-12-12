@@ -8,6 +8,7 @@ enum RenderType {
 }
 
 let renderType = RenderType.deskOS
+var isCanCloseApp: Bool = true
 
 @main
 struct iOSApp: App {
@@ -49,6 +50,12 @@ struct iOSApp: App {
         }
         .task {
             await checkUpdate()
+            Main_iosKt.regiserBackAction {
+                NotificationCenter.default.post(name: NSNotification.Name("backAction"), object: nil)
+            }
+            Main_iosKt.regiserCanCloseAction {
+                return KotlinBoolean(bool: isCanCloseApp)
+            }
         }
     }
 

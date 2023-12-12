@@ -128,6 +128,7 @@ struct TabPageView: View {
                 if isVisible {
                     toolbarState.canGoBack = canGoBack
                 }
+                isCanCloseApp = !canGoBack
             }
             .onChange(of: webWrapper.canGoForward) { _, canGoForward in
                 if isVisible {

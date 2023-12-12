@@ -9,13 +9,45 @@
 import Foundation
 import UIKit
 import SwiftUI
+import DwebShared
 
 class DwebComposeRootViewController: UIViewController {
+    
+    private var rightEdgePan: UIScreenEdgePanGestureRecognizer!
+    private var leftEdgePan: UIScreenEdgePanGestureRecognizer!
     
     init(vcs: [UIViewController]) {
         super.init(nibName: nil, bundle: nil)
         setupTouchDispatchView()
         updateContent(vcs)
+        
+        addEdgePanGesture()
+    }
+    
+    private func addEdgePanGesture() {
+        leftEdgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(edgeAction(ges:)))
+        leftEdgePan.edges = .left
+        leftEdgePan.delegate = self
+        self.view.addGestureRecognizer(leftEdgePan)
+        
+        rightEdgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(edgeAction(ges:)))
+        rightEdgePan.edges = .right
+        rightEdgePan.delegate = self
+        self.view.addGestureRecognizer(rightEdgePan)
+        
+    }
+    
+    @objc private func edgeAction(ges: UIGestureRecognizer) {
+        
+        if ges is UIScreenEdgePanGestureRecognizer {
+            let recognizer = ges as! UIScreenEdgePanGestureRecognizer
+            switch recognizer.state {
+            case .ended:
+                Main_iosKt.dwebViewController.emitOnGoBack()
+            default:
+                break
+            }
+        }
     }
     
     func setupTouchDispatchView () {
@@ -66,5 +98,15 @@ struct DwebDeskRootView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: DwebComposeRootViewController, context: Context) {
         uiViewController.updateContent(vcs)
+    }
+}
+
+extension DwebComposeRootViewController: UIGestureRecognizerDelegate {
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer == self.leftEdgePan || gestureRecognizer == self.rightEdgePan {
+            return false
+        }
+        return true
     }
 }

@@ -76,6 +76,17 @@ struct BrowserView: View {
             .onChange(of: DwebBrowserIosIMP.shared.searchKey) { _, newValue in
                 doSearchIfNeed(key: newValue)
             }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("backAction"))) { _ in
+                isCanCloseApp = true
+                guard webcacheStore.caches.count > 0 else { return }
+                let shouldShowWeb = webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb
+                guard shouldShowWeb else { return }
+                let webwrapper = webcacheStore.webWrappers[selectedTab.curIndex]
+                if webwrapper.webView.canGoBack {
+                    isCanCloseApp = false
+                    webwrapper.webView.goBack()
+                }
+            }
         }
         .clipped()
         
