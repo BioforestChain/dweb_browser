@@ -25,6 +25,15 @@
 -keep class org.dweb_browser.** { *; }
 -keep interface org.dweb_browser.** { *; }
 
+# com.sun.jna
+-keep class com.sun.jna.** { *; }
+-keepclassmembers class * extends com.sun.jna.** { public *; }
+-dontwarn java.awt.*
+-keep class reverse_proxy.** { *; }
+-keepclassmembers class * extends reverse_proxy.** { public *; }
+-keep class ziplib.** { *; }
+-keepclassmembers class * extends ziplib.** { public *; }
+
 #表示不混淆枚举中的values()和valueOf()方法，枚举我用的非常少，这个就不评论了
 -keepclassmembers enum * {
     public static **[] values();
