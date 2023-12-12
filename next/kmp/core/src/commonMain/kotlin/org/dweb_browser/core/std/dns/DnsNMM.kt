@@ -187,7 +187,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       // 关闭后端连接
       dnsMM.close(mmid)
       val mm = dnsMM.open(mmid, fromMM)
-      println("xxxx=> ${mm.mmid}")
       this.dnsMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${mm.mmid}")
     }
 

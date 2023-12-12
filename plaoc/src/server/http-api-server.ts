@@ -57,8 +57,8 @@ export class Server_api extends HttpServer {
       if (pathname === "/restart") {
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
         setTimeout(async () => {
-          jsProcess.restart();
           close_window(await this.widPo.promise);
+          jsProcess.restart();
         }, 200);
         return Response.json({ success: true, message: "restart ok" });
       }

@@ -299,16 +299,9 @@ class DWebViewEngine(
         val contentType = response.headers.get(HttpHeaders.ContentType)
         withMainContext {
           if (contentType?.startsWith("text/html") == true) {
-            val documentHtml = remoteMM.nativeFetch(url).body.toPureString()
-            super.loadDataWithBaseURL(
-              url,//document.baseURI
-              getDocumentStartJsScript() + documentHtml,
-              "text/html",
-              "base64",
-              url//location.href
-            )
-          } else {
-            super.loadUrl(url)
+            super.evaluateJavascript(getDocumentStartJsScript()) {
+              debugDWebView("inject userAgent","🍊")
+            }
           }
         }
       }
@@ -356,7 +349,7 @@ class DWebViewEngine(
     }
 
   private fun getDocumentStartJsScript() =
-    documentStartJsList.joinToString("\n") { "<script>document.currentScript?.parentElement?.removeChild(document.currentScript);(async()=>{ try{$it}catch(e){console.error(e)} })();</script>" }
+    documentStartJsList.joinToString("\n") { "document.currentScript?.parentElement?.removeChild(document.currentScript);(async()=>{ try{$it}catch(e){console.error(e)} })();" }
 
   private fun addDocumentStartJavaScript(script: String) {
     if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
@@ -383,9 +376,6 @@ class DWebViewEngine(
       _destroySignal.emitAndClear(Unit)
       ioScope.cancel()
     }
-//    ProxyController.getInstance().clearProxyOverride({}, {
-//      println("ProxyController clearProxy Runnable")
-//    })
   }
 
   private var isAttachedToWindow = false

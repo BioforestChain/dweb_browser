@@ -46,7 +46,7 @@ const main = async () => {
   /// 如果主窗口已经激活，那么我就开始渲染
   jsProcess.onRenderer(async (ipcEvent) => {
     console.log(`${jsProcess.mmid} onRenderer`, ipcEvent.text);
-    if (ExternalState.RENDERER) {
+    if (ExternalState.RENDERER == ipcEvent.text) {
       const win_id = await apply_window();
       console.log("win_id=>", win_id);
       widPo.resolve(win_id);
