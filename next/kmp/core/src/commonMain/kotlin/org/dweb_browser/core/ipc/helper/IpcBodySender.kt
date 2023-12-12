@@ -303,7 +303,7 @@ class IpcBodySender private constructor(
 
   private suspend fun streamAsMeta(stream: PureStream, ipc: Ipc) = asMateLock.withLock {
     val stream_id = getStreamId(stream)
-    debugIpcBody("sender/INIT/$stream", stream_id)
+    debugIpcBody("streamAsMeta", "sender INIT => $stream_id => $stream")
     val streamAsMetaScope =
       CoroutineScope(CoroutineName("sender/$stream/$stream_id") + ioAsyncExceptionHandler)
     val reader by lazy { stream.getReader("ipcBodySender StreamAsMeta") }

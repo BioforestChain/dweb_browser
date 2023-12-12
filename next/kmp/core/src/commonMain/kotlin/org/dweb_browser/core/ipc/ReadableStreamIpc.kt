@@ -111,17 +111,17 @@ class ReadableStreamIpc(
           if (size <= 0) {
             continue
           }
-          debugStreamIpc("bindIncomeStream/size", "$size => $stream")
+          debugStreamIpc("bindIncomeStream", "size=$size => $stream")
           // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
           val chunk = reader.readPacket(size)
-          debugStreamIpc("bindIncomeStream/chunk", "${chunk.remaining} => $stream")
-          debugStreamIpc("bindIncomeStream/supportCbor", "$supportCbor")
+          debugStreamIpc("bindIncomeStream", "chunk=${chunk.remaining} => $stream")
+          debugStreamIpc("bindIncomeStream", "supportCbor=$supportCbor")
 
           if(supportCbor) {
             when (val message =
               cborToIpcMessage(chunk.readByteArray(), this@ReadableStreamIpc)) {
               is IpcMessage -> {
-                debugStreamIpc("bindIncomeStream/message", "$message => $stream")
+                debugStreamIpc("bindIncomeStream", "message=$message => $stream")
                 debugStreamIpc(
                   "ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}"
                 )
@@ -137,7 +137,7 @@ class ReadableStreamIpc(
             when (val message =
               jsonToIpcMessage(chunk.readByteArray().toUtf8(), this@ReadableStreamIpc)) {
               is IpcMessage -> {
-                debugStreamIpc("bindIncomeStream/message", "$message => $stream")
+                debugStreamIpc("bindIncomeStream", "message=$message => $stream")
                 debugStreamIpc(
                   "ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}"
                 )

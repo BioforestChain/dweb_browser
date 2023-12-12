@@ -28,7 +28,6 @@ kotlin {
   }
   sourceSets.androidMain.dependencies {
     implementation(libs.androidx.core.ktx)
-    implementation(libs.commons.compress)
     api(libs.whyoleg.cryptography.provider.jdk)
   }
   sourceSets.iosMain.dependencies {

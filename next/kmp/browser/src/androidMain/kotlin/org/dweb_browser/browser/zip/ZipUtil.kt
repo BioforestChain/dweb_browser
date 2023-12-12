@@ -1,4 +1,4 @@
-package org.dweb_browser.helper
+package org.dweb_browser.browser.zip
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
@@ -13,7 +13,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
 object ZipUtil {
-  private val TAG = ZipUtil::class.simpleName
+  private val TAG = ZipUtil::class.simpleName!!
 
   private val BUFFER_SIZE = 1024 * 100
 
@@ -48,10 +48,10 @@ object ZipUtil {
   fun ergodicDecompress(
     filePath: String, outputDir: String, isDeleted: Boolean = true, mmid: String? = null
   ): Boolean {
-    println("$TAG ergodicDecompress->$filePath, $outputDir, $isDeleted, $mmid")
+    debugZip(TAG, "ergodicDecompress->$filePath, $outputDir, $isDeleted, $mmid")
     val file = File(filePath)
     if (!file.exists()) {
-      println("$TAG ergodicDecompress file not exist.")
+      debugZip(TAG, "ergodicDecompress file not exist.")
       return false
     }
     var ret = false
@@ -78,10 +78,10 @@ object ZipUtil {
         }
         filterFile(File(outputDir))
         ret = true
-        println("$TAG ergodicDecompress:: fileType is $index.$dirName")
+        debugZip(TAG, "ergodicDecompress:: fileType is $index.$dirName")
         break
       } catch (e: IOException) {
-        println("$TAG ergodicDecompress:: decompress occur error{$index}. ${e.message}")
+        debugZip(TAG, "ergodicDecompress:: decompress occur error{$index}. ${e.message}")
       }
     }
     if (isDeleted && ret) {
@@ -107,10 +107,10 @@ object ZipUtil {
   }
 
   private fun decompress(filePath: String, outputDir: String, isDeleted: Boolean = true): Boolean {
-    println("$TAG decompress->$filePath, $outputDir, $isDeleted")
+    debugZip(TAG, "decompress->$filePath, $outputDir, $isDeleted")
     val file = File(filePath)
     if (!file.exists()) {
-      println("$TAG decompress file not exist.")
+      debugZip(TAG, "decompress file not exist.")
       return false
     }
     var unzip = false
@@ -129,7 +129,7 @@ object ZipUtil {
       filterFile(File(outputDir))
       unzip = true
     } catch (e: IOException) {
-      println("$TAG decompress:: decompress occur error.")
+      debugZip(TAG, "decompress:: decompress occur error.")
     } finally {
       if (isDeleted) {
         file.deleteRecursively()
@@ -147,7 +147,7 @@ object ZipUtil {
    */
   @Throws(IOException::class)
   private fun unZip(file: File?, outputDir: String, mmid: String? = null): String {
-    println("$TAG unZip->${file?.absolutePath}, $outputDir")
+    debugZip(TAG, "unZip->${file?.absolutePath}, $outputDir")
     val dirName = mmid?.let { "$outputDir/$mmid" } ?: outputDir
     ZipFile(file, StandardCharsets.UTF_8).use { zipFile ->
       //创建输出目录
@@ -200,7 +200,7 @@ object ZipUtil {
 
   @Throws(IOException::class)
   private fun decompressTarGz(file: File?, outputDir: String, mmid: String? = null): String {
-    println("$TAG decompressTarGz->${file?.absolutePath}, $outputDir")
+    debugZip(TAG, "decompressTarGz->${file?.absolutePath}, $outputDir")
     val dirName = "$outputDir/$mmid"
     TarArchiveInputStream(
       GzipCompressorInputStream(BufferedInputStream(FileInputStream(file)))
@@ -234,7 +234,7 @@ object ZipUtil {
    */
   @Throws(IOException::class)
   private fun decompressTarBz2(file: File?, outputDir: String, mmid: String? = null): String {
-    println("$TAG decompressTarBz2->${file?.absolutePath}, $outputDir")
+    debugZip(TAG, "decompressTarBz2->${file?.absolutePath}, $outputDir")
     val dirName = "$outputDir/$mmid"
     TarArchiveInputStream(
       BZip2CompressorInputStream(FileInputStream(file))

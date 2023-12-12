@@ -79,11 +79,10 @@ data class JmmHistoryMetadata(
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
   var installTime: Long = datetimeNow(), // 表示安装应用的时间
 ) {
-
   @Transient
   var state by ObservableMutableState(_state) { _state = it }
 
-  suspend fun updateState(downloadTask: DownloadTask, store: JmmStore) {
+  suspend fun updateByDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
     state = state.copy(
       current = downloadTask.status.current,
       total = downloadTask.status.total,
@@ -99,14 +98,18 @@ data class JmmHistoryMetadata(
     if (downloadTask.status.state != DownloadState.Downloading) {
       store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
     }
-    jmmStatusSignal.emit(state)
+  }
+
+  suspend fun updateState(jmmStatus: JmmStatus, store: JmmStore? = null) {
+    state = state.copy(state = jmmStatus)
+    store?.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
   }
 
   suspend fun installComplete(store: JmmStore) {
+    debugJMM("installComplete")
     taskId = null
     state = state.copy(state = JmmStatus.INSTALLED)
     installTime = datetimeNow()
-    jmmStatusSignal.emit(state)
     store.saveHistoryMetadata(originUrl, this)
     store.setApp(
       metadata.id, JsMicroModuleDBItem(metadata, originUrl)
@@ -114,10 +117,10 @@ data class JmmHistoryMetadata(
   }
 
   suspend fun installFail(store: JmmStore) {
+    debugJMM("installFail")
     taskId = null
     state = state.copy(state = JmmStatus.Failed)
     installTime = datetimeNow()
-    jmmStatusSignal.emit(state)
     store.saveHistoryMetadata(originUrl, this)
   }
 
@@ -147,25 +150,25 @@ enum class JmmStatus {
   /** 初始化中，做下载前的准备，包括寻址、创建文件、保存任务等工作 */
   Init,
 
-  /** 下载中*/
+  /** 下载中 */
   Downloading,
 
-  /** 暂停下载*/
+  /** 暂停下载 */
   Paused,
 
-  /** 取消下载*/
+  /** 取消下载 */
   Canceled,
 
-  /** 下载失败*/
+  /** 下载失败 */
   Failed,
 
-  /** 下载完成*/
+  /** 下载完成 */
   Completed,
 
-  /**安装中*/
+  /** 安装中 */
   INSTALLED,
 
-  /** 新版本*/
+  /** 新版本 */
   NewVersion;
 }
 

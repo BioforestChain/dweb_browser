@@ -44,14 +44,12 @@ class JmmInstallerModel(
   }
 
   fun pause() = controller.ioAsyncScope.launch {
-    controller.pause().falseAlso {
-      jmmHistoryMetadata.jmmStatusSignal.emit(JmmStatusEvent(state = JmmStatus.Failed))
-    }
+    controller.pause()
   }
 
   fun start() = controller.ioAsyncScope.launch {
     controller.start().falseAlso {
-      jmmHistoryMetadata.jmmStatusSignal.emit(JmmStatusEvent(state = JmmStatus.Failed))
+      jmmHistoryMetadata.updateState(JmmStatus.Failed)
     }
   }
 

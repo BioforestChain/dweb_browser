@@ -14,12 +14,6 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,16 +31,7 @@ import org.dweb_browser.helper.toSpaceSize
 internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
   val viewModel = LocalJmmViewHelper.current
-  val jmmHistoryMetadata = viewModel.uiState.jmmHistoryMetadata
-  var jmmState by remember { mutableStateOf(jmmHistoryMetadata.state.state) }
-  var jmmCurrent by remember { mutableLongStateOf(jmmHistoryMetadata.state.current) }
-  DisposableEffect(viewModel.uiState.jmmHistoryMetadata) {
-    val off = jmmHistoryMetadata.onJmmStatusChanged {
-      jmmState = it.state
-      jmmCurrent = it.current
-    }
-    onDispose { off() }
-  }
+  val jmmState = viewModel.uiState.jmmHistoryMetadata.state
 
   Box(
     modifier = Modifier
@@ -58,17 +43,17 @@ internal fun BoxScope.BottomDownloadButton() {
       .padding(16.dp), contentAlignment = Alignment.Center
   ) {
     val showLinearProgress =
-      jmmState == JmmStatus.Downloading || jmmState == JmmStatus.Paused
+      jmmState.state == JmmStatus.Downloading || jmmState.state == JmmStatus.Paused
 
     val modifier = Modifier
       .requiredSize(height = 50.dp, width = 300.dp)
       .fillMaxWidth()
       .clip(ButtonDefaults.elevatedShape)
     val m2 = if (showLinearProgress) {
-      val percent = if (jmmHistoryMetadata.state.total == 0L) {
+      val percent = if (jmmState.total == 0L) {
         0f
       } else {
-        jmmCurrent * 1.0f / jmmHistoryMetadata.state.total
+        jmmState.current * 1.0f / jmmState.total
       }
       modifier.background(
         Brush.horizontalGradient(
@@ -84,7 +69,7 @@ internal fun BoxScope.BottomDownloadButton() {
 
     ElevatedButton(
       onClick = {
-        when (jmmState) {
+        when (jmmState.state) {
           JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled, JmmStatus.NewVersion -> {
             viewModel.startDownload()
           }
@@ -111,20 +96,18 @@ internal fun BoxScope.BottomDownloadButton() {
         disabledContentColor = MaterialTheme.colorScheme.onErrorContainer,
       ),
     ) {
-      val jmmStateText = JmmStatusText(jmmHistoryMetadata.state, jmmCurrent)
-      jmmStateText.third?.let { size ->
+      val (text, total, current) = JmmStatusText(jmmState, jmmState.current)
+      current?.let { size ->
         Row(
           modifier = Modifier.fillMaxWidth(),
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.Center
         ) {
-          Text(text = jmmStateText.first)
-          Text(text = size, modifier = Modifier.width(72.dp), textAlign = TextAlign.End)
-          Text(text = jmmStateText.second)
+          Text(text = text, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+          Text(text = size, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+          Text(text = total, modifier = Modifier.weight(1f))
         }
-      } ?: run {
-        Text(text = jmmStateText.first + jmmStateText.second)
-      }
+      } ?: Text(text = "$text $total")
     }
   }
 }
@@ -161,11 +144,13 @@ fun JmmStatusText(state: JmmStatusEvent, current: Long): Triple<String, String, 
       second = "",
       third = null
     )
+
     JmmStatus.INSTALLED -> Triple(
       first = BrowserI18nResource.install_button_open(),
       second = "",
       third = null
     )
+
     JmmStatus.Failed -> Triple(
       first = BrowserI18nResource.install_button_retry(),
       second = "",

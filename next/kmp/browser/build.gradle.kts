@@ -47,6 +47,8 @@ kotlin {
     implementation(libs.camera.camera2)
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.barcode)
+    //解压缩
+    implementation(libs.commons.compress)
   }
   sourceSets.iosMain.dependencies {
     implementation(projects.ziplib)

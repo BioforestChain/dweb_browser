@@ -6,8 +6,11 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.WARNING
+
+val debugZip = Debugger("ZipManager")
 
 class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
   init {

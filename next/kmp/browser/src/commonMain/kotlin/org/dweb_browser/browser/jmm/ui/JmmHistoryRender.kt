@@ -122,14 +122,6 @@ fun JmmViewItem(
   detail: () -> Unit
 ) {
   var showMore by remember(jmmHistoryMetadata) { mutableStateOf(false) }
-  var jmmStatus by remember(jmmHistoryMetadata) { mutableStateOf(jmmHistoryMetadata.state.state) }
-
-  DisposableEffect(jmmHistoryMetadata) {
-    val off = jmmHistoryMetadata.onJmmStatusChanged {
-      jmmStatus = it.state
-    }
-    onDispose { off() }
-  }
 
   ListItem(
     headlineContent = {
@@ -169,7 +161,7 @@ fun JmmViewItem(
     trailingContent = {
       Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
         Text(
-          text = jmmStatus.showText(),
+          text = jmmHistoryMetadata.state.state.showText(),
           color = MaterialTheme.colorScheme.background,
           fontWeight = FontWeight.W900,
           modifier = Modifier
@@ -187,7 +179,7 @@ fun JmmViewItem(
         .fillMaxWidth()
         .padding(start = 72.dp)
     ) {
-      if (jmmStatus == JmmStatus.INSTALLED) {
+      if (jmmHistoryMetadata.state.state == JmmStatus.INSTALLED) {
         TextButton(onClick = uninstall) {
           Text(text = "卸载")
         }

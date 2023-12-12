@@ -124,9 +124,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
     store.deleteApp(mmid)
     historyMetadataMaps.cMaps.values.find { it.metadata.id == mmid }?.let { historyMetadata ->
       debugJMM("uninstall", "change history state -> $historyMetadata")
-      historyMetadata.state = historyMetadata.state.copy(state = JmmStatus.Init)
-      historyMetadata.jmmStatusSignal.emit(historyMetadata.state)
-      store.saveHistoryMetadata(historyMetadata.originUrl, historyMetadata)
+      historyMetadata.updateState(JmmStatus.Init, store)
     }
     return true
   }
@@ -170,7 +168,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       readChannel.consumeEachJsonLine<DownloadTask> { downloadTask ->
         when (downloadTask.status.state) {
           DownloadState.Completed -> {
-            jmmHistoryMetadata.updateState(downloadTask, store)
+            jmmHistoryMetadata.updateByDownloadTask(downloadTask, store)
             if (decompress(downloadTask, jmmHistoryMetadata)) {
               jmmNMM.bootstrapContext.dns.uninstall(jmmHistoryMetadata.metadata.id)
               jmmNMM.bootstrapContext.dns.install(JsMicroModule(jmmHistoryMetadata.metadata))
@@ -185,7 +183,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
           }
 
           else -> {
-            jmmHistoryMetadata.updateState(downloadTask, store)
+            jmmHistoryMetadata.updateByDownloadTask(downloadTask, store)
           }
         }
       }
