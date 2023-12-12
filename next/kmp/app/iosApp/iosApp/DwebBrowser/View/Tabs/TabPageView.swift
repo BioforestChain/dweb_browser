@@ -105,7 +105,7 @@ struct TabPageView: View {
     }
 
     var webComponent: some View {
-        TabWebView(webView: webWrapper.webView)
+        TabWebView(webView: webWrapper.webView as DwebWKWebView)
             .onAppear {
                 if webWrapper.estimatedProgress < 0.001 {
                     webWrapper.webView.load(URLRequest(url: webCache.lastVisitedUrl))

@@ -67,6 +67,7 @@ import org.dweb_browser.helper.platform.PureViewBox
 import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.shared.bridge.WKWebViewBridge
 import org.dweb_browser.sys.KmpNativeBridgeEventSender
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
@@ -170,7 +171,9 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   val jmmNMM = JmmNMM().setup()
   val deskNMM = DeskNMM().setup()
 
-  val browserNMM = BrowserNMM().setup()
+  val browserNMM = BrowserNMM().setup().also {
+    WKWebViewBridge.shared.webBrowserNMM = it
+  }
 
   /// 启动程序
   val bootNMM = BootNMM(

@@ -16,6 +16,7 @@ import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.DWebViewWatchIconHandler
 import org.dweb_browser.dwebview.DWebViewWebMessage
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
@@ -26,6 +27,7 @@ import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.polyfill.UserAgentData
+import org.dweb_browser.dwebview.polyfill.WatchIosIcon
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
@@ -34,6 +36,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.transparentColor
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.ios.DwebHelper
+import org.dweb_browser.helper.platform.ios.DwebWKWebView
 import org.dweb_browser.helper.toIosUIEdgeInsets
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
@@ -81,7 +84,7 @@ class DWebViewEngine(
   val remoteMM: MicroModule,
   internal val options: DWebViewOptions,
   configuration: WKWebViewConfiguration,
-) : WKWebView(frame, configuration.also {
+) : DwebWKWebView(frame, configuration.also {
   /// 设置scheme，这需要在传入WKWebView之前就要运作
   registryDwebHttpUrlSchemeHandler(remoteMM, it)
   registryDwebSchemeHandler(remoteMM, it)
@@ -174,7 +177,7 @@ class DWebViewEngine(
       withMainContext {
         @Suppress("USELESS_CAST") dwebHelper.setProxyWithConfiguration(
           // 强制类型转换成 `objcnames.classes.WKWebViewConfiguration`，不然会提示类型对不上
-          configuration as objcnames.classes.WKWebViewConfiguration, url.host, url.port.toUShort()
+          configuration, url.host, url.port.toUShort()
         )
       }
     }
@@ -200,12 +203,20 @@ class DWebViewEngine(
         DWebViewWebMessage.webMessagePortContentWorld,
         "webMessagePort"
       )
+      addScriptMessageHandler(DWebViewWatchIconHandler(this@DWebViewEngine), "favicons")
       addUserScript(
         WKUserScript(
           DWebViewWebMessage.WebMessagePortPrepareCode,
           WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentEnd,
           false,
           DWebViewWebMessage.webMessagePortContentWorld
+        )
+      )
+      addUserScript(
+        WKUserScript(
+          WatchIosIcon.polyfillScript,
+          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
+          true
         )
       )
     }
@@ -392,7 +403,10 @@ class DWebViewEngine(
 
   override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
     val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-    mainScope.launch { loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl)) }
+    mainScope.launch {
+      loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl))
+    }
+    evaluateJavascriptSync("void watchIosIcon()")
   }
 
   override fun webView(
@@ -448,9 +462,9 @@ class DWebViewEngine(
     set(value) {
       field = value
       when (value) {
-        null -> dwebHelper.disableSafeAreaInsetsWithWebView(this as objcnames.classes.WKWebView)
+        null -> dwebHelper.disableSafeAreaInsetsWithWebView(this)
         else -> dwebHelper.enableSafeAreaInsetsWithWebView(
-          this as objcnames.classes.WKWebView,
+          this,
           value.toIosUIEdgeInsets()
         )
       }

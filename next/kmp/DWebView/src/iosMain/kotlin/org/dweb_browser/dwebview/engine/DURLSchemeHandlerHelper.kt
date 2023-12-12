@@ -54,8 +54,8 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule) {
     )
 
     val easyTask = nativeHelper.startURLSchemeTask(
-      webView = webView as objcnames.classes.WKWebView,
-      task = task as objcnames.protocols.WKURLSchemeTaskProtocol
+      webView = webView,
+      task = task
     )
 
     microModule.ioAsyncScope.launch {
@@ -111,8 +111,8 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule) {
 
   fun stopURLSchemeTask(webView: WKWebView, task: WKURLSchemeTaskProtocol) {
     nativeHelper.stopURLSchemeTask(
-      webView = webView as objcnames.classes.WKWebView,
-      task = task as objcnames.protocols.WKURLSchemeTaskProtocol
+      webView = webView,
+      task = task
     )
   }
 }

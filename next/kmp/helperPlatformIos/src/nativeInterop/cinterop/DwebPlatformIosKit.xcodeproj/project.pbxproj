@@ -10,6 +10,7 @@
 		3D50D2D92B064BA5008891FC /* DwebPlatformIosKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3DCF04232B19FD6C00A9D3EF /* DwebPlatformIosKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */; };
 		46282D682B0B603700A45995 /* DwebHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46282D672B0B603700A45995 /* DwebHelper.swift */; };
+		46E836332B284F1500281558 /* DwebWKWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E836322B284F1500281558 /* DwebWKWebView.swift */; };
 		48E148E42B1D68EC00B69C64 /* DwebLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */; };
 		48E148E72B1DB00300B69C64 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E148E62B1DB00300B69C64 /* Logger.swift */; };
 /* End PBXBuildFile section */
@@ -19,6 +20,7 @@
 		3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebPlatformIosKit.h; sourceTree = "<group>"; };
 		3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DwebPlatformIosKit.m; sourceTree = "<group>"; };
 		46282D672B0B603700A45995 /* DwebHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebHelper.swift; sourceTree = "<group>"; };
+		46E836322B284F1500281558 /* DwebWKWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebWKWebView.swift; sourceTree = "<group>"; };
 		48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebLocationManager.swift; sourceTree = "<group>"; };
 		48E148E62B1DB00300B69C64 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -108,6 +110,7 @@
 				3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */,
 				3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */,
 				48E148E52B1DAFC400B69C64 /* Tools */,
+				46E836322B284F1500281558 /* DwebWKWebView.swift */,
 			);
 			path = DwebPlatformIosKit;
 			sourceTree = "<group>";
@@ -201,6 +204,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				48E148E42B1D68EC00B69C64 /* DwebLocationManager.swift in Sources */,
+				46E836332B284F1500281558 /* DwebWKWebView.swift in Sources */,
 				46282D682B0B603700A45995 /* DwebHelper.swift in Sources */,
 				3DCF04232B19FD6C00A9D3EF /* DwebPlatformIosKit.m in Sources */,
 				48E148E72B1DB00300B69C64 /* Logger.swift in Sources */,
