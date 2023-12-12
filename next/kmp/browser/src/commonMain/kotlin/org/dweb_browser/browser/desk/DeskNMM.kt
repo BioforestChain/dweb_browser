@@ -8,7 +8,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureBinaryFrame
 import org.dweb_browser.core.http.PureChannel
 import org.dweb_browser.core.http.PureClientChannel
 import org.dweb_browser.core.http.PureRequest
@@ -22,7 +21,6 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
@@ -41,7 +39,6 @@ import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.sys.window.core.ModalState
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowInstancesManager
@@ -98,13 +95,14 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       val req = PureRequest(
         urlPath,
         IpcMethod.GET,
-        IpcHeaders(mapOf("Upgrade" to "websocket")),
         channel = channelDef
       )
       val channel = PureClientChannel(Channel(), Channel(), req)
       channelDef.complete(channel)
-      if (nativeFetch(req).isOk()) {
+      val res = nativeFetch(req)
+      if (res.isOk()) {
         channel.start().run {
+          this.iterator()
           for (frame in this) {
             when (frame) {
               is PureTextFrame -> {
@@ -113,11 +111,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
                 }
               }
 
-              is PureBinaryFrame -> {
-                Json.decodeFromString<ChangeState<MMID>>(frame.data.toUtf8()).also {
-                  it.cb()
-                }
-              }
+              else -> {}
             }
           }
         }

@@ -46,11 +46,13 @@ class IpcHeaders() {
     headersMap[key.asKey()] = value
   }
 
-  fun init(key: String, value: String) {
+  fun init(key: String, value: String): Boolean {
     val headerKey = key.asKey()
     if (!headersMap.contains(headerKey)) {
       headersMap[headerKey] = value
+      return true
     }
+    return false
   }
 
   fun get(key: String): String? {

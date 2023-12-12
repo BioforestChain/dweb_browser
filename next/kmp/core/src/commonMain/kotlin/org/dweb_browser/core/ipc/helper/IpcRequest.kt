@@ -12,7 +12,6 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.buildRequestX
-import org.dweb_browser.core.help.isWebSocket
 import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureChannel
 import org.dweb_browser.core.http.PureClientChannel
@@ -24,11 +23,13 @@ import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.IpcRequestInit
 import org.dweb_browser.core.ipc.debugIpc
 import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.eprintln
+import org.dweb_browser.helper.falseAlso
 import kotlin.coroutines.coroutineContext
 
 
 const val PURE_CHANNEL_EVENT_PREFIX = "λ"
-const val X_IPC_PURE_CHANNEL_ID = "X-Ipc-Pure-Channel-Id"
+const val X_IPC_UPGRADE_KEY = "X-Dweb-Ipc-Upgrade-Key"
 
 class IpcRequest(
   val req_id: Int,
@@ -136,7 +137,8 @@ class IpcRequest(
       channelByIpcEmit: SendChannel<PureFrame>,
       /**收到pureFrame时，需要将其转发给ipc的 channel*/
       channelForIpcPost: ReceiveChannel<PureFrame>,
-      waitReadyToStart: suspend () -> Unit
+      _debugTag: String = "pureChannelToIpcEvent",
+      waitReadyToStart: suspend () -> Unit,
     ) {
       val eventStart = "$eventNameBase/start"
       val eventData = "$eventNameBase/data"
@@ -146,41 +148,41 @@ class IpcRequest(
       ipc.onEvent { (ipcEvent) ->
         when (ipcEvent.name) {
           eventData -> {
-            debugIpc("pureChannelToIpcEvent") { "onIpcEventData:$ipcEvent $pureChannel" }
+            debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent $pureChannel" }
             channelByIpcEmit.send(ipcEvent.toPureFrame())
           }
 
           eventStart -> {
-            debugIpc("pureChannelToIpcEvent") { "onIpcEventStart:$ipcEvent $pureChannel" }
+            debugIpc(_debugTag) { "$ipc onIpcEventStart:$ipcEvent $pureChannel" }
             started.complete(ipcEvent)
           }
 
           eventClose -> {
-            debugIpc("pureChannelToIpcEvent") { "onIpcEventClose:$ipcEvent $pureChannel" }
+            debugIpc(_debugTag) { "$ipc onIpcEventClose:$ipcEvent $pureChannel" }
             offListener()
             pureChannel.close()
           }
         }
       }
-      debugIpc("pureChannelToIpcEvent") { "waitLocaleStart:$eventNameBase $pureChannel" }
+      debugIpc(_debugTag) { "waitLocaleStart:$eventNameBase $pureChannel" }
       // 提供回调函数，等待外部调用者执行开始指令
       waitReadyToStart()
-      debugIpc("pureChannelToIpcEvent") { "waitRemoteStart:$eventNameBase $pureChannel" }
+      debugIpc(_debugTag) { "waitRemoteStart:$eventNameBase $pureChannel" }
       // 首先自己发送start，告知对方自己已经准备好数据接收了
       ipc.postMessage(IpcEvent.fromUtf8(eventStart, ""))
       // 同时也要等待对方发送 start 信号过来，那么也将 start 回传，避免对方遗漏前面的 start 消息
       val ipcStartEvent = started.await()
-      debugIpc("pureChannelToIpcEvent") { "postIpcEventStart:$ipcStartEvent $pureChannel" }
+      debugIpc(_debugTag) { "$ipc postIpcEventStart:$ipcStartEvent $pureChannel" }
       ipc.postMessage(ipcStartEvent)
       /// 将PureFrame转成IpcEvent，然后一同发给对面
       for (pureFrame in channelForIpcPost) {
         val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame)
-        debugIpc("pureChannelToIpcEvent") { "postIpcEventData:$ipcDataEvent $pureChannel" }
+        debugIpc(_debugTag) { "$ipc postIpcEventData:$ipcDataEvent $pureChannel" }
         ipc.postMessage(ipcDataEvent)
       }
       // 关闭的时候，发一个信号给对面
       val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "")
-      debugIpc("pureChannelToIpcEvent") { "postIpcEventClose:$ipcCloseEvent $pureChannel" }
+      debugIpc(_debugTag) { "$ipc postIpcEventClose:$ipcCloseEvent $pureChannel" }
       ipc.postMessage(ipcCloseEvent)
     }
 
@@ -196,9 +198,10 @@ class IpcRequest(
       if (pureRequest.hasChannel) {
         val eventNameBase = "$PURE_CHANNEL_EVENT_PREFIX-${ipc.uid}/${req_id}/${duplex.inc().value}"
 
+        debugIpc("fromPure/hasChannel") { "create ipcEventBaseName:$eventNameBase => request:$pureRequest" }
         CoroutineScope(coroutineContext).launch {
           val pureChannel = pureRequest.getChannel()
-          debugIpc("fromPure/getChannel") { "channelId:$eventNameBase => pureChannel:$pureChannel start!!" }
+          debugIpc("fromPure/channelToIpc") { "channelId:$eventNameBase => pureChannel:$pureChannel start!!" }
 
           /// 不论是请求者还是响应者
           /// 那么意味着数据需要通过ipc来进行发送。所以我需要将 pureChannel 中要发送的数据读取出来进行发送
@@ -210,6 +213,7 @@ class IpcRequest(
             pureChannel,
             channelByIpcEmit = channelContext.outgoing,
             channelForIpcPost = channelContext.income,
+            _debugTag = "fromPure/channelToIpc"
           ) { }
         }
 
@@ -218,12 +222,16 @@ class IpcRequest(
           IpcRequestInit(
             pureRequest.method,
             IPureBody.Empty,
-            pureRequest.headers.copy().apply { init(X_IPC_PURE_CHANNEL_ID, eventNameBase) })
+            pureRequest.headers.copy().apply {
+              init(X_IPC_UPGRADE_KEY, eventNameBase).falseAlso {
+                eprintln("fromPure WARNING: SHOULD NOT HAPPENED, PURE_REQUEST CONTAINS 'X_IPC_UPGRADE_KEY' IN HEADERS")
+              }
+            })
         )
-        debugIpc("fromPure/hasChannel") { "channelId:$eventNameBase => request:$pureRequest" }
+
         when {
-          isIpcSender -> ipcRequest._pureServer
-          else -> ipcRequest._pureClient
+          isIpcSender -> ipcRequest._pureClient
+          else -> ipcRequest._pureServer
         }.update { pureRequest }
         return ipcRequest
       }
@@ -237,14 +245,13 @@ class IpcRequest(
   /**
    * 判断是否是双工协议
    *
-   * 比如目前双工协议可以由 WebSocket 来提供支持
+   * 注意，这里WebSocket，但是可以由 WebSocket 来提供支持
+   * WebSocket 是在头部中有 Upgrade ，我们这里是 X_IPC_PURE_CHANNEL_ID
    */
-  val hasDuplex
-    get() = isWebSocket(IpcMethod.from(method.ktorMethod), headers) && duplexEventBaseName != null
-
+  val hasDuplex get() = duplexEventBaseName != null
   private val duplexEventBaseName by lazy {
     var eventNameBase: String? = null
-    headers.get(X_IPC_PURE_CHANNEL_ID)?.also {
+    headers.get(X_IPC_UPGRADE_KEY)?.also {
       if (it.startsWith(PURE_CHANNEL_EVENT_PREFIX)) {
         eventNameBase = it
       }
@@ -256,17 +263,26 @@ class IpcRequest(
   private val _pureClient by lazy { atomic<PureRequest?>(null) }
   private val _pureServer by lazy { atomic<PureRequest?>(null) }
 
-  suspend fun toPure(isIpcSender: Boolean) = when {
+  /**
+   * 如果 isIpcSender = true，那么处理 ipcForChannelHandler 的就是 ipcRequest 自身的 ipc 对象。
+   * 否则，ipcForChannelHandler 应该由外部传入，传入 onMessage/onRequest 的处理者
+   */
+  suspend fun toPure(isIpcSender: Boolean, ipcForChannelHandler: Ipc = ipc) = when {
     // 如果作为ipcRequest的请求发起者
     isIpcSender -> _pureClient
     // 如果作为ipcRequest的请求处理者
     else -> _pureServer
   }.updateAndGet {
+    if (!isIpcSender) {
+      require(
+        ipcForChannelHandler != ipc
+      ) { "ipcForChannelHandler 应该由外部传入，传入 onMessage/onRequest 的处理者" }
+    }
     it ?: buildRequestX(url, method, headers, body.raw).let { pureRequest ->
       if (hasDuplex) {
         debugIpc(
-          "toPure/hasDuplex",
-          "isIpcSender:$isIpcSender channelId:$duplexEventBaseName => request:$this"
+          "toPure/ipcToChannel",
+          "isIpcSender:$isIpcSender channelId:$duplexEventBaseName => request:$this start!!"
         )
 
         val income = Channel<PureFrame>()
@@ -278,14 +294,18 @@ class IpcRequest(
         CoroutineScope(coroutineContext).launch {
           pureChannelToIpcEvent(
             duplexEventBaseName!!,
-            ipc,
+            ipcForChannelHandler,
             pureChannel,
             channelByIpcEmit = income,
-            channelForIpcPost = outgoing
+            channelForIpcPost = outgoing,
+            _debugTag = "toPure/ipcToChannel",
           ) { pureChannel.afterStart(); }
         }
 
-        pureRequest.copy(channel = CompletableDeferred()).apply { initChannel(pureChannel) }
+        pureRequest.copy(
+          channel = CompletableDeferred(),
+          headers = pureRequest.headers.copy().apply { delete(X_IPC_UPGRADE_KEY) })
+          .apply { initChannel(pureChannel) }
       } else pureRequest
     }
   }!!

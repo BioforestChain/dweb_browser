@@ -60,19 +60,19 @@ class DwebHttpGatewayServer private constructor() {
               null -> rawUrl
               else -> "${info.protocol.name}://${info.host}$rawUrl"
             }
-            var request = if (url != rawUrl) rawRequest.copy(href = url) else rawRequest;
+            var pureRequest = if (url != rawUrl) rawRequest.copy(href = url) else rawRequest;
 
-            if (request.isWebSocket()) {
-              request = request.copy(channel = CompletableDeferred())
+            if (pureRequest.isWebSocket()) {
+              pureRequest = pureRequest.copy(channel = CompletableDeferred())
             }
             val response = try {
-              gatewayAdapterManager.doGateway(request)
+              gatewayAdapterManager.doGateway(pureRequest)
                 ?: PureResponse(HttpStatusCode.GatewayTimeout)
             } catch (e: Throwable) {
               PureResponse(HttpStatusCode.BadGateway, body = IPureBody.from(e.message ?: ""))
             }
 
-            if (request.hasChannel) {
+            if (pureRequest.hasChannel) {
               /// 如果是101响应头，那么使用WebSocket来作为双工的通讯标准进行传输，这里使用PureChannel来承担这层抽象
               when (response.status.value) {
                 /// 如果是200响应头，说明是传统的响应模式，这时候只处理输出，websocket的incoming数据完全忽视
@@ -103,8 +103,8 @@ class DwebHttpGatewayServer private constructor() {
                     val ws = this;
                     val income = Channel<PureFrame>()
                     val outgoing = Channel<PureFrame>()
-                    val pureChannel = PureServerChannel(income, outgoing, request, response, ws)
-                    request.initChannel(pureChannel)
+                    val pureChannel = PureServerChannel(income, outgoing, pureRequest, response, ws)
+                    pureRequest.initChannel(pureChannel)
 
                     /// 将从 pureChannel 收到的数据，传输到 websocket 的 frame 中
                     launch {

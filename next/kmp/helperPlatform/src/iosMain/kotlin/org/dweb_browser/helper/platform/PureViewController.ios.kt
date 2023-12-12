@@ -127,11 +127,11 @@ class PureViewController(
           }
 
           override fun viewWillDisappear(animated: Boolean) {
-            println("QAQ viewWillDisappear animated=$animated")
+            println("QWQ viewWillDisappear animated=$animated")
           }
 
           override fun viewDidDisappear(animated: Boolean) {
-            println("QAQ viewDidDisappear animated=$animated")
+            println("QWQ viewDidDisappear animated=$animated")
           }
         }
       }) {

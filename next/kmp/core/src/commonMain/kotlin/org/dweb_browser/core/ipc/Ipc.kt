@@ -267,9 +267,11 @@ abstract class Ipc {
     return IpcRequest.fromRequest(reqId, this, url, init)
   }
 
-  suspend fun request(request: PureRequest) = this.request(
-    IpcRequest.fromPure(allocReqId(), this, request, true)
-  ).toPure()
+  suspend fun request(request: PureRequest): PureResponse {
+    return this.request(
+      IpcRequest.fromPure(allocReqId(), this, request, true)
+    ).toPure()
+  }
 
   suspend fun request(url: String, init: IpcRequestInit): IpcResponse {
     val ipcRequest = this._buildIpcRequest(url, init)

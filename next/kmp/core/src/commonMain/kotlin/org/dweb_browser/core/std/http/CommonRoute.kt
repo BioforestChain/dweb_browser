@@ -1,7 +1,6 @@
 package org.dweb_browser.core.std.http
 
 import kotlinx.serialization.Serializable
-import org.dweb_browser.core.help.isWebSocket
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.router.HttpHandlerChain
 import org.dweb_browser.core.http.router.RouteHandler
@@ -62,7 +61,7 @@ data class PathRoute(
 data class DuplexRoute(val pathname: String, val matchMode: MatchMode = MatchMode.PREFIX) :
   IRoute {
   override fun isMatch(request: PureRequest) =
-    request.isWebSocket() && PathRoute.isMatch(request, pathname, matchMode)
+    request.hasChannel && PathRoute.isMatch(request, pathname, matchMode)
 }
 
 interface IRoute {
