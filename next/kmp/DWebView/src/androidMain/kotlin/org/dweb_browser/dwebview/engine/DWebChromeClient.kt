@@ -90,8 +90,8 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
 
         // 它是有内部链接的，所以等到它ok了再说
         var mainUrl = dwebView.url
-        while (mainUrl == null) {
-          delay(10)
+        while (mainUrl == null || !dwebView.isDestroyed) {
+          delay(100)
           mainUrl = dwebView.url
         }
         val beforeCreateWindowEvent =

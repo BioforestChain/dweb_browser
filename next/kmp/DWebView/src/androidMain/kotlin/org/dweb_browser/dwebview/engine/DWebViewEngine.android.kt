@@ -19,7 +19,6 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import io.ktor.http.HttpHeaders
-import io.ktor.util.encodeBase64
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -298,9 +297,9 @@ class DWebViewEngine(
       ioScope.launch {
         val response = remoteMM.nativeFetch(url)
         val contentType = response.headers.get(HttpHeaders.ContentType)
-        if (contentType?.startsWith("text/html") == true) {
-          val documentHtml = remoteMM.nativeFetch(url).body.toPureString()
-          withMainContext {
+        withMainContext {
+          if (contentType?.startsWith("text/html") == true) {
+            val documentHtml = remoteMM.nativeFetch(url).body.toPureString()
             super.loadDataWithBaseURL(
               url,//document.baseURI
               getDocumentStartJsScript() + documentHtml,
@@ -308,9 +307,9 @@ class DWebViewEngine(
               "base64",
               url//location.href
             )
+          } else {
+            super.loadUrl(url)
           }
-        } else {
-          super.loadUrl(url)
         }
       }
     }
@@ -367,14 +366,14 @@ class DWebViewEngine(
     }
   }
 
-  private var _estroyed = false
+   var isDestroyed = false
   private var _destroySignal = SimpleSignal();
   val onDestroy = _destroySignal.toListener()
   override fun destroy() {
-    if (_estroyed) {
+    if (isDestroyed) {
       return
     }
-    _estroyed = true
+    isDestroyed = true
     debugDWebView("DESTROY")
     if (!isAttachedToWindow) {
       super.onDetachedFromWindow()

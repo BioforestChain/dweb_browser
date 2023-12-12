@@ -1,8 +1,13 @@
 import { createSignal, jsProcess } from "../deps.ts";
 
-
+//申请模块窗口
 export const  apply_window = async () => {
   return await jsProcess.nativeFetch("file://window.sys.dweb/mainWindow").text()
+}
+
+// 彻底删除模块窗口
+export const close_window = async (wid:string) => {
+  return await jsProcess.nativeFetch(`file://window.sys.dweb/closeWindow?wid=${wid}`)
 }
 
 /**开启新页面 */

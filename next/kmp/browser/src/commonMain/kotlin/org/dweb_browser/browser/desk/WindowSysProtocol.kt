@@ -4,8 +4,8 @@ import io.ktor.http.HttpMethod
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.helper.Observable
-import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.constant.WindowStyle
 import org.dweb_browser.sys.window.core.constant.debugWindow
@@ -68,6 +68,7 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
       "/unMaximize" bind HttpMethod.Get by defineEmptyResponse { getWindow().unMaximize() },
       "/visible" bind HttpMethod.Get by defineEmptyResponse { getWindow().toggleVisible() },
       "/close" bind HttpMethod.Get by defineEmptyResponse { getWindow().tryCloseOrHide() },
+      "/closeWindow" bind HttpMethod.Get by defineEmptyResponse { getWindow().closeRoot(true) },
       "/setStyle" bind HttpMethod.Get by defineEmptyResponse {
         getWindow().setStyle(request.queryAs<WindowStyle>())
       },

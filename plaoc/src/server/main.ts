@@ -2,7 +2,7 @@ import { X_PLAOC_QUERY } from "./const.ts";
 import { jsProcess, PromiseOut } from "./deps.ts";
 import "./helper/polyfill.ts";
 import { Server_api } from "./http-api-server.ts";
-import { Server_external } from "./http-external-server.ts";
+import { ExternalState, Server_external } from "./http-external-server.ts";
 import { Server_www } from "./http-www-server.ts";
 import "./shim/crypto.shims.ts";
 
@@ -39,14 +39,20 @@ const main = async () => {
       await mwebview_activate(wid);
     }
   });
-  /// 如果有人来激活，那我就唤醒我的界面
-  jsProcess.onActivity(async (_ipcEvent) => {
-    console.log(`${jsProcess.mmid} onActivity`);
+
+  jsProcess.onActivity((ipcEvent) => {
+    console.log(`${jsProcess.mmid} onActivity`, ipcEvent.data);
   });
   /// 如果主窗口已经激活，那么我就开始渲染
-  jsProcess.onRenderer((ipcEvent) => {
-    console.log(`${jsProcess.mmid} onRenderer`);
-    widPo.resolve(ipcEvent.text);
+  jsProcess.onRenderer(async (ipcEvent) => {
+    console.log(`${jsProcess.mmid} onRenderer`, ipcEvent.text);
+    if (ExternalState.RENDERER) {
+      const win_id = await apply_window();
+      console.log("win_id=>", win_id);
+      widPo.resolve(win_id);
+    } else {
+      widPo.resolve(ipcEvent.text);
+    }
     tryOpenView();
   });
 
@@ -81,10 +87,6 @@ const main = async () => {
   console.log("open in browser:", indexUrl.href);
   await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
   indexUrlPo.resolve(indexUrl.href);
-  const win_id = await apply_window()
-  console.log("win_id=>",win_id)
-  widPo.resolve(win_id);
-  tryOpenView();
   //#endregion
 };
 

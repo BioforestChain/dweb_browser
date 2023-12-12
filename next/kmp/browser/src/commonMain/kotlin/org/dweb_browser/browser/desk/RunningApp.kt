@@ -22,7 +22,6 @@ class RunningApp(
    * 这个 ipc 是 running 的标志，这个是我们主动建立的连接，对方如果关闭这个，那么意味着desk会释放掉相关的资源，并且要求dns将它关闭
    */
   val ipc: Ipc,
-  val deskNMM: DeskNMM,
   val bootstrapContext: BootstrapContext
 ) {
   val onClose = ipc.onClose

@@ -54,7 +54,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     return when (val runningApp = runningApps[mmid]) {
       null -> {
         if (ipc.remote.categories.contains(MICRO_MODULE_CATEGORY.Application)) {
-          RunningApp(ipc, this, bootstrapContext).also {
+          RunningApp(ipc, bootstrapContext).also {
             runningApps[mmid] = it
             /// 如果应用关闭，将它从列表中移除
             it.onClose {
@@ -281,7 +281,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         taskBarController.toggleFloatWindow(
           request.queryOrNull("open")?.toBooleanStrictOrNull()
         )
-      }).protected(setOf("jmm.browser.dweb", mmid)).cors()
+      }).protected(setOf("jmm.browser.dweb","dns.std.dweb", mmid)).cors()
 
     onActivity {
       startDesktopView(deskSessionId)

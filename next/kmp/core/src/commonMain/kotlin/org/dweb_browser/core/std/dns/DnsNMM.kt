@@ -186,7 +186,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     override suspend fun restart(mmid: MMID) {
       // 关闭后端连接
       dnsMM.close(mmid)
-      dnsMM.open(mmid, fromMM)
+      val mm = dnsMM.open(mmid, fromMM)
+      println("xxxx=> ${mm.mmid}")
+      this.dnsMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${mm.mmid}")
     }
 
     override suspend fun connect(

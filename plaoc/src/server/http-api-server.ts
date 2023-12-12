@@ -16,7 +16,7 @@ import {
 } from "./deps.ts";
 
 import { HttpServer } from "./helper/http-helper.ts";
-import { mwebview_destroy } from "./helper/mwebview-helper.ts";
+import { close_window, mwebview_destroy } from "./helper/mwebview-helper.ts";
 const DNS_PREFIX = "/dns.std.dweb/";
 const INTERNAL_PREFIX = "/internal/";
 
@@ -56,8 +56,9 @@ export class Server_api extends HttpServer {
     const result = async () => {
       if (pathname === "/restart") {
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-        setTimeout(() => {
+        setTimeout(async () => {
           jsProcess.restart();
+          close_window(await this.widPo.promise);
         }, 200);
         return Response.json({ success: true, message: "restart ok" });
       }
@@ -124,9 +125,7 @@ export class Server_api extends HttpServer {
   /**
    * request 事件处理器
    */
-  protected async _onApi(
-    event: FetchEvent,
-  ): Promise<$OnFetchReturn> {
+  protected async _onApi(event: FetchEvent): Promise<$OnFetchReturn> {
     const { pathname, search } = event;
     // 转发file请求到目标NMM
     const path = `file:/${pathname}${search}`;
@@ -139,7 +138,7 @@ export class Server_api extends HttpServer {
       event.headers,
       event.ipcRequest.body,
       targetIpc
-    )
+    );
     targetIpc.postMessage(ipcProxyRequest);
     const ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.req_id).promise;
     return ipcProxyResponse.toResponse();
