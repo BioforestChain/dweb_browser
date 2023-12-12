@@ -46,9 +46,9 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       if (historyMetadata.state.state == JmmStatus.Downloading ||
         historyMetadata.state.state == JmmStatus.Paused
       ) {
-        historyMetadata.state.state = JmmStatus.Paused
+        historyMetadata.state = historyMetadata.state.copy(state = JmmStatus.Paused)
       } else if (jmmNMM.bootstrapContext.dns.query(historyMetadata.metadata.id) == null) {
-        historyMetadata.state.state = JmmStatus.Init // 如果没有找到，说明被卸载了
+        historyMetadata.state = historyMetadata.state.copy(state = JmmStatus.Init) // 如果没有找到，说明被卸载了
       }
     }
   }
@@ -97,7 +97,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
           JmmHistoryMetadata(
             originUrl = originUrl,
             metadata = jmmAppInstallManifest,
-            state = JmmStatusEvent(
+            _state = JmmStatusEvent(
               total = jmmAppInstallManifest.bundle_size,
               state = JmmStatus.NewVersion
             )
@@ -124,8 +124,8 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
     store.deleteApp(mmid)
     historyMetadataMaps.cMaps.values.find { it.metadata.id == mmid }?.let { historyMetadata ->
       debugJMM("uninstall", "change history state -> $historyMetadata")
-      historyMetadata.state.state = JmmStatus.Init
-      historyMetadata.jmmStatusSignal.emit(JmmStatusEvent(state = JmmStatus.Init))
+      historyMetadata.state = historyMetadata.state.copy(state = JmmStatus.Init)
+      historyMetadata.jmmStatusSignal.emit(historyMetadata.state)
       store.saveHistoryMetadata(historyMetadata.originUrl, historyMetadata)
     }
     return true

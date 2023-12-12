@@ -3,7 +3,10 @@ package org.dweb_browser.browser.jmm
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.InstallMobile
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.browser.download.DownloadState
@@ -14,6 +17,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.datetimeNow
 
 @Serializable
@@ -71,13 +75,18 @@ data class JmmHistoryMetadata(
   val originUrl: String,
   val metadata: JmmAppInstallManifest,
   var taskId: TaskId? = null, // 用于保存下载任务，下载完成置空
-  var state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
+  @SerialName("state")
+  private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
   var installTime: Long = datetimeNow(), // 表示安装应用的时间
 ) {
+
+  @Transient
+  var state by ObservableMutableState(_state) { _state = it }
+
   suspend fun updateState(downloadTask: DownloadTask, store: JmmStore) {
-    with(state) {
-      current = downloadTask.status.current
-      total = downloadTask.status.total
+    state = state.copy(
+      current = downloadTask.status.current,
+      total = downloadTask.status.total,
       state = when (downloadTask.status.state) {
         DownloadState.Init -> JmmStatus.Init
         DownloadState.Downloading -> JmmStatus.Downloading
@@ -86,16 +95,16 @@ data class JmmHistoryMetadata(
         DownloadState.Canceled -> JmmStatus.Canceled
         DownloadState.Completed -> JmmStatus.Completed
       }
-      if (downloadTask.status.state != DownloadState.Downloading) {
-        store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
-      }
-      jmmStatusSignal.emit(this@with)
+    )
+    if (downloadTask.status.state != DownloadState.Downloading) {
+      store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
     }
+    jmmStatusSignal.emit(state)
   }
 
   suspend fun installComplete(store: JmmStore) {
     taskId = null
-    state.state = JmmStatus.INSTALLED
+    state = state.copy(state = JmmStatus.INSTALLED)
     installTime = datetimeNow()
     jmmStatusSignal.emit(state)
     store.saveHistoryMetadata(originUrl, this)
@@ -106,7 +115,7 @@ data class JmmHistoryMetadata(
 
   suspend fun installFail(store: JmmStore) {
     taskId = null
-    state.state = JmmStatus.Failed
+    state = state.copy(state = JmmStatus.Failed)
     installTime = datetimeNow()
     jmmStatusSignal.emit(state)
     store.saveHistoryMetadata(originUrl, this)
@@ -122,15 +131,15 @@ data class JmmHistoryMetadata(
 
 @Serializable
 data class JmmStatusEvent(
-  var current: Long = 0,
-  var total: Long = 1,
-  var state: JmmStatus = JmmStatus.Init,
+  val current: Long = 0,
+  val total: Long = 1,
+  val state: JmmStatus = JmmStatus.Init,
 )
 
 fun JmmAppInstallManifest.createJmmHistoryMetadata(url: String) = JmmHistoryMetadata(
   originUrl = url,
   metadata = this,
-  state = JmmStatusEvent(total = this.bundle_size)
+  _state = JmmStatusEvent(total = this.bundle_size)
 )
 
 @Serializable
