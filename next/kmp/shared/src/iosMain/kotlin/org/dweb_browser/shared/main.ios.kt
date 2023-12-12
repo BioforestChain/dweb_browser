@@ -54,7 +54,6 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
-import org.dweb_browser.core.std.websocketClient.WebSocketClientNMM
 import org.dweb_browser.dwebview.DWebMessage
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -165,9 +164,6 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   val biometricsNMM = BiometricsNMM().setup()
   /// 运动传感器
   val motionSensorsNMM = MotionSensorsNMM().setup()
-
-  /// websocket-client
-  val webSocketClientNMM = WebSocketClientNMM().setup()
 
 
   /// 安装Jmm
