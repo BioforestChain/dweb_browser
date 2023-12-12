@@ -163,7 +163,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       val readChannel = try {
         res.stream().getReader("jmm watchProcess")
       } catch (e: Exception) {
-        return@launch
+        throw Exception(e)
       }
       readChannel.consumeEachJsonLine<DownloadTask> { downloadTask ->
         when (downloadTask.status.state) {

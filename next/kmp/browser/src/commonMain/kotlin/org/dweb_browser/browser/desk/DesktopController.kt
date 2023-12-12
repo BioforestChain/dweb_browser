@@ -12,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -139,7 +138,6 @@ open class DesktopController private constructor(
 
   private var preDesktopWindowsManager: DesktopWindowsManager? = null
 
-  private val sync = SynchronizedObject()
   private val wmLock = Mutex()
 
   /**

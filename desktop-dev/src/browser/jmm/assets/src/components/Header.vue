@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { $InstallProgressInfo } from "&/jmm.api.serve.ts";
 import type { $JmmAppInstallManifest } from "&/types.ts";
-import { toJsonlinesStream } from "helper/stream/jsonlinesStreamHelper.ts";
+import { binaryToJsonlinesStream } from "helper/stream/jsonlinesStreamHelper.ts";
 import { streamRead } from "helper/stream/readableStreamHelper";
 import { ref, watchEffect } from "vue";
 const enum DOWNLOAD_STATUS {
@@ -72,7 +72,7 @@ const update = async () => {
   });
 
   const stream = res.body!;
-  const installProgressStream = toJsonlinesStream<$InstallProgressInfo>(stream);
+  const installProgressStream = binaryToJsonlinesStream<$InstallProgressInfo>(stream);
 
   for await (const info of streamRead(installProgressStream)) {
     if (info.error) {

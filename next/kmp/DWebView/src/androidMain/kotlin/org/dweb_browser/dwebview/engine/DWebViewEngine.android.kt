@@ -290,21 +290,26 @@ class DWebViewEngine(
     }
     preLoadedUrlArgs = curLoadUrlArgs
     super.loadUrl(url)
-
-    if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
-      super.loadUrl(url)
-    } else {
-      ioScope.launch {
-        val response = remoteMM.nativeFetch(url)
-        val contentType = response.headers.get(HttpHeaders.ContentType)
-        withMainContext {
-          if (contentType?.startsWith("text/html") == true) {
-            super.evaluateJavascript(getDocumentStartJsScript()) {
-              debugDWebView("inject userAgent", "🍊")
-            }
-          }
+    ioScope.launch {
+      val response = remoteMM.nativeFetch(url)
+      val contentType = response.headers.get(HttpHeaders.ContentType)
+      withMainContext {
+        if (contentType?.startsWith("text/html") == true && !WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+          val documentHtml = remoteMM.nativeFetch(url).body.toPureString()
+          println("xxxx=> $url")
+          super.loadDataWithBaseURL(
+            url,//document.baseURI
+            getDocumentStartJsScript() + documentHtml,
+            "text/html",
+            "",
+            url//location.href
+          )
+        //          super.evaluateJavascript(getDocumentStartJsScript()) {
+//            debugDWebView("inject userAgent", "🍊")
+//          }
         }
       }
+
     }
   }
 
@@ -349,7 +354,7 @@ class DWebViewEngine(
     }
 
   private fun getDocumentStartJsScript() =
-    documentStartJsList.joinToString("\n") { "document.currentScript?.parentElement?.removeChild(document.currentScript);(async()=>{ try{$it}catch(e){console.error(e)} })();" }
+    documentStartJsList.joinToString("\n") { "<script>document.currentScript?.parentElement?.removeChild(document.currentScript);(async()=>{ try{$it}catch(e){console.error(e)} })();</script>" }
 
   private fun addDocumentStartJavaScript(script: String) {
     if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
@@ -360,7 +365,6 @@ class DWebViewEngine(
   }
 
   var isDestroyed = false
-    private set
   private var _destroySignal = SimpleSignal();
   val onDestroy = _destroySignal.toListener()
   override fun destroy() {
