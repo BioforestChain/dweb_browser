@@ -36,7 +36,8 @@ struct TabGridView: View {
     @Binding var selectedCellFrame: CGRect
 
     @StateObject var deleteCache = DeleteCache()
-
+    @State private var subscriptions = Set<AnyCancellable>()
+    
     let detector = CurrentValueSubject<[CellFrameInfo], Never>([])
     var publisher: AnyPublisher<[CellFrameInfo], Never> {
         detector
@@ -146,30 +147,24 @@ struct TabGridView: View {
                         }
                     }
                 })
+                .task {
+                    selectedTab.$curIndex.debounce(for: .seconds(0.5), scheduler: DispatchQueue.main).sink { index in
+                        let currentFrame = cellFrame(at: index)
+                        let geoFrame = geo.frame(in: .global)
+                        let needScroll = !(geoFrame.minY <= currentFrame.minY && geoFrame.maxY >= currentFrame.maxY)
+                        if needScroll {
+                            let webCache = webcacheStore.cache(at: selectedTab.curIndex)
+                            scrollproxy.scrollTo(webCache.id, anchor: .top)
+                        }
+                    }.store(in: &subscriptions)
+                }
             }
         }
     }
 
     func prepareToShrink(geoFrame: CGRect, scrollproxy: ScrollViewProxy, afterObtainCellFrame: @escaping () -> Void) {
-        let currentFrame = cellFrame(at: selectedTab.curIndex)
-
-        let needScroll = !(geoFrame.minY <= currentFrame.minY && geoFrame.maxY >= currentFrame.maxY)
-
-        if needScroll {
-            Log("star scroll tp adjust")
-
-            let webCache = webcacheStore.cache(at: selectedTab.curIndex)
-            withAnimation(.linear(duration: 0.1)) {
-                scrollproxy.scrollTo(webCache.id, anchor: .top)
-            }
-        }
-
-        let waitingDuration = needScroll ? 0.5 : 0.2 // 0.5是试出来的，少于这个时间滚动未完成，cell的位置不正确. 0.2是因为tabpage在某种情况下会收到两次shouldExpand的onchange事件，0.2是为了等第二次截图完成
-        DispatchQueue.main.asyncAfter(deadline: .now() + waitingDuration) {
-            selectedCellFrame = cellFrame(at: selectedTab.curIndex)
-            Log("cell at \(selectedTab.curIndex) frame is:\(selectedCellFrame)")
-            afterObtainCellFrame()
-        }
+        selectedCellFrame = cellFrame(at: selectedTab.curIndex)
+        afterObtainCellFrame()
     }
 
     func isSelected(webCache: WebCache) -> Bool {
@@ -181,13 +176,5 @@ struct TabGridView: View {
             return frame
         }
         return .zero
-    }
-}
-
-struct TabsCollectionView_Previews: PreviewProvider {
-    static var previews: some View {
-        Text("")
-        //        WebPreViewGrid(cellFrames: .constant([.zero]))
-        //            .frame(height: 754)
     }
 }
