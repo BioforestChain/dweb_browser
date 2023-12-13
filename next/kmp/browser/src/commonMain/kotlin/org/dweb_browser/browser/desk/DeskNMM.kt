@@ -61,7 +61,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
             runningApps[mmid] = app
             /// 如果应用关闭，将它从列表中移除
             app.onClose {
-              runningApps[mmid] = app
+              runningApps.remove(mmid)
             }
           }
         } else null
