@@ -9,15 +9,15 @@ import SwiftUI
 import UIKit
 
 struct BrowserView: View {
-    @StateObject var selectedTab = SelectedTab()
-    @StateObject var addressBar = AddressBarState()
-    @StateObject var openingLink = OpeningLink()
-    @StateObject var toolBarState = ToolBarState()
-    @StateObject var webcacheStore = WebCacheStore()
-    @StateObject var dragScale = WndDragScale()
-    @StateObject var wndArea = BrowserArea()
-    
-    @State private var colorScheme = ColorScheme.light
+    @StateObject var store = BrowserViewStateStore.shared
+    @StateObject var selectedTab = BrowserViewStateStore.shared.selectedTab
+    @StateObject var addressBar = BrowserViewStateStore.shared.addressBar
+    @StateObject var openingLink = BrowserViewStateStore.shared.openingLink
+    @StateObject var toolBarState = BrowserViewStateStore.shared.toolBarState
+    @StateObject var webcacheStore = BrowserViewStateStore.shared.webcacheStore
+    @StateObject var dragScale = BrowserViewStateStore.shared.dragScale
+    @StateObject var wndArea = BrowserViewStateStore.shared.wndArea
+
     var body: some View {
         ZStack {
             GeometryReader { geometry in
@@ -58,41 +58,28 @@ struct BrowserView: View {
                     wndArea.frame = frame
                 }
             }
-            .environment(\.colorScheme, colorScheme)
-            .onReceive(KmpBridgeManager.shared.eventPublisher.debounce(for: 0.3, scheduler: DispatchQueue.main).filter{$0.name == KmpEvent.colorScheme}) { e in
-                Log("Color scheme")
+            .environment(\.colorScheme, store.colorScheme)
+            .onReceive(KmpBridgeManager.shared.eventPublisher.debounce(for: 0.3, scheduler: DispatchQueue.main).filter { $0.name == KmpEvent.colorScheme }) { e in
                 guard let scheme = e.inputDatas?["colorScheme"] as? String else {
                     return
                 }
                 if scheme == "dark" {
-                    colorScheme = .dark
+                    store.colorScheme = .dark
                 } else {
-                    colorScheme = .light
+                    store.colorScheme = .light
                 }
             }
-            .task({
+            .task {
                 doSearchIfNeed()
-            })
-            .onChange(of: DwebBrowserIosIMP.shared.searchKey) { _, newValue in
-                doSearchIfNeed(key: newValue)
             }
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("backAction"))) { _ in
-                isCanCloseApp = true
-                guard webcacheStore.caches.count > 0 else { return }
-                let shouldShowWeb = webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb
-                guard shouldShowWeb else { return }
-                let webwrapper = webcacheStore.webWrappers[selectedTab.curIndex]
-                if webwrapper.webView.canGoBack {
-                    isCanCloseApp = false
-                    webwrapper.webView.goBack()
-                }
+            .onChange(of: store.searchKey) { _, newValue in
+                doSearchIfNeed(key: newValue)
             }
         }
         .clipped()
-        
     }
     
-    private func doSearchIfNeed(key: String? = DwebBrowserIosIMP.shared.searchKey) {
+    private func doSearchIfNeed(key: String? = BrowserViewStateStore.shared.searchKey) {
         guard let key = key, !key.isEmpty else {
             return
         }
@@ -104,6 +91,6 @@ struct BrowserView: View {
         if webcacheStore.caches.count == 0 {
             return true
         }
-        return webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb
+        return webcacheStore.cache(at: BrowserViewStateStore.shared.selectedTab.curIndex).shouldShowWeb
     }
 }

@@ -6,6 +6,7 @@ import platform.UIKit.UIView
 interface IosInterface {
   fun getBrowserView(): UIView
   fun doSearch(key: String)
+  fun gobackIfCanDo(): Boolean
 }
 
 class BrowserIosIMP {
@@ -25,4 +26,6 @@ class BrowserIosIMP {
   fun doSearch(key: String) {
     imp?.doSearch(key)
   }
+
+  fun gobackIfCanDo() = imp?.let { it.gobackIfCanDo() } ?: false
 }

@@ -50,12 +50,6 @@ struct iOSApp: App {
         }
         .task {
             await checkUpdate()
-            Main_iosKt.regiserBackAction {
-                NotificationCenter.default.post(name: NSNotification.Name("backAction"), object: nil)
-            }
-            Main_iosKt.regiserCanCloseAction {
-                return KotlinBoolean(bool: isCanCloseApp)
-            }
         }
     }
 

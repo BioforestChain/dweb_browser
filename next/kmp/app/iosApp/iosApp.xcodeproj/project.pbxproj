@@ -11,6 +11,7 @@
 		1A0D794E6805F75B088C0939 /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0D7C84CC71A12D5FCBBF78 /* iOSApp.swift */; };
 		3D763C262B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; };
 		3D763C272B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		4809C35C2B29B33600BFAA68 /* BrowserViewStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4809C35B2B29B33600BFAA68 /* BrowserViewStateStore.swift */; };
 		4840D2C42AF10E6800102701 /* KmpBridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */; };
 		48491C702B21B95B00128B72 /* DwebBrowserIosIMP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48491C6F2B21B95B00128B72 /* DwebBrowserIosIMP.swift */; };
 		48491C722B2302B800128B72 /* UIImage+Resize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48491C712B2302B800128B72 /* UIImage+Resize.swift */; };
@@ -111,6 +112,7 @@
 		058557BA273AAA24004C7B11 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1A0D7C84CC71A12D5FCBBF78 /* iOSApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = DwebPlatformIosKit.xcframework; path = ../../helperPlatformIos/src/nativeInterop/cinterop/xcframeworks/DwebPlatformIosKit.xcframework; sourceTree = "<group>"; };
+		4809C35B2B29B33600BFAA68 /* BrowserViewStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserViewStateStore.swift; sourceTree = "<group>"; };
 		4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KmpBridgeManager.swift; sourceTree = "<group>"; };
 		48491C6F2B21B95B00128B72 /* DwebBrowserIosIMP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserIosIMP.swift; sourceTree = "<group>"; };
 		48491C712B2302B800128B72 /* UIImage+Resize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Resize.swift"; sourceTree = "<group>"; };
@@ -281,6 +283,7 @@
 			isa = PBXGroup;
 			children = (
 				F034443B2AE26F64004F732E /* BrowserView.swift */,
+				4809C35B2B29B33600BFAA68 /* BrowserViewStateStore.swift */,
 				F03444C82AE2713D004F732E /* DownloadApp */,
 				F03444BF2AE2704A004F732E /* Bridge */,
 				F03444422AE26FA9004F732E /* extension */,
@@ -618,6 +621,7 @@
 				F03444882AE26FAB004F732E /* PagingScroll.swift in Sources */,
 				F03444A12AE26FAB004F732E /* ScannerViewController.swift in Sources */,
 				F03444C62AE2704A004F732E /* ConsoleSwift.swift in Sources */,
+				4809C35C2B29B33600BFAA68 /* BrowserViewStateStore.swift in Sources */,
 				F03444D12AE2713D004F732E /* DownloadImageViewModel.swift in Sources */,
 				F03444AC2AE26FAB004F732E /* HistoryViewModel.swift in Sources */,
 				4840D2C42AF10E6800102701 /* KmpBridgeManager.swift in Sources */,

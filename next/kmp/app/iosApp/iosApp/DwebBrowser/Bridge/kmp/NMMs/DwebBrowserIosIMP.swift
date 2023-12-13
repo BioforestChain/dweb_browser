@@ -11,17 +11,19 @@ import UIKit
 import SwiftUI
 
 class DwebBrowserIosIMP: BrowserIosInterface {
-    
+
     static let shared = DwebBrowserIosIMP()
-    
-    @Published var searchKey: String?
-    
+        
     func doSearch(key: String) {
-        guard searchKey != key else { return }
-        searchKey = key
+        BrowserViewStateStore.shared.doSearch(key)
     }
     
     func getBrowserView() -> UIView {
+        BrowserViewStateStore.shared.clear()
         return UIHostingController(rootView: BrowserView()).view!
+    }
+    
+    func gobackIfCanDo() -> Bool {
+        return BrowserViewStateStore.shared.doBackIfCan()
     }
 }

@@ -26,11 +26,8 @@ public fun registerIosIMP(imp: IosInterface) = browserIosImp.registerIosIMP(imp)
 //iOS的协议实现
 private var browserIosImp = BrowserIosIMP()
 
-//对外暴露的接口
+//对iOS暴露的服务
 public var browserIosService = BrowserIosService()
-
-public var backAction: (() -> Unit)? = null
-public var canCloseAction: (() -> Boolean)? = null
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -55,13 +52,11 @@ actual fun CommonBrowserView(
   NativeBackHandler {
     if (win.isFocused()) {
 
-      val isClose = canCloseAction?.let { it() }
-      if (isClose == true) {
+      //true: web能够goback。false:不能goback，需要close
+      if (!browserIosImp.gobackIfCanDo()) {
         scope.launch {
           win.tryCloseOrHide()
         }
-      } else {
-        backAction?.let { it() }
       }
     }
   }

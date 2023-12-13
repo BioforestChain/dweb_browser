@@ -38,8 +38,6 @@ import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browser.web.BrowserNMM
-import org.dweb_browser.browser.web.backAction
-import org.dweb_browser.browser.web.canCloseAction
 import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureResponse
@@ -198,13 +196,7 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   dnsNMM.bootstrap()
   return dnsNMM
 }
-public fun regiserBackAction(callback: () -> Unit) {
-  backAction = callback
-}
 
-public fun regiserCanCloseAction(callback: () -> Boolean) {
-  canCloseAction = callback
-}
 @OptIn(ExperimentalForeignApi::class)
 @Composable
 fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat) -> Unit) {
