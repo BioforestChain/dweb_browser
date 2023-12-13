@@ -103,7 +103,7 @@ import org.dweb_browser.helper.compose.rememberScreenSize
 import org.dweb_browser.helper.platform.getCornerRadiusTop
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
-import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.render.NativeBackHandler
 
 enum class PopupViewState(
   private val height: Dp = 0.dp,
@@ -136,12 +136,13 @@ enum class PopupViewState(
 internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
   val bottomSheetModel = LocalModalBottomSheet.current
   val scope = rememberCoroutineScope()
-  val win = LocalWindowController.current
 
   if (bottomSheetModel.show.value) {
-    win.GoBackHandler {
-      if (bottomSheetModel.state.value != SheetState.Hidden) {
-        scope.launch { bottomSheetModel.hide() }
+    NativeBackHandler {
+      scope.launch {
+        if (bottomSheetModel.state.value != SheetState.Hidden) {
+          bottomSheetModel.hide()
+        }
       }
     }
 
@@ -435,7 +436,8 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
             scope.launch {
               it.viewItem.webView.toWebSiteInfo(WebSiteType.Book)?.let {
                 viewModel.changeBookLink(add = it)
-              } ?: viewModel.showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
+              }
+                ?: viewModel.showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
             }
           }
         } // 添加书签
@@ -535,11 +537,12 @@ private fun RowItemMenuView(
 @Composable
 internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
-  val win = LocalWindowController.current
   AnimatedVisibility(visibleState = viewModel.showMultiView) {
-    win.GoBackHandler {
-      if (viewModel.showMultiView.targetState) {
-        viewModel.updateMultiViewState(false)
+    NativeBackHandler {
+      scope.launch {
+        if (viewModel.showMultiView.targetState) {
+          viewModel.updateMultiViewState(false)
+        }
       }
     }
     // 高斯模糊做背景

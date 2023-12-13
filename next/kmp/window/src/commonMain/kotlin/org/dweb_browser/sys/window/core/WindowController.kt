@@ -275,7 +275,7 @@ abstract class WindowController(
     state.closeTip = closeTip
     DisposableEffect(this, enabled) {
       state.canGoBack = enabled
-      val off = goBackSignal.listen { if (enabled) onBack() }
+      val off = onGoBack { if (enabled) onBack() }
       onDispose {
         state.canGoBack = null
         off()

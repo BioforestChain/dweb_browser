@@ -77,6 +77,7 @@ import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.util.isSystemUrl
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserBaseView
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.ConstUrl
@@ -159,8 +160,6 @@ fun BrowserViewForWindow(
 
     // 窗口级返回操作
     win.GoBackHandler { backHandler() }
-    // 系统级的返回操作
-    NativeBackHandler { backHandler() }
 
     Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
       Box(
