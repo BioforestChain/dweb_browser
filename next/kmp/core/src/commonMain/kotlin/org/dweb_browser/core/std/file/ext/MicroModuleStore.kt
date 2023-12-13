@@ -11,6 +11,8 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -40,15 +42,18 @@ class MicroModuleStore(
   private val mm: MicroModule, private val storeName: String, private val encrypt: Boolean
 ) {
   private val taskQueues = Channel<Task<*>>(onBufferOverflow = BufferOverflow.SUSPEND)
-
+  private val storeMutex = Mutex()
   init {
     mm.ioAsyncScope.launch {
       for (task in taskQueues) {
-        try {
-          @Suppress("UNCHECKED_CAST")
-          (task.deferred as CompletableDeferred<Any>).complete(task.action() as Any)
-        } catch (e: Throwable) {
-          task.deferred.completeExceptionally(e)
+        // 防止并发修改异常
+        storeMutex.withLock {
+          try {
+            @Suppress("UNCHECKED_CAST")
+            (task.deferred as CompletableDeferred<Any>).complete(task.action() as Any)
+          } catch (e: Throwable) {
+            task.deferred.completeExceptionally(e)
+          }
         }
       }
     }

@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jmm
 
 import io.ktor.http.URLBuilder
 import io.ktor.http.encodedPath
-import io.ktor.utils.io.cancel
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -19,10 +18,11 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureTextFrame
 import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.module.createChannel
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.buildUrlString
-import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
@@ -159,34 +159,65 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   private suspend fun watchProcess(jmmHistoryMetadata: JmmHistoryMetadata) {
     val taskId = jmmHistoryMetadata.taskId ?: return
     jmmNMM.ioAsyncScope.launch {
-      val res = jmmNMM.nativeFetch("file://download.browser.dweb/watch/progress?taskId=$taskId")
-      val readChannel = try {
-        res.stream().getReader("jmm watchProcess")
-      } catch (e: Exception) {
-        throw Exception(e)
-      }
-      readChannel.consumeEachJsonLine<DownloadTask> { downloadTask ->
-        when (downloadTask.status.state) {
-          DownloadState.Completed -> {
-            jmmHistoryMetadata.updateByDownloadTask(downloadTask, store)
-            if (decompress(downloadTask, jmmHistoryMetadata)) {
-              jmmNMM.bootstrapContext.dns.uninstall(jmmHistoryMetadata.metadata.id)
-              jmmNMM.bootstrapContext.dns.install(JsMicroModule(jmmHistoryMetadata.metadata))
-              jmmHistoryMetadata.installComplete(store)
-            } else {
-              jmmHistoryMetadata.installFail(store)
+      val res = jmmNMM.createChannel("file://download.browser.dweb/watch/progress?taskId=$taskId")
+      { pureFrame, close ->
+        when (pureFrame) {
+          is PureTextFrame -> {
+            Json.decodeFromString<DownloadTask>(pureFrame.data).also { downloadTask ->
+              when (downloadTask.status.state) {
+                DownloadState.Completed -> {
+                  jmmHistoryMetadata.updateByDownloadTask(downloadTask, store)
+                  if (decompress(downloadTask, jmmHistoryMetadata)) {
+                    jmmNMM.bootstrapContext.dns.uninstall(jmmHistoryMetadata.metadata.id)
+                    jmmNMM.bootstrapContext.dns.install(JsMicroModule(jmmHistoryMetadata.metadata))
+                    jmmHistoryMetadata.installComplete(store)
+                  } else {
+                    jmmHistoryMetadata.installFail(store)
+                  }
+                  // 关闭watchProcess
+                  close()
+                  // 删除缓存的zip文件
+                  remove(downloadTask.filepath)
+                }
+
+                else -> {
+                  jmmHistoryMetadata.updateByDownloadTask(downloadTask, store)
+                }
+              }
             }
-            // 关闭watchProcess
-            readChannel.cancel()
-            // 删除缓存的zip文件
-            remove(downloadTask.filepath)
           }
 
-          else -> {
-            jmmHistoryMetadata.updateByDownloadTask(downloadTask, store)
-          }
+          else -> {}
         }
       }
+      debugJMM("/watch process error=>", res)
+//      val readChannel = try {
+//        res.stream().getReader("jmm watchProcess")
+//      } catch (e: Exception) {
+//        throw Exception(e)
+//      }
+//      readChannel.consumeEachJsonLine<DownloadTask> { downloadTask ->
+//        println("/watch process ${downloadTask.status.state}")
+//        when (downloadTask.status.state) {
+//          DownloadState.Completed -> {
+//            jmmHistoryMetadata.updateByDownloadTask(downloadTask, store)
+//            if (decompress(downloadTask, jmmHistoryMetadata)) {
+//              jmmNMM.bootstrapContext.dns.uninstall(jmmHistoryMetadata.metadata.id)
+//              jmmNMM.bootstrapContext.dns.install(JsMicroModule(jmmHistoryMetadata.metadata))
+//              jmmHistoryMetadata.installComplete(store)
+//            } else {
+//              jmmHistoryMetadata.installFail(store)
+//            }
+//            // 关闭watchProcess
+//            readChannel.cancel(null)
+//            // 删除缓存的zip文件
+//            remove(downloadTask.filepath)
+//          }
+//          else -> {
+//            jmmHistoryMetadata.updateByDownloadTask(downloadTask, store)
+//          }
+//        }
+//      }
     }
   }
 

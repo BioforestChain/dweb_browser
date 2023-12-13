@@ -3,6 +3,8 @@ package org.dweb_browser.core.module
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -16,6 +18,10 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.http.PureBinary
 import org.dweb_browser.core.http.PureBinaryBody
+import org.dweb_browser.core.http.PureChannel
+import org.dweb_browser.core.http.PureClientChannel
+import org.dweb_browser.core.http.PureFrame
+import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.http.PureStreamBody
@@ -32,8 +38,10 @@ import org.dweb_browser.core.ipc.NativeIpc
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcMessage
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.ReadableStreamOut
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SimpleSignal
@@ -330,6 +338,36 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     };
   }
 
+}
+
+/**
+ * 创建一个 channel 通信
+ */
+suspend fun NativeMicroModule.createChannel(
+  urlPath: String,
+  resolve: suspend (frame: PureFrame, close: (suspend () -> Unit)) -> Unit,
+): PureResponse {
+  val channelDef = CompletableDeferred<PureChannel>()
+  val request = PureRequest(
+    urlPath,
+    IpcMethod.GET,
+    channel = channelDef
+  )
+  val income = Channel<PureFrame>()
+  val outcome = Channel<PureFrame>()
+  val channel = PureClientChannel(income, outcome, request, null, this.mmid)
+  channelDef.complete(channel)
+  val res = nativeFetch(request)
+  if (res.isOk()) {
+    channel.start().run {
+      for (frame in this.outgoing) {
+        resolve(frame) {
+          channel.close()
+        }
+      }
+    }
+  }
+  return res
 }
 
 

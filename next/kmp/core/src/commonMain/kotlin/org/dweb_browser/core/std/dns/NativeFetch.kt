@@ -117,6 +117,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
             }
             // 线程里面的错误需要在线程里捕捉
           } catch (e: Throwable) {
+            // TODO 连接超时提示用户
             debugFetch("httpFetch error", e.stackTraceToString())
             val response = PureResponse(
               HttpStatusCode.ServiceUnavailable,

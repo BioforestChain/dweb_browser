@@ -52,7 +52,7 @@ class PureChannelContext internal constructor(
   val getChannel: () -> PureChannel
 ) {
   operator fun iterator() = income.iterator()
-  inline suspend fun <reified T> readJsonLine() = sequenceOf( iterator())
+  inline suspend fun <reified T> readJsonLine() = sequenceOf(iterator())
 
   suspend fun sendText(data: String) =
     outgoing.send(PureTextFrame(data))

@@ -2,15 +2,10 @@ package org.dweb_browser.browser.desk
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureChannel
-import org.dweb_browser.core.http.PureClientChannel
-import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.http.PureTextFrame
@@ -21,10 +16,10 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.createChannel
 import org.dweb_browser.core.std.dns.ext.onActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.CORS_HEADERS
@@ -91,31 +86,18 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   private suspend fun listenApps() = ioAsyncScope.launch {
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
       debugDesk("doObserve", "xxx => $urlPath")
-      val channelDef = CompletableDeferred<PureChannel>()
-      val req = PureRequest(
-        urlPath,
-        IpcMethod.GET,
-        channel = channelDef
-      )
-      val channel = PureClientChannel(Channel(), Channel(), req)
-      channelDef.complete(channel)
-      val res = nativeFetch(req)
-      if (res.isOk()) {
-        channel.start().run {
-          this.iterator()
-          for (frame in this) {
-            when (frame) {
-              is PureTextFrame -> {
-                Json.decodeFromString<ChangeState<MMID>>(frame.data).also {
-                  it.cb()
-                }
-              }
-
-              else -> {}
+      val response = createChannel(urlPath) { frame, close ->
+        when (frame) {
+          is PureTextFrame -> {
+            Json.decodeFromString<ChangeState<MMID>>(frame.data).also {
+              it.cb()
             }
           }
+
+          else -> {}
         }
       }
+      debugDesk("doObserve error", response.status)
     }
     // app排序
     val appSortList = DaskSortStore(this@DeskNMM)
