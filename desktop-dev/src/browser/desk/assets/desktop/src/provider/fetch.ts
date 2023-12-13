@@ -39,7 +39,7 @@ export const nativeFetchStream = <T>(
   options?: { signal?: AbortSignal }
 ) => {
   const [url] = buildApiRequestArgs(pathname, init);
-  const wsUrl = url.href.replace("http", "ws");
+  const wsUrl = url.href.replace("http", "ws").replace(/^dweb\+ws/, "ws");
   const ws = new WebSocket(wsUrl);
 
   return jsonlinesStreamReadText<T>(

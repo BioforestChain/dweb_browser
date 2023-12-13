@@ -354,34 +354,6 @@ const waitFetchPort = () => {
 
 const originalFetch = fetch;
 
-// const httpFetch = (input: RequestInfo | URL, init?: RequestInit) => {
-//   let inputUrl = "file://http.std.dweb/fetch";
-//   const searchParams = new URLSearchParams();
-//   let isDweb = false;
-
-//   if (input instanceof Request) {
-//     const url = new URL(input.url);
-//     isDweb = url.hostname.endsWith(".dweb");
-//     searchParams.set("url", input.url);
-//     searchParams.set("credentials", input.credentials);
-//   } else if (typeof input === "string") {
-//     const url = new URL(input);
-//     isDweb = url.hostname.endsWith(".dweb");
-//     searchParams.set("url", input);
-//   } else if (input instanceof URL) {
-//     isDweb = input.hostname.endsWith(".dweb");
-//     searchParams.set("url", input.href);
-//   }
-
-//   if (init?.credentials) {
-//     searchParams.set("credentials", init.credentials!);
-//   }
-
-//   inputUrl += `?${searchParams.toString()}`;
-
-//   return isDweb ? navigator.dweb.jsProcess.nativeFetch(inputUrl, init) : originalFetch(input, init);
-// };
-
 const httpFetch = (input: RequestInfo | URL, init?: RequestInit) => {
   let inputUrl = "https://http.std.dweb/fetch";
   const searchParams = new URLSearchParams();
@@ -432,13 +404,6 @@ class DwebXMLHttpRequest extends XMLHttpRequest {
     } else if (url instanceof URL) {
       input = url;
     }
-
-    // if (typeof username === "string" && typeof password === "string") {
-    //   const inputUrl = input!;
-    //   inputUrl.username = username;
-    //   inputUrl.password = password;
-    //   this.#inputUrl += `?url=${inputUrl.href}`;
-    // }
     this.#inputUrl += `?url=${input!.href}`;
 
     super.open(

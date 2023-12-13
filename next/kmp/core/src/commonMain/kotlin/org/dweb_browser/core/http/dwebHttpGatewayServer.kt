@@ -56,10 +56,11 @@ class DwebHttpGatewayServer private constructor() {
           /// 将 ktor的request 构建成 pureRequest
           call.request.asPureRequest().also { rawRequest ->
             val rawUrl = rawRequest.href
-            val url = when (val info = findDwebGateway(rawRequest)) {
-              null -> rawUrl
-              else -> "${info.protocol.name}://${info.host}$rawUrl"
-            }
+            val url = rawRequest.queryOrNull("X-Dweb-Url")
+              ?: when (val info = findDwebGateway(rawRequest)) {
+                null -> rawUrl
+                else -> "${info.protocol.name}://${info.host}$rawUrl"
+              }
             var pureRequest = if (url != rawUrl) rawRequest.copy(href = url) else rawRequest;
 
             if (pureRequest.isWebSocket()) {

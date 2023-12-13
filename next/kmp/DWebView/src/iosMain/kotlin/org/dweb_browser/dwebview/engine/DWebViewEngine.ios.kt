@@ -28,6 +28,7 @@ import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.polyfill.UserAgentData
 import org.dweb_browser.dwebview.polyfill.WatchIosIcon
+import org.dweb_browser.dwebview.polyfill.WebSocketProxy
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
@@ -180,6 +181,15 @@ class DWebViewEngine(
           configuration, url.host, url.port.toUShort()
         )
       }
+
+      configuration.userContentController.addUserScript(
+        WKUserScript(
+          WebSocketProxy.getPolyfillScript(dwebHttpGatewayServer.startServer()),
+          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
+          false,
+//          DWebViewWebMessage.webMessagePortContentWorld,
+        )
+      )
     }
     /// 测试的时候使用
     if (UIDevice.currentDevice.systemVersion.compareTo("16.4", true) >= 0) {
@@ -194,9 +204,9 @@ class DWebViewEngine(
     preferences.javaScriptCanOpenWindowsAutomatically = false
     configuration.preferences = preferences
     configuration.userContentController.apply {
-      removeAllScriptMessageHandlers()
-      removeAllScriptMessageHandlersFromContentWorld(DWebViewWebMessage.webMessagePortContentWorld)
-      removeAllUserScripts()
+//      removeAllScriptMessageHandlers()
+//      removeAllScriptMessageHandlersFromContentWorld(DWebViewWebMessage.webMessagePortContentWorld)
+//      removeAllUserScripts()
       addScriptMessageHandler(CloseWatcherScriptMessageHandler(this@DWebViewEngine), "closeWatcher")
       addScriptMessageHandler(
         DWebViewWebMessage.WebMessagePortMessageHandler(),
