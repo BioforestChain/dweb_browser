@@ -2,10 +2,10 @@
 
 ```mermaid
 flowchart TD
+    D -->|"toServer()"| C
     A[IpcClientRequest] -->|"toServer(ipc)"| B(IpcServerRequest)
     B -->|"toPure()"| C[PureServerRequest]
     C -->|"toClient()"| D[PureClientRequest]
-    D -->|"toServer()"| C
     D -->|"toIpc(ipc)"| A
 ```
 
