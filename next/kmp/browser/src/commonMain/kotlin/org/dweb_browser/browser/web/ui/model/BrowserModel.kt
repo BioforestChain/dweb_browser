@@ -304,27 +304,27 @@ class BrowserViewModel(
    * 添加到桌面功能
    */
   suspend fun addUrlToDesktop(): Boolean {
-    val result = currentBrowserBaseView.value?.let { browserWebView ->
+    return currentBrowserBaseView.value?.let { browserWebView ->
       val webView = browserWebView.viewItem.webView
       val url = webView.getUrl()
-      browserController.addUrlToDesktop(
-        title = webView.getTitle().ifEmpty { url }, url = url, icon = webView.getIcon()
+      addUrlToDesktop(
+        title = webView.getTitle().ifEmpty { url }, link = url, iconString = webView.getIcon()
       )
     } ?: false
-    showToastMessage(
-      if (result) {
-        BrowserI18nResource.toast_message_add_desk_success.text
-      } else {
-        BrowserI18nResource.toast_message_add_desk_fail.text
-      }
-    )
-    return result
   }
 
-  suspend fun createDesktopLink(link: String, title: String, iconString: String) {
-    browserController.addUrlToDesktop(
+  suspend fun addUrlToDesktop(title: String, link: String, iconString: String): Boolean {
+    return browserController.addUrlToDesktop(
       title = title, url = link, icon = iconString
-    )
+    ).also { result ->
+      showToastMessage(
+        if (result) {
+          BrowserI18nResource.toast_message_add_desk_success.text
+        } else {
+          BrowserI18nResource.toast_message_add_desk_exist.text
+        }
+      )
+    }
   }
 
   suspend fun saveBrowserMode(noTrace: Boolean) {
@@ -349,7 +349,10 @@ class BrowserViewModel(
   fun changeBookLink(
     add: WebSiteInfo? = null, del: WebSiteInfo? = null, update: WebSiteInfo? = null
   ) {
-    debugBrowser("BrowserModel", "changeBookLink: add: ${add?.title} del:${del?.title} update:${update?.title}")
+    debugBrowser(
+      "BrowserModel",
+      "changeBookLink: add: ${add?.title} del:${del?.title} update:${update?.title}"
+    )
     browserController.ioAsyncScope.launch {
       add?.apply {
         showToastMessage(BrowserI18nResource.toast_message_add_book.text)

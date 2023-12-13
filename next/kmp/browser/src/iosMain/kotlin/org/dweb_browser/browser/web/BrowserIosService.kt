@@ -1,13 +1,11 @@
 package org.dweb_browser.browser.web
 
-import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.model.WebSiteType
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
 import org.dweb_browser.helper.platform.NSDataHelper.toNSData
-import org.dweb_browser.helper.platform.toImageBitmap
 import platform.Foundation.NSData
 import platform.UIKit.UIImage
 
@@ -28,7 +26,7 @@ class BrowserIosService(var  browserViewModel: BrowserViewModel? = null) {
 
   // region desktopLink
   suspend fun createDesktopLink(link: String, title: String, iconString: String) {
-    browserViewModel?.createDesktopLink(link, title, iconString)
+    browserViewModel?.addUrlToDesktop(title, link, iconString)
   }
   // endregion
 

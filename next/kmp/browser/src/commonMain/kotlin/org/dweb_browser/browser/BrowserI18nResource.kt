@@ -121,6 +121,6 @@ class BrowserI18nResource {
     val toast_message_remove_book = SimpleI18nResource(Language.ZH to "移除书签成功", Language.EN to "Remove Book Success")
     val toast_message_update_book = SimpleI18nResource(Language.ZH to "修改书签成功", Language.EN to "Change Book Success")
     val toast_message_add_desk_success = SimpleI18nResource(Language.ZH to "添加到桌面成功", Language.EN to "Add to Desktop Success")
-    val toast_message_add_desk_fail = SimpleI18nResource(Language.ZH to "添加到桌面失败", Language.EN to "Add to Desktop Fail")
+    val toast_message_add_desk_exist = SimpleI18nResource(Language.ZH to "桌面已存在该链接", Language.EN to "Desktop Already Exist The Link")
   }
 }

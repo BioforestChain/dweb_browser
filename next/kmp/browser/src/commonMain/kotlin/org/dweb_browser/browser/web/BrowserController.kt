@@ -118,9 +118,9 @@ class BrowserController(
     // val icons = icon?.toImageResource()?.let { listOf(it) } ?: emptyList()
     val webLinkManifest =
       WebLinkManifest(id = linkId, title = title, url = url, icons = emptyList())
-    addWebLinkSignal.emit(webLinkManifest)
     // 先判断是否存在，如果存在就不重复执行
     if (webLinkStore.get(linkId) == null) {
+      addWebLinkSignal.emit(webLinkManifest)
       webLinkStore.set(linkId, webLinkManifest)
       return true
     }
