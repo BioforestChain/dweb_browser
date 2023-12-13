@@ -2,6 +2,7 @@ package org.dweb_browser.browser.web
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.toMutableStateList
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -54,7 +55,7 @@ class BrowserController(
         bookLinks.add(webSiteInfo)
       }
       browserStore.getHistoryLinks().forEach { (key, webSiteInfoList) ->
-        historyLinks[key] = webSiteInfoList
+        historyLinks[key] = webSiteInfoList//.toMutableStateList()
       }
       // TODO 遍历获取book的image
 //      bookLinks.forEach { webSiteInfo ->
@@ -66,7 +67,7 @@ class BrowserController(
   suspend fun loadMoreHistory(off: Int) {
       browserStore.getDaysHistoryLinks(off).forEach {(key, webSiteInfoList) ->
         if (historyLinks.keys.contains(key)) {
-          var data = (webSiteInfoList + historyLinks[key]) as MutableList<WebSiteInfo>
+          val data = (webSiteInfoList + historyLinks[key]) as MutableList<WebSiteInfo>
           historyLinks[key] = data
         }
       }

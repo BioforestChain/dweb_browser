@@ -393,6 +393,7 @@ class BrowserViewModel(
     del?.apply {
       val key = timeMillis.toString()
       browserController.historyLinks[key]?.apply {
+        showToastMessage(BrowserI18nResource.toast_message_remove_history.text)
         remove(del)
         browserController.saveHistoryLinks(key, this)
       }

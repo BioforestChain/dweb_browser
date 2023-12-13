@@ -1,18 +1,35 @@
 package org.dweb_browser.browser.web.ui
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.DismissDirection
+import androidx.compose.material3.DismissState
+import androidx.compose.material3.DismissValue
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismiss
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
-import org.dweb_browser.helper.*
 
 @Composable
 fun BrowserListOfBook(
@@ -32,17 +48,6 @@ fun BrowserListOfBook(
   onOpenSetting: (WebSiteInfo) -> Unit,
   onSearch: (String) -> Unit
 ) {
-  /*val scope = rememberCoroutineScope()
-  LazyColumn {
-  val bookLinks = viewModel.getBookLinks()
-    itemsIndexed(bookLinks) { index: Int, webSiteInfo: WebSiteInfo ->
-      Text(
-        "${webSiteInfo.title}",
-        modifier.clickableWithNoEffect { bookLinks.remove(webSiteInfo) }.padding(8.dp)
-      )
-    }
-  }*/
-
   LazyColumn(
     modifier = modifier
       .background(MaterialTheme.colorScheme.background)
@@ -69,13 +74,12 @@ fun BrowserListOfBook(
       if (index > 0) Divider(
         modifier = Modifier.width(1.dp), color = MaterialTheme.colorScheme.surface
       )
-      RowItemBook(webSiteInfo, { onSearch(it.url) }) { onOpenSetting(it) }
-      /*ListSwipeItem(
+      ListSwipeItem(
         webSiteInfo = webSiteInfo,
-        onRemove = { *//*viewModel.changeBookLink(del = it)*//* }
+        onRemove = { viewModel.changeBookLink(del = it) }
       ) {
         RowItemBook(webSiteInfo, { onSearch(it.url) }) { onOpenSetting(it) }
-      }*/
+      }
     }
   }
 }
@@ -87,7 +91,12 @@ internal fun ListSwipeItem(
   onRemove: (WebSiteInfo) -> Unit,
   listItemView: @Composable RowScope.() -> Unit
 ) {
-  val dismissState = rememberDismissState() // 不能用这个，不然会导致移除后remember仍然存在，显示错乱问题
+  // val dismissState = rememberDismissState() // 不能用这个，不然会导致移除后remember仍然存在，显示错乱问题
+  val dismissState = DismissState(
+    initialValue = DismissValue.Default,
+    confirmValueChange = { true },
+    positionalThreshold = { density -> 56.0f * density },
+  )
   LaunchedEffect(dismissState) {
     snapshotFlow { dismissState.currentValue }.collect {
       if (it != DismissValue.Default) {
