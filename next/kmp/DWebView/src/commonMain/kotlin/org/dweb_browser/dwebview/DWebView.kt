@@ -222,7 +222,6 @@ internal data class LoadUrlTask(val url: String) {
     dwebView.scope.launch {
       val loadingUrl = dwebView.startLoadUrl(url)
       dwebView.onLoadStateChange {
-        debugDWebView("lin.huang", "onLoadStateChange enter. $it")
         when (it) {
           is WebLoadErrorState -> {
             deferred.completeExceptionally(Exception(it.errorMessage))
