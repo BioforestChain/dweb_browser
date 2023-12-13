@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { vOnLongPress } from "@vueuse/components";
+import { vOnLongPress, vOnClickOutside } from "@vueuse/components";
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
@@ -107,6 +107,10 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
     emit("uninstall");
   }
 };
+function outsideCloseMenu(e: PointerEvent) {
+  e.preventDefault();
+  $menu.close();
+}
 </script>
 <template>
   <div ref="$appHtmlRefHook" class="app" draggable="false">
@@ -136,7 +140,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
         </div>
       </template>
 
-      <div class="menu ios-ani">
+      <div class="menu ios-ani" v-on-click-outside="outsideCloseMenu">
         <button v-ripple class="item delete" @click="showUninstall">
           <SvgIcon class="icon" :src="delete_svg" alt="卸载" />
           <p class="title">卸载</p>
