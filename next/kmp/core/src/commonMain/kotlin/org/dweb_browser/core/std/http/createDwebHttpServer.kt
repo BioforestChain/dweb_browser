@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcMethod
@@ -58,7 +58,7 @@ suspend fun MicroModule.listenHttpDwebServer(
     ReadableStreamIpc(httpIpc.remote, "http-server/${startResult.urlInfo.host}").also {
       it.bindIncomeStream(
         this.nativeFetch(
-          PureRequest(
+          PureClientRequest(
             URLBuilder("file://http.std.dweb/listen").apply {
               parameters["token"] = startResult.token
               parameters["routes"] = Json.encodeToString(routes)

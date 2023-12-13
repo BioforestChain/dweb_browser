@@ -11,8 +11,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.core.ipc.helper.IpcClientRequest
+import org.dweb_browser.core.ipc.helper.IpcClientRequest.Companion.toIpc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcHeaders
@@ -23,6 +25,7 @@ import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.ipc.helper.IpcRequestMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.IpcResponseMessageArgs
+import org.dweb_browser.core.ipc.helper.IpcServerRequest
 import org.dweb_browser.core.ipc.helper.IpcStream
 import org.dweb_browser.core.ipc.helper.IpcStreamMessageArgs
 import org.dweb_browser.core.ipc.helper.OnIpcEventMessage
@@ -119,12 +122,20 @@ abstract class Ipc {
   private val _requestSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     _createSignal<IpcRequestMessageArgs>().also { signal ->
       _messageSignal.listen { args ->
-        if (args.message is IpcRequest) {
-          ipcMessageCoroutineScope.launch {
-            signal.emit(
-              IpcRequestMessageArgs(args.message, args.ipc)
-            )
+        when (val ipcReq = args.message) {
+          is IpcRequest -> {
+            val ipcServerRequest = when (ipcReq) {
+              is IpcClientRequest -> ipcReq.toServer(args.ipc)
+              is IpcServerRequest -> ipcReq
+            }
+            ipcMessageCoroutineScope.launch {
+              signal.emit(
+                IpcRequestMessageArgs(ipcServerRequest, args.ipc)
+              )
+            }
           }
+
+          else -> {}
         }
       }
     }
@@ -240,10 +251,10 @@ abstract class Ipc {
   /**
    * 发送请求
    */
-  suspend fun request(url: String) = request(PureRequest(method = IpcMethod.GET, href = url))
+  suspend fun request(url: String) = request(PureClientRequest(method = IpcMethod.GET, href = url))
 
   suspend fun request(url: Url) =
-    request(PureRequest(method = IpcMethod.GET, href = url.toString()))
+    request(PureClientRequest(method = IpcMethod.GET, href = url.toString()))
 
   private val _reqResMap by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     SafeHashMap<Int, CompletableDeferred<IpcResponse>>().also { reqResMap ->
@@ -264,12 +275,12 @@ abstract class Ipc {
 
   private fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
     val reqId = this.allocReqId()
-    return IpcRequest.fromRequest(reqId, this, url, init)
+    return IpcClientRequest.fromRequest(reqId, this, url, init)
   }
 
-  suspend fun request(request: PureRequest): PureResponse {
+  suspend fun request(pureRequest: PureClientRequest): PureResponse {
     return this.request(
-      IpcRequest.fromPure(allocReqId(), this, request, true)
+      pureRequest.toIpc(allocReqId(), this)
     ).toPure()
   }
 

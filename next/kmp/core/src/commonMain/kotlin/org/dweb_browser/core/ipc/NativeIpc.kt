@@ -5,12 +5,12 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printDebug
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.printDebug
 
 fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =
   printDebug("native-ipc", tag, msg, err)
@@ -22,7 +22,7 @@ class NativeIpc(
 ) : Ipc() {
   override val role get() = roleType.role
   override fun toString(): String {
-    return super.toString() + "@NativeIpc"
+    return "NativeIpc@$port"
   }
 
   override val supportRaw = true

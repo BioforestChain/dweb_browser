@@ -45,18 +45,24 @@ val multipartProxyServer by lazy {
   }
 }
 
-suspend fun PureRequest.receiveMultipart() = if (from is ApplicationRequest) {
-  from.call.receiveMultipart()
-} else {
-  val pureRequest = this
-  val mid = midAcc++
-  val deferred = CompletableDeferred<MultiPartData>();
-  multipartProxyResponseMap[mid] = deferred
-  httpFetcher.post("http://localhost:${org.dweb_browser.core.http.multipartProxyServer()}/?mid=$mid") {
-    for ((key, value) in pureRequest.headers.toHttpHeaders()) {
-      header(key, value)
+suspend fun PureServerRequest.receiveMultipart() = findFrom {
+  if (it is ApplicationRequest) {
+    it
+  } else null
+}.let { appRequest ->
+  if (appRequest != null) {
+    appRequest.call.receiveMultipart()
+  } else {
+    val pureRequest = this
+    val mid = midAcc++
+    val deferred = CompletableDeferred<MultiPartData>();
+    multipartProxyResponseMap[mid] = deferred
+    httpFetcher.post("http://localhost:${org.dweb_browser.core.http.multipartProxyServer()}/?mid=$mid") {
+      for ((key, value) in pureRequest.headers.toHttpHeaders()) {
+        header(key, value)
+      }
+      setBody(pureRequest.body.toPureStream().getReader("receiveMultipart"))
     }
-    setBody(pureRequest.body.toPureStream().getReader("receiveMultipart"))
+    deferred.await()
   }
-  deferred.await()
 }

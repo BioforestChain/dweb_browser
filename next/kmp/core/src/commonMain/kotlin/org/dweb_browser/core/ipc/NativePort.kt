@@ -18,8 +18,8 @@ class NativeMessageChannel<T1, T2>(fromId: MMID, toId: MMID) {
   private val closePo = SharedCloseSignal()
   private val channel1 = Channel<T1>()
   private val channel2 = Channel<T2>()
-  val port1 = NativePort(channel1, channel2, closePo, "[$fromId => $toId]")
-  val port2 = NativePort(channel2, channel1, closePo, "[$toId => $fromId]")
+  val port1 = NativePort(channel1, channel2, closePo, "<$fromId=>$toId>")
+  val port2 = NativePort(channel2, channel1, closePo, "<$toId=>$fromId>")
 }
 
 class SharedCloseSignal {
@@ -55,7 +55,7 @@ class NativePort<I, O>(
   }
 
   private val uid = uid_acc++
-  override fun toString() = "#p$uid -> $descriptor"
+  override fun toString() = "NativePort@$uid#$descriptor"
 
   private var started = false
   suspend fun start() {

@@ -17,7 +17,7 @@ import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureTextFrame
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.createChannel
@@ -131,7 +131,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
 
   suspend fun remove(filepath: String): Boolean {
     return jmmNMM.nativeFetch(
-      PureRequest(
+      PureClientRequest(
         "file://file.std.dweb/remove?path=${filepath}&recursive=true", IpcMethod.DELETE
       )
     ).boolean()
@@ -139,7 +139,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
 
   suspend fun removeTask(taskId: TaskId): Boolean {
     return jmmNMM.nativeFetch(
-      PureRequest(
+      PureClientRequest(
         "file://download.browser.dweb/remove?taskId=${taskId}", IpcMethod.DELETE
       )
     ).boolean()
@@ -257,11 +257,11 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       parameters.append("targetPath", targetPath)
     }).boolean().trueAlso {
       // 保存 session（记录安装时间） 和 metadata （app数据源）
-      jmmNMM.nativeFetch(PureRequest(buildUrlString("file://file.std.dweb/write") {
+      jmmNMM.nativeFetch(PureClientRequest(buildUrlString("file://file.std.dweb/write") {
         parameters.append("path", "/data/apps/$jmm/usr/sys/metadata.json")
         parameters.append("create", "true")
       }, IpcMethod.POST, body = IPureBody.from(Json.encodeToString(jmmHistoryMetadata.metadata))))
-      jmmNMM.nativeFetch(PureRequest(buildUrlString("file://file.std.dweb/write") {
+      jmmNMM.nativeFetch(PureClientRequest(buildUrlString("file://file.std.dweb/write") {
         parameters.append("path", "/data/apps/$jmm/usr/sys/session.json")
         parameters.append("create", "true")
       }, IpcMethod.POST, body = IPureBody.from(Json.encodeToString(buildJsonObject {

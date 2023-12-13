@@ -7,7 +7,7 @@ import io.ktor.utils.io.ByteReadChannel
 import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureBinary
 import org.dweb_browser.core.http.PureBinaryBody
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.http.PureStreamBody
@@ -15,7 +15,7 @@ import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.std.dns.debugFetchFile
 
-class RespondLocalFileContext(val request: PureRequest) {
+class RespondLocalFileContext(val request: PureClientRequest) {
   val filePath by lazy { request.url.encodedPath }
   private val mode = request.queryOrNull("mode") ?: "auto"
   val preferenceStream = mode == "stream"
@@ -48,7 +48,7 @@ class RespondLocalFileContext(val request: PureRequest) {
   fun returnNext() = null
 
   companion object {
-    suspend fun PureRequest.respondLocalFile(respond: suspend RespondLocalFileContext.() -> PureResponse?) =
+    suspend fun PureClientRequest.respondLocalFile(respond: suspend RespondLocalFileContext.() -> PureResponse?) =
       if (url.protocol.name == "file" && url.host == "") {
         RespondLocalFileContext(this).respond()
       } else null

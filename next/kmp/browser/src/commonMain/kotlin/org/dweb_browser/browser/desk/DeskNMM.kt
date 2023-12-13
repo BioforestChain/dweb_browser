@@ -323,16 +323,16 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   private suspend fun createTaskbarWebServer(): HttpDwebServer {
     val taskbarServer =
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar"))
-    taskbarServer.listen().onRequest { (request, ipc) ->
-      val pathName = request.uri.encodedPathAndQuery
+    taskbarServer.listen().onRequest { (ipcServerRequest, ipc) ->
+      val pathName = ipcServerRequest.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {
         val internalUri = pathName.substring(API_PREFIX.length)
         "file://$internalUri"
       } else {
         "file:///sys/browser/desk${pathName}?mode=stream"
       }
-      val response = nativeFetch(request.toPure(true).copy(href = url))
-      ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
+      val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
+      ipc.postMessage(IpcResponse.fromResponse(ipcServerRequest.req_id, response, ipc))
     }
     return taskbarServer
   }
@@ -340,18 +340,19 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   private suspend fun createDesktopWebServer(): HttpDwebServer {
     val desktopServer =
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop"))
-    desktopServer.listen().onRequest { (request, ipc) ->
-      val pathName = request.uri.encodedPathAndQuery
+    desktopServer.listen().onRequest { (ipcServerRequest, ipc) ->
+      val pathName = ipcServerRequest.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {
         val internalUri = pathName.substring(API_PREFIX.length)
         "file://$internalUri"
       } else {
-        "file:///sys/browser/desk${request.uri.encodedPath}?mode=stream"
+        "file:///sys/browser/desk${ipcServerRequest.uri.encodedPath}?mode=stream"
       }
-      val response = nativeFetch(request.toPure(true).copy(href = url))
+//      println("QAQ createDesktopWebServer request.toPure(true) => $url")
+      val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
       ipc.postMessage(
         IpcResponse.fromResponse(
-          request.req_id, PureResponse.build(response) { appendHeaders(CORS_HEADERS) }, ipc
+          ipcServerRequest.req_id, PureResponse.build(response) { appendHeaders(CORS_HEADERS) }, ipc
         )
       )
     }

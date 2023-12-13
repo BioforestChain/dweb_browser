@@ -1,8 +1,8 @@
 package org.dweb_browser.browser.nativeui.helper
 
 import kotlinx.serialization.json.Json
-import org.dweb_browser.helper.compose.ColorJson
 import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.helper.compose.ColorJson
 
 class QueryHelper {
   companion object {
@@ -10,6 +10,7 @@ class QueryHelper {
     fun init() {
       // 确保 init 里头的类被注册
     }
+
     fun color(req: PureRequest) = req.queryOrNull("color")?.let {
       Json.decodeFromString<ColorJson>(it).toColor()
     }

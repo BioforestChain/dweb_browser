@@ -4,7 +4,7 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpMethod
 import io.ktor.utils.io.ByteReadChannel
 import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.ipc.helper.IpcHeaders
@@ -46,12 +46,12 @@ fun buildRequestX(
 ) = buildRequestX(url, method, headers, anyBody = body)
 
 fun buildRequestX(
-  url: String, method: IpcMethod, headers: IpcHeaders, body: IPureBody?
-) = buildRequestX(url, method, headers, anyBody = body)
+  url: String, method: IpcMethod, headers: IpcHeaders, body: IPureBody?, from: Any? = null
+) = buildRequestX(url, method, headers, anyBody = body, from = from)
 
 internal fun buildRequestX(
-  url: String, method: IpcMethod, headers: IpcHeaders, anyBody: Any?
-): PureRequest {
+  url: String, method: IpcMethod, headers: IpcHeaders, anyBody: Any?, from: Any? = null
+): PureClientRequest {
   val pureBody: IPureBody = when (anyBody) {
     is String -> if (anyBody.isEmpty()) IPureBody.Empty else PureStringBody(anyBody)
     is ByteArray -> if (anyBody.isEmpty()) IPureBody.Empty else PureStreamBody(
@@ -66,5 +66,11 @@ internal fun buildRequestX(
     else -> throw Exception("invalid body to request: $anyBody")
   }
 
-  return PureRequest(method = method, href = url, headers = headers, body = pureBody);
+  return PureClientRequest(
+    method = method,
+    href = url,
+    headers = headers,
+    body = pureBody,
+    from = from
+  );
 }

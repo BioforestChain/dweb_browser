@@ -1,8 +1,8 @@
 package org.dweb_browser.core.std.http
 
 import io.ktor.http.HttpStatusCode
-import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.core.http.PureServerRequest
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcHeaders
@@ -31,7 +31,7 @@ class Gateway(
      * 接收 nodejs-web 请求
      * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
      */
-    suspend fun hookHttpRequest(request: PureRequest): PureResponse? {
+    suspend fun hookHttpRequest(request: PureServerRequest): PureResponse? {
       for (router in _routerSet) {
         val response = router.handler(request)
         if (response != null) {
@@ -57,8 +57,9 @@ class Gateway(
   }
 
   class StreamIpcRouter(val config: CommonRoute, val ipc: Ipc) {
-    suspend fun handler(request: PureRequest) = if (config.isMatch(request)) {
-      ipc.request(request)
+    suspend fun handler(request: PureServerRequest) = if (config.isMatch(request)) {
+      /// 这里的 request 并不是 pureClientRequest，而是 pureServerRequest
+      ipc.request(request.toClient())
     } else if (request.method == IpcMethod.OPTIONS && request.url.host != "http.std.dweb") {
       // 处理options请求
       PureResponse(HttpStatusCode.OK, IpcHeaders(CORS_HEADERS.toMap()))

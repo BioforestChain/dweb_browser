@@ -1,6 +1,6 @@
 package org.dweb_browser.shared
 
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.DnsNMM
@@ -22,7 +22,7 @@ class TestEntry {
         println("[iOS Test] doShareTest")
         val bootNMM = readyForTest(ShareNMM())
 //        val body = IPureBody()
-        val request = PureRequest("file://share.sys.dweb/share?title=Hello&text=Contentxxxxxx", IpcMethod.POST)
+        val request = PureClientRequest("file://share.sys.dweb/share?title=Hello&text=Contentxxxxxx", IpcMethod.POST)
         bootNMM.nativeFetch(request)
     }
 

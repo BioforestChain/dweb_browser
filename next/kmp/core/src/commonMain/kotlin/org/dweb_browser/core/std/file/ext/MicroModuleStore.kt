@@ -18,7 +18,7 @@ import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -150,7 +150,7 @@ class MicroModuleStore(
     exec {
       val map = store()
       mm.nativeFetch(
-        PureRequest(
+        PureClientRequest(
           URLBuilder("file://file.std.dweb/write").apply {
             parameters["path"] = queryPath
             parameters["create"] = "true"

@@ -16,6 +16,7 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MPID
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
@@ -197,7 +198,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     ): ConnectResult {
       // TODO 权限保护
       return dnsMM.connectTo(
-        fromMM, mmid, reason ?: PureRequest("file://$mmid", IpcMethod.GET)
+        fromMM, mmid, reason ?: PureClientRequest("file://$mmid", IpcMethod.GET)
       )
     }
 
@@ -299,16 +300,20 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       "/observe/install-apps" byChannel { ctx ->
         debugDNS("/observe/install-apps", "byChannel")
         allApps.onChange { changes ->
-          debugDNS("allApps", "onChange adds: ${changes.adds} updates: ${changes.updates} removes: ${changes.removes}")
+          debugDNS(
+            "allApps",
+            "onChange adds: ${changes.adds} updates: ${changes.updates} removes: ${changes.removes}"
+          )
           ctx.sendJsonLine(
             ChangeState(
               changes.adds, changes.updates, changes.removes
             )
           )
         }.removeWhen(onClose)
+        ctx.sendJsonLine(ChangeState(setOf<String>(), setOf(), setOf()))
       },
       //
-      "/observe/running-apps" byChannel {ctx ->
+      "/observe/running-apps" byChannel { ctx ->
         _runningApps.onChange { changes ->
           ctx.sendJsonLine(
             ChangeState(

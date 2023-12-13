@@ -22,7 +22,7 @@ import org.dweb_browser.browser.download.model.ChangeableType
 import org.dweb_browser.browser.download.model.DownloadModel
 import org.dweb_browser.browser.download.ui.DecompressModel
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
@@ -270,7 +270,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
 
   private suspend fun fileRemove(filepath: String): Boolean {
     return downloadNMM.nativeFetch(
-      PureRequest(
+      PureClientRequest(
         "file://file.std.dweb/remove?path=${filepath}&recursive=true", IpcMethod.DELETE
       )
     ).boolean()
@@ -279,7 +279,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   //  追加写入文件，断点续传
   private suspend fun fileAppend(task: DownloadTask, stream: ByteReadChannel) {
     downloadNMM.nativeFetch(
-      PureRequest(
+      PureClientRequest(
         "file://file.std.dweb/append?path=${task.filepath}&create=true",
         IpcMethod.PUT,
         body = PureStreamBody(stream)

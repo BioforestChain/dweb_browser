@@ -2,8 +2,6 @@ package org.dweb_browser.core.std.http
 
 import io.ktor.client.plugins.websocket.ws
 import io.ktor.client.plugins.websocket.wss
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.invoke
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -18,15 +16,15 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.FrameType
 import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.isWebSocket
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.core.http.PureServerRequest
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.http.PureStringBody
@@ -47,7 +45,6 @@ import org.dweb_browser.core.std.http.HttpNMM.Companion.dwebServer
 import org.dweb_browser.core.std.http.net.Http1Server
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeHashMap
-import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.falseAlso
@@ -90,8 +87,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
    * 否则其它情况下，需要开发者自己用 fetch 接口来发起请求。
    * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
    */
-  private suspend fun httpHandler(request: PureRequest): PureResponse {
-    val info = findDwebGateway(request) ?: return noGatewayResponse
+  private suspend fun httpHandler(request: PureClientRequest): PureResponse {
+    val info = findDwebGateway(request.toServer()) ?: return noGatewayResponse
 
     /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
     /// TODO 30s 没有任何 body 写入的话，认为网关超时
@@ -101,7 +98,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
      * WARNING 我们底层使用 KtorCIO，它是完全以流的形式来将response的内容传输给web
      * 所以这里要小心，不要去读取 response 对象，否则 pos 会被偏移
      */
-    val response = gatewayMap[info.host]?.listener?.hookHttpRequest(request)
+    val response = gatewayMap[info.host]?.listener?.hookHttpRequest(request.toServer())
     debugHttp("httpHandler end", request.href)
 
     return response ?: PureResponse(HttpStatusCode.NotFound)
@@ -298,7 +295,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             "invalid request protocol: ${url.protocol.name}"
           )
         }
-        val pureRequest = PureRequest(
+        val pureRequest = PureClientRequest(
           href = url.toString(),
           method = request.method,
           headers = request.headers,
@@ -373,7 +370,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           )
 
           val optionsResponse =
-            httpFetch(PureRequest(pureRequest.href, IpcMethod.OPTIONS, needPreflightHeaders))
+            httpFetch(PureClientRequest(pureRequest.href, IpcMethod.OPTIONS, needPreflightHeaders))
           val get = optionsResponse.headers::get;
           val allowOrigin = get(HttpHeaders.AccessControlAllowOrigin)
           val allowMethods = get(HttpHeaders.AccessControlAllowMethods)
@@ -404,7 +401,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             throwException(HttpStatusCode.NotAcceptable, "no-cors by method")
           }
 
-          PureRequest(
+          PureClientRequest(
             url.toString(),
             pureRequest.method,
             IpcHeaders(pureRequest.headers.toList().filter {
@@ -581,7 +578,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
    *  绑定流监听
    */
   private fun listen(
-    token: String, message: PureRequest, routes: List<CommonRoute>
+    token: String, message: PureServerRequest, routes: List<CommonRoute>
   ): PureStream {
     debugHttp("LISTEN", tokenMap.keys.toList())
     val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
@@ -623,7 +620,7 @@ val reg_authorization = Regex("Authorization", RegexOption.IGNORE_CASE)
 
 data class DwebGatewayInfo(val host: String, val protocol: URLProtocol)
 
-fun findDwebGateway(request: PureRequest): DwebGatewayInfo? {
+fun findDwebGateway(request: PureServerRequest): DwebGatewayInfo? {
   if (request.url.host.endsWith(".dweb")) {
     return DwebGatewayInfo(host = request.url.host, protocol = request.url.protocol)
   }

@@ -16,7 +16,7 @@ import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.core.help.toHttpRequestBuilder
 import org.dweb_browser.core.help.toPureResponse
 import org.dweb_browser.core.http.PureBinaryBody
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.http.PureStreamBody
@@ -29,7 +29,7 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.httpFetcher
 
-typealias FetchAdapter = suspend (remote: MicroModule, request: PureRequest) -> PureResponse?
+typealias FetchAdapter = suspend (remote: MicroModule, request: PureClientRequest) -> PureResponse?
 
 val debugFetch = Debugger("fetch")
 
@@ -51,11 +51,11 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
 
   class HttpFetch(private val manager: NativeFetchAdaptersManager) {
     val client get() = manager.client
-    suspend operator fun invoke(request: PureRequest) = fetch(request)
+    suspend operator fun invoke(request: PureClientRequest) = fetch(request)
     suspend operator fun invoke(url: String, method: IpcMethod = IpcMethod.GET) =
-      fetch(PureRequest(method = method, href = url))
+      fetch(PureClientRequest(method = method, href = url))
 
-    suspend fun fetch(request: PureRequest): PureResponse {
+    suspend fun fetch(request: PureClientRequest): PureResponse {
       try {
         debugFetch("httpFetch request", request.href)
 
@@ -140,7 +140,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
 
   class HttpWebSocket(private val manager: NativeFetchAdaptersManager) {
     val client get() = manager.client
-    suspend fun webSocket(request: PureRequest): PureResponse {
+    suspend fun webSocket(request: PureClientRequest): PureResponse {
       client.ws {
       }
       TODO("")
@@ -154,7 +154,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
 val httpFetch = nativeFetchAdaptersManager.httpFetch
 val httpWebSocket = nativeFetchAdaptersManager.httpWebSocket
 
-suspend fun MicroModule.nativeFetch(request: PureRequest): PureResponse {
+suspend fun MicroModule.nativeFetch(request: PureClientRequest): PureResponse {
   for (fetchAdapter in nativeFetchAdaptersManager.adapters) {
     val response = fetchAdapter(this, request)
     if (response != null) {
@@ -169,7 +169,7 @@ suspend inline fun MicroModule.nativeFetch(url: Url) = nativeFetch(IpcMethod.GET
 suspend inline fun MicroModule.nativeFetch(url: String) = nativeFetch(IpcMethod.GET, url)
 
 suspend inline fun MicroModule.nativeFetch(method: IpcMethod, url: Url) =
-  nativeFetch(PureRequest(url.toString(), method))
+  nativeFetch(PureClientRequest(url.toString(), method))
 
 suspend inline fun MicroModule.nativeFetch(method: IpcMethod, url: String) =
-  nativeFetch(PureRequest(url, method))
+  nativeFetch(PureClientRequest(url, method))

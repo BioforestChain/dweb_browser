@@ -25,6 +25,8 @@ import io.ktor.utils.io.writeAvailable
 import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureBinaryBody
 import org.dweb_browser.core.http.PureEmptyBody
+import org.dweb_browser.core.http.PureServerRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStreamBody
@@ -43,10 +45,10 @@ import org.dweb_browser.helper.readByteArray
 fun debugHelper(tag: String, msg: Any = "", err: Throwable? = null) =
   printDebug("helper", tag, msg, err)
 
-fun ApplicationRequest.asPureRequest(): PureRequest {
+fun ApplicationRequest.asPureRequest(): PureServerRequest {
   val ipcMethod = IpcMethod.from(httpMethod)
   val ipcHeaders = IpcHeaders(headers)
-  return PureRequest(
+  return PureServerRequest(
     uri, ipcMethod, ipcHeaders,
     body = if (//
       (ipcMethod == IpcMethod.GET && !isWebSocket(ipcMethod, ipcHeaders)) //
@@ -151,7 +153,7 @@ private suspend fun ByteReadPacket.copyToWithFlush(
 
 fun PureRequest.isWebSocket() = isWebSocket(this.method, this.headers)
 
-fun PureRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequestBuilder ->
+fun PureClientRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequestBuilder ->
   httpRequestBuilder.method = HttpMethod.parse(this.method.name)
   httpRequestBuilder.url(this.href)
   for ((key, value) in this.headers.toMap()) {

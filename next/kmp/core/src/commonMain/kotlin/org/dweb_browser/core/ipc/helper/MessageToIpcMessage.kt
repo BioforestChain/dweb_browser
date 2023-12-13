@@ -56,7 +56,8 @@ fun cborToIpcMessage(data: ByteArray, ipc: Ipc): Any {
     val ipcMessage = CborLoose.decodeFromByteArray<IpcMessageType>(data)
     return when (ipcMessage.type) {
       IPC_MESSAGE_TYPE.REQUEST -> Cbor.decodeFromByteArray<IpcReqMessage>(data).let {
-        IpcRequest(
+        // 这里是指接收到数据而反序列化出 IpcRequest，所以不是发起者，而是响应者，因此是 IpcServerRequest
+        IpcServerRequest(
           it.req_id,
           it.url,
           it.method,
@@ -113,7 +114,8 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
     val typeInfo = Regex(""""type"\s*:\s*(\d+)""").find(data) ?: return data
     return when (JsonLoose.decodeFromString<IPC_MESSAGE_TYPE>(typeInfo.groupValues[1])) {
       IPC_MESSAGE_TYPE.REQUEST -> Json.decodeFromString<IpcReqMessage>(data).let {
-        IpcRequest(
+        // 这里是指接收到数据而反序列化出 IpcRequest，所以不是发起者，而是响应者，因此是 IpcServerRequest
+        IpcServerRequest(
           it.req_id,
           it.url,
           it.method,

@@ -15,7 +15,7 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.ipc.Ipc
@@ -125,7 +125,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       }
       streamIpc.bindIncomeStream(
         nativeFetch(
-          PureRequest(URLBuilder("file://js.browser.dweb/create-process").apply {
+          PureClientRequest(URLBuilder("file://js.browser.dweb/create-process").apply {
             parameters["entry"] = metadata.server.entry
             parameters["process_id"] = pid
           }.buildUnsafeString(), IpcMethod.POST, body = PureStreamBody(streamIpc.input.stream))
@@ -181,7 +181,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           withContext(ioAsyncExceptionHandler) {
             /// 在js-worker一侧：与其它模块的通讯，统一使用 connect 之后再发送 request 来实现。
             // 转发请求
-            val request = ipcRequest.toPure(true)
+            val request = ipcRequest.toPure().toClient()
             val response = nativeFetch(request)
             val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
             ipc.postMessage(ipcResponse)

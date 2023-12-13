@@ -1,5 +1,8 @@
 package org.dweb_browser.core.http
 
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
+import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -12,31 +15,11 @@ import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.helper.IFrom
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
 
-/**
- * 这是发起者使用的
- */
-class PureClientChannel(
-  income: Channel<PureFrame>,
-  outgoing: Channel<PureFrame>,
-  request: PureRequest,
-  response: PureResponse? = null,
-  from: Any? = null,
-) : PureChannel(income, outgoing, request, response, from)
-
-/**
- * 这是服务者使用的
- */
-class PureServerChannel(
-  income: Channel<PureFrame>,
-  outgoing: Channel<PureFrame>,
-  request: PureRequest,
-  response: PureResponse? = null,
-  from: Any? = null,
-) : PureChannel(income, outgoing, request, response, from)
 
 interface IPureChannel {
   val onStart: Signal.Listener<PureChannelContext>
@@ -87,13 +70,13 @@ class PureChannelContext internal constructor(
   }
 }
 
-sealed class PureChannel(
+class PureChannel(
   private val _income: Channel<PureFrame>,
   private val _outgoing: Channel<PureFrame>,
-  val request: PureRequest,
-  val response: PureResponse? = null,
-  val from: Any? = null,
-) : IPureChannel {
+  override val from: Any? = null,
+) : IPureChannel, IFrom {
+  constructor(from: Any? = null) : this(Channel(), Channel(), from)
+
   internal val closeSignal = SimpleSignal()
   var isClosed = false
     private set
@@ -131,6 +114,16 @@ sealed class PureChannel(
       onClose.awaitOnce()
     }
   }
+
+  private val _remote = atomic<PureChannel?>(null)
+
+  fun reverse() = _remote.updateAndGet {
+    it ?: PureChannel(
+      _outgoing,
+      _income,
+      this
+    ).also { it._remote.update { this@PureChannel } }
+  }!!
 }
 
 

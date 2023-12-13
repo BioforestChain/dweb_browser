@@ -80,13 +80,11 @@ class ImageLoader {
         "url=$url; containerWidth=$containerWidth; containerHeight=$containerHeight; hook=$hook"
 
       return map[key]?.let {
-//        println("QAQ use cache $key")
         it.result
       }
     }
 
     fun save(cache: CacheItem) {
-//      println("QAQ save cache ${cache.key}")
       map[cache.key] = cache
     }
   }

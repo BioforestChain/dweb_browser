@@ -8,7 +8,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.runBlocking
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -44,7 +44,7 @@ class DWebRequestResponse(val engine: DWebViewEngine) : WebViewClient() {
     if (request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true) || (request.url.scheme == "dweb"))) {
       val response = runBlocking(ioAsyncExceptionHandler) {
         engine.remoteMM.nativeFetch(
-          PureRequest(
+          PureClientRequest(
             request.url.toString(), IpcMethod.GET, IpcHeaders(request.requestHeaders)
           )
         )

@@ -14,7 +14,7 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.core.help.asPureRequest
 import org.dweb_browser.core.help.fromPureResponse
 import org.dweb_browser.core.help.isWebSocket
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.std.http.debugHttp
@@ -36,7 +36,7 @@ class Http1ServerTest {
   private var server: ApplicationEngine? = null
 
   suspend fun createServer(
-    httpHandler: suspend (PureRequest) -> PureResponse,
+    httpHandler: suspend (PureClientRequest) -> PureResponse,
   ) {
     if (server != null) {
       throw Exception("server alter created")

@@ -3,13 +3,13 @@ package org.dweb_browser.core.http.router
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.http.IPureChannel
 import org.dweb_browser.core.http.PureChannelContext
-import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.core.http.PureServerRequest
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.ipc.Ipc
 
 interface IHandlerContext {
-  val request: PureRequest
+  val request: PureServerRequest
   val ipc: Ipc
   fun throwException(
     code: HttpStatusCode = HttpStatusCode.InternalServerError,
@@ -18,7 +18,7 @@ interface IHandlerContext {
   ): Nothing = throw ResponseException(code, message, cause)
 }
 
-open class HandlerContext(override val request: PureRequest, override val ipc: Ipc) :
+open class HandlerContext(override val request: PureServerRequest, override val ipc: Ipc) :
   IHandlerContext
 typealias MiddlewareHttpHandler = suspend HandlerContext.(next: HttpHandler) -> PureResponse
 typealias HttpHandler = suspend HandlerContext.() -> PureResponse

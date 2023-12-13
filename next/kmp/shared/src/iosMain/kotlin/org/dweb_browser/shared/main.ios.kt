@@ -41,7 +41,7 @@ import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.web.backAction
 import org.dweb_browser.browser.web.canCloseAction
 import org.dweb_browser.browser.zip.ZipNMM
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.ipc.helper.IpcHeaders
@@ -247,7 +247,7 @@ fun MainViewController(
 ): UIViewController {
 
   val dwebServer = Http1ServerTest()
-  val httpHandler: suspend (PureRequest) -> PureResponse = { request ->
+  val httpHandler: suspend (PureClientRequest) -> PureResponse = { request ->
     if (request.url.host == "localhost:20222") {
       println("httpHandler: ${request.url.encodedPath}")
     }

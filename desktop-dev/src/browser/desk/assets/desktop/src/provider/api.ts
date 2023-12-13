@@ -30,15 +30,22 @@ export async function readAccept(ext: string = "") {
 
 let _readAcceptSvg: undefined | ReturnType<typeof readAccept>;
 export const readAcceptSvg = () => (_readAcceptSvg ??= readAccept("svg"));
-
+const ws_lock = new Promise((resolve, reject) => {
+  Object.assign(self, {
+    ws_lock_resolve: resolve,
+  });
+});
 export async function watchDesktopAppInfo() {
+  // await ws_lock;
   return nativeFetchStream<$WidgetAppData[]>("/desktop/observe/apps");
 }
 export async function watchTaskbarAppInfo() {
+  // await ws_lock;
   return nativeFetchStream<$WidgetAppData[]>("/taskbar/observe/apps");
 }
 
 export async function watchTaskBarStatus() {
+  // await ws_lock;
   return nativeFetchStream<$TaskBarState>("/taskbar/observe/status");
 }
 

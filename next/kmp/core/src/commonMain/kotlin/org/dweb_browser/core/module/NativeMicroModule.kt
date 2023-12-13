@@ -4,7 +4,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -19,9 +18,8 @@ import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.http.PureBinary
 import org.dweb_browser.core.http.PureBinaryBody
 import org.dweb_browser.core.http.PureChannel
-import org.dweb_browser.core.http.PureClientChannel
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureFrame
-import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.http.PureStreamBody
@@ -63,8 +61,8 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         if (toMM is NativeMicroModule) {
           debugNMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel<IpcMessage, IpcMessage>(fromMM.id, toMM.id)
-          val toNativeIpc = NativeIpc(channel.port1, fromMM, IPC_ROLE.SERVER);
-          val fromNativeIpc = NativeIpc(channel.port2, toMM, IPC_ROLE.CLIENT);
+          val fromNativeIpc = NativeIpc(channel.port1, toMM, IPC_ROLE.CLIENT);
+          val toNativeIpc = NativeIpc(channel.port2, fromMM, IPC_ROLE.SERVER);
           fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
           toMM.beConnect(toNativeIpc, reason) // 通知接收者作为Server
           return@append ConnectResult(fromNativeIpc, toNativeIpc) // 返回发起者的ipc
@@ -120,7 +118,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
           var response: PureResponse? = null
           if (routers != null) for (router in routers) {
-            val pureRequest = ipcRequest.toPure(false, clientIpc)
+            val pureRequest = ipcRequest.toPure()
             val res = router.withFilter(pureRequest)
               ?.invoke(HandlerContext(pureRequest, clientIpc));
             if (res != null) {
@@ -348,19 +346,16 @@ suspend fun NativeMicroModule.createChannel(
   resolve: suspend (frame: PureFrame, close: (suspend () -> Unit)) -> Unit,
 ): PureResponse {
   val channelDef = CompletableDeferred<PureChannel>()
-  val request = PureRequest(
+  val request = PureClientRequest(
     urlPath,
     IpcMethod.GET,
     channel = channelDef
   )
-  val income = Channel<PureFrame>()
-  val outcome = Channel<PureFrame>()
-  val channel = PureClientChannel(income, outcome, request, null, this.mmid)
-  channelDef.complete(channel)
+  val channel = PureChannel(from = request).also { channelDef.complete(it) }
   val res = nativeFetch(request)
   if (res.isOk()) {
     channel.start().run {
-      for (frame in this.outgoing) {
+      for (frame in this) {
         resolve(frame) {
           channel.close()
         }

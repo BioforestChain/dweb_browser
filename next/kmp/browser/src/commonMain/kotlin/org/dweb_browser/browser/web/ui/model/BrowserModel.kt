@@ -30,7 +30,7 @@ import org.dweb_browser.browser.web.model.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browser.web.model.KEY_NO_TRACE
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.model.WebSiteType
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -295,7 +295,7 @@ class BrowserViewModel(
       val title = it.viewItem.webView.getTitle()
 
       val request =
-        PureRequest("file://share.sys.dweb/share?title=${title}&url=$url", IpcMethod.POST)
+        PureClientRequest("file://share.sys.dweb/share?title=${title}&url=$url", IpcMethod.POST)
       browserNMM.nativeFetch(request)
     }
   }

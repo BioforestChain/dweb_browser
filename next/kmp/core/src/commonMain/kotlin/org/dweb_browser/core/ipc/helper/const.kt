@@ -1,6 +1,7 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.ByteEnumSerializer
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.IntEnumSerializer
@@ -8,7 +9,6 @@ import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.toUtf8ByteArray
-import org.dweb_browser.core.ipc.Ipc
 
 const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
 
@@ -18,7 +18,7 @@ data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc) {
 }
 typealias OnIpcMessage = Callback<IpcMessageArgs>
 
-data class IpcRequestMessageArgs(val request: IpcRequest, val ipc: Ipc) {
+data class IpcRequestMessageArgs(val request: IpcServerRequest, val ipc: Ipc) {
   val component1 get() = request
   val component2 get() = ipc
 }

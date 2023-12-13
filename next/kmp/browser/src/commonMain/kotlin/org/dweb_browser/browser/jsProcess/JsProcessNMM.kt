@@ -12,7 +12,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureServerRequest
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
@@ -183,7 +183,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     apis: JsProcessWebApi,
     bootstrapUrl: String,
     entry: String?,
-    requestMessage: PureRequest,
+    requestMessage: PureServerRequest,
   ): CreateProcessAndRunResult {
     /**
      * 用自己的域名的权限为它创建一个子域名
@@ -226,7 +226,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         request.req_id,
         // 转发给远端来处理
         /// TODO 对代码进行翻译处理
-        streamIpc.request(request.toPure(true)).let {
+        streamIpc.request(request.toPure().toClient()).let {
           /// 加入跨域配置
           val response = it;
           for ((key, value) in JS_CORS_HEADERS) {

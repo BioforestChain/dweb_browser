@@ -28,10 +28,10 @@ import org.dweb_browser.helper.platform.getKtorServerEngine
 import org.dweb_browser.helper.toUtf8
 
 
-typealias HttpGateway = suspend (request: PureRequest) -> PureResponse?
+typealias HttpGateway = suspend (request: PureServerRequest) -> PureResponse?
 
 class DwebGatewayHandlerAdapterManager : AdapterManager<HttpGateway>() {
-  suspend fun doGateway(request: PureRequest): PureResponse? {
+  suspend fun doGateway(request: PureServerRequest): PureResponse? {
     for (adapter in adapters) {
       val response = adapter(request)
       if (response != null) {
@@ -104,8 +104,8 @@ class DwebHttpGatewayServer private constructor() {
                     val ws = this;
                     val income = Channel<PureFrame>()
                     val outgoing = Channel<PureFrame>()
-                    val pureChannel = PureServerChannel(income, outgoing, pureRequest, response, ws)
-                    pureRequest.initChannel(pureChannel)
+                    val pureChannel = PureChannel(income, outgoing, ws)
+                    pureRequest.completeChannel(pureChannel)
 
                     /// 将从 pureChannel 收到的数据，传输到 websocket 的 frame 中
                     launch {

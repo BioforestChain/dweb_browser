@@ -4,11 +4,9 @@ import io.ktor.utils.io.core.toByteArray
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ForeignException
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.pin
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
@@ -49,7 +47,7 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule) {
       )
     } ?: IPureBody.Empty
 
-    val pureRequest = PureRequest(
+    val pureRequest = PureClientRequest(
       pureUrl, IpcMethod.valueOf(taskRequest.HTTPMethod!!.uppercase()), headers, pureBody
     )
 

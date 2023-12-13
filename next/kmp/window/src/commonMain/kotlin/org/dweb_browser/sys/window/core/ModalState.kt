@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -186,7 +186,7 @@ sealed class ModalState() {
   fun sendCallback(mm: MicroModule, callbackData: ModalCallback) = callbackUrl?.also { url ->
     mm.ioAsyncScope.launch {
       mm.nativeFetch(
-        PureRequest.fromJson(
+        PureClientRequest.fromJson(
           url, IpcMethod.POST, body = callbackData
         )
       )

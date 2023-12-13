@@ -2,14 +2,14 @@ package org.dweb_browser.core.std.http.net
 
 import io.ktor.server.engine.ApplicationEngine
 import org.dweb_browser.core.http.DwebHttpGatewayServer
-import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.core.http.PureServerRequest
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.std.http.Gateway
 
-typealias GatewayHandler = suspend (request: PureRequest) -> Gateway?
-typealias GatewayHttpHandler = suspend (gateway: Gateway, request: PureRequest) -> PureResponse?
-typealias GatewayErrorHandler = suspend (request: PureRequest, gateway: Gateway?) -> PureResponse
+typealias GatewayHandler = suspend (request: PureServerRequest) -> Gateway?
+typealias GatewayHttpHandler = suspend (gateway: Gateway, request: PureServerRequest) -> PureResponse?
+typealias GatewayErrorHandler = suspend (request: PureServerRequest, gateway: Gateway?) -> PureResponse
 
 
 class Http1Server {
