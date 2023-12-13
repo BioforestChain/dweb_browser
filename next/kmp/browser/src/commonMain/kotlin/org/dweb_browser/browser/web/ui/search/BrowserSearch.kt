@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.toRequestUrl
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.ui.dimenSearchHeight
 import org.dweb_browser.browser.web.ui.dimenTextFieldFontSize
 import org.dweb_browser.browser.web.ui.model.DefaultSearchWebEngine
@@ -73,7 +74,7 @@ internal fun BoxScope.SearchView(
   onSearch: (String) -> Unit,
 ) {
   val focusManager = LocalFocusManager.current
-  val inputText = remember { mutableStateOf(parseInputText(text, false)) }
+  val inputText = remember(text) { mutableStateOf(parseInputText(text, false)) }
   val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
   val webEngine = findWebEngine(text)
 

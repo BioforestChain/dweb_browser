@@ -62,6 +62,12 @@ class DWebView(
     engine.loadUrl(url)
   }
 
+  override suspend fun startGoBack(): Boolean = withMainContext {
+    engine.canGoBack.trueAlso {
+      engine.goBack()
+    }
+  }
+
   override suspend fun resolveUrl(url: String) = engine.resolveUrl(url)
 
 
@@ -192,11 +198,11 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
 
   override suspend fun canGoForward() = withMainContext { engine.canGoForward }
 
-  override suspend fun goBack() = withMainContext {
-    engine.canGoBack.trueAlso {
-      engine.goBack()
-    }
-  }
+//  override suspend fun goBack() = withMainContext {
+//    engine.canGoBack.trueAlso {
+//      engine.goBack()
+//    }
+//  }
 
   override suspend fun goForward() = withMainContext {
     engine.canGoForward.trueAlso {

@@ -47,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -66,7 +67,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.BrowserIconResource
@@ -77,8 +77,6 @@ import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.web.debugBrowser
-import org.dweb_browser.browser.web.model.BrowserBaseView
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.ConstUrl
 import org.dweb_browser.browser.web.ui.bottomsheet.LocalModalBottomSheet
@@ -96,7 +94,6 @@ import org.dweb_browser.dwebview.rememberLoadingProgress
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.NativeBackHandler
 
 internal val dimenTextFieldFontSize = 16.sp
 internal val dimenSearchHorizontalAlign = 5.dp
@@ -298,10 +295,10 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
   val pagerStateNavigator = LocalBrowserPageState.current.pagerStateNavigator
   val localShowIme = LocalShowIme.current
 
-  LaunchedEffect(pagerStateNavigator.settledPage) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
+  /*LaunchedEffect(pagerStateNavigator.settledPage) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
     delay(100)
     pagerStateNavigator.scrollToPage(pagerStateNavigator.settledPage)
-  }
+  }*/
   val localFocus = LocalFocusManager.current
   LaunchedEffect(Unit) {
     if (!localShowIme.value && !viewModel.showSearchEngine.targetState) {
@@ -415,9 +412,17 @@ private fun BrowserViewContentWeb(
 }
 
 @Composable
-private fun SearchBox(baseView: BrowserBaseView) {
+private fun SearchBox(browserWebView: BrowserWebView) {
   var showSearchView by LocalShowSearchView.current
   val searchHint = BrowserI18nResource.browser_search_hint()
+
+  var inputText by remember { mutableStateOf(browserWebView.viewItem.webView.getUrl()) }
+  DisposableEffect(Unit) {
+    val off = browserWebView.viewItem.webView.onReady {
+      inputText = it
+    }
+    onDispose { off() }
+  }
 
   Box(modifier = Modifier
     .padding(
@@ -430,22 +435,15 @@ private fun SearchBox(baseView: BrowserBaseView) {
     .height(dimenSearchHeight)
     .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
     .background(MaterialTheme.colorScheme.surface)
-    .clickable {
-      showSearchView = true;
-    }) {
-    val inputText = when (baseView) {
-      is BrowserWebView -> {
-        ShowLinearProgressIndicator(baseView)
-        mutableStateOf(baseView.viewItem.webView.getUrl())
-      }
+    .clickable { showSearchView = true }
+  ) {
+    ShowLinearProgressIndicator(browserWebView)
 
-      else -> mutableStateOf("")
-    }
-    val search = if (inputText.value.isEmpty() || inputText.value.isSystemUrl()) {
+    val (title, align, icon) = if (inputText.isEmpty() || inputText.isSystemUrl()) {
       Triple(searchHint, TextAlign.Start, Icons.Default.Search)
     } else {
       Triple(
-        parseInputText(inputText.value), TextAlign.Center, Icons.Default.FormatSize
+        parseInputText(inputText), TextAlign.Center, Icons.Default.FormatSize
       )
     }
     Row(
@@ -455,11 +453,11 @@ private fun SearchBox(baseView: BrowserBaseView) {
         .align(Alignment.Center),
       verticalAlignment = Alignment.CenterVertically
     ) {
-      Icon(search.third, contentDescription = "Search")
+      Icon(icon, contentDescription = "Search")
       Spacer(modifier = Modifier.width(5.dp))
       Text(
-        text = search.first,
-        textAlign = search.second,
+        text = title,
+        textAlign = align,
         fontSize = dimenTextFieldFontSize,
         maxLines = 1,
         modifier = Modifier.weight(1f)
@@ -502,16 +500,15 @@ fun BrowserSearchView(
   val searchHint = BrowserI18nResource.browser_search_hint()
   val focusManager = LocalFocusManager.current
   if (showSearchView) {
-    val inputText = when (val dwebLink = viewModel.dwebLinkSearch.value) {
-      ConstUrl.BLANK.url -> viewModel.currentTab?.viewItem?.webView?.getUrl() ?: ""
-      else -> dwebLink
+    val dwebLink = viewModel.dwebLinkSearch.value
+    val inputText = if (dwebLink.trim().isEmpty() || dwebLink == ConstUrl.BLANK.url) {
+      viewModel.currentTab?.viewItem?.webView?.getUrl() ?: ""
+    } else dwebLink
+    val showText = if (inputText.isSystemUrl() || inputText == searchHint) {
+      ""
+    } else {
+      inputText
     }
-    val text =
-      if (inputText.isSystemUrl() || inputText == searchHint) {
-        ""
-      } else {
-        inputText
-      }
 
     val inputTextState = LocalInputText.current
 
@@ -523,7 +520,7 @@ fun BrowserSearchView(
       }
     ) {
       SearchView(
-        text = text,
+        text = showText,
         modifier = modifier,
         homePreview = { onMove ->
           HomeWebviewPage(viewModel, windowRenderScope, onMove)

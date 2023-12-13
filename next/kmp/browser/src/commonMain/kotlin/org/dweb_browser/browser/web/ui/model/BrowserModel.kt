@@ -411,15 +411,15 @@ class BrowserViewModel(
  * 根据内容解析成需要显示的内容
  */
 internal fun parseInputText(text: String, needHost: Boolean = true): String {
+  val url = Url(text)
   for (item in DefaultAllWebEngine) {
-    if (item.fit(text)) return Url(text).parameters[item.queryName()]!!
+    if (item.host == url.host) return url.parameters[item.queryName()]!!
   }
   if (text.startsWith("dweb:") || text.startsWith("about:") ||
     (text.isUrlOrHost() && !text.startsWith("http") /*表示域名*/)
   ) {
     return text
   }
-  val url = Url(text)
   return if (needHost && url.host.isNotEmpty()) {
     url.host
   } else if (url.parameters["text"]?.isNotEmpty() == true) {

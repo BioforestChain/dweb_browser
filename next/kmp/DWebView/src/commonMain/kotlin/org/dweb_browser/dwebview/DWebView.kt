@@ -64,6 +64,7 @@ abstract class IDWebView(initUrl: String?) {
    * 输入要加载的url，返回即将加载的url（url可能会重定向或者重写）
    */
   internal abstract suspend fun startLoadUrl(url: String): String
+  internal abstract suspend fun startGoBack(): Boolean
 
   private val loadUrlTask =
     atomic(LoadUrlTask(if (initUrl.isNullOrEmpty()) "about:blank" else initUrl).apply {
@@ -87,8 +88,29 @@ abstract class IDWebView(initUrl: String?) {
     return curTask.deferred.await()
   }
 
-  abstract suspend fun resolveUrl(url: String): String
+  /**
+   * 出发GoBack也需要修改loadUrlTask的url值
+   */
+  suspend fun goBack() {
+    val dwebView = this
+    dwebView.scope.launch {
+      dwebView.onReady {
+        val newTask = LoadUrlTask(it)
+        loadUrlTask.updateAndGet { preTask ->
+          if (preTask.url == it) {
+            preTask
+          } else {
+            preTask.deferred.cancel(CancellationException("load new url: $it"));
+            newTask
+          }
+        }
+        offListener()
+      }
+    }
+    startGoBack()
+  }
 
+  abstract suspend fun resolveUrl(url: String): String
 
   fun getUrl() = loadUrlTask.value.url
   fun hasUrl() = loadUrlTask.value.url.isBlank()
@@ -97,7 +119,7 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun destroy()
   abstract suspend fun canGoBack(): Boolean
   abstract suspend fun canGoForward(): Boolean
-  abstract suspend fun goBack(): Boolean
+  //abstract suspend fun goBack(): Boolean
   abstract suspend fun goForward(): Boolean
 
   abstract suspend fun createMessageChannel(): IWebMessageChannel
@@ -200,6 +222,7 @@ internal data class LoadUrlTask(val url: String) {
     dwebView.scope.launch {
       val loadingUrl = dwebView.startLoadUrl(url)
       dwebView.onLoadStateChange {
+        debugDWebView("lin.huang", "onLoadStateChange enter. $it")
         when (it) {
           is WebLoadErrorState -> {
             deferred.completeExceptionally(Exception(it.errorMessage))

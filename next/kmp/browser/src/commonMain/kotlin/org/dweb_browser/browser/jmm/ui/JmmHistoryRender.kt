@@ -52,6 +52,7 @@ import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.formatDatestampByMilliseconds
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
 fun JmmHistoryController.ManagerViewRender(
@@ -59,6 +60,11 @@ fun JmmHistoryController.ManagerViewRender(
 ) {
   val scope = rememberCoroutineScope()
   var curTab by remember { mutableStateOf(JmmTabs.NoInstall) }
+  val win = LocalWindowController.current
+  win.GoBackHandler {
+    win.hide()
+  }
+
   Column(modifier = with(windowRenderScope) {
     Modifier
       .fillMaxSize()

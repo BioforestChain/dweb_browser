@@ -3,8 +3,6 @@ package org.dweb_browser.dwebview
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
-import android.view.ViewGroup
-import android.webkit.WebMessage
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -57,6 +55,15 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
     url
+  }
+
+  override suspend fun startGoBack(): Boolean = withMainContext {
+    if (engine.canGoBack()) {
+      engine.goBack()
+      true
+    } else {
+      false
+    }
   }
 
   override suspend fun resolveUrl(url: String) = engine.resolveUrl(url)
@@ -136,14 +143,14 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   override suspend fun canGoForward() = withMainContext { engine.canGoForward() }
 
-  override suspend fun goBack() = withMainContext {
+/*  override suspend fun goBack() = withMainContext {
     if (engine.canGoBack()) {
       engine.goBack()
       true// TODO 能否有goBack钩子？
     } else {
       false
     }
-  }
+  }*/
 
   override suspend fun goForward() = withMainContext {
     if (engine.canGoForward()) {
