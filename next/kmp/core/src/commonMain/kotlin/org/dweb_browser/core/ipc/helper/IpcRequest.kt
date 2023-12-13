@@ -25,7 +25,7 @@ import org.dweb_browser.helper.falseAlso
 import kotlin.coroutines.coroutineContext
 
 
-const val PURE_CHANNEL_EVENT_PREFIX = "λ"
+const val PURE_CHANNEL_EVENT_PREFIX = "§"
 const val X_IPC_UPGRADE_KEY = "X-Dweb-Ipc-Upgrade-Key"
 
 class IpcClientRequest(

@@ -327,7 +327,7 @@ export class JsProcessMicroModule implements $MicroModule {
   private _appReady = new PromiseOut<void>();
   private async afterIpcReady(ipc: Ipc) {
     await this._appReady.promise;
-    ipc.ready();
+    await ipc.ready();
   }
 
   ready() {
