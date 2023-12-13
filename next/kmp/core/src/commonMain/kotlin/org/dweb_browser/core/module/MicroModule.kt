@@ -86,7 +86,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   private fun Ipc.readyInMicroModule(tag: String) {
     debugMicroModule("ready/$tag", "(self)$mmid => ${remote.mmid}(remote)")
     ioAsyncScope.launch {
-      this@readyInMicroModule.ready(this@MicroModule)
+      this@readyInMicroModule.readyPingPong(this@MicroModule)
     }
   }
 

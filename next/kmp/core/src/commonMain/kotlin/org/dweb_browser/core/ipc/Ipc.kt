@@ -299,28 +299,30 @@ abstract class Ipc {
     }
   }
 
+  private val readyDeferred = CompletableDeferred<IpcEvent>()
+  suspend fun afterReady() = readyDeferred.await()
+
   /// 应用级别的 Ready协议，使用ping-pong方式来等待对方准备完毕，这不是必要的，确保双方都准寻这个协议才有必要去使用
   /// 目前使用这个协议的主要是Web端（它同时还使用了 Activity协议）
-  val ready = SuspendOnce1 { mm: MicroModule ->
-    val ready = CompletableDeferred<IpcEvent>()
+  internal val readyPingPong = SuspendOnce1 { mm: MicroModule ->
     this.onEvent { (event, ipc) ->
       if (event.name == "ping") {
         ipc.postMessage(IpcEvent("pong", event.data, event.encoding))
       } else if (event.name == "pong") {
-        ready.complete(event)
+        readyDeferred.complete(event)
       }
     }
     mm.ioAsyncScope.launch {
       val ipc = this@Ipc
       val pingDelay = 200L
       var timeout = 30000L
-      while (!ready.isCompleted && !ipc.isClosed && timeout > 0L) {
+      while (!readyDeferred.isCompleted && !ipc.isClosed && timeout > 0L) {
         ipc.postMessage(IpcEvent.fromUtf8("ping", ""))
         delay(pingDelay)
         timeout -= pingDelay
       }
     }
-    ready.await()
+    readyDeferred.await()
   }
 }
 

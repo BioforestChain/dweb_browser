@@ -59,7 +59,8 @@ class RunningApp(
       windows.remove(newWin)
     }
 
-    /// 通知模块，提供渲染
+    /// 等待握手完成后，通知模块，提供渲染
+    ipc.afterReady()
     ipc.postMessage(IpcEvent.createRenderer(wid))
     return newWin
   }
