@@ -60,6 +60,8 @@ const main = async () => {
     console.log("app后台被关闭。");
   });
 
+  jsProcess.ready();
+
   //#region 启动http服务
   const plaocConfig = await PlaocConfig.init();
 

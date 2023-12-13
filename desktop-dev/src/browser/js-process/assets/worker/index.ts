@@ -164,7 +164,7 @@ export class JsProcessMicroModule implements $MicroModule {
               console.error("locks-2", e);
             }
           });
-          ipc.ready().then(() => {
+          this.afterIpcReady(ipc).then(() => {
             const liveId = "live-" + Date.now() + Math.random() + "-for-" + ipc.remote.mmid;
             try {
               void navigator.locks.request(liveId, () => {
@@ -311,7 +311,7 @@ export class JsProcessMicroModule implements $MicroModule {
       return ipc_po;
     }).promise;
     /// 等待对方响应ready协议
-    await ipc.ready();
+    await this.afterIpcReady(ipc)
     return ipc;
   }
 
@@ -321,7 +321,17 @@ export class JsProcessMicroModule implements $MicroModule {
     ipc.onClose(() => {
       this._ipcSet.delete(ipc);
     });
-    void ipc.ready();
+    void this.afterIpcReady(ipc)
+  }
+
+  private _appReady = new PromiseOut<void>();
+  private async afterIpcReady(ipc: Ipc) {
+    await this._appReady.promise;
+    ipc.ready();
+  }
+
+  ready() {
+    this._appReady.resolve();
   }
 
   private _connectSignal = createSignal<$Callback<[Ipc]>>(false);
@@ -423,7 +433,7 @@ class DwebWebSocket extends WebSocket {
     if (typeof url === "string") {
       input += `?url=${url}`;
     } else if (url instanceof URL) {
-      input += `?url=${url.href}`
+      input += `?url=${url.href}`;
     }
 
     super(input, protocols);
@@ -457,8 +467,8 @@ export const installEnv = async (metadata: Metadata, versions: Record<string, st
       value: DwebXMLHttpRequest,
     },
     WebSocket: {
-      value: DwebWebSocket
-    }
+      value: DwebWebSocket,
+    },
   });
 
   /// 安装完成，告知外部
