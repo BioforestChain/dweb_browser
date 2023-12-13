@@ -4,13 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.intl.Locale
 
 @Composable
-fun i18nResource(res: SimpleI18nResource): String {
+private fun i18nResource(res: SimpleI18nResource): String {
   val language = Locale.current.language
   return res.valuesMap[Language.getLanguage(language)] ?: res.i18nValues.first().second
 }
 
 @Composable
-fun <T> i18nResource(res: OneParamI18nResource<T>, param: T): String {
+private fun <T> i18nResource(res: OneParamI18nResource<T>, param: T): String {
   val language = Locale.current.language
   return (res.valuesMap[Language.getLanguage(language)] ?: res.i18nValues.first().second).invoke(
     param
@@ -21,9 +21,15 @@ enum class Language(val code: String) {
   EN("en"), ZH("zh"), ;
 
   companion object {
-    private var _current = Language.ZH
+    private var _current = ZH
     val current get() = _current
     fun getLanguage(language: String) = entries.find { it.code == language } ?: ZH
+
+    @Composable
+    fun InitLocalLanguage() {
+      val language = Locale.current.language
+      _current = Language.getLanguage(language)
+    }
   }
 }
 
@@ -38,6 +44,8 @@ class SimpleI18nResource(
 
   @Composable
   operator fun invoke() = i18nResource(this)
+
+  val text get() = valuesMap[Language.current] ?: i18nValues.first().second
 }
 
 typealias OneParam<T> = T.() -> String

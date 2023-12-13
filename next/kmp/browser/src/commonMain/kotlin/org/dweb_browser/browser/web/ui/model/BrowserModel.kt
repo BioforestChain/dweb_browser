@@ -18,7 +18,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.dweb_browser.browser.LocalBitmapManager
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.isDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.util.isUrlOrHost
@@ -47,6 +47,7 @@ import org.dweb_browser.helper.platform.noLocalProvidedFor
 import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.withMainContext
+
 /**
  * 用于显示搜索的界面，也就是点击搜索框后界面
  */
@@ -303,16 +304,24 @@ class BrowserViewModel(
    * 添加到桌面功能
    */
   suspend fun addUrlToDesktop(): Boolean {
-    return currentBrowserBaseView.value?.let { browserWebView ->
+    val result = currentBrowserBaseView.value?.let { browserWebView ->
       val webView = browserWebView.viewItem.webView
       val url = webView.getUrl()
       browserController.addUrlToDesktop(
         title = webView.getTitle().ifEmpty { url }, url = url, icon = webView.getIcon()
       )
     } ?: false
+    showToastMessage(
+      if (result) {
+        BrowserI18nResource.toast_message_add_desk_success.text
+      } else {
+        BrowserI18nResource.toast_message_add_desk_fail.text
+      }
+    )
+    return result
   }
 
-  suspend fun createDesktopLink(link: String, title: String, iconString: String){
+  suspend fun createDesktopLink(link: String, title: String, iconString: String) {
     browserController.addUrlToDesktop(
       title = title, url = link, icon = iconString
     )
@@ -337,21 +346,27 @@ class BrowserViewModel(
    * 修改：该对象已经变更，可直接保存，所以不需要传
    * 删除：需要删除数据
    */
-  fun changeBookLink(add: WebSiteInfo? = null, del: WebSiteInfo? = null) {
-    println("MMIke changeBookLink: add: ${add?.title} del:${del?.title}")
+  fun changeBookLink(
+    add: WebSiteInfo? = null, del: WebSiteInfo? = null, update: WebSiteInfo? = null
+  ) {
+    debugBrowser("BrowserModel", "changeBookLink: add: ${add?.title} del:${del?.title} update:${update?.title}")
     browserController.ioAsyncScope.launch {
       add?.apply {
+        showToastMessage(BrowserI18nResource.toast_message_add_book.text)
         browserController.bookLinks.add(this)
-//        this.iconImage?.let { icon -> LocalBitmapManager.saveImageBitmap(this.id, icon) }
         browserController.saveBookLinks()
       }
       del?.apply {
+        showToastMessage(BrowserI18nResource.toast_message_remove_book.text)
         browserController.bookLinks.remove(this)
         browserController.saveBookLinks()
-//        LocalBitmapManager.deleteImageBitmap(this.id)
+      }
+      update?.apply {
+        showToastMessage(BrowserI18nResource.toast_message_update_book.text)
+        browserController.saveBookLinks()
       }
     }
-    }
+  }
 
   /**
    * 操作历史数据
@@ -384,6 +399,12 @@ class BrowserViewModel(
   suspend fun loadMoreHistory(off: Int) {
     browserController.loadMoreHistory(off)
   }
+
+  fun showToastMessage(message: String) {
+    browserController.ioAsyncScope.launch {
+      browserNMM.nativeFetch("file://toast.sys.dweb/show?message=$message")
+    }
+  }
 }
 
 /**
@@ -394,7 +415,8 @@ internal fun parseInputText(text: String, needHost: Boolean = true): String {
     if (item.fit(text)) return Url(text).parameters[item.queryName()]!!
   }
   if (text.startsWith("dweb:") || text.startsWith("about:") ||
-    (text.isUrlOrHost() && !text.startsWith("http") /*表示域名*/)) {
+    (text.isUrlOrHost() && !text.startsWith("http") /*表示域名*/)
+  ) {
     return text
   }
   val url = Url(text)

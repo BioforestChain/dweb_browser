@@ -100,7 +100,6 @@ import org.dweb_browser.browser.web.ui.model.toWebSiteInfo
 import org.dweb_browser.browser.web.ui.search.CustomTextField
 import org.dweb_browser.helper.PrivacyUrl
 import org.dweb_browser.helper.compose.rememberScreenSize
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getCornerRadiusTop
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
@@ -239,7 +238,7 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
             webSiteInfo.value?.apply {
               title = inputTitle.value
               url = inputUrl.value
-              viewModel.changeBookLink()
+              viewModel.changeBookLink(update = this)
               onBack()
             }
           }
@@ -434,7 +433,9 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         ) {
           viewModel.currentTab?.let {
             scope.launch {
-              viewModel.changeBookLink(add = it.viewItem.webView.toWebSiteInfo(WebSiteType.Book))
+              it.viewItem.webView.toWebSiteInfo(WebSiteType.Book)?.let {
+                viewModel.changeBookLink(add = it)
+              } ?: viewModel.showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
             }
           }
         } // 添加书签

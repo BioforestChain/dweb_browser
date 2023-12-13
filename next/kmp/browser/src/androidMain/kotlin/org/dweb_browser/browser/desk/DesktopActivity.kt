@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.core.view.WindowCompat
+import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 
@@ -26,6 +27,7 @@ class DesktopActivity : PureViewController() {
     DesktopViewControllerCore(this)
 
     addContent {
+      Language.InitLocalLanguage() // 初始化语言
       val imeVisible = LocalWindowsImeVisible.current
       val density = LocalDensity.current
       val ime =

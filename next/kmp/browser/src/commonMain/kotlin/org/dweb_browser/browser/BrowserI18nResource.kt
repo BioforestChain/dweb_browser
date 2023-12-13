@@ -115,5 +115,12 @@ class BrowserI18nResource {
     val browser_multi_done = SimpleI18nResource(Language.ZH to "完成", Language.EN to "Done")
     val browser_multi_startup = SimpleI18nResource(Language.ZH to "起始页", Language.EN to "Start")
     val browser_multi_no_title = SimpleI18nResource(Language.ZH to "无标题", Language.EN to "No Title")
+
+    val toast_message_add_book = SimpleI18nResource(Language.ZH to "添加书签成功", Language.EN to "Add Book Success")
+    val toast_message_add_book_invalid = SimpleI18nResource(Language.ZH to "无效链接", Language.EN to "Not Invalid Link")
+    val toast_message_remove_book = SimpleI18nResource(Language.ZH to "移除书签成功", Language.EN to "Remove Book Success")
+    val toast_message_update_book = SimpleI18nResource(Language.ZH to "修改书签成功", Language.EN to "Change Book Success")
+    val toast_message_add_desk_success = SimpleI18nResource(Language.ZH to "添加到桌面成功", Language.EN to "Add to Desktop Success")
+    val toast_message_add_desk_fail = SimpleI18nResource(Language.ZH to "添加到桌面失败", Language.EN to "Add to Desktop Fail")
   }
 }
