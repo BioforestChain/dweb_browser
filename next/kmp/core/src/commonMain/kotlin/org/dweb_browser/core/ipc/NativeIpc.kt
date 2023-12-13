@@ -9,6 +9,7 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
+import org.dweb_browser.helper.debugger
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 
@@ -31,6 +32,7 @@ class NativeIpc(
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   init {
+    debugger();
     port.onMessage { message ->
       _messageSignal.emit(IpcMessageArgs(message, this@NativeIpc))
     }

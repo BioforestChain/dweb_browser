@@ -41,18 +41,19 @@ class Once<R>(val runnable: () -> R) {
   }
 }
 
-inline fun <A, R> suspendOnce1(
-  crossinline runnable: suspend (A) -> R
-): suspend (A) -> R {
-  val hasRun = atomic(false)
-  var result: R? = null
-  return {
+class SuspendOnce1<A1,R>(val runnable: suspend (A1) -> R) {
+  private val hasRun = atomic(false)
+  private lateinit var result: Deferred<R>
+  val haveRun get() = hasRun.value
+  suspend operator fun invoke(arg1:A1): R {
     hasRun.update { run ->
       if (!run) {
-        result = runnable(it)
+        result = CoroutineScope(coroutineContext).async {
+          runnable(arg1)
+        }
       }
       true
     }
-    result as R
+    return result.await()
   }
 }

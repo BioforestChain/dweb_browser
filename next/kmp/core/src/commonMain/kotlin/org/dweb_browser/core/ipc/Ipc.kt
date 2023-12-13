@@ -39,7 +39,7 @@ import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.defaultAsyncExceptionHandler
+import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 val debugIpc = Debugger("ipc")
@@ -301,7 +301,7 @@ abstract class Ipc {
 
   /// 应用级别的 Ready协议，使用ping-pong方式来等待对方准备完毕，这不是必要的，确保双方都准寻这个协议才有必要去使用
   /// 目前使用这个协议的主要是Web端（它同时还使用了 Activity协议）
-  private val readyListener by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  val ready = SuspendOnce1 { mm: MicroModule ->
     val ready = CompletableDeferred<IpcEvent>()
     this.onEvent { (event, ipc) ->
       if (event.name == "ping") {
@@ -310,7 +310,7 @@ abstract class Ipc {
         ready.complete(event)
       }
     }
-    CoroutineScope(defaultAsyncExceptionHandler).launch {
+    mm.ioAsyncScope.launch {
       val ipc = this@Ipc
       val pingDelay = 200L
       var timeout = 30000L
@@ -320,11 +320,7 @@ abstract class Ipc {
         timeout -= pingDelay
       }
     }
-    ready
-  }
-
-  suspend fun ready(self: MicroModule) {
-    this.readyListener.await()// get once
+    ready.await()
   }
 }
 

@@ -11,12 +11,10 @@ import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
-import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.std.permission.PermissionProvider
-import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
@@ -38,6 +36,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   open val routers: Router? = null
 
   private var runningStateLock = StatePromiseOut.resolve(MMState.SHUTDOWN)
+  private val readyLock = Mutex(true)
 
   private fun getModuleCoroutineScope() = CoroutineScope(SupervisorJob() + ioAsyncExceptionHandler)
   private var _scope: CoroutineScope = getModuleCoroutineScope()
@@ -72,7 +71,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
   protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
   private suspend fun afterBootstrap(_dnsMM: BootstrapContext) {
-    this.runningStateLock.resolve()
     debugMicroModule("afterBootstrap", "ready: $mmid")
     onConnect { (ipc) ->
       ipc.readyInMicroModule("onConnect")
@@ -80,7 +78,10 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     for (ipc in _ipcSet) {
       ipc.readyInMicroModule("afterBootstrap")
     }
+    this.runningStateLock.resolve()
+    readyLock.unlock()
   }
+
 
   private fun Ipc.readyInMicroModule(tag: String) {
     debugMicroModule("ready/$tag", "(self)$mmid => ${remote.mmid}(remote)")
@@ -106,6 +107,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       debugMicroModule("module $mmid already shutdown");
       return false
     }
+    readyLock.lock()
     this.runningStateLock.waitPromise() // 确保已经完成上一个状态
     this.runningStateLock = StatePromiseOut(MMState.SHUTDOWN)
 
@@ -116,6 +118,12 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     _ipcSet.clear()
     return true
   }
+
+  /**
+   * 让回调函数一定在启动状态内被运行
+   */
+  suspend fun <R> withBootstrap(block: suspend () -> R) = readyLock.withLock { block() }
+
 
   protected abstract suspend fun _shutdown()
   protected open suspend fun afterShutdown() {
@@ -176,7 +184,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
    * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
    * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
    */
-  fun onConnect(cb: Callback<IpcConnectArgs>) = _connectSignal.listen(cb);
+  val onConnect = _connectSignal.toListener()
 
   /**
    * 尝试连接到指定对象

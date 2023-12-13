@@ -56,8 +56,10 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
           debugJMM("UsrFile", "$fromMM => ${request.href} in $rootKey")
           val root = usrRootMap.getOrPut(rootKey) {
             fromMM.ioAsyncScope.async {
-              this@JmmNMM.nativeFetch("file://file.std.dweb/realPath?path=/data/apps/${fromMM.mmid}-${fromMM.version}")
-                .text()
+              this@JmmNMM.withBootstrap {
+                this@JmmNMM.nativeFetch("file://file.std.dweb/realPath?path=/data/apps/${fromMM.mmid}-${fromMM.version}")
+                  .text()
+              }
             }
           }.await()
           returnFile(root, filePath)
