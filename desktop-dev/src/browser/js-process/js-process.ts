@@ -319,13 +319,17 @@ export class JsProcessNMM extends NativeMicroModule {
      * 创建一个通往 worker 的消息通道
      */
     const channel_for_worker = new MessageChannel();
+
     const processInfo = await apis.createProcess(
       bootstrap_url,
       metadata,
       env,
       transfer(channel_for_worker.port2, [channel_for_worker.port2]),
       httpDwebServer.startResult.urlInfo.host,
-      JSON.stringify({ jsMicroModule: `${JsMicroModule.VERSION}.${JsMicroModule.PATCH}` })
+      JSON.stringify({
+        jsMicroModule: `${JsMicroModule.VERSION}.${JsMicroModule.PATCH}`
+      }),
+      await this.nativeFetch("file://http.std.dweb/gatewayPort").number()
     );
 
     /**

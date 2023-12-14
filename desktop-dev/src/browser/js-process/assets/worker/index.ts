@@ -426,26 +426,13 @@ class DwebXMLHttpRequest extends XMLHttpRequest {
   }
 }
 
-class DwebWebSocket extends WebSocket {
-  constructor(url: string | URL, protocols?: string | string[] | undefined) {
-    let input = "wss://http.std.dweb/websocket";
-
-    if (typeof url === "string") {
-      input += `?url=${url}`;
-    } else if (url instanceof URL) {
-      input += `?url=${url.href}`;
-    }
-
-    super(input, protocols);
-  }
-}
-
 /**
  * 安装上下文
  */
-export const installEnv = async (metadata: Metadata, versions: Record<string, string>) => {
+export const installEnv = async (metadata: Metadata, versions: Record<string, string>, gatewayPort: number) => {
   const jsProcess = new JsProcessMicroModule(metadata, await waitFetchPort());
   const [version, patch] = versions.jsMicroModule.split(".").map((v) => parseInt(v));
+  
   const dweb = {
     jsProcess,
     core,
@@ -467,7 +454,22 @@ export const installEnv = async (metadata: Metadata, versions: Record<string, st
       value: DwebXMLHttpRequest,
     },
     WebSocket: {
-      value: DwebWebSocket,
+      value: class extends WebSocket {
+        constructor(url: string | URL, protocols?: string | string[] | undefined) {
+          let input = "wss://http.std.dweb/websocket";
+          if(/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            input = `ws://localhost:${gatewayPort}?X-Dweb-Url=${input.replace("wss:", "ws:")}`;
+          }
+      
+          if (typeof url === "string") {
+            input += `?url=${url}`;
+          } else if (url instanceof URL) {
+            input += `?url=${url.href}`;
+          }
+      
+          super(input, protocols);
+        }
+      },
     },
   });
 

@@ -33,6 +33,7 @@ const createProcess = async (
   fetch_port: MessagePort,
   name: string = new URL(env_script_url).hostname,
   versions_json: string,
+  gatewayPort: number
 ) => {
   const process_id = allocProcessId();
   const worker_url = URL.createObjectURL(
@@ -41,7 +42,7 @@ const createProcess = async (
         `import("${env_script_url}")
         .then(
           async({installEnv,Metadata})=>{
-            void installEnv(new Metadata(${metadata_json},${env_json}), ${versions_json});
+            void installEnv(new Metadata(${metadata_json},${env_json}), ${versions_json}, ${gatewayPort});
             postMessage("ready")
           },
           (err)=>postMessage("ERROR:"+err)

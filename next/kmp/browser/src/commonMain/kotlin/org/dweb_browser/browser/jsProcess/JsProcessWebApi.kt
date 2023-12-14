@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.http.HttpDwebServer
@@ -54,7 +55,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
                      try{
                         removeEventListener("message", doCreateProcess);
                         const fetch_port = event.ports[0];
-                        resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`,`{"jsMicroModule":"${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"}`))
+                        resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`,`{"jsMicroModule":"${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"}, ${dwebHttpGatewayServer.startServer()}`))
                         }catch(err){
                             reject(err)
                         }

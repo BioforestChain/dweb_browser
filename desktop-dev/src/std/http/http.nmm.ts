@@ -149,6 +149,17 @@ export class HttpServerNMM extends NativeMicroModule {
         return this.listen(args.token, message, args.routes as $ReqMatcher[]);
       },
     });
+
+    this.registerCommonIpcOnMessageHandler({
+      method: "GET",
+      pathname: "/gatewayPort",
+      matchMode: "full",
+      input: {},
+      output: "number",
+      handler: (args, _ipc, message) => {
+        return info.port;
+      },
+    });
   }
   protected _shutdown() {
     this._dwebServer.destroy();

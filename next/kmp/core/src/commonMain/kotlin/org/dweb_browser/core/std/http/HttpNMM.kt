@@ -220,7 +220,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         close(ipc, request.queryAs())
       },
       "/websocket" byChannel { ctx ->
-        debugHttp("websocketxxxx", "xxxx")
         val rawUrl = request.query("url")
         val url = Url(rawUrl)
         val protocol = URLProtocol.byName[url.protocol.name]

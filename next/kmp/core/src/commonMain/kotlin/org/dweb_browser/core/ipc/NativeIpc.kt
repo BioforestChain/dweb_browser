@@ -32,7 +32,6 @@ class NativeIpc(
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   init {
-    debugger();
     port.onMessage { message ->
       _messageSignal.emit(IpcMessageArgs(message, this@NativeIpc))
     }
