@@ -29,7 +29,7 @@ data class WebSiteInfo(
 
 @Composable
 fun Long.formatToStickyName(): String {
-  return when (datetimeNowToEpochDay() - this) {
+  return when (this - datetimeNowToEpochDay()) {
     0L -> BrowserI18nResource.time_today()
     -1L -> BrowserI18nResource.time_yesterday()
     else -> this.formatDatestampByEpochDay()

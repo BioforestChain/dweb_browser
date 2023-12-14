@@ -3,7 +3,13 @@ package org.dweb_browser.browser.web.ui
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,7 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,7 +30,7 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.model.formatToStickyName
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
-import org.dweb_browser.helper.*
+import org.dweb_browser.helper.datetimeNowToEpochDay
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -35,9 +40,8 @@ fun BrowserListOfHistory(
   noFoundTip: (@Composable () -> Unit)? = null,
   onSearch: (String) -> Unit
 ) {
-  val list = viewModel.getHistoryLinks()
   val scope = rememberCoroutineScope()
-  if (list.isEmpty()) {
+  if (viewModel.getHistoryLinks().isEmpty()) {
     noFoundTip?.let { it() }
       ?: Box(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -57,8 +61,8 @@ fun BrowserListOfHistory(
       .padding(horizontal = 16.dp)
   ) {
     for (day in currentDay downTo currentDay - 6) {
-      val webSiteInfoList = list[day.toString()] ?: continue
-      stickyHeader(key = webSiteInfoList) {
+      val webSiteInfoList = viewModel.getHistoryLinks()[day.toString()] ?: continue
+      stickyHeader(key = day) {
         Text(
           text = day.formatToStickyName(),
           modifier = Modifier
@@ -71,7 +75,7 @@ fun BrowserListOfHistory(
         )
       }
 
-      itemsIndexed(webSiteInfoList, key = { _, item -> item.hashCode() }) { index, webSiteInfo ->
+      itemsIndexed(webSiteInfoList) { index, webSiteInfo ->
         if (index > 0) Divider(modifier = Modifier.fillMaxWidth().height(1.dp))
         ListSwipeItem(
           webSiteInfo = webSiteInfo,

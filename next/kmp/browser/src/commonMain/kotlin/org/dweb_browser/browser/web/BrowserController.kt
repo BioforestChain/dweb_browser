@@ -2,13 +2,11 @@ package org.dweb_browser.browser.web
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.toMutableStateList
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.browser.LocalBitmapManager
 import org.dweb_browser.browser.web.model.BrowserStore
 import org.dweb_browser.browser.web.model.KEY_NO_TRACE
 import org.dweb_browser.browser.web.model.WebLinkManifest
@@ -20,7 +18,6 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
@@ -55,7 +52,9 @@ class BrowserController(
         bookLinks.add(webSiteInfo)
       }
       browserStore.getHistoryLinks().forEach { (key, webSiteInfoList) ->
-        historyLinks[key] = webSiteInfoList//.toMutableStateList()
+        historyLinks[key] = mutableStateListOf<WebSiteInfo>().also {
+          it.addAll(webSiteInfoList)
+        }
       }
       // TODO 遍历获取book的image
 //      bookLinks.forEach { webSiteInfo ->
@@ -65,12 +64,16 @@ class BrowserController(
   }
 
   suspend fun loadMoreHistory(off: Int) {
-      browserStore.getDaysHistoryLinks(off).forEach {(key, webSiteInfoList) ->
-        if (historyLinks.keys.contains(key)) {
-          val data = (webSiteInfoList + historyLinks[key]) as MutableList<WebSiteInfo>
-          historyLinks[key] = data
+    browserStore.getDaysHistoryLinks(off).forEach { (key, webSiteInfoList) ->
+      if (historyLinks.keys.contains(key)) {
+        val data = historyLinks.getOrPut(key) {
+          mutableStateListOf()
+        }.also {
+          it.addAll(webSiteInfoList)
         }
+        historyLinks[key] = data
       }
+    }
   }
 
   suspend fun saveBookLinks() = browserStore.setBookLinks(bookLinks)

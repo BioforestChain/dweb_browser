@@ -383,7 +383,7 @@ class BrowserViewModel(
       val key = timeMillis.toString()
       val addUrl = this.url
       browserController.historyLinks.getOrPut(key) {
-        mutableListOf()
+        mutableStateListOf()
       }.apply {
         removeAll { it.url == addUrl } // 删除同一天的重复数据
         add(0, add)
@@ -417,7 +417,7 @@ class BrowserViewModel(
 internal fun parseInputText(text: String, needHost: Boolean = true): String {
   val url = Url(text)
   for (item in DefaultAllWebEngine) {
-    if (item.host == url.host) return url.parameters[item.queryName()]!!
+    if (item.host == url.host) return url.parameters[item.queryName()] ?: url.host
   }
   if (text.startsWith("dweb:") || text.startsWith("about:") ||
     (text.isUrlOrHost() && !text.startsWith("http") /*表示域名*/)
