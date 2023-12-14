@@ -131,16 +131,20 @@ export class Server_api extends HttpServer {
     const path = `file:/${pathname}${search}`;
     const mmid = new URL(path).host;
     const targetIpc = await jsProcess.connect(mmid as $MMID);
+    const { ipcRequest } = event;
     const ipcProxyRequest = new IpcRequest(
       targetIpc.allocReqId(),
       path,
       event.method,
       event.headers,
-      event.ipcRequest.body,
+      ipcRequest.body,
       targetIpc
     );
     targetIpc.postMessage(ipcProxyRequest);
     const ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.req_id).promise;
+    if (ipcRequest.hasDuplex) {
+      await targetIpc.pipeFromChannel(ipcRequest.channelId!, ipcRequest.getChannel());
+    }
     return ipcProxyResponse.toResponse();
   }
 }

@@ -1,16 +1,14 @@
 import { once } from "../../helper/$once.ts";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { $Binary, binaryToU8a, isBinary } from "../../helper/binaryHelper.ts";
 import { CacheGetter } from "../../helper/cacheGetter.ts";
-import { ReadableStreamOut, streamRead } from "../../helper/stream/readableStreamHelper.ts";
+import { ReadableStreamOut } from "../../helper/stream/readableStreamHelper.ts";
 import { parseUrl } from "../../helper/urlHelper.ts";
 import { buildRequestX } from "../helper/ipcRequestHelper.ts";
 import type { IpcBody } from "./IpcBody.ts";
 import { IpcBodySender } from "./IpcBodySender.ts";
-import { IpcEvent } from "./IpcEvent.ts";
 import { IpcHeaders } from "./IpcHeaders.ts";
 import type { MetaBody } from "./MetaBody.ts";
-import { $PureFrame, PureChannel, ipcEventToPureFrame, pureFrameToIpcEvent } from "./PureChannel.ts";
+import { $PureFrame, PureChannel } from "./PureChannel.ts";
 import { IPC_MESSAGE_TYPE, IPC_METHOD, IpcMessage, toIpcMethod } from "./const.ts";
 import type { Ipc } from "./ipc.ts";
 
@@ -115,7 +113,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
    * 比如目前双工协议可以由 WebSocket 来提供支持
    */
   get hasDuplex() {
-    return this.duplexEventBaseName.value !== undefined;
+    return this.channelId !== undefined;
   }
   private duplexEventBaseName = new CacheGetter(() => {
     let eventNameBase: string | undefined;
@@ -125,41 +123,17 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     }
     return eventNameBase;
   });
+  get channelId() {
+    return this.duplexEventBaseName.value;
+  }
 
   private channel = new CacheGetter(async () => {
-    const channelId = this.duplexEventBaseName.value!;
-    const eventStart = `${channelId}/start`;
-    const eventData = `${channelId}/data`;
-    const eventClose = `${channelId}/close`;
+    const channelId = this.channelId!;
     const income = new ReadableStreamOut<$PureFrame>();
     const outgoing = new ReadableStreamOut<$PureFrame>();
     const channel = new PureChannel(income, outgoing);
-    const started = new PromiseOut<IpcEvent>();
-
-    this.ipc.onEvent((ipcEvent, ipc) => {
-      switch (ipcEvent.name) {
-        case eventStart:
-          started.resolve(ipcEvent);
-          break;
-        case eventData:
-          income.controller.enqueue(ipcEventToPureFrame(ipcEvent));
-          break;
-        case eventClose:
-          channel.close();
-          break;
-      }
-    });
-    this.ipc.postMessage(IpcEvent.fromText(eventStart, ""));
-    this.ipc.postMessage(await started.promise);
-
-    void (async () => {
-      for await (const pureFrame of streamRead(income.stream)) {
-        this.ipc.postMessage(pureFrameToIpcEvent(eventData, pureFrame));
-      }
-      // 关闭的时候，发一个信号给对面
-      const ipcCloseEvent = IpcEvent.fromText(eventClose, "");
-      this.ipc.postMessage(ipcCloseEvent);
-    })();
+    void this.ipc.pipeToChannel(channelId, channel);
+    channel.start();
 
     return channel;
   });

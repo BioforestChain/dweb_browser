@@ -1,3 +1,4 @@
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { SupportedFormat } from "./barcode-scanning.type.ts";
@@ -33,7 +34,7 @@ export class BarcodeScannerPlugin extends BasePlugin {
    * @returns
    */
   @bindThis
-  async process(formats = SupportedFormat.QR_CODE) {
+  async createProcesser(formats = SupportedFormat.QR_CODE) {
     const wsUrl = await this.buildApiRequest("/process", {
       search: {
         formats,
@@ -45,22 +46,30 @@ export class BarcodeScannerPlugin extends BasePlugin {
 
     const rotation_ab = new ArrayBuffer(4);
     const rotation_i32 = new Int32Array(rotation_ab);
+    const locks: PromiseOut<BarcodeResult[]>[] = [];
     const controller = {
       setRotation(rotation: number) {
         rotation_i32[0] = rotation;
         ws.send(rotation_ab);
       },
-      sendImageData(data: Uint8Array | Blob) {
+      process(data: Uint8Array | Blob) {
+        const task = new PromiseOut<BarcodeResult[]>();
+        locks.push(task);
         ws.send(data);
+        return task.promise;
       },
-      onmessage: undefined as ((message: BarcodeResult[]) => void) | undefined,
       stop() {
         ws.close();
+        for (const lock of locks) {
+          lock.reject("stop");
+        }
+        locks.length = 0;
       },
     };
     ws.onmessage = async (ev) => {
-      if (controller.onmessage) {
-        controller.onmessage(JSON.parse(await (ev.data as Blob).text()) as BarcodeResult[]);
+      const lock = locks.shift();
+      if (lock) {
+        lock.resolve(JSON.parse(await (ev.data as Blob).text()));
       }
     };
 

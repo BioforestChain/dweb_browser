@@ -15,6 +15,7 @@ import {
   type $OnIpcMessage,
 } from "./const.ts";
 
+import { PureChannel, pureChannelToIpcEvent } from "@dweb-browser/desktop/core/ipc/PureChannel.ts";
 import { once } from "../../helper/helper.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { $OnFetch, createFetchHandler } from "../helper/ipcFetchHelper.ts";
@@ -24,7 +25,7 @@ export {
   FetchEvent,
   type $FetchResponse,
   type $OnFetch,
-  type $OnFetchReturn
+  type $OnFetchReturn,
 } from "../helper/ipcFetchHelper.ts";
 
 let ipc_uid_acc = 0;
@@ -208,6 +209,25 @@ export abstract class Ipc {
   /** 自定义注册 请求与响应 的id */
   registerReqId(req_id = this.allocReqId()) {
     return mapHelper.getOrPut(this._reqresMap, req_id, () => new PromiseOut());
+  }
+
+  /**
+   * 代理管道 发送数据 与 接收数据
+   * @param channel
+   */
+  async pipeToChannel(channelId: string, channel: PureChannel) {
+    await pureChannelToIpcEvent(channelId, this, channel, channel.income.controller, channel.outgoing.stream, () =>
+      channel.afterStart()
+    );
+  }
+  /**
+   * 代理管道 发送数据 与 接收数据
+   * @param channel
+   */
+  async pipeFromChannel(channelId: string, channel: PureChannel) {
+    await pureChannelToIpcEvent(channelId, this, channel, channel.outgoing.controller, channel.income.stream, () =>
+      channel.start()
+    );
   }
 
   private readyListener = once(async () => {

@@ -46,7 +46,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 
   @cacheGetter()
   get process() {
-    return this.plugin.process;
+    return this.plugin.createProcesser;
   }
   @cacheGetter()
   get stop() {
@@ -93,45 +93,54 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * 不断识图的任务
    * @returns
    */
-  async taskPhoto(rotation: number, formats: SupportedFormat): Promise<string[]> {
-    this._activity = true;
-    const task = new PromiseOut<string[]>();
-
-    if (!this._canvas) {
+  async taskPhoto(rotation: number, formats: SupportedFormat) {
+    if (this._canvas === null) {
       console.error("service close！");
-      task.resolve([]);
-    } else if (!this._activity) {
+      return [];
+    }
+    if (this._activity === false) {
       console.error("user close！");
-      task.resolve([]);
-    } else {
-      this._activity = true;
-      const controller = await this.plugin.process(formats);
+      return [];
+    }
+    this._activity = true;
+    try {
+      const controller = await this.plugin.createProcesser(formats);
       controller.setRotation(rotation);
-      controller.onmessage = (message) => {
-        this._activity = false;
-        task.resolve(message.map((it) => it.data));
-        controller.stop();
-        this.stopCamera();
-      };
-      // deno-lint-ignore no-this-alias
-      const self = this;
-      requestAnimationFrame(function getFrameData() {
-        const canvas = self._canvas;
+      const toBlob = (quality = 0.8) => {
+        const blob = new PromiseOut<Blob>();
+        const canvas = this._canvas;
         if (canvas) {
           canvas.toBlob(
             (imageBlob) => {
               if (imageBlob) {
-                controller.sendImageData(imageBlob);
+                blob.resolve(imageBlob);
+              } else {
+                blob.reject("canvas fail to toBlob");
               }
             },
             "image/jpeg",
-            0.8 // lossy compression
+            quality
           );
-          setTimeout(getFrameData, 100);
+        } else {
+          blob.reject("canvas stop");
         }
-      });
+        return blob.promise;
+      };
+      const waitFrame = () => {
+        const frame = new PromiseOut<void>();
+        requestAnimationFrame(() => frame.resolve());
+        return frame.promise;
+      };
+      do {
+        await waitFrame();
+        const result = await controller.process(await toBlob());
+        if (result.length != 0) {
+          return result.map((it) => it.data);
+        }
+      } while (true);
+    } finally {
+      this._activity = false;
     }
-    return task.promise;
   }
 
   /**
