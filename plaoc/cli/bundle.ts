@@ -47,9 +47,11 @@ export const doBundle = async (flags: $BundleOptions) => {
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   const outDir = path.resolve(Deno.cwd(), flags.out);
-  if (flags.clear) {
+
+  if (flags.clear && fs.existsSync(outDir)) {
     fs.rmSync(outDir, { recursive: true });
   }
+
   if (fs.existsSync(outDir)) {
     if (fs.statSync(outDir).isDirectory() === false) {
       throw new Error(`output should be an directory`);
