@@ -59,7 +59,7 @@ class Http1ServerTest {
 
                 val proxyRequestBody: ReadableStream.ReadableStreamController? = null
 
-                val response = httpHandler(request)
+                val response = httpHandler(request.toClient())
 
                 if (proxyRequestBody != null) {
                   val requestBodyController = proxyRequestBody!!

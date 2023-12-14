@@ -12,7 +12,7 @@ import { doWebAdvCommand } from "./web-dav.ts";
 await new Command()
   .name("@plaoc/cli")
   .description("plaoc front-end and back-end packaging tools.")
-  .version(`v0.6.0`)
+  .version(`v0.6.2`)
   .command("serve", doServeCommand)
   .example("developer service", "plaoc serve http://xx.xx.xx.xx:xxxx/")
 
