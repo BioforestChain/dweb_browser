@@ -76,7 +76,7 @@ object LoadingViewModel {
     ioAsyncScope.launch {
       while (isRunning) {
         delay(100)
-        val data = mColor.removeAt(mColor.size - 1)
+        val data = mColor.removeLast()
         mColor.add(0, data)
         mTicker.value = datetimeNow()
       }

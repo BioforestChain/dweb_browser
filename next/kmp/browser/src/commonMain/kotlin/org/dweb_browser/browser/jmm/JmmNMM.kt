@@ -78,7 +78,9 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       val metadataUrl = request.query("url")
       val response = nativeFetch(metadataUrl)
       if (!response.isOk()) {
-        throwException(HttpStatusCode.ExpectationFailed, "invalid status code: ${response.status}")
+        val message = "invalid status code: ${response.status}"
+        nativeFetch("file://toast.sys.dweb/show?message=$message")
+        throwException(HttpStatusCode.ExpectationFailed, message)
       }
       val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
       debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")

@@ -1,9 +1,7 @@
 package org.dweb_browser.browser.web.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -17,7 +15,6 @@ import org.dweb_browser.browser.common.CaptureParams
 import org.dweb_browser.browser.common.CaptureView
 import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.common.toWebColorScheme
-import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.WebSiteType
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
