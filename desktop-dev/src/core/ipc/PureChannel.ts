@@ -79,7 +79,7 @@ export const pureChannelToIpcEvent = async (
   const eventClose = `${channelId}/close`;
   const started = new PromiseOut<IpcEvent>();
 
-  ipc.onEvent((ipcEvent) => {
+  const off = ipc.onEvent((ipcEvent) => {
     switch (ipcEvent.name) {
       case eventStart:
         started.resolve(ipcEvent);
@@ -102,5 +102,6 @@ export const pureChannelToIpcEvent = async (
     // 关闭的时候，发一个信号给对面
     const ipcCloseEvent = IpcEvent.fromText(eventClose, "");
     ipc.postMessage(ipcCloseEvent);
+    off(); // 移除事件监听
   })();
 };

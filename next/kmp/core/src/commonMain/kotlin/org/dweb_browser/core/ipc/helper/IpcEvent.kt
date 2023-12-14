@@ -65,7 +65,7 @@ class IpcEvent(
       )
 
       else -> this
-    }.let {
+    }.run {
       IpcEventJsonAble(
         name,
         data as String,

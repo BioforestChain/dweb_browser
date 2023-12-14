@@ -111,30 +111,31 @@ class DwebHttpGatewayServer private constructor() {
                     launch {
                       for (pureFrame in outgoing) {
                         debugHttp("WebSocketToPureChannel") { "outgoing-to-ws:$pureFrame/$url" }
-                        when (pureFrame) {
-                          is PureTextFrame -> ws.send(Frame.Text(pureFrame.data))
-                          is PureBinaryFrame -> ws.send(Frame.Binary(true, pureFrame.data))
+                        val wsFrame = when (pureFrame) {
+                          is PureTextFrame -> Frame.Text(pureFrame.data)
+                          is PureBinaryFrame -> Frame.Binary(true, pureFrame.data)
                         }
+                        ws.send(wsFrame)
+                        debugHttp("WebSocketToPureChannel") { "ws-send:$wsFrame/$url" }
                       }
                       debugHttp("WebSocketToPureChannel") { "outgoing-close-ws/$url" }
                       ws.close()
                     }
                     /// 将从客户端收到的数据，转成 PureFrame 的标准传输到 pureChannel 中
                     for (frame in ws.incoming) {// 注意，这里ws.incoming要立刻进行，不能在launch中异步执行，否则ws将无法完成连接建立
-                      debugHttp("WebSocketToPureChannel") { "ws-income:$frame/$url" }
+                      debugHttp("WebSocketToPureChannel") { "ws-to-income:$frame/$url" }
                       val pureFrame = when (frame.frameType) {
+                        // TODO 这里应该处理 fin=false 的情况
                         FrameType.BINARY -> PureBinaryFrame(frame.data)
                         FrameType.TEXT -> PureTextFrame(frame.data.toUtf8())
                         FrameType.CLOSE -> break
                         else -> continue
                       }
-                      launch {
-                        income.send(pureFrame)
-                        debugHttp("WebSocketToPureChannel") { "income-send:$pureFrame/$url" }
-                      }
+                      income.send(pureFrame)
+                      debugHttp("WebSocketToPureChannel") { "income-send:$pureFrame/$url" }
                     }
                     /// 等到双工关闭，同时也关闭channel
-                    debugHttp("WebSocketToPureChannel") { "ws-close-pureChannel:$url" }
+                    debugHttp("WebSocketToPureChannel") { "ws-close-pureChannel/$url" }
                     pureChannel.close()
                   }
                   call.respond(res)

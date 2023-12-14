@@ -150,8 +150,8 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
 fun ipcMessageToJson(data: IpcMessage) = when (data) {
   is IpcRequest -> Json.encodeToString(data.ipcReqMessage)
   is IpcResponse -> Json.encodeToString(data.ipcResMessage)
-  is IpcStreamData -> Json.encodeToString(data)
-  is IpcEvent -> Json.encodeToString(data)
+  is IpcStreamData -> Json.encodeToString(data.jsonAble)
+  is IpcEvent -> Json.encodeToString(data.jsonAble)
   is IpcEventJsonAble -> Json.encodeToString(data)
   is IpcReqMessage -> Json.encodeToString(data)
   is IpcResMessage -> Json.encodeToString(data)

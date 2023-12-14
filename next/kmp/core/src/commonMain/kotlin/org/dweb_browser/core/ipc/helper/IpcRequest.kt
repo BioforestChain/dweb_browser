@@ -340,7 +340,7 @@ sealed class IpcRequest(
       val eventClose = "$eventNameBase/close"
       val started = CompletableDeferred<IpcEvent>()
       /// 将收到的IpcEvent转成PureFrame
-      ipc.onEvent { (ipcEvent) ->
+      val off = ipc.onEvent { (ipcEvent) ->
         when (ipcEvent.name) {
           eventData -> {
             debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent $pureChannel" }
@@ -354,7 +354,6 @@ sealed class IpcRequest(
 
           eventClose -> {
             debugIpc(_debugTag) { "$ipc onIpcEventClose:$ipcEvent $pureChannel" }
-            offListener()
             pureChannel.close()
           }
         }
@@ -379,6 +378,7 @@ sealed class IpcRequest(
       val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "")
       debugIpc(_debugTag) { "$ipc postIpcEventClose:$ipcCloseEvent $pureChannel" }
       ipc.postMessage(ipcCloseEvent)
+      off() // 移除事件监听
     }
   }
 
