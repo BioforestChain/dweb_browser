@@ -142,12 +142,14 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     }
   }
 
-  suspend fun IHandlerContext.getAppMainWindow(ipc: Ipc) = openAppLock.withLock("window") {
-    val runningApp = getRunningApp(ipc)
-    /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
-    val appMainWindow = runningApp.getMainWindow()
-    appMainWindow
-  }
+  suspend fun IHandlerContext.getAppMainWindow(ipc: Ipc = this.ipc) =
+    openAppLock.withLock("window") {
+      getWindow {
+        val runningApp = getRunningApp(ipc)
+        /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
+        runningApp.getMainWindow()
+      }
+    }
 
   suspend fun IHandlerContext.createModal(ipc: Ipc) = openAppLock.withLock("write-modal") {
     request.queryAs<ModalState>().also {
@@ -166,9 +168,11 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     }
   }
 
-  fun IHandlerContext.getWindow() = request.query("wid").let { wid ->
-    windowInstancesManager.get(wid) ?: throw Exception("No Found by window id: '$wid'")
-  }
+  suspend fun IHandlerContext.getWindow(orElse: (suspend () -> WindowController)? = null) =
+    request.queryOrNull("wid")?.let { wid ->
+      windowInstancesManager.get(wid)
+    } ?: orElse?.invoke()
+    ?: throw Exception("No Found Window")
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     listenApps()

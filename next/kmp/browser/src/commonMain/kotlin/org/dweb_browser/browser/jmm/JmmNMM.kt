@@ -2,12 +2,16 @@ package org.dweb_browser.browser.jmm
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -16,11 +20,16 @@ import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.resp
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.sys.window.core.WindowRenderProvider
+import org.dweb_browser.sys.window.ext.createBottomSheets
+import org.dweb_browser.sys.window.ext.getOrOpenMainWindowId
+import org.dweb_browser.sys.window.ext.getWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 
 val debugJMM = Debugger("JMM")
 
-class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
+class JmmNMM :
+  NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
   companion object {
     init {
       IDWebView.Companion.brands.add(
@@ -33,19 +42,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
   }
 
   init {
-    short_name = "模块管理";
-    dweb_deeplinks = listOf("dweb://install")
-    categories = listOf(
-      MICRO_MODULE_CATEGORY.Application,
-      MICRO_MODULE_CATEGORY.Service,
-      MICRO_MODULE_CATEGORY.Hub_Service
-    )
-    icons = listOf(
-      ImageResource(
-        src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml", purpose = "monochrome"
-      )
-    )
-
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service)
     /// 提供JsMicroModule的文件适配器
     /// 这个适配器不需要跟着bootstrap声明周期，只要存在JmmNMM模块，就能生效
     nativeFetchAdaptersManager.append { fromMM, request ->
@@ -69,9 +66,11 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    bootstrapContext.dns.install(JmmGuiNMM())
     val store = JmmStore(this)
-    val jmmController = JmmController(this, store)
     loadJmmAppList(store) // 加载安装的应用信息
+
+    val jmmController = JmmController(this, store)
     jmmController.loadHistoryMetadataUrl() // 加载之前加载过的应用
 
     val routeInstallHandler = defineEmptyResponse {
@@ -103,10 +102,51 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         jmmController.openInstallerView(info.installManifest, info.originUrl)
         true
       })
-    onRenderer {
-      jmmController.openHistoryView()
-    }
+
+    routes(
+      /// 收到wid
+      "/renderer" bind IpcMethod.GET by defineEmptyResponse {
+        wid.update {
+          it.complete(request.query("wid"))
+          it
+        }
+        jmmController.openHistoryView()
+      },
+      /// 销毁wid
+      "/renderer" bind IpcMethod.DELETE by defineEmptyResponse {
+        wid.update {
+          it.cancel()
+          CompletableDeferred()
+        }
+      }).protected("gui.jmm.browser.dweb")
   }
+
+  private val wid = atomic(CompletableDeferred<String>())
+  suspend fun getMainWindowId() = wid.value.await()
+  suspend fun getMainWindow() = getWindow(getMainWindowId())
+  val hasMainWindow get() = wid.value.isCompleted
+
+  suspend fun openMainWindow() = getWindow(
+    nativeFetch("file://gui.jmm.browser.dweb/openMainWindow").text()
+  )
+
+  suspend fun getOrOpenMainWindowId() =
+    if (!hasMainWindow) openMainWindow().id else getMainWindowId()
+
+  suspend fun getOrOpenMainWindow() = getWindow(getOrOpenMainWindowId())
+
+  suspend fun createBottomSheets(
+    title: String? = null,
+    iconUrl: String? = null,
+    iconAlt: String? = null,
+    renderProvider: WindowRenderProvider,
+  ) = (this as NativeMicroModule).createBottomSheets(
+    title,
+    iconUrl,
+    iconAlt,
+    wid = getOrOpenMainWindowId(),
+    renderProvider = renderProvider
+  )
 
   /**
    * 从磁盘中恢复应用
@@ -116,6 +156,39 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       bootstrapContext.dns.install(JsMicroModule(dbItem.installManifest))
     }
   }
+
+  override suspend fun _shutdown() {
+  }
+}
+
+class JmmGuiNMM : NativeMicroModule("gui.jmm.browser.dweb", "Js MicroModule Management") {
+  init {
+    short_name = "模块管理";
+    dweb_deeplinks = listOf("dweb://install")
+    categories = listOf(MICRO_MODULE_CATEGORY.Application)
+    icons = listOf(
+      ImageResource(
+        src = "file:///sys/icons/jmm.browser.dweb.svg",
+        type = "image/svg+xml",
+        purpose = "monochrome"
+      )
+    )
+  }
+
+  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    routes(
+      "/openMainWindow" bind IpcMethod.GET by defineStringResponse {
+        getOrOpenMainWindowId()
+      },
+    ).protected("jmm.browser.dweb");
+    onRenderer {
+      nativeFetch(IpcMethod.GET, "file://jmm.browser.dweb/renderer?wid=$wid")
+      onDispose {
+        nativeFetch(IpcMethod.DELETE, "file://jmm.browser.dweb/renderer?wid=$wid")
+      }
+    }
+  }
+
 
   override suspend fun _shutdown() {
   }

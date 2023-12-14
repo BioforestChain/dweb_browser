@@ -8,8 +8,9 @@ import org.dweb_browser.sys.window.core.ModalCallback
 class WindowBottomSheetsController(
   mm: NativeMicroModule,
   modal: BottomSheetsModal,
+  wid: String,
   onCallback: SharedFlow<ModalCallback>,
-) : WindowModalController(mm, modal, onCallback) {
+) : WindowModalController(mm, modal, wid, onCallback) {
 
 }
 

@@ -12,8 +12,9 @@ import org.dweb_browser.sys.window.core.OpenModalCallback
 class WindowAlertController(
   mm: NativeMicroModule,
   modal: AlertModal,
+  wid: String,
   onCallback: SharedFlow<ModalCallback>,
-) : WindowModalController(mm, modal, onCallback) {
+) : WindowModalController(mm, modal, wid, onCallback) {
   private var _result = false
   val result get() = _result
 

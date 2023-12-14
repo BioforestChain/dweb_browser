@@ -37,7 +37,8 @@ suspend fun NativeMicroModule.createBottomSheets(
   title: String? = null,
   iconUrl: String? = null,
   iconAlt: String? = null,
-  renderProvider: WindowRenderProvider
+  wid: String? = null,
+  renderProvider: WindowRenderProvider,
 ) = modalLock.withLock {
   val callbackRouter = routes();
   val callbackUrlId = randomUUID()
@@ -47,7 +48,7 @@ suspend fun NativeMicroModule.createBottomSheets(
     onCallback.emit(request.body.toPureString().decodeTo())
   });
 
-  val mainWindow = getWindow(getOrOpenMainWindowId())
+  val mainWindow = getWindow(wid ?: getOrOpenMainWindowId())
   val modal = mainWindow.createBottomSheetsModal(
     title = title,
     iconUrl = iconUrl,
@@ -56,7 +57,12 @@ suspend fun NativeMicroModule.createBottomSheets(
   )
 
   windowAdapterManager.provideRender(modal.renderId, renderProvider)
-  WindowBottomSheetsController(this, modal, onCallback.asSharedFlow()).also { controller ->
+  WindowBottomSheetsController(
+    this,
+    modal,
+    mainWindow.id,
+    onCallback.asSharedFlow()
+  ).also { controller ->
     controller.onDestroy {
       removeRouter(callbackRouter)
     }
@@ -70,6 +76,7 @@ suspend fun NativeMicroModule.createAlert(
   iconAlt: String? = null,
   confirmText: String? = null,
   dismissText: String? = null,
+  wid: String? = null
 ) = modalLock.withLock {
   val callbackUrlId = randomUUID()
   val callbackUrlPathname = "/internal/callback/alert/$callbackUrlId"
@@ -78,7 +85,7 @@ suspend fun NativeMicroModule.createAlert(
     onCallback.emit(request.body.toPureString().decodeTo())
   });
 
-  val mainWindow = getWindow(getOrOpenMainWindowId())
+  val mainWindow = getWindow(wid ?: getOrOpenMainWindowId())
   val modal = mainWindow.createAlertModal(
     title = title,
     message = message,
@@ -88,7 +95,7 @@ suspend fun NativeMicroModule.createAlert(
     dismissText = dismissText,
     callbackUrl = "file://$mmid$callbackUrlPathname",
   )
-  WindowAlertController(this, modal, onCallback.asSharedFlow()).also { controller ->
+  WindowAlertController(this, modal, mainWindow.id, onCallback.asSharedFlow()).also { controller ->
     controller.onDestroy {
       removeRouter(callbackRouter)
     }

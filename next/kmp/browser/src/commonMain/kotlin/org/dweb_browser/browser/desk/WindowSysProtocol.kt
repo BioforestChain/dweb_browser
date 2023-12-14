@@ -21,25 +21,25 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
         openOrActivateAppWindow(ipc, desktopController).id
       },
       "/mainWindow" bind HttpMethod.Get by defineStringResponse {
-        getAppMainWindow(ipc).id
+        getAppMainWindow().id
       },
       "/createModal" bind HttpMethod.Get by defineJsonResponse {
         createModal(ipc).toJsonElement()
       },
       "/openModal" bind HttpMethod.Get by defineBooleanResponse {
-        getAppMainWindow(ipc).openModal(request.query("modalId"))
+        getAppMainWindow().openModal(request.query("modalId"))
       },
       "/updateModalCloseTip" bind HttpMethod.Get by defineBooleanResponse {
-        getAppMainWindow(ipc).updateModalCloseTip(
+        getAppMainWindow().updateModalCloseTip(
           request.query("modalId"),
           request.queryOrNull("closeTip")
         )
       },
       "/closeModal" bind HttpMethod.Get by defineBooleanResponse {
-        getAppMainWindow(ipc).closeModal(this@windowProtocol, request.query("modalId"))
+        getAppMainWindow().closeModal(this@windowProtocol, request.query("modalId"))
       },
       "/removeModal" bind HttpMethod.Get by defineBooleanResponse {
-        getAppMainWindow(ipc).removeModal(this@windowProtocol, request.query("modalId"))
+        getAppMainWindow().removeModal(this@windowProtocol, request.query("modalId"))
       },
       /** 窗口的状态监听 */
       "/observe" byChannel { ctx ->
