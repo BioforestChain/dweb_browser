@@ -61,8 +61,8 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         if (toMM is NativeMicroModule) {
           debugNMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel<IpcMessage, IpcMessage>(fromMM.id, toMM.id)
-          val fromNativeIpc = NativeIpc(channel.port1, toMM, IPC_ROLE.CLIENT);
-          val toNativeIpc = NativeIpc(channel.port2, fromMM, IPC_ROLE.SERVER);
+          val fromNativeIpc = NativeIpc(channel.port1, toMM, IPC_ROLE.CLIENT)
+          val toNativeIpc = NativeIpc(channel.port2, fromMM, IPC_ROLE.SERVER)
           fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
           toMM.beConnect(toNativeIpc, reason) // 通知接收者作为Server
           return@append ConnectResult(fromNativeIpc, toNativeIpc) // 返回发起者的ipc
@@ -119,8 +119,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           var response: PureResponse? = null
           if (routers != null) for (router in routers) {
             val pureRequest = ipcRequest.toPure()
-            val res = router.withFilter(pureRequest)
-              ?.invoke(HandlerContext(pureRequest, clientIpc));
+            val res = router.withFilter(pureRequest)?.invoke(HandlerContext(pureRequest, clientIpc))
             if (res != null) {
               response = res
               break
@@ -135,7 +134,6 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         }
       }
     }
-
 
   fun defineEmptyResponse(
     middlewareHttpHandler: MiddlewareHttpHandler? = null,
@@ -242,8 +240,6 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
   }
 
-
-  @OptIn(ExperimentalSerializationApi::class)
   class CborPacketHandlerContext(context: HandlerContext) : IHandlerContext by context {
     internal val responseReadableStream = ReadableStreamOut()
     suspend fun emit(data: ByteArray) {
@@ -333,9 +329,8 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       if (middlewareHttpHandler != null) {
         it.use(middlewareHttpHandler)
       }
-    };
+    }
   }
-
 }
 
 /**
@@ -364,7 +359,6 @@ suspend fun NativeMicroModule.createChannel(
   }
   return res
 }
-
 
 @Serializable
 data class DwebResult(val success: Boolean, val message: String = "")

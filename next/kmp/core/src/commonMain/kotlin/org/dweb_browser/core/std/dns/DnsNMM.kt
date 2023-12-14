@@ -33,6 +33,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.connectMicroModules
 import org.dweb_browser.core.std.dns.ext.createActivity
+import org.dweb_browser.core.std.permission.forwardReason
 import org.dweb_browser.core.std.permission.permissionAdapterManager
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
@@ -141,19 +142,46 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   private suspend fun connectTo(
     fromMM: MicroModule, toMPID: MPID, reason: PureRequest
   ) = mmConnectsMapLock.withLock {
-    val toRunningApp = _open(toMPID, fromMM)
-    val toMM = toRunningApp.module
-    val aKey = MM(fromMM.mmid, toMM.mmid)
+    val permissionList = listOf("permission.sys.dweb", "permission.std.dweb", "boot.sys.dweb") // 特殊的代理模式
+    val toMicroModule = query(toMPID, fromMM) ?: throw Throwable("not found app->$toMPID")
+    val maskToMicroModule =
+      if (!permissionList.contains(toMPID) && !permissionList.contains(fromMM.mmid) &&
+        toMicroModule.dweb_permissions.isNotEmpty()) {
+        debugDNS(
+          "connectTo->Proxy",
+          "${fromMM.mmid} <=> ${permissionList.first()} <=> $toMPID/${toMicroModule.mmid}, $reason"
+        )
+        query(permissionList.first(), fromMM)
+          ?: throw Throwable("not found app->${permissionList.first()}")
+      } else {
+        debugDNS(
+          "connectTo->Direct",
+          "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid}, $reason"
+        )
+        toMicroModule
+      }
+
+    val toMMID = toMicroModule.mmid
+    val fromMMID =
+      if (reason.method == IpcMethod.CONNECT && reason.body.toPureString() == forwardReason) {
+        reason.url.host // 特殊的代理模式
+      } else {
+        fromMM.mmid
+      }
+
+    val toRunningApp = _open(maskToMicroModule.mmid, fromMM)
+    debugDNS("connectTo", "keyMap($fromMMID <=> $toMMID)")
+    val aKey = MM(fromMMID, toMMID)
     mmConnectsMap[aKey] ?: run {
-      val bKey = MM(toMM.mmid, fromMM.mmid)
+      val bKey = MM(toMMID, fromMMID)
       val aPromiseOut = PromiseOut<ConnectResult>()
       val bPromiseOut = PromiseOut<ConnectResult>()
       mmConnectsMap[aKey] = aPromiseOut
       mmConnectsMap[bKey] = bPromiseOut
       aPromiseOut.alsoLaunchIn(ioAsyncScope) {
-        debugDNS("connect", "${fromMM.mmid} <=> $toMPID/${toMM.mmid}")
+        debugDNS("connect", "${fromMM.mmid} <=> $toMPID/${maskToMicroModule.mmid}")
         toRunningApp.ready()
-        val aConnectResult = connectMicroModules(fromMM, toMM, reason)
+        val aConnectResult = connectMicroModules(fromMM, maskToMicroModule, reason)
         val bConnectResult = ConnectResult(aConnectResult.ipcForToMM, aConnectResult.ipcForFromMM)
         bPromiseOut.resolve(bConnectResult)
         aConnectResult.ipcForFromMM.onClose {

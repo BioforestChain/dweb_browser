@@ -6,6 +6,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.randomUUID
 
 val debugPermission = Debugger("permission")
 typealias PERMISSION_ID = String
@@ -77,3 +78,5 @@ enum class AuthorizationStatus(val status: String, val allow: Boolean) {
     val ALL_VALUES = entries.associateBy { it.status }
   }
 }
+
+val forwardReason = randomUUID()

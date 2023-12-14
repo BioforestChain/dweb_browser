@@ -62,7 +62,7 @@ class ReadableStreamIpc(
 
   private lateinit var controller: ReadableStream.ReadableStreamController
 
-  val input = ReadableStream(cid = role) {
+  val input = ReadableStream(cid = "role=$role<${remote.mmid}>") {
     controller = it
   }
 

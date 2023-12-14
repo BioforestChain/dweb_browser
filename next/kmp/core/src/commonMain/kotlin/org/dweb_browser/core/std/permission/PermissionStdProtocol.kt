@@ -3,12 +3,13 @@ package org.dweb_browser.core.std.permission
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.http.IPureBody
+import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.permission.ext.requestPermission
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.some
@@ -32,6 +33,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
    */
   val permissionTable = PermissionTable(this)
 
+/*
   nativeFetchAdaptersManager.append(100) { fromMM, request ->
     if (
     // 如果是提供者请求提供者，那么直接跳过，这里只处理客户请求提供者
@@ -71,6 +73,79 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
 
       null
     } else null
+  }
+*/
+
+  /**
+   * key: a -> b
+   * connect: a -> p -> b
+   * forward: b-ipc1
+   *
+   * key: d -> b
+   * connect: d -> p -> b
+   * forward: b-ipc2
+   *
+   * key: a -> c
+   * connect: a -> p -> c
+   *
+   */
+  val ignoreMM = listOf("permission.sys.dweb", "permission.std.dweb", "file.std.dweb")
+  onConnect { (clientIpc, reason) ->
+    // 一个是为了自启动permission，另一个是构建PermissionTable时产生的调用（这个如果下面执行 connect 会死循环）
+    debugPermission("onConnect", "enter -> ${clientIpc.remote.mmid}, $reason")
+    if (ignoreMM.contains(clientIpc.remote.mmid) || ignoreMM.contains(reason.url.host)) return@onConnect
+    /**
+     * 判断当前请求的 reason mmid 是否是 permission，其中包括 dweb_protocols 也不能包含
+     * 是：那么直接运行即可
+     * 否：先获取permission和reason之间的连接，然后判断 permissionAdapterManager 是否运行访问，如果允许
+     *    则可以跳转，如果不允许，则不跳转
+     */
+    val nextMMID = reason.url.host
+    if (nextMMID != mmid && !dweb_protocols.contains(nextMMID)) {
+      val forwardReason =
+        PureClientRequest.fromJson("file://$nextMMID", IpcMethod.CONNECT, forwardReason)
+      val forwardIpc = connect(nextMMID, forwardReason)
+      /**
+       * 如果授权成功，即可进行请求
+       */
+      clientIpc.onRequest { (ipcMessage, ipc) ->
+        debugPermission("clientIpc.onRequest", "enter")
+        for (adapter in permissionAdapterManager.adapters) {
+          if (adapter.providerMmid == reason.url.host && // 首先进行 host 判断
+            adapter.routes.some { reason.href.startsWith(it) } // 然后再进行路由判断
+          ) {
+            val clientNMM = bootstrapContext.dns.query(clientIpc.remote.mmid)
+            /// 首先进行查询
+            val authStatus = when (val authStatus = permissionTable.query(
+              adapter.providerMmid, adapter.pid
+            )[clientIpc.remote.mmid]) {
+              AuthorizationStatus.UNKNOWN, null ->
+                /// 根据查询结果，尝试直接帮它进行权限申请，如果可以的话
+                if (clientNMM is NativeMicroModule) clientNMM.requestPermission(adapter.pid)
+                else AuthorizationStatus.UNKNOWN
+
+              else -> authStatus
+            }
+
+            if (AuthorizationStatus.GRANTED == authStatus) { // 授权成功，或者无需授权，让路由接着往下走
+              debugPermission("clientIpc.onMessage", "permission success")
+              forwardIpc.postMessage(ipcMessage)
+            } else { // 否则返回未认证的异常
+              debugPermission("clientIpc.onMessage", "permission fail")
+              PureResponse(
+                HttpStatusCode.Forbidden,
+                body = IPureBody.from("Insufficient permissions: ${authStatus.status}")
+              )
+            }
+          }
+        }
+      }
+
+      forwardIpc.onMessage { (ipcMessage, _) ->
+        debugPermission("forwardIpc.onMessage", "enter")
+        clientIpc.postMessage(ipcMessage)
+      }
+    }
   }
 
   /**

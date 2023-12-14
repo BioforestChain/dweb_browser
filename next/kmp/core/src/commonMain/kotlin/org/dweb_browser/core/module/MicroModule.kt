@@ -59,7 +59,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     return true
   }
 
-
   /**
    * 获取权限提供器，这需要在bootstrap之前就能提供
    * 因为 dweb_permissions 字段并不难直接使用，所以需要模块对其数据进行加工处理，从而确保数据合法与安全
@@ -70,8 +69,8 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   val bootstrapContext get() = _bootstrapContext ?: throw Exception("module no run.")
 
   protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
-  private suspend fun afterBootstrap(_dnsMM: BootstrapContext) {
-    debugMicroModule("afterBootstrap", "ready: $mmid")
+  private suspend fun afterBootstrap(bootstrapContext: BootstrapContext) {
+    debugMicroModule("afterBootstrap", "ready: $mmid, ${_ipcSet.size}")
     onConnect { (ipc) ->
       ipc.readyInMicroModule("onConnect")
     }
@@ -81,7 +80,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     this.runningStateLock.resolve()
     readyLock.unlock()
   }
-
 
   private fun Ipc.readyInMicroModule(tag: String) {
     debugMicroModule("ready/$tag", "(self)$mmid => ${remote.mmid}(remote)")
@@ -124,7 +122,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
    */
   suspend fun <R> withBootstrap(block: suspend () -> R) = readyLock.withLock { block() }
 
-
   protected abstract suspend fun _shutdown()
   protected open suspend fun afterShutdown() {
     _afterShutdownSignal.emitAndClear()
@@ -134,7 +131,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     // 取消所有的工作
     this.ioAsyncScope.cancel()
   }
-
 
   suspend fun shutdown() = lifecycleLock.withLock {
     if (this.beforeShutdown()) {
@@ -153,15 +149,16 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   protected open suspend fun _dispose() {
   }
 
-  protected val _afterShutdownSignal = SimpleSignal();
+  private val _afterShutdownSignal = SimpleSignal();
   val onAfterShutdown = _afterShutdownSignal.toListener()
 
   /**
    * 连接池
    */
-  protected val _ipcSet = mutableSetOf<Ipc>();
+  private val _ipcSet = mutableSetOf<Ipc>();
 
   fun addToIpcSet(ipc: Ipc): Boolean {
+    debugMicroModule("addToIpcSet", "$mmid => ${ipc.remote.mmid}, ${runningStateLock.isResolved}:${runningStateLock.value}")
     if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
       ipc.readyInMicroModule("addToIpcSet")
     }
@@ -194,7 +191,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     return ipc
   }
 
-
   /**
    * 收到一个连接，触发相关事件
    */
@@ -203,7 +199,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       _connectSignal.emit(Pair(ipc, reason))
     }
   }
-
 
 //  /** 激活NMM入口*/
 //  protected fun emitActivity(args)

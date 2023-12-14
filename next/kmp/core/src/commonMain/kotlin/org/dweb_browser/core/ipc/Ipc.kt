@@ -82,7 +82,7 @@ abstract class Ipc {
 
   abstract val role: String
 
-  override fun toString() = "#i$uid"
+  override fun toString() = "Ipc@$uid<${remote.mmid}>"
 
   suspend fun postMessage(message: IpcMessage) {
     if (this._closed) {

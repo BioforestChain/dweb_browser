@@ -77,7 +77,6 @@ import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.ConstUrl
 import org.dweb_browser.browser.web.ui.bottomsheet.LocalModalBottomSheet
@@ -243,7 +242,8 @@ private fun UpdateHorizontalPager(viewModel: BrowserViewModel) {
   val browserPagerState = LocalBrowserPageState.current
   LaunchedEffect(browserPagerState.pagerStateNavigator.currentPageOffsetFraction) {
     val lastCurrentPage = browserPagerState.pagerStateNavigator.currentPage
-    val lastCurrentPageOffsetFraction = browserPagerState.pagerStateNavigator.currentPageOffsetFraction
+    val lastCurrentPageOffsetFraction =
+      browserPagerState.pagerStateNavigator.currentPageOffsetFraction
     /** 由于HorizontalPager的有效区间值是 -0.5f~0.5f ,荣耀手机在这块兼容出问题了，导致出现了不在区间的值，
      * 所以在这边强制限制值必须在 -0.5f~0.5f 之间
      */
@@ -314,7 +314,8 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
     }
   }
 
-  HorizontalPager(modifier = Modifier,
+  HorizontalPager(
+    modifier = Modifier,
     state = pagerStateNavigator,
     pageSpacing = 0.dp,
     userScrollEnabled = true,

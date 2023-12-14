@@ -144,9 +144,9 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 启动程序
   val bootNMM = BootNMM(
     listOf(
-      httpNMM.mmid,//
       fileNMM.mmid,//
       permissionNMM.mmid,// 权限管理
+      httpNMM.mmid,//
       jmmNMM.mmid,//
       nativeUiNMM.mmid,//
       downloadNMM.mmid, // 为了获取下载的数据
@@ -157,10 +157,10 @@ suspend fun startDwebBrowser(): DnsNMM {
     ),
   ).setup()
 
-  if (debugTest.isEnable) {
+/*  if (debugTest.isEnable) {
     PermissionProviderTNN().setup()
     PermissionApplicantTMM().setup()
-  }
+  }*/
 
   /// 启动Web调试
   WebView.setWebContentsDebuggingEnabled(true)

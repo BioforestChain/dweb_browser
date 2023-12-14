@@ -66,7 +66,7 @@ class IpcBodyReceiver(
        * 默认是暂停状态
        */
       val paused = atomic(true);
-      val readableStream = ReadableStream(cid = "receiver-${stream_id}", onStart = { controller ->
+      val readableStream = ReadableStream(cid = "receiver=${stream_id}", onStart = { controller ->
         // 注册关闭事件
         ipc.onClose {
           controller.closeWrite()

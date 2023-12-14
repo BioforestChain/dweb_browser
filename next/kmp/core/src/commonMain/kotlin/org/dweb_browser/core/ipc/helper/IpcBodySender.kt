@@ -101,7 +101,7 @@ class IpcBodySender private constructor(
       private fun Ipc.getUsableIpcBodyMap(): UsableIpcBodyMapper =
         IpcUsableIpcBodyMap.getOrPut(this) {
           val ipc = this
-          debugIpcBody("ipcBodySenderUsableByIpc","OPEN/$this")
+          debugIpcBody("SenderUsableByIpc","OPEN => $this")
           UsableIpcBodyMapper().also { mapper ->
             onStream { (message) ->
               when (message) {
@@ -118,7 +118,7 @@ class IpcBodySender private constructor(
               }
             }.removeWhen(mapper.onDestroy)
             mapper.onDestroy {
-              debugIpcBody("ipcBodySenderUsableByIpc","/CLOSE/$this")
+              debugIpcBody("SenderUsableByIpc","CLOSE => $this")
               IpcUsableIpcBodyMap.remove(ipc)
             }
           }

@@ -115,10 +115,9 @@ class ReadableStream(
     private var id_acc by SafeInt(1)
   }
 
-  val uid = "#s${id_acc++}${if (cid != null) "($cid)" else ""}"
+  val uid = "ReadableStream@${id_acc++}#($cid)"
 
   override fun toString() = uid
-
 
   /// 生命周期
   init {
