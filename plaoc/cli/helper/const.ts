@@ -13,13 +13,13 @@ export type $ServeOptions = $MetadataJsonGeneratorOptions & {
 };
 
 export type $MetadataJsonGeneratorOptions = {
-  metadata: string;
+  webPublic: string;
   mode?: unknown;
   dev?: boolean;
   version?: string;
   id?: string;
-  dir?: string;
-  serve?: string;
+  configDir?: string;
+  webServer?: string;
 };
 
 /**

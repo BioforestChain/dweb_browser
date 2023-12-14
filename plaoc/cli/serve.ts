@@ -15,19 +15,22 @@ const serveMode = new EnumType(SERVE_MODE);
 
 export const doServeCommand = new Command()
   .type("serveMode", serveMode)
-  .arguments("<metadata:string>")
+  .arguments("<web_public:string>")
   .description("Developer Service Extension Directive.")
-  .option("-p --port <port:string>", "service port.", {
+  .option("-p --port <port:string>", "Service port.", {
     default: "8096",
   })
-  .option("-s --serve <serve:string>", "Specify the path of the programmable backend. ")
-  .option("-d --dir <dir:string>", "Root directory of the project, generally the same level as manifest.json.")
+  .option(
+    "-c --config-dir <config_dir:string>",
+    "The config directory is set to automatically traverse upwards when searching for configuration files (manifest.json/plaoc.json). The default setting for the target directory is <web_public>"
+  )
+  .option("-s --web-server <serve:string>", "Specify the path of the programmable backend. ")
   .option("-m --mode <mode:serveMode>", "The processing mode of the service.")
-  .option("--dev <dev:boolean>", "Is it development mode.", {
+  .option("-d --dev <dev:boolean>", "Enable development mode.", {
     default: true,
   })
-  .action((options, metadata) => {
-    doServe({ ...options, metadata });
+  .action((options, arg1) => {
+    doServe({ ...options, webPublic: arg1 } satisfies $ServeOptions);
   });
 
 export const doServe = async (flags: $ServeOptions) => {
@@ -37,7 +40,7 @@ export const doServe = async (flags: $ServeOptions) => {
     throw new Error(`need input '--port 8080'`);
   }
 
-  const serveTarget = flags.metadata;
+  const serveTarget = flags.webPublic;
   if (typeof serveTarget !== "string") {
     throw new Error(`need input 'YOUR/FOLDER/FOR/BUNDLE'`);
   }
@@ -107,7 +110,12 @@ export const doServe = async (flags: $ServeOptions) => {
       for (const info of Object.values(os.networkInterfaces())
         .flat()
         .filter((info) => info?.family === "IPv4")) {
-        console.log(`metadata: \thttp://${info?.address}:${port}/${nameFlagHelper.metadataName}`);
+        console.log(
+          `${colors.green("metadata")}: \t${
+            colors.dim("dweb://install?url=") +
+            colors.blue(colors.underline(`http://${info?.address}:${port}/${nameFlagHelper.metadataName}`))
+          }`
+        );
         // console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.bundleName}`)
       }
     })

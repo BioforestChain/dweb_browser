@@ -12,19 +12,22 @@ import {
 } from "./helper/generator.ts";
 
 export const doBundleCommand = new Command()
-  .arguments("<source:string>")
+  .arguments("<web_public:string>")
   .description("Packaged source code folder.")
-  .option("-o --out <out:string>", "Directory for packaged output.", {
+  .option("-o --out <out:string>", "Output directory.", {
     default: "bundle",
   })
+  .option("--id <id:string>", "Set app id")
   .option("-v --version <version:string>", "Set app packaging version.")
-  .option("-d --dir <dir:string>", "Root directory of the project, generally the same level as manifest.json.")
-  .option("-s --serve <serve:string>", "Specify the path of the programmable backend.")
-  .option("-c --clear <clear:boolean>", "Empty the cache.")
-  .option("--id <id:string>", "set app id")
-  .option("--dev <dev:boolean>", "Is it development mode.")
-  .action((options, metadata) => {
-    doBundle({ ...options, metadata });
+  .option(
+    "-c --config-dir <config_dir:string>",
+    "The config directory is set to automatically traverse upwards when searching for configuration files (manifest.json/plaoc.json). The default setting for the target directory is <web_public>"
+  )
+  .option("-s --web-server <serve:string>", "Specify the path of the programmable backend. ")
+  .option("--clear <clear:boolean>", "Empty the cache.", { default: true })
+  .option("-d --dev <dev:boolean>", "Enable development mode.")
+  .action((options, arg1) => {
+    doBundle({ ...options, webPublic: arg1 } satisfies $BundleOptions);
   });
 
 /**

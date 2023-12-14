@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "npm:jszip";
 import type { $JmmAppInstallManifest, $MMID } from "./../deps.ts";
+import { colors } from "./../deps.ts";
 import { $MetadataJsonGeneratorOptions, SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { WalkFiles } from "./walk-dir.ts";
@@ -15,9 +16,9 @@ export class MetadataJsonGenerator {
     this.metadataFilepaths = (() => {
       const tryFilenames = ["metadata.json", "manifest.json", "package.json"];
       // 如果指定了项目目录，到项目目录里面搜索配置文件
-      let dirs = [path.resolve(Deno.cwd(), flags.dir ?? "")];
+      let dirs = [path.resolve(Deno.cwd(), flags.configDir ?? flags.webPublic ?? "")];
       if (flags.mode === SERVE_MODE.USR_WWW) {
-        const www_dir = flags.dir;
+        const www_dir = flags.configDir;
         if (www_dir) {
           dirs = [www_dir, ...dirs];
         }
@@ -41,6 +42,8 @@ export class MetadataJsonGenerator {
         if (typeof metadata.author === "string") {
           metadata.author = [metadata.author];
         }
+
+        console.log(colors.gray("using metadata file:"), colors.cyan(filepath));
         return metadata;
         // deno-lint-ignore no-empty
       } catch {}
@@ -72,7 +75,7 @@ export class PlaocJsonGenerator {
     this.plaocFilepaths = (() => {
       const tryFilenames = "plaoc.json";
       // 如果指定了项目目录，到项目目录里面搜索配置文件
-      const file = path.resolve(Deno.cwd(), flags.dir ?? "", tryFilenames);
+      const file = path.resolve(Deno.cwd(), flags.configDir ?? "", tryFilenames);
       return file;
     })();
   }
@@ -103,9 +106,9 @@ export class BackendServerGenerator {
   readonly serverFilepaths: string | null;
   constructor(readonly flags: $MetadataJsonGeneratorOptions) {
     this.serverFilepaths = (() => {
-      if (flags.serve == undefined) return null;
+      if (flags.webServer == undefined) return null;
       // 如果指定了项目目录，到项目目录里面搜索配置文件
-      return path.resolve(Deno.cwd(), flags.serve);
+      return path.resolve(Deno.cwd(), flags.webServer);
     })();
   }
 
@@ -150,7 +153,7 @@ export class BundleZipGenerator {
     readonly server: BackendServerGenerator,
     readonly id: $MMID
   ) {
-    const bundleTarget = flags.metadata;
+    const bundleTarget = flags.webPublic;
     /// 实时预览模式，使用代理html
     if (
       flags.mode === SERVE_MODE.LIVE ||
