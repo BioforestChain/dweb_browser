@@ -20,6 +20,7 @@ import org.dweb_browser.core.ipc.debugIpc
 import org.dweb_browser.helper.IFrom
 import org.dweb_browser.helper.LateInit
 import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.commonAsyncExceptionHandler
 import org.dweb_browser.helper.eprintln
 import org.dweb_browser.helper.falseAlso
 import kotlin.coroutines.coroutineContext
@@ -125,7 +126,7 @@ class IpcClientRequest(
           "$PURE_CHANNEL_EVENT_PREFIX-${postIpc.uid}/${req_id}/${duplexAcc.inc().value}"
 
         debugIpc("toIpc/client/hasChannel") { "create ipcEventBaseName:$eventNameBase => request:$pureRequest" }
-        CoroutineScope(coroutineContext).launch {
+        CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
           val pureChannel = pureRequest.getChannel()
           debugIpc("toIpc/client/channelToIpc") { "channelId:$eventNameBase => pureChannel:$pureChannel start!!" }
 
@@ -247,7 +248,7 @@ class IpcServerRequest(
         )
 
         val pureChannelDeferred = CompletableDeferred<PureChannel>()
-        CoroutineScope(coroutineContext).launch {
+        CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
           val pureChannel = pureChannelDeferred.await();
           val ctx = pureChannel.start()
           pureChannelToIpcEvent(

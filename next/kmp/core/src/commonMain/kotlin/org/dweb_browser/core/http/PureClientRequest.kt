@@ -10,6 +10,7 @@ import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.helper.IFrom
 import org.dweb_browser.helper.LateInit
+import org.dweb_browser.helper.commonAsyncExceptionHandler
 import org.dweb_browser.helper.toIpcUrl
 import kotlin.coroutines.coroutineContext
 
@@ -99,7 +100,7 @@ sealed class PureRequest : PureUrl, IFrom {
     by: suspend PureChannel.() -> Unit
   ): PureResponse {
     channelPreparer// check support
-    CoroutineScope(coroutineContext).launch {
+    CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
       getChannel().by()
     }
     return PureResponse(HttpStatusCode.SwitchingProtocols)
@@ -114,7 +115,7 @@ sealed class PureRequest : PureUrl, IFrom {
   protected suspend fun toRemoteChannel(localeChannel: CompletableDeferred<PureChannel>?) =
     localeChannel?.let { remoteChannel ->
       CompletableDeferred<PureChannel>().also { localeChannel ->
-        val job = CoroutineScope(coroutineContext).launch {
+        val job = CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
           localeChannel.complete(remoteChannel.await().reverse())
         }
         localeChannel.invokeOnCompletion { job.cancel() }

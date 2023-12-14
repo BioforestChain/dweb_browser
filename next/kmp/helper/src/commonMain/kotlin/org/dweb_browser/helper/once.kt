@@ -16,7 +16,7 @@ class SuspendOnce<R>(val runnable: suspend () -> R) {
   suspend operator fun invoke(): R {
     hasRun.update { run ->
       if (!run) {
-        result = CoroutineScope(coroutineContext).async {
+        result = CoroutineScope(coroutineContext + commonAsyncExceptionHandler).async {
           runnable()
         }
       }
@@ -41,14 +41,14 @@ class Once<R>(val runnable: () -> R) {
   }
 }
 
-class SuspendOnce1<A1,R>(val runnable: suspend (A1) -> R) {
+class SuspendOnce1<A1, R>(val runnable: suspend (A1) -> R) {
   private val hasRun = atomic(false)
   private lateinit var result: Deferred<R>
   val haveRun get() = hasRun.value
-  suspend operator fun invoke(arg1:A1): R {
+  suspend operator fun invoke(arg1: A1): R {
     hasRun.update { run ->
       if (!run) {
-        result = CoroutineScope(coroutineContext).async {
+        result = CoroutineScope(coroutineContext + commonAsyncExceptionHandler).async {
           runnable(arg1)
         }
       }
