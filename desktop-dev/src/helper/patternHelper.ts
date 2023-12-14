@@ -34,7 +34,7 @@ export const fetchMatch = () => {
       return this;
     },
     duplex(pathname: $PatternPathname, callback: $OnFetch) {
-      withList.push([{ method: IPC_METHOD.GET, ipcRequest: { isDuplex: true }, pathname }, callback]);
+      withList.push([{ method: IPC_METHOD.GET, ipcRequest: { hasDuplex: true }, pathname }, callback]);
       return this;
     },
     run(value: FetchEvent) {
