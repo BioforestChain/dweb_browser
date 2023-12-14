@@ -111,7 +111,7 @@ export class Server_external extends HttpServer {
               throw err;
             }
             // 激活对面窗口
-            ipc.postMessage(IpcEvent.fromText(ExternalState.RENDERER, ExternalState.RENDERER));
+            ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
             this.needActivity = false;
             await ipc.request(`file://${mmid}${ExternalState.WAIT_EXTERNAL_READY}`);
             return ipc;
@@ -119,7 +119,7 @@ export class Server_external extends HttpServer {
           const ipc = await this.externalWaitters.get(mmid);
           if (ipc && this.needActivity) {
             // 激活对面窗口
-            ipc.postMessage(IpcEvent.fromText(ExternalState.RENDERER, ExternalState.RENDERER));
+            ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
           }
           const ext_options = this._getOptions();
           // 请求跟外部app通信，并拿到返回值

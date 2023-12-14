@@ -1,9 +1,9 @@
-import { IPC_DATA_ENCODING, IpcEvent } from "@dweb-browser/desktop/core/ipc/index.ts";
-import { PromiseOut } from "@dweb-browser/desktop/helper/PromiseOut.ts";
-import { ReadableStreamOut } from "@dweb-browser/desktop/helper/stream/readableStreamHelper.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { ReadableStreamOut } from "../../helper/stream/readableStreamHelper.ts";
+import { IPC_DATA_ENCODING, IpcEvent } from "./index.ts";
 
 export class PureChannel {
-  constructor(readonly _income: ReadableStreamOut<$PureFrame>, readonly _outgoing: ReadableStreamOut<$PureFrame>) {}
+  constructor(readonly income: ReadableStreamOut<$PureFrame>, readonly outgoing: ReadableStreamOut<$PureFrame>) {}
   private _startLock = new PromiseOut<void>();
   afterStart() {
     return this._startLock.promise;
@@ -12,8 +12,8 @@ export class PureChannel {
     this._startLock.resolve();
   }
   close() {
-    this._income.controller.close();
-    this._outgoing.controller.close();
+    this.income.controller.close();
+    this.outgoing.controller.close();
   }
 }
 

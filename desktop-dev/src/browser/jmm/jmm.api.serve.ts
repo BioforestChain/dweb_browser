@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import tar from "tar";
-import { FetchEvent, IpcEvent } from "../../core/ipc/index.ts";
+import { FetchEvent } from "../../core/ipc/index.ts";
 import { $MMID } from "../../core/types.ts";
 import { resolveToDataRoot } from "../../helper/createResolveTo.ts";
 import { Store } from "../../helper/electronStore.ts";
@@ -78,18 +78,12 @@ export async function createApiServer(this: JmmNMM) {
     })
     .get("/app/open", async (event) => {
       const id = event.searchParams.get("mmid") as $MMID;
-      // 打开之前需要先关闭 否者更新后无法实现 更新打开 ？？
-      await this.context?.dns.close(id);
-      const connectResult = await this.context?.dns.connect(id);
-      if (connectResult === undefined) {
-        throw new Error(`${id} not found!`);
-      }
-      connectResult[0].postMessage(IpcEvent.fromText("renderer", ""));
-      return Response.json(true);
+      const res = await this.nativeFetch(`file://desk.browser.dweb/openAppOrActivate?app_id=${id}`);
+      return res;
     })
     .get("/app/query", async (event) => {
       const id = event.searchParams.get("mmid") as $MMID;
-      if(await this.context?.dns.query(id)) {
+      if (await this.context?.dns.query(id)) {
         return Response.json(true);
       } else {
         return Response.json(false);

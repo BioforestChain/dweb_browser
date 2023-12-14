@@ -1,13 +1,13 @@
 import { $PlaocConfig } from "./const.ts";
 import {
-    $DwebHttpServerOptions,
-    $OnFetch,
-    $OnFetchReturn,
-    FetchEvent,
-    IpcResponse,
-    jsProcess,
+  $DwebHttpServerOptions,
+  $OnFetch,
+  $OnFetchReturn,
+  FetchEvent,
+  IpcResponse,
+  jsProcess,
 } from "./deps.ts";
-import { HttpServer, cors } from "./helper/http-helper.ts";
+import { HttpServer } from "./helper/http-helper.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
 import { setupDB } from "./shim/db.shim.ts";
 import { setupFetch } from "./shim/fetch.shim.ts";

@@ -32,7 +32,7 @@ export type $Method =
   | "TRACE"; // 调试
 
 export const httpMethodCanOwnBody = (method: $Method | (string & {}), headers?: HeadersInit) => {
-  if (headers !== undefined) {
+  if (headers !== undefined && method === "GET") {
     return isWebSocket(method, headers instanceof Headers ? headers : new Headers(headers));
   }
   return method !== "GET" && method !== "HEAD" && method !== "TRACE" && method !== "OPTIONS";

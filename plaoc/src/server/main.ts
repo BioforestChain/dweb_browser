@@ -2,7 +2,7 @@ import { X_PLAOC_QUERY } from "./const.ts";
 import { jsProcess, PromiseOut } from "./deps.ts";
 import "./helper/polyfill.ts";
 import { Server_api } from "./http-api-server.ts";
-import { ExternalState, Server_external } from "./http-external-server.ts";
+import { Server_external } from "./http-external-server.ts";
 import { Server_www } from "./http-www-server.ts";
 import "./shim/crypto.shims.ts";
 
@@ -40,19 +40,16 @@ const main = async () => {
     }
   });
 
-  jsProcess.onActivity((ipcEvent) => {
+  jsProcess.onActivity(async (ipcEvent) => {
     console.log(`${jsProcess.mmid} onActivity`, ipcEvent.data);
+    const win_id = await apply_window();
+    console.log("win_id=>", win_id);
+    widPo.resolve(win_id);
   });
   /// 如果主窗口已经激活，那么我就开始渲染
   jsProcess.onRenderer(async (ipcEvent) => {
     console.log(`${jsProcess.mmid} onRenderer`, ipcEvent.text);
-    if (ExternalState.RENDERER == ipcEvent.text) {
-      const win_id = await apply_window();
-      console.log("win_id=>", win_id);
-      widPo.resolve(win_id);
-    } else {
-      widPo.resolve(ipcEvent.text);
-    }
+    widPo.resolve(ipcEvent.text);
     tryOpenView();
   });
 

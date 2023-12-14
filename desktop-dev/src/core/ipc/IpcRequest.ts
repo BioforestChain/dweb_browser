@@ -1,6 +1,5 @@
-import { IpcEvent } from "@dweb-browser/desktop/core/ipc/IpcEvent.ts";
-import { PromiseOut } from "@dweb-browser/desktop/helper/PromiseOut.ts";
 import { once } from "../../helper/$once.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { $Binary, binaryToU8a, isBinary } from "../../helper/binaryHelper.ts";
 import { CacheGetter } from "../../helper/cacheGetter.ts";
 import { ReadableStreamOut, streamRead } from "../../helper/stream/readableStreamHelper.ts";
@@ -8,6 +7,7 @@ import { parseUrl } from "../../helper/urlHelper.ts";
 import { buildRequestX } from "../helper/ipcRequestHelper.ts";
 import type { IpcBody } from "./IpcBody.ts";
 import { IpcBodySender } from "./IpcBodySender.ts";
+import { IpcEvent } from "./IpcEvent.ts";
 import { IpcHeaders } from "./IpcHeaders.ts";
 import type { MetaBody } from "./MetaBody.ts";
 import { $PureFrame, PureChannel, ipcEventToPureFrame, pureFrameToIpcEvent } from "./PureChannel.ts";
