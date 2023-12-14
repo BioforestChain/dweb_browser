@@ -15,17 +15,17 @@ import {
   type $OnIpcMessage,
 } from "./const.ts";
 
-import { PureChannel, pureChannelToIpcEvent } from "@dweb-browser/desktop/core/ipc/PureChannel.ts";
 import { once } from "../../helper/helper.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { $OnFetch, createFetchHandler } from "../helper/ipcFetchHelper.ts";
 import { IpcEvent } from "./IpcEvent.ts";
+import { PureChannel, pureChannelToIpcEvent } from "./PureChannel.ts";
 export {
   FetchError,
   FetchEvent,
   type $FetchResponse,
   type $OnFetch,
-  type $OnFetchReturn,
+  type $OnFetchReturn
 } from "../helper/ipcFetchHelper.ts";
 
 let ipc_uid_acc = 0;

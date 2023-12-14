@@ -53,7 +53,7 @@ export const nativeFetchStream = <T>(
         };
         ws.onmessage = (msgEvent) => {
           const data = msgEvent.data;
-          console.log("ws on message", data, wsUrl);
+          console.log("ws on message", data ,typeof data, wsUrl);
           if (typeof data === "string") {
             controller.enqueue(data);
           }

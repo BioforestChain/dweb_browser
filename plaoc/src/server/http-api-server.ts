@@ -143,7 +143,7 @@ export class Server_api extends HttpServer {
     targetIpc.postMessage(ipcProxyRequest);
     const ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.req_id).promise;
     if (ipcRequest.hasDuplex) {
-      await targetIpc.pipeFromChannel(ipcRequest.channelId!, ipcRequest.getChannel());
+      await targetIpc.pipeFromChannel(ipcRequest.channelId!, await ipcRequest.getChannel());
     }
     return ipcProxyResponse.toResponse();
   }

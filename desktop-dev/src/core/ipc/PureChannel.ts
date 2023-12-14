@@ -25,7 +25,7 @@ export class PureChannel {
   }
 }
 
-export const enum PureFrameType {
+export enum PureFrameType {
   Text,
   Binary,
 }
@@ -51,9 +51,10 @@ export const ipcEventToPureFrame = (ipcEvent: IpcEvent) => {
     case IPC_DATA_ENCODING.UTF8:
       return new PureTextFrame(ipcEvent.data as string);
     case IPC_DATA_ENCODING.BINARY:
-      return new PureBinaryFrame(ipcEvent.data as Uint8Array);
+      return new PureBinaryFrame(ipcEvent.binary);
+    case IPC_DATA_ENCODING.BASE64:
+      return new PureBinaryFrame(ipcEvent.binary);
   }
-  throw new Error("invalid encoding to pure-frame");
 };
 
 export const pureFrameToIpcEvent = (eventName: string, pureFrame: $PureFrame) => {

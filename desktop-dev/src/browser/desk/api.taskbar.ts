@@ -54,9 +54,9 @@ export class TaskbarApi {
       ...window_options,
       /// 如果小于 80，macos会失去高斯模糊的特效
       // minHeight: 80,
-      width:65,
+      width: 65,
       defaultBounds: { width: 65, height: 60 },
-      resizable:false,
+      resizable: false,
     });
     taskbarWin.setVisibleOnAllWorkspaces(true);
 
@@ -154,24 +154,6 @@ export class TaskbarApi {
       let desktopHeight = 0;
       let desktopX = 0;
       let desktopY = 0;
-      // {
-      //   const uGap = taskbarWinBounds.width / 3;
-      //   const uSize = 1;
-      //   const { width, height } = display.workAreaSize;
-      //   const min_column = uGap * 12;
-      //   const max_column = Math.floor((taskbarWinBounds.x - taskbarWinBounds.width * 0.5) / uSize);
-      //   const min_row = Math.floor(taskbarWinBounds.height / uSize);
-      //   const max_row = Math.floor((taskbarWinBounds.y + taskbarWinBounds.height) / uSize);
-      //   const rec_column = Math.floor((max_column * 2) / 3);
-      //   const rec_row = Math.floor((max_row * 2) / 3);
-
-      //   const column = Math.min(Math.max(min_column, rec_column), max_column);
-      //   const row = Math.max(Math.min(max_row, rec_row), min_row);
-      //   desktopWidth = Math.round(column * uSize);
-      //   desktopHeight = Math.round(row * uSize);
-      //   desktopX = Math.round(taskbarWinBounds.x - desktopWidth - uGap);
-      //   desktopY = Math.round(taskbarWinBounds.y + taskbarWinBounds.height - desktopHeight);
-      // }
       {
         const uGap = taskbarWinBounds.width / 4;
         desktopWidth = display.workArea.width / 2;

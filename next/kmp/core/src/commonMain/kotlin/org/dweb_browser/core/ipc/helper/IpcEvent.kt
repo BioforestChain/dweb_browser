@@ -45,7 +45,7 @@ class IpcEvent(
     private fun toPureFrame(ipcEvent: IpcEvent) = when (ipcEvent.encoding) {
       IPC_DATA_ENCODING.UTF8 -> PureTextFrame(ipcEvent.text)
       IPC_DATA_ENCODING.BINARY -> PureBinaryFrame(ipcEvent.binary)
-      else -> throw Exception("invalid encoding to pure-frame")
+      IPC_DATA_ENCODING.BASE64 -> PureBinaryFrame(ipcEvent.binary)
     }
   }
 

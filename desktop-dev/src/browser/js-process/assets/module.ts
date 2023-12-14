@@ -5,11 +5,11 @@ export * from "../../../helper/PromiseOut.ts";
 export * from "../../../helper/binaryHelper.ts";
 export type { $JmmAppInstallManifest, $JmmAppManifest } from "../../jmm/types.ts";
 // export * from "../../../helper/color.ts"; // 没用到
+export * from "../../../helper/$debounce.ts";
 export * from "../../../helper/createSignal.ts";
 export * from "../../../helper/encoding.ts";
 export * from "../../../helper/mapHelper.ts";
 export * from "../../../helper/stream/readableStreamHelper.ts";
-export * from "../../../helper/$debounce.ts"
 //#endregion
 
 //#region runtime types
@@ -33,6 +33,12 @@ export const {
   IpcResponse,
   ReadableStreamIpc,
   ReadableStreamOut,
+  //
+  PureChannel,
+  PureFrameType,
+  PureFrame,
+  PureTextFrame,
+  PureBinaryFrame,
 } = ipc;
 
 export const { ServerUrlInfo, ServerStartResult } = http;
@@ -48,4 +54,9 @@ export type $ReadableStreamIpc = $Core.ReadableStreamIpc;
 export type $ReadableStreamOut<T> = $Core.ReadableStreamOut<T>;
 
 export type $FetchError = $Core.FetchError;
+export type $PureFrameType = $Core.PureFrameType;
+export type $PureChannel = $Core.PureChannel;
+export type $PureTextFrame = $Core.PureTextFrame;
+export type $PureBinaryFrame = $Core.PureBinaryFrame;
+export type $PureFrame = $Core.$PureFrame;
 //#endregion

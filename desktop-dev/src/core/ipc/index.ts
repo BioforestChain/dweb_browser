@@ -9,6 +9,8 @@ export * from "./IpcStreamData.ts";
 export * from "./IpcStreamEnd.ts";
 export * from "./IpcStreamPaused.ts";
 export * from "./IpcStreamPulling.ts";
+export * from "./PureChannel.ts";
 export * from "./const.ts";
 export * from "./index.ts";
 export * from "./ipc.ts";
+

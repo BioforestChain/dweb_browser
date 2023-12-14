@@ -127,14 +127,12 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     return this.duplexEventBaseName.value;
   }
 
-  private channel = new CacheGetter(async () => {
+  private channel = new CacheGetter(() => {
     const channelId = this.channelId!;
     const income = new ReadableStreamOut<$PureFrame>();
     const outgoing = new ReadableStreamOut<$PureFrame>();
     const channel = new PureChannel(income, outgoing);
     void this.ipc.pipeToChannel(channelId, channel);
-    channel.start();
-
     return channel;
   });
   getChannel() {

@@ -1,3 +1,4 @@
+import { concat } from "https://deno.land/std@0.140.0/bytes/mod.ts";
 import type { $MMID, $MicroModuleManifest, $OnFetch } from "./deps.ts";
 import {
   $DwebHttpServerOptions,
@@ -9,10 +10,12 @@ import {
   IPC_ROLE,
   IpcEvent,
   IpcResponse,
+  PureBinaryFrame,
   ReadableStreamIpc,
-  isWebSocket,
+  ReadableStreamOut,
   jsProcess,
   mapHelper,
+  streamRead,
 } from "./deps.ts";
 import { HttpServer } from "./helper/http-helper.ts";
 import { PromiseToggle } from "./helper/promise-toggle.ts";
@@ -66,78 +69,98 @@ export class Server_external extends HttpServer {
   protected async _provider(event: FetchEvent): Promise<$OnFetchReturn> {
     const { pathname } = event;
     if (pathname.startsWith(`/${this.token}`)) {
-      if (isWebSocket(event.method, event.headers)) {
-        if (this.ipcPo.isOpen) {
-          this.ipcPo.openValue!.close();
-          this.ipcPo.toggleClose();
-        }
-        const streamIpc = new ReadableStreamIpc(
-          {
-            mmid: jsProcess.mmid,
-            name: jsProcess.mmid,
-            ipc_support_protocols: {
-              cbor: false,
-              protobuf: false,
-              raw: false,
-            },
-            dweb_deeplinks: [],
-            categories: [],
-          } satisfies $MicroModuleManifest,
-          //@ts-ignore
-          IPC_ROLE.SERVER
-        );
-        this.ipcPo.toggleOpen(streamIpc);
-        void streamIpc.bindIncomeStream(event.body!).finally(() => {
-          this.ipcPo.toggleClose();
-        });
-
-        streamIpc.onFetch(async (event) => {
-          const mmid = event.headers.get("mmid") as $MMID;
-          if (!mmid) {
-            return new Response(null, { status: 502 });
-          }
-          this.needActivity = true;
-          await mapHelper.getOrPut(this.externalWaitters, mmid, async (_key) => {
-            let ipc: $Ipc;
-            try {
-              ipc = await jsProcess.connect(mmid);
-              const deleteCache = () => {
-                this.externalWaitters.delete(mmid);
-                off1();
-              };
-              const off1 = ipc.onClose(deleteCache);
-            } catch (err) {
-              this.externalWaitters.delete(mmid);
-              throw err;
-            }
-            // 激活对面窗口
-            ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
-            this.needActivity = false;
-            await ipc.request(`file://${mmid}${ExternalState.WAIT_EXTERNAL_READY}`);
-            return ipc;
-          });
-          const ipc = await this.externalWaitters.get(mmid);
-          if (ipc && this.needActivity) {
-            // 激活对面窗口
-            ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
-          }
-          const ext_options = this._getOptions();
-          // 请求跟外部app通信，并拿到返回值
-          event.headers.append("X-Dweb-Host", jsProcess.mmid);
-          return await jsProcess.nativeFetch(
-            `https://${ext_options.subdomain}.${mmid}${event.pathname}${event.search}`,
-            {
-              method: event.method,
-              headers: event.headers,
-              body: event.body,
-            }
-          );
-        });
-
-        /// 返回读写这个stream的链接，注意，目前双工需要客户端通过 WebSocket 来达成支持
-        return { body: streamIpc.stream };
+      if (!event.ipcRequest.hasDuplex) {
+        return { status: 500 };
       }
-      return { status: 500 };
+      if (this.ipcPo.isOpen) {
+        this.ipcPo.openValue!.close();
+        this.ipcPo.toggleClose();
+      }
+      const streamIpc = new ReadableStreamIpc(
+        {
+          mmid: jsProcess.mmid,
+          name: jsProcess.mmid,
+          ipc_support_protocols: {
+            cbor: false,
+            protobuf: false,
+            raw: false,
+          },
+          dweb_deeplinks: [],
+          categories: [],
+        } satisfies $MicroModuleManifest,
+        //@ts-ignore
+        IPC_ROLE.SERVER
+      );
+      this.ipcPo.toggleOpen(streamIpc);
+      const pureServerChannel = await event.ipcRequest.getChannel();
+      pureServerChannel.start();
+
+      const incomeStream = new ReadableStreamOut<Uint8Array>();
+
+      // fetch(https://ext.dweb) => ipcRequest => streamIpc.request => streamIpc.postMessage => chunk => outgoing => ws.onMessage
+      void (async () => {
+        const u32 = new Uint32Array(1);
+        const u32_u8 = new Uint8Array(u32.buffer);
+        for await (const chunk of streamRead(streamIpc.stream)) {
+          u32[0] = chunk.byteLength;
+          pureServerChannel.outgoing.controller.enqueue(new PureBinaryFrame(concat(u32_u8, chunk)));
+        }
+      })();
+      // ws.send => income.pureFrame =>
+      void (async () => {
+        for await (const pureFrame of streamRead(pureServerChannel.income.stream)) {
+          if (pureFrame instanceof PureBinaryFrame) {
+            incomeStream.controller.enqueue(pureFrame.data);
+          }
+        }
+      })();
+
+      void streamIpc.bindIncomeStream(incomeStream.stream).finally(() => {
+        this.ipcPo.toggleClose();
+      });
+
+      streamIpc.onFetch(async (event) => {
+        const mmid = event.headers.get("mmid") as $MMID;
+        if (!mmid) {
+          return new Response(null, { status: 502 });
+        }
+        this.needActivity = true;
+        await mapHelper.getOrPut(this.externalWaitters, mmid, async (_key) => {
+          let ipc: $Ipc;
+          try {
+            ipc = await jsProcess.connect(mmid);
+            const deleteCache = () => {
+              this.externalWaitters.delete(mmid);
+              off1();
+            };
+            const off1 = ipc.onClose(deleteCache);
+          } catch (err) {
+            this.externalWaitters.delete(mmid);
+            throw err;
+          }
+          // 激活对面窗口
+          ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
+          this.needActivity = false;
+          await ipc.request(`file://${mmid}${ExternalState.WAIT_EXTERNAL_READY}`);
+          return ipc;
+        });
+        const ipc = await this.externalWaitters.get(mmid);
+        if (ipc && this.needActivity) {
+          // 激活对面窗口
+          ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.RENDERER));
+        }
+        const ext_options = this._getOptions();
+        // 请求跟外部app通信，并拿到返回值
+        event.headers.append("X-Dweb-Host", jsProcess.mmid);
+        return await jsProcess.nativeFetch(`https://${ext_options.subdomain}.${mmid}${event.pathname}${event.search}`, {
+          method: event.method,
+          headers: event.headers,
+          body: event.body,
+        });
+      });
+
+      /// 返回读写这个stream的链接，注意，目前双工需要客户端通过 WebSocket 来达成支持
+      return { status: 101 };
     } else {
       // 接收别人传递过来的消息
       const ipc = await this.ipcPo.waitOpen();

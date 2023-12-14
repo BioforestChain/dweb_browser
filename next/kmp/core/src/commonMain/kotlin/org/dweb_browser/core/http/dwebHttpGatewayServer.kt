@@ -121,13 +121,17 @@ class DwebHttpGatewayServer private constructor() {
                     }
                     /// 将从客户端收到的数据，转成 PureFrame 的标准传输到 pureChannel 中
                     for (frame in ws.incoming) {// 注意，这里ws.incoming要立刻进行，不能在launch中异步执行，否则ws将无法完成连接建立
+                      debugHttp("WebSocketToPureChannel") { "ws-income:$frame/$url" }
                       val pureFrame = when (frame.frameType) {
                         FrameType.BINARY -> PureBinaryFrame(frame.data)
                         FrameType.TEXT -> PureTextFrame(frame.data.toUtf8())
+                        FrameType.CLOSE -> break
                         else -> continue
                       }
-                      debugHttp("WebSocketToPureChannel") { "ws-to-incoming:$pureFrame/$url" }
-                      income.send(pureFrame)
+                      launch {
+                        income.send(pureFrame)
+                        debugHttp("WebSocketToPureChannel") { "income-send:$pureFrame/$url" }
+                      }
                     }
                     /// 等到双工关闭，同时也关闭channel
                     debugHttp("WebSocketToPureChannel") { "ws-close-pureChannel:$url" }
