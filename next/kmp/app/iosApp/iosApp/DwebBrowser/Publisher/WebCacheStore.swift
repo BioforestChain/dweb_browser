@@ -58,7 +58,10 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
         lastVisitedUrl = try container.decodeIfPresent(URL.self, forKey: .lastVisitedUrl) ?? emptyURL
         title = try container.decode(String.self, forKey: .title)
         snapshotUrl = try container.decodeIfPresent(URL.self, forKey: .snapshotUrl) ?? URL.defaultSnapshotURL
-        snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+            self.snapshotImage = UIImage.snapshotImage(from: self.snapshotUrl)
+        }
         observeUrl()
         snapshotCancellable = snapshotImageChangedPublisher.sink {}
     }

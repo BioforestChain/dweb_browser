@@ -95,6 +95,8 @@ class BrowserViewModel(
 
   fun getBookLinks() = browserController.bookLinks
   fun getHistoryLinks() = browserController.historyLinks
+  val browserOnVisible = browserController.onWindowVisiable
+  val browserOnClose = browserController.onCloseWindow
 
   // zf加的
   fun listFilter() = browserViewList.filter {

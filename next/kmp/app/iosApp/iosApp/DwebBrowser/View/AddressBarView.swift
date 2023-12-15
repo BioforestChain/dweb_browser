@@ -91,6 +91,10 @@ struct AddressBar: View {
             }
 
             .onAppear {
+                if let searchInputText = addressBar.searchInputText,
+                    inputText == searchInputText {
+                    return //
+                }
                 inputText = webCache.lastVisitedUrl.absoluteString
                 displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
             }

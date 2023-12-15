@@ -2,21 +2,21 @@ package org.dweb_browser.browser.web
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.platform.setScale
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.NativeBackHandler
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
+import platform.darwin.DISPATCH_DATA_DESTRUCTOR_FREE
 
 actual fun ImageBitmap.toImageResource(): ImageResource? = null
 actual fun getImageResourceRootPath(): String = ""
@@ -39,9 +39,25 @@ actual fun CommonBrowserView(
 
   browserIosService.browserViewModel = viewModel
 
-  val iOSView = remember {
+  var iOSView = remember {
     browserIosImp.createIosMainView()
   }
+
+  DisposableEffect(viewModel) {
+    val disposeVisibleBrowser = viewModel.browserOnVisible {
+        browserIosImp.browserVisiable(it)
+    }
+
+    val diposeCloseBrowser = viewModel.browserOnClose {
+      browserIosImp.browserClear()
+    }
+
+    onDispose {
+      disposeVisibleBrowser()
+      diposeCloseBrowser()
+    }
+  }
+
 
   if (!viewModel.dwebLinkSearch.value.isEmpty()) {
     browserIosImp.doSearch(viewModel.dwebLinkSearch.value.toString())
@@ -66,10 +82,9 @@ actual fun CommonBrowserView(
       factory = {
         iOSView
       },
-      background = Color.White,
       modifier = modifier,
     )
-    iOSView.setScale(windowRenderScope.scale)
+//    iOSView.setScale(windowRenderScope.scale)
     iOSView.WindowFrameStyleEffect()
   }
 }

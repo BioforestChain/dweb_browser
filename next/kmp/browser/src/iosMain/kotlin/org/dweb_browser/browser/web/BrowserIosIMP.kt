@@ -7,6 +7,8 @@ interface IosInterface {
   fun getBrowserView(): UIView
   fun doSearch(key: String)
   fun gobackIfCanDo(): Boolean
+  fun browserActive(on: Boolean)
+  fun browserClear()
 }
 
 class BrowserIosIMP {
@@ -28,4 +30,16 @@ class BrowserIosIMP {
   }
 
   fun gobackIfCanDo() = imp?.let { it.gobackIfCanDo() } ?: false
+
+  fun browserVisiable(on: Boolean) {
+    imp?.let {
+      it.browserActive(on)
+    }
+  }
+
+  fun browserClear() {
+    imp?.let {
+      it.browserClear()
+    }
+  }
 }

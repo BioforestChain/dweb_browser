@@ -34,6 +34,9 @@ class BrowserController(
   private val closeWindowSignal = SimpleSignal()
   val onCloseWindow = closeWindowSignal.toListener()
 
+  private val windowVisibleSignal = Signal<Boolean>()
+  val onWindowVisiable = windowVisibleSignal.toListener()
+
   private val addWebLinkSignal = Signal<WebLinkManifest>()
   val onWebLinkAdded = addWebLinkSignal.toListener()
 
@@ -98,6 +101,12 @@ class BrowserController(
       /// 提供渲染适配
       windowAdapterManager.provideRender(wid) { modifier ->
         Render(modifier, this)
+      }
+      newWin.onVisible {
+        windowVisibleSignal.emit(true)
+      }
+      newWin.onHidden {
+        windowVisibleSignal.emit(false)
       }
       newWin.onClose {
         closeWindowSignal.emit()
