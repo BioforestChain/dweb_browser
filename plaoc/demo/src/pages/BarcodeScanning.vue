@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { defineLogAction } from "../components/LogPanel.vue";
-import { CameraSource, HTMLDwebBarcodeScanningElement, barcodeScannerPlugin } from "../plugin";
+import { HTMLDwebBarcodeScanningElement, barcodeScannerPlugin, type ScannerContoller } from "../plugin";
 
 const title = "Scanner";
 
@@ -12,9 +12,11 @@ const $barcodeScannerPlugin = ref<HTMLDwebBarcodeScanningElement>();
 // let console: Console;
 let scanner = barcodeScannerPlugin;
 let barcodeScanner: HTMLDwebBarcodeScanningElement;
-onMounted(() => {
+let scannerServer: ScannerContoller;
+onMounted(async () => {
   // console = toConsole($logPanel);
   barcodeScanner = $barcodeScannerPlugin.value!;
+  scannerServer = await scanner.createProcesser();
 });
 
 const result = ref();
@@ -25,7 +27,9 @@ const onFileChanged = defineLogAction(
     if (target && target.files?.[0]) {
       const img = target.files[0];
       console.info("photo ==> ", img.name, img.type, img.size);
-      result.value = await scanner.process(img);
+      const res = await scannerServer.process(img);
+      res.forEach((value) => console.log(value.data));
+      result.value = res.length;
     }
   },
   { name: "process", args: [result], logPanel: $logPanel }
@@ -51,12 +55,6 @@ const getSupportedformats = defineLogAction(
   },
   { name: "supportedFormats", args: [result], logPanel: $logPanel }
 );
-
-const cameraSource = ref<CameraSource>("PHOTOS" as never);
-
-// const getPhoto = defineLogAction(async () => {
-//   result.value = await barcodeScanner.getPhoto({ source: cameraSource.value })
-// }, { name: "getPhoto", args: [result], logPanel: $logPanel })
 </script>
 
 <template>

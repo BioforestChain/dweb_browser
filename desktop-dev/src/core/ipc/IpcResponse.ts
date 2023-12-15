@@ -31,10 +31,24 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
     if (body instanceof Uint8Array) {
       this.headers.init("Content-Length", body.length + "");
     }
-    const response = new Response(body, {
-      headers: this.headers,
-      status: this.statusCode,
-    });
+    let response:Response
+    if (this.statusCode < 200 || this.statusCode > 599) {
+      response =new Response(body, {
+        headers: this.headers,
+        status: 200,
+      });
+      Object.defineProperty(response, "status", {
+        value: this.statusCode,
+        enumerable: true,
+        configurable: true,
+        writable: false,
+      });
+    } else {
+      response = new Response(body, {
+        headers: this.headers,
+        status: this.statusCode,
+      });
+    }
     if (url) {
       Object.defineProperty(response, "url", {
         value: url,

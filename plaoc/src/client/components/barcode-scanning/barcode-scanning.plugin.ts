@@ -66,6 +66,13 @@ export class BarcodeScannerPlugin extends BasePlugin {
       ws.onclose = reject;
     });
 
+    ws.onmessage = async (ev) => {
+      const lock = locks.shift();
+      const data = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();
+      if (lock) {
+        lock.resolve(JSON.parse(data));
+      }
+    };
     const rotation_ab = new ArrayBuffer(4);
     const rotation_i32 = new Int32Array(rotation_ab);
     const locks: PromiseOut<BarcodeResult[]>[] = [];
@@ -88,13 +95,6 @@ export class BarcodeScannerPlugin extends BasePlugin {
         locks.length = 0;
       },
     };
-    ws.onmessage = async (ev) => {
-      const lock = locks.shift();
-      if (lock) {
-        lock.resolve(JSON.parse(await (ev.data as Blob).text()));
-      }
-    };
-
     return controller;
   }
   /**
@@ -106,6 +106,12 @@ export class BarcodeScannerPlugin extends BasePlugin {
     return await this.fetchApi(`/stop`).boolean();
   }
 }
+
+export type ScannerContoller = {
+  setRotation(rotation: number): void;
+  process(data: Uint8Array | Blob): Promise<BarcodeResult[]>;
+  stop(): void;
+};
 
 export type DeCodeType = {
   rawValue: string;

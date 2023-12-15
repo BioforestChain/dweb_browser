@@ -58,20 +58,24 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * @returns
    */
   async startScanning(rotation = 0, formats = SupportedFormat.QR_CODE): Promise<ScanResult> {
-    if (!this._isCloceLock) {
-      this.createClose();
+    try {
+      if (!this._isCloceLock) {
+        this.createClose();
+      }
+      await this.createElement();
+      const permission = await this._startVideo();
+      let data: string[] = [];
+      if (permission === BarcodeScannerPermission.UserAgree) {
+        data = await this.taskPhoto(rotation, formats);
+      }
+      return {
+        hasContent: data.length !== 0,
+        content: data,
+        permission,
+      };
+    } finally {
+      this.stopScanning();
     }
-    await this.createElement();
-    const permission = await this._startVideo();
-    let data: string[] = [];
-    if (permission === BarcodeScannerPermission.UserAgree) {
-      data = await this.taskPhoto(rotation, formats);
-    }
-    return {
-      hasContent: data.length !== 0,
-      content: data,
-      permission,
-    };
   }
   /**
    * 停止扫码
@@ -80,8 +84,8 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     if (this._activity !== undefined) {
       this._activity.resolve([]);
       this._activity = undefined;
-      this.stopCamera("user stop");
     }
+    this.stopCamera("user stop");
   }
 
   // deno-lint-ignore no-explicit-any
@@ -109,7 +113,6 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       console.error("service close！");
       return [];
     }
-
     try {
       task.resolve(
         (async () => {

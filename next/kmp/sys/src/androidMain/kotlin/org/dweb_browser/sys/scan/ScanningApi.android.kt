@@ -21,7 +21,12 @@ actual class ScanningManager actual constructor() {
   }
 
   actual suspend fun recognize(img: ByteArray, rotation: Int): List<BarcodeResult> {
-    val image = InputImage.fromBitmap(BitmapFactory.decodeByteArray(img, 0, img.size), rotation)
+    val bit = BitmapFactory.decodeByteArray(img, 0, img.size)
+    println("QAQ recognize $bit")
+    if (bit == null) {
+      return  listOf()
+    }
+    val image = InputImage.fromBitmap(bit, rotation)
     return process(image)
   }
 

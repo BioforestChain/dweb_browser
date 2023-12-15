@@ -92,7 +92,7 @@ export class Server_external extends HttpServer {
         IPC_ROLE.SERVER
       );
       this.ipcPo.toggleOpen(streamIpc);
-      const pureServerChannel = await event.ipcRequest.getChannel();
+      const pureServerChannel = event.ipcRequest.getChannel();
       pureServerChannel.start();
 
       const incomeStream = new ReadableStreamOut<Uint8Array>();
