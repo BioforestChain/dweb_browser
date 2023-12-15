@@ -121,24 +121,6 @@ class DwebHttpGatewayServer private constructor() {
                       debugHttp("WebSocketToPureChannel") { "outgoing-close-ws/$url" }
                       ws.close()
                     }
-                    class FinData<T : Any>(val concat: (List<T>) -> T) {
-                      private val chunks = mutableListOf<T>();
-                      fun append(chunk: T, fin: Boolean): T? = when {
-                        fin -> when {
-                          chunks.isEmpty() -> chunk
-                          else -> concat(chunks + chunk).also {
-                            chunks.clear()
-                          }
-                        }
-
-                        else -> {
-                          chunks += chunk
-                          null
-                        }
-                      }.also {
-                        println("QAQ append chunk=$chunk fin=$fin cacheSize=${chunks.size} return=$it")
-                      }
-                    }
                     val finBinary =
                       FinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
                     val finText =

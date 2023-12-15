@@ -5,6 +5,7 @@ package org.dweb_browser.sys.device
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ExperimentalSettingsImplementation
 import com.russhwolf.settings.Settings
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.MemScope
 import kotlinx.cinterop.alloc
@@ -13,6 +14,8 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.value
+import org.dweb_browser.helper.toKString
+import org.dweb_browser.helper.toNSString
 import platform.CoreFoundation.CFArrayGetCount
 import platform.CoreFoundation.CFArrayGetValueAtIndex
 import platform.CoreFoundation.CFArrayRefVar
@@ -104,6 +107,7 @@ public class KeychainSettings @ExperimentalSettingsApi constructor(vararg defaul
 
     public override fun getString(key: String, defaultValue: String): String = getStringOrNull(key) ?: defaultValue
 
+    @OptIn(BetaInteropApi::class)
     public override fun getStringOrNull(key: String): String? =
         getKeychainItem(key)?.let { NSString.create(it, NSUTF8StringEncoding)?.toKString() }
 
@@ -211,13 +215,6 @@ internal inline fun MemScope.cfDictionaryOf(map: Map<CFStringRef?, CFTypeRef?>):
         null
     )
 }
-
-// Turn casts into dot calls for better readability
-@Suppress("CAST_NEVER_SUCCEEDS")
-internal inline fun String.toNSString() = this as NSString
-
-@Suppress("CAST_NEVER_SUCCEEDS")
-internal inline fun NSString.toKString() = this as String
 
 @OptIn(ExperimentalForeignApi::class)
 internal inline fun <T> cfRetain(value: Any?, block: MemScope.(CFTypeRef?) -> T): T = memScoped {

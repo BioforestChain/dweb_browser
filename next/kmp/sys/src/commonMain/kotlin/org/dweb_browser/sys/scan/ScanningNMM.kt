@@ -23,31 +23,25 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
     val scanningManager = ScanningManager()
     routes(
       "/process" byChannel { ctx ->
-        println("QAQ process start")
         var rotation = 0;
         for (frame in ctx) {
-          println("QAQ process frame=>${frame}")
           try {
             when (frame) {
               is PureTextFrame -> rotation = frame.data.toFloatOrNull()?.toInt() ?: 0;
               is PureBinaryFrame -> {
-                println("QAQ process size=>${frame.data.size}")
                 val result = scanningManager.recognize(
                   frame.data,
                   rotation
                 );
                 // 不论 result 是否为空数组，都进行响应
-                println("QAQ process result=>${result}")
                 ctx.sendJson(result)
               }
             }
           } catch (e: Throwable) {
-            println("QAQ process err!")
             e.printStackTrace()
           }
 
         }
-        println("QAQ process end")
       },
       // 处理二维码图像
       "/process" bind HttpMethod.Post by defineJsonResponse {

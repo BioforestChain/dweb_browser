@@ -26,6 +26,7 @@ import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
+import org.dweb_browser.dwebview.polyfill.DWebViewWebSocketMessageHandler
 import org.dweb_browser.dwebview.polyfill.UserAgentData
 import org.dweb_browser.dwebview.polyfill.WatchIosIcon
 import org.dweb_browser.dwebview.polyfill.WebSocketProxy
@@ -181,15 +182,6 @@ class DWebViewEngine(
           configuration, url.host, url.port.toUShort()
         )
       }
-
-      configuration.userContentController.addUserScript(
-        WKUserScript(
-          WebSocketProxy.getPolyfillScript(dwebHttpGatewayServer.startServer()),
-          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
-          false,
-//          DWebViewWebMessage.webMessagePortContentWorld,
-        )
-      )
     }
     /// 测试的时候使用
     if (UIDevice.currentDevice.systemVersion.compareTo("16.4", true) >= 0) {
@@ -229,6 +221,17 @@ class DWebViewEngine(
           true
         )
       )
+
+      addUserScript(
+        WKUserScript(
+          WebSocketProxy.getPolyfillScript(),
+          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
+          false,
+//          DWebViewWebMessage.webMessagePortContentWorld,
+        )
+      )
+      addScriptMessageHandler(DWebViewWebSocketMessageHandler(this@DWebViewEngine), "websocket")
+
     }
 
     // 初始化设置 userAgent
