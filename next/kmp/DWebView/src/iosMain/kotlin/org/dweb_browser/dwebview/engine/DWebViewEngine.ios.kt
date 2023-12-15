@@ -35,7 +35,6 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.compose.transparentColor
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.ios.DwebHelper
 import org.dweb_browser.helper.platform.ios.DwebWKWebView
@@ -54,7 +53,6 @@ import platform.Foundation.NSURLSessionAuthChallengePerformDefaultHandling
 import platform.Foundation.NSURLSessionAuthChallengeUseCredential
 import platform.Foundation.create
 import platform.Foundation.serverTrust
-import platform.UIKit.UIColor
 import platform.UIKit.UIDevice
 import platform.UIKit.UIScrollView
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
@@ -243,13 +241,18 @@ class DWebViewEngine(
       }
     }
 
+    // 强制透明
     setOpaque(false)
-    setBackgroundColor(UIColor.transparentColor)
+    // 设置默认背景
+    addDocumentStartJavaScript("""
+      const sheet = new CSSStyleSheet();
+      sheet.replaceSync(":root { background:#fff;color:#000; } @media (prefers-color-scheme: dark) {:root { background:#333;color:#fff; }}");
+      document.adoptedStyleSheets = [sheet];
+    """.trimIndent())
     if (options.displayCutoutStrategy == DWebViewOptions.DisplayCutoutStrategy.Ignore) {
       scrollView.contentInsetAdjustmentBehavior =
         UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
     }
-    println("scrollView.insetsLayoutMarginsFromSafeArea=${scrollView.insetsLayoutMarginsFromSafeArea}")
     scrollView.insetsLayoutMarginsFromSafeArea = true
     scrollView.bounces = false
   }
