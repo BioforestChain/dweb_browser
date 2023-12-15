@@ -99,11 +99,8 @@ export class Server_external extends HttpServer {
 
       // fetch(https://ext.dweb) => ipcRequest => streamIpc.request => streamIpc.postMessage => chunk => outgoing => ws.onMessage
       void (async () => {
-        const u32 = new Uint32Array(1);
-        const u32_u8 = new Uint8Array(u32.buffer);
         for await (const chunk of streamRead(streamIpc.stream)) {
-          u32[0] = chunk.byteLength;
-          pureServerChannel.outgoing.controller.enqueue(new PureBinaryFrame(concat(u32_u8, chunk)));
+          pureServerChannel.outgoing.controller.enqueue(new PureBinaryFrame(concat(chunk)));
         }
       })();
       // ws.send => income.pureFrame =>
