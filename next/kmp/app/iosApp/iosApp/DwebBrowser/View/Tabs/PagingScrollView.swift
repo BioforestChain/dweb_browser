@@ -18,13 +18,12 @@ struct PagingScrollView: View {
     @EnvironmentObject var dragScale: WndDragScale
 
     @Binding var showTabPage: Bool
-
     @State private var addressbarOffset: CGFloat = 0
     var body: some View {
         GeometryReader { geometry in
             VStack {
                 TabView(selection: $selectedTab.curIndex) {
-                    ForEach(0 ..< webcacheStore.cacheCount, id: \.self) { index in
+                    ForEach(webcacheStore.caches.indices, id: \.self) { (index: Int) in
                         let cache = webcacheStore.cache(at: index)
                         let webwrapper = webcacheStore.webWrappers[index]
                         LazyVStack(spacing: 0) {
@@ -33,6 +32,7 @@ struct PagingScrollView: View {
                                     ZStack {
                                         HStack {
                                             TabPageView(webCache: cache, webWrapper: webwrapper)
+                                                .id(UUID())
                                                 .gesture(disabledDragGesture)
                                         }
                                         if addressBar.isFocused {
@@ -47,7 +47,11 @@ struct PagingScrollView: View {
                             }
                             .frame(height: geometry.size.height - dragScale.addressbarHeight)
 
-                            AddressBar(webWrapper: webwrapper, webCache: cache)
+                            AddressBar(webCache: cache,
+                                       webMonitor: webcacheStore.webWrappers[index].webMonitor,
+                                       tabIndex: index,
+                                       isVisible: index == selectedTab.curIndex)
+
                                 .background(Color.bkColor)
                                 .offset(y: addressbarOffset)
                                 .animation(.default, value: addressbarOffset)

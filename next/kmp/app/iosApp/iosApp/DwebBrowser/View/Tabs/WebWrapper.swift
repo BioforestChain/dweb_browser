@@ -1,12 +1,13 @@
 import Combine
+import DwebPlatformIosKit
+import DwebShared
 import SwiftUI
 import WebKit
-import DwebShared
-import DwebPlatformIosKit
 
 @dynamicMemberLookup
 class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     var id = UUID()
+    @Published var webMonitor = WebMonitor()
 
     @Published var webView: DwebWKWebView {
         didSet {
@@ -16,7 +17,6 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
 
     init(cacheID: UUID) {
         self.webView = WKWebViewBridge.companion.shared.webviewFactory()
-//        self.webView = BrowserWebview()
         self.id = cacheID
         Log("making a WebWrapper: \(self)")
 
@@ -25,10 +25,10 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
 
     private func setupObservers() {
         func subscriber<Value>(for keyPath: KeyPath<DwebWKWebView, Value>) -> NSKeyValueObservation {
-            return webView.observe(keyPath, options: [.prior]) { _, change in
+            return webView.observe(keyPath, options: [.prior]) { [weak self] _, change in
                 if change.isPrior {
                     DispatchQueue.main.async {
-                        self.objectWillChange.send()
+                        self?.objectWillChange.send()
                     }
                 }
             }
@@ -46,6 +46,11 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
             subscriber(for: \.configuration),
             subscriber(for: \.icon),
         ]
+        observers.append(webView.observe(\.estimatedProgress, options: [.prior]) { [weak self] _, _ in
+            if let self = self {
+                self.webMonitor.loadingProgress = self.webView.estimatedProgress
+            }
+        })
     }
 
     private var observers: [NSKeyValueObservation] = []
@@ -74,30 +79,10 @@ struct TabWebView: View, UIViewRepresentable {
     }
 
     func makeUIView(context: UIViewRepresentableContext<TabWebView>) -> DwebWKWebView {
-        webView.scrollView.delegate = context.coordinator // Set the coordinator as the scroll view delegate
-        webView.scrollView.isScrollEnabled = true // Enable web view's scrolling
         return webView
     }
 
     func updateUIView(_ uiView: DwebWKWebView, context: UIViewRepresentableContext<TabWebView>) {
         Log("visiting updateUIView function")
-    }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    class Coordinator: NSObject, UIScrollViewDelegate {
-        var presentView: TabWebView
-
-        init(_ presentView: TabWebView) {
-            self.presentView = presentView
-        }
-
-        func scrollViewDidScroll(_ scrollView: UIScrollView) {
-            let verticalOffset = scrollView.contentOffset.y
-            // 处理滚动距离的逻辑
-//            Log("Vertical Offset: \(verticalOffset)")
-        }
     }
 }

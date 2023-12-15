@@ -8,6 +8,13 @@
 
 import Foundation
 
+func printPointer(of anything: AnyObject){
+    print(Unmanaged.passUnretained(anything).toOpaque())
+}
+
+
+
+
 private var dateformate: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "HH:mm:ss.SSSS"
