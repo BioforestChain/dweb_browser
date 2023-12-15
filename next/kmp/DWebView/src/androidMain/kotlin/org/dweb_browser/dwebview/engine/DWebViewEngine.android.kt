@@ -294,8 +294,6 @@ class DWebViewEngine(
       val response = remoteMM.nativeFetch(url)
       val contentType = response.headers.get(HttpHeaders.ContentType)
       withMainContext {
-        println("xxxxxx=> ${response.status}  ${response.headers.get(HttpHeaders.ContentType)} ")
-        println("xxxxxx=>${url} $contentType ${WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)} ${contentType?.startsWith("text/html") == true}")
         if (contentType?.startsWith("text/html") == true && !WebViewFeature.isFeatureSupported(
             WebViewFeature.DOCUMENT_START_SCRIPT
           )

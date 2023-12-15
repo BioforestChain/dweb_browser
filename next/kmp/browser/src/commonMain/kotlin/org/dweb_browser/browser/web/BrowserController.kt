@@ -2,6 +2,7 @@ package org.dweb_browser.browser.web
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -13,6 +14,7 @@ import org.dweb_browser.browser.web.model.WebLinkManifest
 import org.dweb_browser.browser.web.model.WebLinkStore
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Signal
@@ -135,15 +137,20 @@ class BrowserController(
     if ((icon.first() == '\"' && icon.last() == '\"')) {
       trimmedIcon = icon.substring(1, icon.length - 1)
     }
-    val icons = ImageResource(trimmedIcon)
-
+    val responseIcon = browserNMM.nativeFetch(trimmedIcon)
+    //判断能否访问到不行 就用默认的
+    val icons = if (responseIcon.status !== HttpStatusCode.OK) {
+      listOf()
+    } else {
+      listOf(ImageResource(trimmedIcon))
+    }
     var trimmedUrl = url
     if ((url.first() == '\"' && url.last() == '\"')) {
       trimmedUrl = url.substring(1, url.length - 1)
     }
     val linkId = WebLinkManifest.createLinkId(trimmedUrl)
     val webLinkManifest =
-      WebLinkManifest(id = linkId, title = title, url = trimmedUrl, icons = listOf(icons))
+      WebLinkManifest(id = linkId, title = title, url = trimmedUrl, icons = icons)
     // 先判断是否存在，如果存在就不重复执行
     if (webLinkStore.get(linkId) == null) {
       addWebLinkSignal.emit(webLinkManifest)
