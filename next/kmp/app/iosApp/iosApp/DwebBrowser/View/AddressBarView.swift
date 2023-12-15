@@ -78,7 +78,7 @@ struct AddressBar: View {
             .autocorrectionDisabled(true)
             .multilineTextAlignment(addressBar.isFocused ? .leading : .center)
             .padding(.leading, 24)
-            .padding(.trailing, 50)
+            .padding(.trailing, 60)
             .keyboardType(.webSearch)
             .focused($isAdressBarFocused)
             .font(dragScale.scaledFont())
