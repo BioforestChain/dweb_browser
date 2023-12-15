@@ -76,6 +76,10 @@ class DWebView(
   }
 
 
+  override suspend fun getOriginalUrl() = withMainContext {
+    evaluateAsyncJavascriptCode("javascript:window.location.href;")
+  }
+
   override suspend fun getIcon() = withMainContext {
     evaluateAsyncJavascriptCode(
       // TODO fix this
