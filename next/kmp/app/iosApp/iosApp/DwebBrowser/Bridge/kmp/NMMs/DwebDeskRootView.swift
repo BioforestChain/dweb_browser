@@ -103,10 +103,15 @@ struct DwebDeskRootView: UIViewControllerRepresentable {
 
 extension DwebComposeRootViewController: UIGestureRecognizerDelegate {
     
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        if gestureRecognizer == self.leftEdgePan || gestureRecognizer == self.rightEdgePan {
-            return false
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if otherGestureRecognizer == self.leftEdgePan || otherGestureRecognizer == self.rightEdgePan {
+            return true
         }
-        return true
+        return false
     }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return gestureRecognizer.isKind(of: UIScreenEdgePanGestureRecognizer.self)
+    }
+
 }
