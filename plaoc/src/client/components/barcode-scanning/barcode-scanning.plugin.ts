@@ -26,6 +26,23 @@ export class BarcodeScannerPlugin extends BasePlugin {
     super("barcode-scanning.sys.dweb");
   }
 
+  async process(data: Uint8Array | Blob, rotation = 0, formats = SupportedFormat.QR_CODE) {
+    return (await this.processV2(data, rotation, formats)).map((item) => item.data);
+  }
+
+  async processV2(data: Uint8Array | Blob, rotation = 0, formats = SupportedFormat.QR_CODE) {
+    const req = await this.buildApiRequest("/process", {
+      search: {
+        rotation,
+        formats,
+      },
+      method: "POST",
+      body: data,
+    });
+    const result = (await (await fetch(req)).json()) as BarcodeResult[];
+    return result;
+  }
+
   /**
    *  识别二维码
    * @param blob
@@ -43,6 +60,11 @@ export class BarcodeScannerPlugin extends BasePlugin {
     }).url.replace("http", "ws");
     const ws = new WebSocket(wsUrl);
     ws.binaryType = "blob";
+    await new Promise((resolve, reject) => {
+      ws.onopen = resolve;
+      ws.onerror = reject;
+      ws.onclose = reject;
+    });
 
     const rotation_ab = new ArrayBuffer(4);
     const rotation_i32 = new Int32Array(rotation_ab);

@@ -13,7 +13,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   private _canvas: HTMLCanvasElement | null = null;
   private _formats = SupportedFormat.QR_CODE;
   private _direction: string = CameraDirection.BACK;
-  private _activity = false;
+  private _activity?: PromiseOut<string[]>;
   private _isCloceLock = false;
 
   constructor() {
@@ -25,7 +25,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     this._isCloceLock = true;
     closer.addEventListener("close", (_event) => {
       this._isCloceLock = false;
-      if (this._activity) {
+      if (this._activity !== undefined) {
         this.stopScanning();
       }
     });
@@ -77,8 +77,11 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * 停止扫码
    */
   stopScanning() {
-    this._activity = false;
-    this.stopCamera("user stop");
+    if (this._activity !== undefined) {
+      this._activity.resolve([]);
+      this._activity = undefined;
+      this.stopCamera("user stop");
+    }
   }
 
   // deno-lint-ignore no-explicit-any
@@ -88,58 +91,69 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     }
     this._stop();
   }
+  async taskPhoto(rotation: number, formats: SupportedFormat) {
+    if (this._activity === undefined) {
+      this._taskPhoto((this._activity = new PromiseOut()), rotation, formats);
+    } else {
+      console.warn("already running taskPhoto");
+    }
+    return this._activity.promise;
+  }
 
   /**
    * 不断识图的任务
    * @returns
    */
-  async taskPhoto(rotation: number, formats: SupportedFormat) {
+  private async _taskPhoto(task: PromiseOut<string[]>, rotation: number, formats: SupportedFormat) {
     if (this._canvas === null) {
       console.error("service close！");
       return [];
     }
-    if (this._activity === false) {
-      console.error("user close！");
-      return [];
-    }
-    this._activity = true;
+
     try {
-      const controller = await this.plugin.createProcesser(formats);
-      controller.setRotation(rotation);
-      const toBlob = (quality = 0.8) => {
-        const blob = new PromiseOut<Blob>();
-        const canvas = this._canvas;
-        if (canvas) {
-          canvas.toBlob(
-            (imageBlob) => {
-              if (imageBlob) {
-                blob.resolve(imageBlob);
-              } else {
-                blob.reject("canvas fail to toBlob");
-              }
-            },
-            "image/jpeg",
-            quality
-          );
-        } else {
-          blob.reject("canvas stop");
-        }
-        return blob.promise;
-      };
-      const waitFrame = () => {
-        const frame = new PromiseOut<void>();
-        requestAnimationFrame(() => frame.resolve());
-        return frame.promise;
-      };
-      do {
-        await waitFrame();
-        const result = await controller.process(await toBlob());
-        if (result.length != 0) {
-          return result.map((it) => it.data);
-        }
-      } while (true);
+      task.resolve(
+        (async () => {
+          const controller = await this.plugin.createProcesser(formats);
+          controller.setRotation(rotation);
+          const toBlob = (quality = 0.8) => {
+            const blob = new PromiseOut<Blob>();
+            const canvas = this._canvas;
+            if (canvas) {
+              canvas.toBlob(
+                (imageBlob) => {
+                  if (imageBlob) {
+                    blob.resolve(imageBlob);
+                  } else {
+                    blob.reject("canvas fail to toBlob");
+                  }
+                },
+                "image/jpeg",
+                quality
+              );
+            } else {
+              blob.reject("canvas stop");
+            }
+            return blob.promise;
+          };
+          const waitFrame = () => {
+            const frame = new PromiseOut<void>();
+            requestAnimationFrame(() => frame.resolve());
+            return frame.promise;
+          };
+          while (task.readyState === PromiseOut.PENDING) {
+            await waitFrame();
+            const result = await controller.process(await toBlob());
+            if (result.length != 0) {
+              return result.map((it) => it.data);
+            }
+          }
+          return [];
+        })()
+      );
+    } catch (e) {
+      task.reject(e);
     } finally {
-      this._activity = false;
+      task.resolve([]);
     }
   }
 

@@ -8,11 +8,10 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
 
-fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("Scanning", tag, msg, err)
+val debugScanning = Debugger("Scanning")
 
 class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scanning") {
   init {
@@ -27,7 +26,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
         var rotation = 0;
         for (frame in ctx) {
           when (frame) {
-            is PureTextFrame -> rotation = frame.data.toInt();
+            is PureTextFrame -> rotation = frame.data.toFloatOrNull()?.toInt() ?: 0;
             is PureBinaryFrame -> {
               val result = scanningManager.recognize(
                 frame.data,
@@ -41,15 +40,17 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
       },
       // 处理二维码图像
       "/process" bind HttpMethod.Post by defineJsonResponse {
+        val rotation = request.queryOrNull("rotation")?.toFloatOrNull()?.toInt() ?: 0
         debugScanning(
           "/process",
-          " ${request.queryOrNull("rotation")?.toInt() ?: 0} ${request.body.contentLength}"
-        )
+        ) {
+          "rotation:$rotation imageSize:${request.body.contentLength}"
+        }
 
         val imgBitArray = request.body.toPureBinary()
         val result = scanningManager.recognize(
           imgBitArray,
-          request.queryOrNull("rotation")?.toInt() ?: 0
+          rotation
         )
         debugScanning("process", "result=> $result")
         return@defineJsonResponse result.toJsonElement()
