@@ -48,7 +48,9 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
           win.Render(
             modifier = Modifier
               .zIndex(winList.size + win.state.zIndex.toFloat())
-              .windowImeOutsetBounds(), maxWinWidth = maxWidth.value, maxWinHeight = maxHeight.value
+              .windowImeOutsetBounds(),
+            maxWinWidth = maxWidth.value,
+            maxWinHeight = maxHeight.value
           )
         }
       }

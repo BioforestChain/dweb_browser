@@ -345,7 +345,7 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
      */
     bottomHeight = if (canOverlayNavigationBar) max(
       // 这里默认使用 safeGestures ，因为它只包含底部导航栏的高度，是稳定的
-      // safeAreaInsetBottom, // android由于界面会被顶起，键盘并不需要计算高度，所以这个不需要
+      safeAreaInsetBottom, // android由于界面会被顶起，键盘并不需要计算高度，所以这个不需要
       bottomThemeHeight,
       windowFrameSize,
     ) else max(bottomThemeHeight, windowFrameSize) + safeAreaInsetBottom
@@ -372,8 +372,8 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
     )
     safeAreaInsets = Bounds.Zero.copy(bottom = safeAreaInsetBottom)
   } else {
-    borderRounded =
-      WindowPadding.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的物理圆角
+    // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的物理圆角
+    borderRounded = WindowPadding.CornerRadius.from(16)
     contentRounded = borderRounded / sqrt(2f)
     topHeight = max(limits.topBarBaseHeight, windowFrameSize)
     bottomHeight = max(bottomThemeHeight, windowFrameSize)

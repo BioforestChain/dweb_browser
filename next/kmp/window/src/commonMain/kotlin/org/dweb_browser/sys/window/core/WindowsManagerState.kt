@@ -92,7 +92,7 @@ class WindowsManagerState(
                 modifierOffsetY = 0f
                 keyboardInsetBottom = imeBounds.height - LocalWindowPadding.current.bottom
               } else {
-                modifierOffsetY = -LocalWindowPadding.current.bottom
+                modifierOffsetY = imeBounds.y - winOuterY
                 keyboardInsetBottom = 0f
               }
 //              val offsetY = winOuterY - imeBounds.y

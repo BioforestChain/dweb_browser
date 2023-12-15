@@ -15,11 +15,12 @@
       android:launchMode="singleTask"
       android:screenOrientation="portrait"
       android:theme="@style/Theme.dwebbrowser"
-      tools:ignore="LockedOrientationActivity" />
-    <!--      android:windowSoftInputMode="adjustResize"-->
+      tools:ignore="LockedOrientationActivity"
+      android:windowSoftInputMode="adjustNothing" />
     <activity
       android:name=".desk.TaskbarActivity"
       android:exported="true"
+      android:screenOrientation="portrait"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
 
     <activity

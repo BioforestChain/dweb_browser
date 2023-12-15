@@ -156,14 +156,10 @@ abstract class WindowController(
   fun isVisible() = state.visible
 
   val onVisible = createStateListener(WindowPropertyKeys.Visible, { visible }) {
-    debugWindow(
-      "emit onVisible", id
-    )
+    debugWindow("emit onVisible", id)
   }
   val onHidden = createStateListener(WindowPropertyKeys.Visible, { !visible }) {
-    debugWindow(
-      "emit onHidden", id
-    )
+    debugWindow("emit onHidden", id)
   }
 
   internal open suspend fun simpleToggleVisible(visible: Boolean? = null) {
