@@ -64,4 +64,6 @@ class JmmInstallerController(
   suspend fun closeSelf() {
     jmmNMM.getOrOpenMainWindow().closeRoot()
   }
+
+  suspend fun showToastText(message: String) = jmmController.showToastText(message)
 }

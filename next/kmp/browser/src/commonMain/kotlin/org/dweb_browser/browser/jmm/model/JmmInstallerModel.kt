@@ -5,6 +5,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.JmmStatus
@@ -49,6 +50,7 @@ class JmmInstallerModel(
 
   fun start() = controller.ioAsyncScope.launch {
     controller.start().falseAlso {
+      controller.showToastText(BrowserI18nResource.toast_message_download_download_fail.text)
       jmmHistoryMetadata.updateState(JmmStatus.Failed)
     }
   }

@@ -14,6 +14,7 @@ import org.dweb_browser.browser.web.model.WebLinkStore
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.core.std.http.HttpDwebServer
+import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
@@ -128,13 +129,12 @@ class BrowserController(
   suspend fun addUrlToDesktop(title: String, url: String, icon: String): Boolean {
     // 由于已经放弃了DataStore，所有这边改为直接走WebLinkStore
     val linkId = WebLinkManifest.createLinkId(url)
-    // val icons = icon?.toImageResource()?.let { listOf(it) } ?: emptyList()
+    val icons = listOf(ImageResource(src = icon))
     val webLinkManifest =
-      WebLinkManifest(id = linkId, title = title, url = url, icons = emptyList())
+      WebLinkManifest(id = linkId, title = title, url = url, icons = icons)
     // 先判断是否存在，如果存在就不重复执行
     if (webLinkStore.get(linkId) == null) {
       addWebLinkSignal.emit(webLinkManifest)
-      webLinkStore.set(linkId, webLinkManifest)
       return true
     }
     return false

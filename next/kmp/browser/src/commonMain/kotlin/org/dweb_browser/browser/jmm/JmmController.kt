@@ -9,6 +9,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
@@ -172,6 +173,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
                     jmmNMM.bootstrapContext.dns.install(JsMicroModule(jmmHistoryMetadata.metadata))
                     jmmHistoryMetadata.installComplete(store)
                   } else {
+                    showToastText(BrowserI18nResource.toast_message_download_unzip_fail.text)
                     jmmHistoryMetadata.installFail(store)
                   }
                   // 关闭watchProcess
@@ -277,6 +279,10 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       resolve = this.encodedPath.replace("metadata.json", bundlePath.substring(2))
     }
     this.resolvePath(resolve)
+  }
+
+  suspend fun showToastText(message: String) {
+    jmmNMM.nativeFetch("file://toast.sys.dweb/show?message=$message")
   }
 }
 
