@@ -42,6 +42,7 @@ class JmmNMM :
   }
 
   init {
+    dweb_deeplinks = listOf("dweb://install")
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service)
     /// 提供JsMicroModule的文件适配器
     /// 这个适配器不需要跟着bootstrap声明周期，只要存在JmmNMM模块，就能生效
@@ -101,7 +102,7 @@ class JmmNMM :
         val info = store.getApp(mmid) ?: return@defineBooleanResponse false
         jmmController.openInstallerView(info.installManifest, info.originUrl)
         true
-      })
+      }).cors()
 
     routes(
       /// 收到wid
@@ -164,7 +165,6 @@ class JmmNMM :
 class JmmGuiNMM : NativeMicroModule("gui.jmm.browser.dweb", "Js MicroModule Management") {
   init {
     short_name = "模块管理";
-    dweb_deeplinks = listOf("dweb://install")
     categories = listOf(MICRO_MODULE_CATEGORY.Application)
     icons = listOf(
       ImageResource(
