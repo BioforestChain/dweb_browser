@@ -114,6 +114,8 @@ abstract class IDWebView(initUrl: String?) {
 
   fun getUrl() = loadUrlTask.value.url
   fun hasUrl() = loadUrlTask.value.url.isBlank()
+  abstract suspend fun getOriginalUrl(): String
+
   abstract suspend fun getTitle(): String
   abstract suspend fun getIcon(): String
   abstract suspend fun destroy()

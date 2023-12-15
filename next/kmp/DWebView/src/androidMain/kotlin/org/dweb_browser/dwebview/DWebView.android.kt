@@ -67,6 +67,9 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   }
 
   override suspend fun resolveUrl(url: String) = engine.resolveUrl(url)
+  override suspend fun getOriginalUrl() = withMainContext {
+    engine.evaluateSyncJavascriptCode("javascript:window.location.href;")
+  }
 
 
   override suspend fun getTitle() = withMainContext {

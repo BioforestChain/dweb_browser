@@ -294,7 +294,12 @@ class DWebViewEngine(
       val response = remoteMM.nativeFetch(url)
       val contentType = response.headers.get(HttpHeaders.ContentType)
       withMainContext {
-        if (contentType?.startsWith("text/html") == true && !WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+        println("xxxxxx=> ${response.status}  ${response.headers.get(HttpHeaders.ContentType)} ")
+        println("xxxxxx=>${url} $contentType ${WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)} ${contentType?.startsWith("text/html") == true}")
+        if (contentType?.startsWith("text/html") == true && !WebViewFeature.isFeatureSupported(
+            WebViewFeature.DOCUMENT_START_SCRIPT
+          )
+        ) {
           val documentHtml = remoteMM.nativeFetch(url).body.toPureString()
           super.loadDataWithBaseURL(
             url,//document.baseURI
@@ -305,7 +310,6 @@ class DWebViewEngine(
           )
         }
       }
-
     }
   }
 

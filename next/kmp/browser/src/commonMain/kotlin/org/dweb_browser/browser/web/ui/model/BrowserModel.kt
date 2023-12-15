@@ -110,7 +110,6 @@ class BrowserViewModel(
 
   private fun getBrowserMainUrl() = browserServer.startResult.urlInfo.buildInternalUrl().build {
     resolvePath("/index.html")
-    parameters["api-base"] = browserServer.startResult.urlInfo.buildPublicUrl().toString()
   }
 
   private suspend fun focusBrowserView(view: BrowserWebView) {
@@ -308,7 +307,7 @@ class BrowserViewModel(
   suspend fun addUrlToDesktop(): Boolean {
     return currentBrowserBaseView.value?.let { browserWebView ->
       val webView = browserWebView.viewItem.webView
-      val url = webView.getUrl()
+      val url = webView.getOriginalUrl()
       addUrlToDesktop(
         title = webView.getTitle().ifEmpty { url }, link = url, iconString = webView.getIcon()
       )

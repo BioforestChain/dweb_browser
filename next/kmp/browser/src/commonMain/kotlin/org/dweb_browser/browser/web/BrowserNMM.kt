@@ -59,6 +59,11 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     onRenderer {
       browserController.renderBrowserWindow(wid)
     }
+    val openBrowser = defineEmptyResponse {
+      debugBrowser("do openinbrowser", request.href)
+      browserController.openBrowserView(url = request.query("url"))
+      openMainWindow()
+    }
 
     routes(
       "search" bindDwebDeeplink defineEmptyResponse {
@@ -66,11 +71,8 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
         browserController.openBrowserView(search = request.query("q"))
         openMainWindow()
       },
-      "openinbrowser" bindDwebDeeplink defineEmptyResponse {
-        debugBrowser("do openinbrowser", request.href)
-        browserController.openBrowserView(url = request.query("url"))
-        openMainWindow()
-      },
+      "openinbrowser" bindDwebDeeplink openBrowser,
+      "/openinbrowser" bind HttpMethod.Get by openBrowser,
       "/uninstall" bind HttpMethod.Get by defineBooleanResponse {
         debugBrowser("do uninstall", request.href)
         val mmid = request.query("app_id")

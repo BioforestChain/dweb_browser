@@ -126,12 +126,24 @@ class BrowserController(
     viewModel.openBrowserView(search, url)
   }
 
+  /**
+   * 浏览器添加webLink到桌面
+   */
   suspend fun addUrlToDesktop(title: String, url: String, icon: String): Boolean {
-    // 由于已经放弃了DataStore，所有这边改为直接走WebLinkStore
-    val linkId = WebLinkManifest.createLinkId(url)
-    val icons = listOf(ImageResource(src = icon))
+    // 处理weblink icon
+    var trimmedIcon = icon
+    if ((icon.first() == '\"' && icon.last() == '\"')) {
+      trimmedIcon = icon.substring(1, icon.length - 1)
+    }
+    val icons = ImageResource(trimmedIcon)
+
+    var trimmedUrl = url
+    if ((url.first() == '\"' && url.last() == '\"')) {
+      trimmedUrl = url.substring(1, url.length - 1)
+    }
+    val linkId = WebLinkManifest.createLinkId(trimmedUrl)
     val webLinkManifest =
-      WebLinkManifest(id = linkId, title = title, url = url, icons = icons)
+      WebLinkManifest(id = linkId, title = title, url = trimmedUrl, icons = listOf(icons))
     // 先判断是否存在，如果存在就不重复执行
     if (webLinkStore.get(linkId) == null) {
       addWebLinkSignal.emit(webLinkManifest)
