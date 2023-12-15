@@ -14,10 +14,6 @@ class BrowserArea: ObservableObject {
     @Published var frame: CGRect = .zero
 }
 
-class WebMonitor: ObservableObject{
-    @Published var loadingProgress: Double = 0
-}
-
 class SelectedTab: ObservableObject {
     @Published var curIndex: Int = 0
 }
