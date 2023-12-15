@@ -22,7 +22,8 @@ final class DwebBrowserHistoryStore: ObservableObject {
     private var off = 0
         
     func loadHistory() {
-        let historys: [String: [BrowserWebSiteInfo]] = service.loadHistorys() as! [String: [BrowserWebSiteInfo]]
+        guard let loadedHistorys = service.loadHistorys() else { return }
+        let historys: [String: [BrowserWebSiteInfo]] = loadedHistorys as! [String: [BrowserWebSiteInfo]]
         DispatchQueue.main.async { [weak self] in
             self?.sections = historys.keys.sorted().reversed().map { key in
                 let day = Int(key) ?? 0
