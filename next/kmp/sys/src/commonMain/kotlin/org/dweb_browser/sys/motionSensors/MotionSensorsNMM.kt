@@ -16,9 +16,9 @@ class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Se
     routes(
       // 获取加速计 (push模式)
       "/observe/accelerometer" byChannel { ctx ->
-        val interval = request.queryAsOrNull<Int>("interval")
+        val fps = request.queryAsOrNull<Int>("fps")
         val motionSensors = MotionSensorsApi(this@MotionSensorsNMM)
-        motionSensors.startAccelerometerListener(interval)
+        motionSensors.startAccelerometerListener(fps)
 
         motionSensors.onAccelerometerChanges {
           ctx.sendJsonLine(it)
@@ -31,9 +31,9 @@ class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Se
       // 获取陀螺仪 (push模式)
       "/observe/gyroscope" byChannel { ctx ->
         val motionSensors = MotionSensorsApi(this@MotionSensorsNMM)
-        val interval = request.queryAsOrNull<Int>("interval")
+        val fps = request.queryAsOrNull<Int>("fps")
 
-        motionSensors.startGyroscopeListener(interval)
+        motionSensors.startGyroscopeListener(fps)
         motionSensors.onGyroscopeChanges {
           ctx.sendJsonLine(it)
         }

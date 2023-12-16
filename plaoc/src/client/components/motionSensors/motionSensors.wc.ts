@@ -4,15 +4,15 @@ export class HTMLDwebMotionSensorsElement extends HTMLElement {
   static readonly tagName = "dweb-motion-sensors";
   readonly plugin = motionSensorsPlugin;
 
-  startAccelerometer(interval?: number) {
-    motionSensorsPlugin.startAccelerometer(interval);
+  startAccelerometer(fps?: number) {
+    motionSensorsPlugin.startAccelerometer(fps);
     motionSensorsPlugin.onAccelerometer((axis) => {
       this.dispatchEvent(new CustomEvent("readAccelerometer", { detail: axis }));
     });
   }
 
-  startGyroscope(interval?: number) {
-    motionSensorsPlugin.startGyroscope(interval);
+  startGyroscope(fps?: number) {
+    motionSensorsPlugin.startGyroscope(fps);
     motionSensorsPlugin.onGyroscope((axis) => {
       this.dispatchEvent(new CustomEvent("readGyroscope", { detail: axis }));
     });

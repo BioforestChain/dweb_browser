@@ -21,7 +21,7 @@ actual class MotionSensorsApi actual constructor(mm: NativeMicroModule) : Sensor
   private val mainScope = MainScope()
   private val sensorsRegisterSet = mutableSetOf<Int>()
 
-  actual fun startAccelerometerListener(interval: Int?): Boolean {
+  actual fun startAccelerometerListener(fps: Int?): Boolean {
     if (sensorsRegisterSet.contains(Sensor.TYPE_ACCELEROMETER)) {
       return true
     }
@@ -31,13 +31,14 @@ actual class MotionSensorsApi actual constructor(mm: NativeMicroModule) : Sensor
     return sensorManager.registerListener(
       this,
       accelerometer,
-      interval ?: SensorManager.SENSOR_DELAY_NORMAL
+      // 单位：微秒
+      if (fps != null) 1_000000 / fps else SensorManager.SENSOR_DELAY_NORMAL
     ).also {
       sensorsRegisterSet.add(Sensor.TYPE_ACCELEROMETER)
     }
   }
 
-  actual fun startGyroscopeListener(interval: Int?): Boolean {
+  actual fun startGyroscopeListener(fps: Int?): Boolean {
     if (sensorsRegisterSet.contains(Sensor.TYPE_GYROSCOPE)) {
       return true
     }
@@ -47,7 +48,8 @@ actual class MotionSensorsApi actual constructor(mm: NativeMicroModule) : Sensor
     return sensorManager.registerListener(
       this,
       gyroscope,
-      interval ?: SensorManager.SENSOR_DELAY_NORMAL
+      // 单位：微秒
+      if (fps != null) 1_000000 / fps else SensorManager.SENSOR_DELAY_NORMAL
     ).also {
       sensorsRegisterSet.add(Sensor.TYPE_GYROSCOPE)
     }

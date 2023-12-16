@@ -17,7 +17,7 @@ actual class MotionSensorsApi actual constructor(mm: NativeMicroModule) {
   private val mainScope = MainScope()
 
   @OptIn(ExperimentalForeignApi::class)
-  actual fun startAccelerometerListener(interval: Int?) : Boolean {
+  actual fun startAccelerometerListener(fps: Int?): Boolean {
     if (!motionManager.isAccelerometerAvailable()) {
 //      throw Exception("设备硬件不支持加速计传感器")
       println("设备硬件不支持加速计传感器")
@@ -25,8 +25,10 @@ actual class MotionSensorsApi actual constructor(mm: NativeMicroModule) {
     }
 
     if (!motionManager.isAccelerometerActive()) {
-      motionManager.setAccelerometerUpdateInterval(interval.takeIf { it != null }?.toDouble() ?: 0.025)
-      motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.currentQueue!!) { accelerometerData, error ->
+      motionManager.setAccelerometerUpdateInterval(
+        if (fps != null) (1 / fps).toDouble() else 0.025
+      )
+      motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue) { accelerometerData, error ->
         accelerometerData?.acceleration?.useContents {
           mainScope.launch(mainAsyncExceptionHandler) {
             accelerometerSignal.emit(Axis(x, y, z))
@@ -41,7 +43,7 @@ actual class MotionSensorsApi actual constructor(mm: NativeMicroModule) {
   actual val onAccelerometerChanges = accelerometerSignal.toListener()
 
   @OptIn(ExperimentalForeignApi::class)
-  actual fun startGyroscopeListener(interval: Int?) : Boolean {
+  actual fun startGyroscopeListener(fps: Int?): Boolean {
     if (!motionManager.isGyroAvailable()) {
 //      throw Exception("设备硬件不支持陀螺仪传感器")
       println("设备硬件不支持陀螺仪传感器")
@@ -49,8 +51,10 @@ actual class MotionSensorsApi actual constructor(mm: NativeMicroModule) {
     }
 
     if (!motionManager.isGyroActive()) {
-      motionManager.setAccelerometerUpdateInterval(interval.takeIf { it != null }?.toDouble() ?: 0.025)
-      motionManager.startGyroUpdatesToQueue(NSOperationQueue.currentQueue!!) { gyroData, error ->
+      motionManager.setGyroUpdateInterval(
+        if (fps != null) (1 / fps).toDouble() else 0.025
+      )
+      motionManager.startGyroUpdatesToQueue(NSOperationQueue.mainQueue) { gyroData, error ->
         gyroData?.rotationRate?.useContents {
           mainScope.launch(mainAsyncExceptionHandler) {
             gyroscopeSignal.emit(Axis(x, y, z))

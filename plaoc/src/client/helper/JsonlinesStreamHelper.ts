@@ -25,10 +25,10 @@ export class JsonlinesStreamResponse<RAW, STATE> {
     const ws = new WebSocket((await this.buildWsUrl(url)) ?? url);
     this._ws = ws;
     ws.binaryType = "arraybuffer";
-    const streamout = new ReadableStreamOut();
+    const streamout = new ReadableStreamOut<string>();
 
     ws.onmessage = (event) => {
-      const data = event.data;
+      const data = event.data as string;
       streamout.controller.enqueue(data);
     };
     ws.onclose = () => {
@@ -39,7 +39,7 @@ export class JsonlinesStreamResponse<RAW, STATE> {
     };
 
     for await (const state of streamRead(
-      streamout.stream.pipeThrough(new TextDecoderStream()).pipeThrough(new JsonlinesStream(this.coder.decode)),
+      streamout.stream.pipeThrough(new JsonlinesStream(this.coder.decode)),
       options
     )) {
       yield state;

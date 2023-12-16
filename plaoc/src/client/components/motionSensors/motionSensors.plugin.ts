@@ -24,25 +24,26 @@ export class MotionSensorsPlugin extends BasePlugin {
 
   /**
    * 启动加速计传感器
-   * @param interval 采样时间间隔
+   * @param fps 每秒帧率
    */
   @bindThis
-  async startAccelerometer(interval?: number) {
+  async startAccelerometer(fps?: number) {
     for await (const data of this.response.jsonlines("/observe/accelerometer", {
-      searchParams: new URLSearchParams(interval !== undefined ? "?interval=" + interval : ""),
+      searchParams: new URLSearchParams(fps !== undefined ? "?fps=" + fps : ""),
     })) {
+      console.log(data);
       this.accelerometerSignal.emit(data);
     }
   }
 
   /**
    * 启动陀螺仪传感器
-   * @param interval 采样时间间隔
+   * @param fps 每秒帧率
    */
   @bindThis
-  async startGyroscope(interval?: number) {
+  async startGyroscope(fps?: number) {
     for await (const data of this.response.jsonlines("/observe/gyroscope", {
-      searchParams: new URLSearchParams(interval !== undefined ? "?interval=" + interval : ""),
+      searchParams: new URLSearchParams(fps !== undefined ? "?fps=" + fps : ""),
     })) {
       this.gyroscopeSignal.emit(data);
     }

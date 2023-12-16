@@ -17,7 +17,7 @@ onMounted(() => {
 
 const startAccelerometer = defineLogAction(
   async () => {
-    motionSensors.startAccelerometer(1000);
+    motionSensors.startAccelerometer(1);
     console.info("启动加速计传感器");
     motionSensors.addEventListener("readAccelerometer", (event: Event) => {
       const e = event as CustomEvent<$Axis>;
@@ -29,7 +29,7 @@ const startAccelerometer = defineLogAction(
 
 const startGyroscope = defineLogAction(
   async () => {
-    motionSensors.startGyroscope();
+    motionSensors.startGyroscope(1);
     console.info("启动陀螺仪传感器");
     motionSensors.addEventListener("readGyroscope", (event: Event) => {
       const e = event as CustomEvent<$Axis>;
