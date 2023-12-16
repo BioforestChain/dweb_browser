@@ -108,7 +108,7 @@ export class JsProcessNMM extends NativeMicroModule {
         if (pathname.endsWith("/bootstrap.js")) {
           return new Response(await this.JS_PROCESS_WORKER_CODE(), {
             headers: {
-              "Content-Type": "text/javascript,charset=utf8",
+              "Content-Type": "text/javascript;charset=utf8",
             },
             status: 200,
           });

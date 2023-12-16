@@ -175,7 +175,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
                 headers.has("Content-Type") === false ||
                 headers.get("Content-Type")!.startsWith("application/javascript")
               ) {
-                headers.init("Content-Type", "application/javascript,charset=utf8");
+                headers.init("Content-Type", "application/javascript;charset=utf8");
                 return JSON.stringify(bodyInit);
               }
               // 否则直接处理成字符串
@@ -212,7 +212,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
             res = IpcResponse.fromJson(
               request.req_id,
               err_code,
-              new IpcHeaders().init("Content-Type", "text/html,charset=utf8"),
+              new IpcHeaders().init("Content-Type", "text/html;charset=utf8"),
               { message: err_message, detail: err_detail },
               ipc
             );
@@ -220,7 +220,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
             res = IpcResponse.fromText(
               request.req_id,
               err_code,
-              new IpcHeaders().init("Content-Type", "text/html,charset=utf8"),
+              new IpcHeaders().init("Content-Type", "text/html;charset=utf8"),
               err instanceof Error ? `<h1>${err.message}</h1><hr/><pre>${err.stack}</pre>` : String(err),
               ipc
             );
