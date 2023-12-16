@@ -57,13 +57,13 @@ Object.defineProperty(globalThis, "WebSocket", {
                 break;
               case "message-binary":
                 const message_data_raw = base64ToArrayBuffer(data[2]);
-                const mesasge_data =
+                const message_data =
                   this.binaryType === "arraybuffer"
                     ? message_data_raw.buffer
                     : new Blob([message_data_raw]);
                 this.dispatchEvent(
                   new MessageEvent("message", {
-                    data: mesasge_data,
+                    data: message_data,
                   })
                 );
                 break;
@@ -92,7 +92,7 @@ Object.defineProperty(globalThis, "WebSocket", {
         }
       }
       get readyState() {
-        return this.#readyState ?? this.#ws.readyState;
+        return this.#ws?.readyState ?? this.#readyState;
       }
       get extensions() {
         return "";
@@ -100,10 +100,50 @@ Object.defineProperty(globalThis, "WebSocket", {
       get bufferedAmount() {
         return this.#ws?.bufferedAmount ?? 0;
       }
-      onclose = null;
-      onerror = null;
-      onmessage = null;
-      onopen = null;
+      #onclose = null;
+      get onclose() {
+        return this.#ws ? this.#ws.onclose : this.#onclose ?? null;
+      }
+      set onclose(v) {
+        if (this.#ws) {
+          this.#ws.onclose = v;
+        } else {
+          this.#onclose = v;
+        }
+      }
+      #onerror = null;
+      get onerror() {
+        return this.#ws ? this.#ws.onerror : this.#onerror ?? null;
+      }
+      set onerror(v) {
+        if (this.#ws) {
+          this.#ws.onerror = v;
+        } else {
+          this.#onerror = v;
+        }
+      }
+      #onmessage = null;
+      get onmessage() {
+        return this.#ws ? this.#ws.onmessage : this.#onmessage ?? null;
+      }
+      set onmessage(v) {
+        if (this.#ws) {
+          this.#ws.onmessage = v;
+        } else {
+          this.#onmessage = v;
+        }
+      }
+      #onopen = null;
+      get onopen() {
+        return this.#ws ? this.#ws.onopen : this.#onopen ?? null;
+      }
+      set onopen(v) {
+        if (this.#ws) {
+          this.#ws.onopen = v;
+        } else {
+          this.#onopen = v;
+        }
+      }
       dispatchEvent(event) {
         if (this.#ws) {
           this.#ws.dispatchEvent(event);
@@ -172,6 +212,7 @@ Object.defineProperty(globalThis, "WebSocket", {
       }
     })(WebSocket),
 });
+
 """;
 
 object WebSocketProxy {
