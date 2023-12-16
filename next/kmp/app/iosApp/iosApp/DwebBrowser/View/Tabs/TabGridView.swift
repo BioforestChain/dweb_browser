@@ -8,6 +8,7 @@
 import Combine
 import SwiftUI
 import DwebPlatformIosKit
+import DwebShared
 
 struct CellFrameInfo: Equatable {
     var index: Int
@@ -104,11 +105,7 @@ struct TabGridView: View {
                 .onChange(of: deleteCache.cacheId) { _, operateId in
                     guard let cache = webcacheStore.caches.filter({ $0.id == operateId }).first else { return }
                     guard let deleteIndex = webcacheStore.index(of: cache) else { return }
-#if TestOriginWebView
-#else
-                    let webview = webcacheStore.webWrappers[deleteIndex].webView as! DwebWKWebView
-                    webview.removeJSHandler()
-#endif
+
                     if deleteIndex <= selectedTab.curIndex {
                         if selectedTab.curIndex > 0 {
                             selectedTab.curIndex -= 1
@@ -116,6 +113,10 @@ struct TabGridView: View {
                     }
                     selectedCellFrame = cellFrame(at: selectedTab.curIndex)
 
+                    
+                    let webview = webcacheStore.webWrapper(at: deleteIndex).webView
+                    WKWebViewBridge.companion.shared.webviewDestroy(webview:webview)
+                    
                     if webcacheStore.cacheCount == 1 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                             selectedTab.curIndex = 0

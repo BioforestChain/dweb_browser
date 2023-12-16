@@ -4,6 +4,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.platform.ios.DwebWKWebView
 import platform.UIKit.UIScreen
 import platform.WebKit.WKWebViewConfiguration
 
@@ -22,6 +23,12 @@ class WKWebViewBridge {
       DWebViewOptions(),
       WKWebViewConfiguration()
     )
+
+  @OptIn(ExperimentalForeignApi::class)
+  fun webviewDestroy(webview: DwebWKWebView) {
+    require(webview is DWebViewEngine)
+    webview.destroy()
+  }
 }
 
 

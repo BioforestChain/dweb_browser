@@ -16,7 +16,6 @@ import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.NativeBackHandler
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
-import platform.darwin.DISPATCH_DATA_DESTRUCTOR_FREE
 
 actual fun ImageBitmap.toImageResource(): ImageResource? = null
 actual fun getImageResourceRootPath(): String = ""
@@ -39,7 +38,7 @@ actual fun CommonBrowserView(
 
   browserIosService.browserViewModel = viewModel
 
-  var iOSView = remember {
+  val iOSView = remember {
     browserIosImp.createIosMainView()
   }
 
@@ -88,4 +87,3 @@ actual fun CommonBrowserView(
     iOSView.WindowFrameStyleEffect()
   }
 }
-

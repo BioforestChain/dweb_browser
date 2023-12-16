@@ -487,4 +487,11 @@ class DWebViewEngine(
     }
 
   //#endregion
+
+  fun destroy() {
+    configuration.userContentController.apply {
+      removeAllUserScripts()
+      removeAllScriptMessageHandlers()
+    }
+  }
 }
