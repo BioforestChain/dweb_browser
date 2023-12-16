@@ -83,7 +83,7 @@ class NativeViewController private constructor() {
 
     coroutineScope {
       val prop = updateProp()
-      if (pureViewController.isInit) {
+      if (pureViewController.isAdded) {
         updateHook(prop)
       } else {
         /// 设置init监听，等待vc构建完成
@@ -96,7 +96,7 @@ class NativeViewController private constructor() {
   }
 
   suspend fun remove(pureViewController: PureViewController) = vscLock.withLock {
-    if (pureViewController.isInit) {
+    if (pureViewController.isAdded) {
       removeHook(pureViewController.vcId)
     }
   }

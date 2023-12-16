@@ -68,10 +68,11 @@ fun RenderWindowInNewLayer(
     nativeScope.launch {
       nativeViewController.addOrUpdate(pvc, zIndex)
     }
+    val off = win.onClose {
+      nativeViewController.remove(pvc)
+    }
     onDispose {
-      nativeScope.launch { // win.onClose
-        nativeViewController.remove(pvc)
-      }
+      off()
     }
   }
   /// 切换zIndex

@@ -39,30 +39,29 @@ class PureViewController(
   var prop = DwebUIViewControllerProperty(vcIdAcc++, -1, false)
   val vcId get() = prop.vcId
 
-  private var _isInit = false
-  var isInit
-    get() = _isInit
-    private set(value) {
-      _isInit = value
-    }
+  var isAdded = false
+    private set
 
   init {
     nativeViewController.onInitSignal.listen {
       if (it == vcId) {
         offListener()
-        isInit = true
+        isAdded = true
         initDeferred.complete(Unit)
       }
     }
     nativeViewController.onDestroySignal.listen {
       if (it == vcId) {
         destroySignal.emit()
+        isAdded = false
         lifecycleScope.cancel(CancellationException("viewController destroyed"))
+        lifecycleScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
       }
     }
   }
 
-  override val lifecycleScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
+  override var lifecycleScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
+    private set
 
 
   private val initDeferred = CompletableDeferred<Unit>()
