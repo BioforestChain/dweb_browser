@@ -73,6 +73,9 @@ export class BarcodeScannerPlugin extends BasePlugin {
         lock.resolve(JSON.parse(data));
       }
     };
+    ws.onclose = () => {
+      controller.stop();
+    };
     const rotation_ab = new ArrayBuffer(4);
     const rotation_i32 = new Int32Array(rotation_ab);
     const locks: PromiseOut<BarcodeResult[]>[] = [];
@@ -88,7 +91,9 @@ export class BarcodeScannerPlugin extends BasePlugin {
         return task.promise;
       },
       stop() {
-        ws.close();
+        if (ws.readyState < WebSocket.CLOSING) {
+          ws.close();
+        }
         for (const lock of locks) {
           lock.reject("stop");
         }

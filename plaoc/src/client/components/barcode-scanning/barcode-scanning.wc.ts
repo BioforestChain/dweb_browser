@@ -85,7 +85,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       this._activity.resolve([]);
       this._activity = undefined;
     }
-    this.stopCamera("user stop");
+    this.stopCamera();
   }
 
   // deno-lint-ignore no-explicit-any
@@ -95,7 +95,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     }
     this._stop();
   }
-  async taskPhoto(rotation: number, formats: SupportedFormat) {
+  taskPhoto(rotation: number, formats: SupportedFormat) {
     if (this._activity === undefined) {
       this._taskPhoto((this._activity = new PromiseOut()), rotation, formats);
     } else {

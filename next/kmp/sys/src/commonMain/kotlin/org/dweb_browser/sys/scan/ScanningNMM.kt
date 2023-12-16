@@ -25,22 +25,23 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
       "/process" byChannel { ctx ->
         var rotation = 0;
         for (frame in ctx) {
-          try {
-            when (frame) {
-              is PureTextFrame -> rotation = frame.data.toFloatOrNull()?.toInt() ?: 0;
-              is PureBinaryFrame -> {
-                val result = scanningManager.recognize(
+
+          when (frame) {
+            is PureTextFrame -> rotation = frame.data.toFloatOrNull()?.toInt() ?: 0;
+            is PureBinaryFrame -> {
+              val result = try {
+                scanningManager.recognize(
                   frame.data,
                   rotation
                 );
-                // 不论 result 是否为空数组，都进行响应
-                ctx.sendJson(result)
+              } catch (e: Throwable) {
+                debugScanning("/process byChannel", e.stackTraceToString())
+                emptyList()
               }
+              // 不论 result 是否为空数组，都进行响应
+              ctx.sendJson(result)
             }
-          } catch (e: Throwable) {
-            e.printStackTrace()
           }
-
         }
       },
       // 处理二维码图像
@@ -53,10 +54,15 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
         }
 
         val imgBitArray = request.body.toPureBinary()
-        val result = scanningManager.recognize(
-          imgBitArray,
-          rotation
-        )
+        val result = try {
+          scanningManager.recognize(
+            imgBitArray,
+            rotation
+          )
+        } catch (e: Throwable) {
+          debugScanning("/process byPost", e.stackTraceToString())
+          emptyList()
+        }
         debugScanning("process", "result=> $result")
         return@defineJsonResponse result.toJsonElement()
       },
