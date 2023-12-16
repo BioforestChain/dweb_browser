@@ -172,7 +172,7 @@ class DWebView(
     script: String,
     afterEval: suspend () -> Unit
   ) = withMainContext {
-    engine.callAsyncJavaScript<String>(
+    engine.awaitAsyncJavaScript<String>(
       "return JSON.stringify(await($script))??'undefined'",
       afterEval = afterEval
     )
@@ -189,7 +189,7 @@ class DWebView(
         put(NSString.create(string = "data"), NSString.create(string = data))
         put(NSString.create(string = "ports"), NSArray.create(portIdList))
       }
-      engine.callAsyncJavaScript<Unit>(
+      engine.awaitAsyncJavaScript<Unit>(
         "nativeWindowPostMessage(data,ports)",
         arguments.toMap(),
         null,
@@ -209,7 +209,7 @@ class DWebView(
         put(NSString.create(string = "data"), NSString.create(string = data.toUtf8()))
         put(NSString.create(string = "ports"), NSArray.create(portIdList))
       }
-      engine.callAsyncJavaScript<Unit>(
+      engine.awaitAsyncJavaScript<Unit>(
         "nativeWindowPostMessage(data,ports)",
         arguments.toMap(),
         null,

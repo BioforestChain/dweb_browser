@@ -39,7 +39,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
         put(NSString.create(string = "portId"), NSNumber(portId))
       }
 
-      webview.engine.callAsyncJavaScript<Unit>(
+      webview.engine.awaitAsyncJavaScript<Unit>(
         "nativeClose(portId)",
         arguments.toMap(),
         null,

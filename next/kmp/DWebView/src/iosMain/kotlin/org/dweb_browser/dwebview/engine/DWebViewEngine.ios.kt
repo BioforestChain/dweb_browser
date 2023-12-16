@@ -285,7 +285,7 @@ class DWebViewEngine(
     return deferred
   }
 
-  suspend fun <T> callAsyncJavaScript(
+  suspend fun <T> awaitAsyncJavaScript(
     functionBody: String,
     arguments: Map<Any?, *>? = null,
     inFrame: WKFrameInfo? = null,
