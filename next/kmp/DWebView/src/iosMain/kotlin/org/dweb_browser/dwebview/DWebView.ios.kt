@@ -55,6 +55,12 @@ class DWebView(
   engine: DWebViewEngine,
   initUrl: String? = null
 ) : IDWebView(initUrl ?: engine.options.url) {
+  init {
+    engine.remoteMM.onAfterShutdown {
+      destroy()
+    }
+  }
+
   private var _engine: DWebViewEngine? = engine
   internal val engine get() = _engine ?: throw NullPointerException("dwebview already been destroy")
   override val scope get() = engine.ioScope
@@ -105,13 +111,15 @@ class DWebView(
     }
     _destroyed = true
     debugDWebView("DESTROY")
-    loadUrl("about:blank", true)
+//    loadUrl("about:blank", true)
     _destroySignal.emitAndClear(Unit)
     withMainContext {
-      engine.mainScope.cancel(null)
+      engine.destroy()
       engine.navigationDelegate = null
       engine.removeFromSuperview()
       engine.webViewWebContentProcessDidTerminate(webView = engine)
+      engine.mainScope.cancel(null)
+      engine.ioScope.cancel(null)
       _engine = null
       kotlin.native.runtime.GC.collect()
     }

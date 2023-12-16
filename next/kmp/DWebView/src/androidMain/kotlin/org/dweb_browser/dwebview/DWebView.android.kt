@@ -51,6 +51,12 @@ internal fun IDWebView.Companion.create(engine: DWebViewEngine, initUrl: String?
   DWebView(engine, initUrl)
 
 class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : IDWebView(initUrl) {
+  init {
+    engine.remoteMM.onAfterShutdown {
+      destroy()
+    }
+  }
+
   override val scope get() = engine.ioScope
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
@@ -146,14 +152,14 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   override suspend fun canGoForward() = withMainContext { engine.canGoForward() }
 
-/*  override suspend fun goBack() = withMainContext {
-    if (engine.canGoBack()) {
-      engine.goBack()
-      true// TODO 能否有goBack钩子？
-    } else {
-      false
-    }
-  }*/
+  /*  override suspend fun goBack() = withMainContext {
+      if (engine.canGoBack()) {
+        engine.goBack()
+        true// TODO 能否有goBack钩子？
+      } else {
+        false
+      }
+    }*/
 
   override suspend fun goForward() = withMainContext {
     if (engine.canGoForward()) {
@@ -171,13 +177,22 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   @SuppressLint("RequiresFeature")
   override suspend fun postMessage(data: String, ports: List<IWebMessagePort>) = withMainContext {
-    WebViewCompat.postWebMessage(engine, WebMessageCompat(data, ports.map { it.into() }.toTypedArray()), Uri.EMPTY)
+    WebViewCompat.postWebMessage(
+      engine,
+      WebMessageCompat(data, ports.map { it.into() }.toTypedArray()),
+      Uri.EMPTY
+    )
   }
 
   @SuppressLint("RequiresFeature")
-  override suspend fun postMessage(data: ByteArray, ports: List<IWebMessagePort>) = withMainContext {
-    WebViewCompat.postWebMessage(engine, WebMessageCompat(data, ports.map { it.into() }.toTypedArray()), Uri.EMPTY)
-  }
+  override suspend fun postMessage(data: ByteArray, ports: List<IWebMessagePort>) =
+    withMainContext {
+      WebViewCompat.postWebMessage(
+        engine,
+        WebMessageCompat(data, ports.map { it.into() }.toTypedArray()),
+        Uri.EMPTY
+      )
+    }
 
   val contentScale = mutableFloatStateOf(1f)
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) =
