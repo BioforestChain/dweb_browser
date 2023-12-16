@@ -24,11 +24,11 @@ import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.writeAvailable
 import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureBinaryBody
-import org.dweb_browser.core.http.PureEmptyBody
-import org.dweb_browser.core.http.PureServerRequest
 import org.dweb_browser.core.http.PureClientRequest
+import org.dweb_browser.core.http.PureEmptyBody
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.core.http.PureServerRequest
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.ipc.helper.DEFAULT_BUFFER_SIZE
@@ -37,13 +37,13 @@ import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.ipc.helper.debugStream
 import org.dweb_browser.helper.ByteReadChannelDelegate
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.consumeEachArrayRange
-import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.readByteArray
 
-fun debugHelper(tag: String, msg: Any = "", err: Throwable? = null) =
-  printDebug("helper", tag, msg, err)
+val debugHelper = Debugger("helper")
+val debugKtor = Debugger("ktor")
 
 fun ApplicationRequest.asPureRequest(): PureServerRequest {
   val ipcMethod = IpcMethod.from(httpMethod)
@@ -67,7 +67,12 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
   for ((key, value) in response.headers.toHttpHeaders()) {
     when (key) {
       "Content-Type" -> {
-        contentType = ContentType.parse(value)
+        contentType = try {
+          ContentType.parse(value)
+        } catch (e: Throwable) {
+          debugKtor("fromPureResponse", "ContentType.parse($value)", e)
+          null
+        }
         continue
       }
 
