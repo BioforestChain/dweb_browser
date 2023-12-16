@@ -183,6 +183,17 @@ class Debugger(val scope: String) {
     printDebug(scope, tag, msg, err)
   }
 
+  inline operator fun invoke(tag: String, err: Throwable?, msgGetter: () -> Any?) {
+    if (isScopeEnableDebug(scope)) {
+      val msg = try {
+        msgGetter()
+      } catch (e: Throwable) {
+        e
+      }
+      printDebug(scope, tag, msg, err)
+    }
+  }
+
   inline operator fun invoke(tag: String, msgGetter: () -> Any?) {
     if (isScopeEnableDebug(scope)) {
       var error: Throwable? = null

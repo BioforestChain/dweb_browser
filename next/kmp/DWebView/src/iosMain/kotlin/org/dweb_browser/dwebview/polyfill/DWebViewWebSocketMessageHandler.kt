@@ -73,7 +73,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
     val message = didReceiveScriptMessage.body as NSArray
     val wsId = (message.objectAtIndex(0u) as NSNumber).intValue
     val cmd = (message.objectAtIndex(1u) as NSString).toKString()
-    debugIosWebSocket("didReceiveScriptMessage","wsId=$wsId cmd=$cmd message=$message")
+    debugIosWebSocket("didReceiveScriptMessage", "wsId=$wsId cmd=$cmd message=$message")
 
     when (cmd) {
       "connect" ->
@@ -91,7 +91,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                 if (!opened.isCompleted) {
                   opened.join()
                 }
-                debugIosWebSocket("incoming","wsId=$wsId frame=$frame")
+                debugIosWebSocket("incoming", "wsId=$wsId frame=$frame")
 
                 when (frame.frameType) {
                   FrameType.BINARY -> finBinary.append(frame.data, frame.fin)?.also {
@@ -110,10 +110,21 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                 }
               }
               sendClose(wsId, null, null)
-              debugIosWebSocket("ws-close","wsId=$wsId")
+              debugIosWebSocket("ws-close", "wsId=$wsId")
             }
           } catch (e: Throwable) {
             sendError(wsId, e)
+            val foundCode = e.message?.let { msg -> Regex("/\\d+/").find(msg)?.value?.toShort() }
+              ?.let { code -> CloseReason.Codes.byCode(code) } ?: CloseReason.Codes.NORMAL
+            val foundReason =
+              e.message?.let { msg -> Regex("\"(.+)\"").find(msg)?.groupValues?.last() }
+            debugIosWebSocket(
+              "connect-catch",
+              e
+            ) {
+              "wsId=$wsId foundCode=${foundCode} foundReason=${foundReason})"
+            }
+            sendClose(wsId, foundCode.code, foundReason ?: foundCode.name)
           }
           wsMap.remove(wsId)
         }
