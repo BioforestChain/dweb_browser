@@ -4,6 +4,7 @@ import okio.Path.Companion.toPath
 import okio.buffer
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.helper.SystemFileSystem
+import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.toByteReadChannel
 
 actual fun loadByteChannelByPath(
@@ -11,7 +12,7 @@ actual fun loadByteChannelByPath(
 ): PureResponse {
   val fullFilePath = root + "/" + filePath.trimStart('/')
   return try {
-    context.returnFile(SystemFileSystem.source(fullFilePath.toPath()).buffer().toByteReadChannel())
+    context.returnFile(SystemFileSystem.source(fullFilePath.decodeURIComponent().toPath()).buffer().toByteReadChannel())
   } catch (e: Throwable) {
     context.returnNoFound(e.message)
   }
