@@ -66,7 +66,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
         scanningManager.stop()
         return@defineBooleanResponse true
       },
-    )
+    ).cors()
   }
 
   override suspend fun _shutdown() {
