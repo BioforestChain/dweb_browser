@@ -14,6 +14,10 @@ class BrowserArea: ObservableObject {
     @Published var frame: CGRect = .zero
 }
 
+class WebMonitor: ObservableObject{
+    @Published var loadingProgress: Double = 0
+}
+
 class SelectedTab: ObservableObject {
     @Published var curIndex: Int = 0
 }
@@ -47,10 +51,10 @@ class AddressBarState: ObservableObject {
 
 class ToolBarState: ObservableObject {
     @Published var shouldExpand = true
-    @Published var canGoBack = false
-    @Published var canGoForward = false
-    @Published var goBackTapped = false
-    @Published var goForwardTapped = false
+//    @Published var canGoBack = false
+//    @Published var canGoForward = false
+//    @Published var goBackTapped = false
+//    @Published var goForwardTapped = false
     @Published var createTabTapped = false
     @Published var showMoreMenu = false
     @Published var creatingDesktopLink = false

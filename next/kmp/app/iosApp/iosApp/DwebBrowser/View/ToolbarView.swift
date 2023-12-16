@@ -159,11 +159,11 @@ struct ToolbarView: View {
         }
     }
 
-    func tabIndexChanged(to index: Int) {
-        let currentWrapper = webcacheStore.webWrapper(at: index)
-        toolbarState.canGoBack = currentWrapper.canGoBack
-        toolbarState.canGoForward = currentWrapper.canGoForward
-    }
+//    func tabIndexChanged(to index: Int) {
+//        let currentWrapper = webcacheStore.webWrapper(at: index)
+//        toolbarState.canGoBack = currentWrapper.canGoBack
+//        toolbarState.canGoForward = currentWrapper.canGoForward
+//    }
 }
 
 let toolItemMinWidth = 14.0
