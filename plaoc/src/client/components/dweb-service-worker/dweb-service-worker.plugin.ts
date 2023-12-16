@@ -61,7 +61,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
           mmid: mmid,
         },
       });
-      if (res.ok) {
+      if (res.ok && (await res.json())) {
         return { success: true, message: "true" };
       }
       return { success: false, message: "false" };
