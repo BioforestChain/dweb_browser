@@ -40,6 +40,7 @@ import org.dweb_browser.helper.platform.ios.DwebHelper
 import org.dweb_browser.helper.platform.ios.DwebWKWebView
 import org.dweb_browser.helper.toIosUIEdgeInsets
 import org.dweb_browser.helper.withMainContext
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSBundle
 import platform.Foundation.NSError
@@ -78,7 +79,7 @@ import platform.WebKit.javaScriptEnabled
 private val dwebHelper = DwebHelper()
 
 @Suppress("CONFLICTING_OVERLOADS")
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalResourceApi::class)
 class DWebViewEngine(
   frame: CValue<CGRect>,
   val remoteMM: MicroModule,
@@ -225,11 +226,13 @@ class DWebViewEngine(
           WebSocketProxy.getPolyfillScript(),
           WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
           false,
-//          DWebViewWebMessage.webMessagePortContentWorld,
         )
       )
-      addScriptMessageHandler(DWebViewWebSocketMessageHandler(this@DWebViewEngine), "websocket")
-
+      addScriptMessageHandlerWithReply(
+        scriptMessageHandlerWithReply = DWebViewWebSocketMessageHandler(this@DWebViewEngine),
+        contentWorld = WKContentWorld.pageWorld,
+        name = "websocket"
+      )
     }
 
     // 初始化设置 userAgent
@@ -244,11 +247,13 @@ class DWebViewEngine(
     // 强制透明
     setOpaque(false)
     // 设置默认背景
-    addDocumentStartJavaScript("""
+    addDocumentStartJavaScript(
+      """
       const sheet = new CSSStyleSheet();
       sheet.replaceSync(":root { background:#fff;color:#000; } @media (prefers-color-scheme: dark) {:root { background:#333;color:#fff; }}");
       document.adoptedStyleSheets = [sheet];
-    """.trimIndent())
+    """.trimIndent()
+    )
     if (options.displayCutoutStrategy == DWebViewOptions.DisplayCutoutStrategy.Ignore) {
       scrollView.contentInsetAdjustmentBehavior =
         UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
@@ -309,10 +314,16 @@ class DWebViewEngine(
    * 初始化设置 userAgent
    */
   private fun setUA() {
-    val versionName = NSBundle.mainBundle.objectForInfoDictionaryKey("CFBundleShortVersionString") as String
+    val versionName =
+      NSBundle.mainBundle.objectForInfoDictionaryKey("CFBundleShortVersionString") as String
     val brandList = mutableListOf<IDWebView.UserAgentBrandData>()
     IDWebView.brands.forEach {
-      brandList.add(IDWebView.UserAgentBrandData(it.brand, if (it.version.contains(".")) it.version.split(".").first() else it.version))
+      brandList.add(
+        IDWebView.UserAgentBrandData(
+          it.brand,
+          if (it.version.contains(".")) it.version.split(".").first() else it.version
+        )
+      )
     }
     brandList.add(IDWebView.UserAgentBrandData("DwebBrowser", versionName.split(".").first()))
     addDocumentStartJavaScript(

@@ -22,38 +22,35 @@ if (!fs.existsSync(resolveTo("./offscreen-web-canvas"))) {
 
 const dweb_browser_libs = resolveTo("./dweb_browser_libs");
 if (!fs.existsSync(dweb_browser_libs + "/README.md")) {
-  if(fs.existsSync(dweb_browser_libs)) {
+  if (fs.existsSync(dweb_browser_libs)) {
     Deno.removeSync(dweb_browser_libs, { recursive: true });
   }
-  await $(`git submodule update --init`, "../")
+  await $(`git submodule update --init`, "../");
 }
 
 /// 拉取更新
-await $(
-  `git submodule foreach git pull origin main`,
-  "../"
-);
+await $(`git submodule foreach git pull origin main`, "../");
 /// 安装依赖
 await $(`pnpm install`, "./offscreen-web-canvas");
 
 export const toolkitTasks = new ConTasks(
   {
-    "fort-test-image:serve":{
+    "fort-test-image:serve": {
       cmd: "npx",
       args: "vite --host 0.0.0.0",
       cwd: "./for-test-images",
     },
     "offscreen-web-canvas:build": {
       cmd: "npx",
-      args: [
-        `vite`,
-        `build`,
-        `--watch`,
-        `--outDir`,
-        `../../../next/kmp/shared/src/commonMain/resources/offscreen-web-canvas`,
-      ],
+      args: [`vite`, `build`, `--outDir`, `../../../next/kmp/shared/src/commonMain/resources/offscreen-web-canvas`],
       devAppendArgs: ["--watch"],
       cwd: "./offscreen-web-canvas",
+    },
+    "dwebview-polyfill": {
+      cmd: "npx",
+      args: [`vite`, `build`],
+      devAppendArgs: ["--watch"],
+      cwd: "./dwebview-polyfill",
     },
   },
   import.meta.resolve("./")

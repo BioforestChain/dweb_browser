@@ -20,107 +20,130 @@ import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toKString
 import org.dweb_browser.helper.toNSString
 import org.dweb_browser.helper.toUtf8
+import org.dweb_browser.helper.toUtf8ByteArray
 import platform.Foundation.NSArray
 import platform.Foundation.NSNumber
 import platform.Foundation.NSString
-import platform.WebKit.WKContentWorld
 import platform.WebKit.WKScriptMessage
-import platform.WebKit.WKScriptMessageHandlerProtocol
+import platform.WebKit.WKScriptMessageHandlerWithReplyProtocol
 import platform.WebKit.WKUserContentController
 import platform.darwin.NSObject
 
 val debugIosWebSocket = Debugger("ios-ws-polyfill")
 
 class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
-  WKScriptMessageHandlerProtocol {
+  WKScriptMessageHandlerWithReplyProtocol {
   private val wsMap = mutableMapOf<Int, WebSocketSession>()
-  private val scriptMessageChannel = Channel<WKScriptMessage>()
+
+  private class WKScriptMessageEvent(
+    private val msgBody: Any,
+    private val replyHandler: (Any?, String?) -> Unit
+  ) {
+    suspend fun consume(handler: suspend (Any) -> Any?) {
+      try {
+        replyHandler(handler(msgBody), null)
+      } catch (e: Throwable) {
+        replyHandler(null, e.message ?: "unknown error")
+      }
+    }
+  }
+
+  private val scriptMessageChannel = Channel<WKScriptMessageEvent>()
 
   init {
     engine.ioScope.launch {
-      for (didReceiveScriptMessage in scriptMessageChannel) {
-        val message = didReceiveScriptMessage.body as NSArray
-        val wsId = (message.objectAtIndex(0u) as NSNumber).intValue
-        val cmd = (message.objectAtIndex(1u) as NSString).toKString()
-        debugIosWebSocket("scriptMessageChannel/in", "wsId=$wsId cmd=$cmd message=$message")
+      for (event in scriptMessageChannel) {
+        event.consume { msgBody ->
+          val message = msgBody as NSArray
+          val wsId = (message.objectAtIndex(0u) as NSNumber).intValue
+          val cmd = (message.objectAtIndex(1u) as NSString).toKString()
+          debugIosWebSocket("scriptMessageChannel") { "wsId=$wsId cmd=$cmd message=$message" }
 
-        when (cmd) {
-          "connect" -> engine.ioScope.launch {
-            try {
-              val url = (message.objectAtIndex(2u) as NSString).toKString()
-              httpFetch.client.ws("ws://localhost:${dwebHttpGatewayServer.startServer()}?X-Dweb-Url=${url.encodeURIComponent()}") {
-                wsMap[wsId] = this@ws
-                val opened = launch { sendOpen(wsId) }
-                val finBinary =
-                  FinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
-                val finText =
-                  FinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
-                for (frame in incoming) {
-                  if (!opened.isCompleted) {
-                    opened.join()
+          when (cmd) {
+            "connect" -> engine.ioScope.launch {
+              try {
+                val url = (message.objectAtIndex(2u) as NSString).toKString()
+                httpFetch.client.ws("ws://127.0.0.1:${dwebHttpGatewayServer.startServer()}?X-Dweb-Url=${url.encodeURIComponent()}") {
+                  wsMap[wsId] = this@ws
+                  val opened = launch { sendOpen(wsId) }
+                  val finBinary =
+                    FinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
+                  val finText =
+                    FinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
+                  for (frame in incoming) {
+                    if (!opened.isCompleted) {
+                      opened.join()
+                    }
+                    debugIosWebSocket("incoming") { "wsId=$wsId frame=$frame" }
+
+                    when (frame.frameType) {
+                      FrameType.BINARY -> finBinary.append(frame.data, frame.fin)?.also {
+                        sendBinaryMessage(wsId, it)
+                      }
+
+                      FrameType.TEXT -> finText.append(frame.data, frame.fin)?.also {
+                        sendTextMessage(wsId, it.toUtf8())
+                      }
+
+                      FrameType.CLOSE -> (frame as Frame.Close).readReason().also { reason ->
+                        sendClose(wsId, reason?.code, reason?.message)
+                      }
+
+                      else -> {}
+                    }
                   }
-                  debugIosWebSocket("incoming", "wsId=$wsId frame=$frame")
-
-                  when (frame.frameType) {
-                    FrameType.BINARY -> finBinary.append(frame.data, frame.fin)?.also {
-                      sendBinaryMessage(wsId, it)
-                    }
-
-                    FrameType.TEXT -> finText.append(frame.data, frame.fin)?.also {
-                      sendTextMessage(wsId, it.toUtf8())
-                    }
-
-                    FrameType.CLOSE -> (frame as Frame.Close).readReason().also { reason ->
-                      sendClose(wsId, reason?.code, reason?.message)
-                    }
-
-                    else -> {}
-                  }
+                  sendClose(wsId, null, null)
+                  debugIosWebSocket("ws-close") { "wsId=$wsId" }
                 }
-                sendClose(wsId, null, null)
-                debugIosWebSocket("ws-close", "wsId=$wsId")
+              } catch (e: Throwable) {
+                sendError(wsId, e)
+                val foundCode =
+                  e.message?.let { msg -> Regex("/\\d+/").find(msg)?.value?.toShort() }
+                    ?.let { code -> CloseReason.Codes.byCode(code) } ?: CloseReason.Codes.NORMAL
+                val foundReason =
+                  e.message?.let { msg -> Regex("\"(.+)\"").find(msg)?.groupValues?.last() }
+                debugIosWebSocket(
+                  "connect-catch",
+                  e
+                ) {
+                  "wsId=$wsId foundCode=${foundCode} foundReason=${foundReason})"
+                }
+                sendClose(wsId, foundCode.code, foundReason ?: foundCode.name)
               }
-            } catch (e: Throwable) {
-              sendError(wsId, e)
-              val foundCode = e.message?.let { msg -> Regex("/\\d+/").find(msg)?.value?.toShort() }
-                ?.let { code -> CloseReason.Codes.byCode(code) } ?: CloseReason.Codes.NORMAL
-              val foundReason =
-                e.message?.let { msg -> Regex("\"(.+)\"").find(msg)?.groupValues?.last() }
-              debugIosWebSocket(
-                "connect-catch",
-                e
-              ) {
-                "wsId=$wsId foundCode=${foundCode} foundReason=${foundReason})"
+              wsMap.remove(wsId)
+            }
+
+            "frame-text" -> {
+              wsMap[wsId]!!.run {
+                val fin = (message.objectAtIndex(2u) as NSNumber).boolValue
+                val data = (message.objectAtIndex(3u) as NSString).toKString().toUtf8ByteArray()
+                outgoing.send(Frame.Text(fin, data))
               }
-              sendClose(wsId, foundCode.code, foundReason ?: foundCode.name)
             }
-            wsMap.remove(wsId)
-          }
 
-          "message-text" -> {
-            wsMap[wsId]?.run {
-              val data = (message.objectAtIndex(2u) as NSString).toKString()
-              outgoing.send(Frame.Text(data))
+            "frame-binary" -> {
+              wsMap[wsId]!!.run {
+                val fin = (message.objectAtIndex(2u) as NSNumber).boolValue
+                val data = (message.objectAtIndex(3u) as NSString).toKString().toBase64ByteArray()
+                outgoing.send(Frame.Binary(fin, data))
+              }
             }
-          }
 
-          "message-binary" -> {
-            wsMap[wsId]?.run {
-              val data = (message.objectAtIndex(2u) as NSString).toKString().toBase64ByteArray()
-              outgoing.send(Frame.Binary(true, data))
+            "close" -> {
+              wsMap[wsId]!!.run {
+                val reasonCode = (message.objectAtIndex(2u) as NSNumber?)?.shortValue
+                val reasonMessage = (message.objectAtIndex(3u) as NSString?)?.toKString()
+                close(
+                  CloseReason(reasonCode ?: CloseReason.Codes.NORMAL.code, reasonMessage ?: "")
+                )
+              }
             }
-          }
 
-          "close" -> {
-            wsMap[wsId]?.run {
-              val reasonCode = (message.objectAtIndex(2u) as NSNumber?)?.shortValue
-              val reasonMessage = (message.objectAtIndex(3u) as NSString?)?.toKString()
-              close(
-                CloseReason(reasonCode ?: CloseReason.Codes.NORMAL.code, reasonMessage ?: "")
-              )
-            }
+            else -> throw Exception("unknown cmd $cmd")
           }
+          null
         }
+
       }
     }
   }
@@ -140,10 +163,14 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
 //        functionBody = "console.log(`webkit.messageHandlers.websocket.event.dispatchEvent(new MessageEvent('message',{data:[$wsId,'$cmd',arg1,arg2]}))`)",
 //        arguments = null
 //      )
-      engine.awaitAsyncJavaScript(
-        functionBody = "void webkit.messageHandlers.websocket.event.dispatchEvent(new MessageEvent('message',{data:[$wsId,'$cmd',arg1,arg2]}))",
-        arguments = arguments,
-      )
+      runCatching {
+        engine.awaitAsyncJavaScript<Unit>(
+          functionBody = "void webkit.messageHandlers.websocket.event.dispatchEvent(new MessageEvent('message',{data:[$wsId,'$cmd',arg1,arg2]}))",
+          arguments = arguments,
+        )
+      }.onFailure {
+        debugIosWebSocket("dispatchEvent", "wsId=$wsId cmd=$cmd arg1=$arg1 arg2=$arg2", it)
+      }
     }
 
   private suspend fun sendOpen(wsId: Int) = sendMessage(wsId, "open")
@@ -160,11 +187,12 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
 
   override fun userContentController(
     userContentController: WKUserContentController,
-    didReceiveScriptMessage: WKScriptMessage
+    didReceiveScriptMessage: WKScriptMessage,
+    replyHandler: (Any?, String?) -> Unit
   ) {
     debugIosWebSocket("didReceiveScriptMessage", "didReceiveScriptMessage=$didReceiveScriptMessage")
-    engine.ioScope.launch {
-      scriptMessageChannel.send(didReceiveScriptMessage)
+    engine.mainScope.launch {
+      scriptMessageChannel.send(WKScriptMessageEvent(didReceiveScriptMessage.body, replyHandler))
     }
   }
 }

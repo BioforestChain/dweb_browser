@@ -10,6 +10,7 @@ local.properties
 xcuserdata
 X-Build
 /shared/src/commonMain/resources/browser
+/shared/src/commonMain/resources/dwebview-polyfill
 release
 debug
 /app/androidApp/dwebbrowser.jks

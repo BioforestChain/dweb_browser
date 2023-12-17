@@ -71,6 +71,7 @@ class DWebMessagePort private constructor(internal val port: WebMessagePortCompa
 
   @SuppressLint("RequiresFeature")
   override suspend fun close() {
+    Runnable {  }
     port.close()
   }
 

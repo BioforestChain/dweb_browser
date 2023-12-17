@@ -31,7 +31,7 @@ class DwebDeskVCStore: ObservableObject {
     }
 
     func startUpNMMs(_ app: UIApplication) {
-        Main_iosKt.startDwebBrowser(app: app, debugMode: false) { Log("Main_iosKt.startDwebBrowser launch: \($1?.localizedDescription ?? "Success")") }
+        Main_iosKt.startDwebBrowser(app: app, debugMode: true) { Log("Main_iosKt.startDwebBrowser launch: \($1?.localizedDescription ?? "Success")") }
     }
 
     private func regiserDeskEvent() {
