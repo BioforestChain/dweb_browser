@@ -9,18 +9,14 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import reverse_proxy.VoidCallback
 
 val debugDWebView = Debugger("dwebview")
 
@@ -100,6 +96,7 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun destroy()
   abstract suspend fun canGoBack(): Boolean
   abstract suspend fun canGoForward(): Boolean
+
   //abstract suspend fun goBack(): Boolean
   abstract suspend fun goForward(): Boolean
 

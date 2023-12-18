@@ -11,8 +11,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.DisplayCutoutCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.webkit.ProxyConfig
-import androidx.webkit.ProxyController
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.UserAgentMetadata.BrandVersion
 import androidx.webkit.WebSettingsCompat
@@ -34,12 +32,10 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.UserAgentData
-import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toAndroidRect
 import org.dweb_browser.helper.withMainContext
@@ -99,11 +95,6 @@ class DWebViewEngine internal constructor(
    */
   var activity: org.dweb_browser.helper.android.BaseActivity? = null
 ) : WebView(context) {
-
-  companion object {
-    private var isProxyServerStart = false
-  }
-
   private var documentStartJsList = mutableListOf<String>()
 
   init {
@@ -249,33 +240,10 @@ class DWebViewEngine internal constructor(
     super.setWebViewClient(dWebViewClient)
     super.setWebChromeClient(dWebChromeClient)
 
-    if (!isProxyServerStart) {
-      remoteMM.ioAsyncScope.launchWithMain {
-        val canProxyOverride = WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)
-        if (canProxyOverride) {
-          val address = DwebViewProxy.ProxyUrl
-          debugDWebView("reverse_proxy proxyAddress", address)
-          val proxyConfig = ProxyConfig.Builder().addProxyRule(address)
-            .addDirect()
-            .build()
-          ProxyController.getInstance().setProxyOverride(proxyConfig, {
-            isProxyServerStart = true
-            if (options.url.isNotEmpty()) {
-              /// 开始加载
-              debugDWebView("ProxyController runnable", options.url)
-              loadUrl(options.url)
-            }
-          }, {
-            debugDWebView("reverse_proxy listener", "start")
-          })
-        }
-      }
-    } else {
-      if (options.url.isNotEmpty()) {
-        /// 开始加载
-        debugDWebView("ProxyController runnable", options.url)
-        loadUrl(options.url)
-      }
+    if (options.url.isNotEmpty()) {
+      /// 开始加载
+      debugDWebView("loadInitUrl", options.url)
+      loadUrl(options.url)
     }
   }
 

@@ -15,13 +15,16 @@ import androidx.webkit.WebSettingsCompat.FORCE_DARK_OFF
 import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
+import org.dweb_browser.dwebview.proxy.DwebViewProxyOverride
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.withMainContext
 
@@ -47,7 +50,12 @@ suspend fun IDWebView.Companion.create(
   activity: org.dweb_browser.helper.android.BaseActivity? = null
 ): IDWebView =
   withMainContext {
-    DwebViewProxy.prepare();
+    coroutineScope {
+      DwebViewProxy.prepare();
+      launch {
+        DwebViewProxyOverride.prepare()
+      }
+    }
     create(DWebViewEngine(context, remoteMM, options, activity), options.url)
   }
 
