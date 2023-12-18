@@ -37,9 +37,11 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import org.dweb_browser.browser.R
+import org.dweb_browser.browser.util.isUrl
 import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.core.std.dns.nativeFetch
 import java.util.concurrent.Executors
 import kotlin.math.abs
 
@@ -184,7 +186,11 @@ actual fun transformPoint(
 
 actual fun openDeepLink(data: String) {
   val context = NativeMicroModule.getAppContext()
-  data.regexDeepLink()?.let { dwebLink ->
+  val deepLink = if (data.isUrl()) {
+    "dweb://openinbrowser?url=$data"
+  } else data
+
+  deepLink.regexDeepLink()?.let { dwebLink ->
     context.startActivity(Intent().also {
       it.`package` = context.packageName
       it.action = Intent.ACTION_VIEW
