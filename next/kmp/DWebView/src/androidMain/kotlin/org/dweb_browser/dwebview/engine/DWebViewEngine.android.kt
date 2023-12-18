@@ -298,6 +298,7 @@ class DWebViewEngine internal constructor(
             "utf-8",
             url//location.href
           )
+          super.loadUrl(url)
         }
       }
     }
