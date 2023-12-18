@@ -71,22 +71,22 @@ fun LoadingView(show: MutableState<Boolean>) {
           val drawWidth = radius / 2 // 圆弧矩形的长度 半径的一半
           //圆弧形的矩形 宽度
           val strokeWidth = radius / 4 // 圆弧矩形的宽度 0.32*r
-          if (LoadingViewModel.mTicker.value > 0) {
-            for (index in 1..count) {
-              // 中心点的坐标是 (radius, radius)，计算弧度 radians
-              val radians = rotateAngle * index * PI / 180
-              val startX = (radius + (radius - drawWidth) * cos(radians)).toFloat()
-              val startY = (radius - (radius - drawWidth) * sin(radians)).toFloat()
-              val endX = (radius + radius * cos(radians)).toFloat()
-              val endY = (radius - radius * sin(radians)).toFloat()
-              drawLine(
-                color = LoadingViewModel.mColor[index - 1],
-                start = Offset(startX, startY),
-                end = Offset(endX, endY),
-                cap = StrokeCap.Round,
-                strokeWidth = strokeWidth,
-              )
-            }
+          // if (LoadingViewModel.mTicker.value > 0) {}
+          val curIndex = LoadingViewModel.mCount.value
+          for (index in curIndex..curIndex+count) {
+            // 中心点的坐标是 (radius, radius)，计算弧度 radians
+            val radians = rotateAngle * index * PI / 180
+            val startX = (radius + (radius - drawWidth) * cos(radians)).toFloat()
+            val startY = (radius - (radius - drawWidth) * sin(radians)).toFloat()
+            val endX = (radius + radius * cos(radians)).toFloat()
+            val endY = (radius - radius * sin(radians)).toFloat()
+            drawLine(
+              color = LoadingViewModel.mColor[index.mod(count)],
+              start = Offset(startX, startY),
+              end = Offset(endX, endY),
+              cap = StrokeCap.Round,
+              strokeWidth = strokeWidth,
+            )
           }
         }
       }

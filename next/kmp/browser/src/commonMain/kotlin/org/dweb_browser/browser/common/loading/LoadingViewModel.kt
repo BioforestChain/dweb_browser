@@ -2,11 +2,11 @@ package org.dweb_browser.browser.common.loading
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import kotlin.native.concurrent.ThreadLocal
 
@@ -66,7 +66,9 @@ object LoadingViewModel {
     }
   }
 
-  val mTicker = mutableStateOf(0L)
+  // val mTicker = mutableStateOf(0L)
+  private val atomicIndex = atomic(0L)
+  val mCount = mutableStateOf(atomicIndex.value)
 
   /**
    * 支付倒计时
@@ -76,15 +78,16 @@ object LoadingViewModel {
     ioAsyncScope.launch {
       while (isRunning) {
         delay(100)
-        val data = mColor.removeLast()
+        mCount.value = atomicIndex.addAndGet(1)
+        /*val data = mColor.removeLast()
         mColor.add(0, data)
-        mTicker.value = datetimeNow()
+        mTicker.value = datetimeNow()*/
       }
     }
   }
 
   fun timerDestroy() {
     isRunning = false
-    mTicker.value = datetimeNow()
+    // mTicker.value = datetimeNow()
   }
 }
