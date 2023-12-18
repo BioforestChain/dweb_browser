@@ -1,8 +1,17 @@
 export const isDweb = () => {
-  const isDweb = self.navigator.userAgent.includes("Dweb");
+  const userAgentData = self.navigator.userAgentData;
   // @ts-ignore
   const isPlaoc = self.__native_close_watcher_kit__ !== void 0;
-  return isDweb || isPlaoc;
+
+  if(!userAgentData) {
+    return isPlaoc;
+  }
+
+  const brands = userAgentData.brands.filter(value => {
+    return value.brand === "DwebBrowser";
+  });
+
+  return brands && brands.length > 0;
 };
 
 export const dwebTarget = () => {
