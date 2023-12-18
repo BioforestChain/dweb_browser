@@ -333,44 +333,46 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
   val bottomSheetModel = LocalModalBottomSheet.current
   val qrCodeScanState = LocalQRCodeModel.current
-  Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .height(dimenNavigationHeight)
-  ) {
-    val webView = viewModel.currentTab?.viewItem?.webView ?: return
-    val canGoBack = webView.rememberCanGoBack()
+  val webView = viewModel.currentTab?.viewItem?.webView ?: return
+  key(webView) {
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(dimenNavigationHeight)
+    ) {
+      val canGoBack = webView.rememberCanGoBack()
 
-    NavigatorButton(
-      imageVector = Icons.Rounded.AddHome,
-      name = "AddHome",
-      show = !webView.getUrl().isSystemUrl() // webView.hasUrl()
-    ) {
-      scope.launch { viewModel.addUrlToDesktop() }
-    }
-    NavigatorButton(
-      imageVector = if (canGoBack) Icons.Rounded.Add else Icons.Rounded.QrCodeScanner,
-      name = if (canGoBack) "Add" else "Scan",
-      show = true
-    ) {
-      scope.launch {
-        if (canGoBack) {
-          viewModel.addNewMainView()
-        } else {
-          qrCodeScanState.stateChange.emit(QRCodeState.Scanning)
+      NavigatorButton(
+        imageVector = Icons.Rounded.AddHome,
+        name = "AddHome",
+        show = !webView.getUrl().isSystemUrl() // webView.hasUrl()
+      ) {
+        scope.launch { viewModel.addUrlToDesktop() }
+      }
+      NavigatorButton(
+        imageVector = if (canGoBack) Icons.Rounded.Add else Icons.Rounded.QrCodeScanner,
+        name = if (canGoBack) "Add" else "Scan",
+        show = true
+      ) {
+        scope.launch {
+          if (canGoBack) {
+            viewModel.addNewMainView()
+          } else {
+            qrCodeScanState.stateChange.emit(QRCodeState.Scanning)
+          }
         }
       }
-    }
-    NavigatorButton(
-      imageVector = getMultiImageVector(viewModel.listSize), // resId = R.drawable.ic_main_multi,
-      name = "MultiView", show = true
-    ) {
-      scope.launch { viewModel.updateMultiViewState(true) }
-    }
-    NavigatorButton(
-      imageVector = Icons.Rounded.Menu, name = "Options", show = true
-    ) {
-      scope.launch { bottomSheetModel.show() }
+      NavigatorButton(
+        imageVector = getMultiImageVector(viewModel.listSize), // resId = R.drawable.ic_main_multi,
+        name = "MultiView", show = true
+      ) {
+        scope.launch { viewModel.updateMultiViewState(true) }
+      }
+      NavigatorButton(
+        imageVector = Icons.Rounded.Menu, name = "Options", show = true
+      ) {
+        scope.launch { bottomSheetModel.show() }
+      }
     }
   }
 }

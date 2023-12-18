@@ -284,13 +284,12 @@ private fun BoxScope.CloseIcon(onClick: () -> Unit) {
     contentDescription = "Close",
     tint = MaterialTheme.colorScheme.background,
     modifier = Modifier
+      .clickable { onClick() }
       .padding(16.dp)
       .size(32.dp)
-      .clickable { onClick() }
       .rotate(45f)
       .align(Alignment.TopStart))
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
