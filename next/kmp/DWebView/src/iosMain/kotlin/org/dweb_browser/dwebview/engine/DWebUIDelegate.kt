@@ -4,7 +4,9 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.DwebViewI18nResource
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
@@ -130,9 +132,14 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
           params.message,
           UIAlertControllerStyleAlert
         )
-        alertController.addAction(UIAlertAction.actionWithTitle("Ok", UIAlertActionStyleDefault) {
-          ctx.complete(Unit)
         })
+        alertController.addAction(
+          UIAlertAction.actionWithTitle(
+            DwebViewI18nResource.alert_action_ok.text,
+            UIAlertActionStyleDefault
+          ) {
+            ctx.complete(Unit)
+          })
         vc.presentViewController(alertController, true, null)
       } else {
         ctx.complete(Unit)
@@ -170,14 +177,18 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
         )
         confirmController.addAction(
           UIAlertAction.actionWithTitle(
-            "Cancel",
+            DwebViewI18nResource.confirm_action_cancel.text,
             UIAlertActionStyleCancel
           ) {
             ctx.complete(false)
           })
-        confirmController.addAction(UIAlertAction.actionWithTitle("Ok", UIAlertActionStyleDefault) {
-          ctx.complete(true)
-        })
+        confirmController.addAction(
+          UIAlertAction.actionWithTitle(
+            DwebViewI18nResource.confirm_action_confirm.text,
+            UIAlertActionStyleDefault
+          ) {
+            ctx.complete(true)
+          })
         vc.presentViewController(confirmController, true, null)
       } else {
         ctx.complete(false)
@@ -219,20 +230,19 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
           textField?.selectAll(null)
           promptController.addAction(
             UIAlertAction.actionWithTitle(
-              "Cancel",
+              DwebViewI18nResource.prompt_action_cancel.text,
               UIAlertActionStyleCancel
             ) {
               ctx.complete(null)
             })
           promptController.addAction(
             UIAlertAction.actionWithTitle(
-              "Ok",
+              DwebViewI18nResource.prompt_action_confirm.text,
               UIAlertActionStyleDefault
             ) {
               ctx.complete(textField?.text)
             })
         }
-
         vc.presentViewController(promptController, true, null)
       } else {
         ctx.complete(null)
@@ -367,15 +377,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
   }
 
   private fun WKWebView.getUIViewController(): UIViewController? {
-    var responder = nextResponder
-    while (responder != null) {
-      if (responder is UIViewController) {
-        return responder
-      }
-      responder = nextResponder
-    }
-
-    return null
+    return engine.remoteMM.getUIApplication().keyWindow?.rootViewController
   }
   //#endregion
 }

@@ -32,6 +32,7 @@ enum class MMState {
 val debugMicroModule = Debugger("MicroModule")
 
 abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleManifest by manifest {
+  companion object {}
 
   open val routers: Router? = null
 
@@ -158,7 +159,10 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   private val _ipcSet = mutableSetOf<Ipc>();
 
   fun addToIpcSet(ipc: Ipc): Boolean {
-    debugMicroModule("addToIpcSet", "$mmid => ${ipc.remote.mmid}, ${runningStateLock.isResolved}:${runningStateLock.value}")
+    debugMicroModule(
+      "addToIpcSet",
+      "$mmid => ${ipc.remote.mmid}, ${runningStateLock.isResolved}:${runningStateLock.value}"
+    )
     if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
       ipc.readyInMicroModule("addToIpcSet")
     }

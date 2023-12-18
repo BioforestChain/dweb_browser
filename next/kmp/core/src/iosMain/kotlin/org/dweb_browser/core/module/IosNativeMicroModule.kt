@@ -9,11 +9,11 @@ import platform.UIKit.UIApplication
 
 lateinit var nativeMicroModuleUIApplication: UIApplication
 
-fun NativeMicroModule.Companion.getUIApplication() = nativeMicroModuleUIApplication
-fun NativeMicroModule.getUIApplication() = nativeMicroModuleUIApplication
+fun MicroModule.Companion.getUIApplication() = nativeMicroModuleUIApplication
+fun MicroModule.getUIApplication() = nativeMicroModuleUIApplication
 
 val lockActivityState = Mutex()
-fun NativeMicroModule.startUIViewController(pureViewController: PureViewController) {
+fun MicroModule.startUIViewController(pureViewController: PureViewController) {
   ioAsyncScope.launch {
     lockActivityState.withLock {
       if (grant?.await() == false) {

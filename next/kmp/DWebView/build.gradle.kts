@@ -35,8 +35,9 @@ kotlin {
     implementation(libs.jetbrains.compose.materialIcons)
 
     implementation(projects.helper)
-    implementation(projects.core)
     implementation(projects.helperPlatform)
+    implementation(projects.helperCompose)
+    implementation(projects.core)
     implementation(projects.reverseProxy)
   }
   sourceSets.commonTest.dependencies {

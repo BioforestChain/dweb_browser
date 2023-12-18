@@ -172,6 +172,8 @@ class DWebViewEngine(
     return safeUrl
   }
 
+  private val uiDelegate = DWebUIDelegate(this)
+
   init {
     /// 启动代理
     val url = Url(DwebViewProxy.ProxyUrl)
@@ -183,7 +185,7 @@ class DWebViewEngine(
       this.setInspectable(true)
     }
     setNavigationDelegate(this)
-    setUIDelegate(DWebUIDelegate(this))
+    setUIDelegate(uiDelegate)
     scrollView.setDelegate(this)
 
     val preferences = WKPreferences()

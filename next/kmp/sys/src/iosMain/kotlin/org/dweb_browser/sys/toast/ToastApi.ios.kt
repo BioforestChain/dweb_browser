@@ -2,7 +2,7 @@ package org.dweb_browser.sys.toast
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
-import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGFloat
@@ -27,7 +27,7 @@ actual suspend fun showToast(text: String, durationType: DurationType, positionT
 
     toastLabel.layer.setCornerRadius(10.0)
     toastLabel.layer.setMasksToBounds(true)
-    val controller = NativeMicroModule.getUIApplication().keyWindow?.rootViewController
+    val controller = MicroModule.getUIApplication().keyWindow?.rootViewController
 
     if (controller != null) {
       val width = controller.view.frame.useContents {
