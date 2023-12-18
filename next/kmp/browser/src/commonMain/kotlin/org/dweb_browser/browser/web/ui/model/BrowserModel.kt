@@ -215,7 +215,12 @@ class BrowserViewModel(
       addNewMainView(getBrowserMainUrl().toString())
       false
     } else if (url.isUrlOrHost()) {
-      addNewMainView(url)
+      // 判断如果已存在，直接focus，不新增界面
+      browserViewList.find { it.viewItem.webView.getUrl() == url }?.let { focus ->
+        focusBrowserView(focus)
+      } ?: run {
+        addNewMainView(url)
+      }
       false
     } else {
       url.isNotEmpty()
