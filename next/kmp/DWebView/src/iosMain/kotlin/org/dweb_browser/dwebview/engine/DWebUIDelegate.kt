@@ -124,6 +124,34 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
         }
     }
 
+    fun UIAlertController.addMmid() {
+        val domainLabel = UILabel();
+        domainLabel.attributedText = NSAttributedString.create(
+            string = engine.remoteMM.mmid, attributes = mapOf(
+                NSFontAttributeName to UIFont.systemFontOfSize(fontSize = 8.0),
+                NSForegroundColorAttributeName to UIColor.blackColor.colorWithAlphaComponent(alpha = 0.2)
+            )
+        )
+        domainLabel.sizeToFit() // 让标签自适应内容大小
+        view.addSubview(domainLabel)
+
+        domainLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activateConstraints(
+            constraints = listOf(
+                domainLabel.topAnchor.constraintEqualToAnchor(
+                    anchor = view.topAnchor,
+                    constant = 3.0
+                ),
+                domainLabel.centerXAnchor.constraintEqualToAnchor(anchor = view.centerXAnchor),
+                domainLabel.leadingAnchor.constraintGreaterThanOrEqualToAnchor(
+                    anchor = view.leadingAnchor,
+                    constant = 20.0
+                ),
+            )
+        )
+    }
+
+
     @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     override fun webView(
         webView: WKWebView,
@@ -142,30 +170,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
                     params.message,
                     UIAlertControllerStyleAlert
                 )
-                val domainLabel = UILabel();
-                domainLabel.attributedText = NSAttributedString.create(
-                    string = engine.remoteMM.mmid, attributes = mapOf(
-                        NSFontAttributeName to UIFont.systemFontOfSize(fontSize = 8.0),
-                        NSForegroundColorAttributeName to UIColor.blackColor.colorWithAlphaComponent(alpha = 0.2)
-                    )
-                )
-                domainLabel.sizeToFit() // 让标签自适应内容大小
-                alertController.view.addSubview(domainLabel)
-
-                domainLabel.translatesAutoresizingMaskIntoConstraints = false
-                NSLayoutConstraint.activateConstraints(
-                    constraints = listOf(
-                        domainLabel.topAnchor.constraintEqualToAnchor(
-                            anchor = alertController.view.topAnchor,
-                            constant = 3.0
-                        ),
-                        domainLabel.centerXAnchor.constraintEqualToAnchor(anchor = alertController.view.centerXAnchor),
-                        domainLabel.leadingAnchor.constraintGreaterThanOrEqualToAnchor(
-                            anchor = alertController.view.leadingAnchor,
-                            constant = 20.0
-                        ),
-                    )
-                )
+                alertController.addMmid()
 
                 alertController.addAction(
                     UIAlertAction.actionWithTitle(
@@ -209,6 +214,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
                     params.message,
                     UIAlertControllerStyleAlert
                 )
+                confirmController.addMmid()
                 confirmController.addAction(
                     UIAlertAction.actionWithTitle(
                         DwebViewI18nResource.confirm_action_cancel.text,
@@ -259,6 +265,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
                     params.prompt,
                     UIAlertControllerStyleAlert
                 )
+                promptController.addMmid()
                 promptController.addTextFieldWithConfigurationHandler { textField ->
                     textField?.text = params.defaultText
                     textField?.selectAll(null)

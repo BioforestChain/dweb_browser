@@ -199,9 +199,7 @@ class DWebViewEngine(
       configuration, url.host, url.port.toUShort()
     )
     /// 测试的时候使用
-    if (UIDevice.currentDevice.systemVersion.compareTo("16.4", true) >= 0) {
-      this.setInspectable(true)
-    }
+    this.setInspectable(true)
     setNavigationDelegate(this)
     setUIDelegate(uiDelegate)
     scrollView.setDelegate(this)
