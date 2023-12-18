@@ -100,22 +100,6 @@ class DWebViewEngine internal constructor(
    */
   var activity: org.dweb_browser.helper.android.BaseActivity? = null
 ) : WebView(context) {
-  companion object {
-    val prepare = SuspendOnce {
-      coroutineScope {
-        DwebViewProxy.prepare();
-        launch {
-          DwebViewProxyOverride.prepare()
-        }
-      }
-    }
-
-    init {
-      CoroutineScope(ioAsyncExceptionHandler).launch {
-        prepare()
-      }
-    }
-  }
 
   private var documentStartJsList = mutableListOf<String>()
 

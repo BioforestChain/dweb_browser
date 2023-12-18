@@ -109,21 +109,6 @@ class DWebViewEngine(
   }
 
   companion object {
-    val prepare = SuspendOnce {
-      coroutineScope {
-        CoroutineScope(ioAsyncExceptionHandler).launch {
-          DwebViewPolyfill.prepare();
-        }
-        DwebViewProxy.prepare();
-      }
-    }
-
-    init {
-      CoroutineScope(ioAsyncExceptionHandler).launch {
-        prepare()
-      }
-    }
-
     /**
      * 注册 dweb+http(s)? 的链接拦截，因为IOS不能拦截 `http(s)?:*.dweb`。
      * 所以这里定义了这个特殊的 scheme 来替代 http(s)?:*.dweb
