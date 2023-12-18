@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview.engine
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Rect
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
@@ -16,7 +17,6 @@ import androidx.webkit.UserAgentMetadata.BrandVersion
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.encodeToJsonElement
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Default
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Ignore
@@ -101,7 +100,6 @@ class DWebViewEngine internal constructor(
   var activity: org.dweb_browser.helper.android.BaseActivity? = null
 ) : WebView(context) {
 
-  private var documentStartJsList = mutableListOf<String>()
 
   init {
     if (activity == null && context is org.dweb_browser.helper.android.BaseActivity) {
@@ -118,6 +116,33 @@ class DWebViewEngine internal constructor(
 
   private val evaluator = WebViewEvaluator(this, ioScope)
   suspend fun getUrlInMain() = withMainContext { url }
+
+
+  private val supportDocumentStartScript by lazy {
+    WebViewFeature.isFeatureSupported(
+      WebViewFeature.DOCUMENT_START_SCRIPT
+    )
+  }
+
+  private val documentStartJsList by lazy {
+    mutableListOf<String>().also { scriptList ->
+      addWebViewClient(object : WebViewClient() {
+        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+          for (script in scriptList) {
+            evaluateJavascript(script, null)
+          }
+        }
+      })
+    }
+  }
+
+  private fun addDocumentStartJavaScript(script: String) {
+    if (supportDocumentStartScript) {
+      WebViewCompat.addDocumentStartJavaScript(this, script, setOf("*"))
+    } else {
+      documentStartJsList += script
+    }
+  }
 
   /**
    * 初始化设置 userAgent
@@ -155,7 +180,6 @@ class DWebViewEngine internal constructor(
         )
       }
       brandList.add(IDWebView.UserAgentBrandData("DwebBrowser", versionName.split(".").first()))
-
       addDocumentStartJavaScript(
         """
         ${UserAgentData.polyfillScript}
@@ -266,26 +290,6 @@ class DWebViewEngine internal constructor(
     }
     preLoadedUrlArgs = curLoadUrlArgs
     super.loadUrl(url)
-    ioScope.launch {
-      val response = remoteMM.nativeFetch(url)
-      val contentType = response.headers.get(HttpHeaders.ContentType)
-      withMainContext {
-        if (contentType?.startsWith("text/html") == true && !WebViewFeature.isFeatureSupported(
-            WebViewFeature.DOCUMENT_START_SCRIPT
-          )
-        ) {
-          val documentHtml = response.body.toPureString()
-          super.loadDataWithBaseURL(
-            url,//document.baseURI
-            getDocumentStartJsScript() + documentHtml,
-            "text/html",
-            "utf-8",
-            url//location.href
-          )
-          super.loadUrl(url)
-        }
-      }
-    }
   }
 
   override fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
@@ -327,17 +331,6 @@ class DWebViewEngine internal constructor(
         script, afterEval
       )
     }
-
-  private fun getDocumentStartJsScript() =
-    documentStartJsList.joinToString("\n") { "<script>document.currentScript?.parentElement?.removeChild(document.currentScript);(async()=>{ try{$it}catch(e){console.error(e)} })();</script>" }
-
-  private fun addDocumentStartJavaScript(script: String) {
-    if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
-      WebViewCompat.addDocumentStartJavaScript(this, script, setOf("*"))
-    } else {
-      documentStartJsList += script
-    }
-  }
 
   var isDestroyed = false
   private var _destroySignal = SimpleSignal();
