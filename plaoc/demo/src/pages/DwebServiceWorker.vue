@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction } from "../components/LogPanel.vue";
+import * as plaoc from "../plugin";
 import { dwebServiceWorker, updateControllerPlugin } from "../plugin";
 const $logPanel = ref<typeof LogPanel>();
 // let console: Console;
 
-Object.assign(globalThis, { dwebServiceWorker });
+Object.assign(globalThis, { dwebServiceWorker, plaoc });
 
 const progress = ref(0);
 

@@ -162,7 +162,7 @@ class DWebViewEngine internal constructor(
       addDocumentStartJavaScript(
         """
         ${UserAgentData.polyfillScript}
-        if (location.protocol === 'https:' && !navigator.userAgentData) {
+        if (!navigator.userAgentData) {
           let userAgentData = new NavigatorUAData(navigator, ${
           JsonLoose.encodeToJsonElement(
             brandList
@@ -190,6 +190,7 @@ class DWebViewEngine internal constructor(
   internal val dWebViewClient = DWebViewClient(this).also {
     it.addWebViewClient(DWebRequestResponse(this@DWebViewEngine))
   }
+
 
   fun addWebViewClient(client: WebViewClient): () -> Unit {
     dWebViewClient.addWebViewClient(client)
@@ -299,7 +300,7 @@ class DWebViewEngine internal constructor(
             WebViewFeature.DOCUMENT_START_SCRIPT
           )
         ) {
-          val documentHtml = remoteMM.nativeFetch(url).body.toPureString()
+          val documentHtml = response.body.toPureString()
           super.loadDataWithBaseURL(
             url,//document.baseURI
             getDocumentStartJsScript() + documentHtml,

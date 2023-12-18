@@ -340,7 +340,7 @@ class DWebViewEngine(
     addDocumentStartJavaScript(
       """
         ${UserAgentData.polyfillScript}
-        if ((location.protocol === 'https:' || location.protocol === 'dweb+https:') && !navigator.userAgentData) {
+        if (!navigator.userAgentData) {
           let userAgentData = new NavigatorUAData(navigator, ${JsonLoose.encodeToString(brandList)});
           Object.defineProperty(Navigator.prototype, 'userAgentData', {
             enumerable: true,
