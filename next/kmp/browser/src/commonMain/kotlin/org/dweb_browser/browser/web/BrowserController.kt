@@ -133,21 +133,19 @@ class BrowserController(
    */
   suspend fun addUrlToDesktop(title: String, url: String, icon: String): Boolean {
     // 处理weblink icon
-    var trimmedIcon = icon
-    if ((icon.first() == '\"' && icon.last() == '\"')) {
-      trimmedIcon = icon.substring(1, icon.length - 1)
-    }
+    val trimmedIcon = if ((icon.first() == '\"' && icon.last() == '\"')) {
+      icon.substring(1, icon.length - 1)
+    } else icon
     val responseIcon = browserNMM.nativeFetch(trimmedIcon)
     //判断能否访问到不行 就用默认的
-    val icons = if (responseIcon.status !== HttpStatusCode.OK) {
+    val icons = if (responseIcon.status != HttpStatusCode.OK) {
       listOf()
     } else {
       listOf(ImageResource(trimmedIcon))
     }
-    var trimmedUrl = url
-    if ((url.first() == '\"' && url.last() == '\"')) {
-      trimmedUrl = url.substring(1, url.length - 1)
-    }
+    val trimmedUrl = if ((url.first() == '\"' && url.last() == '\"')) {
+      url.substring(1, url.length - 1)
+    } else url
     val linkId = WebLinkManifest.createLinkId(trimmedUrl)
     val webLinkManifest =
       WebLinkManifest(id = linkId, title = title, url = trimmedUrl, icons = icons)
