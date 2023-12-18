@@ -166,21 +166,12 @@ class DwebHttpGatewayServer private constructor() {
         }
       }
     })
-
-  }
-  private val startResult = lazy {
-    CompletableDeferred<Int>()
   }
 
-  suspend fun startServer(): Int {
-    if (!startResult.isInitialized()) {
-      startResult.value.also {
-        server.start(wait = false)
-        val port = server.resolvedConnectors().first().port
-        it.complete(port)
-      }
-    }
-    return startResult.value.await()
+
+  val startServer = SuspendOnce {
+    server.start(wait = false)
+    server.resolvedConnectors().first().port
   }
 
   suspend fun getPort() = startServer()

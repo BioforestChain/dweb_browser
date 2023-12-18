@@ -109,6 +109,7 @@ class DWebViewEngine internal constructor(
         }
       }
     }
+
     init {
       CoroutineScope(ioAsyncExceptionHandler).launch {
         prepare()
@@ -294,7 +295,7 @@ class DWebViewEngine internal constructor(
             url,//document.baseURI
             getDocumentStartJsScript() + documentHtml,
             "text/html",
-            "",
+            "utf-8",
             url//location.href
           )
         }
