@@ -1,5 +1,3 @@
-/// <reference lib="dom"/>
-declare const webkit: { messageHandlers: Record<"websocket", { postMessage(data: unknown): Promise<unknown> }> };
 (() => {
   navigator;
   const wsport = webkit.messageHandlers.websocket;

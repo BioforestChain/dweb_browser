@@ -6,6 +6,7 @@ export default defineConfig(() => {
       lib: {
         entry: {
           "websocket.ios": "./src/websocket.ios.ts",
+          "favicon.ios": "./src/favicon.ios.ts",
         },
         formats: ["cjs"],
       },
