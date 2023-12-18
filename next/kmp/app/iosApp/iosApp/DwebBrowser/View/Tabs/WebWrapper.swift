@@ -32,18 +32,12 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     private func setupObservers() {
         func subscriber<Value>(for keyPath: KeyPath<TestWebView, Value>) -> NSKeyValueObservation {
             return webView.observe(keyPath, options: [.prior]) { [weak self] _, change in
-                if change.isPrior {
-                    DispatchQueue.main.async {
-                        self?.objectWillChange.send()
-                    }
+                if let self = self, change.isPrior {
+                    self.objectWillChange.send()
                 }
             }
         }
-        observers.append(webView.observe(\.estimatedProgress, options: [.prior]) { [weak self] _, _ in
-            if let self = self {
-                self.webMonitor.loadingProgress = self.webView.estimatedProgress
-            }
-        })
+
         // Setup observers for all KVO compliant properties
         observers = [
             subscriber(for: \.title),
@@ -55,8 +49,14 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
             subscriber(for: \.canGoBack),
             subscriber(for: \.canGoForward),
             subscriber(for: \.configuration),
-//            subscriber(for: \.icon),
+            subscriber(for: \.icon),
         ]
+
+        observers.append(webView.observe(\.estimatedProgress, options: [.prior]) { [weak self] _, _ in
+            if let self = self {
+                self.webMonitor.loadingProgress = self.webView.estimatedProgress
+            }
+        })
     }
 
     private var observers: [NSKeyValueObservation] = []
@@ -74,7 +74,7 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
         hasher.combine(webView)
     }
 
-    deinit{
+    deinit {
         print("deinitial of webwrapper")
     }
 }
@@ -97,12 +97,11 @@ struct TabWebView: View, UIViewRepresentable {
     }
 }
 
-class LocalWebView: WKWebView{
-    deinit{
+class LocalWebView: WKWebView {
+    deinit {
         print("deinit of LocalWebView called")
     }
 }
-
 
 #if TestOriginWebView
 typealias TestWebView = LocalWebView
