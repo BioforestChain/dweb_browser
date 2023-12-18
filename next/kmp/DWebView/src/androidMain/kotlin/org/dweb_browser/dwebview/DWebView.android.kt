@@ -21,6 +21,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.withMainContext
 
@@ -45,7 +46,10 @@ suspend fun IDWebView.Companion.create(
    */
   activity: org.dweb_browser.helper.android.BaseActivity? = null
 ): IDWebView =
-  withMainContext { create(DWebViewEngine(context, remoteMM, options, activity), options.url) }
+  withMainContext {
+    DwebViewProxy.prepare();
+    create(DWebViewEngine(context, remoteMM, options, activity), options.url)
+  }
 
 internal fun IDWebView.Companion.create(engine: DWebViewEngine, initUrl: String?) =
   DWebView(engine, initUrl)

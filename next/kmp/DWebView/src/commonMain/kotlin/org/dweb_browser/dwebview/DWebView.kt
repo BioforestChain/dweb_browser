@@ -37,27 +37,6 @@ abstract class IDWebView(initUrl: String?) {
   @OptIn(DelicateCoroutinesApi::class)
   companion object {
     val brands = mutableListOf<UserAgentBrandData>()
-    private val proxyAddress = CompletableDeferred<String>()
-    suspend fun getProxyAddress() = proxyAddress.await()
-
-    init {
-      GlobalScope.launch(ioAsyncExceptionHandler) {
-        debugDWebView("reverse_proxy", "starting")
-        val backendServerPort = dwebHttpGatewayServer.startServer().toUShort()
-
-        val proxyReadyCallback = object : VoidCallback {
-          override fun callback(proxyPort: UShort, frontendPort: UShort) {
-            debugDWebView(
-              "reverse_proxy",
-              "running proxyServerPort=${proxyPort}, frontendServerPort=${frontendPort}, backendServerPort=${backendServerPort}"
-            )
-            proxyAddress.complete("http://127.0.0.1:${proxyPort}")
-          }
-        }
-        reverse_proxy.start(backendServerPort, proxyReadyCallback)
-        debugDWebView("reverse_proxy", "stopped")
-      }
-    }
   }
 
   /**

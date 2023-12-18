@@ -34,6 +34,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.UserAgentData
+import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
@@ -81,7 +82,7 @@ import org.dweb_browser.helper.withMainContext
  *
  */
 @SuppressLint("SetJavaScriptEnabled", "ViewConstructor", "RequiresFeature", "DiscouragedPrivateApi")
-class DWebViewEngine(
+class DWebViewEngine internal constructor(
   /**
    * 一个WebView的上下文
    */
@@ -251,7 +252,7 @@ class DWebViewEngine(
       remoteMM.ioAsyncScope.launchWithMain {
         val canProxyOverride = WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)
         if (canProxyOverride) {
-          val address = IDWebView.getProxyAddress()
+          val address = DwebViewProxy.ProxyUrl
           debugDWebView("reverse_proxy proxyAddress", address)
           val proxyConfig = ProxyConfig.Builder().addProxyRule(address)
             .addDirect()
@@ -294,7 +295,7 @@ class DWebViewEngine(
       val response = remoteMM.nativeFetch(url)
       val contentType = response.headers.get(HttpHeaders.ContentType)
       withMainContext {
-      if (contentType?.startsWith("text/html") == true && !WebViewFeature.isFeatureSupported(
+        if (contentType?.startsWith("text/html") == true && !WebViewFeature.isFeatureSupported(
             WebViewFeature.DOCUMENT_START_SCRIPT
           )
         ) {

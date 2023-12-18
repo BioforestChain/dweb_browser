@@ -11,6 +11,7 @@ export default defineConfig(() => {
         formats: ["cjs"],
       },
       minify: false,
+      emptyOutDir: true,
       outDir: "../../next/kmp/shared/src/commonMain/resources/dwebview-polyfill",
     },
   };

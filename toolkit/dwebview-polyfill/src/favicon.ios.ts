@@ -49,6 +49,7 @@ function getIosIcon(preference_size = 64) {
   return iconUrl.href;
 }
 function watchIosIcon(preference_size = 64) {
+  console.log("start watchIosIcon");
   let preIcon = "";
   const getAndPost = () => {
     const curIcon = getIosIcon(preference_size);
@@ -70,4 +71,12 @@ function watchIosIcon(preference_size = 64) {
   observer.observe(document.head, config);
 
   return () => observer.disconnect();
+}
+
+if (document.readyState === "loading") {
+  // Loading hasn't finished yet
+  document.addEventListener("DOMContentLoaded", () => watchIosIcon());
+} else {
+  // `DOMContentLoaded` has already fired
+  watchIosIcon();
 }

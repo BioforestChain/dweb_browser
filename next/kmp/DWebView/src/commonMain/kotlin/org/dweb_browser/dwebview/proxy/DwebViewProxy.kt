@@ -5,11 +5,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import reverse_proxy.VoidCallback
 
 object DwebViewProxy {
-  suspend fun prepare() {
+  val prepare = SuspendOnce {
     val proxyAddress = CompletableDeferred<String>()
     CoroutineScope(ioAsyncExceptionHandler).launch {
       debugDWebView("reverse_proxy", "starting")

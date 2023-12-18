@@ -16,8 +16,6 @@ import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
-import org.dweb_browser.dwebview.DWebViewWatchIconHandler
-import org.dweb_browser.dwebview.DWebViewWebMessage
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
 import org.dweb_browser.dwebview.WebLoadErrorState
@@ -26,10 +24,13 @@ import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
+import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
+import org.dweb_browser.dwebview.polyfill.DWebViewFaviconMessageHandler
 import org.dweb_browser.dwebview.polyfill.DWebViewWebSocketMessageHandler
+import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
+import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.polyfill.UserAgentData
-import org.dweb_browser.dwebview.polyfill.WatchIosIcon
-import org.dweb_browser.dwebview.polyfill.WebSocketProxy
+import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
@@ -173,15 +174,10 @@ class DWebViewEngine(
 
   init {
     /// 启动代理
-    remoteMM.ioAsyncScope.launch {
-      val url = Url(IDWebView.getProxyAddress())
-      withMainContext {
-        @Suppress("USELESS_CAST") dwebHelper.setProxyWithConfiguration(
-          // 强制类型转换成 `objcnames.classes.WKWebViewConfiguration`，不然会提示类型对不上
-          configuration, url.host, url.port.toUShort()
-        )
-      }
-    }
+    val url = Url(DwebViewProxy.ProxyUrl)
+    dwebHelper.setProxyWithConfiguration(
+      configuration, url.host, url.port.toUShort()
+    )
     /// 测试的时候使用
     if (UIDevice.currentDevice.systemVersion.compareTo("16.4", true) >= 0) {
       this.setInspectable(true)
@@ -204,7 +200,6 @@ class DWebViewEngine(
         DWebViewWebMessage.webMessagePortContentWorld,
         "webMessagePort"
       )
-      addScriptMessageHandler(DWebViewWatchIconHandler(this@DWebViewEngine), "favicons")
       addUserScript(
         WKUserScript(
           DWebViewWebMessage.WebMessagePortPrepareCode,
@@ -213,17 +208,23 @@ class DWebViewEngine(
           DWebViewWebMessage.webMessagePortContentWorld
         )
       )
+      addScriptMessageHandler(
+        scriptMessageHandler = DWebViewFaviconMessageHandler(this@DWebViewEngine),
+        contentWorld = FaviconPolyfill.faviconContentWorld,
+        name = "favicons"
+      )
       addUserScript(
         WKUserScript(
-          WatchIosIcon.polyfillScript,
+          DwebViewPolyfill.Favicon,
           WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
-          true
-        )
+          true,
+          FaviconPolyfill.faviconContentWorld,
+        ),
       )
 
       addUserScript(
         WKUserScript(
-          WebSocketProxy.getPolyfillScript(),
+          DwebViewPolyfill.WebSocket,
           WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
           false,
         )
@@ -261,6 +262,16 @@ class DWebViewEngine(
     scrollView.insetsLayoutMarginsFromSafeArea = true
     scrollView.bounces = false
   }
+
+  //#region favicon
+  suspend fun getFavicon() = withMainContext {
+    awaitAsyncJavaScript<String>(
+      "getIosIcon()",
+      inContentWorld = FaviconPolyfill.faviconContentWorld
+    )
+  }
+
+  //#endregion
 
   fun evalAsyncJavascript(code: String): Deferred<String> {
     val deferred = CompletableDeferred<String>()
@@ -359,12 +370,10 @@ class DWebViewEngine(
     )
   }
 
-  //#region 用于 CloseWatcher
   fun evaluateJavascriptSync(script: String) {
     evaluateJavaScript(script) { _, _ -> }
   }
 
-  //#endregion
 
   //#region NavigationDelegate
   override fun webViewWebContentProcessDidTerminate(webView: WKWebView) {
@@ -433,7 +442,6 @@ class DWebViewEngine(
     mainScope.launch {
       loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl))
     }
-    evaluateJavascriptSync("void watchIosIcon()")
   }
 
   override fun webView(
