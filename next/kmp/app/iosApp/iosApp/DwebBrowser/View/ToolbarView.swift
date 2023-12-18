@@ -19,7 +19,6 @@ struct ToolbarView: View {
     @EnvironmentObject var dragScale: WndDragScale
 
     @State private var toolbarHeight: CGFloat = toolBarH
-    @State private var isPresentingScanner = false
 //    @State private var showMoreSheet = false
     @State private var cancellables: Set<AnyCancellable> = []
     
@@ -114,7 +113,7 @@ struct ToolbarView: View {
                 } else {
                     BiColorButton(imageName: "scan", disabled: false) {
                         Log("scan qrcode")
-                        isPresentingScanner = true
+                        toolbarState.isPresentingScanner = true
                     }
                 }
                 Spacer()
@@ -140,12 +139,12 @@ struct ToolbarView: View {
                     }
                 }
                 .clipped()
-                .sheet(isPresented: $isPresentingScanner) {
+                .sheet(isPresented: $toolbarState.isPresentingScanner) {
                     CodeScannerView(codeTypes: [.qr], showViewfinder: true) { response in
                         if case let .success(result) = response {
                             // TODO: 扫描结果result.string
                             Log(result.string)
-                            isPresentingScanner = false
+                            toolbarState.isPresentingScanner = false
                             addressBar.inputText = result.string
                             let url = URL.createUrl(addressBar.inputText)
                             DispatchQueue.main.async {

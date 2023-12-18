@@ -36,14 +36,30 @@ class BrowserViewStateStore: ObservableObject {
 
 //这个地方暴露BrowserView的行为给外部使用
 extension BrowserViewStateStore {
+    
     func doBackIfCan() -> Bool {
-        guard webcacheStore.caches.count > 0 else { return false }
-        let shouldShowWeb = webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb
-        guard shouldShowWeb else { return false }
-        let webwrapper = webcacheStore.webWrappers[selectedTab.curIndex]
-        if webwrapper.webView.canGoBack {
-            webwrapper.webView.goBack()
+        if addressBar.isFocused {
+            addressBar.inputText = ""
+            addressBar.isFocused = false
             return true
+        } else if toolBarState.showMoreMenu {
+            toolBarState.showMoreMenu = false
+            return true
+        } else if !toolBarState.shouldExpand {
+            toolBarState.shouldExpand = true
+            return true
+        } else if toolBarState.isPresentingScanner {
+            toolBarState.isPresentingScanner = false
+            return true
+        } else {
+            guard webcacheStore.caches.count > 0 else { return false }
+            let shouldShowWeb = webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb
+            guard shouldShowWeb else { return false }
+            let webwrapper = webcacheStore.webWrappers[selectedTab.curIndex]
+            if webwrapper.webView.canGoBack {
+                webwrapper.webView.goBack()
+                return true
+            }
         }
         return false
     }

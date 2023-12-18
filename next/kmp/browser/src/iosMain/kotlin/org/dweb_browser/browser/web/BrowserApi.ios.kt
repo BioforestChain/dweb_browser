@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.common.barcode.QRCodeState
+import org.dweb_browser.browser.web.ui.bottomsheet.SheetState
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.sys.window.core.WindowRenderScope
@@ -57,22 +59,27 @@ actual fun CommonBrowserView(
     }
   }
 
-
   if (!viewModel.dwebLinkSearch.value.isEmpty()) {
     browserIosImp.doSearch(viewModel.dwebLinkSearch.value.toString())
   }
 
   val win = LocalWindowController.current
   val scope = rememberCoroutineScope()
+
+  fun backHandler() {
+    if (!browserIosImp.gobackIfCanDo()) {
+      scope.launch {
+        win.tryCloseOrHide()
+      }
+    }
+  }
+
+  // 窗口返回按钮
+  win.GoBackHandler { backHandler() }
+  // 侧滑返回手势
   NativeBackHandler {
     if (win.isFocused()) {
-
-      //true: web能够goback。false:不能goback，需要close
-      if (!browserIosImp.gobackIfCanDo()) {
-        scope.launch {
-          win.tryCloseOrHide()
-        }
-      }
+      backHandler()
     }
   }
 
