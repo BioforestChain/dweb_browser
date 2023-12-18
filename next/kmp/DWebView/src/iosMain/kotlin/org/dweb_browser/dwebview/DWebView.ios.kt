@@ -4,22 +4,16 @@ import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
 import org.dweb_browser.dwebview.messagePort.DWebMessagePort
 import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
-import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
-import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.setScale
 import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.trueAlso
@@ -52,13 +46,7 @@ suspend fun IDWebView.Companion.create(
   options: DWebViewOptions = DWebViewOptions(),
   configuration: WKWebViewConfiguration,
 ) = withMainContext {
-  coroutineScope {
-    CoroutineScope(ioAsyncExceptionHandler).launch {
-      DwebViewPolyfill.prepare();
-    }
-    DwebViewProxy.prepare();
-  }
-
+  DWebViewEngine.prepare()
   create(DWebViewEngine(frame, remoteMM, options, configuration), options.url)
 }
 

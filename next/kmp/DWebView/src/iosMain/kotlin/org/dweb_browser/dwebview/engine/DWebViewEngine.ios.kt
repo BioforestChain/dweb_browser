@@ -10,6 +10,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -36,6 +37,8 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.ios.DwebHelper
 import org.dweb_browser.helper.platform.ios.DwebWKWebView
@@ -106,6 +109,21 @@ class DWebViewEngine(
   }
 
   companion object {
+    val prepare = SuspendOnce {
+      coroutineScope {
+        CoroutineScope(ioAsyncExceptionHandler).launch {
+          DwebViewPolyfill.prepare();
+        }
+        DwebViewProxy.prepare();
+      }
+    }
+
+    init {
+      CoroutineScope(ioAsyncExceptionHandler).launch {
+        prepare()
+      }
+    }
+
     /**
      * 注册 dweb+http(s)? 的链接拦截，因为IOS不能拦截 `http(s)?:*.dweb`。
      * 所以这里定义了这个特殊的 scheme 来替代 http(s)?:*.dweb

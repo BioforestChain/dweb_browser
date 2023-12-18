@@ -20,6 +20,7 @@ import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.encodeToJsonElement
@@ -32,10 +33,14 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.UserAgentData
+import org.dweb_browser.dwebview.proxy.DwebViewProxy
+import org.dweb_browser.dwebview.proxy.DwebViewProxyOverride
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toAndroidRect
 import org.dweb_browser.helper.withMainContext
@@ -95,6 +100,22 @@ class DWebViewEngine internal constructor(
    */
   var activity: org.dweb_browser.helper.android.BaseActivity? = null
 ) : WebView(context) {
+  companion object {
+    val prepare = SuspendOnce {
+      coroutineScope {
+        DwebViewProxy.prepare();
+        launch {
+          DwebViewProxyOverride.prepare()
+        }
+      }
+    }
+    init {
+      CoroutineScope(ioAsyncExceptionHandler).launch {
+        prepare()
+      }
+    }
+  }
+
   private var documentStartJsList = mutableListOf<String>()
 
   init {
