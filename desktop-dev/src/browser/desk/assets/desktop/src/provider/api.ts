@@ -50,7 +50,7 @@ export async function getWidgetInfo() {
 
 /**点击打开JMM */
 export async function openApp(id: string) {
-  return await nativeFetch<string>("/openAppOrActivate", {
+  return await nativeFetch<boolean>("/openAppOrActivate", {
     search: {
       app_id: id,
     },

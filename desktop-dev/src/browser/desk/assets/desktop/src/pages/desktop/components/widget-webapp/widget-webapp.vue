@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { vOnLongPress, vOnClickOutside } from "@vueuse/components";
+import { vOnClickOutside, vOnLongPress } from "@vueuse/components";
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
@@ -88,7 +88,8 @@ const $menu = {
 
 async function doOpen() {
   opening.value = true;
-  if ((await openBrowser(appUrl.value).catch(() => (opening.value = false))) === false) {
+  await openBrowser(appUrl.value).catch(() => (opening.value = false));
+  if (!opening.value) {
     snackbar.text = `${appname.value} 启动失败`;
     snackbar.timeOut = 1500;
     snackbar.type = "error";

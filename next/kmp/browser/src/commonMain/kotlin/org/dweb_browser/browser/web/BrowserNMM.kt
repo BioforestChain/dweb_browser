@@ -59,10 +59,10 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     onRenderer {
       browserController.renderBrowserWindow(wid)
     }
-    val openBrowser = defineEmptyResponse {
+    val openBrowser = defineBooleanResponse {
       debugBrowser("do openinbrowser", request.href)
       browserController.openBrowserView(url = request.query("url"))
-      openMainWindow()
+      openMainWindow().let { true }
     }
 
     routes(
