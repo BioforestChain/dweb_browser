@@ -3,10 +3,12 @@ package org.dweb_browser.browser.common
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.ButtonDefaults
@@ -70,9 +72,14 @@ actual fun RowScope.SegmentedButton(
     border = BorderStroke(width = 1.dp, color = borderColor(enabled, selected)),
     interactionSource = interactionSource
   ) {
-    Row {
-      icon()
-      label()
+    Box(
+      contentAlignment = Alignment.Center,
+      modifier = Modifier.padding(ButtonDefaults.TextButtonContentPadding)
+    ) {
+      Row {
+        icon()
+        label()
+      }
     }
   }
 }

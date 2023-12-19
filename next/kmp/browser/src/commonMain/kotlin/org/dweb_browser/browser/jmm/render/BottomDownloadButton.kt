@@ -13,14 +13,27 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JmmStatus
@@ -108,13 +121,59 @@ internal fun BoxScope.BottomDownloadButton() {
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.Center
         ) {
-          Text(text = text, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+          ResizeSingleText(text = text, textAlign = TextAlign.Center)
           Text(text = size, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
           Text(text = total, modifier = Modifier.weight(1f))
         }
       } ?: Text(text = "$text $total")
     }
   }
+}
+
+/**
+ * 为了显示所有内容而修改字体大小
+ */
+@Composable
+fun ResizeSingleText(
+  text: String,
+  modifier: Modifier = Modifier,
+  color: Color = Color.Unspecified,
+  fontSize: TextUnit = TextUnit.Unspecified,
+  fontStyle: FontStyle? = null,
+  fontWeight: FontWeight? = null,
+  fontFamily: FontFamily = FontFamily.Default,
+  letterSpacing: TextUnit = TextUnit.Unspecified,
+  textDecoration: TextDecoration? = null,
+  textAlign: TextAlign = TextAlign.Start,
+  lineHeight: TextUnit = TextUnit.Unspecified,
+) {
+  var remFontSize by remember { mutableStateOf(fontSize) }
+  val textMeasurer = rememberTextMeasurer() // 用于计算文本的实际长度
+  val textStyle = TextStyle(
+    color = color,
+    fontSize = remFontSize,
+    fontStyle = fontStyle,
+    fontWeight = fontWeight,
+    fontFamily = fontFamily,
+    letterSpacing = letterSpacing,
+    textDecoration = textDecoration,
+    textAlign = textAlign,
+    lineHeight = lineHeight
+  )
+  Text(
+    text = text,
+    modifier = modifier,
+    overflow = TextOverflow.Ellipsis,
+    maxLines = 1,
+    style = textStyle,
+    onTextLayout = { layoutResult ->
+      val isLineEllipsized = layoutResult.isLineEllipsized(0)
+      val measureWidth = textMeasurer.measure(text, textStyle).size.width
+      if (isLineEllipsized && measureWidth > layoutResult.size.width) {
+        remFontSize = (remFontSize.value - 1f).sp
+      }
+    }
+  )
 }
 
 @Composable
