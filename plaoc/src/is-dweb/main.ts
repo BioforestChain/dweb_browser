@@ -1,17 +1,23 @@
 export const isDweb = () => {
-  const userAgentData = self.navigator.userAgentData;
+  const isDweb = self.navigator.userAgent.includes("Dweb");
   // @ts-ignore
   const isPlaoc = self.__native_close_watcher_kit__ !== void 0;
 
+  if(isDweb || isPlaoc) {
+    return true;
+  }
+
+  const userAgentData = self.navigator.userAgentData;
+
   if(!userAgentData) {
-    return isPlaoc;
+    return false;
   }
 
   const brands = userAgentData.brands.filter(value => {
     return value.brand === "DwebBrowser";
   });
 
-  return brands && brands.length > 0;
+  return Array.isArray(brands) && brands.length > 0;
 };
 
 export const dwebTarget = () => {
@@ -25,7 +31,7 @@ export const dwebTarget = () => {
       return value.brand === "jmm.browser.dweb";
     });
 
-    if (brands && brands.length > 0) {
+    if (Array.isArray(brands) && brands.length > 0) {
       return parseFloat(brands[0].version);
     }
   }
