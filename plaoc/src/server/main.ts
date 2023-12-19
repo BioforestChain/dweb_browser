@@ -11,6 +11,7 @@ import {
   apply_window,
   mwebview_activate,
   mwebview_open,
+  open_main_window,
   sync_mwebview_status,
 } from "./helper/mwebview-helper.ts";
 import { queue } from "./helper/queue.ts";
@@ -86,6 +87,7 @@ const main = async () => {
   console.log("open in browser:", indexUrl.href);
   await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
   indexUrlPo.resolve(indexUrl.href);
+  open_main_window()
   //#endregion
 };
 

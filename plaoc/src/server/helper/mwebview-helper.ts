@@ -5,6 +5,10 @@ export const  apply_window = async () => {
   return await jsProcess.nativeFetch("file://window.sys.dweb/mainWindow").text()
 }
 
+export const open_main_window =  () => {
+  jsProcess.nativeFetch("file://window.sys.dweb/openMainWindow")
+}
+
 // 彻底删除模块窗口
 export const close_window = async (wid:string) => {
   return await jsProcess.nativeFetch(`file://window.sys.dweb/closeWindow?wid=${wid}`)

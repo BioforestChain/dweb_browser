@@ -7,7 +7,7 @@ export const devTasks = new ConTasks(
   {
     "plaoc:server": {
       cmd: "deno",
-      args: "task build:watch:server",
+      args: "task bundle:watch:server",
       cwd: "./plaoc",
     },
     "plaoc:demo": {
