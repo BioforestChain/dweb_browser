@@ -125,32 +125,19 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
     }
 
     fun UIAlertController.addMmid() {
-        val domainLabel = UILabel();
-        domainLabel.attributedText = NSAttributedString.create(
-            string = engine.remoteMM.mmid, attributes = mapOf(
-                NSFontAttributeName to UIFont.systemFontOfSize(fontSize = 8.0),
-                NSForegroundColorAttributeName to UIColor.blackColor.colorWithAlphaComponent(alpha = 0.2)
-            )
-        )
-        domainLabel.sizeToFit() // 让标签自适应内容大小
+        val domainLabel = UILabel()
         view.addSubview(domainLabel)
-
+        domainLabel.font = UIFont.systemFontOfSize(fontSize = 8.0)
+        domainLabel.textColor = UIColor.blackColor.colorWithAlphaComponent(alpha = 0.2)
+        domainLabel.text = engine.remoteMM.mmid
+        domainLabel.sizeToFit()
         domainLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activateConstraints(
-            constraints = listOf(
-                domainLabel.topAnchor.constraintEqualToAnchor(
-                    anchor = view.topAnchor,
-                    constant = 3.0
-                ),
-                domainLabel.centerXAnchor.constraintEqualToAnchor(anchor = view.centerXAnchor),
-                domainLabel.leadingAnchor.constraintGreaterThanOrEqualToAnchor(
-                    anchor = view.leadingAnchor,
-                    constant = 20.0
-                ),
-            )
-        )
-    }
 
+        NSLayoutConstraint.activateConstraints(constraints = listOf(
+            domainLabel.topAnchor.constraintEqualToAnchor(view.topAnchor, 3.0),
+            domainLabel.centerXAnchor.constraintEqualToAnchor(view.centerXAnchor)
+        ) )
+    }
 
     @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     override fun webView(
