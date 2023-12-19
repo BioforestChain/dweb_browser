@@ -32,13 +32,13 @@ struct PagingScrollView: View {
                                 if showTabPage {
                                     ZStack {
                                         HStack {
-                                            TabPageView(webCache: cache, webWrapper: webwrapper)
-//                                                .id(UUID())
+                                            TabPageView(webCache: cache, webWrapper: webwrapper,
+                                                        isVisible: index == selectedTab.curIndex,
+                                                        doneLoading: loadingFinished)
                                                 .gesture(disabledDragGesture)
                                         }
                                         if addressBar.isFocused {
                                             SearchTypingView()
-                                                .environmentObject(webcacheStore)
                                         }
                                     }
                                 } else {
@@ -52,7 +52,6 @@ struct PagingScrollView: View {
                                        tabIndex: index,
                                        isVisible: index == selectedTab.curIndex)
 
-//                            AddressBar(webWrapper: webwrapper, webCache: cache)
                                 .background(Color.bkColor)
                                 .offset(y: addressbarOffset)
                                 .animation(.default, value: addressbarOffset)
@@ -65,6 +64,13 @@ struct PagingScrollView: View {
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             }
+        }
+    }
+
+    func loadingFinished(webCache: WebCache) {
+        webcacheStore.saveCaches()
+        if !TracelessMode.shared.isON {
+            DwebBrowserHistoryStore.shared.addHistoryRecord(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString)
         }
     }
 }

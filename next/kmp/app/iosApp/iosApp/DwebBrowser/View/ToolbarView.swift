@@ -12,17 +12,14 @@ import UIKit
 struct ToolbarView: View {
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var selectedTab: SelectedTab
-    @EnvironmentObject var addressBarState: AddressBarState
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
-    @EnvironmentObject var webcacheStore: WebCacheStore
     @EnvironmentObject var dragScale: WndDragScale
 
     @State private var toolbarHeight: CGFloat = toolBarH
-//    @State private var showMoreSheet = false
-    @State private var cancellables: Set<AnyCancellable> = []
-    
-    private var isShowingWebsite: Bool { webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb }
+
+    let webCount: Int
+    let isWebVisible: Bool
     
     var body: some View {
         GeometryReader { geo in
@@ -34,18 +31,7 @@ struct ToolbarView: View {
                 }
             }.frame(height: geo.size.height)
         }
-//        .onAppear {
-//            selectedTab.$curIndex
-//                .sink { newIndex in
-//                    Log("Value changed: \(newIndex)")
-//                    tabIndexChanged(to: newIndex)
-//                }
-//                .store(in: &cancellables) // Store the subscription
-//        }
-//        .onDisappear {
-//            cancellables.forEach { $0.cancel() }
-//            cancellables.removeAll()
-//        }
+
     }
 
     var threeButtons: some View {
@@ -62,7 +48,7 @@ struct ToolbarView: View {
                     .frame(height: min(size.width / 14, size.height / 1.9))
 
                     Spacer()
-                    Text("\(webcacheStore.cacheCount)个标签页")
+                    Text("\(webCount)个标签页")
                         .foregroundColor(Color.ToolbarColor)
                         .font(dragScale.scaledFont())
                         .fontWeight(.semibold)
@@ -99,13 +85,13 @@ struct ToolbarView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .background(Color.bkColor)
-                        .foregroundColor(isShowingWebsite ? Color.ToolbarColor : Color.gray)
+                        .foregroundColor(isWebVisible ? Color.ToolbarColor : Color.gray)
                         .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
                 }
-                .disabled(!isShowingWebsite)
+                .disabled(!isWebVisible)
                
                 Spacer()
-                if isShowingWebsite {
+                if isWebVisible {
                     BiColorButton(imageName: "add", disabled: false) {
                         Log("open new tab was clicked")
                         toolbarState.createTabTapped = true
@@ -126,14 +112,13 @@ struct ToolbarView: View {
                     BiColorButton(imageName: "more", disabled: false) {
                         withAnimation {
                             toolbarState.showMoreMenu = true
-//                            showMoreSheet = true
                         }
                         Log("more menu was clicked")
                     }
                     Spacer()
                 }
 
-                .onReceive(addressBarState.$isFocused) { isFocused in
+                .onReceive(addressBar.$isFocused) { isFocused in
                     withAnimation {
                         toolbarHeight = isFocused ? 0 : toolBarH
                     }

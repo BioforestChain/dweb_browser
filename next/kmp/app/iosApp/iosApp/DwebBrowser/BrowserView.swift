@@ -17,7 +17,7 @@ struct BrowserView: View {
     @StateObject var webcacheStore = BrowserViewStateStore.shared.webcacheStore
     @StateObject var dragScale = BrowserViewStateStore.shared.dragScale
     @StateObject var wndArea = BrowserViewStateStore.shared.wndArea
-
+    var curWebVisible: Bool { webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb }
     var body: some View {
         ZStack {
             GeometryReader { geometry in
@@ -25,7 +25,7 @@ struct BrowserView: View {
                     Color.black
                     VStack(spacing: 0) {
                         TabsContainerView()
-                        ToolbarView()
+                        ToolbarView(webCount: webcacheStore.cacheCount, isWebVisible: curWebVisible)
                             .frame(height: dragScale.toolbarHeight)
                             .background(Color.bkColor)
                     }
@@ -108,4 +108,6 @@ struct BrowserView: View {
         }
         return webcacheStore.cache(at: BrowserViewStateStore.shared.selectedTab.curIndex).shouldShowWeb
     }
+    
+    
 }

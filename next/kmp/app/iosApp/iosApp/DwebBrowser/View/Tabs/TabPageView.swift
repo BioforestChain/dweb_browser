@@ -13,37 +13,36 @@ import WebKit
 struct TabPageView: View {
     @EnvironmentObject var animation: ShiftAnimation
     @EnvironmentObject var toolbarState: ToolBarState
-    @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
-    @EnvironmentObject var webcacheStore: WebCacheStore
+
     @EnvironmentObject var dragScale: WndDragScale
-    @EnvironmentObject var browerArea: BrowserArea
     @Environment(\.colorScheme) var colorScheme
 
-    var tabIndex: Int { webcacheStore.index(of: webCache)! }
     var webCache: WebCache
     @ObservedObject var webWrapper: WebWrapper
-
-    private let screemScale = UIScreen.main.scale
+    let isVisible: Bool
+    var doneLoading: (WebCache) -> Void
 
     @State private var snapshotHeight: CGFloat = 0
-    private var isVisible: Bool { tabIndex == selectedTab.curIndex }
+    
+    
     var body: some View {
         GeometryReader { geo in
             content
                 .onChange(of: openingLink.clickedLink) { _, link in
                     guard link != emptyURL else { return }
+                    if isVisible{
+                        webCache.lastVisitedUrl = link
+                        if webCache.shouldShowWeb {
+                            webWrapper.webView.load(URLRequest(url: link))
+                        } else {
+                            webCache.shouldShowWeb = true
+                        }
+                        openingLink.clickedLink = emptyURL
+                        print("clickedLink has changed at index: \(link)")
 
-                    print("clickedLink has changed: \(link)")
-                    let webcache = webcacheStore.cache(at: selectedTab.curIndex)
-                    webcache.lastVisitedUrl = link
-                    if webcache.shouldShowWeb {
-                        webWrapper.webView.load(URLRequest(url: link))
-                    } else {
-                        webcache.shouldShowWeb = true
                     }
-                    openingLink.clickedLink = emptyURL
                 }
                 .onAppear {
                     print("tabPage rect: \(geo.frame(in: .global))")
@@ -70,7 +69,7 @@ struct TabPageView: View {
                                 .environment(\.colorScheme, colorScheme)
                                 .frame(width: geo.size.width, height: geo.size.height)
                             let render = ImageRenderer(content: toSnapView)
-                            render.scale = screemScale
+                            render.scale = UIScreen.main.scale
                             animation.snapshotImage = render.uiImage ?? UIImage.snapshotImage(from: .defaultSnapshotURL)
                             webCache.snapshotUrl = UIImage.createLocalUrl(withImage: animation.snapshotImage, imageName: webCache.id.uuidString)
                             animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
@@ -94,8 +93,10 @@ struct TabPageView: View {
     }
 
     var webComponent: some View {
-        TabWebView(webView: webWrapper.webView)
+        let _ = Self._printChanges()
+        return TabWebView(webView: webWrapper.webView)
             .id(webWrapper.id)
+            .background(.purple)
             .onAppear {
                 if webWrapper.estimatedProgress < 0.001 {
                     webWrapper.webView.load(URLRequest(url: webCache.lastVisitedUrl))
@@ -114,22 +115,20 @@ struct TabPageView: View {
             .onChange(of: webWrapper.icon) { _, icon in
                 webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
             }
+            
             .onChange(of: webWrapper.estimatedProgress) { _, newValue in
                 if newValue >= 1.0 {
-                    webcacheStore.saveCaches()
-                    if !TracelessMode.shared.isON {
-                        DwebBrowserHistoryStore.shared.addHistoryRecord(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString)
-                    }
+                    doneLoading(webCache)
                 }
             }
             .onChange(of: addressBar.needRefreshOfIndex) { _, refreshIndex in
-                if refreshIndex == tabIndex {
+                if isVisible {
                     webWrapper.webView.reload()
                     addressBar.needRefreshOfIndex = -1
                 }
             }
             .onChange(of: addressBar.stopLoadingOfIndex) { _, stopIndex in
-                if stopIndex == tabIndex {
+                if isVisible {
                     webWrapper.webView.stopLoading()
                 }
             }
