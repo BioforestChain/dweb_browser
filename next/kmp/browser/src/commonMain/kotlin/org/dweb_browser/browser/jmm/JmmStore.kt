@@ -75,14 +75,15 @@ class JmmStore(microModule: MicroModule) {
 @Serializable
 data class JmmHistoryMetadata(
   val originUrl: String,
-  val metadata: JmmAppInstallManifest,
+  @SerialName("metadata")
+  private var _metadata: JmmAppInstallManifest,
   var taskId: TaskId? = null, // 用于保存下载任务，下载完成置空
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
   var installTime: Long = datetimeNow(), // 表示安装应用的时间
 ) {
-  @Transient
   var state by ObservableMutableState(_state) { _state = it }
+  var metadata by ObservableMutableState(_metadata) { _metadata = it }
 
   suspend fun updateByDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
     state = state.copy(
@@ -143,7 +144,7 @@ data class JmmStatusEvent(
 
 fun JmmAppInstallManifest.createJmmHistoryMetadata(url: String) = JmmHistoryMetadata(
   originUrl = url,
-  metadata = this,
+  _metadata = this,
   _state = JmmStatusEvent(total = this.bundle_size)
 )
 

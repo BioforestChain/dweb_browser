@@ -43,6 +43,7 @@ class MicroModuleStore(
 ) {
   private val taskQueues = Channel<Task<*>>(onBufferOverflow = BufferOverflow.SUSPEND)
   private val storeMutex = Mutex()
+
   init {
     mm.ioAsyncScope.launch {
       for (task in taskQueues) {
@@ -97,7 +98,7 @@ class MicroModuleStore(
     }
   }
 
-  suspend fun store() = _store.await()
+  suspend fun getStore() = _store.await()
   internal class Task<T>(val deferred: CompletableDeferred<T>, val action: suspend () -> T) {}
 
   private fun <T> exec(action: suspend () -> T): Deferred<T> {
@@ -111,7 +112,7 @@ class MicroModuleStore(
   @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun <reified T> getAll(): MutableMap<String, T> {
     val data = mutableMapOf<String, T>()
-    for (item in store()) {
+    for (item in getStore()) {
       data[item.key] = Cbor.decodeFromByteArray<T>(item.value)
     }
     return data
@@ -119,18 +120,18 @@ class MicroModuleStore(
 
   @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun delete(key: String): Boolean {
-    val res = store().remove(key)
+    val res = getStore().remove(key)
     save()
     return res !== null
   }
 
   @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun <reified T> getOrNull(key: String) =
-    store()[key]?.let { Cbor.decodeFromByteArray<T>(it) }
+    getStore()[key]?.let { Cbor.decodeFromByteArray<T>(it) }
 
   @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun <reified T> getOrPut(key: String, put: () -> T): T {
-    val obj = store()
+    val obj = getStore()
     return obj[key].let { it ->
       if (it != null) Cbor.decodeFromByteArray<T>(it)
       else put().also {
@@ -148,7 +149,7 @@ class MicroModuleStore(
   @OptIn(ExperimentalSerializationApi::class)
   suspend fun save() {
     exec {
-      val map = store()
+      val map = getStore()
       mm.nativeFetch(
         PureClientRequest(
           URLBuilder("file://file.std.dweb/write").apply {
@@ -165,7 +166,10 @@ class MicroModuleStore(
 
   @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun <reified T> set(key: String, value: T) {
-    store()[key] = Cbor.encodeToByteArray(value)
-    save()
+    val store = getStore()
+    val newValue = Cbor.encodeToByteArray(value)
+    if (!newValue.contentEquals(store[key])) {
+      save()
+    }
   }
 }

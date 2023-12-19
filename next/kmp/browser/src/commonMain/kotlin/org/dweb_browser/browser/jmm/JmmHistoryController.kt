@@ -60,8 +60,8 @@ class JmmHistoryController(
   }
 
   suspend fun openInstallerView(jmmHistoryMetadata: JmmHistoryMetadata) =
-    jmmController.openInstallerView(
-      jmmHistoryMetadata.metadata, jmmHistoryMetadata.originUrl, true
+    jmmController.openOrUpsetInstallerView(
+      jmmHistoryMetadata.originUrl, jmmHistoryMetadata.metadata, true
     )
 
   suspend fun buttonClick(historyMetadata: JmmHistoryMetadata) {

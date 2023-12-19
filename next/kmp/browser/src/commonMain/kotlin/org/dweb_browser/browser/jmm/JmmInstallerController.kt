@@ -1,23 +1,39 @@
 package org.dweb_browser.browser.jmm
 
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.jmm.model.JmmInstallerModel
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.ui.Render
-import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.compose.ObservableMutableState
+import org.dweb_browser.helper.falseAlso
+import org.dweb_browser.helper.platform.noLocalProvidedFor
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
+
+internal val LocalShowWebViewVersion = compositionLocalOf {
+  mutableStateOf(false)
+}
+
+internal val LocalJmmInstallerController = compositionLocalOf<JmmInstallerController> {
+  noLocalProvidedFor("JmmInstallerController")
+}
 
 /**
  * JS 模块安装 的 控制器
  */
 class JmmInstallerController(
   private val jmmNMM: JmmNMM,
-  private val jmmHistoryMetadata: JmmHistoryMetadata,
+  initJmmHistoryMetadata: JmmHistoryMetadata,
   private val jmmController: JmmController,
   private val openFromHistory: Boolean,
 ) {
-  val viewModel: JmmInstallerModel = JmmInstallerModel(jmmHistoryMetadata, this)
+  var jmmHistoryMetadata by ObservableMutableState(initJmmHistoryMetadata) {}
+    internal set
+
   val ioAsyncScope = jmmNMM.ioAsyncScope
 
   private val viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
@@ -28,7 +44,10 @@ class JmmInstallerController(
       /// 创建 BottomSheets 视图，提供渲染适配
       jmmNMM.createBottomSheets() { modifier ->
         Render(modifier, this)
-      }.also { viewDeferred.complete(it) }
+      }.also {
+        println("QAQ createBottomSheets")
+        viewDeferred.complete(it)
+      }
     }
   }
 
@@ -39,23 +58,40 @@ class JmmInstallerController(
     }
     /// 显示抽屉
     val bottomSheets = getView()
+    println("QAQ openRender")
     bottomSheets.open()
     bottomSheets.onClose {
       /// TODO 如果应用正在下载，则显示toast应用正在安装中
     }
   }
 
-  suspend fun openApp(mmid: MMID) =
-    jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=$mmid")
+  suspend fun openApp() {
+    jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${jmmHistoryMetadata.metadata.id}")
+    closeSelf() // 打开应用后，需要关闭当前安装界面
+  }
 
   /**
    * 创建任务，如果存在则恢复
    */
-  suspend fun createDownloadTask() = jmmController.createDownloadTask(jmmHistoryMetadata)
+  suspend fun createAndStartDownload() {
+    if (jmmHistoryMetadata.taskId == null ||
+      (jmmHistoryMetadata.state.state != JmmStatus.INSTALLED &&
+          jmmHistoryMetadata.state.state != JmmStatus.Completed)
+    ) {
+      jmmController.createDownloadTask(jmmHistoryMetadata)
+    }
+    // 已经注册完监听了，开始
+    startDownload()
+  }
 
-  suspend fun start() = jmmController.start(jmmHistoryMetadata)
+  suspend fun startDownload() {
+    jmmController.start(jmmHistoryMetadata).falseAlso {
+      showToastText(BrowserI18nResource.toast_message_download_download_fail.text)
+      jmmHistoryMetadata.updateState(JmmStatus.Failed)
+    }
+  }
 
-  suspend fun pause() = jmmController.pause(jmmHistoryMetadata.taskId)
+  suspend fun pauseDownload() = jmmController.pause(jmmHistoryMetadata.taskId)
 
   suspend fun cancel() = jmmController.cancel(jmmHistoryMetadata.taskId)
 

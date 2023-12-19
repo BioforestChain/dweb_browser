@@ -7,6 +7,8 @@ import kotlinx.atomicfu.update
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -76,15 +78,28 @@ class JmmNMM :
 
     val routeInstallHandler = defineEmptyResponse {
       val metadataUrl = request.query("url")
-      val response = nativeFetch(metadataUrl)
-      if (!response.isOk()) {
-        val message = "invalid status code: ${response.status}"
-        nativeFetch("file://toast.sys.dweb/show?message=$message")
-        throwException(HttpStatusCode.ExpectationFailed, message)
+      coroutineScope {
+        // 先打开渲染器
+        launch {
+          println("QAQ openOrUpsetInstallerView start null")
+          jmmController.openOrUpsetInstallerView(metadataUrl)
+          println("QAQ openOrUpsetInstallerView end null")
+        }
+
+        // 加载url资源，这一步可能要多一些时间
+        println("QAQ openOrUpsetInstallerView fetch!!")
+        val response = nativeFetch(metadataUrl)
+        if (!response.isOk()) {
+          val message = "invalid status code: ${response.status}"
+          nativeFetch("file://toast.sys.dweb/show?message=$message")
+          throwException(HttpStatusCode.ExpectationFailed, message)
+        }
+        val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
+        debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
+        println("QAQ openOrUpsetInstallerView start loaded")
+        jmmController.openOrUpsetInstallerView(metadataUrl, jmmAppInstallManifest)
+        println("QAQ openOrUpsetInstallerView end loaded")
       }
-      val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
-      debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
-      jmmController.openInstallerView(jmmAppInstallManifest, metadataUrl)
     }
     routes(
       // 安装
@@ -100,7 +115,7 @@ class JmmNMM :
         val mmid = request.query("app_id")
         debugJMM("detailApp", mmid)
         val info = store.getApp(mmid) ?: return@defineBooleanResponse false
-        jmmController.openInstallerView(info.installManifest, info.originUrl)
+        jmmController.openOrUpsetInstallerView(info.originUrl, info.installManifest)
         true
       }).cors()
 

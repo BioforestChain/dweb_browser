@@ -13,7 +13,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.jmm.JmmInstallerController
-import org.dweb_browser.browser.jmm.model.LocalJmmViewHelper
+import org.dweb_browser.browser.jmm.LocalJmmInstallerController
 import org.dweb_browser.browser.jmm.render.BottomDownloadButton
 import org.dweb_browser.browser.jmm.render.ImagePreview
 import org.dweb_browser.browser.jmm.render.PreviewState
@@ -41,7 +41,7 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowRenderS
   }
 
   val win = LocalWindowController.current
-  win.state.title = this.viewModel.uiState.jmmHistoryMetadata.metadata.name
+  win.state.title = this.jmmHistoryMetadata.metadata.name
   win.GoBackHandler {
     if (previewState.showPreview.targetState) {
       previewState.showPreview.targetState = false
@@ -50,13 +50,13 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowRenderS
     }
   }
 
-  CompositionLocalProvider(LocalJmmViewHelper provides viewModel) {
+  CompositionLocalProvider(LocalJmmInstallerController provides this) {
     Box(modifier = with(renderScope) {
       modifier
         .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
         .scale(scale)
     }) {
-      val jmmMetadata = viewModel.uiState.jmmHistoryMetadata
+      val jmmMetadata = this@Render.jmmHistoryMetadata
       jmmMetadata.metadata.Render { index, imageLazyListState ->
         previewState.selectIndex.value = index
         previewState.imageLazy = imageLazyListState

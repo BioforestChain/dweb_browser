@@ -16,7 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.getChromeWebViewVersion
-import org.dweb_browser.browser.jmm.model.LocalShowWebViewVersion
+import org.dweb_browser.browser.jmm.LocalShowWebViewVersion
 import org.dweb_browser.helper.SupportUrl
 import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.compose.clickableWithNoEffect

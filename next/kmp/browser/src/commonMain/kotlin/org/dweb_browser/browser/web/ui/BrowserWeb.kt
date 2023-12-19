@@ -36,7 +36,6 @@ internal fun BrowserWebView(
         when (it) {
           1f -> {
             browserWebView.loadState.value = false
-            delay(500)
             viewModel.changeHistoryLink(
               add = browserWebView.viewItem.webView.toWebSiteInfo(WebSiteType.History)
             )

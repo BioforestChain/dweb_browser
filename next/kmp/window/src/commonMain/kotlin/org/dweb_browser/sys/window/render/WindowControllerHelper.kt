@@ -62,7 +62,6 @@ import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
-import org.dweb_browser.sys.window.core.constant.debugWindow
 import org.dweb_browser.sys.window.core.helper.asWindowStateColorOr
 import kotlin.math.max
 import kotlin.math.min
@@ -336,7 +335,10 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
     val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
     val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
     val safeAreaInsetTop = safeDrawingPadding.calculateTopPadding().value
-    val safeAreaInsetBottom = safeDrawingPadding.calculateBottomPadding().value
+    val safeAreaInsetBottom = max(
+      safeDrawingPadding.calculateBottomPadding().value,
+      safeGesturesPadding.calculateBottomPadding().value
+    )
     topHeight = max(safeAreaInsetTop, windowFrameSize)
 
     /**
