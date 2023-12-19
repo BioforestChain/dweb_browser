@@ -96,7 +96,6 @@ struct TabPageView: View {
         let _ = Self._printChanges()
         return TabWebView(webView: webWrapper.webView)
             .id(webWrapper.id)
-            .background(.purple)
             .onAppear {
                 if webWrapper.estimatedProgress < 0.001 {
                     webWrapper.webView.load(URLRequest(url: webCache.lastVisitedUrl))
