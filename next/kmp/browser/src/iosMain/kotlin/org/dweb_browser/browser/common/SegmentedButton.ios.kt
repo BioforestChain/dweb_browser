@@ -76,7 +76,7 @@ actual fun RowScope.SegmentedButton(
       contentAlignment = Alignment.Center,
       modifier = Modifier.padding(ButtonDefaults.TextButtonContentPadding)
     ) {
-      Row {
+      Row(verticalAlignment = Alignment.CenterVertically) {
         icon()
         label()
       }
