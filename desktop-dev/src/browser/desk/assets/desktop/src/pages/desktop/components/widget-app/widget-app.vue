@@ -174,7 +174,12 @@ function outsideCloseMenu(e: PointerEvent) {
           <SvgIcon class="icon" :src="details_svg" alt="详情" />
           <p class="title">详情</p>
         </button>
-        <button v-ripple v-if="appMetaData.mmid !== 'web.browser.dweb'" class="item delete" @click="showUninstall">
+        <button
+          v-ripple
+          v-if="!['web.browser.dweb', 'gui.jmm.browser.dweb'].includes(appMetaData.mmid)"
+          class="item delete"
+          @click="showUninstall"
+        >
           <SvgIcon class="icon" :src="delete_svg" alt="卸载" />
           <p class="title">卸载</p>
         </button>
