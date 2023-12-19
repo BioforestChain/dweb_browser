@@ -141,14 +141,13 @@ struct ToolbarView: View {
                 .clipped()
                 .sheet(isPresented: $toolbarState.isPresentingScanner) {
                     CodeScannerView(codeTypes: [.qr], showViewfinder: true) { response in
+                        toolbarState.isPresentingScanner = false
                         if case let .success(result) = response {
-                            // TODO: 扫描结果result.string
                             Log(result.string)
                             let url = URL(string: result.string)
                             if url?.scheme == "dweb" {
                                 DwebDeepLink.shared.openDeepLink(url: result.string)
                             } else {
-                                toolbarState.isPresentingScanner = false
                                 addressBar.inputText = result.string
                                 let url = URL.createUrl(addressBar.inputText)
                                 DispatchQueue.main.async {
