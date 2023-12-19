@@ -17,6 +17,7 @@ import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getUIApplication
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
@@ -402,6 +403,13 @@ class DWebViewEngine(
     val scheme = url?.scheme ?: "http"
     println("QAQ decidePolicyForNavigationAction $scheme")
     if (url != null && !isWebUrlScheme(scheme)) {
+      if (scheme == "dweb") {
+        ioScope.launch {
+          remoteMM.nativeFetch(url.absoluteString!!)
+        }
+        decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
+        return
+      }
       val uiApp = remoteMM.getUIApplication()
       if (uiApp.canOpenURL(url)) {
         uiApp.openURL(url)

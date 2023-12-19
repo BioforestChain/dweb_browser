@@ -7,6 +7,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import io.ktor.utils.io.jvm.javaio.toInputStream
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.core.http.PureClientRequest
 import org.dweb_browser.core.ipc.helper.IpcHeaders
@@ -19,6 +20,12 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
     if (!isWebUrlScheme(request.url.scheme ?: "http")) {
+      if (request.url.scheme == "dweb") {
+        engine.ioScope.launch {
+          engine.remoteMM.nativeFetch(request.url.toString())
+        }
+        return true
+      }
       /// TODO 显示询问对话框
       try {
         val ins = Intent(Intent.ACTION_VIEW, request.url).also {
