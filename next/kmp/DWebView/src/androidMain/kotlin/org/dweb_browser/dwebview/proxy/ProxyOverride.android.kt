@@ -1,17 +1,16 @@
 package org.dweb_browser.dwebview.proxy
 
+import android.annotation.SuppressLint
 import androidx.webkit.ProxyConfig
 import androidx.webkit.ProxyController
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.withMainContext
 
 object DwebViewProxyOverride {
+  @SuppressLint("RequiresFeature")
   val prepare = SuspendOnce {
     DwebViewProxy.prepare();
     val canLoadPage = CompletableDeferred<Unit>()
@@ -19,16 +18,12 @@ object DwebViewProxyOverride {
       val canProxyOverride = WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)
       if (canProxyOverride) {
         val address = DwebViewProxy.ProxyUrl
-        debugDWebView("reverse_proxy proxyAddress", address)
         val proxyConfig = ProxyConfig.Builder().addProxyRule(address)
           .addDirect()
           .build()
         ProxyController.getInstance().setProxyOverride(proxyConfig, {
-          GlobalScope.launch{
-            debugDWebView("reverse_proxy listener", "okk")
-            delay(50)
-            canLoadPage.complete(Unit)
-          }
+          debugDWebView("reverse_proxy listener", address)
+          canLoadPage.complete(Unit)
         }, {
           debugDWebView("reverse_proxy listener", "effect")
         })

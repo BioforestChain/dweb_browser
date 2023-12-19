@@ -1,4 +1,4 @@
-# Plaoc-Fontend
+# @plaoc/plugins
 
 plaoc 是基于 dweb-browser 平台的一个对标 Cordova、Capacitor、Tauri 的“跨平台 Web 应用”开发工具包。
 

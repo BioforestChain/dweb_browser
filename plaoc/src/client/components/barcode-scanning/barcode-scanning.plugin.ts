@@ -31,7 +31,7 @@ export class BarcodeScannerPlugin extends BasePlugin {
   }
 
   async processV2(data: Uint8Array | Blob, rotation = 0, formats = SupportedFormat.QR_CODE) {
-    const req = await this.buildApiRequest("/process", {
+    const req = this.buildApiRequest("/process", {
       search: {
         rotation,
         formats,
@@ -52,7 +52,7 @@ export class BarcodeScannerPlugin extends BasePlugin {
    */
   @bindThis
   async createProcesser(formats = SupportedFormat.QR_CODE) {
-    const wsUrl = await this.buildApiRequest("/process", {
+    const wsUrl = this.buildApiRequest("/process", {
       search: {
         formats,
       },
