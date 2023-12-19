@@ -16,7 +16,7 @@ import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 
-class DWebRequestResponse(val engine: DWebViewEngine) : WebViewClient() {
+class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
     if (!isWebUrlScheme(request.url.scheme ?: "http")) {
       /// TODO 显示询问对话框

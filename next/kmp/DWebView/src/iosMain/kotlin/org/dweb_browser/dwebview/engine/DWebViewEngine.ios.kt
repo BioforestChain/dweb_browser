@@ -9,13 +9,14 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
@@ -23,6 +24,7 @@ import org.dweb_browser.dwebview.WebLoadErrorState
 import org.dweb_browser.dwebview.WebLoadStartState
 import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.WebLoadSuccessState
+import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
@@ -37,8 +39,6 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.SuspendOnce
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.ios.DwebHelper
 import org.dweb_browser.helper.platform.ios.DwebWKWebView
@@ -58,7 +58,6 @@ import platform.Foundation.NSURLSessionAuthChallengePerformDefaultHandling
 import platform.Foundation.NSURLSessionAuthChallengeUseCredential
 import platform.Foundation.create
 import platform.Foundation.serverTrust
-import platform.UIKit.UIDevice
 import platform.UIKit.UIScrollView
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
 import platform.UIKit.UIScrollViewDelegateProtocol
@@ -393,20 +392,24 @@ class DWebViewEngine(
     decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyAllow)
   }
 
-  override fun webView(
-    webView: WKWebView,
-    decidePolicyForNavigationAction: WKNavigationAction,
-    preferences: WKWebpagePreferences,
-    decisionHandler: (WKNavigationActionPolicy, WKWebpagePreferences?) -> Unit
-  ) {
-    decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow, preferences)
-  }
-
-  override fun webView(
+  @OptIn(ExperimentalCoroutinesApi::class)
+  private fun decidePolicyForNavigationAction(
     webView: WKWebView,
     decidePolicyForNavigationAction: WKNavigationAction,
     decisionHandler: (WKNavigationActionPolicy) -> Unit
   ) {
+    val url = decidePolicyForNavigationAction.request.URL
+    val scheme = url?.scheme ?: "http"
+    println("QAQ decidePolicyForNavigationAction $scheme")
+    if (url != null && !isWebUrlScheme(scheme)) {
+      val uiApp = remoteMM.getUIApplication()
+      if (uiApp.canOpenURL(url)) {
+        uiApp.openURL(url)
+        decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
+        return
+      }
+    }
+
     var confirmReferred =
       CompletableDeferred(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
     /// navigationAction.navigationType : https://developer.apple.com/documentation/webkit/wknavigationtype/
@@ -431,6 +434,25 @@ class DWebViewEngine(
         decisionHandler(confirmReferred.await())
       }
     }
+  }
+
+  override fun webView(
+    webView: WKWebView,
+    decidePolicyForNavigationAction: WKNavigationAction,
+    preferences: WKWebpagePreferences,
+    decisionHandler: (WKNavigationActionPolicy, WKWebpagePreferences?) -> Unit
+  ) {
+    decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction) {
+      decisionHandler(it, null)
+    }
+  }
+
+  override fun webView(
+    webView: WKWebView,
+    decidePolicyForNavigationAction: WKNavigationAction,
+    decisionHandler: (WKNavigationActionPolicy) -> Unit
+  ) {
+    decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction, decisionHandler)
   }
 
   override fun webView(

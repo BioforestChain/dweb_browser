@@ -23,10 +23,6 @@ import platform.AVFoundation.AVMediaTypeAudio
 import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.authorizationStatusForMediaType
 import platform.AVFoundation.requestAccessForMediaType
-import platform.Foundation.NSAttributedString
-import platform.Foundation.create
-import platform.UIKit.NSFontAttributeName
-import platform.UIKit.NSForegroundColorAttributeName
 import platform.UIKit.NSLayoutConstraint
 import platform.UIKit.UIAlertAction
 import platform.UIKit.UIAlertActionStyleCancel
@@ -49,365 +45,366 @@ import platform.WebKit.WKWindowFeatures
 import platform.darwin.NSObject
 
 class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDelegateProtocol {
+  //#region Alert Confirm Prompt
+  private val jsAlertSignal = Signal<Pair<JsParams, SignalResult<Unit>>>()
+  private val jsConfirmSignal = Signal<Pair<JsParams, SignalResult<Boolean>>>()
+  private val jsPromptSignal = Signal<Pair<JsPromptParams, SignalResult<String?>>>()
+  private val closeSignal = engine.closeSignal
+  private val createWindowSignal = engine.createWindowSignal
 
-    //#region UIDelegate
-    private val jsAlertSignal = Signal<Pair<JsParams, SignalResult<Unit>>>()
-    private val jsConfirmSignal = Signal<Pair<JsParams, SignalResult<Boolean>>>()
-    private val jsPromptSignal = Signal<Pair<JsPromptParams, SignalResult<String?>>>()
-    private val closeSignal = engine.closeSignal
-    private val createWindowSignal = engine.createWindowSignal
+  internal data class JsParams(
+    val webView: WKWebView,
+    val message: String,
+    val wkFrameInfo: WKFrameInfo
+  )
 
-    internal data class JsParams(
-        val webView: WKWebView,
-        val message: String,
-        val wkFrameInfo: WKFrameInfo
+  internal data class JsPromptParams(
+    val webView: WKWebView,
+    val prompt: String,
+    val defaultText: String?,
+    val wkFrameInfo: WKFrameInfo
+  )
+
+  data class CreateWebViewParams(
+    val webView: WKWebView,
+    val configuration: WKWebViewConfiguration,
+    val navigationAction: WKNavigationAction,
+    val windowFeatures: WKWindowFeatures,
+    val completionHandler: (WKWebView?) -> Unit
+  )
+
+  @OptIn(ExperimentalForeignApi::class)
+  override fun webView(
+    webView: WKWebView,
+    createWebViewWithConfiguration: WKWebViewConfiguration,
+    forNavigationAction: WKNavigationAction,
+    windowFeatures: WKWindowFeatures
+  ): WKWebView? {
+    val url = forNavigationAction.request.URL?.absoluteString
+    return if (url != null && engine.closeWatcher.consuming.remove(url)) {
+      val isUserGesture =
+        forNavigationAction.targetFrame == null || !forNavigationAction.targetFrame!!.mainFrame
+      val watcher = engine.closeWatcher.apply(isUserGesture)
+
+      engine.mainScope.launchWithMain {
+        engine.closeWatcher.resolveToken(url, watcher)
+      }
+      null
+    } else {
+      val createDwebviewEngin = DWebViewEngine(
+        engine.frame, // TODO use windowFeatures.x/y/width/height
+        engine.remoteMM,
+        DWebViewOptions(url ?: ""),
+        createWebViewWithConfiguration
+      )
+      val dwebView = IDWebView.create(
+        createDwebviewEngin
+      )
+      engine.mainScope.launch {
+        createWindowSignal.emit(dwebView)
+      }
+      createDwebviewEngin
+    }
+
+    // if (url != null) {
+    // engine.onReady {
+    //   url = forNavigationAction.request.URL?.absoluteString
+    //   createAction()
+    // }
+  }
+
+  override fun webViewDidClose(webView: WKWebView) {
+    engine.mainScope.launch {
+      closeSignal.emit()
+    }
+  }
+
+  fun UIAlertController.addMmid() {
+    val domainLabel = UILabel()
+    view.addSubview(domainLabel)
+    domainLabel.font = UIFont.systemFontOfSize(fontSize = 8.0)
+    domainLabel.textColor = UIColor.blackColor.colorWithAlphaComponent(alpha = 0.2)
+    domainLabel.text = engine.remoteMM.mmid
+    domainLabel.sizeToFit()
+    domainLabel.translatesAutoresizingMaskIntoConstraints = false
+
+    NSLayoutConstraint.activateConstraints(
+      constraints = listOf(
+        domainLabel.topAnchor.constraintEqualToAnchor(view.topAnchor, 3.0),
+        domainLabel.centerXAnchor.constraintEqualToAnchor(view.centerXAnchor)
+      )
     )
+  }
 
-    internal data class JsPromptParams(
-        val webView: WKWebView,
-        val prompt: String,
-        val defaultText: String?,
-        val wkFrameInfo: WKFrameInfo
-    )
+  @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+  override fun webView(
+    webView: WKWebView,
+    runJavaScriptAlertPanelWithMessage: String,
+    initiatedByFrame: WKFrameInfo,
+    completionHandler: () -> Unit
+  ) {
+    val finalNext = Signal<Pair<JsParams, SignalResult<Unit>>>()
 
-    data class CreateWebViewParams(
-        val webView: WKWebView,
-        val configuration: WKWebViewConfiguration,
-        val navigationAction: WKNavigationAction,
-        val windowFeatures: WKWindowFeatures,
-        val completionHandler: (WKWebView?) -> Unit
-    )
+    finalNext.listen {
+      val (params, ctx) = it
+      val vc = webView.getUIViewController()
+      if (vc != null) {
+        val alertController = UIAlertController.alertControllerWithTitle(
+          params.webView.title,
+          params.message,
+          UIAlertControllerStyleAlert
+        )
+        alertController.addMmid()
 
-    @OptIn(ExperimentalForeignApi::class)
-    override fun webView(
-        webView: WKWebView,
-        createWebViewWithConfiguration: WKWebViewConfiguration,
-        forNavigationAction: WKNavigationAction,
-        windowFeatures: WKWindowFeatures
-    ): WKWebView? {
-        val url = forNavigationAction.request.URL?.absoluteString
-        return if (url != null && engine.closeWatcher.consuming.remove(url)) {
-            val isUserGesture =
-                forNavigationAction.targetFrame == null || !forNavigationAction.targetFrame!!.mainFrame
-            val watcher = engine.closeWatcher.apply(isUserGesture)
-
-            engine.mainScope.launchWithMain {
-                engine.closeWatcher.resolveToken(url, watcher)
-            }
-            null
-        } else {
-            val createDwebviewEngin = DWebViewEngine(
-                engine.frame, // TODO use windowFeatures.x/y/width/height
-                engine.remoteMM,
-                DWebViewOptions(url ?: ""),
-                createWebViewWithConfiguration
-            )
-            val dwebView = IDWebView.create(
-                createDwebviewEngin
-            )
-            engine.mainScope.launch {
-                createWindowSignal.emit(dwebView)
-            }
-            createDwebviewEngin
-        }
-
-        // if (url != null) {
-        // engine.onReady {
-        //   url = forNavigationAction.request.URL?.absoluteString
-        //   createAction()
-        // }
+        alertController.addAction(
+          UIAlertAction.actionWithTitle(
+            DwebViewI18nResource.alert_action_ok.text,
+            UIAlertActionStyleDefault
+          ) {
+            ctx.complete(Unit)
+          })
+        vc.presentViewController(alertController, true, null)
+      } else {
+        ctx.complete(Unit)
+      }
     }
 
-    override fun webViewDidClose(webView: WKWebView) {
-        engine.mainScope.launch {
-            closeSignal.emit()
-        }
+    engine.mainScope.launch {
+      jsAlertSignal.emitForResult(
+        JsParams(
+          webView,
+          runJavaScriptAlertPanelWithMessage,
+          initiatedByFrame
+        ), finalNext
+      )
+      completionHandler()
+    }
+  }
+
+  override fun webView(
+    webView: WKWebView,
+    runJavaScriptConfirmPanelWithMessage: String,
+    initiatedByFrame: WKFrameInfo,
+    completionHandler: (Boolean) -> Unit
+  ) {
+    val finalNext = Signal<Pair<JsParams, SignalResult<Boolean>>>()
+
+    finalNext.listen {
+      val (params, ctx) = it
+      val vc = webView.getUIViewController()
+      if (vc != null) {
+        val confirmController = UIAlertController.alertControllerWithTitle(
+          params.webView.title,
+          params.message,
+          UIAlertControllerStyleAlert
+        )
+        confirmController.addMmid()
+        confirmController.addAction(
+          UIAlertAction.actionWithTitle(
+            DwebViewI18nResource.confirm_action_cancel.text,
+            UIAlertActionStyleCancel
+          ) {
+            ctx.complete(false)
+          })
+        confirmController.addAction(
+          UIAlertAction.actionWithTitle(
+            DwebViewI18nResource.confirm_action_confirm.text,
+            UIAlertActionStyleDefault
+          ) {
+            ctx.complete(true)
+          })
+        vc.presentViewController(confirmController, true, null)
+      } else {
+        ctx.complete(false)
+      }
     }
 
-    fun UIAlertController.addMmid() {
-        val domainLabel = UILabel()
-        view.addSubview(domainLabel)
-        domainLabel.font = UIFont.systemFontOfSize(fontSize = 8.0)
-        domainLabel.textColor = UIColor.blackColor.colorWithAlphaComponent(alpha = 0.2)
-        domainLabel.text = engine.remoteMM.mmid
-        domainLabel.sizeToFit()
-        domainLabel.translatesAutoresizingMaskIntoConstraints = false
+    engine.mainScope.launch {
+      val (confirm, _) = jsConfirmSignal.emitForResult(
+        JsParams(
+          webView,
+          runJavaScriptConfirmPanelWithMessage,
+          initiatedByFrame
+        ), finalNext
+      )
+      completionHandler(confirm!!)
+    }
+  }
 
-        NSLayoutConstraint.activateConstraints(constraints = listOf(
-            domainLabel.topAnchor.constraintEqualToAnchor(view.topAnchor, 3.0),
-            domainLabel.centerXAnchor.constraintEqualToAnchor(view.centerXAnchor)
-        ) )
+  override fun webView(
+    webView: WKWebView,
+    runJavaScriptTextInputPanelWithPrompt: String,
+    defaultText: String?,
+    initiatedByFrame: WKFrameInfo,
+    completionHandler: (String?) -> Unit
+  ) {
+    val finalNext = Signal<Pair<JsPromptParams, SignalResult<String?>>>()
+
+    finalNext.listen {
+      val (params, ctx) = it
+      val vc = webView.getUIViewController()
+      if (vc != null) {
+        val promptController = UIAlertController.alertControllerWithTitle(
+          params.webView.title,
+          params.prompt,
+          UIAlertControllerStyleAlert
+        )
+        promptController.addMmid()
+        promptController.addTextFieldWithConfigurationHandler { textField ->
+          textField?.text = params.defaultText
+          textField?.selectAll(null)
+          promptController.addAction(
+            UIAlertAction.actionWithTitle(
+              DwebViewI18nResource.prompt_action_cancel.text,
+              UIAlertActionStyleCancel
+            ) {
+              ctx.complete(null)
+            })
+          promptController.addAction(
+            UIAlertAction.actionWithTitle(
+              DwebViewI18nResource.prompt_action_confirm.text,
+              UIAlertActionStyleDefault
+            ) {
+              ctx.complete(textField?.text)
+            })
+        }
+        vc.presentViewController(promptController, true, null)
+      } else {
+        ctx.complete(null)
+      }
     }
 
-    @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
-    override fun webView(
-        webView: WKWebView,
-        runJavaScriptAlertPanelWithMessage: String,
-        initiatedByFrame: WKFrameInfo,
-        completionHandler: () -> Unit
-    ) {
-        val finalNext = Signal<Pair<JsParams, SignalResult<Unit>>>()
+    engine.mainScope.launch {
+      val (promptText, _) = jsPromptSignal.emitForResult(
+        JsPromptParams(
+          webView,
+          runJavaScriptTextInputPanelWithPrompt,
+          defaultText,
+          initiatedByFrame
+        ), finalNext
+      )
+      completionHandler(promptText ?: "")
+    }
+  }
 
-        finalNext.listen {
-            val (params, ctx) = it
-            val vc = webView.getUIViewController()
-            if (vc != null) {
-                val alertController = UIAlertController.alertControllerWithTitle(
-                    params.webView.title,
-                    params.message,
-                    UIAlertControllerStyleAlert
-                )
-                alertController.addMmid()
+  override fun webView(
+    webView: WKWebView,
+    requestMediaCapturePermissionForOrigin: WKSecurityOrigin,
+    initiatedByFrame: WKFrameInfo,
+    type: WKMediaCaptureType,
+    decisionHandler: (WKPermissionDecision) -> Unit
+  ) {
+    val mediaTypes = when (type) {
+      WKMediaCaptureType.WKMediaCaptureTypeCamera -> listOf(AVMediaTypeVideo)
+      WKMediaCaptureType.WKMediaCaptureTypeMicrophone -> listOf(AVMediaTypeAudio)
+      WKMediaCaptureType.WKMediaCaptureTypeCameraAndMicrophone -> listOf(
+        AVMediaTypeVideo,
+        AVMediaTypeAudio
+      )
 
-                alertController.addAction(
-                    UIAlertAction.actionWithTitle(
-                        DwebViewI18nResource.alert_action_ok.text,
-                        UIAlertActionStyleDefault
-                    ) {
-                        ctx.complete(Unit)
-                    })
-                vc.presentViewController(alertController, true, null)
-            } else {
-                ctx.complete(Unit)
-            }
-        }
-
-        engine.mainScope.launch {
-            jsAlertSignal.emitForResult(
-                JsParams(
-                    webView,
-                    runJavaScriptAlertPanelWithMessage,
-                    initiatedByFrame
-                ), finalNext
-            )
-            completionHandler()
-        }
+      else -> emptyList()
     }
 
-    override fun webView(
-        webView: WKWebView,
-        runJavaScriptConfirmPanelWithMessage: String,
-        initiatedByFrame: WKFrameInfo,
-        completionHandler: (Boolean) -> Unit
-    ) {
-        val finalNext = Signal<Pair<JsParams, SignalResult<Boolean>>>()
-
-        finalNext.listen {
-            val (params, ctx) = it
-            val vc = webView.getUIViewController()
-            if (vc != null) {
-                val confirmController = UIAlertController.alertControllerWithTitle(
-                    params.webView.title,
-                    params.message,
-                    UIAlertControllerStyleAlert
-                )
-                confirmController.addMmid()
-                confirmController.addAction(
-                    UIAlertAction.actionWithTitle(
-                        DwebViewI18nResource.confirm_action_cancel.text,
-                        UIAlertActionStyleCancel
-                    ) {
-                        ctx.complete(false)
-                    })
-                confirmController.addAction(
-                    UIAlertAction.actionWithTitle(
-                        DwebViewI18nResource.confirm_action_confirm.text,
-                        UIAlertActionStyleDefault
-                    ) {
-                        ctx.complete(true)
-                    })
-                vc.presentViewController(confirmController, true, null)
-            } else {
-                ctx.complete(false)
-            }
-        }
-
-        engine.mainScope.launch {
-            val (confirm, _) = jsConfirmSignal.emitForResult(
-                JsParams(
-                    webView,
-                    runJavaScriptConfirmPanelWithMessage,
-                    initiatedByFrame
-                ), finalNext
-            )
-            completionHandler(confirm!!)
-        }
+    if (mediaTypes.isEmpty()) {
+      decisionHandler(WKPermissionDecision.WKPermissionDecisionPrompt)
+      return
     }
 
-    override fun webView(
-        webView: WKWebView,
-        runJavaScriptTextInputPanelWithPrompt: String,
-        defaultText: String?,
-        initiatedByFrame: WKFrameInfo,
-        completionHandler: (String?) -> Unit
-    ) {
-        val finalNext = Signal<Pair<JsPromptParams, SignalResult<String?>>>()
+    engine.mainScope.launch {
+      mediaTypes.forEach {
+        val isAuthorized = when (AVCaptureDevice.authorizationStatusForMediaType(it)) {
+          AVAuthorizationStatusNotDetermined -> AVCaptureDevice.requestAccessForMediaType(
+            it
+          )
+            .await()
 
-        finalNext.listen {
-            val (params, ctx) = it
-            val vc = webView.getUIViewController()
-            if (vc != null) {
-                val promptController = UIAlertController.alertControllerWithTitle(
-                    params.webView.title,
-                    params.prompt,
-                    UIAlertControllerStyleAlert
-                )
-                promptController.addMmid()
-                promptController.addTextFieldWithConfigurationHandler { textField ->
-                    textField?.text = params.defaultText
-                    textField?.selectAll(null)
-                    promptController.addAction(
-                        UIAlertAction.actionWithTitle(
-                            DwebViewI18nResource.prompt_action_cancel.text,
-                            UIAlertActionStyleCancel
-                        ) {
-                            ctx.complete(null)
-                        })
-                    promptController.addAction(
-                        UIAlertAction.actionWithTitle(
-                            DwebViewI18nResource.prompt_action_confirm.text,
-                            UIAlertActionStyleDefault
-                        ) {
-                            ctx.complete(textField?.text)
-                        })
-                }
-                vc.presentViewController(promptController, true, null)
-            } else {
-                ctx.complete(null)
-            }
+          AVAuthorizationStatusAuthorized -> true
+          AVAuthorizationStatusDenied -> false
+          /*
+           * 1. 家长控制功能启用,限制了应用访问摄像头或麦克风
+           * 2. 机构部署的设备,限制了应用访问硬件功能
+           * 3. 用户在 iCloud 中的"隐私"设置中针对应用禁用了访问权限
+           */
+          AVAuthorizationStatusRestricted -> null
+          else -> null
         }
 
-        engine.mainScope.launch {
-            val (promptText, _) = jsPromptSignal.emitForResult(
-                JsPromptParams(
-                    webView,
-                    runJavaScriptTextInputPanelWithPrompt,
-                    defaultText,
-                    initiatedByFrame
-                ), finalNext
-            )
-            completionHandler(promptText ?: "")
+        /// 认证失败
+        if (isAuthorized == false) {
+          decisionHandler(WKPermissionDecision.WKPermissionDecisionDeny)
+          return@launch
         }
+
+        /// 受限 或者 未知？
+        /// TODO 用额外的提示框提示用户
+        if (isAuthorized == null) {
+          decisionHandler(WKPermissionDecision.WKPermissionDecisionPrompt)
+          return@launch
+        }
+      }
+
+      /// 所有的权限都验证通过
+      decisionHandler(WKPermissionDecision.WKPermissionDecisionGrant)
+    }
+  }
+
+  fun AVCaptureDevice.Companion.requestAccessForMediaType(mediaType: AVMediaType?): Deferred<Boolean> {
+    val deferred = CompletableDeferred<Boolean>()
+
+    AVCaptureDevice.requestAccessForMediaType(mediaType) {
+      deferred.complete(it)
     }
 
-    override fun webView(
-        webView: WKWebView,
-        requestMediaCapturePermissionForOrigin: WKSecurityOrigin,
-        initiatedByFrame: WKFrameInfo,
-        type: WKMediaCaptureType,
-        decisionHandler: (WKPermissionDecision) -> Unit
-    ) {
-        val mediaTypes = when (type) {
-            WKMediaCaptureType.WKMediaCaptureTypeCamera -> listOf(AVMediaTypeVideo)
-            WKMediaCaptureType.WKMediaCaptureTypeMicrophone -> listOf(AVMediaTypeAudio)
-            WKMediaCaptureType.WKMediaCaptureTypeCameraAndMicrophone -> listOf(
-                AVMediaTypeVideo,
-                AVMediaTypeAudio
-            )
+    return deferred
+  }
 
-            else -> emptyList()
-        }
+  internal class SignalResult<R> {
+    var result: R? = null
+    var hasResult: Boolean = false
 
-        if (mediaTypes.isEmpty()) {
-            decisionHandler(WKPermissionDecision.WKPermissionDecisionPrompt)
-            return
-        }
+    /**
+     * 写入结果
+     */
+    fun complete(result: R) {
+      if (hasResult) return
 
-        engine.mainScope.launch {
-            mediaTypes.forEach {
-                val isAuthorized = when (AVCaptureDevice.authorizationStatusForMediaType(it)) {
-                    AVAuthorizationStatusNotDetermined -> AVCaptureDevice.requestAccessForMediaType(
-                        it
-                    )
-                        .await()
-
-                    AVAuthorizationStatusAuthorized -> true
-                    AVAuthorizationStatusDenied -> false
-                    /*
-                     * 1. 家长控制功能启用,限制了应用访问摄像头或麦克风
-                     * 2. 机构部署的设备,限制了应用访问硬件功能
-                     * 3. 用户在 iCloud 中的"隐私"设置中针对应用禁用了访问权限
-                     */
-                    AVAuthorizationStatusRestricted -> null
-                    else -> null
-                }
-
-                /// 认证失败
-                if (isAuthorized == false) {
-                    decisionHandler(WKPermissionDecision.WKPermissionDecisionDeny)
-                    return@launch
-                }
-
-                /// 受限 或者 未知？
-                /// TODO 用额外的提示框提示用户
-                if (isAuthorized == null) {
-                    decisionHandler(WKPermissionDecision.WKPermissionDecisionPrompt)
-                    return@launch
-                }
-            }
-
-            /// 所有的权限都验证通过
-            decisionHandler(WKPermissionDecision.WKPermissionDecisionGrant)
-        }
+      this.result = result
+      hasResult = true
+      next()
     }
 
-    fun AVCaptureDevice.Companion.requestAccessForMediaType(mediaType: AVMediaType?): Deferred<Boolean> {
-        val deferred = CompletableDeferred<Boolean>()
-
-        AVCaptureDevice.requestAccessForMediaType(mediaType) {
-            deferred.complete(it)
-        }
-
-        return deferred
+    /**
+     * 跳过处置，由下一个处理者接管
+     */
+    fun next() {
+      waiter.complete(Unit)
     }
 
-    internal class SignalResult<R> {
-        var result: R? = null
-        var hasResult: Boolean = false
+    val waiter = CompletableDeferred<Unit>()
+  }
 
-        /**
-         * 写入结果
-         */
-        fun complete(result: R) {
-            if (hasResult) return
+  private suspend fun <T, R> Signal<Pair<T, SignalResult<R>>>.emitForResult(
+    args: T,
+    finallyNext: Signal<Pair<T, SignalResult<R>>>
+  ): Pair<R?, Boolean> {
+    try {
+      val ctx = SignalResult<R>()
+      this@emitForResult.emit(Pair(args, ctx))
+      finallyNext.emit(Pair(args, ctx))
 
-            this.result = result
-            hasResult = true
-            next()
-        }
-
-        /**
-         * 跳过处置，由下一个处理者接管
-         */
-        fun next() {
-            waiter.complete(Unit)
-        }
-
-        val waiter = CompletableDeferred<Unit>()
+      ctx.waiter.await()
+      if (ctx.hasResult) {
+        return Pair(ctx.result, true)
+      }
+    } catch (e: Throwable) {
+      debugDWebView("DUIDelegateProtocol", e.message ?: e.stackTraceToString())
     }
 
-    private suspend fun <T, R> Signal<Pair<T, SignalResult<R>>>.emitForResult(
-        args: T,
-        finallyNext: Signal<Pair<T, SignalResult<R>>>
-    ): Pair<R?, Boolean> {
-        try {
-            val ctx = SignalResult<R>()
-            this@emitForResult.emit(Pair(args, ctx))
-            finallyNext.emit(Pair(args, ctx))
+    return Pair(null, false)
+  }
 
-            ctx.waiter.await()
-            if (ctx.hasResult) {
-                return Pair(ctx.result, true)
-            }
-        } catch (e: Throwable) {
-            debugDWebView("DUIDelegateProtocol", e.message ?: e.stackTraceToString())
-        }
-
-        return Pair(null, false)
-    }
-
-    private fun WKWebView.getUIViewController(): UIViewController? {
-        return engine.remoteMM.getUIApplication().keyWindow?.rootViewController
-    }
-    //#endregion
+  private fun WKWebView.getUIViewController(): UIViewController? {
+    return engine.remoteMM.getUIApplication().keyWindow?.rootViewController
+  }
+  //#endregion
 }

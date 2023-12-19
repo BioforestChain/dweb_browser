@@ -206,7 +206,7 @@ class DWebViewEngine internal constructor(
   }
 
   internal val dWebViewClient = DWebViewClient(this).also {
-    it.addWebViewClient(DWebRequestResponse(this@DWebViewEngine))
+    it.addWebViewClient(DWebOverwriteRequest(this@DWebViewEngine))
   }
 
 
