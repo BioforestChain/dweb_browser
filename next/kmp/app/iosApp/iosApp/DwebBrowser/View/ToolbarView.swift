@@ -91,7 +91,7 @@ struct ToolbarView: View {
                 Spacer()
 
                 Button(action: {
-                    toolbarState.creatingDesktopLink = true                    
+                    toolbarState.creatingDesktopLink.toggle()
                     print("trying to appnd an link on desktop")
                 }) {
                     Image(systemName: "apps.iphone.badge.plus")
@@ -144,12 +144,17 @@ struct ToolbarView: View {
                         if case let .success(result) = response {
                             // TODO: 扫描结果result.string
                             Log(result.string)
-                            toolbarState.isPresentingScanner = false
-                            addressBar.inputText = result.string
-                            let url = URL.createUrl(addressBar.inputText)
-                            DispatchQueue.main.async {
-                                openingLink.clickedLink = url
-                                addressBar.isFocused = false
+                            let url = URL(string: result.string)
+                            if url?.scheme == "dweb" {
+                                DwebDeepLink.shared.openDeepLink(url: result.string)
+                            } else {
+                                toolbarState.isPresentingScanner = false
+                                addressBar.inputText = result.string
+                                let url = URL.createUrl(addressBar.inputText)
+                                DispatchQueue.main.async {
+                                    openingLink.clickedLink = url
+                                    addressBar.isFocused = false
+                                }
                             }
                         }
                     }

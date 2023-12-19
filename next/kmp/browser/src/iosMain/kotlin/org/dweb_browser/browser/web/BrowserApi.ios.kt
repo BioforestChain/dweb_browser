@@ -11,6 +11,7 @@ import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.barcode.QRCodeState
+import org.dweb_browser.browser.util.isUrl
 import org.dweb_browser.browser.web.ui.bottomsheet.SheetState
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.helper.ImageResource
@@ -18,6 +19,7 @@ import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.NativeBackHandler
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
+import platform.Foundation.NSURL
 
 actual fun ImageBitmap.toImageResource(): ImageResource? = null
 actual fun getImageResourceRootPath(): String = ""
@@ -59,8 +61,13 @@ actual fun CommonBrowserView(
     }
   }
 
-  if (!viewModel.dwebLinkSearch.value.isEmpty()) {
-    browserIosImp.doSearch(viewModel.dwebLinkSearch.value.toString())
+  if (viewModel.dwebLinkSearch.value.isNotEmpty()) {
+    val urlString = viewModel.dwebLinkSearch.value.toString()
+    if (urlString.isUrl()) {
+      browserIosImp.openWebView(viewModel.dwebLinkSearch.value.toString())
+    } else {
+      browserIosImp.doSearch(viewModel.dwebLinkSearch.value.toString())
+    }
   }
 
   val win = LocalWindowController.current
