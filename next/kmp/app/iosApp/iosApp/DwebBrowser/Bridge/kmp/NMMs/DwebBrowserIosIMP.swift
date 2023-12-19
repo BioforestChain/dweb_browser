@@ -20,11 +20,7 @@ class DwebBrowserIosIMP {
         return v
     }()
     
-    private lazy var hostVC: UIViewController? = {
-        let hostVC = UIHostingController(rootView: BrowserView())
-        containerAdd(subView: hostVC.view)
-        return hostVC
-    }()
+    private var hostVC: UIViewController?
     
     lazy var blurView: UIView = {
         let blurView = UIView(frame: .zero)
@@ -34,6 +30,10 @@ class DwebBrowserIosIMP {
     
     var isTransitionEffect = false
     var snap: UIView? = nil
+    
+    func createBrowser() {
+        hostVC = UIHostingController(rootView: BrowserView())
+    }
     
     func containerAdd(subView: UIView?) {
         guard let subView = subView else { return }
@@ -65,6 +65,8 @@ extension DwebBrowserIosIMP: BrowserIosInterface {
     func browserClear() {
         isTransitionEffect = false
         BrowserViewStateStore.shared.clear()
+        browserContainerView.subviews.forEach { $0.removeFromSuperview() }
+        hostVC = nil
     }
     
     func browserActive(on: Bool){
@@ -76,6 +78,7 @@ extension DwebBrowserIosIMP: BrowserIosInterface {
     
     func getBrowserView() -> UIView {
         if browserContainerView.subviews.isEmpty {
+            createBrowser()
             containerAdd(subView: hostVC?.view)
         }
         
@@ -95,7 +98,6 @@ extension DwebBrowserIosIMP: BrowserIosInterface {
                         self.blurView.removeFromSuperview()
                         self.blurView.alpha = 1.0
                     }
-
                 }
             }
             isTransitionEffect = false

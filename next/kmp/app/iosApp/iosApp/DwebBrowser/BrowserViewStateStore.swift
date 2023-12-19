@@ -32,6 +32,7 @@ class BrowserViewStateStore: ObservableObject {
         webcacheStore = WebCacheStore()
         dragScale = WndDragScale()
         wndArea = BrowserArea()
+        searchKey = nil
     }
 }
 
