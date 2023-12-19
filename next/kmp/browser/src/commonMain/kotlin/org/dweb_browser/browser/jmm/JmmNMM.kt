@@ -81,13 +81,10 @@ class JmmNMM :
       coroutineScope {
         // 先打开渲染器
         launch {
-          println("QAQ openOrUpsetInstallerView start null")
           jmmController.openOrUpsetInstallerView(metadataUrl)
-          println("QAQ openOrUpsetInstallerView end null")
         }
 
         // 加载url资源，这一步可能要多一些时间
-        println("QAQ openOrUpsetInstallerView fetch!!")
         val response = nativeFetch(metadataUrl)
         if (!response.isOk()) {
           val message = "invalid status code: ${response.status}"
@@ -96,9 +93,7 @@ class JmmNMM :
         }
         val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
         debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
-        println("QAQ openOrUpsetInstallerView start loaded")
         jmmController.openOrUpsetInstallerView(metadataUrl, jmmAppInstallManifest)
-        println("QAQ openOrUpsetInstallerView end loaded")
       }
     }
     routes(

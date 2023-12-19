@@ -2,7 +2,6 @@ package org.dweb_browser.helper.platform
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +22,7 @@ import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.ios.BgPlaceholderView
@@ -140,7 +140,7 @@ class PureViewController(
           interactive = true
         )
 
-        CompositionLocalProvider(
+        LocalCompositionChain.current.Provider(
           LocalPureViewController provides this,
           LocalPureViewBox provides PureViewBox(LocalUIViewController.current),
           LocalUIKitBackgroundView provides backgroundView.value,

@@ -1,12 +1,11 @@
 package org.dweb_browser.browser.common.barcode
 
 import android.Manifest
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import kotlinx.coroutines.delay
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.platform.PureViewController
 
 class ScanningActivity : PureViewController() {
@@ -25,7 +24,7 @@ class ScanningActivity : PureViewController() {
 
       addContent {
         val qrCodeScanModel = remember { QRCodeScanModel() }
-        CompositionLocalProvider(
+        LocalCompositionChain.current.Provider(
           LocalQRCodeModel provides qrCodeScanModel
         ) {
           QRCodeScanView(

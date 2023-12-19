@@ -10,8 +10,8 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.ui.Render
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.compose.ObservableMutableState
+import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.falseAlso
-import org.dweb_browser.helper.platform.noLocalProvidedFor
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 
 internal val LocalShowWebViewVersion = compositionLocalOf {
@@ -45,7 +45,6 @@ class JmmInstallerController(
       jmmNMM.createBottomSheets() { modifier ->
         Render(modifier, this)
       }.also {
-        println("QAQ createBottomSheets")
         viewDeferred.complete(it)
       }
     }
@@ -58,7 +57,6 @@ class JmmInstallerController(
     }
     /// 显示抽屉
     val bottomSheets = getView()
-    println("QAQ openRender")
     bottomSheets.open()
     bottomSheets.onClose {
       /// TODO 如果应用正在下载，则显示toast应用正在安装中

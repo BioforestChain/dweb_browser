@@ -27,7 +27,7 @@ import org.dweb_browser.browser.common.CommonSimpleTopBar
 import org.dweb_browser.browser.download.DownloadController
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.helper.platform.noLocalProvidedFor
+import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.formatTimestampByMilliseconds
 import org.dweb_browser.sys.window.render.LocalWindowController
 

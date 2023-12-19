@@ -48,7 +48,7 @@ import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.getCornerRadiusBottom
 import org.dweb_browser.helper.platform.getCornerRadiusTop
-import org.dweb_browser.helper.platform.noLocalProvidedFor
+import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.platform.theme.md_theme_dark_inverseOnSurface
 import org.dweb_browser.helper.platform.theme.md_theme_dark_onSurface

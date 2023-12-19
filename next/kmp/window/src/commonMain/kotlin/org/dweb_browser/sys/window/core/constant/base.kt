@@ -4,7 +4,7 @@ package org.dweb_browser.sys.window.core.constant
 import androidx.compose.runtime.compositionLocalOf
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.platform.noLocalProvidedFor
+import org.dweb_browser.helper.compose.noLocalProvidedFor
 
 val debugWindow = Debugger("window")
 

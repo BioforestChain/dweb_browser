@@ -401,7 +401,6 @@ class DWebViewEngine(
   ) {
     val url = decidePolicyForNavigationAction.request.URL
     val scheme = url?.scheme ?: "http"
-    println("QAQ decidePolicyForNavigationAction $scheme")
     if (url != null && !isWebUrlScheme(scheme)) {
       if (scheme == "dweb") {
         ioScope.launch {

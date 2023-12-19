@@ -2,7 +2,6 @@ package org.dweb_browser.sys.window.render
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -12,6 +11,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.compose.CompositionChain
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.window.core.WindowController
@@ -32,10 +33,12 @@ fun RenderWindowInNewLayer(
   val nativeScope = nativeViewController.scope
   val maxWidth = rememberUpdatedState(currentMaxWidth)
   val maxHeight = rememberUpdatedState(currentMaxHeight)
+  val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
   val params = remember {
     mutableMapOf(
       "maxWidth" to maxWidth,
       "maxHeight" to maxHeight,
+      "compositionChain" to compositionChain,
     )
   }
   val microModule = LocalWindowMM.current
@@ -45,12 +48,10 @@ fun RenderWindowInNewLayer(
         @Suppress("UNCHECKED_CAST") pvc.addContent {
           val maxWidth by params["maxWidth"] as State<Float>
           val maxHeight by params["maxHeight"] as State<Float>
+          val compositionChain by params["compositionChain"] as State<CompositionChain>
           // TODO: 等待 currentCompositionLocalContext 可用
           // https://youtrack.jetbrains.com/issue/KT-63869/androidx.compose.runtime.ComposeRuntimeError-Compose-Runtime-internal-error.-Unexpected-or-incorrect-use-of-the-Compose-internal
-          CompositionLocalProvider(
-            LocalWindowsManager provides windowsManager,
-            LocalWindowMM provides microModule,
-          ) {
+          compositionChain.Provider {
             /// 渲染窗口
             win.Render(
               modifier = Modifier.windowImeOutsetBounds(),

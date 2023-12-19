@@ -50,12 +50,12 @@ import androidx.compose.material.icons.twotone.VerifiedUser
 import androidx.compose.material.icons.twotone.VolumeUp
 import androidx.compose.material.icons.twotone.WifiTethering
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 
@@ -66,7 +66,7 @@ fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
   val isMaximized by win.watchedIsMaximized()
   val winBounds by win.watchedBounds()
   val maxHeight = winBounds.height.dp
-  CompositionLocalProvider(
+  LocalCompositionChain.current.Provider(
     LocalWindowMenuItemColor provides winTheme.toWindowMenuItemColor()
   ) {
     LazyVerticalGrid(

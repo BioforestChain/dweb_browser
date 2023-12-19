@@ -69,7 +69,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.helper.platform.noLocalProvidedFor
+import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.sys.window.render.NativeBackHandler
 
 val LocalQRCodeModel = compositionLocalOf<QRCodeScanModel> {

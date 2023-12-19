@@ -3,7 +3,6 @@ package org.dweb_browser.sys.window.render
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -22,6 +20,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.sys.window.core.WindowController
@@ -74,7 +73,7 @@ fun WindowController.Render(
   )
 
   val theme = win.buildTheme();
-  CompositionLocalProvider(
+  LocalCompositionChain.current.Provider(
     LocalContentColor provides MaterialTheme.colorScheme.onPrimary,
     LocalWindowPadding provides winPadding,
     LocalWindowLimits provides limits,
@@ -104,7 +103,7 @@ fun WindowController.Render(
       label = "scale"
     )
     if (scale == 0f) {
-      return@CompositionLocalProvider
+      return@Provider
     }
     val opacity by animateFloatAsState(
       targetValue = if (isVisible) 1f else 0f,
@@ -112,11 +111,11 @@ fun WindowController.Render(
       label = "opacity"
     )
     if (opacity == 0f) {
-      return@CompositionLocalProvider
+      return@Provider
     }
 
     val windowFrameStyle = WindowFrameStyle(scale, opacity)
-    CompositionLocalProvider(
+    LocalCompositionChain.current.Provider(
       LocalWindowFrameStyle provides windowFrameStyle,
     ) {
       /// 开始绘制窗口

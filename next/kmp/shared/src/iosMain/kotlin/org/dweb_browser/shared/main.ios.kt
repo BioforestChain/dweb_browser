@@ -13,7 +13,6 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -57,6 +56,7 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.LocalPureViewBox
@@ -202,7 +202,7 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
 fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat) -> Unit) {
 
   var winController: WindowController? = null
-  CompositionLocalProvider(LocalPureViewBox provides PureViewBox(LocalUIViewController.current)) {
+  LocalCompositionChain.current.Provider(LocalPureViewBox provides PureViewBox(LocalUIViewController.current)) {
     WindowPreviewer(modifier = Modifier.width(350.dp).height(500.dp), config = {
       state.title = "应用长长的标题的标题的标题～～"
       state.topBarContentColor = "#FF00FF"

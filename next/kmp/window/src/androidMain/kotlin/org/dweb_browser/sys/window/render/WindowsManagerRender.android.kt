@@ -2,12 +2,10 @@ package org.dweb_browser.sys.window.render
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
-import kotlinx.coroutines.delay
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
@@ -15,7 +13,7 @@ import org.dweb_browser.sys.window.core.constant.debugWindow
 
 @Composable
 actual fun <T : WindowController> WindowsManager<T>.Render() {
-  CompositionLocalProvider(
+  LocalCompositionChain.current.Provider(
     LocalWindowsManager provides this,
   ) {
     BoxWithConstraints {

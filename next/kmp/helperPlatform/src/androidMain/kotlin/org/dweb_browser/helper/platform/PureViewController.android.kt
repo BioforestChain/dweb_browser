@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.MotionEvent
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -14,6 +13,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.android.BaseActivity
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 
 open class PureViewController : BaseActivity(), IPureViewController {
@@ -37,7 +37,7 @@ open class PureViewController : BaseActivity(), IPureViewController {
       createSignal.emit(PureViewCreateParams(intent))
     }
     setContent {
-      CompositionLocalProvider(
+      LocalCompositionChain.current.Provider(
         LocalPureViewController provides this,
         LocalPureViewBox provides PureViewBox(this)
       ) {

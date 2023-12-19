@@ -46,7 +46,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -91,6 +90,7 @@ import org.dweb_browser.browser.web.ui.model.parseInputText
 import org.dweb_browser.browser.web.ui.search.SearchView
 import org.dweb_browser.dwebview.rememberCanGoBack
 import org.dweb_browser.dwebview.rememberLoadingProgress
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -128,7 +128,7 @@ fun BrowserViewForWindow(
 
   viewModel.BrowserSearchConfig() // 用于控制是否显示搜索框
 
-  CompositionLocalProvider(
+  LocalCompositionChain.current.Provider(
     LocalModalBottomSheet provides modalBottomModel,
     LocalBrowserPageState provides browserPagerState,
     LocalQRCodeModel provides qrCodeScanModel,

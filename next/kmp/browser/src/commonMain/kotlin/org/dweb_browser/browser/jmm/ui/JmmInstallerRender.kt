@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -20,6 +19,7 @@ import org.dweb_browser.browser.jmm.render.PreviewState
 import org.dweb_browser.browser.jmm.render.WebviewVersionWarningDialog
 import org.dweb_browser.browser.jmm.render.app.Render
 import org.dweb_browser.browser.jmm.render.measureCenterOffset
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.rememberScreenSize
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -50,7 +50,7 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowRenderS
     }
   }
 
-  CompositionLocalProvider(LocalJmmInstallerController provides this) {
+  LocalCompositionChain.current.Provider(LocalJmmInstallerController provides this) {
     Box(modifier = with(renderScope) {
       modifier
         .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小

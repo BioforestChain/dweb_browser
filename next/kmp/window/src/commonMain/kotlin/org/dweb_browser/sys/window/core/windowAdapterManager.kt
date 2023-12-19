@@ -9,7 +9,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +24,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 
@@ -115,7 +115,7 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
 
       else -> {
         val theme = LocalWindowControllerTheme.current
-        CompositionLocalProvider(
+        LocalCompositionChain.current.Provider(
           LocalContentColor provides theme.themeContentColor,
         ) {
           /**
