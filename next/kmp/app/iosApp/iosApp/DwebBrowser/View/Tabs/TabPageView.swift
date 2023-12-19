@@ -111,6 +111,9 @@ struct TabPageView: View {
                     webCache.title = validTitle
                 }
             }
+            .onChange(of: webWrapper.icon) { _, icon in
+                webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
+            }
             .onChange(of: webWrapper.estimatedProgress) { _, newValue in
                 if newValue >= 1.0 {
                     webcacheStore.saveCaches()

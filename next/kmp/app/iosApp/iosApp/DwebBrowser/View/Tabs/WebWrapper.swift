@@ -9,7 +9,7 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     var id = UUID()
     @Published var webMonitor = WebMonitor()
 
-    @Published var webView: TestWebView {
+    @Published var webView: WebView {
         didSet {
             setupObservers()
         }
@@ -30,7 +30,7 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     }
 
     private func setupObservers() {
-        func subscriber<Value>(for keyPath: KeyPath<TestWebView, Value>) -> NSKeyValueObservation {
+        func subscriber<Value>(for keyPath: KeyPath<WebView, Value>) -> NSKeyValueObservation {
             return webView.observe(keyPath, options: [.prior]) { [weak self] _, change in
                 if let self = self, change.isPrior {
                     self.objectWillChange.send()
@@ -61,7 +61,7 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
 
     private var observers: [NSKeyValueObservation] = []
 
-    public subscript<T>(dynamicMember keyPath: KeyPath<TestWebView, T>) -> T {
+    public subscript<T>(dynamicMember keyPath: KeyPath<WebView, T>) -> T {
         webView[keyPath: keyPath]
     }
 
@@ -82,17 +82,17 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
 // A container for using a BrowserWebview in SwiftUI
 struct TabWebView: View, UIViewRepresentable {
     /// The BrowserWebview to display
-    let innerWeb: TestWebView
+    let innerWeb: WebView
 
-    init(webView: TestWebView) {
+    init(webView: WebView) {
         self.innerWeb = webView
     }
 
-    func makeUIView(context: UIViewRepresentableContext<TabWebView>) -> TestWebView {
+    func makeUIView(context: UIViewRepresentableContext<TabWebView>) -> WebView {
         return innerWeb
     }
 
-    func updateUIView(_ uiView: TestWebView, context: UIViewRepresentableContext<TabWebView>) {
+    func updateUIView(_ uiView: WebView, context: UIViewRepresentableContext<TabWebView>) {
         Log("visiting updateUIView function")
     }
 }
@@ -104,7 +104,7 @@ class LocalWebView: WKWebView {
 }
 
 #if TestOriginWebView
-typealias TestWebView = LocalWebView
+typealias WebView = LocalWebView
 #else
-typealias TestWebView = DwebWKWebView
+typealias WebView = DwebWKWebView
 #endif
