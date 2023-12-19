@@ -31,7 +31,7 @@ struct SearchTypingView: View {
                 }
                 .padding(.trailing, 20)
             }
-//            .background(Color.white)
+            .background(Color.bkColor)
             
 
             if addressBar.inputText == "" && !InstalledAppMgr.shared.apps.isEmpty {
