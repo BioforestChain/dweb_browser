@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
@@ -18,6 +19,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.compose.ObservableMutableState
+import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.datetimeNow
 
 @Serializable
@@ -172,8 +174,8 @@ enum class JmmStatus {
   NewVersion;
 }
 
-enum class JmmTabs(val index: Int, val title: String, val vector: ImageVector) {
-  NoInstall(0, "未安装", Icons.Default.DeleteForever),
-  Installed(1, "已安装", Icons.Default.InstallMobile),
+enum class JmmTabs(val index: Int, val title: SimpleI18nResource, val vector: ImageVector) {
+  NoInstall(0, BrowserI18nResource.jmm_history_tab_uninstalled, Icons.Default.DeleteForever),
+  Installed(1, BrowserI18nResource.jmm_history_tab_installed, Icons.Default.InstallMobile),
   ;
 }

@@ -45,6 +45,9 @@ class SimpleI18nResource(
   @Composable
   operator fun invoke() = i18nResource(this)
 
+  /**
+   * 这个值不能用于Compose界面显示，目前仅用于实时获取的文本。
+   */
   val text get() = valuesMap[Language.current] ?: i18nValues.first().second
 }
 

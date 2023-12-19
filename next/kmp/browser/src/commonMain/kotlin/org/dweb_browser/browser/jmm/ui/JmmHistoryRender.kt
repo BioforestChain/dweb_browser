@@ -81,8 +81,8 @@ fun JmmHistoryController.ManagerViewRender(
           selected = index == curTab.index,
           onClick = { curTab = JmmTabs.entries[index] },
           shape = RoundedCornerShape(16.dp),
-          icon = { Icon(imageVector = jmmTab.vector, contentDescription = jmmTab.title) },
-          label = { Text(text = jmmTab.title) }
+          icon = { Icon(imageVector = jmmTab.vector, contentDescription = jmmTab.title()) },
+          label = { Text(text = jmmTab.title()) }
         )
       }
     }

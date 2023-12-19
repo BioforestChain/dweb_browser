@@ -125,5 +125,8 @@ class BrowserI18nResource {
     val toast_message_add_desk_exist = SimpleI18nResource(Language.ZH to "桌面已存在该链接", Language.EN to "Desktop Already Exist The Link")
     val toast_message_download_unzip_fail = SimpleI18nResource(Language.ZH to "安装失败", Language.EN to "Installed Fail")
     val toast_message_download_download_fail = SimpleI18nResource(Language.ZH to "下载失败", Language.EN to "Download Fail")
+
+    val jmm_history_tab_installed = SimpleI18nResource(Language.ZH to "已安装", Language.EN to "Installed")
+    val jmm_history_tab_uninstalled = SimpleI18nResource(Language.ZH to "未安装", Language.EN to "No Install")
   }
 }
