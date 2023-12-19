@@ -74,7 +74,6 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
 
                             }
                             .onChange(of: geo.size.height, { oldHeight, newHeight in
-                                print("wnd size is updated :\(newHeight)")
                                 sheetHeight = newHeight * 0.98
                                 startOffsetY = oldHeight == startOffsetY ? newHeight : 0
                             })

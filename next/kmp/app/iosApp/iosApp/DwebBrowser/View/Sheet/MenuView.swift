@@ -78,14 +78,19 @@ struct MenuView: View {
 
     private func addToBookmark() {
         Task(priority: .background) {
-            let (data, response) = try await URLSession.shared.data(from: webCache.webIconUrl)
-            guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
-                Log("Invalid or unsuccessful HTTP response")
-                return
+            var imgData: Data? = nil
+            if webCache.webIconUrl.isFileURL {
+                imgData = try? Data(contentsOf: webCache.webIconUrl)
+            } else {
+                let (data, response) = try await URLSession.shared.data(from: webCache.webIconUrl)
+                guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+                    Log("Invalid or unsuccessful HTTP response")
+                    return
+                }
+                let image = UIImage(data: data)?.resize(toSize: CGSize(width: 32, height: 32))
+                imgData = image?.pngData()
             }
-            let scale = UIScreen.main.scale
-            let image = UIImage(data: data)?.resize(toSize: CGSize(width: 32, height: 32))
-            service.addBookmark(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString, icon: image?.pngData())
+            service.addBookmark(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString, icon: imgData)
         }
         
         withAnimation {
