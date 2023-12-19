@@ -21,7 +21,7 @@ let minAddressBarH: CGFloat = 25
 let maxToolBarH: CGFloat = 50
 let minToolBarH: CGFloat = 25
 
-let emptyLink = "https://http.cat/404"
+let emptyLink = ""
 let emptyURL = URL(string: emptyLink)!
 
 let gridVSpace: CGFloat = 20.0
@@ -29,10 +29,9 @@ let gridHSpace: CGFloat = 18.0
 
 let gridCellW: CGFloat = (screen_width - gridHSpace * 3.0) / 2
 let gridCellH: CGFloat = gridCellW * 1.5
-let cellWHratio = 2.0/3.0
+let cellWHratio = 2.0 / 3.0
 let cellImageHeightRatio = 0.85
 let cellTitleHeightRatio = 0.15
-
 
 let cellImageH: CGFloat = gridCellH * 0.9
 let gridcellBottomH: CGFloat = gridCellH * 0.1
