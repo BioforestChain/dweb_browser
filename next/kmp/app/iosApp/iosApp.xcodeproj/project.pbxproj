@@ -805,21 +805,21 @@
 					"$(SRCROOT)/../../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Dweb Browser";
+				INFOPLIST_KEY_CFBundleDisplayName = "Dev Dweb Browser";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.231215.0;
+				MARKETING_VERSION = 2.231218.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					DwebShared,
 				);
 				OTHER_SWIFT_FLAGS = "-D Off_TestOriginWebView";
-				PRODUCT_BUNDLE_IDENTIFIER = com.instinct.bfexplorer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.instinct.bfexplorer.debug;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "dweb-browser.provisioning";
@@ -855,7 +855,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.231215.0;
+				MARKETING_VERSION = 2.231218.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
