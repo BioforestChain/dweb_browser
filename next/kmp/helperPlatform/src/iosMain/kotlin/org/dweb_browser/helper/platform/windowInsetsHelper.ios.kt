@@ -8,7 +8,7 @@ actual fun getCornerRadiusTop(
 ): Float {
   val cornerRadius = UIScreen.mainScreen.valueForKey("_displayCornerRadius")
   if (cornerRadius is Double) {
-    return cornerRadius.toFloat()
+    return cornerRadius.toFloat() / 2f
   }
   return defaultValue
 }

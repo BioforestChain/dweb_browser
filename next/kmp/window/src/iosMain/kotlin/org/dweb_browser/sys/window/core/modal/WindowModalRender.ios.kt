@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -15,6 +16,8 @@ import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.platform.PureViewController
@@ -31,9 +34,15 @@ import platform.UIKit.UIAlertActionStyleDefault
 import platform.UIKit.UIAlertController
 import platform.UIKit.UIAlertControllerStyleAlert
 import platform.UIKit.UINavigationController
+import platform.UIKit.UIPresentationController
+import platform.UIKit.UISheetPresentationController
+import platform.UIKit.UISheetPresentationControllerDelegateProtocol
 import platform.UIKit.UISheetPresentationControllerDetent
+import platform.UIKit.UISheetPresentationControllerDetentIdentifierLarge
+import platform.UIKit.UISheetPresentationControllerDetentIdentifierMedium
 import platform.UIKit.modalInPresentation
 import platform.UIKit.sheetPresentationController
+import platform.darwin.NSObject
 
 @Composable
 internal actual fun ModalState.RenderCloseTipImpl(onConfirmToClose: () -> Unit) {
@@ -81,7 +90,6 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
   val uiViewController = LocalUIViewController.current
   val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
   val winPadding = rememberUpdatedState(LocalWindowPadding.current)
-  println("QAQ BottomSheetsModal.RenderImpl start")
   @Suppress("NAME_SHADOWING", "UNCHECKED_CAST") val pureViewController =
     remember {
       PureViewController(
@@ -103,7 +111,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
                   bottom = winPadding.bottom.dp
                 )
               ) {
-                val windowRenderScope = remember(winPadding) {
+                val windowRenderScope = remember(winPadding, maxWidth, maxHeight) {
                   WindowRenderScope.fromDp(maxWidth, maxHeight, 1f)
                 }
                 windowAdapterManager.Renderer(
@@ -119,6 +127,32 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
     }
   /// 一个关闭指令
   val afterDispose = remember { CompletableDeferred<Unit>() }
+  val scope = rememberCoroutineScope()
+  val sheetUiDelegate by remember {
+    lazy {
+      object : NSObject(),
+        UISheetPresentationControllerDelegateProtocol {
+        val onResize = SimpleSignal()
+        val afterDismiss = CompletableDeferred<Unit>()
+        override fun sheetPresentationControllerDidChangeSelectedDetentIdentifier(
+          sheetPresentationController: UISheetPresentationController
+        ) {
+          scope.launch {
+            onResize.emit()
+          }
+          when (sheetPresentationController.selectedDetentIdentifier) {
+            UISheetPresentationControllerDetentIdentifierLarge -> {}
+            UISheetPresentationControllerDetentIdentifierMedium -> {}
+            else -> {}
+          }
+        }
+
+        override fun presentationControllerDidDismiss(presentationController: UIPresentationController) {
+          afterDismiss.complete(Unit)
+        }
+      }
+    }
+  }
   LaunchedEffect(Unit) {
     val vc = pureViewController.getUiViewController()
     val nav = UINavigationController(rootViewController = vc)
@@ -135,6 +169,10 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
       sheet.setPrefersGrabberVisible(true)
       // 添加窗口标识
       sheet.sourceView?.addMmid(parent.idForRender)
+      sheet.delegate = sheetUiDelegate
+      sheetUiDelegate.afterDismiss.invokeOnCompletion {
+        emitModalVisibilityChange(EmitModalVisibilityState.ForceClose)
+      }
     }
     val afterPresent = CompletableDeferred<Unit>()
     uiViewController.presentViewController(
@@ -144,10 +182,6 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
         emitModalVisibilityChange(EmitModalVisibilityState.Open)
         afterPresent.complete(Unit)
       });
-    pureViewController.onDestroy {
-      println("QAQ BottomSheetsModal.RenderImpl onDestroy")
-      emitModalVisibilityChange(EmitModalVisibilityState.ForceClose)
-    }
     // 等待显示出来
     afterPresent.await()
     // 至少显示200毫秒

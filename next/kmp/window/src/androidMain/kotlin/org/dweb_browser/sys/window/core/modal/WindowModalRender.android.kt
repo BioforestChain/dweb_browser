@@ -129,7 +129,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
         bottom = windowInsetBottom + windowInsetTop
       )
     ) {
-      val windowRenderScope = remember(winPadding) {
+      val windowRenderScope = remember(winPadding, maxWidth, maxHeight) {
         WindowRenderScope.fromDp(maxWidth, maxHeight, 1f)
       }
       windowAdapterManager.Renderer(
