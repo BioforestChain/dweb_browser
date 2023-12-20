@@ -88,8 +88,7 @@ const $menu = {
 const doOpen = () =>
   useThrottleFn(async () => {
     opening.value = true;
-    await openApp(appid.value).catch(() => (opening.value = false));
-    if (!opening.value) {
+    if ((await openApp(appid.value).catch(() => (opening.value = false))) === false) {
       snackbar.text = `${appname.value} 启动失败`;
       snackbar.timeOut = 1500;
       snackbar.type = "error";

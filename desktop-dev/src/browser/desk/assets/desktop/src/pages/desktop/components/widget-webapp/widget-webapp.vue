@@ -88,8 +88,7 @@ const $menu = {
 
 async function doOpen() {
   opening.value = true;
-  await openBrowser(appUrl.value).catch(() => (opening.value = false));
-  if (!opening.value) {
+  if ((await openBrowser(appUrl.value).catch(() => (opening.value = false))) === false) {
     snackbar.text = `${appname.value} 启动失败`;
     snackbar.timeOut = 1500;
     snackbar.type = "error";
