@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.debounce
@@ -126,11 +127,15 @@ sealed class ModalState() {
 
   @Transient
   private var _isDestroyed = false
+
+  @Transient
+  internal val afterDestroy = CompletableDeferred<Unit>()
   suspend fun safeDestroy(mm: MicroModule): Boolean {
     if (this._isDestroyed) {
       return false
     }
     this._isDestroyed = true
+    afterDestroy.complete(Unit)
 
     /// 从parent中移除
     parent.state.modals -= modalId

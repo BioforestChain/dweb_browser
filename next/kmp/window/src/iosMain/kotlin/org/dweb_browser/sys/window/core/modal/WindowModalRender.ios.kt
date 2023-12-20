@@ -184,18 +184,14 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
         emitModalVisibilityChange(EmitModalVisibilityState.Open)
         afterPresent.complete(Unit)
       });
-    println("QAQ presentViewController")
     // 等待显示出来
     afterPresent.await()
-    println("QAQ afterPresent")
     // 至少显示200毫秒
     delay(200)
     // 等待Compose级别的关闭指令
     sheetUiDelegate.afterDismiss.await()
-    println("QAQ afterDispose")
     // 关闭
     nav.dismissViewControllerAnimated(flag = true, null)
-    println("QAQ dismissViewControllerAnimated")
   }
   // 返回按钮按下的时候
   parent.GoBackHandler {
@@ -205,6 +201,9 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
   }
   /// compose销毁的时候
   DisposableEffect(sheetUiDelegate.afterDismiss) {
+    this@RenderImpl.afterDestroy.invokeOnCompletion {
+      sheetUiDelegate.afterDismiss.complete(Unit)
+    }
     onDispose {
       sheetUiDelegate.afterDismiss.complete(Unit)
     }
