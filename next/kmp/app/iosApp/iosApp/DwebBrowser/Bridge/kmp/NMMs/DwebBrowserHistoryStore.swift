@@ -11,18 +11,15 @@ import DwebShared
 import Combine
 
 final class DwebBrowserHistoryStore: ObservableObject {
-    
     static let shared = DwebBrowserHistoryStore()
-    
-    private let service = DwebBrowserIosSupport().browserService
-    
+   
     @Published private(set) var sections: [DateGroup<String, BrowserWebSiteInfo>] = []
     @Published private(set) var hasMore: Bool = true
     
     private var off = 0
         
     func loadHistory() {
-        guard let loadedHistorys = service.loadHistorys() else { return }
+        guard let loadedHistorys = browserService.loadHistorys() else { return }
         let historys: [String: [BrowserWebSiteInfo]] = loadedHistorys as! [String: [BrowserWebSiteInfo]]
         DispatchQueue.main.async { [weak self] in
             self?.sections = historys.keys.sorted().reversed().map { key in
@@ -34,7 +31,7 @@ final class DwebBrowserHistoryStore: ObservableObject {
     }
     
     func loadNextHistorys() {
-        service.loadMoreHistory(off: Int32(off)) { [weak self] e in
+        browserService.loadMoreHistory(off: Int32(off)) { [weak self] e in
             guard let self = self else { return }
             let allDataCount = sections.count
             self.loadHistory()
@@ -47,7 +44,7 @@ final class DwebBrowserHistoryStore: ObservableObject {
     }
     
     func addHistoryRecord(title: String, url: String) {
-        service.addHistory(title: title, url: url, icon: nil) { [weak self] e in
+        browserService.addHistory(title: title, url: url, icon: nil) { [weak self] e in
             self?.loadHistory()
         }
     }
@@ -58,7 +55,7 @@ final class DwebBrowserHistoryStore: ObservableObject {
             return section.items[index].id
         }
         ids.forEach { id in
-            service.removeHistory(history: id) { e in
+            browserService.removeHistory(history: id) { e in
             }
         }
         section.remove(index: indexSet)

@@ -19,8 +19,6 @@ struct MenuView: View {
 
     @State private var offsetY: CGFloat = 300
 
-    let service = DwebBrowserIosSupport().browserService
-
     var body: some View {
         ZStack {
             ScrollView(.vertical) {
@@ -90,7 +88,7 @@ struct MenuView: View {
                 let image = UIImage(data: data)?.resize(toSize: CGSize(width: 32, height: 32))
                 imgData = image?.pngData()
             }
-            service.addBookmark(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString, icon: imgData)
+            browserService.addBookmark(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString, icon: imgData)
         }
         
         withAnimation {

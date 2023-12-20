@@ -10,6 +10,8 @@ import Foundation
 import SwiftUI
 import DwebShared
 
+let browserService = DwebBrowserIosSupport().browserService
+
 class BrowserArea: ObservableObject {
     @Published var frame: CGRect = .zero
 }
@@ -69,15 +71,14 @@ class ShiftAnimation: ObservableObject {
 class TracelessMode {
     static var shared = TracelessMode()
     private let tracelessKEY = "tracelessKEY"
-    private let service = DwebBrowserIosSupport().browserService
     var isON: Bool {
         willSet {
-            service.trackModel = newValue
+            browserService.trackModel = newValue
         }
     }
     
     private init() {
-        isON = service.trackModel
+        isON = browserService.trackModel
     }
 }
 

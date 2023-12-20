@@ -14,8 +14,7 @@ struct BookmarkView: View {
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var toolBarState: ToolBarState
 
-    private let service = DwebBrowserIosSupport().browserService
-    @State private var bookmarks: [BrowserWebSiteInfo] = (DwebBrowserIosSupport().browserService.loadBookmarks() as? [BrowserWebSiteInfo]) ?? []
+    @State private var bookmarks: [BrowserWebSiteInfo] = (browserService.loadBookmarks() as? [BrowserWebSiteInfo]) ?? []
     
     var body: some View {
 
@@ -24,7 +23,7 @@ struct BookmarkView: View {
                 List {
                     ForEach(bookmarks, id: \.self) { bookmark in
                         HStack {
-                            let image = DwebBrowserIosSupport().browserService.webSiteInfoIconToUIImage(web: bookmark) ?? UIImage(systemName: "book")!
+                            let image = browserService.webSiteInfoIconToUIImage(web: bookmark) ?? UIImage(systemName: "book")!
                             Image(uiImage: image)
                                 .resizable()
                                 .frame(width: dragScale.properValue(floor: 14, ceiling: 24),
@@ -54,7 +53,7 @@ struct BookmarkView: View {
     func deleteBookmarkData(_ indexSet: IndexSet) {
         for index in indexSet {
             let element = bookmarks.remove(at: index)
-            service.removeBookmark(bookmark: element.id)
+            browserService.removeBookmark(bookmark: element.id)
         }
     }
 }

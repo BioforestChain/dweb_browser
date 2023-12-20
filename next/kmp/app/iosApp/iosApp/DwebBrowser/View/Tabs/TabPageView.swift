@@ -133,7 +133,7 @@ struct TabPageView: View {
             }
             .onChange(of: toolbarState.creatingDesktopLink) { _, isCreating in
                 Task {
-                    try await DwebBrowserIosSupport().browserService.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString)
+                    try await browserService.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString)
                 }
             }
     }
