@@ -137,11 +137,11 @@ class JmmNMM :
   suspend fun getMainWindow() = getWindow(getMainWindowId())
   val hasMainWindow get() = wid.value.isCompleted
 
-  suspend fun openMainWindow() = getWindow(
+  private suspend fun openMainWindow() = getWindow(
     nativeFetch("file://gui.jmm.browser.dweb/openMainWindow").text()
   )
 
-  suspend fun getOrOpenMainWindowId() =
+  private suspend fun getOrOpenMainWindowId() =
     if (!hasMainWindow) openMainWindow().id else getMainWindowId()
 
   suspend fun getOrOpenMainWindow() = getWindow(getOrOpenMainWindowId())

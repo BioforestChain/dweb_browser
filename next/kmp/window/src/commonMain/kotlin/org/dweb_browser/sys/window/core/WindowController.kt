@@ -241,6 +241,7 @@ abstract class WindowController(
     with(style) {
       topBarOverlay?.also { state.topBarOverlay = it }
       bottomBarOverlay?.also { state.bottomBarOverlay = it }
+      keyboardOverlaysContent?.also { state.keyboardOverlaysContent = it }
       topBarContentColor?.also { state.topBarContentColor = it }
       topBarContentDarkColor?.also { state.topBarContentDarkColor = it }
       topBarBackgroundColor?.also { state.topBarBackgroundColor = it }

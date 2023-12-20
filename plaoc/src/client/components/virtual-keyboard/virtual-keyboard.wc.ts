@@ -9,9 +9,6 @@ export class HTMLDwebVirtualKeyboardElement extends HTMLStateObserverElement<
 > {
   static readonly tagName = "dweb-virtual-keyboard";
   readonly plugin = virtualKeyboardPlugin;
-  constructor() {
-    super(virtualKeyboardPlugin.state);
-  }
   @cacheGetter()
   get getState() {
     return virtualKeyboardPlugin.getState;

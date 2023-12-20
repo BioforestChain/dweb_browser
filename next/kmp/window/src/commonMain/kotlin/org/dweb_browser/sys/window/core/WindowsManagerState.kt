@@ -16,11 +16,11 @@ import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.sys.window.core.constant.WindowManagerPropertyKeys
-import org.dweb_browser.sys.window.core.constant.debugWindow
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowPadding
 import org.dweb_browser.sys.window.render.LocalWindowsManager
 import org.dweb_browser.sys.window.render.watchedBounds
+import kotlin.math.max
 
 class WindowsManagerState(
   val viewController: IPureViewBox,
@@ -88,25 +88,18 @@ class WindowsManagerState(
               modifierOffsetY = 0f
               keyboardInsetBottom = 0f
             } else { /// 尝试进行偏移修饰
-              if (win.isMaximized()) {
-                modifierOffsetY = 0f
-                keyboardInsetBottom = imeBounds.height - LocalWindowPadding.current.bottom
-              } else {
-                modifierOffsetY = imeBounds.y - winOuterY
+              val offsetY = winOuterY - imeBounds.y
+              // 窗口可以通过向上偏移来确保键盘与窗口同时显示
+              if (offsetY <= winBounds.y) {
+                modifierOffsetY = -offsetY
                 keyboardInsetBottom = 0f
+              } else {
+                modifierOffsetY = -winBounds.y
+                val winPadding = LocalWindowPadding.current
+                val offsetY2 = offsetY - winPadding.bottom
+                // 窗口可以牺牲底部区域的显示，多出来的就是键盘的插入高度
+                keyboardInsetBottom = max(offsetY2 - winBounds.y, 0f)
               }
-//              val offsetY = winOuterY - imeBounds.y
-//              // 窗口可以通过向上偏移来确保键盘与窗口同时显示
-//              if (offsetY <= winBounds.y) {
-//                modifierOffsetY = -offsetY
-//                keyboardInsetBottom = 0f
-//              } else {
-//                modifierOffsetY = -winBounds.y
-//                val winPadding = LocalWindowPadding.current
-//                val offsetY2 = offsetY - winPadding.bottom
-//                // 窗口可以牺牲底部区域的显示，多出来的就是键盘的插入高度
-//                keyboardInsetBottom = max(offsetY2 - winBounds.y, 0f)
-//              }
             }
           }
           win.state.keyboardInsetBottom = keyboardInsetBottom

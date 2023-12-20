@@ -3,6 +3,7 @@ export type $WindowRawState = {
   topBarContentColor: $WindowStyleColor;
   topBarBackgroundColor: $WindowStyleColor;
   bottomBarOverlay: boolean;
+  keyboardOverlaysContent:boolean;
   bottomBarContentColor: $WindowStyleColor;
   bottomBarBackgroundColor: $WindowStyleColor;
   themeColor: $WindowStyleColor;

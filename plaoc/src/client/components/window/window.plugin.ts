@@ -68,6 +68,7 @@ export class WindowPlugin extends BasePlugin {
   async setStyle(options: {
     topBarOverlay?: boolean;
     bottomBarOverlay?: boolean;
+    keyboardOverlaysContent?: boolean;
     topBarContentColor?: string;
     topBarContentDarkColor?: string;
     topBarBackgroundColor?: string;

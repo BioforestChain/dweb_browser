@@ -156,8 +156,6 @@ fun QRCodeScanView(
           onDataCallback = { onSuccess(it) }
         )
       }
-
-      else -> {}
     }
   }
 }

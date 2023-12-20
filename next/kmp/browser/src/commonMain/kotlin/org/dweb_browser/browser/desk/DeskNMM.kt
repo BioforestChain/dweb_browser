@@ -85,7 +85,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   private suspend fun listenApps() = ioAsyncScope.launch {
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
-      debugDesk("doObserve", "xxx => $urlPath")
       val response = createChannel(urlPath) { frame, close ->
         when (frame) {
           is PureTextFrame -> {

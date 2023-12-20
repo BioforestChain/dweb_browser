@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class WindowStyle(
   val topBarOverlay: Boolean? = null,
   val bottomBarOverlay: Boolean? = null,
+  val keyboardOverlaysContent: Boolean? = null,
   val topBarContentColor: String? = null,
   val topBarContentDarkColor: String? = null,
   val topBarBackgroundColor: String? = null,

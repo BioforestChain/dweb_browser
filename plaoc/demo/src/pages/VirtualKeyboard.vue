@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
-import { HTMLDwebVirtualKeyboardElement, $VirtualKeyboardState } from "../plugin";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
+import { $VirtualKeyboardState, HTMLDwebVirtualKeyboardElement } from "../plugin";
 const title = "Virtual Keyboard";
 
 const $logPanel = ref<typeof LogPanel>();
@@ -37,7 +37,10 @@ const getOverlay = defineLogAction(
 </script>
 
 <template>
-  <dweb-virtual-keyboard ref="$virtualKeyboard" @statechange="onVirtualKeyboardChange($event.detail, 'change')"></dweb-virtual-keyboard>
+  <dweb-virtual-keyboard
+    ref="$virtualKeyboard"
+    @statechange="onVirtualKeyboardChange($event.detail, 'change')"
+  ></dweb-virtual-keyboard>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/safearea.svg" :alt="title" />
@@ -52,7 +55,7 @@ const getOverlay = defineLogAction(
         <button class="inline-block rounded-full btn btn-accent" @click="getOverlay">Get</button>
       </div>
       <FieldLabel label="Vibrate Pattern:">
-        <input type="text">
+        <input type="text" />
       </FieldLabel>
     </article>
   </div>

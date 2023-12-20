@@ -1,41 +1,39 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { $Coder } from "../../util/StateObserver.ts";
-import { InsetsPlugin } from "../base/InsetsPlugin.ts";
-import {
-  $VirtualKeyboardRawState,
-  $VirtualKeyboardState,
-  $VirtualKeyboardWritableState,
-} from "./virtual-keyboard.type.ts";
+import { DOMInsets } from "../../util/insets.ts";
+import { BasePlugin } from "../base/BasePlugin.ts";
+import { windowPlugin } from "../window/window.plugin.ts";
+import { $VirtualKeyboardWritableState } from "./virtual-keyboard.type.ts";
 
-export class VirtualKeyboardPlugin extends InsetsPlugin<
-  $VirtualKeyboardRawState,
-  $VirtualKeyboardState,
-  $VirtualKeyboardWritableState
-> {
+export class VirtualKeyboardPlugin extends BasePlugin {
   constructor() {
-    super("virtual-keyboard.nativeui.browser.dweb");
+    super("window.sys.dweb");
   }
-
-  readonly coder: $Coder<$VirtualKeyboardRawState, $VirtualKeyboardState> = this.baseCoder;
 
   @bindThis
   async setState(state: Partial<$VirtualKeyboardWritableState>) {
-    await this.commonSetState(state);
+    await windowPlugin.setStyle({
+      keyboardOverlaysContent: state.overlay,
+    });
   }
   @bindThis
   setStateByKey<K extends keyof $VirtualKeyboardWritableState>(key: K, value: $VirtualKeyboardWritableState[K]) {
     return this.setState({ [key]: value });
   }
-  override get getState() {
-    return this.state.getState;
+  @bindThis
+  async getState() {
+    const winState = await windowPlugin.getState();
+    return {
+      overlay: winState.keyboardOverlaysContent,
+      insets: new DOMInsets(0, 0, 0, 0),
+    };
   }
   @bindThis
-  override setOverlay(overlay: boolean) {
+  setOverlay(overlay: boolean) {
     return this.setStateByKey("overlay", overlay);
   }
   @bindThis
-  override async getOverlay() {
-    return (await this.state.getState()).overlay;
+  async getOverlay() {
+    return (await this.getState()).overlay;
   }
 }
 

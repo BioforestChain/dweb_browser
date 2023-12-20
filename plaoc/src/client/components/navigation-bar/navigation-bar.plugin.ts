@@ -3,14 +3,11 @@ import { DOMInsets } from "../../util/insets.ts";
 import { BAR_STYLE } from "../base/BarPlugin.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { windowPlugin } from "../index.ts";
-import {
-  $NavigationBarWritableState,
-  type $NavigationBarState
-} from "./navigation-bar.type.ts";
+import { $NavigationBarWritableState, type $NavigationBarState } from "./navigation-bar.type.ts";
 /**
  * 访问 navigation-bar 能力的插件
  */
-export class NavigationBarPlugin extends BasePlugin{
+export class NavigationBarPlugin extends BasePlugin {
   constructor() {
     super("window.sys.dweb");
   }
@@ -93,8 +90,8 @@ export class NavigationBarPlugin extends BasePlugin{
     return (await this.getState()).visible;
   }
   @bindThis
-  async show(){}
+  async show() {}
   @bindThis
-  async hide(){}
+  async hide() {}
 }
 export const navigationBarPlugin = new NavigationBarPlugin();
