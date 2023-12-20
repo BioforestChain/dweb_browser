@@ -16,9 +16,9 @@ class ObservableMutableState<T>(
   override var value: T
     get() = state.value
     set(value) {
-      state.value = value
       if (state.value != value) {
         onChange(value)
       }
+      state.value = value
     }
 }
