@@ -26,7 +26,7 @@ struct BrowserView: View {
                     VStack(spacing: 0) {
                         TabsContainerView()
                         ToolbarView(webCount: webcacheStore.cacheCount, isWebVisible: curWebVisible)
-                            .frame(height: dragScale.toolbarHeight)
+                            .frame(height: addressBar.isFocused ? 0 : dragScale.toolbarHeight)
                             .background(Color.bkColor)
                     }
                     

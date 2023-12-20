@@ -20,18 +20,15 @@ struct ToolbarView: View {
 
     let webCount: Int
     let isWebVisible: Bool
-    
-    var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                if toolbarState.shouldExpand {
-                    fiveButtons
-                } else {
-                    threeButtons
-                }
-            }.frame(height: geo.size.height)
-        }
 
+    var body: some View {
+        GeometryReader { _ in
+            if toolbarState.shouldExpand {
+                fiveButtons
+            } else {
+                threeButtons
+            }
+        }
     }
 
     var threeButtons: some View {
@@ -66,7 +63,6 @@ struct ToolbarView: View {
 
                     Spacer().frame(width: size.width / 15)
                 }
-                .frame(height: size.height)
             }
         }
     }
@@ -89,7 +85,7 @@ struct ToolbarView: View {
                         .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
                 }
                 .disabled(!isWebVisible)
-               
+
                 Spacer()
                 if isWebVisible {
                     BiColorButton(imageName: "add", disabled: false) {
@@ -118,11 +114,6 @@ struct ToolbarView: View {
                     Spacer()
                 }
 
-                .onReceive(addressBar.$isFocused) { isFocused in
-                    withAnimation {
-                        toolbarHeight = isFocused ? 0 : toolBarH
-                    }
-                }
                 .clipped()
                 .sheet(isPresented: $toolbarState.isPresentingScanner) {
                     CodeScannerView(codeTypes: [.qr], showViewfinder: true) { response in
@@ -146,12 +137,6 @@ struct ToolbarView: View {
             }
         }
     }
-
-//    func tabIndexChanged(to index: Int) {
-//        let currentWrapper = webcacheStore.webWrapper(at: index)
-//        toolbarState.canGoBack = currentWrapper.canGoBack
-//        toolbarState.canGoForward = currentWrapper.canGoForward
-//    }
 }
 
 let toolItemMinWidth = 14.0
