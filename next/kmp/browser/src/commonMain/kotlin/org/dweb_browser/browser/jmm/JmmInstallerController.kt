@@ -4,7 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.ui.Render
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -34,19 +36,24 @@ class JmmInstallerController(
 
   val ioAsyncScope = jmmNMM.ioAsyncScope
 
-  private val viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
-  suspend fun getView() = viewDeferred.await()
+  private var viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
+  private val getViewLock = Mutex()
 
-  init {
-    jmmNMM.ioAsyncScope.launch {
-      /// 创建 BottomSheets 视图，提供渲染适配
-      jmmNMM.createBottomSheets() { modifier ->
-        Render(modifier, this)
-      }.also {
-        viewDeferred.complete(it)
+  @OptIn(ExperimentalCoroutinesApi::class)
+  suspend fun getView() = getViewLock.withLock {
+    if (viewDeferred.isCompleted) {
+      return viewDeferred.getCompleted()
+    }
+    /// 创建 BottomSheets 视图，提供渲染适配
+    jmmNMM.createBottomSheets() { modifier ->
+      Render(modifier, this)
+    }.also {
+      viewDeferred.complete(it)
+      it.onDestroy {
+        viewDeferred = CompletableDeferred()
       }
     }
-  }
+  } // viewDeferred.await()
 
   suspend fun openRender() {
     /// 隐藏主窗口

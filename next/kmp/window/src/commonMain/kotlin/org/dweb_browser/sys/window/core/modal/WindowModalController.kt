@@ -27,15 +27,15 @@ sealed class WindowModalController(
   val onStateChange = onStateChangeSignal.toListener()
   protected var _state = WindowModalState.INIT
   protected fun isState(vararg states: WindowModalState) = states.contains(_state)
-  protected suspend fun awaitState(waitState: WindowModalState) =
+  protected inline suspend fun awaitState(crossinline isComplete: (WindowModalState) -> Boolean) =
     CompletableDeferred<Unit>().also { waiter ->
       val off = onStateChange {
-        if (it == waitState) {
+        if (isComplete(it)) {
           waiter.complete(Unit)
           offListener()
         }
       }
-      if (_state == waitState) {
+      if (isComplete(_state)) {
         waiter.complete(Unit)
         off()
       }
@@ -81,9 +81,8 @@ sealed class WindowModalController(
       return
     }
     state = WindowModalState.OPENING
-    mm.nativeFetch("file://window.sys.dweb/openModal?modalId=${modal.modalId.encodeURIComponent()}&wid=$wid")
+    mm.nativeFetch("file://window.sys.dweb/openModal?modalId=${modal.modalId.encodeURIComponent()}&wid=${wid.encodeURIComponent()}")
       .boolean()
-    awaitState(WindowModalState.OPEN)
   }
 
   suspend fun close() {
@@ -91,9 +90,8 @@ sealed class WindowModalController(
       return
     }
     state = WindowModalState.CLOSING
-    mm.nativeFetch("file://window.sys.dweb/closeModal?modalId=${modal.modalId.encodeURIComponent()}&wid=$wid")
+    mm.nativeFetch("file://window.sys.dweb/closeModal?modalId=${modal.modalId.encodeURIComponent()}&wid=${wid.encodeURIComponent()}")
       .boolean()
-    awaitState(WindowModalState.CLOSE)
   }
 
   suspend fun setCloseTip(closeTip: String?) {

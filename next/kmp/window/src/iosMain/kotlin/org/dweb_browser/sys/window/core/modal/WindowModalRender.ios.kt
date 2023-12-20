@@ -125,14 +125,16 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
         }
       }
     }
-  /// 一个关闭指令
-  val afterDispose = remember { CompletableDeferred<Unit>() }
   val scope = rememberCoroutineScope()
   val sheetUiDelegate by remember {
     lazy {
       object : NSObject(),
         UISheetPresentationControllerDelegateProtocol {
         val onResize = SimpleSignal()
+
+        /**
+         * 统一的关闭信号
+         */
         val afterDismiss = CompletableDeferred<Unit>()
         override fun sheetPresentationControllerDidChangeSelectedDetentIdentifier(
           sheetPresentationController: UISheetPresentationController
@@ -182,25 +184,29 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
         emitModalVisibilityChange(EmitModalVisibilityState.Open)
         afterPresent.complete(Unit)
       });
+    println("QAQ presentViewController")
     // 等待显示出来
     afterPresent.await()
+    println("QAQ afterPresent")
     // 至少显示200毫秒
     delay(200)
     // 等待Compose级别的关闭指令
-    afterDispose.await()
+    sheetUiDelegate.afterDismiss.await()
+    println("QAQ afterDispose")
     // 关闭
     nav.dismissViewControllerAnimated(flag = true, null)
+    println("QAQ dismissViewControllerAnimated")
   }
   // 返回按钮按下的时候
   parent.GoBackHandler {
     if (emitModalVisibilityChange(EmitModalVisibilityState.TryClose)) {
-      afterDispose.complete(Unit)
+      sheetUiDelegate.afterDismiss.complete(Unit)
     }
   }
   /// compose销毁的时候
-  DisposableEffect(afterDispose) {
+  DisposableEffect(sheetUiDelegate.afterDismiss) {
     onDispose {
-      afterDispose.complete(Unit)
+      sheetUiDelegate.afterDismiss.complete(Unit)
     }
   }
 }

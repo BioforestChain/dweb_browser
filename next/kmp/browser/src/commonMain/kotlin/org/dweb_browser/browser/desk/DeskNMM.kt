@@ -170,9 +170,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   suspend fun IHandlerContext.getWindow(orElse: (suspend () -> WindowController)? = null) =
     request.queryOrNull("wid")?.let { wid ->
-      windowInstancesManager.get(wid)
-    } ?: orElse?.invoke()
-    ?: throw Exception("No Found Window")
+      windowInstancesManager.get(wid) ?: throw Exception("No Found Window by wid: $wid")
+    } ?: orElse?.invoke() ?: throw Exception("Fail To Get Window")
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     listenApps()

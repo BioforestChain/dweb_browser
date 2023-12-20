@@ -163,6 +163,13 @@ sealed class ModalState() {
     parent = win
     win.state.modals += modalId to this
     _renderId = win.id + "/" + modalId
+
+    /// 主窗口关闭的时候，它也要跟着被销毁
+    val mm =
+      win.state.constants.microModule.value ?: throw Error("fail to get window's microModule")
+    win.onClose {
+      safeDestroy(mm)
+    }
   }
 
 
