@@ -44,5 +44,7 @@ struct Searcher: Identifiable {
 
 class WebSearcher: ObservableObject {
     static let shared = WebSearcher()
-    var searchers: [Searcher] = [.baidu, .sogou] //360搜索有一个验证页面，会失败，然后跳转至最初的页面，并且进度条展示不正常
+    var searchers: [Searcher] = [.baidu, .sogou, .so360] //360搜索有一个验证页面，会失败，然后跳转至最初的页面，并且进度条展示不正常
 }
+
+let webSearchers = WebSearcher.shared.searchers

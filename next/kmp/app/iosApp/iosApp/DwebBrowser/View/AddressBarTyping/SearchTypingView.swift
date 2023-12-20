@@ -17,14 +17,10 @@ struct SearchTypingView: View {
                 .frame(height: 40)
                 .frame(maxWidth: .infinity)
                 .background(Color.bkColor)
-                
+
             HStack {
                 Spacer()
-                Button {
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    addressBar.inputText = ""
-                    addressBar.isFocused = false
-                } label: {
+                Button(action: releaseFocuse) {
                     Text("取消")
                         .foregroundColor(Color.dwebTint)
                         .padding(8)
@@ -32,7 +28,6 @@ struct SearchTypingView: View {
                 .padding(.trailing, 20)
             }
             .background(Color.bkColor)
-            
 
             if addressBar.inputText == "" && !InstalledAppMgr.shared.apps.isEmpty {
                 VStack {
@@ -45,6 +40,12 @@ struct SearchTypingView: View {
             }
         }
         .animation(.easeInOut, value: addressBar.inputText == "")
+    }
+
+    func releaseFocuse() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        addressBar.inputText = ""
+        addressBar.isFocused = false
     }
 }
 
