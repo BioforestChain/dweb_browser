@@ -169,6 +169,7 @@ class MicroModuleStore(
     val store = getStore()
     val newValue = Cbor.encodeToByteArray(value)
     if (!newValue.contentEquals(store[key])) {
+      store[key] = newValue
       save()
     }
   }
