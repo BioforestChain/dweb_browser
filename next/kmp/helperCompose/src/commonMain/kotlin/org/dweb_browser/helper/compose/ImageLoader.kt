@@ -1,7 +1,6 @@
 package org.dweb_browser.helper.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
@@ -18,7 +17,7 @@ import org.dweb_browser.helper.platform.offscreenwebcanvas.waitReady
 import org.dweb_browser.helper.platform.setHook
 
 
-val LocalImageLoader = compositionLocalOf { ImageLoader() }
+val LocalImageLoader = compositionChainOf("ImageLoader") { ImageLoader() }
 
 @Composable
 internal expect fun rememberOffscreenWebCanvas(): OffscreenWebCanvas

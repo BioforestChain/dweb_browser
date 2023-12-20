@@ -7,17 +7,14 @@ import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.VideoFile
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.datetime.LocalDate
 import org.dweb_browser.browser.download.DownloadController
 import org.dweb_browser.browser.download.DownloadTask
-import org.dweb_browser.helper.compose.noLocalProvidedFor
+import org.dweb_browser.helper.compose.compositionChainOf
 
-val LocalDownloadModel = compositionLocalOf<DownloadModel> {
-  noLocalProvidedFor("LocalDownloadModel")
-}
+val LocalDownloadModel = compositionChainOf<DownloadModel>("LocalDownloadModel")
 
 enum class DownloadTab(val id: Int, val title: String, val vector: ImageVector) {
   Downloads(1, "下载", Icons.Default.FileDownload),
@@ -29,9 +26,11 @@ class DownloadModel(val downloadController: DownloadController) {
   val tabIndex = mutableIntStateOf(0)
   val tabItems = DownloadTab.values()
 
-  suspend fun startDownload(downloadTask: DownloadTask) = downloadController.startDownload(downloadTask)
+  suspend fun startDownload(downloadTask: DownloadTask) =
+    downloadController.startDownload(downloadTask)
 
-  suspend fun pauseDownload(downloadTask: DownloadTask) = downloadController.pauseDownload(downloadTask)
+  suspend fun pauseDownload(downloadTask: DownloadTask) =
+    downloadController.pauseDownload(downloadTask)
 
   suspend fun close() = downloadController.close()
 }

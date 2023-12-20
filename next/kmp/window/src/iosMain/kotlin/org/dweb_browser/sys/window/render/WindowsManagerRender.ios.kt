@@ -18,7 +18,6 @@ import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
-import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
 
@@ -41,7 +40,8 @@ fun RenderWindowInNewLayer(
       "compositionChain" to compositionChain,
     )
   }
-  val microModule = LocalWindowMM.current
+
+  @Suppress("NAME_SHADOWING", "UNCHECKED_CAST")
   val pvc = remember {
     PureViewController(params).also { pvc ->
       pvc.onCreate { params ->
@@ -49,16 +49,15 @@ fun RenderWindowInNewLayer(
           val maxWidth by params["maxWidth"] as State<Float>
           val maxHeight by params["maxHeight"] as State<Float>
           val compositionChain by params["compositionChain"] as State<CompositionChain>
-          // TODO: 等待 currentCompositionLocalContext 可用
-          // https://youtrack.jetbrains.com/issue/KT-63869/androidx.compose.runtime.ComposeRuntimeError-Compose-Runtime-internal-error.-Unexpected-or-incorrect-use-of-the-Compose-internal
-          compositionChain.Provider {
-            /// 渲染窗口
-            win.Render(
-              modifier = Modifier.windowImeOutsetBounds(),
-              maxWinWidth = maxWidth,
-              maxWinHeight = maxHeight
-            )
-          }
+          compositionChain.Provider(LocalCompositionChain.current)
+            .Provider(LocalWindowsManager provides windowsManager) {
+              /// 渲染窗口
+              win.Render(
+                modifier = Modifier.windowImeOutsetBounds(),
+                maxWinWidth = maxWidth,
+                maxWinHeight = maxHeight
+              )
+            }
         }
       }
     }

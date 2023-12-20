@@ -20,6 +20,7 @@ import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.constant.WindowStyle
 import org.dweb_browser.sys.window.core.constant.debugWindow
 import org.dweb_browser.sys.window.core.helper.setDefaultFloatWindowBounds
+import org.dweb_browser.sys.window.core.modal.ModalState
 
 abstract class WindowController(
   /**

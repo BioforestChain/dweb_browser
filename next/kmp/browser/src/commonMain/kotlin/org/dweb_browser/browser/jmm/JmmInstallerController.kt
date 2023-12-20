@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jmm
 
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,17 +9,16 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.ui.Render
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.compose.ObservableMutableState
-import org.dweb_browser.helper.compose.noLocalProvidedFor
+import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 
-internal val LocalShowWebViewVersion = compositionLocalOf {
+internal val LocalShowWebViewVersion = compositionChainOf("ShowWebViewVersion") {
   mutableStateOf(false)
 }
 
-internal val LocalJmmInstallerController = compositionLocalOf<JmmInstallerController> {
-  noLocalProvidedFor("JmmInstallerController")
-}
+internal val LocalJmmInstallerController =
+  compositionChainOf<JmmInstallerController>("JmmInstallerController")
 
 /**
  * JS 模块安装 的 控制器

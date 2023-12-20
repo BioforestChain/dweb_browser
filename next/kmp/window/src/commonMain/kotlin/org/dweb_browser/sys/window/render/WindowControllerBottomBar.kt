@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -41,7 +42,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
@@ -59,7 +59,7 @@ internal fun WindowBottomBar(
 ) {
   val windowEdge = LocalWindowPadding.current
   val contentColor = LocalWindowControllerTheme.current.bottomContentColor
-  LocalCompositionChain.current.Provider(
+  CompositionLocalProvider(
     LocalContentColor provides contentColor,
   ) {
     Box(

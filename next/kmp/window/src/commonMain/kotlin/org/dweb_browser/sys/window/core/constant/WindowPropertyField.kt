@@ -11,7 +11,7 @@ import kotlinx.serialization.serializer
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.toHex
-import org.dweb_browser.sys.window.core.ModalState
+import org.dweb_browser.sys.window.core.modal.ModalState
 import org.dweb_browser.helper.Rect
 import kotlin.reflect.KClass
 

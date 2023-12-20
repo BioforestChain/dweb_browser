@@ -10,12 +10,6 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.encodeURIComponent
-import org.dweb_browser.sys.window.core.CloseAlertModalCallback
-import org.dweb_browser.sys.window.core.CloseModalCallback
-import org.dweb_browser.sys.window.core.DestroyModalCallback
-import org.dweb_browser.sys.window.core.ModalCallback
-import org.dweb_browser.sys.window.core.ModalState
-import org.dweb_browser.sys.window.core.OpenModalCallback
 
 sealed class WindowModalController(
   val mm: NativeMicroModule,

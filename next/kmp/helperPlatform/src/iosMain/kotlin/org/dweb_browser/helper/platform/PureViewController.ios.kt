@@ -2,7 +2,6 @@ package org.dweb_browser.helper.platform
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
@@ -23,6 +22,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.compose.LocalCompositionChain
+import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.ios.BgPlaceholderView
@@ -161,7 +161,7 @@ class PureViewController(
   }
 }
 
-val LocalUIKitBackgroundView = compositionLocalOf<UIView?> { null }
+val LocalUIKitBackgroundView = compositionChainOf<UIView?>("UIKitBackgroundView") { null }
 
 class PureViewCreateParams(private val params: Map<String, Any?>) : Map<String, Any?> by params,
   IPureViewCreateParams {

@@ -4,10 +4,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.sys.window.core.AlertModal
-import org.dweb_browser.sys.window.core.CloseAlertModalCallback
-import org.dweb_browser.sys.window.core.ModalCallback
-import org.dweb_browser.sys.window.core.OpenModalCallback
 
 class WindowAlertController(
   mm: NativeMicroModule,

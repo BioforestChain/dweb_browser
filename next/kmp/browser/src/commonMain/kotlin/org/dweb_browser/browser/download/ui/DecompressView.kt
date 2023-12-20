@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -27,13 +26,11 @@ import org.dweb_browser.browser.common.CommonSimpleTopBar
 import org.dweb_browser.browser.download.DownloadController
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.helper.compose.noLocalProvidedFor
+import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.formatTimestampByMilliseconds
 import org.dweb_browser.sys.window.render.LocalWindowController
 
-val LocalDecompressModel = compositionLocalOf<DecompressModel> {
-  noLocalProvidedFor("LocalDecompressModel")
-}
+val LocalDecompressModel = compositionChainOf<DecompressModel>("LocalDecompressModel")
 
 class DecompressModel(private val downloadController: DownloadController) {
   val downloadTask: MutableState<DownloadTask?> = mutableStateOf(null)

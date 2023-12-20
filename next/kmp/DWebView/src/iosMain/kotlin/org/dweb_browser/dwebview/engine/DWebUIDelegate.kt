@@ -13,6 +13,7 @@ import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.launchWithMain
+import org.dweb_browser.helper.platform.addMmid
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
 import platform.AVFoundation.AVAuthorizationStatusDenied
 import platform.AVFoundation.AVAuthorizationStatusNotDetermined
@@ -23,15 +24,11 @@ import platform.AVFoundation.AVMediaTypeAudio
 import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.authorizationStatusForMediaType
 import platform.AVFoundation.requestAccessForMediaType
-import platform.UIKit.NSLayoutConstraint
 import platform.UIKit.UIAlertAction
 import platform.UIKit.UIAlertActionStyleCancel
 import platform.UIKit.UIAlertActionStyleDefault
 import platform.UIKit.UIAlertController
 import platform.UIKit.UIAlertControllerStyleAlert
-import platform.UIKit.UIColor
-import platform.UIKit.UIFont
-import platform.UIKit.UILabel
 import platform.UIKit.UIViewController
 import platform.WebKit.WKFrameInfo
 import platform.WebKit.WKMediaCaptureType
@@ -119,21 +116,8 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
     }
   }
 
-  fun UIAlertController.addMmid() {
-    val domainLabel = UILabel()
-    view.addSubview(domainLabel)
-    domainLabel.font = UIFont.systemFontOfSize(fontSize = 8.0)
-    domainLabel.textColor = UIColor.blackColor.colorWithAlphaComponent(alpha = 0.2)
-    domainLabel.text = engine.remoteMM.mmid
-    domainLabel.sizeToFit()
-    domainLabel.translatesAutoresizingMaskIntoConstraints = false
-
-    NSLayoutConstraint.activateConstraints(
-      constraints = listOf(
-        domainLabel.topAnchor.constraintEqualToAnchor(view.topAnchor, 3.0),
-        domainLabel.centerXAnchor.constraintEqualToAnchor(view.centerXAnchor)
-      )
-    )
+  private fun UIAlertController.addMmid() {
+    addMmid(engine.remoteMM.mmid)
   }
 
   @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)

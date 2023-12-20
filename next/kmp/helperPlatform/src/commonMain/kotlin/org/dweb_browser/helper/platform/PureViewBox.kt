@@ -1,8 +1,8 @@
 package org.dweb_browser.helper.platform
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.compositionLocalOf
 import kotlinx.coroutines.CoroutineScope
+import org.dweb_browser.helper.compose.compositionChainOf
 
 expect suspend fun IPureViewBox.Companion.from(viewController: IPureViewController): IPureViewBox
 
@@ -30,4 +30,4 @@ interface IPureViewBox {
 fun rememberPureViewBox() = LocalPureViewBox.current
 
 val LocalPureViewBox =
-  compositionLocalOf<IPureViewBox> { throw Exception("PureViewBox no providers") }
+  compositionChainOf<IPureViewBox>("PureViewBox")

@@ -1,17 +1,14 @@
 package org.dweb_browser.browser.web.ui.bottomsheet
 
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.delay
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.ui.PopupViewState
-import org.dweb_browser.helper.compose.noLocalProvidedFor
+import org.dweb_browser.helper.compose.compositionChainOf
 
-val LocalModalBottomSheet = compositionLocalOf<ModalBottomModel> {
-  noLocalProvidedFor("LocalModalBottomSheet")
-}
+val LocalModalBottomSheet = compositionChainOf<ModalBottomModel>("LocalModalBottomSheet")
 
 enum class SheetState {
   Hidden, Expanded, PartiallyExpanded;

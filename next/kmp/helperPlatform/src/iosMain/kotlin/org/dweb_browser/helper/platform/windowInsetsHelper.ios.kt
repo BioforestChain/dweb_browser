@@ -7,7 +7,9 @@ actual fun getCornerRadiusTop(
   viewController: IPureViewBox, density: Float, defaultValue: Float
 ): Float {
   val cornerRadius = UIScreen.mainScreen.valueForKey("_displayCornerRadius")
-  println("cornerRadius:$cornerRadius")
+  if (cornerRadius is Double) {
+    return cornerRadius.toFloat()
+  }
   return defaultValue
 }
 

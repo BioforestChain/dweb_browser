@@ -1,39 +1,24 @@
-package org.dweb_browser.sys.window.core
+package org.dweb_browser.sys.window.core.modal
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -52,12 +37,10 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.compose.LocalImageLoader
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
-import org.dweb_browser.sys.window.render.IconRender
-import org.dweb_browser.sys.window.render.IdRender
-import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
-import org.dweb_browser.sys.window.render.LocalWindowPadding
+import org.dweb_browser.sys.window.core.windowAdapterManager
 
 val debugModal = Debugger("modal")
 
@@ -162,9 +145,9 @@ sealed class ModalState() {
   }
 
   @Transient
-  protected val showCloseTip = mutableStateOf("")
+  internal val showCloseTip = mutableStateOf("")
 
-  protected val isShowCloseTip get() = showCloseTip.value.isNotEmpty()
+  internal val isShowCloseTip get() = showCloseTip.value.isNotEmpty()
 
   @Composable
   abstract fun Render()
@@ -175,7 +158,7 @@ sealed class ModalState() {
   val renderId get() = _renderId
 
   @Transient
-  protected lateinit var parent: WindowController
+  internal lateinit var parent: WindowController
   internal fun setParent(win: WindowController) {
     parent = win
     win.state.modals += modalId to this
@@ -202,26 +185,7 @@ sealed class ModalState() {
   @Composable
   protected fun RenderCloseTip(onConfirmToClose: () -> Unit) {
     if (isShowCloseTip) {
-      AlertDialog(
-        onDismissRequest = {
-          showCloseTip.value = ""
-        },
-        title = { Text(text = "是否关闭抽屉面板") },
-        text = { Text(text = showCloseTip.value) },
-        confirmButton = {
-          ElevatedButton(onClick = { showCloseTip.value = "" }) {
-            Text("留下")
-          }
-        },
-        dismissButton = {
-          Button(onClick = {
-            onConfirmToClose()
-            // showCloseTip.value = "";
-          }) {
-            Text("关闭")
-          }
-        },
-      )
+      RenderCloseTipImpl(onConfirmToClose)
     }
   }
 
@@ -235,6 +199,8 @@ sealed class ModalState() {
   }
 }
 
+@Composable
+internal expect fun ModalState.RenderCloseTipImpl(onConfirmToClose: () -> Unit)
 
 @Serializable
 sealed class ModalCallback {
@@ -429,7 +395,7 @@ class BottomSheetsModal private constructor(
    * 是否已经展开，用于确保展开后才能进行 hidden 收回
    */
   @Transient
-  private var hasExpanded = false
+  internal var hasExpanded = false
 
   @LowLevelWindowAPI
   override fun close() {
@@ -443,12 +409,41 @@ class BottomSheetsModal private constructor(
     val mm = LocalWindowMM.current
     val show by isOpenState
 
-    fun onModalDismissRequest(isDismiss: Boolean) = mm.ioAsyncScope.launch {
-      dismissFlow.emit(isDismiss)
+    fun emitDismiss(isDismiss: Boolean) {
+      mm.ioAsyncScope.launch {
+        dismissFlow.emit(isDismiss)
+      }
+    }
+
+    /**
+     * 传入 EmitModalVisibilityState 指令，如果指令让状态发生了改变，那么返回 成功:true
+     */
+    val emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean = { state ->
+      when (state) {
+        EmitModalVisibilityState.Open -> {
+          emitDismiss(false)
+          true
+        }
+
+        EmitModalVisibilityState.TryClose -> closeTip.let { closeTip ->
+          if (closeTip.isNullOrEmpty() || isShowCloseTip) {
+            emitDismiss(true)
+            hasExpanded
+          } else {
+            showCloseTip.value = closeTip
+            false
+          }
+        }
+
+        EmitModalVisibilityState.ForceClose -> {
+          emitDismiss(true);
+          false
+        }
+      }
     }
 
     /// 渲染关闭提示
-    RenderCloseTip(onConfirmToClose = { onModalDismissRequest(true) })
+    RenderCloseTip(onConfirmToClose = { emitModalVisibilityChange(EmitModalVisibilityState.ForceClose) })
 
     if (!show) {
       return
@@ -478,104 +473,17 @@ class BottomSheetsModal private constructor(
         }
       }
     }
-
-    val sheetState = rememberModalBottomSheetState(confirmValueChange = {
-      debugModal("confirmValueChange", " $it")
-      when (it) {
-        SheetValue.Hidden -> closeTip.let { closeTip ->
-          if (closeTip.isNullOrEmpty() || isShowCloseTip) {
-            onModalDismissRequest(true)
-            hasExpanded
-          } else {
-            showCloseTip.value = closeTip
-            false
-          }
-        }
-
-        SheetValue.Expanded -> {
-          onModalDismissRequest(false);
-          true
-        }
-
-        SheetValue.PartiallyExpanded -> {
-          onModalDismissRequest(false);
-          true
-        }
-      }
-    });
-
-    val density = LocalDensity.current
-    val defaultWindowInsets = BottomSheetDefaults.windowInsets
-    val modalWindowInsets = remember {
-      WindowInsets(0, 0, 0, 0)
-    }
-
-    val win = parent;
-    val winPadding = LocalWindowPadding.current
-    val winTheme = LocalWindowControllerTheme.current
-    val contentColor = winTheme.topContentColor
-
-    // TODO 这个在Android/IOS上有BUG，会变成两倍大小，需要官方修复
-    // https://issuetracker.google.com/issues/307160202
-    val windowInsetTop = remember(defaultWindowInsets) {
-      (defaultWindowInsets.getTop(density) / density.density / 2).dp
-    }
-    val windowInsetBottom = remember(defaultWindowInsets) {
-      (defaultWindowInsets.getBottom(density) / density.density).dp
-    }
-
-    ModalBottomSheet(
-      sheetState = sheetState,
-      modifier = Modifier.padding(top = windowInsetTop),
-      dragHandle = {
-        Box(
-          modifier = Modifier
-            .height(48.dp)
-            .fillMaxSize()
-            .padding(horizontal = 14.dp),
-          Alignment.Center
-        ) {
-          BottomSheetDefaults.DragHandle()
-          /// 应用图标
-          Box(
-            modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart
-          ) {
-            win.IconRender(
-              modifier = Modifier.size(28.dp), primaryColor = contentColor
-            )
-          }
-          /// 应用身份
-          win.IdRender(
-            Modifier
-              .align(Alignment.BottomEnd)
-              .height(22.dp)
-              .padding(vertical = 2.dp)
-              .alpha(0.4f),
-            contentColor = contentColor
-          )
-        }
-      },
-      windowInsets = modalWindowInsets,
-      onDismissRequest = { onModalDismissRequest(true) }) {
-      /// 显示内容
-      BoxWithConstraints(
-        Modifier.padding(
-          start = winPadding.left.dp,
-          end = winPadding.right.dp,
-          bottom = windowInsetBottom + windowInsetTop
-        )
-      ) {
-        val windowRenderScope = remember(winPadding) {
-          WindowRenderScope.fromDp(maxWidth, maxHeight, 1f)
-        }
-        windowAdapterManager.Renderer(
-          renderId,
-          windowRenderScope,
-          Modifier.clip(winPadding.contentRounded.toRoundedCornerShape())
-        )
-      }
-    }
-
+    RenderImpl(emitModalVisibilityChange)
   }
 }
+
+enum class EmitModalVisibilityState {
+  Open,
+  TryClose,
+  ForceClose,
+}
+
+@Composable
+internal expect fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean)
+
 //#endregion

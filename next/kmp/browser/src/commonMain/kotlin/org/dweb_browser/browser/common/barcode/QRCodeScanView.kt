@@ -44,7 +44,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -69,12 +68,10 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.helper.compose.noLocalProvidedFor
+import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.sys.window.render.NativeBackHandler
 
-val LocalQRCodeModel = compositionLocalOf<QRCodeScanModel> {
-  noLocalProvidedFor("LocalQRCodeState")
-}
+val LocalQRCodeModel = compositionChainOf<QRCodeScanModel>("LocalQRCodeModel")
 
 @Composable
 fun QRCodeScanView(

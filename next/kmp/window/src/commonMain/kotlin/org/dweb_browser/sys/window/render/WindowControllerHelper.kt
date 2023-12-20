@@ -18,7 +18,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.State
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,10 +44,10 @@ import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
+import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.getCornerRadiusBottom
 import org.dweb_browser.helper.platform.getCornerRadiusTop
-import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.platform.theme.md_theme_dark_inverseOnSurface
 import org.dweb_browser.helper.platform.theme.md_theme_dark_onSurface
@@ -207,15 +206,15 @@ fun Modifier.windowResizeByRightBottom(win: WindowController) = this.pointerInpu
 }
 
 
-val LocalWindowLimits = compositionLocalOf<WindowLimits> { noLocalProvidedFor("WindowLimits") }
+val LocalWindowLimits = compositionChainOf<WindowLimits>("WindowLimits")
 val LocalWindowController =
-  compositionLocalOf<WindowController> { noLocalProvidedFor("WindowController") }
+  compositionChainOf<WindowController>("WindowController")
 val LocalWindowsManager =
-  compositionLocalOf<WindowsManager<*>> { noLocalProvidedFor("WindowsManager") }
+  compositionChainOf<WindowsManager<*>>("WindowsManager")
 val LocalWindowsImeVisible =
-  compositionLocalOf { mutableStateOf(false) } // 由于小米手机键盘收起会有异常，所以自行维护键盘的显示和隐藏
+  compositionChainOf("WindowsImeVisible") { mutableStateOf(false) } // 由于小米手机键盘收起会有异常，所以自行维护键盘的显示和隐藏
 
-val LocalWindowFrameStyle = compositionLocalOf { WindowFrameStyle(1f, 1f) }
+val LocalWindowFrameStyle = compositionChainOf("WindowFrameStyle") { WindowFrameStyle(1f, 1f) }
 
 data class WindowFrameStyle(val scale: Float, val opacity: Float)
 
@@ -399,7 +398,7 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
   )
 }
 
-val LocalWindowPadding = compositionLocalOf<WindowPadding> { noLocalProvidedFor("WindowPadding") }
+val LocalWindowPadding = compositionChainOf<WindowPadding>("WindowPadding")
 
 
 /**
@@ -471,9 +470,9 @@ fun WindowController.calcContentScale(limits: WindowLimits, winEdge: WindowPaddi
 }
 
 val LocalWindowControllerTheme =
-  compositionLocalOf<WindowControllerTheme> { noLocalProvidedFor("WindowControllerTheme") }
+  compositionChainOf<WindowControllerTheme>("WindowControllerTheme")
 
-data class WindowControllerTheme(
+class WindowControllerTheme(
   val topContentColor: Color,
   val topBackgroundColor: Color,
   val themeColor: Color,
@@ -653,6 +652,8 @@ fun WindowController.buildTheme(): WindowControllerTheme {
       bottomBarContentDarkColor.asWindowStateColorOr { getBottomBarContentColor().convertToLight() }
     } else getBottomBarContentColor()
   }
+
+
   return WindowControllerTheme(
     themeColor = themeColor,
     themeContentColor = themeContentColor,
@@ -707,9 +708,8 @@ fun WindowController.IdRender(
       .fillMaxHeight()
       .widthIn(min = minWidth.dp)
   ) {
-    val footerText = state.constants.owner
     val textStyle = MaterialTheme.typography.bodySmall
-    AutoSizeText(text = footerText,
+    AutoSizeText(text = idForRender,
       color = contentColor,
       style = textStyle,
       modifier = Modifier.align(Alignment.Center),
@@ -718,3 +718,8 @@ fun WindowController.IdRender(
       onResize = { lightHeight = fontSize * 1.25f })
   }
 }
+
+/**
+ * 用来窗口渲染的唯一标识
+ */
+val WindowController.idForRender get() = state.constants.owner

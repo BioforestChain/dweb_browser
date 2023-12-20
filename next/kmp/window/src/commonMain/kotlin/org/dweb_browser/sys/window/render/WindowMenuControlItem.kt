@@ -9,14 +9,14 @@ import androidx.compose.material3.IconToggleButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.compose.compositionChainOf
 
-internal val LocalWindowMenuItemColor = compositionLocalOf<IconToggleButtonColors?> { null }
+internal val LocalWindowMenuItemColor = compositionChainOf<IconToggleButtonColors?>("WindowMenuItemColor") { null }
 
 @Composable
 internal fun rememberWindowMenuItemColor() =

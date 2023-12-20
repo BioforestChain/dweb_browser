@@ -25,5 +25,22 @@ class WindowI18nResource {
       Language.EN to "Are you sure you want to close this Window?",
       Language.ZH to "确定要关闭窗口？",
     )
+
+    val modal_close_alert_tip = SimpleI18nResource(
+      Language.EN to "Whether to close the alert panel?",
+      Language.ZH to "是否关闭弹窗面板?",
+    )
+    val modal_close_bottom_sheet_tip = SimpleI18nResource(
+      Language.EN to "Whether to close the bottom sheet panel?",
+      Language.ZH to "是否关闭抽屉面板?",
+    )
+    val modal_close_tip_keep = SimpleI18nResource(
+      Language.EN to "Keep",
+      Language.ZH to "留下",
+    )
+    val modal_close_tip_close = SimpleI18nResource(
+      Language.EN to "Close",
+      Language.ZH to "关闭",
+    )
   }
 }

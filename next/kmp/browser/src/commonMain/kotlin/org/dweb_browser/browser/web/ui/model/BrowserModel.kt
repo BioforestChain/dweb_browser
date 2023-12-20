@@ -7,7 +7,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
@@ -42,7 +41,7 @@ import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.build
-import org.dweb_browser.helper.compose.noLocalProvidedFor
+import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.resolvePath
@@ -51,18 +50,18 @@ import org.dweb_browser.helper.withMainContext
 /**
  * 用于显示搜索的界面，也就是点击搜索框后界面
  */
-val LocalShowSearchView = compositionLocalOf {
+val LocalShowSearchView = compositionChainOf("ShowSearchView") {
   mutableStateOf(false)
 }
 
-val LocalShowIme = compositionLocalOf {
+val LocalShowIme = compositionChainOf("ShowIme") {
   mutableStateOf(false)
 }
 
 /**
  * 用于指定输入的内容
  */
-val LocalInputText = compositionLocalOf {
+val LocalInputText = compositionChainOf("InputText") {
   mutableStateOf("")
 }
 
@@ -71,9 +70,7 @@ data class BrowserPagerState @OptIn(ExperimentalFoundationApi::class) constructo
   val pagerStateNavigator: PagerState, // 用于表示下面搜索框等内容
 )
 
-val LocalBrowserPageState = compositionLocalOf<BrowserPagerState> {
-  noLocalProvidedFor("LocalBrowserPageState")
-}
+val LocalBrowserPageState = compositionChainOf<BrowserPagerState>("LocalBrowserPageState")
 
 @OptIn(ExperimentalFoundationApi::class)
 class BrowserViewModel(
