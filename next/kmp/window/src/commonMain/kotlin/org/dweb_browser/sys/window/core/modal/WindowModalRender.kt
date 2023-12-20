@@ -159,7 +159,7 @@ sealed class ModalState() {
 
   @Transient
   internal lateinit var parent: WindowController
-  internal fun setParent(win: WindowController) {
+  internal fun initParent(win: WindowController) {
     parent = win
     win.state.modals += modalId to this
     _renderId = win.id + "/" + modalId
@@ -255,7 +255,7 @@ data class AlertModal internal constructor(
       callbackUrl: String? = null,
     ) = AlertModal(
       title, message, iconUrl, iconAlt, confirmText, dismissText, callbackUrl,
-    ).also { it.setParent(this) }
+    ).also { it.initParent(this) }
   }
 
   @OptIn(FlowPreview::class)
@@ -387,7 +387,7 @@ class BottomSheetsModal private constructor(
       iconAlt: String? = null,
       callbackUrl: String? = null,
     ) = BottomSheetsModal(title, iconUrl, iconAlt, callbackUrl).also {
-      it.setParent(this);
+      it.initParent(this);
     }
   }
 

@@ -357,7 +357,7 @@ abstract class WindowController(
    */
   suspend fun saveModal(modal: ModalState) = modalsLock.withLock("write") {
     if (!state.modals.containsKey(modal.modalId)) {
-      modal.setParent(this)
+      modal.initParent(this)
     }
   }
 
