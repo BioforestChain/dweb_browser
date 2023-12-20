@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.common.CaptureController
+import org.dweb_browser.browser.common.CaptureParams
 import org.dweb_browser.dwebview.base.ViewItem
 
 interface BrowserBaseView {
@@ -34,8 +35,13 @@ data class BrowserWebView(
   override val controller: CaptureController = CaptureController(),
   override var bitmap: ImageBitmap? = null,
   val loadState: MutableState<Boolean> = mutableStateOf(false),
+  var webViewY: Int = 0
 ) : BrowserBaseView {
   val closeWatcher get() = viewItem.webView.closeWatcher
+
+  suspend fun captureView() {
+    controller.capture(CaptureParams(CaptureParams.ViewType.WebView, webViewY, viewItem.webView))
+  }
 }
 
 data class HotspotInfo(

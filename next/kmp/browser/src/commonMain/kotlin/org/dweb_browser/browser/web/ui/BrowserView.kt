@@ -76,6 +76,7 @@ import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.util.isSystemUrl
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.ConstUrl
 import org.dweb_browser.browser.web.ui.bottomsheet.LocalModalBottomSheet
@@ -211,6 +212,7 @@ fun BrowserViewForWindow(
 fun BrowserViewContent(viewModel: BrowserViewModel, windowRenderScope: WindowRenderScope) {
   val localFocusManager = LocalFocusManager.current
   val browserPagerState = LocalBrowserPageState.current
+
   UpdateHorizontalPager(viewModel)
 
   Box(modifier = Modifier
@@ -239,11 +241,11 @@ fun BrowserViewContent(viewModel: BrowserViewModel, windowRenderScope: WindowRen
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun UpdateHorizontalPager(viewModel: BrowserViewModel) {
-  val browserPagerState = LocalBrowserPageState.current
-  LaunchedEffect(browserPagerState.pagerStateNavigator.currentPageOffsetFraction) {
-    val lastCurrentPage = browserPagerState.pagerStateNavigator.currentPage
-    val lastCurrentPageOffsetFraction =
-      browserPagerState.pagerStateNavigator.currentPageOffsetFraction
+  val pagerStateNavigator = LocalBrowserPageState.current.pagerStateNavigator
+  val pagerStateContent = LocalBrowserPageState.current.pagerStateContent
+  LaunchedEffect(pagerStateNavigator.currentPageOffsetFraction) {
+    val lastCurrentPage = pagerStateNavigator.currentPage
+    val lastCurrentPageOffsetFraction = pagerStateNavigator.currentPageOffsetFraction
     /** 由于HorizontalPager的有效区间值是 -0.5f~0.5f ,荣耀手机在这块兼容出问题了，导致出现了不在区间的值，
      * 所以在这边强制限制值必须在 -0.5f~0.5f 之间
      */
@@ -252,14 +254,20 @@ private fun UpdateHorizontalPager(viewModel: BrowserViewModel) {
     } else if (lastCurrentPageOffsetFraction <= -0.5f) {
       Pair(lastCurrentPage - 1, -1 - lastCurrentPageOffsetFraction)
     } else Pair(lastCurrentPage, lastCurrentPageOffsetFraction)
-    browserPagerState.pagerStateContent.scrollToPage(
+    pagerStateContent.scrollToPage(
       currentPage,
       currentPageOffsetFraction
     )
   }
-  LaunchedEffect(browserPagerState.pagerStateContent.currentPage) {
-    val currentPage = browserPagerState.pagerStateContent.currentPage
+  LaunchedEffect(pagerStateContent.currentPage) {
+    val currentPage = pagerStateContent.currentPage
     viewModel.updateCurrentBrowserView(currentPage)
+  }
+  /**
+   * 为了截图，判断 pagerStateNavigator 值
+   */
+  LaunchedEffect(pagerStateNavigator.targetPage) {
+    viewModel.captureBrowserWebView(pagerStateNavigator.targetPage)
   }
 }
 
@@ -366,7 +374,10 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
         imageVector = getMultiImageVector(viewModel.listSize), // resId = R.drawable.ic_main_multi,
         name = "MultiView", show = true
       ) {
-        scope.launch { viewModel.updateMultiViewState(true) }
+        scope.launch {
+          viewModel.currentTab?.captureView()
+          viewModel.updateMultiViewState(true)
+        }
       }
       NavigatorButton(
         imageVector = Icons.Rounded.Menu, name = "Options", show = true

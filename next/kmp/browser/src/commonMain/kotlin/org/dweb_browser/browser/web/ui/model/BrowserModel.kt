@@ -216,8 +216,8 @@ class BrowserViewModel(
       false
     } else if (url.isUrlOrHost()) {
       // 判断如果已存在，直接focus，不新增界面
-      browserViewList.find { it.viewItem.webView.getUrl() == url }?.let { focus ->
-        focusBrowserView(focus)
+      browserViewList.find { it.viewItem.webView.getUrl() == url }?.let { browserWebView ->
+        focusBrowserView(browserWebView)
       } ?: run {
         addNewMainView(url)
       }
@@ -268,6 +268,13 @@ class BrowserViewModel(
     }
   }
 
+  /**
+   * 滑动搜索栏时，需要做一次截屏
+   */
+  suspend fun captureBrowserWebView(currentPage: Int) {
+    browserViewList.getOrNull(currentPage)?.captureView()
+  }
+
   suspend fun searchWebView(url: String) = withContext(ioAsyncExceptionHandler) {
     showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
     val loadingState = currentBrowserBaseView.value?.loadState
@@ -285,9 +292,9 @@ class BrowserViewModel(
   }
 
   suspend fun addNewMainView(url: String? = null) = withMainContext {
-    getNewTabBrowserView(url).also { itemView ->
-      browserViewList.add(itemView)
-      focusBrowserView(itemView)
+    getNewTabBrowserView(url).also { browserWebView ->
+      browserViewList.add(browserWebView)
+      focusBrowserView(browserWebView)
     }
   }
 

@@ -9,9 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.common.CaptureParams
 import org.dweb_browser.browser.common.CaptureView
 import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.common.toWebColorScheme
@@ -19,7 +17,6 @@ import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.WebSiteType
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.browser.web.ui.model.toWebSiteInfo
-import org.dweb_browser.dwebview.MotionEventAction
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -39,12 +36,7 @@ internal fun BrowserWebView(
             viewModel.changeHistoryLink(
               add = browserWebView.viewItem.webView.toWebSiteInfo(WebSiteType.History)
             )
-            browserWebView.controller.capture(
-              CaptureParams(
-                viewType = CaptureParams.ViewType.WebView,
-                webView = browserWebView.viewItem.webView
-              )
-            )
+            browserWebView.captureView()
           }
 
           else -> {
@@ -53,13 +45,15 @@ internal fun BrowserWebView(
         }
       }
     }
-    onDispose { job.cancel() }
+    onDispose {
+      job.cancel()
+    }
   }
 
   CaptureView(
     modifier = Modifier.fillMaxSize(),
     controller = browserWebView.controller,
-    onCaptured = { imageBitmap, throwable ->
+    onCaptured = { imageBitmap, exception ->
       imageBitmap?.let { browserWebView.bitmap = imageBitmap }
     }
   ) {
@@ -79,32 +73,24 @@ internal fun BrowserWebView(
           maxHeight.value,
           density,
         )
-        delay(500)
-        browserWebView.controller.capture(
-          CaptureParams(
-            viewType = CaptureParams.ViewType.WebView,
-            webView = browserWebView.viewItem.webView
-          )
-        )
       }
 
       browserWebView.viewItem.webView.Render(
         modifier = Modifier.fillMaxSize(),
         onCreate = {
           val webView = browserWebView.viewItem.webView
-          var webViewY = 0 // 用于截图的时候进行定位截图
+          /*var webViewY = 0 // 用于截图的时候进行定位截图
           webView.setOnTouchListener { _, event ->
             if (event == MotionEventAction.ACTION_UP) {
               scope.launch {
-                browserWebView.controller.capture(
-                  CaptureParams(CaptureParams.ViewType.WebView, webViewY, webView)
-                )
+                browserWebView.captureView()
               }
             }
             false
-          }
+          }*/
           webView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
-            webViewY = scrollY // 用于截图的时候进行定位截图
+            browserWebView.webViewY = scrollY // 用于截图的时候进行定位截图
+            // webViewY = scrollY // 用于截图的时候进行定位截图
 //          if (scrollY == 0 || oldScrollY == 0) return@setOnScrollChangeListener
 //          localFocusManager.clearFocus() // TODO 清除焦点
 //          if (oldScrollY < scrollY - 5) {
