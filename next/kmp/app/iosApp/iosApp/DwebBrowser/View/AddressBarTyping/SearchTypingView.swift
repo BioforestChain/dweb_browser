@@ -39,12 +39,18 @@ struct SearchTypingView: View {
                     .background(Color.bkColor)
             }
         }
+        .onDisappear {
+            addressBar.inputText = ""
+            addressBar.searchInputText = ""
+            addressBar.isFocused = false
+        }
         .animation(.easeInOut, value: addressBar.inputText == "")
     }
 
     func releaseFocuse() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         addressBar.inputText = ""
+        addressBar.searchInputText = ""
         addressBar.isFocused = false
     }
 }

@@ -18,6 +18,9 @@ struct BrowserView: View {
     @StateObject var dragScale = BrowserViewStateStore.shared.dragScale
     @StateObject var wndArea = BrowserViewStateStore.shared.wndArea
     var curWebVisible: Bool { webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb }
+
+    @State var searchEnter: Bool = false
+
     var body: some View {
         ZStack {
             GeometryReader { geometry in
@@ -70,10 +73,20 @@ struct BrowserView: View {
                 }
             }
             .task {
-                doSearchIfNeed()
+                if !searchEnter {
+                    doSearchIfNeed()
+                }
+                
+                if let key = BrowserViewStateStore.shared.searchKey, !key.isEmpty {
+                    searchEnter = true
+                    BrowserViewStateStore.shared.searchKey = nil
+                }
             }
             .onChange(of: store.searchKey) { _, newValue in
-                doSearchIfNeed(key: newValue)
+                if !searchEnter {
+                    doSearchIfNeed(key: newValue)
+                }
+                searchEnter.toggle()
             }
             .onChange(of: store.openUrlString) { _, newValue in
                 openWebViewIfNeed(key: newValue)
@@ -84,11 +97,11 @@ struct BrowserView: View {
     
     private func doSearchIfNeed(key: String? = BrowserViewStateStore.shared.searchKey) {
         guard let key = key, !key.isEmpty else {
+            addressBar.isFocused = false
             return
         }
-        addressBar.searchInputText = key
         addressBar.isFocused = true
-        BrowserViewStateStore.shared.searchKey = nil
+        addressBar.searchInputText = key
     }
     
     private func openWebViewIfNeed(key: String? = BrowserViewStateStore.shared.openUrlString) {

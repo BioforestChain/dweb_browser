@@ -73,7 +73,7 @@ extension BrowserViewStateStore {
         searchKey = key
     }
     
-    func openWeb(urlString: String?) {
+    func openBrowserWebView(urlString: String?) {
         guard let key = urlString, !key.isEmpty, openUrlString != key else {
             return
         }

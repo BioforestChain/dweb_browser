@@ -3,6 +3,7 @@ package org.dweb_browser.browser.web
 import io.ktor.http.HttpMethod
 import org.dweb_browser.browser.web.model.WebLinkMicroModule
 import org.dweb_browser.browser.web.model.WebLinkStore
+import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
@@ -68,7 +69,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     routes(
       "search" bindDwebDeeplink defineEmptyResponse {
         debugBrowser("do search", request.href)
-        browserController.openBrowserView(search = request.query("q"))
+        browserController.openBrowserView(search = request.query("q"), type = BrowserViewModel.EntranceType.search)
         openMainWindow()
       },
       "openinbrowser" bindDwebDeeplink openBrowser,

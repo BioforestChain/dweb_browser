@@ -11,6 +11,9 @@ import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.util.isUrl
+
+import org.dweb_browser.browser.util.isUrlOrHost
+import org.dweb_browser.browser.web.ui.bottomsheet.SheetState
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.sys.window.core.WindowRenderScope
@@ -45,11 +48,16 @@ actual fun CommonBrowserView(
   }
 
   if (viewModel.dwebLinkSearch.value.isNotEmpty()) {
+
     val urlString = viewModel.dwebLinkSearch.value.toString()
-    if (urlString.isUrl()) {
-      browserIosImp.openWebView(viewModel.dwebLinkSearch.value.toString())
+    if (urlString.isUrlOrHost()) {
+      browserIosImp.openBrowserWebView(viewModel.dwebLinkSearch.value.toString())
     } else {
-      browserIosImp.doSearch(viewModel.dwebLinkSearch.value.toString())
+      val entranceType = viewModel.entranceType
+      if (entranceType == BrowserViewModel.EntranceType.search) {
+        browserIosImp.doSearch(viewModel.dwebLinkSearch.value.toString())
+        viewModel.dwebLinkSearch.value = ""
+      }
     }
   }
 
