@@ -186,24 +186,25 @@ fun JmmViewItem(
     ) {
       if (jmmHistoryMetadata.state.state == JmmStatus.INSTALLED) {
         TextButton(onClick = uninstall) {
-          Text(text = "卸载")
+          Text(text = BrowserI18nResource.jmm_history_uninstall())
         }
       }
 
       TextButton(onClick = detail) {
-        Text(text = "详情")
+        Text(text = BrowserI18nResource.jmm_history_details())
       }
     }
   }
 }
 
+@Composable
 private fun JmmStatus.showText() =
   when (this) {
-    JmmStatus.Downloading -> "下载中"
-    JmmStatus.Paused -> "暂停"
-    JmmStatus.Failed -> "重试"
-    JmmStatus.Init, JmmStatus.Canceled -> "下载"
-    JmmStatus.Completed -> "安装中"
-    JmmStatus.INSTALLED -> "打开"
-    JmmStatus.NewVersion -> "升级"
+    JmmStatus.Downloading -> BrowserI18nResource.install_button_downloading()
+    JmmStatus.Paused -> BrowserI18nResource.install_button_paused()
+    JmmStatus.Failed -> BrowserI18nResource.install_button_retry()
+    JmmStatus.Init, JmmStatus.Canceled -> BrowserI18nResource.install_button_install()
+    JmmStatus.Completed -> BrowserI18nResource.install_button_installing()
+    JmmStatus.INSTALLED -> BrowserI18nResource.install_button_open()
+    JmmStatus.NewVersion -> BrowserI18nResource.install_button_update()
   }

@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.browser.jmm.render.HeadHeight
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
@@ -73,7 +74,10 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      Text(text = "版本 ${jmmAppInstallManifest.version}", fontSize = 12.sp)
+      Text(
+        text = BrowserI18nResource.jmm_install_version() + " ${jmmAppInstallManifest.version}",
+        fontSize = 12.sp
+      )
       /*Text(
         text = buildAnnotatedString {
           append("人工复检 · ")

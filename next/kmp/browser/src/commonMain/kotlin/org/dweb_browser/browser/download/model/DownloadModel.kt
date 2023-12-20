@@ -10,15 +10,17 @@ import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.datetime.LocalDate
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadController
 import org.dweb_browser.browser.download.DownloadTask
+import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.compose.compositionChainOf
 
 val LocalDownloadModel = compositionChainOf<DownloadModel>("LocalDownloadModel")
 
-enum class DownloadTab(val id: Int, val title: String, val vector: ImageVector) {
-  Downloads(1, "下载", Icons.Default.FileDownload),
-  Files(2, "文件", Icons.Default.FileOpen),
+enum class DownloadTab(val id: Int, val title: SimpleI18nResource, val vector: ImageVector) {
+  Downloads(1, BrowserI18nResource.install_tab_download, Icons.Default.FileDownload),
+  Files(2, BrowserI18nResource.install_tab_file, Icons.Default.FileOpen),
   ;
 }
 

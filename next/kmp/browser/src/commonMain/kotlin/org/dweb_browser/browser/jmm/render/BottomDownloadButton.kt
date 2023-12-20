@@ -180,7 +180,7 @@ fun ResizeSingleText(
 fun JmmStatusText(state: JmmStatusEvent, current: Long): Triple<String, String, String?> {
   return when (state.state) {
     JmmStatus.Init, JmmStatus.Canceled -> Triple(
-      first = BrowserI18nResource.install_button_download(),
+      first = BrowserI18nResource.install_button_install(),
       second = " " + state.total.toSpaceSize(),
       third = null
     )

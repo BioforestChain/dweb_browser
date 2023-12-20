@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -26,7 +27,7 @@ internal fun AppIntroductionView(jmmAppInstallManifest: JmmAppInstallManifest) {
   val expanded = remember { mutableStateOf(false) }
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
-      text = "应用介绍",
+      text = BrowserI18nResource.jmm_install_introduction(),
       fontSize = 18.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.onSurface

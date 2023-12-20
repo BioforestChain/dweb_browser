@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.render.CustomerDivider
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
@@ -31,20 +32,20 @@ import org.dweb_browser.helper.toSpaceSize
 internal fun OtherInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
-      text = "信息",
+      text = BrowserI18nResource.jmm_install_info(),
       fontSize = 18.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(HorizontalPadding))
-    OtherItemView(type = "开发者", content = jmmAppInstallManifest.author.toContent())
-    OtherItemView(type = "大小", content = jmmAppInstallManifest.bundle_size.toSpaceSize())
-    OtherItemView(type = "类别", content = jmmAppInstallManifest.categories.print())
-    OtherItemView(type = "语言", content = "中文")
-    OtherItemView(type = "年龄分级", content = "18+")
+    OtherItemView(type = BrowserI18nResource.jmm_install_info_dev(), content = jmmAppInstallManifest.author.toContent())
+    OtherItemView(type = BrowserI18nResource.jmm_install_info_size(), content = jmmAppInstallManifest.bundle_size.toSpaceSize())
+    OtherItemView(type = BrowserI18nResource.jmm_install_info_type(), content = jmmAppInstallManifest.categories.print())
+    OtherItemView(type = BrowserI18nResource.jmm_install_info_language(), content = "中文")
+    OtherItemView(type = BrowserI18nResource.jmm_install_info_age(), content = "18+")
     OtherItemView(
-      type = "版权",
-      content = "@${jmmAppInstallManifest.author?.firstOrNull() ?: jmmAppInstallManifest.name}"
+      type = BrowserI18nResource.jmm_install_info_copyright(),
+      content = "@${jmmAppInstallManifest.author.firstOrNull() ?: jmmAppInstallManifest.name}"
     )
   }
 }

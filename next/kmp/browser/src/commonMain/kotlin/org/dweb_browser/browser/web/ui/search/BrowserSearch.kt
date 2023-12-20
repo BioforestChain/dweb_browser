@@ -40,6 +40,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
@@ -73,6 +76,7 @@ internal fun BoxScope.SearchView(
   onClose: () -> Unit,
   onSearch: (String) -> Unit,
 ) {
+  debugBrowser("lin.huang", "BoxScope.SearchView enter")
   val focusManager = LocalFocusManager.current
   val inputText = remember(text) { mutableStateOf(parseInputText(text, false)) }
   val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
@@ -158,19 +162,18 @@ internal fun BoxScope.BrowserTextField(
       .clip(RoundedCornerShape(8.dp))
       .background(MaterialTheme.colorScheme.background)
       .focusRequester(focusRequester)
-//    .onKeyEvent { // 键盘的操作，暂时屏蔽
-//      if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
-//        inputText.toRequestUrl()?.let { url ->
-//          onSearch(url)
-//        } ?: webEngine?.let { webEngine ->
-//          onSearch("${webEngine.start}$inputText")
-//        } ?: focusManager.clearFocus(); keyboardController?.hide()
-//        true
-//      } else {
-//        false
-//      }
-//    }
-    ,
+      .onKeyEvent {
+        if (it.key == Key.Enter) {
+          inputText.toRequestUrl()?.let { url ->
+            onSearch(url)
+          } ?: webEngine?.let { webEngine ->
+            onSearch("${webEngine.start}$inputText")
+          } ?: focusManager.clearFocus(); keyboardController?.hide()
+          true
+        } else {
+          false
+        }
+      },
     label = {
       Text(
         text = BrowserI18nResource.browser_search_hint(),

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -27,13 +28,13 @@ internal fun NewVersionInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
   val expanded = remember { mutableStateOf(false) }
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
-      text = "更新日志",
+      text = BrowserI18nResource.jmm_install_update_log(),
       fontSize = 18.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.onSurface
     )
     Text(
-      text = "版本 ${jmmAppInstallManifest.version}",
+      text = BrowserI18nResource.jmm_install_version() + " ${jmmAppInstallManifest.version}",
       fontSize = 12.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.outline,
