@@ -21,7 +21,7 @@ let minAddressBarH: CGFloat = 25
 let maxToolBarH: CGFloat = 50
 let minToolBarH: CGFloat = 25
 
-let emptyLink = ""
+let emptyLink = "about:blank"
 let emptyURL = URL(string: emptyLink)!
 
 let gridVSpace: CGFloat = 20.0
