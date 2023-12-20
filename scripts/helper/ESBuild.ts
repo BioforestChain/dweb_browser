@@ -2,8 +2,6 @@ import picocolors from "npm:picocolors";
 import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
 import { ReadableStreamOut, streamRead } from "../../desktop-dev/src/helper/stream/readableStreamHelper.ts";
 import { esbuild, esbuild_deno_loader } from "../deps.ts";
-export { esbuild, esbuild_deno_loader } from "../deps.ts";
-
 export type $BuildOptions = esbuild.BuildOptions & {
   denoLoader?: boolean;
   importMapURL?: string;
@@ -38,6 +36,7 @@ export class ESBuild {
     const plugins = (esbuildOptions.plugins ??= []);
     if (esbuildOptions.denoLoader) {
       let importMapURL = this.options.importMapURL;
+      // importMapURL = `data:application/json,${JSON.stringify(importMapURL)}`;
       if (importMapURL !== undefined && !importMapURL.startsWith("file:///")) {
         importMapURL = "file:///" + importMapURL;
       }
@@ -49,6 +48,14 @@ export class ESBuild {
               return {
                 path: args.path.replace(/^npm:/, "//esm.sh/"),
                 namespace: "https",
+              };
+            });
+            // 适配window文件不对
+            build.onResolve({ filter: /^[a-zA-Z]:.*$/ }, (args) => {
+              const code = args.path.replaceAll("\\", "/");
+              return {
+                path: code,
+                namespace: "file",
               };
             });
           },
