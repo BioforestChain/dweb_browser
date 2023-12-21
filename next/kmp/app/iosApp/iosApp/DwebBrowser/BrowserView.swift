@@ -17,9 +17,9 @@ struct BrowserView: View {
     @StateObject var webcacheStore = BrowserViewStateStore.shared.webcacheStore
     @StateObject var dragScale = BrowserViewStateStore.shared.dragScale
     @StateObject var wndArea = BrowserViewStateStore.shared.wndArea
-    var curWebVisible: Bool { webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb }
-
+    
     @State var searchEnter: Bool = false
+    var curWebVisible: Bool { webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb }
 
     var body: some View {
         ZStack {
@@ -28,7 +28,7 @@ struct BrowserView: View {
                     Color.black
                     VStack(spacing: 0) {
                         TabsContainerView()
-                        ToolbarView(webCount: webcacheStore.cacheCount, isWebVisible: curWebVisible)
+                        ToolbarView(webCount: webcacheStore.cacheCount, isWebVisible: curWebVisible, webMonitor: webcacheStore.webWrappers[selectedTab.curIndex])
                             .frame(height: addressBar.isFocused ? 0 : dragScale.toolbarHeight)
                             .background(Color.bkColor)
                     }

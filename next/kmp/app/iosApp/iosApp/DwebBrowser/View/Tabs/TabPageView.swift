@@ -35,6 +35,7 @@ struct TabPageView: View {
                     if isVisible{
                         webCache.lastVisitedUrl = link
                         if webCache.shouldShowWeb {
+                            webWrapper.webMonitor.isLoadingDone = false
                             webWrapper.webView.load(URLRequest(url: link))
                         } else {
                             webCache.shouldShowWeb = true
@@ -122,6 +123,7 @@ struct TabPageView: View {
             }
             .onChange(of: addressBar.needRefreshOfIndex) { _, refreshIndex in
                 if isVisible {
+                    webWrapper.webMonitor.isLoadingDone = false
                     webWrapper.webView.reload()
                     addressBar.needRefreshOfIndex = -1
                 }

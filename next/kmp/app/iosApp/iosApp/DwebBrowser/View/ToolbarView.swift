@@ -17,9 +17,13 @@ struct ToolbarView: View {
     @EnvironmentObject var dragScale: WndDragScale
 
     @State private var toolbarHeight: CGFloat = toolBarH
+    @State private var loadingDone: Bool = false
 
     let webCount: Int
     let isWebVisible: Bool
+    @ObservedObject var webMonitor: WebWrapper
+
+    private var canCreateDesktopLink: Bool { isWebVisible && loadingDone }
 
     var body: some View {
         GeometryReader { _ in
@@ -81,10 +85,15 @@ struct ToolbarView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .background(Color.bkColor)
-                        .foregroundColor(isWebVisible ? Color.ToolbarColor : Color.gray)
+                        .foregroundColor(canCreateDesktopLink ? Color.ToolbarColor : Color.gray)
                         .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
                 }
-                .disabled(!isWebVisible)
+                .onChange(of: webMonitor.webMonitor.isLoadingDone) { oldValue, newValue in
+                    if oldValue != newValue {
+                        loadingDone = newValue
+                    }
+                }
+                .disabled(!canCreateDesktopLink)
 
                 Spacer()
                 if isWebVisible {
@@ -139,8 +148,8 @@ struct ToolbarView: View {
     }
 }
 
-let toolItemMinWidth = 14.0
-let toolItemMaxWidth = toolItemMinWidth * 2
-let toolBarMinHeight = toolItemMinWidth + 4.0
+internal let toolItemMinWidth = 14.0
+internal let toolItemMaxWidth = toolItemMinWidth * 2
+internal let toolBarMinHeight = toolItemMinWidth + 4.0
 
-let addressbarMinHeight = toolBarMinHeight
+internal let addressbarMinHeight = toolBarMinHeight

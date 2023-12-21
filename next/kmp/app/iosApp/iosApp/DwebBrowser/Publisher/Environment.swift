@@ -17,7 +17,18 @@ class BrowserArea: ObservableObject {
 }
 
 class WebMonitor: ObservableObject{
-    @Published var loadingProgress: Double = 0
+    @Published var loadingProgress: Double = 0{
+        willSet{
+            if newValue >= 1.0{
+                isLoadingDone = true
+            }else {
+                if isLoadingDone != false{
+                    isLoadingDone = false
+                }
+            }
+        }
+    }
+    @Published var isLoadingDone : Bool = false
 }
 
 class SelectedTab: ObservableObject {
