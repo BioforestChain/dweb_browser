@@ -1,5 +1,6 @@
 package org.dweb_browser.core.module
 
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -39,7 +40,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   private var runningStateLock = StatePromiseOut.resolve(MMState.SHUTDOWN)
   private val readyLock = Mutex(true)
 
-  private fun getModuleCoroutineScope() = CoroutineScope(SupervisorJob() + ioAsyncExceptionHandler)
+  private fun getModuleCoroutineScope() =
+    CoroutineScope(SupervisorJob() + ioAsyncExceptionHandler + CoroutineName(mmid))
+
   private var _scope: CoroutineScope = getModuleCoroutineScope()
   val ioAsyncScope get() = _scope
 

@@ -10,8 +10,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -129,20 +127,20 @@ class JmmNMM :
             new.complete(request.query("wid"))
           }
         }
-        jmmController.openHistoryView()
-      },
-      /// 销毁wid
-      "/renderer" bind IpcMethod.DELETE by defineEmptyResponse {
-        wid.update { old ->
-          when {
-            /// 如果原本的 renderer 已经完成并且指定的wid对得上号，那么有权销毁并提供一个新的
-            old.isCompleted && old.getCompleted() == request.query("wid") -> {
-              CompletableDeferred()
+        /// 在IPC关闭的时候，销毁wid
+        ipc.onClose {
+          wid.update { old ->
+            when {
+              /// 如果原本的 renderer 已经完成并且指定的wid对得上号，那么有权销毁并提供一个新的
+              old.isCompleted && old.getCompleted() == request.query("wid") -> {
+                CompletableDeferred()
+              }
+              // 否则，保持原本
+              else -> old
             }
-            // 否则，保持原本
-            else -> old
           }
         }
+        jmmController.openHistoryView()
       }).protected("gui.jmm.browser.dweb")
   }
 
@@ -205,16 +203,8 @@ class JmmGuiNMM : NativeMicroModule("gui.jmm.browser.dweb", "Js MicroModule Mana
         getOrOpenMainWindowId()
       },
     ).protected("jmm.browser.dweb");
-    val renderLock = Mutex()
     onRenderer {
-      renderLock.withLock {
-        nativeFetch(IpcMethod.GET, "file://jmm.browser.dweb/renderer?wid=$wid")
-      }
-      onDispose {
-        renderLock.withLock {
-          nativeFetch(IpcMethod.DELETE, "file://jmm.browser.dweb/renderer?wid=$wid")
-        }
-      }
+      nativeFetch(IpcMethod.GET, "file://jmm.browser.dweb/renderer?wid=$wid")
     }
   }
 
