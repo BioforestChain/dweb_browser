@@ -1,12 +1,8 @@
 package org.dweb_browser.sys.window.core.modal
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
@@ -18,17 +14,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.render.IconRender
-import org.dweb_browser.sys.window.render.IdRender
-import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 import org.dweb_browser.sys.window.render.LocalWindowPadding
 
 @Composable
@@ -62,11 +56,12 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
   val sheetState = rememberModalBottomSheetState(confirmValueChange = {
     debugModal("confirmValueChange", " $it")
     when (it) {
-      SheetValue.Hidden -> emitModalVisibilityChange(EmitModalVisibilityState.TryClose)
+      SheetValue.Hidden -> isClose
       SheetValue.Expanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
       SheetValue.PartiallyExpanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
     }
   });
+  val scope = rememberCoroutineScope()
 
   val density = LocalDensity.current
   val defaultWindowInsets = BottomSheetDefaults.windowInsets
@@ -74,10 +69,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
     WindowInsets(0, 0, 0, 0)
   }
 
-  val win = parent;
   val winPadding = LocalWindowPadding.current
-  val winTheme = LocalWindowControllerTheme.current
-  val contentColor = winTheme.topContentColor
 
   // TODO 这个在Android/IOS上有BUG，会变成两倍大小，需要官方修复
   // https://issuetracker.google.com/issues/307160202
@@ -92,31 +84,14 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
     sheetState = sheetState,
     modifier = Modifier.padding(top = windowInsetTop),
     dragHandle = {
-      Box(
-        modifier = Modifier
-          .height(48.dp)
-          .fillMaxSize()
-          .padding(horizontal = 14.dp),
-        Alignment.Center
-      ) {
-        BottomSheetDefaults.DragHandle()
-        /// 应用图标
-        Box(
-          modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart
-        ) {
-          win.IconRender(
-            modifier = Modifier.size(28.dp), primaryColor = contentColor
-          )
+      TitleBarWithOnClose({
+        if (emitModalVisibilityChange(EmitModalVisibilityState.TryClose)) {
+          scope.launch {
+            sheetState.hide()
+          }
         }
-        /// 应用身份
-        win.IdRender(
-          Modifier
-            .align(Alignment.BottomEnd)
-            .height(22.dp)
-            .padding(vertical = 2.dp)
-            .alpha(0.4f),
-          contentColor = contentColor
-        )
+      }) {
+        BottomSheetDefaults.DragHandle(Modifier.align(Alignment.TopCenter))
       }
     },
     windowInsets = modalWindowInsets,

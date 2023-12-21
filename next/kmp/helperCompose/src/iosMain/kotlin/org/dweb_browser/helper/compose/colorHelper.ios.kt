@@ -19,3 +19,5 @@ fun UIColor.Companion.fromColor(color: Color) = UIColor(
 )
 
 val UIColor.Companion.transparentColor by lazy { UIColor.clearColor }
+
+fun Color.toUIColor() = UIColor.fromColor(this)

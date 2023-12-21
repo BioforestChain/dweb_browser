@@ -1,16 +1,26 @@
 package org.dweb_browser.sys.window.core.modal
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,7 +28,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.FlowPreview
@@ -42,6 +54,9 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.render.IconRender
+import org.dweb_browser.sys.window.render.IdRender
+import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 
 val debugModal = Debugger("modal")
 
@@ -80,6 +95,7 @@ sealed class ModalState() {
    * 是否开启
    */
   val isOpen get() = _isOpen
+  val isClose get() = !_isOpen
 
 
   @SerialName("sessionId")
@@ -498,4 +514,83 @@ enum class EmitModalVisibilityState {
 @Composable
 internal expect fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean)
 
+@Composable
+fun BottomSheetsModal.TitleBarWithCustomCloseBottom(
+  closeBottom: @Composable (Modifier) -> Unit,
+  content: @Composable BoxScope.() -> Unit
+) {
+  val winTheme = LocalWindowControllerTheme.current
+  val contentColor = winTheme.topContentColor
+  val win = parent
+  val size = 48.dp
+  Box(
+    modifier = Modifier
+      .height(size)
+      .fillMaxSize(),
+    Alignment.Center
+  ) {
+    /// 应用图标
+    Box(
+      modifier = Modifier
+        .align(Alignment.CenterStart)
+        .size(size)
+        .padding(start = 14.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+      contentAlignment = Alignment.CenterStart
+    ) {
+      win.IconRender(
+        modifier = Modifier.fillMaxSize(),
+        primaryColor = contentColor
+      )
+    }
+    /// 应用身份 与 关闭按钮
+    Row(
+      Modifier
+        .align(Alignment.BottomEnd),
+      verticalAlignment = Alignment.Bottom,
+    ) {
+      win.IdRender(
+        Modifier
+          .height(22.dp)
+          .padding(vertical = 2.dp)
+          .alpha(0.4f),
+        contentColor = contentColor
+      )
+      closeBottom(Modifier.size(size))
+    }
+    content()
+  }
+}
+
+@Composable
+fun BottomSheetsModal.TitleBarWithOnClose(
+  onClose: () -> Unit,
+  content: @Composable BoxScope.() -> Unit
+) {
+  TitleBarWithCustomCloseBottom(
+    { modifier ->
+      val winTheme = LocalWindowControllerTheme.current
+      Box(
+        modifier.padding(13.dp),
+        contentAlignment = Alignment.Center
+      ) {
+        IconButton(
+          {
+            onClose()
+          },
+          colors = IconButtonDefaults.iconButtonColors(
+            contentColor = winTheme.topBackgroundColor,
+            containerColor = winTheme.topContentColor
+          )
+        ) {
+          Icon(
+            imageVector = Icons.Rounded.Close,
+            contentDescription = "Close Bottom Sheet",
+            modifier = Modifier.padding(3.dp)
+          )
+        }
+      }
+    },
+    content
+  )
+}
 //#endregion
