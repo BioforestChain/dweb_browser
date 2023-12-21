@@ -176,7 +176,7 @@ fun JmmViewItem(
         }
         val primary = MaterialTheme.colorScheme.primary
         when (jmmHistoryMetadata.state.state) {
-          JmmStatus.Downloading, JmmStatus.Completed -> {
+          JmmStatus.Downloading -> {
             Box(
               modifier = Modifier.size(40.dp),
               contentAlignment = Alignment.Center
@@ -272,7 +272,7 @@ private fun JmmStatus.showText() =
     JmmStatus.Paused -> BrowserI18nResource.install_button_paused()
     JmmStatus.Failed -> BrowserI18nResource.install_button_retry2()
     JmmStatus.Init, JmmStatus.Canceled -> BrowserI18nResource.install_button_install()
-    JmmStatus.Completed -> BrowserI18nResource.install_button_downloading() // 解压也算在下载内
+    JmmStatus.Completed -> BrowserI18nResource.install_button_installing()
     JmmStatus.INSTALLED -> BrowserI18nResource.install_button_open()
     JmmStatus.NewVersion -> BrowserI18nResource.install_button_update()
   }
