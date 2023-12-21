@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -83,13 +84,13 @@ fun JmmHistoryController.ManagerViewRender(
 
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
       JmmTabs.entries.forEachIndexed { index, jmmTab ->
-        SegmentedButton(
-          selected = index == curTab.index,
-          onClick = { curTab = JmmTabs.entries[index] },
-          shape = RoundedCornerShape(16.dp),
-          icon = { Icon(imageVector = jmmTab.vector, contentDescription = jmmTab.title()) },
-          label = { Text(text = jmmTab.title()) }
-        )
+         SegmentedButton(
+            selected = index == curTab.index,
+            onClick = { curTab = JmmTabs.entries[index] },
+            shape = RoundedCornerShape(16.dp),
+            icon = { Icon(imageVector = jmmTab.vector, contentDescription = jmmTab.title()) },
+            label = { Text(text = jmmTab.title()) }
+          )
       }
     }
 
@@ -158,12 +159,14 @@ fun JmmViewItem(
     },
     leadingContent = {
       Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
-        AsyncImage(
-          model = jmmHistoryMetadata.metadata.logo,
-          contentDescription = "icon",
-          modifier = Modifier.size(56.dp),
-          contentScale = ContentScale.Fit
-        )
+        key(jmmHistoryMetadata.metadata.logo) {
+          AsyncImage(
+            model = jmmHistoryMetadata.metadata.logo,
+            contentDescription = "icon",
+            modifier = Modifier.size(56.dp),
+            contentScale = ContentScale.Fit
+          )
+        }
       }
     },
     trailingContent = {
