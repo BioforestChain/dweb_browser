@@ -170,7 +170,12 @@ function outsideCloseMenu(e: PointerEvent) {
           <p class="title">退出</p>
         </button>
 
-        <button v-ripple class="item details" @click="showAppDetailApp">
+        <button
+          v-ripple
+          v-if="!['web.browser.dweb', 'gui.jmm.browser.dweb'].includes(appMetaData.mmid)"
+          class="item details"
+          @click="showAppDetailApp"
+        >
           <SvgIcon class="icon" :src="details_svg" alt="详情" />
           <p class="title">详情</p>
         </button>
