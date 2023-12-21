@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watchEffect } from "vue";
+import { computed } from "vue";
 
 const props = defineProps({
   size: {
@@ -12,26 +12,20 @@ const props = defineProps({
   },
   alt: String,
 });
-const svgRaw = ref("");
-watchEffect(async () => {
-  if (!props.src) {
-    return (svgRaw.value = "");
-  }
-  try {
-    svgRaw.value = await (await fetch(props.src)).text();
-  } catch {
-    svgRaw.value = "";
-  }
-});
+const css_url = computed(() => `url(${props.src})`);
 </script>
 <template>
-  <span class="icon" v-html="svgRaw" :data-src="props.src" :title="props.alt"></span>
+  <span class="icon" :title="props.alt"></span>
 </template>
 
 <style scoped lang="scss">
 .icon {
   width: v-bind(size);
   height: v-bind(size);
+  background-image: v-bind(css_url);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
   display: inline-block;
   > :deep(svg) {
     width: 100%;

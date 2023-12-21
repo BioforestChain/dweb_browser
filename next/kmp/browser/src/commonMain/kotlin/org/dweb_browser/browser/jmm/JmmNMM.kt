@@ -212,7 +212,6 @@ class JmmGuiNMM : NativeMicroModule("gui.jmm.browser.dweb", "Js MicroModule Mana
       }
       onDispose {
         renderLock.withLock {
-
           nativeFetch(IpcMethod.DELETE, "file://jmm.browser.dweb/renderer?wid=$wid")
         }
       }
