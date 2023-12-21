@@ -119,20 +119,21 @@ class JmmNMM :
     routes(
       /// 收到wid
       "/renderer" bind IpcMethod.GET by defineEmptyResponse {
-        wid.update { old ->
+        val wid = request.query("wid")
+        widDeferredAtomic.update { old ->
           when {
             old.isCompleted -> CompletableDeferred()
             else -> old
           }.also { new ->
-            new.complete(request.query("wid"))
+            new.complete(wid)
           }
         }
         /// 在IPC关闭的时候，销毁wid
         ipc.onClose {
-          wid.update { old ->
+          widDeferredAtomic.update { old ->
             when {
               /// 如果原本的 renderer 已经完成并且指定的wid对得上号，那么有权销毁并提供一个新的
-              old.isCompleted && old.getCompleted() == request.query("wid") -> {
+              old.isCompleted && old.getCompleted() == wid -> {
                 CompletableDeferred()
               }
               // 否则，保持原本
@@ -144,10 +145,10 @@ class JmmNMM :
       }).protected("gui.jmm.browser.dweb")
   }
 
-  private val wid = atomic(CompletableDeferred<String>())
-  suspend fun getMainWindowId() = wid.value.await()
+  private val widDeferredAtomic = atomic(CompletableDeferred<String>())
+  suspend fun getMainWindowId() = widDeferredAtomic.value.await()
   suspend fun getMainWindow() = getWindow(getMainWindowId())
-  val hasMainWindow get() = wid.value.isCompleted
+  val hasMainWindow get() = widDeferredAtomic.value.isCompleted
 
   private suspend fun openMainWindow() = getWindow(
     nativeFetch("file://gui.jmm.browser.dweb/openMainWindow").text()

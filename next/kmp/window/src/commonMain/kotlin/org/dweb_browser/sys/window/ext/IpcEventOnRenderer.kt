@@ -36,24 +36,23 @@ val NativeMicroModule.hasMainWindow
 fun NativeMicroModule.onRenderer(cb: suspend RendererContext.() -> Unit) = onConnect { (ipc) ->
   ipc.onEvent { args ->
     if (args.event.isRenderer()) {
-      val context = RendererContext.get(args)
-      getMainWindowIdWMDeferred(this@onRenderer).complete(context.wid)
+      val context = RendererContext.get(args, this@onRenderer)
       context.cb()
-    } else if (args.event.isRendererDestroy()) {
-      val context = RendererContext.get(args)
-      mainWindowIdWM.remove(this@onRenderer)?.cancel()
-      if (context.disposeSignal.isInitialized()) {
-        context.disposeSignal.value.emitAndClear()
+      args.ipc.onClose {
+        context.emitDispose()
       }
+    } else if (args.event.isRendererDestroy()) {
+      val context = RendererContext.get(args, this@onRenderer)
+      context.emitDispose()
     }
   }
 }
 
-class RendererContext(val wid: String, val ipc: Ipc) {
+class RendererContext(val wid: String, val ipc: Ipc, internal val mm: NativeMicroModule) {
   companion object {
     private val windowRendererContexts = SafeHashMap<String, RendererContext>()
-    fun get(args: IpcEventMessageArgs) = getWid(args).let { wid ->
-      windowRendererContexts.getOrPut(wid) { RendererContext(wid, args.ipc) }
+    fun get(args: IpcEventMessageArgs, mm: NativeMicroModule) = getWid(args).let { wid ->
+      windowRendererContexts.getOrPut(wid) { RendererContext(wid, args.ipc, mm) }
     }
 
     private inline fun getWid(args: IpcEventMessageArgs) = args.event.text
@@ -61,4 +60,15 @@ class RendererContext(val wid: String, val ipc: Ipc) {
 
   internal val disposeSignal = lazy { SimpleSignal() }
   val onDispose by lazy { disposeSignal.value.toListener() }
+
+  init {
+    getMainWindowIdWMDeferred(mm).complete(wid)
+  }
+
+  internal suspend fun emitDispose() {
+    mainWindowIdWM.remove(mm)?.cancel()
+    if (disposeSignal.isInitialized()) {
+      disposeSignal.value.emitAndClear()
+    }
+  }
 }

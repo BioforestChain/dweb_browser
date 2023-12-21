@@ -42,7 +42,12 @@ class JmmInstallerController(
   @OptIn(ExperimentalCoroutinesApi::class)
   suspend fun getView() = getViewLock.withLock {
     if (viewDeferred.isCompleted) {
-      return viewDeferred.getCompleted()
+      val bottomSheetsModal = viewDeferred.getCompleted()
+      /// TODO 这里 onDestroy 回调可能不触发，因此需要手动进行一次判断
+      if (bottomSheetsModal.wid == jmmNMM.getMainWindowId()) {
+        return@withLock bottomSheetsModal
+      }
+      viewDeferred = CompletableDeferred()
     }
     /// 创建 BottomSheets 视图，提供渲染适配
     jmmNMM.createBottomSheets() { modifier ->
