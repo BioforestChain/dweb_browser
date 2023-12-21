@@ -11,7 +11,7 @@ interface IosInterface {
   fun gobackIfCanDo(): Boolean
   fun browserActive(on: Boolean)
   fun browserClear()
-  fun openBrowserWebView(key: String)
+  fun openBrowserWebView(urlString: String)
 }
 
 class BrowserIosIMP() {
@@ -57,8 +57,8 @@ class BrowserIosIMP() {
     imp?.doSearch(key)
   }
 
-  fun openBrowserWebView(key: String) {
-    imp?.openBrowserWebView(key)
+  fun openBrowserWebView(urlString: String) {
+    imp?.openBrowserWebView(urlString)
   }
 
   fun gobackIfCanDo() = imp?.let { it.gobackIfCanDo() } ?: false

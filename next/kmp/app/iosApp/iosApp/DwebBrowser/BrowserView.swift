@@ -89,7 +89,7 @@ struct BrowserView: View {
                 searchEnter.toggle()
             }
             .onChange(of: store.openUrlString) { _, newValue in
-                openWebViewIfNeed(key: newValue)
+                openWebViewIfNeed(urlString: newValue)
             }
         }
         .clipped()
@@ -104,14 +104,14 @@ struct BrowserView: View {
         addressBar.searchInputText = key
     }
     
-    private func openWebViewIfNeed(key: String? = BrowserViewStateStore.shared.openUrlString) {
-        guard let key = key, !key.isEmpty else {
+    private func openWebViewIfNeed(urlString: String? = BrowserViewStateStore.shared.openUrlString) {
+        guard let urlString = urlString, !urlString.isEmpty else {
             return
         }
         BrowserViewStateStore.shared.searchKey = nil
-        addressBar.searchInputText = key
+        addressBar.searchInputText = urlString
         addressBar.isFocused = false
-        let url = URL.createUrl(key)
+        let url = URL.createUrl(urlString)
         openingLink.clickedLink = url
     }
 
