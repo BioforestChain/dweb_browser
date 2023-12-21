@@ -46,17 +46,19 @@ class BrowserI18nResource {
     val install_button_downloading =
       SimpleI18nResource(Language.ZH to "下载中", Language.EN to "Downloading")
     val install_button_paused = SimpleI18nResource(Language.ZH to "暂停", Language.EN to "Pause")
-    val install_button_installing = SimpleI18nResource(Language.ZH to "安装中...")
+    val install_button_installing = SimpleI18nResource(Language.ZH to "安装中...", Language.EN to "Installing")
     val install_button_open = SimpleI18nResource(Language.ZH to "打开", Language.EN to "Open")
-    val install_button_retry = SimpleI18nResource(Language.ZH to "重载失效资源")
-    val install_button_incompatible = SimpleI18nResource(Language.ZH to "该软件与您的设备不兼容")
+    val install_button_retry = SimpleI18nResource(Language.ZH to "重载失效资源", Language.EN to "Retry")
+    val install_button_retry2 = SimpleI18nResource(Language.ZH to "重试", Language.EN to "Retry")
+    val install_button_incompatible = SimpleI18nResource(
+      Language.ZH to "该软件与您的设备不兼容",
+      Language.EN to "The software is not compatible with your device"
+    )
     val no_download_links = SimpleI18nResource(
-      Language.EN to "There are no download links yet",
-      Language.ZH to "暂无下载数据"
+        Language.ZH to "暂无下载数据", Language.EN to "There are no download links yet",
     )
     val no_apps_data = SimpleI18nResource(
-      Language.EN to "There are no Apps",
-      Language.ZH to "没有应用数据"
+      Language.ZH to "没有应用数据", Language.EN to "There are no Apps",
     )
     val unzip_button_install = SimpleI18nResource(Language.ZH to "安装", Language.EN to "Install")
     val unzip_button_cancel = SimpleI18nResource(Language.ZH to "取消", Language.EN to "Cancel")

@@ -1,7 +1,8 @@
 package org.dweb_browser.browser.jmm.ui
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,10 +16,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -34,8 +37,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -161,17 +167,79 @@ fun JmmViewItem(
       }
     },
     trailingContent = {
-      Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
-        Text(
-          text = jmmHistoryMetadata.state.state.showText(),
-          color = MaterialTheme.colorScheme.background,
-          fontWeight = FontWeight.W900,
-          modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.primary)
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clickable { buttonClick() }
-        )
+      Box(
+        modifier = Modifier.size(64.dp).clickableWithNoEffect { buttonClick() },
+        contentAlignment = Alignment.Center
+      ) {
+        val progress = with(jmmHistoryMetadata.state) {
+          if (total > 0) current * 1.0f / total else 0f
+        }
+        val primary = MaterialTheme.colorScheme.primary
+        when (jmmHistoryMetadata.state.state) {
+          JmmStatus.Downloading, JmmStatus.Completed -> {
+            Box(
+              modifier = Modifier.size(48.dp),
+              contentAlignment = Alignment.Center
+            ) {
+              // 画圆
+              Canvas(modifier = Modifier.fillMaxSize()) {
+                drawArc(
+                  color = primary,
+                  startAngle = -90f,
+                  sweepAngle = progress * 360f,
+                  useCenter = false,
+                  style = Stroke(width = 8f)
+                )
+              }
+              // 画图标
+              Image(
+                imageVector = Icons.Default.Download,
+                contentDescription = "Download",
+                modifier = Modifier.clip(CircleShape).size(42.dp),
+                contentScale = ContentScale.FillBounds
+              )
+            }
+          }
+
+          JmmStatus.Paused -> {
+            Box(
+              modifier = Modifier
+                .size(width = 64.dp, height = 30.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.Cyan)
+            ) {
+              Box(
+                modifier = Modifier
+                  .size(width = (64 * progress).dp, height = 30.dp)
+                  .background(MaterialTheme.colorScheme.primary)
+              )
+
+              Text(
+                text = jmmHistoryMetadata.state.state.showText(),
+                color = MaterialTheme.colorScheme.background,
+                fontWeight = FontWeight.W900,
+                modifier = Modifier.align(Alignment.Center),
+              )
+            }
+          }
+
+          else -> {
+            Box(
+              modifier = Modifier
+                .size(width = 64.dp, height = 30.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.primary),
+              contentAlignment = Alignment.Center
+            ) {
+              Text(
+                text = jmmHistoryMetadata.state.state.showText(),
+                color = MaterialTheme.colorScheme.background,
+                fontWeight = FontWeight.W900,
+                textAlign = TextAlign.Center,
+              )
+            }
+          }
+        }
       }
     },
     modifier = Modifier.clickableWithNoEffect {
@@ -202,9 +270,9 @@ private fun JmmStatus.showText() =
   when (this) {
     JmmStatus.Downloading -> BrowserI18nResource.install_button_downloading()
     JmmStatus.Paused -> BrowserI18nResource.install_button_paused()
-    JmmStatus.Failed -> BrowserI18nResource.install_button_retry()
+    JmmStatus.Failed -> BrowserI18nResource.install_button_retry2()
     JmmStatus.Init, JmmStatus.Canceled -> BrowserI18nResource.install_button_install()
-    JmmStatus.Completed -> BrowserI18nResource.install_button_installing()
+    JmmStatus.Completed -> BrowserI18nResource.install_button_downloading() // 解压也算在下载内
     JmmStatus.INSTALLED -> BrowserI18nResource.install_button_open()
     JmmStatus.NewVersion -> BrowserI18nResource.install_button_update()
   }
