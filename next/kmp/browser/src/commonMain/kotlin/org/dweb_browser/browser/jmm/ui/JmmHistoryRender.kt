@@ -178,7 +178,7 @@ fun JmmViewItem(
         when (jmmHistoryMetadata.state.state) {
           JmmStatus.Downloading, JmmStatus.Completed -> {
             Box(
-              modifier = Modifier.size(48.dp),
+              modifier = Modifier.size(40.dp),
               contentAlignment = Alignment.Center
             ) {
               // 画圆
@@ -195,7 +195,7 @@ fun JmmViewItem(
               Image(
                 imageVector = Icons.Default.Download,
                 contentDescription = "Download",
-                modifier = Modifier.clip(CircleShape).size(42.dp),
+                modifier = Modifier.clip(CircleShape).size(36.dp),
                 contentScale = ContentScale.FillBounds
               )
             }
@@ -206,7 +206,7 @@ fun JmmViewItem(
               modifier = Modifier
                 .size(width = 64.dp, height = 30.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color.Cyan)
+                .background(MaterialTheme.colorScheme.outlineVariant)
             ) {
               Box(
                 modifier = Modifier
