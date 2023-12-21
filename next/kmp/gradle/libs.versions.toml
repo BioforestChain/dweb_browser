@@ -3,8 +3,8 @@ compileSdkVersion = "34" # Int
 buildToolsVersion = "29.0.2"
 minSdkVersion = "28" # Int
 targetSdkVersion = "34" # Int
-versionCode = "58" # Int
-versionName = "2.231215.0"
+versionCode = "59" # Int
+versionName = "2.231218.0"
 kotlinCompilerExtensionVersion = "1.5.4"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
@@ -50,7 +50,7 @@ jetbrains-compose-version = "1.5.11"
 # 测试
 test-junit-bom = "5.9.2"
 animation-core-android = "1.5.4"
-material3Android = "1.2.0-beta01"
+material3Android = "1.2.0-alpha12"
 
 kotlinxSerializationVersion = "1.6.2"
 
