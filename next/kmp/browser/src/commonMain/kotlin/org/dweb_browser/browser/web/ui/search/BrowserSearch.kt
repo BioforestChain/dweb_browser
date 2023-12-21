@@ -33,6 +33,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -53,6 +55,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.toRequestUrl
 import org.dweb_browser.browser.web.debugBrowser
@@ -76,7 +79,6 @@ internal fun BoxScope.SearchView(
   onClose: () -> Unit,
   onSearch: (String) -> Unit,
 ) {
-  debugBrowser("lin.huang", "BoxScope.SearchView enter")
   val focusManager = LocalFocusManager.current
   val inputText = remember(text) { mutableStateOf(parseInputText(text, false)) }
   val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
@@ -133,16 +135,9 @@ internal fun BoxScope.BrowserTextField(
   onSearch: (String) -> Unit,
   onValueChanged: (String) -> Unit
 ) {
-  val focusRequester = remember { FocusRequester() }
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
   var inputText by remember { mutableStateOf(text.value) }
-  //val localShowIme = LocalShowIme.current
-
-  LaunchedEffect(focusRequester) {
-    delay(100)
-    focusRequester.requestFocus()
-  }
 
   CustomTextField(
     value = inputText,
@@ -161,7 +156,6 @@ internal fun BoxScope.BrowserTextField(
       .border(width = 1.dp, color = MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
       .clip(RoundedCornerShape(8.dp))
       .background(MaterialTheme.colorScheme.background)
-      .focusRequester(focusRequester)
       .onKeyEvent {
         if (it.key == Key.Enter) {
           inputText.toRequestUrl()?.let { url ->
@@ -223,10 +217,19 @@ fun CustomTextField(
   keyboardActions: KeyboardActions = KeyboardActions.Default,
   spacerWidth: Dp = 10.dp,
 ) {
+  val focusRequester = FocusRequester()
+  val focusManager = LocalFocusManager.current
+  val scope = rememberCoroutineScope()
+
+  LaunchedEffect(focusRequester) {
+    delay(100)
+    focusRequester.requestFocus()
+  }
+
   BasicTextField(
     value = value,
     onValueChange = { onValueChange(it) },
-    modifier = modifier,
+    modifier = modifier.focusRequester(focusRequester),
     maxLines = 1,
     singleLine = true,
     textStyle = TextStyle.Default.copy(
@@ -243,7 +246,15 @@ fun CustomTextField(
           leadingIcon()
           Spacer(modifier = Modifier.width(spacerWidth))
         }
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+        Box(
+          modifier = Modifier.weight(1f).clickableWithNoEffect { // 键盘手动隐藏后，再次点击不显示问题
+            scope.launch {
+              focusManager.clearFocus()
+              focusRequester.requestFocus()
+            }
+          },
+          contentAlignment = Alignment.CenterStart
+        ) {
           innerTextField()
           if (label != null && value.isEmpty()) label() // 如果内容是空的才显示
         }

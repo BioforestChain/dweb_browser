@@ -76,7 +76,6 @@ import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.model.BrowserWebView
 import org.dweb_browser.browser.web.model.ConstUrl
 import org.dweb_browser.browser.web.ui.bottomsheet.LocalModalBottomSheet
