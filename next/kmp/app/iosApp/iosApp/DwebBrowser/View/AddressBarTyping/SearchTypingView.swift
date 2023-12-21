@@ -43,6 +43,7 @@ struct SearchTypingView: View {
             addressBar.inputText = ""
             addressBar.searchInputText = ""
             addressBar.isFocused = false
+            enterType = .none
         }
         .animation(.easeInOut, value: addressBar.inputText == "")
     }

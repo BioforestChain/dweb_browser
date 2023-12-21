@@ -53,3 +53,10 @@ var safeAreaTopHeight: CGFloat {
 var safeAreaBottomHeight: CGFloat {
     return curSafeAreaInsets.bottom
 }
+
+enum EnterType {
+    case search
+    case none
+}
+
+var enterType: EnterType = .none

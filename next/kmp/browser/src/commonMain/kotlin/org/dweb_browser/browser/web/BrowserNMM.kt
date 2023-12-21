@@ -69,7 +69,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     routes(
       "search" bindDwebDeeplink defineEmptyResponse {
         debugBrowser("do search", request.href)
-        browserController.openBrowserView(search = request.query("q"), type = BrowserViewModel.EntranceType.search)
+        browserController.openBrowserView(search = request.query("q"))
         openMainWindow()
       },
       "openinbrowser" bindDwebDeeplink openBrowser,

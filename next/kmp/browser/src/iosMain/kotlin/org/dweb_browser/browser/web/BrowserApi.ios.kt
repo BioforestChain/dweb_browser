@@ -48,17 +48,8 @@ actual fun CommonBrowserView(
   }
 
   if (viewModel.dwebLinkSearch.value.isNotEmpty()) {
-
-    val urlString = viewModel.dwebLinkSearch.value.toString()
-    if (urlString.isUrlOrHost()) {
-      browserIosImp.openBrowserWebView(viewModel.dwebLinkSearch.value.toString())
-    } else {
-      val entranceType = viewModel.entranceType
-      if (entranceType == BrowserViewModel.EntranceType.search) {
-        browserIosImp.doSearch(viewModel.dwebLinkSearch.value.toString())
-        viewModel.dwebLinkSearch.value = ""
-      }
-    }
+    browserIosImp.doSearch(viewModel.dwebLinkSearch.value.toString())
+    viewModel.dwebLinkSearch.value = ""
   }
 
   val win = LocalWindowController.current

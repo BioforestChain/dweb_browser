@@ -54,9 +54,6 @@ extension DwebBrowserIosIMP: BrowserIosInterface {
         BrowserViewStateStore.shared.doSearch(key)
     }
     
-    func openBrowserWebView(urlString: String) {
-        BrowserViewStateStore.shared.openBrowserWebView(urlString: urlString)
-    }
     
     func gobackIfCanDo() -> Bool {
         return BrowserViewStateStore.shared.doBackIfCan()

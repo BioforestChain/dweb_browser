@@ -90,12 +90,6 @@ class BrowserViewModel(
     mutableStateOf(browserController.isNoTrace)
   }
 
-  enum class EntranceType {
-    search, browser
-  }
-
-  var entranceType: EntranceType? = null
-
   fun getBookLinks() = browserController.bookLinks
   fun getHistoryLinks() = browserController.historyLinks
   val browserOnVisible = browserController.onWindowVisiable
@@ -203,11 +197,10 @@ class BrowserViewModel(
     BrowserWebView(viewItem)
   }
 
-  internal suspend fun openBrowserView(search: String? = null, url: String? = null, type: EntranceType? = null) {
+  internal suspend fun openBrowserView(search: String? = null, url: String? = null) {
     // 先判断search是否不为空，然后在判断search是否是地址，
     debugBrowser("openBrowserView", "search=$search, url=$url")
     dwebLinkSearch.value = search ?: url ?: ConstUrl.BLANK.url
-    entranceType = type
   }
 
   /**

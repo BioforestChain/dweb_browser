@@ -21,7 +21,6 @@ class BrowserViewStateStore: ObservableObject {
     @Published var dragScale = WndDragScale()
     @Published var wndArea = BrowserArea()
     @Published var searchKey: String? = nil
-    @Published var openUrlString: String? = nil
     @Published var colorScheme = ColorScheme.light
     
     func clear() {
@@ -33,7 +32,6 @@ class BrowserViewStateStore: ObservableObject {
         dragScale = WndDragScale()
         wndArea = BrowserArea()
         searchKey = nil
-        openUrlString = nil
     }
 }
 
@@ -74,10 +72,4 @@ extension BrowserViewStateStore {
         searchKey = key
     }
     
-    func openBrowserWebView(urlString: String?) {
-        guard let urlString = urlString, !urlString.isEmpty, openUrlString != urlString else {
-            return
-        }
-        openUrlString = urlString
-    }
 }
