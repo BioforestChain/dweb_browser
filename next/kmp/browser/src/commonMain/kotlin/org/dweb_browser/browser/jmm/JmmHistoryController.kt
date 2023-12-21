@@ -65,12 +65,8 @@ class JmmHistoryController(
     )
 
   suspend fun buttonClick(historyMetadata: JmmHistoryMetadata) {
-    when (historyMetadata.state.state) {
-      JmmStatus.INSTALLED -> {
-
-      } else -> {
-        this.openInstallerView(historyMetadata)
-      }
+    if (historyMetadata.state.state != JmmStatus.INSTALLED) {
+      this.openInstallerView(historyMetadata)
     }
     when (historyMetadata.state.state) {
       JmmStatus.INSTALLED -> {

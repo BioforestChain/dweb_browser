@@ -7,7 +7,9 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import org.dweb_browser.helper.android.getCoilImageLoader
+import org.dweb_browser.browser.R
 
 @Composable
 actual fun AsyncImage(
@@ -30,6 +32,8 @@ actual fun AsyncImage(
     contentScale = contentScale,
     alpha = alpha,
     colorFilter = colorFilter,
-    filterQuality = filterQuality
+    filterQuality = filterQuality,
+    placeholder = painterResource(R.drawable.ic_launcher_foreground),
+    error = painterResource(R.drawable.ic_launcher_foreground),
   )
 }
