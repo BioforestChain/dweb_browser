@@ -6,9 +6,12 @@ import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -68,6 +71,7 @@ class JmmNMM :
     }
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     bootstrapContext.dns.install(JmmGuiNMM())
     val store = JmmStore(this)
@@ -117,17 +121,27 @@ class JmmNMM :
     routes(
       /// 收到wid
       "/renderer" bind IpcMethod.GET by defineEmptyResponse {
-        wid.update {
-          it.complete(request.query("wid"))
-          it
+        wid.update { old ->
+          when {
+            old.isCompleted -> CompletableDeferred()
+            else -> old
+          }.also { new ->
+            new.complete(request.query("wid"))
+          }
         }
         jmmController.openHistoryView()
       },
       /// 销毁wid
       "/renderer" bind IpcMethod.DELETE by defineEmptyResponse {
-        wid.update {
-          it.cancel()
-          CompletableDeferred()
+        wid.update { old ->
+          when {
+            /// 如果原本的 renderer 已经完成并且指定的wid对得上号，那么有权销毁并提供一个新的
+            old.isCompleted && old.getCompleted() == request.query("wid") -> {
+              CompletableDeferred()
+            }
+            // 否则，保持原本
+            else -> old
+          }
         }
       }).protected("gui.jmm.browser.dweb")
   }
@@ -191,10 +205,16 @@ class JmmGuiNMM : NativeMicroModule("gui.jmm.browser.dweb", "Js MicroModule Mana
         getOrOpenMainWindowId()
       },
     ).protected("jmm.browser.dweb");
+    val renderLock = Mutex()
     onRenderer {
-      nativeFetch(IpcMethod.GET, "file://jmm.browser.dweb/renderer?wid=$wid")
+      renderLock.withLock {
+        nativeFetch(IpcMethod.GET, "file://jmm.browser.dweb/renderer?wid=$wid")
+      }
       onDispose {
-        nativeFetch(IpcMethod.DELETE, "file://jmm.browser.dweb/renderer?wid=$wid")
+        renderLock.withLock {
+
+          nativeFetch(IpcMethod.DELETE, "file://jmm.browser.dweb/renderer?wid=$wid")
+        }
       }
     }
   }
