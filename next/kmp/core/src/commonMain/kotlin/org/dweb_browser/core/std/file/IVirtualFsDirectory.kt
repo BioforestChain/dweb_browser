@@ -26,9 +26,9 @@ interface IVirtualFsDirectory {
 /**
  * 一种通用的虚拟文件目录，需要提供真实的物理设备的
  */
-fun commonVirtualFsDirectoryFactory(firstSegment: String, nativeFsPath: Path) =
+fun commonVirtualFsDirectoryFactory(firstSegmentFlags: String, nativeFsPath: Path) =
   object : IVirtualFsDirectory {
-    override fun isMatch(firstSegment: String) = firstSegment == firstSegment
+    override fun isMatch(firstSegment: String) = firstSegment == firstSegmentFlags
     override fun getFsBasePath(remote: IMicroModuleManifest) = nativeFsPath.resolve(remote.mmid)
   }
 
