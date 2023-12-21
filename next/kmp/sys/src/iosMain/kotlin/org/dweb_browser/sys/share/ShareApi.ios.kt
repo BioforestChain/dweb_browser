@@ -9,15 +9,16 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.helper.toNSString
 import org.dweb_browser.helper.withMainContext
-import org.dweb_browser.sys.KmpNativeBridgeEventSender
+import org.dweb_browser.sys.scan.toNSData
+import platform.Foundation.NSData
 import platform.Foundation.NSURL
 import platform.UIKit.UIActivityViewController
 
-actual suspend fun share(shareOptions: ShareOptions, multiPartData: MultiPartData?): String {
+actual suspend fun share(shareOptions: ShareOptions, multiPartData: MultiPartData?, shareNMM: NativeMicroModule?): String {
 
   return withMainContext {
     val files = multiPartData?.let {
-      val listFile = mutableListOf<ByteArray>()
+      val listFile = mutableListOf<NSData>()
       multiPartData.forEachPart { partData ->
         val r = when (partData) {
           is PartData.FileItem -> {
@@ -30,7 +31,7 @@ actual suspend fun share(shareOptions: ShareOptions, multiPartData: MultiPartDat
         }
 
         r?.let {
-          listFile.add(r)
+          listFile.add(r.toNSData())
         }
 
         partData.dispose()
@@ -38,9 +39,31 @@ actual suspend fun share(shareOptions: ShareOptions, multiPartData: MultiPartDat
       listFile
     }
 
-    KmpNativeBridgeEventSender.sendShare(
-      shareOptions.title, shareOptions.text, shareOptions.url, files
-    )
+    val deferred = CompletableDeferred("")
+    val activityItems = mutableListOf<Any>()
+
+    shareOptions.title?.also { activityItems.add(it.toNSString()) }
+    shareOptions.text?.also { activityItems.add(it.toNSString()) }
+    shareOptions.url?.also { activityItems.add(it.toNSString()) }
+    files?.also { activityItems.add(it) }
+
+    val controller = UIActivityViewController(activityItems = activityItems, applicationActivities = null)
+
+    if (shareNMM != null) {
+      shareNMM.getUIApplication().keyWindow?.rootViewController?.presentViewController(
+        controller,
+        true,
+        null
+      )
+
+      controller.completionWithItemsHandler = { _, completed, _, _ ->
+        deferred.complete(if (completed) "OK" else "Cancel")
+      }
+    } else {
+      deferred.complete("")
+    }
+
+    deferred.await()
   }
 }
 

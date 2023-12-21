@@ -12,7 +12,6 @@
 		3D763C262B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; };
 		3D763C272B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4809C35C2B29B33600BFAA68 /* BrowserViewStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4809C35B2B29B33600BFAA68 /* BrowserViewStateStore.swift */; };
-		4840D2C42AF10E6800102701 /* KmpBridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */; };
 		48491C702B21B95B00128B72 /* DwebBrowserIosIMP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48491C6F2B21B95B00128B72 /* DwebBrowserIosIMP.swift */; };
 		48491C722B2302B800128B72 /* UIImage+Resize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48491C712B2302B800128B72 /* UIImage+Resize.swift */; };
 		4850503C2B14669900080723 /* TouchThroughView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4850503B2B14669900080723 /* TouchThroughView.swift */; };
@@ -21,13 +20,10 @@
 		4876C7182AFDD94E00CDF8BF /* DwebAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */; };
 		489455EF2B269594000A6254 /* DwebBrowserHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 489455EE2B269594000A6254 /* DwebBrowserHistoryStore.swift */; };
 		48C46BDD2AF4CFA0005CBA38 /* UIApplication+Window.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BDC2AF4CFA0005CBA38 /* UIApplication+Window.swift */; };
-		48C46BDF2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */; };
-		48C46BE12AF4D515005CBA38 /* KmpEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46BE02AF4D515005CBA38 /* KmpEvent.swift */; };
 		48C46C672AFA2A58005CBA38 /* Loger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C46C662AFA2A58005CBA38 /* Loger.swift */; };
 		48D0B0A82B33DB89007F4817 /* KotlinComposeMetalRedrawerFix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D0B0A72B33DB89007F4817 /* KotlinComposeMetalRedrawerFix.swift */; };
 		48F54EDB2B17233E003A64AC /* DwebDeskVCStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48F54EDA2B17233E003A64AC /* DwebDeskVCStore.swift */; };
 		48F54EDD2B1723C3003A64AC /* DwebDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48F54EDC2B1723C3003A64AC /* DwebDeepLink.swift */; };
-		7555FF83242A565900829871 /* DWebOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* DWebOS.swift */; };
 		F034443D2AE26F64004F732E /* BrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034443B2AE26F64004F732E /* BrowserView.swift */; };
 		F03444872AE26FAB004F732E /* View+snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034443F2AE26FA9004F732E /* View+snapshot.swift */; };
 		F03444882AE26FAB004F732E /* PagingScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444402AE26FA9004F732E /* PagingScroll.swift */; };
@@ -114,7 +110,6 @@
 		1A0D7C84CC71A12D5FCBBF78 /* iOSApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = DwebPlatformIosKit.xcframework; path = ../../helperPlatformIos/src/nativeInterop/cinterop/xcframeworks/DwebPlatformIosKit.xcframework; sourceTree = "<group>"; };
 		4809C35B2B29B33600BFAA68 /* BrowserViewStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserViewStateStore.swift; sourceTree = "<group>"; };
-		4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KmpBridgeManager.swift; sourceTree = "<group>"; };
 		48491C6F2B21B95B00128B72 /* DwebBrowserIosIMP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserIosIMP.swift; sourceTree = "<group>"; };
 		48491C712B2302B800128B72 /* UIImage+Resize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Resize.swift"; sourceTree = "<group>"; };
 		4850503B2B14669900080723 /* TouchThroughView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchThroughView.swift; sourceTree = "<group>"; };
@@ -123,14 +118,11 @@
 		4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebAppDelegate.swift; sourceTree = "<group>"; };
 		489455EE2B269594000A6254 /* DwebBrowserHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserHistoryStore.swift; sourceTree = "<group>"; };
 		48C46BDC2AF4CFA0005CBA38 /* UIApplication+Window.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+Window.swift"; sourceTree = "<group>"; };
-		48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpEventShareResposeAction.swift; sourceTree = "<group>"; };
-		48C46BE02AF4D515005CBA38 /* KmpEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpEvent.swift; sourceTree = "<group>"; };
 		48C46C662AFA2A58005CBA38 /* Loger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loger.swift; sourceTree = "<group>"; };
 		48D0B0A72B33DB89007F4817 /* KotlinComposeMetalRedrawerFix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KotlinComposeMetalRedrawerFix.swift; sourceTree = "<group>"; };
 		48F54EDA2B17233E003A64AC /* DwebDeskVCStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskVCStore.swift; sourceTree = "<group>"; };
 		48F54EDC2B1723C3003A64AC /* DwebDeepLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeepLink.swift; sourceTree = "<group>"; };
 		7555FF7B242A565900829871 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		7555FF82242A565900829871 /* DWebOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWebOS.swift; sourceTree = "<group>"; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F034443B2AE26F64004F732E /* BrowserView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowserView.swift; sourceTree = "<group>"; };
 		F034443F2AE26FA9004F732E /* View+snapshot.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "View+snapshot.swift"; sourceTree = "<group>"; };
@@ -214,9 +206,6 @@
 		4840D2C22AF10E6800102701 /* kmp */ = {
 			isa = PBXGroup;
 			children = (
-				4840D2C32AF10E6800102701 /* KmpBridgeManager.swift */,
-				48C46BE02AF4D515005CBA38 /* KmpEvent.swift */,
-				48C46BDE2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift */,
 				48D0B0A62B33DB50007F4817 /* Fix */,
 				485AC7E62B07153B0073EA72 /* NMMs */,
 			);
@@ -273,7 +262,6 @@
 			children = (
 				1A0D7C84CC71A12D5FCBBF78 /* iOSApp.swift */,
 				4876C7172AFDD94E00CDF8BF /* DwebAppDelegate.swift */,
-				7555FF82242A565900829871 /* DWebOS.swift */,
 				F03444392AE26F17004F732E /* DwebBrowser */,
 				4850503F2B146B5700080723 /* Preview Content */,
 				7555FF8C242A565B00829871 /* Info.plist */,
@@ -610,7 +598,6 @@
 				48491C702B21B95B00128B72 /* DwebBrowserIosIMP.swift in Sources */,
 				F03444A02AE26FAB004F732E /* CodeScannerView.swift in Sources */,
 				F03444B62AE26FAB004F732E /* HomePageView.swift in Sources */,
-				48C46BE12AF4D515005CBA38 /* KmpEvent.swift in Sources */,
 				F034449E2AE26FAB004F732E /* ToolbarView.swift in Sources */,
 				F03444C72AE2704A004F732E /* BridgeManager.swift in Sources */,
 				F03444BD2AE26FAC004F732E /* ResizableSheetModifier.swift in Sources */,
@@ -635,14 +622,11 @@
 				4809C35C2B29B33600BFAA68 /* BrowserViewStateStore.swift in Sources */,
 				F03444D12AE2713D004F732E /* DownloadImageViewModel.swift in Sources */,
 				F03444AC2AE26FAB004F732E /* HistoryViewModel.swift in Sources */,
-				4840D2C42AF10E6800102701 /* KmpBridgeManager.swift in Sources */,
 				F03444D42AE2713D004F732E /* DownloadAppView.swift in Sources */,
-				7555FF83242A565900829871 /* DWebOS.swift in Sources */,
 				48F54EDD2B1723C3003A64AC /* DwebDeepLink.swift in Sources */,
 				F03444A92AE26FAB004F732E /* BookmarkView.swift in Sources */,
 				F03444912AE26FAB004F732E /* AnimationProgress.swift in Sources */,
 				F034449B2AE26FAB004F732E /* TabPageView.swift in Sources */,
-				48C46BDF2AF4D4E0005CBA38 /* KmpEventShareResposeAction.swift in Sources */,
 				4850503E2B1466C700080723 /* DwebDeskRootView.swift in Sources */,
 				F034449C2AE26FAB004F732E /* TabGridView.swift in Sources */,
 				F03444982AE26FAB004F732E /* TabsContainerView.swift in Sources */,

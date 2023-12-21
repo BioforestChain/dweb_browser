@@ -32,15 +32,9 @@ struct iOSApp: App {
 
     var content: some View {
         ZStack(alignment: .center, content: {
-            switch renderType {
-            case .webOS:
-                DWebOS()
-            case .deskOS:
-                DwebFrameworkContentView(vcs: $deskVCStore.vcs)
-                    .ignoresSafeArea(.all, edges: .all)
-                    .persistentSystemOverlays(DwebDeskVCStore.shared.navgationBarVisible)
-            
-            }
+            DwebFrameworkContentView(vcs: $deskVCStore.vcs)
+                .ignoresSafeArea(.all, edges: .all)
+                .persistentSystemOverlays(DwebDeskVCStore.shared.navgationBarVisible)
         })
         .alert(isPresented: $showAlert) {
             Alert(title: Text("更新提示"), message: Text("有新版本可用，请您前往App Store更新。"), primaryButton: .cancel(), secondaryButton: .default(Text("前往更新"), action: {

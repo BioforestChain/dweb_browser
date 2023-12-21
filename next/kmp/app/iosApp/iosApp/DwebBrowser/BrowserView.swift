@@ -62,16 +62,6 @@ struct BrowserView: View {
                 }
             }
             .environment(\.colorScheme, store.colorScheme)
-            .onReceive(KmpBridgeManager.shared.eventPublisher.debounce(for: 0.3, scheduler: DispatchQueue.main).filter { $0.name == KmpEvent.colorScheme }) { e in
-                guard let scheme = e.inputDatas?["colorScheme"] as? String else {
-                    return
-                }
-                if scheme == "dark" {
-                    store.colorScheme = .dark
-                } else {
-                    store.colorScheme = .light
-                }
-            }
             .task {
                 if !searchEnter {
                     doSearchIfNeed()

@@ -76,7 +76,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
         val result = when {
           contentType.match(ContentType.MultiPart.FormData) ->
             try {
-              share(shareOptions, request.receiveMultipart())
+              share(shareOptions, request.receiveMultipart(), this@ShareNMM)
             } catch (e: Exception) {
               debugShare("/share", "receiveMultipart error -> ${e.message}")
               share(shareOptions, null)
@@ -116,7 +116,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
     ).cors()
   }
 
-  suspend fun multipartFileDataWriteToTempFile(multiPartFile: MultiPartFile, mmid: MMID): String {
+  private suspend fun multipartFileDataWriteToTempFile(multiPartFile: MultiPartFile, mmid: MMID): String {
     val data = when (multiPartFile.encode) {
       ShareNMM.MultiPartFileEncode.UTF8 -> multiPartFile.data.toUtf8ByteArray()
       ShareNMM.MultiPartFileEncode.BASE64 -> multiPartFile.data.toBase64ByteArray()
