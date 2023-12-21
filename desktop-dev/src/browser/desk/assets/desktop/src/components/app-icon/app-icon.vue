@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { asyncComputed } from "@vueuse/core";
 import { computed } from "vue";
 import squircle_svg_url from "../icon-squircle-box/squircle.svg";
 import { $AppIconInfo } from "./types.ts";
@@ -27,15 +26,7 @@ const props = defineProps({
 });
 
 const mono_css = computed(() => props.icon.monoimage ?? props.icon.monocolor ?? "none");
-const icon_css = asyncComputed(async () => {
-  const src = props.icon.src;
-  if (src.includes("readFile") && src.endsWith(".svg")) {
-    const svgRaw = await (await fetch(src)).text();
-    const blob = btoa(svgRaw);
-    return `url(data:image/svg+xml;base64,${blob})`;
-  }
-  return src ? `url(${JSON.stringify(src)})` : "none";
-});
+const icon_css = computed(() => `url(${props.icon.src})`);
 const squircle_css = `url(${squircle_svg_url})`;
 const bg_image = computed(() => {
   if (props.bgImage) {
