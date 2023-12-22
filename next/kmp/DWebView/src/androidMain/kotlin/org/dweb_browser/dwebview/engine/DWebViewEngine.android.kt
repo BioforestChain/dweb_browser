@@ -236,6 +236,7 @@ class DWebViewEngine internal constructor(
   }
 
   val onCloseWindow = dWebChromeClient.closeSignal.toListener()
+  internal val loadedUrlCache = LoadedUrlCache()
 
   override fun setWebChromeClient(client: WebChromeClient?) {
     if (client == null) {
@@ -274,33 +275,22 @@ class DWebViewEngine internal constructor(
     }
   }
 
-  private var preLoadedUrlArgs: String? = null
-
   /**
    * 避免 com.google.accompanist.web 在切换 Compose 上下文的时候重复加载同样的URL
    */
   override fun loadUrl(url: String) {
     val safeUrl = resolveUrl(url)
-    val curLoadUrlArgs = "$safeUrl\n"
-    if (curLoadUrlArgs == preLoadedUrlArgs) {
-      return
+    loadedUrlCache.checkLoadedUrl(safeUrl) {
+      super.loadUrl(url)
+      true
     }
-    preLoadedUrlArgs = curLoadUrlArgs
-    super.loadUrl(url)
   }
 
   override fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
     val safeUrl = resolveUrl(url)
-    val curLoadUrlArgs = "$safeUrl\n" + additionalHttpHeaders.toList()
-      .joinToString("\n") { it.first + ":" + it.second }
-    if (curLoadUrlArgs == preLoadedUrlArgs) {
-      return
-    }
-    preLoadedUrlArgs = curLoadUrlArgs
-    if (additionalHttpHeaders.isEmpty()) {
-      loadUrl(safeUrl)
-    } else {
+    loadedUrlCache.checkLoadedUrl(safeUrl, additionalHttpHeaders) {
       super.loadUrl(safeUrl, additionalHttpHeaders)
+      true
     }
   }
 

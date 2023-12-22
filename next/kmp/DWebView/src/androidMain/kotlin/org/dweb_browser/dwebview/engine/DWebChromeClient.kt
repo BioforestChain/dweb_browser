@@ -41,7 +41,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
     extends.hasMethod(methodName)
       .also {
         if (it.isNotEmpty() && noise) {
-          debugDWebView("WebChromeClient", "calling method: $methodName")
+          debugDWebView("WebChromeClient") { "calling method: $methodName" }
         }
       }
 
@@ -222,9 +222,16 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
 
   val loadingProgressSharedFlow = MutableSharedFlow<Float>(1)
 
+  private var preCheckUrl: String? = null
   override fun onProgressChanged(view: WebView, newProgress: Int) {
-    scope.launch {
-      loadingProgressSharedFlow.emit(newProgress / 100f)
+    if (loadingProgressSharedFlow.subscriptionCount.value > 0) {
+      scope.launch {
+        loadingProgressSharedFlow.emit(newProgress / 100f)
+      }
+    }
+    if (preCheckUrl != view.url) {
+      preCheckUrl = view.url
+      engine.loadedUrlCache.checkLoadedUrl(preCheckUrl) { true }
     }
     inners("onProgressChanged").forEach { it.onProgressChanged(view, newProgress) }
     super.onProgressChanged(view, newProgress)
