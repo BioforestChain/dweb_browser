@@ -113,6 +113,7 @@ fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
           selected = isCustomColorScheme,
         ) { win.toggleColorScheme() }
       }
+      if (true) return@LazyVerticalGrid // 下面功能暂时未完善，上架时有要求，暂时隐藏不具备的功能
       // 分享应用 ！
       item {
         WindowMenuItem(
