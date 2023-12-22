@@ -180,7 +180,8 @@ fun BrowserViewForWindow(
         // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
         BrowserSearchView(
           viewModel = viewModel,
-          modifier = if (win.isMaximized()) {
+          modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+          /*if (win.isMaximized()) {
             Modifier
               .fillMaxWidth()
               .background(MaterialTheme.colorScheme.background)
@@ -190,7 +191,7 @@ fun BrowserViewForWindow(
             Modifier.fillMaxWidth()
               .background(MaterialTheme.colorScheme.background)
               .align(Alignment.BottomCenter)
-          },
+          },*/
           windowRenderScope = windowRenderScope
         )
         BrowserBottomSheet(viewModel)
