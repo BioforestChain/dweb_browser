@@ -274,18 +274,16 @@ class BrowserViewModel(
 
   suspend fun searchWebView(url: String) = withContext(ioAsyncExceptionHandler) {
     showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
-    val loadingState = currentBrowserBaseView.value?.loadState
-    loadingState?.value = true
-    if (url.isDeepLink()) { // 负责拦截browser的dweb_deeplink
-      browserNMM.nativeFetch(url)
-      loadingState?.value = false
-    } else {
-      currentBrowserBaseView.value?.viewItem?.apply {
-        webView.loadUrl(url, true/* 强制加载 */)
+    currentBrowserBaseView.value?.let { browserWebView ->
+      browserWebView.loadState.value = true
+      if (url.isDeepLink()) { // 负责拦截browser的dweb_deeplink
+        browserNMM.nativeFetch(url)
+        browserWebView.loadState.value = false
+      } else {
+        browserWebView.viewItem.webView.loadUrl(url, true/* 强制加载 */)
+        browserWebView.loadState.value = false
       }
-      loadingState?.value = false
     }
-    currentBrowserBaseView.value
   }
 
   suspend fun addNewMainView(url: String? = null) = withMainContext {

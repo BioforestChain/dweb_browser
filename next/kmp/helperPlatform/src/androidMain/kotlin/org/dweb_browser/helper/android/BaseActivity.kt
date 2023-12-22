@@ -54,10 +54,14 @@ abstract class BaseActivity : ComponentActivity() {
     QueueResultLauncher(this, ActivityResultContracts.RequestMultiplePermissions())
 
   suspend fun requestPermission(permission: String): Boolean {
-    if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
+    if (checkPermission(permission)) {
       return true
     }
     return requestPermissionLauncher.launch(permission)
+  }
+
+  suspend fun checkPermission(permission: String): Boolean {
+    return checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
   }
 
   val getContentLauncher = QueueResultLauncher(this, ActivityResultContracts.GetContent())
