@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmStatusEvent
+import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jmm.LocalJmmInstallerController
 import org.dweb_browser.helper.toSpaceSize
 
@@ -45,7 +46,9 @@ import org.dweb_browser.helper.toSpaceSize
 internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
   val jmmInstallerController = LocalJmmInstallerController.current
-  val jmmState = jmmInstallerController.jmmHistoryMetadata.state
+  val (jmmState, canSupportTarget) = with(jmmInstallerController.jmmHistoryMetadata) {
+    Pair(state, metadata.canSupportTarget(JsMicroModule.VERSION))
+  }
 
   Box(
     modifier = Modifier
@@ -113,19 +116,24 @@ internal fun BoxScope.BottomDownloadButton() {
         disabledContainerColor = MaterialTheme.colorScheme.errorContainer,
         disabledContentColor = MaterialTheme.colorScheme.onErrorContainer,
       ),
+      enabled = canSupportTarget
     ) {
-      val (text, total, current) = JmmStatusText(jmmState, jmmState.current)
-      current?.let { size ->
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.Center
-        ) {
-          ResizeSingleText(text = text, textAlign = TextAlign.Center)
-          Text(text = size, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-          Text(text = total, modifier = Modifier.weight(1f))
-        }
-      } ?: Text(text = "$text $total")
+      if (canSupportTarget) {
+        val (text, total, current) = JmmStatusText(jmmState)
+        current?.let { size ->
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+          ) {
+            ResizeSingleText(text = text, textAlign = TextAlign.Center)
+            Text(text = size, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+            Text(text = total, modifier = Modifier.weight(1f))
+          }
+        } ?: Text(text = "$text $total")
+      } else {
+        Text(text = BrowserI18nResource.install_button_incompatible())
+      }
     }
   }
 }
@@ -177,7 +185,7 @@ fun ResizeSingleText(
 }
 
 @Composable
-fun JmmStatusText(state: JmmStatusEvent, current: Long): Triple<String, String, String?> {
+fun JmmStatusText(state: JmmStatusEvent): Triple<String, String, String?> {
   return when (state.state) {
     JmmStatus.Init, JmmStatus.Canceled -> Triple(
       first = BrowserI18nResource.install_button_install(),
@@ -194,13 +202,13 @@ fun JmmStatusText(state: JmmStatusEvent, current: Long): Triple<String, String, 
     JmmStatus.Downloading -> Triple(
       first = BrowserI18nResource.install_button_downloading(),
       second = " / " + state.total.toSpaceSize(),
-      third = current.toSpaceSize()
+      third = state.current.toSpaceSize()
     )
 
     JmmStatus.Paused -> Triple(
       first = BrowserI18nResource.install_button_paused(),
       second = " / " + state.total.toSpaceSize(),
-      third = current.toSpaceSize()
+      third = state.current.toSpaceSize()
     )
 
     JmmStatus.Completed -> Triple(
