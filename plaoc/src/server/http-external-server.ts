@@ -148,7 +148,7 @@ export class Server_external extends HttpServer {
         }
         const ext_options = this._getOptions();
         // 请求跟外部app通信，并拿到返回值
-        event.headers.append("X-Dweb-Host", jsProcess.mmid);
+        event.headers.append("X-External-Dweb-Host", jsProcess.mmid);
         return await jsProcess.nativeFetch(`https://${ext_options.subdomain}.${mmid}${event.pathname}${event.search}`, {
           method: event.method,
           headers: event.headers,
