@@ -7,39 +7,20 @@
 
 import Foundation
 
-private
-var dateformate
-:
-DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss.SSSS"
-        return formatter
-}
-()
+private var dateformate: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "HH:mm:ss.SSSS"
+    return formatter
+}()
 
-func Log(time
-:
-String = dateformate.string(from
-:
-
-Date()
-
-),
-file:
-String =
-#file,
-function:
-String =
-#function,
-line:
-Int =
-#line,
-category:
-String = "iOS Lib",
-        _
-msg: String?) {
+func Log(time: String = dateformate.string(from: Date()),
+         file: String = #file,
+         function: String = #function,
+         line: Int = #line,
+         category: String = "iOS Lib",
+         _ msg: String?) {
 #if DEBUG
-print("[\(category)] [\(file.components(separatedBy: "/").last ?? "null"):\(function):\(line)] [\(time)] \(msg ?? "")")
+    print("[\(category)] [\(file.components(separatedBy: "/").last ?? "null"):\(function):\(line)] [\(time)] \(msg ?? "")")
 #else
 #endif
 }
