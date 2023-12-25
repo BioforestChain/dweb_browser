@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
@@ -64,6 +67,7 @@ import org.dweb_browser.browser.web.ui.model.WebEngine
 import org.dweb_browser.browser.web.ui.model.findWebEngine
 import org.dweb_browser.browser.web.ui.model.parseInputText
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 
 /**
  * 组件： 搜索组件
@@ -197,7 +201,7 @@ internal fun BoxScope.BrowserTextField(
           onSearch(url)
         } ?: webEngine?.let { webEngine ->
           onSearch("${webEngine.start}$inputText")
-        } ?: focusManager.clearFocus(); keyboardController?.hide()
+        } ?: run { focusManager.clearFocus(); keyboardController?.hide() }
       }
     )
   )
@@ -215,8 +219,9 @@ fun CustomTextField(
   keyboardActions: KeyboardActions = KeyboardActions.Default,
   spacerWidth: Dp = 10.dp,
 ) {
-  val focusRequester = FocusRequester()
+  val focusRequester = remember { FocusRequester() }
   val focusManager = LocalFocusManager.current
+  val showIme = LocalWindowsImeVisible.current
   val scope = rememberCoroutineScope()
 
   LaunchedEffect(focusRequester) {
@@ -237,7 +242,20 @@ fun CustomTextField(
     keyboardOptions = keyboardOptions,
     keyboardActions = keyboardActions,
   ) { innerTextField ->
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
+    Box(
+      modifier = Modifier.fillMaxSize().pointerInput(focusManager) {
+        awaitEachGesture { // 在clickable中，会被栏拦截事件，所以只能这么写了，单次是 awaitPointerEventScope
+          awaitPointerEvent(PointerEventPass.Initial)
+          if (!showIme.value) {
+            scope.launch { // 键盘手动隐藏后，再次点击不显示问题
+              focusManager.clearFocus()
+              focusRequester.requestFocus()
+            }
+          }
+        }
+      },
+      contentAlignment = Alignment.CenterStart
+    ) {
       Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Spacer(modifier = Modifier.width(spacerWidth))
         if (leadingIcon != null) {
@@ -245,12 +263,7 @@ fun CustomTextField(
           Spacer(modifier = Modifier.width(spacerWidth))
         }
         Box(
-          modifier = Modifier.weight(1f).clickableWithNoEffect { // 键盘手动隐藏后，再次点击不显示问题
-            scope.launch {
-              focusManager.clearFocus()
-              focusRequester.requestFocus()
-            }
-          },
+          modifier = Modifier.weight(1f),
           contentAlignment = Alignment.CenterStart
         ) {
           innerTextField()
