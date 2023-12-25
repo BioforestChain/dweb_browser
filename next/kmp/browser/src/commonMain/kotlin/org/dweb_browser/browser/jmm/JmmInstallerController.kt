@@ -78,13 +78,15 @@ class JmmInstallerController(
     closeSelf() // 打开应用后，需要关闭当前安装界面
   }
 
+  private val mutexLock = Mutex()
+
   /**
    * 创建任务，如果存在则恢复
    */
-  suspend fun createAndStartDownload() {
+  suspend fun createAndStartDownload() = mutexLock.withLock {
     if (jmmHistoryMetadata.taskId == null ||
       (jmmHistoryMetadata.state.state != JmmStatus.INSTALLED &&
-          jmmHistoryMetadata.state.state != JmmStatus.Completed)
+          jmmHistoryMetadata . state . state != JmmStatus . Completed)
     ) {
       jmmController.createDownloadTask(jmmHistoryMetadata)
     }
