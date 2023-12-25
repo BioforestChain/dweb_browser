@@ -2,7 +2,6 @@ package org.dweb_browser.sys.share
 
 import io.ktor.http.ContentType
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -18,6 +17,8 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.buildUrlString
+import org.dweb_browser.helper.platform.MultiPartFile
+import org.dweb_browser.helper.platform.MultiPartFileEncode
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toBase64ByteArray
@@ -41,23 +42,6 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
   }
-
-  @Serializable
-  enum class MultiPartFileEncode {
-    @SerialName("utf8")
-    UTF8,
-    @SerialName("base64")
-    BASE64
-  }
-
-  @Serializable
-  data class MultiPartFile(
-    val name: String,
-    val size: Long,
-    val type: String,
-    val data: String,
-    val encode: MultiPartFileEncode = MultiPartFileEncode.UTF8
-  )
 
   @OptIn(ExperimentalSerializationApi::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
@@ -106,7 +90,12 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
             share(shareOptions, fileList, this@ShareNMM)
           }
 
-          else -> ""
+          else -> {
+            return@defineJsonResponse ShareResult(
+              false,
+              "Unable to process $contentType"
+            ).toJsonElement()
+          }
         }
 
         debugShare("/share", "result => $result")
@@ -115,10 +104,13 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
     ).cors()
   }
 
-  private suspend fun multipartFileDataWriteToTempFile(multiPartFile: MultiPartFile, mmid: MMID): String {
+  private suspend fun multipartFileDataWriteToTempFile(
+    multiPartFile: MultiPartFile,
+    mmid: MMID
+  ): String {
     val data = when (multiPartFile.encode) {
-      ShareNMM.MultiPartFileEncode.UTF8 -> multiPartFile.data.toUtf8ByteArray()
-      ShareNMM.MultiPartFileEncode.BASE64 -> multiPartFile.data.toBase64ByteArray()
+      MultiPartFileEncode.UTF8 -> multiPartFile.data.toUtf8ByteArray()
+      MultiPartFileEncode.BASE64 -> multiPartFile.data.toBase64ByteArray()
     }
 
     val writePath = "/cache/${mmid}/${randomUUID()}/${multiPartFile.name}"
