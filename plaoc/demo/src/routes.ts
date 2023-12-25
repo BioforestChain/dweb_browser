@@ -23,7 +23,7 @@ export const routes = [
   { title: "bluetooth", path: "/bluetooth", component: () => import("./pages/Bluetooth.vue") },
 
   { title: "device", path: "/device", component: () => import("./pages/Device.vue") },
-  { title: "webview", path: "/webview", component: () => import("./pages/Webview.vue") },
+  { title: "window", path: "/webview", component: () => import("./pages/Window.vue") },
   { title: "motionSensors", path: "/motionSensors", component: () => import("./pages/MotionSensors.vue") },
 ];
 //satisfies (RouteRecordRaw & { title: string })[];

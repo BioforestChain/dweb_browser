@@ -16,7 +16,6 @@ export * from "./dweb-update-controller/index.ts";
 export * from "./file-system/index.ts";
 export * from "./haptics/index.ts";
 export * from "./motionSensors/index.ts";
-export * from "./mwebvivew/index.ts";
 export * from "./navigation-bar/index.ts";
 export * from "./network/index.ts";
 export * from "./safe-area/index.ts";

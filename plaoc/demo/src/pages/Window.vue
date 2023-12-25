@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { UnwrapRef, onMounted, ref } from "vue";
+import { UnwrapRef, onMounted, reactive, ref } from "vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import { $WindowState, $WindowStyleColor, HTMLDwebWindowElement } from "../plugin";
+import { $WindowState, $WindowStyleColor, HTMLDwebWindowElement, windowPlugin } from "../plugin";
 
-const title = "StatusBar";
+const title = "window";
 
 const $logPanel = ref<typeof LogPanel>();
 const $window = ref<HTMLDwebWindowElement>();
@@ -61,8 +61,18 @@ const [topBarOverlay, setTopBarOverlay, getTopBarOverlay] = defineRef<boolean>(
 );
 
 const getDisplay = async () => {
-  const data = await statusBar.getDisplay()
-  console.log("getDisplay=>",data)
+  const data = await statusBar.getDisplay();
+  console.log("getDisplay=>", data);
+};
+
+const state: {
+  openUrl: string;
+} = reactive({
+  openUrl: "https://dwebdapp.com",
+});
+async function open() {
+  const res = windowPlugin.openInBrowser(state.openUrl);
+  console.log("open", res);
 }
 
 const focus = () => {
@@ -90,6 +100,11 @@ const close = () => {
     <figure class="icon">
       <img src="../../assets/statusbar.svg" :alt="title" />
     </figure>
+    <article class="card-body">
+      <h2 class="card-title">open</h2>
+      <v-text-field label="属性描述符" v-model="state.openUrl"></v-text-field>
+      <v-btn color="indigo-darken-3" @click="open">open</v-btn>
+    </article>
     <article class="card-body">
       <h2 class="card-title">设置窗口状态</h2>
       <div class="justify-end card-actions btn-group">

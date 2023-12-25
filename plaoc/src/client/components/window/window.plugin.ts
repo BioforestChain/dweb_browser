@@ -194,7 +194,7 @@ export class WindowPlugin extends BasePlugin {
     });
     return result.promise;
   }
-  /**关闭窗口 */
+  /**打开窗口 */
   @bindThis
   async createBottomSheets(contentUrl: string) {
     const args = await this.createModalArgs<$BottomSheetsOptions, $BottomSheetsModal>("bottom-sheets", {}, true, true);
@@ -205,6 +205,16 @@ export class WindowPlugin extends BasePlugin {
       search: { url: contentUrl, rid: bottomSheets.modal.renderId },
     }).void();
     return bottomSheets;
+  }
+  /**
+   * 在browser 打开新页面
+   * @param url http?://xxxx
+   */
+  openInBrowser(url: string) {
+    this.fetchApi("/openinbrowser", {
+      pathPrefix: "web.browser.dweb",
+      search: { url: url },
+    });
   }
 }
 
