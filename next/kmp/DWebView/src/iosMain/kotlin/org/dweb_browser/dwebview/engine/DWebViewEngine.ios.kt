@@ -119,6 +119,9 @@ class DWebViewEngine(
     private fun registryDwebHttpUrlSchemeHandler(
       microModule: MicroModule, configuration: WKWebViewConfiguration
     ) {
+      if (configuration.urlSchemeHandlerForURLScheme("dweb+http") != null) {
+        return
+      }
       val dwebSchemeHandler = DwebHttpURLSchemeHandler(microModule)
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb+http")
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb+https")
@@ -127,6 +130,9 @@ class DWebViewEngine(
     fun registryDwebSchemeHandler(
       microModule: MicroModule, configuration: WKWebViewConfiguration
     ) {
+      if (configuration.urlSchemeHandlerForURLScheme("dweb") != null) {
+        return
+      }
       val dwebSchemeHandler = DwebURLSchemeHandler(microModule)
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb")
     }
