@@ -12,7 +12,7 @@ actual fun loadByteChannelByPath(
 ): PureResponse {
   val fullFilePath = root + "/" + filePath.trimStart('/')
   return try {
-    context.returnFile(SystemFileSystem.source(fullFilePath.decodeURIComponent().toPath()).buffer().toByteReadChannel())
+    context.returnFile(SystemFileSystem.source(fullFilePath.toPath()).buffer().toByteReadChannel())
   } catch (e: Throwable) {
     context.returnNoFound(e.message)
   }
