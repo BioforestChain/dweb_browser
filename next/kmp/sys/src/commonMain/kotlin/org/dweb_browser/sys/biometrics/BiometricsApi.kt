@@ -7,11 +7,11 @@ data class BiometricsResult(val success: Boolean, val message: String)
 
 @Serializable
 data class BiometricsData(
-  val title: String?,
-  val subtitle: String?,
-  val description: String?,
-  val useFallback: Boolean?,
-  val negativeButtonText: String?,
+  val title: String? = "",
+  val subtitle: String? = "",
+  val description: String? = "",
+  val useFallback: Boolean? = false,
+  val negativeButtonText: String? = "",
 )
 
 expect object BiometricsApi {

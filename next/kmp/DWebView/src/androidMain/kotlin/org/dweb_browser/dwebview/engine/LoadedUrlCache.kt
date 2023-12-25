@@ -1,5 +1,6 @@
 package org.dweb_browser.dwebview.engine
 
+import org.dweb_browser.core.std.dns.debugFetch
 import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.trueAlso
 
@@ -31,7 +32,7 @@ class LoadedUrlCache {
     return (preLoadedUrlArgs.startsWith(checkArgs)).falseAlso {
       onUpset().trueAlso {
         preLoadedUrlArgs = checkArgs
-        println("QAQ checkLoadedUrl=$url")
+        debugFetch("LoadedUrl","checkLoadedUrl=$url")
       }
     }
   }

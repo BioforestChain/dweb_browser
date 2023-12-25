@@ -177,29 +177,40 @@ class DWebViewEngine internal constructor(
         )
       }
       brandList.add(IDWebView.UserAgentBrandData("DwebBrowser", versionName.split(".").first()))
+
       addDocumentStartJavaScript(
         """
         ${UserAgentData.polyfillScript}
+        let userAgentData = ""
         if (!navigator.userAgentData) {
-          let userAgentData = new NavigatorUAData(navigator, ${
+         userAgentData  = new NavigatorUAData(navigator, ${
           JsonLoose.encodeToJsonElement(
             brandList
           )
         });
-          Object.defineProperty(Navigator.prototype, 'userAgentData', {
-            enumerable: true,
-            configurable: true,
-            get: function getUseAgentData() {
-              return userAgentData;
-            }
-          });
-          Object.defineProperty(window, 'NavigatorUAData', {
-            enumerable: false,
-            configurable: true,
-            writable: true,
-            value: NavigatorUAData
-          });
+        } else {
+          userAgentData =
+           new NavigatorUAData(navigator, 
+           navigator.userAgentData.brands.concat(
+           ${
+          JsonLoose.encodeToJsonElement(
+            brandList
+          )
+        }));
         }
+        Object.defineProperty(Navigator.prototype, 'userAgentData', {
+          enumerable: true,
+          configurable: true,
+          get: function getUseAgentData() {
+            return userAgentData;
+          }
+        });
+        Object.defineProperty(window, 'NavigatorUAData', {
+          enumerable: false,
+          configurable: true,
+          writable: true,
+          value: NavigatorUAData
+        });
       """.trimIndent()
       )
     }
