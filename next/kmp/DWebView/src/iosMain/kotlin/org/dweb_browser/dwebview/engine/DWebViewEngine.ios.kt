@@ -157,6 +157,7 @@ class DWebViewEngine(
   internal val dwebUIDelegate = DWebUIDelegate(this)
   internal val dwebNavigationDelegate = DWebNavigationDelegate(this)
   internal val dwebUIScrollViewDelegate = DWebUIScrollViewDelegate(this)
+  private val estimatedProgressObserver = DWebEstimatedProgressObserver(this)
 
   init {
     /// 启动代理
@@ -246,6 +247,7 @@ class DWebViewEngine(
     scrollView.insetsLayoutMarginsFromSafeArea = true
     scrollView.bounces = false
   }
+
 
   //#region favicon
   suspend fun getFavicon() = withMainContext {
@@ -380,6 +382,7 @@ class DWebViewEngine(
   //#endregion
 
   fun destroy() {
+    estimatedProgressObserver.disconnect()
     configuration.userContentController.apply {
       removeAllUserScripts()
       removeAllScriptMessageHandlers()
