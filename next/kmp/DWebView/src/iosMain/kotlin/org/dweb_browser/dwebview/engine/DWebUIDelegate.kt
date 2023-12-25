@@ -6,9 +6,11 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.getUIApplication
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DwebViewI18nResource
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Signal
@@ -88,19 +90,38 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
       }
       null
     } else {
-      val createDwebviewEngin = DWebViewEngine(
-        engine.frame, // TODO use windowFeatures.x/y/width/height
-        engine.remoteMM,
-        DWebViewOptions(url ?: ""),
-        createWebViewWithConfiguration
-      )
-      val dwebView = IDWebView.create(
-        createDwebviewEngin
-      )
-      engine.mainScope.launch {
-        createWindowSignal.emit(dwebView)
+      when (engine.options.createWindowBehavior) {
+        DWebViewOptions.CreateWindowBehavior.Deeplink -> {
+          if (url == null) return null
+          val urlScheme = url.split(':', limit = 2).first()
+          engine.ioScope.launch {
+            if (urlScheme == "dweb") {
+              engine.remoteMM.nativeFetch(url)
+            } else if (isWebUrlScheme(urlScheme)) {
+              engine.remoteMM.nativeFetch("dweb://openinbrowser?url=${url}")
+            }
+          }
+          null
+        }
+
+        DWebViewOptions.CreateWindowBehavior.Custom -> {
+          /// TODO 这里的 createWebViewWithConfiguration 是不能自己创建的，所以将会被重新配置，所以需要做好去重工作
+          /// 也就是说 Configuration 不能耦合 DWebViewEngine 这个对象
+          val createDwebviewEngin = DWebViewEngine(
+            engine.frame, // TODO use windowFeatures.x/y/width/height
+            engine.remoteMM,
+            DWebViewOptions(url ?: ""),
+            createWebViewWithConfiguration
+          )
+          val dwebView = IDWebView.create(
+            createDwebviewEngin
+          )
+          engine.mainScope.launch {
+            createWindowSignal.emit(dwebView)
+          }
+          createDwebviewEngin
+        }
       }
-      createDwebviewEngin
     }
 
     // if (url != null) {

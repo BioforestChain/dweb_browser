@@ -25,6 +25,12 @@ data class DWebViewOptions(
    * 对于显示裁切（刘海屏、挖孔屏）的显示策略
    */
   val displayCutoutStrategy: DisplayCutoutStrategy = DisplayCutoutStrategy.Default,
+  /**
+   * 打开新窗口的行为
+   *
+   * 默认是走 `dweb://open?url=*`
+   */
+  val createWindowBehavior: CreateWindowBehavior = CreateWindowBehavior.Deeplink,
 ) {
 
   enum class DetachedStrategy {
@@ -45,5 +51,10 @@ data class DWebViewOptions(
 
     // 忽略显示屏裁切
     Ignore,
+  }
+
+  enum class CreateWindowBehavior {
+    Deeplink,
+    Custom,
   }
 }
