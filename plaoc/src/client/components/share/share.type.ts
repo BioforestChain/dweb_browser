@@ -31,6 +31,11 @@ export interface ShareOptions {
    * @since 4.1.0
    */
   files?: FileList;
+
+  /**
+   * 用于图片压缩，使用canvas进行压缩
+   */
+  imageBlobOptions?: ImageBlobOptions
 }
 
 export interface ShareResult {
@@ -49,4 +54,9 @@ export interface FileData {
 export enum FileDataEncode {
   UTF8 = "utf8",
   BASE64 = "base64"
+}
+
+export interface ImageBlobOptions {
+  type: string;
+  quality: number;
 }

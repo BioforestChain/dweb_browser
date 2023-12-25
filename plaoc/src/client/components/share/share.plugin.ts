@@ -2,7 +2,7 @@ import { encode } from "cbor-x";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { FileData, FileDataEncode, ShareResult, type ShareOptions } from "./share.type.ts";
+import { FileData, FileDataEncode, ShareResult, type ImageBlobOptions, type ShareOptions } from "./share.type.ts";
 export class SharePlugin extends BasePlugin {
   constructor() {
     super("share.sys.dweb");
@@ -23,91 +23,91 @@ export class SharePlugin extends BasePlugin {
     }
   }
 
-  // /**
-  //  * 分享
-  //  * @param options
-  //  * @returns
-  //  */
-  // @bindThis
-  // async share(options: ShareOptions): Promise<ShareResult> {
-  //   const data = new FormData();
-  //   if (options.files && options.files.length !== 0) {
-  //     for (let i = 0; i < options.files.length; i++) {
-  //       const file = options.files.item(i)!;
-  //       data.append("files", file);
-  //     }
-  //   }
+  /**
+   * 分享
+   * @param options
+   * @returns
+   */
+  async #multipartShare(options: ShareOptions): Promise<ShareResult> {
+    const data = new FormData();
+    if (options.files && options.files.length !== 0) {
+      for (let i = 0; i < options.files.length; i++) {
+        const file = options.files.item(i)!;
+        data.append("files", file);
+      }
+    }
 
-  //   if(options.file) {
-  //     data.append("files", options.file)
-  //   }
+    if (options.file) {
+      data.append("files", options.file);
+    }
 
-  //   const result = await this.buildApiRequest("/share", {
-  //     search: {
-  //       title: options?.title,
-  //       text: options?.text,
-  //       url: options?.url,
-  //     },
-  //     method: "POST",
-  //     body: data,
-  //   })
-  //     .fetch()
-  //     .object<ShareResult>();
-  //   return result;
-  // }
-
-  #MAX_SIZE = 500 * 1024;
-  async #checkSize(width: number, height: number, img: HTMLImageElement): Promise<[number, number]> {
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    ctx?.drawImage(img, 0, 0, width, height);
-    const dataUrl = canvas.toDataURL("image/jpeg");
-    const size = atob(dataUrl.split(",")[1]).length;
-    return size > this.#MAX_SIZE ? this.#checkSize(width * 0.8, height * 0.8, img) : [width, height];
+    const result = await this.buildApiRequest("/share", {
+      search: {
+        title: options?.title,
+        text: options?.text,
+        url: options?.url,
+      },
+      method: "POST",
+      body: data,
+    })
+      .fetch()
+      .object<ShareResult>();
+    return result;
   }
 
-  async #fileToBase64String(file: File): Promise<string> {
+  async #normalToBase64String(file: File): Promise<string> {
+    const reader = new FileReader();
+    const po = new PromiseOut<string>();
+
+    reader.onloadend = () => {
+      let binary = "";
+      const bytes = new Uint8Array(reader.result as ArrayBuffer);
+      for (const byte of bytes) {
+        binary += String.fromCharCode(byte);
+      }
+      po.resolve(btoa(binary));
+    };
+
+    reader.readAsArrayBuffer(file);
+    return await po.promise;
+  }
+
+  async #blobToBase64String(file: File, blobOptions: ImageBlobOptions): Promise<string> {
     const reader = new FileReader();
     const po = new PromiseOut<string>();
 
     reader.onload = (ev) => {
-      if (file.type.startsWith("image/")) {
-        const img = new Image();
-        img.onload = async () => {
-          let width = img.width, height = img.height;
-          if(file.size > this.#MAX_SIZE) {
-            [width, height] = await this.#checkSize(img.width, img.height, img);
-          }
-          
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          canvas.width = width;
-          canvas.height = height;
-          ctx?.drawImage(img, 0, 0, width, height);
+      const img = new Image();
+      img.onload = () => {
+        const width = img.width,
+          height = img.height;
 
-          canvas.toBlob(
-            (blob) => {
-              const imgReader = new FileReader();
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
 
-              imgReader.onloadend = () => {
-                let binary = "";
-                const bytes = new Uint8Array(imgReader.result as ArrayBuffer);
-                for (const byte of bytes) {
-                  binary += String.fromCharCode(byte);
-                }
-                po.resolve(btoa(binary));
-              };
+        canvas.toBlob(
+          (blob) => {
+            const imgReader = new FileReader();
 
-              imgReader.readAsArrayBuffer(blob!);
-            },
-            "image/jpeg",
-            0.7
-          );
-        };
-        img.src = ev.target!.result as string;
-      }
+            imgReader.onloadend = () => {
+              let binary = "";
+              const bytes = new Uint8Array(imgReader.result as ArrayBuffer);
+              for (const byte of bytes) {
+                binary += String.fromCharCode(byte);
+              }
+              po.resolve(btoa(binary));
+            };
+
+            imgReader.readAsArrayBuffer(blob!);
+          },
+          blobOptions.type.startsWith("image/") ? blobOptions.type : "image/jpeg",
+          blobOptions.quality > 0 && blobOptions.quality <= 1 ? blobOptions.quality : 0.8
+        );
+      };
+      img.src = ev.target!.result as string;
     };
 
     reader.readAsDataURL(file);
@@ -115,18 +115,12 @@ export class SharePlugin extends BasePlugin {
     return await po.promise;
   }
 
-  /**
-   * 分享
-   * @param options
-   * @returns
-   */
-  @bindThis
-  async share(options: ShareOptions): Promise<ShareResult> {
+  async #cborNormalShareFileList(options: ShareOptions): Promise<FileData[]> {
     const fileList: FileData[] = [];
     if (options.files && options.files.length !== 0) {
       for (let i = 0; i < options.files.length; i++) {
         const file = options.files.item(i)!;
-        const data = await this.#fileToBase64String(file);
+        const data = await this.#normalToBase64String(file);
 
         fileList.push({
           name: file.name,
@@ -139,7 +133,7 @@ export class SharePlugin extends BasePlugin {
     }
 
     if (options.file) {
-      const data = await this.#fileToBase64String(options.file);
+      const data = await this.#normalToBase64String(options.file);
 
       fileList.push({
         name: options.file.name,
@@ -148,6 +142,49 @@ export class SharePlugin extends BasePlugin {
         encode: FileDataEncode.BASE64,
         data,
       });
+    }
+
+    return fileList;
+  }
+
+  async #cborCanvasCompressShareFileList(options: ShareOptions): Promise<FileData[]> {
+    const fileList: FileData[] = [];
+    if (options.files && options.files.length !== 0) {
+      for (let i = 0; i < options.files.length; i++) {
+        const file = options.files.item(i)!;
+        const data = await this.#blobToBase64String(file, options.imageBlobOptions!);
+
+        fileList.push({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          encode: FileDataEncode.BASE64,
+          data,
+        });
+      }
+    }
+
+    if (options.file) {
+      const data = await this.#blobToBase64String(options.file, options.imageBlobOptions!);
+
+      fileList.push({
+        name: options.file.name,
+        type: options.file.type,
+        size: options.file.size,
+        encode: FileDataEncode.BASE64,
+        data,
+      });
+    }
+
+    return fileList;
+  }
+
+  async #cborImageListPost(options: ShareOptions): Promise<ShareResult> {
+    let fileList: FileData[] = [];
+    if (options.imageBlobOptions) {
+      fileList = await this.#cborCanvasCompressShareFileList(options);
+    } else {
+      fileList = await this.#cborNormalShareFileList(options);
     }
 
     const shareBody = encode(fileList);
@@ -168,6 +205,23 @@ export class SharePlugin extends BasePlugin {
       .fetch()
       .object<ShareResult>();
     return result;
+  }
+
+  /**
+   * 分享
+   * @param options
+   * @returns
+   */
+  @bindThis
+  async share(options: ShareOptions): Promise<ShareResult> {
+    if (
+      (options.file && options.file.type.startsWith("image/")) ||
+      (options.files && options.files[0].type.startsWith("image/"))
+    ) {
+      return await this.#cborImageListPost(options);
+    }
+
+    return await this.#multipartShare(options);
   }
 }
 
