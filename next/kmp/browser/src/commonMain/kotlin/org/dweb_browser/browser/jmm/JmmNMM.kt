@@ -23,6 +23,7 @@ import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.resp
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindowId
@@ -63,7 +64,7 @@ class JmmNMM :
               }
             }
           }.await()
-          returnFile(root, filePath)
+          returnFile(root, filePath.decodeURIComponent())
         } else returnNext()
       }
     }
