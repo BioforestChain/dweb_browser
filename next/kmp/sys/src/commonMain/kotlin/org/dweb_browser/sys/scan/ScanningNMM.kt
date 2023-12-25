@@ -1,11 +1,11 @@
 package org.dweb_browser.sys.scan
 
-import io.ktor.http.HttpMethod
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.PureBinaryFrame
 import org.dweb_browser.core.http.PureTextFrame
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
@@ -45,7 +45,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
         }
       },
       // 处理二维码图像
-      "/process" bind HttpMethod.Post by defineJsonResponse {
+      "/process" bind IpcMethod.POST by defineJsonResponse {
         val rotation = request.queryOrNull("rotation")?.toFloatOrNull()?.toInt() ?: 0
         debugScanning(
           "/process",
@@ -68,7 +68,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
       },
 
       // 停止处理
-      "/stop" bind HttpMethod.Get by defineBooleanResponse {
+      "/stop" bind IpcMethod.GET by defineBooleanResponse {
         scanningManager.stop()
         return@defineBooleanResponse true
       },

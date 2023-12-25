@@ -9,11 +9,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import io.ktor.http.HttpMethod
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -46,10 +46,10 @@ class PermissionProviderTNN :
     /// 该接口仅供测试
     routes(
       // 将服务发布到公网
-      "/publish" bind HttpMethod.Get by defineStringResponse {
+      "/publish" bind IpcMethod.GET by defineStringResponse {
         "发布成功 ${datetimeNow()}"
       },
-      "/unPublish" bind HttpMethod.Get by defineStringResponse {
+      "/unPublish" bind IpcMethod.GET by defineStringResponse {
         deletePermission(ipc.remote.mmid, dweb_permissions.first().pid!!)
         "权限已回撤 ${datetimeNow()}"
       }

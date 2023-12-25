@@ -56,185 +56,194 @@ import platform.darwin.OSStatus
 
 @ExperimentalSettingsImplementation
 public class KeychainSettings @ExperimentalSettingsApi constructor(vararg defaultProperties: Pair<CFStringRef?, CFTypeRef?>) :
-    Settings {
+  Settings {
 
-    @OptIn(ExperimentalSettingsApi::class)
-    // NB this calls CFBridgingRetain() without ever calling CFBridgingRelease()
-    public constructor(service: String) : this(kSecAttrService to CFBridgingRetain(service))
+  @OptIn(ExperimentalSettingsApi::class)
+  // NB this calls CFBridgingRetain() without ever calling CFBridgingRelease()
+  public constructor(service: String) : this(kSecAttrService to CFBridgingRetain(service))
 
-    @OptIn(ExperimentalSettingsApi::class)
-    public constructor() : this(*emptyArray())
+  @OptIn(ExperimentalSettingsApi::class)
+  public constructor() : this(*emptyArray())
 
-    @OptIn(ExperimentalForeignApi::class)
-    private val defaultProperties = mapOf(kSecClass to kSecClassGenericPassword) + mapOf(*defaultProperties)
+  @OptIn(ExperimentalForeignApi::class)
+  private val defaultProperties =
+    mapOf(kSecClass to kSecClassGenericPassword) + mapOf(*defaultProperties)
 
-    /**
-     * A factory that can produce [Settings] instances.
-     *
-     * This class creates `Settings` objects backed by the Apple keychain.
-     */
-    public class Factory : Settings.Factory {
-        override fun create(name: String?): KeychainSettings =
-            if (name != null) KeychainSettings(name) else KeychainSettings()
+  /**
+   * A factory that can produce [Settings] instances.
+   *
+   * This class creates `Settings` objects backed by the Apple keychain.
+   */
+  public class Factory : Settings.Factory {
+    override fun create(name: String?): KeychainSettings =
+      if (name != null) KeychainSettings(name) else KeychainSettings()
+  }
+
+  public override val keys: Set<String>
+    get() = memScoped {
+      val attributes = alloc<CFArrayRefVar>()
+      val status = keyChainOperation(
+        kSecMatchLimit to kSecMatchLimitAll,
+        kSecReturnAttributes to kCFBooleanTrue
+      ) { SecItemCopyMatching(it, attributes.ptr.reinterpret()) }
+      status.checkError(errSecItemNotFound)
+      if (status == errSecItemNotFound) {
+        return emptySet()
+      }
+
+      val list = List(CFArrayGetCount(attributes.value).toInt()) { i ->
+        val item: CFDictionaryRef? =
+          CFArrayGetValueAtIndex(attributes.value, i.toLong())?.reinterpret()
+        val cfKey: CFStringRef? = CFDictionaryGetValue(item, kSecAttrAccount)?.reinterpret()
+        val nsKey = CFBridgingRelease(cfKey) as NSString
+        nsKey.toKString()
+      }
+      return list.toSet()
     }
 
-    public override val keys: Set<String>
-        get() = memScoped {
-            val attributes = alloc<CFArrayRefVar>()
-            val status = keyChainOperation(
-                kSecMatchLimit to kSecMatchLimitAll,
-                kSecReturnAttributes to kCFBooleanTrue
-            ) { SecItemCopyMatching(it, attributes.ptr.reinterpret()) }
-            status.checkError(errSecItemNotFound)
-            if (status == errSecItemNotFound) {
-                return emptySet()
-            }
+  public override fun clear(): Unit = keys.forEach { remove(it) }
+  public override fun remove(key: String): Unit = removeKeychainItem(key)
+  public override fun hasKey(key: String): Boolean = hasKeychainItem(key)
+  public override fun putString(key: String, value: String): Unit =
+    addOrUpdateKeychainItem(key, value.toNSString().dataUsingEncoding(NSUTF8StringEncoding))
 
-            val list = List(CFArrayGetCount(attributes.value).toInt()) { i ->
-                val item: CFDictionaryRef? = CFArrayGetValueAtIndex(attributes.value, i.toLong())?.reinterpret()
-                val cfKey: CFStringRef? = CFDictionaryGetValue(item, kSecAttrAccount)?.reinterpret()
-                val nsKey = CFBridgingRelease(cfKey) as NSString
-                nsKey.toKString()
-            }
-            return list.toSet()
-        }
+  public override fun getString(key: String, defaultValue: String): String =
+    getStringOrNull(key) ?: defaultValue
 
-    public override fun clear(): Unit = keys.forEach { remove(it) }
-    public override fun remove(key: String): Unit = removeKeychainItem(key)
-    public override fun hasKey(key: String): Boolean = hasKeychainItem(key)
-    public override fun putString(key: String, value: String): Unit =
-        addOrUpdateKeychainItem(key, value.toNSString().dataUsingEncoding(NSUTF8StringEncoding))
+  @OptIn(BetaInteropApi::class)
+  public override fun getStringOrNull(key: String): String? =
+    getKeychainItem(key)?.let { NSString.create(it, NSUTF8StringEncoding)?.toKString() }
 
-    public override fun getString(key: String, defaultValue: String): String = getStringOrNull(key) ?: defaultValue
+  private inline fun addOrUpdateKeychainItem(key: String, value: NSData?) {
+    if (hasKeychainItem(key)) {
+      updateKeychainItem(key, value)
+    } else {
+      addKeychainItem(key, value)
+    }
+  }
 
-    @OptIn(BetaInteropApi::class)
-    public override fun getStringOrNull(key: String): String? =
-        getKeychainItem(key)?.let { NSString.create(it, NSUTF8StringEncoding)?.toKString() }
-
-    private inline fun addOrUpdateKeychainItem(key: String, value: NSData?) {
-        if (hasKeychainItem(key)) {
-            updateKeychainItem(key, value)
-        } else {
-            addKeychainItem(key, value)
-        }
+  @OptIn(ExperimentalForeignApi::class)
+  private inline fun addKeychainItem(key: String, value: NSData?): Unit =
+    cfRetain(key, value) { cfKey, cfValue ->
+      val status = keyChainOperation(
+        kSecAttrAccount to cfKey,
+        kSecValueData to cfValue
+      ) { SecItemAdd(it, null) }
+      status.checkError()
     }
 
-    @OptIn(ExperimentalForeignApi::class)
-    private inline fun addKeychainItem(key: String, value: NSData?): Unit = cfRetain(key, value) { cfKey, cfValue ->
-        val status = keyChainOperation(
-            kSecAttrAccount to cfKey,
-            kSecValueData to cfValue
-        ) { SecItemAdd(it, null) }
-        status.checkError()
+  @OptIn(ExperimentalForeignApi::class)
+  private inline fun removeKeychainItem(key: String): Unit = cfRetain(key) { cfKey ->
+    val status = keyChainOperation(
+      kSecAttrAccount to cfKey,
+    ) { SecItemDelete(it) }
+    status.checkError(errSecItemNotFound)
+  }
+
+  @OptIn(ExperimentalForeignApi::class)
+  private inline fun updateKeychainItem(key: String, value: NSData?): Unit =
+    cfRetain(key, value) { cfKey, cfValue ->
+      val status = keyChainOperation(
+        kSecAttrAccount to cfKey,
+        kSecReturnData to kCFBooleanFalse
+      ) {
+        val attributes = cfDictionaryOf(kSecValueData to cfValue)
+        val output = SecItemUpdate(it, attributes)
+        CFBridgingRelease(attributes)
+        output
+      }
+      status.checkError()
     }
 
-    @OptIn(ExperimentalForeignApi::class)
-    private inline fun removeKeychainItem(key: String): Unit = cfRetain(key) { cfKey ->
-        val status = keyChainOperation(
-            kSecAttrAccount to cfKey,
-        ) { SecItemDelete(it) }
-        status.checkError(errSecItemNotFound)
+  @OptIn(ExperimentalForeignApi::class)
+  private inline fun getKeychainItem(key: String): NSData? = cfRetain(key) { cfKey ->
+    val cfValue = alloc<CFTypeRefVar>()
+    val status = keyChainOperation(
+      kSecAttrAccount to cfKey,
+      kSecReturnData to kCFBooleanTrue,
+      kSecMatchLimit to kSecMatchLimitOne
+    ) { SecItemCopyMatching(it, cfValue.ptr) }
+    status.checkError(errSecItemNotFound)
+    if (status == errSecItemNotFound) {
+      return@cfRetain null
     }
+    CFBridgingRelease(cfValue.value) as? NSData
+  }
 
-    @OptIn(ExperimentalForeignApi::class)
-    private inline fun updateKeychainItem(key: String, value: NSData?): Unit = cfRetain(key, value) { cfKey, cfValue ->
-        val status = keyChainOperation(
-            kSecAttrAccount to cfKey,
-            kSecReturnData to kCFBooleanFalse
-        ) {
-            val attributes = cfDictionaryOf(kSecValueData to cfValue)
-            val output = SecItemUpdate(it, attributes)
-            CFBridgingRelease(attributes)
-            output
-        }
-        status.checkError()
+  @OptIn(ExperimentalForeignApi::class)
+  private inline fun hasKeychainItem(key: String): Boolean = cfRetain(key) { cfKey ->
+    val status = keyChainOperation(
+      kSecAttrAccount to cfKey,
+      kSecMatchLimit to kSecMatchLimitOne
+    ) { SecItemCopyMatching(it, null) }
+
+    status != errSecItemNotFound
+  }
+
+  @OptIn(ExperimentalForeignApi::class)
+  private inline fun MemScope.keyChainOperation(
+    vararg input: Pair<CFStringRef?, CFTypeRef?>,
+    operation: (query: CFDictionaryRef?) -> OSStatus,
+  ): OSStatus {
+    val query = cfDictionaryOf(defaultProperties + mapOf(*input))
+    val output = operation(query)
+    CFBridgingRelease(query)
+    return output
+  }
+
+  @OptIn(ExperimentalForeignApi::class)
+  private inline fun OSStatus.checkError(vararg expectedErrors: OSStatus) {
+    if (this != 0 && this !in expectedErrors) {
+      val cfMessage = SecCopyErrorMessageString(this, null)
+      val nsMessage = CFBridgingRelease(cfMessage) as? NSString
+      val message = nsMessage?.toKString() ?: "Unknown error"
+      error("Keychain error $this: $message")
     }
-
-    @OptIn(ExperimentalForeignApi::class)
-    private inline fun getKeychainItem(key: String): NSData? = cfRetain(key) { cfKey ->
-        val cfValue = alloc<CFTypeRefVar>()
-        val status = keyChainOperation(
-            kSecAttrAccount to cfKey,
-            kSecReturnData to kCFBooleanTrue,
-            kSecMatchLimit to kSecMatchLimitOne
-        ) { SecItemCopyMatching(it, cfValue.ptr) }
-        status.checkError(errSecItemNotFound)
-        if (status == errSecItemNotFound) {
-            return@cfRetain null
-        }
-        CFBridgingRelease(cfValue.value) as? NSData
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    private inline fun hasKeychainItem(key: String): Boolean = cfRetain(key) { cfKey ->
-        val status = keyChainOperation(
-            kSecAttrAccount to cfKey,
-            kSecMatchLimit to kSecMatchLimitOne
-        ) { SecItemCopyMatching(it, null) }
-
-        status != errSecItemNotFound
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    private inline fun MemScope.keyChainOperation(
-        vararg input: Pair<CFStringRef?, CFTypeRef?>,
-        operation: (query: CFDictionaryRef?) -> OSStatus,
-    ): OSStatus {
-        val query = cfDictionaryOf(defaultProperties + mapOf(*input))
-        val output = operation(query)
-        CFBridgingRelease(query)
-        return output
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    private inline fun OSStatus.checkError(vararg expectedErrors: OSStatus) {
-        if (this != 0 && this !in expectedErrors) {
-            val cfMessage = SecCopyErrorMessageString(this, null)
-            val nsMessage = CFBridgingRelease(cfMessage) as? NSString
-            val message = nsMessage?.toKString() ?: "Unknown error"
-            error("Keychain error $this: $message")
-        }
-    }
+  }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 internal inline fun MemScope.cfDictionaryOf(vararg items: Pair<CFStringRef?, CFTypeRef?>): CFDictionaryRef? =
-    cfDictionaryOf(mapOf(*items))
+  cfDictionaryOf(mapOf(*items))
 
 @OptIn(ExperimentalForeignApi::class)
 internal inline fun MemScope.cfDictionaryOf(map: Map<CFStringRef?, CFTypeRef?>): CFDictionaryRef? {
-    val size = map.size
-    val keys = allocArrayOf(*map.keys.toTypedArray())
-    val values = allocArrayOf(*map.values.toTypedArray())
-    return CFDictionaryCreate(
-        kCFAllocatorDefault,
-        keys.reinterpret(),
-        values.reinterpret(),
-        size.toLong(),
-        null,
-        null
-    )
+  val size = map.size
+  val keys = allocArrayOf(*map.keys.toTypedArray())
+  val values = allocArrayOf(*map.values.toTypedArray())
+  return CFDictionaryCreate(
+    kCFAllocatorDefault,
+    keys.reinterpret(),
+    values.reinterpret(),
+    size.toLong(),
+    null,
+    null
+  )
 }
 
 @OptIn(ExperimentalForeignApi::class)
 internal inline fun <T> cfRetain(value: Any?, block: MemScope.(CFTypeRef?) -> T): T = memScoped {
-    val cfValue = CFBridgingRetain(value)
-    return try {
-        block(cfValue)
-    } finally {
-        CFBridgingRelease(cfValue)
-    }
+  val cfValue = CFBridgingRetain(value)
+  return try {
+    block(cfValue)
+  } finally {
+    CFBridgingRelease(cfValue)
+  }
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal inline fun <T> cfRetain(value1: Any?, value2: Any?, block: MemScope.(CFTypeRef?, CFTypeRef?) -> T): T =
-    memScoped {
-        val cfValue1 = CFBridgingRetain(value1)
-        val cfValue2 = CFBridgingRetain(value2)
-        return try {
-            block(cfValue1, cfValue2)
-        } finally {
-            CFBridgingRelease(cfValue1)
-            CFBridgingRelease(cfValue2)
-        }
+internal inline fun <T> cfRetain(
+  value1: Any?,
+  value2: Any?,
+  block: MemScope.(CFTypeRef?, CFTypeRef?) -> T
+): T =
+  memScoped {
+    val cfValue1 = CFBridgingRetain(value1)
+    val cfValue2 = CFBridgingRetain(value2)
+    return try {
+      block(cfValue1, cfValue2)
+    } finally {
+      CFBridgingRelease(cfValue1)
+      CFBridgingRelease(cfValue2)
     }
+  }

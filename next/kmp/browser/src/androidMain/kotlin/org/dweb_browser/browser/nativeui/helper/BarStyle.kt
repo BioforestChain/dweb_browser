@@ -10,7 +10,9 @@ import com.google.gson.annotations.JsonAdapter
 import java.lang.reflect.Type
 
 @JsonAdapter(org.dweb_browser.browser.nativeui.helper.BarStyle::class)
-enum class BarStyle(val style: String) : JsonDeserializer<org.dweb_browser.browser.nativeui.helper.BarStyle>, JsonSerializer<org.dweb_browser.browser.nativeui.helper.BarStyle> {
+enum class BarStyle(val style: String) :
+  JsonDeserializer<org.dweb_browser.browser.nativeui.helper.BarStyle>,
+  JsonSerializer<org.dweb_browser.browser.nativeui.helper.BarStyle> {
   /**
    * Light text for dark backgrounds.
    */
@@ -31,7 +33,8 @@ enum class BarStyle(val style: String) : JsonDeserializer<org.dweb_browser.brows
 
   companion object {
     fun from(style: String): org.dweb_browser.browser.nativeui.helper.BarStyle {
-      return values().find { it.style == style } ?: org.dweb_browser.browser.nativeui.helper.BarStyle.Default
+      return values().find { it.style == style }
+        ?: org.dweb_browser.browser.nativeui.helper.BarStyle.Default
     }
   }
 
@@ -41,7 +44,9 @@ enum class BarStyle(val style: String) : JsonDeserializer<org.dweb_browser.brows
     org.dweb_browser.browser.nativeui.helper.BarStyle.Companion.from(json.asString)
 
   override fun serialize(
-    src: org.dweb_browser.browser.nativeui.helper.BarStyle, typeOfSrc: Type, context: JsonSerializationContext
+    src: org.dweb_browser.browser.nativeui.helper.BarStyle,
+    typeOfSrc: Type,
+    context: JsonSerializationContext
   ): JsonElement = JsonPrimitive(src.style)
 
 }

@@ -16,16 +16,16 @@ import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
  */
 @RequiresOptIn(level = RequiresOptIn.Level.WARNING)
 @Target(
-    CLASS,
-    PROPERTY,
-    FIELD,
-    LOCAL_VARIABLE,
-    VALUE_PARAMETER,
-    CONSTRUCTOR,
-    FUNCTION,
-    PROPERTY_GETTER,
-    PROPERTY_SETTER,
-    TYPEALIAS
+  CLASS,
+  PROPERTY,
+  FIELD,
+  LOCAL_VARIABLE,
+  VALUE_PARAMETER,
+  CONSTRUCTOR,
+  FUNCTION,
+  PROPERTY_GETTER,
+  PROPERTY_SETTER,
+  TYPEALIAS
 )
 public annotation class ExperimentalSettingsApi
 
@@ -35,15 +35,15 @@ public annotation class ExperimentalSettingsApi
  */
 @RequiresOptIn(level = RequiresOptIn.Level.WARNING)
 @Target(
-    CLASS,
-    PROPERTY,
-    FIELD,
-    LOCAL_VARIABLE,
-    VALUE_PARAMETER,
-    CONSTRUCTOR,
-    FUNCTION,
-    PROPERTY_GETTER,
-    PROPERTY_SETTER,
-    TYPEALIAS
+  CLASS,
+  PROPERTY,
+  FIELD,
+  LOCAL_VARIABLE,
+  VALUE_PARAMETER,
+  CONSTRUCTOR,
+  FUNCTION,
+  PROPERTY_GETTER,
+  PROPERTY_SETTER,
+  TYPEALIAS
 )
 public annotation class ExperimentalSettingsImplementation

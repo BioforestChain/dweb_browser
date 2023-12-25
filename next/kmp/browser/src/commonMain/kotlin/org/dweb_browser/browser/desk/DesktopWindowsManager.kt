@@ -15,7 +15,10 @@ expect fun DesktopWindowsManager.Companion.getOrPutInstance(
   onPut: (wm: DesktopWindowsManager) -> Unit
 ): DesktopWindowsManager
 
-class DesktopWindowsManager internal constructor(val viewController: IPureViewController, val viewBox: IPureViewBox) :
+class DesktopWindowsManager internal constructor(
+  val viewController: IPureViewController,
+  val viewBox: IPureViewBox
+) :
   WindowsManager<DesktopWindowController>(viewBox) {
 
   companion object {

@@ -1,8 +1,8 @@
 package org.dweb_browser.browser.zip
 
-import io.ktor.http.HttpMethod
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -23,7 +23,7 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
-      "/decompress" bind HttpMethod.Get by defineBooleanResponse {
+      "/decompress" bind IpcMethod.GET by defineBooleanResponse {
         val sourcePath = nativeFetch(
           "file://file.std.dweb/realPath?path=${request.query("sourcePath")}"
         ).text()

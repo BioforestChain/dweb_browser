@@ -1,12 +1,11 @@
 package org.dweb_browser.browser.web
 
-import io.ktor.http.HttpMethod
 import org.dweb_browser.browser.web.model.WebLinkMicroModule
 import org.dweb_browser.browser.web.model.WebLinkStore
-import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -73,8 +72,8 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
         openMainWindow()
       },
       "openinbrowser" bindDwebDeeplink openBrowser,
-      "/openinbrowser" bind HttpMethod.Get by openBrowser,
-      "/uninstall" bind HttpMethod.Get by defineBooleanResponse {
+      "/openinbrowser" bind IpcMethod.GET by openBrowser,
+      "/uninstall" bind IpcMethod.GET by defineBooleanResponse {
         debugBrowser("do uninstall", request.href)
         val mmid = request.query("app_id")
         bootstrapContext.dns.uninstall(mmid) && webLinkStore.delete(mmid)

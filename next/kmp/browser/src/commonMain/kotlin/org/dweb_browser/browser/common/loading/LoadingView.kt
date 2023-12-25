@@ -73,7 +73,7 @@ fun LoadingView(show: MutableState<Boolean>) {
           val strokeWidth = radius / 4 // 圆弧矩形的宽度 0.32*r
           // if (LoadingViewModel.mTicker.value > 0) {}
           val curIndex = LoadingViewModel.mCount.value
-          for (index in curIndex..curIndex+count) {
+          for (index in curIndex..curIndex + count) {
             // 中心点的坐标是 (radius, radius)，计算弧度 radians
             val radians = rotateAngle * index * PI / 180
             val startX = (radius + (radius - drawWidth) * cos(radians)).toFloat()

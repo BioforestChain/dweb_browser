@@ -128,7 +128,8 @@ data class DownloadStateEvent(
 
 class DownloadController(private val downloadNMM: DownloadNMM) {
   private val store = DownloadStore(downloadNMM)
-  val downloadManagers: ChangeableMutableMap<TaskId, DownloadTask> = ChangeableMutableMap() // 用于监听下载列表
+  val downloadManagers: ChangeableMutableMap<TaskId, DownloadTask> =
+    ChangeableMutableMap() // 用于监听下载列表
   val downloadList: MutableList<DownloadTask> = mutableStateListOf()
   private var winLock = Mutex(false)
   val downloadModel = DownloadModel(this)

@@ -1,18 +1,18 @@
 package org.dweb_browser.browser.nativeui.statusBar
 
-import org.dweb_browser.browser.nativeui.helper.QueryHelper
-import org.dweb_browser.browser.nativeui.helper.fromMultiWebView
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.browser.nativeui.NativeUiController
-import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.browser.nativeui.helper.QueryHelper
+import org.dweb_browser.browser.nativeui.helper.fromMultiWebView
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.helper.toJsonElement
 
 class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb", "statusBar") {
 
@@ -25,11 +25,11 @@ class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb", "stat
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 获取状态栏 */
-      "/getState" bind HttpMethod.Get by defineJsonResponse {
+      "/getState" bind IpcMethod.GET by defineJsonResponse {
         return@defineJsonResponse getController(ipc.remote.mmid).toJsonElement()
       },
       /** 设置状态栏 */
-      "/setState" bind HttpMethod.Get by defineEmptyResponse {
+      "/setState" bind IpcMethod.GET by defineEmptyResponse {
         val controller = getController(ipc.remote.mmid)
         QueryHelper.color(request)?.also { controller.colorState.value = it }
         QueryHelper.style(request)?.also { controller.styleState.value = it }
@@ -40,7 +40,7 @@ class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb", "stat
       /**
        * 开始数据订阅
        */
-      "/observe" bind HttpMethod.Get by definePureResponse {
+      "/observe" bind IpcMethod.GET by definePureResponse {
         val inputStream = getController(ipc.remote.mmid).observer.startObserve(ipc)
         return@definePureResponse PureResponse(
           HttpStatusCode.OK, body = PureStreamBody(inputStream)

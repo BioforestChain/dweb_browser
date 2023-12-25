@@ -9,7 +9,7 @@ import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import platform.Foundation.NSData
 import platform.UIKit.UIImage
 
-class BrowserIosService(var  browserViewModel: BrowserViewModel? = null) {
+class BrowserIosService(var browserViewModel: BrowserViewModel? = null) {
   //region track mode
   var trackModel: Boolean
     get() {
@@ -40,11 +40,12 @@ class BrowserIosService(var  browserViewModel: BrowserViewModel? = null) {
   }
 
   suspend fun addHistory(title: String, url: String, icon: NSData?) {
-    val web = WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type =  WebSiteType.History)
+    val web =
+      WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type = WebSiteType.History)
     browserViewModel?.changeHistoryLink(add = web)
   }
 
-  suspend fun removeHistory(history:  Long) {
+  suspend fun removeHistory(history: Long) {
     browserViewModel?.let { vm ->
       try {
         val del = vm.getHistoryLinks().flatMap {
@@ -52,8 +53,8 @@ class BrowserIosService(var  browserViewModel: BrowserViewModel? = null) {
         }.first {
           it.id == history
         }
-        vm.changeHistoryLink(del =del )
-      } catch (e : NoSuchElementException) {
+        vm.changeHistoryLink(del = del)
+      } catch (e: NoSuchElementException) {
         println("not find")
       }
     }
@@ -65,12 +66,13 @@ class BrowserIosService(var  browserViewModel: BrowserViewModel? = null) {
   fun loadBookmarks(): MutableList<WebSiteInfo>? = browserViewModel?.getBookLinks()
 
   fun addBookmark(title: String, url: String, icon: NSData?) {
-    val web = WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type =  WebSiteType.Book)
+    val web =
+      WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type = WebSiteType.Book)
     browserViewModel?.changeBookLink(web)
   }
 
-  fun removeBookmark(bookmark:  Long) {
-    browserViewModel?.let {vm ->
+  fun removeBookmark(bookmark: Long) {
+    browserViewModel?.let { vm ->
       val del = vm.getBookLinks().first {
         it.id == bookmark
       }

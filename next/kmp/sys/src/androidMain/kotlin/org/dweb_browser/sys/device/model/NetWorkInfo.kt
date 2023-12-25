@@ -66,14 +66,16 @@ class NetWorkInfo {
   val switchOfInternet: Boolean
     get() {
       val cm =
-        NativeMicroModule.getAppContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        NativeMicroModule.getAppContext()
+          .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
       val ni = cm.activeNetworkInfo
       return ni?.isAvailable ?: false
     }
 
   val switchOfWifi: Boolean
     get() {
-      val wifi = NativeMicroModule.getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+      val wifi =
+        NativeMicroModule.getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
       return wifi.isWifiEnabled
     }
 
@@ -90,7 +92,8 @@ class NetWorkInfo {
 
   val macAddrOfWifi: String
     get() {
-      val wifi = NativeMicroModule.getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+      val wifi =
+        NativeMicroModule.getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
       return if (wifi.isWifiEnabled) {
         getWifiMacAddress()
       } else {
@@ -101,7 +104,10 @@ class NetWorkInfo {
   val macAddrOfBluetooth: String
     get() {
       return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        Settings.Secure.getString(NativeMicroModule.getAppContext().contentResolver, "bluetooth_address")
+        Settings.Secure.getString(
+          NativeMicroModule.getAppContext().contentResolver,
+          "bluetooth_address"
+        )
           ?: "01:00:00:00:00:00"
       } else {
         val bta = BluetoothAdapter.getDefaultAdapter()
@@ -125,7 +131,8 @@ class NetWorkInfo {
   private fun getEthMacAddress(): String {
     var mac = "02:00:00:00:00:00"
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) { // android 6.0 以下 基础Mac获取方法
-      val wm = NativeMicroModule.getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+      val wm =
+        NativeMicroModule.getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
       mac = wm.connectionInfo.macAddress
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
       Build.VERSION.SDK_INT < Build.VERSION_CODES.N
@@ -147,7 +154,8 @@ class NetWorkInfo {
   private fun getWifiMacAddress(): String {
     var mac = "02:00:00:00:00:00"
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) { // android 6.0 以下 基础Mac获取方法
-      val wm = NativeMicroModule.getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+      val wm =
+        NativeMicroModule.getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
       mac = wm.connectionInfo.macAddress
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
       Build.VERSION.SDK_INT < Build.VERSION_CODES.N

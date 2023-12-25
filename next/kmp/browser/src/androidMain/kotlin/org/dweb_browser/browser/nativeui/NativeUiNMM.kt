@@ -5,9 +5,9 @@ import org.dweb_browser.browser.nativeui.safeArea.SafeAreaNMM
 import org.dweb_browser.browser.nativeui.splashScreen.SplashScreenNMM
 import org.dweb_browser.browser.nativeui.statusBar.StatusBarNMM
 import org.dweb_browser.browser.nativeui.virtualKeyboard.VirtualKeyboardNMM
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 
 class NativeUiNMM : NativeMicroModule("nativeui.browser.dweb", "nativeUi") {
   init {

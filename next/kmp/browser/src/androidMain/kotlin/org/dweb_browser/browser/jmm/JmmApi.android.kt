@@ -1,9 +1,6 @@
 package org.dweb_browser.browser.jmm
 
 import android.webkit.WebView
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import org.dweb_browser.helper.withMainContext
 
 actual fun getChromeWebViewVersion(): String? {
   WebView.getCurrentWebViewPackage()?.let { webViewPackage -> // 获取当前WebView版本号

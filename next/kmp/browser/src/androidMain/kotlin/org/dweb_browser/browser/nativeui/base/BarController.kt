@@ -5,8 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import org.dweb_browser.browser.nativeui.NativeUiController
-import org.dweb_browser.helper.compose.IsChange
 import org.dweb_browser.helper.compose.ColorJson
+import org.dweb_browser.helper.compose.IsChange
 
 abstract class BarController(
   activity: ComponentActivity, nativeUiController: NativeUiController,

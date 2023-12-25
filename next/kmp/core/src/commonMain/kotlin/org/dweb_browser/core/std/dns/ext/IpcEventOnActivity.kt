@@ -1,8 +1,8 @@
 package org.dweb_browser.core.std.dns.ext
 
-import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.OnIpcEventMessage
+import org.dweb_browser.core.module.MicroModule
 
 /**
  * Activity的意义在于异步启动某些任务，而不是总在 bootstrap 的时候就全部启动

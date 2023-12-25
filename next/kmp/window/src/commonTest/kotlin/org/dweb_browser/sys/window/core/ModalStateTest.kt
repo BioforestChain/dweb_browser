@@ -10,10 +10,10 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.toUtf8
-import org.dweb_browser.sys.window.core.modal.BottomSheetsModal.Companion.createBottomSheetsModal
 import org.dweb_browser.sys.window.core.constant.WindowConstants
 import org.dweb_browser.sys.window.core.modal.AlertModal
 import org.dweb_browser.sys.window.core.modal.BottomSheetsModal
+import org.dweb_browser.sys.window.core.modal.BottomSheetsModal.Companion.createBottomSheetsModal
 import org.dweb_browser.sys.window.core.modal.ModalState
 import kotlin.test.Test
 import kotlin.test.assertContains

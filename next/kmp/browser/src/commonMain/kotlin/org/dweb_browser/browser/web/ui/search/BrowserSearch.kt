@@ -34,7 +34,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -58,7 +57,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.toRequestUrl
-import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.ui.dimenSearchHeight
 import org.dweb_browser.browser.web.ui.dimenTextFieldFontSize
 import org.dweb_browser.browser.web.ui.model.DefaultSearchWebEngine

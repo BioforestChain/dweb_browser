@@ -35,3 +35,9 @@ fun KotlinMultiplatformExtension.mobileTarget() {
 
   applyDefaultHierarchyTemplate()
 }
+
+fun KotlinMultiplatformExtension.desktopTarget() {
+  js(IR) {
+    browser()
+  }
+}

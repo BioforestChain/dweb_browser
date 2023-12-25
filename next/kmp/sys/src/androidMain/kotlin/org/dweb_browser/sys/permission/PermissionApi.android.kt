@@ -5,7 +5,6 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.permission.PermissionType
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.toJsonElement
 import java.io.Serializable
 
 actual suspend fun requestPermission(type: PermissionType): Boolean {

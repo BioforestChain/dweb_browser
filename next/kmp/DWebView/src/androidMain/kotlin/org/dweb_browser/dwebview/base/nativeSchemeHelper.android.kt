@@ -12,11 +12,11 @@ fun isSchemeAppInstalled(mContext: Context, uri: Uri): Boolean {
     val intent = Intent(Intent.ACTION_VIEW, uri)
     val list: List<ResolveInfo> = mContext.packageManager.queryIntentActivities(intent, 0)
     val possibleBrowserIntents: List<ResolveInfo> = mContext.packageManager.queryIntentActivities(
-        Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse("http://example.com/")
-        ), 0
-      )
+      Intent(
+        Intent.ACTION_VIEW,
+        Uri.parse("http://example.com/")
+      ), 0
+    )
     val excludeIntents: MutableSet<String> = HashSet()
     for (eachPossibleBrowserIntent: ResolveInfo in possibleBrowserIntents) {
       excludeIntents.add(eachPossibleBrowserIntent.activityInfo.name)
@@ -33,8 +33,8 @@ fun isSchemeAppInstalled(mContext: Context, uri: Uri): Boolean {
       // In order for this intent to be invoked, the system must directly launch a non-browser app.
       // Ref: https://developer.android.com/training/package-visibility/use-cases#avoid-a-disambiguation-dialog
       val intent = Intent(Intent.ACTION_VIEW, uri).addCategory(Intent.CATEGORY_BROWSABLE).setFlags(
-          Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER or Intent.FLAG_ACTIVITY_REQUIRE_DEFAULT
-        )
+        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER or Intent.FLAG_ACTIVITY_REQUIRE_DEFAULT
+      )
       if (intent.resolveActivity(mContext.packageManager) != null) {
         return true
       }

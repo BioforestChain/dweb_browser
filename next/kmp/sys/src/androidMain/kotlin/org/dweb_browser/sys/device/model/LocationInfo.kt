@@ -12,10 +12,10 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printError
-import org.dweb_browser.core.module.NativeMicroModule
 import java.util.Locale
 
 @Serializable
@@ -79,7 +79,8 @@ class LocationInfo : LocationListener {
 
       try {
         val locationM =
-          NativeMicroModule.getAppContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+          NativeMicroModule.getAppContext()
+            .getSystemService(Context.LOCATION_SERVICE) as LocationManager
         locationM.requestLocationUpdates(
           LocationManager.GPS_PROVIDER,
           MIN_TIME_BW_UPDATES,

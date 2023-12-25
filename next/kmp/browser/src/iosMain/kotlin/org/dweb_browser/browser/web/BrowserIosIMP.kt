@@ -23,7 +23,7 @@ class BrowserIosIMP() {
     set(value) {
       cancelViewModeObservers()
       value?.let {
-        onWinVisibleListener = it.browserOnVisible {isVisiable ->
+        onWinVisibleListener = it.browserOnVisible { isVisiable ->
           browserVisiable(isVisiable)
         }
         onWinCloseListener = it.browserOnClose {

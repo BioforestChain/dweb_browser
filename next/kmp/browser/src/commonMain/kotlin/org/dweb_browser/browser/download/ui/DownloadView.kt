@@ -51,7 +51,12 @@ fun DownloadHistory() {
           selected = index == viewModel.tabIndex.value,
           onClick = { viewModel.tabIndex.value = index },
           shape = RoundedCornerShape(16.dp),
-          icon = { Icon(imageVector = downloadTab.vector, contentDescription = downloadTab.title()) },
+          icon = {
+            Icon(
+              imageVector = downloadTab.vector,
+              contentDescription = downloadTab.title()
+            )
+          },
           label = { Text(text = downloadTab.title()) }
         )
       }

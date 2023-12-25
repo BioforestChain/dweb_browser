@@ -41,7 +41,6 @@ import org.dweb_browser.browser.util.isUrl
 import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.core.std.dns.nativeFetch
 import java.util.concurrent.Executors
 import kotlin.math.abs
 

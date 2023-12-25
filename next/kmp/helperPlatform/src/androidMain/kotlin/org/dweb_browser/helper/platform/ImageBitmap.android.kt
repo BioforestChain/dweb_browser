@@ -10,11 +10,11 @@ import java.io.ByteArrayOutputStream
 actual fun ByteArray.toImageBitmap(): ImageBitmap = toAndroidBitmap().asImageBitmap()
 
 fun ByteArray.toAndroidBitmap(): Bitmap {
-    return BitmapFactory.decodeByteArray(this, 0, size)
+  return BitmapFactory.decodeByteArray(this, 0, size)
 }
 
 actual fun ImageBitmap.toByteArray(): ByteArray? {
-    val stream = ByteArrayOutputStream()
-    this.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 95, stream)
-    return stream.toByteArray()
+  val stream = ByteArrayOutputStream()
+  this.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 95, stream)
+  return stream.toByteArray()
 }

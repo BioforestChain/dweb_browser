@@ -27,7 +27,6 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.toUtf8
 
 val debugMessagePortIpc = Debugger("message-port-ipc")
 
@@ -69,6 +68,7 @@ class MessagePort(private val port: IWebMessagePort) {
   suspend fun postMessage(data: String) {
     port.postMessage(DWebMessage.DWebMessageString(data))
   }
+
   suspend fun postMessage(data: ByteArray) {
     port.postMessage(DWebMessage.DWebMessageBytes(data))
   }
@@ -103,7 +103,7 @@ open class MessagePortIpc(
   init {
     port.onWebMessage { event ->
       val ipc = this@MessagePortIpc
-      if(event is DWebMessage.DWebMessageString) {
+      if (event is DWebMessage.DWebMessageString) {
         when (val message = jsonToIpcMessage(event.data, ipc)) {
           "close" -> close()
           "ping" -> port.postMessage("pong")
@@ -115,8 +115,8 @@ open class MessagePortIpc(
 
           else -> throw Exception("unknown message: $message")
         }
-      } else if(event is DWebMessage.DWebMessageBytes) {
-        when(event.encode) {
+      } else if (event is DWebMessage.DWebMessageBytes) {
+        when (event.encode) {
           DWebMessageBytesEncode.Normal -> when (val message = bytesToIpcMessage(event.data, ipc)) {
             closeByteArray -> close()
             pingByteArray -> port.postMessage(pongByteArray)
@@ -128,6 +128,7 @@ open class MessagePortIpc(
 
             else -> throw Exception("unknown message: $message")
           }
+
           DWebMessageBytesEncode.Cbor -> when (val message = cborToIpcMessage(event.data, ipc)) {
             closeCborByteArray -> close()
             pingCborByteArray -> port.postMessage(pongCborByteArray)
@@ -139,6 +140,7 @@ open class MessagePortIpc(
 
             else -> throw Exception("unknown message: $message")
           }
+
           else -> {}
         }
       }
@@ -151,7 +153,7 @@ open class MessagePortIpc(
   }
 
   override suspend fun _doPostMessage(data: IpcMessage) {
-    if(supportCbor) {
+    if (supportCbor) {
       val message = ipcMessageToCbor(data)
       this.port.postMessage(message)
       return

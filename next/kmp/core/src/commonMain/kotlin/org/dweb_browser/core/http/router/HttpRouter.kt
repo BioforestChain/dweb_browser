@@ -130,8 +130,6 @@ class HttpRouter(private val mm: MicroModule) {
 
 data class RouteHandler(val route: IRoute, val handler: HttpHandlerChain)
 
-infix fun String.bind(method: HttpMethod) = bind(IpcMethod.from(method))
-
 infix fun String.bind(method: IpcMethod) =
   CommonRoute(pathname = this, method = method, matchMode = MatchMode.FULL)
 

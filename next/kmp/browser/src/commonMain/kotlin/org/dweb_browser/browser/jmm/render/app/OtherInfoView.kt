@@ -38,9 +38,18 @@ internal fun OtherInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
       color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(HorizontalPadding))
-    OtherItemView(type = BrowserI18nResource.jmm_install_info_dev(), content = jmmAppInstallManifest.author.toContent())
-    OtherItemView(type = BrowserI18nResource.jmm_install_info_size(), content = jmmAppInstallManifest.bundle_size.toSpaceSize())
-    OtherItemView(type = BrowserI18nResource.jmm_install_info_type(), content = jmmAppInstallManifest.categories.print())
+    OtherItemView(
+      type = BrowserI18nResource.jmm_install_info_dev(),
+      content = jmmAppInstallManifest.author.toContent()
+    )
+    OtherItemView(
+      type = BrowserI18nResource.jmm_install_info_size(),
+      content = jmmAppInstallManifest.bundle_size.toSpaceSize()
+    )
+    OtherItemView(
+      type = BrowserI18nResource.jmm_install_info_type(),
+      content = jmmAppInstallManifest.categories.print()
+    )
     OtherItemView(type = BrowserI18nResource.jmm_install_info_language(), content = "中文")
     OtherItemView(type = BrowserI18nResource.jmm_install_info_age(), content = "18+")
     OtherItemView(

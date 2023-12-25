@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jmm
 
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
@@ -102,14 +101,14 @@ class JmmNMM :
     routes(
       // 安装
       "install" bindDwebDeeplink routeInstallHandler,
-      "/install" bind HttpMethod.Get by routeInstallHandler,
-      "/uninstall" bind HttpMethod.Get by defineBooleanResponse {
+      "/install" bind IpcMethod.GET by routeInstallHandler,
+      "/uninstall" bind IpcMethod.GET by defineBooleanResponse {
         val mmid = request.query("app_id")
         debugJMM("uninstall", "mmid=$mmid")
         jmmController.uninstall(mmid)
       },
       // app详情
-      "/detail" bind HttpMethod.Get by defineBooleanResponse {
+      "/detail" bind IpcMethod.GET by defineBooleanResponse {
         val mmid = request.query("app_id")
         debugJMM("detailApp", mmid)
         val info = store.getApp(mmid) ?: return@defineBooleanResponse false

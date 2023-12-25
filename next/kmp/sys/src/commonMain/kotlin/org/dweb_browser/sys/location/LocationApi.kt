@@ -7,7 +7,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.datetimeNow
 
 @Serializable
-data class GeolocationPositionState(val code:Int, val message:String?) {
+data class GeolocationPositionState(val code: Int, val message: String?) {
   companion object {
     val Success = GeolocationPositionState(0, "Success")
     val PERMISSION_DENIED = GeolocationPositionState(1, "permission denied")
@@ -42,7 +42,7 @@ data class GeolocationPosition(
 
   companion object {
     fun createErrorObj(state: GeolocationPositionState): GeolocationPosition {
-      return GeolocationPosition(state, GeolocationCoordinates(0.0, 0.0,0.0))
+      return GeolocationPosition(state, GeolocationCoordinates(0.0, 0.0, 0.0))
     }
   }
 }
@@ -60,7 +60,11 @@ expect class LocationApi() {
    * 监听位置信息，位置信息变化及时通知
    * 返回的Boolean表示是否正常发送，如果发送遗产，关闭监听。
    */
-  suspend fun observeLocation(mmid: MMID, fps: Int, callback: suspend (GeolocationPosition) -> Boolean)
+  suspend fun observeLocation(
+    mmid: MMID,
+    fps: Int,
+    callback: suspend (GeolocationPosition) -> Boolean
+  )
 
   /**
    * 移除定位监听

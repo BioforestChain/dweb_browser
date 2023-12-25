@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jsProcess
 
 //import org.dweb_browser.core.module.getAppContext
 //import org.dweb_browser.dwebview.engine.DWebViewEngine
-import io.ktor.http.HttpMethod
 import io.ktor.http.fullPath
 import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Mutex
@@ -17,6 +16,7 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -104,7 +104,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     routes(
       /// 创建 web worker
       // request 需要携带一个流，来为 web worker 提供代码服务
-      "/create-process" bind HttpMethod.Post by definePureStreamHandler {
+      "/create-process" bind IpcMethod.POST by definePureStreamHandler {
         debugJsProcess("create-process", ipc.remote.mmid)
         val po = ipcProcessIdMapLock.withLock {
           val processId = request.query("process_id")
@@ -134,7 +134,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         result.streamIpc.input.stream
       },
       /// 创建 web 通讯管道
-      "/create-ipc" bind HttpMethod.Get by defineNumberResponse {
+      "/create-ipc" bind IpcMethod.GET by defineNumberResponse {
         val processId = request.query("process_id")
 
         /**
@@ -151,7 +151,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         createIpc(ipc, apis, ipcProcessID, mmid)
       },
       /// 关闭process
-      "/close-all-process" bind HttpMethod.Get by defineBooleanResponse {
+      "/close-all-process" bind IpcMethod.GET by defineBooleanResponse {
         return@defineBooleanResponse closeAllProcessByIpc(
           apis, ipcProcessIdMap, ipc.remote.mmid
         ).also {
@@ -160,7 +160,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         }
       },
       // ipc 创建错误
-      "/create-ipc-fail" bind HttpMethod.Get by defineBooleanResponse {
+      "/create-ipc-fail" bind IpcMethod.GET by defineBooleanResponse {
         val processId = request.query("process_id")
         val processMap = ipcProcessIdMap[ipc.remote.mmid]?.get(processId)
         debugJsProcess("create-ipc-fail", ipc.remote.mmid)

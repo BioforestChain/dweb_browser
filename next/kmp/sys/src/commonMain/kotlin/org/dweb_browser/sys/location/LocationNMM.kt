@@ -1,10 +1,10 @@
 package org.dweb_browser.sys.location
 
-import io.ktor.http.HttpMethod
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.PermissionType
@@ -30,7 +30,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val locationApi = LocationApi()
     routes(
-      "/location" bind HttpMethod.Get by defineJsonResponse {
+      "/location" bind IpcMethod.GET by defineJsonResponse {
         debugLocation("location", "enter")
         locationApi.getCurrentLocation().toJsonElement()
       },
@@ -57,7 +57,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
           locationApi.removeLocationObserve(remoteMmid)
         }
       },
-      "/removeObserve" bind HttpMethod.Get by defineEmptyResponse {
+      "/removeObserve" bind IpcMethod.GET by defineEmptyResponse {
         debugLocation("removeObserve", "enter")
         val remoteMmid = ipc.remote.mmid
         locationApi.removeLocationObserve(remoteMmid)

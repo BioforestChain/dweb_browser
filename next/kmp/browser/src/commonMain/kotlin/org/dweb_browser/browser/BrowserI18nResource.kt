@@ -46,16 +46,18 @@ class BrowserI18nResource {
     val install_button_downloading =
       SimpleI18nResource(Language.ZH to "下载中", Language.EN to "Downloading")
     val install_button_paused = SimpleI18nResource(Language.ZH to "暂停", Language.EN to "Pause")
-    val install_button_installing = SimpleI18nResource(Language.ZH to "安装中", Language.EN to "Install")
+    val install_button_installing =
+      SimpleI18nResource(Language.ZH to "安装中", Language.EN to "Install")
     val install_button_open = SimpleI18nResource(Language.ZH to "打开", Language.EN to "Open")
-    val install_button_retry = SimpleI18nResource(Language.ZH to "重载失效资源", Language.EN to "Retry")
+    val install_button_retry =
+      SimpleI18nResource(Language.ZH to "重载失效资源", Language.EN to "Retry")
     val install_button_retry2 = SimpleI18nResource(Language.ZH to "重试", Language.EN to "Retry")
     val install_button_incompatible = SimpleI18nResource(
       Language.ZH to "该软件与您的设备不兼容",
       Language.EN to "The software is not compatible with your device"
     )
     val no_download_links = SimpleI18nResource(
-        Language.ZH to "暂无下载数据", Language.EN to "There are no download links yet",
+      Language.ZH to "暂无下载数据", Language.EN to "There are no download links yet",
     )
     val no_apps_data = SimpleI18nResource(
       Language.ZH to "没有应用数据", Language.EN to "There are no Apps",
@@ -104,46 +106,72 @@ class BrowserI18nResource {
     val privacy_button_exit = SimpleI18nResource(Language.ZH to "退出", Language.EN to "Exit")
     val privacy_button_i_know = SimpleI18nResource(Language.ZH to "已知晓", Language.EN to "I Know")
 
-    val browser_search_engine = SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engine")
+    val browser_search_engine =
+      SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engine")
     val browser_search_title = SimpleI18nResource(Language.ZH to "搜索", Language.EN to "Search")
     val browser_search_cancel = SimpleI18nResource(Language.ZH to "取消", Language.EN to "Cancel")
-    val browser_search_hint = SimpleI18nResource(Language.ZH to "搜索或输入网址", Language.EN to "Search or Input Website")
+    val browser_search_hint =
+      SimpleI18nResource(Language.ZH to "搜索或输入网址", Language.EN to "Search or Input Website")
     val browser_empty_list = SimpleI18nResource(Language.ZH to "暂无数据", Language.EN to "No Data")
-    val browser_options_editBook = SimpleI18nResource(Language.ZH to "编辑书签", Language.EN to "Edit Book")
+    val browser_options_editBook =
+      SimpleI18nResource(Language.ZH to "编辑书签", Language.EN to "Edit Book")
     val browser_options_store = SimpleI18nResource(Language.ZH to "存储", Language.EN to "Store")
     val browser_options_delete = SimpleI18nResource(Language.ZH to "删除", Language.EN to "Delete")
-    val browser_options_addToBook = SimpleI18nResource(Language.ZH to "添加到书签", Language.EN to "Add To Book")
+    val browser_options_addToBook =
+      SimpleI18nResource(Language.ZH to "添加到书签", Language.EN to "Add To Book")
     val browser_options_share = SimpleI18nResource(Language.ZH to "分享", Language.EN to "Share")
-    val browser_options_noTrace = SimpleI18nResource(Language.ZH to "无痕浏览", Language.EN to "NoTrace")
-    val browser_options_privacy = SimpleI18nResource(Language.ZH to "隐私政策", Language.EN to "Privacy Policy")
+    val browser_options_noTrace =
+      SimpleI18nResource(Language.ZH to "无痕浏览", Language.EN to "NoTrace")
+    val browser_options_privacy =
+      SimpleI18nResource(Language.ZH to "隐私政策", Language.EN to "Privacy Policy")
     val browser_multi_count = SimpleI18nResource(Language.ZH to "个标签页", Language.EN to "tabs")
     val browser_multi_done = SimpleI18nResource(Language.ZH to "完成", Language.EN to "Done")
     val browser_multi_startup = SimpleI18nResource(Language.ZH to "起始页", Language.EN to "Start")
-    val browser_multi_no_title = SimpleI18nResource(Language.ZH to "无标题", Language.EN to "No Title")
+    val browser_multi_no_title =
+      SimpleI18nResource(Language.ZH to "无标题", Language.EN to "No Title")
 
-    val toast_message_add_book = SimpleI18nResource(Language.ZH to "添加书签成功", Language.EN to "Add Book Success")
-    val toast_message_add_book_invalid = SimpleI18nResource(Language.ZH to "无效链接", Language.EN to "Not Invalid Link")
-    val toast_message_remove_book = SimpleI18nResource(Language.ZH to "移除书签成功", Language.EN to "Remove Book Success")
-    val toast_message_update_book = SimpleI18nResource(Language.ZH to "修改书签成功", Language.EN to "Change Book Success")
-    val toast_message_remove_history = SimpleI18nResource(Language.ZH to "移除历史记录成功", Language.EN to "Remove History Success")
-    val toast_message_add_desk_success = SimpleI18nResource(Language.ZH to "添加到桌面成功", Language.EN to "Add to Desktop Success")
-    val toast_message_add_desk_exist = SimpleI18nResource(Language.ZH to "桌面已存在该链接", Language.EN to "Desktop Already Exist The Link")
-    val toast_message_download_unzip_fail = SimpleI18nResource(Language.ZH to "安装失败", Language.EN to "Installed Fail")
-    val toast_message_download_download_fail = SimpleI18nResource(Language.ZH to "下载失败", Language.EN to "Download Fail")
+    val toast_message_add_book =
+      SimpleI18nResource(Language.ZH to "添加书签成功", Language.EN to "Add Book Success")
+    val toast_message_add_book_invalid =
+      SimpleI18nResource(Language.ZH to "无效链接", Language.EN to "Not Invalid Link")
+    val toast_message_remove_book =
+      SimpleI18nResource(Language.ZH to "移除书签成功", Language.EN to "Remove Book Success")
+    val toast_message_update_book =
+      SimpleI18nResource(Language.ZH to "修改书签成功", Language.EN to "Change Book Success")
+    val toast_message_remove_history =
+      SimpleI18nResource(Language.ZH to "移除历史记录成功", Language.EN to "Remove History Success")
+    val toast_message_add_desk_success =
+      SimpleI18nResource(Language.ZH to "添加到桌面成功", Language.EN to "Add to Desktop Success")
+    val toast_message_add_desk_exist = SimpleI18nResource(
+      Language.ZH to "桌面已存在该链接",
+      Language.EN to "Desktop Already Exist The Link"
+    )
+    val toast_message_download_unzip_fail =
+      SimpleI18nResource(Language.ZH to "安装失败", Language.EN to "Installed Fail")
+    val toast_message_download_download_fail =
+      SimpleI18nResource(Language.ZH to "下载失败", Language.EN to "Download Fail")
 
-    val jmm_history_tab_installed = SimpleI18nResource(Language.ZH to "已安装", Language.EN to "Installed")
-    val jmm_history_tab_uninstalled = SimpleI18nResource(Language.ZH to "未安装", Language.EN to "No Install")
+    val jmm_history_tab_installed =
+      SimpleI18nResource(Language.ZH to "已安装", Language.EN to "Installed")
+    val jmm_history_tab_uninstalled =
+      SimpleI18nResource(Language.ZH to "未安装", Language.EN to "No Install")
     val jmm_install_version = SimpleI18nResource(Language.ZH to "版本", Language.EN to "version")
-    val jmm_install_introduction = SimpleI18nResource(Language.ZH to "应用介绍", Language.EN to "Introduction")
-    val jmm_install_update_log = SimpleI18nResource(Language.ZH to "更新日志", Language.EN to "Update Log")
+    val jmm_install_introduction =
+      SimpleI18nResource(Language.ZH to "应用介绍", Language.EN to "Introduction")
+    val jmm_install_update_log =
+      SimpleI18nResource(Language.ZH to "更新日志", Language.EN to "Update Log")
     val jmm_install_info = SimpleI18nResource(Language.ZH to "信息", Language.EN to "Info")
-    val jmm_install_info_dev = SimpleI18nResource(Language.ZH to "开发者", Language.EN to "Developer")
+    val jmm_install_info_dev =
+      SimpleI18nResource(Language.ZH to "开发者", Language.EN to "Developer")
     val jmm_install_info_size = SimpleI18nResource(Language.ZH to "大小", Language.EN to "Size")
     val jmm_install_info_type = SimpleI18nResource(Language.ZH to "类别", Language.EN to "Type")
-    val jmm_install_info_language = SimpleI18nResource(Language.ZH to "语言", Language.EN to "Language")
+    val jmm_install_info_language =
+      SimpleI18nResource(Language.ZH to "语言", Language.EN to "Language")
     val jmm_install_info_age = SimpleI18nResource(Language.ZH to "年龄", Language.EN to "Age")
-    val jmm_install_info_copyright = SimpleI18nResource(Language.ZH to "版权", Language.EN to "CopyRight")
+    val jmm_install_info_copyright =
+      SimpleI18nResource(Language.ZH to "版权", Language.EN to "CopyRight")
     val jmm_history_details = SimpleI18nResource(Language.ZH to "详情", Language.EN to "Details")
-    val jmm_history_uninstall = SimpleI18nResource(Language.ZH to "卸载", Language.EN to "Uninstall")
+    val jmm_history_uninstall =
+      SimpleI18nResource(Language.ZH to "卸载", Language.EN to "Uninstall")
   }
 }

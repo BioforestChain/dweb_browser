@@ -12,10 +12,10 @@ import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.dweb_browser.browser.nativeui.NativeUiController
 import org.dweb_browser.browser.nativeui.base.BarController
-import org.dweb_browser.helper.android.InsetsJson
-import org.dweb_browser.helper.android.toJsonAble
 import org.dweb_browser.browser.nativeui.helper.debugNativeUi
 import org.dweb_browser.browser.nativeui.helper.toWindowsInsets
+import org.dweb_browser.helper.android.InsetsJson
+import org.dweb_browser.helper.android.toJsonAble
 import org.dweb_browser.helper.compose.ColorJson
 import org.dweb_browser.helper.compose.toJsonAble
 
@@ -56,7 +56,7 @@ class NavigationBarController(
 
       it.HandleChange {
         debugNativeUi("NavigationBar", "CHANGED")
-        LaunchedEffect(Unit){
+        LaunchedEffect(Unit) {
           observer.notifyObserver()
         }
       }

@@ -24,7 +24,7 @@ data class WebSiteInfo(
 ) {
   @Transient
   var iconImage: ImageBitmap? = null
-    get() =  icon?.toImageBitmap() ?: null
+    get() = icon?.toImageBitmap() ?: null
 }
 
 @Composable

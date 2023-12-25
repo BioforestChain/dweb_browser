@@ -13,9 +13,9 @@
 ## 注解
 
 1. UserActivation 参考资料: https://developer.mozilla.org/en-US/docs/Web/API/UserActivation。
-    1.
+  1.
    目前Android基本可用，IOS则是需要到16.2后才能使用。目前网络上暂无找到polyfill，因为需要自行实现，实现所需参考资料：https://html.spec.whatwg.org/multipage/interaction.html#tracking-user-activation
-    2. 但是不论是Android和IOS，"消耗用户激活"
-       这个接口是没有直接提供的，但是官方文档有给出一些其它能够消耗该状态的接口：https://developer.mozilla.org/en-US/docs/Web/Security/User_activation#sticky_activation
-        1. 经过测试，window.open 可能是目前唯一可用的选择。因此我们需要监听各个平台的 open
-           回调，来消耗 `navigator.userActivation.isActive`
+  2. 但是不论是Android和IOS，"消耗用户激活"
+     这个接口是没有直接提供的，但是官方文档有给出一些其它能够消耗该状态的接口：https://developer.mozilla.org/en-US/docs/Web/Security/User_activation#sticky_activation
+    1. 经过测试，window.open 可能是目前唯一可用的选择。因此我们需要监听各个平台的 open
+       回调，来消耗 `navigator.userActivation.isActive`

@@ -9,7 +9,11 @@ import kotlinx.coroutines.flow.asFlow
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.PromiseOut
 
-actual suspend fun share(shareOptions: ShareOptions, multiPartData: MultiPartData?, shareNMM: NativeMicroModule?): String {
+actual suspend fun share(
+  shareOptions: ShareOptions,
+  multiPartData: MultiPartData?,
+  shareNMM: NativeMicroModule?
+): String {
   val files = mutableListOf<String>()
   multiPartData?.forEachPart { partData ->
     when (partData) {
@@ -34,7 +38,11 @@ actual suspend fun share(shareOptions: ShareOptions, multiPartData: MultiPartDat
   return share(shareOptions, files, shareNMM)
 }
 
-actual suspend fun share(shareOptions: ShareOptions, files: List<String>, shareNMM: NativeMicroModule?): String {
+actual suspend fun share(
+  shareOptions: ShareOptions,
+  files: List<String>,
+  shareNMM: NativeMicroModule?
+): String {
   ShareController.controller.openActivity()
   ShareController.controller.waitActivityResultLauncherCreated()
 

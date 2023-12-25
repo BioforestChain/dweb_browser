@@ -5,7 +5,6 @@ import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray

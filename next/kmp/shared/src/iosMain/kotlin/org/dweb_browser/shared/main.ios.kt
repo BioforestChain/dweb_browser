@@ -58,6 +58,7 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
       dnsNMM.nativeFetch(it)
     }
   }
+
   suspend fun MicroModule.setup() = this.also {
     dnsNMM.install(this)
   }

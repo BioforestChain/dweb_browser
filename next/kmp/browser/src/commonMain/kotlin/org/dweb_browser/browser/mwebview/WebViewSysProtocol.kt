@@ -2,9 +2,9 @@ package org.dweb_browser.browser.mwebview
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalDensity
-import io.ktor.http.HttpMethod
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -15,7 +15,7 @@ suspend fun MultiWebViewNMM.webViewSysProtocol() {
 
     routes(
       /// 提供句柄与链接，将链接进行渲染
-      "/open" bind HttpMethod.Post by defineEmptyResponse {
+      "/open" bind IpcMethod.POST by defineEmptyResponse {
         val rid = request.query("rid")
         val url = request.query("url")
         val wid = request.query("wid")

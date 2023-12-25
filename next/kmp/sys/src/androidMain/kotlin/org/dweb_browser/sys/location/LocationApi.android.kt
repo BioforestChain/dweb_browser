@@ -87,7 +87,11 @@ actual class LocationApi : LocationCallback() {
     return promiseOut.waitPromise()
   }
 
-  actual suspend fun observeLocation(mmid: MMID, fps: Int, callback: suspend (GeolocationPosition) -> Boolean) {
+  actual suspend fun observeLocation(
+    mmid: MMID,
+    fps: Int,
+    callback: suspend (GeolocationPosition) -> Boolean
+  ) {
     val promiseOut = PromiseOut<Boolean>()
     list.add(promiseOut)
     val off = onLocationChanged { location ->

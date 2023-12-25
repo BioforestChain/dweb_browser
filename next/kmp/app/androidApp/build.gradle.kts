@@ -1,6 +1,4 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
-import com.android.build.api.dsl.ApplicationExtension
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
   id("multiplatform-compose")

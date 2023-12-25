@@ -13,7 +13,7 @@ suspend fun <T> debounce(
 /**
  * 将Long转为带单位的空间值，如1.11 MB
  */
-fun Long.toSpaceSize() : String {
+fun Long.toSpaceSize(): String {
   val GB = 1024 * 1024 * 1024 // 定义GB的计算常量
   val MB = 1024 * 1024 // 定义MB的计算常量
   val KB = 1024 // 定义KB的计算常量

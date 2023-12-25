@@ -1,6 +1,5 @@
 package org.dweb_browser.core.std.dns
 
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
 import io.ktor.server.plugins.NotFoundException
@@ -301,21 +300,21 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     /// 定义路由功能
     routes("open" bindDwebDeeplink openApp,
       // 打开应用
-      "/open" bind HttpMethod.Get by openApp,
+      "/open" bind IpcMethod.GET by openApp,
       // 关闭应用
       // TODO 能否关闭一个应该应该由应用自己决定
-      "/close" bind HttpMethod.Get by defineBooleanResponse {
+      "/close" bind IpcMethod.GET by defineBooleanResponse {
         val mmid = request.queryAppId()
         debugDNS("close/$mmid", request.url.fullPath)
         close(mmid)
         true
       },
       //
-      "/query" bind HttpMethod.Get by defineJsonResponse {
+      "/query" bind IpcMethod.GET by defineJsonResponse {
         val mmid = request.queryAppId()
         query(mmid, ipc.remote)?.toManifest()?.toJsonElement() ?: JsonNull
       },
-      "/search" bind HttpMethod.Get by defineJsonResponse {
+      "/search" bind IpcMethod.GET by defineJsonResponse {
         val category = request.queryCategory()
         val manifests = mutableListOf<CommonAppManifest>()
         search(category as MICRO_MODULE_CATEGORY).map { app ->

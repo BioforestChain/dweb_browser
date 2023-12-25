@@ -1,7 +1,6 @@
 package org.dweb_browser.sys.window.render
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.ExperimentalComposeUiApi
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 

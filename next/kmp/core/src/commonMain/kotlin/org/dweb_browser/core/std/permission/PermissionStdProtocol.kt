@@ -1,6 +1,5 @@
 package org.dweb_browser.core.std.permission
 
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureClientRequest
@@ -158,7 +157,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
        * 服务者 查询权限的授权情况。
        * 这里只能查询“模块自己定义的权限”
        */
-      "/query" bind HttpMethod.Get by defineJsonResponse {
+      "/query" bind IpcMethod.GET by defineJsonResponse {
         debugPermission("query", "enter")
         request.mapOfPermissions { permission ->
           permissionTable.query(ipc.remote.mmid, permission)
@@ -168,7 +167,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
        * 请求者 检查权限的状态。
        * 这里只能检查“请求者的权限状态”，无法查询其它模块的状态
        */
-      "/check" bind HttpMethod.Get by defineJsonResponse {
+      "/check" bind IpcMethod.GET by defineJsonResponse {
         debugPermission("check", "enter")
         request.mapOfPermissions { permission ->
           permissionTable.check(ipc.remote.mmid, permission)
@@ -177,7 +176,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
       /**
        * 请求者 申请权限
        */
-      "/request" bind HttpMethod.Get by defineJsonResponse {
+      "/request" bind IpcMethod.GET by defineJsonResponse {
         debugPermission("request", "enter")
         /**
          * 需要通过hooks询问结果的
@@ -224,7 +223,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
        * 服务者 撤销授权记录
        * 这样会导致下一次调用强制询问的发生
        */
-      "/delete" bind HttpMethod.Get by defineJsonResponse {
+      "/delete" bind IpcMethod.GET by defineJsonResponse {
         debugPermission("delete", "enter")
         val providerMmid = ipc.remote.mmid
         val applicantMmid = request.query("mmid")

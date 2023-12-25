@@ -8,6 +8,7 @@ import platform.UIKit.UIView
 
 fun UIView.setScale(scale: Float) = setScale(scale.toDouble())
 fun UIView.setScale(scale: CGFloat) = setScale(scale, scale)
+
 @OptIn(ExperimentalForeignApi::class)
 fun UIView.setScale(scaleX: CGFloat, scaleY: CGFloat) {
   val frame = frame;

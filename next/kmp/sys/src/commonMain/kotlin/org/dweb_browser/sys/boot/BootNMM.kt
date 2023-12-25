@@ -1,14 +1,14 @@
 package org.dweb_browser.sys.boot
 
-import io.ktor.http.HttpMethod
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.module.Router
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.Router
 import org.dweb_browser.core.std.dns.ext.onActivity
+import org.dweb_browser.helper.printDebug
 
 fun debugBoot(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("boot", tag, msg, err)
@@ -34,9 +34,9 @@ class BootNMM(initMmids: List<MMID>? = null) :
 
   override val routers: Router = mutableMapOf()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes("/register" bind HttpMethod.Get by defineBooleanResponse {
+    routes("/register" bind IpcMethod.GET by defineBooleanResponse {
       register(ipc.remote.mmid)
-    }, "/unregister" bind HttpMethod.Get by defineBooleanResponse {
+    }, "/unregister" bind IpcMethod.GET by defineBooleanResponse {
       unregister(ipc.remote.mmid)
     })
     for (mmid in registeredMmids) {

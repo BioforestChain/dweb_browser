@@ -353,7 +353,7 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
       // 这里默认使用 safeGestures ，因为它只包含底部导航栏的高度，是稳定的
       bottomThemeHeight,
       windowFrameSize,
-    ) else max(bottomThemeHeight, windowFrameSize,safeAreaInsetBottom)
+    ) else max(bottomThemeHeight, windowFrameSize, safeAreaInsetBottom)
     /**
      * 即便是最大化模式下，我们仍然需要有一个强调边框。
      * 这个边框存在的意义有：

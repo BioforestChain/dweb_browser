@@ -1,9 +1,9 @@
 package org.dweb_browser.sys.biometrics
 
-import io.ktor.http.HttpMethod
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.queryAs
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.printDebug
@@ -21,7 +21,7 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(/** 检查识别支持生物识别*/
-      "/check" bind HttpMethod.Get by defineBooleanResponse {
+      "/check" bind IpcMethod.GET by defineBooleanResponse {
         val type = request.queryOrNull("type") ?: ""
         val biometricsData = request.queryAs<BiometricsData>()
         debugBiometrics("check", "type=$type, data=$biometricsData")
@@ -30,7 +30,7 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
         )
       },
       /** 生物识别*/
-      "/biometrics" bind HttpMethod.Get by defineJsonResponse {
+      "/biometrics" bind IpcMethod.GET by defineJsonResponse {
         val biometricsResult = BiometricsApi.biometricsResultContent(this@BiometricsNMM)
         debugBiometrics("biometrics", biometricsResult.toJsonElement())
         return@defineJsonResponse biometricsResult.toJsonElement()

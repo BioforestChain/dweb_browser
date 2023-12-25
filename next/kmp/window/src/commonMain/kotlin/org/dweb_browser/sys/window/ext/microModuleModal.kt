@@ -1,7 +1,6 @@
 package org.dweb_browser.sys.window.ext
 
 
-import io.ktor.http.HttpMethod
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -9,16 +8,17 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.decodeTo
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.core.modal.AlertModal.Companion.createAlertModal
 import org.dweb_browser.sys.window.core.modal.BottomSheetsModal.Companion.createBottomSheetsModal
 import org.dweb_browser.sys.window.core.modal.ModalCallback
-import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.core.modal.WindowAlertController
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -44,7 +44,7 @@ suspend fun NativeMicroModule.createBottomSheets(
   val callbackUrlId = randomUUID()
   val callbackUrlPathname = "/internal/callback/bottom-sheets/$callbackUrlId"
   val onCallback = MutableSharedFlow<ModalCallback>()
-  callbackRouter.addRoutes(callbackUrlPathname bind HttpMethod.Post by defineEmptyResponse {
+  callbackRouter.addRoutes(callbackUrlPathname bind IpcMethod.POST by defineEmptyResponse {
     onCallback.emit(request.body.toPureString().decodeTo())
   });
 
@@ -81,7 +81,7 @@ suspend fun NativeMicroModule.createAlert(
   val callbackUrlId = randomUUID()
   val callbackUrlPathname = "/internal/callback/alert/$callbackUrlId"
   val onCallback = MutableSharedFlow<ModalCallback>()
-  val callbackRouter = routes(callbackUrlPathname bind HttpMethod.Post by defineEmptyResponse {
+  val callbackRouter = routes(callbackUrlPathname bind IpcMethod.POST by defineEmptyResponse {
     onCallback.emit(request.body.toPureString().decodeTo())
   });
 

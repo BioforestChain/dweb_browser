@@ -1,9 +1,9 @@
 package info.bagen.dwebbrowser
 
 import kotlinx.coroutines.runBlocking
+import org.dweb_browser.core.std.file.ext.MicroModuleStore
 import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.toUtf8ByteArray
-import org.dweb_browser.core.std.file.ext.MicroModuleStore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.clipboard
 
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -9,6 +8,7 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.printDebug
@@ -37,7 +37,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(/** 读取剪切板*/
-      "/read" bind HttpMethod.Get by definePureResponse {
+      "/read" bind IpcMethod.GET by definePureResponse {
         val read = read()
         debugClipboard("/read", read)
         PureResponse(HttpStatusCode.OK, body = PureStringBody(read))
@@ -46,7 +46,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
        * 写入剪切板
        * fetch("file://clipboard.sys.dweb/write?xxx=xxx")
        * */
-      "/write" bind HttpMethod.Get by defineBooleanResponse {
+      "/write" bind IpcMethod.GET by defineBooleanResponse {
 
         val string = request.queryOrNull("string")
         val image = request.queryOrNull("image")

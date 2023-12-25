@@ -6,8 +6,8 @@ import android.content.pm.PackageManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.getAppContext
 
 @Serializable
 data class AppData(

@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import org.jetbrains.skia.Image
 
 actual fun ByteArray.toImageBitmap(): ImageBitmap =
-    Image.makeFromEncoded(this).toComposeImageBitmap()
+  Image.makeFromEncoded(this).toComposeImageBitmap()
 
 actual fun ImageBitmap.toByteArray(): ByteArray? =
-    Image.makeFromBitmap(this.asSkiaBitmap()).encodeToData()?.bytes
+  Image.makeFromBitmap(this.asSkiaBitmap()).encodeToData()?.bytes

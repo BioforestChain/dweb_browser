@@ -87,7 +87,7 @@ class TaskbarController private constructor(
           apps.add(0, mmid) // 追加到第一个
         }
         for (remove in map.removes) {
-            apps.remove(remove)
+          apps.remove(remove)
         }
         // 只展示4个，结合返回桌面的一个tarBar有5个图标
         if (apps.size > 4) {

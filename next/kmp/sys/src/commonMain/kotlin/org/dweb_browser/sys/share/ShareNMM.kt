@@ -1,7 +1,6 @@
 package org.dweb_browser.sys.share
 
 import io.ktor.http.ContentType
-import io.ktor.http.HttpMethod
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -64,7 +63,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 分享*/
-      "/share" bind HttpMethod.Post by defineJsonResponse {
+      "/share" bind IpcMethod.POST by defineJsonResponse {
         val contentType =
           request.headers.get("Content-Type")?.let { ContentType.parse(it) } ?: ContentType.Any
 

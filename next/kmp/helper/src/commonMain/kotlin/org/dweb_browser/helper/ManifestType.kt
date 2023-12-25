@@ -58,7 +58,8 @@ data class StrictImageResource(
 ) {
   companion object {
     fun from(img: ImageResource, baseUrl: String? = null): StrictImageResource {
-      val imgUrl = if (baseUrl != null) URLBuilder(baseUrl).takeFrom(img.src).build() else Url(img.src)
+      val imgUrl =
+        if (baseUrl != null) URLBuilder(baseUrl).takeFrom(img.src).build() else Url(img.src)
       var imageType = img.type
       if (imageType == null) {
         // path的获取解析可能会失败

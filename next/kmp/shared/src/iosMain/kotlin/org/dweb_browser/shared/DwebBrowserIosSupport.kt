@@ -8,7 +8,7 @@ public object DwebBrowserIosSupport {
 
   var browserService = browserIosService
 
-  fun registerIosService(imp: IosInterface)  {
+  fun registerIosService(imp: IosInterface) {
     registerIosIMP(imp)
   }
 }

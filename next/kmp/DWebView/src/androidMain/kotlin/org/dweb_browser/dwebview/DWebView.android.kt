@@ -70,12 +70,14 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
         }
       }
     }
+
     init {
       CoroutineScope(ioAsyncExceptionHandler).launch {
         prepare()
       }
     }
   }
+
   init {
     engine.remoteMM.onAfterShutdown {
       destroy()

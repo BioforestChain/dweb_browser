@@ -29,37 +29,39 @@
 @interface SwiftTryCatch : NSObject
 
 
-
 /**
  Provides try catch functionality for swift by wrapping around Objective-C
  */
-+ (void)tryBlock:(void(^)(void))tryBlock catchBlock:(void(^)(NSException*exception))catchBlock finallyBlock:(void(^)(void))finallyBlock;
++ (void)                                       tryBlock:(void (^)(
+        void))tryBlock                       catchBlock:(void (^)(
+        NSException *exception))catchBlock finallyBlock:(void (^)(void))finallyBlock;
 
-+ (void)tryBlock:(void(^)(void))tryBlock catchError:(void(^)(NSError*error))catchError finallyBlock:(void(^)(void))finallyBlock;
++ (void)                               tryBlock:(void (^)(void))tryBlock catchError:(void (^)(
+        NSError *error))catchError finallyBlock:(void (^)(void))finallyBlock;
 
 
-+ (void)throwString:(NSString*)s;
-+ (void)throwException:(NSException*)e;
++ (void)throwString:(NSString *)s;
+
++ (void)throwException:(NSException *)e;
 
 
 @end
 
-@interface NSException ( SwiftTryCatch )
-- (NSError *) toError;
+@interface NSException (SwiftTryCatch)
+- (NSError *)toError;
 @end
 
 
 @interface ObjC : NSObject
 
-+ (BOOL)catchException:(void(^)(void))tryBlock error:(__autoreleasing NSError **)error;
++ (BOOL)catchException:(void (^)(void))tryBlock error:(__autoreleasing NSError **)error;
 
 @end
 
 
-
-@implementation NSException ( SwiftTryCatch )
-- (NSError *) toError {
-    NSMutableDictionary * info = [NSMutableDictionary dictionary];
+@implementation NSException (SwiftTryCatch)
+- (NSError *)toError {
+    NSMutableDictionary *info = [NSMutableDictionary dictionary];
     [info setValue:self.name forKey:@"MONExceptionName"];
     [info setValue:self.reason forKey:@"MONExceptionReason"];
     [info setValue:self.callStackReturnAddresses forKey:@"MONExceptionCallStackReturnAddresses"];
@@ -72,7 +74,7 @@
 
 @implementation ObjC
 
-+ (BOOL)catchException:(void(^)(void))tryBlock error:(__autoreleasing NSError **)error {
++ (BOOL)catchException:(void (^)(void))tryBlock error:(__autoreleasing NSError **)error {
     @try {
         tryBlock();
         return YES;
@@ -93,11 +95,13 @@
 /**
  Provides try catch functionality for swift by wrapping around Objective-C
  */
-+ (void)tryBlock:(void(^)(void))tryBlock catchBlock:(void(^)(NSException*exception))catchBlock finallyBlock:(void(^)(void))finallyBlock {
++ (void)                                       tryBlock:(void (^)(
+        void))tryBlock                       catchBlock:(void (^)(
+        NSException *exception))catchBlock finallyBlock:(void (^)(void))finallyBlock {
     @try {
         tryBlock ? tryBlock() : nil;
     }
-    
+
     @catch (NSException *exception) {
         catchBlock ? catchBlock(exception) : nil;
     }
@@ -106,12 +110,13 @@
     }
 }
 
-+ (void)tryBlock:(void(^)(void))tryBlock catchError:(void(^)(NSError*error))catchError finallyBlock:(void(^)(void))finallyBlock {
++ (void)                               tryBlock:(void (^)(void))tryBlock catchError:(void (^)(
+        NSError *error))catchError finallyBlock:(void (^)(void))finallyBlock {
     @try {
         tryBlock ? tryBlock() : nil;
     }
     @catch (NSException *exception) {
-        NSError* e = nil;
+        NSError *e = nil;
         //e = exception.toError()
         catchError ? catchError(e) : nil;
         //catchError ? catchError() : nil;
@@ -121,16 +126,13 @@
     }
 }
 
-+ (void)throwString:(NSString*)s
-{
-	@throw [NSException exceptionWithName:s reason:s userInfo:nil];
++ (void)throwString:(NSString *)s {
+    @throw [NSException exceptionWithName:s reason:s userInfo:nil];
 }
 
-+ (void)throwException:(NSException*)e
-{
-	@throw e;
++ (void)throwException:(NSException *)e {
+    @throw e;
 }
-
 
 
 @end

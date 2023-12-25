@@ -134,7 +134,8 @@ class DeviceInfo {
    */
   val enableZenMode: Boolean
     get() {
-      var zenMode = Settings.Global.getInt(NativeMicroModule.getAppContext().contentResolver, "zen_mode", 0)
+      var zenMode =
+        Settings.Global.getInt(NativeMicroModule.getAppContext().contentResolver, "zen_mode", 0)
       return zenMode == 1
     }
 
@@ -148,7 +149,8 @@ class DeviceInfo {
     get() {
       AudioManager.RINGER_MODE_NORMAL
       AudioManager.RINGER_MODE_NORMAL
-      var am = NativeMicroModule.getAppContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
+      var am =
+        NativeMicroModule.getAppContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
       return am.ringerMode
     }
 }

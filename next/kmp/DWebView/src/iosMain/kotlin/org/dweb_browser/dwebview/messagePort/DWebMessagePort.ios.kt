@@ -53,7 +53,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
 
   override suspend fun postMessage(event: DWebMessage) {
     withMainContext {
-      if(event is DWebMessage.DWebMessageBytes) {
+      if (event is DWebMessage.DWebMessageBytes) {
         val ports = event.ports.map {
           require(it is DWebMessagePort)
           it.portId
@@ -61,11 +61,11 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
         webview.engine.evalAsyncJavascript<Unit>(
           "nativePortPostMessage($portId, ${
             Json.encodeToString(
-              event.data.toUtf8() 
+              event.data.toUtf8()
             )
           }, [$ports])", null, DWebViewWebMessage.webMessagePortContentWorld
         ).await()
-      } else if(event is DWebMessage.DWebMessageString) {
+      } else if (event is DWebMessage.DWebMessageString) {
         val ports = event.ports.map {
           require(it is DWebMessagePort)
           it.portId

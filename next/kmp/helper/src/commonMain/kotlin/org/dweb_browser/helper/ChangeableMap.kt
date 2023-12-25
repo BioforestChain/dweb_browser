@@ -65,7 +65,7 @@ class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
     super.remove(key)?.also { emitChangeBackground(removes = setOf(key)) }
 
   fun remove(key: K, value: V) =
-    (this as MutableMap<K,V>).remove(key,value)
+    (this as MutableMap<K, V>).remove(key, value)
 
   fun delete(key: K) = remove(key) != null
 

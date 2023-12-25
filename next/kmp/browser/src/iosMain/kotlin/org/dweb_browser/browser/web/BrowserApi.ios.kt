@@ -2,7 +2,6 @@ package org.dweb_browser.browser.web
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -10,10 +9,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.util.isUrl
-
-import org.dweb_browser.browser.util.isUrlOrHost
-import org.dweb_browser.browser.web.ui.bottomsheet.SheetState
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.sys.window.core.WindowRenderScope

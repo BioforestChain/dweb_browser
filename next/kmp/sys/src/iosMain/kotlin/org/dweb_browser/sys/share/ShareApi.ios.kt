@@ -14,7 +14,11 @@ import platform.Foundation.NSData
 import platform.Foundation.NSURL
 import platform.UIKit.UIActivityViewController
 
-actual suspend fun share(shareOptions: ShareOptions, multiPartData: MultiPartData?, shareNMM: NativeMicroModule?): String {
+actual suspend fun share(
+  shareOptions: ShareOptions,
+  multiPartData: MultiPartData?,
+  shareNMM: NativeMicroModule?
+): String {
 
   return withMainContext {
     val files = multiPartData?.let {
@@ -47,7 +51,8 @@ actual suspend fun share(shareOptions: ShareOptions, multiPartData: MultiPartDat
     shareOptions.url?.also { activityItems.add(it.toNSString()) }
     files?.also { activityItems.add(it) }
 
-    val controller = UIActivityViewController(activityItems = activityItems, applicationActivities = null)
+    val controller =
+      UIActivityViewController(activityItems = activityItems, applicationActivities = null)
 
     if (shareNMM != null) {
       shareNMM.getUIApplication().keyWindow?.rootViewController?.presentViewController(
@@ -83,7 +88,8 @@ actual suspend fun share(
     files.forEach {
       activityItems.add(NSURL.fileURLWithPath(it))
     }
-    val controller = UIActivityViewController(activityItems = activityItems, applicationActivities = null)
+    val controller =
+      UIActivityViewController(activityItems = activityItems, applicationActivities = null)
 
     if (shareNMM != null) {
       shareNMM.getUIApplication().keyWindow?.rootViewController?.presentViewController(

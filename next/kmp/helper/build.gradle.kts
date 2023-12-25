@@ -1,5 +1,6 @@
 plugins {
-  id("mobile-target")}
+  id("mobile-target")
+}
 
 kotlin {
   sourceSets.commonMain.dependencies {

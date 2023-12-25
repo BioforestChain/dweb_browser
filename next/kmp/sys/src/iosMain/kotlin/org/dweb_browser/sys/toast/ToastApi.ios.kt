@@ -44,15 +44,19 @@ actual suspend fun showToast(text: String, durationType: DurationType, positionT
         PositionType.BOTTOM -> controller.view.frame.useContents { size.height } - controller.bottomLayoutGuide.length - height - 30
       }
 
-      val duration = when(durationType) {
+      val duration = when (durationType) {
         DurationType.SHORT -> 1.0
         DurationType.LONG -> 3.0
       }
 
       toastLabel.setFrame(CGRectMake(x, y, width, height))
       controller.view.addSubview(toastLabel)
-      UIView.animateWithDuration(duration = duration, delay = duration, UIViewAnimationOptionCurveEaseInOut, { toastLabel.setAlpha(0.0) }) { finished ->
-        if(finished) {
+      UIView.animateWithDuration(
+        duration = duration,
+        delay = duration,
+        UIViewAnimationOptionCurveEaseInOut,
+        { toastLabel.setAlpha(0.0) }) { finished ->
+        if (finished) {
           toastLabel.removeFromSuperview()
         }
       }

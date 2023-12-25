@@ -9,7 +9,6 @@ import org.dweb_browser.helper.platform.offscreenwebcanvas.OffscreenWebCanvasCor
 import platform.CoreGraphics.CGRectZero
 import platform.Foundation.NSURL.Companion.URLWithString
 import platform.Foundation.NSURLRequest.Companion.requestWithURL
-import platform.Foundation.setValue
 import platform.UIKit.UIDevice
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
@@ -27,7 +26,7 @@ actual class OffscreenWebCanvas private actual constructor(width: Int, height: I
   ) : this(width, height) {
     config.preferences.javaScriptEnabled = true
     this.webview = WKWebView(frame = cValue { CGRectZero }, configuration = config).also {
-      if(UIDevice.currentDevice.systemVersion.compareTo("16.4", true) >= 0) {
+      if (UIDevice.currentDevice.systemVersion.compareTo("16.4", true) >= 0) {
         it.setInspectable(true)
       }
 

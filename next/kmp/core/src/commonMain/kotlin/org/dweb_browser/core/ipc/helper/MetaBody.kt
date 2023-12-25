@@ -1,11 +1,11 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.IntEnumSerializer
 import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toBase64Url
-import org.dweb_browser.core.ipc.Ipc
 import kotlin.random.Random
 
 @Serializable

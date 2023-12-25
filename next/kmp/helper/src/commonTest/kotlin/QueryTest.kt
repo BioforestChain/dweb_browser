@@ -17,7 +17,8 @@ class QueryTest {
       val e: List<String>
     )
 
-    val queryString = "a=text&b=true&c=1.1&c=2.2&d=1&d=2&e=either&e=eight&f={\"a\"=\"aaa\", \"b\"=false}"
+    val queryString =
+      "a=text&b=true&c=1.1&c=2.2&d=1&d=2&e=either&e=eight&f={\"a\"=\"aaa\", \"b\"=false}"
     val q = Query.decodeFromSearch<Q>(queryString)
     println("$q")
   }

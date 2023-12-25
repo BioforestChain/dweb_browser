@@ -126,9 +126,9 @@ class Query {
         }
       }
 
-      override fun decodeShort()=firstValue.toShort()
+      override fun decodeShort() = firstValue.toShort()
 
-      override fun decodeString()=firstValue
+      override fun decodeString() = firstValue
 
       override fun decodeBooleanElement(descriptor: SerialDescriptor, index: Int): Boolean {
         TODO("Not yet implemented decodeBooleanElement")

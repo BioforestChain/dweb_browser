@@ -30,8 +30,8 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.common.AsyncImage
-import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 
 /**
  * 图片预览图

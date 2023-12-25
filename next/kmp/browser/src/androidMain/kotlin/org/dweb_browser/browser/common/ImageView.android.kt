@@ -8,8 +8,8 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import org.dweb_browser.helper.android.getCoilImageLoader
 import org.dweb_browser.browser.R
+import org.dweb_browser.helper.android.getCoilImageLoader
 
 @Composable
 actual fun AsyncImage(

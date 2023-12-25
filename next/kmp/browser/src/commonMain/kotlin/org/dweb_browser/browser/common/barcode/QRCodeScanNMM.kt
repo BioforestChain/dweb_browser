@@ -1,9 +1,9 @@
 package org.dweb_browser.browser.common.barcode
 
-import io.ktor.http.HttpMethod
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.PermissionType
@@ -28,7 +28,7 @@ class QRCodeScanNMM : NativeMicroModule("qrcode-scan.browser.dweb", "QRCode-Scan
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
-      "/scan" bind HttpMethod.Get by defineEmptyResponse {
+      "/scan" bind IpcMethod.GET by defineEmptyResponse {
 
       }
     ).cors()

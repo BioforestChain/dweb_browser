@@ -3,7 +3,6 @@ package org.dweb_browser.core.std.http
 import io.ktor.client.plugins.websocket.ws
 import io.ktor.client.plugins.websocket.wss
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
@@ -204,19 +203,19 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     /// 模块 API 接口
     routes(
       // 开启一个服务
-      "/start" bind HttpMethod.Get by defineJsonResponse {
+      "/start" bind IpcMethod.GET by defineJsonResponse {
         start(
           ipc, DwebHttpServerOptions(request.query("subdomain"))
         ).toJsonElement()
       },
       // 监听一个服务
-      "/listen" bind HttpMethod.Post by definePureStreamHandler {
+      "/listen" bind IpcMethod.POST by definePureStreamHandler {
         val token = request.query("token")
         val routes = Json.decodeFromString<List<CommonRoute>>(request.query("routes"))
         listen(token, request, routes)
       },
       // 主动关闭一个服务
-      "/close" bind HttpMethod.Get by defineBooleanResponse {
+      "/close" bind IpcMethod.GET by defineBooleanResponse {
         close(ipc, request.queryAs())
       },
       "/websocket" byChannel { ctx ->

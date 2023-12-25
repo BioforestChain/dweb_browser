@@ -38,56 +38,56 @@
         mmid: `${string}.${'sys'|'std'}.dweb`
     }
     ```
-    1. 启动组件
-        ```ts
-        class BootNMM extends NativeMicroModule{
-            mmid: 'boot.sys.dweb'
-            bootstrap() {
-                // (new MicroModule.from('desktop.sys.dweb') as JsMicroModule).boostrap()
-                for(const mmid of registeredMmids){
-                    (new MicroModule.from(mmid)).boostrap()
-                }
-            }
-            $Routers:{
-                '/register': IO<mmid, boolean>
-                '/unregister': IO<mmid, boolean>
-            }
-        }
-        ```
-    1. GUI组件
-        ```ts
-        class MultiWebViewNMM extends NativeMicroModule {
-            mmid: 'mwebview.browser.dweb'
-            bootstrap(args) {
-                this.viewTree = new ViewTree();
-            }
-            $Routers: {
-                '/open': IO<WindowOptions, number> & (ctx, args: WindowOptions) => {
-                    const webviewNode = viewTree.createNode(Webview, args)
-                    viewTree.appendTo(ctx.processId, webviewNode)
-                    return webviewNode.id
-                }
-                '/evalJavascript/(:webview_id)': IO<code, json>
-                '/listen/(:webview_id)': IO<void, {request_id}[]>
-                '/request/(:request_id)': IO<void, json>
-                '/response': IO<Response, void>
-            }
-        }
+  1. 启动组件
+      ```ts
+      class BootNMM extends NativeMicroModule{
+          mmid: 'boot.sys.dweb'
+          bootstrap() {
+              // (new MicroModule.from('desktop.sys.dweb') as JsMicroModule).boostrap()
+              for(const mmid of registeredMmids){
+                  (new MicroModule.from(mmid)).boostrap()
+              }
+          }
+          $Routers:{
+              '/register': IO<mmid, boolean>
+              '/unregister': IO<mmid, boolean>
+          }
+      }
+      ```
+  1. GUI组件
+      ```ts
+      class MultiWebViewNMM extends NativeMicroModule {
+          mmid: 'mwebview.browser.dweb'
+          bootstrap(args) {
+              this.viewTree = new ViewTree();
+          }
+          $Routers: {
+              '/open': IO<WindowOptions, number> & (ctx, args: WindowOptions) => {
+                  const webviewNode = viewTree.createNode(Webview, args)
+                  viewTree.appendTo(ctx.processId, webviewNode)
+                  return webviewNode.id
+              }
+              '/evalJavascript/(:webview_id)': IO<code, json>
+              '/listen/(:webview_id)': IO<void, {request_id}[]>
+              '/request/(:request_id)': IO<void, json>
+              '/response': IO<Response, void>
+          }
+      }
 
-        const webview_id = await fetch('file://mwebview.browser.dweb/open').number();
-        for await (const line of fetch(`file://mwebview.browser.dweb/listen/${webview_id}`).stream('jsonlines')) {
-            const request = IpcRequest.from(await fetch(`file://mwebview.browser.dweb/request/${line.request_id}`).json());
+      const webview_id = await fetch('file://mwebview.browser.dweb/open').number();
+      for await (const line of fetch(`file://mwebview.browser.dweb/listen/${webview_id}`).stream('jsonlines')) {
+          const request = IpcRequest.from(await fetch(`file://mwebview.browser.dweb/request/${line.request_id}`).json());
 
-            const response = IpcResponse(request, {...data});
-            await fetch(`file://mwebview.browser.dweb/response`, { body:response });
-        }
+          const response = IpcResponse(request, {...data});
+          await fetch(`file://mwebview.browser.dweb/response`, { body:response });
+      }
 
-        import { MWebView } from '@bfex/mwebview';
-        const webview = await MWebView.create();
-        webview.onRequest((event)=>{
-            event.responseWith()
-        })
-        ```
+      import { MWebView } from '@bfex/mwebview';
+      const webview = await MWebView.create();
+      webview.onRequest((event)=>{
+          event.responseWith()
+      })
+      ```
 1. 可动态加载的微组件
     ```ts
     class JsMicroModule extends MicroModule{

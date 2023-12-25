@@ -16,7 +16,8 @@ import androidx.compose.ui.text.style.TextAlign
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.compositionChainOf
 
-internal val LocalWindowMenuItemColor = compositionChainOf<IconToggleButtonColors?>("WindowMenuItemColor") { null }
+internal val LocalWindowMenuItemColor =
+  compositionChainOf<IconToggleButtonColors?>("WindowMenuItemColor") { null }
 
 @Composable
 internal fun rememberWindowMenuItemColor() =

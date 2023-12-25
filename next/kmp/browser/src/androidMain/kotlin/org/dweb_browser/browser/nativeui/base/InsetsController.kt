@@ -4,12 +4,12 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import org.dweb_browser.helper.android.InsetsJson
-import org.dweb_browser.core.help.StateObservable
-import org.dweb_browser.helper.compose.IsChange
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.nativeui.NativeUiController
+import org.dweb_browser.core.help.StateObservable
+import org.dweb_browser.helper.android.InsetsJson
+import org.dweb_browser.helper.compose.IsChange
 
 abstract class InsetsController(
   val activity: ComponentActivity,

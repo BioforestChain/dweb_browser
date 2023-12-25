@@ -101,7 +101,7 @@ class PromiseOutTest {
       }
       GlobalScope.launch {
         po.waitPromise()
-        result2.update { cur -> cur.inc()}
+        result2.update { cur -> cur.inc() }
       }
     }
 

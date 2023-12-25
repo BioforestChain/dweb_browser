@@ -3,11 +3,9 @@ package org.dweb_browser.helper.platform.offscreenwebcanvas
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.prepareGet
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.request.uri
 import io.ktor.server.response.ResponseHeaders
 import io.ktor.server.response.appendIfAbsent
 import io.ktor.server.response.header

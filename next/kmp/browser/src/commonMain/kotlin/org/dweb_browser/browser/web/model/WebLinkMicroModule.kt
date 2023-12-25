@@ -1,9 +1,9 @@
 package org.dweb_browser.browser.web.model
 
-import org.dweb_browser.helper.printDebug
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.helper.printDebug
 
 fun debugWebLink(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("link", tag, msg, err)

@@ -15,11 +15,11 @@ import androidx.biometric.BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC
 import androidx.biometric.BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import org.dweb_browser.sys.biometrics.BiometricsController.Companion.biometricsController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.decodeTo
+import org.dweb_browser.sys.biometrics.BiometricsController.Companion.biometricsController
 import java.util.concurrent.Executor
 
 class BiometricsActivity : FragmentActivity() {
