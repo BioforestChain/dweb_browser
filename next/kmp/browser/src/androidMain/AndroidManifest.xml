@@ -16,7 +16,7 @@
       android:screenOrientation="portrait"
       android:theme="@style/Theme.dwebbrowser"
       tools:ignore="LockedOrientationActivity"
-      android:windowSoftInputMode="adjustNothing" />
+      android:windowSoftInputMode="adjustResize" />
     <activity
       android:name=".desk.TaskbarActivity"
       android:exported="true"
