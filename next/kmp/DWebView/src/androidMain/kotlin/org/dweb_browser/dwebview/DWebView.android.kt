@@ -84,19 +84,10 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     }
   }
 
-  override val scope get() = engine.ioScope
+  override val ioScope get() = engine.ioScope
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
     url
-  }
-
-  override suspend fun startGoBack(): Boolean = withMainContext {
-    if (engine.canGoBack()) {
-      engine.goBack()
-      true
-    } else {
-      false
-    }
   }
 
   override suspend fun resolveUrl(url: String) = engine.resolveUrl(url)
@@ -175,26 +166,30 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     engine.destroy()
   }
 
-  override suspend fun canGoBack() = withMainContext { engine.canGoBack() }
+  override suspend fun historyCanGoBack() = withMainContext { engine.canGoBack() }
 
-  override suspend fun canGoForward() = withMainContext { engine.canGoForward() }
+  override suspend fun historyGoBack(): Boolean = withMainContext {
+    if (engine.canGoBack()) {
+      engine.goBack()
+      true
+    } else {
+      false
+    }
+  }
 
-  /*  override suspend fun goBack() = withMainContext {
-      if (engine.canGoBack()) {
-        engine.goBack()
-        true// TODO 能否有goBack钩子？
-      } else {
-        false
-      }
-    }*/
+  override suspend fun historyCanGoForward() = withMainContext { engine.canGoForward() }
 
-  override suspend fun goForward() = withMainContext {
+  override suspend fun historyGoForward() = withMainContext {
     if (engine.canGoForward()) {
       engine.goForward()
       true// TODO 能否有goForward钩子？
     } else {
       false
     }
+  }
+
+  override val urlStateFlow by lazy {
+    generateOnUrlChangeFromLoadedUrlCache(engine.loadedUrlCache)
   }
 
   @SuppressLint("RequiresFeature")

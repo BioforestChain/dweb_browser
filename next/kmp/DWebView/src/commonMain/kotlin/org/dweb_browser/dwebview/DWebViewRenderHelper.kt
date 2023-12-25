@@ -14,11 +14,11 @@ import kotlinx.coroutines.launch
 fun IDWebView.rememberCanGoBack(): Boolean {
   var canGoBack by remember { mutableStateOf(false) }
   LaunchedEffect(this) {
-    canGoBack = canGoBack()
+    canGoBack = historyCanGoBack()
   }
   DisposableEffect(this) {
     val off = onLoadStateChange {
-      canGoBack = canGoBack()
+      canGoBack = historyCanGoBack()
     }
     onDispose { off() }
   }
@@ -29,11 +29,11 @@ fun IDWebView.rememberCanGoBack(): Boolean {
 fun IDWebView.rememberCanGoForward(): Boolean {
   var canGoForward by remember { mutableStateOf(false) }
   LaunchedEffect(this) {
-    canGoForward = canGoForward()
+    canGoForward = historyCanGoForward()
   }
   DisposableEffect(this) {
     val off = onLoadStateChange {
-      canGoForward = canGoForward()
+      canGoForward = historyCanGoForward()
     }
     onDispose { off() }
   }

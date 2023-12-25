@@ -2,7 +2,6 @@ package org.dweb_browser.browser.desk
 
 import android.annotation.SuppressLint
 import android.view.Gravity
-import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.getValue
 import androidx.core.view.WindowCompat
 import org.dweb_browser.browser.R
@@ -14,6 +13,7 @@ import org.dweb_browser.helper.platform.PureViewBox
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
+import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @SuppressLint("ClickableViewAccessibility")
 class TaskbarActivity : PureViewController() {
@@ -61,7 +61,7 @@ class TaskbarActivity : PureViewController() {
           }
         }
         DwebBrowserAppTheme {
-          BackHandler { finish() }
+          NativeBackHandler { finish() }
           /// 任务栏视图
           taskbarController.TaskbarView {
             taskbarDWebView.Render(onCreate = {

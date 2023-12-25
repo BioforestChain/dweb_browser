@@ -63,7 +63,7 @@ class JmmNMM :
               }
             }
           }.await()
-          returnFile(root, filePath.decodeURIComponent())
+          returnFile(root, filePath)
         } else returnNext()
       }
     }

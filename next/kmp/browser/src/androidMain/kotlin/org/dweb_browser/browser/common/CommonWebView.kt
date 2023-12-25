@@ -6,7 +6,6 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,13 +26,14 @@ import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.web.model.ConstUrl
 import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun CommonWebView() {
   val localPrivacy = LocalCommonUrl.current
   if (localPrivacy.value.isNotEmpty()) {
-    BackHandler { localPrivacy.value = "" }
+    NativeBackHandler { localPrivacy.value = "" }
     val state = remember { WebViewState(WebContent.Url(localPrivacy.value)) }
 
     val webViewClient = remember {

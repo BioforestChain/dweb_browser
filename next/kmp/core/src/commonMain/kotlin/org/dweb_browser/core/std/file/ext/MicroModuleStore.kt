@@ -1,7 +1,6 @@
 package org.dweb_browser.core.std.file.ext
 
 import dev.whyoleg.cryptography.CryptographyProvider
-import dev.whyoleg.cryptography.algorithms.digest.SHA256
 import dev.whyoleg.cryptography.algorithms.symmetric.AES
 import dev.whyoleg.cryptography.operations.cipher.AuthenticatedCipher
 import io.ktor.http.URLBuilder
@@ -26,6 +25,7 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.getOrPut
+import org.dweb_browser.helper.sha256
 import org.dweb_browser.helper.toUtf8ByteArray
 
 fun MicroModule.createStore(storeName: String, encrypt: Boolean) =
@@ -65,7 +65,6 @@ class MicroModuleStore(
 
   companion object {
     // 使用 SymmetricKeySize.B256 的长度作为key
-    private val sha256 = CryptographyProvider.Default.get(SHA256)
     private val aesGcm = CryptographyProvider.Default.get(AES.GCM)
     private val keyDecoder = aesGcm.keyDecoder()
 
@@ -73,7 +72,7 @@ class MicroModuleStore(
      * 将指定字符串，通过 sha256 转成合法的 AES.GCM 的 key
      */
     suspend fun getCipher(plainKey: String) = keyDecoder.decodeFrom(
-      AES.Key.Format.RAW, sha256.hasher().hash(plainKey.toUtf8ByteArray())
+      AES.Key.Format.RAW, sha256(plainKey.toUtf8ByteArray())
     ).cipher()
   }
 

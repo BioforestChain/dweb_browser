@@ -10,10 +10,14 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Signal
@@ -25,7 +29,7 @@ expect suspend fun IDWebView.Companion.create(
 ): IDWebView
 
 abstract class IDWebView(initUrl: String?) {
-  abstract val scope: CoroutineScope
+  abstract val ioScope: CoroutineScope
 
   @Serializable
   data class UserAgentBrandData(val brand: String, val version: String)
@@ -39,7 +43,6 @@ abstract class IDWebView(initUrl: String?) {
    * 输入要加载的url，返回即将加载的url（url可能会重定向或者重写）
    */
   internal abstract suspend fun startLoadUrl(url: String): String
-  internal abstract suspend fun startGoBack(): Boolean
 
   private val loadUrlTask =
     atomic(LoadUrlTask(if (initUrl.isNullOrEmpty()) "about:blank" else initUrl).apply {
@@ -63,27 +66,19 @@ abstract class IDWebView(initUrl: String?) {
     return curTask.deferred.await()
   }
 
-  /**
-   * 出发GoBack也需要修改loadUrlTask的url值
-   */
+  suspend fun canGoBack() = closeWatcher.canClose || historyCanGoBack()
   suspend fun goBack() {
-    val dwebView = this
-    dwebView.scope.launch {
-      dwebView.onReady {
-        val newTask = LoadUrlTask(it)
-        loadUrlTask.updateAndGet { preTask ->
-          if (preTask.url == it) {
-            preTask
-          } else {
-            preTask.deferred.cancel(CancellationException("load new url: $it"));
-            newTask
-          }
-        }
-        offListener()
-      }
+    if (closeWatcher.canClose) {
+      closeWatcher.close()
     }
-    startGoBack()
+    this.historyGoBack()
   }
+
+  val canGoBackStateFlow by lazy {
+    urlStateFlow // TODO merge urlStateFlow
+    closeWatcher.canCloseFlow
+  }
+
 
   abstract suspend fun resolveUrl(url: String): String
 
@@ -94,11 +89,24 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun getTitle(): String
   abstract suspend fun getIcon(): String
   abstract suspend fun destroy()
-  abstract suspend fun canGoBack(): Boolean
-  abstract suspend fun canGoForward(): Boolean
+  abstract suspend fun historyCanGoBack(): Boolean
+  abstract suspend fun historyGoBack(): Boolean
+  abstract suspend fun historyCanGoForward(): Boolean
+  abstract suspend fun historyGoForward(): Boolean
+  abstract val urlStateFlow: StateFlow<String>
 
-  //abstract suspend fun goBack(): Boolean
-  abstract suspend fun goForward(): Boolean
+  internal fun generateOnUrlChangeFromLoadedUrlCache(loadedUrlCache: LoadedUrlCache): StateFlow<String> {
+    val urlChangeState = MutableStateFlow("")
+    var url = ""
+    loadedUrlCache.onChange {
+      val newUrl = getUrl()
+      if (url != newUrl) {
+        url = newUrl
+        urlChangeState.emit(url)
+      }
+    }
+    return urlChangeState.asStateFlow()
+  }
 
   abstract suspend fun createMessageChannel(): IWebMessageChannel
   abstract suspend fun postMessage(data: String, ports: List<IWebMessagePort>)
@@ -197,7 +205,7 @@ fun Signal<WebLoadState>.toReadyListener() =
 internal data class LoadUrlTask(val url: String) {
   val deferred = CompletableDeferred<String>()
   fun startTask(dwebView: IDWebView) {
-    dwebView.scope.launch {
+    dwebView.ioScope.launch {
       val loadingUrl = dwebView.startLoadUrl(url)
       dwebView.onLoadStateChange {
         when (it) {

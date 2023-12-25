@@ -1,12 +1,26 @@
-package org.dweb_browser.dwebview.engine
+package org.dweb_browser.dwebview.base
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.std.dns.debugFetch
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.trueAlso
 
-class LoadedUrlCache {
+class LoadedUrlCache(private val scope: CoroutineScope) {
+  private val changeSignal = Signal<String>()
+  val onChange = changeSignal.toListener()
 
   var preLoadedUrlArgs = genLoadedUrlArgs(null)
+    set(value) {
+      if (field != value) {
+        field = value
+        scope.launch {
+          changeSignal.emit(value)
+        }
+      }
+    }
+
   fun genLoadedUrlArgs(
     url: String?,
     additionalHttpHeaders: MutableMap<String, String>? = null
@@ -32,7 +46,7 @@ class LoadedUrlCache {
     return (preLoadedUrlArgs.startsWith(checkArgs)).falseAlso {
       onUpset().trueAlso {
         preLoadedUrlArgs = checkArgs
-        debugFetch("LoadedUrl","checkLoadedUrl=$url")
+        debugFetch("LoadedUrl", "checkLoadedUrl=$url")
       }
     }
   }

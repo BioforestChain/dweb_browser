@@ -147,8 +147,8 @@ fun BrowserViewForWindow(
           viewModel.updateMultiViewState(false)
         } else if (qrCodeScanModel.state.value != QRCodeState.Hide) {
           qrCodeScanModel.state.value = QRCodeState.Hide
-        } else if (browserWebView.viewItem.webView.canGoBack()) {
-          browserWebView.viewItem.webView.goBack()
+        } else if (browserWebView.viewItem.webView.historyCanGoBack()) {
+          browserWebView.viewItem.webView.historyGoBack()
         } else {
           win.hide()
         }

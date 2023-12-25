@@ -21,7 +21,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
 
   internal val _started = lazy {
     val onMessageSignal = Signal<DWebMessage>()
-    webview.scope.launchWithMain {
+    webview.ioScope.launchWithMain {
       webview.engine.evalAsyncJavascript<Unit>(
         "nativeStart($portId)",
         null,

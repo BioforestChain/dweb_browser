@@ -92,13 +92,13 @@ class DWebView(
 
   private var _engine: DWebViewEngine? = engine
   internal val engine get() = _engine ?: throw NullPointerException("dwebview already been destroy")
-  override val scope get() = engine.ioScope
+  override val ioScope get() = engine.ioScope
 
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
   }
 
-  override suspend fun startGoBack(): Boolean = withMainContext {
+  override suspend fun historyGoBack(): Boolean = withMainContext {
     engine.canGoBack.trueAlso {
       engine.goBack()
     }
@@ -138,13 +138,13 @@ class DWebView(
     }
     _destroyed = true
     debugDWebView("DESTROY")
-//    loadUrl("about:blank", true)
+    loadUrl("about:blank?from=${getUrl()}", true)
     _destroySignal.emitAndClear(Unit)
     withMainContext {
       engine.destroy()
       engine.navigationDelegate = null
       engine.removeFromSuperview()
-      engine.webViewWebContentProcessDidTerminate(webView = engine)
+      engine.dwebNavigationDelegate.webViewWebContentProcessDidTerminate(webView = engine)
       engine.mainScope.cancel(null)
       engine.ioScope.cancel(null)
       _engine = null
@@ -152,20 +152,19 @@ class DWebView(
     }
   }
 
-  override suspend fun canGoBack() = withMainContext { engine.canGoBack }
+  override suspend fun historyCanGoBack() = withMainContext { engine.canGoBack }
 
-  override suspend fun canGoForward() = withMainContext { engine.canGoForward }
+  override suspend fun historyCanGoForward() = withMainContext { engine.canGoForward }
 
-//  override suspend fun goBack() = withMainContext {
-//    engine.canGoBack.trueAlso {
-//      engine.goBack()
-//    }
-//  }
 
-  override suspend fun goForward() = withMainContext {
+  override suspend fun historyGoForward() = withMainContext {
     engine.canGoForward.trueAlso {
       engine.goForward()
     }
+  }
+
+  override val urlStateFlow by lazy {
+    generateOnUrlChangeFromLoadedUrlCache(engine.loadedUrlCache)
   }
 
   override suspend fun createMessageChannel() = withMainContext {

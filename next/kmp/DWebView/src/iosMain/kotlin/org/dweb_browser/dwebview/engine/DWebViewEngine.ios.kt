@@ -3,29 +3,22 @@ package org.dweb_browser.dwebview.engine
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.hostWithPort
-import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.getUIApplication
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
-import org.dweb_browser.dwebview.WebLoadErrorState
-import org.dweb_browser.dwebview.WebLoadStartState
 import org.dweb_browser.dwebview.WebLoadState
-import org.dweb_browser.dwebview.WebLoadSuccessState
-import org.dweb_browser.dwebview.base.isWebUrlScheme
+import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
@@ -48,35 +41,15 @@ import org.dweb_browser.helper.withMainContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSBundle
-import platform.Foundation.NSError
 import platform.Foundation.NSURL
-import platform.Foundation.NSURLAuthenticationChallenge
-import platform.Foundation.NSURLAuthenticationMethodServerTrust
-import platform.Foundation.NSURLCredential
 import platform.Foundation.NSURLRequest
-import platform.Foundation.NSURLSessionAuthChallengeDisposition
-import platform.Foundation.NSURLSessionAuthChallengePerformDefaultHandling
-import platform.Foundation.NSURLSessionAuthChallengeUseCredential
-import platform.Foundation.create
-import platform.Foundation.serverTrust
-import platform.UIKit.UIScrollView
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
-import platform.UIKit.UIScrollViewDelegateProtocol
-import platform.UIKit.UIView
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
-import platform.WebKit.WKNavigation
-import platform.WebKit.WKNavigationAction
-import platform.WebKit.WKNavigationActionPolicy
-import platform.WebKit.WKNavigationDelegateProtocol
-import platform.WebKit.WKNavigationResponse
-import platform.WebKit.WKNavigationResponsePolicy
 import platform.WebKit.WKPreferences
 import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
-import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
-import platform.WebKit.WKWebpagePreferences
 import platform.WebKit.javaScriptEnabled
 
 @OptIn(ExperimentalForeignApi::class)
@@ -93,7 +66,7 @@ class DWebViewEngine(
   /// 设置scheme，这需要在传入WKWebView之前就要运作
   registryDwebHttpUrlSchemeHandler(remoteMM, it)
   registryDwebSchemeHandler(remoteMM, it)
-}), WKNavigationDelegateProtocol, UIScrollViewDelegateProtocol {
+}) {
   val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
 
@@ -133,10 +106,16 @@ class DWebViewEngine(
 
   }
 
+  internal val loadedUrlCache = LoadedUrlCache(ioScope)
+
   suspend fun loadUrl(url: String): String {
     val safeUrl = resolveUrl(url)
-    val nsUrl = NSURL(string = safeUrl)
-    val nav = loadRequest(NSURLRequest(uRL = nsUrl))
+
+    loadedUrlCache.checkLoadedUrl(url) {
+      val nsUrl = NSURL(string = safeUrl)
+      val nav = loadRequest(NSURLRequest(uRL = nsUrl))
+      true
+    }
     return safeUrl
   }
 
@@ -175,7 +154,9 @@ class DWebViewEngine(
     return safeUrl
   }
 
-  private val uiDelegate = DWebUIDelegate(this)
+  internal val dwebUIDelegate = DWebUIDelegate(this)
+  internal val dwebNavigationDelegate = DWebNavigationDelegate(this)
+  internal val dwebUIScrollViewDelegate = DWebUIScrollViewDelegate(this)
 
   init {
     /// 启动代理
@@ -185,9 +166,9 @@ class DWebViewEngine(
     )
     /// 测试的时候使用
     this.setInspectable(true)
-    setNavigationDelegate(this)
-    setUIDelegate(uiDelegate)
-    scrollView.setDelegate(this)
+    setNavigationDelegate(dwebNavigationDelegate)
+    setUIDelegate(dwebUIDelegate)
+    scrollView.setDelegate(dwebUIScrollViewDelegate)
 
     val preferences = WKPreferences()
     preferences.javaScriptEnabled = true
@@ -378,148 +359,7 @@ class DWebViewEngine(
   }
 
 
-  //#region NavigationDelegate
-  override fun webViewWebContentProcessDidTerminate(webView: WKWebView) {
-    mainScope.launch {
-      closeSignal.emit()
-    }
-  }
-
-  override fun webView(
-    webView: WKWebView,
-    decidePolicyForNavigationResponse: WKNavigationResponse,
-    decisionHandler: (WKNavigationResponsePolicy) -> Unit
-  ) {
-    decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyAllow)
-  }
-
-  @OptIn(ExperimentalCoroutinesApi::class)
-  private fun decidePolicyForNavigationAction(
-    webView: WKWebView,
-    decidePolicyForNavigationAction: WKNavigationAction,
-    decisionHandler: (WKNavigationActionPolicy) -> Unit
-  ) {
-    val url = decidePolicyForNavigationAction.request.URL
-    val scheme = url?.scheme ?: "http"
-    if (url != null && !isWebUrlScheme(scheme)) {
-      if (scheme == "dweb") {
-        ioScope.launch {
-          remoteMM.nativeFetch(url.absoluteString!!)
-        }
-        decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
-        return
-      }
-      val uiApp = remoteMM.getUIApplication()
-      if (uiApp.canOpenURL(url)) {
-        uiApp.openURL(url)
-        decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
-        return
-      }
-    }
-
-    var confirmReferred =
-      CompletableDeferred(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
-    /// navigationAction.navigationType : https://developer.apple.com/documentation/webkit/wknavigationtype/
-    if (beforeUnloadSignal.isNotEmpty()) {
-      val message = when (decidePolicyForNavigationAction.navigationType) {
-        // reload
-        3L -> "重新加载此网站？"
-        else -> "离开此网站？"
-      }
-      confirmReferred = CompletableDeferred()
-      ioScope.launch {
-        val args = WebBeforeUnloadArgs(message)
-        beforeUnloadSignal.emit(args)
-        confirmReferred.complete(if (args.waitHookResults()) WKNavigationActionPolicy.WKNavigationActionPolicyAllow else WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
-      }
-    }
-    /// decisionHandler
-    if (confirmReferred.isCompleted) {
-      decisionHandler(confirmReferred.getCompleted())
-    } else {
-      ioScope.launch {
-        decisionHandler(confirmReferred.await())
-      }
-    }
-  }
-
-  override fun webView(
-    webView: WKWebView,
-    decidePolicyForNavigationAction: WKNavigationAction,
-    preferences: WKWebpagePreferences,
-    decisionHandler: (WKNavigationActionPolicy, WKWebpagePreferences?) -> Unit
-  ) {
-    decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction) {
-      decisionHandler(it, null)
-    }
-  }
-
-  override fun webView(
-    webView: WKWebView,
-    decidePolicyForNavigationAction: WKNavigationAction,
-    decisionHandler: (WKNavigationActionPolicy) -> Unit
-  ) {
-    decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction, decisionHandler)
-  }
-
-  override fun webView(
-    webView: WKWebView, didStartProvisionalNavigation: WKNavigation?
-  ) {
-    val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-    mainScope.launch { loadStateChangeSignal.emit(WebLoadStartState(loadedUrl)) }
-  }
-
-  override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
-    val loadedUrl = webView.URL?.absoluteString ?: "about:blank"
-    mainScope.launch {
-      loadStateChangeSignal.emit(WebLoadSuccessState(loadedUrl))
-    }
-  }
-
-  override fun webView(
-    webView: WKWebView, didFailNavigation: WKNavigation?, withError: NSError
-  ) {
-    val currentUrl = webView.URL?.absoluteString ?: "about:blank"
-    val errorMessage = "[${withError.code}]$currentUrl\n${withError.description}"
-    mainScope.launch { loadStateChangeSignal.emit(WebLoadErrorState(currentUrl, errorMessage)) }
-  }
-
-//  override fun webView(
-//    webView: WKWebView,
-//    authenticationChallenge: NSURLAuthenticationChallenge,
-//    shouldAllowDeprecatedTLS: (Boolean) -> Unit
-//  ) {
-//    shouldAllowDeprecatedTLS(true)
-//  }
-
-  @OptIn(BetaInteropApi::class)
-  override fun webView(
-    webView: WKWebView,
-    didReceiveAuthenticationChallenge: NSURLAuthenticationChallenge,
-    completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
-  ) {
-    /// 这里在IO线程处理，否则会警告：This method should not be called on the main thread as it may lead to UI unresponsiveness.
-    remoteMM.ioAsyncScope.launch {
-      if (didReceiveAuthenticationChallenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
-        completionHandler(
-          NSURLSessionAuthChallengeUseCredential,
-          NSURLCredential.create(trust = didReceiveAuthenticationChallenge.protectionSpace.serverTrust)
-        )
-      } else {
-        completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, null)
-      }
-    }
-  }
-  //#endregion
-
-  //#region UIScrollViewDelegate
-  override fun scrollViewWillBeginZooming(scrollView: UIScrollView, withView: UIView?) {
-    scrollView.pinchGestureRecognizer?.setEnabled(false)
-  }
-  //#endregion
-
   //#region SafeAreaInsets
-
 
   /**
    * css.env(safe-area-inset-*)

@@ -61,12 +61,7 @@ fun MultiWebViewController.Render(
           val canGoBack =
             if (isMaximized) true else webView.closeWatcher.canClose || webView.rememberCanGoBack()
           win.GoBackHandler(canGoBack) {
-            if (webView.closeWatcher.canClose) {
-              viewItem.coroutineScope.launch {
-                webView.closeWatcher.close()
-              }
-            } else if (webView.canGoBack()) {
-              debugMultiWebView("NAV/${viewItem.webviewId}", "go back")
+            if (webView.canGoBack()) {
               webView.goBack()
             } else if (list.size > 1) {
               viewItem.coroutineScope.launch {

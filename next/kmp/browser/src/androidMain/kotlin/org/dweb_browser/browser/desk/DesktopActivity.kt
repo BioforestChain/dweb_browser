@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.desk
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.runtime.LaunchedEffect
@@ -9,6 +8,7 @@ import androidx.core.view.WindowCompat
 import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
+import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @OptIn(ExperimentalLayoutApi::class)
 class DesktopActivity : PureViewController() {
@@ -19,7 +19,7 @@ class DesktopActivity : PureViewController() {
     }
 
     addContent {
-      BackHandler {
+      NativeBackHandler {
         moveTaskToBack(true) // 将界面移动到后台，避免重新点击又跑SplashActivity
       }
     }

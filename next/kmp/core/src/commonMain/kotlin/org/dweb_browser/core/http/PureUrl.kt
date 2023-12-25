@@ -1,14 +1,13 @@
 package org.dweb_browser.core.http
 
 import io.ktor.http.Url
-import io.ktor.server.util.getOrFail
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Query
 
 interface PureUrl {
   val url: Url
   fun queryOrNull(key: String) = this.url.parameters[key]
-  fun query(key: String) = this.url.parameters.getOrFail(key)
+  fun query(key: String) = this.url.parameters[key] ?: throw Exception("No found search key:$key")
 
   companion object {
 

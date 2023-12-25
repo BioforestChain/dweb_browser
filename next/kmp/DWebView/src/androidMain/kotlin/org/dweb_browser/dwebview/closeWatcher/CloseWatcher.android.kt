@@ -5,6 +5,8 @@ import android.webkit.JavascriptInterface
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -127,7 +129,9 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
    */
   fun apply(isUserGesture: Boolean): ICloseWatcher.IWatcher {
     if (isUserGesture || watchers.size == 0) {
-      watchers.add(Watcher())
+      watchers.add(Watcher()).trueAlso {
+        tryEmitCanCloseMutableFlow()
+      }
     }
     return watchers.last()
   }
@@ -145,12 +149,23 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
    */
   override val canClose get() = watchers.isNotEmpty()
 
+  private val canCloseMutableFlow = MutableStateFlow(canClose)
+  private fun tryEmitCanCloseMutableFlow() {
+    engine.ioScope.launch {
+      canCloseMutableFlow.emit(canClose)
+    }
+  }
+
+  override val canCloseFlow by lazy { canCloseMutableFlow.asStateFlow() }
+
   /**
    * 关闭指定的 CloseWatcher
    */
   override suspend fun close(watcher: ICloseWatcher.IWatcher): Boolean {
     if (watcher.tryClose()) {
-      return watchers.remove(watcher)
+      return watchers.remove(watcher).trueAlso {
+        tryEmitCanCloseMutableFlow()
+      }
     }
     return false
   }

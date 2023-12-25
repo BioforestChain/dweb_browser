@@ -28,6 +28,7 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Default
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Ignore
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.UserAgentData
@@ -247,7 +248,7 @@ class DWebViewEngine internal constructor(
   }
 
   val onCloseWindow = dWebChromeClient.closeSignal.toListener()
-  internal val loadedUrlCache = LoadedUrlCache()
+  internal val loadedUrlCache = LoadedUrlCache(ioScope)
 
   override fun setWebChromeClient(client: WebChromeClient?) {
     if (client == null) {
