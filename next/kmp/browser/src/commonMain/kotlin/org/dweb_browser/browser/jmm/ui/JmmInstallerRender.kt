@@ -2,6 +2,7 @@ package org.dweb_browser.browser.jmm.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -51,9 +52,11 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowRenderS
   }
 
   LocalCompositionChain.current.Provider(LocalJmmInstallerController provides this) {
+    val bottomSafePadding = win.state.safePadding.bottom
     Box(modifier = with(renderScope) {
       modifier
         .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
+        .padding(0.dp, 0.dp, 0.dp, bottomSafePadding.dp)
         .scale(scale)
     }) {
       val jmmMetadata = this@Render.jmmHistoryMetadata

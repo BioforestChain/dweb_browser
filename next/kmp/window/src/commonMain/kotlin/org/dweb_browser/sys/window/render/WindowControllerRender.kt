@@ -119,6 +119,7 @@ fun WindowController.Render(
       LocalCompositionChain.current.Provider(
         LocalWindowFrameStyle provides windowFrameStyle,
       ) {
+        win.state.safePadding = winPadding.safeAreaInsets
         /// 开始绘制窗口
         Box(
           modifier = with(winBounds) {

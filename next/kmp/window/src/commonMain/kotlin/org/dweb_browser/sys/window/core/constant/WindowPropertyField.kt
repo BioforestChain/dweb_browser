@@ -8,11 +8,12 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.serializer
+import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Observable
+import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.toHex
 import org.dweb_browser.sys.window.core.modal.ModalState
-import org.dweb_browser.helper.Rect
 import kotlin.reflect.KClass
 
 /**
@@ -113,7 +114,7 @@ open class WindowPropertyField<T : Any> private constructor(
       required(WindowPropertyKeys.BottomBarTheme, WindowBottomBarTheme.Navigation)
     val ThemeColor = required(WindowPropertyKeys.ThemeColor, "auto")
     val ThemeDarkColor = required(WindowPropertyKeys.ThemeDarkColor, "auto")
-    val Bounds = required(WindowPropertyKeys.Bounds, Rect())
+    val WindowBounds = required(WindowPropertyKeys.Bounds, Rect())
     val KeyboardInsetBottom = required(WindowPropertyKeys.KeyboardInsetBottom, 0f)
     val KeyboardOverlaysContent = required(WindowPropertyKeys.KeyboardOverlaysContent, false)
     val CloseTip = optional<String>(WindowPropertyKeys.CloseTip)
@@ -125,6 +126,7 @@ open class WindowPropertyField<T : Any> private constructor(
       mapOf(),
       serializer = MapSerializer(String.serializer(), ModalState.serializer())
     )
+    val SafePadding = required(WindowPropertyKeys.SafePadding, Bounds.Zero)
   }
 
 }

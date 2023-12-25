@@ -45,4 +45,5 @@ enum class WindowPropertyKeys(val fieldName: String) {
   ShowMenuPanel("showMenuPanel"),
   ColorScheme("colorScheme"),
   Modals("modals"),
+  SafePadding("safePadding")
 }

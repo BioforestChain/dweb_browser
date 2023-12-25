@@ -98,7 +98,7 @@ class WindowState(
    * 窗口会被限制最小值,会被限制显示区域。
    * 终止,窗口最终会被绘制在用户可见可控的区域中
    */
-  var bounds by WindowPropertyField.Bounds.toObserve(observable)
+  var bounds by WindowPropertyField.WindowBounds.toObserve(observable)
 
   inline fun updateBounds(updater: Rect.() -> Rect) =
     updater.invoke(bounds).also { bounds = it }
@@ -352,5 +352,10 @@ class WindowState(
    * 模态窗口
    */
   var modals by WindowPropertyField.Modals.toObserve(observable)
+
+  /**
+   * 安全距离
+   */
+  var safePadding by WindowPropertyField.SafePadding.toObserve(observable)
 }
 
