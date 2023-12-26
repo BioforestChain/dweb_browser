@@ -1,10 +1,9 @@
-package org.dweb_browser.browser.web.ui
+package org.dweb_browser.browser.web.ui.main
 
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -60,24 +59,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.BrowserIconResource
 import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
 import org.dweb_browser.browser.common.barcode.QRCodeScanModel
 import org.dweb_browser.browser.common.barcode.QRCodeScanView
 import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
-import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.web.model.BrowserWebView
+import org.dweb_browser.browser.web.model.BrowserContentItem
 import org.dweb_browser.browser.web.model.ConstUrl
+import org.dweb_browser.browser.web.ui.BrowserBottomSheet
+import org.dweb_browser.browser.web.ui.BrowserMultiPopupView
 import org.dweb_browser.browser.web.ui.bottomsheet.LocalModalBottomSheet
 import org.dweb_browser.browser.web.ui.bottomsheet.ModalBottomModel
 import org.dweb_browser.browser.web.ui.bottomsheet.SheetState
@@ -136,7 +133,7 @@ fun BrowserViewForWindow(
     // 窗口 BottomSheet 的按钮
     val win = LocalWindowController.current
     fun backHandler() {
-      val browserWebView = viewModel.currentTab ?: return
+      val browserContentItem = viewModel.currentTab ?: return
       scope.launch {
         if (showSearchView.value) { // 如果显示搜索界面，优先关闭搜索界面
           focusManager.clearFocus()
@@ -147,10 +144,14 @@ fun BrowserViewForWindow(
           viewModel.updateMultiViewState(false)
         } else if (qrCodeScanModel.state.value != QRCodeState.Hide) {
           qrCodeScanModel.state.value = QRCodeState.Hide
-        } else if (browserWebView.viewItem.webView.historyCanGoBack()) {
-          browserWebView.viewItem.webView.historyGoBack()
         } else {
-          win.hide()
+          browserContentItem.contentWebItem.value?.let { contentWebItem ->
+            if (contentWebItem.viewItem.webView.historyCanGoBack()) {
+              contentWebItem.viewItem.webView.historyGoBack()
+            } else {
+              viewModel.closeWebView(browserContentItem)
+            }
+          } ?: win.hide()
         }
       }
     }
@@ -181,17 +182,6 @@ fun BrowserViewForWindow(
         BrowserSearchView(
           viewModel = viewModel,
           modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-          /*if (win.isMaximized()) {
-            Modifier
-              .fillMaxWidth()
-              .background(MaterialTheme.colorScheme.background)
-              .size(windowRenderScope.widthDp, windowRenderScope.heightDp)
-              .align(Alignment.BottomCenter)
-          } else {
-            Modifier.fillMaxWidth()
-              .background(MaterialTheme.colorScheme.background)
-              .align(Alignment.BottomCenter)
-          },*/
           windowRenderScope = windowRenderScope
         )
         BrowserBottomSheet(viewModel)
@@ -341,19 +331,21 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
   val bottomSheetModel = LocalModalBottomSheet.current
   val qrCodeScanState = LocalQRCodeModel.current
-  val webView = viewModel.currentTab?.viewItem?.webView ?: return
-  key(webView) {
+  val browserContentItem = viewModel.currentTab ?: return
+  key(browserContentItem) {
+    val webView = browserContentItem.contentWebItem.value?.viewItem?.webView
     Row(
       modifier = Modifier
         .fillMaxWidth()
         .height(dimenNavigationHeight)
     ) {
-      val canGoBack = webView.rememberCanGoBack()
+      val canGoBack = webView?.rememberCanGoBack() ?: false
+      val isSystemUrl = webView?.getUrl()?.isSystemUrl() ?: true
 
       NavigatorButton(
         imageVector = Icons.Rounded.AddHome,
         name = "AddHome",
-        show = !webView.getUrl().isSystemUrl() // webView.hasUrl()
+        show = !isSystemUrl
       ) {
         scope.launch { viewModel.addUrlToDesktop() }
       }
@@ -427,25 +419,37 @@ private fun RowScope.NavigatorButton(
 
 @Composable
 private fun BrowserViewContentWeb(
-  viewModel: BrowserViewModel, browserWebView: BrowserWebView, windowRenderScope: WindowRenderScope
+  viewModel: BrowserViewModel,
+  browserContentItem: BrowserContentItem,
+  windowRenderScope: WindowRenderScope
 ) {
-  key(browserWebView.viewItem.webviewId) {
-    BrowserWebView(viewModel = viewModel, browserWebView = browserWebView, windowRenderScope)
-  }
+  browserContentItem.contentWebItem.value?.let { contentWebItem ->
+    key(contentWebItem.viewItem.webviewId) {
+      BrowserWebView(
+        viewModel = viewModel,
+        browserContentItem = browserContentItem,
+        windowRenderScope = windowRenderScope
+      )
+    }
+  } ?: BrowserMainView(viewModel, browserContentItem)
 }
 
 @Composable
-private fun SearchBox(browserWebView: BrowserWebView) {
+private fun SearchBox(browserContentItem: BrowserContentItem) {
   var showSearchView by LocalShowSearchView.current
   val searchHint = BrowserI18nResource.browser_search_hint()
+  val contentWebItem = browserContentItem.contentWebItem.value
 
-  var inputText by remember { mutableStateOf(browserWebView.viewItem.webView.getUrl()) }
-  DisposableEffect(Unit) {
-    val off = browserWebView.viewItem.webView.onReady {
-      inputText = it
+  var inputText by remember { mutableStateOf("") }
+  contentWebItem?.let {
+    inputText = contentWebItem.viewItem.webView.getUrl()
+    DisposableEffect(Unit) {
+      val off = contentWebItem.viewItem.webView.onReady {
+        inputText = it
+      }
+      onDispose { off() }
     }
-    onDispose { off() }
-  }
+  } ?: run { inputText = "" }
 
   Box(modifier = Modifier
     .padding(
@@ -460,7 +464,7 @@ private fun SearchBox(browserWebView: BrowserWebView) {
     .background(MaterialTheme.colorScheme.surface)
     .clickable { showSearchView = true }
   ) {
-    ShowLinearProgressIndicator(browserWebView)
+    ShowLinearProgressIndicator(contentWebItem)
 
     val (title, align, icon) = if (inputText.isEmpty() || inputText.isSystemUrl()) {
       Triple(searchHint, TextAlign.Start, Icons.Default.Search)
@@ -493,9 +497,9 @@ private fun SearchBox(browserWebView: BrowserWebView) {
  * 用于显示 WebView 加载进度
  */
 @Composable
-private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?) {
-  browserWebView?.let {
-    when (val loadingProgress = it.viewItem.webView.rememberLoadingProgress()) {
+private fun BoxScope.ShowLinearProgressIndicator(contentWebItem: BrowserContentItem.ContentWebItem?) {
+  contentWebItem?.let {
+    when (val loadingProgress = contentWebItem.viewItem.webView.rememberLoadingProgress()) {
       0f, 1f -> {}
       else -> {
         LinearProgressIndicator(
@@ -525,7 +529,7 @@ fun BrowserSearchView(
   if (showSearchView) {
     val dwebLink = viewModel.dwebLinkSearch.value
     val inputText = if (dwebLink.trim().isEmpty() || dwebLink == ConstUrl.BLANK.url) {
-      viewModel.currentTab?.viewItem?.webView?.getUrl() ?: ""
+      viewModel.currentTab?.contentWebItem?.value?.viewItem?.webView?.getUrl() ?: ""
     } else dwebLink
     val showText = if (inputText.isSystemUrl() || inputText == searchHint) {
       ""
@@ -545,9 +549,7 @@ fun BrowserSearchView(
       SearchView(
         text = showText,
         modifier = modifier,
-        homePreview = { onMove ->
-          HomeWebviewPage(viewModel, windowRenderScope, onMove)
-        },
+        homePreview = { _ -> HomePage() },
         onClose = {
           showSearchView = false
         },
@@ -562,29 +564,13 @@ fun BrowserSearchView(
   }
 }
 
-@Composable
+/*@Composable
 internal fun HomeWebviewPage(
   viewModel: BrowserViewModel,
   windowRenderScope: WindowRenderScope,
   onClickOrMove: (Boolean) -> Unit
 ) {
-  Box(modifier = Modifier.fillMaxSize()) {
-    Column(
-      modifier = Modifier.align(Alignment.Center),
-      horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-      Image(
-        getIconResource(BrowserIconResource.BrowserLauncher)!!,
-        contentDescription = null,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
-        contentScale = ContentScale.FillWidth
-      )
-      Spacer(modifier = Modifier.fillMaxWidth().height(8.dp))
-      Text(text = "Dweb Browser", fontWeight = FontWeight.Black)
-    }
-  }
-
-  /*var _webView by remember {
+  var _webView by remember {
     mutableStateOf<BrowserWebView?>(null)
   }
   LaunchedEffect(Unit) {
@@ -610,5 +596,5 @@ internal fun HomeWebviewPage(
         density
       )
     }
-  }*/
-}
+  }
+}*/

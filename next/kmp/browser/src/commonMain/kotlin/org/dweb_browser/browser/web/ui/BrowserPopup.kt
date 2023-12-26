@@ -87,9 +87,7 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.BrowserIconResource
 import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.web.model.BrowserBaseView
-import org.dweb_browser.browser.web.model.BrowserMainView
-import org.dweb_browser.browser.web.model.BrowserWebView
+import org.dweb_browser.browser.web.model.BrowserContentItem
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.model.WebSiteType
 import org.dweb_browser.browser.web.ui.bottomsheet.BrowserModalBottomSheet
@@ -432,12 +430,13 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           text = BrowserI18nResource.browser_options_addToBook(), // stringResource(id = R.string.browser_options_book),
           trailingIcon = Icons.Default.Book
         ) {
-          viewModel.currentTab?.let {
+          viewModel.currentTab?.contentWebItem?.value?.viewItem?.let { viewItem ->
             scope.launch {
-              it.viewItem.webView.toWebSiteInfo(WebSiteType.Book)?.let {
+              viewItem.webView.toWebSiteInfo(WebSiteType.Book)?.let {
                 viewModel.changeBookLink(add = it)
+              } ?: run {
+                viewModel.showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
               }
-                ?: viewModel.showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
             }
           }
         } // 添加书签
@@ -639,7 +638,7 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
 @Composable
 private fun MultiItemView(
   viewModel: BrowserViewModel,
-  browserBaseView: BrowserBaseView,
+  browserContentItem: BrowserContentItem,
   onlyOne: Boolean = false,
   index: Int = 0
 ) {
@@ -655,7 +654,7 @@ private fun MultiItemView(
   Box(modifier = Modifier.size(width = sizeTriple.first, height = sizeTriple.third)) {
     Column(horizontalAlignment = CenterHorizontally) {
       Image(
-        painter = browserBaseView.bitmap?.let {
+        painter = browserContentItem.bitmap?.let {
           remember(it) {
             BitmapPainter(it, filterQuality = FilterQuality.Medium)
           }
@@ -669,32 +668,18 @@ private fun MultiItemView(
           .clickable { scope.launch { viewModel.updateMultiViewState(false, index) } }
           .align(CenterHorizontally),
         contentScale = ContentScale.FillWidth, //ContentScale.FillBounds,
-        alignment = if (browserBaseView is BrowserMainView) Center else TopStart
+        alignment = browserContentItem.contentWebItem.value?.let { TopStart } ?: Center
       )
-      var contentPair: Pair<String?, ImageBitmap?> by remember { mutableStateOf(Pair(null, null)) }
       val homePageTitle = BrowserI18nResource.browser_multi_startup()
       val homePageIcon = getIconResource(BrowserIconResource.BrowserStar)
-      LaunchedEffect(browserBaseView) {
-        when (browserBaseView) {
-          is BrowserMainView -> {
-            contentPair = Pair(
-              homePageTitle,
-              homePageIcon
-            )
-          }
+      var contentTitle by remember { mutableStateOf(homePageTitle) }
+      var contentIcon: ImageBitmap? by remember { mutableStateOf(homePageIcon) }
 
-          is BrowserWebView -> {
-            contentPair = if (browserBaseView.viewItem.webView.getUrl().isSystemUrl()) {
-              Pair(
-                homePageTitle,
-                homePageIcon
-              )
-            } else {
-              Pair(
-                browserBaseView.viewItem.webView.getTitle(),
-                browserBaseView.viewItem.webView.getFavoriteIcon() // 图片渲染问题
-              )
-            }
+      LaunchedEffect(browserContentItem) {
+        browserContentItem.contentWebItem.value?.viewItem?.let { viewItem ->
+          if (!viewItem.webView.getUrl().isSystemUrl()) {
+            contentTitle = viewItem.webView.getTitle()
+            contentIcon = viewItem.webView.getFavoriteIcon()
           }
         }
       }
@@ -706,32 +691,23 @@ private fun MultiItemView(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = CenterVertically
       ) {
-        contentPair.second?.let { imageBitmap ->
-          Image(
-            bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp)
-          )
+        contentIcon?.let { imageBitmap ->
+          Image(bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp))
           Spacer(modifier = Modifier.width(2.dp))
         }
-        Text(
-          text = contentPair.first ?: BrowserI18nResource.browser_multi_no_title(),
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          fontSize = 12.sp
-        )
+        Text(text = contentTitle, maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 12.sp)
       }
     }
 
-    if (!onlyOne || browserBaseView is BrowserWebView) {
+    if (!onlyOne) {
       Image(
         imageVector = Icons.Default.Close, //ImageVector.vectorResource(R.drawable.ic_circle_close),
         contentDescription = "Close",
         modifier = Modifier
+          .clickable { scope.launch { viewModel.closeBrowserContentItem(browserContentItem) } }
           .padding(8.dp)
           .clip(CircleShape)
           .align(Alignment.TopEnd)
-          .clickable {
-            scope.launch { viewModel.removeBrowserWebView(browserBaseView as BrowserWebView) }
-          }
           .size(20.dp)
       )
     }

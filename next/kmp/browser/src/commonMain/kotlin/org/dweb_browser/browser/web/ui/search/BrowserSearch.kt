@@ -60,8 +60,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.toRequestUrl
-import org.dweb_browser.browser.web.ui.dimenSearchHeight
-import org.dweb_browser.browser.web.ui.dimenTextFieldFontSize
+import org.dweb_browser.browser.web.ui.main.dimenSearchHeight
+import org.dweb_browser.browser.web.ui.main.dimenTextFieldFontSize
 import org.dweb_browser.browser.web.ui.model.DefaultSearchWebEngine
 import org.dweb_browser.browser.web.ui.model.WebEngine
 import org.dweb_browser.browser.web.ui.model.findWebEngine
