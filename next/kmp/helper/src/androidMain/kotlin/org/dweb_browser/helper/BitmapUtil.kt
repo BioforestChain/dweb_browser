@@ -165,4 +165,11 @@ object BitmapUtil {
       File(fileParent.absolutePath + File.separator + fileName)
     }
   }
+
+  fun saveBase64ToFile(filePath:String, data: String) {
+    val fos = FileOutputStream(filePath)
+    fos.write(data.toBase64ByteArray())
+    fos.flush()
+    fos.close()
+  }
 }

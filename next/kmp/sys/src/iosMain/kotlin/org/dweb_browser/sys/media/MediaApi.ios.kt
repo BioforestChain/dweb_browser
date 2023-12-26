@@ -13,7 +13,7 @@ import platform.Foundation.dataWithBytes
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageWriteToSavedPhotosAlbum
 
-actual suspend fun savePictures(saveLocation: String?, files: List<MultiPartFile>) {
+actual suspend fun savePictures(saveLocation: String, files: List<MultiPartFile>) {
   files.forEach { multiPartFile ->
     savePicture(multiPartFile)
   }

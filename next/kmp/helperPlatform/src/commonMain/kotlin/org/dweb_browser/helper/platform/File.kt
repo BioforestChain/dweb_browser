@@ -17,6 +17,6 @@ data class MultiPartFile(
   val name: String,
   val size: Long,
   val type: String,
+  val encode: MultiPartFileEncode = MultiPartFileEncode.UTF8,
   val data: String,
-  val encode: MultiPartFileEncode = MultiPartFileEncode.UTF8
 )

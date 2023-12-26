@@ -1,54 +1,52 @@
 package org.dweb_browser.sys.media
 
 import android.content.ContentValues
-import android.content.Intent
-import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.helper.FilesUtil
 import org.dweb_browser.helper.platform.MultiPartFile
-import org.dweb_browser.helper.platform.MultiPartFileEncode
 import org.dweb_browser.helper.toBase64ByteArray
-import org.dweb_browser.helper.toUtf8ByteArray
 import java.io.File
 
-
-actual suspend fun savePictures(saveLocation: String?, files: List<MultiPartFile>) {
+actual suspend fun savePictures(saveLocation: String, files: List<MultiPartFile>) {
   files.forEach { multiPartFile ->
+    debugMedia("savePictures", multiPartFile)
     savePicture(multiPartFile, saveLocation)
   }
 }
 
 private suspend fun savePicture(
-  multiPartFile: MultiPartFile, saveLocation: String?
+  multiPartFile: MultiPartFile, saveLocation: String
 ) {
-  val data = when (multiPartFile.encode) {
-    MultiPartFileEncode.UTF8 -> multiPartFile.data.toUtf8ByteArray()
-    MultiPartFileEncode.BASE64 -> multiPartFile.data.toBase64ByteArray()
-  }
-
   // TODO 存储到系统
-  val rootPath = Environment.getExternalStoragePublicDirectory(
-    when (saveLocation) {
-      null -> Environment.DIRECTORY_DCIM
-      else -> Environment.DIRECTORY_DCIM + "/$saveLocation"
+  val contentValues = ContentValues().apply {
+    put(MediaStore.MediaColumns.DISPLAY_NAME, multiPartFile.name)
+    put(MediaStore.MediaColumns.MIME_TYPE, multiPartFile.type)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      put(
+        MediaStore.MediaColumns.RELATIVE_PATH,
+        Environment.DIRECTORY_DCIM + File.separator + saveLocation
+      )
+      put(MediaStore.Video.Media.IS_PENDING, 1)
     }
-  ).absolutePath
-  val filePath = rootPath + File.separator + multiPartFile.name
-  FilesUtil.writeFileContent(filePath, data.decodeToString()) // 保存到文件
-  // TODO 更新相册系统库
-  val values = ContentValues()
-  values.put(MediaStore.Images.Media.TITLE, "Image")
-  values.put(MediaStore.Images.Media.DESCRIPTION, "Image Description")
-  values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
-  values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
-  values.put(MediaStore.Images.Media.DATA, filePath)
-
+  }
   val context = NativeMicroModule.getAppContext()
   // 插入图片到系统图库
-  context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-  // 发送广播通知图库更新
-  context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(filePath)))
+  val imageUri =
+    context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+  imageUri?.let {
+    val outputStream = context.contentResolver.openOutputStream(imageUri)
+    outputStream?.let {
+      outputStream.write(multiPartFile.data.toBase64ByteArray())
+      outputStream.flush()
+      outputStream.close()
+    }
+
+    // TODO 更新相册系统库
+    contentValues.clear()
+    contentValues.put(MediaStore.Video.Media.IS_PENDING, 0)
+    context.contentResolver.update(imageUri, contentValues, null, null)
+  }
 }
