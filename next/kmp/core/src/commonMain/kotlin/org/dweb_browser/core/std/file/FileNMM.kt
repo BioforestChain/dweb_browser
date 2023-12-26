@@ -99,7 +99,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     fun toVirtualPathString(fsPath: Path) = toVirtualPath(fsPath).toString()
   }
 
-  fun IHandlerContext.getVfsPath(
+  private fun IHandlerContext.getVfsPath(
     pathKey: String = "path",
   ) = getVirtualFsPath(
     ipc.remote,

@@ -32,6 +32,7 @@ import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.device.DeviceNMM
 import org.dweb_browser.sys.haptics.HapticsNMM
+import org.dweb_browser.sys.media.MediaNMM
 import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
 import org.dweb_browser.sys.notification.NotificationNMM
 import org.dweb_browser.sys.permission.PermissionApplicantTMM
@@ -115,6 +116,8 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   val biometricsNMM = BiometricsNMM().setup()
   /// 运动传感器
   val motionSensorsNMM = MotionSensorsNMM().setup()
+  /// 媒体操作
+  val mediaNMM = MediaNMM().setup()
 
 
   /// 安装Jmm

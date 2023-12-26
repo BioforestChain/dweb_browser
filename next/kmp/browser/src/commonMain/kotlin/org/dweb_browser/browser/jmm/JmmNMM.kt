@@ -22,7 +22,6 @@ import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.resp
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindowId
@@ -72,11 +71,22 @@ class JmmNMM :
   @OptIn(ExperimentalCoroutinesApi::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     bootstrapContext.dns.install(JmmGuiNMM())
+
     val store = JmmStore(this)
     loadJmmAppList(store) // 加载安装的应用信息
 
     val jmmController = JmmController(this, store)
     jmmController.loadHistoryMetadataUrl() // 加载之前加载过的应用
+
+    /// 注册子协议
+//    this.protocol("file.std.dweb") {
+//      this.onConnect { (clientIpc) ->
+//        println("xxxxx=> ${clientIpc.remote.mmid}")
+//        val fileSubIpc = connect("file.std.dweb")
+//        clientIpc.pipe(fileSubIpc)
+//        fileSubIpc.pipe(clientIpc)
+//      }
+//    }
 
     val routeInstallHandler = defineEmptyResponse {
       val metadataUrl = request.query("url")

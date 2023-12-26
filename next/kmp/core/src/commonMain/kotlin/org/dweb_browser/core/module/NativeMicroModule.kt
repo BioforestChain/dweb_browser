@@ -87,9 +87,11 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     getProtocolRouters("*") -= router
   }
 
-  class ProtocolBuilderContext(mm: MicroModule) {
+  class ProtocolBuilderContext(val mm: MicroModule) {
     internal val router = HttpRouter(mm)
     fun routes(vararg list: RouteHandler) = router.apply { addRoutes(*list) }
+
+    val onConnect = mm.onConnect
   }
 
   suspend fun protocol(

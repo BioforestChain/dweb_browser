@@ -31,12 +31,10 @@ import org.dweb_browser.core.std.file.FileMetadata
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
@@ -323,7 +321,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     true
   } ?: false
 
-  suspend fun removeDownload(taskId: TaskId) {
+  fun removeDownload(taskId: TaskId) {
     downloadManagers.remove(taskId)?.let { downloadTask ->
       downloadTask.readChannel?.cancel()
       downloadTask.readChannel = null
@@ -408,35 +406,6 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     }
     return output
   }
-
-  suspend fun decompress(task: DownloadTask): Boolean {
-    var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
-    jmm = jmm.substring(0, jmm.lastIndexOf("."))
-    val sourcePath = downloadNMM.nativeFetch(buildUrlString("file://file.std.dweb/picker") {
-      parameters.append("path", task.filepath)
-    }).text()
-    val targetPath = downloadNMM.nativeFetch(buildUrlString("file://file.std.dweb/picker") {
-      parameters.append("path", "/data/apps/$jmm")
-    }).text()
-    return downloadNMM.nativeFetch(buildUrlString("file://zip.browser.dweb/decompress") {
-      parameters.append("sourcePath", sourcePath)
-      parameters.append("targetPath", targetPath)
-    }).boolean().trueAlso {
-      // 保存 session（记录安装时间） 和 metadata （app数据源）
-      /*downloadNMM.nativeFetch(PureRequest(buildUrlString("file://file.std.dweb/write") {
-        parameters.append("path", "/data/apps/$jmm/usr/sys/metadata.json")
-        parameters.append("create", "true")
-      }, IpcMethod.POST, body = IPureBody.from(Json.encodeToString(jmmAppInstallManifest))))
-      downloadNMM.nativeFetch(PureRequest(buildUrlString("file://file.std.dweb/write") {
-        parameters.append("path", "/data/apps/$jmm/usr/sys/session.json")
-        parameters.append("create", "true")
-      }, IpcMethod.POST, body = IPureBody.from(Json.encodeToString(buildJsonObject {
-        put("installTime", JsonPrimitive(datetimeNow()))
-        put("installUrl", JsonPrimitive(task.originUrl?:""))
-      }))))*/
-    }
-  }
-
 
   /**
    * 窗口是单例模式

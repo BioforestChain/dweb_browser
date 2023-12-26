@@ -28,6 +28,7 @@ import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.device.DeviceNMM
 import org.dweb_browser.sys.haptics.HapticsNMM
 import org.dweb_browser.sys.location.LocationNMM
+import org.dweb_browser.sys.media.MediaNMM
 import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
 import org.dweb_browser.sys.notification.NotificationNMM
 import org.dweb_browser.sys.permission.PermissionNMM
@@ -130,6 +131,8 @@ suspend fun startDwebBrowser(): DnsNMM {
   val biometricsNMM = BiometricsNMM().setup()
   /// 运动传感器
   val motionSensorsNMM = MotionSensorsNMM().setup()
+  /// 媒体操作
+  val mediaNMM = MediaNMM().setup()
 
   /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
   val nativeUiNMM = NativeUiNMM().setup()

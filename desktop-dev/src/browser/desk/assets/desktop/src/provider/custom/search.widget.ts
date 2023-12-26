@@ -42,8 +42,8 @@ export const searchWidget = {
 } satisfies $WidgetCustomData;
 
 const startsWithIgnoreCase = (url: string) => {
-  return /^dweb:/i.test(url)
-}
+  return /^dweb:/i.test(url);
+};
 
 Object.assign(globalThis, {
   dwebSearch(event: SubmitEvent) {

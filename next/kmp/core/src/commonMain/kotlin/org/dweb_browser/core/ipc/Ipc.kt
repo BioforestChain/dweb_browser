@@ -111,6 +111,15 @@ abstract class Ipc {
 
   abstract suspend fun _doPostMessage(data: IpcMessage)
 
+  fun pipe(to: Ipc, handler: (suspend Ipc.() -> Unit)? = null) {
+    this.onMessage { message ->
+      to.postMessage(message.message)
+    }
+    handler.run {
+      debugIpc("ipc","${this@Ipc.remote.mmid} pipe run")
+    }
+  }
+
   private fun <T : Any> _createSignal(): Signal<T> {
     val signal = Signal<T>()
     this.onClose {

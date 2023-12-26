@@ -86,7 +86,7 @@ class JmmInstallerController(
   suspend fun createAndStartDownload() = mutexLock.withLock {
     if (jmmHistoryMetadata.taskId == null ||
       (jmmHistoryMetadata.state.state != JmmStatus.INSTALLED &&
-          jmmHistoryMetadata . state . state != JmmStatus . Completed)
+          jmmHistoryMetadata.state.state != JmmStatus.Completed)
     ) {
       jmmController.createDownloadTask(jmmHistoryMetadata)
     }
