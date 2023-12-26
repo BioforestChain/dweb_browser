@@ -4,15 +4,15 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fromFilePath
 import io.ktor.utils.io.ByteReadChannel
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureBinary
-import org.dweb_browser.core.http.PureBinaryBody
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.PureStream
-import org.dweb_browser.core.http.PureStreamBody
-import org.dweb_browser.core.http.PureStringBody
-import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureBinary
+import org.dweb_browser.pure.http.PureBinaryBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.pure.http.PureStreamBody
+import org.dweb_browser.pure.http.PureStringBody
+import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.core.std.dns.debugFetchFile
 import org.dweb_browser.helper.decodeURIComponent
 
@@ -26,7 +26,7 @@ class RespondLocalFileContext(val request: PureClientRequest) {
   private fun asModePureBody(binary: PureStream) = PureStreamBody(binary)
 
   fun returnFile(body: IPureBody): PureResponse {
-    val headers = IpcHeaders()
+    val headers = PureHeaders()
     val extension = ContentType.fromFilePath(filePath)
     if (extension.isNotEmpty()) {
       headers.init("Content-Type", extension.first().toString())

@@ -24,7 +24,7 @@ import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
-import org.dweb_browser.helper.platform.getKtorClientEngine
+import org.dweb_browser.pure.http.engine.getKtorClientEngine
 import org.dweb_browser.shared.bridge.WKWebViewBridge
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM

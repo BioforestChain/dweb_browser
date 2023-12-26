@@ -1,12 +1,12 @@
 package org.dweb_browser.core.std.http
 
 import io.ktor.http.HttpStatusCode
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.PureServerRequest
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
-import org.dweb_browser.core.ipc.helper.IpcHeaders
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 
@@ -60,9 +60,9 @@ class Gateway(
     suspend fun handler(request: PureServerRequest) = if (config.isMatch(request)) {
       /// 这里的 request 并不是 pureClientRequest，而是 pureServerRequest
       ipc.request(request.toClient())
-    } else if (request.method == IpcMethod.OPTIONS && request.url.host != "http.std.dweb") {
+    } else if (request.method == PureMethod.OPTIONS && request.url.host != "http.std.dweb") {
       // 处理options请求
-      PureResponse(HttpStatusCode.OK, IpcHeaders(CORS_HEADERS.toMap()))
+      PureResponse(HttpStatusCode.OK, PureHeaders(CORS_HEADERS.toMap()))
     } else null
   }
 }

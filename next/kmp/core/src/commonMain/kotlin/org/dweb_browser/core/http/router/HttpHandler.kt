@@ -1,12 +1,12 @@
 package org.dweb_browser.core.http.router
 
 import io.ktor.http.HttpStatusCode
-import org.dweb_browser.core.http.IPureChannel
-import org.dweb_browser.core.http.PureChannelContext
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.PureServerRequest
-import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.pure.http.IPureChannel
+import org.dweb_browser.pure.http.PureChannelContext
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureServerRequest
+import org.dweb_browser.pure.http.PureStringBody
 
 interface IHandlerContext {
   val request: PureServerRequest

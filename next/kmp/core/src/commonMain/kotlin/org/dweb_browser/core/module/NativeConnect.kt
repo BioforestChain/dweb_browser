@@ -2,7 +2,7 @@ package org.dweb_browser.core.module
 
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.help.AdapterManager
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.core.ipc.Ipc
 
 /**

@@ -44,6 +44,8 @@ include(
   ":helperCompose",
   ":helperPlatform",
   ":helperPlatformIos",
+  ":pureHttp",
+  ":pureImage",
   ":window",
   ":core",
   ":DWebView",

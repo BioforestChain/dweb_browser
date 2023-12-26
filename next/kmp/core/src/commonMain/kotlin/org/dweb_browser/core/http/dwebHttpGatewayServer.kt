@@ -24,8 +24,15 @@ import org.dweb_browser.core.std.http.findDwebGateway
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.platform.getKtorServerEngine
 import org.dweb_browser.helper.toUtf8
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureBinaryFrame
+import org.dweb_browser.pure.http.PureChannel
+import org.dweb_browser.pure.http.PureFrame
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureServerRequest
+import org.dweb_browser.pure.http.PureTextFrame
+import org.dweb_browser.pure.http.engine.getKtorServerEngine
 
 
 typealias HttpGateway = suspend (request: PureServerRequest) -> PureResponse?
@@ -62,9 +69,11 @@ class DwebHttpGatewayServer private constructor() {
                 else -> "${info.protocol.name}://${info.host}$rawUrl"
               }
             var pureRequest = if (url != rawUrl) rawRequest.copy(href = url) else rawRequest;
-
+            var pureChannelDeferred: CompletableDeferred<PureChannel>? = null
             if (pureRequest.isWebSocket()) {
-              pureRequest = pureRequest.copy(channel = CompletableDeferred())
+              pureRequest = pureRequest.copy(channel = CompletableDeferred<PureChannel>().also {
+                pureChannelDeferred = it
+              })
             }
             val response = try {
               gatewayAdapterManager.doGateway(pureRequest)
@@ -105,7 +114,7 @@ class DwebHttpGatewayServer private constructor() {
                     val income = Channel<PureFrame>()
                     val outgoing = Channel<PureFrame>()
                     val pureChannel = PureChannel(income, outgoing, ws)
-                    pureRequest.completeChannel(pureChannel)
+                    pureChannelDeferred!!.complete(pureChannel)
 
                     /// 将从 pureChannel 收到的数据，传输到 websocket 的 frame 中
                     launch {

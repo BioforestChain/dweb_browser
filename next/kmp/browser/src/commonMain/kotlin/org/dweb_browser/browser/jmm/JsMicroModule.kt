@@ -15,14 +15,14 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.PureStreamBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.ConnectResult
@@ -128,7 +128,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           PureClientRequest(URLBuilder("file://js.browser.dweb/create-process").apply {
             parameters["entry"] = metadata.server.entry
             parameters["process_id"] = pid
-          }.buildUnsafeString(), IpcMethod.POST, body = PureStreamBody(streamIpc.input.stream))
+          }.buildUnsafeString(), PureMethod.POST, body = PureStreamBody(streamIpc.input.stream))
         ).stream()
       )
       this@JsMicroModule.addToIpcSet(streamIpc)

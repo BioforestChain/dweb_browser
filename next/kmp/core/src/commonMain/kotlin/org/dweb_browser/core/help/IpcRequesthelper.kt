@@ -3,18 +3,18 @@ package org.dweb_browser.core.help
 import io.ktor.http.Headers
 import io.ktor.http.HttpMethod
 import io.ktor.utils.io.ByteReadChannel
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureStreamBody
-import org.dweb_browser.core.http.PureStringBody
-import org.dweb_browser.core.ipc.helper.IpcHeaders
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureStreamBody
+import org.dweb_browser.pure.http.PureStringBody
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
 
 data class InitRequest(
-  val method: IpcMethod, val headers: IpcHeaders, val body: Any?
+  val method: PureMethod, val headers: PureHeaders, val body: Any?
 )
 
-fun isWebSocket(method: IpcMethod, headers: IpcHeaders): Boolean {
+fun isWebSocket(method: PureMethod, headers: PureHeaders): Boolean {
   val upgrade = headers.get("Upgrade") == "websocket"
   return method.method == "GET" && upgrade
 }
@@ -24,7 +24,7 @@ fun httpMethodCanOwnBody(
 ): Boolean {
 
   if (headers != null) {
-    return isWebSocket(IpcMethod.from(method), IpcHeaders(headers))
+    return isWebSocket(PureMethod.from(method), PureHeaders(headers))
   }
   return method != HttpMethod.Get && method != HttpMethod.Head && method != HttpMethod.Options
 }
@@ -34,23 +34,23 @@ fun httpMethodCanOwnBody(
  * @param toRequest
  */
 fun buildRequestX(
-  url: String, method: IpcMethod, headers: IpcHeaders, body: String?
+  url: String, method: PureMethod, headers: PureHeaders, body: String?
 ) = buildRequestX(url, method, headers, anyBody = body)
 
 fun buildRequestX(
-  url: String, method: IpcMethod, headers: IpcHeaders, body: ByteArray?
+  url: String, method: PureMethod, headers: PureHeaders, body: ByteArray?
 ) = buildRequestX(url, method, headers, anyBody = body)
 
 fun buildRequestX(
-  url: String, method: IpcMethod, headers: IpcHeaders, body: ByteReadChannel?
+  url: String, method: PureMethod, headers: PureHeaders, body: ByteReadChannel?
 ) = buildRequestX(url, method, headers, anyBody = body)
 
 fun buildRequestX(
-  url: String, method: IpcMethod, headers: IpcHeaders, body: IPureBody?, from: Any? = null
+  url: String, method: PureMethod, headers: PureHeaders, body: IPureBody?, from: Any? = null
 ) = buildRequestX(url, method, headers, anyBody = body, from = from)
 
 internal fun buildRequestX(
-  url: String, method: IpcMethod, headers: IpcHeaders, anyBody: Any?, from: Any? = null
+  url: String, method: PureMethod, headers: PureHeaders, anyBody: Any?, from: Any? = null
 ): PureClientRequest {
   val pureBody: IPureBody = when (anyBody) {
     is String -> if (anyBody.isEmpty()) IPureBody.Empty else PureStringBody(anyBody)

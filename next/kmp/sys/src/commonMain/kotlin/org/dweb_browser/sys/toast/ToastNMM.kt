@@ -2,7 +2,7 @@ package org.dweb_browser.sys.toast
 
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 
@@ -15,7 +15,7 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 显示弹框*/
-      "/show" bind IpcMethod.GET by defineBooleanResponse {
+      "/show" bind PureMethod.GET by defineBooleanResponse {
         val duration = request.queryOrNull("duration") ?: EToast.Short.type
         val message = request.query("message")
         val position = request.queryOrNull("position") ?: PositionType.BOTTOM.position

@@ -5,10 +5,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureStreamBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.core.ipc.ReadableStreamIpc
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.PromiseOut
@@ -42,15 +42,15 @@ suspend fun MicroModule.listenHttpDwebServer(
   microModule: IMicroModuleManifest,
   startResult: HttpNMM.ServerStartResult,
   routes: Array<CommonRoute> = arrayOf(
-    CommonRoute(pathname = "", method = IpcMethod.GET),
-    CommonRoute(pathname = "", method = IpcMethod.POST),
-    CommonRoute(pathname = "", method = IpcMethod.PUT),
-    CommonRoute(pathname = "", method = IpcMethod.DELETE),
-    CommonRoute(pathname = "", method = IpcMethod.OPTIONS),
-    CommonRoute(pathname = "", method = IpcMethod.PATCH),
-    CommonRoute(pathname = "", method = IpcMethod.HEAD),
-    CommonRoute(pathname = "", method = IpcMethod.CONNECT),
-    CommonRoute(pathname = "", method = IpcMethod.TRACE)
+    CommonRoute(pathname = "", method = PureMethod.GET),
+    CommonRoute(pathname = "", method = PureMethod.POST),
+    CommonRoute(pathname = "", method = PureMethod.PUT),
+    CommonRoute(pathname = "", method = PureMethod.DELETE),
+    CommonRoute(pathname = "", method = PureMethod.OPTIONS),
+    CommonRoute(pathname = "", method = PureMethod.PATCH),
+    CommonRoute(pathname = "", method = PureMethod.HEAD),
+    CommonRoute(pathname = "", method = PureMethod.CONNECT),
+    CommonRoute(pathname = "", method = PureMethod.TRACE)
   )
 ): ReadableStreamIpc {
   val httpIpc = this.connect("http.std.dweb")
@@ -63,7 +63,7 @@ suspend fun MicroModule.listenHttpDwebServer(
               parameters["token"] = startResult.token
               parameters["routes"] = Json.encodeToString(routes)
             }.buildUnsafeString(),
-            IpcMethod.POST,
+            PureMethod.POST,
             body = PureStreamBody(it.input.stream)
           )
         ).stream()

@@ -14,14 +14,14 @@ import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.core.help.types.DWEB_PROTOCOL
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
-import org.dweb_browser.core.http.PureBinary
-import org.dweb_browser.core.http.PureBinaryBody
-import org.dweb_browser.core.http.PureChannel
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureFrame
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.PureStream
-import org.dweb_browser.core.http.PureStreamBody
+import org.dweb_browser.pure.http.PureBinary
+import org.dweb_browser.pure.http.PureBinaryBody
+import org.dweb_browser.pure.http.PureChannel
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureFrame
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.core.http.router.HandlerContext
 import org.dweb_browser.core.http.router.HttpHandler
 import org.dweb_browser.core.http.router.HttpHandlerChain
@@ -35,7 +35,7 @@ import org.dweb_browser.core.ipc.NativeIpc
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcMessage
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.ReadableStreamOut
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -344,7 +344,7 @@ suspend fun NativeMicroModule.createChannel(
   val channelDef = CompletableDeferred<PureChannel>()
   val request = PureClientRequest(
     urlPath,
-    IpcMethod.GET,
+    PureMethod.GET,
     channel = channelDef
   )
   val channel = PureChannel(from = request).also { channelDef.complete(it) }

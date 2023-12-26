@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.http.toFetchResponse
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Observable
@@ -697,7 +696,7 @@ fun WindowController.IconRender(
     iconFetchHook = microModule?.let { mm ->
       return@let {
         val response = mm.nativeFetch(request.url)
-        returnResponse(response.toFetchResponse())
+        returnResponse(response)
       }
     })
 }

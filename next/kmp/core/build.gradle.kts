@@ -19,6 +19,7 @@ kotlin {
     implementation(projects.helper)
     implementation(projects.helperCompose)
     implementation(projects.helperPlatform)
+    implementation(projects.pureHttp)
   }
   sourceSets.commonTest.dependencies {
     implementation(kotlin("test"))

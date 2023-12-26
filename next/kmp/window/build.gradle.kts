@@ -14,6 +14,8 @@ kotlin {
     implementation(projects.helper)
     implementation(projects.helperCompose)
     implementation(projects.helperPlatform)
+    implementation(projects.pureHttp)
+    implementation(projects.pureImage)
     implementation(projects.core)
   }
   sourceSets.commonTest.dependencies {

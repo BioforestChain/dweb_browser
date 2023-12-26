@@ -15,16 +15,16 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MPID
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureRequest
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.PureStringBody
-import org.dweb_browser.core.http.PureUrl
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureRequest
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStringBody
+import org.dweb_browser.pure.http.PureUrl
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.ConnectResult
 import org.dweb_browser.core.module.DnsMicroModule
@@ -162,7 +162,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
     val toMMID = toMicroModule.mmid
     val fromMMID =
-      if (reason.method == IpcMethod.CONNECT && reason.body.toPureString() == forwardReason) {
+      if (reason.method == PureMethod.CONNECT && reason.body.toPureString() == forwardReason) {
         reason.url.host // 特殊的代理模式
       } else {
         fromMM.mmid
@@ -224,7 +224,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     ): ConnectResult {
       // TODO 权限保护
       return dnsMM.connectTo(
-        fromMM, mmid, reason ?: PureClientRequest("file://$mmid", IpcMethod.GET)
+        fromMM, mmid, reason ?: PureClientRequest("file://$mmid", PureMethod.GET)
       )
     }
 
@@ -300,21 +300,21 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     /// 定义路由功能
     routes("open" bindDwebDeeplink openApp,
       // 打开应用
-      "/open" bind IpcMethod.GET by openApp,
+      "/open" bind PureMethod.GET by openApp,
       // 关闭应用
       // TODO 能否关闭一个应该应该由应用自己决定
-      "/close" bind IpcMethod.GET by defineBooleanResponse {
+      "/close" bind PureMethod.GET by defineBooleanResponse {
         val mmid = request.queryAppId()
         debugDNS("close/$mmid", request.url.fullPath)
         close(mmid)
         true
       },
       //
-      "/query" bind IpcMethod.GET by defineJsonResponse {
+      "/query" bind PureMethod.GET by defineJsonResponse {
         val mmid = request.queryAppId()
         query(mmid, ipc.remote)?.toManifest()?.toJsonElement() ?: JsonNull
       },
-      "/search" bind IpcMethod.GET by defineJsonResponse {
+      "/search" bind PureMethod.GET by defineJsonResponse {
         val category = request.queryCategory()
         val manifests = mutableListOf<CommonAppManifest>()
         search(category as MICRO_MODULE_CATEGORY).map { app ->

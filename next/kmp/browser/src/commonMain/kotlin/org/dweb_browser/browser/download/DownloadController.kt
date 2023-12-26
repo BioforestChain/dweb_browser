@@ -22,10 +22,10 @@ import org.dweb_browser.browser.download.model.ChangeableType
 import org.dweb_browser.browser.download.model.DownloadModel
 import org.dweb_browser.browser.download.ui.DecompressModel
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureStreamBody
-import org.dweb_browser.core.ipc.helper.IpcHeaders
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureStreamBody
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileMetadata
 import org.dweb_browser.helper.PromiseOut
@@ -228,7 +228,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     }
   }
 
-  private fun mimeFactory(header: IpcHeaders, filePath: String): String {
+  private fun mimeFactory(header: PureHeaders, filePath: String): String {
     // 先从header判断
     val contentType = header.get("Content-Type")
     if (!contentType.isNullOrEmpty()) {
@@ -269,7 +269,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   private suspend fun fileRemove(filepath: String): Boolean {
     return downloadNMM.nativeFetch(
       PureClientRequest(
-        "file://file.std.dweb/remove?path=${filepath}&recursive=true", IpcMethod.DELETE
+        "file://file.std.dweb/remove?path=${filepath}&recursive=true", PureMethod.DELETE
       )
     ).boolean()
   }
@@ -279,7 +279,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     downloadNMM.nativeFetch(
       PureClientRequest(
         "file://file.std.dweb/append?path=${task.filepath}&create=true",
-        IpcMethod.PUT,
+        PureMethod.PUT,
         body = PureStreamBody(stream)
       )
     )

@@ -3,15 +3,14 @@ plugins {
 }
 
 kotlin {
+//  desktopBackendTarget()
   sourceSets.commonMain.dependencies {
     api(libs.jetbrains.compose.runtime)
     api(libs.jetbrains.compose.foundation)
     api(libs.jetbrains.compose.components.resources)
     api(libs.kotlinx.atomicfu)
-    api(libs.ktor.server.cio)
     api(libs.ktor.client.cio)
     api(libs.ktor.client.encoding)
-    api(libs.ktor.server.websockets)
 
     implementation(libs.jetbrains.compose.material3)
 

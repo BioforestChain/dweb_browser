@@ -1,7 +1,7 @@
 package org.dweb_browser.core.std.file.ext
 
 import io.ktor.util.cio.toByteReadChannel
-import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.pure.http.PureResponse
 import java.io.File
 import java.io.InputStream
 

@@ -2,8 +2,8 @@ package org.dweb_browser.core.std.http.net
 
 import io.ktor.server.engine.ApplicationEngine
 import org.dweb_browser.core.http.DwebHttpGatewayServer
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.PureServerRequest
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.std.http.Gateway
 

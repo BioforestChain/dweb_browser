@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.AuthorizationRecord
@@ -199,7 +199,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
 
     // TODO 临时用于扫码的时候请求权限
     routes(
-      "/request" bind IpcMethod.GET by defineBooleanResponse {
+      "/request" bind PureMethod.GET by defineBooleanResponse {
         debugPermission("request", "temp routes")
         val permission = request.query("permission")
         return@defineBooleanResponse requestPermission(PermissionType.valueOf(permission))

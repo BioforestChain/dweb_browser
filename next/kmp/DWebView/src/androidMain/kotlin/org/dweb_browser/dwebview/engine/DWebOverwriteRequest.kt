@@ -9,9 +9,9 @@ import android.webkit.WebViewClient
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.ipc.helper.IpcHeaders
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.debugDWebView
@@ -52,7 +52,7 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
       val response = runBlocking(ioAsyncExceptionHandler) {
         engine.remoteMM.nativeFetch(
           PureClientRequest(
-            request.url.toString(), IpcMethod.GET, IpcHeaders(request.requestHeaders)
+            request.url.toString(), PureMethod.GET, PureHeaders(request.requestHeaders)
           )
         )
       }

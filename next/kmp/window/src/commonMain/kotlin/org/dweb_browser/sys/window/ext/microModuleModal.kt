@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.WeakHashMap
@@ -44,7 +44,7 @@ suspend fun NativeMicroModule.createBottomSheets(
   val callbackUrlId = randomUUID()
   val callbackUrlPathname = "/internal/callback/bottom-sheets/$callbackUrlId"
   val onCallback = MutableSharedFlow<ModalCallback>()
-  callbackRouter.addRoutes(callbackUrlPathname bind IpcMethod.POST by defineEmptyResponse {
+  callbackRouter.addRoutes(callbackUrlPathname bind PureMethod.POST by defineEmptyResponse {
     onCallback.emit(request.body.toPureString().decodeTo())
   });
 
@@ -81,7 +81,7 @@ suspend fun NativeMicroModule.createAlert(
   val callbackUrlId = randomUUID()
   val callbackUrlPathname = "/internal/callback/alert/$callbackUrlId"
   val onCallback = MutableSharedFlow<ModalCallback>()
-  val callbackRouter = routes(callbackUrlPathname bind IpcMethod.POST by defineEmptyResponse {
+  val callbackRouter = routes(callbackUrlPathname bind PureMethod.POST by defineEmptyResponse {
     onCallback.emit(request.body.toPureString().decodeTo())
   });
 

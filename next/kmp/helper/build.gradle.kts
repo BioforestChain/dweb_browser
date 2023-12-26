@@ -3,6 +3,7 @@ plugins {
 }
 
 kotlin {
+//  desktopBackendTarget()
   sourceSets.commonMain.dependencies {
     api(kotlin("stdlib"))
     api(libs.kotlinx.coroutines.core)

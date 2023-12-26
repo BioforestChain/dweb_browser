@@ -1,8 +1,8 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.atomicfu.atomic
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureStream
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toUtf8ByteArray

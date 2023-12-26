@@ -8,12 +8,6 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.buildRequestX
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureChannel
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureFrame
-import org.dweb_browser.core.http.PureServerRequest
-import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.IpcRequestInit
 import org.dweb_browser.core.ipc.debugIpc
@@ -23,6 +17,14 @@ import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.commonAsyncExceptionHandler
 import org.dweb_browser.helper.eprintln
 import org.dweb_browser.helper.falseAlso
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureChannel
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureFrame
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureServerRequest
+import org.dweb_browser.pure.http.PureStream
 import kotlin.coroutines.coroutineContext
 
 
@@ -32,8 +34,8 @@ const val X_IPC_UPGRADE_KEY = "X-Dweb-Ipc-Upgrade-Key"
 class IpcClientRequest(
   req_id: Int,
   url: String,
-  method: IpcMethod,
-  headers: IpcHeaders,
+  method: PureMethod,
+  headers: PureHeaders,
   body: IpcBody,
   ipc: Ipc,
   override val from: Any? = null
@@ -50,8 +52,8 @@ class IpcClientRequest(
     fun fromText(
       req_id: Int,
       url: String,
-      method: IpcMethod = IpcMethod.GET,
-      headers: IpcHeaders = IpcHeaders(),
+      method: PureMethod = PureMethod.GET,
+      headers: PureHeaders = PureHeaders(),
       text: String,
       ipc: Ipc
     ) = IpcClientRequest(
@@ -65,9 +67,9 @@ class IpcClientRequest(
 
     fun fromBinary(
       req_id: Int,
-      method: IpcMethod,
+      method: PureMethod,
       url: String,
-      headers: IpcHeaders = IpcHeaders(),
+      headers: PureHeaders = PureHeaders(),
       binary: ByteArray,
       ipc: Ipc
     ) = IpcClientRequest(
@@ -84,9 +86,9 @@ class IpcClientRequest(
 
     fun fromStream(
       req_id: Int,
-      method: IpcMethod,
+      method: PureMethod,
       url: String,
-      headers: IpcHeaders = IpcHeaders(),
+      headers: PureHeaders = PureHeaders(),
       stream: PureStream,
       ipc: Ipc,
       size: Long? = null
@@ -182,44 +184,14 @@ class IpcClientRequest(
   }
 
   internal val pure = LateInit<PureClientRequest>()
-//
-//  suspend fun toPure() = pure.getOrInit {
-//    buildRequestX(url, method, headers, body.raw, from = this).let { pureRequest ->
-//      if (hasDuplex) {
-//        debugIpc(
-//          "toPure/client/ipcToChannel",
-//          "channelId:$duplexEventBaseName => request:$this start!!"
-//        )
-//
-//        val income = Channel<PureFrame>()
-//        val outgoing = Channel<PureFrame>()
-//        val pureChannel = PureChannel(income, outgoing, from = this)
-//        CoroutineScope(coroutineContext).launch {
-//          pureChannelToIpcEvent(
-//            duplexEventBaseName!!,
-//            ipc,
-//            pureChannel,
-//            channelByIpcEmit = income,
-//            channelForIpcPost = outgoing,
-//            _debugTag = "toPure/client/ipcToChannel",
-//          ) { pureChannel.afterStart(); }
-//        }
-//
-//        pureRequest.copy(
-//          channel = CompletableDeferred(),
-//          headers = pureRequest.headers.copy().apply { delete(X_IPC_UPGRADE_KEY) })
-//          .apply { completeChannel(pureChannel) }
-//      } else pureRequest
-//    }
-//  }
 }
 
 
 class IpcServerRequest(
   req_id: Int,
   url: String,
-  method: IpcMethod,
-  headers: IpcHeaders,
+  method: PureMethod,
+  headers: PureHeaders,
   body: IpcBody,
   ipc: Ipc,
   override val from: Any? = null
@@ -294,8 +266,8 @@ class IpcServerRequest(
 sealed class IpcRequest(
   val req_id: Int,
   val url: String,
-  val method: IpcMethod,
-  val headers: IpcHeaders,
+  val method: PureMethod,
+  val headers: PureHeaders,
   val body: IpcBody,
   val ipc: Ipc,
 ) : IpcMessage(IPC_MESSAGE_TYPE.REQUEST), IFrom {
@@ -409,7 +381,7 @@ sealed class IpcRequest(
 @Serializable
 data class IpcReqMessage(
   val req_id: Int,
-  val method: IpcMethod,
+  val method: PureMethod,
   val url: String,
   val headers: MutableMap<String, String>,
   val metaBody: MetaBody,

@@ -1,7 +1,7 @@
 package org.dweb_browser.shared
 
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -24,7 +24,7 @@ class TestEntry {
 //        val body = IPureBody()
     val request = PureClientRequest(
       "file://share.sys.dweb/share?title=Hello&text=Contentxxxxxx",
-      IpcMethod.POST
+      PureMethod.POST
     )
     bootNMM.nativeFetch(request)
   }

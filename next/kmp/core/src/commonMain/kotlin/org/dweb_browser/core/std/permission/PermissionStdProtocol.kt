@@ -1,13 +1,13 @@
 package org.dweb_browser.core.std.permission
 
 import io.ktor.http.HttpStatusCode
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureRequest
-import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureRequest
+import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.ext.requestPermission
 import org.dweb_browser.helper.ReasonLock
@@ -102,7 +102,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
     val nextMMID = reason.url.host
     if (nextMMID != mmid && !dweb_protocols.contains(nextMMID)) {
       val forwardReason =
-        PureClientRequest.fromJson("file://$nextMMID", IpcMethod.CONNECT, forwardReason)
+        PureClientRequest.fromJson("file://$nextMMID", PureMethod.CONNECT, forwardReason)
       val forwardIpc = connect(nextMMID, forwardReason)
       /**
        * 如果授权成功，即可进行请求
@@ -157,7 +157,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
        * 服务者 查询权限的授权情况。
        * 这里只能查询“模块自己定义的权限”
        */
-      "/query" bind IpcMethod.GET by defineJsonResponse {
+      "/query" bind PureMethod.GET by defineJsonResponse {
         debugPermission("query", "enter")
         request.mapOfPermissions { permission ->
           permissionTable.query(ipc.remote.mmid, permission)
@@ -167,7 +167,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
        * 请求者 检查权限的状态。
        * 这里只能检查“请求者的权限状态”，无法查询其它模块的状态
        */
-      "/check" bind IpcMethod.GET by defineJsonResponse {
+      "/check" bind PureMethod.GET by defineJsonResponse {
         debugPermission("check", "enter")
         request.mapOfPermissions { permission ->
           permissionTable.check(ipc.remote.mmid, permission)
@@ -176,7 +176,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
       /**
        * 请求者 申请权限
        */
-      "/request" bind IpcMethod.GET by defineJsonResponse {
+      "/request" bind PureMethod.GET by defineJsonResponse {
         debugPermission("request", "enter")
         /**
          * 需要通过hooks询问结果的
@@ -223,7 +223,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
        * 服务者 撤销授权记录
        * 这样会导致下一次调用强制询问的发生
        */
-      "/delete" bind IpcMethod.GET by defineJsonResponse {
+      "/delete" bind PureMethod.GET by defineJsonResponse {
         debugPermission("delete", "enter")
         val providerMmid = ipc.remote.mmid
         val applicantMmid = request.query("mmid")

@@ -1,16 +1,16 @@
 package org.dweb_browser.core.std.http
 
 import kotlinx.serialization.Serializable
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.core.http.router.HttpHandlerChain
 import org.dweb_browser.core.http.router.RouteHandler
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 
 @Serializable
 data class CommonRoute(
   val dwebDeeplink: Boolean = false,
   val pathname: String,
-  val method: IpcMethod,
+  val method: PureMethod,
   val matchMode: MatchMode = MatchMode.PREFIX
 ) : IRoute {
   private fun methodMatcher(request: PureRequest) = request.method == method

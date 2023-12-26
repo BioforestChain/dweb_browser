@@ -14,15 +14,15 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.core.help.asPureRequest
 import org.dweb_browser.core.help.fromPureResponse
 import org.dweb_browser.core.help.isWebSocket
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.std.http.debugHttp
 import org.dweb_browser.core.std.http.findDwebGateway
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.platform.getKtorServerEngine
+import org.dweb_browser.pure.http.engine.getKtorServerEngine
 
 class Http1ServerTest {
   companion object {

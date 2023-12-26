@@ -6,17 +6,17 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.PureStringBody
-import org.dweb_browser.core.http.PureTextFrame
-import org.dweb_browser.core.http.queryAs
-import org.dweb_browser.core.http.queryAsOrNull
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStringBody
+import org.dweb_browser.pure.http.PureTextFrame
+import org.dweb_browser.pure.http.queryAs
+import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -197,7 +197,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     /// 内部接口
     routes(
       //
-      "/readFile" bind IpcMethod.GET by definePureResponse {
+      "/readFile" bind PureMethod.GET by definePureResponse {
         nativeFetch(request.query("url"))
       },
       // readAccept
@@ -208,7 +208,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         )
       },
       //
-      "/openAppOrActivate" bind IpcMethod.GET by defineBooleanResponse {
+      "/openAppOrActivate" bind PureMethod.GET by defineBooleanResponse {
         val mmid = request.query("app_id")
         debugDesk("openAppOrActivate", "requestMMID=$mmid")
         // 内部接口，所以ipc通过connect获得
@@ -221,13 +221,13 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineBooleanResponse true
       },
       // 获取isMaximized 的值
-      "/toggleMaximize" bind IpcMethod.GET by defineBooleanResponse {
+      "/toggleMaximize" bind PureMethod.GET by defineBooleanResponse {
         val mmid = request.query("app_id")
         return@defineBooleanResponse desktopController.getDesktopWindowsManager()
           .toggleMaximize(mmid)
       },
       // 关闭app
-      "/closeApp" bind IpcMethod.GET by defineBooleanResponse {
+      "/closeApp" bind PureMethod.GET by defineBooleanResponse {
         val mmid = request.query("app_id")
         when (val runningApp = runningApps[mmid]) {
           null -> false
@@ -238,7 +238,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         }
       },
       // 获取全部app数据
-      "/desktop/apps" bind IpcMethod.GET by defineJsonResponse {
+      "/desktop/apps" bind PureMethod.GET by defineJsonResponse {
         debugDesk("/desktop/apps", desktopController.getDesktopApps())
         return@defineJsonResponse desktopController.getDesktopApps().toJsonElement()
       },
@@ -260,7 +260,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         desktopController.updateSignal.emit()
       },
       // 获取所有taskbar数据
-      "/taskbar/apps" bind IpcMethod.GET by defineJsonResponse {
+      "/taskbar/apps" bind PureMethod.GET by defineJsonResponse {
         val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
         return@defineJsonResponse taskBarController.getTaskbarAppList(limit).toJsonElement()
       },
@@ -290,19 +290,19 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         }.removeWhen(onClose)
       },
       // 负责resize taskbar大小
-      "/taskbar/resize" bind IpcMethod.GET by defineJsonResponse {
+      "/taskbar/resize" bind PureMethod.GET by defineJsonResponse {
         val size = request.queryAs<TaskbarController.ReSize>()
         debugDesk("get/taskbar/resize", "$size")
         taskBarController.resize(size)
         size.toJsonElement()
       },
       // 切换到桌面
-      "/taskbar/toggle-desktop-view" bind IpcMethod.GET by defineBooleanResponse {
+      "/taskbar/toggle-desktop-view" bind PureMethod.GET by defineBooleanResponse {
         taskBarController.toggleDesktopView()
         true
       },
       // 在app为全屏的时候，调出周围的高斯模糊，调整完全的taskbar
-      "/taskbar/toggle-float-button-mode" bind IpcMethod.GET by defineBooleanResponse {
+      "/taskbar/toggle-float-button-mode" bind PureMethod.GET by defineBooleanResponse {
         taskBarController.toggleFloatWindow(
           request.queryOrNull("open")?.toBooleanStrictOrNull()
         )

@@ -5,11 +5,9 @@ import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.permission.PermissionType
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.platform.MultiPartFile
 
@@ -34,7 +32,7 @@ class MediaNMM : NativeMicroModule("media.sys.dweb", "system media") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 保存图片到相册*/
-      "/savePictures" bind IpcMethod.POST by defineEmptyResponse {
+      "/savePictures" bind PureMethod.POST by defineEmptyResponse {
         //nativeFetch("file://permission.sys.dweb/request?permission=${PermissionType.STORAGE.name}")
         val byteArray = request.body.toPureBinary()
         val saveLocation = request.queryOrNull("saveLocation") ?: "DwebBrowser"

@@ -21,11 +21,11 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
-import org.dweb_browser.helper.compose.ImageLoadResult
-import org.dweb_browser.helper.compose.ImageLoader
-import org.dweb_browser.helper.compose.LocalImageLoader
+import org.dweb_browser.pure.image.compose.ImageLoadResult
+import org.dweb_browser.pure.image.compose.ImageLoader
+import org.dweb_browser.pure.image.compose.LocalImageLoader
 import org.dweb_browser.helper.compose.rememberVectorPainterWithTint
-import org.dweb_browser.helper.platform.offscreenwebcanvas.FetchHook
+import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import squircleshape.SquircleShape
 
 data class AppIconOptions(

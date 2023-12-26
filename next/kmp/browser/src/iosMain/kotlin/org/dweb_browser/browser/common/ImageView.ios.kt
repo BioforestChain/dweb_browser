@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
-import org.dweb_browser.helper.compose.LocalImageLoader
+import org.dweb_browser.pure.image.compose.LocalImageLoader
 
 @Composable
 actual fun AsyncImage(

@@ -2,10 +2,10 @@ package org.dweb_browser.sys.notification
 
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.queryAs
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 
@@ -19,7 +19,7 @@ class NotificationNMM : NativeMicroModule("notification.sys.dweb", "notification
     val notificationManager = NotificationManager()
     routes(
       /** 创建消息*/
-      "/create" bind IpcMethod.GET by definePureResponse {
+      "/create" bind PureMethod.GET by definePureResponse {
         val messageItem = request.queryAs<NotificationMsgItem>()
         notificationManager.createNotification(messageItem)
         PureResponse(HttpStatusCode.OK)

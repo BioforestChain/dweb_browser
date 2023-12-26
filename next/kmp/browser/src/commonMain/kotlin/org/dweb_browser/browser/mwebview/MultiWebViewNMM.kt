@@ -6,7 +6,7 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
@@ -35,7 +35,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
 
     routes(
       // 打开一个 webview，并将它以 窗口window 的标准进行展示
-      "/open" bind IpcMethod.GET by defineJsonResponse {
+      "/open" bind PureMethod.GET by defineJsonResponse {
         val url = request.query("url")
         val wid = request.query("wid")
 
@@ -52,18 +52,18 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
         controller.getState()
       },
       // 关闭指定 webview 窗口
-      "/close" bind IpcMethod.GET by defineBooleanResponse {
+      "/close" bind PureMethod.GET by defineBooleanResponse {
         val webviewId = request.query("webview_id")
         val remoteMmid = ipc.remote.mmid
         debugMultiWebView("/close", "webviewId:$webviewId,mmid:$remoteMmid")
         closeDwebView(remoteMmid, webviewId)
       },
-      "/close/app" bind IpcMethod.GET by defineBooleanResponse {
+      "/close/app" bind PureMethod.GET by defineBooleanResponse {
         val controller = controllerMap[ipc.remote.mmid] ?: return@defineBooleanResponse false;
         controller.destroyWebView()
       },
       // 界面没有关闭，用于重新唤醒
-      "/activate" bind IpcMethod.GET by defineBooleanResponse {
+      "/activate" bind PureMethod.GET by defineBooleanResponse {
         val remoteMmid = ipc.remote.mmid
         val controller = controllerMap[remoteMmid] ?: return@defineBooleanResponse false
         debugMultiWebView("/activate", "激活 ${controller.ipc.remote.mmid}")

@@ -16,9 +16,9 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.WeakHashMap
@@ -155,7 +155,7 @@ class MicroModuleStore(
             parameters["path"] = queryPath
             parameters["create"] = "true"
           }.buildUnsafeString(),
-          IpcMethod.POST,
+          PureMethod.POST,
           body = IPureBody.from(
             Cbor.encodeToByteArray(map).let { cipher?.encrypt(it) ?: it })
         )

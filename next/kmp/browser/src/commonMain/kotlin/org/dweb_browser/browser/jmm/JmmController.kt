@@ -17,10 +17,10 @@ import org.dweb_browser.browser.download.model.ChangeableMutableMap
 import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureTextFrame
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureTextFrame
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.createChannel
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.LateInit
@@ -152,7 +152,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   suspend fun remove(filepath: String): Boolean {
     return jmmNMM.nativeFetch(
       PureClientRequest(
-        "file://file.std.dweb/remove?path=${filepath}&recursive=true", IpcMethod.DELETE
+        "file://file.std.dweb/remove?path=${filepath}&recursive=true", PureMethod.DELETE
       )
     ).boolean()
   }
@@ -160,7 +160,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   suspend fun removeTask(taskId: TaskId): Boolean {
     return jmmNMM.nativeFetch(
       PureClientRequest(
-        "file://download.browser.dweb/remove?taskId=${taskId}", IpcMethod.DELETE
+        "file://download.browser.dweb/remove?taskId=${taskId}", PureMethod.DELETE
       )
     ).boolean()
   }
@@ -281,11 +281,11 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       jmmNMM.nativeFetch(PureClientRequest(buildUrlString("file://file.std.dweb/write") {
         parameters.append("path", "/data/apps/$jmm/usr/sys/metadata.json")
         parameters.append("create", "true")
-      }, IpcMethod.POST, body = IPureBody.from(Json.encodeToString(jmmHistoryMetadata.metadata))))
+      }, PureMethod.POST, body = IPureBody.from(Json.encodeToString(jmmHistoryMetadata.metadata))))
       jmmNMM.nativeFetch(PureClientRequest(buildUrlString("file://file.std.dweb/write") {
         parameters.append("path", "/data/apps/$jmm/usr/sys/session.json")
         parameters.append("create", "true")
-      }, IpcMethod.POST, body = IPureBody.from(Json.encodeToString(buildJsonObject {
+      }, PureMethod.POST, body = IPureBody.from(Json.encodeToString(buildJsonObject {
         put("installTime", JsonPrimitive(jmmHistoryMetadata.installTime))
         put("installUrl", JsonPrimitive(jmmHistoryMetadata.originUrl))
       }))))

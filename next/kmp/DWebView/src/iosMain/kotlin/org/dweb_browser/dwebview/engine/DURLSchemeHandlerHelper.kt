@@ -5,11 +5,11 @@ import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ForeignException
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureStreamBody
-import org.dweb_browser.core.ipc.helper.IpcHeaders
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureStreamBody
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.NSInputStreamToByteReadChannel
@@ -34,7 +34,7 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule) {
   fun startURLSchemeTask(webView: WKWebView, task: WKURLSchemeTaskProtocol, pureUrl: String) {
     val taskRequest = task.request
 
-    val headers = IpcHeaders()
+    val headers = PureHeaders()
     taskRequest.allHTTPHeaderFields!!.toMap().map {
       headers.init(it.key as String, it.value as String)
     }
@@ -48,7 +48,7 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule) {
     } ?: IPureBody.Empty
 
     val pureRequest = PureClientRequest(
-      pureUrl, IpcMethod.valueOf(taskRequest.HTTPMethod!!.uppercase()), headers, pureBody
+      pureUrl, PureMethod.valueOf(taskRequest.HTTPMethod!!.uppercase()), headers, pureBody
     )
 
     val easyTask = nativeHelper.startURLSchemeTask(

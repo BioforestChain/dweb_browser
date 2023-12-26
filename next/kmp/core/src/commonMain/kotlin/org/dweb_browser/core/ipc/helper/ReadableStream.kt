@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.core.http.PureStream
+import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.helper.ByteReadChannelDelegate
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SafeInt

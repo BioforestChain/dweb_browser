@@ -22,18 +22,18 @@ import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.copyAndClose
 import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.writeAvailable
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureBinaryBody
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureEmptyBody
-import org.dweb_browser.core.http.PureRequest
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.PureServerRequest
-import org.dweb_browser.core.http.PureStreamBody
-import org.dweb_browser.core.http.PureStringBody
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureBinaryBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureEmptyBody
+import org.dweb_browser.pure.http.PureRequest
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureServerRequest
+import org.dweb_browser.pure.http.PureStreamBody
+import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.core.ipc.helper.DEFAULT_BUFFER_SIZE
-import org.dweb_browser.core.ipc.helper.IpcHeaders
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.ipc.helper.debugStream
 import org.dweb_browser.helper.ByteReadChannelDelegate
@@ -46,13 +46,13 @@ val debugHelper = Debugger("helper")
 val debugKtor = Debugger("ktor")
 
 fun ApplicationRequest.asPureRequest(): PureServerRequest {
-  val ipcMethod = IpcMethod.from(httpMethod)
-  val ipcHeaders = IpcHeaders(headers)
+  val pureMethod = PureMethod.from(httpMethod)
+  val pureHeaders = PureHeaders(headers)
   return PureServerRequest(
-    uri, ipcMethod, ipcHeaders,
+    uri, pureMethod, pureHeaders,
     body = if (//
-      (ipcMethod == IpcMethod.GET && !isWebSocket(ipcMethod, ipcHeaders)) //
-      || ipcHeaders.get("Content-Length") == "0"
+      (pureMethod == PureMethod.GET && !isWebSocket(pureMethod, pureHeaders)) //
+      || pureHeaders.get("Content-Length") == "0"
     ) IPureBody.Empty
     else PureStreamBody(receiveChannel()),
     from = this,
@@ -165,7 +165,7 @@ fun PureClientRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpR
     httpRequestBuilder.headers.append(key, value)
   }
   // get请求不能传递body，否则iOS会报错：GET method must not have a body
-  if (this.method != IpcMethod.GET) {
+  if (this.method != PureMethod.GET) {
     httpRequestBuilder.setBody(this.body.toPureStream().getReader("toHttpRequestBuilder"))
   }
 }
@@ -184,7 +184,7 @@ fun PureClientRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpR
  */
 suspend fun HttpResponse.toPureResponse(
   status: HttpStatusCode = this.status,
-  headers: IpcHeaders = IpcHeaders(this.headers),
+  headers: PureHeaders = PureHeaders(this.headers),
   body: IPureBody? = null,
 ): PureResponse {
   return PureResponse(

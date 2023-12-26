@@ -10,17 +10,17 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.core.ipc.helper.IpcClientRequest
 import org.dweb_browser.core.ipc.helper.IpcClientRequest.Companion.toIpc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
-import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.ipc.helper.IpcRequestMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcResponse
@@ -260,10 +260,10 @@ abstract class Ipc {
   /**
    * 发送请求
    */
-  suspend fun request(url: String) = request(PureClientRequest(method = IpcMethod.GET, href = url))
+  suspend fun request(url: String) = request(PureClientRequest(method = PureMethod.GET, href = url))
 
   suspend fun request(url: Url) =
-    request(PureClientRequest(method = IpcMethod.GET, href = url.toString()))
+    request(PureClientRequest(method = PureMethod.GET, href = url.toString()))
 
   private val _reqResMap by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     SafeHashMap<Int, CompletableDeferred<IpcResponse>>().also { reqResMap ->
@@ -336,7 +336,7 @@ abstract class Ipc {
 }
 
 data class IpcRequestInit(
-  var method: IpcMethod = IpcMethod.GET,
+  var method: PureMethod = PureMethod.GET,
   var body: IPureBody = IPureBody.Empty,
-  var headers: IpcHeaders = IpcHeaders()
+  var headers: PureHeaders = PureHeaders()
 )

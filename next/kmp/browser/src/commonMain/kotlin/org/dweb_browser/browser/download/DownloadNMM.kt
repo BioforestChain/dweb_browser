@@ -3,10 +3,10 @@ package org.dweb_browser.browser.download
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.http.queryAs
+import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -55,7 +55,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     }
     routes(
       // 开始下载
-      "/create" bind IpcMethod.GET by defineStringResponse {
+      "/create" bind PureMethod.GET by defineStringResponse {
         val mmid = ipc.remote.mmid
         val params = request.queryAs<DownloadTaskParams>()
         val downloadTask = controller.createTaskFactory(params, mmid)
@@ -66,7 +66,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         downloadTask.id
       },
       // 开始/恢复 下载
-      "/start" bind IpcMethod.GET by defineBooleanResponse {
+      "/start" bind PureMethod.GET by defineBooleanResponse {
         val taskId = request.query("taskId")
         debugDownload("/start", taskId)
         val task = controller.downloadManagers.get(taskId) ?: return@defineBooleanResponse false
@@ -87,24 +87,24 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         downloadTask.downloadSignal.emit(downloadTask)
       },
       // 暂停下载
-      "/pause" bind IpcMethod.GET by defineBooleanResponse {
+      "/pause" bind PureMethod.GET by defineBooleanResponse {
         val taskId = request.query("taskId")
         val task = controller.downloadManagers.get(taskId) ?: return@defineBooleanResponse false
         controller.pauseDownload(task)
         true
       },
       // 取消下载
-      "/cancel" bind IpcMethod.GET by defineBooleanResponse {
+      "/cancel" bind PureMethod.GET by defineBooleanResponse {
         val taskId = request.query("taskId")
         controller.cancelDownload(taskId)
       },
       // 移除任务
-      "/remove" bind IpcMethod.DELETE by defineEmptyResponse {
+      "/remove" bind PureMethod.DELETE by defineEmptyResponse {
         val taskId = request.query("taskId")
         controller.removeDownload(taskId)
       },
       // taskId是否存在
-      "/exists" bind IpcMethod.GET by defineBooleanResponse {
+      "/exists" bind PureMethod.GET by defineBooleanResponse {
         val taskId = request.query("taskId")
         controller.downloadManagers.get(taskId)?.status?.state?.let { state ->
           state != DownloadState.Completed && state != DownloadState.Canceled

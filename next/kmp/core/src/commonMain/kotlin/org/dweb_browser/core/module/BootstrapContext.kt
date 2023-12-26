@@ -2,7 +2,7 @@ package org.dweb_browser.core.module
 
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.pure.http.PureRequest
 
 
 interface BootstrapContext {

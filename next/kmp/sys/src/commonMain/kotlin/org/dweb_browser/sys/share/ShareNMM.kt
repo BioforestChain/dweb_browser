@@ -8,11 +8,11 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.receiveMultipart
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.receiveMultipart
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -47,7 +47,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 分享*/
-      "/share" bind IpcMethod.POST by defineJsonResponse {
+      "/share" bind PureMethod.POST by defineJsonResponse {
         val contentType =
           request.headers.get("Content-Type")?.let { ContentType.parse(it) } ?: ContentType.Any
 
@@ -117,7 +117,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
     nativeFetch(PureClientRequest(buildUrlString("file://file.std.dweb/write") {
       parameters.append("path", writePath)
       parameters.append("create", "true")
-    }, IpcMethod.POST, body = IPureBody.from(data)))
+    }, PureMethod.POST, body = IPureBody.from(data)))
 
     val realPath = nativeFetch("file://file.std.dweb/realPath?path=${writePath}").text()
     return "file://$realPath"

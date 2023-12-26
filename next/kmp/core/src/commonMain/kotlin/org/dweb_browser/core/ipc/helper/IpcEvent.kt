@@ -1,9 +1,9 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.serialization.Serializable
-import org.dweb_browser.core.http.PureBinaryFrame
-import org.dweb_browser.core.http.PureFrame
-import org.dweb_browser.core.http.PureTextFrame
+import org.dweb_browser.pure.http.PureBinaryFrame
+import org.dweb_browser.pure.http.PureFrame
+import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toUtf8

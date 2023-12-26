@@ -3,7 +3,7 @@ package org.dweb_browser.sys.boot
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.Router
@@ -34,9 +34,9 @@ class BootNMM(initMmids: List<MMID>? = null) :
 
   override val routers: Router = mutableMapOf()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes("/register" bind IpcMethod.GET by defineBooleanResponse {
+    routes("/register" bind PureMethod.GET by defineBooleanResponse {
       register(ipc.remote.mmid)
-    }, "/unregister" bind IpcMethod.GET by defineBooleanResponse {
+    }, "/unregister" bind PureMethod.GET by defineBooleanResponse {
       unregister(ipc.remote.mmid)
     })
     for (mmid in registeredMmids) {

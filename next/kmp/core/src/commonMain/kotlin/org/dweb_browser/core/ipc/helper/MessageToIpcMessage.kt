@@ -6,6 +6,7 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.CborLoose
 import org.dweb_browser.helper.JsonLoose
@@ -61,7 +62,7 @@ fun cborToIpcMessage(data: ByteArray, ipc: Ipc): Any {
           it.req_id,
           it.url,
           it.method,
-          IpcHeaders(it.headers),
+          PureHeaders(it.headers),
           IpcBodyReceiver.from(it.metaBody, ipc),
           ipc
         )
@@ -71,7 +72,7 @@ fun cborToIpcMessage(data: ByteArray, ipc: Ipc): Any {
         IpcResponse(
           it.req_id,
           it.statusCode,
-          IpcHeaders(it.headers),
+          PureHeaders(it.headers),
           IpcBodyReceiver.from(it.metaBody, ipc),
           ipc
         )
@@ -119,7 +120,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
           it.req_id,
           it.url,
           it.method,
-          IpcHeaders(it.headers),
+          PureHeaders(it.headers),
           IpcBodyReceiver.from(it.metaBody, ipc),
           ipc
         )
@@ -129,7 +130,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
         IpcResponse(
           it.req_id,
           it.statusCode,
-          IpcHeaders(it.headers),
+          PureHeaders(it.headers),
           IpcBodyReceiver.from(it.metaBody, ipc),
           ipc
         )

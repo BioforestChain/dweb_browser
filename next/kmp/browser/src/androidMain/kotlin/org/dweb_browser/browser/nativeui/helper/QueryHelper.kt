@@ -1,7 +1,7 @@
 package org.dweb_browser.browser.nativeui.helper
 
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.helper.compose.ColorJson
 
 class QueryHelper {

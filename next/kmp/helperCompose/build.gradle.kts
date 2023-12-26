@@ -3,6 +3,7 @@ plugins {
 }
 
 kotlin {
+//  desktopBackendTarget()
   sourceSets.commonMain.dependencies {
     implementation(libs.jetbrains.compose.runtime)
     implementation(libs.jetbrains.compose.foundation)

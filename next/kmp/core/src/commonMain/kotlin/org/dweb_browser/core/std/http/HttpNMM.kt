@@ -20,21 +20,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.isWebSocket
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.http.IPureBody
-import org.dweb_browser.core.http.PureClientRequest
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.PureServerRequest
-import org.dweb_browser.core.http.PureStream
-import org.dweb_browser.core.http.PureStreamBody
-import org.dweb_browser.core.http.PureStringBody
-import org.dweb_browser.core.http.queryAs
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.by
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
-import org.dweb_browser.core.ipc.helper.IpcHeaders
-import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.debugFetch
@@ -51,6 +41,16 @@ import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureServerRequest
+import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.pure.http.PureStreamBody
+import org.dweb_browser.pure.http.PureStringBody
+import org.dweb_browser.pure.http.queryAs
 import kotlin.random.Random
 
 val debugHttp = Debugger("http")
@@ -106,7 +106,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   private val noGatewayResponse
     get() = PureResponse(
       HttpStatusCode.BadGateway,
-      IpcHeaders(
+      PureHeaders(
         mutableMapOf(
           "Content-Type" to "text/html"
         )
@@ -138,15 +138,15 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     tokenMap[token] = gateway
 
     val routes = arrayOf(
-      CommonRoute(pathname = "", method = IpcMethod.GET),
-      CommonRoute(pathname = "", method = IpcMethod.POST),
-      CommonRoute(pathname = "", method = IpcMethod.PUT),
-      CommonRoute(pathname = "", method = IpcMethod.DELETE),
-      CommonRoute(pathname = "", method = IpcMethod.OPTIONS),
-      CommonRoute(pathname = "", method = IpcMethod.PATCH),
-      CommonRoute(pathname = "", method = IpcMethod.HEAD),
-      CommonRoute(pathname = "", method = IpcMethod.CONNECT),
-      CommonRoute(pathname = "", method = IpcMethod.TRACE)
+      CommonRoute(pathname = "", method = PureMethod.GET),
+      CommonRoute(pathname = "", method = PureMethod.POST),
+      CommonRoute(pathname = "", method = PureMethod.PUT),
+      CommonRoute(pathname = "", method = PureMethod.DELETE),
+      CommonRoute(pathname = "", method = PureMethod.OPTIONS),
+      CommonRoute(pathname = "", method = PureMethod.PATCH),
+      CommonRoute(pathname = "", method = PureMethod.HEAD),
+      CommonRoute(pathname = "", method = PureMethod.CONNECT),
+      CommonRoute(pathname = "", method = PureMethod.TRACE)
     )
 
     for (routeConfig in routes) {
@@ -199,19 +199,19 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     /// 模块 API 接口
     routes(
       // 开启一个服务
-      "/start" bind IpcMethod.GET by defineJsonResponse {
+      "/start" bind PureMethod.GET by defineJsonResponse {
         start(
           ipc, DwebHttpServerOptions(request.query("subdomain"))
         ).toJsonElement()
       },
       // 监听一个服务
-      "/listen" bind IpcMethod.POST by definePureStreamHandler {
+      "/listen" bind PureMethod.POST by definePureStreamHandler {
         val token = request.query("token")
         val routes = Json.decodeFromString<List<CommonRoute>>(request.query("routes"))
         listen(token, request, routes)
       },
       // 主动关闭一个服务
-      "/close" bind IpcMethod.GET by defineBooleanResponse {
+      "/close" bind PureMethod.GET by defineBooleanResponse {
         close(ipc, request.queryAs())
       },
       "/websocket" byChannel { ctx ->
@@ -270,12 +270,12 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       },
       "/fetch" by definePureResponse {
         val url = Url(request.query("url"))
-        if (request.method == IpcMethod.OPTIONS) {
+        if (request.method == PureMethod.OPTIONS) {
           val requestOrigin = request.headers.get(HttpHeaders.Origin)
           val requestMethod = request.headers.get(HttpHeaders.AccessControlRequestMethod)
           val requestHeaders = request.headers.get(HttpHeaders.AccessControlRequestHeaders)
 
-          val optionsHeaders = IpcHeaders();
+          val optionsHeaders = PureHeaders();
           optionsHeaders.set(HttpHeaders.AccessControlAllowCredentials, "true")
           optionsHeaders.set(HttpHeaders.AccessControlAllowOrigin, requestOrigin!!)
           optionsHeaders.set(HttpHeaders.AccessControlAllowMethods, requestMethod!!)
@@ -297,7 +297,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           from = request.from
         )
         /// 如果是options类型的请求，直接放行，不做任何同域验证
-        if (pureRequest.method == IpcMethod.OPTIONS) {
+        if (pureRequest.method == PureMethod.OPTIONS) {
           return@definePureResponse httpFetch(pureRequest)
         }
         val isSameOrigin =
@@ -310,7 +310,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
         // 首先根据标准，判断是否需要进行 options 请求请求options获取 allow-method
         val needPreflightRequest = when (pureRequest.method) {
-          IpcMethod.GET, IpcMethod.POST, IpcMethod.HEAD -> {
+          PureMethod.GET, PureMethod.POST, PureMethod.HEAD -> {
             var isSimple = true
             for ((key, value) in pureRequest.headers) {
 //              if (key in preflightRequestHeaderKeys) {
@@ -339,7 +339,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
          */
         val corsRequest = if (needPreflightRequest) {
           var accessControlRequestHeaders = ""
-          val needPreflightHeaders = IpcHeaders()
+          val needPreflightHeaders = PureHeaders()
           for ((key, value) in pureRequest.headers) {
             if (!isSimpleHeader(key, value)) {
               accessControlRequestHeaders += "$key,"
@@ -364,7 +364,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           )
 
           val optionsResponse =
-            httpFetch(PureClientRequest(pureRequest.href, IpcMethod.OPTIONS, needPreflightHeaders))
+            httpFetch(PureClientRequest(pureRequest.href, PureMethod.OPTIONS, needPreflightHeaders))
           val get = optionsResponse.headers::get;
           val allowOrigin = get(HttpHeaders.AccessControlAllowOrigin)
           val allowMethods = get(HttpHeaders.AccessControlAllowMethods)
@@ -385,7 +385,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
           when (allowMethods) {
             null -> when (request.method) {
-              IpcMethod.GET, IpcMethod.POST, IpcMethod.HEAD -> true;
+              PureMethod.GET, PureMethod.POST, PureMethod.HEAD -> true;
               else -> false
             }
 
@@ -398,7 +398,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           PureClientRequest(
             url.toString(),
             pureRequest.method,
-            IpcHeaders(pureRequest.headers.toList().filter {
+            PureHeaders(pureRequest.headers.toList().filter {
               if (isSimpleHeader(it.first, it.second))
                 true
               else it.first in allowHeaders

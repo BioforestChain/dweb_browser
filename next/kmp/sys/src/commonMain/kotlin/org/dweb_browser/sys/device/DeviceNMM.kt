@@ -3,7 +3,7 @@ package org.dweb_browser.sys.device
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.file.ext.store
@@ -24,7 +24,7 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 获取设备唯一标识uuid*/
-      "/uuid" bind IpcMethod.GET by defineJsonResponse {
+      "/uuid" bind PureMethod.GET by defineJsonResponse {
         val uuid = store.getOrPut(UUID_KEY) {
           DeviceApi().deviceUUID()
         }

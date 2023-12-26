@@ -13,7 +13,7 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
-import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -111,14 +111,14 @@ class JmmNMM :
     routes(
       // 安装
       "install" bindDwebDeeplink routeInstallHandler,
-      "/install" bind IpcMethod.GET by routeInstallHandler,
-      "/uninstall" bind IpcMethod.GET by defineBooleanResponse {
+      "/install" bind PureMethod.GET by routeInstallHandler,
+      "/uninstall" bind PureMethod.GET by defineBooleanResponse {
         val mmid = request.query("app_id")
         debugJMM("uninstall", "mmid=$mmid")
         jmmController.uninstall(mmid)
       },
       // app详情
-      "/detail" bind IpcMethod.GET by defineBooleanResponse {
+      "/detail" bind PureMethod.GET by defineBooleanResponse {
         val mmid = request.query("app_id")
         debugJMM("detailApp", mmid)
         val info = store.getApp(mmid) ?: return@defineBooleanResponse false
@@ -128,7 +128,7 @@ class JmmNMM :
 
     routes(
       /// 收到wid
-      "/renderer" bind IpcMethod.GET by defineEmptyResponse {
+      "/renderer" bind PureMethod.GET by defineEmptyResponse {
         val wid = request.query("wid")
         widDeferredAtomic.update { old ->
           when {
@@ -210,12 +210,12 @@ class JmmGuiNMM : NativeMicroModule("gui.jmm.browser.dweb", "Js MicroModule Mana
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
-      "/openMainWindow" bind IpcMethod.GET by defineStringResponse {
+      "/openMainWindow" bind PureMethod.GET by defineStringResponse {
         getOrOpenMainWindowId()
       },
     ).protected("jmm.browser.dweb");
     onRenderer {
-      nativeFetch(IpcMethod.GET, "file://jmm.browser.dweb/renderer?wid=$wid")
+      nativeFetch(PureMethod.GET, "file://jmm.browser.dweb/renderer?wid=$wid")
     }
   }
 

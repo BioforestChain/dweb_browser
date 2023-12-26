@@ -3,11 +3,6 @@ package org.dweb_browser.core.http.router
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureChannelContext
-import org.dweb_browser.core.http.PureRequest
-import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.ipc.helper.IpcHeaders
-import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.http.CommonRoute
 import org.dweb_browser.core.std.http.DuplexRoute
@@ -15,6 +10,11 @@ import org.dweb_browser.core.std.http.IRoute
 import org.dweb_browser.core.std.http.MatchMode
 import org.dweb_browser.core.std.http.PathRoute
 import org.dweb_browser.helper.remove
+import org.dweb_browser.pure.http.PureChannelContext
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureRequest
+import org.dweb_browser.pure.http.PureResponse
 
 class HttpRouter(private val mm: MicroModule) {
   private val routes = mutableMapOf<IRoute, HttpHandlerChain>()
@@ -76,7 +76,7 @@ class HttpRouter(private val mm: MicroModule) {
       res
     }
 
-    private fun IpcHeaders.cors() {
+    private fun PureHeaders.cors() {
       init("Access-Control-Allow-Credentials", "true")
       init("Access-Control-Allow-Origin", "*")
       init("Access-Control-Allow-Headers", "*")
@@ -84,7 +84,7 @@ class HttpRouter(private val mm: MicroModule) {
     }
 
     private val corsRoute: Pair<IRoute, HttpHandlerChain> = object : IRoute {
-      override fun isMatch(request: PureRequest) = request.method == IpcMethod.OPTIONS
+      override fun isMatch(request: PureRequest) = request.method == PureMethod.OPTIONS
     } to HttpHandlerChain {
       PureResponse().apply { headers.cors() }
     }
@@ -130,17 +130,17 @@ class HttpRouter(private val mm: MicroModule) {
 
 data class RouteHandler(val route: IRoute, val handler: HttpHandlerChain)
 
-infix fun String.bind(method: IpcMethod) =
+infix fun String.bind(method: PureMethod) =
   CommonRoute(pathname = this, method = method, matchMode = MatchMode.FULL)
 
-infix fun String.bindPrefix(method: HttpMethod) = bindPrefix(IpcMethod.from(method))
-infix fun String.bindPrefix(method: IpcMethod) =
+infix fun String.bindPrefix(method: HttpMethod) = bindPrefix(PureMethod.from(method))
+infix fun String.bindPrefix(method: PureMethod) =
   CommonRoute(pathname = this, method = method, matchMode = MatchMode.PREFIX)
 
 infix fun String.bindDwebDeeplink(action: HttpHandler) = bindDwebDeeplink(action.toChain())
 infix fun String.bindDwebDeeplink(action: HttpHandlerChain) = RouteHandler(
   CommonRoute(
-    dwebDeeplink = true, pathname = this, method = IpcMethod.GET, matchMode = MatchMode.FULL
+    dwebDeeplink = true, pathname = this, method = PureMethod.GET, matchMode = MatchMode.FULL
   ), action
 )
 
