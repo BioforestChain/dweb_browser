@@ -33,13 +33,14 @@ class MediaNMM : NativeMicroModule("media.sys.dweb", "system media") {
     routes(
       /** 保存图片到相册*/
       "/savePictures" bind IpcMethod.POST by defineEmptyResponse {
-        debugMedia("savePictures", "enter")
         val byteArray = request.body.toPureBinary()
-        val saveLocation = request.queryOrNull("saveLocation") ?: "dwebbrowser"
-        debugMedia("savePictures","byteArray = ${byteArray.size}, $saveLocation")
+        val saveLocation = request.queryOrNull("saveLocation")
+        debugMedia("/savePictures", "saveLocation=$saveLocation byteArray = ${byteArray.size}")
 
         val files = Cbor.decodeFromByteArray<List<MultiPartFile>>(byteArray)
+        // 目前只支持保存一个文件
         savePictures(saveLocation, files)
+
       }
     )
   }

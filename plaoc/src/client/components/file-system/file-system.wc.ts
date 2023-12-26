@@ -14,16 +14,10 @@ export class HTMLDwebFileSystemElement extends HTMLElement {
   get getUri() {
     return this.plugin.getUri;
   }
-
-  @cacheGetter()
-  get savePictures() {
-    return this.plugin.savePictures
-  }
-
 }
 
 if (!customElements.get(HTMLDwebFileSystemElement.tagName)) {
-customElements.define(HTMLDwebFileSystemElement.tagName, HTMLDwebFileSystemElement);
+  customElements.define(HTMLDwebFileSystemElement.tagName, HTMLDwebFileSystemElement);
 }
 declare global {
   interface HTMLElementTagNameMap {

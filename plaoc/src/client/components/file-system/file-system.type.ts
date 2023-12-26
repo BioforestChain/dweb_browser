@@ -1,16 +1,4 @@
 
-export interface FilesOption {
-  files?: FileList;
-  file?:File;
-  saveLocation?:string
-}
-
-export interface FilesResult {
-  success:string,
-  message:string
-}
-
-
 export enum Directory {
   /**
    * The Documents directory

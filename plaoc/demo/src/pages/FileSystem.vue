@@ -1,23 +1,16 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import LogPanel from "../components/LogPanel.vue";
-import { fileSystemPlugin } from "../plugin";
+import { mediaPlugin } from "../plugin";
 
 const title = "fileSystemPlugin";
 const $logPanel = ref<typeof LogPanel>();
 
-const fileListChange = ($event: Event) => {
-  const target = $event.target as HTMLInputElement;
-  if (target && target.files?.[0]) {
-    console.log("target.files=>", target.files[0]);
-    fileSystemPlugin.savePictures({ files: target.files });
-  }
-};
 const fileChange = ($event: Event) => {
   const target = $event.target as HTMLInputElement;
   if (target && target.files?.[0]) {
     console.log("target.files=>", target.files[0]);
-    fileSystemPlugin.savePictures({ file: target.files[0] });
+    mediaPlugin.savePictures({ file: target.files[0] });
   }
 };
 </script>
@@ -29,12 +22,6 @@ const fileChange = ($event: Event) => {
     </figure>
 
     <article class="card-body">
-      <div>
-        <h2 class="card-title">保存图片到相册 fileList</h2>
-        <FieldLabel label="files:">
-          <input type="file" multiple="true" @change="fileListChange($event)" />
-        </FieldLabel>
-      </div>
       <div>
         <h2 class="card-title">保存图片到相册 File</h2>
         <FieldLabel label="files:">

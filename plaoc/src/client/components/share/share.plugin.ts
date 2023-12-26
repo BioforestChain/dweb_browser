@@ -1,8 +1,10 @@
 import { encode } from "cbor-x";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
+import { FileData, FileDataEncode, normalToBase64String } from "../../util/file.ts";
+import { BaseResult } from "../../util/response.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { FileData, FileDataEncode, ShareResult, type ImageBlobOptions, type ShareOptions } from "./share.type.ts";
+import { type ImageBlobOptions, type ShareOptions } from "./share.type.ts";
 export class SharePlugin extends BasePlugin {
   constructor() {
     super("share.sys.dweb");
@@ -28,7 +30,7 @@ export class SharePlugin extends BasePlugin {
    * @param options
    * @returns
    */
-  async #multipartShare(options: ShareOptions): Promise<ShareResult> {
+  async #multipartShare(options: ShareOptions): Promise<BaseResult> {
     const data = new FormData();
     if (options.files && options.files.length !== 0) {
       for (let i = 0; i < options.files.length; i++) {
@@ -51,25 +53,8 @@ export class SharePlugin extends BasePlugin {
       body: data,
     })
       .fetch()
-      .object<ShareResult>();
+      .object<BaseResult>();
     return result;
-  }
-
-  async #normalToBase64String(file: File): Promise<string> {
-    const reader = new FileReader();
-    const po = new PromiseOut<string>();
-
-    reader.onloadend = () => {
-      let binary = "";
-      const bytes = new Uint8Array(reader.result as ArrayBuffer);
-      for (const byte of bytes) {
-        binary += String.fromCharCode(byte);
-      }
-      po.resolve(btoa(binary));
-    };
-
-    reader.readAsArrayBuffer(file);
-    return await po.promise;
   }
 
   async #blobToBase64String(file: File, blobOptions: ImageBlobOptions): Promise<string> {
@@ -120,7 +105,7 @@ export class SharePlugin extends BasePlugin {
     if (options.files && options.files.length !== 0) {
       for (let i = 0; i < options.files.length; i++) {
         const file = options.files.item(i)!;
-        const data = await this.#normalToBase64String(file);
+        const data = await normalToBase64String(file);
 
         fileList.push({
           name: file.name,
@@ -133,7 +118,7 @@ export class SharePlugin extends BasePlugin {
     }
 
     if (options.file) {
-      const data = await this.#normalToBase64String(options.file);
+      const data = await normalToBase64String(options.file);
 
       fileList.push({
         name: options.file.name,
@@ -179,7 +164,7 @@ export class SharePlugin extends BasePlugin {
     return fileList;
   }
 
-  async #cborImageListPost(options: ShareOptions): Promise<ShareResult> {
+  async #cborImageListPost(options: ShareOptions): Promise<BaseResult> {
     let fileList: FileData[] = [];
     if (options.imageBlobOptions) {
       fileList = await this.#cborCanvasCompressShareFileList(options);
@@ -203,7 +188,7 @@ export class SharePlugin extends BasePlugin {
       body: shareBody,
     })
       .fetch()
-      .object<ShareResult>();
+      .object<BaseResult>();
     return result;
   }
 
@@ -213,7 +198,7 @@ export class SharePlugin extends BasePlugin {
    * @returns
    */
   @bindThis
-  async share(options: ShareOptions): Promise<ShareResult> {
+  async share(options: ShareOptions): Promise<BaseResult> {
     if (
       (options.file && options.file.type.startsWith("image/")) ||
       (options.files && options.files[0].type.startsWith("image/"))

@@ -9,11 +9,6 @@ const baseDir = fileURLToPath(import.meta.resolve("../"));
  */
 export const assetsTasks = new ConTasks(
   {
-    "web-browser.html": viteTaskFactory({
-      inDir: "src/browser/web/assets",
-      outDir: "electron/assets/browser/web",
-      baseDir,
-    }),
     desk: viteTaskFactory({
       inDir: "src/browser/desk/assets/desktop",
       outDir: "electron/assets/browser/desk",

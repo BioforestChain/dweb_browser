@@ -7,6 +7,7 @@ export * from "./barcode-scanning/index.ts";
 export * from "./biometrics/index.ts";
 // export * from "./bluetooth/index.ts";
 // export * from "./camera/index.ts";
+export * from "./base/BasePlugin.ts";
 export * from "./clipboard/index.ts";
 export * from "./close-watcher/index.ts";
 export * from "./config/index.ts";
@@ -15,6 +16,7 @@ export * from "./dweb-service-worker/index.ts";
 export * from "./dweb-update-controller/index.ts";
 export * from "./file-system/index.ts";
 export * from "./haptics/index.ts";
+export * from "./media/index.ts";
 export * from "./motionSensors/index.ts";
 export * from "./navigation-bar/index.ts";
 export * from "./network/index.ts";
@@ -26,4 +28,4 @@ export * from "./toast/index.ts";
 export * from "./torch/index.ts";
 export * from "./virtual-keyboard/index.ts";
 export * from "./window/index.ts";
-export * from "./base/BasePlugin.ts"
+

@@ -1,10 +1,10 @@
-import { ReadableStreamIpc } from "dweb/core/ipc-web/index.ts";
-import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
+// import { ReadableStreamIpc } from "dweb/core/ipc-web/index.ts";
+// import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
-import { ListenerCallback } from "../base/BaseEvent.ts";
+// import { ListenerCallback } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { $MMID } from "../index.ts";
-import { UpdateControllerEvent, UpdateControllerMap } from "./dweb-update-controller.type.ts";
+// import { $MMID } from "../index.ts";
+// import { UpdateControllerEvent, UpdateControllerMap } from "./dweb-update-controller.type.ts";
 
 class UpdateControllerPlugin extends BasePlugin {
   readonly tagName = "dweb-update-controller";
@@ -51,64 +51,64 @@ class UpdateControllerPlugin extends BasePlugin {
   // }
 }
 
-class UpdateController extends EventTarget {
-  mmid: $MMID = "download.browser.dweb";
-  // readonly ipcPromise: Promise<ReadableStreamIpc> = this.createIpc();
+// class UpdateController extends EventTarget {
+//   mmid: $MMID = "download.browser.dweb";
+//   readonly ipcPromise: Promise<ReadableStreamIpc> = this.createIpc();
 
-  constructor() {
-    super();
-    // this.ipcPromise.then((ipc) => {
-    //   ipc.onEvent((event) => {
-    //     if (event.name === UpdateControllerEvent.progress) {
-    //       return this.dispatchEvent(new CustomEvent(event.name, { detail: { progress: event.text } }));
-    //     }
-    //     // start/end/cancel
-    //     this.dispatchEvent(new Event(event.name));
-    //   });
-    // });
-  }
+//   constructor() {
+//     super();
+//     this.ipcPromise.then((ipc) => {
+//       ipc.onEvent((event) => {
+//         if (event.name === UpdateControllerEvent.progress) {
+//           return this.dispatchEvent(new CustomEvent(event.name, { detail: { progress: event.text } }));
+//         }
+//         // start/end/cancel
+//         this.dispatchEvent(new Event(event.name));
+//       });
+//     });
+//   }
 
-  private async createIpc() {
-    const api_url = BasePlugin.api_url;
-    const url = new URL(api_url.replace(/^http/, "ws"));
-    url.pathname = `${this.mmid}/watch/progress`;
-    // url.searchParams.append()
-    const ipc = await createMockModuleServerIpc(url, {
-      mmid: this.mmid,
-      ipc_support_protocols: {
-        cbor: false,
-        protobuf: false,
-        raw: false,
-      },
-      dweb_deeplinks: [],
-      categories: [],
-      name: this.mmid,
-    });
-    return ipc;
-  }
+//   private async createIpc() {
+//     const api_url = BasePlugin.api_url;
+//     const url = new URL(api_url.replace(/^http/, "ws"));
+//     url.pathname = `${this.mmid}/watch/progress`;
+//     // url.searchParams.append()
+//     const ipc = await createMockModuleServerIpc(url, {
+//       mmid: this.mmid,
+//       ipc_support_protocols: {
+//         cbor: false,
+//         protobuf: false,
+//         raw: false,
+//       },
+//       dweb_deeplinks: [],
+//       categories: [],
+//       name: this.mmid,
+//     });
+//     return ipc;
+//   }
 
-  /**
-   *  dwebview 注册一个监听事件
-   * @param eventName
-   * @param listenerFunc
-   * @returns
-   */
-  override addEventListener<K extends keyof UpdateControllerMap>(
-    eventName: K,
-    listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
-    options?: boolean | AddEventListenerOptions
-  ) {
-    return super.addEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
-  }
+//   /**
+//    *  dwebview 注册一个监听事件
+//    * @param eventName
+//    * @param listenerFunc
+//    * @returns
+//    */
+//   override addEventListener<K extends keyof UpdateControllerMap>(
+//     eventName: K,
+//     listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
+//     options?: boolean | AddEventListenerOptions
+//   ) {
+//     return super.addEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
+//   }
 
-  /**移除监听器 */
-  override removeEventListener<K extends keyof UpdateControllerMap>(
-    eventName: K,
-    listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
-    options?: boolean | EventListenerOptions
-  ) {
-    return super.removeEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
-  }
-}
+//   /**移除监听器 */
+//   override removeEventListener<K extends keyof UpdateControllerMap>(
+//     eventName: K,
+//     listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
+//     options?: boolean | EventListenerOptions
+//   ) {
+//     return super.removeEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
+//   }
+// }
 
 export const updateControllerPlugin = new UpdateControllerPlugin();

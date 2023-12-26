@@ -15,14 +15,14 @@ import org.dweb_browser.helper.toUtf8ByteArray
 import java.io.File
 
 
-actual suspend fun savePictures(saveLocation: String, files: List<MultiPartFile>) {
+actual suspend fun savePictures(saveLocation: String?, files: List<MultiPartFile>) {
   files.forEach { multiPartFile ->
     savePicture(multiPartFile, saveLocation)
   }
 }
 
 private suspend fun savePicture(
-  multiPartFile: MultiPartFile, saveLocation: String
+  multiPartFile: MultiPartFile, saveLocation: String?
 ) {
   val data = when (multiPartFile.encode) {
     MultiPartFileEncode.UTF8 -> multiPartFile.data.toUtf8ByteArray()
@@ -31,7 +31,10 @@ private suspend fun savePicture(
 
   // TODO 存储到系统
   val rootPath = Environment.getExternalStoragePublicDirectory(
-    Environment.DIRECTORY_DCIM + "/$saveLocation"
+    when (saveLocation) {
+      null -> Environment.DIRECTORY_DCIM
+      else -> Environment.DIRECTORY_DCIM + "/$saveLocation"
+    }
   ).absolutePath
   val filePath = rootPath + File.separator + multiPartFile.name
   FilesUtil.writeFileContent(filePath, data.decodeToString()) // 保存到文件

@@ -38,24 +38,6 @@ export interface ShareOptions {
   imageBlobOptions?: ImageBlobOptions
 }
 
-export interface ShareResult {
-  success: boolean;
-  message: string;
-}
-
-export interface FileData {
-  name: string;
-  type: string;
-  size: number;
-  encode: FileDataEncode;
-  data: string;
-}
-
-export enum FileDataEncode {
-  UTF8 = "utf8",
-  BASE64 = "base64"
-}
-
 export interface ImageBlobOptions {
   type: string;
   quality: number;

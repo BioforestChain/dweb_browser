@@ -1,6 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
+import { BaseResult } from "../../util/response.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { BioetricsResult } from "./biometrics.type.ts";
 
 export class BiometricsPlugin extends BasePlugin {
   constructor() {
@@ -20,7 +20,7 @@ export class BiometricsPlugin extends BasePlugin {
    * @returns
    */
   @bindThis
-  async biometrics(): Promise<BioetricsResult> {
+  async biometrics(): Promise<BaseResult> {
     return await this.fetchApi("/biometrics").object();
   }
 }
