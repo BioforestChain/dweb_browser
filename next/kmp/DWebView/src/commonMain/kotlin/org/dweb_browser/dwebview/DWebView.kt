@@ -12,8 +12,13 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.module.MicroModule
@@ -75,8 +80,8 @@ abstract class IDWebView(initUrl: String?) {
   }
 
   val canGoBackStateFlow by lazy {
-    urlStateFlow // TODO merge urlStateFlow
-    closeWatcher.canCloseFlow
+    listOf(closeWatcher.canCloseFlow, urlStateFlow).merge().map { canGoBack() }
+      .distinctUntilChanged().stateIn(ioScope, SharingStarted.Eagerly, false)
   }
 
 
