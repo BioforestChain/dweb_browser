@@ -60,12 +60,6 @@ actual fun CommonBrowserView(
 
   // 窗口返回按钮
   win.GoBackHandler { backHandler() }
-  // 侧滑返回手势
-  NativeBackHandler {
-    if (win.isFocused()) {
-      backHandler()
-    }
-  }
 
   Box {
     UIKitView(
