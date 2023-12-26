@@ -1,10 +1,8 @@
 package org.dweb_browser.sys.media
 
 
-import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.staticCFunction
 import kotlinx.cinterop.usePinned
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultiPartFileEncode
@@ -33,16 +31,12 @@ private fun savePicture(files: MultiPartFile) {
 
 @OptIn(ExperimentalForeignApi::class)
 fun saveImageToPhotosAlbum(image: UIImage) {
-  val callbackPointer =
-    staticCFunction { _: COpaquePointer? ->
-      println("Hello from thread!")
-      null
-    }
+
   debugMedia("ios ","saveImageToPhotosAlbum ${image.images?.size}")
   UIImageWriteToSavedPhotosAlbum(
     image,
     null,
-    callbackPointer,
+    null,
     null
   )
 }
