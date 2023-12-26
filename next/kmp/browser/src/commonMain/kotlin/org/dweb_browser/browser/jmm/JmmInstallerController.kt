@@ -78,6 +78,11 @@ class JmmInstallerController(
     closeSelf() // 打开应用后，需要关闭当前安装界面
   }
 
+  // 关闭原来的app
+  suspend fun closeApp() {
+    jmmNMM.nativeFetch("file://desk.browser.dweb/closeApp?app_id=${jmmHistoryMetadata.metadata.id}")
+  }
+
   private val mutexLock = Mutex()
 
   /**

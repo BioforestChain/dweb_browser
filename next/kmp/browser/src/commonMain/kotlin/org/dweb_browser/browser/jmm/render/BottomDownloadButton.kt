@@ -90,10 +90,13 @@ internal fun BoxScope.BottomDownloadButton() {
       onClick = {
         scope.launch {
           when (jmmState.state) {
-            JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled, JmmStatus.NewVersion -> {
+            JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled -> {
               jmmInstallerController.createAndStartDownload()
             }
-
+            JmmStatus.NewVersion -> {
+              jmmInstallerController.closeApp()
+              jmmInstallerController.createAndStartDownload()
+            }
             JmmStatus.Downloading -> {
               jmmInstallerController.pauseDownload()
             }
