@@ -6,7 +6,6 @@
 
 [ENGLISH DOC](./README_EN.md)
 
-
 ![stable-release](https://img.shields.io/badge/dweb-browser-success)
 ![stable-release](https://img.shields.io/badge/dweb-plaoc-orange)
 ![starts](https://shields.io/github/stars/BioforestChain/dweb_browser)
@@ -14,7 +13,6 @@
 
 [plaoc-badge]: https://img.shields.io/badge/plaoc-doc-blue
 [plaoc-url]: https://github.com/BioforestChain/dweb_browser-docs
-
 
 # About dweb-browser
 
@@ -33,9 +31,9 @@ dweb-browser 是一个遵循 Dweb 标准构建起来的浏览器平台，并将�
 
 它的全称是 mutil-webview（多 web 视图）的渲染器，可以使用这个渲染器同时渲染多个 Web 视图。比如说可以用它实现一个网页浏览器。
 
-### `nativeui.browser.dweb`
+### `desk.browser.dweb`
 
-它是一个 dweb-browser 自己定义的窗口标准，它被集成到 mwebview 中，因此可以让 mwebview 的视图获得窗口管理的能力。
+它是一个 dweb-browser 自己实现的窗口标准 `window.std.dweb`，在跨平台上保持一致性的窗口体验。
 
 ### `*.sys.dweb`
 
@@ -47,7 +45,7 @@ plaoc 是基于 dweb-browser 平台的一个对标 Cordova、Capacitor、Tauri �
 
 ### cli
 
-[@plaoc/cli](https://www.npmjs.com/package/@plaoc/cli)  是plaoc开发并打包应用到dweb_browser的命令行工具。
+[@plaoc/cli](https://www.npmjs.com/package/@plaoc/cli) 是 plaoc 开发并打包应用到 dweb_browser 的命令行工具。
 
 1. `npm i -g @plaoc/cli`
 
@@ -63,9 +61,9 @@ plaoc 是基于 dweb-browser 平台的一个对标 Cordova、Capacitor、Tauri �
 
 ### plugins
 
-[@plaoc/plugins](https://www.npmjs.com/package/@plaoc/plugins) 能赋予web开发者,直接调用各个平台系统API的能力。
+[@plaoc/plugins](https://www.npmjs.com/package/@plaoc/plugins) 能赋予 web 开发者,直接调用各个平台系统 API 的能力。
 
-具体文档查看：[plugins文档](https://docs.dweb-browser.org/plaoc/)
+具体文档查看：[plugins 文档](https://docs.dweb-browser.org/plaoc/)
 
 ### Q&A
 
@@ -78,6 +76,3 @@ sudo xattr -d com.apple.quarantine /Applications/Dweb\ Browser.app
 ```
 
 更多问题可以查看文档[dweb_browser](https://docs.dweb-browser.org/)
-
-
-

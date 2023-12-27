@@ -4,6 +4,7 @@
 </p>
 
 [CHINESE DOC](./README.md.md)
+[DEVELOPER DOC](./GET_START_FOR_DEVELOPER.md)
 
 ![stable-release](https://img.shields.io/badge/dweb-browser-success)
 ![stable-release](https://img.shields.io/badge/dweb-plaoc-orange)
@@ -12,7 +13,6 @@
 
 [plaoc-badge]: https://img.shields.io/badge/plaoc-doc-blue
 [plaoc-url]: https://github.com/BioforestChain/dweb_browser-docs
-
 
 # About dweb-browser
 
@@ -31,9 +31,9 @@ It is a dynamic dweb module manager that enables the implementation of applicati
 
 It is a renderer called mutil-webview (multiple web views), which can render multiple web views simultaneously. For example, it can be used to implement a web browser.
 
-### `nativeui.browser.dweb`
+### `desk.browser.dweb`
 
-It is a custom window standard defined by dweb-browser, which is integrated into mwebview, allowing the views of mwebview to have window management capabilities.
+It is a dweb-browser's own implementation of the window standard `window.std.dweb` to maintain a consistent window experience across platforms.
 
 ### `*.sys.dweb`
 
