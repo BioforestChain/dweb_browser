@@ -1,5 +1,5 @@
 plugins {
-  id("mobile-target")
+  id("kmp-target")
 }
 
 kotlin {

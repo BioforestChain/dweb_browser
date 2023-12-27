@@ -6,7 +6,7 @@ import kotlin.test.Test
 
 class QueryTest {
   @Test
-  fun `query string test`() {
+  fun queryStringTest() {
 
     @Serializable
     data class Q(

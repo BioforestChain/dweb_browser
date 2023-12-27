@@ -6,7 +6,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.datetimeNow
 import kotlin.test.Test
@@ -14,7 +14,7 @@ import kotlin.test.assertEquals
 
 class PromiseOutTest {
   @Test
-  fun testResolve() = runBlocking {
+  fun testResolve() = runTest {
     val po = PromiseOut<Unit>()
 
     val startTime = datetimeNow()
@@ -32,7 +32,7 @@ class PromiseOutTest {
   }
 
   @Test
-  fun testReject() = runBlocking {
+  fun testReject() = runTest {
     val po = PromiseOut<Unit>()
     launch {
       delay(1000)
@@ -51,7 +51,7 @@ class PromiseOutTest {
 
 
   @Test
-  fun testMultiAwait() = runBlocking {
+  fun testMultiAwait() = runTest {
     val po = PromiseOut<Unit>()
     val startTime = datetimeNow()
 
@@ -84,7 +84,7 @@ class PromiseOutTest {
 
   @Test
   @DelicateCoroutinesApi
-  fun bench() = runBlocking {
+  fun bench() = runTest {
     println("start")
 
     val TIMES = 10000;

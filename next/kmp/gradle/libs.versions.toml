@@ -32,7 +32,7 @@ kotlinx-coroutines = "1.7.3"
 kotlinx-datetime-version = "0.5.0"
 kotlinx-atomicfu-version = "0.23.1"
 kotlinx-io-version = "0.3.0"
-okio-version = "3.6.0"
+okio-version = "3.7.0"
 cryptography-version = "0.2.0"
 
 accompanist = "0.31.6-rc"
@@ -45,11 +45,12 @@ camera-version = "1.4.0-alpha03"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
 jetbrains-compose-version = "1.5.11"
+kotlin-wrappers-bom = "1.0.0-pre.673"
 
 # 测试
 test-junit-bom = "5.9.2"
 animation-core-android = "1.5.4"
-material3Android = "1.2.0-alpha12"
+material3Android = "1.2.0-beta01"
 
 kotlinxSerializationVersion = "1.6.2"
 
@@ -108,9 +109,10 @@ kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime",
 kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "kotlinx-atomicfu-version" }
 kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io-version" }
 squareup-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio-version" }
+squareup-okio-nodefilesystem = { group = "com.squareup.okio", name = "okio-nodefilesystem", version.ref = "okio-version" }
 whyoleg-cryptography-core = { group = "dev.whyoleg.cryptography", name = "cryptography-core", version.ref = "cryptography-version" }
 whyoleg-cryptography-provider-jdk = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-jdk", version.ref = "cryptography-version" }
-whyoleg-cryptography-provider-web = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-web", version.ref = "cryptography-version" }
+whyoleg-cryptography-provider-webcrypto = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-webcrypto", version.ref = "cryptography-version" }
 whyoleg-cryptography-provider-apple = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-apple", version.ref = "cryptography-version" }
 whyoleg-cryptography-provider-openssl3-api = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-openssl3-api", version.ref = "cryptography-version" }
 whyoleg-cryptography-provider-openssl3-shared = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-openssl3-shared", version.ref = "cryptography-version" }
@@ -127,6 +129,15 @@ ktor-io = { group = "io.ktor", name = "ktor-io", version.ref = "ktor-version" }
 ktor-http = { group = "io.ktor", name = "ktor-http", version.ref = "ktor-version" }
 ktor-network = { group = "io.ktor", name = "ktor-network", version.ref = "ktor-version" }
 ktor-network-tls = { group = "io.ktor", name = "ktor-network-tls", version.ref = "ktor-version" }
+
+# JavaScript
+kotlin-wrappers-bom = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-wrappers-bom", version.ref = "kotlin-wrappers-bom" }
+kotlin-js = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-js" }
+kotlin-browser = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-browser" }
+kotlin-web = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-web" }
+kotlin-node = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-node" }
+kotlin-electron = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-electron" }
+
 
 accompanist-webview = { group = "com.google.accompanist", name = "accompanist-webview", version.ref = "accompanist" }
 accompanist-navigation-material = { group = "com.google.accompanist", name = "accompanist-navigation-material", version.ref = "accompanist" }

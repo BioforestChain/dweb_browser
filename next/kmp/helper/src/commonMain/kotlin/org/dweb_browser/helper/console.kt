@@ -3,13 +3,10 @@ package org.dweb_browser.helper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import kotlin.coroutines.CoroutineContext
@@ -36,8 +33,10 @@ val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
   debugger(ctx, e)
 }
 val defaultAsyncExceptionHandler = Default + commonAsyncExceptionHandler
-val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
+
+//val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
 val mainAsyncExceptionHandler = SupervisorJob() + Main + commonAsyncExceptionHandler
+expect val ioAsyncExceptionHandler: CoroutineContext
 
 @OptIn(ExperimentalStdlibApi::class)
 suspend inline fun <T> withMainContext(crossinline block: suspend () -> T): T {
@@ -52,29 +51,6 @@ inline fun CoroutineScope.launchWithMain(
   crossinline block: suspend () -> Unit
 ) = launch { withMainContext(block) }
 
-@Deprecated(
-  "请尽量不要使用阻塞，除非你很清楚自己要什么",
-  ReplaceWith("runCatching(context, block)", "kotlinx.coroutines.runCatching")
-)
-fun <T> runBlockingCatching(
-  context: CoroutineContext, block: suspend CoroutineScope.() -> T
-) = runCatching {
-  runBlocking(context, block)
-}.onFailure {
-  commonAsyncExceptionHandler.handleException(context, it)
-}
-
-@Deprecated(
-  "请尽量不要使用阻塞，除非你很清楚自己要什么",
-  ReplaceWith("runCatching(block)", "kotlinx.coroutines.runCatching")
-)
-fun <T> runBlockingCatching(
-  block: suspend CoroutineScope.() -> T
-) = runCatching {
-  runBlocking { block() }
-}.onFailure {
-  commonAsyncExceptionHandler.handleException(ioAsyncExceptionHandler, it)
-}
 
 private val times = mutableMapOf<String, String>()
 fun timeStart(label: String) {

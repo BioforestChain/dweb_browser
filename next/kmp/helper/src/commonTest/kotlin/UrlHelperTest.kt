@@ -5,7 +5,7 @@ import kotlin.test.Test
 
 class UrlHelperTest {
   @Test
-  fun `file url parameters test`() {
+  fun fileUrlParametersTest() {
     val urlString = "file://http.std.dweb/listen?token=1234&domain=abc"
 
     println(urlString.toIpcUrl())

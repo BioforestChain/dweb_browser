@@ -1,3 +1,4 @@
+import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.DependencyHandler
@@ -19,12 +20,12 @@ fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   }
 }
 
-fun KotlinMultiplatformExtension.mobileTarget() {
-  targets.all {
-    compilations.all {
-      configureCompilation()
-    }
-  }
+fun KotlinMultiplatformExtension.kmpMobileTarget() {
+  kmpAndroidTarget()
+  kmpIosTarget()
+}
+
+fun KotlinMultiplatformExtension.kmpAndroidTarget() {
   androidTarget {
     compilations.all {
       kotlinOptions {
@@ -35,30 +36,57 @@ fun KotlinMultiplatformExtension.mobileTarget() {
   jvmToolchain {
     languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_17.toString()))
   }
+}
 
+fun KotlinMultiplatformExtension.kmpIosTarget() {
+  applyDefaultHierarchyTemplate()
+  targets.all {
+    compilations.all {
+      configureCompilation()
+    }
+  }
   iosX64()
   iosArm64()
   iosSimulatorArm64()
-
-  applyDefaultHierarchyTemplate()
 }
 
-fun KotlinMultiplatformExtension.desktopFrontendTarget() {
+
+enum class JsPlatform {
+  Browser,
+  Node,
+  Electron,
+  ;
+}
+
+
+fun KotlinMultiplatformExtension.kmpJsTarget(libs: LibrariesForLibs, vararg platforms: JsPlatform) {
   js(IR) {
-    browser()
+    if (platforms.contains(JsPlatform.Browser)) {
+      browser()
+    }
+    if (platforms.contains(JsPlatform.Node)) {
+      nodejs()
+    }
     generateTypeScriptDefinitions()
+  }
+
+  sourceSets.jsMain.dependencies {
+    implementation(project.dependencies.enforcedPlatform(libs.kotlin.wrappers.bom))
+    implementation(libs.kotlin.js)
+    if (platforms.contains(JsPlatform.Browser)) {
+      implementation(libs.kotlin.web)
+      implementation(libs.kotlin.browser)
+    }
+    if (platforms.contains(JsPlatform.Node)) {
+      implementation(libs.kotlin.node)
+    }
+    if (platforms.contains(JsPlatform.Electron)) {
+      implementation(libs.kotlin.electron)
+    }
   }
 }
 
-
-fun KotlinMultiplatformExtension.desktopBackendTarget() {
-  js(IR) {
-    nodejs()
-    generateTypeScriptDefinitions()
-  }
-}
-
-fun Project.configureAllTests(fn: Test.() -> Unit = {}) {
+fun Project.configureJvmTests(fn: Test.() -> Unit = {}) {
   fun DependencyHandler.testImplementation(notation: Any) =
     add(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME, notation)
 

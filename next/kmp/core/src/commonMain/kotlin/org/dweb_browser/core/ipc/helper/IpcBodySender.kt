@@ -11,14 +11,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureBinary
-import org.dweb_browser.pure.http.PureBinaryBody
-import org.dweb_browser.pure.http.PureEmptyBody
-import org.dweb_browser.pure.http.PureStream
-import org.dweb_browser.pure.http.PureStreamBody
-import org.dweb_browser.pure.http.PureString
-import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.AsyncSetter
 import org.dweb_browser.helper.SafeHashMap
@@ -32,7 +24,15 @@ import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.helper.toBase64ByteArray
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureBinary
+import org.dweb_browser.pure.http.PureBinaryBody
+import org.dweb_browser.pure.http.PureEmptyBody
+import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.pure.http.PureStreamBody
+import org.dweb_browser.pure.http.PureString
+import org.dweb_browser.pure.http.PureStringBody
 
 /**
  * IpcBodySender 本质上是对 ReadableStream 的再次封装。
@@ -48,9 +48,12 @@ import org.dweb_browser.helper.runBlockingCatching
  *
  */
 class IpcBodySender private constructor(
+  metaBody: MetaBody?,
   override val raw: IPureBody,
   ipc: Ipc,
 ) : IpcBody() {
+  override lateinit var metaBody: MetaBody;
+
   val isStream by lazy { raw is PureStreamBody }
   val isStreamClosed get() = if (isStream) _isStreamClosed else true
   val isStreamOpened get() = if (isStream) _isStreamOpened else true
@@ -101,7 +104,7 @@ class IpcBodySender private constructor(
       private fun Ipc.getUsableIpcBodyMap(): UsableIpcBodyMapper =
         IpcUsableIpcBodyMap.getOrPut(this) {
           val ipc = this
-          debugIpcBody("SenderUsableByIpc","OPEN => $this")
+          debugIpcBody("SenderUsableByIpc", "OPEN => $this")
           UsableIpcBodyMapper().also { mapper ->
             onStream { (message) ->
               when (message) {
@@ -118,7 +121,7 @@ class IpcBodySender private constructor(
               }
             }.removeWhen(mapper.onDestroy)
             mapper.onDestroy {
-              debugIpcBody("SenderUsableByIpc","CLOSE => $this")
+              debugIpcBody("SenderUsableByIpc", "CLOSE => $this")
               IpcUsableIpcBodyMap.remove(ipc)
             }
           }
@@ -251,29 +254,57 @@ class IpcBodySender private constructor(
   }
 
 
-  override val metaBody: MetaBody
+//  override val metaBody: MetaBody
 
 
   init {
-    metaBody = runBlockingCatching { bodyAsMeta(raw, ipc) }.getOrThrow()
+    if (metaBody != null) {
+      this.metaBody = metaBody
+    }
+//    metaBody = runBlockingCatching { bodyAsMeta(raw, ipc) }.getOrThrow()
 
     /// 作为 "生产者"，第一持有这个 IpcBodySender
     IPC.usableByIpc(ipc, this)
   }
 
   companion object {
+    suspend fun from(raw: IPureBody, ipc: Ipc): IpcBodySender {
+      val metaBody = when (raw) {
+        is PureEmptyBody -> MetaBody.fromText(ipc.uid, raw.toPureString())
+        is PureStringBody -> MetaBody.fromText(ipc.uid, raw.toPureString())
+        is PureBinaryBody -> MetaBody.fromBinary(ipc, raw.toPureBinary())
+        is PureStreamBody -> null
+      }
+      return IpcBodySender(
+        metaBody, raw, ipc
+      ).also {
+        if (metaBody == null) {
+          it.metaBody = it.streamAsMeta(raw.toPureStream(), ipc)
+        }
+      }
+    }
 
 
-    fun from(raw: IPureBody, ipc: Ipc) = IpcBodySender(raw, ipc)
+    fun fromText(raw: PureString, ipc: Ipc) =
+      IpcBodySender(MetaBody.fromText(ipc.uid, raw), IPureBody.from(raw), ipc)
 
+    fun fromBase64(raw: PureString, ipc: Ipc) = fromBinary(raw.toBase64ByteArray(), ipc)
 
-    fun fromText(raw: PureString, ipc: Ipc) = from(IPureBody.from(raw), ipc)
+    fun fromBinary(raw: PureBinary, ipc: Ipc): IpcBodySender {
+      val pureBody = IPureBody.from(raw)
 
-    fun fromBase64(raw: PureString, ipc: Ipc) =
-      from(IPureBody.from(raw, IPureBody.Companion.PureStringEncoding.Base64), ipc)
+      return IpcBodySender(
+        when (pureBody) {
+          is PureEmptyBody -> MetaBody.fromText(ipc.uid, "")
+          is PureBinaryBody -> MetaBody.fromBinary(ipc.uid, pureBody.data)
+          else -> throw Exception("should not happen")
+        },
+        pureBody,
+        ipc
+      )
+    }
 
-    fun fromBinary(raw: PureBinary, ipc: Ipc) = from(IPureBody.from(raw), ipc)
-    fun fromStream(raw: PureStream, ipc: Ipc) = from(IPureBody.from(raw), ipc)
+    suspend fun fromStream(raw: PureStream, ipc: Ipc) = from(IPureBody.from(raw), ipc)
 
 
     private val streamIdWM by lazy { WeakHashMap<PureStream, String>() }

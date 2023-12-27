@@ -84,7 +84,7 @@ class IpcClientRequest(
       ipc,
     )
 
-    fun fromStream(
+    suspend fun fromStream(
       req_id: Int,
       method: PureMethod,
       url: String,
@@ -106,7 +106,7 @@ class IpcClientRequest(
       ipc,
     )
 
-    fun fromRequest(
+    suspend fun fromRequest(
       req_id: Int, ipc: Ipc, url: String, init: IpcRequestInit, from: Any? = null
     ) = IpcClientRequest(
       req_id,

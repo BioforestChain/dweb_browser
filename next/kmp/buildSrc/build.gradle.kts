@@ -32,6 +32,7 @@ dependencies {
   implementation(libs.gradlePlugin.android)
   implementation(libs.gradlePlugin.kotlin)
   implementation(kotlin("serialization:${libs.versions.kotlin.version}"))
+  implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }
 tasks.withType<JavaCompile>().configureEach {
   val javaVersion = libs.versions.jvmTarget.get()

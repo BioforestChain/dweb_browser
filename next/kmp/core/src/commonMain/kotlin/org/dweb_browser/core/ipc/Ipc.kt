@@ -10,17 +10,12 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.core.ipc.helper.IpcClientRequest
 import org.dweb_browser.core.ipc.helper.IpcClientRequest.Companion.toIpc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
-import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.ipc.helper.IpcRequestMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcResponse
@@ -41,6 +36,11 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureResponse
 
 val debugIpc = Debugger("ipc")
 
@@ -116,7 +116,7 @@ abstract class Ipc {
       to.postMessage(message.message)
     }
     handler.run {
-      debugIpc("ipc","${this@Ipc.remote.mmid} pipe run")
+      debugIpc("ipc", "${this@Ipc.remote.mmid} pipe run")
     }
   }
 
@@ -282,7 +282,7 @@ abstract class Ipc {
     return result.await()
   }
 
-  private fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
+  private suspend fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
     val reqId = this.allocReqId()
     return IpcClientRequest.fromRequest(reqId, this, url, init)
   }

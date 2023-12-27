@@ -1,6 +1,8 @@
 package org.dweb_browser.helper
 
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.core.EOFException
+import io.ktor.utils.io.core.readBytes
 import io.ktor.utils.io.readAvailable
 import io.ktor.utils.io.readUTF8Line
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -31,6 +33,34 @@ suspend fun ByteReadChannel.readAvailableByteArray() =
  * data corruptions may occur. The visitor block may be invoked multiple times, once or never.
  */
 expect suspend inline fun ByteReadChannel.consumeEachArrayRange(visitor: ConsumeEachArrayVisitor)
+
+suspend inline fun ByteReadChannel.commonConsumeEachArrayRange(
+  visitor: ConsumeEachArrayVisitor,
+) {
+  val controller = ChannelConsumeEachController()
+  try {
+    do {
+      awaitContent()
+      val lastChunkReported = availableForRead == 0 && isClosedForWrite
+      if (lastChunkReported) {
+        controller.visitor(byteArrayOf(), true)
+      } else {
+        val bytes = readPacket(availableForRead).readBytes()
+        controller.visitor(bytes, false)
+      }
+      /// 这个要在 isClosedForRead 属性之前，否则会出问题
+      if (!controller.continueFlag) {
+        break
+      }
+
+      if (lastChunkReported && isClosedForRead) {
+        break
+      }
+    } while (true)
+  } catch (e: EOFException) {
+    e.printStackTrace()
+  }
+}
 
 /**
  * Visitor function that is invoked for every available buffer (or chunk) of a channel.

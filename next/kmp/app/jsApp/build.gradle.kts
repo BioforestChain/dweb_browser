@@ -1,5 +1,5 @@
 plugins {
-  id("multiplatform-compose")
+  id("kmp-compose-target")
   id(libs.plugins.androidApplication.get().pluginId)
 }
 

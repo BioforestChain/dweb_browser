@@ -2,11 +2,11 @@ package org.dweb_browser.core.ipc.helper
 
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.debugIpc
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStream
-import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.debugIpc
 
 
 class IpcResponse(
@@ -30,7 +30,11 @@ class IpcResponse(
 
   companion object {
     fun fromText(
-      req_id: Int, statusCode: Int = 200, headers: PureHeaders = PureHeaders(), text: String, ipc: Ipc
+      req_id: Int,
+      statusCode: Int = 200,
+      headers: PureHeaders = PureHeaders(),
+      text: String,
+      ipc: Ipc
     ) = IpcResponse(
       req_id,
       statusCode,
@@ -53,7 +57,7 @@ class IpcResponse(
     );
 
 
-    fun fromStream(
+    suspend fun fromStream(
       req_id: Int,
       statusCode: Int = 200,
       headers: PureHeaders = PureHeaders(),

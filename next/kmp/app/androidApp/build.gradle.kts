@@ -1,21 +1,13 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
 
 plugins {
-  id("multiplatform-compose")
+  id("target-compose")
+  id("target-common")
   id(libs.plugins.androidApplication.get().pluginId)
 }
 
 kotlin {
-  androidTarget {
-    compilations.all {
-      kotlinOptions {
-        jvmTarget = libs.versions.jvmTarget.get()
-      }
-    }
-  }
-  jvmToolchain {
-    languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
-  }
+  kmpAndroidTarget()
   sourceSets {
     val androidMain by getting {
       dependencies {

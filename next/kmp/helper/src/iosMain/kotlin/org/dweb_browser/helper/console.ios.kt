@@ -2,6 +2,12 @@ package org.dweb_browser.helper
 
 import kotlinx.cinterop.ExperimentalForeignApi
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+
+actual val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
+
+
 @OptIn(ExperimentalForeignApi::class)
 val STDERR = platform.posix.fdopen(2, "w")
 

@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser
 
 import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
@@ -12,9 +12,9 @@ import org.dweb_browser.helper.consumeEachArrayRange
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
-class fileIoTest {
+class FileIoTest {
   @Test
-  fun toReadByteStream() = runBlocking {
+  fun toReadByteStream() = runTest {
     val wroteByteArray = SystemFileSystem.sink(Path("/tmp/test.file")).run {
       val buffer = Buffer().apply {
         for (i in 0..2000) {

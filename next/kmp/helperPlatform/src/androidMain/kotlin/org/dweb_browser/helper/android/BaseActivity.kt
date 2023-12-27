@@ -10,8 +10,6 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.runBlockingCatching
 
 abstract class BaseActivity : ComponentActivity() {
   private val queueResultLauncherRegistries = mutableListOf<() -> Unit>()
@@ -90,9 +88,9 @@ abstract class BaseActivity : ComponentActivity() {
   val onDestroyActivity = onDestroySignal.toListener()
 
   override fun onDestroy() {
-    runBlockingCatching(ioAsyncExceptionHandler) {
-      onDestroySignal.emit()
-    }.getOrThrow()
     super.onDestroy()
+    lifecycleScope.launch {
+      onDestroySignal.emit()
+    }
   }
 }
