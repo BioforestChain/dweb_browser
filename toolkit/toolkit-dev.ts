@@ -10,7 +10,7 @@ const $ = async (cmd: string | string[], cwd?: string) => {
   }
   const [exec, ...args] = cmd;
   const cmdWhich = whichSync(exec);
-  const command = new Deno.Command(cmdWhich!, { args, cwd: cwd && resolveTo(cwd) });
+  const command = new Deno.Command(cmdWhich!, { args, cwd: cwd && resolveTo(cwd), stdout: "inherit" });
   await command.output();
 };
 const resolveTo = createBaseResolveTo(path.dirname(fileURLToPath(import.meta.url)));

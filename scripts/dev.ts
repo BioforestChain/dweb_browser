@@ -1,3 +1,4 @@
+console.log("loading tasks...");
 import { assetsTasks } from "../desktop-dev/scripts/assets-tasks.ts";
 import { toolkitTasks } from "../toolkit/toolkit-dev.ts";
 
