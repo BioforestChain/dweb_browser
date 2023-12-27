@@ -14,6 +14,8 @@ import org.dweb_browser.browser.web.model.WebLinkManifest
 import org.dweb_browser.browser.web.model.WebLinkStore
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.ui.model.DefaultSearchWebEngine
+import org.dweb_browser.browser.web.ui.model.WebEngine
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.helper.ImageResource
@@ -47,6 +49,7 @@ class BrowserController(
 
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
+  val searchEngines: MutableList<WebEngine> = mutableStateListOf()
   val bookLinks: MutableList<WebSiteInfo> = mutableStateListOf()
   val historyLinks: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf()
   var isNoTrace: Boolean = false
@@ -62,10 +65,14 @@ class BrowserController(
           it.addAll(webSiteInfoList)
         }
       }
-      // TODO 遍历获取book的image
-//      bookLinks.forEach { webSiteInfo ->
-//        webSiteInfo.icon = LocalBitmapManager.loadImageBitmap(webSiteInfo.id)?.toByteArray()
-//      }
+      val engines = browserStore.getSearchEngines()
+      debugBrowser("lin.huang", "$engines")
+      if (engines.isNotEmpty()) {
+        searchEngines.addAll(engines)
+      } else {
+        searchEngines.addAll(DefaultSearchWebEngine)
+        browserStore.setSearchEngines(searchEngines)
+      }
     }
   }
 
@@ -86,6 +93,9 @@ class BrowserController(
 
   suspend fun saveHistoryLinks(key: String, historyLinks: MutableList<WebSiteInfo>) =
     browserStore.setHistoryLinks(key, historyLinks)
+
+  suspend fun saveSearchEngines() =
+    browserStore.setSearchEngines(searchEngines)
 
   /**
    * 窗口是单例模式

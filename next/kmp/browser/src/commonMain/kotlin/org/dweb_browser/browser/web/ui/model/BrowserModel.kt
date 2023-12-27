@@ -28,8 +28,6 @@ import org.dweb_browser.browser.web.model.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browser.web.model.KEY_NO_TRACE
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.model.WebSiteType
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer
@@ -43,6 +41,10 @@ import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureMethod
+
+val LocalBrowserModel = compositionChainOf<BrowserViewModel>("BrowserModel")
 
 /**
  * 用于显示搜索的界面，也就是点击搜索框后界面
@@ -87,6 +89,13 @@ class BrowserViewModel(
     mutableStateOf(browserController.isNoTrace)
   }
 
+  val filterShowEngines
+    get() = browserController.searchEngines.filter { webEngine ->
+      webEngine.checked
+    }
+
+  fun filterFitUrlEngines(url: String) = browserController.searchEngines.firstOrNull { it.fit(url) }
+  fun getSearchEngines() = browserController.searchEngines
   fun getBookLinks() = browserController.bookLinks
   fun getHistoryLinks() = browserController.historyLinks
   val browserOnVisible = browserController.onWindowVisiable
@@ -350,29 +359,21 @@ class BrowserViewModel(
    * 修改：该对象已经变更，可直接保存，所以不需要传
    * 删除：需要删除数据
    */
-  fun changeBookLink(
-    add: WebSiteInfo? = null, del: WebSiteInfo? = null, update: WebSiteInfo? = null
-  ) {
-    debugBrowser(
-      "BrowserModel",
-      "changeBookLink: add: ${add?.title} del:${del?.title} update:${update?.title}"
-    )
-    browserController.ioAsyncScope.launch {
-      add?.apply {
-        showToastMessage(BrowserI18nResource.toast_message_add_book.text)
-        browserController.bookLinks.add(this)
-        browserController.saveBookLinks()
-      }
-      del?.apply {
-        showToastMessage(BrowserI18nResource.toast_message_remove_book.text)
-        browserController.bookLinks.remove(this)
-        browserController.saveBookLinks()
-      }
-      update?.apply {
-        showToastMessage(BrowserI18nResource.toast_message_update_book.text)
-        browserController.saveBookLinks()
-      }
-    }
+  fun addBookLink(item: WebSiteInfo) = browserController.ioAsyncScope.launch {
+    showToastMessage(BrowserI18nResource.toast_message_add_book.text)
+    browserController.bookLinks.add(item)
+    browserController.saveBookLinks()
+  }
+
+  fun removeBookLink(item: WebSiteInfo) = browserController.ioAsyncScope.launch {
+    showToastMessage(BrowserI18nResource.toast_message_remove_book.text)
+    browserController.bookLinks.remove(item)
+    browserController.saveBookLinks()
+  }
+
+  fun updateBookLink(item: WebSiteInfo) = browserController.ioAsyncScope.launch {
+    showToastMessage(BrowserI18nResource.toast_message_update_book.text)
+    browserController.saveBookLinks()
   }
 
   /**
@@ -381,27 +382,43 @@ class BrowserViewModel(
    * 修改：历史数据没有修改
    * 删除：需要删除数据
    */
-  suspend fun changeHistoryLink(add: WebSiteInfo? = null, del: WebSiteInfo? = null) {
-    add?.apply {
-      if (isNoTrace.value) return // 如果是无痕模式，则不能进行存储历史操作
-      val key = timeMillis.toString()
-      val addUrl = this.url
-      browserController.historyLinks.getOrPut(key) {
-        mutableStateListOf()
-      }.apply {
-        removeAll { it.url == addUrl } // 删除同一天的重复数据
-        add(0, add)
-        browserController.saveHistoryLinks(key, this)
-      }
+  suspend fun addHistoryLink(item: WebSiteInfo) {
+    if (isNoTrace.value) return // 如果是无痕模式，则不能进行存储历史操作
+    val key = item.timeMillis.toString()
+    val addUrl = item.url
+    browserController.historyLinks.getOrPut(key) {
+      mutableStateListOf()
+    }.apply {
+      removeAll { it.url == addUrl } // 删除同一天的重复数据
+      add(0, item)
+      browserController.saveHistoryLinks(key, this)
     }
-    del?.apply {
-      val key = timeMillis.toString()
-      browserController.historyLinks[key]?.apply {
-        showToastMessage(BrowserI18nResource.toast_message_remove_history.text)
-        remove(del)
-        browserController.saveHistoryLinks(key, this)
-      }
+  }
+
+  suspend fun removeHistoryLink(item: WebSiteInfo) {
+    val key = item.timeMillis.toString()
+    browserController.historyLinks[key]?.apply {
+      showToastMessage(BrowserI18nResource.toast_message_remove_history.text)
+      remove(item)
+      browserController.saveHistoryLinks(key, this)
     }
+  }
+
+  /**
+   * 搜索引擎
+   */
+  fun addSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
+    browserController.searchEngines.add(item)
+    browserController.saveSearchEngines()
+  }
+
+  fun removeSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
+    browserController.searchEngines.remove(item)
+    browserController.saveSearchEngines()
+  }
+
+  fun updateSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
+    browserController.saveSearchEngines()
   }
 
   suspend fun loadMoreHistory(off: Int) {

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.main
+package org.dweb_browser.browser.web.ui.view
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,9 +36,9 @@ internal fun BrowserWebView(
         when (it) {
           1f -> {
             contentViewItem.loadState.value = false
-            viewModel.changeHistoryLink(
-              add = contentViewItem.viewItem.webView.toWebSiteInfo(WebSiteType.History)
-            )
+            contentViewItem.viewItem.webView.toWebSiteInfo(WebSiteType.History)?.let { item ->
+              viewModel.addHistoryLink(item)
+            }
             browserContentItem.captureView()
           }
 

@@ -82,7 +82,7 @@ fun BrowserListOfHistory(
           onRemove = {
             scope.launch {
               webSiteInfoList.remove(webSiteInfo)
-              viewModel.changeHistoryLink(del = webSiteInfo)
+              viewModel.removeHistoryLink(webSiteInfo)
             }
           }
         ) {

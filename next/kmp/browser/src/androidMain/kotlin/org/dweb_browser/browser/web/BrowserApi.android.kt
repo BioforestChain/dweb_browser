@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import org.dweb_browser.browser.web.model.DESK_WEBLINK_ICONS
-import org.dweb_browser.browser.web.ui.main.BrowserViewForWindow
+import org.dweb_browser.browser.web.ui.view.BrowserViewForWindow
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext

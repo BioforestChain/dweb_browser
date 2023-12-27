@@ -115,6 +115,23 @@ class BrowserI18nResource {
     val browser_empty_list = SimpleI18nResource(Language.ZH to "暂无数据", Language.EN to "No Data")
     val browser_options_editBook =
       SimpleI18nResource(Language.ZH to "编辑书签", Language.EN to "Edit Book")
+    val browser_options_engine_list =
+      SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engine")
+    val browser_options_engine_update =
+      SimpleI18nResource(Language.ZH to "修改搜索引擎", Language.EN to "Update Search Engine")
+    val browser_engine_tag_search =
+      SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engine")
+    val browser_engine_tag_host =
+      SimpleI18nResource(Language.ZH to "搜索域名", Language.EN to "Search Host")
+    val browser_engine_tag_url = SimpleI18nResource(
+      Language.ZH to "搜索格式（用“%s”代替搜索字词）",
+      Language.EN to "Search Format(replace search terms with \"%s\")")
+    val browser_engine_tips_noFound = SimpleI18nResource(
+      Language.ZH to "未正确配置搜索引擎，请到“选项”中的“搜索引擎”中进行配置！",
+      Language.EN to "Search engine not configured correctly, please go to \"Search Engine\" in \"Options\" to configure!")
+    val browser_engine_toast_noFound = SimpleI18nResource(
+      Language.ZH to "关键字搜索，需要通过搜索引擎，请先正确配置搜索引擎！",
+      Language.EN to "Keyword search requires the use of search engines. Please configure the search engine correctly first!")
     val browser_options_store = SimpleI18nResource(Language.ZH to "存储", Language.EN to "Store")
     val browser_options_delete = SimpleI18nResource(Language.ZH to "删除", Language.EN to "Delete")
     val browser_options_addToBook =
@@ -124,6 +141,8 @@ class BrowserI18nResource {
       SimpleI18nResource(Language.ZH to "无痕浏览", Language.EN to "NoTrace")
     val browser_options_privacy =
       SimpleI18nResource(Language.ZH to "隐私政策", Language.EN to "Privacy Policy")
+    val browser_options_search_engine =
+      SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engines")
     val browser_multi_count = SimpleI18nResource(Language.ZH to "个标签页", Language.EN to "tabs")
     val browser_multi_done = SimpleI18nResource(Language.ZH to "完成", Language.EN to "Done")
     val browser_multi_startup = SimpleI18nResource(Language.ZH to "起始页", Language.EN to "Start")

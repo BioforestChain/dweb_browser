@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.main
+package org.dweb_browser.browser.web.ui.view
 
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
@@ -73,18 +73,16 @@ import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.model.BrowserContentItem
 import org.dweb_browser.browser.web.model.ConstUrl
-import org.dweb_browser.browser.web.ui.BrowserBottomSheet
-import org.dweb_browser.browser.web.ui.BrowserMultiPopupView
-import org.dweb_browser.browser.web.ui.bottomsheet.LocalModalBottomSheet
-import org.dweb_browser.browser.web.ui.bottomsheet.ModalBottomModel
-import org.dweb_browser.browser.web.ui.bottomsheet.SheetState
+import org.dweb_browser.browser.web.ui.model.LocalModalBottomSheet
+import org.dweb_browser.browser.web.ui.model.ModalBottomModel
+import org.dweb_browser.browser.web.ui.model.SheetState
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.ui.model.LocalBrowserModel
 import org.dweb_browser.browser.web.ui.model.LocalBrowserPageState
 import org.dweb_browser.browser.web.ui.model.LocalInputText
 import org.dweb_browser.browser.web.ui.model.LocalShowIme
 import org.dweb_browser.browser.web.ui.model.LocalShowSearchView
 import org.dweb_browser.browser.web.ui.model.parseInputText
-import org.dweb_browser.browser.web.ui.search.SearchView
 import org.dweb_browser.dwebview.rememberCanGoBack
 import org.dweb_browser.dwebview.rememberLoadingProgress
 import org.dweb_browser.helper.compose.LocalCompositionChain
@@ -118,7 +116,7 @@ fun BrowserViewForWindow(
 ) {
   val scope = rememberCoroutineScope()
   val browserPagerState = viewModel.rememberBrowserPagerState()
-  val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
+  val modalBottomModel = remember { ModalBottomModel() }
   val qrCodeScanModel = remember { QRCodeScanModel() }
   val showSearchView = LocalShowSearchView.current
   val focusManager = LocalFocusManager.current
@@ -126,6 +124,7 @@ fun BrowserViewForWindow(
   viewModel.BrowserSearchConfig() // 用于控制是否显示搜索框
 
   LocalCompositionChain.current.Provider(
+    LocalBrowserModel provides viewModel,
     LocalModalBottomSheet provides modalBottomModel,
     LocalBrowserPageState provides browserPagerState,
     LocalQRCodeModel provides qrCodeScanModel,

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.search
+package org.dweb_browser.browser.web.ui.view
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
@@ -24,7 +24,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,11 +62,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.toRequestUrl
-import org.dweb_browser.browser.web.ui.main.dimenSearchHeight
-import org.dweb_browser.browser.web.ui.main.dimenTextFieldFontSize
-import org.dweb_browser.browser.web.ui.model.DefaultSearchWebEngine
+import org.dweb_browser.browser.web.ui.model.LocalBrowserModel
 import org.dweb_browser.browser.web.ui.model.WebEngine
-import org.dweb_browser.browser.web.ui.model.findWebEngine
 import org.dweb_browser.browser.web.ui.model.parseInputText
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
@@ -84,7 +83,7 @@ internal fun BoxScope.SearchView(
   val focusManager = LocalFocusManager.current
   val inputText = remember(text) { mutableStateOf(parseInputText(text, false)) }
   val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
-  val webEngine = findWebEngine(text)
+  val webEngine = LocalBrowserModel.current.filterFitUrlEngines(text)
 
   Box(modifier = modifier) {
     homePreview?.let {
@@ -140,6 +139,7 @@ internal fun BoxScope.BrowserTextField(
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
   var inputText by remember { mutableStateOf(text.value) }
+  val browserViewModel = LocalBrowserModel.current
 
   CustomTextField(
     value = inputText,
@@ -201,7 +201,13 @@ internal fun BoxScope.BrowserTextField(
           onSearch(url)
         } ?: webEngine?.let { webEngine ->
           onSearch("${webEngine.start}$inputText")
-        } ?: run { focusManager.clearFocus(); keyboardController?.hide() }
+        } ?: run {
+          focusManager.clearFocus()
+          keyboardController?.hide()
+          if (browserViewModel.filterShowEngines.isEmpty()) {
+            browserViewModel.showToastMessage(BrowserI18nResource.browser_engine_toast_noFound.text)
+          }
+        }
       }
     )
   )
@@ -325,6 +331,7 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
 
 @Composable
 private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
+  val viewModel = LocalBrowserModel.current
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
       text = BrowserI18nResource.browser_search_engine(),
@@ -337,7 +344,24 @@ private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
         .clip(RoundedCornerShape(8.dp))
         .background(MaterialTheme.colorScheme.background)
     ) {
-      DefaultSearchWebEngine.forEachIndexed { index, webEngine ->
+      val list = viewModel.filterShowEngines
+      if (list.isEmpty()) {
+        // TODO 提示需要去设置里面配置搜索引擎
+        androidx.compose.material3.ListItem(
+          headlineContent = {
+            Text(text = BrowserI18nResource.browser_engine_tips_noFound())
+          },
+          leadingContent = {
+            Icon(
+              imageVector = Icons.Default.Error,
+              contentDescription = null,
+              modifier = Modifier.size(40.dp)
+            )
+          }
+        )
+        return
+      }
+      list.forEachIndexed { index, webEngine ->
         if (index > 0) Divider(modifier = Modifier.fillMaxWidth().height(1.dp))
         androidx.compose.material3.ListItem(
           headlineContent = {

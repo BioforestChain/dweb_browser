@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.main
+package org.dweb_browser.browser.web.ui.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box

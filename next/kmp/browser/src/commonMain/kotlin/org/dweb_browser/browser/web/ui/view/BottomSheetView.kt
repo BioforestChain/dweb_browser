@@ -1,7 +1,8 @@
-package org.dweb_browser.browser.web.ui
+package org.dweb_browser.browser.web.ui.view
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -10,9 +11,12 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,21 +30,23 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.BrokenImage
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -48,87 +54,55 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterEnd
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Alignment.Companion.TopStart
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.BrowserIconResource
-import org.dweb_browser.browser.getIconResource
-import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.web.model.BrowserContentItem
 import org.dweb_browser.browser.web.model.WebSiteInfo
 import org.dweb_browser.browser.web.model.WebSiteType
-import org.dweb_browser.browser.web.ui.bottomsheet.BrowserModalBottomSheet
-import org.dweb_browser.browser.web.ui.bottomsheet.LocalModalBottomSheet
-import org.dweb_browser.browser.web.ui.bottomsheet.SheetState
+import org.dweb_browser.browser.web.ui.BrowserListOfBook
+import org.dweb_browser.browser.web.ui.BrowserListOfHistory
 import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.ui.model.LocalBrowserModel
+import org.dweb_browser.browser.web.ui.model.LocalModalBottomSheet
+import org.dweb_browser.browser.web.ui.model.PageType
+import org.dweb_browser.browser.web.ui.model.PopupViewState
+import org.dweb_browser.browser.web.ui.model.SheetState
+import org.dweb_browser.browser.web.ui.model.WebEngine
 import org.dweb_browser.browser.web.ui.model.toWebSiteInfo
-import org.dweb_browser.browser.web.ui.search.CustomTextField
 import org.dweb_browser.helper.PrivacyUrl
-import org.dweb_browser.helper.compose.rememberScreenSize
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.platform.getCornerRadiusTop
 import org.dweb_browser.helper.platform.rememberPureViewBox
 import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
 import org.dweb_browser.sys.window.render.NativeBackHandler
-
-enum class PopupViewState(
-  private val height: Dp = 0.dp,
-  private val percentage: Float? = null,
-  val title: String,
-  val imageVector: ImageVector,
-  val index: Int,
-) {
-  Options(height = 120.dp, title = "选项", imageVector = Icons.Default.Menu, index = 0),
-  BookList(percentage = 0.9f, title = "书签列表", imageVector = Icons.Default.Book, index = 1),
-  HistoryList(
-    percentage = 0.9f,
-    title = "历史记录",
-    imageVector = Icons.Default.History,
-    index = 2
-  ),
-  // Share(percentage = 0.5f, title = "分享"),
-  ;
-
-  fun getLocalHeight(screenHeight: Dp? = null): Dp {
-    return screenHeight?.let {
-      percentage?.let { percentage ->
-        screenHeight * percentage
-      }
-    } ?: height
-  }
-}
 
 @Composable
 internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
@@ -158,18 +132,96 @@ internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
   }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun BrowserModalBottomSheet(
+  onDismissRequest: () -> Unit,
+  shape: Shape = BottomSheetDefaults.ExpandedShape,
+  dragHandle: @Composable (() -> Unit) = { BottomSheetDefaults.DragHandle() },
+  content: @Composable ColumnScope.() -> Unit,
+) {
+  val state = remember { mutableStateOf(SheetState.PartiallyExpanded) }
+  BoxWithConstraints(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.3f)),
+  ) {
+    key(state) {
+      val density = LocalDensity.current.density
+      val parentHeight = maxHeight.value * density
+      val currentState = remember { mutableFloatStateOf(state.value.defaultHeight(parentHeight)) }
+
+      val height = animateDpAsState(
+        targetValue = (currentState.floatValue / density).dp, label = "",
+        finishedListener = {
+          if (state.value == SheetState.Hidden) {
+            onDismissRequest()
+          }
+        }
+      )
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .clickableWithNoEffect {
+            currentState.floatValue = 0f
+            state.value = SheetState.Hidden
+          }
+      )
+
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(height.value)
+          .align(Alignment.BottomCenter)
+          .clip(shape)
+          .background(MaterialTheme.colorScheme.background)
+      ) {
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.CenterHorizontally)
+            .pointerInput(currentState) {
+              detectDragGestures(
+                onDragEnd = {
+                  if (currentState.floatValue > parentHeight * 3 / 4) {
+                    currentState.floatValue = parentHeight
+                    state.value = SheetState.Expanded
+                  } else if (currentState.floatValue < parentHeight / 2) {
+                    currentState.floatValue = 0f
+                    state.value = SheetState.Hidden
+                  } else {
+                    currentState.floatValue = parentHeight * 2 / 3
+                    state.value = SheetState.PartiallyExpanded
+                  }
+                },
+                onDrag = { _, dragAmount ->
+                  currentState.floatValue -= dragAmount.y
+                }
+              )
+            }, contentAlignment = TopCenter
+        ) {
+          dragHandle()
+        }
+        content()
+      }
+    }
+
+  }
+}
+
 /**
  * 弹出主界面，包括了三个tab和一个书签管理界面 TODO 目前缺少切换到书签管理界面后的展开问题
  */
 @Composable
 internal fun BrowserPopView(viewModel: BrowserViewModel) {
   val selectedTabIndex = LocalModalBottomSheet.current.tabIndex
-  val pageIndex = LocalModalBottomSheet.current.pageIndex
+  val pageIndex = LocalModalBottomSheet.current.pageType
   val webSiteInfo = LocalModalBottomSheet.current.webSiteInfo
+  val webEngine = remember { mutableStateOf<WebEngine?>(null) }
 
   AnimatedContent(targetState = pageIndex, label = "",
     transitionSpec = {
-      if (targetState.intValue > initialState.intValue) {
+      if (targetState.value.ordinal > initialState.value.ordinal) {
         // 数字变大时，进入的界面从右向左变深划入，退出的界面从右向左变浅划出
         (slideInHorizontally { fullWidth -> fullWidth } + fadeIn()).togetherWith(
           slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut())
@@ -180,23 +232,170 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
       }
     }
   ) { targetPage ->
-    when (targetPage.intValue) {
-      0 -> {
+    when (targetPage.value) {
+      PageType.Home -> {
         PopTabRowContent(
           viewModel = viewModel,
           selectedTabIndex = selectedTabIndex,
-          openBookManager = {
-            webSiteInfo.value = it
-            pageIndex.intValue = 1
-          }
+          openBookManager = { webSiteInfo.value = it; pageIndex.value = PageType.BookManager },
+          openEngineManger = { pageIndex.value = PageType.EngineList }
         )
       }
 
-      1 -> {
-        PopBookManagerView(viewModel) { pageIndex.intValue = 0 }
+      PageType.BookManager -> {
+        PopBookManagerView(viewModel) { pageIndex.value = PageType.Home }
       }
 
-      else -> {}
+      PageType.EngineList -> {
+        PopSearchEngineListView(
+          viewModel = viewModel,
+          openEngineManger = { webEngine.value = it; pageIndex.value = PageType.EngineManger },
+          onBack = { pageIndex.value = PageType.Home }
+        )
+      }
+
+      PageType.EngineManger -> {
+        PopEngineManagerView(webEngine) { pageIndex.value = PageType.EngineList }
+      }
+    }
+  }
+}
+
+/**
+ * 配置搜索引擎
+ */
+@Composable
+private fun PopSearchEngineListView(
+  viewModel: BrowserViewModel, openEngineManger: (WebEngine) -> Unit, onBack: () -> Unit
+) {
+  Column {
+    ManagerTitleView(title = BrowserI18nResource.browser_options_engine_list(), onBack = onBack)
+
+    /*Row(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+      verticalAlignment = CenterVertically,
+      horizontalArrangement = Arrangement.Center
+    ) {
+      Text(
+        text = BrowserI18nResource.browser_engine_tag_search(),
+        modifier = Modifier.width(100.dp)
+      )
+      Text(
+        text = BrowserI18nResource.browser_engine_tag_host(),
+        modifier = Modifier.weight(1f),
+        textAlign = TextAlign.Center
+      )
+      Box(modifier = Modifier.width(32.dp))
+    }*/
+
+    LazyColumn {
+      itemsIndexed(viewModel.getSearchEngines()) { index, searchEngine ->
+        Row(
+          modifier = Modifier.clickable { /*openEngineManger(searchEngine)*/ }
+            .fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+          verticalAlignment = CenterVertically
+        ) {
+          Text(text = searchEngine.name, modifier = Modifier.width(100.dp))
+          Text(text = searchEngine.host, modifier = Modifier.weight(1f))
+          Box(modifier = Modifier.width(32.dp)) {
+            Checkbox(
+              checked = searchEngine.checked,
+              onCheckedChange = {
+                searchEngine.checked = it
+                viewModel.updateSearchEngine(searchEngine)
+              }
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun PopEngineManagerView(webEngine: MutableState<WebEngine?>, onBack: () -> Unit) {
+  val currentEngine = webEngine.value?.let {
+    remember { mutableStateOf(WebEngine(it.name, it.host, it.start)) }
+  } ?: return
+  val browserViewModel = LocalBrowserModel.current
+  Column {
+    ManagerTitleView(
+      title = BrowserI18nResource.browser_options_engine_update(),
+      onBack = onBack,
+      onDone = {
+        webEngine.value?.apply {
+          name = currentEngine.value.name
+          start = currentEngine.value.start
+          browserViewModel.updateSearchEngine(this)
+        }
+      }
+    )
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+      Text(BrowserI18nResource.browser_engine_tag_search())
+      OutlinedTextField(
+        value = currentEngine.value.name,
+        onValueChange = { currentEngine.value.name = it },
+        maxLines = 1,
+        modifier = Modifier.fillMaxWidth()
+      )
+    }
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+      Text(BrowserI18nResource.browser_engine_tag_host())
+      OutlinedTextField(
+        value = currentEngine.value.host,
+        maxLines = 1,
+        enabled = false,
+        onValueChange = {},
+        modifier = Modifier.fillMaxWidth()
+      )
+    }
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+      Text(BrowserI18nResource.browser_engine_tag_url())
+      OutlinedTextField(
+        value = currentEngine.value.start,
+        onValueChange = { currentEngine.value.start = it },
+        maxLines = 1,
+        modifier = Modifier.fillMaxWidth()
+      )
+    }
+  }
+}
+
+@Composable
+private fun ManagerTitleView(
+  title: String, onBack: () -> Unit, onDone: (() -> Unit)? = null
+) {
+  Row(
+    modifier = Modifier.fillMaxWidth().height(44.dp),
+    verticalAlignment = CenterVertically
+  ) {
+    Icon(
+      imageVector = Icons.Default.ArrowBack,// ImageVector.vectorResource(R.drawable.ic_main_back),
+      contentDescription = "Back",
+      modifier = Modifier.clickable { onBack() }.padding(horizontal = 16.dp).size(24.dp),
+      tint = MaterialTheme.colorScheme.onBackground
+    )
+    Text(
+      text = title,
+      modifier = Modifier.weight(1f),
+      textAlign = TextAlign.Center,
+      fontSize = 18.sp
+    )
+    Box(
+      modifier = Modifier.clickable { onDone?.let { it() } }
+        .padding(horizontal = 16.dp).width(48.dp),
+      contentAlignment = Center
+    ) {
+      onDone?.let {
+        Text(
+          text = BrowserI18nResource.browser_options_store(),
+          color = MaterialTheme.colorScheme.primary,
+          fontSize = 18.sp
+        )
+      }
     }
   }
 }
@@ -209,43 +408,19 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
   val webSiteInfo = LocalModalBottomSheet.current.webSiteInfo
   val inputTitle = remember { mutableStateOf(webSiteInfo.value?.title ?: "") }
   val inputUrl = remember { mutableStateOf(webSiteInfo.value?.url ?: "") }
-  Box(modifier = Modifier.fillMaxSize()) {
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .height(44.dp), verticalAlignment = CenterVertically
-    ) {
-      Icon(
-        imageVector = Icons.Default.ArrowBack,// ImageVector.vectorResource(R.drawable.ic_main_back),
-        contentDescription = "Back",
-        modifier = Modifier
-          .clickable { onBack() }
-          .padding(horizontal = 16.dp)
-          .size(22.dp),
-        tint = MaterialTheme.colorScheme.onBackground
-      )
-      Text(
-        text = BrowserI18nResource.browser_options_editBook(),
-        modifier = Modifier.weight(1f),
-        textAlign = TextAlign.Center,
-        fontSize = 18.sp
-      )
-      Text(
-        text = BrowserI18nResource.browser_options_store(),
-        modifier = Modifier
-          .clickable {
-            webSiteInfo.value?.apply {
-              title = inputTitle.value
-              url = inputUrl.value
-              viewModel.changeBookLink(update = this)
-              onBack()
-            }
-          }
-          .padding(horizontal = 16.dp),
-        color = MaterialTheme.colorScheme.primary,
-        fontSize = 18.sp
-      )
-    }
+  Column(modifier = Modifier.fillMaxSize()) {
+    ManagerTitleView(
+      title = BrowserI18nResource.browser_options_editBook(),
+      onBack = onBack,
+      onDone = {
+        webSiteInfo.value?.apply {
+          title = inputTitle.value
+          url = inputUrl.value
+          viewModel.updateBookLink(this)
+          onBack()
+        }
+      }
+    )
     val item = webSiteInfo.value ?: return
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(focusRequester) {
@@ -253,11 +428,7 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
       focusRequester.requestFocus()
     }
 
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(start = 16.dp, end = 16.dp, top = 56.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
       RowItemTextField(
         leadingBitmap = item.iconImage,
         leadingIcon = Icons.Default.Book,
@@ -274,7 +445,7 @@ private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) 
           .clip(RoundedCornerShape(6.dp))
           .background(MaterialTheme.colorScheme.surfaceVariant)
           .clickable {
-            viewModel.changeBookLink(del = item)
+            viewModel.removeBookLink(item)
             onBack()
           },
         contentAlignment = Center
@@ -343,7 +514,8 @@ fun RowItemTextField(
 private fun PopTabRowContent(
   viewModel: BrowserViewModel,
   selectedTabIndex: MutableState<PopupViewState>,
-  openBookManager: (WebSiteInfo) -> Unit
+  openBookManager: (WebSiteInfo) -> Unit,
+  openEngineManger: () -> Unit,
 ) {
   val popupViewState = remember { mutableStateOf(PopupViewState.Options) }
 
@@ -373,7 +545,7 @@ private fun PopTabRowContent(
         )
       }
     }
-    PopContentView(popupViewState, viewModel, openBookManager)
+    PopContentView(popupViewState, viewModel, openBookManager, openEngineManger)
   }
 }
 
@@ -382,7 +554,8 @@ private fun PopTabRowContent(
 private fun PopContentView(
   popupViewState: MutableState<PopupViewState>,
   viewModel: BrowserViewModel,
-  openBookManager: (WebSiteInfo) -> Unit
+  openBookManager: (WebSiteInfo) -> Unit,
+  openEngineManger: () -> Unit
 ) {
   val scope = rememberCoroutineScope()
   val bottomSheetModel = LocalModalBottomSheet.current
@@ -410,13 +583,13 @@ private fun PopContentView(
         }
       }
 
-      else -> PopContentOptionItem(viewModel)
+      else -> PopContentOptionItem(viewModel) { openEngineManger() }
     }
   }
 }
 
 @Composable
-private fun PopContentOptionItem(viewModel: BrowserViewModel) {
+private fun PopContentOptionItem(viewModel: BrowserViewModel, openEngineManage: () -> Unit) {
   val scope = rememberCoroutineScope()
   val bottomSheetModel = LocalModalBottomSheet.current
   LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -426,6 +599,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           .fillMaxWidth()
           .padding(horizontal = 16.dp, vertical = 12.dp)
       ) {
+        // 添加书签
         RowItemMenuView(
           text = BrowserI18nResource.browser_options_addToBook(), // stringResource(id = R.string.browser_options_book),
           trailingIcon = Icons.Default.Book
@@ -433,22 +607,24 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           viewModel.currentTab?.contentWebItem?.value?.viewItem?.let { viewItem ->
             scope.launch {
               viewItem.webView.toWebSiteInfo(WebSiteType.Book)?.let {
-                viewModel.changeBookLink(add = it)
+                viewModel.addBookLink(it)
               } ?: run {
                 viewModel.showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
               }
             }
           }
-        } // 添加书签
+        }
 
+        // 分享
         Spacer(modifier = Modifier.height(12.dp))
         RowItemMenuView(
           text = BrowserI18nResource.browser_options_share(),
           trailingIcon = Icons.Default.Share
         ) {
           scope.launch { viewModel.shareWebSiteInfo() }
-        } // 分享
+        }
 
+        // 无痕浏览
         Spacer(modifier = Modifier.height(12.dp))
         RowItemMenuView(
           text = BrowserI18nResource.browser_options_noTrace(),
@@ -462,8 +638,9 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
                 scope.launch { viewModel.saveBrowserMode(it) }
               }
             )
-          }) {} // 无痕浏览
+          }) {}
 
+        // 隐私政策
         Spacer(modifier = Modifier.height(12.dp))
         RowItemMenuView(
           text = BrowserI18nResource.browser_options_privacy(), // stringResource(id = R.string.browser_options_privacy),
@@ -483,7 +660,14 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
             bottomSheetModel.hide()
             viewModel.searchWebView(PrivacyUrl)
           }
-        } // 隐私政策
+        }
+
+        // 搜索引擎
+        Spacer(modifier = Modifier.height(12.dp))
+        RowItemMenuView(
+          text = BrowserI18nResource.browser_options_search_engine(),
+          trailingIcon = Icons.Default.Settings
+        ) { openEngineManage() }
       }
     }
   }
@@ -635,81 +819,3 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
   }
 }
 
-@Composable
-private fun MultiItemView(
-  viewModel: BrowserViewModel,
-  browserContentItem: BrowserContentItem,
-  onlyOne: Boolean = false,
-  index: Int = 0
-) {
-  val screenSize = rememberScreenSize()
-  val scope = rememberCoroutineScope()
-  val sizeTriple = if (onlyOne) {
-    val with = screenSize.screenWidth.dp - 120.dp
-    Triple(with, with * 9 / 6 - 60.dp, with * 9 / 6)
-  } else {
-    val with = (screenSize.screenWidth.dp - 60.dp) / 2
-    Triple(with, with * 9 / 6 - 40.dp, with * 9 / 6)
-  }
-  Box(modifier = Modifier.size(width = sizeTriple.first, height = sizeTriple.third)) {
-    Column(horizontalAlignment = CenterHorizontally) {
-      Image(
-        painter = browserContentItem.bitmap?.let {
-          remember(it) {
-            BitmapPainter(it, filterQuality = FilterQuality.Medium)
-          }
-        } ?: rememberVectorPainter(Icons.Default.BrokenImage),
-        contentDescription = null,
-        modifier = Modifier
-          .shadow(elevation = 4.dp, shape = RoundedCornerShape(16.dp))
-          .size(width = sizeTriple.first, height = sizeTriple.second)
-          .clip(RoundedCornerShape(16.dp))
-          .background(MaterialTheme.colorScheme.surface)
-          .clickable { scope.launch { viewModel.updateMultiViewState(false, index) } }
-          .align(CenterHorizontally),
-        contentScale = ContentScale.FillWidth, //ContentScale.FillBounds,
-        alignment = browserContentItem.contentWebItem.value?.let { TopStart } ?: Center
-      )
-      val homePageTitle = BrowserI18nResource.browser_multi_startup()
-      val homePageIcon = getIconResource(BrowserIconResource.BrowserStar)
-      var contentTitle by remember { mutableStateOf(homePageTitle) }
-      var contentIcon: ImageBitmap? by remember { mutableStateOf(homePageIcon) }
-
-      LaunchedEffect(browserContentItem) {
-        browserContentItem.contentWebItem.value?.viewItem?.let { viewItem ->
-          if (!viewItem.webView.getUrl().isSystemUrl()) {
-            contentTitle = viewItem.webView.getTitle()
-            contentIcon = viewItem.webView.getFavoriteIcon()
-          }
-        }
-      }
-      Row(
-        modifier = Modifier
-          .width(sizeTriple.first)
-          .align(CenterHorizontally)
-          .padding(top = 4.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = CenterVertically
-      ) {
-        contentIcon?.let { imageBitmap ->
-          Image(bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp))
-          Spacer(modifier = Modifier.width(2.dp))
-        }
-        Text(text = contentTitle, maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 12.sp)
-      }
-    }
-
-    if (!onlyOne) {
-      Image(
-        imageVector = Icons.Default.Close, //ImageVector.vectorResource(R.drawable.ic_circle_close),
-        contentDescription = "Close",
-        modifier = Modifier
-          .clickable { scope.launch { viewModel.closeBrowserContentItem(browserContentItem) } }
-          .padding(8.dp)
-          .clip(CircleShape)
-          .align(Alignment.TopEnd)
-          .size(20.dp)
-      )
-    }
-  }
-}

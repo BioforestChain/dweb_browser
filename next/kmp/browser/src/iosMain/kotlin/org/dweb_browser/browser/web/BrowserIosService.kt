@@ -40,9 +40,9 @@ class BrowserIosService(var browserViewModel: BrowserViewModel? = null) {
   }
 
   suspend fun addHistory(title: String, url: String, icon: NSData?) {
-    val web =
+    val webSiteInfo =
       WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type = WebSiteType.History)
-    browserViewModel?.changeHistoryLink(add = web)
+    browserViewModel?.addHistoryLink(webSiteInfo)
   }
 
   suspend fun removeHistory(history: Long) {
@@ -53,7 +53,7 @@ class BrowserIosService(var browserViewModel: BrowserViewModel? = null) {
         }.first {
           it.id == history
         }
-        vm.changeHistoryLink(del = del)
+        vm.removeHistoryLink(del)
       } catch (e: NoSuchElementException) {
         println("not find")
       }
@@ -66,9 +66,9 @@ class BrowserIosService(var browserViewModel: BrowserViewModel? = null) {
   fun loadBookmarks(): MutableList<WebSiteInfo>? = browserViewModel?.getBookLinks()
 
   fun addBookmark(title: String, url: String, icon: NSData?) {
-    val web =
+    val webSiteInfo =
       WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type = WebSiteType.Book)
-    browserViewModel?.changeBookLink(web)
+    browserViewModel?.addBookLink(webSiteInfo)
   }
 
   fun removeBookmark(bookmark: Long) {
@@ -76,7 +76,7 @@ class BrowserIosService(var browserViewModel: BrowserViewModel? = null) {
       val del = vm.getBookLinks().first {
         it.id == bookmark
       }
-      vm.changeBookLink(del = del)
+      vm.removeBookLink(del)
     }
   }
 

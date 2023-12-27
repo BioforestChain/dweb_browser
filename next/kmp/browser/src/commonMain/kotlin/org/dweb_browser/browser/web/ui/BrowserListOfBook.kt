@@ -76,7 +76,7 @@ fun BrowserListOfBook(
       )
       ListSwipeItem(
         webSiteInfo = webSiteInfo,
-        onRemove = { viewModel.changeBookLink(del = it) }
+        onRemove = { viewModel.removeBookLink(it) }
       ) {
         RowItemBook(webSiteInfo, { onSearch(it.url) }) { onOpenSetting(it) }
       }
