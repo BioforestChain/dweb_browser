@@ -49,7 +49,7 @@ export class MediaPlugin extends BasePlugin {
         name: options.file.name,
         type: options.file.type,
         size: options.file.size,
-        encode: FileDataEncode.BASE64,
+        encoding: FileDataEncode.BASE64,
         data,
       });
     }

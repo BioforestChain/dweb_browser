@@ -4,13 +4,14 @@ export interface FileData {
   name: string;
   type: string;
   size: number;
-  encode: FileDataEncode;
+  encoding: FileDataEncode;
   data: string;
 }
 
 export enum FileDataEncode {
   UTF8 = "utf8",
-  BASE64 = "base64"
+  BASE64 = "base64",
+  BINARY = "binary"
 }
 
 export async function normalToBase64String(file: File): Promise<string> {

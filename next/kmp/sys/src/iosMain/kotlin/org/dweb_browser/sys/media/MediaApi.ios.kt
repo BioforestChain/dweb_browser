@@ -20,9 +20,10 @@ actual suspend fun savePictures(saveLocation: String, files: List<MultiPartFile>
 }
 
 private fun savePicture(files: MultiPartFile) {
-  val data = when (files.encode) {
+  val data = when (files.encoding) {
     MultiPartFileEncode.UTF8 -> files.data.toUtf8ByteArray()
     MultiPartFileEncode.BASE64 -> files.data.toBase64ByteArray()
+    MultiPartFileEncode.BINARY -> files.data.toUtf8ByteArray()
   }
   val uiImage = byteArrayToUIImage(data)
   //图片对象、目标对象、一个完成时调用的选择器（selector）以及一个上下文信息对象

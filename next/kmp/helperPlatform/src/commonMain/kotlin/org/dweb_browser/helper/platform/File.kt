@@ -9,7 +9,10 @@ enum class MultiPartFileEncode {
   UTF8,
 
   @SerialName("base64")
-  BASE64
+  BASE64,
+
+  @SerialName("binary")
+  BINARY
 }
 
 @Serializable
@@ -17,6 +20,6 @@ data class MultiPartFile(
   val name: String,
   val size: Long,
   val type: String,
-  val encode: MultiPartFileEncode = MultiPartFileEncode.UTF8,
+  val encoding: MultiPartFileEncode = MultiPartFileEncode.UTF8,
   val data: String,
 )

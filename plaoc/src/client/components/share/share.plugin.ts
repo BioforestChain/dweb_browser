@@ -111,7 +111,7 @@ export class SharePlugin extends BasePlugin {
           name: file.name,
           type: file.type,
           size: file.size,
-          encode: FileDataEncode.BASE64,
+          encoding: FileDataEncode.BASE64,
           data,
         });
       }
@@ -124,7 +124,7 @@ export class SharePlugin extends BasePlugin {
         name: options.file.name,
         type: options.file.type,
         size: options.file.size,
-        encode: FileDataEncode.BASE64,
+        encoding: FileDataEncode.BASE64,
         data,
       });
     }
@@ -143,7 +143,7 @@ export class SharePlugin extends BasePlugin {
           name: file.name,
           type: file.type,
           size: file.size,
-          encode: FileDataEncode.BASE64,
+          encoding: FileDataEncode.BASE64,
           data,
         });
       }
@@ -156,7 +156,7 @@ export class SharePlugin extends BasePlugin {
         name: options.file.name,
         type: options.file.type,
         size: options.file.size,
-        encode: FileDataEncode.BASE64,
+        encoding: FileDataEncode.BASE64,
         data,
       });
     }

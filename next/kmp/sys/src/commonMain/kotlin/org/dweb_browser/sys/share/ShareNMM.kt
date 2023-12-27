@@ -108,9 +108,10 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
     multiPartFile: MultiPartFile,
     mmid: MMID
   ): String {
-    val data = when (multiPartFile.encode) {
+    val data = when (multiPartFile.encoding) {
       MultiPartFileEncode.UTF8 -> multiPartFile.data.toUtf8ByteArray()
       MultiPartFileEncode.BASE64 -> multiPartFile.data.toBase64ByteArray()
+      MultiPartFileEncode.BINARY -> multiPartFile.data.toUtf8ByteArray()
     }
 
     val writePath = "/cache/${mmid}/${randomUUID()}/${multiPartFile.name}"
