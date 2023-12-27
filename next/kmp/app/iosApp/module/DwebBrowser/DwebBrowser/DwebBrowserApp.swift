@@ -7,6 +7,7 @@
 
 import SwiftUI
 import DwebWebBrowser
+import DwebShared
 
 @main
 struct DwebBrowserApp: App {
