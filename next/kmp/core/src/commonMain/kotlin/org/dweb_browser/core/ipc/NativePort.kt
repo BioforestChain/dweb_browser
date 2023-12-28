@@ -92,7 +92,7 @@ class NativePort<I, O>(
     /// 关闭输出就行了
     channelOut.close()
     _closeSignal.emitAndClear()
-    debugNativeIpc("port-closed", "${this}")
+    debugNativeIpc("port-closed", "$this")
   }
 
   private val _messageSignal = Signal<I>()

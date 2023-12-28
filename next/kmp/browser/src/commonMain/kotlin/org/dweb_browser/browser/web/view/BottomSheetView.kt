@@ -567,16 +567,16 @@ private fun PopContentView(
         onOpenSetting = { openBookManager(it) },
         onSearch = {
           scope.launch {
-            bottomSheetModel.hide()
             viewModel.searchWebView(it)
+            bottomSheetModel.hide()
           }
         }
       )
 
       PopupViewState.HistoryList -> BrowserListOfHistory(viewModel) {
         scope.launch {
-          bottomSheetModel.hide()
           viewModel.searchWebView(it)
+          bottomSheetModel.hide()
         }
       }
 
@@ -596,9 +596,11 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel, openEngineManage: 
           .fillMaxWidth()
           .padding(horizontal = 16.dp, vertical = 12.dp)
       ) {
+        val contentWebItem = viewModel.currentTab?.contentWebItem?.value
         // 添加书签
         RowItemMenuView(
           text = BrowserI18nResource.browser_options_addToBook(), // stringResource(id = R.string.browser_options_book),
+          enable = contentWebItem != null,
           trailingIcon = Icons.Default.Book
         ) {
           viewModel.currentTab?.contentWebItem?.value?.viewItem?.let { viewItem ->
@@ -609,13 +611,14 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel, openEngineManage: 
                 viewModel.showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
               }
             }
-          }
+          } ?: viewModel.showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
         }
 
         // 分享
         Spacer(modifier = Modifier.height(12.dp))
         RowItemMenuView(
           text = BrowserI18nResource.browser_options_share(),
+          enable = contentWebItem != null,
           trailingIcon = Icons.Default.Share
         ) {
           scope.launch { viewModel.shareWebSiteInfo() }
@@ -654,8 +657,8 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel, openEngineManage: 
           }
         ) {
           scope.launch {
-            bottomSheetModel.hide()
             viewModel.searchWebView(PrivacyUrl)
+            bottomSheetModel.hide()
           }
         }
 
@@ -673,10 +676,12 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel, openEngineManage: 
 @Composable
 private fun RowItemMenuView(
   text: String,
+  enable: Boolean = true,
   trailingIcon: ImageVector? = null,
   trailingContent: (@Composable (Modifier) -> Unit)? = null,
   onClick: () -> Unit
 ) {
+  if (!enable) return
   Box(
     modifier = Modifier
       .fillMaxWidth()

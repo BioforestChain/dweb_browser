@@ -9,11 +9,10 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printDebug
 
-fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =
-  printDebug("native-ipc", tag, msg, err)
+val debugNativeIpc = Debugger("native-ipc")
 
 class NativeIpc(
   val port: NativePort<IpcMessage, IpcMessage>,
@@ -21,9 +20,7 @@ class NativeIpc(
   private val roleType: IPC_ROLE,
 ) : Ipc() {
   override val role get() = roleType.role
-  override fun toString(): String {
-    return "NativeIpc@$port"
-  }
+  override fun toString() = "NativeIpc@($port)"
 
   override val supportRaw = true
   override val supportBinary = true

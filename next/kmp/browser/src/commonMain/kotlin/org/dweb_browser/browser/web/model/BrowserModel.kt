@@ -276,7 +276,6 @@ class BrowserViewModel(
   suspend fun searchWebView(url: String) = withContext(ioAsyncExceptionHandler) {
     showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
     currentTab?.let { browserContentItem ->
-      browserContentItem.contentWebItem.value?.loadState?.value = true
       if (url.isDeepLink()) { // 负责拦截browser的dweb_deeplink
         browserNMM.nativeFetch(url)
       } else {
@@ -284,10 +283,11 @@ class BrowserViewModel(
           browserContentItem.contentWebItem.value = createContentWebView(url)
         }
         browserContentItem.contentWebItem.value?.apply {
+          loadState.value = true
           viewItem.webView.loadUrl(url, true/* 强制加载 */)
+          loadState.value = false
         }
       }
-      browserContentItem.contentWebItem.value?.loadState?.value = false
     }
   }
 
@@ -302,15 +302,17 @@ class BrowserViewModel(
     currentTab?.contentWebItem?.value?.let { contentWebItem ->
       val url = contentWebItem.viewItem.webView.getUrl()
       if (url.isSystemUrl()) {
-        // handleIntent(BrowserIntent.ShowSnackbarMessage("无效的分享"))
+        showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
         return@let
       }
       val title = contentWebItem.viewItem.webView.getTitle()
 
       val request =
         PureClientRequest("file://share.sys.dweb/share?title=${title}&url=$url", PureMethod.POST)
-      browserNMM.nativeFetch(request)
-    }
+      if (browserNMM.nativeFetch(request).boolean()) {
+        showToastMessage("")
+      }
+    } ?: showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
   }
 
   /**

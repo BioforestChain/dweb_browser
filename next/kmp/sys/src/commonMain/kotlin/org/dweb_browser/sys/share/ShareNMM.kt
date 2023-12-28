@@ -56,12 +56,13 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
           text = request.queryOrNull("text"),
           url = request.queryOrNull("url"),
         )
+        debugShare("share", "contentType=$contentType, shareOption=$shareOptions")
         val result = when {
           contentType.match(ContentType.MultiPart.FormData) ->
             try {
               share(shareOptions, request.receiveMultipart(), this@ShareNMM)
             } catch (e: Exception) {
-              debugShare("/share", "receiveMultipart error -> ${e.message}")
+              debugShare("ContentType/Form", "receiveMultipart error -> ${e.message}")
               share(shareOptions, null)
             }
 
@@ -78,7 +79,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
 
           contentType.match(ContentType.Application.Cbor) -> {
             val byteArray = request.body.toPureBinary()
-            println("byteArray = ${byteArray.size}")
+            debugShare("ContentType/Cbor", "byteArray = ${byteArray.size}")
 
             val files = Cbor.decodeFromByteArray<List<MultiPartFile>>(byteArray)
             val fileList = mutableListOf<String>()
@@ -91,15 +92,17 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
           }
 
           else -> {
-            return@defineJsonResponse ShareResult(
+            debugShare("share", "Unable to process $contentType")
+            /*return@defineJsonResponse ShareResult(
               false,
               "Unable to process $contentType"
-            ).toJsonElement()
+            ).toJsonElement()*/
+            share(shareOptions, null)
           }
         }
 
         debugShare("/share", "result => $result")
-        return@defineJsonResponse ShareResult(result == "OK", result).toJsonElement()
+        ShareResult(result == "OK", result).toJsonElement()
       },
     ).cors()
   }

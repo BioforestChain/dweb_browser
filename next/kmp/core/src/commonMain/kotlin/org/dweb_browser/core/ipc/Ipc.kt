@@ -92,7 +92,6 @@ abstract class Ipc {
     this._doPostMessage(message)
   }
 
-
   suspend fun postResponse(req_id: Int, response: PureResponse) {
     postMessage(
       IpcResponse.fromResponse(
