@@ -257,14 +257,18 @@ class IpcBodySender private constructor(
 //  override val metaBody: MetaBody
 
 
-  init {
-    if (metaBody != null) {
-      this.metaBody = metaBody
-    }
+  private fun initMetaBody(ipc: Ipc, metaBody: MetaBody) {
+    this.metaBody = metaBody
 //    metaBody = runBlockingCatching { bodyAsMeta(raw, ipc) }.getOrThrow()
 
     /// 作为 "生产者"，第一持有这个 IpcBodySender
     IPC.usableByIpc(ipc, this)
+  }
+
+  init {
+    if (metaBody != null) {
+      initMetaBody(ipc, metaBody)
+    }
   }
 
   companion object {
@@ -279,7 +283,7 @@ class IpcBodySender private constructor(
         metaBody, raw, ipc
       ).also {
         if (metaBody == null) {
-          it.metaBody = it.streamAsMeta(raw.toPureStream(), ipc)
+          it.initMetaBody(ipc, it.streamAsMeta(raw.toPureStream(), ipc))
         }
       }
     }
@@ -322,15 +326,6 @@ class IpcBodySender private constructor(
     private val asMatedStreams = SafeHashMap<PureStream, MetaBody>()
     private val asMateLock = Mutex()
   }
-
-
-  private suspend fun bodyAsMeta(body: IPureBody, ipc: Ipc) = when (body) {
-    is PureEmptyBody -> MetaBody.fromText(ipc.uid, body.toPureString())
-    is PureStringBody -> MetaBody.fromText(ipc.uid, body.toPureString())
-    is PureBinaryBody -> MetaBody.fromBinary(ipc, body.toPureBinary())
-    is PureStreamBody -> streamAsMeta(body.toPureStream(), ipc)
-  }
-
 
   private suspend fun streamAsMeta(stream: PureStream, ipc: Ipc) = asMateLock.withLock {
     val stream_id = getStreamId(stream)
