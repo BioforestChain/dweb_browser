@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.model
+package org.dweb_browser.browser.web.model
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -22,12 +22,12 @@ import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.debugBrowser
-import org.dweb_browser.browser.web.model.BrowserContentItem
-import org.dweb_browser.browser.web.model.ConstUrl
-import org.dweb_browser.browser.web.model.KEY_LAST_SEARCH_KEY
-import org.dweb_browser.browser.web.model.KEY_NO_TRACE
-import org.dweb_browser.browser.web.model.WebSiteInfo
-import org.dweb_browser.browser.web.model.WebSiteType
+import org.dweb_browser.browser.web.data.BrowserContentItem
+import org.dweb_browser.browser.web.data.ConstUrl
+import org.dweb_browser.browser.web.data.KEY_LAST_SEARCH_KEY
+import org.dweb_browser.browser.web.data.KEY_NO_TRACE
+import org.dweb_browser.browser.web.data.WebSiteInfo
+import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer

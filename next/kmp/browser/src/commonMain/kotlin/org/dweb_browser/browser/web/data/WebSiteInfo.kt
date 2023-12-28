@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.model
+package org.dweb_browser.browser.web.data
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui
+package org.dweb_browser.browser.web.view
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -27,9 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.web.model.WebSiteInfo
-import org.dweb_browser.browser.web.model.formatToStickyName
-import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.data.WebSiteInfo
+import org.dweb_browser.browser.web.data.formatToStickyName
+import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.datetimeNowToEpochDay
 
 @OptIn(ExperimentalFoundationApi::class)

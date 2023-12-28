@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.view
+package org.dweb_browser.browser.web.view
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -41,7 +41,6 @@ import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -85,18 +84,16 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.web.model.WebSiteInfo
-import org.dweb_browser.browser.web.model.WebSiteType
-import org.dweb_browser.browser.web.ui.BrowserListOfBook
-import org.dweb_browser.browser.web.ui.BrowserListOfHistory
-import org.dweb_browser.browser.web.ui.model.BrowserViewModel
-import org.dweb_browser.browser.web.ui.model.LocalBrowserModel
-import org.dweb_browser.browser.web.ui.model.LocalModalBottomSheet
-import org.dweb_browser.browser.web.ui.model.PageType
-import org.dweb_browser.browser.web.ui.model.PopupViewState
-import org.dweb_browser.browser.web.ui.model.SheetState
-import org.dweb_browser.browser.web.ui.model.WebEngine
-import org.dweb_browser.browser.web.ui.model.toWebSiteInfo
+import org.dweb_browser.browser.web.data.WebSiteInfo
+import org.dweb_browser.browser.web.data.WebSiteType
+import org.dweb_browser.browser.web.model.BrowserViewModel
+import org.dweb_browser.browser.web.model.LocalBrowserModel
+import org.dweb_browser.browser.web.model.LocalModalBottomSheet
+import org.dweb_browser.browser.web.model.PageType
+import org.dweb_browser.browser.web.model.PopupViewState
+import org.dweb_browser.browser.web.model.SheetState
+import org.dweb_browser.browser.web.model.WebEngine
+import org.dweb_browser.browser.web.model.toWebSiteInfo
 import org.dweb_browser.helper.PrivacyUrl
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.platform.getCornerRadiusTop

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.view
+package org.dweb_browser.browser.web.view
 
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
@@ -71,18 +71,18 @@ import org.dweb_browser.browser.common.barcode.QRCodeScanView
 import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.web.model.BrowserContentItem
-import org.dweb_browser.browser.web.model.ConstUrl
-import org.dweb_browser.browser.web.ui.model.LocalModalBottomSheet
-import org.dweb_browser.browser.web.ui.model.ModalBottomModel
-import org.dweb_browser.browser.web.ui.model.SheetState
-import org.dweb_browser.browser.web.ui.model.BrowserViewModel
-import org.dweb_browser.browser.web.ui.model.LocalBrowserModel
-import org.dweb_browser.browser.web.ui.model.LocalBrowserPageState
-import org.dweb_browser.browser.web.ui.model.LocalInputText
-import org.dweb_browser.browser.web.ui.model.LocalShowIme
-import org.dweb_browser.browser.web.ui.model.LocalShowSearchView
-import org.dweb_browser.browser.web.ui.model.parseInputText
+import org.dweb_browser.browser.web.data.BrowserContentItem
+import org.dweb_browser.browser.web.data.ConstUrl
+import org.dweb_browser.browser.web.model.LocalModalBottomSheet
+import org.dweb_browser.browser.web.model.ModalBottomModel
+import org.dweb_browser.browser.web.model.SheetState
+import org.dweb_browser.browser.web.model.BrowserViewModel
+import org.dweb_browser.browser.web.model.LocalBrowserModel
+import org.dweb_browser.browser.web.model.LocalBrowserPageState
+import org.dweb_browser.browser.web.model.LocalInputText
+import org.dweb_browser.browser.web.model.LocalShowIme
+import org.dweb_browser.browser.web.model.LocalShowSearchView
+import org.dweb_browser.browser.web.model.parseInputText
 import org.dweb_browser.dwebview.rememberCanGoBack
 import org.dweb_browser.dwebview.rememberLoadingProgress
 import org.dweb_browser.helper.compose.LocalCompositionChain

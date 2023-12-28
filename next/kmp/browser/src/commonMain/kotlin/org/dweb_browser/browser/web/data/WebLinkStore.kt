@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.model
+package org.dweb_browser.browser.web.data
 
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.MMID

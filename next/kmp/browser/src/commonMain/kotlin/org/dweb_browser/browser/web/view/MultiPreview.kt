@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.view
+package org.dweb_browser.browser.web.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -42,8 +42,8 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.BrowserIconResource
 import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.web.model.BrowserContentItem
-import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.data.BrowserContentItem
+import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.compose.rememberScreenSize
 
 @Composable

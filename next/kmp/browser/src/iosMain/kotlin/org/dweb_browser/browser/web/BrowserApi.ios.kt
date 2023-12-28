@@ -9,11 +9,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.NativeBackHandler
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
 
 actual fun ImageBitmap.toImageResource(): ImageResource? = null

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.model
+package org.dweb_browser.browser.web.model
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
@@ -20,7 +20,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.browser.BrowserIconResource
 import org.dweb_browser.browser.getIconResource
-import org.dweb_browser.browser.web.model.WebSiteInfo
+import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.platform.toByteArray

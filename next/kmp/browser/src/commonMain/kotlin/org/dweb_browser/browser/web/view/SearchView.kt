@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.view
+package org.dweb_browser.browser.web.view
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
@@ -62,9 +62,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.toRequestUrl
-import org.dweb_browser.browser.web.ui.model.LocalBrowserModel
-import org.dweb_browser.browser.web.ui.model.WebEngine
-import org.dweb_browser.browser.web.ui.model.parseInputText
+import org.dweb_browser.browser.web.model.LocalBrowserModel
+import org.dweb_browser.browser.web.model.WebEngine
+import org.dweb_browser.browser.web.model.parseInputText
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 

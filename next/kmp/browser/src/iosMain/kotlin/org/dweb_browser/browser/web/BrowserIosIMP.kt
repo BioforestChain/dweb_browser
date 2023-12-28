@@ -1,6 +1,6 @@
 package org.dweb_browser.browser.web
 
-import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.OffListener
 import platform.UIKit.UILabel
 import platform.UIKit.UIView

@@ -1,11 +1,11 @@
-package org.dweb_browser.browser.web.model
+package org.dweb_browser.browser.web.data
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.web.ui.model.WebEngine
+import org.dweb_browser.browser.web.model.WebEngine
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.datetimeNow

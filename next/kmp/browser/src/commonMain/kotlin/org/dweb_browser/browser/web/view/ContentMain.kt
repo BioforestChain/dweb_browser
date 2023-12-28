@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui.view
+package org.dweb_browser.browser.web.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -20,8 +20,8 @@ import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserIconResource
 import org.dweb_browser.browser.common.CaptureView
 import org.dweb_browser.browser.getIconResource
-import org.dweb_browser.browser.web.model.BrowserContentItem
-import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.data.BrowserContentItem
+import org.dweb_browser.browser.web.model.BrowserViewModel
 
 @Composable
 internal fun BrowserMainView(viewModel: BrowserViewModel, browserContentItem: BrowserContentItem) {

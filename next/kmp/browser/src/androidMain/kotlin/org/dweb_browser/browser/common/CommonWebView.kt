@@ -23,7 +23,7 @@ import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.WebViewState
 import org.dweb_browser.browser.common.loading.LoadingView
-import org.dweb_browser.browser.web.model.ConstUrl
+import org.dweb_browser.browser.web.data.ConstUrl
 import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.render.NativeBackHandler

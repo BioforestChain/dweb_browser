@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.ui
+package org.dweb_browser.browser.web.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,8 +37,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.web.model.WebSiteInfo
-import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.data.WebSiteInfo
+import org.dweb_browser.browser.web.model.BrowserViewModel
 
 @Composable
 fun BrowserListOfBook(

@@ -1,9 +1,9 @@
 package org.dweb_browser.browser.web
 
 import kotlinx.coroutines.runBlocking
-import org.dweb_browser.browser.web.model.WebSiteInfo
-import org.dweb_browser.browser.web.model.WebSiteType
-import org.dweb_browser.browser.web.ui.model.BrowserViewModel
+import org.dweb_browser.browser.web.data.WebSiteInfo
+import org.dweb_browser.browser.web.data.WebSiteType
+import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
 import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import platform.Foundation.NSData
