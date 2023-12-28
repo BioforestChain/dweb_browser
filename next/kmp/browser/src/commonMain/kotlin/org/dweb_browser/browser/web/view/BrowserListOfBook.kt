@@ -18,18 +18,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.DismissDirection
-import androidx.compose.material3.DismissState
-import androidx.compose.material3.DismissValue
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +30,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.web.CommonSwipeDismiss
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.model.BrowserViewModel
 
@@ -84,29 +78,14 @@ fun BrowserListOfBook(
   }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ListSwipeItem(
   webSiteInfo: WebSiteInfo,
   onRemove: (WebSiteInfo) -> Unit,
   listItemView: @Composable RowScope.() -> Unit
 ) {
-  // val dismissState = rememberDismissState() // 不能用这个，不然会导致移除后remember仍然存在，显示错乱问题
-  val dismissState = DismissState(
-    initialValue = DismissValue.Default,
-    confirmValueChange = { true },
-    positionalThreshold = { density -> 56.0f * density },
-  )
-  LaunchedEffect(dismissState) {
-    snapshotFlow { dismissState.currentValue }.collect {
-      if (it != DismissValue.Default) {
-        onRemove(webSiteInfo)
-      }
-    }
-  }
-
-  SwipeToDismiss(
-    state = dismissState,
+  // SwipeToDismiss(
+  CommonSwipeDismiss(
     background = { // "背景 "，即原来显示的内容被划走一部分时显示什么
       Box(
         Modifier
@@ -116,9 +95,8 @@ internal fun ListSwipeItem(
     },
     dismissContent = { // ”前景“ 显示的内容
       listItemView()
-    },
-    directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart)
-  )
+    }
+  ) { onRemove(webSiteInfo) }
 }
 
 @Composable
