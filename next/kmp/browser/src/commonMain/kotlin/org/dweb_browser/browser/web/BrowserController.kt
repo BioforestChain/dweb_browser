@@ -66,7 +66,6 @@ class BrowserController(
         }
       }
       val engines = browserStore.getSearchEngines()
-      debugBrowser("lin.huang", "$engines")
       if (engines.isNotEmpty()) {
         searchEngines.addAll(engines)
       } else {

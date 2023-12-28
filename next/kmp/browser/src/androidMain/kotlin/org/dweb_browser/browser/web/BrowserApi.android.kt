@@ -3,15 +3,16 @@ package org.dweb_browser.browser.web
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissState
 import androidx.compose.material3.SwipeToDismissValue
-import androidx.compose.material3.rememberSwipeToDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
-import kotlinx.coroutines.flow.collect
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.web.data.DESK_WEBLINK_ICONS
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.view.BrowserViewForWindow
@@ -48,11 +49,16 @@ actual fun CommonSwipeDismiss(
   modifier: Modifier,
   onRemove: () -> Unit
 ) {
-  val dismissState = rememberSwipeToDismissState()
+  val dismissState = SwipeToDismissState(
+    initialValue = SwipeToDismissValue.Settled,
+    density = LocalDensity.current,
+    confirmValueChange = { true },
+    positionalThreshold = with(LocalDensity.current) { { 56.dp.toPx() } }
+  )
 
   LaunchedEffect(dismissState) {
-    snapshotFlow { dismissState }.collect {
-      if (it.currentValue != SwipeToDismissValue.Settled) {
+    snapshotFlow { dismissState.currentValue }.collect {
+      if (it != SwipeToDismissValue.Settled) {
         onRemove()
       }
     }
