@@ -32,7 +32,10 @@ enum class ClipboardType {
 class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
 
   init {
-    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+    categories = listOf(
+      MICRO_MODULE_CATEGORY.Service,
+      MICRO_MODULE_CATEGORY.Process_Service
+    );
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

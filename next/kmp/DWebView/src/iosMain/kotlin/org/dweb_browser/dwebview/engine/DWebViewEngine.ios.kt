@@ -5,6 +5,8 @@ import io.ktor.http.Url
 import io.ktor.http.hostWithPort
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.cValue
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -43,6 +45,9 @@ import platform.CoreGraphics.CGRect
 import platform.Foundation.NSBundle
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
+import platform.UIKit.UIEdgeInsetsEqualToEdgeInsets
+import platform.UIKit.UIEdgeInsetsMake
+import platform.UIKit.UIEdgeInsetsZero
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
@@ -240,10 +245,9 @@ class DWebViewEngine(
       document.adoptedStyleSheets = [sheet];
     """.trimIndent()
     )
-    if (options.displayCutoutStrategy == DWebViewOptions.DisplayCutoutStrategy.Ignore) {
-      scrollView.contentInsetAdjustmentBehavior =
-        UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
-    }
+
+    scrollView.contentInsetAdjustmentBehavior =
+      UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
     scrollView.insetsLayoutMarginsFromSafeArea = true
     scrollView.bounces = false
   }
@@ -255,6 +259,25 @@ class DWebViewEngine(
       "getIosIcon()",
       inContentWorld = FaviconPolyfill.faviconContentWorld
     )
+  }
+
+  /**
+   * 重写setFrame修复虚拟键盘弹出时界面可以滚动的问题
+   * 修复方法参考资料：
+   * https://github.com/flutter/flutter/issues/40666
+   * https://github.com/flutter/plugins/pull/2466/files
+   */
+  override fun setFrame(frame: CValue<CGRect>) {
+    super.setFrame(frame)
+    scrollView.contentInset = cValue { UIEdgeInsetsZero };
+    if (!UIEdgeInsetsEqualToEdgeInsets(
+        scrollView.adjustedContentInset,
+        cValue { UIEdgeInsetsZero })
+    ) {
+      val insetToAdjust = scrollView.adjustedContentInset;
+      scrollView.contentInset =
+        insetToAdjust.useContents { UIEdgeInsetsMake(-top, -left, -bottom, -right); }
+    }
   }
 
   //#endregion
@@ -370,13 +393,19 @@ class DWebViewEngine(
   var safeArea: Bounds? = null
     set(value) {
       field = value
-      when (value) {
-        null -> dwebHelper.disableSafeAreaInsetsWithWebView(this)
-        else -> dwebHelper.enableSafeAreaInsetsWithWebView(
-          this,
-          value.toIosUIEdgeInsets()
-        )
+      when (options.displayCutoutStrategy) {
+        DWebViewOptions.DisplayCutoutStrategy.Ignore -> {}
+        DWebViewOptions.DisplayCutoutStrategy.Default -> {
+          when (value) {
+            null -> dwebHelper.disableSafeAreaInsetsWithWebView(this)
+            else -> dwebHelper.enableSafeAreaInsetsWithWebView(
+              this,
+              value.toIosUIEdgeInsets()
+            )
+          }
+        }
       }
+
     }
 
   //#endregion
