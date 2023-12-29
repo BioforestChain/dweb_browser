@@ -101,8 +101,16 @@ class PermissionProvider(
         pid = pid,
         routes = routes,
         badges = permission.badges.map { StrictImageResource.from(it, baseUrl) },
-        title = SimpleI18nResource(Language.current to (permission.title ?: providerModule.name)),
-        description = permission.description?.let { SimpleI18nResource(Language.current to it) },
+        title = SimpleI18nResource(
+          Language.current to (permission.title ?: providerModule.name),
+          ignoreWarn = true
+        ),
+        description = permission.description?.let {
+          SimpleI18nResource(
+            Language.current to it,
+            ignoreWarn = true
+          )
+        },
         permissionType = permission.permissionType,
       )
     }

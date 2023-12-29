@@ -2,6 +2,9 @@ package org.dweb_browser.helper.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.intl.Locale
+import org.dweb_browser.helper.Debugger
+
+val debugI18n = Debugger("i18n")
 
 @Composable
 private fun i18nResource(res: SimpleI18nResource): String {
@@ -17,28 +20,33 @@ private fun <T> i18nResource(res: OneParamI18nResource<T>, param: T): String {
   )
 }
 
+/**
+ * 跟随操作系统的设置，初始化语言
+ */
+private var currentLanguage = Language.getLanguage(Locale.current.language)
+
 enum class Language(val code: String) {
   EN("en"), ZH("zh"), ;
 
   companion object {
-    private var _current = ZH
-    val current get() = _current
+    val current get() = currentLanguage
     fun getLanguage(language: String) = entries.find { it.code == language } ?: ZH
-
-    @Composable
-    fun InitLocalLanguage() {
-      val language = Locale.current.language
-      _current = Language.getLanguage(language)
-    }
   }
 }
 
 class SimpleI18nResource(
-  internal val i18nValues: List<Pair<Language, String>>,
+  internal val i18nValues: List<Pair<Language, String>>, ignoreWarn: Boolean = false
 ) {
-  constructor(vararg i18nValues: Pair<Language, String>) : this(
-    i18nValues = i18nValues.toList()
+  constructor(vararg i18nValues: Pair<Language, String>, ignoreWarn: Boolean = false) : this(
+    i18nValues = i18nValues.toList(),
+    ignoreWarn = ignoreWarn,
   )
+
+  init {
+    if (!ignoreWarn && i18nValues.size == 1) {
+      debugI18n("i18n is missing", i18nValues.first().second)
+    }
+  }
 
   internal val valuesMap = i18nValues.toMap()
 

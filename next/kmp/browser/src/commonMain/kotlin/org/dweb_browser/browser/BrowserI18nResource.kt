@@ -6,7 +6,8 @@ import org.dweb_browser.helper.compose.SimpleI18nResource
 
 
 object BrowserI18nResource {
-  val dialog_title_webview_upgrade = SimpleI18nResource(Language.ZH to "更新提示")
+  val dialog_title_webview_upgrade =
+    SimpleI18nResource(Language.ZH to "更新提示", Language.EN to "Update tip")
 
   class WebViewVersions(var currentVersion: String, var requiredVersion: String)
 

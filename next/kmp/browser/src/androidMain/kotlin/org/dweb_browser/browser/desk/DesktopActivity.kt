@@ -27,7 +27,6 @@ class DesktopActivity : PureViewController() {
     DesktopViewControllerCore(this)
 
     addContent {
-      Language.InitLocalLanguage() // 初始化语言
       val imeVisible = LocalWindowsImeVisible.current
       val density = LocalDensity.current
       val ime =
