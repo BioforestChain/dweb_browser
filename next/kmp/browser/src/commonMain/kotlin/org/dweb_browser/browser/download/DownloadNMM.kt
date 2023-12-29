@@ -2,16 +2,17 @@ package org.dweb_browser.browser.download
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
@@ -20,7 +21,7 @@ internal val debugDownload = Debugger("Download")
 
 class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
   init {
-    short_name = "下载管理"
+    short_name = BrowserI18nResource.download_shore_name.text
     categories = listOf(
 //      MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Network_Service,

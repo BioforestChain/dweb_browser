@@ -1,11 +1,11 @@
 package org.dweb_browser.browser.web
 
-import org.dweb_browser.browser.web.model.WebLinkMicroModule
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.data.WebLinkStore
+import org.dweb_browser.browser.web.model.WebLinkMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -18,6 +18,7 @@ import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.ext.onRenderer
 import org.dweb_browser.sys.window.ext.openMainWindow
 
@@ -28,7 +29,7 @@ val debugBrowser = Debugger("browser")
  */
 class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
   init {
-    short_name = "Browser";
+    short_name = BrowserI18nResource.browser_short_name.text;
     dweb_deeplinks = listOf("dweb://search", "dweb://openinbrowser")
     categories = listOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
     icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))

@@ -113,7 +113,7 @@ class BiometricsActivity : FragmentActivity() {
         biometricPrompt.authenticate(promptInfo)
       } catch (e: Throwable) {
         this@BiometricsActivity.finish()
-        debugBiometrics("biometricPrompt error", e.message)
+        debugBiometrics("biometrics", "catch", e)
         biometrics_promise_out.resolve(BiometricsResult(false, "biometrics has been destroyed"))
       }
     }

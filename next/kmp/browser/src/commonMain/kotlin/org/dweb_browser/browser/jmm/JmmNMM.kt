@@ -9,11 +9,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -22,6 +22,7 @@ import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.resp
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindowId
@@ -197,7 +198,7 @@ class JmmNMM :
 
 class JmmGuiNMM : NativeMicroModule("gui.jmm.browser.dweb", "Js MicroModule Management") {
   init {
-    short_name = "模块管理";
+    short_name = BrowserI18nResource.jmm_short_name.text;
     categories = listOf(MICRO_MODULE_CATEGORY.Application)
     icons = listOf(
       ImageResource(
