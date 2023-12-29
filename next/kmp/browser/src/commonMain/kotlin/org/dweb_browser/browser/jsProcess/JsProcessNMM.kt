@@ -11,12 +11,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
-import org.dweb_browser.pure.http.PureHeaders
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -24,13 +21,15 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.closeHttpDwebServer
 import org.dweb_browser.core.std.http.createHttpDwebServer
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.encodeURI
-import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureServerRequest
 
-fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("js-process", tag, msg, err)
+val debugJsProcess = Debugger("js-process")
 
 class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
   init {

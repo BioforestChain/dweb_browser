@@ -3,15 +3,14 @@ package org.dweb_browser.sys.device
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.file.ext.store
-import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.pure.http.PureMethod
 
-fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("Device", tag, msg, err)
+val debugDevice = Debugger("Device")
 
 class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   init {

@@ -6,18 +6,17 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.printDebug
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.ext.getWindow
 import org.dweb_browser.sys.window.render.emitFocusOrBlur
 
-fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("mwebview", tag, msg, err)
+val debugMultiWebView = Debugger("mwebview")
 
 class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webview Renderer") {
   init {

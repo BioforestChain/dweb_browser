@@ -8,25 +8,24 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.receiveMultipart
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultiPartFileEncode
-import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.receiveMultipart
 
-fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("Share", tag, msg, err)
+val debugShare = Debugger("Share")
 
 @Serializable
 data class ShareResult(val success: Boolean, val message: String)

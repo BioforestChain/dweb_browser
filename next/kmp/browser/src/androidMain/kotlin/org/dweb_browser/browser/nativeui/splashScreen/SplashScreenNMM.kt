@@ -2,16 +2,15 @@ package org.dweb_browser.browser.nativeui.splashScreen
 
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStringBody
 
-fun debugSplashScreen(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("SplashScreen", tag, msg, err)
+val debugSplashScreen = Debugger("SplashScreen")
 
 class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb", "splashScreen") {
 

@@ -7,16 +7,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.helper.ByteReadChannelDelegate
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.pure.http.PureStream
 
-fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) = println("$tag $msg")
-//  printDebug("stream", tag, msg, err)
+val debugStream = Debugger("stream")
 
 /**
  * 模拟Web的 ReadableStream

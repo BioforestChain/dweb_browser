@@ -15,14 +15,10 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.ConnectResult
@@ -31,18 +27,21 @@ import org.dweb_browser.core.module.connectAdapterManager
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.toBase64Url
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStreamBody
 import kotlin.random.Random
 
-fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("JsMM", tag, msg, err)
+val debugJsMM = Debugger("JsMM")
 
 open class JsMicroModule(val metadata: JmmAppInstallManifest) :
   MicroModule(MicroModuleManifest().apply {

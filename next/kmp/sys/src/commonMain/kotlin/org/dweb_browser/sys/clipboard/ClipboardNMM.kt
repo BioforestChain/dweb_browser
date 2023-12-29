@@ -5,13 +5,15 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStringBody
+
+val debugClipboard = Debugger("Clipboard")
 
 @Serializable
 data class ClipboardWriteResponse(val success: Boolean, val errorManager: String = "")
@@ -25,8 +27,6 @@ enum class ClipboardType {
   URL
 }
 
-fun debugClipboard(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("Clipboard", tag, msg, err)
 
 /** 剪切板微模块*/
 class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {

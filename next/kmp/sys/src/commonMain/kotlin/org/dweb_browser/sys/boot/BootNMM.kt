@@ -3,15 +3,14 @@ package org.dweb_browser.sys.boot
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.Router
 import org.dweb_browser.core.std.dns.ext.onActivity
-import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.pure.http.PureMethod
 
-fun debugBoot(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("boot", tag, msg, err)
+val debugBoot = Debugger("boot")
 
 class BootNMM(initMmids: List<MMID>? = null) :
   NativeMicroModule("boot.sys.dweb", "Boot Management") {

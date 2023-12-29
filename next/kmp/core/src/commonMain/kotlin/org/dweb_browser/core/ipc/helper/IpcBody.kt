@@ -1,13 +1,12 @@
 package org.dweb_browser.core.ipc.helper
 
-import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.base64
-import org.dweb_browser.helper.printDebug
+import org.dweb_browser.pure.http.IPureBody
 
 
-fun debugIpcBody(tag: String, msg: Any = "", err: Throwable? = null) =
-  printDebug("ipc-body", tag, msg, err)
+val debugIpcBody = Debugger("ipc-body")
 
 abstract class IpcBody {
   /**

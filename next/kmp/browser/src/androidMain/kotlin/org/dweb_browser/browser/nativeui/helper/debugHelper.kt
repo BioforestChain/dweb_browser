@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.nativeui.helper
 
-import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.Debugger
 
 
-inline fun debugNativeUi(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("nativeui", tag, msg, err)
+val debugNativeUi = Debugger("native-ui")
