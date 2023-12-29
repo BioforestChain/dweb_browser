@@ -139,7 +139,7 @@ onMounted(() => {
 });
 
 const $desktop = ref<HTMLDivElement>();
-const rowSize = ref(98);
+const rowSize = ref(140);
 
 let resizeOb: undefined | ResizeObserver;
 onMounted(() => {

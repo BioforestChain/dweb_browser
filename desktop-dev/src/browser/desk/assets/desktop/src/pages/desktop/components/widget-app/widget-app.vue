@@ -2,6 +2,7 @@
 import { vOnClickOutside, vOnLongPress } from "@vueuse/components";
 import { useThrottleFn } from "@vueuse/core";
 import AppIcon from "src/components/app-icon/app-icon.vue";
+import AppName from "src/components/app-name/app-name.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
@@ -155,12 +156,10 @@ function outsideCloseMenu(e: PointerEvent) {
               'animate-app-pulse': closing,
             }"
             @animationiteration="animationiteration = true"
-            size="60px"
+            size="58px"
             :icon="appicon"
           ></AppIcon>
-          <div class="app-name backdrop-ios-glass ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
-            {{ appname }}
-          </div>
+          <AppName :style="{ opacity: isShowMenu ? 0 : 1 }"> {{ appname }}</AppName>
         </div>
       </template>
 
@@ -245,24 +244,6 @@ function outsideCloseMenu(e: PointerEvent) {
     }
     &.overlayed {
       z-index: 3;
-    }
-    .app-name {
-      width: 76px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 14px;
-      margin-top: 10px;
-
-      color: rgb(0 0 0 / 80%);
-      -webkit-text-stroke: rgb(255 255 255 / 15%);
-      -webkit-text-stroke-width: 0.55px;
-
-      text-align: center;
-      text-wrap: balance;
-      border-radius: 0.5em; // 高斯模糊的圆角
-      padding: 0.1em 0.25em;
-      box-sizing: content-box;
     }
   }
 }
