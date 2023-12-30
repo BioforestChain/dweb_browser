@@ -30,7 +30,10 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
       },
       /** 生物识别*/
       "/biometrics" bind PureMethod.GET by defineJsonResponse {
-        val biometricsResult = BiometricsApi.biometricsResultContent(this@BiometricsNMM)
+        val title = request.queryOrNull("title")
+        val subtitle = request.queryOrNull("subtitle")
+        val biometricsResult =
+          BiometricsApi.biometricsResultContent(this@BiometricsNMM, title, subtitle)
         debugBiometrics("biometrics", biometricsResult.toJsonElement())
         return@defineJsonResponse biometricsResult.toJsonElement()
       }).cors()

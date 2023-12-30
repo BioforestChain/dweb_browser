@@ -1,18 +1,18 @@
 package org.dweb_browser.core.module
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.helper.android.BaseActivity
 
 lateinit var nativeMicroModuleAppContext: Context
 fun NativeMicroModule.Companion.getAppContext() = nativeMicroModuleAppContext
 fun NativeMicroModule.getAppContext() = nativeMicroModuleAppContext
 
 private val lockActivityState = Mutex()
-fun <T : BaseActivity> NativeMicroModule.startAppActivity(
+fun <T : Activity> NativeMicroModule.startAppActivity(
   cls: Class<T>,
   onIntent: (intent: Intent) -> Unit
 ) {
@@ -23,7 +23,6 @@ fun <T : BaseActivity> NativeMicroModule.startAppActivity(
       }
 
       val intent = Intent(getAppContext(), cls).also {
-        it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         it.`package` = getAppContext().packageName
       }
       onIntent(intent)

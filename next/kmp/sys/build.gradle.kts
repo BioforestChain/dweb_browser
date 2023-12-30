@@ -49,6 +49,14 @@ kotlin {
     // 获取定位
     implementation(libs.google.location)
   }
+  sourceSets.androidUnitTest {
+    dependencies {
+      implementation(libs.androidx.test.core)
+      implementation(libs.androidx.compose.ui.test)
+      implementation(libs.androidx.compose.ui.test.junit4)
+      implementation(libs.androidx.compose.ui.test.manifest)
+    }
+  }
 }
 
 android {
@@ -66,5 +74,11 @@ android {
   sourceSets["main"].apply {
     res.srcDirs("src/androidMain/res", "src/commonMain/res", "src/main/res")
   }
+//  sourceSets["androidTest"].apply {
+//    res.srcDirs("src/androidMain/res", "src/commonMain/res", "src/main/res")
+//  }
+//  sourceSets["instrumentedTest"].apply {
+//    res.srcDirs("src/androidMain/res", "src/commonMain/res", "src/main/res")
+//  }
 }
 

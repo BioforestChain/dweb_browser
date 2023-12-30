@@ -33,7 +33,7 @@ enum class DisplayMode(val mode: String) {
   Fullscreen("fullscreen"), Standalone("standalone"), MinimalUi("minimal_ui"), Browser("browser"), ;
 
   companion object {
-    val ALL_VALUES = values().associateBy { it.mode }
+    val ALL_VALUES = entries.associateBy { it.mode }
   }
 }
 
@@ -42,7 +42,7 @@ enum class ImageResourcePurposes(val purpose: String) {
   Monochrome("monochrome"), Maskable("maskable"), Any("any"), ;
 
   companion object {
-    val ALL_VALUES = values().associateBy { it }
+    val ALL_VALUES = entries.associateBy { it }
   }
 }
 
@@ -100,7 +100,7 @@ data class StrictImageResource(
 
       return StrictImageResource(src = imgUrl.toString(), purpose = img.purpose?.let { purpose ->
         purpose.split(Regex("""\s+""")).mapNotNull { keyword ->
-          ImageResourcePurposes.values().find { it.purpose == keyword }
+          ImageResourcePurposes.entries.find { it.purpose == keyword }
         }.let { list ->
           if (list.isNotEmpty()) {
             list.toSet()
