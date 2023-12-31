@@ -4,7 +4,11 @@ import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.StringEnumSerializer
 
 @Serializable
-data class BiometricsResult(val success: Boolean, val message: String, val encoding: String = "UTF-8")
+data class BiometricsResult(
+  val success: Boolean,
+  val message: String,
+  val encoding: String = "UTF-8"
+)
 
 @Serializable
 data class BiometricsData(
@@ -25,8 +29,8 @@ expect object BiometricsApi {
     biometricsNMM: BiometricsNMM,
     title: String?,
     subtitle: String?,
-    input: ByteArray?,
-    mode: InputMode
+    input: ByteArray? = null,
+    mode: InputMode = InputMode.None
   ): BiometricsResult
 }
 
