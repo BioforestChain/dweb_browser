@@ -17,10 +17,6 @@ import org.dweb_browser.browser.download.model.ChangeableMutableMap
 import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureTextFrame
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.createChannel
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.LateInit
@@ -30,6 +26,10 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureTextFrame
 
 class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler

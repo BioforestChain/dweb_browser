@@ -14,14 +14,14 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.core.help.asPureRequest
 import org.dweb_browser.core.help.fromPureResponse
 import org.dweb_browser.core.help.isWebSocket
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.std.http.debugHttp
 import org.dweb_browser.core.std.http.findDwebGateway
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.engine.getKtorServerEngine
 
 class Http1ServerTest {
@@ -62,7 +62,6 @@ class Http1ServerTest {
                 val response = httpHandler(request.toClient())
 
                 if (proxyRequestBody != null) {
-                  val requestBodyController = proxyRequestBody!!
                   /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
                   when (response.status.value) {
                     200 -> {
@@ -72,7 +71,7 @@ class Http1ServerTest {
                         launch {
                           /// 将从客户端收到的数据，转成 200 的标准传输到 request 的 bodyStream 中
                           for (frame in ws.incoming) {
-                            requestBodyController.enqueue(frame.data)
+                            proxyRequestBody.enqueue(frame.data)
                           }
                           /// 等到双工关闭，同时也关闭读取层
                           streamReader.cancel(null)

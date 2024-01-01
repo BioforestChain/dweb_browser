@@ -22,10 +22,6 @@ import org.dweb_browser.browser.download.model.ChangeableType
 import org.dweb_browser.browser.download.model.DownloadModel
 import org.dweb_browser.browser.download.ui.DecompressModel
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureStreamBody
-import org.dweb_browser.pure.http.PureHeaders
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileMetadata
 import org.dweb_browser.helper.PromiseOut
@@ -35,6 +31,10 @@ import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
@@ -208,7 +208,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     }.buildString())
     // 直接变成失败
     task.mime = mimeFactory(response.headers, task.url)
-    if (!response.isOk()) {
+    if (!response.isOk) {
       task.status.state = DownloadState.Failed
       task.status.stateMessage = response.status.description
       downloadNMM.nativeFetch("file://toast.sys.dweb/show?message=${response.status}")

@@ -109,18 +109,6 @@ internal class OffscreenWebCanvasFetchProxy(private val client: HttpClient = htt
   }
 }
 
-//// TODO 将来使用 PureRequest/PureResponse 替代
-//class FetchRequest(
-//  val url: String, val headers: List<Pair<String, String>>, val body: ByteReadChannel
-//)
-//
-//class FetchResponse(
-//  val status: HttpStatusCode, val headers: List<Pair<String, String>>, val body: ByteReadChannel
-//)
-//
-//fun PureResponse.toFetchResponse() =
-//  FetchResponse(status, headers.toList(), body.toPureStream().getReader("toFetchResponse"))
-
 data class FetchHookContext(
   val request: PureClientRequest, val returnResponse: suspend (PureResponse?) -> FetchHookReturn
 )

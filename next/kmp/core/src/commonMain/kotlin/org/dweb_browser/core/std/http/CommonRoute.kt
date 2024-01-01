@@ -1,15 +1,15 @@
 package org.dweb_browser.core.std.http
 
 import kotlinx.serialization.Serializable
-import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.core.http.router.HttpHandlerChain
 import org.dweb_browser.core.http.router.RouteHandler
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureRequest
 
 @Serializable
 data class CommonRoute(
   val dwebDeeplink: Boolean = false,
-  val pathname: String,
+  override val pathname: String,
   val method: PureMethod,
   val matchMode: MatchMode = MatchMode.PREFIX
 ) : IRoute {
@@ -39,7 +39,7 @@ data class CommonRoute(
 
 @Serializable
 data class PathRoute(
-  val pathname: String,
+  override val pathname: String,
   val matchMode: MatchMode = MatchMode.PREFIX,
 ) : IRoute {
   companion object {
@@ -58,12 +58,13 @@ data class PathRoute(
 }
 
 @Serializable
-data class DuplexRoute(val pathname: String, val matchMode: MatchMode = MatchMode.PREFIX) :
+data class DuplexRoute(override val pathname: String, val matchMode: MatchMode = MatchMode.PREFIX) :
   IRoute {
   override fun isMatch(request: PureRequest) =
     request.hasChannel && PathRoute.isMatch(request, pathname, matchMode)
 }
 
 interface IRoute {
+  val pathname: String?
   fun isMatch(request: PureRequest): Boolean
 }

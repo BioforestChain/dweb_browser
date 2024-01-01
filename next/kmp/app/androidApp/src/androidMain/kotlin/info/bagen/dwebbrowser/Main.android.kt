@@ -20,6 +20,7 @@ import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.debugTest
 import org.dweb_browser.pure.http.engine.getKtorClientEngine
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
@@ -31,7 +32,9 @@ import org.dweb_browser.sys.location.LocationNMM
 import org.dweb_browser.sys.media.MediaNMM
 import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
 import org.dweb_browser.sys.notification.NotificationNMM
+import org.dweb_browser.sys.permission.PermissionApplicantTMM
 import org.dweb_browser.sys.permission.PermissionNMM
+import org.dweb_browser.sys.permission.PermissionProviderTNN
 import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
 import org.dweb_browser.sys.toast.ToastNMM
@@ -157,10 +160,10 @@ suspend fun startDwebBrowser(): DnsNMM {
     ),
   ).setup()
 
-  /*  if (debugTest.isEnable) {
-      PermissionProviderTNN().setup()
-      PermissionApplicantTMM().setup()
-    }*/
+  if (debugTest.isEnable) {
+    PermissionProviderTNN().setup()
+    PermissionApplicantTMM().setup()
+  }
 
   /// 启动Web调试
   WebView.setWebContentsDebuggingEnabled(true)

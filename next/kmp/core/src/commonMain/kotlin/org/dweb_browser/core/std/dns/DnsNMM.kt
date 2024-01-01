@@ -15,16 +15,10 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MPID
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureRequest
-import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.PureStringBody
-import org.dweb_browser.pure.http.PureUrl
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.ConnectResult
 import org.dweb_browser.core.module.DnsMicroModule
@@ -32,6 +26,8 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.connectMicroModules
 import org.dweb_browser.core.std.dns.ext.createActivity
+import org.dweb_browser.core.std.permission.AuthorizationStatus
+import org.dweb_browser.core.std.permission.ext.requestPermissions
 import org.dweb_browser.core.std.permission.forwardReason
 import org.dweb_browser.core.std.permission.permissionAdapterManager
 import org.dweb_browser.helper.ChangeState
@@ -40,6 +36,12 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureRequest
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStringBody
+import org.dweb_browser.pure.http.PureUrl
 import kotlin.jvm.JvmInline
 
 val debugDNS = Debugger("dns")
@@ -141,24 +143,11 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   private suspend fun connectTo(
     fromMM: MicroModule, toMPID: MPID, reason: PureRequest
   ) = mmConnectsMapLock.withLock {
-    val permissionList = listOf("permission.sys.dweb", "permission.std.dweb", "boot.sys.dweb") // 特殊的代理模式
     val toMicroModule = query(toMPID, fromMM) ?: throw Throwable("not found app->$toMPID")
-    val maskToMicroModule =
-      if (!permissionList.contains(toMPID) && !permissionList.contains(fromMM.mmid) &&
-        toMicroModule.dweb_permissions.isNotEmpty()) {
-        debugDNS(
-          "connectTo->Proxy",
-          "${fromMM.mmid} <=> ${permissionList.first()} <=> $toMPID/${toMicroModule.mmid}, $reason"
-        )
-        query(permissionList.first(), fromMM)
-          ?: throw Throwable("not found app->${permissionList.first()}")
-      } else {
-        debugDNS(
-          "connectTo->Direct",
-          "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid}, $reason"
-        )
-        toMicroModule
-      }
+    debugDNS(
+      "connectTo",
+      "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid}, $reason"
+    )
 
     val toMMID = toMicroModule.mmid
     val fromMMID =
@@ -168,7 +157,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         fromMM.mmid
       }
 
-    val toRunningApp = _open(maskToMicroModule.mmid, fromMM)
+    val toRunningApp = _open(toMicroModule.mmid, fromMM)
     debugDNS("connectTo", "keyMap($fromMMID <=> $toMMID)")
     val aKey = MM(fromMMID, toMMID)
     mmConnectsMap[aKey] ?: run {
@@ -178,9 +167,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       mmConnectsMap[aKey] = aPromiseOut
       mmConnectsMap[bKey] = bPromiseOut
       aPromiseOut.alsoLaunchIn(ioAsyncScope) {
-        debugDNS("connect", "${fromMM.mmid} <=> $toMPID/${maskToMicroModule.mmid}")
+        debugDNS("connect", "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid}")
         toRunningApp.ready()
-        val aConnectResult = connectMicroModules(fromMM, maskToMicroModule, reason)
+        val aConnectResult = connectMicroModules(fromMM, toMicroModule, reason)
         val bConnectResult = ConnectResult(aConnectResult.ipcForToMM, aConnectResult.ipcForFromMM)
         bPromiseOut.resolve(bConnectResult)
         aConnectResult.ipcForFromMM.onClose {
@@ -267,7 +256,18 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
         if (installApps(mpid).isNotEmpty()) {
           val (fromIpc) = connectTo(fromMM, mpid, reasonRequest)
-          fromIpc.request(request)
+          var response = fromIpc.request(request)
+          if (response.status == HttpStatusCode.Unauthorized) {
+            val permissions = response.body.toPureString()
+            /// 尝试进行授权请求
+            if (fromMM is NativeMicroModule && fromMM.requestPermissions(permissions)
+                .all { it.value == AuthorizationStatus.GRANTED }
+            ) {
+              /// 如果授权完全成功，那么重新进行请求
+              response = fromIpc.request(request)
+            }
+          }
+          response
         } else PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
       } else null
     }.removeWhen(this.onAfterShutdown)

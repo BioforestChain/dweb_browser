@@ -2,27 +2,89 @@ package org.dweb_browser.core.http.router
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.CommonRoute
 import org.dweb_browser.core.std.http.DuplexRoute
 import org.dweb_browser.core.std.http.IRoute
 import org.dweb_browser.core.std.http.MatchMode
 import org.dweb_browser.core.std.http.PathRoute
+import org.dweb_browser.core.std.permission.AuthorizationStatus
+import org.dweb_browser.core.std.permission.PERMISSION_ID
 import org.dweb_browser.helper.remove
+import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.pure.http.PureResponse
 
-class HttpRouter(private val mm: MicroModule) {
+class HttpRouter(private val mm: MicroModule, val host: String) {
   private val routes = mutableMapOf<IRoute, HttpHandlerChain>()
 
-  fun addRoutes(vararg list: RouteHandler) {
-    list.forEach {
-      routes[it.route] = it.handler
+  /**
+   * 权限表，这是共享的
+   * 在一次回话中，校验结果暂时不需要释放
+   * TODO 这里应该做成支持 双工订阅，从而允许让 mm 介入权限授权的部分。
+   * 等于说 permission.std 只是一个”吵架大楼“，provider先做一些预先过滤动作，过滤完了，再将要提示的信息告知用户，用户授权那就通过
+   * 如果 provider 没有进入”吵架大楼“，那么就按默认的预设来告知用户
+   *
+   * 这样这里的这个map对象就能一直是最新的，并且是更新了这个 map 后，permission 再做授权响应回去
+   */
+  private var mmidPermissionStatus =
+    mapOf<PERMISSION_ID, Map<MMID /* = String */, AuthorizationStatus>>()
+  private val checkLock = Mutex()
+
+  private fun getPermissionStatus(permissions: List<PERMISSION_ID>, mmid: MMID) =
+    mmidPermissionStatus.map {
+      if (permissions.contains(it.key)) {
+        it.value[mmid]
+      } else AuthorizationStatus.UNKNOWN
     }
+
+  private suspend fun checkPermission(permissions: List<PERMISSION_ID>, mmid: MMID) =
+    checkLock.withLock {
+      var status = getPermissionStatus(permissions, mmid)
+      if (status.size != permissions.size || (status.any { it != AuthorizationStatus.GRANTED })) {
+        mmidPermissionStatus = mm.nativeFetch(
+          "file://permission.std.dweb/query?permissions=${
+            mm.dweb_permissions.joinToString(",") { it.pid.toString() }
+          }"
+        ).json()
+        status = getPermissionStatus(permissions, mmid)
+      }
+      !(status.any { it != AuthorizationStatus.GRANTED })
+    }
+
+  suspend fun addRoutes(vararg list: RouteHandler) {
+    list.forEach { routeHandler ->
+      val permissionIds =
+        if (routeHandler.route.pathname == null) listOf() else mm.dweb_permissions.filter { permission ->
+          permission.routes.any { route ->
+            "file://$host${routeHandler.route.pathname}".startsWith(
+              route
+            )
+          }
+        }.map { it.pid.toString() }
+      routes[routeHandler.route] = if (permissionIds.isNotEmpty()) {
+        HttpHandlerChain {
+          if (!checkPermission(permissionIds, ipc.remote.mmid)) {
+            return@HttpHandlerChain PureResponse(
+              HttpStatusCode.Unauthorized,
+              body = IPureBody.Companion.from(permissionIds.joinToString(","))
+            )
+          }
+          /// 原始响应
+          return@HttpHandlerChain routeHandler.handler.invoke(this)
+        }
+      } else {
+        routeHandler.handler
+      }
+    }
+
   }
 
   fun addRoutes(rs: Map<IRoute, HttpHandlerChain>) {
@@ -84,6 +146,8 @@ class HttpRouter(private val mm: MicroModule) {
     }
 
     private val corsRoute: Pair<IRoute, HttpHandlerChain> = object : IRoute {
+      override val pathname: String? = null
+
       override fun isMatch(request: PureRequest) = request.method == PureMethod.OPTIONS
     } to HttpHandlerChain {
       PureResponse().apply { headers.cors() }
@@ -107,7 +171,7 @@ class HttpRouter(private val mm: MicroModule) {
     return this
   }
 
-  operator fun plus(other: HttpRouter) = HttpRouter(mm).also {
+  operator fun plus(other: HttpRouter) = HttpRouter(mm, host).also {
     it.addRoutes(this.routes)
     it.addRoutes(other.routes)
   }

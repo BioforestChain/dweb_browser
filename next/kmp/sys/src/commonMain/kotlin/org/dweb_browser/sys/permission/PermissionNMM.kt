@@ -5,12 +5,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -18,6 +23,8 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -27,16 +34,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.AuthorizationRecord
 import org.dweb_browser.core.std.permission.PermissionHooks
 import org.dweb_browser.core.std.permission.PermissionProvider
@@ -44,6 +53,8 @@ import org.dweb_browser.core.std.permission.PermissionType
 import org.dweb_browser.core.std.permission.debugPermission
 import org.dweb_browser.core.std.permission.permissionStdProtocol
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.helper.toStrict
@@ -55,9 +66,9 @@ import org.dweb_browser.sys.window.render.AppIcon
 class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Management") {
   init {
     short_name = "Permission";
-    //dweb_protocols = listOf("permission.std.dweb")
+    dweb_protocols = listOf("permission.std.dweb")
     categories = listOf(
-//      MICRO_MODULE_CATEGORY.Application,
+      MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,
       MICRO_MODULE_CATEGORY.Hub_Service
     )
@@ -69,6 +80,11 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
   @OptIn(ExperimentalMaterial3Api::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
 
+    val iconFetchHook: FetchHook = {
+
+      val response = nativeFetch(request.url)
+      returnResponse(response)
+    }
     val hooks = object : PermissionHooks {
       override suspend fun onRequestPermissions(
         applicantIpc: Ipc, permissions: List<PermissionProvider>
@@ -86,46 +102,72 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
           title = "${applicant.name} 申请权限", iconUrl = "file:///sys/icons/$mmid.svg"
         ) {
           Card(elevation = CardDefaults.cardElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp, 0.dp)) {
-            Column(verticalArrangement = Arrangement.Center) {
-              Box(Modifier.size(32.dp)) {
+            Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.Center) {
+              Column(
+                modifier = Modifier.fillMaxWidth()
+                  .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+              ) {
+                Text("申请权限", style = MaterialTheme.typography.titleLarge)
                 val applicantIcon = remember {
                   applicant.icons.toStrict().pickLargest()
                 }
+                Spacer(Modifier.width(32.dp))
                 when (applicantIcon) {
                   null -> Text(applicant.short_name)
-                  else -> AppIcon(applicantIcon)
+                  else -> Box(Modifier.size(32.dp)) {
+                    AppIcon(
+                      applicantIcon,
+                      iconFetchHook = iconFetchHook,
+                    )
+                  }
                 }
+
+                Spacer(Modifier.width(16.dp))
+
+                Text(applicant.mmid, style = MaterialTheme.typography.bodySmall)
               }
 
 //              HorizontalDivider()
               Divider()
 
               for ((permission, module) in permissionModuleMap) {
-                ListItem(leadingContent = {
-                  BadgedBox(badge = {
-                    val badgeIcon = remember {
-                      permission.badges.pickLargest()
-                    }
-                    badgeIcon?.also {
-                      AppIcon(iconResource = it, Modifier.size(6.dp))
-                    }
-                  }) {
-                    val providerIcon = remember {
-                      module.icons.toStrict().pickLargest()
-                    }
-                    when (providerIcon) {
-                      null -> Image(
-                        imageVector = Icons.Rounded.Info, contentDescription = module.name
-                      )
+                ListItem(
+                  colors = ListItemDefaults.colors(
+                    containerColor = Color.Transparent,
+                    overlineColor = Color.Transparent,
+                  ),
+                  leadingContent = {
+                    BadgedBox(badge = {
+                      val badgeIcon = remember {
+                        permission.badges.pickLargest()
+                      }
+                      badgeIcon?.also {
+                        AppIcon(
+                          iconResource = it,
+                          modifier = Modifier.size(6.dp),
+                          iconFetchHook = iconFetchHook,
+                        )
+                      }
+                    }) {
+                      val providerIcon = remember {
+                        module.icons.toStrict().pickLargest()
+                      }
+                      when (providerIcon) {
+                        null -> Image(
+                          imageVector = Icons.Rounded.Info, contentDescription = module.name
+                        )
 
-                      else -> AppIcon(
-                        iconResource = providerIcon,
-                        modifier = Modifier.size(24.dp),
-                        iconDescription = module.name
-                      )
+                        else -> AppIcon(
+                          iconResource = providerIcon,
+                          modifier = Modifier.size(24.dp),
+                          iconDescription = module.name,
+                          iconFetchHook = iconFetchHook,
+                        )
+                      }
                     }
-                  }
-                },
+                  },
                   headlineContent = { Text(permission.title()) },
                   supportingContent = permission.description?.let {
                     { Text(it()) }
@@ -152,32 +194,42 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
               }
 //              HorizontalDivider()
               Divider()
-              Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                Button(onClick = {
-                  for (permission in checkedMap.keys) {
-                    resultMap[permission] = false
-                  }
-                  submitDeferred.complete(Unit)
-                }) {
+              Row(
+                Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+              ) {
+                Button(
+                  colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                  ),
+                  onClick = {
+                    for (permission in checkedMap.keys) {
+                      resultMap[permission] = false
+                    }
+                    submitDeferred.complete(Unit)
+                  }) {
                   Text(text = "拒绝")
                 }
 
-                Button(onClick = {
-                  for ((permission, state) in checkedMap) {
-                    resultMap[permission] = state.value
+                Row {
+                  Button(onClick = {
+                    for ((permission, state) in checkedMap) {
+                      resultMap[permission] = state.value
+                    }
+                    submitDeferred.complete(Unit)
+                  }) {
+                    Text(text = "确定")
                   }
-                  submitDeferred.complete(Unit)
-                }) {
-                  Text(text = "确定")
-                }
-
-                ElevatedButton(onClick = {
-                  for (permission in checkedMap.keys) {
-                    resultMap[permission] = true
+                  Spacer(Modifier.width(8.dp))
+                  ElevatedButton(onClick = {
+                    for (permission in checkedMap.keys) {
+                      resultMap[permission] = true
+                    }
+                    submitDeferred.complete(Unit)
+                  }) {
+                    Text(text = "授权全部")
                   }
-                  submitDeferred.complete(Unit)
-                }) {
-                  Text(text = "授权全部")
                 }
               }
             }
@@ -188,10 +240,14 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
             modal.close()
           }
         }
-        // 等待关闭
+        // 关闭主窗口，显示modal
+        val mainWindow = getMainWindow()
+        mainWindow.hide()
         modal.open()
+        // 等待关闭
         modal.onClose.awaitOnce()
         modal.destroy()
+        mainWindow.closeRoot()
         return resultMap.mapValues { it.key.getAuthorizationRecord(it.value, applicantMmid) }
       }
     }

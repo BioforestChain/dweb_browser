@@ -14,14 +14,6 @@ import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.core.help.types.DWEB_PROTOCOL
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
-import org.dweb_browser.pure.http.PureBinary
-import org.dweb_browser.pure.http.PureBinaryBody
-import org.dweb_browser.pure.http.PureChannel
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureFrame
-import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.PureStream
-import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.core.http.router.HandlerContext
 import org.dweb_browser.core.http.router.HttpHandler
 import org.dweb_browser.core.http.router.HttpHandlerChain
@@ -35,7 +27,6 @@ import org.dweb_browser.core.ipc.NativeIpc
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcMessage
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.ReadableStreamOut
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -45,6 +36,15 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.toLittleEndianByteArray
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.pure.http.PureBinary
+import org.dweb_browser.pure.http.PureBinaryBody
+import org.dweb_browser.pure.http.PureChannel
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureFrame
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.pure.http.PureStreamBody
 
 val debugNMM = Debugger("NMM")
 
@@ -78,18 +78,21 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   private fun getProtocolRouters(protocol: DWEB_PROTOCOL) =
     protocolRouters.getOrPut(protocol) { mutableListOf() }
 
-  fun routes(vararg list: RouteHandler) = HttpRouter(this).also { it ->
+  suspend fun routes(vararg list: RouteHandler) = HttpRouter(this, this.mmid).also {
     it.addRoutes(*list)
-    getProtocolRouters("*") += it
+  }.also { addRouter(it) }
+
+  fun addRouter(router: HttpRouter) {
+    getProtocolRouters("*") += router
   }
 
   fun removeRouter(router: HttpRouter) {
     getProtocolRouters("*") -= router
   }
 
-  class ProtocolBuilderContext(val mm: MicroModule) {
-    internal val router = HttpRouter(mm)
-    fun routes(vararg list: RouteHandler) = router.apply { addRoutes(*list) }
+  class ProtocolBuilderContext(val mm: MicroModule, val host: String) {
+    internal val router = HttpRouter(mm, host)
+    suspend fun routes(vararg list: RouteHandler) = router.apply { addRoutes(*list) }
 
     val onConnect = mm.onConnect
   }
@@ -97,7 +100,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   suspend fun protocol(
     protocol: DWEB_PROTOCOL, buildProtocol: suspend ProtocolBuilderContext.() -> Unit
   ) {
-    val context = ProtocolBuilderContext(this)
+    val context = ProtocolBuilderContext(this, protocol)
     context.buildProtocol()
     getProtocolRouters(protocol) += context.router
   }
@@ -349,7 +352,7 @@ suspend fun NativeMicroModule.createChannel(
   )
   val channel = PureChannel(from = request).also { channelDef.complete(it) }
   val res = nativeFetch(request)
-  if (res.isOk()) {
+  if (res.isOk) {
     channel.start().run {
       for (frame in this) {
         resolve(frame) {

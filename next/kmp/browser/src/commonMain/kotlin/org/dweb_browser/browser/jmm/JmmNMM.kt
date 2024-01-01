@@ -99,7 +99,7 @@ class JmmNMM :
 
         // 加载url资源，这一步可能要多一些时间
         val response = nativeFetch(metadataUrl)
-        if (!response.isOk()) {
+        if (!response.isOk) {
           val message = "invalid status code: ${response.status}"
           nativeFetch("file://toast.sys.dweb/show?message=$message")
           throwException(HttpStatusCode.ExpectationFailed, message)

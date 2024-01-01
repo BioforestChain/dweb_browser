@@ -16,9 +16,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
-import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.WeakHashMap
@@ -27,6 +24,9 @@ import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.sha256
 import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureMethod
 
 fun MicroModule.createStore(storeName: String, encrypt: Boolean) =
   MicroModuleStore(this, storeName, encrypt)

@@ -13,13 +13,14 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.ext.deletePermission
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getMainWindow
@@ -37,7 +38,10 @@ class PermissionProviderTNN :
     )
     dweb_permissions = listOf(
       DwebPermission(
-        pid = "$mmid/publish", routes = listOf("file://$mmid/publish"), title = "将服务发布到公网中", permissionType = emptyList()
+        pid = "$mmid/publish",
+        routes = listOf("file://$mmid/publish"),
+        title = "将服务发布到公网中",
+        permissionType = emptyList()
       )
     )
   }
@@ -50,8 +54,8 @@ class PermissionProviderTNN :
         "发布成功 ${datetimeNow()}"
       },
       "/unPublish" bind PureMethod.GET by defineStringResponse {
-        deletePermission(ipc.remote.mmid, dweb_permissions.first().pid!!)
-        "权限已回撤 ${datetimeNow()}"
+        val res = deletePermission(ipc.remote.mmid, dweb_permissions.first().pid!!)
+        "权限已回撤 $res/${datetimeNow()}"
       }
     ).protected("applicant.test.permission.sys.dweb")
   }
@@ -66,7 +70,7 @@ class PermissionApplicantTMM :
   init {
     short_name = name
     categories = listOf(
-//      MICRO_MODULE_CATEGORY.Application,
+      MICRO_MODULE_CATEGORY.Application,
     )
     icons = listOf(
       ImageResource(src = "file:///sys/icons/test-pink.svg", type = "image/svg+xml")
@@ -82,11 +86,15 @@ class PermissionApplicantTMM :
           var okk by remember {
             mutableStateOf("")
           }
+
+          suspend fun PureResponse.getResult() =
+            "status=${status.value} ${status.description}\n" +
+                "body=${body.toPureString()}"
           Row(horizontalArrangement = Arrangement.SpaceAround) {
             ElevatedButton(onClick = {
               ioAsyncScope.launch {
                 okk =
-                  nativeFetch("file://provider.test.permission.sys.dweb/publish").body.toPureString()
+                  nativeFetch("file://provider.test.permission.sys.dweb/publish").getResult()
               }
             }) {
               Text("发布")
@@ -94,7 +102,7 @@ class PermissionApplicantTMM :
             ElevatedButton(onClick = {
               ioAsyncScope.launch {
                 okk =
-                  nativeFetch("file://provider.test.permission.sys.dweb/unPublish").body.toPureString()
+                  nativeFetch("file://provider.test.permission.sys.dweb/unPublish").getResult()
               }
             }) {
               Text("撤销")
