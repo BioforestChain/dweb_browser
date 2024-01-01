@@ -4,12 +4,12 @@ import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.PermissionType
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.pure.http.PureMethod
 
 val debugLocation = Debugger("Location")
 
@@ -21,7 +21,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
       DwebPermission(
         pid = "$mmid/permission",
         routes = listOf("file://$mmid/location", "file://$mmid/observe"),
-        title = "申请定位权限",
+        title = LocationI18nResource.apply_location_permission.text,
         permissionType = listOf(PermissionType.LOCATION)
       )
     )
@@ -63,6 +63,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
         locationApi.removeLocationObserve(remoteMmid)
       }
     )
+    debugLocation("_bootstrap", "done")
   }
 
   override suspend fun _shutdown() {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { vOnLongPress } from "@vueuse/components";
-import { dispatchContextMenuEvent } from "src/provider/shim.ts";
+import MenuBox from "src/components/menu-box/menu-box.vue";
 import { shallowRef, triggerRef } from "vue";
 const props = defineProps({
   showReason: {
@@ -58,13 +57,12 @@ export const showOverlay = (reason: {}, toggle = true) => {
 </script>
 <template>
   <Transition name="fade" @beforeEnter="beforeEnter" @afterLeave="afterLeave">
-    <div
+    <MenuBox
       class="overlay ios-ani"
       v-if="overlayReasons.size"
       @click="emits('close')"
-      @contextmenu="emits('close')"
-      v-on-long-press.prevent="dispatchContextMenuEvent"
-    ></div>
+      @menu="emits('close')"
+    ></MenuBox>
   </Transition>
 </template>
 <style scoped lang="scss">

@@ -1,13 +1,14 @@
 <script lang="ts" setup>
-import { vOnClickOutside, vOnLongPress } from "@vueuse/components";
+import { vOnClickOutside } from "@vueuse/components";
 import { useThrottleFn } from "@vueuse/core";
 import AppIcon from "src/components/app-icon/app-icon.vue";
-import AppName from "src/components/app-name/app-name.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
+import AppName from "src/components/app-name/app-name.vue";
+import MenuBox from "src/components/menu-box/menu-box.vue";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import { closeBrowser, detailApp, openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
-import { $CloseWatcher, CloseWatcher, dispatchContextMenuEvent } from "src/provider/shim.ts";
+import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
 import type { $WidgetAppData } from "src/types/app.type.ts";
 import { computed, reactive, ref, shallowRef, watch } from "vue";
 import AppUnInstallDialog from "../app-uninstall-dialog/app-uninstall-dialog.vue";
@@ -141,13 +142,12 @@ function outsideCloseMenu(e: PointerEvent) {
   <div ref="$appHtmlRefHook" class="app" draggable="false">
     <v-menu :modelValue="isShowMenu" @update:modelValue="$menu.close" location="bottom" transition="menu-popuper">
       <template v-slot:activator="{ props }">
-        <div
+        <MenuBox
           v-bind="props"
           class="app-wrap ios-ani"
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
           @click="[$menu.close, doOpen]"
-          @contextmenu="$menu.show"
-          v-on-long-press.prevent="dispatchContextMenuEvent"
+          @menu="$menu.show"
         >
           <AppIcon
             @click="doOpen"
@@ -160,7 +160,7 @@ function outsideCloseMenu(e: PointerEvent) {
             :icon="appicon"
           ></AppIcon>
           <AppName :style="{ opacity: isShowMenu ? 0 : 1 }"> {{ appname }}</AppName>
-        </div>
+        </MenuBox>
       </template>
 
       <div class="menu ios-ani" v-on-click-outside="outsideCloseMenu">

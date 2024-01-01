@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { vOnLongPress } from "@vueuse/components";
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import {
   $WatchEffectAppMetadataToAppIconReturn,
   watchEffectAppMetadataToAppIcon,
 } from "src/components/app-icon/appMetaDataHelper.ts";
 import { $AppIconInfo } from "src/components/app-icon/types";
+import MenuBox from "src/components/menu-box/menu-box.vue";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import {
   doToggleTaskbar,
@@ -18,7 +18,6 @@ import {
   watchTaskbarAppInfo,
   watchTaskBarStatus,
 } from "src/provider/api.ts";
-import { dispatchContextMenuEvent } from "src/provider/shim.ts";
 import { $TaskBarState, $WidgetAppData } from "src/types/app.type.ts";
 import { computed, onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef } from "vue";
 import { icons } from "./icons/index.ts";
@@ -191,26 +190,26 @@ const iconSize = "45px";
     <div class="panel" v-for="(appIcon, index) in showAppIcons" :key="index">
       <button class="app-icon-wrapper z-grid" :class="{ active: appIcon.metaData.running }">
         <transition name="scale">
-          <AppIcon
-            class="z-view"
-            :icon="appIcon.ref.value"
-            :size="iconSize"
-            bg-color="#FFF"
-            bg-disable-translucent
-            @click="doOpen(appIcon.metaData)"
-            @dblclick="doToggleMaximize(appIcon.metaData)"
-            @contextmenu="tryOpenMenuOverlay(appIcon.metaData)"
-            v-on-long-press.prevent="dispatchContextMenuEvent"
-          >
-            <button
-              v-if="showMenuOverlayRef === appIcon.metaData.mmid"
-              class="exit-button"
-              @blur="tryCloseMenuOverlay(appIcon.metaData)"
-              @click="doExit(appIcon.metaData)"
+          <MenuBox @menu="tryOpenMenuOverlay(appIcon.metaData)">
+            <AppIcon
+              class="z-view"
+              :icon="appIcon.ref.value"
+              :size="iconSize"
+              bg-color="#FFF"
+              bg-disable-translucent
+              @click="doOpen(appIcon.metaData)"
+              @dblclick="doToggleMaximize(appIcon.metaData)"
             >
-              <SvgIcon class="exit-icon" :src="x_circle_svg" alt="exit app"></SvgIcon>
-            </button>
-          </AppIcon>
+              <button
+                v-if="showMenuOverlayRef === appIcon.metaData.mmid"
+                class="exit-button"
+                @blur="tryCloseMenuOverlay(appIcon.metaData)"
+                @click="doExit(appIcon.metaData)"
+              >
+                <SvgIcon class="exit-icon" :src="x_circle_svg" alt="exit app"></SvgIcon>
+              </button>
+            </AppIcon>
+          </MenuBox>
         </transition>
         <!-- <div class="running-dot z-view" v-if="appIcon.metaData.running">
           <span class="dot"></span>

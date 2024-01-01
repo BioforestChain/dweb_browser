@@ -74,21 +74,21 @@ actual class LocationApi {
 
     location?.let {
       val accuracy = maxOf(location.horizontalAccuracy, location.verticalAccuracy)
-      val latitude = location!!.coordinate.useContents {
+      val latitude = it.coordinate.useContents {
         this.latitude
       }
-      val longitude = location!!.coordinate.useContents {
+      val longitude = it.coordinate.useContents {
         this.longitude
       }
-      val altitude = location!!.altitude
-      val heading = if (location!!.course < 0) null else location!!.course
-      val speed = if (location!!.speed < 0) null else location!!.speed
+      val altitude = it.altitude
+      val heading = if (it.course < 0) null else it.course
+      val speed = if (it.speed < 0) null else it.speed
 
       //坐标
       coords = GeolocationCoordinates(accuracy, latitude, longitude, altitude, null, heading, speed)
 
       //时间戳
-      time = location!!.timestamp.timeIntervalSince1970().toLong()
+      time = it.timestamp.timeIntervalSince1970().toLong()
     }
 
     return GeolocationPosition(state, coords, time)
