@@ -57,8 +57,8 @@ export class Server_api extends HttpServer {
       if (pathname === "/restart") {
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
         setTimeout(async () => {
-          const winId = await this.widPo.promise
-          console.log("关闭窗口",winId)
+          const winId = await this.widPo.promise;
+          console.log("关闭窗口", winId);
           close_window(winId);
           jsProcess.restart();
         }, 200);
@@ -134,7 +134,7 @@ export class Server_api extends HttpServer {
     const mmid = new URL(path).host;
     const targetIpc = await jsProcess.connect(mmid as $MMID);
     const { ipcRequest } = event;
-    const ipcProxyRequest = new IpcRequest(
+    let ipcProxyRequest = new IpcRequest(
       targetIpc.allocReqId(),
       path,
       event.method,
@@ -143,11 +143,28 @@ export class Server_api extends HttpServer {
       targetIpc
     );
     targetIpc.postMessage(ipcProxyRequest);
-    const ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.req_id).promise;
+    let ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.req_id).promise;
+
+    /// 尝试申请授权
+    if (ipcProxyResponse.statusCode === 401) {
+      /// 如果授权成功，那么就重新发起请求
+      if (await jsProcess.requestDwebPermissions(await ipcProxyResponse.body.text())) {
+        ipcProxyRequest = new IpcRequest(
+          targetIpc.allocReqId(),
+          path,
+          event.method,
+          event.headers,
+          ipcRequest.body,
+          targetIpc
+        );
+        ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.req_id).promise;
+      }
+    }
+
     if (ipcRequest.hasDuplex) {
       const pureChannel = ipcRequest.getChannel();
       pureChannel.start();
-      await targetIpc.pipeFromChannel(ipcRequest.channelId!,pureChannel);
+      await targetIpc.pipeFromChannel(ipcRequest.channelId!, pureChannel);
     }
     return ipcProxyResponse.toResponse();
   }

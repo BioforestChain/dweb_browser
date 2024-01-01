@@ -233,8 +233,29 @@ export class JsProcessMicroModule implements $MicroModule {
     }
     const ipc = await this.connect(hostName as $MMID);
     const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(args.request_init);
-    const ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
+    let ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
+    if (ipc_response.statusCode === 401) {
+      /// 尝试进行授权请求
+      try {
+        const permissions = await ipc_response.body.text();
+        if (await this.requestDwebPermissions(permissions)) {
+          /// 如果授权完全成功，那么重新进行请求
+          ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
+        }
+      } catch (e) {
+        console.error("fail to request permission:", e);
+      }
+    }
     return ipc_response.toResponse(args.parsed_url.href);
+  }
+
+  async requestDwebPermissions(permissions: string) {
+    const requestPermissionResult: Record<string, string> = JSON.parse(
+      await (
+        await this.nativeRequest(`file://permission.std.dweb/request?permissions=${encodeURIComponent(permissions)}`)
+      ).body.text()
+    );
+    return Object.values(requestPermissionResult).every((status) => status === "granted");
   }
 
   /**
@@ -311,7 +332,7 @@ export class JsProcessMicroModule implements $MicroModule {
       return ipc_po;
     }).promise;
     /// 等待对方响应ready协议
-    await this.afterIpcReady(ipc)
+    await this.afterIpcReady(ipc);
     return ipc;
   }
 
@@ -321,7 +342,7 @@ export class JsProcessMicroModule implements $MicroModule {
     ipc.onClose(() => {
       this._ipcSet.delete(ipc);
     });
-    void this.afterIpcReady(ipc)
+    void this.afterIpcReady(ipc);
   }
 
   private _appReady = new PromiseOut<void>();
@@ -432,7 +453,7 @@ class DwebXMLHttpRequest extends XMLHttpRequest {
 export const installEnv = async (metadata: Metadata, versions: Record<string, string>, gatewayPort: number) => {
   const jsProcess = new JsProcessMicroModule(metadata, await waitFetchPort());
   const [version, patch] = versions.jsMicroModule.split(".").map((v) => parseInt(v));
-  
+
   const dweb = {
     jsProcess,
     core,
@@ -457,16 +478,16 @@ export const installEnv = async (metadata: Metadata, versions: Record<string, st
       value: class extends WebSocket {
         constructor(url: string | URL, protocols?: string | string[] | undefined) {
           let input = "wss://http.std.dweb/websocket";
-          if(/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+          if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
             input = `ws://localhost:${gatewayPort}?X-Dweb-Url=${input.replace("wss:", "ws:")}`;
           }
-      
+
           if (typeof url === "string") {
             input += `?url=${url}`;
           } else if (url instanceof URL) {
             input += `?url=${url.href}`;
           }
-      
+
           super(input, protocols);
         }
       },
