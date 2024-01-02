@@ -71,8 +71,8 @@ fun JmmHistoryController.ManagerViewRender(
     win.hide()
   }
 
-  Column(modifier = with(windowRenderScope) {
-    Modifier
+  Column(modifier = windowRenderScope.run {
+    modifier
       .fillMaxSize()
       .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
       .scale(scale)

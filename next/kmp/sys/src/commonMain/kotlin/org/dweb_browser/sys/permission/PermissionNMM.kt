@@ -58,6 +58,7 @@ import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.helper.toStrict
+import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
@@ -251,7 +252,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
         return resultMap.mapValues { it.key.getAuthorizationRecord(it.value, applicantMmid) }
       }
     }
-    permissionStdProtocol(hooks)
+    val table = permissionStdProtocol(hooks)
 
     // TODO 临时用于扫码的时候请求权限
     routes(
@@ -263,7 +264,12 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
     )
 
     onRenderer {
-      getMainWindow().state.setFromManifest(this@PermissionNMM)
+      getMainWindow().apply {
+        state.setFromManifest(this@PermissionNMM)
+        windowAdapterManager.provideRender(id) { modifier ->
+          PermissionManagerRender(modifier, this, table)
+        }
+      }
     }
   }
 

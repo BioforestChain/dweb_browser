@@ -1,5 +1,10 @@
 package org.dweb_browser.core.std.permission
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -21,6 +26,29 @@ class PermissionTable(private val nmm: NativeMicroModule) {
   private val authorizationMap = mutableMapOf<PERMISSION_ID, MutableMap<
       /** applicantMmid */
       MMID, AuthorizationRecord>>()
+  private val authorizationMapChangeFlow = MutableStateFlow(0);
+  private suspend fun emitAuthorizationMapChange() {
+    authorizationMapChangeFlow.emit(authorizationMapChangeFlow.value + 1)
+  }
+
+  class PermissionRow(
+    val permissionId: PERMISSION_ID,
+    val applicantMmid: MMID,
+    val record: AuthorizationRecord
+  )
+
+  @Composable
+  fun AllData(): List<PermissionRow> {
+    // 订阅变动
+    authorizationMapChangeFlow.collectAsState(Unit, rememberCoroutineScope().coroutineContext).value
+    val all = mutableListOf<PermissionRow>()
+    for ((permissionId, map) in authorizationMap) {
+      for ((applicantMmid, record) in map) {
+        all += PermissionRow(permissionId, applicantMmid, record)
+      }
+    }
+    return all
+  }
 
   private suspend fun queryMicroModule(mmid: MMID) = nmm.bootstrapContext.dns.query(mmid)
 
@@ -29,15 +57,18 @@ class PermissionTable(private val nmm: NativeMicroModule) {
   init {
     nmm.ioAsyncScope.launch {
       for ((pid, recordMap) in store.getAll<MutableMap<MMID, AuthorizationRecord>>()) {
-        authorizationMap[pid] = recordMap
+        authorizationMap[pid] =
+          mutableStateMapOf(*recordMap.map { it.key to it.value }.toTypedArray())
       }
+      emitAuthorizationMapChange()
       lock.unlock()
     }
   }
 
   suspend fun addRecord(record: AuthorizationRecord) = lock.withLock {
-    val recordMap = authorizationMap.getOrPut(record.pid) { mutableMapOf() }
+    val recordMap = authorizationMap.getOrPut(record.pid) { mutableStateMapOf() }
     recordMap[record.applicantMmid] = record
+    emitAuthorizationMapChange()
     store.set(record.pid, recordMap)
   }
 
@@ -55,6 +86,7 @@ class PermissionTable(private val nmm: NativeMicroModule) {
       } else {
         store.set(pid, recordMap)
       }
+      emitAuthorizationMapChange()
       true
     }
 

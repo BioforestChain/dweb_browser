@@ -60,6 +60,34 @@ data class AuthorizationRecord(
     get() = if (expirationTime < 0L || expirationTime > datetimeNow()) status else
     // 如果已经过期，返回 unknown
       AuthorizationStatus.UNKNOWN
+
+  companion object{
+
+    fun generateAuthorizationRecord(pid: PERMISSION_ID, applicantMmid: MMID, granted: Boolean?) =
+      when (granted) {
+        true -> AuthorizationRecord(
+          pid = pid,
+          applicantMmid = applicantMmid,
+          expirationTime = datetimeNow() + 7 * 24 * 60 * 60 * 1000,
+          status = AuthorizationStatus.GRANTED
+        )
+
+        false -> AuthorizationRecord(
+          pid = pid,
+          applicantMmid = applicantMmid,
+          expirationTime = datetimeNow() + 1000,
+          status = AuthorizationStatus.DENIED
+        )
+
+        null -> AuthorizationRecord(
+          pid = pid,
+          applicantMmid = applicantMmid,
+          expirationTime = Long.MAX_VALUE,
+          status = AuthorizationStatus.UNKNOWN
+        )
+      }
+
+  }
 }
 
 object AuthorizationStatusSerializer : StringEnumSerializer<AuthorizationStatus>(
@@ -69,9 +97,9 @@ object AuthorizationStatusSerializer : StringEnumSerializer<AuthorizationStatus>
 
 @Serializable(AuthorizationStatusSerializer::class)
 enum class AuthorizationStatus(val status: String, val allow: Boolean) {
+  GRANTED("granted", false),//
   UNKNOWN("unknown", false),//
   DENIED("denied", true),//
-  GRANTED("granted", false),//
   ;
 
   companion object {

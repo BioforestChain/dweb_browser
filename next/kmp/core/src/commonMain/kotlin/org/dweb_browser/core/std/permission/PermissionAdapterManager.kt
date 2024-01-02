@@ -6,11 +6,11 @@ import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.permission.AuthorizationRecord.Companion.generateAuthorizationRecord
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.SimpleI18nResource
-import org.dweb_browser.helper.datetimeNow
 
 /**
  * 权限提供商
@@ -55,21 +55,8 @@ class PermissionProvider(
    */
   val providerMmid get() = providerModule.mmid
 
-  fun getAuthorizationRecord(granted: Boolean, applicantMmid: MMID) = when (granted) {
-    true -> AuthorizationRecord(
-      pid = pid,
-      applicantMmid = applicantMmid,
-      expirationTime = datetimeNow() + 7 * 24 * 60 * 60 * 1000,
-      status = AuthorizationStatus.GRANTED
-    )
-
-    false -> AuthorizationRecord(
-      pid = pid,
-      applicantMmid = applicantMmid,
-      expirationTime = datetimeNow() + 1000,
-      status = AuthorizationStatus.DENIED
-    )
-  }
+  fun getAuthorizationRecord(granted: Boolean, applicantMmid: MMID) =
+    generateAuthorizationRecord(pid, applicantMmid, granted)
 
   companion object {
     fun DwebPermission.toProvider(providerModule: MicroModule, baseUrl: String? = null) =
