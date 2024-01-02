@@ -88,6 +88,8 @@ class JmmInstallerController(
    * 创建任务，如果存在则恢复
    */
   suspend fun createAndStartDownload() = debounce(scope = jmmNMM.ioAsyncScope,action = {
+    // todo 这里在加载的过程中可以先给一个loading效果
+    jmmHistoryMetadata.updateState(JmmStatus.Downloading)
     if (jmmHistoryMetadata.taskId == null ||
       (jmmHistoryMetadata.state.state != JmmStatus.INSTALLED &&
           jmmHistoryMetadata.state.state != JmmStatus.Completed)

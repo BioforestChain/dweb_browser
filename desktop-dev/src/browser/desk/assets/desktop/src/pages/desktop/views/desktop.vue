@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import wallpaper_url from "src/assets/wallpaper.webp";
 import { getWidgetInfo, watchDesktopAppInfo } from "src/provider/api.ts";
 import {
   MICRO_MODULE_CATEGORY,
@@ -7,7 +6,7 @@ import {
   type $WidgetAppData,
   type $WidgetCustomData,
 } from "src/types/app.type.ts";
-import { onMounted, onUnmounted, Ref, ref, StyleValue } from "vue";
+import { onMounted, onUnmounted, Ref, ref } from "vue";
 import TileItem from "../components/tile-item/tile-item.vue";
 import TilePanel from "../components/tile-panel/tile-panel.vue";
 import WidgetApp from "../components/widget-app/widget-app.vue";
@@ -100,7 +99,7 @@ const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetA
 
   const typeOrders = ["widget", "app", "webapp"];
   layoutInfoListRef.value = layoutInfoList.sort((a, b) => typeOrders.indexOf(a.type) - typeOrders.indexOf(b.type));
-  // layoutInfoListRef.value = Array(4).fill({
+  // layoutInfoListRef.value = Array(25).fill({
   //   type: "app",
   //   data: {
   //     id: "web.browser.dweb",
@@ -108,7 +107,7 @@ const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetA
   //     dweb_protocols: [],
   //     dweb_permissions: [],
   //     name: "Web Browser",
-  //     short_name: "Browser",
+  //     short_name: "甲乙丙丁戊己庚辛壬癸",
   //     icons: [
   //       {
   //         src: "file:///sys/icons/web.browser.dweb.svg",
@@ -170,16 +169,17 @@ const rowTemplateSize = (height: number) => {
   // console.log("result=>", line);
   rowSize.value = line;
 };
-
-const bgStyle = {
-  backgroundImage: `url(${wallpaper_url})`,
-} satisfies StyleValue;
 </script>
 <template>
   <div class="desktop" draggable="false" ref="$desktop">
-    <div class="wallpaper" title="墙纸" :style="bgStyle"></div>
     <TilePanel :rowTemplateSize="rowSize">
-      <TileItem v-for="info in layoutInfoListRef" :key="info.id" :width="info.xywh.w" :height="info.xywh.h" :title="`${info.id}/${info.xywh.w}/${info.xywh.h}`">
+      <TileItem
+        v-for="info in layoutInfoListRef"
+        :key="info.id"
+        :width="info.xywh.w"
+        :height="info.xywh.h"
+        :title="`${info.id}/${info.xywh.w}/${info.xywh.h}`"
+      >
         <WidgetApp v-if="info.type === 'app'" :app-meta-data="info.data"></WidgetApp>
         <WidgetWebApp v-if="info.type === 'webapp'" :app-meta-data="info.data"></WidgetWebApp>
         <WidgetCustom v-if="info.type === 'widget'" :widget-meta-data="info.data"></WidgetCustom>
@@ -197,13 +197,5 @@ const bgStyle = {
   height: 100%;
   user-select: none;
   -webkit-touch-callout: none;
-  .wallpaper {
-    grid-area: view;
-    z-index: 0;
-    display: grid;
-    place-items: center;
-    background-size: cover;
-    background-position: center;
-  }
 }
 </style>
