@@ -88,6 +88,7 @@ struct TabPageView: View {
                 Color.bkColor.overlay {
                     HomePageView()
                         .environmentObject(dragScale)
+                        .opacity(addressBar.isFocused ? 0 : 1)
                 }
             }
         }

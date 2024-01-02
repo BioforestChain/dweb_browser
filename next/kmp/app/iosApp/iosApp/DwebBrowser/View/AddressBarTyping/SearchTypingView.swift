@@ -9,25 +9,23 @@ import SwiftUI
 
 struct SearchTypingView: View {
     @EnvironmentObject var addressBar: AddressBarState
+    @EnvironmentObject var dragScale: WndDragScale
 
     var body: some View {
         VStack(spacing: 0) {
             Text("搜索")
-                .font(.headline)
-                .frame(height: 40)
-                .frame(maxWidth: .infinity)
-                .background(Color.bkColor)
+                .font(.system(size: dragScale.scaledFontSize(maxSize: 20), weight: .heavy))
+                .padding(.vertical, 6)
 
             HStack {
                 Spacer()
                 Button(action: releaseFocuse) {
                     Text("取消")
+                        .font(.system(size: dragScale.scaledFontSize(maxSize: 18)))
                         .foregroundColor(Color.dwebTint)
-                        .padding(8)
                 }
                 .padding(.trailing, 20)
             }
-            .background(Color.bkColor)
 
             if addressBar.inputText == "" && !InstalledAppMgr.shared.apps.isEmpty {
                 VStack {
@@ -39,6 +37,8 @@ struct SearchTypingView: View {
                     .background(Color.bkColor)
             }
         }
+        .background(Color.bkColor)
+
         .onDisappear {
             addressBar.inputText = ""
             addressBar.searchInputText = ""
