@@ -14,6 +14,8 @@ import org.dweb_browser.core.ipc.helper.IpcClientRequest
 import org.dweb_browser.core.ipc.helper.IpcClientRequest.Companion.toIpc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
+import org.dweb_browser.core.ipc.helper.IpcLifeCycle
+import org.dweb_browser.core.ipc.helper.IpcLifeCycleMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcRequest
@@ -24,6 +26,7 @@ import org.dweb_browser.core.ipc.helper.IpcServerRequest
 import org.dweb_browser.core.ipc.helper.IpcStream
 import org.dweb_browser.core.ipc.helper.IpcStreamMessageArgs
 import org.dweb_browser.core.ipc.helper.OnIpcEventMessage
+import org.dweb_browser.core.ipc.helper.OnIpcLifeCycleMessage
 import org.dweb_browser.core.ipc.helper.OnIpcMessage
 import org.dweb_browser.core.ipc.helper.OnIpcRequestMessage
 import org.dweb_browser.core.ipc.helper.OnIpcResponseMessage
@@ -213,6 +216,24 @@ abstract class Ipc {
   }
 
   fun onEvent(cb: OnIpcEventMessage) = _eventSignal.listen(cb)
+
+  private val _lifeCycleSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    _createSignal<IpcLifeCycleMessageArgs>().also { signal ->
+      _messageSignal.listen { args ->
+        if (args.message is IpcLifeCycle) {
+          ipcMessageCoroutineScope.launch {
+            signal.emit(
+              IpcLifeCycleMessageArgs(
+                args.message, args.ipc
+              )
+            )
+          }
+        }
+      }
+    }
+  }
+
+  fun onLifeCycle(cb: OnIpcLifeCycleMessage) = _lifeCycleSignal.listen(cb)
 
 
   abstract suspend fun _doClose(): Unit

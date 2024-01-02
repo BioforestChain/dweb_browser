@@ -42,6 +42,12 @@ data class IpcEventMessageArgs(val event: IpcEvent, val ipc: Ipc) {
 }
 typealias OnIpcEventMessage = Callback<IpcEventMessageArgs>
 
+data class IpcLifeCycleMessageArgs(val event: IpcLifeCycle, val ipc: Ipc) {
+  val component1 get() = event
+  val component2 get() = ipc
+}
+typealias OnIpcLifeCycleMessage = Callback<IpcLifeCycleMessageArgs>
+
 @Serializable(IPC_MESSAGE_TYPE_Serializer::class)
 enum class IPC_MESSAGE_TYPE(val type: Byte) {
   /** 类型：请求 */
@@ -72,6 +78,8 @@ enum class IPC_MESSAGE_TYPE(val type: Byte) {
   /** 类型：事件 */
   EVENT(7),
 
+  /**类型：生命周期 */
+  LIFE_CYCLE(8),
   ;
 
   companion object {
@@ -81,6 +89,22 @@ enum class IPC_MESSAGE_TYPE(val type: Byte) {
 
 object IPC_MESSAGE_TYPE_Serializer :
   ByteEnumSerializer<IPC_MESSAGE_TYPE>("IPC_MESSAGE_TYPE", IPC_MESSAGE_TYPE.ALL_VALUES, { type })
+
+
+object IPC_STATE_Serializer :
+  IntEnumSerializer<IPC_STATE>("IPC_STATE", IPC_STATE.ALL_VALUES, { state })
+
+@Serializable(IPC_STATE_Serializer::class)
+enum class IPC_STATE(val state: Int) {
+  OPENING(1),
+  OPEN(2),
+  CLOSING(3),
+  CLOSED(4), ;
+
+  companion object {
+    val ALL_VALUES = IPC_STATE.entries.associateBy { it.state }
+  }
+}
 
 /**
  * 可预读取的流
