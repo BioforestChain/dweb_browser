@@ -19,7 +19,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
       listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service)
     dweb_permissions = listOf(
       DwebPermission(
-        pid = "$mmid/permission",
+        pid = "$mmid/location",
         routes = listOf("file://$mmid/location", "file://$mmid/observe"),
         title = LocationI18nResource.apply_location_permission.text,
         permissionType = listOf(PermissionType.LOCATION)

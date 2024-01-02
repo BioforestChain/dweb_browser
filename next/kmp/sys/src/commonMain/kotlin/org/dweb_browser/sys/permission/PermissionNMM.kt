@@ -18,7 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -53,8 +52,10 @@ import org.dweb_browser.core.std.permission.PermissionType
 import org.dweb_browser.core.std.permission.debugPermission
 import org.dweb_browser.core.std.permission.permissionStdProtocol
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
+import org.dweb_browser.sys.SysI18nResource
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.helper.toStrict
@@ -100,17 +101,20 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
         val submitDeferred = CompletableDeferred<Unit>()
 
         val modal = createBottomSheets(
-          title = "${applicant.name} 申请权限", iconUrl = "file:///sys/icons/$mmid.svg"
+          title = "${applicant.name} ${SysI18nResource.permission_title_request.text}",
+          iconUrl = "file:///sys/icons/$mmid.svg"
         ) {
           Card(elevation = CardDefaults.cardElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp, 0.dp)) {
             Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.Center) {
               Column(
-                modifier = Modifier.fillMaxWidth()
-                  .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 8.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
               ) {
-                Text("申请权限", style = MaterialTheme.typography.titleLarge)
+                Text(
+                  text = SysI18nResource.permission_title_request.text,
+                  style = MaterialTheme.typography.titleLarge
+                )
                 val applicantIcon = remember {
                   applicant.icons.toStrict().pickLargest()
                 }
@@ -130,8 +134,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                 Text(applicant.mmid, style = MaterialTheme.typography.bodySmall)
               }
 
-//              HorizontalDivider()
-              Divider()
+              HorizontalDivider()
 
               for ((permission, module) in permissionModuleMap) {
                 ListItem(
@@ -193,8 +196,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                     }, thumbContent = icon)
                   })
               }
-//              HorizontalDivider()
-              Divider()
+              HorizontalDivider()
               Row(
                 Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -210,7 +212,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                     }
                     submitDeferred.complete(Unit)
                   }) {
-                  Text(text = "拒绝")
+                  Text(text = SysI18nResource.permission_button_refuse())
                 }
 
                 Row {
@@ -220,7 +222,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                     }
                     submitDeferred.complete(Unit)
                   }) {
-                    Text(text = "确定")
+                    Text(text = SysI18nResource.permission_button_confirm())
                   }
                   Spacer(Modifier.width(8.dp))
                   ElevatedButton(onClick = {
@@ -229,7 +231,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                     }
                     submitDeferred.complete(Unit)
                   }) {
-                    Text(text = "授权全部")
+                    Text(text = SysI18nResource.permission_button_authorize_all())
                   }
                 }
               }

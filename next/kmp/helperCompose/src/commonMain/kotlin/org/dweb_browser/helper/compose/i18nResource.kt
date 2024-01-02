@@ -9,15 +9,15 @@ val debugI18n = Debugger("i18n")
 @Composable
 private fun i18nResource(res: SimpleI18nResource): String {
   val language = Locale.current.language
-  return res.valuesMap[Language.getLanguage(language)] ?: res.i18nValues.first().second
+  return res.valuesMap[Language.getLanguage(language)]
+    ?: res.i18nValues.firstOrNull()?.second ?: "Undefined"
 }
 
 @Composable
 private fun <T> i18nResource(res: OneParamI18nResource<T>, param: T): String {
   val language = Locale.current.language
-  return (res.valuesMap[Language.getLanguage(language)] ?: res.i18nValues.first().second).invoke(
-    param
-  )
+  return (res.valuesMap[Language.getLanguage(language)]
+    ?: res.i18nValues.firstOrNull()?.second)?.invoke(param) ?: "Undefined"
 }
 
 /**
@@ -56,7 +56,7 @@ class SimpleI18nResource(
   /**
    * 这个值不能用于Compose界面显示，目前仅用于实时获取的文本。
    */
-  val text get() = valuesMap[Language.current] ?: i18nValues.first().second
+  val text get() = valuesMap[Language.current] ?: i18nValues.firstOrNull()?.second ?: "Undefined"
 }
 
 typealias OneParam<T> = T.() -> String
