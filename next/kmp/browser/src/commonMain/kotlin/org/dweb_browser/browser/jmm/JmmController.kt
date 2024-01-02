@@ -212,33 +212,6 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
         }
       }
       debugJMM("/watch process error=>", res)
-//      val readChannel = try {
-//        res.stream().getReader("jmm watchProcess")
-//      } catch (e: Exception) {
-//        throw Exception(e)
-//      }
-//      readChannel.consumeEachJsonLine<DownloadTask> { downloadTask ->
-//        println("/watch process ${downloadTask.status.state}")
-//        when (downloadTask.status.state) {
-//          DownloadState.Completed -> {
-//            jmmHistoryMetadata.updateByDownloadTask(downloadTask, store)
-//            if (decompress(downloadTask, jmmHistoryMetadata)) {
-//              jmmNMM.bootstrapContext.dns.uninstall(jmmHistoryMetadata.metadata.id)
-//              jmmNMM.bootstrapContext.dns.install(JsMicroModule(jmmHistoryMetadata.metadata))
-//              jmmHistoryMetadata.installComplete(store)
-//            } else {
-//              jmmHistoryMetadata.installFail(store)
-//            }
-//            // 关闭watchProcess
-//            readChannel.cancel(null)
-//            // 删除缓存的zip文件
-//            remove(downloadTask.filepath)
-//          }
-//          else -> {
-//            jmmHistoryMetadata.updateByDownloadTask(downloadTask, store)
-//          }
-//        }
-//      }
     }
   }
 

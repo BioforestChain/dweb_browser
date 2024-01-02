@@ -12,6 +12,7 @@ import org.dweb_browser.browser.jmm.ui.Render
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.compositionChainOf
+import org.dweb_browser.helper.debounce
 import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 
@@ -83,12 +84,10 @@ class JmmInstallerController(
     jmmNMM.nativeFetch("file://desk.browser.dweb/closeApp?app_id=${jmmHistoryMetadata.metadata.id}")
   }
 
-  private val mutexLock = Mutex()
-
   /**
    * 创建任务，如果存在则恢复
    */
-  suspend fun createAndStartDownload() = mutexLock.withLock {
+  suspend fun createAndStartDownload() = debounce(scope = jmmNMM.ioAsyncScope,action = {
     if (jmmHistoryMetadata.taskId == null ||
       (jmmHistoryMetadata.state.state != JmmStatus.INSTALLED &&
           jmmHistoryMetadata.state.state != JmmStatus.Completed)
@@ -97,7 +96,7 @@ class JmmInstallerController(
     }
     // 已经注册完监听了，开始
     startDownload()
-  }
+  })
 
   suspend fun startDownload() {
     jmmController.start(jmmHistoryMetadata).falseAlso {

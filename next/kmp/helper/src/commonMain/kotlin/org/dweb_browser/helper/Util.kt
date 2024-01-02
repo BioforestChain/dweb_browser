@@ -1,15 +1,5 @@
 package org.dweb_browser.helper
 
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-
-@OptIn(kotlinx.coroutines.FlowPreview::class)
-suspend fun <T> debounce(
-  delayMillis: Long,
-  block: suspend () -> T
-): T = flow { emit(block()) }.debounce(delayMillis).first()
-
 /**
  * 将Long转为带单位的空间值，如1.11 MB
  */

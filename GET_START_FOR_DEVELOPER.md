@@ -12,7 +12,7 @@
 
 1.  **Xcode 安装**：
 
-    - AppStroe 下载
+    - AppStore 下载
     - Windows/Linux 或者不编译 IOS 项目，则不需要
 
 1.  **安装 Deno**

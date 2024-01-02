@@ -93,10 +93,12 @@ internal fun BoxScope.BottomDownloadButton() {
             JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled -> {
               jmmInstallerController.createAndStartDownload()
             }
+
             JmmStatus.NewVersion -> {
               jmmInstallerController.closeApp()
               jmmInstallerController.createAndStartDownload()
             }
+
             JmmStatus.Downloading -> {
               jmmInstallerController.pauseDownload()
             }
