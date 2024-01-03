@@ -3,10 +3,10 @@ package org.dweb_browser.browser.common.barcode
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.permission.PermissionType
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.permission.SystemPermissionName
 
 class QRCodeScanNMM : NativeMicroModule("qrcode-scan.browser.dweb", "QRCode-Scan") {
   init {
@@ -20,7 +20,6 @@ class QRCodeScanNMM : NativeMicroModule("qrcode-scan.browser.dweb", "QRCode-Scan
         pid = "$mmid/camera",
         routes = listOf("file://$mmid/scan"),
         title = "申请相机权限",
-        permissionType = listOf(PermissionType.CAMERA)
       )
     )
     QRCodeScanController.controller.init(this)

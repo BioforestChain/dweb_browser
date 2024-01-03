@@ -25,11 +25,9 @@ abstract class BaseActivity : ComponentActivity() {
     val tasks = mutableListOf<PromiseOut<O>>()
 
     init {
-      activity.lifecycleScope.launch {
-        activity.queueResultLauncherRegistries.add {
-          launcher = activity.registerForActivityResult(contract) {
-            tasks.removeFirst().resolve(it);
-          }
+      activity.queueResultLauncherRegistries.add {
+        launcher = activity.registerForActivityResult(contract) {
+          tasks.removeFirst().resolve(it);
         }
       }
     }
@@ -48,8 +46,10 @@ abstract class BaseActivity : ComponentActivity() {
 
   val requestPermissionLauncher =
     QueueResultLauncher(this, ActivityResultContracts.RequestPermission())
+
   val requestMultiplePermissionsLauncher =
     QueueResultLauncher(this, ActivityResultContracts.RequestMultiplePermissions())
+
 
   suspend fun requestPermission(permission: String): Boolean {
     if (checkPermission(permission)) {
@@ -65,10 +65,17 @@ abstract class BaseActivity : ComponentActivity() {
   val getContentLauncher = QueueResultLauncher(this, ActivityResultContracts.GetContent())
   val getMultipleContentsLauncher =
     QueueResultLauncher(this, ActivityResultContracts.GetMultipleContents())
-  val recordSoundLauncher = QueueResultLauncher(this, ExtensionResultContracts.RecordSound())
 
-  val captureVideoLauncher = QueueResultLauncher(this, ActivityResultContracts.CaptureVideo())
-  val takePictureLauncher = QueueResultLauncher(this, ActivityResultContracts.TakePicture())
+  val recordSoundLauncher =
+    QueueResultLauncher(this, ExtensionResultContracts.RecordSound())
+
+
+  val captureVideoLauncher =
+    QueueResultLauncher(this, ActivityResultContracts.CaptureVideo())
+
+  val takePictureLauncher =
+    QueueResultLauncher(this, ActivityResultContracts.TakePicture())
+
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)

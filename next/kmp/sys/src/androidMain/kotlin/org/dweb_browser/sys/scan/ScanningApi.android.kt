@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.scan
 
+import android.Manifest
 import android.graphics.BitmapFactory
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
@@ -9,9 +10,24 @@ import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.toPoint
 import org.dweb_browser.helper.toRect
 import org.dweb_browser.helper.toUtf8
+import org.dweb_browser.sys.permission.AndroidPermissionTask
+import org.dweb_browser.sys.permission.PermissionActivity.Companion.launchAndroidSystemPermissionRequester
+import org.dweb_browser.sys.permission.SystemPermissionName
+import org.dweb_browser.sys.permission.systemPermissionAdapterManager
 
 
 actual class ScanningManager actual constructor() {
+  init {
+    systemPermissionAdapterManager.append {
+      if (task.name == SystemPermissionName.CAMERA) {
+        launchAndroidSystemPermissionRequester(
+          mm,
+          AndroidPermissionTask(Manifest.permission.CAMERA, task.title, task.description)
+        ).values.firstOrNull()
+      } else null
+    }
+  }
+
   actual fun cameraPermission(): Boolean {
     TODO("Not yet implemented")
   }

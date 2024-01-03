@@ -21,7 +21,6 @@ interface IPureViewController {
 
   //  fun setInteroperable(canTouch: Boolean)
   val onTouch: Signal.Listener<TouchEvent>
-  suspend fun requestPermission(permission: String): Boolean
 
   fun getContents(): MutableList<@Composable () -> Unit>
   fun addContent(content: @Composable () -> Unit): () -> Boolean {

@@ -24,6 +24,7 @@ kotlin {
         implementation(projects.pureHttp)
         implementation(projects.pureImage)
         implementation(projects.core)
+        implementation(projects.sys)
         implementation(projects.reverseProxy)
       }
     }

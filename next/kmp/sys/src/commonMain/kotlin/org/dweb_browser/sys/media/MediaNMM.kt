@@ -23,7 +23,6 @@ class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
         pid = "$mmid/savePictures",
         routes = listOf("file://$mmid/savePictures"),
         title = "存储到相册",
-        permissionType = emptyList()
       )
     )*/
   }
@@ -33,7 +32,6 @@ class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
     routes(
       /** 保存图片到相册*/
       "/savePictures" bind PureMethod.POST by defineEmptyResponse {
-        //nativeFetch("file://permission.sys.dweb/request?permission=${PermissionType.STORAGE.name}")
         val byteArray = request.body.toPureBinary()
         val saveLocation = request.queryOrNull("saveLocation") ?: "DwebBrowser"
         debugMedia("savePictures", "saveLocation=$saveLocation byteArray = ${byteArray.size}")

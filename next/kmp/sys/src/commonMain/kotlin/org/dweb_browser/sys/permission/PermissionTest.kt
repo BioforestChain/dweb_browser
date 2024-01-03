@@ -10,6 +10,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -21,6 +23,7 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getMainWindow
@@ -41,7 +44,6 @@ class PermissionProviderTNN :
         pid = "$mmid/publish",
         routes = listOf("file://$mmid/publish"),
         title = "将服务发布到公网中",
-        permissionType = emptyList()
       )
     )
   }
@@ -106,6 +108,20 @@ class PermissionApplicantTMM :
               }
             }) {
               Text("撤销")
+            }
+            ElevatedButton(onClick = {
+              ioAsyncScope.launch {
+                okk =
+                  this@PermissionApplicantTMM.requestSystemPermissions(
+                    SystemPermissionTask(
+                      SystemPermissionName.CAMERA,
+                      "测试获取拍照权限"
+                    )
+                  )
+                    .let { Json.encodeToString(it) }
+              }
+            }) {
+              Text("系统权限")
             }
           }
           Text(text = okk)

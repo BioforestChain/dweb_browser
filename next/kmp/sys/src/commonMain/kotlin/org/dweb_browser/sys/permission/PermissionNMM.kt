@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
@@ -48,11 +49,10 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.AuthorizationRecord
 import org.dweb_browser.core.std.permission.PermissionHooks
 import org.dweb_browser.core.std.permission.PermissionProvider
-import org.dweb_browser.core.std.permission.PermissionType
-import org.dweb_browser.core.std.permission.debugPermission
 import org.dweb_browser.core.std.permission.permissionStdProtocol
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.compose.HorizontalDivider
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import org.dweb_browser.sys.SysI18nResource
@@ -63,6 +63,7 @@ import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
+import org.dweb_browser.sys.window.ext.openMainWindow
 import org.dweb_browser.sys.window.render.AppIcon
 
 class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Management") {
@@ -256,12 +257,15 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
     }
     val table = permissionStdProtocol(hooks)
 
-    // TODO 临时用于扫码的时候请求权限
     routes(
-      "/request" bind PureMethod.GET by defineBooleanResponse {
-        debugPermission("request", "temp routes")
-        val permission = request.query("permission")
-        return@defineBooleanResponse requestPermission(PermissionType.valueOf(permission))
+      "/request" bind PureMethod.POST by defineJsonResponse {
+        val permissionTaskList =
+          Json.decodeFromString<List<SystemPermissionTask>>(request.body.toPureString())
+        requestSystemPermission(
+          this@PermissionNMM,
+          openMainWindow().pureViewControllerState.value,
+          permissionTaskList
+        ).toJsonElement()
       }
     )
 

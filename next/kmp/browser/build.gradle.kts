@@ -16,6 +16,7 @@ kotlin {
     implementation(projects.helperPlatform)
     implementation(projects.pureHttp)
     implementation(projects.core)
+    implementation(projects.sys)
     implementation(projects.dWebView)
     implementation(projects.window)
   }

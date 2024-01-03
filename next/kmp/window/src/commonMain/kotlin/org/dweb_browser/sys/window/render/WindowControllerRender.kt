@@ -24,6 +24,7 @@ import androidx.compose.ui.zIndex
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.iosTween
+import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -33,6 +34,8 @@ fun WindowController.Render(
   modifier: Modifier = Modifier, maxWinWidth: Float, maxWinHeight: Float
 ) {
   val win = this;
+  win._pureViewControllerState.value = LocalPureViewController.current
+
   /**
    * 窗口是否在移动中
    */

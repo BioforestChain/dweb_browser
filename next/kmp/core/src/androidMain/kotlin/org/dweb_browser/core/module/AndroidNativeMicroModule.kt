@@ -8,11 +8,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 lateinit var nativeMicroModuleAppContext: Context
+fun MicroModule.Companion.getAppContext() = nativeMicroModuleAppContext
 fun NativeMicroModule.Companion.getAppContext() = nativeMicroModuleAppContext
-fun NativeMicroModule.getAppContext() = nativeMicroModuleAppContext
+fun MicroModule.getAppContext() = nativeMicroModuleAppContext
 
 private val lockActivityState = Mutex()
-fun <T : Activity> NativeMicroModule.startAppActivity(
+fun <T : Activity> MicroModule.startAppActivity(
   cls: Class<T>,
   onIntent: (intent: Intent) -> Unit
 ) {

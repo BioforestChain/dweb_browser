@@ -1,15 +1,15 @@
 package org.dweb_browser.sys.scan
 
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.pure.http.PureBinaryFrame
-import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.pure.http.PureBinaryFrame
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureTextFrame
 
 val debugScanning = Debugger("Scanning")
 
@@ -19,8 +19,9 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
     short_name = "Scanning"
   }
 
+  private val scanningManager = ScanningManager()
+
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val scanningManager = ScanningManager()
     routes(
       "/process" byChannel { ctx ->
         var rotation = 0;

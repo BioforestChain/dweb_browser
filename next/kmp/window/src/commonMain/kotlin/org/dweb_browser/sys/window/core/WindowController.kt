@@ -5,6 +5,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Transient
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Observable
@@ -12,6 +14,7 @@ import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.platform.IPureViewBox
+import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
@@ -33,6 +36,9 @@ abstract class WindowController(
   manager: WindowsManager<*>? = null,
 ) {
   protected var _manager: WindowsManager<*>? = null
+
+  internal val _pureViewControllerState = MutableStateFlow<IPureViewController?>(null)
+  val pureViewControllerState: StateFlow<IPureViewController?> get() = _pureViewControllerState
 
   /**
    * 窗口管理器

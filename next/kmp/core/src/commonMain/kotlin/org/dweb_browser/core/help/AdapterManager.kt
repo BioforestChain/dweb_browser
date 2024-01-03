@@ -14,6 +14,10 @@ open class AdapterManager<T> {
   val onChange by onChangeLazy
   private val scope by lazy { CoroutineScope(defaultAsyncExceptionHandler) }
   val adapters get() = orderAdapters
+
+  /**
+   * order越大，排名越靠前
+   */
   open fun append(order: Int = 0, adapter: T): () -> Boolean {
     adapterOrderMap[adapter] = order
     orderAdapters = adapterOrderMap.toList().sortedBy { (_, b) -> -b }.map { (adapter) -> adapter }

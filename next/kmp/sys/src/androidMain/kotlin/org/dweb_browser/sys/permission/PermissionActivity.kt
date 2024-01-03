@@ -1,6 +1,6 @@
 package org.dweb_browser.sys.permission
 
-import android.Manifest
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -10,90 +10,97 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.std.permission.PermissionType
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.startAppActivity
+import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.debugPermission
-import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
-import org.dweb_browser.sys.SysI18nResource
+import org.dweb_browser.helper.randomUUID
 
-data class PermissionTips(
-  val show: Boolean = true,
+
+const val EXTRA_PERMISSION_KEY = "permission"
+const val EXTRA_TASK_ID_KEY = "taskId"
+
+private typealias TaskResult = Map<String, AuthorizationStatus>
+
+@Serializable
+data class AndroidPermissionTask(val key: String, val title: String, val description: String)
+
+private class PermissionTip(
   val title: String,
-  val message: String,
+  val description: String,
+  val show: Boolean = true,
 )
-
-fun rememberPermissionTips(
-  show: Boolean = false,
-  title: String = "title",
-  message: String = "message",
-): MutableState<PermissionTips> {
-  return mutableStateOf(PermissionTips(show, title, message))
-}
 
 class PermissionActivity : BaseActivity() {
   companion object {
-    var activityPromiseOut: PromiseOut<MutableMap<PermissionType, Boolean>> = PromiseOut()
-    val EXTRA_PERMISSION = "permission"
+    private val launchTasks = mutableMapOf<UUID, CompletableDeferred<TaskResult>>()
+    suspend fun launchAndroidSystemPermissionRequester(
+      mm: MicroModule,
+      vararg tasks: AndroidPermissionTask
+    ): TaskResult {
+      if (tasks.isEmpty()) {
+        return emptyMap()
+      }
+      val taskId = randomUUID()
+      return CompletableDeferred<TaskResult>().also { task ->
+        launchTasks[taskId] = task
+        task.invokeOnCompletion {
+          launchTasks.remove(taskId)
+        }
+        mm.startAppActivity(PermissionActivity::class.java) { intent ->
+          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+          intent.putExtra(EXTRA_TASK_ID_KEY, taskId)
+          intent.putExtra(EXTRA_PERMISSION_KEY, Json.encodeToString(tasks))
+        }
+      }.await()
+    }
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     debugPermission("PermissionActivity", "enter")
-    val permissionTypes =
-      intent.getSerializableExtra(EXTRA_PERMISSION) as MutableList<PermissionType>
-    val permissionTips = rememberPermissionTips()
+    val taskList = (intent.getStringExtra(EXTRA_PERMISSION_KEY)
+      ?: return finish()).let { Json.decodeFromString<List<AndroidPermissionTask>>(it) }
+    val taskId = intent.getStringExtra(EXTRA_TASK_ID_KEY) ?: return finish()
+    val permissionTips = mutableStateListOf<PermissionTip>().also { tips ->
+      for (task in taskList) {
+        tips.add(PermissionTip(task.title, task.description))
+      }
+    }
+    val taskResult = (TaskResult::toMutableMap)(mapOf())
 
     lifecycleScope.launch {
-      val map = mutableMapOf<PermissionType, Boolean>()
-      for (type in permissionTypes) {
-        debugPermission("PermissionActivity", "type=$type")
-        val (permissions, permissionTip) = getActualPermissions(type)
-        for (permission in permissions) {
-          if (checkPermission(permission)) {
-            map[type] = true
-          } else {
-            permissionTips.value = permissionTip.copy(
-              show = true, title = permissionTip.title, message = permissionTip.message
-            )
-            map[type] = requestPermissionLauncher.launch(permission)
-          }
+      val map = mutableMapOf<SystemPermissionName, Boolean>()
+      if (taskList.size == 1) {
+        val task = taskList.first()
+        taskResult[task.key] = requestPermissionLauncher.launch(task.key)
+          .let { if (it) AuthorizationStatus.GRANTED else AuthorizationStatus.UNKNOWN }
+      } else {
+        val launchResult =
+          requestMultiplePermissionsLauncher.launch(taskList.map { it.key }.toTypedArray())
+        for ((key, value) in launchResult) {
+          taskResult[key] = if (value) AuthorizationStatus.GRANTED else AuthorizationStatus.UNKNOWN
         }
-//        if (permissions.size == 1) {
-//          if (checkPermission(permissions.first())) {
-//            map[type] = true
-//          } else {
-//            permissionTips.value = permissionTip.copy(
-//              show = true, title = permissionTip.title, message = permissionTip.message
-//            )
-//            map[type] = requestPermissionLauncher.launch(permissions[0])
-//          }
-//        } else if (permissions.size > 1) {
-//          var grant = false
-//          val permissionRet = requestMultiplePermissionsLauncher.launch(permissions.toTypedArray())
-//          for (result in permissionRet) {
-//            if (!result.value) {
-//              grant = false
-//              break
-//            } else {
-//              grant = true
-//            }
-//          }
-//          map[type] = grant
-//        }
       }
-      activityPromiseOut.resolve(map)
+      launchTasks[taskId]?.complete(taskResult)
+
       finish()
     }
 
@@ -108,8 +115,8 @@ class PermissionActivity : BaseActivity() {
 }
 
 @Composable
-private fun PermissionTipsView(permissionTips: MutableState<PermissionTips>) {
-  if (!permissionTips.value.show) return
+private fun PermissionTipsView(permissionTips: List<PermissionTip>) {
+
   Column(
     modifier = Modifier
       .fillMaxWidth()
@@ -118,94 +125,98 @@ private fun PermissionTipsView(permissionTips: MutableState<PermissionTips>) {
       .background(MaterialTheme.colorScheme.primary)
       .padding(16.dp)
   ) {
-    Text(text = permissionTips.value.title, color = MaterialTheme.colorScheme.background)
-    Text(
-      text = permissionTips.value.message,
-      fontSize = 12.sp,
-      color = MaterialTheme.colorScheme.background
-    )
+    for (tip in permissionTips) {
+      ListItem(
+        headlineContent = {
+          Text(text = tip.title)
+        },
+        supportingContent = {
+          Text(text = tip.description)
+        }
+      )
+    }
   }
 }
 
-private fun getActualPermissions(
-  type: PermissionType
-): Pair<MutableList<String>, PermissionTips> {
-  val permissionList = mutableListOf<String>()
-  val permissionTips: PermissionTips
-  when (type) {
-    PermissionType.CAMERA -> {
-      permissionList.add(Manifest.permission.CAMERA)
-      permissionTips = PermissionTips(
-        title = SysI18nResource.permission_tip_camera_title.text,
-        message = SysI18nResource.permission_tip_camera_message.text
-      )
-    }
-
-    PermissionType.LOCATION -> {
-      permissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION)
-      permissionList.add(Manifest.permission.ACCESS_FINE_LOCATION)
-      permissionTips = PermissionTips(
-        title = SysI18nResource.permission_tip_location_title.text,
-        message = SysI18nResource.permission_tip_location_message.text
-      )
-    }
-
-    PermissionType.STORAGE -> {
-      permissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-      permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-      permissionTips = PermissionTips(title = "null", message = "null")
-    }
-
-    PermissionType.CALENDAR -> {
-      permissionList.add(Manifest.permission.READ_CALENDAR)
-      permissionList.add(Manifest.permission.WRITE_CALENDAR)
-      permissionTips = PermissionTips(title = "null", message = "null")
-    }
-
-    PermissionType.CONTACTS -> {
-      permissionList.add(Manifest.permission.READ_CONTACTS)
-      permissionList.add(Manifest.permission.WRITE_CONTACTS)
-      permissionList.add(Manifest.permission.GET_ACCOUNTS)
-      permissionTips = PermissionTips(title = "null", message = "null")
-    }
-
-    PermissionType.MICROPHONE -> {
-      permissionList.add(Manifest.permission.RECORD_AUDIO)
-      permissionTips = PermissionTips(title = "null", message = "null")
-    }
-
-    PermissionType.SENSORS -> {
-      permissionList.add(Manifest.permission.BODY_SENSORS)
-      permissionTips = PermissionTips(title = "null", message = "null")
-    }
-
-    PermissionType.SMS -> {
-      permissionList.add(Manifest.permission.SEND_SMS)
-      permissionList.add(Manifest.permission.RECEIVE_SMS)
-      permissionList.add(Manifest.permission.READ_SMS)
-      permissionList.add(Manifest.permission.RECEIVE_WAP_PUSH)
-      permissionList.add(Manifest.permission.RECEIVE_MMS)
-      permissionTips = PermissionTips(title = "null", message = "null")
-    }
-
-    PermissionType.PHONE -> {
-      permissionList.add(Manifest.permission.READ_PHONE_STATE)
-      permissionTips = PermissionTips(title = "null", message = "null")
-    }
-
-    PermissionType.CALL -> {
-      permissionList.add(Manifest.permission.CALL_PHONE)
-      permissionList.add(Manifest.permission.READ_CALL_LOG)
-      permissionList.add(Manifest.permission.WRITE_CALL_LOG)
-      permissionList.add(Manifest.permission.ADD_VOICEMAIL)
-      permissionList.add(Manifest.permission.USE_SIP)
-      permissionList.add(Manifest.permission.PROCESS_OUTGOING_CALLS)
-      permissionTips = PermissionTips(title = "null", message = "null")
-    }
-
-    else -> {
-      permissionTips = PermissionTips(false, "title", "message")
-    }
-  }
-  return Pair(permissionList, permissionTips)
-}
+//private fun getActualPermissions(
+//  type: SystemPermissionName
+//): Pair<MutableList<String>, PermissionTip> {
+//  val permissionList = mutableListOf<String>()
+//  val permissionTip: PermissionTip
+//  when (type) {
+//    SystemPermissionName.CAMERA -> {
+//      permissionList.add(Manifest.permission.CAMERA)
+//      permissionTip = PermissionTip(
+//        title = SysI18nResource.permission_tip_camera_title.text,
+//        description = SysI18nResource.permission_tip_camera_message.text
+//      )
+//    }
+//
+//    SystemPermissionName.LOCATION -> {
+//      permissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+//      permissionList.add(Manifest.permission.ACCESS_FINE_LOCATION)
+//      permissionTip = PermissionTip(
+//        title = SysI18nResource.permission_tip_location_title.text,
+//        description = SysI18nResource.permission_tip_location_message.text
+//      )
+//    }
+//
+//    SystemPermissionName.STORAGE -> {
+//      permissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//      permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+//      permissionTip = PermissionTip(title = "null", description = "null")
+//    }
+//
+//    SystemPermissionName.CALENDAR -> {
+//      permissionList.add(Manifest.permission.READ_CALENDAR)
+//      permissionList.add(Manifest.permission.WRITE_CALENDAR)
+//      permissionTip = PermissionTip(title = "null", description = "null")
+//    }
+//
+//    SystemPermissionName.CONTACTS -> {
+//      permissionList.add(Manifest.permission.READ_CONTACTS)
+//      permissionList.add(Manifest.permission.WRITE_CONTACTS)
+//      permissionList.add(Manifest.permission.GET_ACCOUNTS)
+//      permissionTip = PermissionTip(title = "null", description = "null")
+//    }
+//
+//    SystemPermissionName.MICROPHONE -> {
+//      permissionList.add(Manifest.permission.RECORD_AUDIO)
+//      permissionTip = PermissionTip(title = "null", description = "null")
+//    }
+//
+//    SystemPermissionName.SENSORS -> {
+//      permissionList.add(Manifest.permission.BODY_SENSORS)
+//      permissionTip = PermissionTip(title = "null", description = "null")
+//    }
+//
+//    SystemPermissionName.SMS -> {
+//      permissionList.add(Manifest.permission.SEND_SMS)
+//      permissionList.add(Manifest.permission.RECEIVE_SMS)
+//      permissionList.add(Manifest.permission.READ_SMS)
+//      permissionList.add(Manifest.permission.RECEIVE_WAP_PUSH)
+//      permissionList.add(Manifest.permission.RECEIVE_MMS)
+//      permissionTip = PermissionTip(title = "null", description = "null")
+//    }
+//
+//    SystemPermissionName.PHONE -> {
+//      permissionList.add(Manifest.permission.READ_PHONE_STATE)
+//      permissionTip = PermissionTip(title = "null", description = "null")
+//    }
+//
+//    SystemPermissionName.CALL -> {
+//      permissionList.add(Manifest.permission.CALL_PHONE)
+//      permissionList.add(Manifest.permission.READ_CALL_LOG)
+//      permissionList.add(Manifest.permission.WRITE_CALL_LOG)
+//      permissionList.add(Manifest.permission.ADD_VOICEMAIL)
+//      permissionList.add(Manifest.permission.USE_SIP)
+//      permissionList.add(Manifest.permission.PROCESS_OUTGOING_CALLS)
+//      permissionTip = PermissionTip(title = "null", description = "null")
+//    }
+//
+//    else -> {
+//      permissionTip = PermissionTip(false, "title", "message")
+//    }
+//  }
+//  return Pair(permissionList, permissionTip)
+//}

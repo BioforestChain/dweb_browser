@@ -91,9 +91,6 @@ class PureViewController(
   }
 
   override val onTouch = touchSignal.toListener()
-  override suspend fun requestPermission(permission: String): Boolean {
-    TODO("Not yet implemented requestPermission")
-  }
 
   private val scope = nativeViewController.scope
 

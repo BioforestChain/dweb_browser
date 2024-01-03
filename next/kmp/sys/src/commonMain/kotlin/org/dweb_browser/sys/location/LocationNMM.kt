@@ -6,7 +6,6 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.permission.PermissionType
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
@@ -22,13 +21,12 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
         pid = "$mmid/location",
         routes = listOf("file://$mmid/location", "file://$mmid/observe"),
         title = LocationI18nResource.apply_location_permission.text,
-        permissionType = listOf(PermissionType.LOCATION)
       )
     )
   }
 
+  private val locationApi = LocationApi()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val locationApi = LocationApi()
     routes(
       "/location" bind PureMethod.GET by defineJsonResponse {
         debugLocation("location", "enter")

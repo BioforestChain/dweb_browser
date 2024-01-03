@@ -4,18 +4,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import org.dweb_browser.helper.WARNING
 
 actual fun getIconResource(resource: BrowserIconResource): ImageBitmap? {
-//  resource()
-//  val iconResource = when (resource) {
-//    BrowserIconResource.WebEngineDefault -> R.drawable.ic_web
-//    BrowserIconResource.WebEngineBaidu -> R.drawable.ic_engine_baidu
-//    BrowserIconResource.WebEngineSougou -> R.drawable.ic_engine_sougou
-//    BrowserIconResource.WebEngine360 -> R.drawable.ic_engine_360
-//    BrowserIconResource.BrowserStar -> R.drawable.ic_main_star
-//  }
-//  return iconResourceMap.getOrPut(iconResource) {
-//    BitmapUtil.decodeBitmapFromResource(NativeMicroModule.getAppContext(), iconResource)
-//      ?.asImageBitmap()
-//  }
   WARNING("Not yet implemented getIconResource")
   return null
 }

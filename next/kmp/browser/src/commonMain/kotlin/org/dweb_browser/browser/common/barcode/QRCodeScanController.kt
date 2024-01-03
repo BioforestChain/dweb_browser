@@ -1,9 +1,10 @@
 package org.dweb_browser.browser.common.barcode
 
 import androidx.compose.ui.graphics.ImageBitmap
-import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.permission.PermissionType
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.sys.permission.SystemPermissionName
+import org.dweb_browser.sys.permission.SystemPermissionTask
+import org.dweb_browser.sys.permission.ext.requestSystemPermission
 
 class QRCodeScanController {
   private var qrCodeScanNMM: QRCodeScanNMM? = null
@@ -20,8 +21,12 @@ class QRCodeScanController {
    * 获取权限
    */
   suspend fun checkPermission(): Boolean {
-    return qrCodeScanNMM?.nativeFetch("file://permission.sys.dweb/request?permission=${PermissionType.CAMERA.name}")
-      ?.boolean() ?: true
+    return qrCodeScanNMM?.requestSystemPermission(
+      SystemPermissionTask(
+        SystemPermissionName.CAMERA,
+        "进行二维码扫描",
+      )
+    ) == true
   }
 
   /**

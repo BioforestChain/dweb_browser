@@ -45,10 +45,6 @@ class PermissionProvider(
    * 权限描述，用户第一次进行授权时，会默认展开的提示。未来默认收起，但是可以点击title展开
    */
   val description: SimpleI18nResource? = null,
-  /**
-   * 用于平台请求权限类型
-   */
-  val permissionType: List<PermissionType>,
 ) {
   /**
    * 权限提供者
@@ -98,7 +94,6 @@ class PermissionProvider(
             ignoreWarn = true
           )
         },
-        permissionType = permission.permissionType,
       )
     }
   }
