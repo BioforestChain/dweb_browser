@@ -59,6 +59,14 @@ extension DwebBrowserIosIMP: BrowserIosInterface {
         return BrowserViewStateStore.shared.doBackIfCan()
     }
     
+    func isDarkColorScheme(isDark: Bool) {
+        if isDark {
+            BrowserViewStateStore.shared.colorScheme = .dark
+        } else {
+            BrowserViewStateStore.shared.colorScheme = .light
+        }
+    }
+    
     func browserClear() {
         isTransitionEffect = false
         BrowserViewStateStore.shared.clear()

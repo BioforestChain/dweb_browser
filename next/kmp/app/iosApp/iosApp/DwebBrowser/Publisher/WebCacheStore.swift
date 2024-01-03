@@ -177,7 +177,9 @@ class WebCacheStore: ObservableObject {
     }
     
     func cache(at index: Int) -> WebCache {
-        return caches[index]
+        let webCache = caches[index]
+        defaultColorSchemeImage(webCache: webCache)
+        return webCache
     }
     
     func index(of cache: WebCache) -> Int? {
@@ -191,6 +193,26 @@ class WebCacheStore: ObservableObject {
     func webWrapper(at index: Int) -> WebWrapper {
         let cache = caches[index]
         return webWrapper(of: cache.id)
+    }
+    
+    //如果不是网页的时候，根据colorScheme模式显示不同的图片
+    private func defaultColorSchemeImage(webCache: WebCache) {
+        guard !webCache.shouldShowWeb else { return }
+        if BrowserViewStateStore.shared.colorScheme == .dark {
+            if colorSchemeImage.darkImage != nil {
+                webCache.snapshotImage = colorSchemeImage.darkImage!
+            } else {
+                webCache.snapshotImage = UIImage.assetsImage(name: "snapshot_dark")
+            }
+        }
+        
+        if BrowserViewStateStore.shared.colorScheme == .light {
+            if colorSchemeImage.lightImage != nil {
+                webCache.snapshotImage = colorSchemeImage.lightImage!
+            } else {
+                webCache.snapshotImage = UIImage.assetsImage(name: "snapshot_light")
+            }
+        }
     }
                    
     

@@ -16,6 +16,7 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
 
 actual fun ImageBitmap.toImageResource(): ImageResource? = null
@@ -51,6 +52,10 @@ actual fun CommonBrowserView(
 
   val win = LocalWindowController.current
   val scope = rememberCoroutineScope()
+
+  // 适配暗黑模式
+  val theme = LocalWindowControllerTheme.current
+  browserIosImp.isDarkColorScheme(theme.isDark)
 
   fun backHandler() {
     if (!browserIosImp.gobackIfCanDo()) {

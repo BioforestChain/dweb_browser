@@ -11,6 +11,7 @@ import SwiftUI
 import DwebShared
 
 let browserService = DwebBrowserIosSupport().browserService
+let colorSchemeImage = ColorSchemeImage()
 
 class BrowserArea: ObservableObject {
     @Published var frame: CGRect = .zero
@@ -103,4 +104,10 @@ class TabGridState: ObservableObject {
 
 class DeleteCache: ObservableObject {
     @Published var cacheId = UUID()
+}
+
+class ColorSchemeImage: NSObject {
+    
+    var darkImage: UIImage?
+    var lightImage: UIImage?
 }
