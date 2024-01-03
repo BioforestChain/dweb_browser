@@ -42,6 +42,11 @@ import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
 import org.dweb_browser.sys.toast.ToastNMM
 import platform.UIKit.UIApplication
+import org.dweb_browser.helper.platform.ios.doModuleDwebBrowser
+
+fun doTest() {
+  doModuleDwebBrowser()
+}
 
 val dwebViewController = nativeViewController
 val dwebDeepLinkHook = deepLinkHook

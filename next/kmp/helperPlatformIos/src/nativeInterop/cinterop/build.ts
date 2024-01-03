@@ -7,7 +7,7 @@ import { WalkFiles } from "../../../../../../plaoc/cli/helper/walk-dir.ts";
 import { which } from "../../../../../../scripts/helper/WhichCommand.ts";
 import { doArchiveTask } from "./archive.ts";
 import { doCreateXcTask } from "./create-xc.ts";
-import { __dirname, runTasks } from "./util.ts";
+import { __dirname, sourceCodeDir, runTasks } from "./util.ts";
 
 export const doBuildTask = async () => {
   const xcodebuild = await which("xcodebuild");
@@ -35,19 +35,29 @@ export const doBuildTask = async () => {
     console.log("build cached!!");
     return 0;
   }
+  console.log("will build");
   return await runTasks(doArchiveTask, doCreateXcTask, async () => {
-    writeFileHash();
+    calcHash();
     console.log("build success!!");
     return 0;
   });
 };
+
+
 const calcHash = (): (() => void) | undefined => {
   const hashBuilder = crypto.createHash("sha256");
-  for (const entry of WalkFiles(path.resolve(__dirname, "./DwebPlatformIosKit"))) {
+  for (const entry of WalkFiles(path.resolve(sourceCodeDir, "./DwebPlatformIosKit"))) {
     hashBuilder.update(entry.entrypath);
     const stat = fs.statSync(entry.entrypath);
     hashBuilder.update(JSON.stringify([stat.size, stat.ctimeMs, stat.mtimeMs]));
   }
+
+    for (const entry of WalkFiles(path.resolve(sourceCodeDir, "./DwebWebBrowser"))) {
+      hashBuilder.update(entry.entrypath);
+      const stat = fs.statSync(entry.entrypath);
+      hashBuilder.update(JSON.stringify([stat.size, stat.ctimeMs, stat.mtimeMs]));
+    }
+
   const fileHash = hashBuilder.digest("hex");
 
   const buildCacheHash = path.resolve(__dirname, "./archives/build-cache.temp");

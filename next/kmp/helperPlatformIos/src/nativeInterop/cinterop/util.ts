@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 export const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export const sourceCodeDir : string = __dirname + "/../../../../app/iOSModuleApp/"
 
 export const runTasks = async (...actions: Array<() => Promise<number>>) => {
   for (const action of actions) {
