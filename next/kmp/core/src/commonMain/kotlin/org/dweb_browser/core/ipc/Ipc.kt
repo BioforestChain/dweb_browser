@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IpcClientRequest
 import org.dweb_browser.core.ipc.helper.IpcClientRequest.Companion.toIpc
+import org.dweb_browser.core.ipc.helper.IpcError
+import org.dweb_browser.core.ipc.helper.IpcErrorMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcLifeCycle
@@ -25,6 +27,7 @@ import org.dweb_browser.core.ipc.helper.IpcResponseMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcServerRequest
 import org.dweb_browser.core.ipc.helper.IpcStream
 import org.dweb_browser.core.ipc.helper.IpcStreamMessageArgs
+import org.dweb_browser.core.ipc.helper.OnIpcErrorMessage
 import org.dweb_browser.core.ipc.helper.OnIpcEventMessage
 import org.dweb_browser.core.ipc.helper.OnIpcLifeCycleMessage
 import org.dweb_browser.core.ipc.helper.OnIpcMessage
@@ -113,14 +116,7 @@ abstract class Ipc {
 
   abstract suspend fun _doPostMessage(data: IpcMessage)
 
-  fun pipe(to: Ipc, handler: (suspend Ipc.() -> Unit)? = null) {
-    this.onMessage { message ->
-      to.postMessage(message.message)
-    }
-    handler.run {
-      debugIpc("ipc", "${this@Ipc.remote.mmid} pipe run")
-    }
-  }
+  /**-----start*/
 
   private fun <T : Any> _createSignal(): Signal<T> {
     val signal = Signal<T>()
@@ -235,6 +231,25 @@ abstract class Ipc {
 
   fun onLifeCycle(cb: OnIpcLifeCycleMessage) = _lifeCycleSignal.listen(cb)
 
+  private val _errorSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    _createSignal<IpcErrorMessageArgs>().also { signal ->
+      _messageSignal.listen { args ->
+        if (args.message is IpcError) {
+          ipcMessageCoroutineScope.launch {
+            signal.emit(
+              IpcErrorMessageArgs(
+                args.message, args.ipc
+              )
+            )
+          }
+        }
+      }
+    }
+  }
+
+  fun onError(cb: OnIpcErrorMessage) = _errorSignal.listen(cb)
+
+  /**-----end*/
 
   abstract suspend fun _doClose(): Unit
 

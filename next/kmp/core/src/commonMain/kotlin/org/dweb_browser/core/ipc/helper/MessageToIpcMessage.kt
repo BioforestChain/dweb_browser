@@ -85,6 +85,7 @@ fun cborToIpcMessage(data: ByteArray, ipc: Ipc): Any {
       IPC_MESSAGE_TYPE.STREAM_END -> Cbor.decodeFromByteArray<IpcStreamEnd>(data)
       IPC_MESSAGE_TYPE.STREAM_ABORT -> Cbor.decodeFromByteArray<IpcStreamAbort>(data)
       IPC_MESSAGE_TYPE.LIFE_CYCLE -> Cbor.decodeFromByteArray<IpcLifeCycle>(data)
+      IPC_MESSAGE_TYPE.ERROR -> Cbor.decodeFromByteArray<IpcError>(data)
     }
   } catch (e: Exception) {
     return data
@@ -106,6 +107,7 @@ fun ipcMessageToCbor(data: IpcMessage) = when (data) {
   is IpcStreamPaused -> Cbor.encodeToByteArray<IpcStreamPaused>(data)
   is IpcStreamPulling -> Cbor.encodeToByteArray<IpcStreamPulling>(data)
   is IpcLifeCycle -> Cbor.encodeToByteArray<IpcLifeCycle>(data)
+  is IpcError -> Cbor.encodeToByteArray<IpcError>(data)
 }
 
 fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
@@ -145,6 +147,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
       IPC_MESSAGE_TYPE.STREAM_END -> Json.decodeFromString<IpcStreamEnd>(data)
       IPC_MESSAGE_TYPE.STREAM_ABORT -> Json.decodeFromString<IpcStreamAbort>(data)
       IPC_MESSAGE_TYPE.LIFE_CYCLE -> Json.decodeFromString<IpcLifeCycle>(data)
+      IPC_MESSAGE_TYPE.ERROR -> Json.decodeFromString<IpcError>(data)
     }
   } catch (e: Exception) {
     return data
@@ -165,4 +168,5 @@ fun ipcMessageToJson(data: IpcMessage) = when (data) {
   is IpcStreamPaused -> Json.encodeToString(data)
   is IpcStreamPulling -> Json.encodeToString(data)
   is IpcLifeCycle -> Json.encodeToString(data)
+  is IpcError -> Json.encodeToString(data)
 }

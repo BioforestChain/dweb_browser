@@ -5,15 +5,15 @@ import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.platform.MultiPartFile
+import org.dweb_browser.pure.http.PureMethod
 
 val debugMedia = Debugger("Media")
 
-class MediaNMM : NativeMicroModule("media.sys.dweb", "system media") {
+class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
   init {
     short_name = "Media";
     categories =

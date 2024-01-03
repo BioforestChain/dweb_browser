@@ -48,6 +48,12 @@ data class IpcLifeCycleMessageArgs(val event: IpcLifeCycle, val ipc: Ipc) {
 }
 typealias OnIpcLifeCycleMessage = Callback<IpcLifeCycleMessageArgs>
 
+data class IpcErrorMessageArgs(val event: IpcError, val ipc: Ipc) {
+  val component1 get() = event
+  val component2 get() = ipc
+}
+typealias OnIpcErrorMessage = Callback<IpcErrorMessageArgs>
+
 @Serializable(IPC_MESSAGE_TYPE_Serializer::class)
 enum class IPC_MESSAGE_TYPE(val type: Byte) {
   /** 类型：请求 */
@@ -80,6 +86,9 @@ enum class IPC_MESSAGE_TYPE(val type: Byte) {
 
   /**类型：生命周期 */
   LIFE_CYCLE(8),
+
+  /**类型：错误*/
+  ERROR(9)
   ;
 
   companion object {
