@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +26,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.compose.MetaBallLoadingView
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 
@@ -96,20 +98,22 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
   ) {
     when (val render = windowAdapterManager.rememberRender(rid)) {
       null -> {
-        val colorScheme = MaterialTheme.colorScheme;
-        val typography = MaterialTheme.typography;
+        val colorScheme = MaterialTheme.colorScheme
+        val typography = MaterialTheme.typography
         Box(
           modifier = Modifier
             .fillMaxSize()
-            .background(colorScheme.errorContainer)
+            .background(colorScheme.errorContainer),
+          contentAlignment = Alignment.Center
         ) {
-          Text(
+          /*Text(
             "Op！视图被销毁了",
             modifier = Modifier.align(Alignment.Center),
             style = typography.bodyMedium.copy(
               color = colorScheme.error,
             )
-          )
+          )*/
+          MetaBallLoadingView(modifier = Modifier.size(100.dp))
         }
       }
 
