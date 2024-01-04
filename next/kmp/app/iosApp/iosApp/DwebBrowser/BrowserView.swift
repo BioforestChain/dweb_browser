@@ -18,7 +18,6 @@ struct BrowserView: View {
     @StateObject var dragScale = BrowserViewStateStore.shared.dragScale
     @StateObject var wndArea = BrowserViewStateStore.shared.wndArea
     
-    @State var searchEnter: Bool = false
     var curWebVisible: Bool { webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb }
 
     var body: some View {
@@ -63,20 +62,16 @@ struct BrowserView: View {
             }
             .environment(\.colorScheme, store.colorScheme)
             .task {
-                if !searchEnter {
-                    doSearchIfNeed()
-                }
-                
+                doSearchIfNeed()
                 if let key = BrowserViewStateStore.shared.searchKey, !key.isEmpty {
-                    searchEnter = true
                     BrowserViewStateStore.shared.searchKey = nil
                 }
+
             }
             .onChange(of: store.searchKey) { _, newValue in
-                if !searchEnter {
+                if let newValue = newValue, !newValue.isEmpty {
                     doSearchIfNeed(key: newValue)
                 }
-                searchEnter.toggle()
             }
         }
         .clipped()
@@ -87,12 +82,26 @@ struct BrowserView: View {
             addressBar.isFocused = false
             return
         }
+        
+        var deadline: CGFloat = 0.0
+        if !toolBarState.shouldExpand {
+            deadline = 0.5
+            toolBarState.shouldExpand = true
+        }
+        
+        if toolBarState.showMoreMenu {
+            deadline = 0.5
+            toolBarState.showMoreMenu = false
+        }
+
         if key.isURL() {
             BrowserViewStateStore.shared.searchKey = nil
             addressBar.searchInputText = key
             addressBar.isFocused = false
             let url = URL.createUrl(key)
-            openingLink.clickedLink = url
+            DispatchQueue.main.asyncAfter(deadline: .now() + deadline) {
+                self.openingLink.clickedLink = url
+            }
         } else {
             enterType = .search
             addressBar.isFocused = true
