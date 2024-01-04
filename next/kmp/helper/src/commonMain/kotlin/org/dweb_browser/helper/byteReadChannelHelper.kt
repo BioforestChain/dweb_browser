@@ -5,6 +5,7 @@ import io.ktor.utils.io.core.EOFException
 import io.ktor.utils.io.core.readBytes
 import io.ktor.utils.io.readAvailable
 import io.ktor.utils.io.readUTF8Line
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -91,11 +92,15 @@ suspend inline fun <reified T> ByteReadChannel.consumeEachCborPacket(visitor: Ch
 
 suspend inline fun ByteReadChannel.consumeEachByteArrayPacket(visitor: ChannelConsumeEachController.(ByteArray) -> Unit) {
   val controller = ChannelConsumeEachController()
-  while (controller.continueFlag) {
-    val sizePacket = readPacket(4)
-    val sizeBytes = sizePacket.readByteArray()
-    val size = sizeBytes.toLittleEndianInt()
-    val packet = readPacket(size)
-    controller.visitor(packet.readByteArray())
+  try {
+    while (controller.continueFlag) {
+      val sizePacket = readPacket(4)
+      val sizeBytes = sizePacket.readByteArray()
+      val size = sizeBytes.toLittleEndianInt()
+      val packet = readPacket(size)
+      controller.visitor(packet.readByteArray())
+    }
+  } catch (e: ClosedReceiveChannelException) {
+    // closed
   }
 }

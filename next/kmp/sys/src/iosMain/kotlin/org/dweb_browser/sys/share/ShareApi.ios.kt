@@ -78,7 +78,7 @@ actual suspend fun share(
   shareNMM: NativeMicroModule?
 ): String {
   return withMainContext {
-    val deferred = CompletableDeferred("")
+    val deferred = CompletableDeferred<String>()
     val activityItems = mutableListOf<Any>()
 
     shareOptions.title?.also { activityItems.add(it.toNSString()) }

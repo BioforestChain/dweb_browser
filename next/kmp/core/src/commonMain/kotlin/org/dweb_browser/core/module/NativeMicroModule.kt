@@ -5,6 +5,7 @@ import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
@@ -250,6 +251,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       responseReadableStream.controller.enqueue(data.size.toLittleEndianByteArray(), data)
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     suspend inline fun <reified T> emit(lineData: T) = emit(Cbor.encodeToByteArray(lineData))
 
     suspend fun end(reason: Throwable? = null) {

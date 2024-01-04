@@ -19,6 +19,7 @@ import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
+import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
 import org.dweb_browser.pure.http.engine.getKtorClientEngine
@@ -138,6 +139,8 @@ suspend fun startDwebBrowser(): DnsNMM {
   val motionSensorsNMM = MotionSensorsNMM().setup()
   /// 媒体操作
   val mediaNMM = MediaNMM().setup()
+  /// multipart
+  val multipartNMM = MultipartNMM().setup()
 
   /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
   val nativeUiNMM = NativeUiNMM().setup()
@@ -159,6 +162,7 @@ suspend fun startDwebBrowser(): DnsNMM {
       deskNMM.mmid,//
       locationNMM.mmid,
       qrCodeScanNMM.mmid,
+      multipartNMM.mmid
     ),
   ).setup()
 
