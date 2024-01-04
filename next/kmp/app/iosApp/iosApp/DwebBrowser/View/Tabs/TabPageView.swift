@@ -25,14 +25,13 @@ struct TabPageView: View {
     var doneLoading: (WebCache) -> Void
 
     @State private var snapshotHeight: CGFloat = 0
-    
-    
+
     var body: some View {
         GeometryReader { geo in
             content
                 .onChange(of: openingLink.clickedLink) { _, link in
                     guard link != emptyURL else { return }
-                    if isVisible{
+                    if isVisible {
                         webCache.lastVisitedUrl = link
                         if webCache.shouldShowWeb {
                             webWrapper.webMonitor.isLoadingDone = false
@@ -42,7 +41,6 @@ struct TabPageView: View {
                         }
                         openingLink.clickedLink = emptyURL
                         print("clickedLink has changed at index: \(link)")
-
                     }
                 }
                 .onAppear {
@@ -67,24 +65,22 @@ struct TabPageView: View {
                             }
                         } else {
                             let toSnapView = content
-                                .environment(\.colorScheme, BrowserViewStateStore.shared.colorScheme)
+                                .environment(\.colorScheme, colorScheme)
                                 .frame(width: geo.size.width, height: geo.size.height)
                             let render = ImageRenderer(content: toSnapView)
                             render.scale = UIScreen.main.scale
                             animation.snapshotImage = render.uiImage ?? UIImage.snapshotImage(from: .defaultSnapshotURL)
-                            
                             if BrowserViewStateStore.shared.colorScheme == .dark,
                                colorSchemeImage.darkImage == nil
                             {
                                 colorSchemeImage.darkImage = animation.snapshotImage
                             }
-                            
+
                             if BrowserViewStateStore.shared.colorScheme == .light,
                                colorSchemeImage.lightImage == nil
                             {
                                 colorSchemeImage.lightImage = animation.snapshotImage
                             }
-                            
                             webCache.snapshotUrl = UIImage.createLocalUrl(withImage: animation.snapshotImage, imageName: webCache.id.uuidString)
                             animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                         }
@@ -129,25 +125,25 @@ struct TabPageView: View {
             .onChange(of: webWrapper.icon) { _, icon in
                 webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
             }
-            
+
             .onChange(of: webWrapper.estimatedProgress) { _, newValue in
                 if newValue >= 1.0 {
                     doneLoading(webCache)
                 }
             }
-            .onChange(of: addressBar.needRefreshOfIndex) { _, refreshIndex in
+            .onChange(of: addressBar.needRefreshOfIndex) { _, _ in
                 if isVisible {
                     webWrapper.webMonitor.isLoadingDone = false
                     webWrapper.webView.reload()
                     addressBar.needRefreshOfIndex = -1
                 }
             }
-            .onChange(of: addressBar.stopLoadingOfIndex) { _, stopIndex in
+            .onChange(of: addressBar.stopLoadingOfIndex) { _, _ in
                 if isVisible {
                     webWrapper.webView.stopLoading()
                 }
             }
-            .onChange(of: toolbarState.creatingDesktopLink) { _, isCreating in
+            .onChange(of: toolbarState.creatingDesktopLink) { _, _ in
                 Task {
                     try await browserService.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString)
                 }

@@ -8,6 +8,7 @@ import platform.UIKit.UIView
 interface IosInterface {
   fun getBrowserView(): UIView
   fun doSearch(key: String)
+  fun colorSchemeChanged(color: Int)
   fun gobackIfCanDo(): Boolean
   fun browserActive(on: Boolean)
   fun browserClear()
@@ -59,6 +60,10 @@ class BrowserIosIMP() {
   // 是否是暗黑模式
   fun isDarkColorScheme(isDark: Boolean) {
     imp?.isDarkColorScheme(isDark)
+  }
+
+  fun colorSchemeChanged(color: Int) {
+    imp?.colorSchemeChanged(color)
   }
 
   fun gobackIfCanDo() = imp?.let { it.gobackIfCanDo() } ?: false

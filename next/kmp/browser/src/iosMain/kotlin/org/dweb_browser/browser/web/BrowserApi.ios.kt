@@ -15,6 +15,7 @@ import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
@@ -67,6 +68,7 @@ actual fun CommonBrowserView(
 
   // 窗口返回按钮
   win.GoBackHandler { backHandler() }
+  browserIosImp.colorSchemeChanged(win.state.colorScheme.ordinal)
 
   Box {
     UIKitView(

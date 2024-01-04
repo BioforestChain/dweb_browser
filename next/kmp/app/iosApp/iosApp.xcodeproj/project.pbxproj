@@ -90,6 +90,7 @@
 		F03444D32AE2713D004F732E /* CustomUIScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444CD2AE2713D004F732E /* CustomUIScrollView.swift */; };
 		F03444D42AE2713D004F732E /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444CE2AE2713D004F732E /* DownloadAppView.swift */; };
 		F046B2922B19B09300D8FD01 /* BookmarkModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F046B2912B19B09300D8FD01 /* BookmarkModel.swift */; };
+		F06AD0022B43F8AD004E63C8 /* ColorSchemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F06AD0012B43F8AD004E63C8 /* ColorSchemeManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -191,6 +192,7 @@
 		F03444CD2AE2713D004F732E /* CustomUIScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIScrollView.swift; sourceTree = "<group>"; };
 		F03444CE2AE2713D004F732E /* DownloadAppView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppView.swift; sourceTree = "<group>"; };
 		F046B2912B19B09300D8FD01 /* BookmarkModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkModel.swift; sourceTree = "<group>"; };
+		F06AD0012B43F8AD004E63C8 /* ColorSchemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -303,7 +305,6 @@
 		F034443E2AE26FA9004F732E /* Helper */ = {
 			isa = PBXGroup;
 			children = (
-				F034443F2AE26FA9004F732E /* View+snapshot.swift */,
 				F03444402AE26FA9004F732E /* PagingScroll.swift */,
 				F03444412AE26FA9004F732E /* Button.swift */,
 				48C46C662AFA2A58005CBA38 /* Loger.swift */,
@@ -314,6 +315,7 @@
 		F03444422AE26FA9004F732E /* extension */ = {
 			isa = PBXGroup;
 			children = (
+				F034443F2AE26FA9004F732E /* View+snapshot.swift */,
 				F03444432AE26FA9004F732E /* Date+format.swift */,
 				F03444442AE26FA9004F732E /* Color+Hex.swift */,
 				F03444452AE26FA9004F732E /* String+Validator.swift */,
@@ -456,6 +458,7 @@
 				F03444802AE26FAB004F732E /* InstalledApp.swift */,
 				F03444812AE26FAB004F732E /* WebCacheStore.swift */,
 				F03444822AE26FAB004F732E /* NetworkPermission.swift */,
+				F06AD0012B43F8AD004E63C8 /* ColorSchemeManager.swift */,
 			);
 			path = Publisher;
 			sourceTree = "<group>";
@@ -662,6 +665,7 @@
 				F03444902AE26FAB004F732E /* UIImage+Cache.swift in Sources */,
 				F03444BE2AE26FAC004F732E /* WindowifyModifer.swift in Sources */,
 				F03444A22AE26FAB004F732E /* AddressBarView.swift in Sources */,
+				F06AD0022B43F8AD004E63C8 /* ColorSchemeManager.swift in Sources */,
 				F034448D2AE26FAB004F732E /* UIImage+Trans.swift in Sources */,
 				F03444D32AE2713D004F732E /* CustomUIScrollView.swift in Sources */,
 				F03444B22AE26FAB004F732E /* NetworkGuidView.swift in Sources */,

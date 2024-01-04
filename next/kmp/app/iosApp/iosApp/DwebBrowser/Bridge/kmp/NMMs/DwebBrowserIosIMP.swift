@@ -54,6 +54,9 @@ extension DwebBrowserIosIMP: BrowserIosInterface {
         BrowserViewStateStore.shared.doSearch(key)
     }
     
+    func colorSchemeChanged(color: Int32) {
+        BrowserViewStateStore.shared.updateColorScheme(newScheme: Int(color))
+    }
     
     func gobackIfCanDo() -> Bool {
         return BrowserViewStateStore.shared.doBackIfCan()
