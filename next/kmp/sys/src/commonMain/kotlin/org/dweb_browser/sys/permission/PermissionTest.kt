@@ -116,11 +116,13 @@ class PermissionApplicantTMM :
                 okk = this@PermissionApplicantTMM.requestSystemPermissions(
                   SystemPermissionTask(
                     SystemPermissionName.CAMERA,
-                    "测试获取拍照权限"
+                    title = "测试获取拍照权限",
+                    description = "相机权限申请相机权限申请相机权限申请相机权限申请相机权限申请相机权限申请"
                   ),
                   SystemPermissionTask(
                     SystemPermissionName.CALL,
-                    "测试获取电话权限"
+                    "测试获取电话权限",
+                    description = "电话权限申请电话权限申请电话权限申请电话权限申请电话权限申请电话权限申请"
                   )
                 ).let { Json.encodeToString(it) }
               }
