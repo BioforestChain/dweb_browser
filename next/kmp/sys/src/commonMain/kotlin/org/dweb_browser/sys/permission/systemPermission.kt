@@ -25,9 +25,7 @@ suspend fun requestSysPermission(
   val result = (RequestSystemPermissionResult::toMutableMap)(mapOf())
   val restTasks = permissionTaskList.associateBy { it.name }.toMutableMap()
   for (adapter in SystemPermissionAdapterManager.adapters) {
-    debugPermission("lin.huang", "adapter->$adapter")
     for ((name, task) in restTasks.toList()) {
-      debugPermission("lin.huang", "name=$name, task=$task")
       when (val status = RequestSystemPermissionContext(
         microModule, pureViewController, task, permissionTaskList
       ).adapter()) {
