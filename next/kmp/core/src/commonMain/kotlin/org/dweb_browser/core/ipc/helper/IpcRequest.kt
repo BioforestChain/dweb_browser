@@ -127,10 +127,10 @@ class IpcClientRequest(
         val eventNameBase =
           "$PURE_CHANNEL_EVENT_PREFIX-${postIpc.uid}/${req_id}/${duplexAcc.inc().value}"
 
-        debugIpc("toIpc/client/hasChannel") { "create ipcEventBaseName:$eventNameBase => request:$pureRequest" }
+        debugIpc("ipcClient/hasChannel") { "create ipcEventBaseName:$eventNameBase => request:$pureRequest" }
         CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
           val pureChannel = pureRequest.getChannel()
-          debugIpc("toIpc/client/channelToIpc") { "channelId:$eventNameBase => pureChannel:$pureChannel start!!" }
+          debugIpc("ipcClient/channelToIpc") { "channelId:$eventNameBase => pureChannel:$pureChannel start!!" }
 
           /// 不论是请求者还是响应者
           /// 那么意味着数据需要通过ipc来进行发送。所以我需要将 pureChannel 中要发送的数据读取出来进行发送
@@ -142,7 +142,7 @@ class IpcClientRequest(
             pureChannel,
             channelByIpcEmit = channelContext.income,
             channelForIpcPost = channelContext.outgoing,
-            _debugTag = "toIpc/client/channelToIpc"
+            _debugTag = "IpcClient/channelToIpc"
           ) { }
         }
 
@@ -215,7 +215,7 @@ class IpcServerRequest(
       if (hasDuplex) {
         val eventNameBase = duplexEventBaseName!!
         debugIpc(
-          "toPure/server/ipcToChannel",
+          "PureServer/ipcToChannel",
           "channelId:$eventNameBase => request:$this start!!"
         )
 
@@ -229,7 +229,7 @@ class IpcServerRequest(
             pureChannel,
             channelByIpcEmit = ctx.income,
             channelForIpcPost = ctx.outgoing,
-            _debugTag = "toPure/server/ipcToChannel",
+            _debugTag = "PureServer/ipcToChannel",
           ) { }
         }
 

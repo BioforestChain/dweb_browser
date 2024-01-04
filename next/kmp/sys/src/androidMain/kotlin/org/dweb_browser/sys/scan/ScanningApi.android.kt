@@ -21,7 +21,7 @@ actual class ScanningManager actual constructor() {
     systemPermissionAdapterManager.append {
       if (task.name == SystemPermissionName.CAMERA) {
         launchAndroidSystemPermissionRequester(
-          mm,
+          microModule,
           AndroidPermissionTask(Manifest.permission.CAMERA, task.title, task.description)
         ).values.firstOrNull()
       } else null

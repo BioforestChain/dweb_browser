@@ -10,7 +10,6 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
@@ -30,6 +29,7 @@ import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.toLittleEndianByteArray
 import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.pure.http.PureStream
 
 
 val debugStreamIpc = Debugger("stream-ipc")
@@ -117,14 +117,13 @@ class ReadableStreamIpc(
           debugStreamIpc("bindIncomeStream", "chunk=${chunk.remaining} => $stream")
           debugStreamIpc("bindIncomeStream", "supportCbor=$supportCbor")
 
-          if(supportCbor) {
+          if (supportCbor) {
             when (val message =
               cborToIpcMessage(chunk.readByteArray(), this@ReadableStreamIpc)) {
               is IpcMessage -> {
-                debugStreamIpc("bindIncomeStream", "message=$message => $stream")
-                debugStreamIpc(
-                  "ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}"
-                )
+                val logMessage = message.toString().trim()
+                debugStreamIpc("bindIncomeStream", "message=$logMessage => $stream")
+                debugStreamIpc("ON-MESSAGE", "$size => $logMessage => ${this@ReadableStreamIpc}")
                 _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
               }
 
@@ -137,10 +136,9 @@ class ReadableStreamIpc(
             when (val message =
               jsonToIpcMessage(chunk.readByteArray().toUtf8(), this@ReadableStreamIpc)) {
               is IpcMessage -> {
-                debugStreamIpc("bindIncomeStream", "message=$message => $stream")
-                debugStreamIpc(
-                  "ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}"
-                )
+                val logMessage = message.toString().trim()
+                debugStreamIpc("bindIncomeStream", "message=$logMessage => $stream")
+                debugStreamIpc("ON-MESSAGE", "$size => $logMessage => ${this@ReadableStreamIpc}")
                 _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
               }
 

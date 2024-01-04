@@ -25,7 +25,7 @@ object IpcEventSerializer :
 class IpcEvent(
   val name: String, val data: Any /*String or ByteArray*/, val encoding: IPC_DATA_ENCODING
 ) : IpcMessage(IPC_MESSAGE_TYPE.EVENT) {
-  override fun toString() = "IpcEvent(name=$name, data=$encoding::$data)"
+  override fun toString() = "IpcEvent(name=$name, data=$encoding::${data.toString().trim()})"
 
   companion object {
     fun fromBinary(name: String, data: ByteArray) = IpcEvent(name, data, IPC_DATA_ENCODING.BINARY)

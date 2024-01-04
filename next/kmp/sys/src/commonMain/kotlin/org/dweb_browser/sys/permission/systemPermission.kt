@@ -16,23 +16,19 @@ data class SystemPermissionTask(
 
 typealias RequestSystemPermissionResult = Map<SystemPermissionName, AuthorizationStatus>
 
-suspend fun requestSystemPermission(
-  mm: MicroModule,
+suspend fun requestSysPermission(
+  microModule: MicroModule,
   pureViewController: IPureViewController?,
   permissionTaskList: List<SystemPermissionTask>
 ): Map<SystemPermissionName, AuthorizationStatus> {
+  debugPermission("requestSysPermission", "names=${permissionTaskList.joinToString(",")}")
   val result = (RequestSystemPermissionResult::toMutableMap)(mapOf())
   val restTasks = permissionTaskList.associateBy { it.name }.toMutableMap()
-  debugPermission("requestSystemPermission", "names=${permissionTaskList.joinToString(",")}")
   for (adapter in systemPermissionAdapterManager.adapters) {
     for ((name, task) in restTasks.toList()) {
-      when (val status =
-        RequestSystemPermissionContext(
-          mm,
-          pureViewController,
-          task,
-          permissionTaskList
-        ).adapter()) {
+      when (val status = RequestSystemPermissionContext(
+        microModule, pureViewController, task, permissionTaskList
+      ).adapter()) {
         null -> continue
         else -> {
           result[name] = status
@@ -55,8 +51,8 @@ object systemPermissionAdapterManager : AdapterManager<RequestSystemPermission>(
 typealias RequestSystemPermission = suspend RequestSystemPermissionContext.() -> AuthorizationStatus?
 
 class RequestSystemPermissionContext(
-  val mm: MicroModule,
+  val microModule: MicroModule,
   val pureViewController: IPureViewController?,
   val task: SystemPermissionTask,
-  val names: List<SystemPermissionTask>
+  val permissionTasks: List<SystemPermissionTask>
 )

@@ -11,12 +11,9 @@ import org.dweb_browser.sys.permission.SystemPermissionTask
 suspend fun NativeMicroModule.requestSystemPermissions(vararg permissionsTasks: SystemPermissionTask) =
   nativeFetch(
     PureClientRequest.fromJson(
-      "file://permission.sys.dweb/request",
-      PureMethod.POST,
-      permissionsTasks
+      href = "file://permission.sys.dweb/request", method = PureMethod.POST, body = permissionsTasks
     )
   ).json<Map<SystemPermissionName, AuthorizationStatus>>()
 
 suspend fun NativeMicroModule.requestSystemPermission(permissionsTask: SystemPermissionTask) =
   requestSystemPermissions(permissionsTask)[permissionsTask.name] == AuthorizationStatus.GRANTED
-

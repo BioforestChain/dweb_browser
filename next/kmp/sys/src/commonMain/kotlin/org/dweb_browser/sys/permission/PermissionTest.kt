@@ -111,14 +111,16 @@ class PermissionApplicantTMM :
             }
             ElevatedButton(onClick = {
               ioAsyncScope.launch {
-                okk =
-                  this@PermissionApplicantTMM.requestSystemPermissions(
-                    SystemPermissionTask(
-                      SystemPermissionName.CAMERA,
-                      "测试获取拍照权限"
-                    )
+                okk = this@PermissionApplicantTMM.requestSystemPermissions(
+                  SystemPermissionTask(
+                    SystemPermissionName.CAMERA,
+                    "测试获取拍照权限"
+                  ),
+                  SystemPermissionTask(
+                    SystemPermissionName.CALL,
+                    "测试获取电话权限"
                   )
-                    .let { Json.encodeToString(it) }
+                ).let { Json.encodeToString(it) }
               }
             }) {
               Text("系统权限")

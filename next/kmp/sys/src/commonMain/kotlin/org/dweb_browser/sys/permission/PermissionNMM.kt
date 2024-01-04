@@ -49,6 +49,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.AuthorizationRecord
 import org.dweb_browser.core.std.permission.PermissionHooks
 import org.dweb_browser.core.std.permission.PermissionProvider
+import org.dweb_browser.core.std.permission.debugPermission
 import org.dweb_browser.core.std.permission.permissionStdProtocol
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.compose.HorizontalDivider
@@ -259,12 +260,13 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
 
     routes(
       "/request" bind PureMethod.POST by defineJsonResponse {
-        val permissionTaskList =
-          Json.decodeFromString<List<SystemPermissionTask>>(request.body.toPureString())
-        requestSystemPermission(
-          this@PermissionNMM,
-          openMainWindow().pureViewControllerState.value,
-          permissionTaskList
+        val permissions = request.body.toPureString()
+        debugPermission("request@sys", permissions)
+        val permissionTaskList = Json.decodeFromString<List<SystemPermissionTask>>(permissions)
+        requestSysPermission(
+          microModule = this@PermissionNMM,
+          pureViewController = openMainWindow().pureViewControllerState.value,
+          permissionTaskList = permissionTaskList
         ).toJsonElement()
       }
     )
