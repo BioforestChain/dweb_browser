@@ -22,7 +22,7 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 
-actual object BiometricsApi {
+actual object BiometricsManage {
 
   actual suspend fun isSupportBiometrics(
     biometricsData: BiometricsData, biometricsNMM: BiometricsNMM

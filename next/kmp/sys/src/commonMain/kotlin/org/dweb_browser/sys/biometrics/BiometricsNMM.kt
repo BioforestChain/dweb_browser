@@ -26,7 +26,7 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
         val type = request.queryOrNull("type") ?: ""
         val biometricsData = request.queryAs<BiometricsData>()
         debugBiometrics("check", "type=$type, data=$biometricsData")
-        return@defineBooleanResponse BiometricsApi.isSupportBiometrics(
+        return@defineBooleanResponse BiometricsManage.isSupportBiometrics(
           biometricsData = biometricsData, biometricsNMM = this@BiometricsNMM
         )
       },
@@ -37,7 +37,7 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
         val input = request.queryOrNull("input")?.toUtf8ByteArray()
         val mode = request.queryAsOrNull<InputMode>("mode") ?: InputMode.None
         val biometricsResult =
-          BiometricsApi.biometricsResultContent(this@BiometricsNMM, title, subtitle, input, mode)
+          BiometricsManage.biometricsResultContent(this@BiometricsNMM, title, subtitle, input, mode)
         debugBiometrics("biometrics", biometricsResult.toJsonElement())
         return@defineJsonResponse biometricsResult.toJsonElement()
       }).cors()

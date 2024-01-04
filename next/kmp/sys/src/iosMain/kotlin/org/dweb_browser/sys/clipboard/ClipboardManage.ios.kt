@@ -11,7 +11,7 @@ import platform.UIKit.UIImage
 import platform.UIKit.UIImagePNGRepresentation
 import platform.UIKit.UIPasteboard
 
-actual class ClipboardApi {
+actual class ClipboardManage {
   init {
     SystemPermissionAdapterManager.append {
       if (task.name == SystemPermissionName.CLIPBOARD) {

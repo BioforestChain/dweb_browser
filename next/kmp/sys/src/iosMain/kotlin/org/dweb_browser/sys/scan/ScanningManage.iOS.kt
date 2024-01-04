@@ -28,10 +28,6 @@ public fun NSData.toByteArray(): ByteArray = ByteArray(this@toByteArray.length.t
 }
 
 actual class ScanningManager actual constructor() {
-  actual fun cameraPermission(): Boolean {
-    // TODO: 权限暂时全部开放
-    return true
-  }
 
   actual fun stop() {
     // iOS不需要stop

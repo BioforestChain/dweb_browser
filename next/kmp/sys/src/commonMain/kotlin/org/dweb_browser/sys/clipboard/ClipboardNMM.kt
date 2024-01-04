@@ -38,7 +38,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
     );
   }
 
-  private val clipboardApi = ClipboardApi()
+  private val clipboardManage = ClipboardManage()
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(/** 读取剪切板*/
@@ -77,11 +77,11 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
     onErrorCallback: (String) -> Unit
   ) {
     val response: ClipboardWriteResponse = if (string != null) {
-      clipboardApi.write(label = labelValue, string, type = ClipboardType.STRING)
+      clipboardManage.write(label = labelValue, string, type = ClipboardType.STRING)
     } else if (image != null) {
-      clipboardApi.write(label = labelValue, image, type = ClipboardType.IMAGE)
+      clipboardManage.write(label = labelValue, image, type = ClipboardType.IMAGE)
     } else if (url != null) {
-      clipboardApi.write(label = labelValue, url, type = ClipboardType.URL)
+      clipboardManage.write(label = labelValue, url, type = ClipboardType.URL)
     } else {
       onErrorCallback("No data provided")
       return
@@ -92,7 +92,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
   }
 
   fun read(): String {
-    val clipboardData = clipboardApi.read()
+    val clipboardData = clipboardManage.read()
     print(Json.encodeToString(clipboardData))
     return Json.encodeToString(clipboardData)
   }

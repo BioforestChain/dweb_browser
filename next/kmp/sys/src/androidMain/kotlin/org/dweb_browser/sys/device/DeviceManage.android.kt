@@ -7,7 +7,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
 
-actual class DeviceApi actual constructor() {
+actual class DeviceManage actual constructor() {
 
   actual fun deviceUUID(): String {
     return getDeviceUUID()

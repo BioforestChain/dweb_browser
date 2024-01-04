@@ -1,6 +1,6 @@
 package org.dweb_browser.sys.clipboard
 
-expect class ClipboardApi() {
+expect class ClipboardManage() {
   fun write(
     label: String?,
     content: String?,

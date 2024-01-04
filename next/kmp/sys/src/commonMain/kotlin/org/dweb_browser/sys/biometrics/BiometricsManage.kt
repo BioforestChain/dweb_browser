@@ -19,7 +19,7 @@ data class BiometricsData(
   val negativeButtonText: String? = "",
 )
 
-expect object BiometricsApi {
+expect object BiometricsManage {
 
   suspend fun isSupportBiometrics(
     biometricsData: BiometricsData, biometricsNMM: BiometricsNMM

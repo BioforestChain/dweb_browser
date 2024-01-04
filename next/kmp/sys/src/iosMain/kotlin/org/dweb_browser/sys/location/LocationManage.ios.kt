@@ -16,7 +16,7 @@ import platform.Foundation.timeIntervalSince1970
 /**
  * TODO 参考详见：https://github.com/icerockdev/moko-geo/blob/master/geo/src/iosMain/kotlin/dev/icerock/moko/geo/LocationTracker.kt
  */
-actual class LocationApi {
+actual class LocationManage {
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   @OptIn(ExperimentalForeignApi::class)

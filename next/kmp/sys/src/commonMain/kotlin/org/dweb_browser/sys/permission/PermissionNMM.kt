@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -63,6 +64,7 @@ import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getMainWindow
+import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 import org.dweb_browser.sys.window.ext.openMainWindow
 import org.dweb_browser.sys.window.render.AppIcon
@@ -261,13 +263,19 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
     routes(
       "/request" bind PureMethod.POST by defineJsonResponse {
         val permissions = request.body.toPureString()
-        debugPermission("request@sys", permissions)
+        debugPermission("request@sys", "ipc=>${ipc.remote.mmid}, permission=>$permissions")
         val permissionTaskList = Json.decodeFromString<List<SystemPermissionTask>>(permissions)
-        requestSysPermission(
-          microModule = this@PermissionNMM,
-          pureViewController = openMainWindow().pureViewControllerState.value,
+        val windowController = getOrOpenMainWindow().apply {
+          this.show(); this.enableAlwaysOnTop(); this.focus()
+        }
+        //val requestMicroModule = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@PermissionNMM
+        val result = requestSysPermission(
+          microModule = this@PermissionNMM, // requestMicroModule,
+          pureViewController = windowController.pureViewControllerState.value,
           permissionTaskList = permissionTaskList
-        ).toJsonElement()
+        )
+        windowController.hide()
+        result.toJsonElement()
       }
     )
 

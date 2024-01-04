@@ -25,12 +25,12 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
     )
   }
 
-  private val locationApi = LocationApi()
+  private val locationManage = LocationManage()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       "/location" bind PureMethod.GET by defineJsonResponse {
         debugLocation("location", "enter")
-        locationApi.getCurrentLocation().toJsonElement()
+        locationManage.getCurrentLocation().toJsonElement()
       },
       "/observe" byChannel { ctx ->
         debugLocation("observe", "enter")
@@ -41,7 +41,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
           debugLocation("observe", "fps error")
           5
         }
-        locationApi.observeLocation(remoteMmid, fps) {
+        locationManage.observeLocation(remoteMmid, fps) {
           try {
             ctx.sendJsonLine(it.toJsonElement())
             true // 这边表示正常，继续监听
@@ -52,13 +52,13 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
           }
         }
         onClose {
-          locationApi.removeLocationObserve(remoteMmid)
+          locationManage.removeLocationObserve(remoteMmid)
         }
       },
       "/removeObserve" bind PureMethod.GET by defineEmptyResponse {
         debugLocation("removeObserve", "enter")
         val remoteMmid = ipc.remote.mmid
-        locationApi.removeLocationObserve(remoteMmid)
+        locationManage.removeLocationObserve(remoteMmid)
       }
     )
     debugLocation("_bootstrap", "done")

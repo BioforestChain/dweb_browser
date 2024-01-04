@@ -50,7 +50,7 @@ data class GeolocationPosition(
 /**
  * 如果想优化，可以参考：https://github.com/icerockdev/moko-geo/blob/master/geo/src/commonMain/kotlin/dev/icerock/moko/geo/LocationTracker.kt
  */
-expect class LocationApi() {
+expect class LocationManage() {
   /**
    * 获取当前的位置信息
    */

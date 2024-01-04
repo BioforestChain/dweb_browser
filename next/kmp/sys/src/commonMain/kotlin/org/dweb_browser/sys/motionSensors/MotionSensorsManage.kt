@@ -7,7 +7,7 @@ import org.dweb_browser.helper.Signal
 @Serializable
 data class Axis(val x: Double, val y: Double, val z: Double)
 
-expect class MotionSensorsApi(mm: NativeMicroModule) {
+expect class MotionSensorsManage(mm: NativeMicroModule) {
   fun startAccelerometerListener(fps: Int?): Boolean
   val onAccelerometerChanges: Signal.Listener<Axis>
   fun startGyroscopeListener(fps: Int?): Boolean

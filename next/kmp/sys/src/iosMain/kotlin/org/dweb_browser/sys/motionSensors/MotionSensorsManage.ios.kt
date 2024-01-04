@@ -10,7 +10,7 @@ import org.dweb_browser.helper.mainAsyncExceptionHandler
 import platform.CoreMotion.CMMotionManager
 import platform.Foundation.NSOperationQueue
 
-actual class MotionSensorsApi actual constructor(mm: NativeMicroModule) {
+actual class MotionSensorsManage actual constructor(mm: NativeMicroModule) {
   private val motionManager = CMMotionManager()
   private val accelerometerSignal = Signal<Axis>()
   private var gyroscopeSignal = Signal<Axis>()

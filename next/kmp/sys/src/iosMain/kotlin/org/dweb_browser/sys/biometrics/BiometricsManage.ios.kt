@@ -5,7 +5,7 @@ import kotlinx.coroutines.CompletableDeferred
 import platform.LocalAuthentication.LAContext
 import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthentication
 
-actual object BiometricsApi {
+actual object BiometricsManage {
 
   @OptIn(ExperimentalForeignApi::class)
   actual suspend fun isSupportBiometrics(

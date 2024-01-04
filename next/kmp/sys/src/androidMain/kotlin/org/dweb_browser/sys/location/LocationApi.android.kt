@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.location
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.os.Looper
 import com.google.android.gms.location.LocationCallback
@@ -16,9 +17,13 @@ import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.sys.permission.AndroidPermissionTask
+import org.dweb_browser.sys.permission.PermissionActivity
+import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
+import org.dweb_browser.sys.permission.SystemPermissionName
 
 @SuppressLint("MissingPermission")
-actual class LocationApi : LocationCallback() {
+actual class LocationManage : LocationCallback() {
   private val context = getAppContext()
   private var fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
   private val locationRequest = LocationRequest.create().also {
@@ -34,16 +39,27 @@ actual class LocationApi : LocationCallback() {
   private val onLocationChanged = locationChanged.toListener()
 
   init {
+
+    SystemPermissionAdapterManager.append {
+      if (task.name == SystemPermissionName.LOCATION) {
+        PermissionActivity.launchAndroidSystemPermissionRequester(
+          microModule,
+          AndroidPermissionTask(Manifest.permission.ACCESS_COARSE_LOCATION, task.title, task.description),
+          AndroidPermissionTask(Manifest.permission.ACCESS_FINE_LOCATION, task.title, task.description)
+        ).values.firstOrNull()
+      } else null
+    }
+
     ioAsyncScope.launch {
       list.onChange {
         debugLocation("init", "onChange ${list.size}, ${starting.value}")
         if (list.isEmpty()) {
           starting.value = false
-          fusedLocationClient.removeLocationUpdates(this@LocationApi)
+          fusedLocationClient.removeLocationUpdates(this@LocationManage)
         } else if (!starting.value) {
           starting.value = true
           fusedLocationClient.requestLocationUpdates(
-            locationRequest, this@LocationApi, Looper.getMainLooper()
+            locationRequest, this@LocationManage, Looper.getMainLooper()
           )
         }
       }

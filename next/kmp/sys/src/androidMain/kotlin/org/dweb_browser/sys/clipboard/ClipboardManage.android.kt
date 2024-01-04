@@ -13,7 +13,7 @@ private val mClipboard by lazy {
   getAppContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 }
 
-actual class ClipboardApi {
+actual class ClipboardManage {
 
   init {
     SystemPermissionAdapterManager.append {
