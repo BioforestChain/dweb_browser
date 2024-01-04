@@ -45,6 +45,7 @@ include(
   ":helperPlatform",
   ":helperPlatformIos",
   ":pureHttp",
+  ":pureCrypto",
   ":pureImage",
   ":window",
   ":core",

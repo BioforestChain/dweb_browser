@@ -1,5 +1,5 @@
 plugins {
-  id("kmp-compose-target")
+  id("kmp-compose")
 }
 
 kotlin {

@@ -66,7 +66,6 @@ import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
-import org.dweb_browser.sys.window.ext.openMainWindow
 import org.dweb_browser.sys.window.render.AppIcon
 
 class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Management") {

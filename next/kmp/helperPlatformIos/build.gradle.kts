@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.ByteArrayOutputStream
 
 plugins {
-  id("kmp-compose-target")
+  id("kmp-compose")
 }
 
 kotlin {

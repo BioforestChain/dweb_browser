@@ -1,5 +1,5 @@
 plugins {
-  id("kmp-target")
+  id("kmp-library")
   id("target-compose")
   kotlin("plugin.serialization")
 }
