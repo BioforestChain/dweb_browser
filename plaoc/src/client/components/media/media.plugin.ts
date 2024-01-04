@@ -6,7 +6,7 @@ import type { MediaOption } from "./media.type.ts";
 
 export class MediaPlugin extends BasePlugin {
   constructor() {
-    super("media.sys.dweb");
+    super("media.file.sys.dweb");
   }
 
   /**
