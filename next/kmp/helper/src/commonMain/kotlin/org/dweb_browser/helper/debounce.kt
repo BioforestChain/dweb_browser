@@ -15,9 +15,10 @@ suspend fun <T> debounce(
   action: suspend () -> T,
   interval: Long = 500L,
 ) = mutexLock.withLock {
-  job?.cancel()
-  job = scope.launch(Dispatchers.Default) {
-    delay(interval)
-    action()
+  if (job?.isActive != true) {
+    job = scope.launch(Dispatchers.Default) {
+      delay(interval)
+      action()
+    }
   }
 }
