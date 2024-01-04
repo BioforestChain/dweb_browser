@@ -4,20 +4,19 @@ import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.sys.permission.SystemPermissionName
-import org.dweb_browser.sys.permission.systemPermissionAdapterManager
+import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 
 private val mClipboard by lazy {
-  NativeMicroModule.getAppContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+  getAppContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 }
 
 actual class ClipboardApi {
 
   init {
-    systemPermissionAdapterManager.append {
+    SystemPermissionAdapterManager.append {
       if (task.name == SystemPermissionName.CLIPBOARD) {
         AuthorizationStatus.GRANTED
       } else null
@@ -56,7 +55,7 @@ actual class ClipboardApi {
           item?.text
         } else {
           val item = mClipboard.primaryClip?.getItemAt(0)
-          item?.coerceToText(NativeMicroModule.getAppContext()).toString()
+          item?.coerceToText(getAppContext()).toString()
         }
     }
     var type = "text/plain"

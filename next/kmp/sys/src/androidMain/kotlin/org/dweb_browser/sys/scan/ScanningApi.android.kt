@@ -13,12 +13,12 @@ import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.sys.permission.AndroidPermissionTask
 import org.dweb_browser.sys.permission.PermissionActivity.Companion.launchAndroidSystemPermissionRequester
 import org.dweb_browser.sys.permission.SystemPermissionName
-import org.dweb_browser.sys.permission.systemPermissionAdapterManager
+import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 
 
 actual class ScanningManager actual constructor() {
   init {
-    systemPermissionAdapterManager.append {
+    SystemPermissionAdapterManager.append {
       if (task.name == SystemPermissionName.CAMERA) {
         launchAndroidSystemPermissionRequester(
           microModule,

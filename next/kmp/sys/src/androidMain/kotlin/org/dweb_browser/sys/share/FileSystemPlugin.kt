@@ -9,7 +9,6 @@ import android.provider.MediaStore
 import android.util.Base64
 import android.webkit.MimeTypeMap
 import kotlinx.coroutines.*
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import java.io.*
 import java.nio.charset.Charset
@@ -19,7 +18,7 @@ import java.util.*
 @SuppressLint("StaticFieldLeak")
 object FileSystemPlugin {
 
-  private val context get() = NativeMicroModule.getAppContext()
+  private val context = getAppContext()
 
   fun readFile(path: String, eFileType: EFileType?, charset: Charset?): String? {
     return getInputStream(path, eFileType)?.let { inputStream ->

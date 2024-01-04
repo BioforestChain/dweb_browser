@@ -3,7 +3,6 @@ package org.dweb_browser.sys.toast
 import android.view.Gravity
 import android.view.View
 import android.widget.Toast
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.withMainContext
 
@@ -30,7 +29,7 @@ object ToastController {
       else -> Toast.LENGTH_SHORT
     }
     withMainContext {
-      Toast.makeText(NativeMicroModule.getAppContext(), text, duration).also {
+      Toast.makeText(getAppContext(), text, duration).also {
         when (positionType) {
           PositionType.TOP -> {
             it.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 40)

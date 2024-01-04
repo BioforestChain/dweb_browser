@@ -14,7 +14,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -33,7 +32,6 @@ import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.randomUUID
 
-
 const val EXTRA_PERMISSION_KEY = "permission"
 const val EXTRA_TASK_ID_KEY = "taskId"
 
@@ -42,17 +40,11 @@ private typealias TaskResult = Map<String, AuthorizationStatus>
 @Serializable
 data class AndroidPermissionTask(val key: String, val title: String, val description: String)
 
-private class PermissionTip(
-  val title: String,
-  val description: String,
-  val show: Boolean = true,
-)
-
 class PermissionActivity : BaseActivity() {
   companion object {
     private val launchTasks = mutableMapOf<UUID, CompletableDeferred<TaskResult>>()
     suspend fun launchAndroidSystemPermissionRequester(
-      mm: MicroModule,
+      microModule: MicroModule,
       vararg tasks: AndroidPermissionTask
     ): TaskResult {
       if (tasks.isEmpty()) {
@@ -64,7 +56,7 @@ class PermissionActivity : BaseActivity() {
         task.invokeOnCompletion {
           launchTasks.remove(taskId)
         }
-        mm.startAppActivity(PermissionActivity::class.java) { intent ->
+        microModule.startAppActivity(PermissionActivity::class.java) { intent ->
           intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
           intent.putExtra(EXTRA_TASK_ID_KEY, taskId)
           intent.putExtra(EXTRA_PERMISSION_KEY, Json.encodeToString(tasks))
@@ -75,19 +67,14 @@ class PermissionActivity : BaseActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    debugPermission("PermissionActivity", "enter")
+    debugPermission("PermissionActivity", "onCreate enter")
     val taskList = (intent.getStringExtra(EXTRA_PERMISSION_KEY)
       ?: return finish()).let { Json.decodeFromString<List<AndroidPermissionTask>>(it) }
     val taskId = intent.getStringExtra(EXTRA_TASK_ID_KEY) ?: return finish()
-    val permissionTips = mutableStateListOf<PermissionTip>().also { tips ->
-      for (task in taskList) {
-        tips.add(PermissionTip(task.title, task.description))
-      }
-    }
+
     val taskResult = (TaskResult::toMutableMap)(mapOf())
 
     lifecycleScope.launch {
-      val map = mutableMapOf<SystemPermissionName, Boolean>()
       if (taskList.size == 1) {
         val task = taskList.first()
         taskResult[task.key] = requestPermissionLauncher.launch(task.key)
@@ -107,7 +94,7 @@ class PermissionActivity : BaseActivity() {
     setContent {
       DwebBrowserAppTheme {
         Box(modifier = Modifier.fillMaxSize()) {
-          PermissionTipsView(permissionTips)
+          PermissionTipsView(taskList)
         }
       }
     }
@@ -115,7 +102,7 @@ class PermissionActivity : BaseActivity() {
 }
 
 @Composable
-private fun PermissionTipsView(permissionTips: List<PermissionTip>) {
+private fun PermissionTipsView(permissionTips: List<AndroidPermissionTask>) {
 
   Column(
     modifier = Modifier

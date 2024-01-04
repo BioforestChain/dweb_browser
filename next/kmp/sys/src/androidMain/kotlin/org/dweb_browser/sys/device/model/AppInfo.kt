@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 
 @Serializable
@@ -19,7 +18,7 @@ data class AppData(
 
 class AppInfo {
   private val NOT_FOUND_VAL = "unknown"
-  val context = NativeMicroModule.getAppContext()
+  val context = getAppContext()
 
   fun getAppInfo(): String {
     return Json.encodeToString(appData)

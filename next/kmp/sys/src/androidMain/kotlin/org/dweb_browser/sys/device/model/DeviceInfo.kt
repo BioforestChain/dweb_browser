@@ -10,7 +10,6 @@ import android.telephony.TelephonyManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 
 @Serializable
@@ -72,15 +71,11 @@ class DeviceInfo {
   val deviceName: String
     @SuppressLint("MissingPermission")
     get() {
-      mTelephonyManager =
-        NativeMicroModule.getAppContext()
-          .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+      mTelephonyManager = getAppContext()
+        .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
       // 获取 Global.DEVICE_NAME值不对，所以考虑用蓝牙名称，这二者理论上是一致的
       // 但是如果蓝牙是关闭的，修改设备名称后不会立刻同步到蓝牙，只有等蓝牙打开后才会同步名称
-      return Settings.Secure.getString(
-        NativeMicroModule.getAppContext().contentResolver,
-        "bluetooth_name"
-      )
+      return Settings.Secure.getString(getAppContext().contentResolver, "bluetooth_name")
     }
 
   val deviceMode: String
@@ -91,7 +86,7 @@ class DeviceInfo {
 
   val deviceScreen: String
     get() {
-      var displayMetrics = NativeMicroModule.getAppContext().resources.displayMetrics
+      var displayMetrics = getAppContext().resources.displayMetrics
       var screenWith = displayMetrics.widthPixels
       var screenHeight = displayMetrics.heightPixels
       /*var windowManager = App.appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -135,7 +130,7 @@ class DeviceInfo {
   val enableZenMode: Boolean
     get() {
       var zenMode =
-        Settings.Global.getInt(NativeMicroModule.getAppContext().contentResolver, "zen_mode", 0)
+        Settings.Global.getInt(getAppContext().contentResolver, "zen_mode", 0)
       return zenMode == 1
     }
 
@@ -149,8 +144,7 @@ class DeviceInfo {
     get() {
       AudioManager.RINGER_MODE_NORMAL
       AudioManager.RINGER_MODE_NORMAL
-      var am =
-        NativeMicroModule.getAppContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
+      val am = getAppContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
       return am.ringerMode
     }
 }

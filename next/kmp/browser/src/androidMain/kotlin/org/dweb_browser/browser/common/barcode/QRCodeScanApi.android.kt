@@ -39,7 +39,6 @@ import com.google.mlkit.vision.common.InputImage
 import org.dweb_browser.browser.R
 import org.dweb_browser.browser.util.isUrl
 import org.dweb_browser.browser.util.regexDeepLink
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import java.util.concurrent.Executors
 import kotlin.math.abs
@@ -131,7 +130,7 @@ actual fun CameraPreviewView(
 }
 
 actual fun beepAudio() {
-  (NativeMicroModule.getAppContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager)
+  (getAppContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager)
     .playSoundEffect(AudioManager.FX_KEY_CLICK, 1.0f)
 }
 
@@ -184,7 +183,7 @@ actual fun transformPoint(
 }
 
 actual fun openDeepLink(data: String) {
-  val context = NativeMicroModule.getAppContext()
+  val context = getAppContext()
   val deepLink = if (data.isUrl()) {
     "dweb://openinbrowser?url=$data"
   } else data

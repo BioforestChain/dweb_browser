@@ -26,7 +26,7 @@ class TaskbarView private constructor(
   companion object {
     suspend fun from(taskbarController: TaskbarController): ITaskbarView {
       val dwebView = IDWebView.create(
-        context = taskbarController.deskNMM.getAppContext(),
+        context = getAppContext(),
         remoteMM = taskbarController.deskNMM,
         options = DWebViewOptions(
           url = taskbarController.getTaskbarUrl().toString(),

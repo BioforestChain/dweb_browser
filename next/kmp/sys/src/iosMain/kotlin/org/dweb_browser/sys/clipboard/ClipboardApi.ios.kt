@@ -2,7 +2,7 @@ package org.dweb_browser.sys.clipboard
 
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.sys.permission.SystemPermissionName
-import org.dweb_browser.sys.permission.systemPermissionAdapterManager
+import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import platform.Foundation.NSData
 import platform.Foundation.NSURL
 import platform.Foundation.base64Encoding
@@ -13,7 +13,7 @@ import platform.UIKit.UIPasteboard
 
 actual class ClipboardApi {
   init {
-    systemPermissionAdapterManager.append {
+    SystemPermissionAdapterManager.append {
       if (task.name == SystemPermissionName.CLIPBOARD) {
         AuthorizationStatus.GRANTED
       } else null

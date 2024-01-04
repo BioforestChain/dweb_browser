@@ -109,6 +109,8 @@ class PermissionApplicantTMM :
             }) {
               Text("撤销")
             }
+          }
+          Row {
             ElevatedButton(onClick = {
               ioAsyncScope.launch {
                 okk = this@PermissionApplicantTMM.requestSystemPermissions(

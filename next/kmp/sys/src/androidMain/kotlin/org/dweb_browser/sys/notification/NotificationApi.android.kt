@@ -11,7 +11,6 @@ import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.sys.R
 
@@ -58,7 +57,7 @@ actual class NotificationManager {
     ),
   }
 
-  private val mContext = NativeMicroModule.getAppContext()
+  private val mContext = getAppContext()
   private var notifyId = 100 // 消息id，如果notify的id相同时，相当于修改而不是新增
   private var requestCode = 1 // 用于通知栏点击时，避免都是点击到最后一个
 

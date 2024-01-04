@@ -27,7 +27,7 @@ actual object BiometricsApi {
   actual suspend fun isSupportBiometrics(
     biometricsData: BiometricsData, biometricsNMM: BiometricsNMM
   ): Boolean {
-    return when (val info = BiometricManager.from(biometricsNMM.getAppContext())
+    return when (val info = BiometricManager.from(getAppContext())
       .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL)) {
       BiometricManager.BIOMETRIC_SUCCESS, BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
         debugBiometrics("canAuthenticate-true", info)

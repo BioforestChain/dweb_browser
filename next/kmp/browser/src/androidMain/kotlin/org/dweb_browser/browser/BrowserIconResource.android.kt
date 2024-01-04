@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.BitmapUtil
 import org.dweb_browser.helper.WeakHashMap
@@ -30,15 +29,14 @@ actual fun getIconResource(resource: BrowserIconResource): ImageBitmap? {
     BrowserIconResource.BrowserLauncher -> R.mipmap.ic_launcher
   }
   return iconResourceMap.getOrPut(iconResource) {
-    BitmapUtil.decodeBitmapFromResource(NativeMicroModule.getAppContext(), iconResource)
+    BitmapUtil.decodeBitmapFromResource(getAppContext(), iconResource)
       ?.asImageBitmap()
   }
 }
 
 actual object LocalBitmapManager {
   private fun getIconPath(id: Long): String {
-    val context = NativeMicroModule.getAppContext()
-    return context.filesDir.absolutePath + File.separator + "fav" + File.separator + "$id.png"
+    return getAppContext().filesDir.absolutePath + File.separator + "fav" + File.separator + "$id.png"
   }
 
   /**

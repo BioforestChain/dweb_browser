@@ -11,7 +11,6 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.PromiseOut
@@ -20,7 +19,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 @SuppressLint("MissingPermission")
 actual class LocationApi : LocationCallback() {
-  private val context = NativeMicroModule.getAppContext()
+  private val context = getAppContext()
   private var fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
   private val locationRequest = LocationRequest.create().also {
     it.interval = 10000 // 更新间隔10s

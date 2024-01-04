@@ -4,7 +4,6 @@ import android.content.ContentValues
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.toBase64ByteArray
@@ -32,7 +31,7 @@ private suspend fun savePicture(
       put(MediaStore.Video.Media.IS_PENDING, 1)
     }
   }
-  val context = NativeMicroModule.getAppContext()
+  val context = getAppContext()
   // 插入图片到系统图库
   val imageUri =
     context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)

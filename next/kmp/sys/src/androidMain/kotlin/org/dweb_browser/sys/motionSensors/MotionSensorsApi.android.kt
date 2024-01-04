@@ -14,8 +14,8 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 
 actual class MotionSensorsApi actual constructor(mm: NativeMicroModule) : SensorEventListener {
-  private val sensorManager =
-    mm.getAppContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+  private val sensorManager = getAppContext()
+    .getSystemService(Context.SENSOR_SERVICE) as SensorManager
   private val accelerometerSignal = Signal<org.dweb_browser.sys.motionSensors.Axis>()
   private var gyroscopeSignal = Signal<org.dweb_browser.sys.motionSensors.Axis>()
   private val mainScope = MainScope()

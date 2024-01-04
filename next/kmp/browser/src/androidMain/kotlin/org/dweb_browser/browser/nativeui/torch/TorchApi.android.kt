@@ -1,10 +1,9 @@
 package org.dweb_browser.browser.nativeui.torch
 
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 
 actual object TorchApi {
-  private val flashLightController by lazy { FlashLightController(NativeMicroModule.getAppContext()) }
+  private val flashLightController by lazy { FlashLightController(getAppContext()) }
 
   actual fun toggleTorch() {
     if (flashLightController.hasFlashlight()) {

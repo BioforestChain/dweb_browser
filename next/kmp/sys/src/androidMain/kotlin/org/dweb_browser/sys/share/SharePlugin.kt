@@ -9,15 +9,11 @@ import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.PromiseOut
 import java.io.File
 
 object SharePlugin {
-
-  val context get() = NativeMicroModule.getAppContext()
-
   /**
    * 打开分享界面
    * @param title Set a title for any message. This will be the subject if sharing to email
@@ -84,7 +80,7 @@ object SharePlugin {
       flags = flags or PendingIntent.FLAG_MUTABLE
     }
     val pi = PendingIntent.getBroadcast(
-      context, 0, Intent(Intent.EXTRA_CHOSEN_COMPONENT), flags
+      getAppContext(), 0, Intent(Intent.EXTRA_CHOSEN_COMPONENT), flags
     )
     val chooserIntent = Intent.createChooser(intent, shareOptions.title, pi.intentSender).apply {
       addCategory(Intent.CATEGORY_DEFAULT)
@@ -99,7 +95,6 @@ object SharePlugin {
     files: List<String>, intent: Intent, po: PromiseOut<String>
   ): ArrayList<Uri> {
     val arrayListFiles = arrayListOf<Uri>()
-    val context = NativeMicroModule.getAppContext()
     try {
       files.forEach { file ->
         if (isFileUrl(file)) {
@@ -109,6 +104,7 @@ object SharePlugin {
           }
           intent.type = type
           val fileUrl = Uri.parse(file)
+          val context = getAppContext()
           // android7 以上不能对外直接分享file://
           val shareFile = FileProvider.getUriForFile(
             context, "${context.packageName}.file.opener.provider", File(fileUrl.path!!)

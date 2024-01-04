@@ -20,7 +20,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
@@ -33,7 +32,7 @@ import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(
   mm: MicroModule, options: DWebViewOptions
-): IDWebView = create(NativeMicroModule.Companion.getAppContext(), mm, options)
+): IDWebView = create(getAppContext(), mm, options)
 
 suspend fun IDWebView.Companion.create(
   /**
