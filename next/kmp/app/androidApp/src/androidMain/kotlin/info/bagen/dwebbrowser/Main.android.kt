@@ -162,7 +162,6 @@ suspend fun startDwebBrowser(): DnsNMM {
       deskNMM.mmid,//
       locationNMM.mmid,
       qrCodeScanNMM.mmid,
-      multipartNMM.mmid
     ),
   ).setup()
 
