@@ -123,6 +123,11 @@ class PermissionApplicantTMM :
                     SystemPermissionName.CALL,
                     "测试获取电话权限",
                     description = "电话权限申请电话权限申请电话权限申请电话权限申请电话权限申请电话权限申请"
+                  ),
+                  SystemPermissionTask(
+                    SystemPermissionName.LOCATION,
+                    "测试获取定位",
+                    description = "定位权限申请定位权限申请定位权限申请定位权限申请定位权限申请定位权限申请"
                   )
                 ).let { Json.encodeToString(it) }
               }

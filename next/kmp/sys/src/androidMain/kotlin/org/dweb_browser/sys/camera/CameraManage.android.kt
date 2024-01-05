@@ -13,7 +13,7 @@ actual class CameraManage actual constructor(){
       if (task.name == SystemPermissionName.CAMERA) {
         PermissionActivity.launchAndroidSystemPermissionRequester(
           microModule,
-          AndroidPermissionTask(Manifest.permission.CAMERA, task.title, task.description)
+          AndroidPermissionTask(listOf(Manifest.permission.CAMERA), task.title, task.description)
         ).values.firstOrNull()
       } else null
     }

@@ -39,13 +39,17 @@ actual class LocationManage : LocationCallback() {
   private val onLocationChanged = locationChanged.toListener()
 
   init {
-
     SystemPermissionAdapterManager.append {
       if (task.name == SystemPermissionName.LOCATION) {
         PermissionActivity.launchAndroidSystemPermissionRequester(
           microModule,
-          AndroidPermissionTask(Manifest.permission.ACCESS_COARSE_LOCATION, task.title, task.description),
-          AndroidPermissionTask(Manifest.permission.ACCESS_FINE_LOCATION, task.title, task.description)
+          AndroidPermissionTask(
+            permissions = listOf(
+              Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION
+            ),
+            title = task.title,
+            description = task.description
+          ),
         ).values.firstOrNull()
       } else null
     }

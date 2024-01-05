@@ -38,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -264,17 +263,12 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
         val permissions = request.body.toPureString()
         debugPermission("request@sys", "ipc=>${ipc.remote.mmid}, permission=>$permissions")
         val permissionTaskList = Json.decodeFromString<List<SystemPermissionTask>>(permissions)
-        val windowController = getOrOpenMainWindow().apply {
-          this.show(); this.enableAlwaysOnTop(); this.focus()
-        }
         //val requestMicroModule = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@PermissionNMM
-        val result = requestSysPermission(
+        requestSysPermission(
           microModule = this@PermissionNMM, // requestMicroModule,
-          pureViewController = windowController.pureViewControllerState.value,
+          pureViewController = getOrOpenMainWindow().apply { hide() }.pureViewControllerState.value,
           permissionTaskList = permissionTaskList
-        )
-        windowController.hide()
-        result.toJsonElement()
+        ).toJsonElement()
       }
     )
 
