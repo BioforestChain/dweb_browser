@@ -1,15 +1,14 @@
 package org.dweb_browser.sys.media
 
-
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.usePinned
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultiPartFileEncode
+import org.dweb_browser.helper.platform.MultipartFieldDescription
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toUtf8ByteArray
-import platform.Foundation.NSData
-import platform.Foundation.dataWithBytes
+import org.dweb_browser.sys.scan.toNSData
+import platform.Foundation.NSMutableData
+import platform.Foundation.appendData
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageWriteToSavedPhotosAlbum
 
@@ -25,7 +24,8 @@ private fun savePicture(files: MultiPartFile) {
     MultiPartFileEncode.BASE64 -> files.data.toBase64ByteArray()
     MultiPartFileEncode.BINARY -> files.data.toUtf8ByteArray()
   }
-  val uiImage = byteArrayToUIImage(data)
+
+  val uiImage = UIImage(data = data.toNSData())
   //图片对象、目标对象、一个完成时调用的选择器（selector）以及一个上下文信息对象
   saveImageToPhotosAlbum(uiImage)
 }
@@ -42,11 +42,17 @@ fun saveImageToPhotosAlbum(image: UIImage) {
   )
 }
 
+actual fun MediaPicture.Companion.create(saveLocation: String, desc: MultipartFieldDescription): MediaPicture = MediaPictureImpl(saveLocation, desc)
 
-@OptIn(ExperimentalForeignApi::class)
-fun byteArrayToUIImage(byteArray: ByteArray): UIImage {
-  val data = byteArray.usePinned { pinned ->
-    NSData.dataWithBytes(pinned.addressOf(0), byteArray.size.toULong())
+class MediaPictureImpl(saveLocation: String, desc: MultipartFieldDescription) : MediaPicture(saveLocation, desc) {
+  val data = NSMutableData()
+  override suspend fun consumePicktureChunk(chunk: ByteArray) {
+    data.appendData(chunk.toNSData())
   }
-  return UIImage(data = data)
+
+  // TODO: 自定义存储目录需要权限
+  override suspend fun savePicture() {
+    val uiImage = UIImage(data = data)
+    saveImageToPhotosAlbum(uiImage)
+  }
 }

@@ -35,13 +35,40 @@ export class MediaPlugin extends BasePlugin {
   }
 
   /**
+   * 分享 multipart/form-data 暂未启用
+   * @param options
+   * @returns
+   */
+  #multipartSavePictures(options: MediaOption) {
+    const data = new FormData();
+    // if (options.files && options.files.length !== 0) {
+    //   for (let i = 0; i < options.files.length; i++) {
+    //     const file = options.files.item(i)!;
+    //     data.append("files", file);
+    //   }
+    // }
+
+    if (options.file) {
+      data.append("files", options.file);
+    }
+
+    return this.buildApiRequest("/savePictures", {
+      search: {
+        saveLocation: options.saveLocation,
+      },
+      method: "POST",
+      body: data,
+    }).fetch();
+  }
+
+  /**
    * 生成fileData
    * @param options
    * @returns
    */
   async #encodeFileData(options: MediaOption): Promise<FileData[]> {
     const fileList: FileData[] = [];
-  
+
     if (options.file && options.file.type.startsWith("image/")) {
       const data = await normalToBase64String(options.file);
 
