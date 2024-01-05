@@ -4,7 +4,10 @@ import io.ktor.http.content.MultiPartData
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.utils.io.core.readBytes
+import kotlinx.cinterop.BetaInteropApi
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
+import objcnames.classes.LPLinkMetadata
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.helper.toNSString
@@ -12,7 +15,13 @@ import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.scan.toNSData
 import platform.Foundation.NSData
 import platform.Foundation.NSURL
+import platform.Foundation.create
+import platform.Foundation.lastPathComponent
+import platform.UIKit.UIActivityItemSourceProtocol
+import platform.UIKit.UIActivityItemSourceProtocolMeta
+import platform.UIKit.UIActivityType
 import platform.UIKit.UIActivityViewController
+import platform.darwin.NSObject
 
 actual suspend fun share(
   shareOptions: ShareOptions,
@@ -43,7 +52,7 @@ actual suspend fun share(
       listFile
     }
 
-    val deferred = CompletableDeferred("")
+    val deferred = CompletableDeferred<String>()
     val activityItems = mutableListOf<Any>()
 
     shareOptions.title?.also { activityItems.add(it.toNSString()) }
@@ -86,7 +95,7 @@ actual suspend fun share(
     shareOptions.url?.also { activityItems.add(it.toNSString()) }
 
     files.forEach {
-      activityItems.add(NSURL.fileURLWithPath(it))
+      activityItems.add(NSURL.fileURLWithPath(it.replace("file://", "")))
     }
     val controller =
       UIActivityViewController(activityItems = activityItems, applicationActivities = null)

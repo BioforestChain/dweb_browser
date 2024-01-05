@@ -116,7 +116,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
               share(shareOptions, fileList, this@ShareNMM)
             } catch (e: Exception) {
               debugShare("ContentType/Form", "receiveMultipart error -> ${e.message}")
-              share(shareOptions, null)
+              share(shareOptions, null, this@ShareNMM)
             }
 
           contentType.match(ContentType.Application.Json) -> {
@@ -150,7 +150,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
               false,
               "Unable to process $contentType"
             ).toJsonElement()*/
-            share(shareOptions, null)
+            share(shareOptions, null, this@ShareNMM)
           }
         }
 

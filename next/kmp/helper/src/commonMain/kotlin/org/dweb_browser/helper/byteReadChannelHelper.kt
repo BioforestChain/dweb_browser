@@ -102,5 +102,7 @@ suspend inline fun ByteReadChannel.consumeEachByteArrayPacket(visitor: ChannelCo
     }
   } catch (e: ClosedReceiveChannelException) {
     // closed
+  } catch (e: EOFException) {
+    // closed
   }
 }

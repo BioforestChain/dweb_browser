@@ -20,6 +20,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
+import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
@@ -119,6 +120,8 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   val motionSensorsNMM = MotionSensorsNMM().setup()
   /// 媒体操作
   val mediaNMM = MediaNMM().setup()
+  /// multipart
+  val multipartNMM = MultipartNMM().setup()
 
 
   /// 安装Jmm
