@@ -84,7 +84,7 @@ fun QRCodeScanView(
   val qrCodeScanModel = LocalQRCodeModel.current
   DisposableEffect(qrCodeScanModel) {
     val off = qrCodeScanModel.onStateChange {
-      if (it != QRCodeState.Scanning || qrCodeScanModel.checkPermission()) {
+      if (it != QRCodeState.Scanning || qrCodeScanModel.requestPermission()) {
         qrCodeScanModel.state.value = it
       }
     }

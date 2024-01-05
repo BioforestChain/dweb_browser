@@ -30,6 +30,7 @@ import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
+import org.dweb_browser.sys.toast.ext.showToast
 
 class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
@@ -273,9 +274,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
     this.resolvePath(resolve)
   }
 
-  suspend fun showToastText(message: String) {
-    jmmNMM.nativeFetch("file://toast.sys.dweb/show?message=$message")
-  }
+  suspend fun showToastText(message: String) = jmmNMM.showToast(message)
 }
 
 

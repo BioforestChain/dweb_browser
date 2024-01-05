@@ -21,13 +21,13 @@ import org.dweb_browser.browser.util.isDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.browser.web.BrowserController
-import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.data.BrowserContentItem
 import org.dweb_browser.browser.web.data.ConstUrl
 import org.dweb_browser.browser.web.data.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browser.web.data.KEY_NO_TRACE
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType
+import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer
@@ -43,6 +43,7 @@ import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.toast.ext.showToast
 
 val LocalBrowserModel = compositionChainOf<BrowserViewModel>("BrowserModel")
 
@@ -428,9 +429,7 @@ class BrowserViewModel(
   }
 
   fun showToastMessage(message: String) {
-    browserController.ioAsyncScope.launch {
-      browserNMM.nativeFetch("file://toast.sys.dweb/show?message=$message")
-    }
+    browserController.ioAsyncScope.launch { browserNMM.showToast(message) }
   }
 }
 

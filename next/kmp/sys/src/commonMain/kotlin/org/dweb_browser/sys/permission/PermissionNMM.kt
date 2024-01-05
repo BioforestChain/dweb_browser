@@ -56,7 +56,6 @@ import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
-import org.dweb_browser.sys.SysI18nResource
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.helper.toStrict
@@ -103,7 +102,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
         val submitDeferred = CompletableDeferred<Unit>()
 
         val modal = createBottomSheets(
-          title = "${applicant.name} ${SysI18nResource.permission_title_request.text}",
+          title = "${applicant.name} ${PermissionI18nResource.request_title.text}",
           iconUrl = "file:///sys/icons/$mmid.svg"
         ) {
           Card(elevation = CardDefaults.cardElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp, 0.dp)) {
@@ -114,7 +113,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                 horizontalAlignment = Alignment.CenterHorizontally,
               ) {
                 Text(
-                  text = SysI18nResource.permission_title_request.text,
+                  text = PermissionI18nResource.request_title.text,
                   style = MaterialTheme.typography.titleLarge
                 )
                 val applicantIcon = remember {
@@ -214,7 +213,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                     }
                     submitDeferred.complete(Unit)
                   }) {
-                  Text(text = SysI18nResource.permission_button_refuse())
+                  Text(text = PermissionI18nResource.request_button_refuse())
                 }
 
                 Row {
@@ -224,7 +223,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                     }
                     submitDeferred.complete(Unit)
                   }) {
-                    Text(text = SysI18nResource.permission_button_confirm())
+                    Text(text = PermissionI18nResource.request_button_confirm())
                   }
                   Spacer(Modifier.width(8.dp))
                   ElevatedButton(onClick = {
@@ -233,7 +232,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                     }
                     submitDeferred.complete(Unit)
                   }) {
-                    Text(text = SysI18nResource.permission_button_authorize_all())
+                    Text(text = PermissionI18nResource.request_button_authorize_all())
                   }
                 }
               }

@@ -40,8 +40,8 @@ class QRCodeScanModel {
   /**
    * 获取权限
    */
-  suspend fun checkPermission(): Boolean =
-    QRCodeScanController.controller.checkPermission()
+  suspend fun requestPermission(): Boolean =
+    QRCodeScanController.controller.requestPermission()
 
   /**
    * 解析图片

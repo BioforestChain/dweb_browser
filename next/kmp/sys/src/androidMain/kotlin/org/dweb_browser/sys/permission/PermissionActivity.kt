@@ -3,20 +3,17 @@ package org.dweb_browser.sys.permission
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CompletableDeferred
@@ -101,7 +98,9 @@ class PermissionActivity : BaseActivity() {
     setContent {
       DwebBrowserAppTheme {
         Box(modifier = Modifier.fillMaxSize()) {
-          PermissionTipsView(androidPermissionTask)
+          PermissionTipsView(
+            title = androidPermissionTask.title, description = androidPermissionTask.description
+          )
         }
       }
     }
@@ -127,22 +126,11 @@ class PermissionActivity : BaseActivity() {
 }
 
 @Composable
-private fun PermissionTipsView(permissionTips: AndroidPermissionTask) {
-  Column(
-    modifier = Modifier
-      .fillMaxWidth()
-      .padding(16.dp)
-      .clip(RoundedCornerShape(16.dp))
-      .background(MaterialTheme.colorScheme.primary)
-      .shadow(elevation = 2.dp)
-  ) {
+fun PermissionTipsView(modifier: Modifier = Modifier, title: String, description: String) {
+  Card(modifier = modifier, border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)) {
     ListItem(
-      headlineContent = {
-        Text(text = permissionTips.title)
-      },
-      supportingContent = {
-        Text(text = permissionTips.description)
-      }
+      headlineContent = { Text(text = title) },
+      supportingContent = { Text(text = description) }
     )
   }
 }

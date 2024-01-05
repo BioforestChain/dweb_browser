@@ -35,6 +35,7 @@ import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureStreamBody
+import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
@@ -211,7 +212,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     if (!response.isOk) {
       task.status.state = DownloadState.Failed
       task.status.stateMessage = response.status.description
-      downloadNMM.nativeFetch("file://toast.sys.dweb/show?message=${response.status}")
+      downloadNMM.showToast(response.status.toString())
     } else {
       // 下载流程初始化成功
       task.status.state = DownloadState.Init

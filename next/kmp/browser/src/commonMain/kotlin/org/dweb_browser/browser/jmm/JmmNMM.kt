@@ -23,6 +23,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindowId
@@ -101,7 +102,7 @@ class JmmNMM :
         val response = nativeFetch(metadataUrl)
         if (!response.isOk) {
           val message = "invalid status code: ${response.status}"
-          nativeFetch("file://toast.sys.dweb/show?message=$message")
+          showToast(message)
           throwException(HttpStatusCode.ExpectationFailed, message)
         }
         val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
