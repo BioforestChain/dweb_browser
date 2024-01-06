@@ -9,28 +9,26 @@ plugins {
 kotlin {
   kmpAndroidTarget()
   sourceSets {
-    val androidMain by getting {
-      dependencies {
-        dependencies {
-          // AndroidX
-          implementation(libs.androidx.activity.compose)
-          implementation(libs.androidx.appcompat)
-          implementation(libs.androidx.core.ktx)
-          implementation(libs.androidx.core.splashscreen)
+    androidMain.dependencies {
+      // AndroidX
+      implementation(libs.androidx.activity.compose)
+      implementation(libs.androidx.appcompat)
+      implementation(libs.androidx.core.ktx)
+      implementation(libs.androidx.core.splashscreen)
 
-          // Jetbrains Compose
-          implementation(libs.jetbrains.compose.runtime)
-          implementation(libs.jetbrains.compose.foundation)
-          implementation(libs.jetbrains.compose.components.resources)
+      // Jetbrains Compose
+      implementation(libs.jetbrains.compose.runtime)
+      implementation(libs.jetbrains.compose.foundation)
+      implementation(libs.jetbrains.compose.components.resources)
 
-          implementation(libs.jetbrains.compose.material)
-          implementation(libs.jetbrains.compose.material3)
-          implementation(libs.jetbrains.compose.materialIcons)
+      implementation(libs.jetbrains.compose.material)
+      implementation(libs.jetbrains.compose.material3)
+      implementation(libs.jetbrains.compose.materialIcons)
 
-          // Google.accompanist 相关
-          implementation(libs.accompanist.webview)
-          implementation(libs.accompanist.permissions)
-          implementation(libs.accompanist.systemui.controller)
+      // Google.accompanist 相关
+      implementation(libs.accompanist.webview)
+      implementation(libs.accompanist.permissions)
+      implementation(libs.accompanist.systemui.controller)
 
 
 //          //扫码核心库
@@ -40,24 +38,20 @@ kotlin {
 //          implementation(libs.camera.lifecycle)
 //          implementation(libs.camera.barcode)
 
-          // test
-          implementation(libs.compose.ui.preview)
-          // 七牛
-          // implementation(libs.qiniu.upload)
+      // test
+      implementation(libs.compose.ui.preview)
 
-          implementation(projects.shared)
-          implementation(projects.helper)
-          implementation(projects.helperCompose)
-          implementation(projects.helperPlatform)
-          implementation(projects.pureHttp)
-          implementation(projects.pureImage)
-          implementation(projects.core)
-          implementation(projects.window)
-          implementation(projects.sys)
-          implementation(projects.browser)
-          implementation(projects.dWebView)
-        }
-      }
+      implementation(projects.shared)
+      implementation(projects.helper)
+      implementation(projects.helperCompose)
+      implementation(projects.helperPlatform)
+      implementation(projects.pureHttp)
+      implementation(projects.pureImage)
+      implementation(projects.core)
+      implementation(projects.window)
+      implementation(projects.sys)
+      implementation(projects.browser)
+      implementation(projects.dWebView)
     }
   }
 }
@@ -71,27 +65,27 @@ android {
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
 
-    //ndk.abiFilters.addAll(listOf("arm64-v8a"))
+//ndk.abiFilters.addAll(listOf("arm64-v8a"))
   }
 
   packaging {
     resources {
       excludes += "/META-INF/versions/9/previous-compilation-data.bin"
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
-      // 添加 http4k 框架后，会有异常报错，需要添加如下内容
+// 添加 http4k 框架后，会有异常报错，需要添加如下内容
       excludes += "/META-INF/INDEX.LIST"
       excludes += "/META-INF/DEPENDENCIES"
     }
   }
   signingConfigs {
     create("release") {
-      // 使用 keytool -printcert -jarfile app_release.apk 直接打印 jar 签名信息
-      // 使用 jarsigner --verify app_release.apk 提示"jar 已验证。"
-      // 使用 apksigner verify -v app_release.apk 显示如下，V1 为false，但实际是有签名的。只有当minSdk改为<24的版本，这边的验证才会提现为true
-      //    Verified using v1 scheme (JAR signing): false
-      //    Verified using v2 scheme (APK Signature Scheme v2): true
-      //    Verified using v3 scheme (APK Signature Scheme v3): false
-      //    Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+// 使用 keytool -printcert -jarfile app_release.apk 直接打印 jar 签名信息
+// 使用 jarsigner --verify app_release.apk 提示"jar 已验证。"
+// 使用 apksigner verify -v app_release.apk 显示如下，V1 为false，但实际是有签名的。只有当minSdk改为<24的版本，这边的验证才会提现为true
+//    Verified using v1 scheme (JAR signing): false
+//    Verified using v2 scheme (APK Signature Scheme v2): true
+//    Verified using v3 scheme (APK Signature Scheme v3): false
+//    Verified using v3.1 scheme (APK Signature Scheme v3.1): false
       enableV1Signing = true
       enableV2Signing = true
       enableV3Signing = false

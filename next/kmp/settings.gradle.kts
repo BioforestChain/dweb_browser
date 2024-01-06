@@ -35,8 +35,8 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include("androidApp")
 project(":androidApp").projectDir = file("app/androidApp")
-//include("desktopApp")
-//project(":desktopApp").projectDir = file("app/desktopApp")
+include("desktopApp")
+project(":desktopApp").projectDir = file("app/desktopApp")
 
 include(
   ":shared",

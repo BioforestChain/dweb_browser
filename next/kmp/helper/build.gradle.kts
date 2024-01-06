@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-  kmpJsTarget(libs, JsPlatform.Node, JsPlatform.Browser, JsPlatform.Electron)
+  kmpJsTarget(libs)
   sourceSets {
     jsMain.dependencies {
       api(libs.whyoleg.cryptography.provider.webcrypto)

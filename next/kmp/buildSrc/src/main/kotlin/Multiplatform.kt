@@ -53,39 +53,18 @@ fun KotlinMultiplatformExtension.kmpIosTarget() {
   iosSimulatorArm64()
 }
 
-
-enum class JsPlatform {
-  Browser,
-  Node,
-  Electron,
-  ;
-}
-
-
-fun KotlinMultiplatformExtension.kmpJsTarget(libs: LibrariesForLibs, vararg platforms: JsPlatform) {
+fun KotlinMultiplatformExtension.kmpJsTarget(libs: LibrariesForLibs) {
   js(IR) {
-    if (platforms.contains(JsPlatform.Browser)) {
-      browser()
-    }
-    if (platforms.contains(JsPlatform.Node)) {
-      nodejs()
-    }
+    browser()
     generateTypeScriptDefinitions()
   }
 
   sourceSets.jsMain.dependencies {
     implementation(project.dependencies.enforcedPlatform(libs.kotlin.wrappers.bom))
     implementation(libs.kotlin.js)
-    if (platforms.contains(JsPlatform.Browser)) {
-      implementation(libs.kotlin.web)
-      implementation(libs.kotlin.browser)
-    }
-    if (platforms.contains(JsPlatform.Node)) {
-      implementation(libs.kotlin.node)
-    }
-    if (platforms.contains(JsPlatform.Electron)) {
-      implementation(libs.kotlin.electron)
-    }
+    implementation(libs.kotlin.web)
+    implementation(libs.kotlin.browser)
+    implementation(libs.kotlinx.html)
   }
 }
 

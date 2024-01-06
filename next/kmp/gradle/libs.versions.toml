@@ -32,6 +32,7 @@ kotlinx-coroutines = "1.7.3"
 kotlinx-datetime-version = "0.5.0"
 kotlinx-atomicfu-version = "0.23.1"
 kotlinx-io-version = "0.3.0"
+kotlinx-html-version = "0.9.1"
 okio-version = "3.7.0"
 cryptography-version = "0.2.0"
 
@@ -45,7 +46,7 @@ camera-version = "1.4.0-alpha03"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
 jetbrains-compose-version = "1.5.11"
-kotlin-wrappers-bom = "1.0.0-pre.674"
+kotlin-wrappers-bom = "1.0.0-pre.681"
 
 # 测试
 test-junit-bom = "5.9.2"
@@ -110,6 +111,7 @@ kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime-version" }
 kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "kotlinx-atomicfu-version" }
 kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io-version" }
+kotlinx-html = { group = "org.jetbrains.kotlinx", name = "kotlinx-html", version.ref = "kotlinx-html-version" }
 squareup-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio-version" }
 squareup-okio-nodefilesystem = { group = "com.squareup.okio", name = "okio-nodefilesystem", version.ref = "okio-version" }
 whyoleg-cryptography-core = { group = "dev.whyoleg.cryptography", name = "cryptography-core", version.ref = "cryptography-version" }

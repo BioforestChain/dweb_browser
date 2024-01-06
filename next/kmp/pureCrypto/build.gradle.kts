@@ -4,6 +4,7 @@ plugins {
 
 kotlin {
   kmpLibraryTarget(libs)
+  kmpJsTarget(libs)
 //  kmpWasiTarget(libs)
   sourceSets {
 //    jsMain {

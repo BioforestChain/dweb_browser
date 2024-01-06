@@ -26,7 +26,7 @@
     > 建议直接安装 node>=20
 
     - 1. `npm i -g pnpm`: 前端包管理器 pnpm，通常工具链的开发会用它
-    - 1. `npm i -g yarn`: 前端包管理器 yarn，直接面向工程的开发会用它
+    - 1. `npm i -g yarn`: 前端包管理器 yarn，直接面向工程的开发会用它，Android Studio 运行 jsTarget 的时候也会用到它
 
 1.  **安装 JDK17+**
 
@@ -49,4 +49,8 @@
      1. 然后就可以选择 `scheme` 为 `iosApp` ； `configuration` 建议是 `Debug`
      1. 最后是 `target`，可以选模拟器，如果你的真机设备找不到，那么就卸载重装`Kotlin Multiplatform Mobile`插件，然后通常就能选择真机设备了，反正只要找不到，就重装插件就行
    - 如果是 IOS 用户也可以直接使用 xcode 打开`next/kmp/app/iosApp/iosApp.xcodeproj`，直接运行即可
-   - 如果是 IOS 用户，注意因为 Kotlin 1.9.21 的增量编译还存在 BUG，修改 Compose 代码会存在异常（[KT-63789](https://youtrack.jetbrains.com/issue/KT-63789)），所以如果你在开发的过程中修改了 Compose 相关的代码，需要删除掉 shared/build 再进行编译。非 Compose 代码则基本不需要，但指不定还是会出问题，此时只能建议删除 shared/build 再做编译
+
+## 小提示 Tips
+
+1. 使用 Android Studio 开发 jsTarget 的时候，如果遇到`yarn.lock was changed. Run the 'kotlinUpgradeYarnLock' task to actualize yarn.lock file` 这样的错误，那么在 Android Studio 的 Gradle 面板中选择第一个按钮“Execute Gradle Task”，在弹出面板的 input 中，填写`gradle kotlinUpgradeYarnLock`，运行即可。
+1. 使用 Android Studio 开发 iosApp 的时候，注意因为 Kotlin 1.9.21 的增量编译还存在 BUG，修改 Compose 代码会存在异常（[KT-63789](https://youtrack.jetbrains.com/issue/KT-63789)），所以如果你在开发的过程中修改了 Compose 相关的代码，需要删除掉 shared/build 再进行编译。非 Compose 代码则基本不需要，但指不定还是会出问题，此时只能建议删除 shared/build 再做编译
