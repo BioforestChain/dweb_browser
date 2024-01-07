@@ -13,6 +13,9 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   kotlinOptions {
@@ -143,13 +146,18 @@ fun Project.configureJvmTests(fn: Test.() -> Unit = {}) {
 }
 
 fun Project.configureNodejs() {
-  plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
+  plugins.withType<NodeJsRootPlugin> {
     // 不要下载 nodejs 可执行文件，默认环境里头已经有了
-    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().download =
-      false
+    rootProject.the<NodeJsRootExtension>().apply {
+      download = false
+      nodeVersion = "21.5.1"
+      nodeDownloadBaseUrl = "https://nodejs.org/download/release"
+    }
 
     // 下载 yarn 可执行文件，默认环境里头已经有了
-    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension>().download =
-      false
+    rootProject.the<YarnRootExtension>().apply {
+      download = false
+      ignoreScripts = false
+    }
   }
 }
