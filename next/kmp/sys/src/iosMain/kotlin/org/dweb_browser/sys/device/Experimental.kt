@@ -1,4 +1,4 @@
-package com.russhwolf.settings
+package org.dweb_browser.sys.device
 
 import kotlin.annotation.AnnotationTarget.CLASS
 import kotlin.annotation.AnnotationTarget.CONSTRUCTOR

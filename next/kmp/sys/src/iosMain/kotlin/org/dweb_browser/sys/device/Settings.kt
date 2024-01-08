@@ -1,4 +1,4 @@
-package com.russhwolf.settings
+package org.dweb_browser.sys.device
 
 
 public interface Settings {
