@@ -1,3 +1,4 @@
+
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
@@ -7,15 +8,11 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   kotlinOptions {
@@ -142,22 +139,5 @@ fun Project.configureJvmTests(fn: Test.() -> Unit = {}) {
       events("passed", "skipped", "failed")
     }
     fn()
-  }
-}
-
-fun Project.configureNodejs() {
-  plugins.withType<NodeJsRootPlugin> {
-    // 不要下载 nodejs 可执行文件，默认环境里头已经有了
-    rootProject.the<NodeJsRootExtension>().apply {
-      download = false
-      nodeVersion = "21.5.1"
-      nodeDownloadBaseUrl = "https://nodejs.org/download/release"
-    }
-
-    // 下载 yarn 可执行文件，默认环境里头已经有了
-    rootProject.the<YarnRootExtension>().apply {
-      download = false
-      ignoreScripts = false
-    }
   }
 }

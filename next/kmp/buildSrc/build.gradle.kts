@@ -36,11 +36,13 @@ dependencies {
   implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }
 tasks.withType<JavaCompile>().configureEach {
+  println("JavaCompile: $name")
   val javaVersion = libs.versions.jvmTarget.get()
   sourceCompatibility = javaVersion
   targetCompatibility = javaVersion
 }
 tasks.withType<KotlinJvmCompile>().configureEach {
+  println("KotlinJvmCompile: $name")
   val jvmTarget = JvmTarget.fromTarget(libs.versions.jvmTarget.get())
   compilerOptions.jvmTarget.set(jvmTarget)
 }

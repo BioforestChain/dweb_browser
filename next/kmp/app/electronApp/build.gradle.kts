@@ -1,10 +1,13 @@
-
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsExec
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject
-import org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask
 
 plugins {
   id("target-common")
+  id("target-js")
+}
+
+beforeEvaluate {
+  configureYarn()
 }
 
 kotlin {
@@ -14,7 +17,6 @@ kotlin {
     generateTypeScriptDefinitions()
     binaries.executable()
   }
-  configureNodejs()
   sourceSets {
     jsMain.dependencies {
       implementation(project.dependencies.enforcedPlatform(libs.kotlin.wrappers.bom))
@@ -34,23 +36,36 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstall
   .configureEach {
 
   }
+/**
+ * 为一个项目提供 "electron" 的属性设置
+ *
+ * 在 electronApp 的 package.json 创建之后，写入 "electron" 属性
+ */
 fun Project.createElectronProject(
   taskName: String,
   mainFileName: Provider<String>,
   outputDirectory: Provider<File>,
 ): TaskProvider<Task> = tasks.register(taskName, Task::class) {
+  dependsOn(":electronApp:jsPackageJson")
   doFirst {
     val electronMjs = File(outputDirectory.get(), "package.json")
-    val newJson = electronMjs.readText().replace("\n}\n",""",
+    val newJson = electronMjs.readText().replace(
+      "\n}\n", """,
       "electron":{
       
       }
     }
-    """.trimIndent())
+    """.trimIndent()
+    )
     electronMjs.writeText(newJson)
   }
 }
 
+/**
+ * 为一个项目提供 electron 启动指令
+ *
+ * 从而可以执行 ./gradlew :PROJECT:electronRun 的指令
+ */
 fun Project.createElectronExec(
   npmProject: NpmProject,
   mainFile: Provider<RegularFile>,
@@ -59,7 +74,8 @@ fun Project.createElectronExec(
 ): TaskProvider<Exec> {
 
   val outputDirectory = provider { npmProject.dir }
-  val mainFileName = mainFile.map { it.asFile.toPath().relativize(npmProject.dir.toPath()).toString() }
+  val mainFileName =
+    mainFile.map { it.asFile.toPath().relativize(npmProject.dir.toPath()).toString() }
 
   val electronFileTask = createElectronProject(
     taskName = "${taskName}CreateProject",
@@ -91,10 +107,9 @@ fun Project.createElectronExec(
 }
 
 
-//rootProject.the<NodeJsRootExtension>().apply {
-//    nodeVersion = "21.5.1"
-//    nodeDownloadBaseUrl = "https://nodejs.org/download/release"
-//}
+/**
+ * 在buildSrc执行后，当前这个project的tasks列出来了，我们可以基于这些task开始我们自己的扩展注册了
+ */
 gradle.projectsEvaluated {
   println("beforeProject: $name")
 
@@ -134,18 +149,6 @@ gradle.projectsEvaluated {
       dependsOn(
         project.provider { this@all.taskDependencies }
       )
-    }
-  }
-}
-
-tasks.withType<KotlinNpmInstallTask>().configureEach {
-
-  println("KotlinNpmInstallTask: $name")
-  args.add("--ignore-engines")
-  doFirst {
-    exec {
-      println("in '${workingDir.absolutePath}', run `yarn set version latest`.")
-      commandLine("yarn", "set", "version", "latest")
     }
   }
 }
