@@ -12,7 +12,6 @@ private let snapshotId = "_snapshot"
 
 // 保存页面快照到本地文件，以便下次打开app使用
 extension UIImage {
-//    static var defaultSnapShotImage = UIImage.bundleImage(name: "snapshot")
     static var defaultWebIconImage = UIImage.assetsImage(name: "def_web_icon")
 
     // 保存图片到本地文件
@@ -51,7 +50,7 @@ extension UIImage {
         do {
             image = try UIImage(data: Data(contentsOf: localUrl))!
         } catch {
-            image = .bundleImage(name: "snapshot")
+            image = lightSnapshotImage
         }
         return image!
     }
