@@ -8,6 +8,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.sys.boot.BootNMM
 import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
+import org.dweb_browser.sys.share.ext.postSystemShare
 
 class TestEntry {
 
@@ -21,12 +22,7 @@ class TestEntry {
   suspend fun doShareTest() {
     println("[iOS Test] doShareTest")
     val bootNMM = readyForTest(ShareNMM())
-//        val body = IPureBody()
-    val request = PureClientRequest(
-      "file://share.sys.dweb/share?title=Hello&text=Contentxxxxxx",
-      PureMethod.POST
-    )
-    bootNMM.nativeFetch(request)
+    bootNMM.postSystemShare(title = "Hello", text = "Contentxxxxxx")
   }
 
   suspend fun readyForTest(testNMM: NativeMicroModule): BootNMM {

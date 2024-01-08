@@ -1,6 +1,11 @@
 package org.dweb_browser.browser.common.barcode
 
 import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,25 +19,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.LocalCompositionChain
-import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 
-class ScanningActivity : PureViewController() {
+class ScanningActivity : ComponentActivity() {
   companion object {
     const val IntentFromIPC = "fromIPC"
   }
 
   private val showTips = mutableStateOf(false)
 
-  init {
-    onCreate { params ->
-      // 隐藏系统工具栏
-//      val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-//      windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    val fromIpc = intent.getBooleanExtra(IntentFromIPC, false)
 
-      val fromIpc = params.getBoolean(IntentFromIPC) ?: false
-
-      addContent {
+    setContent {
+      DwebBrowserAppTheme {
         val qrCodeScanModel = remember { QRCodeScanModel() }
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
           LocalCompositionChain.current.Provider(
@@ -52,15 +56,18 @@ class ScanningActivity : PureViewController() {
           PermissionTipsView(showTips)
 
           LaunchedEffect(qrCodeScanModel) {
-            if (!checkPermission(Manifest.permission.CAMERA)) {
+            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
               showTips.value = true
-              val result = requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-              if (result) {
-                showTips.value = false
-                qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
-              } else {
-                finish()
-              }
+              registerForActivityResult(ActivityResultContracts.RequestPermission()) { result ->
+                if (result) {
+                  showTips.value = false
+                  lifecycleScope.launch {
+                    qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
+                  }
+                } else {
+                  finish()
+                }
+              }.launch(Manifest.permission.CAMERA)
             } else {
               qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
             }
@@ -68,9 +75,11 @@ class ScanningActivity : PureViewController() {
         }
       }
     }
-    onStop {
-      finish()
-    }
+  }
+
+  override fun onStop() {
+    super.onStop()
+    finish()
   }
 }
 

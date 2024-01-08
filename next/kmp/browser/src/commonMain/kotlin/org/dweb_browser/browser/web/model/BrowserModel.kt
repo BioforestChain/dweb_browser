@@ -43,6 +43,7 @@ import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.share.ext.postSystemShare
 import org.dweb_browser.sys.toast.ext.showToast
 
 val LocalBrowserModel = compositionChainOf<BrowserViewModel>("BrowserModel")
@@ -307,11 +308,8 @@ class BrowserViewModel(
         return@let
       }
       val title = contentWebItem.viewItem.webView.getTitle()
-
-      val request =
-        PureClientRequest("file://share.sys.dweb/share?title=${title}&url=$url", PureMethod.POST)
-      if (browserNMM.nativeFetch(request).boolean()) {
-        showToastMessage("")
+      browserNMM.postSystemShare(title = title, url = url).let { result ->
+        if (!result.success) { showToastMessage(result.message) }
       }
     } ?: showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
   }

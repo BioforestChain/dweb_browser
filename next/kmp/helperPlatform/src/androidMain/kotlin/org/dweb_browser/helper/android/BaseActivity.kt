@@ -27,7 +27,7 @@ abstract class BaseActivity : ComponentActivity() {
     init {
       activity.queueResultLauncherRegistries.add {
         launcher = activity.registerForActivityResult(contract) {
-          tasks.removeFirst().resolve(it);
+          tasks.removeFirst().resolve(it)
         }
       }
     }

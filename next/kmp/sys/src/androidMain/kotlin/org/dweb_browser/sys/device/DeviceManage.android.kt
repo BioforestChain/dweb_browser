@@ -1,13 +1,33 @@
 package org.dweb_browser.sys.device
 
+import android.Manifest
 import android.os.Environment
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.sys.permission.AndroidPermissionTask
+import org.dweb_browser.sys.permission.PermissionActivity
+import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
+import org.dweb_browser.sys.permission.SystemPermissionName
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
 
 actual class DeviceManage actual constructor() {
+
+  init {
+    SystemPermissionAdapterManager.append {
+      if (task.name == SystemPermissionName.PHONE) {
+        PermissionActivity.launchAndroidSystemPermissionRequester(
+          microModule,
+          AndroidPermissionTask(
+            listOf(Manifest.permission.READ_PHONE_STATE),
+            task.title,
+            task.description
+          )
+        ).values.firstOrNull()
+      } else null
+    }
+  }
 
   actual fun deviceUUID(): String {
     return getDeviceUUID()

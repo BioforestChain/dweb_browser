@@ -37,7 +37,7 @@ class BootNMM(initMmids: List<MMID>? = null) :
       register(ipc.remote.mmid)
     }, "/unregister" bind PureMethod.GET by defineBooleanResponse {
       unregister(ipc.remote.mmid)
-    })
+    }).protected("dns.std.dweb")
     for (mmid in registeredMmids) {
       debugBoot("open", mmid)
       bootstrapContext.dns.open(mmid)

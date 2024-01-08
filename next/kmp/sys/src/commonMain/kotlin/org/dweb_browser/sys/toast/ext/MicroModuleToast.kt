@@ -7,9 +7,7 @@ import org.dweb_browser.sys.toast.EToast
 import org.dweb_browser.sys.toast.PositionType
 
 suspend fun NativeMicroModule.showToast(
-  message: String,
-  duration: EToast? = null,
-  position: PositionType? = null
+  message: String, duration: EToast? = null, position: PositionType? = null
 ) =
   nativeFetch(buildUrlString("file://toast.sys.dweb/show") {
     parameters["message"] = message

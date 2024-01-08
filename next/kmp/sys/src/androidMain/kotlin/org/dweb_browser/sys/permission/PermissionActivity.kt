@@ -1,18 +1,20 @@
 package org.dweb_browser.sys.permission
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -26,7 +28,6 @@ import org.dweb_browser.core.module.startAppActivity
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.debugPermission
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.getString
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.randomUUID
@@ -44,7 +45,7 @@ data class AndroidPermissionTask(
   val description: String
 )
 
-class PermissionActivity : BaseActivity() {
+class PermissionActivity : ComponentActivity() {
   companion object {
     private val launchTasks = mutableMapOf<UUID, CompletableDeferred<TaskResult>>()
     suspend fun launchAndroidSystemPermissionRequester(
@@ -78,15 +79,23 @@ class PermissionActivity : BaseActivity() {
     val taskId = intent.getStringExtra(EXTRA_TASK_ID_KEY) ?: return finish()
 
     val taskResult = (TaskResult::toMutableMap)(mapOf())
+    val showTipsView = mutableStateOf(false)
 
     lifecycleScope.launch {
       if (androidPermissionTask.permissions.size == 1) {
         val curPermission = androidPermissionTask.permissions.first()
+        if (checkSelfPermission(curPermission) != PackageManager.PERMISSION_GRANTED) {
+          showTipsView.value = true
+        }
         taskResult[curPermission] =
-          parseAuthorizationStatus(curPermission, requestPermissionLauncher.launch(curPermission))
+          parseAuthorizationStatus(curPermission, requestPermissionLauncher(curPermission))
       } else if (androidPermissionTask.permissions.size > 1) {
-        val launchResult =
-          requestMultiplePermissionsLauncher.launch(androidPermissionTask.permissions.toTypedArray())
+        for (curPermission in androidPermissionTask.permissions) {
+          if (checkSelfPermission(curPermission) != PackageManager.PERMISSION_GRANTED) {
+            showTipsView.value = true; break
+          }
+        }
+        val launchResult = requestMultiplePermissionsLauncher(androidPermissionTask.permissions)
         for ((key, value) in launchResult) {
           taskResult[key] = parseAuthorizationStatus(key, value)
         }
@@ -97,6 +106,7 @@ class PermissionActivity : BaseActivity() {
 
     setContent {
       DwebBrowserAppTheme {
+        if (!showTipsView.value) return@DwebBrowserAppTheme
         Box(modifier = Modifier.fillMaxSize()) {
           PermissionTipsView(
             title = androidPermissionTask.title, description = androidPermissionTask.description
@@ -105,6 +115,20 @@ class PermissionActivity : BaseActivity() {
       }
     }
   }
+
+  private suspend fun requestPermissionLauncher(permission: String) =
+    CompletableDeferred<Boolean>().also { deferred ->
+      registerForActivityResult(ActivityResultContracts.RequestPermission()) { result ->
+        deferred.complete(result)
+      }.launch(permission)
+    }.await()
+
+  private suspend fun requestMultiplePermissionsLauncher(permissions: List<String>) =
+    CompletableDeferred<Map<String, Boolean>>().also { deferred ->
+      registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+        deferred.complete(result)
+      }.launch(permissions.toTypedArray())
+    }.await()
 
   private fun parseAuthorizationStatus(permission: String, grant: Boolean): AuthorizationStatus {
     val status = if (grant) { // 授权成功时执行

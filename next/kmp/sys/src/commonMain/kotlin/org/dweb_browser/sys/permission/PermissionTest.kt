@@ -128,6 +128,11 @@ class PermissionApplicantTMM :
                     SystemPermissionName.LOCATION,
                     "测试获取定位",
                     description = "定位权限申请定位权限申请定位权限申请定位权限申请定位权限申请定位权限申请"
+                  ),
+                  SystemPermissionTask(
+                    SystemPermissionName.PHONE,
+                    "测试获取设备信息",
+                    description = "获取设备信息"
                   )
                 ).let { Json.encodeToString(it) }
               }
