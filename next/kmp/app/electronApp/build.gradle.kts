@@ -92,15 +92,8 @@ fun Project.createElectronExec(
 
     description = "Executes with Electron"
 
-    val newArgs = mutableListOf<String>()
-
     executable = "yarn"
-
-    newArgs += listOf("run", "electron", ".")
-    newArgs.add("electron")
-    newArgs.add(".")
-
-    args = newArgs
+    args = listOf("run", "electron", ".")
 
     workingDir = outputDirectory.get()
   }

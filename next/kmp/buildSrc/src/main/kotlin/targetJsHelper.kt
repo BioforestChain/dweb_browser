@@ -7,7 +7,12 @@ import org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
 
+private val configureJsPluginsProjects = mutableSetOf<Project>()
 fun Project.configureJsPlugins() {
+  if (configureJsPluginsProjects.contains(this)) {
+    return
+  }
+  configureJsPluginsProjects += this
   println("configureJsPlugins")
   // 配置 插件
   plugins.withType<NodeJsRootPlugin> {
@@ -28,26 +33,40 @@ fun Project.configureJsPlugins() {
   }
 }
 
+private val configKotlinNpmInstallTasks = mutableSetOf<Project>()
 fun Project.configureYarn() {
+  if (configKotlinNpmInstallTasks.contains(this)) {
+    return
+  }
+  configKotlinNpmInstallTasks.add(this)
   println("configureYarn for $name")
-//  tasks.forEach {
-//    println("configureYarn: $name:${it.name}")
-//  }
   tasks.withType<KotlinNpmInstallTask>().configureEach {
-    println("KotlinNpmInstallTask: ${this@configureYarn.name}:$name")
+    println("KotlinNpmInstallTask: ${this@configureYarn.name}:$name args=$args")
+    args += "install"
     doFirst {
       val yarnEnvFile = yarnLock.parentFile.resolve(".env.yarn")
       if (!yarnEnvFile.exists()) {
+        /// 设置版本号4+
         exec {
           workingDir = yarnLock.parentFile
           println("in '${workingDir.absolutePath}', run `yarn set version stable`.")
-          commandLine("yarn", "set", "version", "latest")
+          commandLine("yarn", "set", "version", "stable")
         }
+        /// 写入环境变量文件
         yarnEnvFile.writeText(
           """
           ELECTRON_MIRROR="https://npmmirror.com/mirrors/electron/"
         """.trimIndent()
         )
+
+        /// 配置 yarnrc
+        val yarnRcFile = yarnLock.parentFile.resolve(".yarnrc.yml")
+        if (yarnRcFile.exists()) {
+          val content = yarnRcFile.readText()
+          if (!content.contains("nodeLinker:")) {
+            yarnRcFile.writeText("$content\nnodeLinker: pnpm")
+          }
+        }
       }
     }
   }

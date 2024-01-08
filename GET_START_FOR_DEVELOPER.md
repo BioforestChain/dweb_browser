@@ -27,6 +27,7 @@
 
     - 1. `npm i -g pnpm`: 前端包管理器 pnpm，通常工具链的开发会用它
     - 1. `npm i -g yarn`: 前端包管理器 yarn，直接面向工程的开发会用它，Android Studio 运行 jsTarget 的时候也会用到它
+         > 确保版本大于等于 1.22.21
 
 1.  **安装 JDK17+**
 
