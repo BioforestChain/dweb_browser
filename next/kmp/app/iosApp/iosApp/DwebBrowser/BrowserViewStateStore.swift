@@ -20,7 +20,6 @@ class BrowserViewStateStore: ObservableObject {
     @Published var dragScale = WndDragScale()
     @Published var wndArea = BrowserArea()
     @Published var searchKey: String? = nil
-    @Published var colorScheme = ColorScheme.light
     @Published var colorSchemeManager = ColorSchemeManager()
 
     func clear() {
@@ -72,7 +71,7 @@ extension BrowserViewStateStore {
     }
     
     func updateColorScheme(newScheme: Int) {
-        colorSchemeManager.colorScheme = ColorScheme(rawValue: newScheme)!
+        colorSchemeManager.colorScheme = LocalColorScheme(rawValue: newScheme)!
     }
     
     func doSearchIfNeed(key: String? = nil) {

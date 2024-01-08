@@ -46,7 +46,6 @@ extension Color{
     }
     
     init(assetsColor: String) {
-        let bundle = Bundle(for: BridgeManager.self)
-        self.init(assetsColor, bundle: bundle)
+        self.init(assetsColor, bundle: Bundle.main)
     }
 }

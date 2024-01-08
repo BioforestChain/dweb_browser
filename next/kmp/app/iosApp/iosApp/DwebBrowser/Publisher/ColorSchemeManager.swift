@@ -8,14 +8,12 @@
 
 import SwiftUI
 
-enum ColorScheme: Int{
-    case unspecified
-    case light
-    case dark
+enum LocalColorScheme: Int{
+    case unspecified, light, dark
 }
 
 class ColorSchemeManager: ObservableObject{
-    @AppStorage("colorScheme") var colorScheme: ColorScheme = .unspecified {
+    @AppStorage("colorScheme") var colorScheme: LocalColorScheme = .unspecified {
         didSet{
             applyColorScheme()
         }

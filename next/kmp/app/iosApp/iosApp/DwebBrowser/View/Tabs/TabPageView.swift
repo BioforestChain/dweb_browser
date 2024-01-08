@@ -69,19 +69,17 @@ struct TabPageView: View {
                                 .frame(width: geo.size.width, height: geo.size.height)
                             let render = ImageRenderer(content: toSnapView)
                             render.scale = UIScreen.main.scale
-                            animation.snapshotImage = render.uiImage ?? UIImage.snapshotImage(from: .defaultSnapshotURL)
-                            if BrowserViewStateStore.shared.colorScheme == .dark,
-                               colorSchemeImage.darkImage == nil
-                            {
-                                colorSchemeImage.darkImage = animation.snapshotImage
+                            
+                            let defSnapshotImage = colorScheme == .light ? lightSnapshotImage : darkSnapshotImage
+                            animation.snapshotImage = render.uiImage ?? defSnapshotImage
+                            
+                            if colorScheme == .light{
+                                lightSnapshotImage = animation.snapshotImage
+                            }else{
+                                darkSnapshotImage = animation.snapshotImage
                             }
-
-                            if BrowserViewStateStore.shared.colorScheme == .light,
-                               colorSchemeImage.lightImage == nil
-                            {
-                                colorSchemeImage.lightImage = animation.snapshotImage
-                            }
-                            webCache.snapshotUrl = UIImage.createLocalUrl(withImage: animation.snapshotImage, imageName: webCache.id.uuidString)
+                            
+                            webCache.snapshotUrl = UIImage.createLocalUrl(withImage: animation.snapshotImage, imageName: webCache.id.uuidString + String(describing: colorScheme))
                             animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                         }
                     }

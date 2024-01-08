@@ -31,18 +31,31 @@ extension URL {
 }
 
 extension URL {
+    static var lightSnapshot: URL {
+        url(imageName: "snapshot_light")!
+    }
+    
+    static var darkSnapshot: URL {
+        url(imageName: "snapshot_dark")!
+    }
+    
+    
     static var defaultSnapshotURL: URL {
-         imageUrl(with: "snapshot")!
+        lightSnapshot
     }
 
     static var defaultWebIconURL: URL {
-        imageUrl(with: "defWebIcon")!
+        url(imageName: "defWebIcon")!
     }
     
-    static func imageUrl(with name: String) -> URL? {
+    func isNotDefSnapshotUrl() -> Bool {
+        self != URL.lightSnapshot && self != URL.darkSnapshot
+    }
+    
+    static func url(imageName: String) -> URL? {
         if let resourceBundlePath = Bundle.main.path(forResource: "resource", ofType: "bundle"),
            let resourceBundle = Bundle(path: resourceBundlePath) {
-            return resourceBundle.url(forResource: name, withExtension: "png") 
+            return resourceBundle.url(forResource: imageName, withExtension: "png")
         }
         return nil
     }

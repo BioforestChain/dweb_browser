@@ -16,7 +16,7 @@ extension UIImage {
     }
     
     static func assetsImage(name: String) -> UIImage {
-        return .bundleImage(name: name)
+        return bundleImage(name: name)
     }
 }
 

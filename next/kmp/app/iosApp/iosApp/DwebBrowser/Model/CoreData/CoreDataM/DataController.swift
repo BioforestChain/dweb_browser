@@ -20,8 +20,7 @@ class DataController : ObservableObject {
     }
     
     lazy var container: NSPersistentContainer = {
-        let bundle = Bundle(for: BridgeManager.self)
-        let modelURL = bundle.url(forResource: "Browser", withExtension: "momd")
+        let modelURL = Bundle.main.url(forResource: "Browser", withExtension: "momd")
         if modelURL == nil {
             fatalError("Failed to load URL")
         }

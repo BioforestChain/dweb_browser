@@ -30,7 +30,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
     @Published var shouldShowWeb: Bool
 
     @Published var title: String // page title
-    @Published var snapshotImage = UIImage()
+    @Published var snapshotImage = lightSnapshotImage
     @Published var snapshotUrl: URL // local file path is direct to the image has saved in document dir
     {
         didSet {
@@ -58,13 +58,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
         lastVisitedUrl = try container.decodeIfPresent(URL.self, forKey: .lastVisitedUrl) ?? emptyURL
         title = try container.decode(String.self, forKey: .title)
         snapshotUrl = try container.decodeIfPresent(URL.self, forKey: .snapshotUrl) ?? URL.defaultSnapshotURL
-        DispatchQueue.global().async { [weak self] in
-            guard let self = self else { return }
-            let image = UIImage.snapshotImage(from: self.snapshotUrl)
-            DispatchQueue.main.async {
-                self.snapshotImage = image
-            }
-        }
+        snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
         observeUrl()
         snapshotCancellable = snapshotImageChangedPublisher.sink {}
     }
@@ -178,7 +172,6 @@ class WebCacheStore: ObservableObject {
     
     func cache(at index: Int) -> WebCache {
         let webCache = caches[index]
-        defaultColorSchemeImage(webCache: webCache)
         return webCache
     }
     
@@ -195,26 +188,27 @@ class WebCacheStore: ObservableObject {
         return webWrapper(of: cache.id)
     }
     
-    //如果不是网页的时候，根据colorScheme模式显示不同的图片
-    private func defaultColorSchemeImage(webCache: WebCache) {
-        guard !webCache.shouldShowWeb else { return }
-        if BrowserViewStateStore.shared.colorScheme == .dark {
-            if colorSchemeImage.darkImage != nil {
-                webCache.snapshotImage = colorSchemeImage.darkImage!
-            } else {
-                webCache.snapshotImage = UIImage.assetsImage(name: "snapshot_dark")
-            }
-        }
+    func animateSnapshot(index: Int, colorScheme:  ColorScheme) -> UIImage{
+        guard index >= 0, index < cacheCount else { return lightSnapshotImage }
+        // TODO: imge 和url没有保持同步
+        let cache = caches[index]
+        let imageUrlString = cache.snapshotUrl.absoluteString
         
-        if BrowserViewStateStore.shared.colorScheme == .light {
-            if colorSchemeImage.lightImage != nil {
-                webCache.snapshotImage = colorSchemeImage.lightImage!
-            } else {
-                webCache.snapshotImage = UIImage.assetsImage(name: "snapshot_light")
+        var image = cache.snapshotImage
+        if !imageUrlString.contains(webtag){
+            if colorScheme == .light{
+                if !imageUrlString.contains("light"){
+                    image = lightSnapshotImage
+                }
+            } else if colorScheme == .dark {
+                if !imageUrlString.contains("dark"){
+                    image = darkSnapshotImage
+                }
             }
         }
+        return image
+        
     }
-                   
     
     private func loadCaches() {
         if let data = UserDefaults.standard.data(forKey: userdefaultKey) {

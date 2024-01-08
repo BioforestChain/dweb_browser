@@ -27,6 +27,7 @@ struct TabGridView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
+    @Environment(\.colorScheme) var colorScheme
 
     @ObservedObject var animation: ShiftAnimation
     @ObservedObject var gridState: TabGridState
@@ -100,7 +101,6 @@ struct TabGridView: View {
                     if $0.count > 0 {
                         self.frames = $0
                     }
-//                    Log("updating cell frames : \($0)")
                 }
                 .onChange(of: deleteCache.cacheId) { _, operateId in
                     guard let cache = webcacheStore.caches.filter({ $0.id == operateId }).first else { return }
@@ -131,8 +131,9 @@ struct TabGridView: View {
                 }
                 .onChange(of: toolbarState.shouldExpand) { _, shouldExpand in
                     if shouldExpand { // 准备放大动画
-                        animation.snapshotImage = webcacheStore.cache(at: selectedTab.curIndex).snapshotImage
+                        animation.snapshotImage = webcacheStore.animateSnapshot(index: selectedTab.curIndex, colorScheme: colorScheme)
                         animation.progress = .startExpanding
+                        let image = animation.snapshotImage
                         if cellFrame(at: selectedTab.curIndex) != .zero {
                             selectedCellFrame = cellFrame(at: selectedTab.curIndex)
                         } else {

@@ -12,7 +12,7 @@ interface IosInterface {
   fun gobackIfCanDo(): Boolean
   fun browserActive(on: Boolean)
   fun browserClear()
-  fun isDarkColorScheme(isDark: Boolean)
+//  fun isDarkColorScheme(isDark: Boolean)
 }
 
 class BrowserIosIMP() {
@@ -56,10 +56,6 @@ class BrowserIosIMP() {
 
   fun doSearch(key: String) {
     imp?.doSearch(key)
-  }
-  // 是否是暗黑模式
-  fun isDarkColorScheme(isDark: Boolean) {
-    imp?.isDarkColorScheme(isDark)
   }
 
   fun colorSchemeChanged(color: Int) {

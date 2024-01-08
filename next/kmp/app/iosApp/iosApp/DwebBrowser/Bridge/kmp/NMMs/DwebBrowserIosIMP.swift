@@ -11,7 +11,6 @@ import SwiftUI
 import UIKit
 
 class DwebBrowserIosIMP {
-
     static let shared = DwebBrowserIosIMP()
             
     lazy var browserContainerView: UIView = {
@@ -29,7 +28,7 @@ class DwebBrowserIosIMP {
     }()
     
     var isTransitionEffect = false
-    var snap: UIView? = nil
+    var snap: UIView?
     
     func createBrowser() {
         hostVC = UIHostingController(rootView: BrowserView())
@@ -49,7 +48,6 @@ class DwebBrowserIosIMP {
 }
 
 extension DwebBrowserIosIMP: BrowserIosInterface {
-
     func doSearch(key: String) {
         BrowserViewStateStore.shared.doSearch(key)
     }
@@ -62,14 +60,6 @@ extension DwebBrowserIosIMP: BrowserIosInterface {
         return BrowserViewStateStore.shared.doBackIfCan()
     }
     
-    func isDarkColorScheme(isDark: Bool) {
-        if isDark {
-            BrowserViewStateStore.shared.colorScheme = .dark
-        } else {
-            BrowserViewStateStore.shared.colorScheme = .light
-        }
-    }
-    
     func browserClear() {
         isTransitionEffect = false
         BrowserViewStateStore.shared.clear()
@@ -77,7 +67,7 @@ extension DwebBrowserIosIMP: BrowserIosInterface {
         hostVC = nil
     }
     
-    func browserActive(on: Bool){
+    func browserActive(on: Bool) {
         if on == false {
             isTransitionEffect = true
             snap = hostVC?.view.snapshotView(afterScreenUpdates: false)

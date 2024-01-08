@@ -54,10 +54,6 @@ actual fun CommonBrowserView(
   val win = LocalWindowController.current
   val scope = rememberCoroutineScope()
 
-  // 适配暗黑模式
-  val theme = LocalWindowControllerTheme.current
-  browserIosImp.isDarkColorScheme(theme.isDark)
-
   fun backHandler() {
     if (!browserIosImp.gobackIfCanDo()) {
       scope.launch {

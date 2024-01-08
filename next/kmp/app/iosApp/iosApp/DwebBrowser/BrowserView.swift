@@ -19,7 +19,6 @@ struct BrowserView: View {
     @StateObject var wndArea = BrowserViewStateStore.shared.wndArea
 
     var curWebVisible: Bool { webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb }
-    @Environment(\.colorScheme) var colorScheme
     var body: some View {
         ZStack {
             GeometryReader { geometry in

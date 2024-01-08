@@ -65,10 +65,6 @@ class AddressBarState: ObservableObject {
 
 class ToolBarState: ObservableObject {
     @Published var shouldExpand = true
-//    @Published var canGoBack = false
-//    @Published var canGoForward = false
-//    @Published var goBackTapped = false
-//    @Published var goForwardTapped = false
     @Published var createTabTapped = false
     @Published var showMoreMenu = false
     @Published var creatingDesktopLink = false

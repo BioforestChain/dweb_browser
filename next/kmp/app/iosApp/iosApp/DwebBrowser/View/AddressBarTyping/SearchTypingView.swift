@@ -26,16 +26,8 @@ struct SearchTypingView: View {
                 }
                 .padding(.trailing, 20)
             }
-
-            if addressBar.inputText == "" && !InstalledAppMgr.shared.apps.isEmpty {
-                VStack {
-                    InnerAppGridView()
-                    Spacer()
-                }
-            } else {
-                SearchResultView()
-                    .background(Color.bkColor)
-            }
+            
+            SearchResultView()
         }
         .background(Color.bkColor)
 

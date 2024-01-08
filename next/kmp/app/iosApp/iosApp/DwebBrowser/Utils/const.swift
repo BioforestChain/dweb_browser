@@ -60,3 +60,9 @@ enum EnterType {
 }
 
 var enterType: EnterType = .none
+
+
+var lightSnapshotImage = UIImage.snapshotImage(from: URL.lightSnapshot)
+var darkSnapshotImage = UIImage.snapshotImage(from: URL.darkSnapshot)
+
+let webtag = "webtag"
