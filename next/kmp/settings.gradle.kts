@@ -33,10 +33,15 @@ rootProject.name = "dweb-browser-kmp"
 // https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:type-safe-project-accessors
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-include("androidApp")
-project(":androidApp").projectDir = file("app/androidApp")
-include("electronApp")
-project(":electronApp").projectDir = file("app/electronApp")
+fun includeApp(dirName: String) {
+  include(dirName)
+  project(":$dirName").projectDir = file("app/$dirName")
+}
+
+includeApp("androidApp")
+includeApp("electronApp")
+includeApp("jsFrontend")
+includeApp("wasmBackend")
 
 include(
   ":shared",

@@ -251,11 +251,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:^18.11.18":
-  version: 18.19.4
-  resolution: "@types/node@npm:18.19.4"
+  version: 18.19.5
+  resolution: "@types/node@npm:18.19.5"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: e395bf591e79bd91c0819e7bee39c56e881399da2ca37fba5a59194ff28941fb8ed663c3fb4fba89465842720d916110dee9b774a3e4aecbe08b9e1ada4ab4fe
+  checksum: 8ad59db82b08cb34b2e891e2193aad1081db082178e16189857ffff6619180b9dc74cb14f6e0449007c6797cf0a818a3929a7575b9816267b3d1d858f9fa7be1
   languageName: node
   linkType: hard
 
@@ -1117,6 +1117,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dweb-browser-kmp-electronApp-test@workspace:packages/dweb-browser-kmp-electronApp-test"
   dependencies:
+    dweb-browser-kmp-jsFrontend: "workspace:^"
+    dweb-browser-kmp-wasmBackend-wasm-js: "workspace:^"
     electron: "npm:^28.1.1"
     format-util: "npm:^1.0.5"
     mocha: "npm:10.2.0"
@@ -1129,6 +1131,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dweb-browser-kmp-electronApp@workspace:packages/dweb-browser-kmp-electronApp"
   dependencies:
+    dweb-browser-kmp-jsFrontend: "workspace:^"
+    dweb-browser-kmp-wasmBackend-wasm-js: "workspace:^"
     electron: "npm:^28.1.1"
     format-util: "npm:^1.0.5"
     source-map-support: "npm:0.5.21"
@@ -1170,6 +1174,35 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"dweb-browser-kmp-jsFrontend-test@workspace:packages/dweb-browser-kmp-jsFrontend-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-jsFrontend-test@workspace:packages/dweb-browser-kmp-jsFrontend-test"
+  dependencies:
+    electron: "npm:^28.1.1"
+    format-util: "npm:^1.0.5"
+    karma: "npm:6.4.2"
+    karma-chrome-launcher: "npm:3.2.0"
+    karma-mocha: "npm:2.0.1"
+    karma-sourcemap-loader: "npm:0.4.0"
+    karma-webpack: "npm:5.0.0"
+    mocha: "npm:10.2.0"
+    source-map-loader: "npm:4.0.1"
+    typescript: "npm:5.0.4"
+    webpack: "npm:5.82.0"
+    webpack-cli: "npm:5.1.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-jsFrontend@workspace:^, dweb-browser-kmp-jsFrontend@workspace:packages/dweb-browser-kmp-jsFrontend":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-jsFrontend@workspace:packages/dweb-browser-kmp-jsFrontend"
+  dependencies:
+    electron: "npm:^28.1.1"
+    format-util: "npm:^1.0.5"
+    typescript: "npm:5.0.4"
+  languageName: unknown
+  linkType: soft
+
 "dweb-browser-kmp-pureCrypto-test@workspace:packages/dweb-browser-kmp-pureCrypto-test":
   version: 0.0.0-use.local
   resolution: "dweb-browser-kmp-pureCrypto-test@workspace:packages/dweb-browser-kmp-pureCrypto-test"
@@ -1193,6 +1226,27 @@ __metadata:
   resolution: "dweb-browser-kmp-pureCrypto@workspace:packages/dweb-browser-kmp-pureCrypto"
   dependencies:
     format-util: "npm:^1.0.5"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-wasmBackend-wasm-js-test@workspace:packages/dweb-browser-kmp-wasmBackend-wasm-js-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-wasmBackend-wasm-js-test@workspace:packages/dweb-browser-kmp-wasmBackend-wasm-js-test"
+  dependencies:
+    electron: "npm:^28.1.1"
+    format-util: "npm:^1.0.5"
+    typescript: "npm:5.0.4"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-wasmBackend-wasm-js@workspace:^, dweb-browser-kmp-wasmBackend-wasm-js@workspace:packages/dweb-browser-kmp-wasmBackend-wasm-js":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-wasmBackend-wasm-js@workspace:packages/dweb-browser-kmp-wasmBackend-wasm-js"
+  dependencies:
+    electron: "npm:^28.1.1"
+    format-util: "npm:^1.0.5"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
   languageName: unknown
   linkType: soft
 

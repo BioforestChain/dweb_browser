@@ -55,3 +55,4 @@
 
 1. 使用 Android Studio 开发 jsTarget 的时候，如果遇到`yarn.lock was changed. Run the 'kotlinUpgradeYarnLock' task to actualize yarn.lock file` 这样的错误，那么在 Android Studio 的 Gradle 面板中选择第一个按钮“Execute Gradle Task”，在弹出面板的 input 中，填写`gradle kotlinUpgradeYarnLock`，运行即可。
 1. 使用 Android Studio 开发 iosApp 的时候，注意因为 Kotlin 1.9.21 的增量编译还存在 BUG，修改 Compose 代码会存在异常（[KT-63789](https://youtrack.jetbrains.com/issue/KT-63789)），所以如果你在开发的过程中修改了 Compose 相关的代码，需要删除掉 shared/build 再进行编译。非 Compose 代码则基本不需要，但指不定还是会出问题，此时只能建议删除 shared/build 再做编译
+1. 想要活得 gradlew 的所有 tasks，到 kmp/next 目录下，执行: `./gradlew -q :tasks --all > .gradle/all.md`

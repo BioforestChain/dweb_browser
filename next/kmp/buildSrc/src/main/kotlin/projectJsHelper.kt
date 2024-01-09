@@ -19,9 +19,12 @@ fun Project.configureJsPlugins() {
     println("NodeJsRootPlugin")
     // 不要下载 nodejs 可执行文件，默认环境里头已经有了
     the<NodeJsRootExtension>().apply {
-      download = false
-      nodeVersion = "21.5.1"
-      nodeDownloadBaseUrl = "https://nodejs.org/download/release"
+//      download = false
+//      nodeVersion = "21.5.1"
+//      nodeDownloadBaseUrl = "https://nodejs.org/download/release"
+
+      nodeVersion = "22.0.0-v8-canary202401082b4956f9f0"
+      nodeDownloadBaseUrl = "https://nodejs.org/download/v8-canary"
     }
 
     // 下载 yarn 可执行文件，默认环境里头已经有了
