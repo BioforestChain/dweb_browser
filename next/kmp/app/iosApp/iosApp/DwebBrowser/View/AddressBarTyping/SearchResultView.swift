@@ -13,7 +13,6 @@ struct SearchResultView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var dragScale: WndDragScale
 
-    @ObservedObject var localLinkSearcher = LocalLinkSearcher.shared
     @State private var tapHasBeenHandled = false
     var body: some View {
         Form {
@@ -32,7 +31,7 @@ struct SearchResultView: View {
                                 .font(.system(size: dragScale.scaledFontSize(maxSize: 18)))
                                 .lineLimit(1)
 
-                            Text(paramURLAbsoluteString(with: addressBar.inputText))
+                            Text(addressBar.inputText.trim())
                                 .foregroundColor(Color(hexString: "ACB5BF"))
                                 .font(.system(size: dragScale.scaledFontSize(maxSize: 12)))
                                 .lineLimit(1)
@@ -40,7 +39,6 @@ struct SearchResultView: View {
                         })
                         Spacer()
                     }
-                    .background(Color.menubkColor)
                     .onTapGesture {
                         guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)

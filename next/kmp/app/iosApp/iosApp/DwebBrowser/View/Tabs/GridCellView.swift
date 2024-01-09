@@ -54,7 +54,7 @@ struct GridCell: View {
                             )
                             .clipped()
                     } else {
-                        HomePageView(scale: geo.size.width / screen_width * 1.2)
+                        BlankTabView(scale: geo.size.width / screen_width * 1.2)
                             .frame(width: geo.size.width, height: geo.size.height * cellImageHeightRatio)
                             .background(Color.bkColor)
                             .cornerRadius(gridcellCornerR)

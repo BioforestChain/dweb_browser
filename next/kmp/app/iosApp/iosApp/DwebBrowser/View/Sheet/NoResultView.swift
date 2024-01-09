@@ -7,6 +7,17 @@
 
 import SwiftUI
 
+struct LinkConfig {
+    var title: String = ""
+    var type: String = ""
+    var imageName: String = ""
+    var msg: String = ""
+    
+    static var bookmark = LinkConfig(title: "搜索书签", type: "书签", imageName: "bookmark_empty", msg: "暂无书签" )
+    static var history = LinkConfig(title: "搜索历史记录", type: "历史记录", imageName: "history_empty", msg:"暂无记录" )
+}
+
+
 struct NoResultView: View {
     var config: LinkConfig
     @EnvironmentObject var dragScale: WndDragScale

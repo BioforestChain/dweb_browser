@@ -21,5 +21,5 @@ class Bookmark{
         self.title = title
     }
     
-    static var example = Bookmark(title: "baidu")
+    static var example = Bookmark()
 }

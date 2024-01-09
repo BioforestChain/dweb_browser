@@ -133,7 +133,6 @@ struct TabGridView: View {
                     if shouldExpand { // 准备放大动画
                         animation.snapshotImage = webcacheStore.animateSnapshot(index: selectedTab.curIndex, colorScheme: colorScheme)
                         animation.progress = .startExpanding
-                        let image = animation.snapshotImage
                         if cellFrame(at: selectedTab.curIndex) != .zero {
                             selectedCellFrame = cellFrame(at: selectedTab.curIndex)
                         } else {

@@ -30,4 +30,13 @@ extension String {
         
         return !matches.isEmpty
     }
+    
+    func trim() -> String {
+        var result = self
+        result = result.replacingOccurrences(of: "https://www.baidu.com/s?wd=", with: "")
+        result = result.replacingOccurrences(of: "https://www.sogou.com/web?query=", with: "")
+        result = result.replacingOccurrences(of: "https://www.so.com/s?q=", with: "")
+        
+        return result.removingPercentEncoding ?? result
+    }
 }

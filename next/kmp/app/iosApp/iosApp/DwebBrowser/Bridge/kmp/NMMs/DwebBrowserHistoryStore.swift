@@ -10,6 +10,21 @@ import Foundation
 import DwebShared
 import Combine
 
+class DateGroup<ID, ELement>: Identifiable where ID: Hashable  {
+    
+    let id: ID
+    var items: [ELement] = []
+    
+    init(id: ID, items: [ELement]) {
+        self.id = id
+        self.items = items
+    }
+    
+    func remove(index: IndexSet) {
+        items.remove(atOffsets: index)
+    }
+}
+
 final class DwebBrowserHistoryStore: ObservableObject {
     static let shared = DwebBrowserHistoryStore()
    

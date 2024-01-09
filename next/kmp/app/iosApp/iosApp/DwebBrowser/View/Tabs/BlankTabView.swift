@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-struct HomePageView: View {
+struct BlankTabView: View {
     @EnvironmentObject var dragScale: WndDragScale
     private let pageWidth: CGFloat = 60
     private let pageHeight: CGFloat = 210
@@ -29,6 +29,6 @@ struct HomePageView: View {
 
 struct HomePageView_Previews: PreviewProvider {
     static var previews: some View {
-        HomePageView()
+        BlankTabView()
     }
 }

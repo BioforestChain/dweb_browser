@@ -37,23 +37,6 @@ let cellImageH: CGFloat = gridCellH * 0.9
 let gridcellBottomH: CGFloat = gridCellH * 0.1
 let gridcellCornerR: CGFloat = 10
 
-private var curSafeAreaInsets: UIEdgeInsets {
-    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-       let insets = windowScene.windows.first?.safeAreaInsets
-    {
-        return insets
-    }
-    return .zero
-}
-
-var safeAreaTopHeight: CGFloat {
-    return curSafeAreaInsets.top
-}
-
-var safeAreaBottomHeight: CGFloat {
-    return curSafeAreaInsets.bottom
-}
-
 enum EnterType {
     case search
     case none

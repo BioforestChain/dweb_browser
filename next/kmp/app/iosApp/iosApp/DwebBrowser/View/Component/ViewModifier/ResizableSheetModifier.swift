@@ -33,7 +33,7 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                                 Rectangle()
                                     .fill(Color.white.opacity(0.01))
                                     .frame(height: 30)
-                                    .position(x: wndWidth / 2 ,y: 15)
+                                    .position(x: wndWidth / 2, y: 15)
                                     .gesture(
                                         DragGesture()
                                             .onChanged { value in
@@ -56,29 +56,24 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                                                     curDragOffsetY = 0
                                                 }
                                             })
-
                             }
                             .cornerRadius(10)
                             .padding(.horizontal, 4)
                             .offset(y: startOffsetY)
                             .offset(y: curDragOffsetY)
-                            .onChange(of: isPresented) {_, _ in
+                            .onChange(of: isPresented) { _, _ in
                                 if isPresented {
-
                                     withAnimation(.spring()) {
                                         startOffsetY = 0
                                     }
                                 } else {
                                     startOffsetY = wndHeight
                                 }
-
                             }
-                            .onChange(of: geo.size.height, { oldHeight, newHeight in
+                            .onChange(of: geo.size.height) { oldHeight, newHeight in
                                 sheetHeight = newHeight * 0.98
                                 startOffsetY = oldHeight == startOffsetY ? newHeight : 0
-                            })
-
-
+                            }
                     }
             }
         }

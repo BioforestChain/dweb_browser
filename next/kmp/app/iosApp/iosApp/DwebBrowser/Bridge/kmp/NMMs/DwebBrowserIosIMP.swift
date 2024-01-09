@@ -12,24 +12,24 @@ import UIKit
 
 class DwebBrowserIosIMP {
     static let shared = DwebBrowserIosIMP()
-            
+    private var hostVC: UIViewController?
+    var isTransitionEffect = false
+    var snap: UIView?
+    
+    var browerView: BrowserView? { hostVC?.view as? BrowserView }
+    
     lazy var browserContainerView: UIView = {
         let v = UIView(frame: CGRect.zero)
         v.backgroundColor = .yellow
         return v
     }()
     
-    private var hostVC: UIViewController?
-    
     lazy var blurView: UIView = {
         let blurView = UIView(frame: .zero)
         blurView.backgroundColor = .black.withAlphaComponent(0.5)
         return blurView
     }()
-    
-    var isTransitionEffect = false
-    var snap: UIView?
-    
+        
     func createBrowser() {
         hostVC = UIHostingController(rootView: BrowserView())
     }
@@ -49,20 +49,21 @@ class DwebBrowserIosIMP {
 
 extension DwebBrowserIosIMP: BrowserIosInterface {
     func doSearch(key: String) {
-        BrowserViewStateStore.shared.doSearch(key)
+        browerView?.store.doSearch(key)
     }
     
     func colorSchemeChanged(color: Int32) {
-        BrowserViewStateStore.shared.updateColorScheme(newScheme: Int(color))
+        browerView?.store.updateColorScheme(newScheme: Int(color))
     }
     
     func gobackIfCanDo() -> Bool {
-        return BrowserViewStateStore.shared.doBackIfCan()
+        guard let brower = browerView else { return false }
+        return brower.store.doBackIfCan()
     }
     
     func browserClear() {
         isTransitionEffect = false
-        BrowserViewStateStore.shared.clear()
+        browerView?.store.clear()
         browserContainerView.subviews.forEach { $0.removeFromSuperview() }
         hostVC = nil
     }

@@ -93,7 +93,7 @@ struct TabPageView: View {
                 webComponent
             } else {
                 Color.bkColor.overlay {
-                    HomePageView()
+                    BlankTabView()
                         .environmentObject(dragScale)
                         .opacity(addressBar.isFocused ? 0 : 1)
                 }
