@@ -6,6 +6,7 @@ import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
 import org.dweb_browser.helper.platform.NSDataHelper.toNSData
+import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.Foundation.NSData
 import platform.UIKit.UIImage
 
@@ -87,6 +88,9 @@ class BrowserIosService(var browserViewModel: BrowserViewModel? = null) {
   fun webSiteInfoIconToUIImage(web: WebSiteInfo): UIImage? = web.icon?.let {
     return UIImage(data = it.toNSData())
   }
-  // endregion
+  // endregion requestSystemPermission
+  suspend fun requestSystemPermission(permissionName: SystemPermissionName): Boolean {
+    return browserViewModel?.requestSystemPermission(permissionName = permissionName) ?: true
+  }
 
 }

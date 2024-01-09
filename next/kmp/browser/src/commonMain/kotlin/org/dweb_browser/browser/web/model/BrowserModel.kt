@@ -44,6 +44,9 @@ import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.share.ext.postSystemShare
+import org.dweb_browser.sys.permission.SystemPermissionName
+import org.dweb_browser.sys.permission.SystemPermissionTask
+import org.dweb_browser.sys.permission.ext.requestSystemPermission
 import org.dweb_browser.sys.toast.ext.showToast
 
 val LocalBrowserModel = compositionChainOf<BrowserViewModel>("BrowserModel")
@@ -122,6 +125,19 @@ class BrowserViewModel(
       debugBrowser("focusBrowserView", "index=$index, size=${listSize}")
       pagerChangeSignal.emit(index)
     }
+  }
+
+  /**
+   * 请求系统权限
+   */
+  suspend fun requestSystemPermission(title: String = "", description: String = "", permissionName: SystemPermissionName): Boolean {
+    return browserNMM.requestSystemPermission(
+      SystemPermissionTask(
+        permissionName,
+        title = title,
+        description = description
+      )
+    )
   }
 
   private var browserPagerState: BrowserPagerState? = null

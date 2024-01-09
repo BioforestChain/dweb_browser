@@ -8,6 +8,7 @@
 import Combine
 import SwiftUI
 import UIKit
+import DwebShared
 
 struct ToolbarView: View {
     @EnvironmentObject var toolbarState: ToolBarState
@@ -104,7 +105,18 @@ struct ToolbarView: View {
                 } else {
                     BiColorButton(imageName: "scan", disabled: false) {
                         Log("scan qrcode")
-                        toolbarState.isPresentingScanner = true
+                        BrowserSystemPermission().requestSystemPermission(permissionName: SysSystemPermissionName.camera) { (result, error) in
+                            Log("\(result)")
+                            if result {
+                                DispatchQueue.main.async {
+                                    self.toolbarState.isPresentingScanner = true
+                                }
+                            } else {
+                                print("error: \(error)")
+                            }
+                        }
+                        
+                        
                     }
                 }
                 Spacer()

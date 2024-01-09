@@ -25,6 +25,7 @@
 		48D0B0A82B33DB89007F4817 /* KotlinComposeMetalRedrawerFix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D0B0A72B33DB89007F4817 /* KotlinComposeMetalRedrawerFix.swift */; };
 		48F54EDB2B17233E003A64AC /* DwebDeskVCStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48F54EDA2B17233E003A64AC /* DwebDeskVCStore.swift */; };
 		48F54EDD2B1723C3003A64AC /* DwebDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48F54EDC2B1723C3003A64AC /* DwebDeepLink.swift */; };
+		813F42582B4BE88300BA190A /* DwebBrowserPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813F42572B4BE88300BA190A /* DwebBrowserPermission.swift */; };
 		F034443D2AE26F64004F732E /* BrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034443B2AE26F64004F732E /* BrowserView.swift */; };
 		F03444892AE26FAB004F732E /* BiColorButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444412AE26FA9004F732E /* BiColorButton.swift */; };
 		F034448A2AE26FAB004F732E /* Date+format.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03444432AE26FA9004F732E /* Date+format.swift */; };
@@ -108,6 +109,7 @@
 		48F54EDC2B1723C3003A64AC /* DwebDeepLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeepLink.swift; sourceTree = "<group>"; };
 		7555FF7B242A565900829871 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		813F42572B4BE88300BA190A /* DwebBrowserPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserPermission.swift; sourceTree = "<group>"; };
 		F034443B2AE26F64004F732E /* BrowserView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowserView.swift; sourceTree = "<group>"; };
 		F03444412AE26FA9004F732E /* BiColorButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BiColorButton.swift; sourceTree = "<group>"; };
 		F03444432AE26FA9004F732E /* Date+format.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Date+format.swift"; sourceTree = "<group>"; };
@@ -195,6 +197,7 @@
 				4850503D2B1466C700080723 /* DwebDeskRootView.swift */,
 				48491C6F2B21B95B00128B72 /* DwebBrowserIosIMP.swift */,
 				489455EE2B269594000A6254 /* DwebBrowserHistoryStore.swift */,
+				813F42572B4BE88300BA190A /* DwebBrowserPermission.swift */,
 			);
 			path = NMMs;
 			sourceTree = "<group>";
@@ -575,6 +578,7 @@
 				461C6BB42B3427D40063F6BE /* KmpBridgeManager.swift in Sources */,
 				F034443D2AE26F64004F732E /* BrowserView.swift in Sources */,
 				F03444BB2AE26FAC004F732E /* NetworkPermission.swift in Sources */,
+				813F42582B4BE88300BA190A /* DwebBrowserPermission.swift in Sources */,
 				F034448B2AE26FAB004F732E /* Color+Hex.swift in Sources */,
 				48D0B0A82B33DB89007F4817 /* KotlinComposeMetalRedrawerFix.swift in Sources */,
 				F03444C52AE2704A004F732E /* HapticsHelper.swift in Sources */,
