@@ -12,7 +12,7 @@
 		3D763C262B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; };
 		3D763C272B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		461C6BB42B3427D40063F6BE /* KmpBridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 461C6BB32B3427D40063F6BE /* KmpBridgeManager.swift */; };
-		4809C35C2B29B33600BFAA68 /* BrowserViewStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4809C35B2B29B33600BFAA68 /* BrowserViewStateStore.swift */; };
+		4809C35C2B29B33600BFAA68 /* BrowserViewStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4809C35B2B29B33600BFAA68 /* BrowserViewStates.swift */; };
 		48491C702B21B95B00128B72 /* DwebBrowserIosIMP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48491C6F2B21B95B00128B72 /* DwebBrowserIosIMP.swift */; };
 		48491C722B2302B800128B72 /* UIImage+Resize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48491C712B2302B800128B72 /* UIImage+Resize.swift */; };
 		4850503C2B14669900080723 /* TouchThroughView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4850503B2B14669900080723 /* TouchThroughView.swift */; };
@@ -73,6 +73,7 @@
 		F046B2922B19B09300D8FD01 /* BookmarkModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F046B2912B19B09300D8FD01 /* BookmarkModel.swift */; };
 		F06AD0022B43F8AD004E63C8 /* ColorSchemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F06AD0012B43F8AD004E63C8 /* ColorSchemeManager.swift */; };
 		F08AE9592B479E3D00E074DD /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08AE9582B479E3D00E074DD /* DataController.swift */; };
+		F0A0E3692B4D27950024D8DE /* AppVersionMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A0E3682B4D27950024D8DE /* AppVersionMgr.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -94,7 +95,7 @@
 		1A0D7C84CC71A12D5FCBBF78 /* iOSApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = DwebPlatformIosKit.xcframework; path = ../../helperPlatformIos/src/nativeInterop/cinterop/xcframeworks/DwebPlatformIosKit.xcframework; sourceTree = "<group>"; };
 		461C6BB32B3427D40063F6BE /* KmpBridgeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KmpBridgeManager.swift; sourceTree = "<group>"; };
-		4809C35B2B29B33600BFAA68 /* BrowserViewStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserViewStateStore.swift; sourceTree = "<group>"; };
+		4809C35B2B29B33600BFAA68 /* BrowserViewStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserViewStates.swift; sourceTree = "<group>"; };
 		48491C6F2B21B95B00128B72 /* DwebBrowserIosIMP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserIosIMP.swift; sourceTree = "<group>"; };
 		48491C712B2302B800128B72 /* UIImage+Resize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Resize.swift"; sourceTree = "<group>"; };
 		4850503B2B14669900080723 /* TouchThroughView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchThroughView.swift; sourceTree = "<group>"; };
@@ -157,6 +158,7 @@
 		F046B2912B19B09300D8FD01 /* BookmarkModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkModel.swift; sourceTree = "<group>"; };
 		F06AD0012B43F8AD004E63C8 /* ColorSchemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeManager.swift; sourceTree = "<group>"; };
 		F08AE9582B479E3D00E074DD /* DataController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
+		F0A0E3682B4D27950024D8DE /* AppVersionMgr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionMgr.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -252,7 +254,7 @@
 			isa = PBXGroup;
 			children = (
 				F034443B2AE26F64004F732E /* BrowserView.swift */,
-				4809C35B2B29B33600BFAA68 /* BrowserViewStateStore.swift */,
+				4809C35B2B29B33600BFAA68 /* BrowserViewStates.swift */,
 				F03444BF2AE2704A004F732E /* Bridge */,
 				F03444422AE26FA9004F732E /* extension */,
 				F034443E2AE26FA9004F732E /* Helper */,
@@ -270,6 +272,7 @@
 			children = (
 				F03444772AE26FAA004F732E /* NetworkGuidView.swift */,
 				F034445E2AE26FAA004F732E /* ScanCode */,
+				F0A0E3682B4D27950024D8DE /* AppVersionMgr.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -563,7 +566,7 @@
 				48491C722B2302B800128B72 /* UIImage+Resize.swift in Sources */,
 				F03444952AE26FAB004F732E /* HistoryCoreDataManager.swift in Sources */,
 				F03444A12AE26FAB004F732E /* ScannerViewController.swift in Sources */,
-				4809C35C2B29B33600BFAA68 /* BrowserViewStateStore.swift in Sources */,
+				4809C35C2B29B33600BFAA68 /* BrowserViewStates.swift in Sources */,
 				48F54EDD2B1723C3003A64AC /* DwebDeepLink.swift in Sources */,
 				F03444A92AE26FAB004F732E /* BookmarkView.swift in Sources */,
 				F03444912AE26FAB004F732E /* AnimationProgress.swift in Sources */,
@@ -592,6 +595,7 @@
 				F03444A62AE26FAB004F732E /* SearchResultView.swift in Sources */,
 				F03444A52AE26FAB004F732E /* WebSearcher.swift in Sources */,
 				F046B2922B19B09300D8FD01 /* BookmarkModel.swift in Sources */,
+				F0A0E3692B4D27950024D8DE /* AppVersionMgr.swift in Sources */,
 				F03444902AE26FAB004F732E /* UIImage+Cache.swift in Sources */,
 				F03444A22AE26FAB004F732E /* AddressBarView.swift in Sources */,
 				F06AD0022B43F8AD004E63C8 /* ColorSchemeManager.swift in Sources */,

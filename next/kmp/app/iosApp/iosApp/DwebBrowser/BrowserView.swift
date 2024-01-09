@@ -9,64 +9,58 @@ import SwiftUI
 import UIKit
 
 struct BrowserView: View {
-    @StateObject var store = BrowserViewStateStore.shared
-    @StateObject var selectedTab = BrowserViewStateStore.shared.selectedTab
-    @StateObject var addressBar = BrowserViewStateStore.shared.addressBar
-    @StateObject var openingLink = BrowserViewStateStore.shared.openingLink
-    @StateObject var toolBarState = BrowserViewStateStore.shared.toolBarState
-    @StateObject var webcacheStore = BrowserViewStateStore.shared.webcacheStore
-    @StateObject var dragScale = BrowserViewStateStore.shared.dragScale
-    @StateObject var wndArea = BrowserViewStateStore.shared.wndArea
-
-    var curWebVisible: Bool { webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb }
+    @StateObject var states = BrowserViewStates.shared
+    @StateObject var toolBarState = BrowserViewStates.shared.toolBarState
+    var curWebVisible: Bool { states.webcacheStore.cache(at: states.selectedTab.curIndex).shouldShowWeb }
+    
     var body: some View {
         ZStack {
             GeometryReader { geometry in
                 ZStack {
                     VStack(spacing: 0) {
                         TabsContainerView()
-                        ToolbarView(webCount: webcacheStore.cacheCount,
+                        ToolbarView(webCount: states.webcacheStore.cacheCount,
                                     isWebVisible: curWebVisible,
-                                    webMonitor: webcacheStore.webWrappers[selectedTab.curIndex])
+                                    webMonitor: states.webcacheStore.webWrappers[states.selectedTab.curIndex])
                             
-                        .frame(height: addressBar.isFocused ? 0 : dragScale.toolbarHeight)
+                        .frame(height: states.addressBar.isFocused ? 0 : states.dragScale.toolbarHeight)
                     }
                     .background(Color.bkColor)
-                    .environmentObject(webcacheStore)
-                    .environmentObject(openingLink)
-                    .environmentObject(selectedTab)
-                    .environmentObject(addressBar)
-                    .environmentObject(toolBarState)
-                    .environmentObject(dragScale)
-                    .environmentObject(wndArea)
+                    .environmentObject(states.webcacheStore)
+                    .environmentObject(states.openingLink)
+                    .environmentObject(states.selectedTab)
+                    .environmentObject(states.addressBar)
+                    .environmentObject(states.toolBarState)
+                    .environmentObject(states.dragScale)
+                    .environmentObject(states.wndArea)
                 }
                 .onAppear {
-                    dragScale.onWidth = (geometry.size.width - 10) / screen_width
+                    states.dragScale.onWidth = (geometry.size.width - 10) / screen_width
                 }
                 .onChange(of: geometry.size) { _, newSize in
-                    dragScale.onWidth = (newSize.width - 10) / screen_width
+                    states.dragScale.onWidth = (newSize.width - 10) / screen_width
                 }
 
                 .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
                     SheetSegmentView(isShowingWeb: showWeb())
-                        .environmentObject(selectedTab)
-                        .environmentObject(openingLink)
-                        .environmentObject(webcacheStore)
-                        .environmentObject(dragScale)
-                        .environmentObject(toolBarState)
+                        .environmentObject(states.selectedTab)
+                        .environmentObject(states.openingLink)
+                        .environmentObject(states.webcacheStore)
+                        .environmentObject(states.dragScale)
+                        .environmentObject(states.toolBarState)
                 }
                 .onChange(of: geometry.frame(in: .global)) { _, frame in
-                    wndArea.frame = frame
+                    states.wndArea.frame = frame
                 }
             }
             .task {
-                if let key = BrowserViewStateStore.shared.searchKey, !key.isEmpty {
-                    BrowserViewStateStore.shared.searchKey = nil
+                if let key = states.searchKey, !key.isEmpty {
+                    states.searchKey = nil
                 }
             }
-            .onChange(of: store.searchKey) { _, newValue in
+            .onChange(of: states.searchKey) { _, newValue in
                 if let newValue = newValue, !newValue.isEmpty {
-                    store.doSearchIfNeed(key: newValue)
+                    states.doSearchIfNeed(key: newValue)
                 }
             }
         }
@@ -74,9 +68,9 @@ struct BrowserView: View {
     }
 
     func showWeb() -> Bool {
-        if webcacheStore.caches.count == 0 {
+        if states.webcacheStore.caches.count == 0 {
             return true
         }
-        return webcacheStore.cache(at: BrowserViewStateStore.shared.selectedTab.curIndex).shouldShowWeb
+        return states.webcacheStore.cache(at: states.selectedTab.curIndex).shouldShowWeb
     }
 }

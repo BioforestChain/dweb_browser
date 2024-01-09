@@ -49,21 +49,21 @@ class DwebBrowserIosIMP {
 
 extension DwebBrowserIosIMP: BrowserIosInterface {
     func doSearch(key: String) {
-        browerView?.store.doSearch(key)
+        browerView?.states.doSearch(key)
     }
     
     func colorSchemeChanged(color: Int32) {
-        browerView?.store.updateColorScheme(newScheme: Int(color))
+        browerView?.states.updateColorScheme(newScheme: Int(color))
     }
     
     func gobackIfCanDo() -> Bool {
         guard let brower = browerView else { return false }
-        return brower.store.doBackIfCan()
+        return brower.states.doBackIfCan()
     }
     
     func browserClear() {
         isTransitionEffect = false
-        browerView?.store.clear()
+        browerView?.states.clear()
         browserContainerView.subviews.forEach { $0.removeFromSuperview() }
         hostVC = nil
     }

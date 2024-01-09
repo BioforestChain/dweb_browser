@@ -1,5 +1,5 @@
 //
-//  BrowserViewStateStore.swift
+//  BrowserViewStates.swift
 //  iosApp
 //
 //  Created by instinct on 2023/12/13.
@@ -9,8 +9,8 @@
 import Foundation
 import SwiftUI
 
-class BrowserViewStateStore: ObservableObject {
-    static let shared = BrowserViewStateStore()
+class BrowserViewStates: ObservableObject {
+    static let shared = BrowserViewStates()
     
     @Published var selectedTab = SelectedTab()
     @Published var addressBar = AddressBarState()
@@ -35,7 +35,7 @@ class BrowserViewStateStore: ObservableObject {
 }
 
 // 这个地方暴露BrowserView的行为给外部使用
-extension BrowserViewStateStore {
+extension BrowserViewStates {
     func doBackIfCan() -> Bool {
         if addressBar.isFocused {
             addressBar.inputText = ""

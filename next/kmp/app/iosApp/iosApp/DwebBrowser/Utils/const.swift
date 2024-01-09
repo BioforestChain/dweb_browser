@@ -44,8 +44,11 @@ enum EnterType {
 
 var enterType: EnterType = .none
 
-
 var lightSnapshotImage = UIImage.snapshotImage(from: URL.lightSnapshot)
 var darkSnapshotImage = UIImage.snapshotImage(from: URL.darkSnapshot)
 
 let webtag = "webtag"
+
+
+let appStoreURL = "itms-apps://itunes.apple.com/app/id6443558874"
+let appInfoUrl = URL(string: "https://itunes.apple.com/lookup?id=6443558874")!
