@@ -16,7 +16,12 @@ class DwebBrowserIosIMP {
     var isTransitionEffect = false
     var snap: UIView?
     
-    var browerView: BrowserView? { hostVC?.view as? BrowserView }
+    var browerView: BrowserView? {
+        if let hostingController = hostVC as? UIHostingController<BrowserView> {
+            return hostingController.rootView
+        }
+        return nil
+    }        
     
     lazy var browserContainerView: UIView = {
         let v = UIView(frame: CGRect.zero)
