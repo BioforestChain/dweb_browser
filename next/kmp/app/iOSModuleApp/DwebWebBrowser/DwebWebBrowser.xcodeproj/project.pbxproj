@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4806964F2B46841E008140C4 /* WebBrowserViewProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4806964E2B46841E008140C4 /* WebBrowserViewProtocol.swift */; };
+		480696512B468AB2008140C4 /* BrowserWebSiteInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480696502B468AB2008140C4 /* BrowserWebSiteInfo.swift */; };
+		480696552B468D90008140C4 /* WebBrowserDefaultProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480696542B468D90008140C4 /* WebBrowserDefaultProvider.swift */; };
 		48098AF32B439FA800EA991C /* DwebWebBrowser.docc in Sources */ = {isa = PBXBuildFile; fileRef = 48098AF22B439FA800EA991C /* DwebWebBrowser.docc */; };
 		48098AF42B439FA800EA991C /* DwebWebBrowser.h in Headers */ = {isa = PBXBuildFile; fileRef = 48098AF12B439FA800EA991C /* DwebWebBrowser.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		48098BFF2B43A18500EA991C /* AnimationProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BB22B43A18500EA991C /* AnimationProgress.swift */; };
@@ -24,7 +27,7 @@
 		48098C0B2B43A18500EA991C /* View+ancester+keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BC12B43A18500EA991C /* View+ancester+keyboard.swift */; };
 		48098C0C2B43A18500EA991C /* Url+Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BC22B43A18500EA991C /* Url+Validator.swift */; };
 		48098C0D2B43A18500EA991C /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BC32B43A18500EA991C /* UIImage+Cache.swift */; };
-		48098C0E2B43A18500EA991C /* DwebWebBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BC42B43A18500EA991C /* DwebWebBrowser.swift */; };
+		48098C0E2B43A18500EA991C /* WebBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BC42B43A18500EA991C /* WebBrowserView.swift */; };
 		48098C0F2B43A18500EA991C /* TabsContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BC72B43A18500EA991C /* TabsContainerView.swift */; };
 		48098C102B43A18500EA991C /* WebWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BC82B43A18500EA991C /* WebWrapper.swift */; };
 		48098C112B43A18500EA991C /* PagingScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BC92B43A18500EA991C /* PagingScrollView.swift */; };
@@ -69,14 +72,9 @@
 		48098C542B43A19400EA991C /* DownloadAppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C3D2B43A19400EA991C /* DownloadAppManager.swift */; };
 		48098C552B43A19400EA991C /* HapticsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C3E2B43A19400EA991C /* HapticsHelper.swift */; };
 		48098C562B43A19400EA991C /* ConsoleSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C3F2B43A19400EA991C /* ConsoleSwift.swift */; };
-		48098C572B43A19400EA991C /* BridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C402B43A19400EA991C /* BridgeManager.swift */; };
 		48098C582B43A19400EA991C /* KotlinComposeMetalRedrawerFix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C432B43A19400EA991C /* KotlinComposeMetalRedrawerFix.swift */; };
-		48098C592B43A19400EA991C /* KmpBridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C442B43A19400EA991C /* KmpBridgeManager.swift */; };
 		48098C5A2B43A19400EA991C /* DwebDeskRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C462B43A19400EA991C /* DwebDeskRootView.swift */; };
 		48098C5B2B43A19400EA991C /* DwebBrowserHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C472B43A19400EA991C /* DwebBrowserHistoryStore.swift */; };
-		48098C5C2B43A19400EA991C /* DwebDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C482B43A19400EA991C /* DwebDeepLink.swift */; };
-		48098C5D2B43A19400EA991C /* DwebDeskVCStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C492B43A19400EA991C /* DwebDeskVCStore.swift */; };
-		48098C5E2B43A19400EA991C /* DwebBrowserIosIMP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C4A2B43A19400EA991C /* DwebBrowserIosIMP.swift */; };
 		48098C5F2B43A19400EA991C /* JmmAppDownloadManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C4C2B43A19400EA991C /* JmmAppDownloadManifest.swift */; };
 		48098C602B43A19400EA991C /* CombinePublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C4D2B43A19400EA991C /* CombinePublisher.swift */; };
 		48098C612B43A19400EA991C /* DownloadImageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C4E2B43A19400EA991C /* DownloadImageViewModel.swift */; };
@@ -104,6 +102,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4806964E2B46841E008140C4 /* WebBrowserViewProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebBrowserViewProtocol.swift; sourceTree = "<group>"; };
+		480696502B468AB2008140C4 /* BrowserWebSiteInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserWebSiteInfo.swift; sourceTree = "<group>"; };
+		480696542B468D90008140C4 /* WebBrowserDefaultProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebBrowserDefaultProvider.swift; sourceTree = "<group>"; };
 		48098AEE2B439FA800EA991C /* DwebWebBrowser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebWebBrowser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		48098AF12B439FA800EA991C /* DwebWebBrowser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebWebBrowser.h; sourceTree = "<group>"; };
 		48098AF22B439FA800EA991C /* DwebWebBrowser.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DwebWebBrowser.docc; sourceTree = "<group>"; };
@@ -122,7 +123,7 @@
 		48098BC12B43A18500EA991C /* View+ancester+keyboard.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "View+ancester+keyboard.swift"; sourceTree = "<group>"; };
 		48098BC22B43A18500EA991C /* Url+Validator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Url+Validator.swift"; sourceTree = "<group>"; };
 		48098BC32B43A18500EA991C /* UIImage+Cache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
-		48098BC42B43A18500EA991C /* DwebWebBrowser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebWebBrowser.swift; sourceTree = "<group>"; };
+		48098BC42B43A18500EA991C /* WebBrowserView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebBrowserView.swift; sourceTree = "<group>"; };
 		48098BC72B43A18500EA991C /* TabsContainerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TabsContainerView.swift; sourceTree = "<group>"; };
 		48098BC82B43A18500EA991C /* WebWrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebWrapper.swift; sourceTree = "<group>"; };
 		48098BC92B43A18500EA991C /* PagingScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PagingScrollView.swift; sourceTree = "<group>"; };
@@ -167,14 +168,9 @@
 		48098C3D2B43A19400EA991C /* DownloadAppManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppManager.swift; sourceTree = "<group>"; };
 		48098C3E2B43A19400EA991C /* HapticsHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HapticsHelper.swift; sourceTree = "<group>"; };
 		48098C3F2B43A19400EA991C /* ConsoleSwift.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleSwift.swift; sourceTree = "<group>"; };
-		48098C402B43A19400EA991C /* BridgeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BridgeManager.swift; sourceTree = "<group>"; };
 		48098C432B43A19400EA991C /* KotlinComposeMetalRedrawerFix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KotlinComposeMetalRedrawerFix.swift; sourceTree = "<group>"; };
-		48098C442B43A19400EA991C /* KmpBridgeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KmpBridgeManager.swift; sourceTree = "<group>"; };
 		48098C462B43A19400EA991C /* DwebDeskRootView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskRootView.swift; sourceTree = "<group>"; };
 		48098C472B43A19400EA991C /* DwebBrowserHistoryStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebBrowserHistoryStore.swift; sourceTree = "<group>"; };
-		48098C482B43A19400EA991C /* DwebDeepLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeepLink.swift; sourceTree = "<group>"; };
-		48098C492B43A19400EA991C /* DwebDeskVCStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskVCStore.swift; sourceTree = "<group>"; };
-		48098C4A2B43A19400EA991C /* DwebBrowserIosIMP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebBrowserIosIMP.swift; sourceTree = "<group>"; };
 		48098C4C2B43A19400EA991C /* JmmAppDownloadManifest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JmmAppDownloadManifest.swift; sourceTree = "<group>"; };
 		48098C4D2B43A19400EA991C /* CombinePublisher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinePublisher.swift; sourceTree = "<group>"; };
 		48098C4E2B43A19400EA991C /* DownloadImageViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadImageViewModel.swift; sourceTree = "<group>"; };
@@ -190,7 +186,6 @@
 		48098DDE2B43B81500EA991C /* DwebWebBrowserTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DwebWebBrowserTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		48098DE02B43B81500EA991C /* DwebWebBrowserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebWebBrowserTests.swift; sourceTree = "<group>"; };
 		48098DE92B43E2D400EA991C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		487F8AF42B452EA4009B74C3 /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -235,10 +230,13 @@
 			isa = PBXGroup;
 			children = (
 				48098AF12B439FA800EA991C /* DwebWebBrowser.h */,
-				48098BC42B43A18500EA991C /* DwebWebBrowser.swift */,
+				48098BC42B43A18500EA991C /* WebBrowserView.swift */,
+				4806964E2B46841E008140C4 /* WebBrowserViewProtocol.swift */,
+				480696542B468D90008140C4 /* WebBrowserDefaultProvider.swift */,
 				48098C3C2B43A19400EA991C /* Bridge */,
 				48098C532B43A19400EA991C /* BrowserView.swift */,
 				48098C522B43A19400EA991C /* BrowserViewStateStore.swift */,
+				480696502B468AB2008140C4 /* BrowserWebSiteInfo.swift */,
 				48098C4B2B43A19400EA991C /* DownloadApp */,
 				48098BBA2B43A18500EA991C /* extension */,
 				48098BEE2B43A18500EA991C /* Helper */,
@@ -439,7 +437,6 @@
 				48098C3D2B43A19400EA991C /* DownloadAppManager.swift */,
 				48098C3E2B43A19400EA991C /* HapticsHelper.swift */,
 				48098C3F2B43A19400EA991C /* ConsoleSwift.swift */,
-				48098C402B43A19400EA991C /* BridgeManager.swift */,
 				48098C412B43A19400EA991C /* kmp */,
 			);
 			path = Bridge;
@@ -449,7 +446,6 @@
 			isa = PBXGroup;
 			children = (
 				48098C422B43A19400EA991C /* Fix */,
-				48098C442B43A19400EA991C /* KmpBridgeManager.swift */,
 				48098C452B43A19400EA991C /* NMMs */,
 			);
 			path = kmp;
@@ -468,9 +464,6 @@
 			children = (
 				48098C462B43A19400EA991C /* DwebDeskRootView.swift */,
 				48098C472B43A19400EA991C /* DwebBrowserHistoryStore.swift */,
-				48098C482B43A19400EA991C /* DwebDeepLink.swift */,
-				48098C492B43A19400EA991C /* DwebDeskVCStore.swift */,
-				48098C4A2B43A19400EA991C /* DwebBrowserIosIMP.swift */,
 			);
 			path = NMMs;
 			sourceTree = "<group>";
@@ -491,7 +484,6 @@
 		48098C692B43A48E00EA991C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				487F8AF42B452EA4009B74C3 /* DwebPlatformIosKit.framework */,
 				48098C6A2B43A48E00EA991C /* UIKit.framework */,
 			);
 			name = Frameworks;
@@ -567,6 +559,7 @@
 				TargetAttributes = {
 					48098AED2B439FA800EA991C = {
 						CreatedOnToolsVersion = 15.0.1;
+						LastSwiftMigration = 1500;
 					};
 					48098DDD2B43B81500EA991C = {
 						CreatedOnToolsVersion = 15.0.1;
@@ -628,18 +621,15 @@
 				48098C262B43A18500EA991C /* NetworkGuidView.swift in Sources */,
 				48098C152B43A18500EA991C /* ToolbarView.swift in Sources */,
 				48098AF32B439FA800EA991C /* DwebWebBrowser.docc in Sources */,
-				48098C572B43A19400EA991C /* BridgeManager.swift in Sources */,
 				48098C1E2B43A18500EA991C /* SearchTypingView.swift in Sources */,
 				48098C652B43A19400EA991C /* BrowserViewStateStore.swift in Sources */,
 				48098C632B43A19400EA991C /* CustomUIScrollView.swift in Sources */,
 				48098C3A2B43A18500EA991C /* WindowifyModifer.swift in Sources */,
 				48098BFF2B43A18500EA991C /* AnimationProgress.swift in Sources */,
 				48098C0F2B43A18500EA991C /* TabsContainerView.swift in Sources */,
-				48098C5D2B43A19400EA991C /* DwebDeskVCStore.swift in Sources */,
 				48098C122B43A18500EA991C /* TabPageView.swift in Sources */,
 				48098C2D2B43A18500EA991C /* InstalledApp.swift in Sources */,
 				48098C1F2B43A18500EA991C /* BookmarkView.swift in Sources */,
-				48098C5C2B43A19400EA991C /* DwebDeepLink.swift in Sources */,
 				48098C272B43A18500EA991C /* MenuCell.swift in Sources */,
 				48098C1C2B43A18500EA991C /* WebSearcher.swift in Sources */,
 				48098C5B2B43A19400EA991C /* DwebBrowserHistoryStore.swift in Sources */,
@@ -650,7 +640,7 @@
 				48098C322B43A18500EA991C /* Loger.swift in Sources */,
 				48098C002B43A18500EA991C /* BookmarkModel.swift in Sources */,
 				48098C562B43A19400EA991C /* ConsoleSwift.swift in Sources */,
-				48098C0E2B43A18500EA991C /* DwebWebBrowser.swift in Sources */,
+				48098C0E2B43A18500EA991C /* WebBrowserView.swift in Sources */,
 				48098C062B43A18500EA991C /* UIImage+Resize.swift in Sources */,
 				48098C302B43A18500EA991C /* View+snapshot.swift in Sources */,
 				48098C2F2B43A18500EA991C /* NetworkPermission.swift in Sources */,
@@ -659,10 +649,11 @@
 				48098C3B2B43A18500EA991C /* const.swift in Sources */,
 				48098C642B43A19400EA991C /* DownloadAppView.swift in Sources */,
 				48098C192B43A18500EA991C /* AddressBarView.swift in Sources */,
-				48098C592B43A19400EA991C /* KmpBridgeManager.swift in Sources */,
 				48098C0C2B43A18500EA991C /* Url+Validator.swift in Sources */,
+				480696552B468D90008140C4 /* WebBrowserDefaultProvider.swift in Sources */,
 				48098C202B43A18500EA991C /* HistoryViewModel.swift in Sources */,
 				48098C662B43A19400EA991C /* BrowserView.swift in Sources */,
+				4806964F2B46841E008140C4 /* WebBrowserViewProtocol.swift in Sources */,
 				48098C612B43A19400EA991C /* DownloadImageViewModel.swift in Sources */,
 				48098C072B43A18500EA991C /* UIApplication+Window.swift in Sources */,
 				48098C602B43A19400EA991C /* CombinePublisher.swift in Sources */,
@@ -689,12 +680,12 @@
 				48098C142B43A18500EA991C /* GridCellView.swift in Sources */,
 				48098C0D2B43A18500EA991C /* UIImage+Cache.swift in Sources */,
 				48098C682B43A37D00EA991C /* Bundle+module.swift in Sources */,
+				480696512B468AB2008140C4 /* BrowserWebSiteInfo.swift in Sources */,
 				48098C0A2B43A18500EA991C /* UIImage+Trans.swift in Sources */,
 				48098C252B43A18500EA991C /* Tools.swift in Sources */,
 				48098C2C2B43A18500EA991C /* Environment.swift in Sources */,
 				48098C5A2B43A19400EA991C /* DwebDeskRootView.swift in Sources */,
 				48098DD32B43AE4100EA991C /* Browser.xcdatamodeld in Sources */,
-				48098C5E2B43A19400EA991C /* DwebBrowserIosIMP.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -843,6 +834,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
 				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -852,6 +844,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_MODULE_VERIFIER = YES;
+				FRAMEWORK_SEARCH_PATHS = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -870,13 +863,16 @@
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.bnqkl.DwebWebBrowser;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -887,6 +883,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = NO;
 				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -896,6 +893,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_MODULE_VERIFIER = YES;
+				FRAMEWORK_SEARCH_PATHS = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -914,12 +912,14 @@
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = org.bnqkl.DwebWebBrowser;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

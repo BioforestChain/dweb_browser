@@ -29,7 +29,7 @@ struct InnerAppGridView: View {
                     Button {
                         Log("opneing an app")
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        BridgeManager.shared.clickApp(appUrl: app.link)
+//                        BridgeManager.shared.clickApp(appUrl: app.link)
                     } label: {
                         VStack {
                             Image(uiImage: .assetsImage(name: (app.icon)))

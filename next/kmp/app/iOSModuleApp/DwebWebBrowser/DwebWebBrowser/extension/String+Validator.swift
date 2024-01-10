@@ -24,24 +24,12 @@ extension String {
     /**
      * 判断字符串是否携带了scheme，true为携带，false为未携带
      */
-    // mike todo:
-    func matchesSchemePattern() -> Bool {
-        do {
-            let pattern = try Regex(#"\b[a-zA-Z]+://\b"#)
-            let matches = self.ranges(of: pattern)
-            return !matches.isEmpty
-        } catch {
-            return false
-        }
-    }
-    /*
      func matchesSchemePattern() -> Bool {
          let pattern = /\b[a-zA-Z]+:\/\/\b/
          let matches = self.ranges(of: pattern)
          
          return !matches.isEmpty
      }
-     */
     
 
 }

@@ -1,8 +1,11 @@
 package org.dweb_browser.browser.web
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.OffListener
-import platform.UIKit.UILabel
+import org.dweb_browser.helper.platform.ios_browser.WebBrowserView
+import org.dweb_browser.helper.platform.ios_browser.browserActiveOn
+import org.dweb_browser.helper.platform.ios_browser.browserClear
 import platform.UIKit.UIView
 
 interface IosInterface {
@@ -13,21 +16,27 @@ interface IosInterface {
   fun browserClear()
 }
 
-class BrowserIosIMP() {
-
-  private var imp: IosInterface? = null
+@OptIn(ExperimentalForeignApi::class)
+class BrowserIosWinObserver() {
 
   private var onWinVisibleListener: OffListener<Boolean>? = null
   private var onWinCloseListener: OffListener<Unit>? = null
+
+  var iOSBrowserView: WebBrowserView? = null
+
   var browserViewModel: BrowserViewModel? = null
     set(value) {
       cancelViewModeObservers()
       value?.let {
         onWinVisibleListener = it.browserOnVisible { isVisiable ->
-          browserVisiable(isVisiable)
+          iOSBrowserView?.let {
+            it.browserActiveOn(isVisiable)
+          }
         }
         onWinCloseListener = it.browserOnClose {
-          browserClear()
+          iOSBrowserView?.let {
+            it.browserClear()
+          }
           cancelViewModeObservers()
         }
       }
@@ -39,34 +48,6 @@ class BrowserIosIMP() {
     }
     onWinCloseListener?.let {
       it()
-    }
-  }
-
-  fun registerIosIMP(imp: IosInterface) {
-    this.imp = imp
-  }
-
-  fun createIosMainView(): UIView {
-    return imp?.getBrowserView() ?: UILabel().apply {
-      this.text = "iOS Main View Load Fail"
-    }
-  }
-
-  fun doSearch(key: String) {
-    imp?.doSearch(key)
-  }
-
-  fun gobackIfCanDo() = imp?.let { it.gobackIfCanDo() } ?: false
-
-  fun browserVisiable(on: Boolean) {
-    imp?.let {
-      it.browserActive(on)
-    }
-  }
-
-  fun browserClear() {
-    imp?.let {
-      it.browserClear()
     }
   }
 }

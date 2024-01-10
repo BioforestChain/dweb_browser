@@ -5,7 +5,6 @@
 //  Created by ui03 on 2023/5/5.
 //
 
-// mike todo: import DwebShared
 import SwiftUI
 struct HistoryCell: View {
     @Environment(\.presentationMode) var presentationMode
@@ -20,11 +19,11 @@ struct HistoryCell: View {
     var body: some View {
         ZStack(alignment: .leading) {
             VStack(alignment: .leading, spacing: 5) {
-                Text(linkRecord.title)
+                Text(linkRecord.data.title)
                     .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
                     .foregroundColor(Color.menuTitleColor)
                 
-                Text(linkRecord.url)
+                Text(linkRecord.data.url)
                     .lineLimit(1)
                     .font(.system(size: dragScale.scaledFontSize(maxSize: 11)))
                     .foregroundColor(Color(hexString: "ACB5BF"))
@@ -43,7 +42,7 @@ struct HistoryCell: View {
             
             Color(white: 0.01, opacity: 0.01) // 添加一个空的透明视图
                 .onTapGesture {
-                    guard let link = URL(string: linkRecord.url) else { return }
+                    guard let link = URL(string: linkRecord.data.url) else { return }
                     openingLink.clickedLink = link
                     toolBarState.showMoreMenu = false
                 }

@@ -13,9 +13,13 @@ import org.dweb_browser.helper.datetimeNowToEpochDay
 import org.dweb_browser.helper.formatDatestampByEpochDay
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.toEpochDay
+import kotlin.experimental.ExperimentalObjCName
+import kotlin.native.ObjCName
 
 @Serializable
-data class WebSiteInfo(
+@OptIn(ExperimentalObjCName::class)
+@ObjCName("KMPWebSiteInfo", swiftName = "KMPWebSiteInfo", exact = true)
+public data class WebSiteInfo(
   val id: Long = datetimeNow(),
   var title: String,
   var url: String = "",

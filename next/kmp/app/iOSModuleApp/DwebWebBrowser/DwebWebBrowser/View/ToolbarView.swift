@@ -131,7 +131,7 @@ struct ToolbarView: View {
                             Log(result.string)
                             let url = URL(string: result.string)
                             if url?.scheme == "dweb" {
-                                DwebDeepLink.shared.openDeepLink(url: result.string)
+                                browserViewDelegate.openDeepLink(url: result.string)
                             } else {
                                 addressBar.inputText = result.string
                                 let url = URL.createUrl(addressBar.inputText)

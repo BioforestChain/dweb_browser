@@ -7,17 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		48098DC22B43A80500EA991C /* DwebWebBrowser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 48098DBF2B43A57C00EA991C /* DwebWebBrowser.framework */; };
-		48098DC32B43A80500EA991C /* DwebWebBrowser.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 48098DBF2B43A57C00EA991C /* DwebWebBrowser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		487F8AF02B452D3F009B74C3 /* DwebPlatformIosKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 487F8AEF2B452D3F009B74C3 /* DwebPlatformIosKit.framework */; };
-		487F8AF12B452D3F009B74C3 /* DwebPlatformIosKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 487F8AEF2B452D3F009B74C3 /* DwebPlatformIosKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		480696592B469C8F008140C4 /* DwebDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480696562B469C8F008140C4 /* DwebDeepLink.swift */; };
+		483890092B4539D30016260F /* Loger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 483890082B4539D30016260F /* Loger.swift */; };
+		483890182B45423A0016260F /* DwebDeskVCStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 483890172B45423A0016260F /* DwebDeskVCStore.swift */; };
+		487F8AFB2B453750009B74C3 /* DwebAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487F8AFA2B453750009B74C3 /* DwebAppDelegate.swift */; };
 		48A8CC152B3C021C00A9CECC /* DwebBrowserApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A8CC142B3C021C00A9CECC /* DwebBrowserApp.swift */; };
-		48A8CC172B3C021C00A9CECC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A8CC162B3C021C00A9CECC /* ContentView.swift */; };
 		48A8CC192B3C021D00A9CECC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 48A8CC182B3C021D00A9CECC /* Assets.xcassets */; };
 		48A8CC1C2B3C021D00A9CECC /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 48A8CC1B2B3C021D00A9CECC /* Preview Assets.xcassets */; };
 		48A8CC262B3C021D00A9CECC /* DwebBrowserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A8CC252B3C021D00A9CECC /* DwebBrowserTests.swift */; };
 		48A8CC302B3C021D00A9CECC /* DwebBrowserUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A8CC2F2B3C021D00A9CECC /* DwebBrowserUITests.swift */; };
 		48A8CC322B3C021D00A9CECC /* DwebBrowserUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A8CC312B3C021D00A9CECC /* DwebBrowserUITestsLaunchTests.swift */; };
+		48C962232B4BD1B50024767C /* DwebWebBrowser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 48098DBF2B43A57C00EA991C /* DwebWebBrowser.framework */; };
+		48C962242B4BD1B50024767C /* DwebWebBrowser.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 48098DBF2B43A57C00EA991C /* DwebWebBrowser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,13 +35,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = 48098DDE2B43B81500EA991C;
 			remoteInfo = DwebWebBrowserTests;
-		};
-		48098E232B43F13200EA991C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 48098E1F2B43F13200EA991C /* DwebPlatformIosKit.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 3D50D2D52B064BA5008891FC;
-			remoteInfo = DwebPlatformIosKit;
 		};
 		48A8CC222B3C021D00A9CECC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -59,14 +53,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		48098DC42B43A80500EA991C /* Embed Frameworks */ = {
+		48C962222B4BD1B30024767C /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				487F8AF12B452D3F009B74C3 /* DwebPlatformIosKit.framework in Embed Frameworks */,
-				48098DC32B43A80500EA991C /* DwebWebBrowser.framework in Embed Frameworks */,
+				48C962242B4BD1B50024767C /* DwebWebBrowser.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -74,6 +67,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		480696562B469C8F008140C4 /* DwebDeepLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeepLink.swift; sourceTree = "<group>"; };
 		48098D522B43A57C00EA991C /* JmmAppDownloadManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JmmAppDownloadManifest.swift; sourceTree = "<group>"; };
 		48098D532B43A57C00EA991C /* CombinePublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombinePublisher.swift; sourceTree = "<group>"; };
 		48098D542B43A57C00EA991C /* DownloadImageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadImageViewModel.swift; sourceTree = "<group>"; };
@@ -158,12 +152,11 @@
 		48098DB82B43A57C00EA991C /* Button.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Button.swift; sourceTree = "<group>"; };
 		48098DB92B43A57C00EA991C /* DwebWebBrowser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebWebBrowser.h; sourceTree = "<group>"; };
 		48098DBA2B43A57C00EA991C /* DwebWebBrowser.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = DwebWebBrowser.xcodeproj; sourceTree = "<group>"; };
-		48098E1F2B43F13200EA991C /* DwebPlatformIosKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DwebPlatformIosKit.xcodeproj; path = ../../../../helperPlatformIos/src/nativeInterop/cinterop/DwebPlatformIosKit.xcodeproj; sourceTree = "<group>"; };
-		4828811E2B4419CA007B2B8D /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		487F8AEF2B452D3F009B74C3 /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		483890082B4539D30016260F /* Loger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loger.swift; sourceTree = "<group>"; };
+		483890172B45423A0016260F /* DwebDeskVCStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskVCStore.swift; sourceTree = "<group>"; };
+		487F8AFA2B453750009B74C3 /* DwebAppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebAppDelegate.swift; sourceTree = "<group>"; };
 		48A8CC112B3C021C00A9CECC /* DwebBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DwebBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		48A8CC142B3C021C00A9CECC /* DwebBrowserApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserApp.swift; sourceTree = "<group>"; };
-		48A8CC162B3C021C00A9CECC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		48A8CC182B3C021D00A9CECC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		48A8CC1B2B3C021D00A9CECC /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		48A8CC212B3C021D00A9CECC /* DwebBrowserTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DwebBrowserTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -179,8 +172,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				487F8AF02B452D3F009B74C3 /* DwebPlatformIosKit.framework in Frameworks */,
-				48098DC22B43A80500EA991C /* DwebWebBrowser.framework in Frameworks */,
+				48C962232B4BD1B50024767C /* DwebWebBrowser.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -478,12 +470,12 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		48098E202B43F13200EA991C /* Products */ = {
+		483890072B45396F0016260F /* Tools */ = {
 			isa = PBXGroup;
 			children = (
-				48098E242B43F13200EA991C /* DwebPlatformIosKit.framework */,
+				483890082B4539D30016260F /* Loger.swift */,
 			);
-			name = Products;
+			path = Tools;
 			sourceTree = "<group>";
 		};
 		48A8CC082B3C021C00A9CECC = {
@@ -511,7 +503,10 @@
 			isa = PBXGroup;
 			children = (
 				48A8CC142B3C021C00A9CECC /* DwebBrowserApp.swift */,
-				48A8CC162B3C021C00A9CECC /* ContentView.swift */,
+				487F8AFA2B453750009B74C3 /* DwebAppDelegate.swift */,
+				483890172B45423A0016260F /* DwebDeskVCStore.swift */,
+				480696562B469C8F008140C4 /* DwebDeepLink.swift */,
+				483890072B45396F0016260F /* Tools */,
 				48A8CC182B3C021D00A9CECC /* Assets.xcassets */,
 				48A8CC1A2B3C021D00A9CECC /* Preview Content */,
 			);
@@ -546,9 +541,6 @@
 		48C8D38E2B3EE1730078CEFE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				487F8AEF2B452D3F009B74C3 /* DwebPlatformIosKit.framework */,
-				4828811E2B4419CA007B2B8D /* DwebPlatformIosKit.framework */,
-				48098E1F2B43F13200EA991C /* DwebPlatformIosKit.xcodeproj */,
 				48098D4F2B43A57C00EA991C /* DwebWebBrowser */,
 				48C8D38F2B3EE1730078CEFE /* UIKit.framework */,
 			);
@@ -567,7 +559,7 @@
 				48A8CC0D2B3C021C00A9CECC /* Sources */,
 				48A8CC0E2B3C021C00A9CECC /* Frameworks */,
 				48A8CC0F2B3C021C00A9CECC /* Resources */,
-				48098DC42B43A80500EA991C /* Embed Frameworks */,
+				48C962222B4BD1B30024767C /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -654,10 +646,6 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 48098E202B43F13200EA991C /* Products */;
-					ProjectRef = 48098E1F2B43F13200EA991C /* DwebPlatformIosKit.xcodeproj */;
-				},
-				{
 					ProductGroup = 48098DBB2B43A57C00EA991C /* Products */;
 					ProjectRef = 48098DBA2B43A57C00EA991C /* DwebWebBrowser.xcodeproj */;
 				},
@@ -684,13 +672,6 @@
 			fileType = wrapper.cfbundle;
 			path = DwebWebBrowserTests.xctest;
 			remoteRef = 48098DED2B43E80C00EA991C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		48098E242B43F13200EA991C /* DwebPlatformIosKit.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = DwebPlatformIosKit.framework;
-			remoteRef = 48098E232B43F13200EA991C /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -724,7 +705,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		48C8D37E2B3EB8680078CEFE /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 8;
 			files = (
 			);
 			inputFileListPaths = (
@@ -735,13 +716,13 @@
 			);
 			outputPaths = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\n\necho \"===========Creating... DwebWebBrowser.xcframework======\"\n#pwd\n\necho \"Product: $CONFIGURATION_BUILD_DIR\"\necho \"Root: $SRCROOT\"\n\ncd $CONFIGURATION_BUILD_DIR\n\nfile=\"frameworkSync.txt\"\nfw=\"DwebWebBrowser.framework\"\nrecord_time=0\nmodife_time=0\n\nrecord_time=0\nif [ -e \"$file\" ]; then\n    record_time=$(head -n 1 \"$file\")\nelse\n    touch $file\n    echo \"create $file\"\nfi\n\nmodife_time=`stat -f %m $fw`\necho \"$fw record time: $modife_time\"\necho \"$fw modife time: $record_time\"\n\nif [ \"$modife_time\" -gt \"$record_time\" ]; then\n    echo \"需要做kmp sync\"\n    echo $modife_time > $file\nelse\n    echo \"不需要需要做kmp sync\"\nfi\n\n#cd \"/Users/bfchainer/.deno/bin\"\ncd \"$SRCROOT/../../../..\"\n#pwd \n#`./gradlew :helperPlatformIos:cinteropSync`\n    \nexit 0\n\n#cd $CONFIGURATION_BUILD_DIR\n#rm -r DwebWebBrowser.xcframework\n#ar -crs libDwebWebBrowser.a DwebWebBrowser.o DwebWebOCSupport.o\n#xcodebuild xcodebuild -create-xcframework -library libDwebWebBrowser.a -allow-internal-distribution -output DwebWebBrowser.xcframework\n\n#if [ $? -eq 0 ]; then\n    echo \"===========SUCCESS DwebWebBrowser.xcframework======\"\n#else\n    #echo \"===========FAIL DwebWebBrowser.xcframework======\"\n#fi\n\n#mv -f DwebWebBrowser.xcframework \"$SRCROOT/../../../../helperPlatformIos/src/nativeInterop/cinterop/xcframeworks/\" \n\n\n\n\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\n\necho \"===========Creating... DwebWebBrowser.xcframework======\"\n#pwd\nexit 0\necho \"Product: $CONFIGURATION_BUILD_DIR\"\necho \"Root: $SRCROOT\"\n\ncd $CONFIGURATION_BUILD_DIR\n\nfile=\"frameworkSync.txt\"\nfw=\"DwebWebBrowser.framework\"\nrecord_time=0\nmodife_time=0\n\nrecord_time=0\nif [ -e \"$file\" ]; then\n    record_time=$(head -n 1 \"$file\")\nelse\n    touch $file\n    echo \"create $file\"\nfi\n\nmodife_time=`stat -f %m $fw`\necho \"$fw record time: $modife_time\"\necho \"$fw modife time: $record_time\"\n\nif [ \"$modife_time\" -gt \"$record_time\" ]; then\n    echo \"需要做kmp sync\"\n    echo $modife_time > $file\nelse\n    echo \"不需要需要做kmp sync\"\nfi\n\n#cd \"/Users/bfchainer/.deno/bin\"\ncd \"$SRCROOT/../../../..\"\n#pwd \n#`./gradlew :helperPlatformIos:cinteropSync`\n    \nexit 0\n\n#cd $CONFIGURATION_BUILD_DIR\n#rm -r DwebWebBrowser.xcframework\n#ar -crs libDwebWebBrowser.a DwebWebBrowser.o DwebWebOCSupport.o\n#xcodebuild xcodebuild -create-xcframework -library libDwebWebBrowser.a -allow-internal-distribution -output DwebWebBrowser.xcframework\n\n#if [ $? -eq 0 ]; then\n    echo \"===========SUCCESS DwebWebBrowser.xcframework======\"\n#else\n    #echo \"===========FAIL DwebWebBrowser.xcframework======\"\n#fi\n\n#mv -f DwebWebBrowser.xcframework \"$SRCROOT/../../../../helperPlatformIos/src/nativeInterop/cinterop/xcframeworks/\" \n\n\n\n\n";
 		};
 		48FB53DA2B3C1D45000AA400 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 12;
 			files = (
 			);
 			inputFileListPaths = (
@@ -763,8 +744,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				48A8CC172B3C021C00A9CECC /* ContentView.swift in Sources */,
+				483890182B45423A0016260F /* DwebDeskVCStore.swift in Sources */,
+				483890092B4539D30016260F /* Loger.swift in Sources */,
+				487F8AFB2B453750009B74C3 /* DwebAppDelegate.swift in Sources */,
 				48A8CC152B3C021C00A9CECC /* DwebBrowserApp.swift in Sources */,
+				480696592B469C8F008140C4 /* DwebDeepLink.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -954,7 +938,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -992,7 +976,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

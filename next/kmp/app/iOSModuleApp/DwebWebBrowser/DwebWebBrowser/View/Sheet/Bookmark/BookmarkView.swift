@@ -7,14 +7,17 @@
 
 import SwiftData
 import SwiftUI
-// mike todo: import DwebShared
 
 struct BookmarkView: View {
     @EnvironmentObject var dragScale: WndDragScale
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var toolBarState: ToolBarState
 
-    @State private var bookmarks: [BrowserWebSiteInfo] = (browserService.loadBookmarks()) ?? []
+    @State private var bookmarks: [BrowserWebSiteInfo] = browserViewDataSource.loadBookmarksToBrowser() ?? []
+    
+    private func getBookmarkIconImage(_ bk: BrowserWebSiteInfo) -> UIImage {
+        return browserViewDataSource.getIconUIImage(data: bk.data) ?? UIImage(systemName: "book")!
+    }
     
     var body: some View {
 
@@ -23,21 +26,19 @@ struct BookmarkView: View {
                 List {
                     ForEach(bookmarks, id: \.self) { bookmark in
                         HStack {
-                            let image = browserService.webSiteInfoIconToUIImage(web: bookmark) ?? UIImage(systemName: "book")!
-                            Image(uiImage: image)
+                            Image(uiImage: getBookmarkIconImage(bookmark))
                                 .resizable()
                                 .frame(width: dragScale.properValue(floor: 14, ceiling: 24),
                                        height: dragScale.properValue(floor: 14, ceiling: 24))
                                 .cornerRadius(4)
-
-                            Text(bookmark.title)
+                            Text(bookmark.data.title)
                                 .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
                                 .lineLimit(1)
                                 .padding(.leading, 6)
                             Spacer()
                         }
                         .onTapGesture {
-                            guard let bookmarkUrl = URL(string: bookmark.url) else { return }
+                            guard let bookmarkUrl = URL(string: bookmark.data.url) else { return }
                             openingLink.clickedLink = bookmarkUrl
                             toolBarState.showMoreMenu = false
                         }
@@ -53,7 +54,7 @@ struct BookmarkView: View {
     func deleteBookmarkData(_ indexSet: IndexSet) {
         for index in indexSet {
             let element = bookmarks.remove(at: index)
-            browserService.removeBookmark(bookmark: element.id)
+            browserViewDataSource.removeBookmark(bookmark: element.id)
         }
     }
 }

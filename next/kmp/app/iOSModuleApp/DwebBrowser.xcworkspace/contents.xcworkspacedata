@@ -21,41 +21,5 @@
       <FileRef
          location = "group:DwebPlatformIosKit.xcodeproj">
       </FileRef>
-      <Group
-         location = "group:DwebPlatformIosKit"
-         name = "DwebPlatformIosKit">
-         <Group
-            location = "group:Tools"
-            name = "Tools">
-            <FileRef
-               location = "group:Logger.swift">
-            </FileRef>
-         </Group>
-         <FileRef
-            location = "group:DwebPlatformIosKit.h">
-         </FileRef>
-         <FileRef
-            location = "group:DwebWKWebView.swift">
-         </FileRef>
-         <FileRef
-            location = "group:DwebLocationManager.swift">
-         </FileRef>
-         <FileRef
-            location = "group:DwebHelper.swift">
-         </FileRef>
-         <Group
-            location = "group:ObjcHelper"
-            name = "ObjcHelper">
-            <FileRef
-               location = "group:SwiftTryCatch.h">
-            </FileRef>
-            <FileRef
-               location = "group:SwiftTryCatch.m">
-            </FileRef>
-         </Group>
-         <FileRef
-            location = "group:DwebPlatformIosKit.m">
-         </FileRef>
-      </Group>
    </Group>
 </Workspace>

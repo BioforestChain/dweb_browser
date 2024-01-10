@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-// mike todo: import DwebShared
 
 struct HistoryView: View {
     @EnvironmentObject var dragScale: WndDragScale

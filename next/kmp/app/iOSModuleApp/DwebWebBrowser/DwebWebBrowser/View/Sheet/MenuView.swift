@@ -5,7 +5,6 @@
 //  Created by ui03 on 2023/5/6.
 //
 
-// mike todo: import DwebShared
 import SwiftUI
 struct MenuView: View {
     @EnvironmentObject var selectedTab: SelectedTab
@@ -88,7 +87,7 @@ struct MenuView: View {
                 let image = UIImage(data: data)?.resize(toSize: CGSize(width: 32, height: 32))
                 imgData = image?.pngData()
             }
-            browserService.addBookmark(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString, icon: imgData)
+            browserViewDataSource.addBookmark(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString, icon: imgData)
         }
         
         withAnimation {

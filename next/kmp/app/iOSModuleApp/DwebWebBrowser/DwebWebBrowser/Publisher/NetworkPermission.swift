@@ -8,15 +8,15 @@
 import Network
 import SwiftUI
 
-class NetworkManager: ObservableObject {
-    @Published var isNetworkAvailable = true
+public class NetworkManager: ObservableObject {
+    @Published public var isNetworkAvailable = true
     private var monitor: NWPathMonitor? // 声明为实例变量
 
-    init() {
+    public init() {
         checkNetworkPermission()
     }
 
-    func checkNetworkPermission() {
+    public func checkNetworkPermission() {
         monitor = NWPathMonitor()
         let queue = DispatchQueue(label: "NetworkMonitor")
         monitor?.start(queue: queue)

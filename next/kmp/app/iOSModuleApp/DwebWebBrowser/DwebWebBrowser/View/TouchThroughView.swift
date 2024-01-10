@@ -8,9 +8,9 @@
 
 import UIKit
 
-class TouchThroughView: UIView {
+public class TouchThroughView: UIView {
         
-    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+    public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let views = subviews.reversed().map { $0.subviews.reversed() }.flatMap { $0 }
         for v in views {
             if let target = v.hitTest(v.convert(point, from: self), with: event) {

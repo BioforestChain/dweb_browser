@@ -8,75 +8,6 @@
 import Combine
 import Foundation
 import SwiftUI
-// mike todo: import DwebShared
-
-// mike todo:
-class BrowserWebSiteInfo {
-    var title: String = ""
-    var url: String = ""
-    var id: Int64 = 0
-}
-
-extension BrowserWebSiteInfo: Identifiable {
-    
-}
-
-extension BrowserWebSiteInfo: Hashable {
-    static func == (lhs: BrowserWebSiteInfo, rhs: BrowserWebSiteInfo) -> Bool {
-        return lhs.title == rhs.title && lhs.url == rhs.url
-    }
-    
-    func hash(into hasher: inout Hasher) {
-         hasher.combine(title)
-         hasher.combine(url)
-     }
-}
-
-class DwebSharedBrowserBrowserIosService {
-    
-    var trackModel: Bool = false
-    
-    func addBookmark(title: String, url: String, icon: Data?) {
-        
-    }
-    
-    func addHistory(title: String, url: String, icon: Data?, completionHandler: (NSError?)->Void) {
-        
-    }
-    
-    func createDesktopLink(link:String, title: String, iconString:String, completionHandler: (NSError?)->Void) {
-        
-    }
-    
-    func loadBookmarks() -> [BrowserWebSiteInfo]? {
-        return nil
-    }
-    
-    func loadHistorys() -> [String: [BrowserWebSiteInfo]]? {
-        return nil
-    }
-    
-    func loadMoreHistory(off:Int32, completionHandler: (NSError?)->Void) {
-        
-    }
-    
-    func removeBookmark(bookmark:Int64) {
-        
-    }
-    
-    func removeHistory(history:Int64, completionHandler:(NSError?)->Void) {
-        
-    }
-    
-    func webSiteInfoIconToUIImage(web:BrowserWebSiteInfo) -> UIImage? {
-        return nil
-    }
-}
-
-
-// mike todo: let browserService = DwebBrowserIosSupport().browserService
-
-let browserService = DwebSharedBrowserBrowserIosService()
 
 class BrowserArea: ObservableObject {
     @Published var frame: CGRect = .zero
@@ -150,12 +81,12 @@ class TracelessMode {
     private let tracelessKEY = "tracelessKEY"
     var isON: Bool {
         willSet {
-            browserService.trackModel = newValue
+            browserViewDataSource.trackModel = newValue
         }
     }
     
     private init() {
-        isON = browserService.trackModel
+        isON = browserViewDataSource.trackModel
     }
 }
 

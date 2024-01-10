@@ -7,8 +7,6 @@
 
 import Combine
 import SwiftUI
-// mike todo: import DwebPlatformIosKit
-// mike todo: import DwebShared
 
 struct CellFrameInfo: Equatable {
     var index: Int
@@ -113,10 +111,9 @@ struct TabGridView: View {
                     }
                     selectedCellFrame = cellFrame(at: selectedTab.curIndex)
 
-                    
                     let webview = webcacheStore.webWrapper(at: deleteIndex).webView
-                    //mike todo: WKWebViewBridge.companion.shared.webviewDestroy(webview:webview)
-                    
+                     browserViewDataSource.destroyWebView(web: webview)
+
                     if webcacheStore.cacheCount == 1 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                             selectedTab.curIndex = 0

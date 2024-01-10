@@ -6,7 +6,6 @@
 //
 
 import Combine
-// mike todo: import DwebShared
 import SwiftUI
 import WebKit
 
@@ -114,8 +113,7 @@ struct TabPageView: View {
             }
             .onChange(of: webWrapper.icon) { _, icon in
                 webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
-            }
-            
+            }            
             .onChange(of: webWrapper.estimatedProgress) { _, newValue in
                 if newValue >= 1.0 {
                     doneLoading(webCache)
@@ -135,8 +133,7 @@ struct TabPageView: View {
             }
             .onChange(of: toolbarState.creatingDesktopLink) { _, isCreating in
                 Task {
-                    //mike todo: try await browserService.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString)
-                    browserService.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString) { e in
+                    browserViewDelegate.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString) { e in
                         
                     }
                 }

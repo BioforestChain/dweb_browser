@@ -9,9 +9,8 @@
 import Foundation
 import UIKit
 import SwiftUI
-// mike todo: import DwebShared
 
-class DwebComposeRootViewController: UIViewController {
+public class DwebComposeRootViewController: UIViewController {
     
     private var rightEdgePan: UIScreenEdgePanGestureRecognizer!
     private var leftEdgePan: UIScreenEdgePanGestureRecognizer!
@@ -43,8 +42,7 @@ class DwebComposeRootViewController: UIViewController {
             let recognizer = ges as! UIScreenEdgePanGestureRecognizer
             switch recognizer.state {
             case .ended:
-                print("")
-                // mike todo: Main_iosKt.dwebViewController.emitOnGoBack()
+                browserViewDelegate.recognizedScreenGestures()
             default:
                 break
             }
@@ -89,29 +87,33 @@ class DwebComposeRootViewController: UIViewController {
     }
 }
 
-struct DwebDeskRootView: UIViewControllerRepresentable {
+public struct DwebDeskRootView: UIViewControllerRepresentable {
 
-    var vcs: [UIViewController]
+    public init(vcs: [UIViewController]) {
+        self.vcs = vcs
+    }
     
-    func makeUIViewController(context: Context) -> DwebComposeRootViewController {
+    public var vcs: [UIViewController]
+    
+    public func makeUIViewController(context: Context) -> DwebComposeRootViewController {
         return DwebComposeRootViewController(vcs: vcs)
     }
 
-    func updateUIViewController(_ uiViewController: DwebComposeRootViewController, context: Context) {
+    public func updateUIViewController(_ uiViewController: DwebComposeRootViewController, context: Context) {
         uiViewController.updateContent(vcs)
     }
 }
 
 extension DwebComposeRootViewController: UIGestureRecognizerDelegate {
     
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         if otherGestureRecognizer == self.leftEdgePan || otherGestureRecognizer == self.rightEdgePan {
             return true
         }
         return false
     }
     
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return gestureRecognizer.isKind(of: UIScreenEdgePanGestureRecognizer.self)
     }
 

@@ -74,7 +74,7 @@ val LocalBrowserPageState = compositionChainOf<BrowserPagerState>("LocalBrowserP
 @OptIn(ExperimentalFoundationApi::class)
 class BrowserViewModel(
   private val browserController: BrowserController,
-  private val browserNMM: NativeMicroModule,
+  val browserNMM: NativeMicroModule,
   private val browserServer: HttpDwebServer,
 ) {
   private var webviewIdAcc by SafeInt(1)

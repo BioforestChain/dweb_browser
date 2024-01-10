@@ -7,7 +7,6 @@
 //
 
 import Foundation
-// mike todo: import DwebShared
 import Combine
 
 final class DwebBrowserHistoryStore: ObservableObject {
@@ -19,8 +18,7 @@ final class DwebBrowserHistoryStore: ObservableObject {
     private var off = 0
         
     func loadHistory() {
-        guard let loadedHistorys = browserService.loadHistorys() else { return }
-        let historys: [String: [BrowserWebSiteInfo]] = loadedHistorys as! [String: [BrowserWebSiteInfo]]
+        guard let historys = browserViewDataSource.loadHistorysToBrowser() else { return }
         DispatchQueue.main.async { [weak self] in
             self?.sections = historys.keys.sorted().reversed().map { key in
                 let day = Int(key) ?? 0
@@ -31,7 +29,7 @@ final class DwebBrowserHistoryStore: ObservableObject {
     }
     
     func loadNextHistorys() {
-        browserService.loadMoreHistory(off: Int32(off)) { [weak self] e in
+        browserViewDataSource.loadMoreHistory(off: Int32(off)) { [weak self] e in
             guard let self = self else { return }
             let allDataCount = sections.count
             self.loadHistory()
@@ -44,7 +42,7 @@ final class DwebBrowserHistoryStore: ObservableObject {
     }
     
     func addHistoryRecord(title: String, url: String) {
-        browserService.addHistory(title: title, url: url, icon: nil) { [weak self] e in
+        browserViewDataSource.addHistory(title: title, url: url, icon: nil) { [weak self] e in
             self?.loadHistory()
         }
     }
@@ -55,7 +53,7 @@ final class DwebBrowserHistoryStore: ObservableObject {
             return section.items[index].id
         }
         ids.forEach { id in
-            browserService.removeHistory(history: id) { e in
+            browserViewDataSource.removeHistory(history: id) { e in
             }
         }
         section.remove(index: indexSet)
