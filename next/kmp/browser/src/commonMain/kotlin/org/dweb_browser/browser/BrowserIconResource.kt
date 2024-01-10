@@ -3,7 +3,7 @@ package org.dweb_browser.browser
 import androidx.compose.ui.graphics.ImageBitmap
 
 enum class BrowserIconResource {
-  WebEngineDefault, WebEngineBaidu, WebEngineSougou, WebEngine360,
+  WebEngineDefault, WebEngineBaidu, WebEngineBing, WebEngineSougou, WebEngine360,
   BrowserStar, BrowserLauncher
   ;
 }

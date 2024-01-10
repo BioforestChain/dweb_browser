@@ -128,27 +128,32 @@ data class WebEngine(
   }
 }
 
-val DefaultSearchWebEngine: List<WebEngine>
-  get() = listOf(
-    WebEngine(
-      _name = "百度",
-      host = "m.baidu.com",
-      icon = getIconResource(BrowserIconResource.WebEngineBaidu)?.toByteArray(),
-      start = "https://m.baidu.com/s?word="
-    ),
-    WebEngine(
-      _name = "搜狗",
-      host = "wap.sogou.com",
-      icon = getIconResource(BrowserIconResource.WebEngineSougou)?.toByteArray(),
-      start = "https://wap.sogou.com/web/searchList.jsp?keyword="
-    ),
-    WebEngine(
-      _name = "360",
-      host = "m.so.com",
-      icon = getIconResource(BrowserIconResource.WebEngine360)?.toByteArray(),
-      start = "https://m.so.com/s?q="
-    ),
-  )
+val DefaultSearchWebEngine = listOf(
+  WebEngine(
+    _name = "百度",
+    host = "m.baidu.com",
+    icon = getIconResource(BrowserIconResource.WebEngineBaidu)?.toByteArray(),
+    start = "https://m.baidu.com/s?word="
+  ),
+  WebEngine(
+    _name = "必应",
+    host = "cn.bing.com",
+    icon = getIconResource(BrowserIconResource.WebEngineBing)?.toByteArray(),
+    start = "https://cn.bing.com/search?q="
+  ),
+  WebEngine(
+    _name = "搜狗",
+    host = "wap.sogou.com",
+    icon = getIconResource(BrowserIconResource.WebEngineSougou)?.toByteArray(),
+    start = "https://wap.sogou.com/web/searchList.jsp?keyword="
+  ),
+  WebEngine(
+    _name = "360",
+    host = "m.so.com",
+    icon = getIconResource(BrowserIconResource.WebEngine360)?.toByteArray(),
+    start = "https://m.so.com/s?q="
+  ),
+)
 
 val DefaultAllWebEngine: List<WebEngine>
   get() = listOf(

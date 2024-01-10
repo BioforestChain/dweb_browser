@@ -23,6 +23,7 @@ actual fun getIconResource(resource: BrowserIconResource): ImageBitmap? {
   val iconResource = when (resource) {
     BrowserIconResource.WebEngineDefault -> R.drawable.ic_web
     BrowserIconResource.WebEngineBaidu -> R.drawable.ic_engine_baidu
+    BrowserIconResource.WebEngineBing -> R.drawable.ic_engine_bing
     BrowserIconResource.WebEngineSougou -> R.drawable.ic_engine_sougou
     BrowserIconResource.WebEngine360 -> R.drawable.ic_engine_360
     BrowserIconResource.BrowserStar -> R.drawable.ic_main_star

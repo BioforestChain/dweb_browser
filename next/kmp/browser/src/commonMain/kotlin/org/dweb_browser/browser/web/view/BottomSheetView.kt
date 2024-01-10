@@ -267,24 +267,6 @@ private fun PopSearchEngineListView(
 ) {
   Column {
     ManagerTitleView(title = BrowserI18nResource.browser_options_engine_list(), onBack = onBack)
-
-    /*Row(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-      verticalAlignment = CenterVertically,
-      horizontalArrangement = Arrangement.Center
-    ) {
-      Text(
-        text = BrowserI18nResource.browser_engine_tag_search(),
-        modifier = Modifier.width(100.dp)
-      )
-      Text(
-        text = BrowserI18nResource.browser_engine_tag_host(),
-        modifier = Modifier.weight(1f),
-        textAlign = TextAlign.Center
-      )
-      Box(modifier = Modifier.width(32.dp))
-    }*/
-
     LazyColumn {
       itemsIndexed(viewModel.getSearchEngines()) { index, searchEngine ->
         Row(

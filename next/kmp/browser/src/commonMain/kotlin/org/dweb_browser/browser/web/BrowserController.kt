@@ -67,7 +67,20 @@ class BrowserController(
       }
       val engines = browserStore.getSearchEngines()
       if (engines.isNotEmpty()) {
-        searchEngines.addAll(engines)
+        // 下面判断是否在 DefaultSearchWebEngine 有新增，有新增内置，需要补充进去
+        val notExists = DefaultSearchWebEngine.filter { default ->
+          engines.find { engine -> default.host == engine.host } == null
+        }
+        if (notExists.isNotEmpty()) {
+          DefaultSearchWebEngine.forEach { default ->
+            engines.find { it.host == default.host }?.let { engine ->
+              searchEngines.add(engine)
+            } ?: searchEngines.add(default)
+          }
+          browserStore.setSearchEngines(searchEngines)
+        } else {
+          searchEngines.addAll(engines)
+        }
       } else {
         searchEngines.addAll(DefaultSearchWebEngine)
         browserStore.setSearchEngines(searchEngines)

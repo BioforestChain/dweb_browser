@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,6 +64,8 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.toRequestUrl
 import org.dweb_browser.browser.web.model.LocalBrowserModel
+import org.dweb_browser.browser.web.model.LocalModalBottomSheet
+import org.dweb_browser.browser.web.model.PageType
 import org.dweb_browser.browser.web.model.WebEngine
 import org.dweb_browser.browser.web.model.parseInputText
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -332,6 +335,8 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
 @Composable
 private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
   val viewModel = LocalBrowserModel.current
+  val bottomModel = LocalModalBottomSheet.current
+  val scope = rememberCoroutineScope()
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
       text = BrowserI18nResource.browser_search_engine(),
@@ -356,6 +361,18 @@ private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
               imageVector = Icons.Default.Error,
               contentDescription = null,
               modifier = Modifier.size(40.dp)
+            )
+          },
+          trailingContent = {
+            Icon(
+              imageVector = Icons.Default.Settings,
+              contentDescription = null,
+              modifier = Modifier.size(32.dp).clickable {
+                scope.launch {
+                  bottomModel.show()
+                  bottomModel.pageType.value = PageType.EngineList
+                }
+              }
             )
           }
         )
