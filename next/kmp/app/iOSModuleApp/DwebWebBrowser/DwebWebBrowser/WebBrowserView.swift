@@ -5,38 +5,47 @@ import UIKit
 import SwiftUI
 import Foundation
 
-public var browserViewDataSource: WebBrowserViewDataSource = WebBrowserDefaultProvider.shared
-public var browserViewDelegate: WebBrowserViewDelegate = WebBrowserDefaultProvider.shared
+var browserViewDataSource: WebBrowserViewDataSource {
+    return WebBrowserView.dataSource ?? WebBrowserDefaultProvider(trackModel: false)
+}
+var browserViewDelegate: WebBrowserViewDelegate {
+    return WebBrowserView.delegate ?? WebBrowserDefaultProvider(trackModel: false)
+}
+
+fileprivate var addWebBrowserViewDataProtocol: Void = {
+    Log("addWebBrowserViewDataProtocol")
+    if let objClassStr = WebBrowserView.dataSource?.getWebBrowserViewDataClass(), let objC = NSClassFromString(objClassStr) {
+        addIfNeedProtocol(protocol: NSProtocolFromString("DwebWebBrowser.WebBrowserViewDataProtocol")! , kmpClass: objC)
+    }
+}()
+
+fileprivate func addIfNeedProtocol(protocol: Protocol, kmpClass: AnyClass) {
+    guard class_conformsToProtocol(kmpClass, `protocol`) == false else { return }
+    let result = class_addProtocol(kmpClass, `protocol`)
+    Log("\(result)")
+}
 
 @objc
 public class WebBrowserView: UIView {
     
     @objc public init(frame: CGRect, delegate: WebBrowserViewDelegate?, dataSource: WebBrowserViewDataSource?) {
         super.init(frame: frame)
-        setupContainerView()
-        
-        if let delegate = delegate {
-            browserViewDelegate = delegate
-        }
-        
-        if let dataSource = dataSource {
-            browserViewDataSource = dataSource
-        }
-        
+        WebBrowserView.delegate = delegate
+        WebBrowserView.dataSource = dataSource
+        _ = addWebBrowserViewDataProtocol
+        #if DEBUG
         if let objClassStr = dataSource?.getWebBrowserViewDataClass(), let objC = NSClassFromString(objClassStr) {
-            addIfNeedProtocol(protocol: NSProtocolFromString("DwebWebBrowser.WebBrowserViewDataProtocol")! , kmpClass: objC)
+            checkObjc(cls: objC)
         }
+        #endif
+        setupContainerView()
     }
     
-    func addIfNeedProtocol(protocol: Protocol, kmpClass: AnyClass) {
-        guard class_conformsToProtocol(kmpClass, `protocol`) == false else { return }
-        let result = class_addProtocol(kmpClass, `protocol`)
-        Log("\(result)")
-    }
+    fileprivate static weak var delegate: WebBrowserViewDelegate? = nil
+    fileprivate static weak var dataSource: WebBrowserViewDataSource? = nil
     
     deinit {
-        browserViewDataSource = WebBrowserDefaultProvider.shared
-        browserViewDelegate = WebBrowserDefaultProvider.shared
+        Log()
     }
     
     private var hostVC: UIViewController?
@@ -144,44 +153,47 @@ public extension WebBrowserView {
 }
 
 
-/*
- func checkObjc(cls: AnyClass, protocolStr: String?) {
+// 用于检查数据模型结构，debug有用。
+#if DEBUG
+func checkObjc(cls: AnyClass) {
 
-     let classType: AnyClass = cls
-     
-     var isYes = false
-     
-     if let protocolStr = protocolStr {
-         isYes = class_conformsToProtocol(classType, NSProtocolFromString(protocolStr))
-         Log("\(cls.superclass) \(cls) \(isYes) to \(protocolStr)")
-     }
+     Log("==================\(cls)=======================")
+     Log("\(cls) superclass: \(class_getSuperclass(cls))")
+
+     let classType: AnyClass = cls //class_getSuperclass(cls)!
      
      var count: Int32 = 0
      let protocols = class_copyProtocolList(classType, &count)
+     Log("\(cls) protocl")
      (0..<Int(count)).forEach { i in
          let cName = protocol_getName(protocols![i])
          let name = String(validatingUTF8: cName)
-         Log("Fuck protocl: \(name ?? "")")
+         Log("\(cls) protocl: \(name ?? "")")
      }
      
      let ivars = class_copyIvarList(classType, &count)
+     Log("\(cls) ivar")
      (0..<Int(count)).forEach { i in
          let cName = ivar_getName(ivars![i])
          let name = String(validatingUTF8: cName!)
-         Log("Fuck ivar: \(name ?? "")")
+         Log("\(cls) ivar: \(name ?? "")")
      }
      
      let propertys = class_copyPropertyList(classType, &count)
+     Log("\(cls) property")
      (0..<Int(count)).forEach { i in
          let cName = property_getName(propertys![i])
          let name = String(validatingUTF8: cName)
-         Log("Fuck property: \(name ?? "")")
+         Log("\(cls) property: \(name ?? "")")
      }
      
      let methods = class_copyMethodList(classType, &count)
+     Log("\(cls) method")
      (0..<Int(count)).forEach { i in
          let sel = method_getName(methods![i])
-         Log("Fuck property: \(sel.description)")
+         Log("\(cls) method: \(sel.description)")
      }
+             
+     Log("=========================================")
  }
- */
+#endif

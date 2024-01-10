@@ -50,8 +50,6 @@ class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSourc
         return NSStringFromClass(WebBrowserDefaultWebData.self)
     }
     
-    static let shared = WebBrowserDefaultProvider(trackModel: false)
-
     init(trackModel: Bool) {
         self.trackModel = trackModel
     }
