@@ -6,15 +6,6 @@ import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.platform.ios_browser.WebBrowserView
 import org.dweb_browser.helper.platform.ios_browser.browserActiveOn
 import org.dweb_browser.helper.platform.ios_browser.browserClear
-import platform.UIKit.UIView
-
-interface IosInterface {
-  fun getBrowserView(): UIView
-  fun doSearch(key: String)
-  fun gobackIfCanDo(): Boolean
-  fun browserActive(on: Boolean)
-  fun browserClear()
-}
 
 @OptIn(ExperimentalForeignApi::class)
 class BrowserIosWinObserver() {

@@ -11,6 +11,8 @@
 		483890092B4539D30016260F /* Loger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 483890082B4539D30016260F /* Loger.swift */; };
 		483890182B45423A0016260F /* DwebDeskVCStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 483890172B45423A0016260F /* DwebDeskVCStore.swift */; };
 		487F8AFB2B453750009B74C3 /* DwebAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487F8AFA2B453750009B74C3 /* DwebAppDelegate.swift */; };
+		488201962B4E319900A40F87 /* DwebPlatformIosKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 488201952B4E319900A40F87 /* DwebPlatformIosKit.framework */; };
+		488201972B4E319900A40F87 /* DwebPlatformIosKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 488201952B4E319900A40F87 /* DwebPlatformIosKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		48A8CC152B3C021C00A9CECC /* DwebBrowserApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A8CC142B3C021C00A9CECC /* DwebBrowserApp.swift */; };
 		48A8CC192B3C021D00A9CECC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 48A8CC182B3C021D00A9CECC /* Assets.xcassets */; };
 		48A8CC1C2B3C021D00A9CECC /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 48A8CC1B2B3C021D00A9CECC /* Preview Assets.xcassets */; };
@@ -59,6 +61,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				488201972B4E319900A40F87 /* DwebPlatformIosKit.framework in Embed Frameworks */,
 				48C962242B4BD1B50024767C /* DwebWebBrowser.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
@@ -155,6 +158,7 @@
 		483890082B4539D30016260F /* Loger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Loger.swift; sourceTree = "<group>"; };
 		483890172B45423A0016260F /* DwebDeskVCStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskVCStore.swift; sourceTree = "<group>"; };
 		487F8AFA2B453750009B74C3 /* DwebAppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebAppDelegate.swift; sourceTree = "<group>"; };
+		488201952B4E319900A40F87 /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		48A8CC112B3C021C00A9CECC /* DwebBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DwebBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		48A8CC142B3C021C00A9CECC /* DwebBrowserApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserApp.swift; sourceTree = "<group>"; };
 		48A8CC182B3C021D00A9CECC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -172,6 +176,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				488201962B4E319900A40F87 /* DwebPlatformIosKit.framework in Frameworks */,
 				48C962232B4BD1B50024767C /* DwebWebBrowser.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -541,6 +546,7 @@
 		48C8D38E2B3EE1730078CEFE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				488201952B4E319900A40F87 /* DwebPlatformIosKit.framework */,
 				48098D4F2B43A57C00EA991C /* DwebWebBrowser */,
 				48C8D38F2B3EE1730078CEFE /* UIKit.framework */,
 			);
