@@ -1,6 +1,5 @@
 package org.dweb_browser.helper.android
 
-import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
@@ -44,51 +43,10 @@ abstract class BaseActivity : ComponentActivity() {
     }
   }
 
-  val requestPermissionLauncher =
-    QueueResultLauncher(this, ActivityResultContracts.RequestPermission())
-
-  val requestMultiplePermissionsLauncher =
-    QueueResultLauncher(this, ActivityResultContracts.RequestMultiplePermissions())
-
-
-  suspend fun requestPermission(permission: String): Boolean {
-    if (checkPermission(permission)) {
-      return true
-    }
-    return requestPermissionLauncher.launch(permission)
-  }
-
-  suspend fun checkPermission(permission: String): Boolean {
-    return checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
-  }
-
-  val getContentLauncher = QueueResultLauncher(this, ActivityResultContracts.GetContent())
-  val getMultipleContentsLauncher =
-    QueueResultLauncher(this, ActivityResultContracts.GetMultipleContents())
-
-  val recordSoundLauncher =
-    QueueResultLauncher(this, ExtensionResultContracts.RecordSound())
-
-
-  val captureVideoLauncher =
-    QueueResultLauncher(this, ActivityResultContracts.CaptureVideo())
-
-  val takePictureLauncher =
-    QueueResultLauncher(this, ActivityResultContracts.TakePicture())
-
-
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     queueResultLauncherRegistries.forEach { it() }
   }
-
-//  fun setContent(content: @Composable () -> Unit) {
-//    (this as ComponentActivity).setContent {
-//      CompositionLocalProvider(LocalPlatformViewController provides PlatformViewController(this)) {
-//        content()
-//      }
-//    }
-//  }
 
   private val onDestroySignal = SimpleSignal()
 

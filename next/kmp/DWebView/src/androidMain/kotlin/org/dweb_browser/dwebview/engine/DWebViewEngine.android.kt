@@ -243,8 +243,8 @@ class DWebViewEngine internal constructor(
   }
 
   internal val dWebChromeClient = DWebChromeClient(this).also {
-    it.addWebChromeClient(DWebFileChooser(activity))
-    it.addWebChromeClient(DWebPermissionRequest(activity))
+    it.addWebChromeClient(DWebFileChooser(remoteMM, ioScope))
+    it.addWebChromeClient(DWebPermissionRequest(remoteMM, ioScope))
   }
 
   val onCloseWindow = dWebChromeClient.closeSignal.toListener()

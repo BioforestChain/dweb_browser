@@ -1,6 +1,7 @@
 package org.dweb_browser.sys.camera
 
 import kotlinx.coroutines.CompletableDeferred
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
@@ -44,5 +45,15 @@ actual class CameraManage actual constructor() {
     WARNING("Not yet implemented cameraPermission")
     return true
   }
-}
 
+  actual suspend fun takePicture(microModule: MicroModule): String {
+    WARNING("Not yet implemented takePicture")
+    return ""
+  }
+
+  actual suspend fun captureVideo(microModule: MicroModule): String {
+    WARNING("Not yet implemented captureVideo")
+    return ""
+  }
+
+}

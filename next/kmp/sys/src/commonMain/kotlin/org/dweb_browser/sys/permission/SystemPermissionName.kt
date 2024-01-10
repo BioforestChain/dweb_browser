@@ -9,12 +9,13 @@ enum class SystemPermissionName {
   CAMERA,
   CONTACTS,
   LOCATION,
-  MICROPHONE,
+  MICROPHONE, // 对应 Manifest.permission.RECORD_AUDIO
   PHONE,
   SENSORS,
   SMS,
   STORAGE,
   CALL,
   CLIPBOARD,
+  FILE_CHOOSER,
   ;
 }

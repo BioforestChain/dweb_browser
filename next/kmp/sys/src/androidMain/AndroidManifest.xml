@@ -4,8 +4,8 @@
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
   <uses-permission android:name="android.permission.VIBRATE" /> <!-- 振动，蜂鸣 -->
-  <!--  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />-->
+  <!--<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />-->
   <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -28,6 +28,18 @@
 
     <activity
       android:name=".permission.PermissionActivity"
+      android:exported="true"
+      android:theme="@style/Theme.DwebBrowser.Transparent" />
+    <activity
+      android:name=".filechooser.FileChooserActivity"
+      android:exported="true"
+      android:theme="@style/Theme.DwebBrowser.Transparent" />
+    <activity
+      android:name=".camera.CameraActivity"
+      android:exported="true"
+      android:theme="@style/Theme.DwebBrowser.Transparent" />
+    <activity
+      android:name=".microphone.MicroPhoneActivity"
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
   </application>

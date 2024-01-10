@@ -29,9 +29,11 @@ import org.dweb_browser.sys.camera.CameraNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.device.DeviceNMM
+import org.dweb_browser.sys.filechooser.FileChooserNMM
 import org.dweb_browser.sys.haptics.HapticsNMM
 import org.dweb_browser.sys.location.LocationNMM
 import org.dweb_browser.sys.media.MediaNMM
+import org.dweb_browser.sys.microphone.MicroPhoneNMM
 import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
 import org.dweb_browser.sys.notification.NotificationNMM
 import org.dweb_browser.sys.permission.PermissionApplicantTMM
@@ -107,6 +109,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val zipNMM = ZipNMM().setup()
 
   val cameraNMM = CameraNMM().setup()
+  val microPhoneNMM = MicroPhoneNMM().setup()
   /// 扫码
   val scannerNMM = ScanningNMM().setup()
   val qrCodeScanNMM = QRCodeScanNMM().setup()
@@ -141,6 +144,8 @@ suspend fun startDwebBrowser(): DnsNMM {
   val mediaNMM = MediaNMM().setup()
   /// multipart
   val multipartNMM = MultipartNMM().setup()
+  /// file chooser
+  val fileChooser = FileChooserNMM().setup()
 
   /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
   val nativeUiNMM = NativeUiNMM().setup()
@@ -162,6 +167,8 @@ suspend fun startDwebBrowser(): DnsNMM {
       deskNMM.mmid,//
       locationNMM.mmid,
       qrCodeScanNMM.mmid,
+      cameraNMM.mmid,
+      microPhoneNMM.mmid
     ),
   ).setup()
 
