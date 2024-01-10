@@ -16,15 +16,15 @@ object DwebViewI18nResource {
     Language.EN to "Camera Permission Instructions"
   )
   val permission_tip_camera_message = SimpleI18nResource(
-    Language.ZH to "DwebBrowser正在向您获取“相机”权限，同意后，将用于为您提供拍照服务",
-    Language.EN to "DwebBrowser is asking you for \"Camera\" permissions, and if you agree, it will be used to provide you with scanning QR code services"
+    Language.ZH to "DwebBrowser正在向您获取“相机”权限，同意后，将用于为您提供拍照、录像服务",
+    Language.EN to "DwebBrowser is asking you for \"Camera\" permissions, and if you agree, it will be used to provide you with photo and video services"
   )
   val permission_tip_microphone_title = SimpleI18nResource(
     Language.ZH to "麦克风权限使用说明",
     Language.EN to "Microphone Permission Instructions"
   )
   val permission_tip_microphone_message = SimpleI18nResource(
-    Language.ZH to "DwebBrowser正在向您获取“麦克风”权限，同意后，将用于为您提供录像、录音服务",
-    Language.EN to "DwebBrowser is asking you for \"Microphone\" permissions, and if you agree, it will be used to provide you with video and audio recording services"
+    Language.ZH to "DwebBrowser正在向您获取“麦克风”权限，同意后，将用于为您提供语音相关的服务",
+    Language.EN to "DwebBrowser is asking you for \"Microphone\" permissions, and if you agree, it will be used to provide you with voice-related services"
   )
 }

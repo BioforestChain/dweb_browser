@@ -41,11 +41,6 @@ actual class CameraManage actual constructor() {
     return status
   }
 
-  actual fun cameraPermission(): Boolean {
-    WARNING("Not yet implemented cameraPermission")
-    return true
-  }
-
   actual suspend fun takePicture(microModule: MicroModule): String {
     WARNING("Not yet implemented takePicture")
     return ""

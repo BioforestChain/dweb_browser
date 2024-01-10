@@ -2,7 +2,6 @@ package org.dweb_browser.sys.camera
 
 import android.Manifest
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.helper.WARNING
 import org.dweb_browser.sys.permission.AndroidPermissionTask
 import org.dweb_browser.sys.permission.PermissionActivity
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
@@ -18,11 +17,6 @@ actual class CameraManage actual constructor() {
         ).values.firstOrNull()
       } else null
     }
-  }
-
-  actual fun cameraPermission(): Boolean {
-    WARNING("Not yet implemented cameraPermission")
-    return true
   }
 
   actual suspend fun takePicture(microModule: MicroModule): String {
