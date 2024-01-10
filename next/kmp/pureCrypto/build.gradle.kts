@@ -3,34 +3,30 @@ plugins {
 }
 
 kotlin {
-  kmpLibraryTarget(libs)
-  kmpJsTarget(libs)
-//  kmpWasiTarget(libs)
-  sourceSets {
-//    jsMain {
-//      dependencies {
-//        implementation(libs.whyoleg.cryptography.provider.webcrypto)
-//      }
-//    }
-    val androidAndIosMain by creating {
-      dependencies {
-        implementation(libs.whyoleg.cryptography.core)
-      }
-    }
-    androidMain {
-      dependsOn(androidAndIosMain)
-      dependencies {
-        implementation(libs.androidx.core.ktx)
-        implementation(libs.whyoleg.cryptography.provider.jdk)
-      }
-    }
-    iosMain {
-      dependsOn(androidAndIosMain)
-      dependencies {
-        implementation(libs.whyoleg.cryptography.provider.openssl3.prebuilt)
-      }
+  val commonCryptoMain = sourceSets.create("commonCryptoMain") {
+    dependencies {
+      implementation(libs.whyoleg.cryptography.core)
     }
   }
+  kmpAndroidTarget(libs) {
+    dependsOn(commonCryptoMain)
+    dependencies {
+      implementation(libs.whyoleg.cryptography.provider.jdk)
+    }
+  }
+  kmpIosTarget(libs) {
+    dependsOn(commonCryptoMain)
+    dependencies {
+      implementation(libs.whyoleg.cryptography.provider.openssl3.prebuilt)
+    }
+  }
+  kmpBrowserJsTarget(libs) {
+    dependsOn(commonCryptoMain)
+    dependencies {
+      implementation(libs.whyoleg.cryptography.provider.webcrypto)
+    }
+  }
+  kmpNodeWasmTarget(libs)
 }
 
 android {

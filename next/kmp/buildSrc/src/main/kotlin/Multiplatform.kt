@@ -1,8 +1,7 @@
-
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.JavaVersion
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.testing.Test
@@ -12,7 +11,9 @@ import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
 
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   kotlinOptions {
@@ -53,63 +54,159 @@ fun KotlinMultiplatformExtension.kmpIosTarget() {
   iosSimulatorArm64()
 }
 
-fun KotlinMultiplatformExtension.kmpJsTarget(libs: LibrariesForLibs) {
+class KmpBrowserJsTargetDsl : KmpCommonTargetDsl() {
+  internal val configureJsList = mutableSetOf<KotlinJsTargetDsl.() -> Unit>()
+  val js = configureJsList::add
+}
+
+fun KotlinMultiplatformExtension.kmpBrowserJsTarget(
+  libs: LibrariesForLibs,
+  configure: KmpBrowserJsTargetDsl.() -> Unit = {},
+) {
+  val dsl = KmpBrowserJsTargetDsl()
+  dsl.configure()
+
+  kmpCommonTarget(libs)
   js(IR) {
     browser()
+    useEsModules()
+    binaries.library()
     generateTypeScriptDefinitions()
+    dsl.configureJsList.forEach { it() }
   }
-
+  dsl.provides(sourceSets.jsMain, sourceSets.jsTest)
   sourceSets.jsMain.dependencies {
+    implementation(libs.kotlinx.html)
     implementation(project.dependencies.enforcedPlatform(libs.kotlin.wrappers.bom))
     implementation(libs.kotlin.js)
     implementation(libs.kotlin.web)
     implementation(libs.kotlin.browser)
-    implementation(libs.kotlinx.html)
   }
 }
 
-const val wasiVersion = "1.8.0-RC2-wasm0"
+class KmpNodeWasmTargetDsl : KmpCommonTargetDsl() {
+  internal val configureJsList = mutableSetOf<KotlinJsTargetDsl.() -> Unit>()
+  val js = configureJsList::add
+}
 
-@OptIn(ExperimentalWasmDsl::class)
-fun KotlinMultiplatformExtension.kmpWasiTarget(libs: LibrariesForLibs) {
-  wasmWasi {
+fun KotlinMultiplatformExtension.kmpNodeWasmTarget(
+  libs: LibrariesForLibs,
+  configure: KmpNodeWasmTargetDsl.() -> Unit = {}
+) {
+  val dsl = KmpNodeWasmTargetDsl()
+  dsl.configure()
+
+  kmpCommonTarget(libs)
+  @Suppress("OPT_IN_USAGE")
+  wasmJs {
+    // 这里默认就是 useEsModules
     nodejs()
+    applyBinaryen()
+    binaries.library()
+    dsl.configureJsList.forEach { it() }
   }
-  sourceSets.named("wasmWasiMain") {
+  val kotlinxCoroutinesWasmVersion = "1.8.0-RC2"
+  dsl.provides(sourceSets.named("wasmJsMain"), sourceSets.named("wasmJsTest"))
+  sourceSets.named("wasmJsMain") {
     dependencies {
-      implementation(object : Dependency by libs.kotlinx.coroutines.core.get() {
-        override fun getVersion(): String {
-          return wasiVersion
-        }
-      })
+      implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesWasmVersion")
+    }
+  }
+  sourceSets.named("wasmJsTest") {
+    dependencies {
+      implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlinxCoroutinesWasmVersion")
     }
   }
 }
 
-fun KotlinMultiplatformExtension.kmpWasiTest(libs: LibrariesForLibs) {
-  sourceSets.named("wasmWasiTest") {
-    dependencies {
-      implementation(object : Dependency by libs.test.kotlin.coroutines.test.get() {
-        override fun getVersion(): String {
-          return wasiVersion
-        }
-      })
-      implementation(object : Dependency by libs.test.kotlin.coroutines.debug.get() {
-        override fun getVersion(): String {
-          return wasiVersion
-        }
-      })
+//const val wasiVersion = "1.8.0-RC2-wasm0"
+//
+//@OptIn(ExperimentalWasmDsl::class)
+//fun KotlinMultiplatformExtension.kmpWasiTarget(libs: LibrariesForLibs) {
+//  wasmWasi {
+//    nodejs()
+//  }
+//  sourceSets.named("wasmWasiMain") {
+//    dependencies {
+//      implementation(object : Dependency by libs.kotlinx.coroutines.core.get() {
+//        override fun getVersion(): String {
+//          return wasiVersion
+//        }
+//      })
+//    }
+//  }
+//}
+//
+//fun KotlinMultiplatformExtension.kmpWasiTest(libs: LibrariesForLibs) {
+//  sourceSets.named("wasmWasiTest") {
+//    dependencies {
+//      implementation(object : Dependency by libs.test.kotlin.coroutines.test.get() {
+//        override fun getVersion(): String {
+//          return wasiVersion
+//        }
+//      })
+//      implementation(object : Dependency by libs.test.kotlin.coroutines.debug.get() {
+//        override fun getVersion(): String {
+//          return wasiVersion
+//        }
+//      })
+//    }
+//  }
+//}
+
+open class KmpCommonTargetDsl() {
+  internal val dependsOnList = mutableSetOf<KotlinSourceSet>()
+  val dependsOn = dependsOnList::add
+  internal val testDependsOnList = mutableSetOf<KotlinSourceSet>()
+  val testDependsOn = testDependsOnList::add
+  internal val configureDependencyList = mutableSetOf<KotlinDependencyHandler.() -> Unit>()
+  val dependencies = configureDependencyList::add
+  internal val configureTestDependencyList = mutableSetOf<KotlinDependencyHandler.() -> Unit>()
+  val testDependencies = configureTestDependencyList::add
+  internal fun provides(sourceSet: KotlinSourceSet) {
+    sourceSet.run {
+      dependsOnList.forEach { dependsOn(it) }
+      dependencies {
+        configureDependencyList.forEach { it() }
+      }
+    }
+  }
+
+  internal fun provides(
+    sourceSetProvider: NamedDomainObjectProvider<KotlinSourceSet>,
+    testSourceSetProvider: NamedDomainObjectProvider<KotlinSourceSet>? = null,
+  ) {
+    sourceSetProvider.get().run {
+      dependsOnList.forEach { dependsOn(it) }
+      dependencies {
+        configureDependencyList.forEach { it() }
+      }
+    }
+    testSourceSetProvider?.get()?.run {
+      testDependsOnList.forEach { dependsOn(it) }
+      dependencies {
+        configureTestDependencyList.forEach { it() }
+      }
     }
   }
 }
 
-fun KotlinMultiplatformExtension.kmpLibraryTarget(libs: LibrariesForLibs) {
+fun KotlinMultiplatformExtension.kmpCommonTarget(
+  libs: LibrariesForLibs,
+  configure: KmpCommonTargetDsl.() -> Unit = {}
+) {
+  val dsl = KmpCommonTargetDsl()
+  dsl.configure()
 
+  dsl.provides(sourceSets.commonMain, sourceSets.commonTest)
   sourceSets.commonMain.dependencies {
     implementation(kotlin("stdlib"))
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.atomicfu)
     implementation(libs.kotlinx.io)
+
+    implementation(libs.kotlin.serialization.json)
+    implementation(libs.kotlin.serialization.cbor)
   }
 
   sourceSets.commonTest.dependencies {
@@ -117,10 +214,37 @@ fun KotlinMultiplatformExtension.kmpLibraryTarget(libs: LibrariesForLibs) {
     implementation(libs.test.kotlin.coroutines.test)
     implementation(libs.test.kotlin.coroutines.debug)
   }
+}
+
+class KmpAndroidTargetDsl : KmpCommonTargetDsl() {
+}
+
+fun KotlinMultiplatformExtension.kmpAndroidTarget(
+  libs: LibrariesForLibs,
+  configure: KmpAndroidTargetDsl.() -> Unit = {}
+) {
+  val dsl = KmpAndroidTargetDsl()
+  dsl.configure()
+
+  kmpCommonTarget(libs)
+  dsl.provides(sourceSets.androidMain)
   sourceSets.androidMain.dependencies {
     implementation(libs.androidx.core.ktx)
   }
+}
 
+class KmpIosTargetDsl : KmpCommonTargetDsl() {
+}
+
+fun KotlinMultiplatformExtension.kmpIosTarget(
+  libs: LibrariesForLibs,
+  configure: KmpIosTargetDsl.() -> Unit = {}
+) {
+  val dsl = KmpIosTargetDsl()
+  dsl.configure()
+
+  kmpCommonTarget(libs)
+  dsl.provides(sourceSets.iosMain, sourceSets.iosTest)
 }
 
 fun Project.configureJvmTests(fn: Test.() -> Unit = {}) {

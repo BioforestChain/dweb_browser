@@ -1,3 +1,4 @@
+
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsExec
 
 plugins {
@@ -27,8 +28,8 @@ kotlin {
       implementation(libs.kotlin.js)
       implementation(libs.kotlin.electron)
 
-      implementation(projects.pureCrypto)
-      implementation(projects.jsFrontend)
+//      implementation(projects.pureCrypto)
+//      implementation(projects.jsFrontend)
       implementation(npm("electron", "^28.1.1"))
       implementation(npm("${rootProject.name}-${projects.jsFrontend.name}", "workspace:^"))
       implementation(npm("${rootProject.name}-${projects.wasmBackend.name}-wasm-js", "workspace:^"))
@@ -49,18 +50,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstall
  * 在buildSrc执行后，当前这个project的tasks列出来了，我们可以基于这些task开始我们自己的扩展注册了
  */
 gradle.projectsEvaluated {
-  println("projectsEvaluated: $name")
-
-  tasks.forEach {
-    println("task: $name:${it.name} (${it.description})")
-  }
 
   tasks.withType<NodeJsExec>().all {
-    println("node task:$name")
-    println("exec project:${npmProject.dir.absolutePath}")
-    println("exec args:${args?.joinToString(",")}")
-    println("exec nodeArgs:${nodeArgs.joinToString(",")}")
-    println("exec inputFileProperty:${inputFileProperty.get().asFile.absolutePath}")
     inputFileProperty.fileValue(
       File(
         inputFileProperty.get().asFile.absolutePath.replace(
@@ -68,9 +59,6 @@ gradle.projectsEvaluated {
         )
       )
     )
-
-    println("exec inputFileProperty:${inputFileProperty.get().asFile.absolutePath}")
-    println("exec commandLine:${commandLine.joinToString(",")}")
 
     val electronExecTask = createElectronExec(
       npmProject,
