@@ -4,12 +4,14 @@
 import UIKit
 import SwiftUI
 import Foundation
+import DwebPlatformIosKit
+
+var browserViewDelegate: WebBrowserViewDelegate {
+    return WebBrowserView.delegate ?? WebBrowserDefaultProvider(trackModel: false)
+}
 
 var browserViewDataSource: WebBrowserViewDataSource {
     return WebBrowserView.dataSource ?? WebBrowserDefaultProvider(trackModel: false)
-}
-var browserViewDelegate: WebBrowserViewDelegate {
-    return WebBrowserView.delegate ?? WebBrowserDefaultProvider(trackModel: false)
 }
 
 fileprivate var addWebBrowserViewDataProtocol: Void = {
