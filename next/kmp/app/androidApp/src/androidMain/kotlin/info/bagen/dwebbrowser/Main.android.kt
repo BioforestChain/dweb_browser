@@ -172,7 +172,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     ),
   ).setup()
 
-  if (debugTest.isEnable) {
+  if (BuildConfig.DEBUG) {
     PermissionProviderTNN().setup()
     PermissionApplicantTMM().setup()
   }
