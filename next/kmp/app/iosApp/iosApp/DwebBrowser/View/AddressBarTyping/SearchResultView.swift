@@ -19,6 +19,7 @@ struct SearchResultView: View {
             Section {
                 ForEach(0 ..< webSearchers.count, id: \.self) { index in
                     let searcher = webSearchers[index]
+
                     HStack(spacing: dragScale.properValue(floor: 6, ceiling: 12)) {
                         Image(uiImage: .assetsImage(name: searcher.icon))
                             .resizable()
@@ -39,38 +40,38 @@ struct SearchResultView: View {
                         })
                         Spacer()
                     }
-                    .onTapGesture {
-                        guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        openingLink.clickedLink = url
-                        addressBar.isFocused = false
-                        tapHasBeenHandled = true
-                    }
+
                     .frame(height: dragScale.properValue(floor: 36, ceiling: 50))
+                    .contentShape(Rectangle())
+
+                    .highPriorityGesture(TapGesture().onEnded { _ in
+                        tapHasBeenHandled = true
+                        addressBar.isFocused = false
+                        guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
+                        openingLink.clickedLink = url
+                    })
                 }
+
             } header: {
                 Text("搜索引擎")
                     .foregroundColor(Color.menuTitleColor)
                     .font(.system(size: dragScale.scaledFontSize(maxSize: 18)))
                     .padding(.top, 10)
                     .padding(.bottom, 6)
-
             }
             .textCase(nil)
             .listRowInsets(EdgeInsets())
         }
-        .scrollContentBackground(.hidden)
-        .background(Color.bkColor)
+        .onAppear {
+            tapHasBeenHandled = false
+        }
         .onTapGesture {
             if !tapHasBeenHandled {
-                releaseFocuse()
+                addressBar.isFocused = false
+                addressBar.inputText = ""
             }
         }
-    }
-
-    func releaseFocuse() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        addressBar.inputText = ""
-        addressBar.isFocused = false
+        .scrollContentBackground(.hidden)
+        .background(Color.bkColor)
     }
 }

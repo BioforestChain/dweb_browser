@@ -76,7 +76,7 @@ struct AddressBar: View {
             .foregroundColor(Color.addressTextColor)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
-            .multilineTextAlignment(addressBar.isFocused ? .leading : .center)
+            .multilineTextAlignment(isAdressBarFocused ? .leading : .center)
             .padding(.leading, 24)
             .padding(.trailing, 60)
             .keyboardType(.webSearch)

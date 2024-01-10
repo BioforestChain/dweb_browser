@@ -59,7 +59,7 @@ struct TabPageView: View {
                                 webWrapper.webView.scrollView.showsHorizontalScrollIndicator = true
                                 if let img = image {
                                     animation.snapshotImage = img
-                                    webCache.snapshotUrl = UIImage.createLocalUrl(withImage: img, imageName: webCache.id.uuidString)
+                                    webCache.snapshotUrl = UIImage.createLocalUrl(withImage: img, imageName: webCache.id.uuidString + webtag)
                                 }
                                 animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                             }

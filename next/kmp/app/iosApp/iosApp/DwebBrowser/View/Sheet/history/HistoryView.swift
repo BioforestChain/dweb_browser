@@ -15,7 +15,7 @@ struct HistoryView: View {
     var body: some View {
         VStack {
             if historyStore.sections.count <= 0 {
-                NoResultView(config: .history)
+                NoResultView(empty: .history)
             } else {
                 List {
                     ForEach(historyStore.sections.indices, id: \.self) { (index: Int) in

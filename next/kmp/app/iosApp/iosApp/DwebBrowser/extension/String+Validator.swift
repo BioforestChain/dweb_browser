@@ -31,11 +31,29 @@ extension String {
         return !matches.isEmpty
     }
     
+//    func trim() -> String {
+//        var result = self
+//        result = result.replacingOccurrences(of: "https://www.baidu.com/s?wd=", with: "")
+//        result = result.replacingOccurrences(of: "https://www.sogou.com/web?query=", with: "")
+//        result = result.replacingOccurrences(of: "https://www.so.com/s?q=", with: "")
+//        
+//        return result.removingPercentEncoding ?? result
+//    }
+    
     func trim() -> String {
-        var result = self
-        result = result.replacingOccurrences(of: "https://www.baidu.com/s?wd=", with: "")
-        result = result.replacingOccurrences(of: "https://www.sogou.com/web?query=", with: "")
-        result = result.replacingOccurrences(of: "https://www.so.com/s?q=", with: "")
+        
+        var result = String(stringLiteral: self)
+        if result.contains("https://www.baidu.com/s?wd=") {
+            result = result.replacingOccurrences(of: "https://www.baidu.com/s?wd=", with: "")
+        }
+        
+        if result.contains("https://www.sogou.com/web?query=") {
+            result = result.replacingOccurrences(of: "https://www.sogou.com/web?query=", with: "")
+        }
+        
+        if result.contains("https://www.so.com/s?q=") {
+            result = result.replacingOccurrences(of: "https://www.so.com/s?q=", with: "")
+        }
         
         return result.removingPercentEncoding ?? result
     }

@@ -45,7 +45,7 @@ struct BookmarkView: View {
                     .onDelete(perform: deleteBookmarkData)
                 }
             } else {
-                NoResultView(config: .bookmark)
+                NoResultView(empty: .bookmark)
             }
         }
     }
