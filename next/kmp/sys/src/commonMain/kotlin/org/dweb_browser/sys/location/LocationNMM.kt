@@ -1,16 +1,26 @@
 package org.dweb_browser.sys.location
 
+import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.permission.SystemPermissionName
+import org.dweb_browser.sys.permission.SystemPermissionTask
+import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 
 val debugLocation = Debugger("Location")
+
+@Serializable
+data class LocationResult(
+  val success: Boolean, val message: String, val data: GeolocationPosition? = null
+)
 
 class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
   init {
@@ -30,7 +40,19 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
     routes(
       "/location" bind PureMethod.GET by defineJsonResponse {
         debugLocation("location", "enter")
-        locationManage.getCurrentLocation().toJsonElement()
+        val permission = requestSystemPermissions(
+          SystemPermissionTask(
+            name = SystemPermissionName.LOCATION,
+            title = LocationI18nResource.request_permission_title.text,
+            description = LocationI18nResource.request_permission_message.text
+          )
+        )
+        val result = if (permission.filterValues { it != AuthorizationStatus.GRANTED }.isEmpty()) {
+          LocationResult(true, "Success", locationManage.getCurrentLocation())
+        } else {
+          LocationResult(false, "")
+        }
+        result.toJsonElement()
       },
       "/observe" byChannel { ctx ->
         debugLocation("observe", "enter")
