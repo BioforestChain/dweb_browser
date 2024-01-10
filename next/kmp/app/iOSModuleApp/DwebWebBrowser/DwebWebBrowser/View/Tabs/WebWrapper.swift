@@ -6,8 +6,6 @@ import WebKit
 class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     var id = UUID()
     @Published var webMonitor = WebMonitor()
-
-    @Published var icon = ""
     
     @Published var webView: WebView {
         didSet {
@@ -32,13 +30,8 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     }
 
     private func setupObservers() {
-        
-        kvoObserver = KVOObserver { [weak self] key, change in
-            guard key == "icon", let newIcon = change?[.newKey] as? String else { return }
-            self?.icon = newIcon
-        }
-        
-        func subscriber<Value>(for keyPath: KeyPath<WKWebView, Value>) -> NSKeyValueObservation {
+                
+        func subscriber<Value>(for keyPath: KeyPath<WebView, Value>) -> NSKeyValueObservation {
             return webView.observe(keyPath, options: [.prior]) { [weak self] _, change in
                 if let self = self, change.isPrior {
                     self.objectWillChange.send()
@@ -57,10 +50,9 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
             subscriber(for: \.canGoBack),
             subscriber(for: \.canGoForward),
             subscriber(for: \.configuration),
+            subscriber(for: \.icon)
         ]
-        
-        webView.addObserver(kvoObserver!, forKeyPath: "icon", options: .new, context: nil)
-        
+                
         observers.append(webView.observe(\.estimatedProgress, options: [.prior]) { [weak self] _, _ in
             if let self = self {
                 self.webMonitor.loadingProgress = self.webView.estimatedProgress
@@ -132,5 +124,5 @@ class LocalWebView: WKWebView {
 #if TestOriginWebView
 typealias WebView = LocalWebView
 #else
-typealias WebView = WKWebView//WebBrowserViewWebDataSource.WebType
+typealias WebView = WebBrowserViewWebDataSource.WebType
 #endif

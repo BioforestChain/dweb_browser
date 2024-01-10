@@ -8,12 +8,13 @@
 import Foundation
 import UIKit
 import WebKit
+import DwebPlatformIosKit
 
 @objc public protocol WebBrowserViewDataProtocol {
     @objc var title: String { get }
     @objc var url: String { get }
     @objc var id: Int64 { get }
-    @objc func iconUIImage() -> UIImage?
+//    @objc func iconUIImage() -> UIImage?
 }
 
 @objc public protocol WebBrowserViewWebObserableProtocol {
@@ -42,9 +43,9 @@ import WebKit
 
 // MARK: DwebWKWebView
 @objc public protocol WebBrowserViewWebDataSource {
-    typealias WebType = WKWebView & WebBrowserViewWebObserableProtocol
+    typealias WebType = DwebWKWebView
     func getWebView() -> WebType
-    func destroyWebView(web: WKWebView)
+    func destroyWebView(web: WebType)
 }
 
 // MARK: trackless mode

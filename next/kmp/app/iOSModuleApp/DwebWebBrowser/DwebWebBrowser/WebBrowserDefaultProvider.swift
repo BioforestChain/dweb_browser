@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 import WebKit
-//import DwebPlatformIosKit
+import DwebPlatformIosKit
 
 class WebBrowserDefaultWebData: NSObject, WebBrowserViewDataProtocol {
     var title: String = ""
@@ -20,10 +20,6 @@ class WebBrowserDefaultWebData: NSObject, WebBrowserViewDataProtocol {
     }
 }
 
-class WebBrowserDefaultWebView: WKWebView, WebBrowserViewWebObserableProtocol {
-    @objc public dynamic var icon = NSString("")
-}
-
 class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSource {
         
     func getIconUIImage(data: WebBrowserViewDataProtocol) -> UIImage? {
@@ -31,10 +27,10 @@ class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSourc
     }
     
     func getWebView() -> WebType {
-        return WebBrowserDefaultWebView(frame: .zero)
+        return DwebWKWebView(frame: .zero)
     }
     
-    func destroyWebView(web: WKWebView) {
+    func destroyWebView(web: WebType) {
         Log()
     }
     

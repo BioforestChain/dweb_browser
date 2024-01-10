@@ -2,17 +2,21 @@ import path from "node:path";
 import fs from "node:fs";
 import { __dirname, exec, runTasks } from "./util.ts";
 
-export const doCreateXcTask = async () => {
-  const xcframeworksDir = path.resolve(__dirname, "xcframeworks");
-  if(fs.existsSync(xcframeworksDir)) {
-    await Deno.remove(xcframeworksDir, { recursive: true });
-    console.log("end xcframeworksDir delete!");
-  }
-  return runTasks(
-        () => createXc("DwebPlatformIosKit"),
-        () => createXc("DwebWebBrowser"),
-    );
-};
+export const doCreateXcItemTask = (fw: string) => async () => {
+        await deleteCache(fw)
+        return runTasks(
+              () => createXc(fw),
+          );
+      };
+
+
+const deleteCache = async (fw: string) => {
+        const xcframeworksDir = path.resolve(__dirname, "xcframeworks/" + fw + ".xcframework");
+        if(fs.existsSync(xcframeworksDir)) {
+          await Deno.remove(xcframeworksDir, { recursive: true });
+          console.log("end xcframeworksDir delete!");
+        }
+}
 
 const createXc = (prjectName: string) => {
 

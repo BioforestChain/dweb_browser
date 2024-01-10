@@ -21,6 +21,7 @@ import platform.posix.int32_t
 import platform.posix.int64_t
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
+import org.dweb_browser.helper.platform.ios.DwebWKWebView
 import platform.UIKit.UIScreen
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
@@ -163,19 +164,19 @@ public class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null
 
 
   // region webview
-  public override fun destroyWebViewWithWeb(web: objcnames.classes.WKWebView): kotlin.Unit {
+  public override fun destroyWebViewWithWeb(web: objcnames.classes.DwebWKWebView): kotlin.Unit {
     val webView = web as DWebViewEngine
     webView.destroy()
   }
 
-  public override fun getWebView(): objcnames.classes.WKWebView {
+  public override fun getWebView(): objcnames.classes.DwebWKWebView {
     val engine = DWebViewEngine(
       UIScreen.mainScreen.bounds,
       browserViewModel!!.browserNMM,
       DWebViewOptions(),
       WKWebViewConfiguration()
     )
-    return engine as objcnames.classes.WKWebView
+    return engine as objcnames.classes.DwebWKWebView
   }
 
   //endregion

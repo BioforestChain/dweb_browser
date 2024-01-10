@@ -5,8 +5,8 @@ import path from "node:path";
 
 import { WalkFiles } from "../../../../../../plaoc/cli/helper/walk-dir.ts";
 import { which } from "../../../../../../scripts/helper/WhichCommand.ts";
-import { doArchiveTask } from "./archive.ts";
-import { doCreateXcTask } from "./create-xc.ts";
+import { doArchiveItemTask } from "./archive.ts";
+import { doCreateXcItemTask } from "./create-xc.ts";
 import { __dirname, sourceCodeDir, runTasks } from "./util.ts";
 
 export const doBuildTask = async () => {
@@ -30,37 +30,38 @@ export const doBuildTask = async () => {
     Deno.exit(0);
   }
 
-  const writeFileHash = calcHash();
-  if (!writeFileHash) {
-    console.log("build cached!!");
-    return 0;
-  }
-  console.log("will build");
-  return await runTasks(doArchiveTask, doCreateXcTask, async () => {
-    calcHash();
-    console.log("build success!!");
-    return 0;
-  });
+    const fws = ["DwebPlatformIosKit", "DwebWebBrowser"]
+    for (const fw of fws) {
+      const writeFileHash = calcHash(fw);
+      if (!writeFileHash) {
+        console.log("build cached!! --> " + fw);
+        continue;
+      }
+      console.log("will build --> " + fw);
+      await runTasks(
+        doArchiveItemTask(fw),
+        doCreateXcItemTask(fw),
+        async () => {
+          writeFileHash();
+          console.log("build success!! --> " + fw);
+          return 0;
+        }
+      );
+    }
+    return 0
 };
 
-
-const calcHash = (): (() => void) | undefined => {
+const calcHash = (fw: string): (() => void) | undefined => {
   const hashBuilder = crypto.createHash("sha256");
-  for (const entry of WalkFiles(path.resolve(sourceCodeDir, "./DwebPlatformIosKit"))) {
+  for (const entry of WalkFiles(path.resolve(sourceCodeDir, "./" + fw))) {
     hashBuilder.update(entry.entrypath);
     const stat = fs.statSync(entry.entrypath);
     hashBuilder.update(JSON.stringify([stat.size, stat.ctimeMs, stat.mtimeMs]));
   }
 
-    for (const entry of WalkFiles(path.resolve(sourceCodeDir, "./DwebWebBrowser"))) {
-      hashBuilder.update(entry.entrypath);
-      const stat = fs.statSync(entry.entrypath);
-      hashBuilder.update(JSON.stringify([stat.size, stat.ctimeMs, stat.mtimeMs]));
-    }
-
   const fileHash = hashBuilder.digest("hex");
 
-  const buildCacheHash = path.resolve(__dirname, "./archives/build-cache.temp");
+  const buildCacheHash = path.resolve(__dirname, "./archives/" + fw + "-build-cache.temp");
   const nochange = fs.existsSync(buildCacheHash) && fs.readFileSync(buildCacheHash, "utf-8") === fileHash;
   if (!nochange) {
     return () => {

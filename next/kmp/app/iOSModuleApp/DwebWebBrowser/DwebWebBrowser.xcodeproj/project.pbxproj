@@ -89,6 +89,8 @@
 		48098DE12B43B81500EA991C /* DwebWebBrowserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098DE02B43B81500EA991C /* DwebWebBrowserTests.swift */; };
 		48098DE22B43B81500EA991C /* DwebWebBrowser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 48098AEE2B439FA800EA991C /* DwebWebBrowser.framework */; platformFilter = ios; };
 		48098DEA2B43E2D500EA991C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 48098DE92B43E2D400EA991C /* Assets.xcassets */; };
+		4882019E2B4E808100A40F87 /* DwebPlatformIosKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4882019A2B4E7DE500A40F87 /* DwebPlatformIosKit.framework */; };
+		4882019F2B4E808100A40F87 /* DwebPlatformIosKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4882019A2B4E7DE500A40F87 /* DwebPlatformIosKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,6 +102,20 @@
 			remoteInfo = DwebWebBrowser;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		488201A02B4E808100A40F87 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				4882019F2B4E808100A40F87 /* DwebPlatformIosKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		4806964E2B46841E008140C4 /* WebBrowserViewProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebBrowserViewProtocol.swift; sourceTree = "<group>"; };
@@ -186,6 +202,7 @@
 		48098DDE2B43B81500EA991C /* DwebWebBrowserTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DwebWebBrowserTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		48098DE02B43B81500EA991C /* DwebWebBrowserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebWebBrowserTests.swift; sourceTree = "<group>"; };
 		48098DE92B43E2D400EA991C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4882019A2B4E7DE500A40F87 /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -193,6 +210,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4882019E2B4E808100A40F87 /* DwebPlatformIosKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -484,6 +502,7 @@
 		48098C692B43A48E00EA991C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4882019A2B4E7DE500A40F87 /* DwebPlatformIosKit.framework */,
 				48098C6A2B43A48E00EA991C /* UIKit.framework */,
 			);
 			name = Frameworks;
@@ -519,6 +538,7 @@
 				48098AEA2B439FA800EA991C /* Sources */,
 				48098AEB2B439FA800EA991C /* Frameworks */,
 				48098AEC2B439FA800EA991C /* Resources */,
+				488201A02B4E808100A40F87 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);

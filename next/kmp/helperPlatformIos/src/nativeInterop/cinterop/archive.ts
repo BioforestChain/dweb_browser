@@ -1,19 +1,18 @@
 import { sourceCodeDir, exec, runTasks } from "./util.ts";
 
-export const doArchiveTask = () =>
-  runTasks(
-    () => buildArchive("DwebPlatformIosKit", sourceCodeDir + "DwebPlatformIosKit/", "generic/platform=iOS", "archives/DwebPlatformIosKit-iOS"),
-    () => buildArchive("DwebPlatformIosKit", sourceCodeDir + "DwebPlatformIosKit/", "generic/platform=iOS Simulator", "archives/DwebPlatformIosKit-iOS_Simulator"),
-    () => buildArchive("DwebWebBrowser", sourceCodeDir + "DwebWebBrowser/", "generic/platform=iOS", "archives/DwebWebBrowser-iOS"),
-    () => buildArchive("DwebWebBrowser", sourceCodeDir + "DwebWebBrowser/", "generic/platform=iOS Simulator", "archives/DwebWebBrowser-iOS_Simulator"),
-  );
+export const doArchiveItemTask = (fw: string) =>
+    () => runTasks(
+        () => buildArchive(fw, sourceCodeDir + fw + "/", "generic/platform=iOS", "archives/" + fw + "-iOS"),
+        () => buildArchive(fw, sourceCodeDir + fw + "/", "generic/platform=iOS Simulator", "archives/" + fw + "-iOS_Simulator"),
+    );
 
 const buildArchive = (prjectName: string, dir: string, destination: string, archivePath: string) =>
   exec([
     "xcodebuild",
+    "-quiet",
     "archive",
-    "-project",
-    dir + prjectName + ".xcodeproj",
+    "-workspace",
+    dir +"/../" + "DwebBrowser.xcworkspace",
     "-scheme",
     prjectName,
     "-destination",
@@ -22,7 +21,6 @@ const buildArchive = (prjectName: string, dir: string, destination: string, arch
     archivePath,
     "SKIP_INSTALL=NO",
     "BUILD_LIBRARY_FOR_DISTRIBUTION=YES",
-    "-quiet",
   ]);
 
 if (import.meta.main) {
