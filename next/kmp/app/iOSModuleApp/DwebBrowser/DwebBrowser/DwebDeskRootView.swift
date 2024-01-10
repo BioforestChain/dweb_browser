@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 import SwiftUI
-
+import DwebShared
 public class DwebComposeRootViewController: UIViewController {
     
     private var rightEdgePan: UIScreenEdgePanGestureRecognizer!
@@ -42,7 +42,7 @@ public class DwebComposeRootViewController: UIViewController {
             let recognizer = ges as! UIScreenEdgePanGestureRecognizer
             switch recognizer.state {
             case .ended:
-                browserViewDelegate.recognizedScreenGestures()
+                Main_iosKt.dwebViewController.emitOnGoBack()
             default:
                 break
             }

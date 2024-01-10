@@ -13,6 +13,8 @@
 		487F8AFB2B453750009B74C3 /* DwebAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487F8AFA2B453750009B74C3 /* DwebAppDelegate.swift */; };
 		488201962B4E319900A40F87 /* DwebPlatformIosKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 488201952B4E319900A40F87 /* DwebPlatformIosKit.framework */; };
 		488201972B4E319900A40F87 /* DwebPlatformIosKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 488201952B4E319900A40F87 /* DwebPlatformIosKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		488201A22B4E9FF500A40F87 /* DwebDeskRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 488201A12B4E9FF500A40F87 /* DwebDeskRootView.swift */; };
+		488201A42B4EA09D00A40F87 /* TouchThroughView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 488201A32B4EA09D00A40F87 /* TouchThroughView.swift */; };
 		48A8CC152B3C021C00A9CECC /* DwebBrowserApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A8CC142B3C021C00A9CECC /* DwebBrowserApp.swift */; };
 		48A8CC192B3C021D00A9CECC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 48A8CC182B3C021D00A9CECC /* Assets.xcassets */; };
 		48A8CC1C2B3C021D00A9CECC /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 48A8CC1B2B3C021D00A9CECC /* Preview Assets.xcassets */; };
@@ -159,6 +161,8 @@
 		483890172B45423A0016260F /* DwebDeskVCStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskVCStore.swift; sourceTree = "<group>"; };
 		487F8AFA2B453750009B74C3 /* DwebAppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebAppDelegate.swift; sourceTree = "<group>"; };
 		488201952B4E319900A40F87 /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		488201A12B4E9FF500A40F87 /* DwebDeskRootView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskRootView.swift; sourceTree = "<group>"; };
+		488201A32B4EA09D00A40F87 /* TouchThroughView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TouchThroughView.swift; sourceTree = "<group>"; };
 		48A8CC112B3C021C00A9CECC /* DwebBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DwebBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		48A8CC142B3C021C00A9CECC /* DwebBrowserApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserApp.swift; sourceTree = "<group>"; };
 		48A8CC182B3C021D00A9CECC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -510,7 +514,9 @@
 				48A8CC142B3C021C00A9CECC /* DwebBrowserApp.swift */,
 				487F8AFA2B453750009B74C3 /* DwebAppDelegate.swift */,
 				483890172B45423A0016260F /* DwebDeskVCStore.swift */,
+				488201A12B4E9FF500A40F87 /* DwebDeskRootView.swift */,
 				480696562B469C8F008140C4 /* DwebDeepLink.swift */,
+				488201A32B4EA09D00A40F87 /* TouchThroughView.swift */,
 				483890072B45396F0016260F /* Tools */,
 				48A8CC182B3C021D00A9CECC /* Assets.xcassets */,
 				48A8CC1A2B3C021D00A9CECC /* Preview Content */,
@@ -724,7 +730,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\n\necho \"===========Creating... DwebWebBrowser.xcframework======\"\n#pwd\nexit 0\necho \"Product: $CONFIGURATION_BUILD_DIR\"\necho \"Root: $SRCROOT\"\n\ncd $CONFIGURATION_BUILD_DIR\n\nfile=\"frameworkSync.txt\"\nfw=\"DwebWebBrowser.framework\"\nrecord_time=0\nmodife_time=0\n\nrecord_time=0\nif [ -e \"$file\" ]; then\n    record_time=$(head -n 1 \"$file\")\nelse\n    touch $file\n    echo \"create $file\"\nfi\n\nmodife_time=`stat -f %m $fw`\necho \"$fw record time: $modife_time\"\necho \"$fw modife time: $record_time\"\n\nif [ \"$modife_time\" -gt \"$record_time\" ]; then\n    echo \"需要做kmp sync\"\n    echo $modife_time > $file\nelse\n    echo \"不需要需要做kmp sync\"\nfi\n\n#cd \"/Users/bfchainer/.deno/bin\"\ncd \"$SRCROOT/../../../..\"\n#pwd \n#`./gradlew :helperPlatformIos:cinteropSync`\n    \nexit 0\n\n#cd $CONFIGURATION_BUILD_DIR\n#rm -r DwebWebBrowser.xcframework\n#ar -crs libDwebWebBrowser.a DwebWebBrowser.o DwebWebOCSupport.o\n#xcodebuild xcodebuild -create-xcframework -library libDwebWebBrowser.a -allow-internal-distribution -output DwebWebBrowser.xcframework\n\n#if [ $? -eq 0 ]; then\n    echo \"===========SUCCESS DwebWebBrowser.xcframework======\"\n#else\n    #echo \"===========FAIL DwebWebBrowser.xcframework======\"\n#fi\n\n#mv -f DwebWebBrowser.xcframework \"$SRCROOT/../../../../helperPlatformIos/src/nativeInterop/cinterop/xcframeworks/\" \n\n\n\n\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\nexit 0\necho \"===========Creating... DwebWebBrowser.xcframework======\"\n#pwd\necho \"Product: $CONFIGURATION_BUILD_DIR\"\necho \"Root: $SRCROOT\"\n\ncd $CONFIGURATION_BUILD_DIR\n\nfile=\"frameworkSync.txt\"\nfw=\"DwebWebBrowser.framework\"\nrecord_time=0\nmodife_time=0\n\nrecord_time=0\nif [ -e \"$file\" ]; then\n    record_time=$(head -n 1 \"$file\")\nelse\n    touch $file\n    echo \"create $file\"\nfi\n\nmodife_time=`stat -f %m $fw`\necho \"$fw record time: $modife_time\"\necho \"$fw modife time: $record_time\"\n\nif [ \"$modife_time\" -gt \"$record_time\" ]; then\n    echo \"需要做kmp sync\"\n    echo $modife_time > $file\nelse\n    echo \"不需要需要做kmp sync\"\nfi\n\n#cd \"/Users/bfchainer/.deno/bin\"\ncd \"$SRCROOT/../../../..\"\n#pwd \n#`./gradlew :helperPlatformIos:cinteropSync`\n    \nexit 0\n\n#cd $CONFIGURATION_BUILD_DIR\n#rm -r DwebWebBrowser.xcframework\n#ar -crs libDwebWebBrowser.a DwebWebBrowser.o DwebWebOCSupport.o\n#xcodebuild xcodebuild -create-xcframework -library libDwebWebBrowser.a -allow-internal-distribution -output DwebWebBrowser.xcframework\n\n#if [ $? -eq 0 ]; then\n    echo \"===========SUCCESS DwebWebBrowser.xcframework======\"\n#else\n    #echo \"===========FAIL DwebWebBrowser.xcframework======\"\n#fi\n\n#mv -f DwebWebBrowser.xcframework \"$SRCROOT/../../../../helperPlatformIos/src/nativeInterop/cinterop/xcframeworks/\" \n\n\n\n\n";
 		};
 		48FB53DA2B3C1D45000AA400 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -750,11 +756,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				488201A42B4EA09D00A40F87 /* TouchThroughView.swift in Sources */,
 				483890182B45423A0016260F /* DwebDeskVCStore.swift in Sources */,
 				483890092B4539D30016260F /* Loger.swift in Sources */,
 				487F8AFB2B453750009B74C3 /* DwebAppDelegate.swift in Sources */,
 				48A8CC152B3C021C00A9CECC /* DwebBrowserApp.swift in Sources */,
 				480696592B469C8F008140C4 /* DwebDeepLink.swift in Sources */,
+				488201A22B4E9FF500A40F87 /* DwebDeskRootView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

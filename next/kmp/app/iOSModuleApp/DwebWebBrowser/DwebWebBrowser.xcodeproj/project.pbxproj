@@ -56,7 +56,6 @@
 		48098C282B43A18500EA991C /* LinkConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BE52B43A18500EA991C /* LinkConfig.swift */; };
 		48098C292B43A18500EA991C /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BE62B43A18500EA991C /* MenuView.swift */; };
 		48098C2A2B43A18500EA991C /* HomePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BE72B43A18500EA991C /* HomePageView.swift */; };
-		48098C2B2B43A18500EA991C /* TouchThroughView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BE82B43A18500EA991C /* TouchThroughView.swift */; };
 		48098C2C2B43A18500EA991C /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BEA2B43A18500EA991C /* Environment.swift */; };
 		48098C2D2B43A18500EA991C /* InstalledApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BEB2B43A18500EA991C /* InstalledApp.swift */; };
 		48098C2E2B43A18500EA991C /* WebCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098BEC2B43A18500EA991C /* WebCacheStore.swift */; };
@@ -73,7 +72,6 @@
 		48098C552B43A19400EA991C /* HapticsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C3E2B43A19400EA991C /* HapticsHelper.swift */; };
 		48098C562B43A19400EA991C /* ConsoleSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C3F2B43A19400EA991C /* ConsoleSwift.swift */; };
 		48098C582B43A19400EA991C /* KotlinComposeMetalRedrawerFix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C432B43A19400EA991C /* KotlinComposeMetalRedrawerFix.swift */; };
-		48098C5A2B43A19400EA991C /* DwebDeskRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C462B43A19400EA991C /* DwebDeskRootView.swift */; };
 		48098C5B2B43A19400EA991C /* DwebBrowserHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C472B43A19400EA991C /* DwebBrowserHistoryStore.swift */; };
 		48098C5F2B43A19400EA991C /* JmmAppDownloadManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C4C2B43A19400EA991C /* JmmAppDownloadManifest.swift */; };
 		48098C602B43A19400EA991C /* CombinePublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48098C4D2B43A19400EA991C /* CombinePublisher.swift */; };
@@ -168,7 +166,6 @@
 		48098BE52B43A18500EA991C /* LinkConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LinkConfig.swift; sourceTree = "<group>"; };
 		48098BE62B43A18500EA991C /* MenuView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
 		48098BE72B43A18500EA991C /* HomePageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomePageView.swift; sourceTree = "<group>"; };
-		48098BE82B43A18500EA991C /* TouchThroughView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TouchThroughView.swift; sourceTree = "<group>"; };
 		48098BEA2B43A18500EA991C /* Environment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		48098BEB2B43A18500EA991C /* InstalledApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InstalledApp.swift; sourceTree = "<group>"; };
 		48098BEC2B43A18500EA991C /* WebCacheStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebCacheStore.swift; sourceTree = "<group>"; };
@@ -185,7 +182,6 @@
 		48098C3E2B43A19400EA991C /* HapticsHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HapticsHelper.swift; sourceTree = "<group>"; };
 		48098C3F2B43A19400EA991C /* ConsoleSwift.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleSwift.swift; sourceTree = "<group>"; };
 		48098C432B43A19400EA991C /* KotlinComposeMetalRedrawerFix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KotlinComposeMetalRedrawerFix.swift; sourceTree = "<group>"; };
-		48098C462B43A19400EA991C /* DwebDeskRootView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskRootView.swift; sourceTree = "<group>"; };
 		48098C472B43A19400EA991C /* DwebBrowserHistoryStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebBrowserHistoryStore.swift; sourceTree = "<group>"; };
 		48098C4C2B43A19400EA991C /* JmmAppDownloadManifest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JmmAppDownloadManifest.swift; sourceTree = "<group>"; };
 		48098C4D2B43A19400EA991C /* CombinePublisher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinePublisher.swift; sourceTree = "<group>"; };
@@ -324,7 +320,6 @@
 				48098BD22B43A18500EA991C /* AddressBarView.swift */,
 				48098BD32B43A18500EA991C /* AddressBarTyping */,
 				48098BD92B43A18500EA991C /* Sheet */,
-				48098BE82B43A18500EA991C /* TouchThroughView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -480,7 +475,6 @@
 		48098C452B43A19400EA991C /* NMMs */ = {
 			isa = PBXGroup;
 			children = (
-				48098C462B43A19400EA991C /* DwebDeskRootView.swift */,
 				48098C472B43A19400EA991C /* DwebBrowserHistoryStore.swift */,
 			);
 			path = NMMs;
@@ -664,7 +658,6 @@
 				48098C062B43A18500EA991C /* UIImage+Resize.swift in Sources */,
 				48098C302B43A18500EA991C /* View+snapshot.swift in Sources */,
 				48098C2F2B43A18500EA991C /* NetworkPermission.swift in Sources */,
-				48098C2B2B43A18500EA991C /* TouchThroughView.swift in Sources */,
 				48098C112B43A18500EA991C /* PagingScrollView.swift in Sources */,
 				48098C3B2B43A18500EA991C /* const.swift in Sources */,
 				48098C642B43A19400EA991C /* DownloadAppView.swift in Sources */,
@@ -704,7 +697,6 @@
 				48098C0A2B43A18500EA991C /* UIImage+Trans.swift in Sources */,
 				48098C252B43A18500EA991C /* Tools.swift in Sources */,
 				48098C2C2B43A18500EA991C /* Environment.swift in Sources */,
-				48098C5A2B43A19400EA991C /* DwebDeskRootView.swift in Sources */,
 				48098DD32B43AE4100EA991C /* Browser.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
