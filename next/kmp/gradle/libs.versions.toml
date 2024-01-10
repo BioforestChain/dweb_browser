@@ -3,8 +3,8 @@ compileSdkVersion = "34" # Int
 buildToolsVersion = "29.0.2"
 minSdkVersion = "28" # Int
 targetSdkVersion = "34" # Int
-versionCode = "66" # Int
-versionName = "2.231228.1"
+versionCode = "69" # Int
+versionName = "2.240110.1"
 kotlinCompilerExtensionVersion = "1.5.7"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
@@ -57,6 +57,8 @@ kotlinxSerializationVersion = "1.6.2"
 # jna
 java-jna-version = "5.13.0"
 webkit = "1.9.0"
+
+qiniu-version = "8.6.0"
 
 [libraries]
 # AndroidTest
@@ -184,6 +186,9 @@ androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "w
 gradlePlugin-android = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 gradlePlugin-kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-version" }
 gradlePlugin-jetbrainsCompose = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "jetbrains-compose-version" }
+
+# 七牛数据
+qiniu-upload = { group = "com.qiniu", name = "qiniu-android-sdk", version.ref = "qiniu-version" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
