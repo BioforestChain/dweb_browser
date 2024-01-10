@@ -43,7 +43,7 @@ kotlin {
           // test
           implementation(libs.compose.ui.preview)
           // 七牛
-          implementation(libs.qiniu.upload)
+          // implementation(libs.qiniu.upload)
 
           implementation(projects.shared)
           implementation(projects.helper)

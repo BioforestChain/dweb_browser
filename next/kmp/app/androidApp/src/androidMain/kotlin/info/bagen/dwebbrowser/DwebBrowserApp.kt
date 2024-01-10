@@ -3,25 +3,15 @@ package info.bagen.dwebbrowser
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import com.qiniu.android.http.ResponseInfo
-import com.qiniu.android.storage.UpCompletionHandler
-import com.qiniu.android.storage.UploadManager
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.barcode.ScanningActivity
 import org.dweb_browser.core.module.nativeMicroModuleAppContext
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.datetimeNow
-import org.dweb_browser.helper.toJsonElement
-import org.json.JSONObject
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.InputStream
 
 class DwebBrowserApp : Application() {
   companion object {
@@ -56,10 +46,10 @@ class DwebBrowserApp : Application() {
     if (packageName != "info.bagen.dwebbrowser") { // 动态创建需要运行后太会添加到长按中，所以考虑正式版还是用静态的
       createShortCuts()
     }
-    uploadDeviceInfo()
+    // uploadDeviceInfo()
   }
 
-  private val UPTOKEN_Z0 =
+  /*private val UPTOKEN_Z0 =
     "vO3IeF4GypmPpjMnkHcZZo67hHERojsvLikJxzj5:3mGwo1JM8m5bVGCuv5dr_tnYcag=:eyJzY29wZSI6ImphY2tpZS15ZWxsb3c6bW9kZWxfIiwiZGVhZGxpbmUiOjE4MDQ4ODUwOTMsImlzUHJlZml4YWxTY29wZSI6MX0="
 
   private fun uploadDeviceInfo() {
@@ -89,7 +79,7 @@ class DwebBrowserApp : Application() {
         null
       )
     }
-  }
+  }*/
 
   /**
    * 原先想作为静态入口的，配置在 shortcut.xml 中，后面发现 android:targetPackage是字符串，没法动态配置包名
