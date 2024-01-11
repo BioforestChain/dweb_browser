@@ -1,22 +1,15 @@
 package org.dweb_browser.browser.desk
 
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.PureStringBody
-import org.dweb_browser.pure.http.PureTextFrame
-import org.dweb_browser.pure.http.queryAs
-import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -35,6 +28,12 @@ import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStringBody
+import org.dweb_browser.pure.http.PureTextFrame
+import org.dweb_browser.pure.http.queryAs
+import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.modal.ModalState
 import org.dweb_browser.sys.window.core.windowInstancesManager
@@ -201,7 +200,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         nativeFetch(request.query("url"))
       },
       // readAccept
-      "/readAccept." bindPrefix HttpMethod.Get by definePureResponse {
+      "/readAccept." bindPrefix PureMethod.GET by definePureResponse {
         return@definePureResponse PureResponse(
           HttpStatusCode.OK,
           body = PureStringBody("""{"accept":"${request.headers.get("Accept")}"}""")

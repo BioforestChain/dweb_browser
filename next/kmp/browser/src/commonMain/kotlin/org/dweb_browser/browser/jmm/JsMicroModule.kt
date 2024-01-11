@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.jmm
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLBuilder
 import io.ktor.http.fullPath
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,6 +31,7 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.buildUnsafeString
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.toBase64Url
@@ -124,10 +124,10 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       }
       streamIpc.bindIncomeStream(
         nativeFetch(
-          PureClientRequest(URLBuilder("file://js.browser.dweb/create-process").apply {
+          PureClientRequest(buildUrlString("file://js.browser.dweb/create-process") {
             parameters["entry"] = metadata.server.entry
             parameters["process_id"] = pid
-          }.buildUnsafeString(), PureMethod.POST, body = PureStreamBody(streamIpc.input.stream))
+          }, PureMethod.POST, body = PureStreamBody(streamIpc.input.stream))
         ).stream()
       )
       this@JsMicroModule.addToIpcSet(streamIpc)

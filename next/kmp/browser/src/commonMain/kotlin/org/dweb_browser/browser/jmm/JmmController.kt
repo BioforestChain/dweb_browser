@@ -82,9 +82,8 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
         true -> installManifest.baseURI!!
         else -> when (val baseUri = installManifest.baseURI) {
           null -> originUrl
-          else -> URLBuilder(originUrl).run {
+          else -> buildUrlString(originUrl) {
             resolvePath(baseUri)
-            buildString()
           }
         }.also {
           installManifest.baseURI = it
@@ -92,9 +91,8 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       }
       // 如果bundle_url没有host
       if (!installManifest.bundle_url.isUrlOrHost()) {
-        installManifest.bundle_url = URLBuilder(baseURI).run {
+        installManifest.bundle_url = buildUrlString(baseURI) {
           this.replaceMetadata(installManifest.bundle_url)
-          buildString()
         }
       }
       debugJMM("openInstallerView", installManifest.bundle_url)
@@ -266,6 +264,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
     }
   }
 
+  // TODO FIX THIS SHIT
   private fun URLBuilder.replaceMetadata(bundlePath: String) {
     var resolve = bundlePath;
     if (bundlePath.startsWith("./")) {

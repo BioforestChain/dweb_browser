@@ -1,6 +1,5 @@
 package org.dweb_browser.core.http.router
 
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -197,7 +196,6 @@ data class RouteHandler(val route: IRoute, val handler: HttpHandlerChain)
 infix fun String.bind(method: PureMethod) =
   CommonRoute(pathname = this, method = method, matchMode = MatchMode.FULL)
 
-infix fun String.bindPrefix(method: HttpMethod) = bindPrefix(PureMethod.from(method))
 infix fun String.bindPrefix(method: PureMethod) =
   CommonRoute(pathname = this, method = method, matchMode = MatchMode.PREFIX)
 
