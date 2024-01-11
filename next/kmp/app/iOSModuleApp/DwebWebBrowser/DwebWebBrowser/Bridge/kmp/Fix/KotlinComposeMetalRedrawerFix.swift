@@ -40,7 +40,7 @@ extension CADisplayLink {
     }
 }
 
-class KotlinComposeRedrawerFix {
+public class KotlinComposeRedrawerFix {
     
     public class func fix() {
         let originalMethod = class_getInstanceMethod(CADisplayLink.self, #selector(CADisplayLink.add(to:forMode:)))
