@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-  val commonIoMain = sourceSets.create("commonIoMain") {
+  val commonIoMain by sourceSets.creating {
     dependencies {
 //      implementation(libs.ktor.io)
     }

@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-  val commonCryptoMain = sourceSets.create("commonCryptoMain") {
+  val commonCryptoMain by sourceSets.creating {
     dependencies {
       implementation(libs.whyoleg.cryptography.core)
     }
