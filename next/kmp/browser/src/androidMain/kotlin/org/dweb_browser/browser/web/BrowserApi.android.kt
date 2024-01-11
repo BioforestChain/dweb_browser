@@ -3,8 +3,8 @@ package org.dweb_browser.browser.web
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissState
-import androidx.compose.material3.SwipeToDismissValue
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
@@ -47,8 +47,8 @@ actual fun CommonSwipeDismiss(
   modifier: Modifier,
   onRemove: () -> Unit
 ) {
-  val dismissState = SwipeToDismissState(
-    initialValue = SwipeToDismissValue.Settled,
+  val dismissState = SwipeToDismissBoxState(
+    initialValue = SwipeToDismissBoxValue.Settled,
     density = LocalDensity.current,
     confirmValueChange = { true },
     positionalThreshold = with(LocalDensity.current) { { 56.dp.toPx() } }
@@ -56,7 +56,7 @@ actual fun CommonSwipeDismiss(
 
   LaunchedEffect(dismissState) {
     snapshotFlow { dismissState.currentValue }.collect {
-      if (it != SwipeToDismissValue.Settled) {
+      if (it != SwipeToDismissBoxValue.Settled) {
         onRemove()
       }
     }

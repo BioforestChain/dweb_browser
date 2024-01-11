@@ -5,7 +5,7 @@ minSdkVersion = "28" # Int
 targetSdkVersion = "34" # Int
 versionCode = "69" # Int
 versionName = "2.240110.1"
-kotlinCompilerExtensionVersion = "1.5.7"
+kotlinCompilerExtensionVersion = "1.5.8"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
@@ -50,13 +50,13 @@ kotlin-wrappers-bom = "1.0.0-pre.674"
 # 测试
 test-junit-bom = "5.9.2"
 animation-core-android = "1.5.4"
-material3Android = "1.2.0-beta01"
+material3Android = "1.2.0-beta02"
 
 kotlinxSerializationVersion = "1.6.2"
 
 # jna
 java-jna-version = "5.13.0"
-webkit = "1.9.0"
+webkit = "1.10.0-rc01"
 
 qiniu-version = "8.6.0"
 
