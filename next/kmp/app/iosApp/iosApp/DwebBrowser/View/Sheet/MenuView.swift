@@ -39,9 +39,9 @@ struct MenuView: View {
                 .background(Color.bkColor)
                 .frame(maxWidth: .infinity)
 
-                toast
-                    .opacity(toastOpacity)
-                    .scaleEffect(dragScale.onWidth)
+//                toast
+//                    .opacity(toastOpacity)
+//                    .scaleEffect(dragScale.onWidth)
             }
         }
     }

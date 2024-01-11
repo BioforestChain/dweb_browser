@@ -60,7 +60,7 @@ extension URL {
         return nil
     }
 
-    func getDomain() -> String {
+    var domain: String {
         guard var domain = self.host else { return self.absoluteString }
         if domain.lowercased().hasPrefix("www.") {
             domain.removeFirst(4)

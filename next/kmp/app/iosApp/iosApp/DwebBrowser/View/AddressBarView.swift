@@ -72,7 +72,7 @@ struct AddressBar: View {
     }
 
     var textField: some View {
-        TextField(addressbarHolder, text: addressBar.isFocused ? $inputText : $displayText)
+        TextField(addressbarHolder, text: isAdressBarFocused ? $inputText : $displayText)
             .foregroundColor(Color.addressTextColor)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
@@ -97,13 +97,13 @@ struct AddressBar: View {
                     return //
                 }
                 inputText = webCache.lastVisitedUrl.absoluteString
-                displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
+                displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.domain
             }
 
             .onChange(of: webCache.lastVisitedUrl) { _, url in
                 guard enterType == .none else { return }
                 inputText = url.absoluteString
-                displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
+                displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.domain
             }
             .onChange(of: addressBar.isFocused) { _, isFocused in
                 Log(" addressBar.isFocused onChange:\(isFocused)")

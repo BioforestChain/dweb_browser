@@ -12,7 +12,7 @@ struct BrowserView: View {
     @StateObject var states = BrowserViewStates.shared
     @StateObject var toolBarState = BrowserViewStates.shared.toolBarState
     var curWebVisible: Bool { states.webcacheStore.cache(at: states.selectedTab.curIndex).shouldShowWeb }
-    
+
     var body: some View {
         ZStack {
             GeometryReader { geometry in
@@ -22,8 +22,7 @@ struct BrowserView: View {
                         ToolbarView(webCount: states.webcacheStore.cacheCount,
                                     isWebVisible: curWebVisible,
                                     webMonitor: states.webcacheStore.webWrappers[states.selectedTab.curIndex])
-                            
-                        .frame(height: states.addressBar.isFocused ? 0 : states.dragScale.toolbarHeight)
+                            .frame(height: states.addressBar.isFocused ? 0 : states.dragScale.toolbarHeight)
                     }
                     .background(Color.bkColor)
                     .environmentObject(states.webcacheStore)
@@ -54,6 +53,7 @@ struct BrowserView: View {
                 }
             }
             .task {
+                states.doSearchIfNeed()
                 if let key = states.searchKey, !key.isEmpty {
                     states.searchKey = nil
                 }
