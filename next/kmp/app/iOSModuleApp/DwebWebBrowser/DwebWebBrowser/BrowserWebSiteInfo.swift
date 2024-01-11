@@ -6,11 +6,12 @@
 //
 
 import Foundation
+import UIKit
 
 class BrowserWebSiteInfo: Identifiable, Hashable {
     
-    let data: WebBrowserViewDataProtocol
-    init(_ data: WebBrowserViewDataProtocol) {
+    let data: WebBrowserViewSiteData
+    init(_ data: WebBrowserViewSiteData) {
         self.data = data
     }
     
@@ -18,6 +19,10 @@ class BrowserWebSiteInfo: Identifiable, Hashable {
         get {
             return data.id
         }
+    }
+    
+    var icon: UIImage {
+        return data.iconCreater() ??  UIImage(systemName: "book")!
     }
     
     static func == (lhs: BrowserWebSiteInfo, rhs: BrowserWebSiteInfo) -> Bool {

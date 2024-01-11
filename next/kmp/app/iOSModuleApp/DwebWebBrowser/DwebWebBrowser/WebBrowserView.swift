@@ -14,13 +14,6 @@ var browserViewDataSource: WebBrowserViewDataSource {
     return WebBrowserView.dataSource ?? WebBrowserDefaultProvider(trackModel: false)
 }
 
-fileprivate var addWebBrowserViewDataProtocol: Void = {
-    Log("addWebBrowserViewDataProtocol")
-    if let objClassStr = WebBrowserView.dataSource?.getWebBrowserViewDataClass(), let objC = NSClassFromString(objClassStr) {
-        addIfNeedProtocol(protocol: NSProtocolFromString("DwebWebBrowser.WebBrowserViewDataProtocol")! , kmpClass: objC)
-    }
-}()
-
 fileprivate func addIfNeedProtocol(protocol: Protocol, kmpClass: AnyClass) {
     guard class_conformsToProtocol(kmpClass, `protocol`) == false else { return }
     let result = class_addProtocol(kmpClass, `protocol`)
@@ -34,12 +27,6 @@ public class WebBrowserView: UIView {
         super.init(frame: frame)
         WebBrowserView.delegate = delegate
         WebBrowserView.dataSource = dataSource
-        _ = addWebBrowserViewDataProtocol
-        #if DEBUG
-        if let objClassStr = dataSource?.getWebBrowserViewDataClass(), let objC = NSClassFromString(objClassStr) {
-            checkObjc(cls: objC)
-        }
-        #endif
         setupContainerView()
     }
     

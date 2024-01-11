@@ -15,13 +15,12 @@ import platform.Foundation.NSData
 import platform.UIKit.UIImage
 import org.dweb_browser.helper.platform.ios_browser.WebBrowserViewDelegateProtocol
 import org.dweb_browser.helper.platform.ios_browser.WebBrowserViewDataSourceProtocol
-import org.dweb_browser.helper.platform.ios_browser.WebBrowserViewDataProtocolProtocol
 import platform.Foundation.NSError
 import platform.posix.int32_t
 import platform.posix.int64_t
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
-import org.dweb_browser.helper.platform.ios.DwebWKWebView
+import org.dweb_browser.helper.platform.ios_browser.WebBrowserViewSiteData
 import platform.UIKit.UIScreen
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
@@ -63,6 +62,11 @@ public class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null
 
   private val scope = CoroutineScope(ioAsyncExceptionHandler)
 
+  public override fun getDatasFor(for_: String, params: Map<Any?, *>?): Map<Any?, *>? {
+    // kmp与iOS快速调试代码调用点。
+    return null
+  }
+
   //region track mode
 
   public override fun setTrackModel(trackModel: Boolean) {
@@ -82,8 +86,12 @@ public class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null
 
   // region history
   public override fun loadHistorys(): Map<Any?, List<*>>? {
-    val resutl = browserViewModel?.getHistoryLinks()?.toMap()
-    return resutl as Map<Any?, List<WebBrowserViewDataProtocolProtocol>>
+    val result = browserViewModel?.getHistoryLinks()?.mapValues { (key,lists)->
+      lists.map {
+          WebBrowserViewSiteData(it.id, it.title, it.url, it::iconUIImage)
+      }
+    }
+    return result as Map<Any?, List<*>>?
   }
 
   public override fun loadMoreHistoryWithOff(off: int32_t, completionHandler: (NSError?) -> Unit) {
@@ -129,7 +137,9 @@ public class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null
 
   // region bookmark
 
-  public override fun loadBookmarks(): kotlin.collections.List<*>? = browserViewModel?.getBookLinks()
+  public override fun loadBookmarks(): kotlin.collections.List<*>? = browserViewModel?.getBookLinks()?.map {
+    return@map WebBrowserViewSiteData(it.id, it.title, it.url, it::iconUIImage)
+  }
 
   public override fun addBookmarkWithTitle(title: String, url: String, icon: NSData?) {
     val webSiteInfo =
@@ -144,20 +154,6 @@ public class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null
       }
       vm.removeBookLink(del)
     }
-  }
-
-  public override fun getWebBrowserViewDataClass(): String {
-    return "KMPWebSiteInfo"
-  }
-
-  public override fun getDatasFor(for_: String, params: Map<Any?, *>?): Map<Any?, *>? {
-    // kmp与iOS快速调试代码调用点。
-    return null
-  }
-
-  override fun getIconUIImageWithData(data: WebBrowserViewDataProtocolProtocol): UIImage? {
-    val webSiteInfo = data as WebSiteInfo
-    return webSiteInfo.iconUIImage()
   }
 
   // endregion

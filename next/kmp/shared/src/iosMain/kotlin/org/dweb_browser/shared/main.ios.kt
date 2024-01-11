@@ -43,15 +43,9 @@ import org.dweb_browser.sys.share.ShareNMM
 import org.dweb_browser.sys.toast.ToastNMM
 import platform.UIKit.UIApplication
 import org.dweb_browser.helper.platform.ios.doModuleDwebBrowser
-import org.dweb_browser.browser.web.data.WebSiteInfo
 
 fun doTest() {
   doModuleDwebBrowser()
-}
-
-// mike todo: 为了暴露WebSiteInfo
-fun export():  WebSiteInfo? {
-  return null
 }
 
 val dwebViewController = nativeViewController

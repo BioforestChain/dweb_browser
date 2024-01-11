@@ -15,10 +15,6 @@ struct BookmarkView: View {
 
     @State private var bookmarks: [BrowserWebSiteInfo] = browserViewDataSource.loadBookmarksToBrowser() ?? []
     
-    private func getBookmarkIconImage(_ bk: BrowserWebSiteInfo) -> UIImage {
-        return browserViewDataSource.getIconUIImage(data: bk.data) ?? UIImage(systemName: "book")!
-    }
-    
     var body: some View {
 
         ZStack {
@@ -26,7 +22,7 @@ struct BookmarkView: View {
                 List {
                     ForEach(bookmarks, id: \.self) { bookmark in
                         HStack {
-                            Image(uiImage: getBookmarkIconImage(bookmark))
+                            Image(uiImage: bookmark.icon)
                                 .resizable()
                                 .frame(width: dragScale.properValue(floor: 14, ceiling: 24),
                                        height: dragScale.properValue(floor: 14, ceiling: 24))

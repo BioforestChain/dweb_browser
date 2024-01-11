@@ -10,34 +10,33 @@ import UIKit
 import WebKit
 import DwebPlatformIosKit
 
-@objc public protocol WebBrowserViewDataProtocol {
-    @objc var title: String { get }
-    @objc var url: String { get }
-    @objc var id: Int64 { get }
-//    @objc func iconUIImage() -> UIImage?
+@objc public class WebBrowserViewSiteData: NSObject {
+    @objc var title: String
+    @objc var url: String
+    @objc var id: Int64
+    @objc var iconCreater: ()-> UIImage?
+    @objc public init(id: Int64, title: String, url: String, iconCreater: @escaping ()-> UIImage?) {
+        self.title = title
+        self.url = url
+        self.id = id
+        self.iconCreater = iconCreater
+    }
 }
 
 @objc public protocol WebBrowserViewWebObserableProtocol {
     @objc var icon: NSString { get }
 }
 
-@objc public protocol WebBrowserViewTools {
-    func getIconUIImage(data: WebBrowserViewDataProtocol) -> UIImage?
-}
-
 @objc public protocol WebBrowserViewDelegate {
     func createDesktopLink(link:String, title: String, iconString:String, completionHandler: @escaping (NSError?)->Void)
     func recognizedScreenGestures()
     func openDeepLink(url: String)
-    
-    //这是一个便捷的与kmp通讯的方法，用于避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用。
+    #warning("这是一个便捷的方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
     func doAction(name: String, params: [String: String]?)
 }
 
-@objc public protocol WebBrowserViewDataSource: TracklessDataSource, BookMarkDataSource, HistoryDataSource, WebBrowserViewWebDataSource, WebBrowserViewTools {
-    func getWebBrowserViewDataClass() -> String
-
-    // 这是一个便捷的与kmp通讯的方法，用于避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用。
+@objc public protocol WebBrowserViewDataSource: TracklessDataSource, BookMarkDataSource, HistoryDataSource, WebBrowserViewWebDataSource {    
+    #warning("这是一个便捷的方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
     func getDatas(for: String, params: [String: AnyObject]?) -> [String: AnyObject]?
 }
 
@@ -55,7 +54,7 @@ import DwebPlatformIosKit
 
 // MARK: bookmark
 @objc public protocol BookMarkDataSource {
-    func loadBookmarks() -> [WebBrowserViewDataProtocol]?
+    func loadBookmarks() -> [WebBrowserViewSiteData]?
     
     func addBookmark(title: String, url: String, icon: Data?)
     
@@ -71,7 +70,7 @@ extension BookMarkDataSource {
 
 // MARK: history
 @objc public protocol HistoryDataSource {
-    func loadHistorys() -> [String: [WebBrowserViewDataProtocol]]?
+    func loadHistorys() -> [String: [WebBrowserViewSiteData]]?
     
     func loadMoreHistory(off:Int32, completionHandler: @escaping (NSError?)->Void)
     

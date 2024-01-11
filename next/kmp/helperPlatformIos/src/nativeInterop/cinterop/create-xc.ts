@@ -3,19 +3,19 @@ import fs from "node:fs";
 import { __dirname, exec, runTasks } from "./util.ts";
 
 export const doCreateXcItemTask = (fw: string) => async () => {
-        await deleteCache(fw)
-        return runTasks(
-              () => createXc(fw),
-          );
-      };
+  await deleteCache(fw)
+  return runTasks(
+    () => createXc(fw),
+  );
+};
 
 
 const deleteCache = async (fw: string) => {
-        const xcframeworksDir = path.resolve(__dirname, "xcframeworks/" + fw + ".xcframework");
-        if(fs.existsSync(xcframeworksDir)) {
-          await Deno.remove(xcframeworksDir, { recursive: true });
-          console.log("end xcframeworksDir delete!");
-        }
+  const xcframeworksDir = path.resolve(__dirname, "xcframeworks/" + fw + ".xcframework");
+  if(fs.existsSync(xcframeworksDir)) {
+    await Deno.remove(xcframeworksDir, { recursive: true });
+    console.log("end xcframeworksDir delete!");
+  }
 }
 
 const createXc = (prjectName: string) => {

@@ -10,21 +10,7 @@ import UIKit
 import WebKit
 import DwebPlatformIosKit
 
-class WebBrowserDefaultWebData: NSObject, WebBrowserViewDataProtocol {
-    var title: String = ""
-    var url: String = ""
-    var id: Int64 = 0
-    
-    func iconUIImage() -> UIImage? {
-        return nil
-    }
-}
-
 class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSource {
-        
-    func getIconUIImage(data: WebBrowserViewDataProtocol) -> UIImage? {
-        return nil
-    }
     
     func getWebView() -> WebType {
         return DwebWKWebView(frame: .zero)
@@ -40,10 +26,6 @@ class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSourc
     
     func getDatas(for: String, params: [String : AnyObject]?) -> [String : AnyObject]? {
         return nil
-    }
-    
-    func getWebBrowserViewDataClass() -> String {
-        return NSStringFromClass(WebBrowserDefaultWebData.self)
     }
     
     init(trackModel: Bool) {
@@ -71,7 +53,7 @@ class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSourc
     }
     
     // MARK: bookmarks
-    func loadBookmarks() -> [WebBrowserViewDataProtocol]? {
+    func loadBookmarks() -> [WebBrowserViewSiteData]? {
         return nil
     }
     
@@ -84,7 +66,7 @@ class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSourc
     }
     
     // MARK: historys
-    func loadHistorys() -> [String : [WebBrowserViewDataProtocol]]? {
+    func loadHistorys() -> [String : [WebBrowserViewSiteData]]? {
         Log()
         return nil
     }

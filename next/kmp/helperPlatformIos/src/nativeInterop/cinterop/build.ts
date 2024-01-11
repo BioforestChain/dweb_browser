@@ -30,25 +30,29 @@ export const doBuildTask = async () => {
     Deno.exit(0);
   }
 
-    const fws = ["DwebPlatformIosKit", "DwebWebBrowser"]
-    for (const fw of fws) {
-      const writeFileHash = calcHash(fw);
-      if (!writeFileHash) {
-        console.log("build cached!! --> " + fw);
-        continue;
-      }
-      console.log("will build --> " + fw);
-      await runTasks(
-        doArchiveItemTask(fw),
-        doCreateXcItemTask(fw),
-        async () => {
-          writeFileHash();
-          console.log("build success!! --> " + fw);
-          return 0;
-        }
-      );
+  const fws = ["DwebPlatformIosKit", "DwebWebBrowser"]
+  var result: number = 0;
+  for (const fw of fws) {
+    const writeFileHash = calcHash(fw);
+    if (!writeFileHash) {
+      console.log("build cached!! --> " + fw);
+      continue;
     }
-    return 0
+    console.log("will build --> " + fw);
+    result = await runTasks(
+      doArchiveItemTask(fw),
+      doCreateXcItemTask(fw),
+      async () => {
+        writeFileHash();
+        console.log("build success!! --> " + fw);
+        return 0;
+      }
+    );
+    if (result != 0) {
+      break;
+    }
+  }
+  return result;
 };
 
 const calcHash = (fw: string): (() => void) | undefined => {
