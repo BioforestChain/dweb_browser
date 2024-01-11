@@ -3,39 +3,23 @@ plugins {
 }
 
 kotlin {
-  kmpBrowserJsTarget(libs)
-  sourceSets {
-    jsMain.dependencies {
-      api(libs.whyoleg.cryptography.provider.webcrypto)
-      api(libs.squareup.okio.nodefilesystem)
-    }
-    commonMain.dependencies {
-      api(kotlin("stdlib"))
-      api(libs.kotlinx.coroutines.core)
-      api(libs.kotlinx.atomicfu)
-      api(libs.ktor.http)
-      api(libs.ktor.io)
-      api(libs.ktor.client.encoding)
-      api(libs.whyoleg.cryptography.core)
-
+  kmpCommonTarget(libs) {
+    dependencies {
       api(libs.squareup.okio)
       api(libs.kotlinx.datetime)
-      api(libs.kotlin.serialization.json)
-      api(libs.kotlin.serialization.cbor)
+      api(libs.ktor.http)
+      api(libs.ktor.io)
     }
-    commonTest.dependencies {
-      implementation(kotlin("test"))
-      implementation(libs.test.kotlin.coroutines.test)
-      implementation(libs.test.kotlin.coroutines.debug)
-      implementation(libs.kotlinx.atomicfu)
-      implementation(libs.kotlinx.io)
-    }
-    androidMain.dependencies {
-      implementation(libs.androidx.core.ktx)
-      api(libs.whyoleg.cryptography.provider.jdk)
-    }
-    iosMain.dependencies {
-      api(libs.whyoleg.cryptography.provider.openssl3.prebuilt)
+  }
+  kmpBrowserJsTarget(libs)
+  kmpAndroidTarget(libs)
+  kmpIosTarget(libs)
+  kmpNodeWasmTarget(libs) {
+    val ktorWasmVersion = "3.0.0-wasm2"
+    dependencies {
+      //noinspection GradleDependency
+      api("io.ktor:ktor-io:$ktorWasmVersion")
+      api("io.ktor:ktor-http:$ktorWasmVersion")
     }
   }
 }

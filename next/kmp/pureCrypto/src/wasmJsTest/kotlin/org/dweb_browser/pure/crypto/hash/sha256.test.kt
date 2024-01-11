@@ -18,6 +18,4 @@ class Sha256Test {
       ).toByteArray()
     )
   }
-
-
 }

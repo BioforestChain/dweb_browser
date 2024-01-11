@@ -3,57 +3,51 @@ plugins {
 }
 
 kotlin {
-  sourceSets.commonMain.dependencies {
-    implementation(libs.jetbrains.compose.runtime)
-    implementation(libs.jetbrains.compose.foundation)
-    implementation(libs.jetbrains.compose.components.resources)
-
-    implementation(libs.jetbrains.compose.material3)
-    implementation(libs.jetbrains.compose.materialIcons)
-
-    implementation(projects.helper)
-    implementation(projects.helperCompose)
-    implementation(projects.helperPlatform)
-    implementation(projects.pureHttp)
-    implementation(projects.core)
-    implementation(projects.sys)
-    implementation(projects.dWebView)
-    implementation(projects.window)
+  kmpComposeTarget(libs) {
+    dependencies {
+      implementation(projects.helper)
+      implementation(projects.helperCompose)
+      implementation(projects.helperPlatform)
+      implementation(projects.pureIO)
+      implementation(projects.pureCrypto)
+      implementation(projects.pureHttp)
+      implementation(projects.core)
+      implementation(projects.sys)
+      implementation(projects.dWebView)
+      implementation(projects.window)
+    }
   }
-  sourceSets.commonTest.dependencies {
-    implementation(kotlin("test"))
+  kmpAndroidTarget(libs) {
+    dependencies {
+      // AndroidX Compose
+      implementation(libs.compose.material3)
+      implementation(libs.compose.material3.window)
+      // Google Accompanist
+      implementation(libs.accompanist.webview)
+      implementation(libs.accompanist.navigation.material)
+      implementation(libs.accompanist.navigation.animation)
+      implementation(libs.accompanist.systemui.controller)
+      implementation(libs.accompanist.permissions)
+      implementation(libs.accompanist.insets.ui)
+      implementation(libs.compose.ui.preview)
+      //扫码核心库
+      implementation(libs.camera.core)
+      implementation(libs.camera.view)
+      implementation(libs.camera.camera2)
+      implementation(libs.camera.lifecycle)
+      implementation(libs.camera.barcode)
+      //解压缩
+      implementation(libs.commons.compress)
+      // 图像
+      implementation(libs.coil.core)
+      implementation(libs.coil.compose)
+    }
   }
-  sourceSets.androidMain.dependencies {
-    // Android 标准
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.activity)
-    implementation(libs.androidx.activity.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.animation.core.android)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    // Compose 相关
-    implementation(libs.compose.material3)
-    implementation(libs.compose.material3.window)
-    // Google.accompanist 相关
-    implementation(libs.accompanist.webview)
-    implementation(libs.accompanist.navigation.material)
-    implementation(libs.accompanist.navigation.animation)
-    implementation(libs.accompanist.systemui.controller)
-    implementation(libs.accompanist.permissions)
-    implementation(libs.accompanist.insets.ui)
-    implementation(libs.compose.ui.preview)
-    //扫码核心库
-    implementation(libs.camera.core)
-    implementation(libs.camera.view)
-    implementation(libs.camera.camera2)
-    implementation(libs.camera.lifecycle)
-    implementation(libs.camera.barcode)
-    //解压缩
-    implementation(libs.commons.compress)
-  }
-  sourceSets.iosMain.dependencies {
-    implementation(projects.ziplib)
+  kmpIosTarget(libs) {
+    dependencies {
+      //解压缩
+      implementation(projects.ziplib)
+    }
   }
 }
 

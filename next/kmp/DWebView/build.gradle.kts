@@ -3,53 +3,28 @@ plugins {
 }
 
 kotlin {
+  kmpComposeTarget(libs) {
+    dependencies {
+      implementation(projects.helper)
+      implementation(projects.helperPlatform)
+      implementation(projects.helperCompose)
+      implementation(projects.pureIO)
+      implementation(projects.pureHttp)
+      implementation(projects.pureImage)
+      implementation(projects.core)
+      implementation(projects.sys)
+      implementation(projects.reverseProxy)
+    }
+  }
+  kmpAndroidTarget(libs) {
+    dependencies {
+      implementation(libs.androidx.webkit)
+      implementation(libs.google.material)
+      implementation(libs.accompanist.webview)
+      implementation(libs.compose.ui)
+    }
+  }
   sourceSets {
-    commonMain {
-      dependencies {
-        api(kotlin("stdlib"))
-        api(libs.kotlinx.coroutines.core)
-        api(libs.kotlinx.atomicfu)
-
-        implementation(libs.jetbrains.compose.runtime)
-        implementation(libs.jetbrains.compose.foundation)
-        implementation(libs.jetbrains.compose.components.resources)
-
-        implementation(libs.jetbrains.compose.material)
-        implementation(libs.jetbrains.compose.material3)
-        implementation(libs.jetbrains.compose.materialIcons)
-
-        implementation(projects.helper)
-        implementation(projects.helperPlatform)
-        implementation(projects.helperCompose)
-        implementation(projects.pureHttp)
-        implementation(projects.pureImage)
-        implementation(projects.core)
-        implementation(projects.sys)
-        implementation(projects.reverseProxy)
-      }
-    }
-    commonTest {
-      dependencies {
-        implementation(kotlin("test"))
-        implementation(libs.test.kotlin.coroutines.test)
-        implementation(libs.test.kotlin.coroutines.debug)
-        implementation(libs.kotlinx.atomicfu)
-      }
-    }
-    androidMain {
-      dependencies {
-        implementation(libs.androidx.core.ktx)
-        implementation(libs.androidx.activity)
-        implementation(libs.androidx.activity.ktx)
-        implementation(libs.androidx.appcompat)
-        implementation(libs.androidx.lifecycle.runtime.ktx)
-        implementation(libs.androidx.webkit)
-        implementation(libs.google.material)
-
-        api(libs.accompanist.webview)
-        implementation(libs.compose.ui)
-      }
-    }
     androidInstrumentedTest {
       dependsOn(commonMain.get())
       dependsOn(androidMain.get())
@@ -65,10 +40,6 @@ kotlin {
     }
   }
 
-//  sourceSets.jsMain.dependencies {
-//    implementation(kotlin("stdlib-js"))
-//    implementation(npm("electron", "27.0.1"))
-//  }
 }
 
 android {

@@ -5,8 +5,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.sha256
-import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.pure.crypto.hash.sha256
 
 const val DESK_WEBLINK_ICONS = "file:///web_icons/"
 
@@ -18,7 +17,7 @@ data class WebLinkManifest(
 
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun createLinkId(url: String) = "${
-      sha256(url.toUtf8ByteArray()).toHexString(0, 4, HexFormat.Default)
+      sha256(url).toHexString(0, 4, HexFormat.Default)
     }.link.dweb"
   }
 }

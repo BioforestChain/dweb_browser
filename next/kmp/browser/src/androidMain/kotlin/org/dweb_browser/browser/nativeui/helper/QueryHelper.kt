@@ -1,8 +1,8 @@
 package org.dweb_browser.browser.nativeui.helper
 
 import kotlinx.serialization.json.Json
-import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.helper.compose.ColorJson
+import org.dweb_browser.pure.http.PureRequest
 
 class QueryHelper {
   companion object {
@@ -16,7 +16,7 @@ class QueryHelper {
     }
 
     fun style(req: PureRequest) = req.queryOrNull("style")?.let {
-      org.dweb_browser.browser.nativeui.helper.BarStyle.from(it)
+      org.dweb_browser.browser.nativeui.helper.BarStyle.ALL_VALUES[it]
     }
 
     fun visible(req: PureRequest) = req.queryOrNull("visible")?.toBoolean()

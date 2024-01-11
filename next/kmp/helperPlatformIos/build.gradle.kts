@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.ByteArrayOutputStream
 
 plugins {
-  id("kmp-compose")
+  id("kmp-library")
 }
 
 kotlin {
@@ -13,26 +13,30 @@ kotlin {
     it.configureIos()
   }
 
-  sourceSets.commonMain.dependencies {
-    api(libs.jetbrains.compose.runtime)
-    api(libs.jetbrains.compose.foundation)
-    api(libs.jetbrains.compose.components.resources)
-    api(libs.kotlinx.atomicfu)
-    api(libs.ktor.server.cio)
-    api(libs.ktor.client.cio)
-    api(libs.ktor.client.encoding)
-    api(libs.ktor.server.websockets)
+  kmpIosTarget(libs) {
 
-    implementation(libs.jetbrains.compose.material3)
-
-    implementation(projects.helper)
   }
-  sourceSets.commonTest.dependencies {
-    implementation(kotlin("test"))
-  }
-  sourceSets.iosMain.dependencies {
-    api(libs.ktor.client.darwin)
-  }
+//  sourceSets.commonMain.dependencies {
+//    api(libs.jetbrains.compose.runtime)
+//    api(libs.jetbrains.compose.foundation)
+//    api(libs.jetbrains.compose.components.resources)
+//    api(libs.kotlinx.atomicfu)
+//    api(libs.ktor.server.cio)
+//    api(libs.ktor.client.cio)
+//    api(libs.ktor.client.encoding)
+//    api(libs.ktor.server.websockets)
+//
+//    implementation(libs.jetbrains.compose.material3)
+//
+//    implementation(projects.helper)
+//    implementation(projects.pureIO)
+//  }
+//  sourceSets.commonTest.dependencies {
+//    implementation(kotlin("test"))
+//  }
+//  sourceSets.iosMain.dependencies {
+//    api(libs.ktor.client.darwin)
+//  }
 }
 
 android {

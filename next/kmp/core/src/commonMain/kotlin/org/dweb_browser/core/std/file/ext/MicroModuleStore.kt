@@ -1,8 +1,5 @@
 package org.dweb_browser.core.std.file.ext
 
-import dev.whyoleg.cryptography.CryptographyProvider
-import dev.whyoleg.cryptography.algorithms.symmetric.AES
-import dev.whyoleg.cryptography.operations.cipher.AuthenticatedCipher
 import io.ktor.http.URLBuilder
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
@@ -22,8 +19,9 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.getOrPut
-import org.dweb_browser.helper.sha256
-import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.pure.crypto.cipher.cipher_aes_256_gcm
+import org.dweb_browser.pure.crypto.decipher.decipher_aes_256_gcm
+import org.dweb_browser.pure.crypto.hash.sha256
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
@@ -61,32 +59,22 @@ class MicroModuleStore(
   }
 
   private val cipherPlainKey = mm.mmid + "/" + storeName
-  private var cipher: AuthenticatedCipher? = null
+  private var cipherKey: ByteArray? = null
 
-  companion object {
-    // 使用 SymmetricKeySize.B256 的长度作为key
-    private val aesGcm = CryptographyProvider.Default.get(AES.GCM)
-    private val keyDecoder = aesGcm.keyDecoder()
-
-    /**
-     * 将指定字符串，通过 sha256 转成合法的 AES.GCM 的 key
-     */
-    suspend fun getCipher(plainKey: String) = keyDecoder.decodeFrom(
-      AES.Key.Format.RAW, sha256(plainKey.toUtf8ByteArray())
-    ).cipher()
-  }
 
   private val queryPath =
     "/data/store/$storeName${if (encrypt) ".ebor" else ".cbor"}".encodeURIComponent()
 
   @OptIn(ExperimentalSerializationApi::class)
   private var _store = exec<MutableMap<String, ByteArray>> {
-    cipher = if (encrypt) getCipher(cipherPlainKey) else null
+    if (encrypt) {
+      cipherKey = sha256(cipherPlainKey)
+    }
 
     try {
       val readRequest = mm.nativeFetch("file://file.std.dweb/read?path=$queryPath&create=true")
       val data = readRequest.binary().let {
-        if (it.isEmpty()) it else cipher?.decrypt(it) ?: it
+        if (it.isEmpty()) it else cipherKey?.let { key -> decipher_aes_256_gcm(key, it) } ?: it
       }
 
       if (data.isEmpty()) mutableMapOf()
@@ -157,7 +145,8 @@ class MicroModuleStore(
           }.buildUnsafeString(),
           PureMethod.POST,
           body = IPureBody.from(
-            Cbor.encodeToByteArray(map).let { cipher?.encrypt(it) ?: it })
+            Cbor.encodeToByteArray(map)
+              .let { cipherKey?.let { key -> cipher_aes_256_gcm(key, it) } ?: it })
         )
       )
     }.await()

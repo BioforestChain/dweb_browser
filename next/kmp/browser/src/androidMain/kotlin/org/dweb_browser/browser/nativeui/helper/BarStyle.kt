@@ -1,18 +1,13 @@
 package org.dweb_browser.browser.nativeui.helper
 
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
-import com.google.gson.annotations.JsonAdapter
-import java.lang.reflect.Type
+import kotlinx.serialization.Serializable
+import org.dweb_browser.helper.StringEnumSerializer
 
-@JsonAdapter(org.dweb_browser.browser.nativeui.helper.BarStyle::class)
-enum class BarStyle(val style: String) :
-  JsonDeserializer<org.dweb_browser.browser.nativeui.helper.BarStyle>,
-  JsonSerializer<org.dweb_browser.browser.nativeui.helper.BarStyle> {
+object BarStyle_Serializer :
+  StringEnumSerializer<BarStyle>("BarStyle", BarStyle.ALL_VALUES, { style })
+
+@Serializable(with = BarStyle_Serializer::class)
+enum class BarStyle(val style: String) {
   /**
    * Light text for dark backgrounds.
    */
@@ -32,21 +27,6 @@ enum class BarStyle(val style: String) :
   Default("DEFAULT"), ;
 
   companion object {
-    fun from(style: String): org.dweb_browser.browser.nativeui.helper.BarStyle {
-      return values().find { it.style == style }
-        ?: org.dweb_browser.browser.nativeui.helper.BarStyle.Default
-    }
+    val ALL_VALUES = entries.associateBy { it.style }
   }
-
-  override fun deserialize(
-    json: JsonElement, typeOfT: Type, context: JsonDeserializationContext
-  ): org.dweb_browser.browser.nativeui.helper.BarStyle =
-    org.dweb_browser.browser.nativeui.helper.BarStyle.Companion.from(json.asString)
-
-  override fun serialize(
-    src: org.dweb_browser.browser.nativeui.helper.BarStyle,
-    typeOfSrc: Type,
-    context: JsonSerializationContext
-  ): JsonElement = JsonPrimitive(src.style)
-
 }

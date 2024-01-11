@@ -3,33 +3,23 @@ plugins {
 }
 
 kotlin {
-  sourceSets.commonMain.dependencies {
-    implementation(kotlin("stdlib"))
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.atomicfu)
+  kmpComposeTarget(libs) {
+    dependencies {
+      implementation(libs.ktor.io)
+      implementation(libs.ktor.client.cio)
+      implementation(libs.ktor.client.core)
+      implementation(libs.ktor.server.websockets)
+      implementation(libs.ktor.server.cio)
+      implementation(libs.ktor.server.core)
 
-    api(libs.ktor.server.websockets)
-    api(libs.ktor.server.cio)
-    api(libs.ktor.client.cio)
-    api(libs.ktor.server.core)
-    api(libs.ktor.io)
-    api(libs.ktor.client.core)
-    api(libs.kotlin.serialization.json)
-
-    implementation(projects.helper)
-    implementation(projects.helperCompose)
-    implementation(projects.helperPlatform)
-    implementation(projects.pureHttp)
-    implementation(projects.multipart)
-  }
-  sourceSets.commonTest.dependencies {
-    implementation(kotlin("test"))
-    implementation(libs.test.kotlin.coroutines.test)
-    implementation(libs.test.kotlin.coroutines.debug)
-    implementation(libs.kotlinx.atomicfu)
-  }
-  sourceSets.androidMain.dependencies {
-    api(libs.data.gson)
+      implementation(projects.helper)
+      implementation(projects.helperCompose)
+      implementation(projects.helperPlatform)
+      implementation(projects.pureIO)
+      implementation(projects.pureCrypto)
+      implementation(projects.pureHttp)
+      implementation(projects.multipart)
+    }
   }
 }
 
