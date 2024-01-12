@@ -34,8 +34,8 @@ var browserViewDataSource: WebBrowserViewDataSource {
     }
     
     private var hostVC: UIViewController?
-    var isTransitionEffect = false
-    var snap: UIView?
+    fileprivate static var isTransitionEffect = false
+    fileprivate static var snap: UIView?
     
     var browerView: BrowserView? {
         if let hostingController = hostVC as? UIHostingController<BrowserView> {
@@ -100,7 +100,7 @@ public extension DwebWebView {
     }
     
     @objc func browserClear() {
-        isTransitionEffect = false
+        DwebWebView.isTransitionEffect = false
         browerView?.states.clear()
         browserContainerView.subviews.forEach { $0.removeFromSuperview() }
         hostVC = nil
@@ -108,8 +108,8 @@ public extension DwebWebView {
     
     @objc func browserActive(on: Bool) {
         if on == false {
-            isTransitionEffect = true
-            snap = hostVC?.view.snapshotView(afterScreenUpdates: false)
+            DwebWebView.isTransitionEffect = true
+            DwebWebView.snap = hostVC?.view.snapshotView(afterScreenUpdates: false)
         }
     }
     
@@ -119,8 +119,8 @@ public extension DwebWebView {
             containerAdd(subView: hostVC?.view)
         }
         
-        if isTransitionEffect {
-            if let snap = snap {
+        if DwebWebView.isTransitionEffect {
+            if let snap = DwebWebView.snap {
                 containerAdd(subView: snap)
                 containerAdd(subView: blurView)
                 hostVC?.view.removeFromSuperview()
@@ -137,7 +137,8 @@ public extension DwebWebView {
                     }
                 }
             }
-            isTransitionEffect = false
+            DwebWebView.snap = nil
+            DwebWebView.isTransitionEffect = false
         }
     }
 }
