@@ -8,7 +8,6 @@ kotlin {
       api(libs.squareup.okio)
 
       implementation(projects.helper)
-      implementation(projects.helperPlatformNode)
     }
   }
   kmpAndroidTarget(libs) {
@@ -22,6 +21,8 @@ kotlin {
       //noinspection GradleDependency
       implementation(libs.ktor.http.wasm)
       implementation(libs.ktor.io.wasm)
+
+      implementation(projects.helperPlatformNode)
     }
   }
 }

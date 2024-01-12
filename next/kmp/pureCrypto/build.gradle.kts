@@ -8,7 +8,6 @@ kotlin {
       implementation(libs.whyoleg.cryptography.core)
 
       implementation(projects.helper)
-      implementation(projects.helperPlatformNode)
     }
   }
   kmpAndroidTarget(libs) {
@@ -29,7 +28,11 @@ kotlin {
       implementation(libs.whyoleg.cryptography.provider.webcrypto)
     }
   }
-  kmpNodeWasmTarget(libs)
+  kmpNodeWasmTarget(libs) {
+    dependencies {
+      implementation(projects.helperPlatformNode)
+    }
+  }
 }
 
 android {
