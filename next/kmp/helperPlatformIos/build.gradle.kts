@@ -10,7 +10,7 @@ kotlin {
   listOf(
     iosX64(), iosArm64(), iosSimulatorArm64()
   ).forEach {
-    it.configureIos()
+    it.configureIos(listOf("DwebPlatformIosKit", "DwebWebBrowser"))
   }
 
   sourceSets.commonMain.dependencies {
@@ -48,30 +48,35 @@ fun File.resolveArchPath(target: KonanTarget): File? {
   )
 }
 
-fun org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget.configureIos() {
-  val frameworkName = "DwebPlatformIosKit"
-  val xcPath =
-    projectDir.resolve("src/nativeInterop/cinterop/xcframeworks/$frameworkName.xcframework")
-      .resolveArchPath(
-        konanTarget,
-      )
-  println("xcPath: $xcPath")
+fun org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget.configureIos(frameworks: List<String>) {
 
   compilations.getByName("main") {
-    val xc = cinterops.create(frameworkName) {
-      defFile("src/nativeInterop/cinterop/$frameworkName.def")
 
-      compilerOpts("-framework", frameworkName, "-F$xcPath/")
-      extraOpts += listOf("-compiler-option", "-fmodules")
+    frameworks.forEach {
+      val xcPath =
+        projectDir.resolve("src/nativeInterop/cinterop/xcframeworks/$it.xcframework")
+          .resolveArchPath(
+            konanTarget,
+          )
+      println("xcPath: $xcPath")
+
+      val xc = cinterops.create(it) {
+        defFile("src/nativeInterop/cinterop/$it.def")
+
+        compilerOpts("-framework", it, "-F$xcPath/")
+        extraOpts += listOf("-compiler-option", "-fmodules")
+      }
+
+      println("xc:$xc")
+
+      println("compilations.asMap:${compilations.asMap}")
+
+      binaries.all {
+        linkerOpts(
+          "-framework", it, "-F$xcPath/",// "-rpath", "$xcPath", "-ObjC"
+        )
+      }
     }
-    println("xc:$xc")
-  }
-  println("compilations.asMap:${compilations.asMap}")
-
-  binaries.all {
-    linkerOpts(
-      "-framework", frameworkName, "-F$xcPath/",// "-rpath", "$xcPath", "-ObjC"
-    )
   }
 }
 tasks.register("cinteropSync") {
