@@ -3,6 +3,7 @@ package org.dweb_browser.browser.jmm
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -20,6 +21,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.LateInit
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.buildUrlString
+import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
@@ -89,14 +91,13 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       }
       // 如果bundle_url没有host
       if (!installManifest.bundle_url.isUrlOrHost()) {
-        installManifest.bundle_url = buildUrlString(baseURI) {
-          this.resolvePath(installManifest.bundle_url)
-        }
+        installManifest.bundle_url =
+          baseURI.replace("metadata.json", installManifest.bundle_url.substring(2))
       }
       debugJMM("openInstallerView", installManifest.bundle_url)
       // 存储下载过的MetadataUrl, 并更新列表，已存在，
       val historyMetadata = historyMetadataMaps.replaceOrPut(
-        key = originUrl,
+        key = installManifest.id,
         replace = { jmmHistoryMetadata ->
           if (jmmNMM.bootstrapContext.dns.query(jmmHistoryMetadata.metadata.id) == null) {
             // 如果install app没有数据，那么判断当前的状态是否是下载或者暂停，如果不是这两个状态，直接当做新应用
@@ -107,15 +108,20 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
             } else {
               installManifest.createJmmHistoryMetadata(originUrl)
             }
-          } else if (installManifest.version.isGreaterThan(jmmHistoryMetadata.metadata.version)) {
-            // 如果应用中有的话，那么就判断版本是否有新版本，有点话，修改状态为 NewVersion
+          } else if (installManifest.version.isGreaterThan(jmmHistoryMetadata.metadata.version)) { // 如果应用中有的话，那么就判断版本是否有新版本，有点话，修改状态为 NewVersion
+            val session =
+              Json.decodeFromString<SessionInfo>(
+                jmmNMM.nativeFetch("file://file.std.dweb/read?path=/data/apps/${installManifest.id}/usr/sys/session.json")
+                  .text()
+              )
             JmmHistoryMetadata(
               originUrl = originUrl,
               _metadata = installManifest,
               _state = JmmStatusEvent(
                 total = installManifest.bundle_size,
                 state = JmmStatus.NewVersion
-              )
+              ),
+              installTime = session.installTime // 使用旧的安装时间
             )
           } else null // 上面的条件都不满足的话，直接不替换
         },
@@ -130,13 +136,10 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   }
 
   suspend fun uninstall(mmid: MMID): Boolean {
-    val data = store.getApp(mmid) ?: return false
-    val (bundleUrl, version) = data.installManifest.let { Pair(it.bundle_url, it.version) }
-    debugJMM("uninstall", "$mmid-$bundleUrl $version")
     // 在dns中移除app
     jmmNMM.bootstrapContext.dns.uninstall(mmid)
     // 在存储中移除整个app
-    remove("/data/apps/${mmid}-$version")
+    remove("/data/apps/${mmid}")
     // 从磁盘中移除整个
     store.deleteApp(mmid)
     historyMetadataMaps.cMaps.values.find { it.metadata.id == mmid }?.let { historyMetadata ->
@@ -235,8 +238,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
     task: DownloadTask,
     jmmHistoryMetadata: JmmHistoryMetadata
   ): Boolean {
-    var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
-    jmm = jmm.substring(0, jmm.lastIndexOf("."))
+    val jmm = jmmHistoryMetadata.metadata.id
     val sourcePath = jmmNMM.nativeFetch(buildUrlString("file://file.std.dweb/picker") {
       parameters.append("path", task.filepath)
     }).text()
@@ -257,6 +259,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
         parameters.append("create", "true")
       }, PureMethod.POST, body = IPureBody.from(Json.encodeToString(buildJsonObject {
         put("installTime", JsonPrimitive(jmmHistoryMetadata.installTime))
+        put("updateTime", JsonPrimitive(datetimeNow()))
         put("installUrl", JsonPrimitive(jmmHistoryMetadata.originUrl))
       }))))
     }
@@ -265,4 +268,5 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   suspend fun showToastText(message: String) = jmmNMM.showToast(message)
 }
 
-
+@Serializable
+data class SessionInfo(val installTime: Long, val updateTime: Long, val installUrl: String)

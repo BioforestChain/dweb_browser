@@ -80,7 +80,8 @@ data class JmmHistoryMetadata(
   var taskId: TaskId? = null, // 用于保存下载任务，下载完成置空
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
-  var installTime: Long = datetimeNow(), // 表示安装应用的时间
+  var installTime: Long, // 表示安装应用的时间
+  var upgradeTime:Long = datetimeNow()
 ) {
   var state by ObservableMutableState(_state) { _state = it }
   var metadata by ObservableMutableState(_metadata) { _metadata = it }
@@ -145,7 +146,8 @@ data class JmmStatusEvent(
 fun JmmAppInstallManifest.createJmmHistoryMetadata(url: String) = JmmHistoryMetadata(
   originUrl = url,
   _metadata = this,
-  _state = JmmStatusEvent(total = this.bundle_size)
+  _state = JmmStatusEvent(total = this.bundle_size),
+  installTime = datetimeNow()
 )
 
 @Serializable

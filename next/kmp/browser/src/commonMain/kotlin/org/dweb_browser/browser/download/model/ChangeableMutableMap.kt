@@ -67,8 +67,8 @@ class ChangeableMutableMap<K, V>(
   fun getOrDefault(key: K, defaultValue: () -> V) = cMaps.getOrDefault(key, defaultValue)
   fun getOrElse(key: K, defaultValue: () -> V) = cMaps.getOrElse(key, defaultValue)
 
-  fun replaceOrPut(
-    key: K, replace: (V) -> V?, defaultValue: () -> V
+  suspend fun replaceOrPut(
+    key: K,  replace: suspend (V) -> V?, defaultValue: () -> V
   ): V {
     val value = get(key)
     return if (value == null) {
