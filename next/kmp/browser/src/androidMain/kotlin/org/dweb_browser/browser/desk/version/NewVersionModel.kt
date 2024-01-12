@@ -64,7 +64,7 @@ object NewVersionModel {
       val (context, packageManager, packageName) = getAppContext().let { context ->
         Triple(context, context.packageManager, context.packageName)
       }
-      val currentVersion = "2.240109.0"//packageManager.getPackageInfo(packageName, 0).versionName
+      val currentVersion = packageManager.getPackageInfo(packageName, 0).versionName
       val spVersion = context.getString(SP_KEY_VERSION, "")
       val spVersionItem =
         if (spVersion.isNotEmpty()) Json.decodeFromString<NewVersionItem>(spVersion) else null
@@ -93,7 +93,7 @@ object NewVersionModel {
       // TODO 下面重新请求下最新版本
       val response =
         httpFetch.fetch(PureClientRequest(href = NewVersionUrl, method = PureMethod.GET))
-      debugDesk("loadNewVersionItem", "newVersion => ${response.text().replace("\n","")}")
+      debugDesk("loadNewVersionItem", "newVersion => ${response.text().replace("\n", "")}")
       val newVersionItem = Json.decodeFromString<NewVersionItem>(response.text())
       if (newVersionItem.version.isGreaterThan(spVersion)) {
         context.saveString(SP_KEY_VERSION, Json.encodeToString(newVersionItem))
