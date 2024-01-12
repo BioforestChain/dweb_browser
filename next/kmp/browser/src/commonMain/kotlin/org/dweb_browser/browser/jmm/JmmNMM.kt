@@ -92,17 +92,16 @@ class JmmNMM :
     val routeInstallHandler = defineEmptyResponse {
       val metadataUrl = request.query("url")
       coroutineScope {
-        // 先打开渲染器
-        launch {
-          jmmController.openOrUpsetInstallerView(metadataUrl)
-        }
-
         // 加载url资源，这一步可能要多一些时间
         val response = nativeFetch(metadataUrl)
         if (!response.isOk) {
           val message = "invalid status code: ${response.status}"
           showToast(message)
           throwException(HttpStatusCode.ExpectationFailed, message)
+        }
+        // 打开渲染器
+        launch {
+          jmmController.openOrUpsetInstallerView(metadataUrl)
         }
         val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
         debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")

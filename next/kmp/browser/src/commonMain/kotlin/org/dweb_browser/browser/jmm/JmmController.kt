@@ -109,11 +109,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
               installManifest.createJmmHistoryMetadata(originUrl)
             }
           } else if (installManifest.version.isGreaterThan(jmmHistoryMetadata.metadata.version)) { // 如果应用中有的话，那么就判断版本是否有新版本，有点话，修改状态为 NewVersion
-            val session =
-              Json.decodeFromString<SessionInfo>(
-                jmmNMM.nativeFetch("file://file.std.dweb/read?path=/data/apps/${installManifest.id}/usr/sys/session.json")
-                  .text()
-              )
+            val session = getAppSessionInfo(installManifest.id)
             JmmHistoryMetadata(
               originUrl = originUrl,
               _metadata = installManifest,
@@ -266,6 +262,11 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   }
 
   suspend fun showToastText(message: String) = jmmNMM.showToast(message)
+
+  private suspend fun getAppSessionInfo(mmid: MMID) = Json.decodeFromString<SessionInfo>(
+    jmmNMM.nativeFetch("file://file.std.dweb/read?path=/data/apps/${mmid}/usr/sys/session.json")
+      .text()
+  )
 }
 
 @Serializable
