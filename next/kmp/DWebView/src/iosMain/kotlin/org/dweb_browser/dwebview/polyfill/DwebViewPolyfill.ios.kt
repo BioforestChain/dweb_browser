@@ -3,7 +3,6 @@ package org.dweb_browser.dwebview.polyfill
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SuspendOnce
-import org.dweb_browser.helper.toUtf8
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.resource
 
@@ -12,8 +11,8 @@ object DwebViewPolyfill {
   internal val prepare = SuspendOnce {
     coroutineScope {
       launch {
-        WebSocket = resource("dwebview-polyfill/websocket.ios.js").readBytes().toUtf8()
-        Favicon = resource("dwebview-polyfill/favicon.ios.js").readBytes().toUtf8()
+        WebSocket = resource("dwebview-polyfill/websocket.ios.js").readBytes().decodeToString()
+        Favicon = resource("dwebview-polyfill/favicon.ios.js").readBytes().decodeToString()
       }
     }
   }

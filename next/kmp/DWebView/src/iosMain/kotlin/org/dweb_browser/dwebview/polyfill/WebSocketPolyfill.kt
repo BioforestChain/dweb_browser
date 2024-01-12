@@ -19,8 +19,6 @@ import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toKString
 import org.dweb_browser.helper.toNSString
-import org.dweb_browser.helper.toUtf8
-import org.dweb_browser.helper.toUtf8ByteArray
 import platform.Foundation.NSArray
 import platform.Foundation.NSNumber
 import platform.Foundation.NSString
@@ -82,7 +80,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                       }
 
                       FrameType.TEXT -> finText.append(frame.data, frame.fin)?.also {
-                        sendTextMessage(wsId, it.toUtf8())
+                        sendTextMessage(wsId, it.decodeToString())
                       }
 
                       FrameType.CLOSE -> (frame as Frame.Close).readReason().also { reason ->
@@ -116,7 +114,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
             "frame-text" -> {
               wsMap[wsId]!!.run {
                 val fin = (message.objectAtIndex(2u) as NSNumber).boolValue
-                val data = (message.objectAtIndex(3u) as NSString).toKString().toUtf8ByteArray()
+                val data = (message.objectAtIndex(3u) as NSString).toKString().encodeToByteArray()
                 outgoing.send(Frame.Text(fin, data))
               }
             }

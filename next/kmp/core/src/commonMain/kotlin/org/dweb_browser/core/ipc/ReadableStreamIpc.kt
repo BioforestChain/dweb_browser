@@ -23,13 +23,11 @@ import org.dweb_browser.core.ipc.helper.ipcMessageToJson
 import org.dweb_browser.core.ipc.helper.jsonToIpcMessage
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.canRead
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.toLittleEndianByteArray
-import org.dweb_browser.helper.toUtf8
-import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.helper.canRead
+import org.dweb_browser.helper.readByteArray
 
 
 val debugStreamIpc = Debugger("stream-ipc")
@@ -134,7 +132,7 @@ class ReadableStreamIpc(
             }
           } else {
             when (val message =
-              jsonToIpcMessage(chunk.readByteArray().toUtf8(), this@ReadableStreamIpc)) {
+              jsonToIpcMessage(chunk.readByteArray().decodeToString(), this@ReadableStreamIpc)) {
               is IpcMessage -> {
                 val logMessage = message.toString().trim()
                 debugStreamIpc("bindIncomeStream", "message=$logMessage => $stream")
@@ -171,7 +169,7 @@ class ReadableStreamIpc(
       return
     }
 
-    val message = ipcMessageToJson(data).toUtf8ByteArray()
+    val message = ipcMessageToJson(data).encodeToByteArray()
     debugStreamIpc("post", "${message.size} => $input => $data")
     enqueue(message.size.toLittleEndianByteArray(), message)// 必须合并起来发送，否则中间可能插入其他写入
   }

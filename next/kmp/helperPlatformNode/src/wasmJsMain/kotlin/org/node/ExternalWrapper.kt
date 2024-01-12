@@ -1,4 +1,4 @@
-package org.nodejs
+package org.node
 
 external interface JsStringArray {
     fun at(indice: Int): String

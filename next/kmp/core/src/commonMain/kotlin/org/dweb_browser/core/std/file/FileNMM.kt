@@ -24,12 +24,12 @@ import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.StringEnumSerializer
-import org.dweb_browser.helper.SystemFileSystem
+import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.helper.consumeEachCborPacket
-import org.dweb_browser.helper.copyTo
+import org.dweb_browser.pure.io.copyTo
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.removeWhen
-import org.dweb_browser.helper.toByteReadChannel
+import org.dweb_browser.pure.io.toByteReadChannel
 import org.dweb_browser.helper.toJsonElement
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.resource

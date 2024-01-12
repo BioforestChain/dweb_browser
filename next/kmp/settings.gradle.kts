@@ -50,6 +50,7 @@ include(
   ":helperCompose",
   ":helperPlatform",
   ":helperPlatformIos",
+  ":helperPlatformNode",
   ":pureHttp",
   ":pureIO",
   ":pureCrypto",

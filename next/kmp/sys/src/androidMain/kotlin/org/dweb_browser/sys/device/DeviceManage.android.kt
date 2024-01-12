@@ -3,7 +3,6 @@ package org.dweb_browser.sys.device
 import android.Manifest
 import android.os.Environment
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.sys.permission.AndroidPermissionTask
 import org.dweb_browser.sys.permission.PermissionActivity
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
@@ -46,7 +45,7 @@ actual class DeviceManage actual constructor() {
       }
       if (file.createNewFile()) {
         val uuid = randomUUID()
-        file.outputStream().write(uuid.toUtf8ByteArray())
+        file.outputStream().write(uuid.encodeToByteArray())
         return uuid
       }
     } catch (e: Exception) {

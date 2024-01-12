@@ -27,7 +27,6 @@ import org.dweb_browser.helper.platform.MultipartFileType
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
@@ -164,9 +163,9 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
     multiPartFile: MultiPartFile
   ): String {
     val data = when (multiPartFile.encoding) {
-      MultiPartFileEncode.UTF8 -> multiPartFile.data.toUtf8ByteArray()
+      MultiPartFileEncode.UTF8 -> multiPartFile.data.encodeToByteArray()
       MultiPartFileEncode.BASE64 -> multiPartFile.data.toBase64ByteArray()
-      MultiPartFileEncode.BINARY -> multiPartFile.data.toUtf8ByteArray()
+      MultiPartFileEncode.BINARY -> multiPartFile.data.encodeToByteArray()
     }
 
     val writePath = "/cache/${randomUUID()}/${multiPartFile.name}"

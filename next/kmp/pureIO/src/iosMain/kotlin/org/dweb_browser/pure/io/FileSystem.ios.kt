@@ -1,4 +1,4 @@
-package org.dweb_browser.helper
+package org.dweb_browser.pure.io
 
 import okio.FileSystem
 

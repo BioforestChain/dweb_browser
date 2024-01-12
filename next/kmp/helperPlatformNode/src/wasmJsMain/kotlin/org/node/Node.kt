@@ -1,4 +1,4 @@
-package org.nodejs
+package org.node
 
 import org.khronos.webgl.Uint8Array
 import org.nodejs.http.IncomingMessage
@@ -6,7 +6,7 @@ import org.nodejs.http.ServerResponse
 
 open external class Readable
 
-open external class Writable: WritableStream {
+open external class Writable: org.node.WritableStream {
     override fun end(data: String)
     override fun end(data: String, cb: () -> Unit)
     override fun end(data: Uint8Array)

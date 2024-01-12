@@ -17,14 +17,14 @@
 @file:JsModule("node:http")
 package org.nodejs.http
 
-import org.nodejs.JsStringArray
-import org.nodejs.Readable
-import org.nodejs.RequestListener
-import org.nodejs.Writable
+import org.node.JsStringArray
+import org.node.Readable
+import org.node.RequestListener
+import org.node.Writable
 import org.nodejs.net.Socket
 import org.nodejs.net.Server as NetServer
 
-external var METHODS: JsStringArray
+external var METHODS: org.node.JsStringArray
 
 @Suppress("ClassName")
 external object STATUS_CODES {
@@ -39,10 +39,10 @@ external object STATUS_CODES {
 }
 
 open external class Server : NetServer {
-    constructor(requestListener: RequestListener)
+    constructor(requestListener: org.node.RequestListener)
 }
 
-open external class IncomingMessage(socket: Socket) : Readable {
+open external class IncomingMessage(socket: Socket) : org.node.Readable {
     open var aborted: Boolean
     open var httpVersion: String
     open var httpVersionMajor: Int
@@ -50,8 +50,8 @@ open external class IncomingMessage(socket: Socket) : Readable {
     open var complete: Boolean
     open var connection: Socket
     open var socket: Socket
-    open var rawHeaders: JsStringArray
-    open var rawTrailers: JsStringArray
+    open var rawHeaders: org.node.JsStringArray
+    open var rawTrailers: org.node.JsStringArray
     open fun setTimeout(msecs: Int): IncomingMessage
     open fun setTimeout(msecs: Int, callback: () -> Unit): IncomingMessage
     open var method: String
@@ -60,7 +60,7 @@ open external class IncomingMessage(socket: Socket) : Readable {
     open var statusMessage: String
 }
 
-open external class OutgoingMessage : Writable {
+open external class OutgoingMessage : org.node.Writable {
     open var upgrading: Boolean
     open var chunkedEncoding: Boolean
     open var shouldKeepAlive: Boolean
@@ -74,8 +74,8 @@ open external class OutgoingMessage : Writable {
     open fun setTimeout(msecs: Int, callback: () -> Unit): OutgoingMessage
     open fun setHeader(name: String, value: Int)
     open fun setHeader(name: String, value: String)
-    open fun setHeader(name: String, value: JsStringArray)
-    open fun getHeaderNames(): JsStringArray
+    open fun setHeader(name: String, value: org.node.JsStringArray)
+    open fun getHeaderNames(): org.node.JsStringArray
     open fun hasHeader(name: String): Boolean
     open fun removeHeader(name: String)
     open fun flushHeaders()
@@ -93,4 +93,4 @@ open external class ServerResponse(req: IncomingMessage) : OutgoingMessage {
 }
 
 
-external fun createServer(requestListener: RequestListener): Server
+external fun createServer(requestListener: org.node.RequestListener): Server

@@ -3,21 +3,26 @@ plugins {
 }
 
 kotlin {
-  val commonIoMain by sourceSets.creating {
+  kmpCommonTarget(libs) {
     dependencies {
-//      implementation(libs.ktor.io)
+      api(libs.squareup.okio)
+
+      implementation(projects.helper)
+      implementation(projects.helperPlatformNode)
     }
   }
   kmpAndroidTarget(libs) {
-//    dependsOn(commonIoMain)
   }
   kmpIosTarget(libs) {
-//    dependsOn(commonIoMain)
   }
   kmpBrowserJsTarget(libs) {
-//    dependsOn(commonIoMain)
   }
-  kmpNodeWasmTarget(libs){
+  kmpNodeWasmTarget(libs) {
+    dependencies {
+      //noinspection GradleDependency
+      implementation(libs.ktor.http.wasm)
+      implementation(libs.ktor.io.wasm)
+    }
   }
 }
 

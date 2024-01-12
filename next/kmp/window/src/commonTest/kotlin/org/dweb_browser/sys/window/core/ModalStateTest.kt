@@ -9,7 +9,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.platform.IPureViewBox
-import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.sys.window.core.constant.WindowConstants
 import org.dweb_browser.sys.window.core.modal.AlertModal
 import org.dweb_browser.sys.window.core.modal.BottomSheetsModal
@@ -49,13 +48,13 @@ class ModalStateTest {
     val win = SimpleWindowController()
     val m1 = win.createBottomSheetsModal(title = "m1")
     val j1 = Cbor.encodeToByteArray<ModalState>(m1)
-    assertContains(j1.toUtf8(), "bottom-sheet")
+    assertContains(j1.decodeToString(), "bottom-sheet")
     val m11 = Cbor.decodeFromByteArray<ModalState>(j1)
     assertIs<BottomSheetsModal>(m11)
 
     val m2 = AlertModal(title = "hi", message = "xxx")
     val j2 = Cbor.encodeToByteArray<ModalState>(m2)
-    assertContains(j2.toUtf8(), "alert")
+    assertContains(j2.decodeToString(), "alert")
     val m22 = Cbor.decodeFromByteArray<ModalState>(j2)
     assertIs<AlertModal>(m22)
   }

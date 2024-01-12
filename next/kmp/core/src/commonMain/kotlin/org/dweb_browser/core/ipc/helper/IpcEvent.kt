@@ -1,12 +1,11 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.serialization.Serializable
+import org.dweb_browser.helper.ProxySerializer
+import org.dweb_browser.helper.toBase64
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureTextFrame
-import org.dweb_browser.helper.ProxySerializer
-import org.dweb_browser.helper.toBase64
-import org.dweb_browser.helper.toUtf8
 
 
 @Serializable
@@ -33,7 +32,7 @@ class IpcEvent(
     fun fromBase64(name: String, data: ByteArray) =
       IpcEvent(name, data.toBase64(), IPC_DATA_ENCODING.BASE64)
 
-    fun fromUtf8(name: String, data: ByteArray) = fromUtf8(name, data.toUtf8())
+    fun fromUtf8(name: String, data: ByteArray) = fromUtf8(name, data.decodeToString())
 
     fun fromUtf8(name: String, data: String) = IpcEvent(name, data, IPC_DATA_ENCODING.UTF8)
     fun fromPureFrame(name: String, pureFrame: PureFrame) = when (pureFrame) {

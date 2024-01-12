@@ -71,7 +71,7 @@ object RSA {
 
   @OptIn(ExperimentalForeignApi::class)
   fun encryptData(publicKey: SecKeyRef, plainText: String) = memScoped {
-    val data = plainText.toUtf8ByteArray()
+    val data = plainText.encodeToByteArray()
     val error = alloc<CFErrorRefVar>()
     val encryptedData = SecKeyCreateEncryptedData(
       publicKey,
@@ -96,7 +96,7 @@ object RSA {
     ) ?: throw Exception("SecKeyCreateDecryptedData returned null.")
 
     decryptedData.autorelease(this@memScoped)
-    decryptedData.toByteArray().toUtf8()
+    decryptedData.toByteArray().decodeToString()
   }
 
   @OptIn(ExperimentalUnsignedTypes::class, ExperimentalForeignApi::class)

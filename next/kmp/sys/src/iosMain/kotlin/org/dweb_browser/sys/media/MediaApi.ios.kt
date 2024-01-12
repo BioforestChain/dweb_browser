@@ -5,7 +5,6 @@ import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultiPartFileEncode
 import org.dweb_browser.helper.platform.MultipartFieldDescription
 import org.dweb_browser.helper.toBase64ByteArray
-import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.sys.scan.toNSData
 import platform.Foundation.NSMutableData
 import platform.Foundation.appendData
@@ -20,9 +19,9 @@ actual suspend fun savePictures(saveLocation: String, files: List<MultiPartFile>
 
 private fun savePicture(files: MultiPartFile) {
   val data = when (files.encoding) {
-    MultiPartFileEncode.UTF8 -> files.data.toUtf8ByteArray()
+    MultiPartFileEncode.UTF8 -> files.data.encodeToByteArray()
     MultiPartFileEncode.BASE64 -> files.data.toBase64ByteArray()
-    MultiPartFileEncode.BINARY -> files.data.toUtf8ByteArray()
+    MultiPartFileEncode.BINARY -> files.data.encodeToByteArray()
   }
 
   val uiImage = UIImage(data = data.toNSData())

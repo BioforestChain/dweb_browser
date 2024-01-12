@@ -7,8 +7,6 @@ import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.IntEnumSerializer
 import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.toBase64ByteArray
-import org.dweb_browser.helper.toUtf8
-import org.dweb_browser.helper.toUtf8ByteArray
 
 const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
 
@@ -176,14 +174,14 @@ fun dataToBinary(
 ) = when (encoding) {
   IPC_DATA_ENCODING.BINARY -> data as ByteArray
   IPC_DATA_ENCODING.BASE64 -> (data as String).toBase64ByteArray()
-  IPC_DATA_ENCODING.UTF8 -> (data as String).toUtf8ByteArray()
+  IPC_DATA_ENCODING.UTF8 -> (data as String).encodeToByteArray()
 }
 
 
 fun dataToText(
   data: Any /*String or ByteArray*/, encoding: IPC_DATA_ENCODING
 ) = when (encoding) {
-  IPC_DATA_ENCODING.BINARY -> (data as ByteArray).toUtf8()
-  IPC_DATA_ENCODING.BASE64 -> (data as String).toBase64ByteArray().toUtf8()
+  IPC_DATA_ENCODING.BINARY -> (data as ByteArray).decodeToString()
+  IPC_DATA_ENCODING.BASE64 -> (data as String).toBase64ByteArray().decodeToString()
   IPC_DATA_ENCODING.UTF8 -> data as String
 }

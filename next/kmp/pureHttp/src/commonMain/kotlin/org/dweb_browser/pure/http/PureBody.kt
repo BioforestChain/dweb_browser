@@ -5,8 +5,6 @@ import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.toBase64ByteArray
-import org.dweb_browser.helper.toUtf8
-import org.dweb_browser.helper.toUtf8ByteArray
 
 typealias PureString = String
 typealias PureBase64 = String
@@ -65,7 +63,7 @@ class PureBinaryBody(val data: PureBinary) : IPureBody {
 
   override suspend fun toPureBinary() = data
 
-  override suspend fun toPureString() = data.toUtf8()
+  override suspend fun toPureString() = data.decodeToString()
 }
 
 class PureStreamBody(val stream: PureStream) : IPureBody {
@@ -92,7 +90,7 @@ class PureStreamBody(val stream: PureStream) : IPureBody {
       }
   }
 
-  override suspend fun toPureString() = toPureBinary().toUtf8()
+  override suspend fun toPureString() = toPureBinary().decodeToString()
 }
 
 
@@ -107,7 +105,7 @@ class PureStringBody(val data: PureString) : IPureBody {
 
   override fun toPureStream() = stream
 
-  private val byteArray by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { data.toUtf8ByteArray() }
+  private val byteArray by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { data.encodeToByteArray() }
   override suspend fun toPureBinary() = byteArray
 
   override suspend fun toPureString() = data

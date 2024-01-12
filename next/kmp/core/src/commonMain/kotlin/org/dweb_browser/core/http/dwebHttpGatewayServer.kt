@@ -24,7 +24,6 @@ import org.dweb_browser.core.std.http.findDwebGateway
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureChannel
@@ -147,7 +146,7 @@ class DwebHttpGatewayServer private constructor() {
 
                         FrameType.TEXT -> {
                           finText.append(frame.data, frame.fin)?.let {
-                            PureTextFrame(it.toUtf8())
+                            PureTextFrame(it.decodeToString())
                           }
                         }
 

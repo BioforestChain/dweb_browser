@@ -5,7 +5,6 @@ import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.toBase64ByteArray
-import org.dweb_browser.helper.toUtf8ByteArray
 
 /**
  * metaBody 可能会被多次转发，
@@ -73,7 +72,7 @@ class IpcBodyReceiver(
         }
         /// 如果有初始帧，直接存起来
         when (metaBody.type.encoding) {
-          IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).toUtf8ByteArray()
+          IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).encodeToByteArray()
           IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
           IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
           else -> null

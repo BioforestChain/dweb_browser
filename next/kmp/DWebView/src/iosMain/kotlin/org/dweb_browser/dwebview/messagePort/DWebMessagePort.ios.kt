@@ -8,7 +8,6 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.IWebMessagePort
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.launchWithMain
-import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.withMainContext
 import platform.Foundation.NSNumber
 import platform.Foundation.NSString
@@ -61,7 +60,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView) : IWebMess
         webview.engine.evalAsyncJavascript<Unit>(
           "nativePortPostMessage($portId, ${
             Json.encodeToString(
-              event.data.toUtf8()
+              event.data.decodeToString()
             )
           }, [$ports])", null, DWebViewWebMessage.webMessagePortContentWorld
         ).await()

@@ -1,5 +1,3 @@
-package info.bagen.dwebbrowser
-
 import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest

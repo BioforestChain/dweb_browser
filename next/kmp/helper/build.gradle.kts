@@ -5,7 +5,6 @@ plugins {
 kotlin {
   kmpCommonTarget(libs) {
     dependencies {
-      api(libs.squareup.okio)
       api(libs.kotlinx.datetime)
       api(libs.ktor.http)
       api(libs.ktor.io)
@@ -15,11 +14,10 @@ kotlin {
   kmpAndroidTarget(libs)
   kmpIosTarget(libs)
   kmpNodeWasmTarget(libs) {
-    val ktorWasmVersion = "3.0.0-wasm2"
     dependencies {
       //noinspection GradleDependency
-      api("io.ktor:ktor-io:$ktorWasmVersion")
-      api("io.ktor:ktor-http:$ktorWasmVersion")
+      api(libs.ktor.http.wasm)
+      api(libs.ktor.io.wasm)
     }
   }
 }

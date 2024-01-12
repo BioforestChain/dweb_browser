@@ -13,7 +13,6 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.pure.http.PureStream
 
 val debugStream = Debugger("stream")
@@ -73,13 +72,13 @@ class ReadableStream(
       }
     }
 
-    suspend fun enqueue(data: String) = enqueue(data.toUtf8ByteArray())
+    suspend fun enqueue(data: String) = enqueue(data.encodeToByteArray())
 
     fun enqueueBackground(byteArray: ByteArray) = stream.scope.launch {
       enqueue(byteArray)
     }
 
-    fun enqueueBackground(data: String) = enqueueBackground(data.toUtf8ByteArray())
+    fun enqueueBackground(data: String) = enqueueBackground(data.encodeToByteArray())
 
     fun closeWrite(cause: Throwable? = null) = stream.closeWrite(cause)
     fun awaitClose(onClosed: suspend () -> Unit) {

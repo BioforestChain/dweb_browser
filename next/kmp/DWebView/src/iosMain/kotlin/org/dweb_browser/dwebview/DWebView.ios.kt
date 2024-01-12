@@ -22,7 +22,6 @@ import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.setScale
-import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
@@ -240,7 +239,7 @@ class DWebView(
     }
     withMainContext {
       val arguments = mutableMapOf<NSString, NSObject>().apply {
-        put(NSString.create(string = "data"), NSString.create(string = data.toUtf8()))
+        put(NSString.create(string = "data"), NSString.create(string = data.decodeToString()))
         put(NSString.create(string = "ports"), NSArray.create(portIdList))
       }
       engine.awaitAsyncJavaScript<Unit>(

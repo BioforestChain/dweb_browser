@@ -2,8 +2,6 @@ package info.bagen.dwebbrowser
 
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.core.std.file.ext.MicroModuleStore
-import org.dweb_browser.helper.toUtf8
-import org.dweb_browser.helper.toUtf8ByteArray
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -13,7 +11,7 @@ class CryptoTest {
     runBlocking {
       val cipher = MicroModuleStore.getCipher("gaubee")
       val plaintext = "hi~"
-      val ciphertext = cipher.encrypt(plaintext.toUtf8ByteArray())
+      val ciphertext = cipher.encrypt(plaintext.encodeToByteArray())
       assertEquals(plaintext, cipher.decrypt(ciphertext).toUtf8())
     }
   }

@@ -6,6 +6,9 @@ kotlin {
   val commonCryptoMain by sourceSets.creating {
     dependencies {
       implementation(libs.whyoleg.cryptography.core)
+
+      implementation(projects.helper)
+      implementation(projects.helperPlatformNode)
     }
   }
   kmpAndroidTarget(libs) {

@@ -3,7 +3,6 @@ package org.dweb_browser.core.ipc.helper
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.toBase64
-import org.dweb_browser.helper.toUtf8
 
 @Serializable
 data class IpcStreamDataJsonAble(
@@ -32,7 +31,7 @@ data class IpcStreamData(
     fun fromBase64(streamId: String, data: ByteArray) =
       IpcStreamData(streamId, IPC_DATA_ENCODING.BASE64, data.toBase64())
 
-    fun fromUtf8(streamId: String, data: ByteArray) = fromUtf8(streamId, data.toUtf8())
+    fun fromUtf8(streamId: String, data: ByteArray) = fromUtf8(streamId, data.decodeToString())
 
     fun fromUtf8(streamId: String, data: String) =
       IpcStreamData(streamId, IPC_DATA_ENCODING.UTF8, data)

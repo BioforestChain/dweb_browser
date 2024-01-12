@@ -1,4 +1,4 @@
-package org.dweb_browser.helper
+package org.dweb_browser.pure.io
 
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.bits.set
@@ -10,6 +10,9 @@ import okio.BufferedSink
 import okio.BufferedSource
 import okio.EOFException
 import okio.FileSystem
+import org.dweb_browser.helper.consumeEachArrayRange
+import org.dweb_browser.helper.createByteChannel
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 expect val SystemFileSystem: FileSystem
 

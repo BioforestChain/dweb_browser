@@ -9,22 +9,20 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.CborLoose
 import org.dweb_browser.helper.JsonLoose
-import org.dweb_browser.helper.toUtf8
-import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.pure.http.PureHeaders
 
 object IpcMessageConst {
   @OptIn(ExperimentalSerializationApi::class)
   val closeCborByteArray = CborLoose.encodeToByteArray("close")
-  val closeByteArray = "close".toUtf8ByteArray()
+  val closeByteArray = "close".encodeToByteArray()
 
   @OptIn(ExperimentalSerializationApi::class)
   val pingCborByteArray = CborLoose.encodeToByteArray("ping")
-  val pingByteArray = "ping".toUtf8ByteArray()
+  val pingByteArray = "ping".encodeToByteArray()
 
   @OptIn(ExperimentalSerializationApi::class)
   val pongCborByteArray = CborLoose.encodeToByteArray("pong")
-  val pongByteArray = "pong".toUtf8ByteArray()
+  val pongByteArray = "pong".encodeToByteArray()
 }
 
 fun bytesToIpcMessage(data: ByteArray, ipc: Ipc): Any {
@@ -35,7 +33,7 @@ fun bytesToIpcMessage(data: ByteArray, ipc: Ipc): Any {
     return data
   }
 
-  return jsonToIpcMessage(data.toUtf8(), ipc)
+  return jsonToIpcMessage(data.decodeToString(), ipc)
 }
 
 /***
