@@ -186,7 +186,7 @@ private fun DialogInstallView(onCancel: () -> Unit) {
     return
   }
   AlertDialog(
-    onDismissRequest = { onCancel() },
+    onDismissRequest = { NewVersionModel.apkFile = null; onCancel() },
     title = {
       Column(
         modifier = Modifier.fillMaxWidth(),
