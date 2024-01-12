@@ -95,7 +95,7 @@ object NewVersionModel {
         httpFetch.fetch(PureClientRequest(href = NewVersionUrl, method = PureMethod.GET))
       debugDesk("loadNewVersionItem", "newVersion => ${response.text().replace("\n", "")}")
       val newVersionItem = Json.decodeFromString<NewVersionItem>(response.text())
-      if (newVersionItem.version.isGreaterThan(spVersion)) {
+      if (newVersionItem.version.isGreaterThan(currentVersion)) {
         context.saveString(SP_KEY_VERSION, Json.encodeToString(newVersionItem))
         versionItem.value = newVersionItem
         updateVersionType(VersionType.NewVersion)

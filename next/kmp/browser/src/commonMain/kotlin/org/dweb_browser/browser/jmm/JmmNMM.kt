@@ -54,12 +54,11 @@ class JmmNMM :
       val usrRootMap = mutableMapOf<String, Deferred<String>>()
       return@append request.respondLocalFile {
         if (filePath.startsWith("/usr/")) {
-          val rootKey = "${fromMM.mmid}-${fromMM.version}"
-          debugJMM("UsrFile", "$fromMM => ${request.href} in $rootKey")
-          val root = usrRootMap.getOrPut(rootKey) {
+          debugJMM("UsrFile", "$fromMM => ${request.href}")
+          val root = usrRootMap.getOrPut(fromMM.mmid) {
             fromMM.ioAsyncScope.async {
               this@JmmNMM.withBootstrap {
-                this@JmmNMM.nativeFetch("file://file.std.dweb/realPath?path=/data/apps/${fromMM.mmid}-${fromMM.version}")
+                this@JmmNMM.nativeFetch("file://file.std.dweb/realPath?path=/data/apps/${fromMM.mmid}")
                   .text()
               }
             }

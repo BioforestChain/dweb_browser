@@ -186,7 +186,7 @@ private fun DialogInstallView(onCancel: () -> Unit) {
     return
   }
   AlertDialog(
-    onDismissRequest = { /* 安装界面，不允许关闭，需要点击按钮 */ },
+    onDismissRequest = { onCancel() },
     title = {
       Column(
         modifier = Modifier.fillMaxWidth(),
