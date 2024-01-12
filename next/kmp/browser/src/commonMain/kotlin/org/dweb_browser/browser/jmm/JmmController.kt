@@ -1,7 +1,5 @@
 package org.dweb_browser.browser.jmm
 
-import io.ktor.http.URLBuilder
-import io.ktor.http.encodedPath
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -92,7 +90,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       // 如果bundle_url没有host
       if (!installManifest.bundle_url.isUrlOrHost()) {
         installManifest.bundle_url = buildUrlString(baseURI) {
-          this.replaceMetadata(installManifest.bundle_url)
+          this.resolvePath(installManifest.bundle_url)
         }
       }
       debugJMM("openInstallerView", installManifest.bundle_url)
@@ -262,15 +260,6 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
         put("installUrl", JsonPrimitive(jmmHistoryMetadata.originUrl))
       }))))
     }
-  }
-
-  // TODO FIX THIS SHIT
-  private fun URLBuilder.replaceMetadata(bundlePath: String) {
-    var resolve = bundlePath;
-    if (bundlePath.startsWith("./")) {
-      resolve = this.encodedPath.replace("metadata.json", bundlePath.substring(2))
-    }
-    this.resolvePath(resolve)
   }
 
   suspend fun showToastText(message: String) = jmmNMM.showToast(message)

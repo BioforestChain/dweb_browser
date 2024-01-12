@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jmm
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
 import io.ktor.http.fullPath
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
