@@ -1,9 +1,12 @@
 package org.dweb_browser.sys.permission
 
+import kotlinx.serialization.Serializable
+
 /**
  * 权限的列表，用于不同平台根据类型进行权限获取
  * 随着sys的完善，这里会逐渐补全
  */
+@Serializable
 enum class SystemPermissionName {
   CALENDAR,
   CAMERA,

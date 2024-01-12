@@ -2,7 +2,9 @@ package org.dweb_browser.browser.web
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.BrowserViewModel
@@ -181,7 +183,6 @@ public class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null
 
   // region perssion
   override fun requestCameraPermissionWithCompleted(completed: (Boolean) -> Unit) {
-    val scope = CoroutineScope(mainAsyncExceptionHandler)
     scope.launch {
       val result = browserViewModel?.requestSystemPermission(permissionName = SystemPermissionName.CAMERA) ?: true
       completed(result)
