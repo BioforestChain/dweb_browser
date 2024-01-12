@@ -46,7 +46,7 @@ internal fun NewVersionView() {
         DialogNewVersion(
           newVersionItem = newVersionItem,
           onUpgrade = { NewVersionModel.updateVersionType(VersionType.Download) },
-          onCancel = { NewVersionModel.updateVersionType(VersionType.Hide) }
+          onCancel = { NewVersionModel.updateVersionType(VersionType.Hide, false) }
         )
       }
 
@@ -176,17 +176,17 @@ private fun DialogDownloadView(url: String, onCancel: () -> Unit) {
 private fun DialogInstallView(onCancel: () -> Unit) {
   if (NewVersionModel.apkFile == null) {
     debugDesk("DialogInstallView", "apkFile is null")
-    onCancel()
+    NewVersionModel.updateVersionType(VersionType.Hide, false)
     return
   } else if (NewVersionModel.checkInstallPermission()) {
     debugDesk("DialogInstallView", "installApk")
     // 唤醒安装，并关闭
     NewVersionModel.installApk()
-    onCancel()
+    NewVersionModel.updateVersionType(VersionType.Hide)
     return
   }
   AlertDialog(
-    onDismissRequest = { NewVersionModel.apkFile = null; onCancel() },
+    onDismissRequest = { NewVersionModel.updateVersionType(VersionType.Hide, false) },
     title = {
       Column(
         modifier = Modifier.fillMaxWidth(),

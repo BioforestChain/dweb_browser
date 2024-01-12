@@ -48,8 +48,8 @@ object NewVersionModel {
   var versionItem: MutableState<NewVersionItem?> = mutableStateOf(null)
   var apkFile: File? = null
 
-  fun updateVersionType(versionType: VersionType) {
-    this.preVersionType = this.versionType.value // 保留上一次的状态
+  fun updateVersionType(versionType: VersionType, recordPre: Boolean = true) {
+    this.preVersionType = if (recordPre) this.versionType.value else VersionType.Hide // 保留上一次的状态
     this.versionType.value = versionType
   }
 
