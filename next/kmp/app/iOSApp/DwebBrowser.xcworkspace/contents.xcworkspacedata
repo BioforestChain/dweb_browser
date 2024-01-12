@@ -5,7 +5,7 @@
       location = "group:DwebBrowser"
       name = "DwebBrowser">
       <FileRef
-         location = "group:/Users/bfchainer/Documents/GitHub/dweb_browser/next/kmp/app/iOSApp/DwebBrowser/DwebBrowser.xcodeproj">
+         location = "group:DwebBrowser.xcodeproj">
       </FileRef>
    </Group>
    <Group
