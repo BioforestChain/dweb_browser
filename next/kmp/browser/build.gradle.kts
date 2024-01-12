@@ -41,6 +41,8 @@ kotlin {
       // 图像
       implementation(libs.coil.core)
       implementation(libs.coil.compose)
+      // 七牛
+      implementation(libs.qiniu.upload)
     }
   }
   kmpIosTarget(libs) {

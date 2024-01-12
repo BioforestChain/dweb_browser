@@ -202,4 +202,32 @@ object BrowserI18nResource {
 
   val download_shore_name =
     SimpleI18nResource(Language.ZH to "下载管理", Language.EN to "Download Manager")
+
+  val dialog_version_title = SimpleI18nResource(
+    Language.ZH to "版本更新", Language.EN to "Version Upgrade"
+  )
+  val dialog_downloading_title = SimpleI18nResource(
+    Language.ZH to "下载中...", Language.EN to "Downloading..."
+  )
+  val dialog_install_title = SimpleI18nResource(
+    Language.ZH to "安装提醒", Language.EN to "Install Reminder"
+  )
+  val dialog_upgrade_description = SimpleI18nResource(
+    Language.ZH to "发现新版本，请及时更新！", Language.EN to "Find a new version, please update!"
+  )
+  val dialog_install_description = SimpleI18nResource(
+    Language.ZH to "安装应用需要授权，请移步授权，再尝试！", Language.EN to "Authorization is required to install the application, please move to authorization and try again!"
+  )
+  val dialog_upgrade_button_upgrade = SimpleI18nResource(
+    Language.ZH to "升级", Language.EN to "Upgrade"
+  )
+  val dialog_upgrade_button_delay = SimpleI18nResource(
+    Language.ZH to "推迟", Language.EN to "Defer"
+  )
+  val dialog_upgrade_button_background = SimpleI18nResource(
+    Language.ZH to "后台下载", Language.EN to "Background"
+  )
+  val dialog_upgrade_button_setting = SimpleI18nResource(
+    Language.ZH to "设置", Language.EN to "Setting"
+  )
 }

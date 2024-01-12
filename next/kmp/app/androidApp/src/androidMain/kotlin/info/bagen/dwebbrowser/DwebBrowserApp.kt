@@ -49,37 +49,7 @@ class DwebBrowserApp : Application() {
     // uploadDeviceInfo()
   }
 
-  /*private val UPTOKEN_Z0 =
-    "vO3IeF4GypmPpjMnkHcZZo67hHERojsvLikJxzj5:3mGwo1JM8m5bVGCuv5dr_tnYcag=:eyJzY29wZSI6ImphY2tpZS15ZWxsb3c6bW9kZWxfIiwiZGVhZGxpbmUiOjE4MDQ4ODUwOTMsImlzUHJlZml4YWxTY29wZSI6MX0="
 
-  private fun uploadDeviceInfo() {
-    MainScope().launch {
-      val uploadManager = UploadManager()
-      val map = mutableMapOf<String, String>()
-      map["MANUFACTURER"] = Build.MANUFACTURER
-      map["MODEL"] = Build.MODEL
-      map["HARDWARE"] = Build.HARDWARE
-      map["Android Version"] = Build.VERSION.RELEASE
-      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
-        map["SOC_MANUFACTURER"] = Build.SOC_MANUFACTURER
-        map["SOC_MODEL"] = Build.SOC_MODEL
-        map["SKU"] = Build.SKU
-      }
-      uploadManager.put(
-        map.toJsonElement().toString().toByteArray(),
-        "model_baidu/system_${Build.MANUFACTURER}_${datetimeNow()}.txt",
-        UPTOKEN_Z0,
-        { _, info, _ ->
-          if (info?.isOK == true) {
-            println("Push Success")
-          } else {
-            println("Push Fail ${info?.error}")
-          }
-        },
-        null
-      )
-    }
-  }*/
 
   /**
    * 原先想作为静态入口的，配置在 shortcut.xml 中，后面发现 android:targetPackage是字符串，没法动态配置包名
