@@ -1,28 +1,47 @@
 import path from "node:path";
 import fs from "node:fs";
-import { __dirname, exec } from "./util.ts";
+import { __dirname, exec, runTasks } from "./util.ts";
 
-export const doCreateXcTask = async () => {
-  const xcframeworksDir = path.resolve(__dirname, "xcframeworks");
+export const doCreateXcItemTask = (fw: string) => async () => {
+  await deleteCache(fw)
+  return runTasks(
+    () => createXc(fw),
+  );
+};
+
+
+const deleteCache = async (fw: string) => {
+  const xcframeworksDir = path.resolve(__dirname, "xcframeworks/" + fw + ".xcframework");
   if(fs.existsSync(xcframeworksDir)) {
     await Deno.remove(xcframeworksDir, { recursive: true });
+    console.log("end xcframeworksDir delete!");
   }
+}
+
+const createXc = (prjectName: string) => {
+
+  const xcarchivePath = "archives/" + prjectName + "-iOS.xcarchive";
+  const xcarchiveSimulatorPath = "archives/"+ prjectName + "-iOS_Simulator.xcarchive";
+  const frameworkName = prjectName + ".framework";
+  const xcframeworkPath = "xcframeworks/" + prjectName + ".xcframework";
+
   return exec([
     "xcodebuild",
     "-create-xcframework",
     "-archive",
-    "archives/DwebPlatformIosKit-iOS.xcarchive",
+    xcarchivePath,
     "-framework",
-    "DwebPlatformIosKit.framework",
+    frameworkName,
     "-archive",
-    "archives/DwebPlatformIosKit-iOS_Simulator.xcarchive",
+    xcarchiveSimulatorPath,
     "-framework",
-    "DwebPlatformIosKit.framework",
+    frameworkName,
     "-output",
-    "xcframeworks/DwebPlatformIosKit.xcframework",
+    xcframeworkPath,
   ]);
-};
+}
 
 if (import.meta.main) {
   Deno.exit(await doCreateXcTask());
 }
+
