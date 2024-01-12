@@ -1,19 +1,20 @@
-import { exec, runTasks } from "./util.ts";
+import { sourceCodeDir, exec, runTasks } from "./util.ts";
 
-export const doArchiveTask = () =>
-  runTasks(
-    () => buildArchive("generic/platform=iOS", "archives/DwebPlatformIosKit-iOS"),
-    () => buildArchive("generic/platform=iOS Simulator", "archives/DwebPlatformIosKit-iOS_Simulator")
-  );
+export const doArchiveItemTask = (fw: string) =>
+  () => runTasks(
+    () => buildArchive(fw, sourceCodeDir + fw + "/", "generic/platform=iOS", "archives/" + fw + "-iOS"),
+    () => buildArchive(fw, sourceCodeDir + fw + "/", "generic/platform=iOS Simulator", "archives/" + fw + "-iOS_Simulator"),
+);
 
-const buildArchive = (destination: string, archivePath: string) =>
+const buildArchive = (prjectName: string, dir: string, destination: string, archivePath: string) =>
   exec([
     "xcodebuild",
+    "-quiet",
     "archive",
-    "-project",
-    "DwebPlatformIosKit.xcodeproj",
+    "-workspace",
+    dir +"/../" + "DwebBrowser.xcworkspace",
     "-scheme",
-    "DwebPlatformIosKit",
+    prjectName,
     "-destination",
     destination,
     "-archivePath",

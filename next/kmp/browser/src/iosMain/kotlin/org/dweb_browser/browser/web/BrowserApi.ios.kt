@@ -9,27 +9,27 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.interop.UIKitView
+import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.platform.ios_browser.DwebWebView
+import org.dweb_browser.helper.platform.ios_browser.colorSchemeChangedWithColor
+import org.dweb_browser.helper.platform.ios_browser.doSearchWithKey
+import org.dweb_browser.helper.platform.ios_browser.gobackIfCanDo
+import org.dweb_browser.helper.platform.ios_browser.prepareToKmp
 import org.dweb_browser.sys.window.core.WindowRenderScope
-import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
+import platform.CoreGraphics.CGRect
+import platform.CoreGraphics.CGRectMake
 
 actual fun ImageBitmap.toImageResource(): ImageResource? = null
 actual fun getImageResourceRootPath(): String = ""
 
-public fun registerIosIMP(imp: IosInterface) = browserIosImp.registerIosIMP(imp)
-
-//iOS的协议实现
-private var browserIosImp = BrowserIosIMP()
-
-//对iOS暴露的服务
-public var browserIosService = BrowserIosService()
+private var browserObserver = BrowserIosWinObserver()
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -39,15 +39,34 @@ actual fun CommonBrowserView(
   windowRenderScope: WindowRenderScope
 ) {
 
-  browserIosService.browserViewModel = viewModel
-  browserIosImp.browserViewModel = viewModel
-
-  val iOSView = remember {
-    browserIosImp.createIosMainView()
+  val iOSDelegate = remember {
+    BrowserIosDelegate().apply {
+      this.browserViewModel = viewModel
+    }
   }
 
+  val iOSDataSource = remember {
+    BrowserIosDataSource().apply {
+      this.browserViewModel = viewModel
+    }
+  }
+
+  val iOSView = remember {
+    val frame: CValue<CGRect> = CGRectMake(0.0,0.0,0.0,0.0)
+    val web = DwebWebView(frame, iOSDelegate, iOSDataSource).apply {
+      prepareToKmp()
+    }
+    web
+  }
+
+  iOSDelegate.browserViewModel = viewModel
+  iOSDataSource.browserViewModel = viewModel
+
+  browserObserver.iOSBrowserView = iOSView
+  browserObserver.browserViewModel = viewModel
+
   if (viewModel.dwebLinkSearch.value.isNotEmpty()) {
-    browserIosImp.doSearch(viewModel.dwebLinkSearch.value.toString())
+    iOSView.doSearchWithKey(viewModel.dwebLinkSearch.value.toString())
     viewModel.dwebLinkSearch.value = ""
   }
 
@@ -55,7 +74,7 @@ actual fun CommonBrowserView(
   val scope = rememberCoroutineScope()
 
   fun backHandler() {
-    if (!browserIosImp.gobackIfCanDo()) {
+    if (!iOSView.gobackIfCanDo()) {
       scope.launch {
         win.tryCloseOrHide()
       }
@@ -64,8 +83,8 @@ actual fun CommonBrowserView(
 
   // 窗口返回按钮
   win.GoBackHandler { backHandler() }
-  browserIosImp.colorSchemeChanged(win.state.colorScheme.ordinal)
 
+  iOSView.colorSchemeChangedWithColor(win.state.colorScheme.ordinal)
   Box {
     UIKitView(
       factory = {
