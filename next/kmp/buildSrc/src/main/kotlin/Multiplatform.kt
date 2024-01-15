@@ -203,7 +203,7 @@ fun KotlinSourceSet.autoLink(): KotlinSourceSet {
     linkSrcDir.parentFile.mkdirs()
     Files.createSymbolicLink(
       linkSrcDir.toPath(),
-      parentSrcDir.toPath()
+      linkSrcDir.toPath().parent.relativize(parentSrcDir.toPath())
     )
   }
   kotlin.srcDirs(linkSrcDir, srcDir)
