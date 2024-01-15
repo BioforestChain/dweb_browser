@@ -1,10 +1,10 @@
-# ``DwebBrowserCommon``
+# ``DwebPlatformIosKit``
 
-Common
+PlatformIosKit
 
 ## Overview
 
-Common是提供给其他framework或者project使用的。不可以引入其他的依赖
+PlatformIosKit现阶段是提供给其他kmp使用的。依赖DwebBrowserCommon。
 
 ## Topics
 

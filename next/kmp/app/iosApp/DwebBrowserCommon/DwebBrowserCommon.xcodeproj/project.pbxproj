@@ -51,10 +51,10 @@
 		48334DD62B50D08900399FFF /* DwebBrowserCommon */ = {
 			isa = PBXGroup;
 			children = (
+				48334DD82B50D08900399FFF /* DwebBrowserCommon.docc */,
 				48334DD72B50D08900399FFF /* DwebBrowserCommon.h */,
 				48334DE12B50D0D700399FFF /* Logger.swift */,
 				48334DE02B50D0D700399FFF /* NetworkPermission.swift */,
-				48334DD82B50D08900399FFF /* DwebBrowserCommon.docc */,
 			);
 			path = DwebBrowserCommon;
 			sourceTree = "<group>";

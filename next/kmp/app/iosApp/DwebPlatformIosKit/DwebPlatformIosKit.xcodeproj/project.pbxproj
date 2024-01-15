@@ -15,6 +15,7 @@
 		48334DE52B50D0F600399FFF /* DwebBrowserCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 48334DE42B50D0F600399FFF /* DwebBrowserCommon.framework */; };
 		48334DE62B50D0F600399FFF /* DwebBrowserCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 48334DE42B50D0F600399FFF /* DwebBrowserCommon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		48E148E42B1D68EC00B69C64 /* DwebLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */; };
+		48F677012B54C8B800607EAC /* DwebPlatformIosKit.docc in Sources */ = {isa = PBXBuildFile; fileRef = 48F677002B54C8B800607EAC /* DwebPlatformIosKit.docc */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,6 +43,7 @@
 		4803C0072B4FF4A1006B2F79 /* DependencyHeaders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyHeaders.swift; sourceTree = "<group>"; };
 		48334DE42B50D0F600399FFF /* DwebBrowserCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebBrowserCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebLocationManager.swift; sourceTree = "<group>"; };
+		48F677002B54C8B800607EAC /* DwebPlatformIosKit.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DwebPlatformIosKit.docc; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,11 +78,12 @@
 		3D50D2D72B064BA5008891FC /* DwebPlatformIosKit */ = {
 			isa = PBXGroup;
 			children = (
-				46282D672B0B603700A45995 /* DwebHelper.swift */,
-				4803C0072B4FF4A1006B2F79 /* DependencyHeaders.swift */,
-				48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */,
+				48F677002B54C8B800607EAC /* DwebPlatformIosKit.docc */,
 				3D50D2D82B064BA5008891FC /* DwebPlatformIosKit.h */,
 				3DCF04222B19FD6C00A9D3EF /* DwebPlatformIosKit.m */,
+				4803C0072B4FF4A1006B2F79 /* DependencyHeaders.swift */,
+				46282D672B0B603700A45995 /* DwebHelper.swift */,
+				48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */,
 				46E836322B284F1500281558 /* DwebWKWebView.swift */,
 			);
 			path = DwebPlatformIosKit;
@@ -181,6 +184,7 @@
 				46E836332B284F1500281558 /* DwebWKWebView.swift in Sources */,
 				4803C0082B4FF4A1006B2F79 /* DependencyHeaders.swift in Sources */,
 				46282D682B0B603700A45995 /* DwebHelper.swift in Sources */,
+				48F677012B54C8B800607EAC /* DwebPlatformIosKit.docc in Sources */,
 				3DCF04232B19FD6C00A9D3EF /* DwebPlatformIosKit.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -414,6 +414,7 @@
 		4819C2D32B4FDF88001BB45D /* DwebWebBrowser */ = {
 			isa = PBXGroup;
 			children = (
+				4819C2D52B4FDF88001BB45D /* DwebWebBrowser.docc */,
 				48EEA8E12B4FF17F006DA0F3 /* DwebWebBrowser.h */,
 				4803C0092B4FF51E006B2F79 /* DependencyHeaders.swift */,
 				48EEA8E62B4FF17F006DA0F3 /* DwebWebView.swift */,
@@ -421,7 +422,6 @@
 				4803C01A2B4FF9E1006B2F79 /* WebBrowserViewProtocol.swift */,
 				4803C01D2B4FF9E8006B2F79 /* BrowserWebSiteInfo.swift */,
 				4803BF3E2B4FF279006B2F79 /* DwebBrowser */,
-				4819C2D52B4FDF88001BB45D /* DwebWebBrowser.docc */,
 			);
 			path = DwebWebBrowser;
 			sourceTree = "<group>";
