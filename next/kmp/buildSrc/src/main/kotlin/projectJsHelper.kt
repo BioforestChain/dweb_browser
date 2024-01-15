@@ -67,7 +67,7 @@ fun Project.configureYarn() {
         if (yarnRcFile.exists()) {
           val content = yarnRcFile.readText()
           if (!content.contains("nodeLinker:")) {
-            yarnRcFile.writeText("$content\nnodeLinker: pnpm")
+            yarnRcFile.writeText("$content\nnodeLinker: node-modules")
           }
         }
       }

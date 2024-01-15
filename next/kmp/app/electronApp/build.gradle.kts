@@ -1,4 +1,3 @@
-
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsExec
 
 plugins {
@@ -13,7 +12,7 @@ beforeEvaluate {
 kotlin {
   js(IR) {
     nodejs()
-    useEsModules()
+//    useEsModules()
     generateTypeScriptDefinitions()
     binaries.executable()
   }
@@ -31,8 +30,8 @@ kotlin {
 //      implementation(projects.pureCrypto)
 //      implementation(projects.jsFrontend)
       implementation(npm("electron", "^28.1.1"))
-      implementation(npm("${rootProject.name}-${projects.jsFrontend.name}", "workspace:^"))
-      implementation(npm("${rootProject.name}-${projects.wasmBackend.name}-wasm-js", "workspace:^"))
+      implementation(npm("${rootProject.name}-${projects.jsFrontend.name}-browser", "workspace:^"))
+      implementation(npm("${rootProject.name}-${projects.jsBackend.name}-node", "workspace:^"))
     }
   }
 }
@@ -52,13 +51,15 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstall
 gradle.projectsEvaluated {
 
   tasks.withType<NodeJsExec>().all {
-    inputFileProperty.fileValue(
-      File(
-        inputFileProperty.get().asFile.absolutePath.replace(
-          Regex("\\.js$"), ".mjs"
+    if (npmProject.target.compilations.first().kotlinOptions.useEsClasses) {
+      inputFileProperty.fileValue(
+        File(
+          inputFileProperty.get().asFile.absolutePath.replace(
+            Regex("\\.js$"), ".mjs"
+          )
         )
       )
-    )
+    }
 
     val electronExecTask = createElectronExec(
       npmProject,
@@ -70,8 +71,8 @@ gradle.projectsEvaluated {
         name.contains("Development") -> "Development";
         else -> "Production"
       }
-      dependsOn(":" + projects.jsFrontend.name + ":jsBrowser${mode}LibraryPrepare")
-      dependsOn(":" + projects.wasmBackend.name + ":wasmJsNode${mode}LibraryPrepare")
+      dependsOn(":" + projects.jsFrontend.name + ":browserBrowser${mode}LibraryPrepare")
+      dependsOn(":" + projects.jsBackend.name + ":nodeNode${mode}LibraryPrepare")
     }
 
     electronExecTask.configure {

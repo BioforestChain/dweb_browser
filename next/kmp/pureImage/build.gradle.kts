@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-  kmpComposeTarget(libs) {
+  kmpComposeTarget(project) {
     dependencies {
       implementation(libs.ktor.server.cio)
       implementation(libs.ktor.server.websockets)
@@ -25,10 +25,10 @@ kotlin {
       implementation(libs.ktor.server.cio)
     }
   }
-  kmpAndroidTarget(libs){
+  kmpAndroidTarget(project){
     dependsOn(androidAndIosMain)
   }
-  kmpIosTarget(libs){
+  kmpIosTarget(project){
     dependsOn(androidAndIosMain)
   }
 }

@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-  kmpComposeTarget(libs) {
+  kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
       implementation(projects.helperCompose)
@@ -17,7 +17,7 @@ kotlin {
       implementation(projects.window)
     }
   }
-  kmpAndroidTarget(libs) {
+  kmpAndroidTarget(project) {
     dependencies {
       // AndroidX Compose
       implementation(libs.compose.material3)
@@ -45,7 +45,7 @@ kotlin {
       implementation(libs.qiniu.upload)
     }
   }
-  kmpIosTarget(libs) {
+  kmpIosTarget(project) {
     dependencies {
       //解压缩
       implementation(projects.ziplib)

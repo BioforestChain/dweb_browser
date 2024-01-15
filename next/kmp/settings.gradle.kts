@@ -39,18 +39,23 @@ fun includeApp(dirName: String) {
   project(":$dirName").projectDir = file("app/$dirName")
 }
 
+fun includeUI(dirName: String) {
+  include("${dirName}UI")
+  project(":${dirName}UI").apply {
+    projectDir = file("$dirName/ui")
+  }
+}
+
 includeApp("androidApp")
 includeApp("electronApp")
 includeApp("jsFrontend")
-includeApp("wasmBackend")
-
+includeApp("jsBackend")
 include(
   ":shared",
   ":helper",
   ":helperCompose",
   ":helperPlatform",
   ":helperPlatformIos",
-  ":helperPlatformNode",
   ":pureHttp",
   ":pureIO",
   ":pureCrypto",
@@ -61,6 +66,8 @@ include(
   ":browser",
   ":sys"
 )
+includeUI("pureCrypto")
+//includeUI("helper")
 File(rootDir, "../../toolkit/dweb_browser_libs/rust_library").eachDir { dir ->
   if (File(dir, "build.gradle.kts").exists()) {
     include(dir.name)

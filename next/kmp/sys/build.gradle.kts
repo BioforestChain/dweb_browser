@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-  kmpComposeTarget(libs) {
+  kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
       implementation(projects.pureIO)
@@ -15,7 +15,7 @@ kotlin {
       implementation(projects.window)
     }
   }
-  kmpAndroidTarget(libs) {
+  kmpAndroidTarget(project) {
     dependencies {
       // Compose 相关
       implementation(libs.compose.material3)
@@ -39,14 +39,15 @@ kotlin {
     }
   }
 
-  sourceSets.androidUnitTest {
-    dependencies {
-      implementation(libs.androidx.test.core)
-      implementation(libs.androidx.compose.ui.test)
-      implementation(libs.androidx.compose.ui.test.junit4)
-      implementation(libs.androidx.compose.ui.test.manifest)
-    }
-  }
+//  sourceSets.androidUnitTest {
+//    dependencies {
+//      implementation(libs.androidx.test.core)
+//      implementation(libs.androidx.compose.ui.test)
+//      implementation(libs.androidx.compose.ui.test.junit4)
+//      implementation(libs.androidx.compose.ui.test.manifest)
+//    }
+//  }
+  kmpIosTarget(project)
 }
 
 android {

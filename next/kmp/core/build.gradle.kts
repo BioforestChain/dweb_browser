@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-  kmpComposeTarget(libs) {
+  kmpComposeTarget(project) {
     dependencies {
       implementation(libs.ktor.io)
       implementation(libs.ktor.client.cio)
@@ -21,6 +21,8 @@ kotlin {
       implementation(projects.multipart)
     }
   }
+  kmpAndroidTarget(project)
+  kmpIosTarget(project)
 }
 
 android {

@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-  kmpComposeTarget(libs) {
+  kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
       implementation(projects.helperPlatform)
@@ -16,7 +16,7 @@ kotlin {
       implementation(projects.reverseProxy)
     }
   }
-  kmpAndroidTarget(libs) {
+  kmpAndroidTarget(project) {
     dependencies {
       implementation(libs.androidx.webkit)
       implementation(libs.google.material)
@@ -24,22 +24,23 @@ kotlin {
       implementation(libs.compose.ui)
     }
   }
-  sourceSets {
-    androidInstrumentedTest {
-      dependsOn(commonMain.get())
-      dependsOn(androidMain.get())
-      dependencies {
-        implementation(libs.androidx.test.core)
-        implementation(libs.androidx.compose.ui.test)
-        implementation(libs.androidx.compose.ui.test.junit4)
-        implementation(libs.androidx.compose.ui.test.manifest)
-      }
-      sourceSets {
-        add(androidMain.get())
-      }
-    }
-  }
+//  sourceSets {
+//    androidInstrumentedTest {
+//      dependsOn(commonMain.get())
+//      dependsOn(androidMain.get())
+//      dependencies {
+//        implementation(libs.androidx.test.core)
+//        implementation(libs.androidx.compose.ui.test)
+//        implementation(libs.androidx.compose.ui.test.junit4)
+//        implementation(libs.androidx.compose.ui.test.manifest)
+//      }
+//      sourceSets {
+//        add(androidMain.get())
+//      }
+//    }
+//  }
 
+  kmpIosTarget(project)
 }
 
 android {

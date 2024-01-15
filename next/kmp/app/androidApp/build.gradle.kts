@@ -8,7 +8,7 @@ plugins {
 
 kotlin {
 
-  kmpComposeTarget(libs) {
+  kmpComposeTarget(project) {
     dependencies {
       implementation(projects.shared)
       implementation(projects.helper)
@@ -24,7 +24,7 @@ kotlin {
       implementation(projects.dWebView)
     }
   }
-  kmpAndroidTarget(libs) {
+  kmpAndroidTarget(project) {
     dependencies {
       implementation(libs.androidx.core.splashscreen)
       // Google.accompanist 相关
@@ -35,6 +35,7 @@ kotlin {
       implementation(libs.compose.ui.preview)
     }
   }
+  kmpIosTarget(project)
 }
 android {
   namespace = "info.bagen.dwebbrowser"

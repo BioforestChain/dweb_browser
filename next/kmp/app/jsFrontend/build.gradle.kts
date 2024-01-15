@@ -8,7 +8,7 @@ beforeEvaluate {
 }
 
 kotlin {
-  kmpBrowserJsTarget(libs) {
+  kmpBrowserJsTarget(project) {
     js {
       binaries.library()
     }

@@ -47,7 +47,7 @@ camera-version = "1.4.0-alpha03"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
 jetbrains-compose-version = "1.5.11"
-kotlin-wrappers-bom = "1.0.0-pre.681"
+kotlin-wrappers-bom = "1.0.0-pre.684"
 
 # 测试
 test-junit-bom = "5.9.2"

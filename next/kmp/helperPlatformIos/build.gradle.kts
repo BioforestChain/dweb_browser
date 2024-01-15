@@ -13,7 +13,7 @@ kotlin {
     it.configureIos(listOf("DwebPlatformIosKit", "DwebWebBrowser"))
   }
 
-  kmpIosTarget(libs) {
+  kmpIosTarget(project) {
 
   }
 //  sourceSets.commonMain.dependencies {

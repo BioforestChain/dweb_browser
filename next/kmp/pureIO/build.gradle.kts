@@ -3,27 +3,18 @@ plugins {
 }
 
 kotlin {
-  kmpCommonTarget(libs) {
+  kmpCommonTarget(project) {
     dependencies {
       api(libs.squareup.okio)
 
       implementation(projects.helper)
     }
   }
-  kmpAndroidTarget(libs) {
+  kmpAndroidTarget(project) {
   }
-  kmpIosTarget(libs) {
+  kmpIosTarget(project) {
   }
-  kmpBrowserJsTarget(libs) {
-  }
-  kmpNodeWasmTarget(libs) {
-    dependencies {
-      //noinspection GradleDependency
-      implementation(libs.ktor.http.wasm)
-      implementation(libs.ktor.io.wasm)
-
-      implementation(projects.helperPlatformNode)
-    }
+  kmpNodeJsTarget(project) {
   }
 }
 

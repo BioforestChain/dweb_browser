@@ -6,8 +6,3 @@ plugins {
   id("target-js")
   id("target-android")
 }
-
-
-kotlin {
-  kmpMobileTarget()
-}

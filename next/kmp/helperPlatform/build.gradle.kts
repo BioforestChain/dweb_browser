@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-  kmpComposeTarget(libs) {
+  kmpComposeTarget(project) {
     dependencies {
       implementation(libs.ktor.client.cio)
       implementation(libs.ktor.client.encoding)
@@ -12,7 +12,7 @@ kotlin {
       implementation(projects.pureIO)
     }
   }
-  kmpAndroidTarget(libs) {
+  kmpAndroidTarget(project) {
     dependencies {
       implementation(libs.accompanist.systemui.controller)
       implementation(libs.google.material)
@@ -24,7 +24,7 @@ kotlin {
       implementation(libs.coil.gif)
     }
   }
-  kmpIosTarget(libs) {
+  kmpIosTarget(project) {
     dependencies {
       implementation(libs.ktor.client.darwin)
       implementation(projects.helperPlatformIos)

@@ -3,7 +3,7 @@ plugins {
 }
 
 kotlin {
-  kmpComposeTarget(libs) {
+  kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
       implementation(projects.helperCompose)
@@ -14,7 +14,7 @@ kotlin {
       implementation(projects.core)
     }
   }
-  kmpAndroidTarget(libs) {
+  kmpAndroidTarget(project) {
     dependencies {
       // Compose 相关
       implementation(libs.compose.material3)
@@ -29,6 +29,7 @@ kotlin {
       implementation(libs.compose.ui.preview)
     }
   }
+  kmpIosTarget(project)
 }
 
 android {

@@ -11,7 +11,7 @@ kotlin {
       isStatic = true
     }
   }
-  kmpComposeTarget(libs) {
+  kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
       implementation(projects.pureIO)
@@ -26,6 +26,7 @@ kotlin {
       implementation(projects.sys)
     }
   }
+  kmpIosTarget(project)
 }
 
 android {
