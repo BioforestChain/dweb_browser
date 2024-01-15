@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <Group
+      location = "group:DwebBrowser"
+      name = "DwebBrowser">
+      <FileRef
+         location = "group:DwebBrowser.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "group:DwebWebBrowser"
+      name = "DwebWebBrowser">
+      <FileRef
+         location = "group:DwebWebBrowser.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "group:DwebPlatformIosKit"
+      name = "DwebPlatformIosKit">
+      <FileRef
+         location = "group:DwebPlatformIosKit.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "group:DwebBrowserCommon"
+      name = "DwebBrowserCommon">
+      <FileRef
+         location = "group:DwebBrowserCommon.xcodeproj">
+      </FileRef>
+   </Group>
+</Workspace>
