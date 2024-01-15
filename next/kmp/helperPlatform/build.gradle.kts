@@ -30,6 +30,11 @@ kotlin {
       implementation(projects.helperPlatformIos)
     }
   }
+  kmpNodeJsTarget(project) {
+    dependencies {
+      implementation(libs.ktor.client.js)
+    }
+  }
 }
 
 android {

@@ -4,6 +4,7 @@ plugins {
 
 kotlin {
   val commonJsMain by sourceSets.creating {
+    dependsOn(sourceSets.commonMain.get())
   }
   kmpBrowserJsTarget(project) {
     dependsOn(commonJsMain)

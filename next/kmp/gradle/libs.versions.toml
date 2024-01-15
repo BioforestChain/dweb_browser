@@ -131,6 +131,7 @@ ktor-server-cio = { group = "io.ktor", name = "ktor-server-cio", version.ref = "
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor-version" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor-version" }
 ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor-version" }
+ktor-client-js = { group = "io.ktor", name = "ktor-client-js", version.ref = "ktor-version" }
 ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding", version.ref = "ktor-version" }
 ktor-io = { group = "io.ktor", name = "ktor-io", version.ref = "ktor-version" }
 ktor-http = { group = "io.ktor", name = "ktor-http", version.ref = "ktor-version" }

@@ -13,6 +13,7 @@ kotlin {
   kmpAndroidTarget(project)
   kmpIosTarget(project)
   val commonJsMain by sourceSets.creating {
+    dependsOn(sourceSets.commonMain.get())
   }
 
   kmpNodeJsTarget(project) {

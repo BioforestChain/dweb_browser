@@ -67,7 +67,7 @@ include(
   ":sys"
 )
 includeUI("pureCrypto")
-//includeUI("helper")
+includeUI("helper")
 File(rootDir, "../../toolkit/dweb_browser_libs/rust_library").eachDir { dir ->
   if (File(dir, "build.gradle.kts").exists()) {
     include(dir.name)

@@ -3,14 +3,14 @@ plugins {
 }
 
 kotlin {
-  kmpComposeTarget(project) {
+  kmpCommonTarget(project) {
     dependencies {
       implementation(projects.helper)
-      implementation(projects.helperCompose)
       implementation(projects.helperPlatform)
     }
   }
-  val androidAndIosMain by sourceSets.creating {
+  val ktorMain by sourceSets.creating {
+    dependsOn(sourceSets.commonMain.get())
     dependencies {
       api(libs.ktor.http)
       api(libs.ktor.client.cio)
@@ -22,10 +22,13 @@ kotlin {
     }
   }
   kmpAndroidTarget(project) {
-    dependsOn(androidAndIosMain)
+    dependsOn(ktorMain)
   }
   kmpIosTarget(project) {
-    dependsOn(androidAndIosMain)
+    dependsOn(ktorMain)
+  }
+  kmpNodeJsTarget(project) {
+//    dependsOn(ktorMain)
   }
 }
 

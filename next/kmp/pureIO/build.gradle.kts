@@ -15,14 +15,8 @@ kotlin {
   kmpIosTarget(project) {
   }
   kmpNodeJsTarget(project) {
+    dependencies {
+      implementation(libs.squareup.okio.nodefilesystem)
+    }
   }
 }
-
-android {
-  namespace = "org.dweb_browser.pure.io"
-  compileSdk = libs.versions.compileSdkVersion.get().toInt()
-  defaultConfig {
-    minSdk = libs.versions.minSdkVersion.get().toInt()
-  }
-}
-
