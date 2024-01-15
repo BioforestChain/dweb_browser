@@ -30,6 +30,18 @@ class ScanningActivity : ComponentActivity() {
   }
 
   private val showTips = mutableStateOf(false)
+  private val qrCodeScanModel = QRCodeScanModel()
+  private val launcherRequestPermission =
+    registerForActivityResult(ActivityResultContracts.RequestPermission()) { result ->
+      if (result) {
+        showTips.value = false
+        lifecycleScope.launch {
+          qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
+        }
+      } else {
+        finish()
+      }
+    }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -37,7 +49,6 @@ class ScanningActivity : ComponentActivity() {
 
     setContent {
       DwebBrowserAppTheme {
-        val qrCodeScanModel = remember { QRCodeScanModel() }
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
           LocalCompositionChain.current.Provider(
             LocalQRCodeModel provides qrCodeScanModel
@@ -58,16 +69,7 @@ class ScanningActivity : ComponentActivity() {
           LaunchedEffect(qrCodeScanModel) {
             if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
               showTips.value = true
-              registerForActivityResult(ActivityResultContracts.RequestPermission()) { result ->
-                if (result) {
-                  showTips.value = false
-                  lifecycleScope.launch {
-                    qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
-                  }
-                } else {
-                  finish()
-                }
-              }.launch(Manifest.permission.CAMERA)
+              launcherRequestPermission.launch(Manifest.permission.CAMERA)
             } else {
               qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
             }
