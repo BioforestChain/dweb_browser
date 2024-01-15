@@ -48,6 +48,12 @@
 	<string>用于支持扫一扫等功能</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Access requires authentication</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Please allow &quot;DwebBrowser&quot; to use your location</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Please allow &quot;DwebBrowser&quot; to use your location</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Please allow &quot;DwebBrowser&quot; to use your location</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>用于保存图片到相册</string>
 	<key>UIApplicationSceneManifest</key>

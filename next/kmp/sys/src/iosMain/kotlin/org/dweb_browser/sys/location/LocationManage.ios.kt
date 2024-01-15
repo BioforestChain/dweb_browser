@@ -2,15 +2,26 @@ package org.dweb_browser.sys.location
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.ios.DwebLocationRequestApi
+import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
+import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.CoreLocation.CLLocation
+import platform.CoreLocation.CLLocationManager
+import platform.CoreLocation.CLLocationManagerDelegateProtocol
+import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
+import platform.CoreLocation.kCLAuthorizationStatusDenied
+import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
 import platform.Foundation.timeIntervalSince1970
+import platform.darwin.NSObject
 
 
 /**
@@ -18,6 +29,46 @@ import platform.Foundation.timeIntervalSince1970
  */
 actual class LocationManage {
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+
+  private val manager = CLLocationManager()
+
+  val result = CompletableDeferred<AuthorizationStatus>()
+
+  init {
+    SystemPermissionAdapterManager.append {
+      if (task.name == SystemPermissionName.LOCATION) {
+        locationAuthorizationStatus()
+      } else null
+    }
+  }
+
+  private suspend fun locationAuthorizationStatus() : AuthorizationStatus {
+    val status = when (manager.authorizationStatus) {
+      kCLAuthorizationStatusAuthorizedAlways,
+      kCLAuthorizationStatusAuthorizedWhenInUse -> AuthorizationStatus.GRANTED
+      kCLAuthorizationStatusDenied -> AuthorizationStatus.DENIED
+      else -> {
+        withMainContext {
+          manager.delegate = delegate
+          manager.requestWhenInUseAuthorization()
+          return@withMainContext result.await()
+        }
+      }
+    }
+    return status
+  }
+
+  private val delegate: CLLocationManagerDelegateProtocol = object : NSObject(),
+    CLLocationManagerDelegateProtocol {
+    override fun locationManagerDidChangeAuthorization(manager: CLLocationManager) {
+      when (manager.authorizationStatus) {
+        kCLAuthorizationStatusAuthorizedAlways,
+        kCLAuthorizationStatusAuthorizedWhenInUse -> result.complete(AuthorizationStatus.GRANTED)
+        kCLAuthorizationStatusDenied -> result.complete(AuthorizationStatus.DENIED)
+        else -> result.complete(AuthorizationStatus.UNKNOWN)
+      }
+    }
+  }
 
   @OptIn(ExperimentalForeignApi::class)
   actual suspend fun getCurrentLocation(): GeolocationPosition {
