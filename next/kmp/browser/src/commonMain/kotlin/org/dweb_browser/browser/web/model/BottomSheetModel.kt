@@ -135,12 +135,12 @@ val DefaultSearchWebEngine = listOf(
     icon = getIconResource(BrowserIconResource.WebEngineBaidu)?.toByteArray(),
     start = "https://m.baidu.com/s?word="
   ),
-  WebEngine(
+  /*WebEngine(
     _name = "必应",
     host = "cn.bing.com",
     icon = getIconResource(BrowserIconResource.WebEngineBing)?.toByteArray(),
     start = "https://cn.bing.com/search?q="
-  ),
+  ),*/
   WebEngine(
     _name = "搜狗",
     host = "wap.sogou.com",
