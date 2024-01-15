@@ -25,7 +25,7 @@ actual fun IDWebView.Render(
 ) {
   require(this is DWebView)
   val webView = engine
-  val state = rememberWebViewState(getUrl())
+  val state = rememberWebViewState(webView.url ?: "about:blank")
   val navigator = rememberWebViewNavigator(webView.ioScope)
   val client = remember { AccompanistWebViewClient() }
   val chromeClient = remember { AccompanistWebChromeClient() }

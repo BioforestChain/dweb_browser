@@ -222,16 +222,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 typealias IpcConnectArgs = Pair<Ipc, PureRequest>
 typealias IpcActivityArgs = Pair<IpcEvent, Ipc>
 
-//fun Uri.queryParameterByMap(): NativeOptions {
-//    val hashMap = hashMapOf<String, String>()
-//    this.queryParameterNames.forEach { name ->
-//        val key = URLDecoder.decode(name, "UTF-8")
-//        val value = URLDecoder.decode(this.getQueryParameter(name), "UTF-8")
-//        hashMap[key] = value
-//    }
-//    return hashMap
-//}
-
 class StatePromiseOut<T>(val state: T) : PromiseOut<T>() {
   companion object {
     fun <T> resolve(state: T) = StatePromiseOut(state).also { it.resolve() }

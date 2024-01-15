@@ -3,6 +3,7 @@ package org.dweb_browser.core.ipc.helper
 import io.ktor.http.Url
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
@@ -297,6 +298,7 @@ sealed class IpcRequest(
      * TODO 这里应该使用 fork():Ipc 来承载 pureChannel
      * 目前这里使用一个 ipcEvent 来承载 pureChannel，行为上比较奇怪，性能上也不是最佳
      */
+    @OptIn(DelicateCoroutinesApi::class)
     internal suspend fun pureChannelToIpcEvent(
       eventNameBase: String,
       ipc: Ipc,
@@ -317,6 +319,7 @@ sealed class IpcRequest(
         when (ipcEvent.name) {
           eventData -> {
             debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent $pureChannel" }
+            if (!channelByIpcEmit.isClosedForSend)
             channelByIpcEmit.send(ipcEvent.toPureFrame())
           }
 
