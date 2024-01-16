@@ -32,7 +32,7 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
   /**
    * 置顶窗口，一个已经根据 zIndex 排序完成的只读列表
    */
-  val winListTop = mutableStateListOf<T>();
+  val winListTop = mutableStateListOf<T>()
 
   /**
    * 存储最大化的窗口
@@ -49,7 +49,7 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
     get() {
       /// 从最顶层的窗口往下遍历
       fun findInWinList(winList: List<T>): T? {
-        for (win in winList.asReversed()) {
+        for (win in winList.toMutableList().asReversed()) { // 增加 toMutableList 是为了避免 winList数据变化引起的 for 异常
           if (win.isFocused()) {
             /// 如果发现之前赋值过，这时候需要将之前的窗口给blur掉
             return win
