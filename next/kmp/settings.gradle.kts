@@ -49,8 +49,8 @@ fun includeUI(dirName: String) {
 include(":platformIos")
 include(":platformNode")
 include(":platformBrowser")
-
-
+//
+//
 include(":helper")
 include(":helperCompose")
 include(":helperPlatform")
@@ -64,14 +64,14 @@ include(":dwebview")
 include(":browser")
 include(":sys")
 include(":shared")
-
+//
 includeUI("pureCrypto")
 includeUI("helper")
-
+//
 includeApp("androidApp")
 includeApp("electronApp")
 includeApp("jsFrontend")
-includeApp("jsBackend")
+
 
 File(rootDir, "../../toolkit/dweb_browser_libs/rust_library").eachDir { dir ->
   if (File(dir, "build.gradle.kts").exists()) {
