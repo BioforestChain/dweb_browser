@@ -57,7 +57,7 @@ struct MenuView: View {
     var tracelessView: some View {
         HStack {
             Text("无痕模式")
-                .foregroundColor(Color.menuTitleColor)
+                .foregroundColor(.primary)
                 .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
                 .padding(.leading, 16)
 

@@ -28,12 +28,12 @@ struct SearchResultView: View {
 
                         VStack(alignment: .leading, spacing: 4, content: {
                             Text(searcher.name)
-                                .foregroundColor(Color.menuTitleColor)
+                                .foregroundColor(.primary)
                                 .font(.system(size: dragScale.scaledFontSize(maxSize: 18)))
                                 .lineLimit(1)
 
                             Text(addressBar.inputText.trim())
-                                .foregroundColor(Color(hexString: "ACB5BF"))
+                                .foregroundColor(Color(.systemGray2))
                                 .font(.system(size: dragScale.scaledFontSize(maxSize: 12)))
                                 .lineLimit(1)
                                 .padding(.trailing, 8)
@@ -54,7 +54,7 @@ struct SearchResultView: View {
 
             } header: {
                 Text("搜索引擎")
-                    .foregroundColor(Color.menuTitleColor)
+                    .foregroundColor(.primary)
                     .font(.system(size: dragScale.scaledFontSize(maxSize: 18)))
                     .padding(.top, 10)
                     .padding(.bottom, 6)

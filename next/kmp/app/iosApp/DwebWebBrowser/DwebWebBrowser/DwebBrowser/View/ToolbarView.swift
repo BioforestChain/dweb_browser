@@ -50,7 +50,7 @@ struct ToolbarView: View {
 
                     Spacer()
                     Text("\(webCount)个标签页")
-                        .foregroundColor(Color.ToolbarColor)
+                        .foregroundColor(.primary)
                         .font(dragScale.scaledFont())
                         .fontWeight(.semibold)
 
@@ -60,7 +60,7 @@ struct ToolbarView: View {
                         toolbarState.shouldExpand = true
                     } label: {
                         Text("完成")
-                            .foregroundColor(Color.dwebTint)
+                            .foregroundColor(Color.primary)
                             .font(dragScale.scaledFont())
                             .fontWeight(.semibold)
                     }
@@ -85,7 +85,7 @@ struct ToolbarView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .background(Color.bkColor)
-                        .foregroundColor(canCreateDesktopLink ? Color.ToolbarColor : Color.gray)
+                        .foregroundColor(canCreateDesktopLink ? .primary : .gray)
                         .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
                 }
                 .onChange(of: webMonitor.webMonitor.isLoadingDone) { oldValue, newValue in

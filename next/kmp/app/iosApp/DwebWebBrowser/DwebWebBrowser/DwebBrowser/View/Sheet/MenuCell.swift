@@ -17,12 +17,12 @@ struct MenuCell: View {
         HStack {
             Text(title)
                 .padding(.leading, 16)
-                .foregroundColor(Color.menuTitleColor)
+                .foregroundColor(.primary)
                 .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
             Spacer()
             Image(uiImage: .assetsImage(name: imageName))
                 .renderingMode(.template)
-                .foregroundColor(Color.menuTitleColor)
+                .foregroundColor(.primary)
                 .padding(12)
                 .scaleEffect(dragScale.onWidth)
         }

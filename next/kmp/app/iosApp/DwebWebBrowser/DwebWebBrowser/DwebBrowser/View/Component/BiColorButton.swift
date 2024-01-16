@@ -19,7 +19,7 @@ struct BiColorButton: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .background(Color.bkColor)
-                .foregroundColor(disabled ? Color.gray : Color.ToolbarColor)
+                .foregroundColor(disabled ? .gray : .primary)
                 .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
         }
         .disabled(disabled)

@@ -24,14 +24,12 @@ struct AddressBar: View {
 
     private var shouldShowProgress: Bool { webMonitor.loadingProgress > 0.0 && webMonitor.loadingProgress < 1.0 && !addressBar.isFocused }
 
-    private var textColor: Color { isAdressBarFocused ? .black : webCache.isBlank() ? .networkTipColor : .black }
-
     var roundRectHeight: CGFloat { dragScale.addressbarHeight / 1.4 }
 
     var body: some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 10)
-                .foregroundColor(Color.AddressbarbkColor)
+                .foregroundColor(.addressbarTFbkColor)
                 .overlay {
                     progressV
                 }
@@ -57,7 +55,7 @@ struct AddressBar: View {
 
                 if !inputText.isEmpty, !addressBar.isFocused {
                     if shouldShowProgress {
-                        cancelLoadingButtion
+                        cancelLoadingButton
                     } else {
                         if !webCache.isBlank() {
                             reloadButton
@@ -73,7 +71,7 @@ struct AddressBar: View {
 
     var textField: some View {
         TextField(addressbarHolder, text: isAdressBarFocused ? $inputText : $displayText)
-            .foregroundColor(Color.addressTextColor)
+            .foregroundColor(.primary)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
             .multilineTextAlignment(isAdressBarFocused ? .leading : .center)
@@ -160,7 +158,7 @@ struct AddressBar: View {
             inputText = ""
         } label: {
             Image(systemName: "xmark.circle.fill")
-                .foregroundColor(Color.clearTextColor)
+                .foregroundColor(Color.primary)
         }
     }
 
@@ -169,16 +167,16 @@ struct AddressBar: View {
             addressBar.needRefreshOfIndex = tabIndex
         } label: {
             Image(systemName: "arrow.clockwise")
-                .foregroundColor(Color.addressTextColor)
+                .foregroundColor(Color.primary)
         }
     }
 
-    var cancelLoadingButtion: some View {
+    var cancelLoadingButton: some View {
         Button {
             addressBar.stopLoadingOfIndex = tabIndex
         } label: {
             Image(systemName: "xmark")
-                .foregroundColor(Color.addressTextColor)
+                .foregroundColor(Color.primary)
         }
     }
 }

@@ -22,7 +22,7 @@ struct SearchTypingView: View {
                 Button(action: releaseFocuse) {
                     Text("取消")
                         .font(.system(size: dragScale.scaledFontSize(maxSize: 18)))
-                        .foregroundColor(Color.dwebTint)
+                        .foregroundColor(Color.primary)
                 }
                 .padding(.trailing, 20)
             }

@@ -31,7 +31,7 @@ struct NoResultView: View {
 
                 Text(empty.msg)
                     .font(.system(size: dragScale.scaledFontSize(maxSize: 22)))
-                    .foregroundColor(Color(hexString: "c9c9c9"))
+                    .foregroundColor(Color(.systemGray))
             })
         }
     }

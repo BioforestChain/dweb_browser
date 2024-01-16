@@ -14,7 +14,7 @@ struct WebsiteIconImage: View {
             if iconUrl.isFileURL {
                 Image(uiImage: .defaultWebIconImage)
                     .resizable()
-                    .foregroundColor(Color.ToolbarColor)
+                    .foregroundColor(.primary)
             } else {
                 AsyncImage(url: iconUrl) { phase in
                     if let image = phase.image {
@@ -49,7 +49,7 @@ struct GridCell: View {
                             .frame(width: geo.size.width, height: geo.size.height * cellImageHeightRatio)
                             .cornerRadius(gridcellCornerR)
                             .overlay(RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.dwebTint, lineWidth: 2)
+                                .stroke(Color.cellBorder, lineWidth: 2)
                                 .opacity(isSelected ? 1 : 0)
                             )
                             .clipped()
@@ -59,7 +59,7 @@ struct GridCell: View {
                             .background(Color.bkColor)
                             .cornerRadius(gridcellCornerR)
                             .overlay(RoundedRectangle(cornerRadius: 10)
-                                .stroke(isSelected ? Color.dwebTint : Color.bkColor, lineWidth: 2)
+                                .stroke(isSelected ? Color.cellBorderColor : Color.bkColor, lineWidth: 2)
                             )
                             .clipped()
                     }
