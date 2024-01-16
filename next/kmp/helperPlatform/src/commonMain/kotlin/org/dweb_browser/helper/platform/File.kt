@@ -1,6 +1,5 @@
 package org.dweb_browser.helper.platform
 
-import io.ktor.utils.io.ByteReadChannel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

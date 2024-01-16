@@ -5,9 +5,6 @@ plugins {
 kotlin {
   kmpComposeTarget(project) {
     dependencies {
-      implementation(libs.ktor.client.cio)
-      implementation(libs.ktor.client.encoding)
-
       implementation(projects.helper)
       implementation(projects.pureIO)
     }
@@ -26,13 +23,11 @@ kotlin {
   }
   kmpIosTarget(project) {
     dependencies {
-      implementation(libs.ktor.client.darwin)
       implementation(projects.helperPlatformIos)
     }
   }
   kmpNodeJsTarget(project) {
     dependencies {
-      implementation(libs.ktor.client.js)
     }
   }
 }
