@@ -16,9 +16,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.core.help.AdapterManager
-import org.dweb_browser.core.help.asPureRequest
-import org.dweb_browser.core.help.fromPureResponse
-import org.dweb_browser.core.help.isWebSocket
+import org.dweb_browser.pure.http.asPureRequest
+import org.dweb_browser.pure.http.fromPureResponse
+import org.dweb_browser.pure.http.isWebSocket
 import org.dweb_browser.core.std.http.debugHttp
 import org.dweb_browser.core.std.http.findDwebGateway
 import org.dweb_browser.helper.SuspendOnce

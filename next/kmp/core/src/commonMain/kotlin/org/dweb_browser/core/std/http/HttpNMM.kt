@@ -18,7 +18,7 @@ import io.ktor.websocket.readText
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.help.isWebSocket
+import org.dweb_browser.pure.http.isWebSocket
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.by

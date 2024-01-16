@@ -9,8 +9,15 @@ kotlin {
       implementation(projects.helperPlatform)
     }
   }
+  applyDefaultHierarchyTemplate {
+    common {
+      group("ktor") {
+        withAndroidTarget()
+        withIos()
+      }
+    }
+  }
   val ktorMain by sourceSets.creating {
-    dependsOn(sourceSets.commonMain.get())
     dependencies {
       api(libs.ktor.http)
       api(libs.ktor.client.cio)
@@ -22,10 +29,8 @@ kotlin {
     }
   }
   kmpAndroidTarget(project) {
-    dependsOn(ktorMain)
   }
   kmpIosTarget(project) {
-    dependsOn(ktorMain)
   }
   kmpNodeJsTarget(project) {
 //    dependsOn(ktorMain)

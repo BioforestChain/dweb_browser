@@ -1,4 +1,4 @@
-package org.dweb_browser.core.help
+package org.dweb_browser.pure.http
 
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.setBody
@@ -17,33 +17,18 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.response.respondText
-import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.copyAndClose
 import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.writeAvailable
-import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureBinaryBody
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureEmptyBody
-import org.dweb_browser.pure.http.PureRequest
-import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.PureServerRequest
-import org.dweb_browser.pure.http.PureStreamBody
-import org.dweb_browser.pure.http.PureStringBody
-import org.dweb_browser.core.ipc.helper.DEFAULT_BUFFER_SIZE
-import org.dweb_browser.pure.http.PureHeaders
-import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.core.ipc.helper.ReadableStream
-import org.dweb_browser.core.ipc.helper.debugStream
 import org.dweb_browser.helper.ByteReadChannelDelegate
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeInt
-import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.readByteArray
 
 val debugHelper = Debugger("helper")
 val debugKtor = Debugger("ktor")
+val debugStream = Debugger("stream")
 
 fun ApplicationRequest.asPureRequest(): PureServerRequest {
   val pureMethod = PureMethod.from(httpMethod)
@@ -147,7 +132,7 @@ private suspend fun ByteReadPacket.copyToWithFlush(
         }
       }
     } while (true)
-  } catch (e: Exception) {
+  } catch (e: Throwable) {
     // 有异常，那么可能是 output 的写入出现的异常，这时候需要将 input 也给关闭掉，因为已经不再读取了
     close()
     debugHelper("InputStream.copyToWithFlush", "", e)
@@ -193,15 +178,3 @@ suspend fun HttpResponse.toPureResponse(
     body = body ?: PureStreamBody(this.bodyAsChannel())
   )
 }
-
-fun ByteReadChannel.consumeToReadableStream() = ReadableStream(onOpenReader = { controller ->
-  val id = debugStreamAccId++;
-  debugStream("toReadableStream", "SS[$id] start")
-  this@consumeToReadableStream.consumeEachArrayRange { byteArray, last ->
-    controller.enqueue(byteArray)
-    if (last) {
-      debugStream("toReadableStream", "SS[$id] end")
-      controller.closeWrite()
-    }
-  }
-});

@@ -1,18 +1,14 @@
-package org.dweb_browser.core.help
+package org.dweb_browser.pure.http
 
 import io.ktor.http.Headers
 import io.ktor.http.HttpMethod
 import io.ktor.utils.io.ByteReadChannel
-import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureStreamBody
-import org.dweb_browser.pure.http.PureStringBody
-import org.dweb_browser.pure.http.PureHeaders
-import org.dweb_browser.pure.http.PureMethod
 
 data class InitRequest(
   val method: PureMethod, val headers: PureHeaders, val body: Any?
 )
+
+const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
 
 fun isWebSocket(method: PureMethod, headers: PureHeaders): Boolean {
   val upgrade = headers.get("Upgrade") == "websocket"

@@ -13,8 +13,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.AdapterManager
-import org.dweb_browser.core.help.toHttpRequestBuilder
-import org.dweb_browser.core.help.toPureResponse
+import org.dweb_browser.pure.http.toHttpRequestBuilder
+import org.dweb_browser.pure.http.toPureResponse
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut

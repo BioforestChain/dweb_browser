@@ -266,6 +266,16 @@ open class KmpCommonTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
 }
 
 val configuredCommonProjects = mutableMapOf<Project, KmpCommonTargetConfigure>()
+fun KotlinDependencyHandler.implementationCommonMain(libs: LibrariesForLibs) {
+  implementation(kotlin("stdlib"))
+  implementation(libs.kotlinx.coroutines.core)
+  implementation(libs.kotlinx.atomicfu)
+  implementation(libs.kotlinx.io)
+
+  implementation(libs.kotlin.serialization.json)
+  implementation(libs.kotlin.serialization.cbor)
+}
+
 fun KotlinMultiplatformExtension.kmpCommonTarget(
   project: Project,
   configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure
@@ -281,13 +291,7 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
 
   dsl.provides(sourceSets.commonMain, sourceSets.commonTest)
   sourceSets.commonMain.dependencies {
-    implementation(kotlin("stdlib"))
-    implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.atomicfu)
-    implementation(libs.kotlinx.io)
-
-    implementation(libs.kotlin.serialization.json)
-    implementation(libs.kotlin.serialization.cbor)
+    implementationCommonMain(libs)
   }
 
   sourceSets.commonTest.dependencies {

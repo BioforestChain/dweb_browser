@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.debugIpc
+import org.dweb_browser.pure.http.DEFAULT_BUFFER_SIZE
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStream

@@ -8,8 +8,6 @@ import org.dweb_browser.helper.IntEnumSerializer
 import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.toBase64ByteArray
 
-const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
-
 data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc) {
   val component1 get() = message
   val component2 get() = ipc
