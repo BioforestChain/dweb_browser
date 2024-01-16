@@ -155,21 +155,12 @@ suspend fun startDwebBrowser(): DnsNMM {
   val deskNMM = DeskNMM().setup()
 
   /// 启动程序
-  val bootNMM = BootNMM(
+  BootNMM(
     listOf(
-      fileNMM.mmid,//
-      permissionNMM.mmid,// 权限管理
-      httpNMM.mmid,//
-      jmmNMM.mmid,//
-      nativeUiNMM.mmid,//
-      downloadNMM.mmid, // 为了获取下载的数据
+      jmmNMM.mmid,// 为了使得桌面能够显示模块管理，以及安装的相应应用图标
       browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
       deskNMM.mmid,//
-      locationNMM.mmid,
-      qrCodeScanNMM.mmid,
-      cameraNMM.mmid,
-      microPhoneNMM.mmid
-    ),
+    )
   ).setup()
 
   if (BuildConfig.DEBUG) {
