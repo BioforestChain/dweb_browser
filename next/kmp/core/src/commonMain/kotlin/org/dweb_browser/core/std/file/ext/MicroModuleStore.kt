@@ -105,6 +105,11 @@ class MicroModuleStore(
     return data
   }
 
+  suspend inline fun clear() {
+    getStore().clear()
+    save()
+  }
+
   @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun delete(key: String): Boolean {
     val res = getStore().remove(key)

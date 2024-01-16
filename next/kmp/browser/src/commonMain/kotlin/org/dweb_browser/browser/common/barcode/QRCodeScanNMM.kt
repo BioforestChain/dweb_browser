@@ -6,7 +6,6 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.sys.permission.SystemPermissionName
 
 class QRCodeScanNMM : NativeMicroModule("qrcode-scan.browser.dweb", "QRCode-Scan") {
   init {
@@ -22,10 +21,10 @@ class QRCodeScanNMM : NativeMicroModule("qrcode-scan.browser.dweb", "QRCode-Scan
         title = "申请相机权限",
       )
     )
-    QRCodeScanController.controller.init(this)
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    QRCodeScanController.controller.init(this@QRCodeScanNMM)
     routes(
       "/scan" bind PureMethod.GET by defineEmptyResponse {
 

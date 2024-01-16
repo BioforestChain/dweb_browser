@@ -59,6 +59,9 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
 
   private val installViews = SafeHashMap<String, LateInit<JmmInstallerController>>()
 
+  // 记录旧的版本
+  private var oldVersion: String? = null
+
   /**
    * 打开安装器视图
    */
@@ -97,7 +100,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
       debugJMM("openInstallerView", installManifest.bundle_url)
       // 存储下载过的MetadataUrl, 并更新列表，已存在，
       val historyMetadata = historyMetadataMaps.replaceOrPut(
-        key = installManifest.id,
+        key = originUrl,
         replace = { jmmHistoryMetadata ->
           if (jmmNMM.bootstrapContext.dns.query(jmmHistoryMetadata.metadata.id) == null) {
             // 如果install app没有数据，那么判断当前的状态是否是下载或者暂停，如果不是这两个状态，直接当做新应用
@@ -109,7 +112,8 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
               installManifest.createJmmHistoryMetadata(originUrl)
             }
           } else if (installManifest.version.isGreaterThan(jmmHistoryMetadata.metadata.version)) { // 如果应用中有的话，那么就判断版本是否有新版本，有点话，修改状态为 NewVersion
-            val session = getAppSessionInfo(installManifest.id)
+            oldVersion = jmmHistoryMetadata.metadata.version
+            val session = getAppSessionInfo(installManifest.id, jmmHistoryMetadata.metadata.version)
             JmmHistoryMetadata(
               originUrl = originUrl,
               _metadata = installManifest,
@@ -132,10 +136,11 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
   }
 
   suspend fun uninstall(mmid: MMID): Boolean {
+    val data = store.getApp(mmid) ?: return false
     // 在dns中移除app
     jmmNMM.bootstrapContext.dns.uninstall(mmid)
     // 在存储中移除整个app
-    remove("/data/apps/${mmid}")
+    remove("/data/apps/${mmid}-${data.installManifest.version}")
     // 从磁盘中移除整个
     store.deleteApp(mmid)
     historyMetadataMaps.cMaps.values.find { it.metadata.id == mmid }?.let { historyMetadata ->
@@ -195,6 +200,12 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
                   close()
                   // 删除缓存的zip文件
                   remove(downloadTask.filepath)
+                  // 更新完需要删除旧的app版本，这里如果有保存用户数据需要一起移动过去，但是现在这里是单纯的删除
+                  val metadata = jmmHistoryMetadata.metadata
+                  if (oldVersion != null) {
+                    remove("/data/apps/${metadata.id}-${oldVersion}")
+                    oldVersion = null
+                  }
                 }
 
                 else -> {
@@ -234,7 +245,8 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
     task: DownloadTask,
     jmmHistoryMetadata: JmmHistoryMetadata
   ): Boolean {
-    val jmm = jmmHistoryMetadata.metadata.id
+    var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
+    jmm = jmm.substring(0, jmm.lastIndexOf("."))
     val sourcePath = jmmNMM.nativeFetch(buildUrlString("file://file.std.dweb/picker") {
       parameters.append("path", task.filepath)
     }).text()
@@ -263,10 +275,11 @@ class JmmController(private val jmmNMM: JmmNMM, private val store: JmmStore) {
 
   suspend fun showToastText(message: String) = jmmNMM.showToast(message)
 
-  private suspend fun getAppSessionInfo(mmid: MMID) = Json.decodeFromString<SessionInfo>(
-    jmmNMM.nativeFetch("file://file.std.dweb/read?path=/data/apps/${mmid}/usr/sys/session.json")
-      .text()
-  )
+  private suspend fun getAppSessionInfo(mmid: MMID, version: String) =
+    Json.decodeFromString<SessionInfo>(
+      jmmNMM.nativeFetch("file://file.std.dweb/read?path=/data/apps/${mmid}-${version}/usr/sys/session.json")
+        .text()
+    )
 }
 
 @Serializable

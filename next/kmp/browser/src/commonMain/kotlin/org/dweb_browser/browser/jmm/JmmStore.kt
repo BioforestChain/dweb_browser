@@ -80,8 +80,8 @@ data class JmmHistoryMetadata(
   var taskId: TaskId? = null, // 用于保存下载任务，下载完成置空
   @SerialName("state")
   private var _state: JmmStatusEvent = JmmStatusEvent(), // 用于显示下载状态
-  var installTime: Long, // 表示安装应用的时间
-  var upgradeTime:Long = datetimeNow()
+  val installTime: Long = datetimeNow(), // 表示安装应用的时间
+  var upgradeTime: Long = datetimeNow()
 ) {
   var state by ObservableMutableState(_state) { _state = it }
   var metadata by ObservableMutableState(_metadata) { _metadata = it }
@@ -113,7 +113,6 @@ data class JmmHistoryMetadata(
     debugJMM("installComplete")
     taskId = null
     state = state.copy(state = JmmStatus.INSTALLED)
-    installTime = datetimeNow()
     store.saveHistoryMetadata(originUrl, this)
     store.setApp(
       metadata.id, JsMicroModuleDBItem(metadata, originUrl)
@@ -124,16 +123,8 @@ data class JmmHistoryMetadata(
     debugJMM("installFail")
     taskId = null
     state = state.copy(state = JmmStatus.Failed)
-    installTime = datetimeNow()
     store.saveHistoryMetadata(originUrl, this)
   }
-
-  // 监听下载进度 不存储到内存
-  @Transient
-  val jmmStatusSignal: Signal<JmmStatusEvent> = Signal()
-
-  @Transient
-  val onJmmStatusChanged = jmmStatusSignal.toListener()
 }
 
 @Serializable
