@@ -22,13 +22,8 @@ kotlin {
     }
   }
   kmpIosTarget(project) {
-    dependencies {
-      implementation(projects.helperPlatformIos)
-    }
   }
   kmpNodeJsTarget(project) {
-    dependencies {
-    }
   }
 }
 

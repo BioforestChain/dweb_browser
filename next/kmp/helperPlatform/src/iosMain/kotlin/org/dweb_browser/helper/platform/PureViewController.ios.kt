@@ -25,7 +25,7 @@ import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
-import org.dweb_browser.helper.platform.ios.BgPlaceholderView
+import org.dweb_browser.platform.ios.BgPlaceholderView
 import org.dweb_browser.helper.withMainContext
 import platform.UIKit.UIView
 

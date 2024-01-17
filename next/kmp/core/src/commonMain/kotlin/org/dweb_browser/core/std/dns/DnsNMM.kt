@@ -9,7 +9,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonNull
-import org.dweb_browser.core.help.buildRequestX
 import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -42,6 +41,7 @@ import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.pure.http.PureUrl
+import org.dweb_browser.pure.http.buildRequestX
 import kotlin.jvm.JvmInline
 
 val debugDNS = Debugger("dns")

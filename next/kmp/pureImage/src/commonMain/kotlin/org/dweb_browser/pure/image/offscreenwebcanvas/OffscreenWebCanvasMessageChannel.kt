@@ -1,90 +1,77 @@
 package org.dweb_browser.pure.image.offscreenwebcanvas
 
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.fromFilePath
-import io.ktor.server.application.call
-import io.ktor.server.application.install
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.request.path
-import io.ktor.server.response.respond
-import io.ktor.server.response.respondBytes
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
-import io.ktor.server.websocket.DefaultWebSocketServerSession
-import io.ktor.server.websocket.WebSockets
-import io.ktor.server.websocket.webSocket
-import io.ktor.websocket.Frame
-import io.ktor.websocket.close
-import io.ktor.websocket.readText
-import io.ktor.websocket.send
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.encodeURIComponent
-import org.dweb_browser.pure.http.engine.getKtorServerEngine
+import org.dweb_browser.pure.http.HttpPureServer
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureBinaryFrame
+import org.dweb_browser.pure.http.PureChannel
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureTextFrame
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.resource
 
 internal class OffscreenWebCanvasMessageChannel {
-  private var dataChannel = CompletableDeferred<DefaultWebSocketServerSession>()
-  private var session: DefaultWebSocketServerSession? = null
+  private var dataChannel = CompletableDeferred<PureChannel>()
+  private var session: PureChannel? = null
   private val lock = Mutex()
   private val onMessageSignal = Signal<ChannelMessage>()
   val onMessage = onMessageSignal.toListener()
   val proxy = OffscreenWebCanvasFetchProxy()
 
   @OptIn(ExperimentalResourceApi::class)
-  private val server = embeddedServer(getKtorServerEngine(), port = 0) {
-    install(WebSockets)
-    routing {
-      /// 图片请求的代理, 暂时只支持 get 代理
-      get("/proxy") {
-        proxy.proxy(call)
-      }
-      /// 静态资源请求
-      get(Regex(".+")) {
-        val pathname = call.request.path()
-        try {
-          val content = resource("offscreen-web-canvas$pathname").readBytes()
-          call.respondBytes(
-            content, ContentType.fromFilePath(pathname).firstOrNull(), HttpStatusCode.fromValue(200)
-          )
-        } catch (e: Throwable) {
-          call.respond(HttpStatusCode.fromValue(404), e.message ?: "No Found:$pathname")
+  private val server = HttpPureServer {
+    val pathname = it.url.encodedPath
+    if (pathname == "/channel" && it.hasChannel) {
+      val pureChannel = it.getChannel()
+      lock.withLock {
+        if (session != null) {
+          freeSession()
         }
+        session = pureChannel
+        dataChannel.complete(pureChannel)
       }
-      webSocket("/channel") {
-        lock.withLock {
-          if (session != null) {
-            freeSession()
+      pureChannel.start().apply {
+        for (frame in income) {
+          if (session != pureChannel) {
+            return@apply
           }
-          session = this
-          dataChannel.complete(this)
-        }
-
-        for (frame in incoming) {
           when (frame) {
-            is Frame.Text -> onMessageSignal.emit(ChannelMessage(text = frame.readText()))
-            is Frame.Binary -> onMessageSignal.emit(ChannelMessage(binary = frame.data))
-            else -> {}
+            is PureBinaryFrame -> onMessageSignal.emit(ChannelMessage(binary = frame.data))
+            is PureTextFrame -> onMessageSignal.emit(ChannelMessage(text = frame.data))
           }
         }
+      }
 
-        lock.withLock {
-          if (session == this) {
-            freeSession()
-          }
+      lock.withLock {
+        if (session == pureChannel) {
+          freeSession()
         }
+      }
+      PureResponse()
+    } else if (pathname == "/proxy") {
+      proxy.proxy(it)
+    } else {
+      runCatching {
+        val content = resource("offscreen-web-canvas$pathname").readBytes()
+        PureResponse(body = IPureBody.from(content))
+      }.getOrElse {
+        PureResponse(
+          HttpStatusCode.NotFound,
+          body = IPureBody.from(it.message ?: "No Found:$pathname")
+        )
       }
     }
-  }.start(wait = false)
+  }
 
   suspend fun getEntryUrl(width: Int, height: Int): String {
-    val port = server.resolvedConnectors().first().port
+    val port = server.start(0u)
     val host = "localhost"
-    val entry = "http://$host:$port/index.html"//"http://172.30.92.50:5173/index.html"//
+    val entry = "http://$host:$port/index.html"
     return "$entry?width=$width&height=$height&channel=${"ws://$host:$port/channel".encodeURIComponent()}&proxy=${"http://$host:$port/proxy".encodeURIComponent()}"
   }
 
@@ -98,7 +85,7 @@ internal class OffscreenWebCanvasMessageChannel {
 
   suspend fun postMessage(message: String) {
     val session = this.session ?: dataChannel.await()
-    session.send(message)
+    session.afterStart().sendText(message)
   }
 
   suspend fun close() {

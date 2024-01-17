@@ -5,6 +5,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
+import io.ktor.client.utils.EmptyContent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -69,7 +70,7 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
   }
   when (val pureBody = response.body) {
     is PureEmptyBody -> this.call.respond(
-      status = response.status, message = io.ktor.client.utils.EmptyContent
+      status = response.status, message = EmptyContent
     )
 
     is PureStringBody -> this.call.respondText(
@@ -144,14 +145,21 @@ private suspend fun ByteReadPacket.copyToWithFlush(
 fun PureRequest.isWebSocket() = isWebSocket(this.method, this.headers)
 
 fun PureClientRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequestBuilder ->
-  httpRequestBuilder.method = HttpMethod.parse(this.method.name)
-  httpRequestBuilder.url(this.href)
-  for ((key, value) in this.headers.toMap()) {
-    httpRequestBuilder.headers.append(key, value)
+  httpRequestBuilder.fromPureClientRequest(this)
+}
+
+fun HttpRequestBuilder.fromPureClientRequest(pureRequest: PureClientRequest) {
+  this.method = HttpMethod.parse(pureRequest.method.name)
+  this.url(pureRequest.href)
+//  this.url.protocol = pureRequest.url.protocol
+//  this.url.port = url.protocol.defaultPort
+
+  for ((key, value) in pureRequest.headers.toMap()) {
+    this.headers.append(key, value)
   }
   // get请求不能传递body，否则iOS会报错：GET method must not have a body
-  if (this.method != PureMethod.GET) {
-    httpRequestBuilder.setBody(this.body.toPureStream().getReader("toHttpRequestBuilder"))
+  if (pureRequest.method != PureMethod.GET) {
+    this.setBody(pureRequest.body.toPureStream().getReader("toHttpRequestBuilder"))
   }
 }
 

@@ -10,13 +10,11 @@ kotlin {
       api(libs.ktor.io)
     }
   }
-  kmpAndroidTarget(project)
-  kmpIosTarget(project)
-  val commonJsMain by sourceSets.creating {
-    dependsOn(sourceSets.commonMain.get())
-  }
 
+  kmpAndroidTarget(project) {
+  }
+  kmpIosTarget(project) {
+  }
   kmpNodeJsTarget(project) {
-    dependsOn(commonJsMain)
   }
 }

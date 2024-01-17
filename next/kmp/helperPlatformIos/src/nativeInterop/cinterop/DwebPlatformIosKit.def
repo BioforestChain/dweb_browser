@@ -1,9 +1,0 @@
-language = Objective-C
-modules = DwebPlatformIosKit
-package = org.dweb_browser.helper.platform.ios
----
-#import <Foundation/Foundation.h>
-
-@protocol KeyValueObserver
-- (void)observeValueForKeyPath:(nullable NSString *)keyPath ofObject:(nullable id)object change:(nullable NSDictionary<NSKeyValueChangeKey, id> *)change context:(nullable void *)context;
-@end

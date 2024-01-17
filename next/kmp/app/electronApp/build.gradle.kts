@@ -23,7 +23,6 @@ kotlin {
       implementation(libs.kotlinx.atomicfu)
       implementation(libs.kotlinx.io)
 
-      implementation(project.dependencies.enforcedPlatform(libs.kotlin.wrappers.bom))
       implementation(libs.kotlin.js)
       implementation(libs.kotlin.electron)
 

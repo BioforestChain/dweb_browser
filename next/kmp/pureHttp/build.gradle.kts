@@ -8,40 +8,38 @@ kotlin {
       implementation(projects.helper)
       implementation(projects.helperPlatform)
     }
-  }
-  applyDefaultHierarchyTemplate {
-    common {
-      group("ktor") {
-        withAndroidTarget()
-        withIos()
+    applyHierarchy {
+      common {
+        group("ktor") {
+          withAndroidTarget()
+          withIosTarget()
+        }
       }
     }
   }
+
   val ktorMain by sourceSets.creating {
     dependencies {
-      api(libs.ktor.http)
-      api(libs.ktor.client.cio)
-      api(libs.ktor.client.encoding)
+      implementation(libs.ktor.http)
+      implementation(libs.ktor.server.core)
+      implementation(libs.ktor.client.encoding)
 
       implementation(libs.ktor.io)
-      implementation(libs.ktor.server.websockets)
       implementation(libs.ktor.server.cio)
+      implementation(libs.ktor.server.websockets)
     }
   }
   kmpAndroidTarget(project) {
+    dependencies {
+      implementation(libs.ktor.client.cio)
+    }
   }
   kmpIosTarget(project) {
+    dependencies {
+      implementation(libs.ktor.client.darwin)
+    }
   }
   kmpNodeJsTarget(project) {
-//    dependsOn(ktorMain)
+
   }
 }
-
-android {
-  namespace = "org.dweb_browser.pure.http"
-  compileSdk = libs.versions.compileSdkVersion.get().toInt()
-  defaultConfig {
-    minSdk = libs.versions.minSdkVersion.get().toInt()
-  }
-}
-

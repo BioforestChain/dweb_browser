@@ -7,7 +7,6 @@ plugins {
 }
 
 kotlin {
-
   kmpComposeTarget(project) {
     dependencies {
       implementation(projects.shared)
@@ -35,7 +34,6 @@ kotlin {
       implementation(libs.compose.ui.preview)
     }
   }
-  kmpIosTarget(project)
 }
 android {
   namespace = "info.bagen.dwebbrowser"

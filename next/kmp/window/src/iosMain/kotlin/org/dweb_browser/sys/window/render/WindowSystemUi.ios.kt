@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
-import org.dweb_browser.helper.platform.ios.SecureViewController
+import org.dweb_browser.platform.ios.SecureViewController
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.watchedState

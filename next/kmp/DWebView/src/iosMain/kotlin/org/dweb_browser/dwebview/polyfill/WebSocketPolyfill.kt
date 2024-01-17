@@ -1,15 +1,11 @@
 package org.dweb_browser.dwebview.polyfill
 
-import io.ktor.client.plugins.websocket.ws
 import io.ktor.websocket.CloseReason
 import io.ktor.websocket.Frame
-import io.ktor.websocket.FrameType
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
-import io.ktor.websocket.readReason
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.http.FinData
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.std.dns.httpFetch
 import org.dweb_browser.dwebview.engine.DWebViewEngine
@@ -19,6 +15,9 @@ import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toKString
 import org.dweb_browser.helper.toNSString
+import org.dweb_browser.pure.http.PureBinaryFrame
+import org.dweb_browser.pure.http.PureTextFrame
+import org.dweb_browser.pure.http.websocket
 import platform.Foundation.NSArray
 import platform.Foundation.NSNumber
 import platform.Foundation.NSString
@@ -61,37 +60,16 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
             "connect" -> engine.ioScope.launch {
               try {
                 val url = (message.objectAtIndex(2u) as NSString).toKString()
-                httpFetch.client.ws("ws://127.0.0.1:${dwebHttpGatewayServer.startServer()}?X-Dweb-Url=${url.encodeURIComponent()}") {
-                  wsMap[wsId] = this@ws
-                  val opened = launch { sendOpen(wsId) }
-                  val finBinary =
-                    FinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
-                  val finText =
-                    FinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
-                  for (frame in incoming) {
-                    if (!opened.isCompleted) {
-                      opened.join()
-                    }
-                    debugIosWebSocket("incoming") { "wsId=$wsId frame=$frame" }
-
-                    when (frame.frameType) {
-                      FrameType.BINARY -> finBinary.append(frame.data, frame.fin)?.also {
-                        sendBinaryMessage(wsId, it)
-                      }
-
-                      FrameType.TEXT -> finText.append(frame.data, frame.fin)?.also {
-                        sendTextMessage(wsId, it.decodeToString())
-                      }
-
-                      FrameType.CLOSE -> (frame as Frame.Close).readReason().also { reason ->
-                        sendClose(wsId, reason?.code, reason?.message)
-                      }
-
-                      else -> {}
+                val pureChannel =
+                  httpFetch.client.websocket("ws://127.0.0.1:${dwebHttpGatewayServer.startServer()}?X-Dweb-Url=${url.encodeURIComponent()}")
+                pureChannel.start().apply {
+                  for (frame in income) {
+                    when (frame) {
+                      is PureBinaryFrame -> sendBinaryMessage(wsId, frame.data)
+                      is PureTextFrame -> sendTextMessage(wsId, frame.data)
                     }
                   }
-                  sendClose(wsId, null, null)
-                  debugIosWebSocket("ws-close") { "wsId=$wsId" }
+                  sendClose(wsId)
                 }
               } catch (e: Throwable) {
                 sendError(wsId, e)
@@ -173,7 +151,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
 
   private suspend fun sendOpen(wsId: Int) = sendMessage(wsId, "open")
   private suspend fun sendError(wsId: Int, e: Throwable) = sendMessage(wsId, "error", e.message)
-  private suspend fun sendClose(wsId: Int, code: Short?, reason: String?) =
+  private suspend fun sendClose(wsId: Int, code: Short? = null, reason: String? = null) =
     sendMessage(wsId, "close", code?.toString(), reason)
 
   private suspend fun sendTextMessage(wsId: Int, data: String) =

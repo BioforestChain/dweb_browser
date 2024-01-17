@@ -75,16 +75,6 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   val multiWebViewNMM = MultiWebViewNMM().setup()
   val httpNMM = HttpNMM().also { it ->
     dnsNMM.install(it)
-    /// 自定义 httpClient 的缓存
-    HttpClient(getKtorClientEngine()) {
-      install(HttpTimeout) {
-        // requestTimeoutMillis = 600_000L
-        connectTimeoutMillis = 5000L
-      }
-      install(WebSockets)
-    }.also { client ->
-      nativeFetchAdaptersManager.setClientProvider(client)
-    }
   }
 
   /// 下载功能

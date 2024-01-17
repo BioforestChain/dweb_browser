@@ -15,7 +15,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.NSInputStreamToByteReadChannel
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.platform.NSDataHelper.toNSData
-import org.dweb_browser.helper.platform.ios.URLSchemeTaskHelper
+import org.dweb_browser.platform.ios.URLSchemeTaskHelper
 import platform.Foundation.HTTPBodyStream
 import platform.Foundation.HTTPMethod
 import platform.Foundation.NSData

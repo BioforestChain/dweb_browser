@@ -3,7 +3,7 @@ package org.dweb_browser.dwebview.engine
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.platform.ios.KeyValueObserverProtocol
+import org.dweb_browser.platform.ios.KeyValueObserverProtocol
 import platform.Foundation.NSKeyValueObservingOptionNew
 import platform.Foundation.NSNumber
 import platform.Foundation.addObserver

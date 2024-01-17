@@ -1,64 +1,42 @@
 package org.dweb_browser.pure.image.offscreenwebcanvas
 
-import io.ktor.client.HttpClient
-import io.ktor.client.request.header
-import io.ktor.client.request.prepareGet
-import io.ktor.client.statement.bodyAsChannel
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.response.ResponseHeaders
-import io.ktor.server.response.appendIfAbsent
-import io.ktor.server.response.header
-import io.ktor.server.response.respondBytesWriter
-import io.ktor.server.util.getOrFail
-import io.ktor.util.flattenEntries
-import io.ktor.utils.io.copyAndClose
-import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.HttpPureClient
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.PureStream
-import org.dweb_browser.pure.http.engine.httpFetcher
+import org.dweb_browser.pure.http.PureServerRequest
+import org.dweb_browser.pure.http.fetch
 
 /**
  * 网络请求的代理器，因为web中有各种安全性限制，所以这里使用原生的无限制的网络请求提供一个代理
  */
-internal class OffscreenWebCanvasFetchProxy(private val client: HttpClient = httpFetcher) {
-  suspend fun proxy(call: ApplicationCall) {
-    val proxyUrl = call.request.queryParameters.getOrFail("url")
+internal class OffscreenWebCanvasFetchProxy(private val client: HttpPureClient = HttpPureClient()) {
+  suspend fun proxy(request: PureServerRequest): PureResponse {
+    val proxyUrl = request.query("url")
     val hook = hooksMap[proxyUrl]?.last()
-    if (hook != null) {
-      val hookReturn = FetchHookContext(
-        PureClientRequest(
-          proxyUrl,
-          PureMethod.GET,
-          PureHeaders(call.request.headers.flattenEntries().removeOriginAndAcceptEncoding()),
-          IPureBody.from(PureStream(call.request.receiveChannel()))
-        ),
-      ) { res ->
-        if (res == null) {
-          return@FetchHookContext FetchHookReturn.Base
-        }
-        for ((key, value) in res.headers.toList().removeCorsAndContentEncoding()) {
-          call.response.header(key, value)
-        }
-        call.response.headers.forceCors()
-        call.respondBytesWriter(status = res.status) {
-          res.body.toPureStream().getReader("respondBytesWriter").copyAndClose(this)
-        }
-        FetchHookReturn.Hooked
-      }.hook()
-      if (hookReturn == FetchHookReturn.Base) {
-        defaultProxy(proxyUrl, call)
-      }
-    } else defaultProxy(proxyUrl, call)
+    val response =
+      hook?.let {
+        FetchHookContext(
+          PureServerRequest(
+            proxyUrl,
+            PureMethod.GET,
+            PureHeaders(request.headers.toList().removeOriginAndAcceptEncoding()),
+            request.body
+          ),
+        ).it()
+      } ?: defaultProxy(proxyUrl, request);
+
+    return response.copy(
+      headers = PureHeaders(
+        response.headers.toList().removeOriginAndAcceptEncoding()
+      ).apply { forceCors() })
   }
 
-  private fun ResponseHeaders.forceCors() {
-    appendIfAbsent("Access-Control-Allow-Credentials", "true")
-    appendIfAbsent("Access-Control-Allow-Origin", "*")
-    appendIfAbsent("Access-Control-Allow-Headers", "*")
-    appendIfAbsent("Access-Control-Allow-Methods", "*")
+  private fun PureHeaders.forceCors() {
+    init("Access-Control-Allow-Credentials", "true")
+    init("Access-Control-Allow-Origin", "*")
+    init("Access-Control-Allow-Headers", "*")
+    init("Access-Control-Allow-Methods", "*")
   }
 
   private fun List<Pair<String, String>>.removeOriginAndAcceptEncoding() = filter { (key) ->
@@ -76,24 +54,13 @@ internal class OffscreenWebCanvasFetchProxy(private val client: HttpClient = htt
   }
 
 
-  private suspend fun defaultProxy(proxyUrl: String, call: ApplicationCall) {
-    call.request.receiveChannel()
-    client.prepareGet(proxyUrl) {
-      for ((key, values) in call.request.headers.flattenEntries().removeOriginAndAcceptEncoding()) {
-        header(key, values)
-      }
-    }.execute { proxyResponse ->
-      call.response.headers.apply {
-        for ((key, value) in proxyResponse.headers.flattenEntries()
-          .removeCorsAndContentEncoding()) {
-          append(key, value)
-        }
-        forceCors()
-      }
-      call.respondBytesWriter(status = proxyResponse.status) {
-        proxyResponse.bodyAsChannel().copyAndClose(this)
-      }
-    }
+  private suspend fun defaultProxy(proxyUrl: String, request: PureServerRequest): PureResponse {
+    val response = client.fetch(
+      url = proxyUrl,
+      headers = PureHeaders(request.headers.toList().removeOriginAndAcceptEncoding()),
+      body = request.body
+    );
+    return response
   }
 
   private val hooksMap = mutableMapOf<String, MutableList<FetchHook>>()
@@ -110,7 +77,7 @@ internal class OffscreenWebCanvasFetchProxy(private val client: HttpClient = htt
 }
 
 data class FetchHookContext(
-  val request: PureClientRequest, val returnResponse: suspend (PureResponse?) -> FetchHookReturn
+  val request: PureServerRequest,
 )
 
 enum class FetchHookReturn {
@@ -121,4 +88,4 @@ enum class FetchHookReturn {
  * 这里使用异步调函数而不是直接返回FetchResponse，目的是使用异步回调函数来传递生命周期的概念，在调用returnBlock结束后，FetchHook可以对一些引用资源进行释放。
  * 这样就可以一些不必要的内存减少拷贝
  */
-typealias FetchHook = suspend FetchHookContext.() -> FetchHookReturn
+typealias FetchHook = suspend FetchHookContext.() -> PureResponse?

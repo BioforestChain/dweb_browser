@@ -46,28 +46,33 @@ fun includeUI(dirName: String) {
   }
 }
 
+include(":platformIos")
+include(":platformNode")
+include(":platformBrowser")
+
+
+include(":shared")
+include(":helper")
+include(":helperCompose")
+include(":helperPlatform")
+include(":pureHttp")
+include(":pureIO")
+include(":pureCrypto")
+include(":pureImage")
+include(":window")
+include(":core")
+include(":DWebView")
+include(":browser")
+include(":sys")
+
+includeUI("pureCrypto")
+includeUI("helper")
+
 includeApp("androidApp")
 includeApp("electronApp")
 includeApp("jsFrontend")
 includeApp("jsBackend")
-include(
-  ":shared",
-  ":helper",
-  ":helperCompose",
-  ":helperPlatform",
-  ":helperPlatformIos",
-  ":pureHttp",
-  ":pureIO",
-  ":pureCrypto",
-  ":pureImage",
-  ":window",
-  ":core",
-  ":DWebView",
-  ":browser",
-  ":sys"
-)
-includeUI("pureCrypto")
-includeUI("helper")
+
 File(rootDir, "../../toolkit/dweb_browser_libs/rust_library").eachDir { dir ->
   if (File(dir, "build.gradle.kts").exists()) {
     include(dir.name)

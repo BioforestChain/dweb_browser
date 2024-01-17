@@ -1,0 +1,3 @@
+language = Objective-C
+modules = DwebWebBrowser
+package = org.dweb_browser.platform.ios_browser

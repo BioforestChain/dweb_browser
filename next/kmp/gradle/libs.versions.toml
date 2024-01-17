@@ -47,7 +47,6 @@ camera-version = "1.4.0-alpha03"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
 jetbrains-compose-version = "1.5.11"
-kotlin-wrappers-bom = "1.0.0-pre.684"
 
 # 测试
 test-junit-bom = "5.9.2"
@@ -146,12 +145,11 @@ ktor-io-wasm = { group = "io.ktor", name = "ktor-io", version.ref = "ktor-wasm-v
 ktor-http-wasm = { group = "io.ktor", name = "ktor-http", version.ref = "ktor-wasm-version" }
 
 # JavaScript
-kotlin-wrappers-bom = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-wrappers-bom", version.ref = "kotlin-wrappers-bom" }
-kotlin-js = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-js" }
-kotlin-browser = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-browser" }
-kotlin-web = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-web" }
-kotlin-node = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-node" }
-kotlin-electron = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-electron" }
+kotlin-js = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-js", version = "1.0.0-pre.685" }
+kotlin-browser = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-browser", version = "1.0.0-pre.685" }
+kotlin-web = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-web", version = "1.0.0-pre.685" }
+kotlin-node = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-node", version = "18.16.12-pre.685" }
+kotlin-electron = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-electron", version = "24.6.3-pre.685" }
 
 
 accompanist-webview = { group = "com.google.accompanist", name = "accompanist-webview", version.ref = "accompanist" }

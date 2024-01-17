@@ -26,7 +26,7 @@ fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   }
 }
 
-open class KmpJsTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpCommonTargetDsl(kmpe) {
+open class KmpJsTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(kmpe) {
   internal val configureJsList = mutableSetOf<KotlinJsTargetDsl.() -> Unit>()
   val js = configureJsList::add
 }
@@ -58,11 +58,7 @@ fun KotlinMultiplatformExtension.kmpBrowserJsTarget(
 
   val browserMain = sourceSets.getByName("browserMain") {
     dependencies {
-      implementation(libs.kotlinx.html)
-      implementation(project.dependencies.enforcedPlatform(libs.kotlin.wrappers.bom))
-      implementation(libs.kotlin.js)
-      implementation(libs.kotlin.web)
-      implementation(libs.kotlin.browser)
+      implementationPlatform("Browser")
     }
   }
   val browserTest = sourceSets.getByName("browserTest") {
@@ -99,10 +95,7 @@ fun KotlinMultiplatformExtension.kmpNodeJsTarget(
   }
   val nodeMain = sourceSets.getByName("nodeMain") {
     dependencies {
-      implementation(libs.kotlinx.html)
-      implementation(project.dependencies.enforcedPlatform(libs.kotlin.wrappers.bom))
-      implementation(libs.kotlin.js)
-      implementation(libs.kotlin.node)
+      implementationPlatform("Node")
     }
   }
   val nodeTest = sourceSets.getByName("nodeTest") {
@@ -112,7 +105,7 @@ fun KotlinMultiplatformExtension.kmpNodeJsTarget(
   dsl.provides(nodeMain, nodeTest)
 }
 
-class KmpNodeWasmTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpCommonTargetDsl(kmpe) {
+class KmpNodeWasmTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(kmpe) {
   internal val configureJsList = mutableSetOf<KotlinJsTargetDsl.() -> Unit>()
   val js = configureJsList::add
 }
@@ -210,7 +203,7 @@ fun KotlinSourceSet.autoLink(): KotlinSourceSet {
   return this
 }
 
-open class KmpCommonTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
+open class KmpBaseTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
   internal val dependsOnList = mutableSetOf<KotlinSourceSet>()
   val dependsOn = dependsOnList::add
   internal val configureDependencyList = mutableSetOf<KotlinDependencyHandler.() -> Unit>()
@@ -224,8 +217,6 @@ open class KmpCommonTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
     /// TODO 这里要做成允许声明式的支持，就是不论 provides 和 whenProvides 的执行顺序，它们一定会交集在一起
     private val whenProvideCallbacks =
       mutableMapOf<KotlinMultiplatformExtension, MutableSet<WhenProvideCallback>>()
-
-    val defaultConfigure: KmpCommonTargetConfigure = {}
 
   }
 
@@ -265,6 +256,13 @@ open class KmpCommonTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
 
 }
 
+fun KotlinDependencyHandler.implementationPlatform(platformName: String) {
+  val projectName = "platform$platformName"
+  if (project.name != projectName) {
+    implementation(project(":$projectName"))
+  }
+}
+
 val configuredCommonProjects = mutableMapOf<Project, KmpCommonTargetConfigure>()
 fun KotlinDependencyHandler.implementationCommonMain(libs: LibrariesForLibs) {
   implementation(kotlin("stdlib"))
@@ -276,11 +274,31 @@ fun KotlinDependencyHandler.implementationCommonMain(libs: LibrariesForLibs) {
   implementation(libs.kotlin.serialization.cbor)
 }
 
+
+class KmpCommonTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(kmpe) {
+  companion object {
+    val defaultConfigure: KmpCommonTargetConfigure = {}
+  }
+
+  internal val applyHierarchySets =
+    mutableSetOf<org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.Root.() -> Unit>()
+  val applyHierarchy = applyHierarchySets::add
+
+  fun org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.withIosTarget() {
+    group("native") {
+      withIos()
+    }
+  }
+}
+
 fun KotlinMultiplatformExtension.kmpCommonTarget(
   project: Project,
   configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure
 ) {
-  if (configuredCommonProjects[project] == configure) {
+  if (configuredCommonProjects[project].let {
+      configure == it || (configure == KmpCommonTargetDsl.defaultConfigure && it != null)
+    }
+  ) {
     return
   }
   configuredCommonProjects[project] = configure
@@ -299,13 +317,16 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
     implementation(libs.test.kotlin.coroutines.test)
     implementation(libs.test.kotlin.coroutines.debug)
   }
-  applyDefaultHierarchyTemplate()
+  applyDefaultHierarchyTemplate {
+    dsl.applyHierarchySets.forEach { it() }
+  }
 
   if (project.extensions.findByName("android") != null) {
     // LibraryExtension or BaseApplicationExtension
     project.extensions.configure<com.android.build.api.dsl.CommonExtension<*, *, *, *, *>>("android") {
       namespace =
         "org.dweb_browser.${project.name.replace(Regex("[A-Z]+")) { "." + it.value.lowercase() }}"
+      println("namespace: $namespace")
       compileSdk = libs.versions.compileSdkVersion.get().toInt()
       defaultConfig {
         minSdk = libs.versions.minSdkVersion.get().toInt()
@@ -323,7 +344,7 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
   }
 }
 
-class KmpComposeTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpCommonTargetDsl(kmpe) {
+class KmpComposeTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(kmpe) {
 }
 
 fun KotlinMultiplatformExtension.kmpComposeTarget(
@@ -364,7 +385,7 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
   }
 }
 
-class KmpAndroidTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpCommonTargetDsl(kmpe) {
+class KmpAndroidTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(kmpe) {
   internal val instrumentedTestDependsOnList = mutableSetOf<KotlinSourceSet>()
   val instrumentedTestDependsOn = instrumentedTestDependsOnList::add
   internal val configureInstrumentedTestDependencyList =
@@ -397,7 +418,7 @@ fun KotlinMultiplatformExtension.kmpAndroidTarget(
   }
 }
 
-class KmpIosTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpCommonTargetDsl(kmpe) {
+class KmpIosTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(kmpe) {
 }
 
 fun KotlinMultiplatformExtension.kmpIosTarget(
@@ -409,6 +430,9 @@ fun KotlinMultiplatformExtension.kmpIosTarget(
   dsl.configure()
 
   kmpCommonTarget(project)
+  sourceSets.iosMain.dependencies {
+    implementationPlatform("Ios")
+  }
   dsl.provides(sourceSets.iosMain, sourceSets.iosTest)
 
   targets.all {

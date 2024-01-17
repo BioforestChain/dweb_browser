@@ -694,10 +694,7 @@ fun WindowController.IconRender(
     iconMonochrome = iconMonochrome,
     iconMaskable = iconMaskable,
     iconFetchHook = microModule?.let { mm ->
-      return@let {
-        val response = mm.nativeFetch(request.url)
-        returnResponse(response)
-      }
+      return@let { mm.nativeFetch(request.url) }
     })
 }
 

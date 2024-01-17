@@ -16,12 +16,10 @@ import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.DnsNMM
-import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.helper.addDebugTags
-import org.dweb_browser.pure.http.engine.getKtorClientEngine
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
 import org.dweb_browser.sys.mediacapture.MediaCaptureNMM
@@ -87,16 +85,6 @@ suspend fun startDwebBrowser(): DnsNMM {
   val multiWebViewNMM = MultiWebViewNMM().setup()
   val httpNMM = HttpNMM().also { it ->
     dnsNMM.install(it)
-    /// 自定义 httpClient 的缓存
-    HttpClient(getKtorClientEngine()) {
-      install(HttpTimeout) {
-        // requestTimeoutMillis = 600_000L
-        connectTimeoutMillis = 5000L
-      }
-      install(WebSockets)
-    }.also { client ->
-      nativeFetchAdaptersManager.setClientProvider(client)
-    }
   }
 
   /// 安装系统桌面

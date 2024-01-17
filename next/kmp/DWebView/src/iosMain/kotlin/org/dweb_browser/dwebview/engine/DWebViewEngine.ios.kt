@@ -36,8 +36,8 @@ import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.helper.platform.ios.DwebHelper
-import org.dweb_browser.helper.platform.ios.DwebWKWebView
+import org.dweb_browser.platform.ios.DwebHelper
+import org.dweb_browser.platform.ios.DwebWKWebView
 import org.dweb_browser.helper.toIosUIEdgeInsets
 import org.dweb_browser.helper.withMainContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi

@@ -1,7 +1,5 @@
 package org.dweb_browser.core.std.http
 
-import io.ktor.client.plugins.websocket.ws
-import io.ktor.client.plugins.websocket.wss
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
@@ -10,15 +8,9 @@ import io.ktor.http.Url
 import io.ktor.http.fullPath
 import io.ktor.http.protocolWithAuthority
 import io.ktor.util.decodeBase64String
-import io.ktor.utils.io.reader
-import io.ktor.websocket.Frame
-import io.ktor.websocket.FrameType
-import io.ktor.websocket.readBytes
-import io.ktor.websocket.readText
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.dweb_browser.pure.http.isWebSocket
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.by
@@ -42,6 +34,7 @@ import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
@@ -50,7 +43,10 @@ import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.pure.http.PureStringBody
+import org.dweb_browser.pure.http.PureTextFrame
+import org.dweb_browser.pure.http.isWebSocket
 import org.dweb_browser.pure.http.queryAs
+import org.dweb_browser.pure.http.websocket
 import kotlin.random.Random
 
 val debugHttp = Debugger("http")
@@ -227,46 +223,18 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         }
 
         when (protocol) {
-          URLProtocol.WS -> {
-            httpFetch.client.ws(rawUrl) {
-              reader {
-                for (frame in incoming) {
-                  when (frame.frameType) {
-                    FrameType.TEXT -> {
-                      ctx.sendText((frame as Frame.Text).readText())
-                    }
-
-                    FrameType.BINARY -> {
-                      ctx.sendBinary((frame as Frame.Binary).readBytes())
-                    }
-
-                    else -> {}
-                  }
-                }
-              }
-            }
-          }
-
-          URLProtocol.WSS -> {
-            httpFetch.client.wss(rawUrl) {
-              reader {
-                for (frame in incoming) {
-                  when (frame.frameType) {
-                    FrameType.TEXT -> {
-                      ctx.sendText((frame as Frame.Text).readText())
-                    }
-
-                    FrameType.BINARY -> {
-                      ctx.sendBinary((frame as Frame.Binary).readBytes())
-                    }
-
-                    else -> {}
-                  }
+          URLProtocol.WS, URLProtocol.WSS -> {
+            httpFetch.client.websocket(rawUrl).start().apply {
+              for (frame in income) {
+                when (frame) {
+                  is PureBinaryFrame -> ctx.sendBinary(frame.data)
+                  is PureTextFrame -> ctx.sendText(frame.data)
                 }
               }
             }
           }
         }
+        ctx.close(null, null)
       },
       "/fetch" by definePureResponse {
         val url = Url(request.query("url"))

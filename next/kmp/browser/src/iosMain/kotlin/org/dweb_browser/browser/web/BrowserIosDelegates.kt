@@ -16,14 +16,14 @@ import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
 import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import platform.Foundation.NSData
 import platform.UIKit.UIImage
-import org.dweb_browser.helper.platform.ios_browser.WebBrowserViewDelegateProtocol
-import org.dweb_browser.helper.platform.ios_browser.WebBrowserViewDataSourceProtocol
+import org.dweb_browser.platform.ios_browser.WebBrowserViewDelegateProtocol
+import org.dweb_browser.platform.ios_browser.WebBrowserViewDataSourceProtocol
 import platform.Foundation.NSError
 import platform.posix.int32_t
 import platform.posix.int64_t
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
-import org.dweb_browser.helper.platform.ios_browser.WebBrowserViewSiteData
+import org.dweb_browser.platform.ios_browser.WebBrowserViewSiteData
 import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.UIKit.UIScreen
 import platform.WebKit.WKWebViewConfiguration

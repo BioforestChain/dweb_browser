@@ -10,7 +10,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.platform.ios.DwebLocationRequestApi
+import org.dweb_browser.platform.ios.DwebLocationRequestApi
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName

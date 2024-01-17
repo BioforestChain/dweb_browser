@@ -1,2 +1,3 @@
 - [kotlinCompilerExtensionVersion](https://androidx.dev/storage/compose-compiler/repository)
 - [compose-bom](https://developer.android.com/jetpack/compose/bom/bom-mapping)
+- [kotlin-wrappers](https://mvnrepository.com/artifact/org.jetbrains.kotlin-wrappers/kotlin-wrappers-bom/) 

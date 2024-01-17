@@ -8,7 +8,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.dweb_browser.core.help.buildRequestX
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.IpcRequestInit
 import org.dweb_browser.core.ipc.debugIpc
@@ -26,6 +25,7 @@ import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.pure.http.buildRequestX
 import kotlin.coroutines.coroutineContext
 
 
