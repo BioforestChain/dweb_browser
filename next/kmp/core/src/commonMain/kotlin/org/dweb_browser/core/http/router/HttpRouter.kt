@@ -46,16 +46,12 @@ class HttpRouter(private val mm: MicroModule, val host: String) {
 
   private suspend fun checkPermission(permissions: List<PERMISSION_ID>, mmid: MMID) =
     checkLock.withLock {
-      var status = getPermissionStatus(permissions, mmid)
-      if (status.size != permissions.size || (status.any { it != AuthorizationStatus.GRANTED })) {
-        mmidPermissionStatus = mm.nativeFetch(
-          "file://permission.std.dweb/query?permissions=${
-            mm.dweb_permissions.joinToString(",") { it.pid.toString() }
-          }"
-        ).json()
-        status = getPermissionStatus(permissions, mmid)
-      }
-      !(status.any { it != AuthorizationStatus.GRANTED })
+      // 由于 permission.std.dweb 有权限设置界面（也就是后台权限管理），所以需要每次判断都强制请求最新数据
+      mmidPermissionStatus = mm.nativeFetch(
+        "file://permission.std.dweb/query?permissions=${permissions.joinToString(",")}"
+      ).json()
+      val status = getPermissionStatus(permissions, mmid)
+      !(status.any { it != AuthorizationStatus.GRANTED }) // 如果有任何权限是非授权的，返回 false
     }
 
   suspend fun addRoutes(vararg list: RouteHandler) {
@@ -70,10 +66,10 @@ class HttpRouter(private val mm: MicroModule, val host: String) {
         }.map { it.pid.toString() }
       routes[routeHandler.route] = if (permissionIds.isNotEmpty()) {
         HttpHandlerChain {
-          if (!checkPermission(permissionIds, ipc.remote.mmid)) {
+          if (!checkPermission(permissionIds, ipc.remote.mmid)) { // permissionIds 包含了 dweb_permissions 中所有的需要授权的 pid 列表
             return@HttpHandlerChain PureResponse(
               HttpStatusCode.Unauthorized,
-              body = IPureBody.Companion.from(permissionIds.joinToString(","))
+              body = IPureBody.Companion.from(permissionIds.joinToString(",")) // 返回需要授权的 permissionIds
             )
           }
           /// 原始响应

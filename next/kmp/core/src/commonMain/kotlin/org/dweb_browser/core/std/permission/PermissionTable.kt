@@ -1,10 +1,9 @@
 package org.dweb_browser.core.std.permission
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
+import androidx.compose.runtime.remember
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -22,14 +21,9 @@ class PermissionTable(private val nmm: NativeMicroModule) {
    *
    * 这里跟着 PERMISSION_ID 走，应用在被卸载的时候，它对别人的授权记录会被删除，但是别人对它的授权记录还是保留
    */
-  private val store = nmm.createStore("authorization", true)
-  private val authorizationMap = mutableMapOf<PERMISSION_ID, MutableMap<
-      /** applicantMmid */
-      MMID, AuthorizationRecord>>()
-  private val authorizationMapChangeFlow = MutableStateFlow(0);
-  private suspend fun emitAuthorizationMapChange() {
-    authorizationMapChangeFlow.emit(authorizationMapChangeFlow.value + 1)
-  }
+  private val permissionStore = nmm.createStore("authorization", false)
+  private val authorizationMap =
+    mutableStateMapOf<PERMISSION_ID, MutableMap<MMID/* applicantMmid */, AuthorizationRecord>>()
 
   class PermissionRow(
     val permissionId: PERMISSION_ID,
@@ -38,10 +32,10 @@ class PermissionTable(private val nmm: NativeMicroModule) {
   )
 
   @Composable
-  fun AllData(): List<PermissionRow> {
+  fun AllData(): MutableList<PermissionRow> {
     // 订阅变动
-    authorizationMapChangeFlow.collectAsState(Unit, rememberCoroutineScope().coroutineContext).value
-    val all = mutableListOf<PermissionRow>()
+    val all = remember { mutableStateListOf<PermissionRow>() }
+    all.clear()
     for ((permissionId, map) in authorizationMap) {
       for ((applicantMmid, record) in map) {
         all += PermissionRow(permissionId, applicantMmid, record)
@@ -50,17 +44,14 @@ class PermissionTable(private val nmm: NativeMicroModule) {
     return all
   }
 
-  private suspend fun queryMicroModule(mmid: MMID) = nmm.bootstrapContext.dns.query(mmid)
-
   private val lock = Mutex(true)
 
   init {
     nmm.ioAsyncScope.launch {
-      for ((pid, recordMap) in store.getAll<MutableMap<MMID, AuthorizationRecord>>()) {
+      for ((pid, recordMap) in permissionStore.getAll<MutableMap<MMID, AuthorizationRecord>>()) {
         authorizationMap[pid] =
           mutableStateMapOf(*recordMap.map { it.key to it.value }.toTypedArray())
       }
-      emitAuthorizationMapChange()
       lock.unlock()
     }
   }
@@ -68,8 +59,7 @@ class PermissionTable(private val nmm: NativeMicroModule) {
   suspend fun addRecord(record: AuthorizationRecord) = lock.withLock {
     val recordMap = authorizationMap.getOrPut(record.pid) { mutableStateMapOf() }
     recordMap[record.applicantMmid] = record
-    emitAuthorizationMapChange()
-    store.set(record.pid, recordMap)
+    permissionStore.set(record.pid, recordMap)
   }
 
   suspend fun removeRecord(providerMmid: MMID, pid: PERMISSION_ID, applicantMmid: MMID) =
@@ -82,11 +72,10 @@ class PermissionTable(private val nmm: NativeMicroModule) {
       recordMap.remove(applicantMmid)
 
       if (recordMap.isEmpty()) {
-        store.delete(pid)
+        permissionStore.delete(pid)
       } else {
-        store.set(pid, recordMap)
+        permissionStore.set(pid, recordMap)
       }
-      emitAuthorizationMapChange()
       true
     }
 

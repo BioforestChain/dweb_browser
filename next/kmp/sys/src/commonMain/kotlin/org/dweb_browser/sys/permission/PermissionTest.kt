@@ -81,7 +81,7 @@ class PermissionApplicantTMM :
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     onRenderer {
-      val win = getMainWindow()
+      val win = getMainWindow().also { it.maximize() }
       win.state.setFromManifest(this@PermissionApplicantTMM)
       windowAdapterManager.provideRender(wid) { modifier ->
         Column(modifier) {
@@ -138,6 +138,16 @@ class PermissionApplicantTMM :
               }
             }) {
               Text("系统权限")
+            }
+          }
+          Row(horizontalArrangement = Arrangement.SpaceAround) {
+            ElevatedButton(onClick = {
+              ioAsyncScope.launch {
+                okk =
+                  nativeFetch("file://geolocation.sys.dweb/location").getResult()
+              }
+            }) {
+              Text("定位权限")
             }
           }
           Text(text = okk)

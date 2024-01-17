@@ -71,10 +71,13 @@ class PermissionActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    debugPermission("PermissionActivity", "onCreate enter")
     val androidPermissionTask = intent.getStringExtra(EXTRA_PERMISSION_KEY)?.let {
       Json.decodeFromString<AndroidPermissionTask>(it)
-    } ?: return finish()
+    } ?: run {
+      debugPermission("PermissionActivity", "no found androidPermissionTask...")
+      return finish()
+    }
+    debugPermission("PermissionActivity", "onCreate enter => androidPermissionTask=$androidPermissionTask")
 
     val taskId = intent.getStringExtra(EXTRA_TASK_ID_KEY) ?: return finish()
 

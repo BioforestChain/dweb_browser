@@ -76,7 +76,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
                 null -> AuthorizationStatus.DENIED
                 // 将会询问 hooks，目前先定义为“未知”
                 else -> {
-                  needAskPermissions.add(provider);
+                  needAskPermissions.add(provider)
                   AuthorizationStatus.UNKNOWN
                 }
               }

@@ -89,8 +89,8 @@ object AuthorizationStatusSerializer : StringEnumSerializer<AuthorizationStatus>
 
 @Serializable(AuthorizationStatusSerializer::class)
 enum class AuthorizationStatus(val status: String, val allow: Boolean) {
-  GRANTED("granted", false),//
   UNKNOWN("unknown", false),//
+  GRANTED("granted", false),//
   DENIED("denied", true),//
   ;
 
