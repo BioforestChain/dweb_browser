@@ -9,6 +9,7 @@ import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.dwebview.DwebViewI18nResource
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermissions
@@ -60,16 +61,18 @@ class DWebPermissionRequest(
           }
         }
       }
-      if (responsePermissionsMap.isEmpty()) {
-        request.grant(arrayOf())
-        return@launch
-      }
 
-      val grants = responsePermissionsMap.filterValues { value -> value };
-      if (grants.isEmpty()) {
-        request.deny()
-      } else {
-        request.grant(grants.keys.toTypedArray())
+      withMainContext {
+        if (responsePermissionsMap.isEmpty()) {
+          request.grant(arrayOf())
+        } else {
+          val grants = responsePermissionsMap.filterValues { value -> value }
+          if (grants.isEmpty()) {
+            request.deny()
+          } else {
+            request.grant(grants.keys.toTypedArray())
+          }
+        }
       }
     }
   }
