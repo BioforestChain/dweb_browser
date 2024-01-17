@@ -10,7 +10,9 @@ import SwiftUI
 public struct NetworkGuidView: View {
     private var imageWidth: CGFloat { screen_width - 30 }
     private var imageHeight: CGFloat { imageWidth * CGFloat(85.0 / 117) }
-
+    
+    public init() { }
+    
     public var body: some View {
         ZStack(alignment: .top) {
             Color.bkColor
