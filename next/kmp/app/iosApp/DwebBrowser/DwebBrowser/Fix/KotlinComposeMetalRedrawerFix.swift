@@ -25,13 +25,13 @@ extension CADisplayLink {
     @objc
     func myAdd(to runloop: RunLoop, forMode mode: RunLoop.Mode) {
         let toMode: RunLoop.Mode = isNeedFix ? .common : mode
-        Log("CADisplayLink to: \(runloop) mode:\(mode) fix:\(isNeedFix)")
+//        Log("CADisplayLink to: \(runloop) mode:\(mode) fix:\(isNeedFix)")
         myAdd(to: runloop, forMode: toMode)
     }
     
     @objc
     class func myInit(target:Any, selector:Selector) -> CADisplayLink {
-        Log("CADisplayLink target: \(target) selector:\(selector)")
+//        Log("CADisplayLink target: \(target) selector:\(selector)")
         let result = myInit(target: target, selector: selector)
         if selector == NSSelectorFromString("handleDisplayLinkTick") {
             result.isNeedFix = true

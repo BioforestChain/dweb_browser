@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -16,6 +17,7 @@ import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.platform.ios_browser.DwebWebView
+import org.dweb_browser.helper.platform.ios_browser.browserActiveOn
 import org.dweb_browser.helper.platform.ios_browser.colorSchemeChangedWithColor
 import org.dweb_browser.helper.platform.ios_browser.doSearchWithKey
 import org.dweb_browser.helper.platform.ios_browser.gobackIfCanDo
@@ -25,13 +27,30 @@ import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
 import platform.CoreGraphics.CGRect
 import platform.CoreGraphics.CGRectMake
+import kotlin.experimental.ExperimentalNativeApi
 
 actual fun ImageBitmap.toImageResource(): ImageResource? = null
 actual fun getImageResourceRootPath(): String = ""
 
-private var browserObserver = BrowserIosWinObserver()
+@kotlinx.cinterop.ExperimentalForeignApi
+var iOSViewHolder: DwebWebView? = null
+
+private var browserObserver = BrowserIosWinObserver(::winVisibleChange, ::winClose)
 
 @OptIn(ExperimentalForeignApi::class)
+private fun winClose(): Unit {
+  iOSViewHolder = null
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun winVisibleChange(isVisible: Boolean): Unit {
+  println("mike winVisibleChange")
+  iOSViewHolder?.let {
+    it.browserActiveOn(isVisible)
+  }
+}
+
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 @Composable
 actual fun CommonBrowserView(
   viewModel: BrowserViewModel,
@@ -51,23 +70,24 @@ actual fun CommonBrowserView(
     }
   }
 
-  val iOSView = remember {
-    val frame: CValue<CGRect> = CGRectMake(0.0,0.0,0.0,0.0)
-    val web = DwebWebView(frame, iOSDelegate, iOSDataSource).apply {
-      prepareToKmp()
+  val iOSView = remember<DwebWebView> {
+    var web = iOSViewHolder
+    if (web == null) {
+      val frame: CValue<CGRect> = CGRectMake(0.0, 0.0, 0.0, 0.0)
+      web = DwebWebView(frame, iOSDelegate, iOSDataSource)
+      iOSViewHolder = web
     }
-    web
+    web!!.prepareToKmp()
+    web!!
   }
 
-  iOSDelegate.browserViewModel = viewModel
-  iOSDataSource.browserViewModel = viewModel
-
-  browserObserver.iOSBrowserView = iOSView
   browserObserver.browserViewModel = viewModel
 
-  if (viewModel.dwebLinkSearch.value.isNotEmpty()) {
-    iOSView.doSearchWithKey(viewModel.dwebLinkSearch.value.toString())
-    viewModel.dwebLinkSearch.value = ""
+  key(viewModel.dwebLinkSearch.value) {
+    if (viewModel.dwebLinkSearch.value.isNotEmpty()) {
+      iOSView.doSearchWithKey(viewModel.dwebLinkSearch.value.toString())
+      viewModel.dwebLinkSearch.value = ""
+    }
   }
 
   val win = LocalWindowController.current
@@ -89,6 +109,9 @@ actual fun CommonBrowserView(
     UIKitView(
       factory = {
         iOSView
+      },
+      onRelease = {
+        println("DwebWebView UIKitView onRelease")
       },
       modifier = modifier,
     )

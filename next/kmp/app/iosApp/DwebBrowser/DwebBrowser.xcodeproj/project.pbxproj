@@ -44,7 +44,6 @@
 
 /* Begin PBXFileReference section */
 		1A0D7C84CC71A12D5FCBBF78 /* DwebBrowserApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebBrowserApp.swift; sourceTree = "<group>"; };
-		3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = DwebPlatformIosKit.xcframework; path = ../../helperPlatformIos/src/nativeInterop/cinterop/xcframeworks/DwebPlatformIosKit.xcframework; sourceTree = "<group>"; };
 		4803C00B2B4FF541006B2F79 /* DependencyHeaders.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DependencyHeaders.swift; sourceTree = "<group>"; };
 		4803C0142B4FF846006B2F79 /* DwebDeepLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeepLink.swift; sourceTree = "<group>"; };
 		4803C0162B4FF897006B2F79 /* KotlinComposeMetalRedrawerFix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KotlinComposeMetalRedrawerFix.swift; sourceTree = "<group>"; };
@@ -150,7 +149,6 @@
 				48334DEB2B50D11300399FFF /* DwebBrowserCommon.framework */,
 				4819C2E72B4FEC13001BB45D /* DwebWebBrowser.framework */,
 				4819C2DE2B4FE87A001BB45D /* DwebPlatformIosKit.framework */,
-				3D763C252B075E2A00E1FBE9 /* DwebPlatformIosKit.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

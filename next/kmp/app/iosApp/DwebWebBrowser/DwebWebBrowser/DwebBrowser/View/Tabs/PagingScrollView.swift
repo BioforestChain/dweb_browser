@@ -46,7 +46,7 @@ struct PagingScrollView: View {
                                         .highPriorityGesture(disabledDragGesture)
                                 }
                             }
-                            .frame(height: geometry.size.height - dragScale.addressbarHeight)
+                            .frame(height: max(geometry.size.height - dragScale.addressbarHeight, 0))
                             AddressBar(webCache: cache,
                                        webMonitor: webcacheStore.webWrappers[index].webMonitor,
                                        tabIndex: index,

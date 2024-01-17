@@ -9,8 +9,8 @@ import SwiftUI
 import UIKit
 
 struct BrowserView: View {
-    @StateObject var states = BrowserViewStates.shared
-    @StateObject var toolBarState = BrowserViewStates.shared.toolBarState
+    @ObservedObject var states: BrowserViewStates
+    @ObservedObject var toolBarState: ToolBarState
     var curWebVisible: Bool { states.webcacheStore.cache(at: states.selectedTab.curIndex).shouldShowWeb }
 
     var body: some View {

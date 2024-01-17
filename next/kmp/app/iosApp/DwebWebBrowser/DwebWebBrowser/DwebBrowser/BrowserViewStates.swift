@@ -9,9 +9,7 @@
 import Foundation
 import SwiftUI
 
-class BrowserViewStates: ObservableObject {
-    static let shared = BrowserViewStates()
-    
+class BrowserViewStates: ObservableObject {    
     @Published var selectedTab = SelectedTab()
     @Published var addressBar = AddressBarState()
     @Published var openingLink = OpeningLink()

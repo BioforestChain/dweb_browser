@@ -33,7 +33,13 @@ class SelectedTab: ObservableObject {
 }
 
 class WndDragScale: ObservableObject {
-    @Published var onWidth: CGFloat = 1
+    @Published var onWidth: CGFloat = 1 {
+        didSet {
+            if onWidth < 0 {
+                onWidth = 0
+            }
+        }
+    }
     
     func properValue(floor: CGFloat, ceiling: CGFloat) -> CGFloat{
         min(ceiling, max(floor, ceiling * onWidth))
