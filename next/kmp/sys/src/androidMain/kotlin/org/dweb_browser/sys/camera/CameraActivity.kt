@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowInsetsController
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,6 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CompletableDeferred
@@ -121,6 +124,8 @@ class CameraActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    WindowCompat.setDecorFitsSystemWindows(window, false)
+    window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
       window.decorView.windowInsetsController?.apply {
         hide(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
@@ -167,7 +172,7 @@ class CameraActivity : ComponentActivity() {
         if (showChoose.value) {
           Box(
             modifier = Modifier.fillMaxSize()
-              .background(MaterialTheme.colorScheme.primary)
+              .background(MaterialTheme.colorScheme.primary.copy(0.3f))
               .clickableWithNoEffect { finish() }) {
             Card(
               modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(96.dp)

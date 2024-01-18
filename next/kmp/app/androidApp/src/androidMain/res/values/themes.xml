@@ -1,49 +1,4 @@
 <resources>
-  <!-- Base application theme. -->
-  <style name="Theme.dwebbrowser" parent="Theme.AppCompat.Light.NoActionBar">
-    <!-- Primary brand color. -->
-    <item name="colorPrimary">@color/colorPrimary_light</item>
-    <item name="colorPrimaryVariant">@color/colorPrimaryVariant_light</item>
-    <item name="colorOnPrimary">@color/colorOnPrimary_light</item>
-    <!-- Secondary brand color. -->
-    <item name="colorSecondary">@color/colorSecondary_light</item>
-    <item name="colorSecondaryVariant">@color/colorSecondaryVariant_light</item>
-    <item name="colorOnSecondary">@color/colorOnSecondary_light</item>
-    <!-- Status bar color. -->
-    <item name="android:statusBarColor">@color/colorPrimary_light</item>
-    <!-- Customize your theme here. -->
-    <item name="android:textAllCaps">false</item>
-    <!-- 关闭窗口预览，避免跳转activity时白屏问题 -->
-    <item name="android:windowDisablePreview">true</item>
-    <item name="android:colorAccent">@color/colorPrimary</item>
-  </style>
-
-  <style name="Theme.DwebBrowser.Transparent" parent="Theme.Material3.Light.NoActionBar">
-    <item name="android:windowNoTitle">true</item>
-    <item name="android:windowBackground">@android:color/transparent</item>
-    <item name="android:windowIsTranslucent">true</item>
-    <item name="android:background">@android:color/transparent</item>
-    <item name="android:windowFrame">@null</item>
-    <item name="android:title">null</item>
-    <item name="android:windowContentOverlay">@null</item>
-    <item name="android:backgroundDimEnabled">false</item>
-    <item name="android:windowIsFloating">true</item>
-  </style>
-
-  <style name="OnClick">
-    <item name="android:clickable">true</item>
-    <item name="android:onClick">onClick</item>
-  </style>
-
-  <style name="Theme.dwebbrowser.NoActionBar">
-    <item name="windowActionBar">false</item>
-    <item name="windowNoTitle">true</item>
-  </style>
-
-  <style name="Theme.RustExample.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-  <style name="Theme.RustExample.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
   <!-- Splash启动页Style -->
   <style name="Theme.App.Starting" parent="Theme.SplashScreen">
     <!--启动画面背景颜色-->

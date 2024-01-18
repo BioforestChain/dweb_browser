@@ -166,7 +166,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
     /**
      * 这里 jmm 的对于 request 的默认处理方式是将这些请求直接代理转发出去
-     * TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["camera.sys.dweb"]
+     * TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["media-capture.sys.dweb"]
      */
     jsIpc.onRequest { (ipcRequest, ipc) ->
       /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求

@@ -1,7 +1,7 @@
 <resources>
-
-  <style name="Theme.DwebBrowser.Transparent" parent="Theme.Material3.Dark.NoActionBar">
+  <style name="Theme.DwebBrowser.Transparent" parent="Theme.Material3.Light.NoActionBar">
     <item name="android:windowFullscreen">true</item>
+    <item name="android:fitsSystemWindows">true</item>
     <item name="android:windowNoTitle">true</item>
     <item name="android:windowBackground">@android:color/transparent</item>
     <item name="android:windowIsTranslucent">true</item>
@@ -10,15 +10,5 @@
     <item name="android:title">null</item>
     <item name="android:windowContentOverlay">@null</item>
     <item name="android:backgroundDimEnabled">false</item>
-    <item name="android:windowIsFloating">true</item>
   </style>
-
-  <style name="OnClick">
-    <item name="android:clickable">true</item>
-    <item name="android:onClick">onClick</item>
-  </style>
-
-  <style name="Theme.RustExample.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-  <style name="Theme.RustExample.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>
