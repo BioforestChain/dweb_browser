@@ -55,3 +55,16 @@ export function* GenerateTryFilepaths(filenames: string[], dirs: string[]) {
   }
   return tryFilepaths;
 }
+
+/**
+ * 获取manifest文件目录
+ * @param cwd 当前路径
+ * @returns 
+ */
+export function getManifestFilePath(cwd?: string) {
+  if(cwd) {
+    return path.join(Deno.cwd(), cwd, "manifest.json");
+  }
+
+  return path.join(Deno.cwd(), "manifest.json");
+}

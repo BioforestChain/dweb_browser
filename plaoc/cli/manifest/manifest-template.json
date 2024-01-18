@@ -1,0 +1,25 @@
+{
+  "id": "game.dweb.waterbang.top.dweb",
+  "name": "vue3-game",
+  "short_name": "game",
+  "dweb_protocols": [],
+  "description": "这是一个实例应用，包含了dweb_plugins全部组件的实例。",
+  "logo": "https://www.bfmeta.info/imgs/logo3.webp",
+  "images": [
+    "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",
+    "http://qiniu-waterbang.waterbang.top/bfm/defi.png",
+    "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
+  ],
+  "author": [
+    "bfs",
+    "bfs@bfs.com"
+  ],
+  "version": "1.3.0",
+  "categories": [
+    "application",
+    "kids-games"
+  ],
+  "change_log": "这是更新日志",
+  "homepage_url": "https://dweb.waterbang.top",
+  "display": "fullscreen"
+}

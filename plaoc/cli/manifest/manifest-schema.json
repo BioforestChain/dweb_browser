@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Generated schema for Root",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "short_name": {
+      "type": "string"
+    },
+    "dweb_protocols": {
+      "type": "array",
+      "items": {}
+    },
+    "description": {
+      "type": "string"
+    },
+    "logo": {
+      "type": "string"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "author": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "version": {
+      "type": "string"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "change_log": {
+      "type": "string"
+    },
+    "homepage_url": {
+      "type": "string"
+    },
+    "display": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "short_name",
+    "dweb_protocols",
+    "description",
+    "logo",
+    "images",
+    "author",
+    "version",
+    "categories",
+    "change_log",
+    "homepage_url",
+    "display"
+  ]
+}

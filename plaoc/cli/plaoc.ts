@@ -3,6 +3,7 @@ import url from "node:url";
 import { doBundleCommand } from "./bundle.ts";
 import { doConfigCommand } from "./config.ts";
 import { Command } from "./deps.ts";
+import { doInitCommand } from "./init.ts";
 import { doServeCommand } from "./serve.ts";
 import { doWebAdvCommand } from "./web-dav.ts";
 // import { doHookServer } from "./server/index.ts";
@@ -34,6 +35,11 @@ await new Command()
   .name("@plaoc/cli")
   .description("plaoc front-end and back-end packaging tools.")
   .version(`v${packageVersion}`)
+
+  .command("init", doInitCommand)
+  .example("init app name", "plaoc init xxx-app")
+  .example("init current workspace", "plaoc init")
+
   .command("serve", doServeCommand)
   .example("developer service", "plaoc serve http://xx.xx.xx.xx:xxxx/")
 
