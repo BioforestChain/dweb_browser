@@ -6,6 +6,9 @@ import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
+import platform.AVFAudio.AVAudioApplication
+import platform.AVFAudio.AVAudioApplicationRecordPermissionDenied
+import platform.AVFAudio.AVAudioApplicationRecordPermissionGranted
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
 import platform.AVFoundation.AVAuthorizationStatusNotDetermined
 import platform.AVFoundation.AVCaptureDevice

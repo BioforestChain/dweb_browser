@@ -29,7 +29,7 @@ suspend fun HttpPureClient.websocket(
         init("Sec-WebSocket-Protocol", subProtocol.joinToString(", "))
       }
     },
-    channel = CompletableDeferred<PureChannel>()
+    channel = CompletableDeferred()
   )
   return websocket(request)
 }

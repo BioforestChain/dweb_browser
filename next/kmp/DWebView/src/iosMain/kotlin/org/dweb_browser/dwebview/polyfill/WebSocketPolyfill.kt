@@ -63,6 +63,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                 val pureChannel =
                   httpFetch.client.websocket("ws://127.0.0.1:${dwebHttpGatewayServer.startServer()}?X-Dweb-Url=${url.encodeURIComponent()}")
                 pureChannel.start().apply {
+                  sendOpen(wsId)
                   for (frame in income) {
                     when (frame) {
                       is PureBinaryFrame -> sendBinaryMessage(wsId, frame.data)
@@ -139,6 +140,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
 //        functionBody = "console.log(`webkit.messageHandlers.websocket.event.dispatchEvent(new MessageEvent('message',{data:[$wsId,'$cmd',arg1,arg2]}))`)",
 //        arguments = null
 //      )
+      debugIosWebSocket("sendMessage", "wsId=$wsId cmd=$cmd")
       runCatching {
         engine.awaitAsyncJavaScript<Unit>(
           functionBody = "void webkit.messageHandlers.websocket.event.dispatchEvent(new MessageEvent('message',{data:[$wsId,'$cmd',arg1,arg2]}))",

@@ -112,15 +112,17 @@ open class KtorPureClient(engine: HttpClientEngineFactory<*>) {
 
   suspend fun websocket(request: PureClientRequest): PureChannel {
     val channel = request.channel ?: CompletableDeferred()
-    ktorClient.ws(request = { fromPureClientRequest(request) }) {
-      val ws = this
-      val income = Channel<PureFrame>()
-      val outgoing = Channel<PureFrame>()
-      val pureChannel = PureChannel(income, outgoing, ws).also {
-        channel.complete(it)
+    CoroutineScope(ioAsyncExceptionHandler).launch {
+      ktorClient.ws(request = { fromPureClientRequest(request) }) {
+        val ws = this
+        val income = Channel<PureFrame>()
+        val outgoing = Channel<PureFrame>()
+        val pureChannel = PureChannel(income, outgoing, ws).also {
+          channel.complete(it)
+        }
+        // pureChannel.afterStart() TODO 这里能能不能使用afterStart来阻塞数据的接收？
+        pipeToPureChannel(ws, request.href, income, outgoing, pureChannel)
       }
-      // pureChannel.afterStart() TODO 这里能能不能使用afterStart来阻塞数据的接收？
-      ws.pipeToPureChannel(request.href, income, outgoing, pureChannel)
     }
     return channel.await()
   }

@@ -5,16 +5,15 @@ import io.ktor.websocket.FrameType
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-suspend fun WebSocketSession.pipeToPureChannel(
-  url: String,
+suspend fun pipeToPureChannel(
+  ws: WebSocketSession, url: String,
   income: Channel<PureFrame>,
   outgoing: Channel<PureFrame>,
   pureChannel: PureChannel,
-) {
-  val ws = this
-
+) = coroutineScope {
   /// 将从 pureChannel 收到的数据，传输到 websocket 的 frame 中
   launch {
     for (pureFrame in outgoing) {

@@ -2,6 +2,7 @@
 
 package org.dweb_browser.shared
 
+//import org.dweb_browser.sys.microphone.MicroPhoneNMM
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
@@ -24,14 +25,13 @@ import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeVie
 import org.dweb_browser.shared.bridge.WKWebViewBridge
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
-import org.dweb_browser.sys.mediacapture.MediaCaptureNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.device.DeviceNMM
 import org.dweb_browser.sys.haptics.HapticsNMM
 import org.dweb_browser.sys.location.LocationNMM
 import org.dweb_browser.sys.media.MediaNMM
-import org.dweb_browser.sys.microphone.MicroPhoneNMM
+import org.dweb_browser.sys.mediacapture.MediaCaptureNMM
 import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
 import org.dweb_browser.sys.notification.NotificationNMM
 import org.dweb_browser.sys.permission.PermissionApplicantTMM
@@ -74,7 +74,7 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
 
   /// 下载功能
   val downloadNMM = DownloadNMM().setup()
-  val microNMM = MicroPhoneNMM().setup()
+//  val microNMM = MicroPhoneNMM().setup()
 
   val zipNMM = ZipNMM().setup()
 

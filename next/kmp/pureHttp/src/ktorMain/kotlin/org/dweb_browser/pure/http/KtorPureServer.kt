@@ -80,7 +80,7 @@ open class KtorPureServer(
                         val pureChannel = PureChannel(income, outgoing, ws)
                         pureChannelDeferred!!.complete(pureChannel)
 
-                        ws.pipeToPureChannel(url, income, outgoing, pureChannel)
+                        pipeToPureChannel(ws, url, income, outgoing, pureChannel)
                       }
                       call.respond(res)
                     }
