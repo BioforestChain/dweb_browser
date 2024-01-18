@@ -1,4 +1,9 @@
-import { CameraDirection } from "../camera/camera.type.ts";
+
+export enum CameraDirection {
+  FRONT = "FRONT", // 前置摄像头
+  BACK = "BACK", // 后置摄像头
+}
+
 
 export enum SupportedFormat {
   // BEGIN 1D Product
@@ -78,12 +83,6 @@ export interface ScanOptions {
    * @since 1.2.0
    */
   targetedFormats?: SupportedFormat[];
-  /**
-   * This parameter can be used to set the camera direction.
-   *
-   * @since 2.1.0
-   */
-  cameraDirection?: CameraDirection;
 }
 export type ScanResult = {
   hasContent: boolean;

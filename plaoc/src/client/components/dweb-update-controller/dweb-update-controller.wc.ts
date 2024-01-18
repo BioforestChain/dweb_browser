@@ -5,30 +5,30 @@ export class HTMLDwebUpdateControllerElement extends HTMLElement {
   static readonly tagName = "dweb-update-controller";
   readonly plugin = updateControllerPlugin;
 
-  @cacheGetter()
-  get listen() {
-    return this.plugin.listen;
-  }
+  // @cacheGetter()
+  // get listen() {
+  //   return this.plugin.listen;
+  // }
 
   @cacheGetter()
   get download() {
     return this.plugin.download;
   }
 
-  @cacheGetter()
-  get pause() {
-    return this.plugin.pause;
-  }
+  // @cacheGetter()
+  // get pause() {
+  //   return this.plugin.pause;
+  // }
 
-  @cacheGetter()
-  get resume() {
-    return this.plugin.resume;
-  }
+  // @cacheGetter()
+  // get resume() {
+  //   return this.plugin.resume;
+  // }
 
-  @cacheGetter()
-  get cancel() {
-    return this.plugin.cancel;
-  }
+  // @cacheGetter()
+  // get cancel() {
+  //   return this.plugin.cancel;
+  // }
 }
 
 if (!customElements.get(HTMLDwebUpdateControllerElement.tagName)) {

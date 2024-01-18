@@ -31,6 +31,7 @@ class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
     short_name = "Media";
     categories =
       listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service)
+    dweb_protocols = listOf("media.sys.dweb")
     /*dweb_permissions = listOf(
       DwebPermission(
         pid = "$mmid/savePictures",

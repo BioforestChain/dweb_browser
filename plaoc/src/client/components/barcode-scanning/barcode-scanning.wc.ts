@@ -1,9 +1,8 @@
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { CameraDirection } from "../camera/camera.type.ts";
 import { CloseWatcher } from "../close-watcher/index.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";
-import { BarcodeScannerPermission, ScanResult, SupportedFormat } from "./barcode-scanning.type.ts";
+import { BarcodeScannerPermission, CameraDirection, ScanResult, SupportedFormat } from "./barcode-scanning.type.ts";
 
 export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   static readonly tagName = "dweb-barcode-scanning";

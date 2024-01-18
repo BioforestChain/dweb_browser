@@ -1,6 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import type { ImageOptions } from "./camera.type.ts";
+import type { ImageOptions, Photo } from "./camera.type.ts";
 
 export class CameraPlugin extends BasePlugin {
   readonly tagName = "dweb-camera";
@@ -9,22 +9,18 @@ export class CameraPlugin extends BasePlugin {
     super("camera.sys.dweb");
   }
   /**
-   * 打开相册
+   * 向系统获取图片
+   * （如果没有传递任何参数，会默认询问用户打开相册或者拍照）
+   * @param options
+   * @returns Photo
    */
   @bindThis
-  async getPhoto(options: ImageOptions) {
+  async getPhoto(options?: ImageOptions) {
     return await this.fetchApi("/getPhoto", {
       search: {
-        resultType: options.resultType,
-        source: options.source,
-        quality: options.quality,
+        options: options, 
       },
-    })
-      // .then(
-      //   res => console.log('res: ', res),
-      //   err => console.log('err: ', err)
-      // )
-      .binary();
+    }).object<Photo>();
   }
 }
 

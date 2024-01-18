@@ -1,6 +1,7 @@
 export const routes = [
   { title: "window", path: "/window", component: () => import("./pages/Window.vue") },
   { title: "Input File", path: "/inputfile", component: () => import("./pages/InputFile.vue") },
+  { title: "Camera", path: "/camera", component: () => import("./pages/Camera.vue") },
   { title: "Status Bar", path: "/statusbar", component: () => import("./pages/StatusBar.vue") },
   { title: "Navigation Bar", path: "/navigationbar", component: () => import("./pages/NavigationBar.vue") },
   { title: "Safe Area", path: "/safearea", component: () => import("./pages/SafeArea.vue") },

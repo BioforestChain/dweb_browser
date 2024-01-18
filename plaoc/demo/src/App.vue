@@ -2,7 +2,6 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import * as PLAOC from "./plugin";
-import { dwebServiceWorker } from "./plugin";
 import { routes } from "./routes";
 
 const router = useRouter();
@@ -13,7 +12,8 @@ onMounted(() => {
 // router.push("/share")
 // router.push("/webview");
 // router.push("/splashscreen")
-router.push("/serviceworker");
+// router.push("/serviceworker");
+router.push("/camera");
 // router.push("/inputfile");
 // router.push("/barcodescanning");
 // router.push("/network");
@@ -24,13 +24,13 @@ router.push("/serviceworker");
 // router.push("/window")
 // router.push("motionSensors")
 
-dwebServiceWorker.addEventListener("pause", (event) => {
-  console.log("app暂停🍋", event);
-});
+// dwebServiceWorker.addEventListener("pause", (event) => {
+//   console.log("app暂停🍋", event);
+// });
 
-dwebServiceWorker.addEventListener("resume", (event) => {
-  console.log("app 恢复🍉", event);
-});
+// dwebServiceWorker.addEventListener("resume", (event) => {
+//   console.log("app 恢复🍉", event);
+// });
 
 const drawer_controller = ref(false);
 
