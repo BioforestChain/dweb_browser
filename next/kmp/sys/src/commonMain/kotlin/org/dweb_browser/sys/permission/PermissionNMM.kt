@@ -109,8 +109,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
   override suspend fun _shutdown() {}
 
   val iconFetchHook: FetchHook = {
-    val response = nativeFetch(request.url)
-    returnResponse(response)
+    nativeFetch(request.url)
   }
 
   @OptIn(ExperimentalMaterial3Api::class)
