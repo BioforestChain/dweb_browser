@@ -57,3 +57,4 @@
 1. 便携 gradle 的脚本需要经常需要处理依赖关系，如果你不知道有哪些 task 可以被你调用，可以参考这些小知识点：
    1. 想要获得 gradlew 的所有 tasks，到 kmp/next 目录下，执行: `./gradlew -q :tasks --all > .gradle/all.md`
    1. 想要获得 gradlew 的指定 project 的 tasks，到 kmp/next 目录下，执行: `./gradlew -q helper:tasks --all > .gradle/helper.md`
+1. 不要使用 Fleet 打开项目，因为它会往 DwebBrowser.xcworkspace 文件夹里头加入一些文件导致 xcodebuild 脚本失效，如果你不幸使用 Fleet 打开过项目，请手动删除 DwebBrowser.xcworkspace 文件夹里头`[Fleet]`打头的文件

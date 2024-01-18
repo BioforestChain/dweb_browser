@@ -77,3 +77,13 @@ C4Context
 
   UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")
 ```
+
+## 项目文件夹结构
+
+现在项目结构是有这么一些级别（由底层到高层）：
+
+1. `platform*`（包括 platformIos、platformNode、platformBrowser）这是最底层的一些东西，这项目通常独立存在，通常是作为其它项目的辅助存在
+1. `helper*` （包括 helper、helperPlatform、helperCompose）这是一些工具集项目
+1. `pure*` （包括 pureIO、pureHttp、pureImage、pureCrypto）这是一系列标准库项目，提供跨平台的标准库
+1. `dweb-browser-module` （包括 DWebView、browser、core、gradlew、shared、sys、window） 项目主要业务模块
+1. `dweb-browser-app` （包括 `app/*` 下的文件夹）各个平台的入口程序，提供标准 App 配置和启动流程
