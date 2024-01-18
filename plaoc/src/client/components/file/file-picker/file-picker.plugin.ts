@@ -24,4 +24,4 @@ export class FilePickerPlugin extends BasePlugin {
   }
 }
 
-export const mediaCapturePlugin = new FilePickerPlugin();
+export const filePickerPlugin = new FilePickerPlugin();
