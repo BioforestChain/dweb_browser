@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "../../../helper/cacheGetter.ts";
 import { safeAreaPlugin } from "./safe-area.plugin.ts";
 
 export class HTMLDwebSafeAreaElement extends HTMLElement {

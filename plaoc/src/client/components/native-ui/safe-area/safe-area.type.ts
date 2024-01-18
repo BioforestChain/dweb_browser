@@ -1,5 +1,5 @@
-import { $Insets, DOMInsets } from "../../util/insets.ts";
-import { $InsetsRawState, $InsetsState, $InsetsWritableState } from "../base/InsetsPlugin.ts";
+import { $Insets, DOMInsets } from "../../../util/insets.ts";
+import { $InsetsRawState, $InsetsState, $InsetsWritableState } from "../../base/InsetsPlugin.ts";
 
 export interface $SafeAreaRawState extends $InsetsRawState {
   cutoutInsets: $Insets;

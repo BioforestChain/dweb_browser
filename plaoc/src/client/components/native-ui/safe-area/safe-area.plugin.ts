@@ -1,5 +1,5 @@
-import { bindThis } from "../../helper/bindThis.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
+import { bindThis } from "../../../helper/bindThis.ts";
+import { BasePlugin } from "../../base/BasePlugin.ts";
 import { $SafeAreaWritableState } from "./safe-area.type.ts";
 export class SafeAreaPlugin extends BasePlugin {
   constructor() {

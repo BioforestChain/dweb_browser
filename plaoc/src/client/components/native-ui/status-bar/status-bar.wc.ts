@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "../../../helper/cacheGetter.ts";
 import { statusBarPlugin } from "./status-bar.plugin.ts";
 
 export class HTMLDwebStatusBarElement extends HTMLElement {

@@ -1,7 +1,7 @@
-import { bindThis } from "../../helper/bindThis.ts";
-import { DOMInsets } from "../../util/insets.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
-import { windowPlugin } from "../window/window.plugin.ts";
+import { bindThis } from "../../../helper/bindThis.ts";
+import { DOMInsets } from "../../../util/insets.ts";
+import { BasePlugin } from "../../base/BasePlugin.ts";
+import { windowPlugin } from "../../window/window.plugin.ts";
 import { $VirtualKeyboardWritableState } from "./virtual-keyboard.type.ts";
 
 export class VirtualKeyboardPlugin extends BasePlugin {

@@ -1,5 +1,5 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts";
+import { cacheGetter } from "../../../helper/cacheGetter.ts";
+import { HTMLStateObserverElement } from "../../../util/HTMLStateObserverElement.ts";
 import { virtualKeyboardPlugin } from "./virtual-keyboard.plugin.ts";
 import { $VirtualKeyboardRawState, $VirtualKeyboardState } from "./virtual-keyboard.type.ts";
 

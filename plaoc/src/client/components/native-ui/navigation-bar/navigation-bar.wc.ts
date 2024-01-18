@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { cacheGetter } from "../../../helper/cacheGetter.ts";
 import { navigationBarPlugin } from "./navigation-bar.plugin.ts";
 
 export class HTMLDwebNavigationBarElement extends HTMLElement {
