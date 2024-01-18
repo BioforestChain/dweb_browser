@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.camera
+package org.dweb_browser.sys.mediacapture
 
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.module.MicroModule
@@ -92,8 +92,8 @@ data class Photo(
   val saved: Boolean = false,
 )
 
-expect class CameraManage() {
+expect class MediaCaptureManage() {
   suspend fun takePicture(microModule: MicroModule): String
   suspend fun captureVideo(microModule: MicroModule): String
-  suspend fun getPhoto(microModule: MicroModule, options: ImageOptions): Photo?
+  suspend fun recordSound(microModule: MicroModule): String
 }

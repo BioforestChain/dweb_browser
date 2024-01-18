@@ -1,4 +1,4 @@
-package org.dweb_browser.sys.camera
+package org.dweb_browser.sys.mediacapture
 
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.module.MicroModule
@@ -13,21 +13,23 @@ import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.authorizationStatusForMediaType
 import platform.AVFoundation.requestAccessForMediaType
 
-actual class CameraManage actual constructor() {
+actual class MediaCaptureManage actual constructor() {
   init {
     SystemPermissionAdapterManager.append {
-      if (task.name == SystemPermissionName.CAMERA) {
-        cameraAuthorizationStatus()
-      } else null
+      when (task.name) {
+        SystemPermissionName.CAMERA -> cameraAuthorizationStatus()
+        SystemPermissionName.MICROPHONE -> microphoneAuthorizationStatus()
+        else -> null
+      }
     }
   }
 
-  private suspend fun cameraAuthorizationStatus() : AuthorizationStatus {
-    val status = when(AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
+  private suspend fun cameraAuthorizationStatus(): AuthorizationStatus {
+    val status = when (AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)) {
       AVAuthorizationStatusAuthorized -> AuthorizationStatus.GRANTED
       AVAuthorizationStatusNotDetermined -> {
         val result = CompletableDeferred<AuthorizationStatus>()
-        AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) {granted ->
+        AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { granted ->
           if (granted) {
             result.complete(AuthorizationStatus.GRANTED)
           } else {
@@ -36,7 +38,27 @@ actual class CameraManage actual constructor() {
         }
         return result.await()
       }
+
       else -> AuthorizationStatus.DENIED
+    }
+    return status
+  }
+
+  private suspend fun microphoneAuthorizationStatus(): AuthorizationStatus {
+    val status = when (AVAudioApplication.sharedInstance.recordPermission) {
+      AVAudioApplicationRecordPermissionDenied -> AuthorizationStatus.DENIED
+      AVAudioApplicationRecordPermissionGranted -> AuthorizationStatus.GRANTED
+      else -> {
+        val result = CompletableDeferred<AuthorizationStatus>()
+        AVAudioApplication.requestRecordPermissionWithCompletionHandler { success ->
+          if (success) {
+            result.complete(AuthorizationStatus.GRANTED)
+          } else {
+            result.complete(AuthorizationStatus.DENIED)
+          }
+        }
+        return result.await()
+      }
     }
     return status
   }
@@ -51,8 +73,8 @@ actual class CameraManage actual constructor() {
     return ""
   }
 
-  actual suspend fun getPhoto(microModule: MicroModule, options: ImageOptions): Photo? {
+  actual suspend fun recordSound(microModule: MicroModule): String {
     WARNING("Not yet implemented captureVideo")
-    return null
+    return ""
   }
 }

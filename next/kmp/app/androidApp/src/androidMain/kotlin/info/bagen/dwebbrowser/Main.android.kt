@@ -21,11 +21,10 @@ import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.helper.addDebugTags
-import org.dweb_browser.helper.debugTest
 import org.dweb_browser.pure.http.engine.getKtorClientEngine
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
-import org.dweb_browser.sys.camera.CameraNMM
+import org.dweb_browser.sys.mediacapture.MediaCaptureNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.device.DeviceNMM
@@ -33,7 +32,6 @@ import org.dweb_browser.sys.filechooser.FileChooserNMM
 import org.dweb_browser.sys.haptics.HapticsNMM
 import org.dweb_browser.sys.location.LocationNMM
 import org.dweb_browser.sys.media.MediaNMM
-import org.dweb_browser.sys.microphone.MicroPhoneNMM
 import org.dweb_browser.sys.motionSensors.MotionSensorsNMM
 import org.dweb_browser.sys.notification.NotificationNMM
 import org.dweb_browser.sys.permission.PermissionApplicantTMM
@@ -108,8 +106,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val downloadNMM = DownloadNMM().setup()
   val zipNMM = ZipNMM().setup()
 
-  val cameraNMM = CameraNMM().setup()
-  val microPhoneNMM = MicroPhoneNMM().setup()
+  val mediaCaptureNMM = MediaCaptureNMM().setup()
   /// 扫码
   val scannerNMM = ScanningNMM().setup()
   val qrCodeScanNMM = QRCodeScanNMM().setup()

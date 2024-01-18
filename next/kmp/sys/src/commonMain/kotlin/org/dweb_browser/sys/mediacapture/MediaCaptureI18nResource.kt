@@ -1,10 +1,10 @@
-package org.dweb_browser.sys.camera
+package org.dweb_browser.sys.mediacapture
 
 import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.SimpleI18nResource
 
-object CameraI18nResource {
-  val request_permission_title = SimpleI18nResource(
+object MediaCaptureI18nResource {
+  val request_permission_title_camera = SimpleI18nResource(
     Language.ZH to "相机权限使用说明",
     Language.EN to "Camera permission instructions"
   )
@@ -25,10 +25,25 @@ object CameraI18nResource {
     Language.ZH to "权限被拒绝，无法提供录像服务",
     Language.EN to "The permission is denied, and the video service cannot be provided"
   )
+  val permission_denied_record_audio = SimpleI18nResource(
+    Language.ZH to "权限被拒绝，无法提供录音服务",
+    Language.EN to "The permission is denied,  and recording services cannot be provided. Procedure"
+  )
   val data_is_null = SimpleI18nResource(
     Language.ZH to "数据为空",
     Language.EN to "The data is null"
   )
-  val choose_photo = SimpleI18nResource(Language.ZH to "相册", Language.EN to "Photo")
-  val choose_camera = SimpleI18nResource(Language.ZH to "拍照", Language.EN to "Camera")
+  val type_issue = SimpleI18nResource(
+    Language.ZH to "类型异常(类型:image,video,audio)",
+    Language.EN to "Type Error(type:image,video,audio)"
+  )
+
+  val request_permission_title_audio = SimpleI18nResource(
+    Language.ZH to "麦克风权限使用说明",
+    Language.EN to "MicroPhone permission instructions"
+  )
+  val request_permission_message_audio = SimpleI18nResource(
+    Language.ZH to "DwebBrowser正在向您获取“麦克风”权限，同意后，将用于为您提供拍照服务",
+    Language.EN to "DwebBrowser is asking you for \"Camera\" permissions, and if you agree, it will be used to provide you with photo services"
+  )
 }

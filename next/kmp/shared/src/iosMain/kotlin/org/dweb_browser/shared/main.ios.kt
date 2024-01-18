@@ -29,7 +29,7 @@ import org.dweb_browser.pure.http.engine.getKtorClientEngine
 import org.dweb_browser.shared.bridge.WKWebViewBridge
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
-import org.dweb_browser.sys.camera.CameraNMM
+import org.dweb_browser.sys.mediacapture.MediaCaptureNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.device.DeviceNMM
@@ -93,7 +93,7 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
 
   val zipNMM = ZipNMM().setup()
 
-  val cameraNMM = CameraNMM().setup()
+  val mediaCaptureNMM = MediaCaptureNMM().setup()
   /// 扫码
   val scannerNMM = ScanningNMM().setup()
   ///安装剪切板

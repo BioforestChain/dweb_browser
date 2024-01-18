@@ -8,25 +8,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.sys.camera.CameraResult
-import org.dweb_browser.sys.camera.ext.captureSystemVideo
-import org.dweb_browser.sys.camera.ext.takeSystemPicture
 import org.dweb_browser.sys.filechooser.debugFileChooser
 import org.dweb_browser.sys.filechooser.ext.openSystemFileChooser
-import org.dweb_browser.sys.microphone.MicroPhoneResult
-import org.dweb_browser.sys.microphone.ext.systemRecordSound
-import org.dweb_browser.sys.permission.SystemPermissionName
-import org.dweb_browser.sys.permission.SystemPermissionTask
-import org.dweb_browser.sys.permission.ext.requestSystemPermissions
+import org.dweb_browser.sys.mediacapture.MediaCaptureResult
+import org.dweb_browser.sys.mediacapture.ext.mediaCapture
 
 class DWebFileChooser(val remoteMM: MicroModule, val ioScope: CoroutineScope) : WebChromeClient() {
-
-  private suspend fun requestPermission(name: SystemPermissionName, title: String, desc: String) =
-    remoteMM.requestSystemPermissions(
-      SystemPermissionTask(name = name, title = title, description = desc)
-    ).filterValues { value -> value != AuthorizationStatus.GRANTED }.isEmpty()
-
   override fun onShowFileChooser(
     webView: WebView,
     filePathCallback: ValueCallback<Array<Uri>>,
@@ -35,38 +22,19 @@ class DWebFileChooser(val remoteMM: MicroModule, val ioScope: CoroutineScope) : 
     val mimeTypes = fileChooserParams.acceptTypes.joinToString(",").ifEmpty { "*/*" }
     val captureEnabled = fileChooserParams.isCaptureEnabled
     debugFileChooser("onShowFileChooser", "mimeTypes=$mimeTypes, enable=$captureEnabled")
-    if (captureEnabled) {
-      if (mimeTypes.startsWith("video/")) {
-        ioScope.launch {
-          val cameraResult = Json.decodeFromString<CameraResult>(remoteMM.captureSystemVideo())
-          if (cameraResult.success) {
-            filePathCallback.onReceiveValue(arrayOf(Uri.parse(cameraResult.data)))
-          } else {
-            filePathCallback.onReceiveValue(null)
-          }
+    if (captureEnabled && (mimeTypes.startsWith("video/") ||
+          mimeTypes.startsWith("audio/") || mimeTypes.startsWith("image/"))
+    ) {
+      ioScope.launch {
+        val mediaCaptureResult =
+          Json.decodeFromString<MediaCaptureResult>(remoteMM.mediaCapture(mimeTypes))
+        if (mediaCaptureResult.success) {
+          filePathCallback.onReceiveValue(arrayOf(Uri.parse(mediaCaptureResult.data)))
+        } else {
+          filePathCallback.onReceiveValue(null)
         }
-        return true
-      } else if (mimeTypes.startsWith("image/")) {
-        ioScope.launch {
-          val cameraResult = Json.decodeFromString<CameraResult>(remoteMM.takeSystemPicture())
-          if (cameraResult.success) {
-            filePathCallback.onReceiveValue(arrayOf(Uri.parse(cameraResult.data)))
-          } else {
-            filePathCallback.onReceiveValue(null)
-          }
-        }
-        return true
-      } else if (mimeTypes.startsWith("audio/")) {
-        ioScope.launch {
-          val recordSound = Json.decodeFromString<MicroPhoneResult>(remoteMM.systemRecordSound())
-          if (recordSound.success) {
-            filePathCallback.onReceiveValue(arrayOf(Uri.parse(recordSound.data)))
-          } else {
-            filePathCallback.onReceiveValue(null)
-          }
-        }
-        return true
       }
+      return true
     }
 
     ioScope.launch {
