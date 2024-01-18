@@ -29,4 +29,6 @@ object CameraI18nResource {
     Language.ZH to "数据为空",
     Language.EN to "The data is null"
   )
+  val choose_photo = SimpleI18nResource(Language.ZH to "相册", Language.EN to "Photo")
+  val choose_camera = SimpleI18nResource(Language.ZH to "拍照", Language.EN to "Camera")
 }

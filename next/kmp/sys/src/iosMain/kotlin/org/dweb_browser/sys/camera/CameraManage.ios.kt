@@ -51,4 +51,8 @@ actual class CameraManage actual constructor() {
     return ""
   }
 
+  actual suspend fun getPhoto(microModule: MicroModule, options: ImageOptions): Photo? {
+    WARNING("Not yet implemented captureVideo")
+    return null
+  }
 }

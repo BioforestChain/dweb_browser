@@ -8,6 +8,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermission
@@ -73,6 +74,16 @@ class CameraNMM : NativeMicroModule("camera.sys.dweb", "camera") {
           CameraResult(false, CameraI18nResource.permission_denied_take_picture.text, "")
         }
         cameraResult.toJsonElement()
+      },
+      "/getPhoto" bind PureMethod.GET by defineEmptyResponse {
+        debugCamera("getPhoto", "enter")
+        try {
+          val fromMM = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@CameraNMM
+          val imageOptions = request.queryAs<ImageOptions>()
+          cameraManage.getPhoto(fromMM, imageOptions)
+        } catch (e: Exception) {
+
+        }
       }
     )
   }

@@ -20,10 +20,16 @@ actual class CameraManage actual constructor() {
   }
 
   actual suspend fun takePicture(microModule: MicroModule): String {
-    return CameraActivity.launchAndroidTakePicture(microModule)
+    return CameraActivity.launchAndroidTakePicture(microModule)?.toString() ?: ""
   }
 
   actual suspend fun captureVideo(microModule: MicroModule): String {
-    return CameraActivity.launchAndroidCaptureVideo(microModule)
+    return CameraActivity.launchAndroidCaptureVideo(microModule)?.toString() ?: ""
+  }
+
+  actual suspend fun getPhoto(microModule: MicroModule, options: ImageOptions): Photo? {
+    return CameraActivity.launchAndroidGetPhoto(microModule)?.let { uri ->
+      Photo()
+    }
   }
 }

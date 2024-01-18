@@ -50,7 +50,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
         val result = if (permission.filterValues { it != AuthorizationStatus.GRANTED }.isEmpty()) {
           LocationResult(true, "Success", locationManage.getCurrentLocation())
         } else {
-          LocationResult(false, "")
+          LocationResult(false, "permission denied")
         }
         result.toJsonElement()
       },
