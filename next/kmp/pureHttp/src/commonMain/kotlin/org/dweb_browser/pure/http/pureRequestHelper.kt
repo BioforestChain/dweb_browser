@@ -11,8 +11,7 @@ data class InitRequest(
 const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
 
 fun isWebSocket(method: PureMethod, headers: PureHeaders): Boolean {
-  val upgrade = headers.get("Upgrade") == "websocket"
-  return method.method == "GET" && upgrade
+  return method == PureMethod.GET && headers.get("Upgrade") == "websocket"
 }
 
 fun httpMethodCanOwnBody(

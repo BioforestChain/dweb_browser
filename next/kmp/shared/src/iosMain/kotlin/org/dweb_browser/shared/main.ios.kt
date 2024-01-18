@@ -2,9 +2,6 @@
 
 package org.dweb_browser.shared
 
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.websocket.WebSockets
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
@@ -17,7 +14,6 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.nativeMicroModuleUIApplication
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
@@ -25,7 +21,6 @@ import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
-import org.dweb_browser.pure.http.engine.getKtorClientEngine
 import org.dweb_browser.shared.bridge.WKWebViewBridge
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM

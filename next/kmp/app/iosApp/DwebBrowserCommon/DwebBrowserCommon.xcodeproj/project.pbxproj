@@ -32,11 +32,292 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1A0D717CB1F7D9812BB88831 /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Headers;
+			sourceTree = "<group>";
+		};
+		1A0D71842EDEB16AF62FBE5B /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Headers;
+			sourceTree = "<group>";
+		};
+		1A0D7212E91D10E8891F2FAF /* DwebBrowserCommon */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7F35BF9D0EE62D1B5E9D /* IntermediateBuildFilesPath */,
+				1A0D796C4CD6B60B444AED00 /* BuildProductsPath */,
+			);
+			path = DwebBrowserCommon;
+			sourceTree = "<group>";
+		};
+		1A0D729232C3EA0C99D860ED /* X-Build */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7A5AAE5DFA6D65113DD3 /* Intermediates.noindex */,
+			);
+			path = "X-Build";
+			sourceTree = "<group>";
+		};
+		1A0D72FD463BFE1B52611F90 /* attachments */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = attachments;
+			sourceTree = "<group>";
+		};
+		1A0D7380766B515D3D5E53F7 /* DwebBrowserCommon.build */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D77624E4B4B8CEAC7D39F /* Release-iphoneos */,
+			);
+			path = DwebBrowserCommon.build;
+			sourceTree = "<group>";
+		};
+		1A0D74EB105701295414D96A /* Release-iphoneos */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "Release-iphoneos";
+			sourceTree = "<group>";
+		};
+		1A0D74F99222C2FE69FD8D42 /* DwebBrowserCommon.build */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7863B30ECAB508125F0C /* Objects-normal */,
+				1A0D79998B034FC28A73B46D /* DerivedSources */,
+				1A0D7B576AFC690815AFA3DC /* VerifyModule */,
+			);
+			path = DwebBrowserCommon.build;
+			sourceTree = "<group>";
+		};
+		1A0D76198545A01B286BEEDF /* Release-iphoneos */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "Release-iphoneos";
+			sourceTree = "<group>";
+		};
+		1A0D764FE56D56837111D4BA /* XCBuildData */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7799B0A746DC49AB3F8E /* 119b5710899367f12b51dde048e93ea1.xcbuilddata */,
+			);
+			path = XCBuildData;
+			sourceTree = "<group>";
+		};
+		1A0D767FE241A64F5CC430DB /* 34XUCGFUH0KBW */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = 34XUCGFUH0KBW;
+			sourceTree = "<group>";
+		};
+		1A0D76EF3EA6E8D735FEF6D3 /* DwebBrowserCommon_objective-c_arm64-apple-ios17.0_gnu17 */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7B516DE28554A0750220 /* cache */,
+				1A0D7AD919F1410A6907F04B /* Test */,
+			);
+			path = "DwebBrowserCommon_objective-c_arm64-apple-ios17.0_gnu17";
+			sourceTree = "<group>";
+		};
+		1A0D77624E4B4B8CEAC7D39F /* Release-iphoneos */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D74F99222C2FE69FD8D42 /* DwebBrowserCommon.build */,
+			);
+			path = "Release-iphoneos";
+			sourceTree = "<group>";
+		};
+		1A0D7799B0A746DC49AB3F8E /* 119b5710899367f12b51dde048e93ea1.xcbuilddata */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D72FD463BFE1B52611F90 /* attachments */,
+			);
+			path = 119b5710899367f12b51dde048e93ea1.xcbuilddata;
+			sourceTree = "<group>";
+		};
+		1A0D78603BC406D448AF86F2 /* Test */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7A4E209D1F4FC2469B3B /* Test.framework */,
+			);
+			path = Test;
+			sourceTree = "<group>";
+		};
+		1A0D7863B30ECAB508125F0C /* Objects-normal */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D78A71FBA1C9AF387F4E9 /* arm64 */,
+			);
+			path = "Objects-normal";
+			sourceTree = "<group>";
+		};
+		1A0D78A71FBA1C9AF387F4E9 /* arm64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = arm64;
+			sourceTree = "<group>";
+		};
+		1A0D796C4CD6B60B444AED00 /* BuildProductsPath */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D74EB105701295414D96A /* Release-iphoneos */,
+			);
+			path = BuildProductsPath;
+			sourceTree = "<group>";
+		};
+		1A0D79998B034FC28A73B46D /* DerivedSources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = DerivedSources;
+			sourceTree = "<group>";
+		};
+		1A0D7A2F8443EB22666EDB7D /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Modules;
+			sourceTree = "<group>";
+		};
+		1A0D7A4E209D1F4FC2469B3B /* Test.framework */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7A5913CBEDCEADC9A65D /* Modules */,
+				1A0D71842EDEB16AF62FBE5B /* Headers */,
+			);
+			path = Test.framework;
+			sourceTree = "<group>";
+		};
+		1A0D7A5913CBEDCEADC9A65D /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Modules;
+			sourceTree = "<group>";
+		};
+		1A0D7A5AAE5DFA6D65113DD3 /* Intermediates.noindex */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7C8654BC01726E461E9C /* ArchiveIntermediates */,
+			);
+			path = Intermediates.noindex;
+			sourceTree = "<group>";
+		};
+		1A0D7ACC730D657642F17AFC /* swiftpm */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7DD8DB9268B4C49011E5 /* configuration */,
+			);
+			name = swiftpm;
+			path = DwebBrowserCommon.xcodeproj/project.xcworkspace/xcshareddata/swiftpm;
+			sourceTree = "<group>";
+		};
+		1A0D7AD919F1410A6907F04B /* Test */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7CBE5345F4173B1EDA43 /* Test.framework */,
+			);
+			path = Test;
+			sourceTree = "<group>";
+		};
+		1A0D7B516DE28554A0750220 /* cache */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7CB45E2D075FE97CE065 /* 2B265JAVS6HJO */,
+			);
+			path = cache;
+			sourceTree = "<group>";
+		};
+		1A0D7B576AFC690815AFA3DC /* VerifyModule */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7BF782C2CB5A4012520A /* DwebBrowserCommon_objective-c++_arm64-apple-ios17.0_gnu++20 */,
+				1A0D76EF3EA6E8D735FEF6D3 /* DwebBrowserCommon_objective-c_arm64-apple-ios17.0_gnu17 */,
+			);
+			path = VerifyModule;
+			sourceTree = "<group>";
+		};
+		1A0D7BF782C2CB5A4012520A /* DwebBrowserCommon_objective-c++_arm64-apple-ios17.0_gnu++20 */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7E0D67EAFD427A60C7B8 /* cache */,
+				1A0D78603BC406D448AF86F2 /* Test */,
+			);
+			path = "DwebBrowserCommon_objective-c++_arm64-apple-ios17.0_gnu++20";
+			sourceTree = "<group>";
+		};
+		1A0D7C8654BC01726E461E9C /* ArchiveIntermediates */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7212E91D10E8891F2FAF /* DwebBrowserCommon */,
+			);
+			path = ArchiveIntermediates;
+			sourceTree = "<group>";
+		};
+		1A0D7CB45E2D075FE97CE065 /* 2B265JAVS6HJO */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = 2B265JAVS6HJO;
+			sourceTree = "<group>";
+		};
+		1A0D7CBE5345F4173B1EDA43 /* Test.framework */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D7A2F8443EB22666EDB7D /* Modules */,
+				1A0D717CB1F7D9812BB88831 /* Headers */,
+			);
+			path = Test.framework;
+			sourceTree = "<group>";
+		};
+		1A0D7DD8DB9268B4C49011E5 /* configuration */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = configuration;
+			sourceTree = "<group>";
+		};
+		1A0D7E0D67EAFD427A60C7B8 /* cache */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D767FE241A64F5CC430DB /* 34XUCGFUH0KBW */,
+			);
+			path = cache;
+			sourceTree = "<group>";
+		};
+		1A0D7F35BF9D0EE62D1B5E9D /* IntermediateBuildFilesPath */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D764FE56D56837111D4BA /* XCBuildData */,
+				1A0D7F57784B31BD574059B3 /* EagerLinkingTBDs */,
+				1A0D7380766B515D3D5E53F7 /* DwebBrowserCommon.build */,
+			);
+			path = IntermediateBuildFilesPath;
+			sourceTree = "<group>";
+		};
+		1A0D7F57784B31BD574059B3 /* EagerLinkingTBDs */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D76198545A01B286BEEDF /* Release-iphoneos */,
+			);
+			path = EagerLinkingTBDs;
+			sourceTree = "<group>";
+		};
 		48334DCA2B50D08900399FFF = {
 			isa = PBXGroup;
 			children = (
 				48334DD62B50D08900399FFF /* DwebBrowserCommon */,
 				48334DD52B50D08900399FFF /* Products */,
+				1A0D7ACC730D657642F17AFC /* swiftpm */,
+				1A0D729232C3EA0C99D860ED /* X-Build */,
 			);
 			sourceTree = "<group>";
 		};

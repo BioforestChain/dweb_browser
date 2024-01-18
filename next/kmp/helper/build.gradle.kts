@@ -9,6 +9,14 @@ kotlin {
       api(libs.ktor.http)
       api(libs.ktor.io)
     }
+    @Suppress("OPT_IN_USAGE")
+    applyHierarchy {
+      common {
+        group("commonJs") {
+          withJs()
+        }
+      }
+    }
   }
 
   kmpAndroidTarget(project) {

@@ -158,7 +158,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     dwebServer.createServer(
       gatewayHandler = { request ->
         findDwebGateway(request)?.let { info ->
-          gatewayMap[info.host]
+          debugHttp("gatewayMap:", gatewayMap.keys.joinToString(" "))
+          debugHttp("info.host:", info.host)
+          gatewayMap[info.host].also {
+            debugHttp("gateway:", it)
+          }
         }
       },
       httpHandler = { gateway, request ->

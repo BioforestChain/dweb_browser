@@ -150,9 +150,9 @@ fun PureClientRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpR
 
 fun HttpRequestBuilder.fromPureClientRequest(pureRequest: PureClientRequest) {
   this.method = HttpMethod.parse(pureRequest.method.name)
+  // 确保默认端口正确
+  this.url.port = pureRequest.url.protocol.defaultPort
   this.url(pureRequest.href)
-//  this.url.protocol = pureRequest.url.protocol
-//  this.url.port = url.protocol.defaultPort
 
   for ((key, value) in pureRequest.headers.toMap()) {
     this.headers.append(key, value)

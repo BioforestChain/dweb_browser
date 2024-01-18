@@ -13,7 +13,7 @@ export const doBuildTask = async () => {
   const xcodebuild = await which("xcodebuild");
 
   if (!xcodebuild) {
-    Deno.exit(0);
+    return 0;
   }
 
   let isExists = false;
@@ -33,15 +33,14 @@ export const doBuildTask = async () => {
     xcode = xcodeUrl.substring(0, xcodeUrl.indexOf("Xcode.app") + "Xcode.app".length);
     isExists = true;
   } catch {
-    console.error("you need install code!!");
-    Deno.exit(0);
+    console.error("you need install x-code!!");
+    return 0;
   }
   if (!isExists) {
-    Deno.exit(0);
+    return 0;
   }
   console.log("xcodeUrl=>", xcode);
   const fws = ["DwebPlatformIosKit", "DwebWebBrowser"];
-  let result = 0;
   for (const fw of fws) {
     const writeFileHash = calcHash(fw);
     if (!writeFileHash) {
@@ -49,21 +48,21 @@ export const doBuildTask = async () => {
       continue;
     }
     console.log("will build --> " + fw);
-    result = await runTasks(doArchiveItemTask(fw), doCreateXcItemTask(fw), async () => {
+    const result = await runTasks(doArchiveItemTask(fw), doCreateXcItemTask(fw), async () => {
       writeFileHash();
       console.log("build success!! --> " + fw);
       return 0;
     });
-    if (result != 0) {
-      break;
+    if (result !== 0) {
+      return result;
     }
   }
-  return result;
+  return 0;
 };
 
 const calcHash = (fw: string): (() => void) | undefined => {
   const hashBuilder = crypto.createHash("sha256");
-  for (const entry of WalkFiles(path.resolve(sourceCodeDir, "./" + fw))) {
+  for (const entry of WalkFiles(path.resolve(sourceCodeDir, fw))) {
     hashBuilder.update(entry.entrypath);
     const stat = fs.statSync(entry.entrypath);
     hashBuilder.update(JSON.stringify([stat.size, stat.ctimeMs, stat.mtimeMs]));

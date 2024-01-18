@@ -86,7 +86,7 @@ open class KtorPureServer(
                     }
 
                     else -> call.response.fromPureResponse(response).also {
-                      debugHttpPureServer("WS-ERROR", response.body)
+                      debugHttpPureServer("WS-ERROR", response.body.toPureString())
                     }
                   }
                 } else {

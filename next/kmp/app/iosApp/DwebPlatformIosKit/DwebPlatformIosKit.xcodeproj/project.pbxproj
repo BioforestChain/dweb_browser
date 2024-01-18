@@ -58,12 +58,137 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1A0D70C4DACA3D8D5377BCFF /* X-Build */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D764658CEB4E1ECCC5B2E /* Intermediates.noindex */,
+			);
+			path = "X-Build";
+			sourceTree = "<group>";
+		};
+		1A0D70DC4877E7FC3C58A827 /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Headers;
+			path = "../X-Build/Intermediates.noindex/ArchiveIntermediates/DwebPlatformIosKit/InstallationBuildProductsLocation/Library/Frameworks/DwebPlatformIosKit.framework/Headers";
+			sourceTree = "<group>";
+		};
+		1A0D71F59A6CBB8DB53DF86E /* DwebPlatformIosKit.build */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D72E38ED609FBA6466952 /* Release-iphoneos */,
+			);
+			name = DwebPlatformIosKit.build;
+			path = ArchiveIntermediates/DwebPlatformIosKit/IntermediateBuildFilesPath/DwebPlatformIosKit.build;
+			sourceTree = "<group>";
+		};
+		1A0D72E38ED609FBA6466952 /* Release-iphoneos */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D737F09C3B08B47C227B1 /* DwebPlatformIosKit.build */,
+			);
+			path = "Release-iphoneos";
+			sourceTree = "<group>";
+		};
+		1A0D737F09C3B08B47C227B1 /* DwebPlatformIosKit.build */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = DwebPlatformIosKit.build;
+			sourceTree = "<group>";
+		};
+		1A0D73A6C56AF8FF2F1F0781 /* EagerLinkingTBDs */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D791F364F9D97ADD2E0DD /* Release-iphoneos */,
+			);
+			name = EagerLinkingTBDs;
+			path = ArchiveIntermediates/DwebPlatformIosKit/IntermediateBuildFilesPath/EagerLinkingTBDs;
+			sourceTree = "<group>";
+		};
+		1A0D73B2F02E7CD9D21E7E80 /* BuildProductsPath */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D75E43CA7D1D18CBE31BB /* Release-iphoneos */,
+			);
+			name = BuildProductsPath;
+			path = ArchiveIntermediates/DwebPlatformIosKit/BuildProductsPath;
+			sourceTree = "<group>";
+		};
+		1A0D750B386CE56793D09D3F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Frameworks;
+			sourceTree = "<group>";
+		};
+		1A0D75E43CA7D1D18CBE31BB /* Release-iphoneos */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "Release-iphoneos";
+			sourceTree = "<group>";
+		};
+		1A0D763B7C8BEEC5E9495081 /* InstallationBuildProductsLocation */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D765E0930AF26355F199C /* Library */,
+			);
+			name = InstallationBuildProductsLocation;
+			path = ArchiveIntermediates/DwebPlatformIosKit/InstallationBuildProductsLocation;
+			sourceTree = "<group>";
+		};
+		1A0D764658CEB4E1ECCC5B2E /* Intermediates.noindex */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D763B7C8BEEC5E9495081 /* InstallationBuildProductsLocation */,
+				1A0D73B2F02E7CD9D21E7E80 /* BuildProductsPath */,
+				1A0D73A6C56AF8FF2F1F0781 /* EagerLinkingTBDs */,
+				1A0D71F59A6CBB8DB53DF86E /* DwebPlatformIosKit.build */,
+			);
+			path = Intermediates.noindex;
+			sourceTree = "<group>";
+		};
+		1A0D765E0930AF26355F199C /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				1A0D750B386CE56793D09D3F /* Frameworks */,
+			);
+			path = Library;
+			sourceTree = "<group>";
+		};
+		1A0D791F364F9D97ADD2E0DD /* Release-iphoneos */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "Release-iphoneos";
+			sourceTree = "<group>";
+		};
+		1A0D7A46F808C90DC8B83434 /* swiftpm */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = swiftpm;
+			path = DwebPlatformIosKit.xcodeproj/project.xcworkspace/xcshareddata/swiftpm;
+			sourceTree = "<group>";
+		};
+		1A0D7EC136AD27BCAECCEC3A /* f47a20781d2b7b0024de4ff4f53e8e88.xcbuilddata */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = f47a20781d2b7b0024de4ff4f53e8e88.xcbuilddata;
+			path = "../X-Build/Intermediates.noindex/ArchiveIntermediates/DwebPlatformIosKit/IntermediateBuildFilesPath/XCBuildData/f47a20781d2b7b0024de4ff4f53e8e88.xcbuilddata";
+			sourceTree = "<group>";
+		};
 		3D50D2CB2B064BA5008891FC = {
 			isa = PBXGroup;
 			children = (
 				3D50D2D72B064BA5008891FC /* DwebPlatformIosKit */,
 				3D50D2D62B064BA5008891FC /* Products */,
 				4803BFFE2B4FF3EB006B2F79 /* Frameworks */,
+				1A0D7A46F808C90DC8B83434 /* swiftpm */,
+				1A0D70C4DACA3D8D5377BCFF /* X-Build */,
 			);
 			sourceTree = "<group>";
 		};

@@ -46,10 +46,10 @@
 1. 编译，运行：
    - 如果是 Android 用户，直接启动模拟器或者 USB 连接开启调试等设备后，可以直接运行
    - 如果是 IOS 用户使用 Android Studio 启动项目，确保 `Kotlin Multiplatform Mobile` 插件已经安装，在`Edit Configurations`中，点击`+`，选`IOS Application`
-     1. 在面板中，先选 `xcode project file`，路径在 `next/kmp/app/iosApp/iosApp.xcodeproj`
-     1. 然后就可以选择 `scheme` 为 `iosApp` ； `configuration` 建议是 `Debug`
+     1. 在面板中，先选 `xcode project file`，路径在 `next/kmp/app/iosApp/DwebBrowser.xcworkspace`
+     1. 然后就可以选择 `scheme` 为 `DwebBrowser` ； `configuration` 建议是 `Debug`
      1. 最后是 `target`，可以选模拟器，如果你的真机设备找不到，那么就卸载重装`Kotlin Multiplatform Mobile`插件，然后通常就能选择真机设备了，反正只要找不到，就重装插件就行
-   - 如果是 IOS 用户也可以直接使用 xcode 打开`next/kmp/app/iosApp/iosApp.xcodeproj`，直接运行即可
+   - 如果是 IOS 用户也可以直接使用 xcode 打开`next/kmp/app/iosApp/DwebBrowser.xcworkspace`，直接运行 DwebBrowser 即可
 
 ## 小提示 Tips
 

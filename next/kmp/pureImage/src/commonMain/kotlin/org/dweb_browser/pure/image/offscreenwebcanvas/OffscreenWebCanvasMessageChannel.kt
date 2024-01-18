@@ -12,8 +12,8 @@ import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureTextFrame
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.resource
+import org.jetbrains.compose.resources.InternalResourceApi
+import org.jetbrains.compose.resources.readResourceBytes
 
 internal class OffscreenWebCanvasMessageChannel {
   private var dataChannel = CompletableDeferred<PureChannel>()
@@ -23,7 +23,7 @@ internal class OffscreenWebCanvasMessageChannel {
   val onMessage = onMessageSignal.toListener()
   val proxy = OffscreenWebCanvasFetchProxy()
 
-  @OptIn(ExperimentalResourceApi::class)
+  @OptIn(InternalResourceApi::class)
   private val server = HttpPureServer {
     val pathname = it.url.encodedPath
     if (pathname == "/channel" && it.hasChannel) {
@@ -57,7 +57,7 @@ internal class OffscreenWebCanvasMessageChannel {
       proxy.proxy(it)
     } else {
       runCatching {
-        val content = resource("offscreen-web-canvas$pathname").readBytes()
+        val content = readResourceBytes("offscreen-web-canvas$pathname")
         PureResponse(body = IPureBody.from(content))
       }.getOrElse {
         PureResponse(

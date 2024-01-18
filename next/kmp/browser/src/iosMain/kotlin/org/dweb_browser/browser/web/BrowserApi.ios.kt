@@ -10,14 +10,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.interop.UIKitView
-import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.WARNING
-import org.dweb_browser.platform.ios_browser.browserActiveOn
 import org.dweb_browser.platform.ios_browser.DwebWebView
+import org.dweb_browser.platform.ios_browser.browserActiveOn
 import org.dweb_browser.platform.ios_browser.colorSchemeChangedWithColor
 import org.dweb_browser.platform.ios_browser.doSearchWithKey
 import org.dweb_browser.platform.ios_browser.gobackIfCanDo
@@ -25,7 +24,6 @@ import org.dweb_browser.platform.ios_browser.prepareToKmp
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
-import platform.CoreGraphics.CGRect
 import platform.CoreGraphics.CGRectMake
 import kotlin.experimental.ExperimentalNativeApi
 
@@ -70,15 +68,20 @@ actual fun CommonBrowserView(
     }
   }
 
-  val iOSView = remember<DwebWebView> {
-    var web = iOSViewHolder
-    if (web == null) {
-      val frame: CValue<CGRect> = CGRectMake(0.0, 0.0, 0.0, 0.0)
-      web = DwebWebView(frame, iOSDelegate, iOSDataSource)
-      iOSViewHolder = web
+  val iOSView = remember {
+    when (val webView = iOSViewHolder) {
+      null -> DwebWebView(
+        CGRectMake(0.0, 0.0, 0.0, 0.0),
+        iOSDelegate,
+        iOSDataSource
+      ).also {
+        iOSViewHolder = it
+      }
+
+      else -> webView
+    }.also {
+      it.prepareToKmp()
     }
-    web!!.prepareToKmp()
-    web!!
   }
 
   browserObserver.browserViewModel = viewModel

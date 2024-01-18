@@ -3,11 +3,17 @@ plugins {
 }
 
 kotlin {
-  val commonJsMain by sourceSets.creating {
-    dependsOn(sourceSets.commonMain.get())
+  kmpCommonTarget(project) {
+    @Suppress("OPT_IN_USAGE")
+    applyHierarchy {
+      common {
+        group("commonJs") {
+          withJs()
+        }
+      }
+    }
   }
   kmpBrowserJsTarget(project) {
-    dependsOn(commonJsMain)
     dependencies {
       api(libs.kotlinx.datetime)
       api(libs.ktor.http)

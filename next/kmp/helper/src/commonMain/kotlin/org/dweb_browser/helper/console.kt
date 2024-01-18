@@ -155,7 +155,7 @@ fun String.padEndAndSub(length: Int): String {
 }
 
 class Debugger(val scope: String) {
-  operator fun invoke(tag: String, msg: Any = "", err: Throwable? = null) {
+  operator fun invoke(tag: String, msg: Any? = "", err: Throwable? = null) {
     printDebug(scope, tag, msg, err)
   }
 

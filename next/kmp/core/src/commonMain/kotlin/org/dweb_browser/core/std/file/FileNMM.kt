@@ -10,29 +10,29 @@ import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.pure.http.PureStream
-import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.core.http.router.IChannelHandlerContext
 import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.http.router.ResponseException
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.StringEnumSerializer
-import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.helper.consumeEachCborPacket
-import org.dweb_browser.pure.io.copyTo
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.removeWhen
-import org.dweb_browser.pure.io.toByteReadChannel
 import org.dweb_browser.helper.toJsonElement
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.resource
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.pure.http.queryAsOrNull
+import org.dweb_browser.pure.io.SystemFileSystem
+import org.dweb_browser.pure.io.copyTo
+import org.dweb_browser.pure.io.toByteReadChannel
+import org.jetbrains.compose.resources.InternalResourceApi
+import org.jetbrains.compose.resources.readResourceBytes
 
 val debugFile = Debugger("file")
 
@@ -131,7 +131,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     }
   }
 
-  @OptIn(ExperimentalResourceApi::class)
+  @OptIn(InternalResourceApi::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     getDataVirtualFsDirectory().also {
       debugFile("DIR/DATA", it.getFsBasePath(this))
@@ -149,7 +149,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         // TODO 未来多平台下，sys的提供由 resource 函数统一供给
         if (firstSegment == "sys") {
           return@respondLocalFile try {
-            returnFile(resource(contentPath).readBytes())
+            returnFile(readResourceBytes(contentPath))
           } catch (e: Throwable) {
             /// 终止，不继续尝试从其它地方读取文件
             returnNoFound(e.message)
@@ -189,7 +189,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       // 使用Duplex打开文件句柄，当这个Duplex关闭的时候，自动释放文件句柄
       "/open" bind PureMethod.GET by defineCborPackageResponse {
         val path = getPath()
-        debugFile("/open",path)
+        debugFile("/open", path)
         val handler = SystemFileSystem.openReadWrite(path)
         // TODO 这里需要定义完整的操作指令
         request.body.toPureStream().getReader("open file")
@@ -234,7 +234,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       "/createDir" bind PureMethod.POST by defineBooleanResponse {
         val path = getPath()
         if (SystemFileSystem.exists(path)) {
-          return@defineBooleanResponse  true
+          return@defineBooleanResponse true
         }
         SystemFileSystem.createDirectories(path, true)
         true

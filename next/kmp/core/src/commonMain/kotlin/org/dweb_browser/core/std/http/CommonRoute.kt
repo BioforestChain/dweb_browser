@@ -60,8 +60,13 @@ data class PathRoute(
 @Serializable
 data class DuplexRoute(override val pathname: String, val matchMode: MatchMode = MatchMode.PREFIX) :
   IRoute {
-  override fun isMatch(request: PureRequest) =
-    request.hasChannel && PathRoute.isMatch(request, pathname, matchMode)
+  override fun isMatch(request: PureRequest): Boolean {
+    val matched = request.hasChannel && PathRoute.isMatch(request, pathname, matchMode)
+    debugHttp("isMatch") {
+      "hasChannel=${request.hasChannel} isMatch=$matched pathname=${request.url.encodedPath}=$pathname matchMode=$matchMode"
+    }
+    return matched
+  }
 }
 
 interface IRoute {

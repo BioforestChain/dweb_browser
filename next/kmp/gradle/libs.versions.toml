@@ -10,12 +10,11 @@ jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
 agp = "8.2.1"
-kotlin-version = "1.9.21"
+kotlin-version = "1.9.22"
 androidx-test = "1.5.0"
 androidx-compose-ui-test = "1.5.4"
-lifecycle-runtime-ktx = "2.6.2"
+androidx-lifecycle = "2.7.0"
 compose-bom = "2023.10.01"
-lifecycle-service = "2.6.2"
 
 androidx-activity = "1.8.2"
 androidx-appcompat = "1.6.1"
@@ -46,7 +45,7 @@ coil-version = "2.5.0"
 camera-version = "1.4.0-alpha03"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
-jetbrains-compose-version = "1.5.11"
+jetbrains-compose-version = "1.6.0-dev1369" # "1.5.11"
 
 # 测试
 test-junit-bom = "5.9.2"
@@ -91,10 +90,10 @@ jetbrains-compose-material = { module = "org.jetbrains.compose.material:material
 jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "jetbrains-compose-version" }
 jetbrains-compose-materialIcons = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "jetbrains-compose-version" }
 
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-common-java8 = { group = "androidx.lifecycle", name = "lifecycle-common-java8", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-extensions = { group = "androidx.lifecycle", name = "lifecycle-extensions", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycle-service" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-common-java8 = { group = "androidx.lifecycle", name = "lifecycle-common-java8", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-extensions = { group = "androidx.lifecycle", name = "lifecycle-extensions", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "androidx-lifecycle" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "androidx-activity" }
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidx-activity" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }

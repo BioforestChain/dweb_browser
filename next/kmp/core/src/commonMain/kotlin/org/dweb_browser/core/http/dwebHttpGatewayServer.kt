@@ -3,12 +3,12 @@ package org.dweb_browser.core.http
 
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.help.AdapterManager
-import org.dweb_browser.core.std.http.findDwebGateway
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.pure.http.HttpPureServer
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureServerRequest
+import org.dweb_browser.pure.http.debugHttpPureServer
 
 
 typealias HttpGateway = suspend (request: PureServerRequest) -> PureResponse?
@@ -32,13 +32,11 @@ class DwebHttpGatewayServer private constructor() {
   }
 
   val server = HttpPureServer { rawRequest ->
-    val rawUrl = rawRequest.href
-    val url = rawRequest.queryOrNull("X-Dweb-Url") ?: when (val info =
-      findDwebGateway(rawRequest)) {
-      null -> rawUrl
-      else -> "${info.protocol.name}://${info.host}$rawUrl"
-    }
-    var pureRequest = if (url != rawUrl) rawRequest.copy(href = url) else rawRequest;
+    val pureRequest = when (val url = rawRequest.queryOrNull("X-Dweb-Url")) {
+      null -> rawRequest
+      else -> rawRequest.copy(href = url)
+    };
+    debugHttpPureServer("doGateway", pureRequest.href)
     try {
       gatewayAdapterManager.doGateway(pureRequest)
         ?: PureResponse(HttpStatusCode.GatewayTimeout)
