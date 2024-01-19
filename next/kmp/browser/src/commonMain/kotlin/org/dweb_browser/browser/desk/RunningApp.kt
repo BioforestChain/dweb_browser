@@ -1,10 +1,14 @@
 package org.dweb_browser.browser.desk
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.printError
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowConstants
@@ -30,11 +34,12 @@ class RunningApp(
    * 所有的窗口实例
    */
   private val windows = mutableListOf<WindowController>()
+  private var wid: UUID? = null
 
   /**
    * 创建一个窗口
    */
-  private suspend fun createWindow(): WindowController {
+  private suspend fun createWindow(oldWinId: UUID?): WindowController {
     val manifest = ipc.remote
     // 打开安装窗口
     val newWin = windowAdapterManager.createWindow(
@@ -43,25 +48,25 @@ class RunningApp(
           owner = manifest.mmid,
           ownerVersion = manifest.version,
           provider = manifest.mmid,
+          wid = oldWinId ?: randomUUID()
         )
       )
     )
-    windows.add(newWin)
-
-    val wid = newWin.id
+    oldWinId ?: windows.add(newWin)
+    wid = newWin.id
     /// 窗口销毁的时候
     newWin.onClose {
       /// 通知模块，销毁渲染
-      ipc.postMessage(IpcEvent.createRendererDestroy(wid))
+      ipc.postMessage(IpcEvent.createRendererDestroy(newWin.id))
       // 移除渲染适配器
-      windowAdapterManager.renderProviders.remove(wid)
+      windowAdapterManager.renderProviders.remove(newWin.id)
       // 从引用中移除
       windows.remove(newWin)
     }
 
     /// 等待握手完成后，通知模块，提供渲染
     ipc.afterReady()
-    ipc.postMessage(IpcEvent.createRenderer(wid))
+    ipc.postMessage(IpcEvent.createRenderer(newWin.id))
     return newWin
   }
 
@@ -75,20 +80,29 @@ class RunningApp(
    * 打开主窗口，默认只会有一个主窗口，重复打开不会重复创建
    */
   suspend fun getMainWindow() = openLock.withLock {
-    if (mainWin == null) {
-      mainWin = createWindow().also { win ->
-        win.onClose {
-          if (mainWin == win) {
-            mainWin = null
-          }
-          bootstrapContext.dns.close(ipc.remote.mmid)
-        }
+    try {
+      if (mainWin == null) {
+        mainWin = warpCreateWindow()
+      } else {
+        mainWin?.focus()
       }
-    } else {
-      mainWin?.focus()
+    } catch (e: Exception) {
+      printError("getMainWindow", "${e.message} $wid 协程被关闭，重新构建窗口对象")
+      mainWin = warpCreateWindow(wid)
+      wid = null
     }
     mainWin!!
   }
+
+  private suspend fun warpCreateWindow(oldWinId: UUID? = null) =
+    createWindow(oldWinId).also { win ->
+      win.onClose {
+        if (mainWin == win) {
+          mainWin = null
+        }
+        bootstrapContext.dns.close(ipc.remote.mmid)
+      }
+    }
 
   suspend fun closeMainWindow(force: Boolean = false) {
     getMainWindow().closeRoot(force)

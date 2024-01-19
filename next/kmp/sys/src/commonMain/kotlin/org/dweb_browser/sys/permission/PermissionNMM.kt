@@ -70,7 +70,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
     short_name = "Permission";
     dweb_protocols = listOf("permission.std.dweb")
     categories = listOf(
-      MICRO_MODULE_CATEGORY.Application,
+//      MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,
       MICRO_MODULE_CATEGORY.Hub_Service
     )
