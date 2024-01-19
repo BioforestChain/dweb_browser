@@ -100,7 +100,7 @@ object RSA {
   }
 
   @OptIn(ExperimentalUnsignedTypes::class, ExperimentalForeignApi::class)
-  private fun ByteArray.bridgingRetain() = asUByteArray().let {
+  internal fun ByteArray.bridgingRetain() = asUByteArray().let {
     CFDataCreate(null, it.refTo(0), it.size.convert()) as CFDataRef
   }
 
@@ -114,6 +114,6 @@ object RSA {
   fun <T : CPointer<U>, U> T.autorelease(scope: MemScope): T = scope.autorelease(this)
 
   @OptIn(ExperimentalUnsignedTypes::class, ExperimentalForeignApi::class)
-  private fun CFDataRef.toByteArray() = ByteArray(CFDataGetLength(this).convert())
+  internal fun CFDataRef.toByteArray() = ByteArray(CFDataGetLength(this).convert())
     .also { CFDataGetBytes(this, CFRangeMake(0, it.size.convert()), it.asUByteArray().refTo(0)) }
 }

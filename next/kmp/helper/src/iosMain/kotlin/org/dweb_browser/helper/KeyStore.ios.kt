@@ -5,6 +5,9 @@ import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
+import org.dweb_browser.helper.RSA.autorelease
+import org.dweb_browser.helper.RSA.bridgingRetain
+import org.dweb_browser.helper.RSA.toByteArray
 import platform.CoreFoundation.CFDictionaryCreateMutable
 import platform.CoreFoundation.CFDictionarySetValue
 import platform.CoreFoundation.CFErrorRefVar
@@ -64,7 +67,7 @@ object KeyStore {
   private fun generate_private_key() = memScoped {
     val attributes = dictionary().autorelease(this)
     CFDictionarySetValue(attributes, kSecClass, kSecClassKey)
-    val bitsRef = 256.bridgingRetain().autorelease(this)
+    val bitsRef = ByteArray(256).bridgingRetain().autorelease(this)
     CFDictionarySetValue(attributes, kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom)
     CFDictionarySetValue(attributes, kSecAttrKeySizeInBits, bitsRef)
     CFDictionarySetValue(attributes, kSecAttrTokenID, kSecAttrTokenIDSecureEnclave)
@@ -105,7 +108,7 @@ object KeyStore {
     val attributes = dictionary()
     CFDictionarySetValue(attributes, kSecAttrKeyClass, kSecAttrKeyClassPrivate)
     CFDictionarySetValue(attributes, kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom)
-    val bitsRef = 256.bridgingRetain().autorelease(this)
+    val bitsRef = ByteArray(256).bridgingRetain().autorelease(this)
     CFDictionarySetValue(attributes, kSecAttrKeySizeInBits, bitsRef)
     val labelRef = LABEL_ID.encodeToByteArray().bridgingRetain().autorelease(this)
     CFDictionarySetValue(attributes, kSecAttrApplicationTag, labelRef)
