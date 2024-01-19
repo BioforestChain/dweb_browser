@@ -7,11 +7,19 @@
 
 import SwiftUI
 import UIKit
+import Combine
 
 struct BrowserView: View {
     @ObservedObject var states: BrowserViewStates
     @ObservedObject var toolBarState: ToolBarState
-    var curWebVisible: Bool { states.webcacheStore.cache(at: states.selectedTab.curIndex).shouldShowWeb }
+    @State private var curWebVisible = false
+    @State private var cancels = Set<AnyCancellable>()
+    
+    func doObserverAction() {
+        states.selectedTab.$curIndex.sink { index in
+            curWebVisible = states.webcacheStore.cache(at: index).shouldShowWeb
+        }.store(in: &cancels)
+    }
 
     var body: some View {
         ZStack {
@@ -53,6 +61,7 @@ struct BrowserView: View {
                 }
             }
             .task {
+                doObserverAction()
                 states.doSearchIfNeed()
                 if let key = states.searchKey, !key.isEmpty {
                     states.searchKey = nil
