@@ -96,6 +96,15 @@ open class PureViewController : BaseActivity(), IPureViewController {
   override fun getContents(): MutableList<@Composable () -> Unit> {
     return contents
   }
+
+  /**
+   * 必须重写一次，否则 content 类型会变成 () -> Unit，导致 addContent 添加 @Composable 函数异常：
+   * java.lang.RuntimeException: Unable to instantiate activity ComponentInfo:
+   * java.lang.ClassCastException: androidx.compose.runtime.internal.ComposableLambdaImpl cannot be cast to kotlin.jvm.functions.Function0
+   * */
+  override fun addContent(content: @Composable () -> Unit): () -> Boolean {
+    return super.addContent(content)
+  }
 }
 
 fun IPureViewController.asAndroid(): PureViewController {
