@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import type { HTMLDwebShareElement } from "../plugin";
-import { reactive } from "vue";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 
 const title = "InputFile";
 
