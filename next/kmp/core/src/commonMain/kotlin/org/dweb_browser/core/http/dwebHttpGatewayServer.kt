@@ -39,7 +39,6 @@ class DwebHttpGatewayServer private constructor() {
     debugHttpPureServer("doGateway", pureRequest.href)
     try {
       gatewayAdapterManager.doGateway(pureRequest)
-        ?: PureResponse(HttpStatusCode.GatewayTimeout)
     } catch (e: Throwable) {
       PureResponse(HttpStatusCode.BadGateway, body = IPureBody.from(e.message ?: ""))
     }

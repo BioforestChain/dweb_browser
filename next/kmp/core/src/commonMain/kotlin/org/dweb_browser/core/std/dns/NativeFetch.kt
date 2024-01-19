@@ -4,10 +4,10 @@ import io.ktor.http.Url
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.pure.http.HttpPureClient
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.defaultHttpPureClient
 
 typealias FetchAdapter = suspend (remote: MicroModule, request: PureClientRequest) -> PureResponse?
 
@@ -23,7 +23,7 @@ val nativeFetchAdaptersManager = NativeFetchAdaptersManager()
 
 class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
 
-  private var client = HttpPureClient()
+  private var client = defaultHttpPureClient
 
   class HttpFetch(private val manager: NativeFetchAdaptersManager) {
     val client get() = manager.client

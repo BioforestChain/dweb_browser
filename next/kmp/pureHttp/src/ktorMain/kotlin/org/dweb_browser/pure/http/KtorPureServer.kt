@@ -1,5 +1,6 @@
 package org.dweb_browser.pure.http
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
 import io.ktor.server.engine.ApplicationEngine
@@ -44,7 +45,7 @@ open class KtorPureServer(
                     pureChannelDeferred = it
                   })
                 }
-                val response = onRequest(pureRequest)
+                val response = onRequest(pureRequest) ?: PureResponse(HttpStatusCode.GatewayTimeout)
 
                 if (pureRequest.hasChannel) {
                   /// 如果是101响应头，那么使用WebSocket来作为双工的通讯标准进行传输，这里使用PureChannel来承担这层抽象

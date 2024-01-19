@@ -6,11 +6,9 @@ import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.std.dns.httpFetch
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toKString
@@ -60,8 +58,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
             "connect" -> engine.ioScope.launch {
               try {
                 val url = (message.objectAtIndex(2u) as NSString).toKString()
-                val pureChannel =
-                  httpFetch.client.websocket("ws://127.0.0.1:${dwebHttpGatewayServer.startServer()}?X-Dweb-Url=${url.encodeURIComponent()}")
+                val pureChannel = httpFetch.client.websocket(url)
                 pureChannel.start().apply {
                   sendOpen(wsId)
                   for (frame in income) {

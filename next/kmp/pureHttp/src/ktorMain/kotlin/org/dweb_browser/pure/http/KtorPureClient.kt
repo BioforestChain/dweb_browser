@@ -9,9 +9,6 @@ import io.ktor.client.plugins.websocket.ws
 import io.ktor.client.request.prepareRequest
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.fullPath
-import io.ktor.util.decodeBase64Bytes
-import io.ktor.util.toLowerCasePreservingASCIIRules
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -34,45 +31,13 @@ open class KtorPureClient(engine: HttpClientEngineFactory<*>) {
     try {
       debugHttpPureClient("httpFetch request", request.href)
       if (request.url.protocol.name == "data") {
-        val dataUriContent = request.url.fullPath
-        val dataUriContentInfo = dataUriContent.split(',', limit = 2)
-        when (dataUriContentInfo.size) {
-          2 -> {
-            val meta = dataUriContentInfo[0]
-            val bodyContent = dataUriContentInfo[1]
-            val metaInfo = meta.split(';', limit = 2)
-//              val response = PureResponse(HttpStatusCode.OK)
-            when (metaInfo.size) {
-              1 -> {
-                return PureResponse(
-                  HttpStatusCode.OK,
-                  headers = PureHeaders().apply { set("Content-Type", meta) },
-                  body = PureStringBody(bodyContent)
-                )
-              }
-
-              2 -> {
-                val encoding = metaInfo[1]
-                return if (encoding.trim().toLowerCasePreservingASCIIRules() == "base64") {
-                  PureResponse(
-                    HttpStatusCode.OK,
-                    headers = PureHeaders().apply { set("Content-Type", metaInfo[0]) },
-                    body = PureBinaryBody(bodyContent.decodeBase64Bytes())
-                  )
-                } else {
-                  PureResponse(
-                    HttpStatusCode.OK,
-                    headers = PureHeaders().apply { set("Content-Type", meta) },
-                    body = PureStringBody(bodyContent)
-                  )
-                }
-              }
-            }
-          }
-        }
-        /// 保底操作
-        return PureResponse(HttpStatusCode.OK, body = PureStringBody(dataUriContent))
+        return dataUriToPureResponse(request)
       }
+
+      /// 尝试从内部 HttpPureServer 上消化掉请求
+      tryDoHttpPureServerResponse(request.toServer())
+
+      /// 请求标准网络
       val responsePo = CompletableDeferred<PureResponse>()
       CoroutineScope(ioAsyncExceptionHandler).launch {
         try {
@@ -111,19 +76,29 @@ open class KtorPureClient(engine: HttpClientEngineFactory<*>) {
   }
 
   suspend fun websocket(request: PureClientRequest): PureChannel {
-    val channel = request.channel ?: CompletableDeferred()
-    CoroutineScope(ioAsyncExceptionHandler).launch {
-      ktorClient.ws(request = { fromPureClientRequest(request) }) {
-        val ws = this
-        val income = Channel<PureFrame>()
-        val outgoing = Channel<PureFrame>()
-        val pureChannel = PureChannel(income, outgoing, ws).also {
-          channel.complete(it)
+    var pureClientRequest = request
+    val channel = request.channel ?: CompletableDeferred<PureChannel>().also {
+      pureClientRequest = request.copy(channel = it)
+    }
+    val income = Channel<PureFrame>()
+    val outgoing = Channel<PureFrame>()
+    val pureChannel = PureChannel(income, outgoing)
+
+    /// 尝试从内部 HttpPureServer 上消化掉请求
+    if (tryDoHttpPureServerResponse(pureClientRequest.toServer()) != null) {
+      channel.complete(pureChannel)
+    } else {
+      CoroutineScope(ioAsyncExceptionHandler).launch {
+        ktorClient.ws(request = { fromPureClientRequest(request) }) {
+          val ws = this
+          pureChannel.from = ws
+          channel.complete(pureChannel)
+          // pureChannel.afterStart() TODO 这里能能不能使用afterStart来阻塞数据的接收？
+          pipeToPureChannel(ws, request.href, income, outgoing, pureChannel)
         }
-        // pureChannel.afterStart() TODO 这里能能不能使用afterStart来阻塞数据的接收？
-        pipeToPureChannel(ws, request.href, income, outgoing, pureChannel)
       }
     }
+
     return channel.await()
   }
 }

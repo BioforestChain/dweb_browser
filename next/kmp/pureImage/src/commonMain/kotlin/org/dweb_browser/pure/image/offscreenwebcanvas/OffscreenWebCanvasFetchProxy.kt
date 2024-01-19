@@ -5,12 +5,13 @@ import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureServerRequest
+import org.dweb_browser.pure.http.defaultHttpPureClient
 import org.dweb_browser.pure.http.fetch
 
 /**
  * 网络请求的代理器，因为web中有各种安全性限制，所以这里使用原生的无限制的网络请求提供一个代理
  */
-internal class OffscreenWebCanvasFetchProxy(private val client: HttpPureClient = HttpPureClient()) {
+internal class OffscreenWebCanvasFetchProxy(private val client: HttpPureClient = defaultHttpPureClient) {
   suspend fun proxy(request: PureServerRequest): PureResponse {
     val proxyUrl = request.query("url")
     val hook = hooksMap[proxyUrl]?.last()

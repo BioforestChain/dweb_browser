@@ -2,6 +2,10 @@ package org.dweb_browser.pure.http
 
 import io.ktor.http.Headers
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.fullPath
+import io.ktor.util.decodeBase64Bytes
+import io.ktor.util.toLowerCasePreservingASCIIRules
 import io.ktor.utils.io.ByteReadChannel
 
 data class InitRequest(
@@ -68,4 +72,45 @@ internal fun buildRequestX(
     body = pureBody,
     from = from
   );
+}
+
+fun dataUriToPureResponse(request: PureRequest): PureResponse {
+  val dataUriContent = request.url.fullPath
+  val dataUriContentInfo = dataUriContent.split(',', limit = 2)
+  when (dataUriContentInfo.size) {
+    2 -> {
+      val meta = dataUriContentInfo[0]
+      val bodyContent = dataUriContentInfo[1]
+      val metaInfo = meta.split(';', limit = 2)
+//              val response = PureResponse(HttpStatusCode.OK)
+      when (metaInfo.size) {
+        1 -> {
+          return PureResponse(
+            HttpStatusCode.OK,
+            headers = PureHeaders().apply { set("Content-Type", meta) },
+            body = PureStringBody(bodyContent)
+          )
+        }
+
+        2 -> {
+          val encoding = metaInfo[1]
+          return if (encoding.trim().toLowerCasePreservingASCIIRules() == "base64") {
+            PureResponse(
+              HttpStatusCode.OK,
+              headers = PureHeaders().apply { set("Content-Type", metaInfo[0]) },
+              body = PureBinaryBody(bodyContent.decodeBase64Bytes())
+            )
+          } else {
+            PureResponse(
+              HttpStatusCode.OK,
+              headers = PureHeaders().apply { set("Content-Type", meta) },
+              body = PureStringBody(bodyContent)
+            )
+          }
+        }
+      }
+    }
+  }
+  /// 保底操作
+  return PureResponse(HttpStatusCode.OK, body = PureStringBody(dataUriContent))
 }

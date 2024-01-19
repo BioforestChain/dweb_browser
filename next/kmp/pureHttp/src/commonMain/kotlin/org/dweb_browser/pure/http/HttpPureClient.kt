@@ -33,3 +33,5 @@ suspend fun HttpPureClient.websocket(
   )
   return websocket(request)
 }
+
+val defaultHttpPureClient = HttpPureClient()

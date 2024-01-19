@@ -73,7 +73,7 @@ class PureChannelContext internal constructor(
 class PureChannel(
   private val _income: Channel<PureFrame>,
   private val _outgoing: Channel<PureFrame>,
-  override val from: Any? = null,
+  override var from: Any? = null,
 ) : IPureChannel, IFrom {
   constructor(from: Any? = null) : this(Channel(), Channel(), from)
 
