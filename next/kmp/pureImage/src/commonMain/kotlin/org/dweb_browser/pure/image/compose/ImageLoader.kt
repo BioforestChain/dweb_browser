@@ -2,7 +2,6 @@ package org.dweb_browser.pure.image.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.CoroutineScope
@@ -106,7 +105,7 @@ class ImageLoader {
         } else null
         value = try {
           webCanvas.waitReady()
-          value = ImageLoadResult.Rendering;
+          value = ImageLoadResult.Loading;
           val imageBitmap = webCanvas.buildTask {
             renderImage(url, containerWidth, containerHeight)
             toImageBitmap()
@@ -122,35 +121,5 @@ class ImageLoader {
     return imageBitmap.also {
       caches.save(CacheItem(url, containerWidth, containerHeight, hook, it))
     }()
-  }
-}
-
-class ImageLoadResult(
-  val success: ImageBitmap? = null,
-  val error: Throwable? = null,
-  val busy: String? = null,
-) {
-  companion object {
-
-    internal fun success(success: ImageBitmap) = ImageLoadResult(success = success)
-    internal fun error(error: Throwable?) = ImageLoadResult(error = error)
-
-    internal val Setup = ImageLoadResult(busy = "setup...")
-    internal val Rendering = ImageLoadResult(busy = "loading and rendering...")
-  }
-
-  val isSuccess get() = success != null
-  inline fun with(
-    onBusy: (String) -> Unit = {},
-    onError: (Throwable) -> Unit = {},
-    onSuccess: (ImageBitmap) -> Unit = {},
-  ) {
-    if (success != null) {
-      onSuccess(success)
-    } else if (error != null) {
-      onError(error)
-    } else if (busy != null) {
-      onBusy(busy)
-    }
   }
 }

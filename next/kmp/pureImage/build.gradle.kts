@@ -12,9 +12,18 @@ kotlin {
       implementation(projects.helperPlatform)
       implementation(projects.pureIO)
       implementation(projects.pureHttp)
+
+      // 加载图片 coil
+      implementation(libs.coil.core)
+      implementation(libs.coil.network)
+      implementation(libs.coil.compose)
+      implementation(libs.coil.svg)
+      implementation(libs.coil.video)
+      implementation(libs.coil.gif)
     }
+
   }
-  val androidAndIosMain by sourceSets.creating{
+  val androidAndIosMain by sourceSets.creating {
     dependencies {
       api(libs.ktor.http)
       api(libs.ktor.client.cio)
@@ -25,10 +34,10 @@ kotlin {
       implementation(libs.ktor.server.cio)
     }
   }
-  kmpAndroidTarget(project){
+  kmpAndroidTarget(project) {
     dependsOn(androidAndIosMain)
   }
-  kmpIosTarget(project){
+  kmpIosTarget(project) {
     dependsOn(androidAndIosMain)
   }
 }

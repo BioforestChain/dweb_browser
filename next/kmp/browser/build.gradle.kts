@@ -10,6 +10,7 @@ kotlin {
       implementation(projects.helperPlatform)
       implementation(projects.pureIO)
       implementation(projects.pureCrypto)
+      implementation(projects.pureImage)
       implementation(projects.pureHttp)
       implementation(projects.core)
       implementation(projects.sys)

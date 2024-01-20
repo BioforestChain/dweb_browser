@@ -41,7 +41,7 @@ google-material = "1.11.0"
 google-location = "21.0.1"
 data-gson = "2.10.1"
 data-moshi-pack = "1.0.1"
-coil-version = "2.5.0"
+coil-version = "3.0.0-alpha02"
 camera-version = "1.4.0-alpha03"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
@@ -165,11 +165,12 @@ data-gson = { group = "com.google.code.gson", name = "gson", version.ref = "data
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationVersion" }
 kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-cbor", version.ref = "kotlinxSerializationVersion" }
 # 加载图片 coil
-coil-core = { group = "io.coil-kt", name = "coil", version.ref = "coil-version" }
-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil-version" }
-coil-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil-version" }
-coil-video = { group = "io.coil-kt", name = "coil-video", version.ref = "coil-version" }
-coil-gif = { group = "io.coil-kt", name = "coil-gif", version.ref = "coil-version" }
+coil-core = { group = "io.coil-kt.coil3", name = "coil", version.ref = "coil-version" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil-version" }
+coil-network = { group = "io.coil-kt.coil3", name = "coil-network", version.ref = "coil-version" }
+coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil-version" }
+coil-video = { group = "io.coil-kt.coil3", name = "coil-video", version.ref = "coil-version" }
+coil-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil-version" }
 # 扫码核心库
 camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camera-version" }
 camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camera-version" }

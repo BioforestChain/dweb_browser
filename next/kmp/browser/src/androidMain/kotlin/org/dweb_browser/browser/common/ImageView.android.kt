@@ -9,7 +9,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import org.dweb_browser.browser.R
-import org.dweb_browser.helper.android.getCoilImageLoader
+import org.dweb_browser.pure.image.compose.getCoilImageLoader
 
 @Composable
 actual fun AsyncImage(
@@ -23,7 +23,7 @@ actual fun AsyncImage(
   filterQuality: FilterQuality,
 ) {
   val context = LocalContext.current
-  coil.compose.AsyncImage(
+  coil3.compose.AsyncImage(
     model = model,
     contentDescription = contentDescription,
     imageLoader = context.getCoilImageLoader(),

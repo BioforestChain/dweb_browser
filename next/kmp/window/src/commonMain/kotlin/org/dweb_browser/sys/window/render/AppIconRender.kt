@@ -21,10 +21,9 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
-import org.dweb_browser.pure.image.compose.ImageLoadResult
-import org.dweb_browser.pure.image.compose.ImageLoader
-import org.dweb_browser.pure.image.compose.LocalImageLoader
 import org.dweb_browser.helper.compose.rememberVectorPainterWithTint
+import org.dweb_browser.pure.image.compose.ImageLoadResult
+import org.dweb_browser.pure.image.compose.ImageLoader2
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import squircleshape.SquircleShape
 
@@ -49,7 +48,7 @@ fun AppIcon(
   iconMaskable: Boolean = false,
   iconMonochrome: Boolean = false,
   iconDescription: String = "icon",
-  iconLoader: ImageLoader? = null,
+  iconLoader: ImageLoader2? = null,
   iconFetchHook: FetchHook? = null,
 ) {
   AppIconOuter(
@@ -83,7 +82,7 @@ fun AppIcon(
   iconMaskable: Boolean = false,
   iconMonochrome: Boolean = false,
   iconDescription: String = "icon",
-  iconLoader: ImageLoader? = null,
+  iconLoader: ImageLoader2? = null,
   iconFetchHook: FetchHook? = null,
 ) {
   AppIconOuter(
@@ -109,7 +108,7 @@ fun AppIcon(
   iconPlaceholder: Painter? = null,
   iconError: Painter? = null,
   iconDescription: String = "icon",
-  iconLoader: ImageLoader? = null,
+  iconLoader: ImageLoader2? = null,
   iconFetchHook: FetchHook? = null,
 ) {
   AppIconOuter(
@@ -138,14 +137,15 @@ private fun AppIconOuter(
   iconMaskable: Boolean,
   iconMonochrome: Boolean,
   iconDescription: String,
-  iconLoader: ImageLoader? = null,
+  iconLoader: ImageLoader2? = null,
   iconFetchHook: FetchHook? = null,
 ) {
+  val loader2 = iconLoader ?: ImageLoader2.GetImageLoader2()
+
   BoxWithConstraints {
     val icon = when (iconSrc) {
       is String -> {
-        val imageLoader = iconLoader ?: LocalImageLoader.current
-        imageLoader.Load(iconSrc, maxWidth, maxHeight, iconFetchHook)
+        loader2.Load(iconSrc, maxWidth, maxHeight, iconFetchHook)
       }
 
       is ImageLoadResult -> {
