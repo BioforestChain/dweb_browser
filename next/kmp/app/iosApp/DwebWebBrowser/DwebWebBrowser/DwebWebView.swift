@@ -40,7 +40,9 @@ var browserViewDataSource: WebBrowserViewDataSource {
     fileprivate var isTransitionEffect = false
     fileprivate var snap: UIView?
     
-    private let browserStates: BrowserViewStates = BrowserViewStates()
+    private lazy var browserStates: BrowserViewStates = {
+        BrowserViewStates()
+    }()
     
     private lazy var hostVC: UIViewController = UIHostingController(rootView: BrowserView(states: browserStates, toolBarState: browserStates.toolBarState))
     

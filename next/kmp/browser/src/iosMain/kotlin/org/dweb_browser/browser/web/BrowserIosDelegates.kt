@@ -30,7 +30,8 @@ import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
-class BrowserIosDelegate(var browserViewModel: BrowserViewModel? = null):  NSObject(), WebBrowserViewDelegateProtocol {
+class BrowserIosDelegate(var browserViewModel: BrowserViewModel? = null) : NSObject(),
+  WebBrowserViewDelegateProtocol {
 
   private val scope = CoroutineScope(ioAsyncExceptionHandler)
 
@@ -62,18 +63,19 @@ class BrowserIosDelegate(var browserViewModel: BrowserViewModel? = null):  NSObj
 
 
 @OptIn(ExperimentalForeignApi::class)
-public class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null): NSObject(), WebBrowserViewDataSourceProtocol {
+class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null) : NSObject(),
+  WebBrowserViewDataSourceProtocol {
 
   private val scope = CoroutineScope(ioAsyncExceptionHandler)
 
-  public override fun getDatasFor(for_: String, params: Map<Any?, *>?): Map<Any?, *>? {
+  override fun getDatasFor(for_: String, params: Map<Any?, *>?): Map<Any?, *>? {
     // kmp与iOS快速调试代码调用点。
     return null
   }
 
-  //region track mode
+  //#region track mode
 
-  public override fun setTrackModel(trackModel: Boolean) {
+  override fun setTrackModel(trackModel: Boolean) {
     saveTrackModel(trackModel)
   }
 
@@ -83,42 +85,47 @@ public class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null
     }
   }
 
-  public override fun trackModel(): Boolean = browserViewModel?.isNoTrace?.value ?: false
+  override fun trackModel(): Boolean = browserViewModel?.isNoTrace?.value ?: false
 
-  //endregion
+  //#endregion
 
 
-  // region history
-  public override fun loadHistorys(): Map<Any?, List<*>>? {
-    val result = browserViewModel?.getHistoryLinks()?.mapValues { (key,lists)->
+  //#region history
+  override fun loadHistorys(): Map<Any?, List<*>>? {
+    val result = browserViewModel?.getHistoryLinks()?.mapValues { (key, lists) ->
       lists.map {
-          WebBrowserViewSiteData(it.id, it.title, it.url, it::iconUIImage)
+        WebBrowserViewSiteData(it.id, it.title, it.url, it::iconUIImage)
       }
     }
     return result as Map<Any?, List<*>>?
   }
 
-  public override fun loadMoreHistoryWithOff(off: int32_t, completionHandler: (NSError?) -> Unit) {
+  override fun loadMoreHistoryWithOff(off: int32_t, completionHandler: (NSError?) -> Unit) {
     scope.launch {
       browserViewModel?.loadMoreHistory(off)
       completionHandler(null)
     }
   }
 
-  public override fun addHistoryWithTitle(
+  override fun addHistoryWithTitle(
     title: String,
     url: String,
     icon: NSData?,
     completionHandler: (NSError?) -> Unit
   ) {
-      scope.launch {
-        val webSiteInfo = WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type = WebSiteType.History)
-        browserViewModel?.addHistoryLink(webSiteInfo)
-        completionHandler(null)
-      }
+    scope.launch {
+      val webSiteInfo = WebSiteInfo(
+        title = title,
+        url = url,
+        icon = icon?.toByteArray(),
+        type = WebSiteType.History
+      )
+      browserViewModel?.addHistoryLink(webSiteInfo)
+      completionHandler(null)
+    }
   }
 
-  public override fun removeHistoryWithHistory(history: int64_t, completionHandler: (NSError?) -> Unit) {
+  override fun removeHistoryWithHistory(history: int64_t, completionHandler: (NSError?) -> Unit) {
     scope.launch {
       browserViewModel?.let { vm ->
         try {
@@ -136,22 +143,23 @@ public class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null
       }
     }
   }
-  // endregion
+  //#endregion
 
 
-  // region bookmark
+  //#region bookmark
 
-  public override fun loadBookmarks(): kotlin.collections.List<*>? = browserViewModel?.getBookLinks()?.map {
-    return@map WebBrowserViewSiteData(it.id, it.title, it.url, it::iconUIImage)
-  }
+  override fun loadBookmarks(): List<*>? =
+    browserViewModel?.getBookLinks()?.map {
+      return@map WebBrowserViewSiteData(it.id, it.title, it.url, it::iconUIImage)
+    }
 
-  public override fun addBookmarkWithTitle(title: String, url: String, icon: NSData?) {
+  override fun addBookmarkWithTitle(title: String, url: String, icon: NSData?) {
     val webSiteInfo =
       WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type = WebSiteType.Book)
     browserViewModel?.addBookLink(webSiteInfo)
   }
 
-  public override fun removeBookmarkWithBookmark(bookmark: int64_t) {
+  override fun removeBookmarkWithBookmark(bookmark: int64_t) {
     browserViewModel?.let { vm ->
       val del = vm.getBookLinks().first {
         it.id == bookmark
@@ -160,16 +168,16 @@ public class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null
     }
   }
 
-  // endregion
+  //#endregion
 
 
-  // region webview
-  public override fun destroyWebViewWithWeb(web: objcnames.classes.DwebWKWebView): kotlin.Unit {
+  //#region webview
+  override fun destroyWebViewWithWeb(web: objcnames.classes.DwebWKWebView) {
     val webView = web as DWebViewEngine
     webView.destroy()
   }
 
-  public override fun getWebView(): objcnames.classes.DwebWKWebView {
+  override fun getWebView(): objcnames.classes.DwebWKWebView {
     val engine = DWebViewEngine(
       UIScreen.mainScreen.bounds,
       browserViewModel!!.browserNMM,
@@ -179,19 +187,21 @@ public class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null
     return engine as objcnames.classes.DwebWKWebView
   }
 
-  //endregion
+  //#endregion
 
-  // region perssion
+  //#region perssion
   override fun requestCameraPermissionWithCompleted(completed: (Boolean) -> Unit) {
     scope.launch {
-      val result = browserViewModel?.requestSystemPermission(permissionName = SystemPermissionName.CAMERA) ?: true
+      val result =
+        browserViewModel?.requestSystemPermission(permissionName = SystemPermissionName.CAMERA)
+          ?: true
       completed(result)
     }
   }
-  //endregion
+  //#endregion
 }
 
-public fun WebSiteInfo.iconUIImage(): platform.UIKit.UIImage? {
+fun WebSiteInfo.iconUIImage(): platform.UIKit.UIImage? {
   return icon?.let {
     return UIImage(data = it.toNSData())
   }
