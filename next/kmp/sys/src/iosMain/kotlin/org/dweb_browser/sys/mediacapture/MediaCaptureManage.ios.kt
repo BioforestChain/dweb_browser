@@ -1,9 +1,13 @@
 package org.dweb_browser.sys.mediacapture
 
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.CompletableDeferred
+import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.AVFAudio.AVAudioApplication
@@ -15,6 +19,9 @@ import platform.AVFoundation.AVCaptureDevice
 import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.authorizationStatusForMediaType
 import platform.AVFoundation.requestAccessForMediaType
+import platform.UIKit.UIApplication
+import platform.UIKit.UIColor
+import platform.UIKit.UIModalPresentationFullScreen
 
 actual class MediaCaptureManage actual constructor() {
   init {
@@ -67,13 +74,24 @@ actual class MediaCaptureManage actual constructor() {
   }
 
   actual suspend fun takePicture(microModule: MicroModule): String {
-    WARNING("Not yet implemented takePicture")
-    return ""
+    val result = CompletableDeferred<String>()
+    MediaCaptureHandler().launchCameraString {
+      result.complete(it)
+    }
+    return result.await()
   }
 
   actual suspend fun captureVideo(microModule: MicroModule): String {
-    WARNING("Not yet implemented captureVideo")
-    return ""
+    val result = CompletableDeferred<String>()
+    withMainContext {
+      val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
+      val videoController = MediaVideoViewController()
+      videoController.videoPathBlock = {
+        result.complete(it)
+      }
+      rootController?.presentViewController(videoController,true,null)
+    }
+    return result.await()
   }
 
   actual suspend fun recordSound(microModule: MicroModule): String {
