@@ -27,6 +27,7 @@ kotlin {
     }
   }
   kmpIosTarget(project)
+  kmpAndroidTarget(project)
 }
 
 android {

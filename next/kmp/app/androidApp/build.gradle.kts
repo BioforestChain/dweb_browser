@@ -9,6 +9,7 @@ plugins {
 kotlin {
   kmpComposeTarget(project) {
     dependencies {
+      implementation(projects.shared) // 用于导入 resources 文件夹
       implementation(projects.helper)
       implementation(projects.helperCompose)
       implementation(projects.helperPlatform)
