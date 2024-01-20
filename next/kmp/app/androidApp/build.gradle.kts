@@ -45,7 +45,7 @@ android {
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
 
-    ndk.abiFilters.addAll(listOf("arm64-v8a","armeabi-v7a"))
+    //ndk.abiFilters.addAll(listOf("arm64-v8a"))
   }
 
   packaging {

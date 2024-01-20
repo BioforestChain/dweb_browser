@@ -100,7 +100,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
       getMainWindow().apply {
         state.setFromManifest(this@PermissionNMM)
         windowAdapterManager.provideRender(id) { modifier ->
-          //PermissionManagerRender(modifier, this, permissionStdProtocol)
+          PermissionManagerRender(modifier, this, permissionStdProtocol)
         }
       }
     }
