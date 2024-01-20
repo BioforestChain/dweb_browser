@@ -1,14 +1,10 @@
 package org.dweb_browser.browser.desk
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.printError
-import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowConstants
@@ -34,12 +30,11 @@ class RunningApp(
    * 所有的窗口实例
    */
   private val windows = mutableListOf<WindowController>()
-  private var wid: UUID? = null
 
   /**
    * 创建一个窗口
    */
-  private suspend fun createWindow(oldWinId: UUID?): WindowController {
+  private suspend fun createWindow(): WindowController {
     val manifest = ipc.remote
     // 打开安装窗口
     val newWin = windowAdapterManager.createWindow(
@@ -48,12 +43,10 @@ class RunningApp(
           owner = manifest.mmid,
           ownerVersion = manifest.version,
           provider = manifest.mmid,
-          wid = oldWinId ?: randomUUID()
         )
       )
     )
-    oldWinId ?: windows.add(newWin)
-    wid = newWin.id
+    windows.add(newWin)
     /// 窗口销毁的时候
     newWin.onClose {
       /// 通知模块，销毁渲染
@@ -80,22 +73,16 @@ class RunningApp(
    * 打开主窗口，默认只会有一个主窗口，重复打开不会重复创建
    */
   suspend fun getMainWindow() = openLock.withLock {
-    try {
-      if (mainWin == null) {
-        mainWin = warpCreateWindow()
-      } else {
-        mainWin?.focus()
-      }
-    } catch (e: Exception) {
-      printError("getMainWindow", "${e.message} $wid 协程被关闭，重新构建窗口对象")
-      mainWin = warpCreateWindow(wid)
-      wid = null
+    if (mainWin == null) {
+      mainWin = warpCreateWindow()
+    } else {
+      mainWin?.focus()
     }
     mainWin!!
   }
 
-  private suspend fun warpCreateWindow(oldWinId: UUID? = null) =
-    createWindow(oldWinId).also { win ->
+  private suspend fun warpCreateWindow() =
+    createWindow().also { win ->
       win.onClose {
         if (mainWin == win) {
           mainWin = null

@@ -34,6 +34,7 @@ import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @Stable
@@ -166,7 +167,6 @@ open class DesktopController private constructor(
         deskNMM.ioAsyncScope.launch(Dispatchers.Main) {
           /// 窗口迁移
           preDwm.moveWindows(dwm)
-          preDesktopWindowsManager = null
         }
       }
       preDesktopWindowsManager = dwm
