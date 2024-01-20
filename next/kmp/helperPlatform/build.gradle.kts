@@ -26,14 +26,3 @@ kotlin {
   kmpNodeJsTarget(project) {
   }
 }
-
-android {
-  namespace = "org.dweb_browser.helper.platform"
-  compileSdk = libs.versions.compileSdkVersion.get().toInt()
-  defaultConfig {
-    minSdk = libs.versions.minSdkVersion.get().toInt()
-  }
-
-  sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-}
-

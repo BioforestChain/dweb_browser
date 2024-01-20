@@ -33,11 +33,3 @@ kotlin {
   }
 }
 
-android {
-  namespace = "org.dweb_browser.pure.image"
-  compileSdk = libs.versions.compileSdkVersion.get().toInt()
-  defaultConfig {
-    minSdk = libs.versions.minSdkVersion.get().toInt()
-  }
-}
-

@@ -7,6 +7,7 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -246,6 +247,7 @@ class IpcBodySender private constructor(
   }
   private val _isStreamClosed by _streamClosed
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   private suspend inline fun emitStreamClose() {
     if (_isStreamClosed) return
     _streamOpened.set(true)
@@ -364,7 +366,7 @@ class IpcBodySender private constructor(
       // 等待流开始被拉取
       pullingLock.await()
       /// READ-ALL 持续发送数据
-      reader.consumeEachArrayRange { byteArray, last ->
+      reader.consumeEachArrayRange { byteArray, _ ->
         // 等待暂停状态释放
         pullingLock.await()
 

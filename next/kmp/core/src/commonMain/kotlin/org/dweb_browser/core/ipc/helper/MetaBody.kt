@@ -88,9 +88,10 @@ data class MetaBody(
       val ALL_VALUES = entries.associateBy { it.type }
     }
 
-    private inline infix fun or(TYPE: IPC_DATA_ENCODING) = type or TYPE.encoding
+    private inline infix fun or(encoding: IPC_DATA_ENCODING) = type or encoding.encoding
   }
 
+  @Suppress("ClassName")
   object IPC_META_BODY_TYPE_Serializer : IntEnumSerializer<IPC_META_BODY_TYPE>(
     "IPC_META_BODY_TYPE",
     IPC_META_BODY_TYPE.ALL_VALUES,

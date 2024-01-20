@@ -19,7 +19,7 @@ kotlin {
       implementation(projects.helperPlatform)
       implementation(projects.pureHttp)
       implementation(projects.pureImage)
-      implementation(projects.dWebView)
+      implementation(projects.dwebview)
       implementation(projects.window)
       implementation(projects.browser)
       implementation(projects.core)

@@ -13,12 +13,3 @@ kotlin {
   kmpAndroidTarget(project)
   kmpIosTarget(project)
 }
-
-android {
-  namespace = "org.dweb_browser.helper.compose"
-  compileSdk = libs.versions.compileSdkVersion.get().toInt()
-  defaultConfig {
-    minSdk = libs.versions.minSdkVersion.get().toInt()
-  }
-}
-

@@ -1,5 +1,8 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+@file:Suppress("UNUSED_VARIABLE")
 
+import com.android.build.gradle.internal.lint.AndroidLintAnalysisTask
+import com.android.build.gradle.internal.lint.LintModelWriterTask
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectProvider
@@ -23,9 +26,6 @@ import java.nio.file.Files
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   kotlinOptions {
     freeCompilerArgs += "-Xexpect-actual-classes"
-//    freeCompilerArgs += "-XXLanguage:+ExplicitBackingFields"
-//    freeCompilerArgs += "-Xallocator=std"
-//    freeCompilerArgs += "-Xcontext-receivers"
   }
 }
 
@@ -294,6 +294,7 @@ class KmpCommonTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(
   }
 }
 
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
 fun KotlinMultiplatformExtension.kmpCommonTarget(
   project: Project,
   configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure
@@ -328,11 +329,12 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
     // LibraryExtension or BaseApplicationExtension
     project.extensions.configure<com.android.build.api.dsl.CommonExtension<*, *, *, *, *>>("android") {
       namespace =
-        "org.dweb_browser.${project.name.replace(Regex("[A-Z]+")) { "." + it.value.lowercase() }}"
+        "org.dweb_browser.${project.name.replace(Regex("[A-Z]+")) { (if (it.range.first == 0) "" else ".") + it.value.lowercase() }}"
       println("namespace: $namespace")
       compileSdk = libs.versions.compileSdkVersion.get().toInt()
       defaultConfig {
         minSdk = libs.versions.minSdkVersion.get().toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
       }
 
       packaging {
@@ -342,6 +344,7 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
       }
       sourceSets.getByName("main").apply {
         res.srcDirs("src/androidMain/res", "src/commonMain/res", "src/main/res")
+        manifest.srcFile("src/androidMain/AndroidManifest.xml")
       }
     }
   }
@@ -418,6 +421,14 @@ fun KotlinMultiplatformExtension.kmpAndroidTarget(
   }
   jvmToolchain {
     languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_17.toString()))
+  }
+  if (project.tasks.findByName("copyFontsToAndroidAssets") != null) {
+    project.tasks.withType<LintModelWriterTask> {
+      dependsOn("copyFontsToAndroidAssets")
+    }
+    project.tasks.withType<AndroidLintAnalysisTask> {
+      dependsOn("copyFontsToAndroidAssets")
+    }
   }
 }
 

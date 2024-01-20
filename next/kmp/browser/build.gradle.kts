@@ -13,7 +13,7 @@ kotlin {
       implementation(projects.pureHttp)
       implementation(projects.core)
       implementation(projects.sys)
-      implementation(projects.dWebView)
+      implementation(projects.dwebview)
       implementation(projects.window)
     }
   }
@@ -52,21 +52,3 @@ kotlin {
     }
   }
 }
-
-android {
-  namespace = "org.dweb_browser.browser"
-  compileSdk = libs.versions.compileSdkVersion.get().toInt()
-  defaultConfig {
-    minSdk = libs.versions.minSdkVersion.get().toInt()
-  }
-
-  packaging {
-    resources {
-      excludes += "/META-INF/DEPENDENCIES"
-    }
-  }
-  sourceSets["main"].apply {
-    res.srcDirs("src/androidMain/res", "src/commonMain/res", "src/main/res")
-  }
-}
-

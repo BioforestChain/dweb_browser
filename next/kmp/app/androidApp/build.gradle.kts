@@ -9,7 +9,6 @@ plugins {
 kotlin {
   kmpComposeTarget(project) {
     dependencies {
-      implementation(projects.shared)
       implementation(projects.helper)
       implementation(projects.helperCompose)
       implementation(projects.helperPlatform)
@@ -20,7 +19,7 @@ kotlin {
       implementation(projects.window)
       implementation(projects.sys)
       implementation(projects.browser)
-      implementation(projects.dWebView)
+      implementation(projects.dwebview)
     }
   }
   kmpAndroidTarget(project) {
