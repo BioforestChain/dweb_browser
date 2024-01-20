@@ -33,9 +33,7 @@ class PermissionProviderTNN :
   NativeMicroModule("provider.test.permission.sys.dweb", "Permission Provider") {
   init {
     short_name = name
-    categories = listOf(
-      MICRO_MODULE_CATEGORY.Service,
-    )
+    categories = listOf(MICRO_MODULE_CATEGORY.Service,)
     icons = listOf(
       ImageResource(src = "file:///sys/icons/test-yellow.svg", type = "image/svg+xml")
     )
@@ -71,9 +69,7 @@ class PermissionApplicantTMM :
   NativeMicroModule("applicant.test.permission.sys.dweb", "Permission Applicant") {
   init {
     short_name = name
-    categories = listOf(
-//      MICRO_MODULE_CATEGORY.Application,
-    )
+    categories = listOf(MICRO_MODULE_CATEGORY.Application)
     icons = listOf(
       ImageResource(src = "file:///sys/icons/test-pink.svg", type = "image/svg+xml")
     )

@@ -18,7 +18,8 @@
     <item name="isLightTheme">false</item>
   </style>
 
-  <style name="Theme.RustExample" parent="android:Theme.Material.NoActionBar">
-    <item name="android:statusBarColor">@color/purple_700</item>
+  <style name="Theme.DwebBrowser.FullScreen" parent="Theme.Material3.Dark.NoActionBar">
+    <item name="android:windowFullscreen">true</item>
+    <item name="android:windowNoTitle">true</item>
   </style>
 </resources>

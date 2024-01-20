@@ -21,7 +21,7 @@ class DWebFileChooser(val remoteMM: MicroModule, val ioScope: CoroutineScope) : 
   ): Boolean {
     val mimeTypes = fileChooserParams.acceptTypes.joinToString(",").ifEmpty { "*/*" }
     val captureEnabled = fileChooserParams.isCaptureEnabled
-    debugFileChooser("onShowFileChooser", "mimeTypes=$mimeTypes, enable=$captureEnabled")
+    debugFileChooser("onShowFileChooser", "mimeTypes=$mimeTypes, enable=$captureEnabled, multi=${fileChooserParams.mode}")
     if (captureEnabled && (mimeTypes.startsWith("video/") ||
           mimeTypes.startsWith("audio/") || mimeTypes.startsWith("image/"))
     ) {

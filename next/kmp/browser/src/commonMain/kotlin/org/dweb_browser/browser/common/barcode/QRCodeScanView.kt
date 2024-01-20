@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
@@ -164,12 +163,7 @@ fun QRCodeScanView(
 private fun DefaultScanningView(
   flashLightSwitch: FlashLightSwitch, openAlbum: OpenAlbum, onClose: () -> Unit
 ) {
-
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .statusBarsPadding()
-  ) {
+  Box(modifier = Modifier.fillMaxSize()) {
     ScannerLine() // 添加扫描线
     CloseIcon { onClose() } // 关闭按钮
     FlashlightIcon(flashLightSwitch)
@@ -451,11 +445,7 @@ private fun DefaultScanResultView(onClose: () -> Unit, onDataCallback: (String) 
       }
     }
   }
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .statusBarsPadding()
-  ) {
+  Box(modifier = Modifier.fillMaxSize()) {
     CloseIcon { onClose() }
   }
 }

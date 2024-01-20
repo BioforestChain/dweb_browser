@@ -1,15 +1,12 @@
 <resources>
 
   <style name="Theme.DwebBrowser.Transparent" parent="Theme.Material3.Dark.NoActionBar">
-    <item name="android:windowFullscreen">true</item>
-    <item name="android:fitsSystemWindows">true</item>
-    <item name="android:windowNoTitle">true</item>
     <item name="android:windowBackground">@android:color/transparent</item>
     <item name="android:windowIsTranslucent">true</item>
-    <item name="android:background">@android:color/transparent</item>
-    <item name="android:windowFrame">@null</item>
-    <item name="android:title">null</item>
-    <item name="android:windowContentOverlay">@null</item>
-    <item name="android:backgroundDimEnabled">false</item>
+    <item name="android:windowAnimationStyle">@null</item>
+    <item name="android:windowNoTitle">true</item>
+    <!--控制状态栏及导航栏是否透明-->
+    <item name="android:statusBarColor">@android:color/transparent</item>
+    <item name="android:navigationBarColor">@android:color/transparent</item>
   </style>
 </resources>

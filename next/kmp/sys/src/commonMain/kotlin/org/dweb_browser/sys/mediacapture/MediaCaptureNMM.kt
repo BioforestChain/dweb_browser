@@ -46,58 +46,6 @@ class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCaptur
           MediaCaptureResult(false, MediaCaptureI18nResource.type_issue.text, "")
         }
         mediaCaptureResult.toJsonElement()
-      },
-      "/takePicture" bind PureMethod.GET by defineJsonResponse {
-        debugMediaCapture("takePicture", "enter")
-        val fromMM = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@MediaCaptureNMM
-        val mediaCaptureResult = if (fromMM.requestSystemPermission(
-            SystemPermissionTask(
-              name = SystemPermissionName.CAMERA,
-              title = MediaCaptureI18nResource.request_permission_title_camera.text,
-              description = MediaCaptureI18nResource.request_permission_message_take_picture.text
-            )
-          )
-        ) {
-          val data = mediaCaptureManage.takePicture(fromMM)
-          if (data.isNotEmpty()) {
-            MediaCaptureResult(true, "Success", data)
-          } else {
-            MediaCaptureResult(false, MediaCaptureI18nResource.data_is_null.text, "")
-          }
-        } else {
-          MediaCaptureResult(
-            false,
-            MediaCaptureI18nResource.permission_denied_take_picture.text,
-            ""
-          )
-        }
-        mediaCaptureResult.toJsonElement()
-      },
-      "/captureVideo" bind PureMethod.GET by defineJsonResponse {
-        debugMediaCapture("captureVideo", "enter")
-        val fromMM = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@MediaCaptureNMM
-        val mediaCaptureResult = if (fromMM.requestSystemPermission(
-            SystemPermissionTask(
-              name = SystemPermissionName.CAMERA,
-              title = MediaCaptureI18nResource.request_permission_title_camera.text,
-              description = MediaCaptureI18nResource.request_permission_message_take_picture.text
-            )
-          )
-        ) {
-          val data = mediaCaptureManage.captureVideo(fromMM)
-          if (data.isNotEmpty()) {
-            MediaCaptureResult(true, "Success", data)
-          } else {
-            MediaCaptureResult(false, MediaCaptureI18nResource.data_is_null.text, "")
-          }
-        } else {
-          MediaCaptureResult(
-            false,
-            MediaCaptureI18nResource.permission_denied_take_picture.text,
-            ""
-          )
-        }
-        mediaCaptureResult.toJsonElement()
       }
     )
   }

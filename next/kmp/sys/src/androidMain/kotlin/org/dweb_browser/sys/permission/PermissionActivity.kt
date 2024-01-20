@@ -3,12 +3,14 @@ package org.dweb_browser.sys.permission
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +35,7 @@ import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.saveString
 
+
 const val EXTRA_PERMISSION_KEY = "permission"
 const val EXTRA_TASK_ID_KEY = "taskId"
 
@@ -45,7 +48,7 @@ data class AndroidPermissionTask(
   val description: String
 )
 
-class PermissionActivity : ComponentActivity() {
+class PermissionActivity : AppCompatActivity() {
   companion object {
     private val launchTasks = mutableMapOf<UUID, CompletableDeferred<TaskResult>>()
     suspend fun launchAndroidSystemPermissionRequester(
@@ -71,13 +74,17 @@ class PermissionActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
     val androidPermissionTask = intent.getStringExtra(EXTRA_PERMISSION_KEY)?.let {
       Json.decodeFromString<AndroidPermissionTask>(it)
     } ?: run {
       debugPermission("PermissionActivity", "no found androidPermissionTask...")
       return finish()
     }
-    debugPermission("PermissionActivity", "onCreate enter => androidPermissionTask=$androidPermissionTask")
+    debugPermission(
+      "PermissionActivity",
+      "onCreate enter => androidPermissionTask=$androidPermissionTask"
+    )
 
     val taskId = intent.getStringExtra(EXTRA_TASK_ID_KEY) ?: return finish()
 
@@ -154,7 +161,10 @@ class PermissionActivity : ComponentActivity() {
 
 @Composable
 fun PermissionTipsView(modifier: Modifier = Modifier, title: String, description: String) {
-  Card(modifier = modifier, border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)) {
+  Card(
+    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+  ) {
     ListItem(
       headlineContent = { Text(text = title) },
       supportingContent = { Text(text = description) }
