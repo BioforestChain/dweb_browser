@@ -5,9 +5,6 @@ import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
-import org.dweb_browser.helper.RSA.autorelease
-import org.dweb_browser.helper.RSA.bridgingRetain
-import org.dweb_browser.helper.RSA.toByteArray
 import platform.CoreFoundation.CFDictionaryCreateMutable
 import platform.CoreFoundation.CFDictionarySetValue
 import platform.CoreFoundation.CFErrorRefVar
@@ -16,6 +13,7 @@ import platform.CoreFoundation.kCFAllocatorDefault
 import platform.CoreFoundation.kCFBooleanTrue
 import platform.CoreFoundation.kCFTypeDictionaryKeyCallBacks
 import platform.CoreFoundation.kCFTypeDictionaryValueCallBacks
+import platform.Foundation.NSBundle
 import platform.Security.SecAccessControlCreateWithFlags
 import platform.Security.SecItemCopyMatching
 import platform.Security.SecKeyCopyPublicKey
@@ -44,10 +42,10 @@ import platform.Security.kSecReturnRef
 
 @OptIn(ExperimentalForeignApi::class)
 object KeyStore {
-  private const val LABEL_ID = "com.instinct.bfexplorer"
+  private val LABEL_ID = NSBundle.mainBundle.bundleIdentifier!!
 
   init {
-    generate_private_key()
+    generatePrivateKey()
   }
 
   @OptIn(ExperimentalForeignApi::class)
@@ -64,10 +62,10 @@ object KeyStore {
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  private fun generate_private_key() = memScoped {
+  private fun generatePrivateKey() = memScoped {
     val attributes = dictionary().autorelease(this)
     CFDictionarySetValue(attributes, kSecClass, kSecClassKey)
-    val bitsRef = ByteArray(256).bridgingRetain().autorelease(this)
+    val bitsRef = 256.bridgingRetain().autorelease(this)
     CFDictionarySetValue(attributes, kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom)
     CFDictionarySetValue(attributes, kSecAttrKeySizeInBits, bitsRef)
     CFDictionarySetValue(attributes, kSecAttrTokenID, kSecAttrTokenIDSecureEnclave)
@@ -83,9 +81,8 @@ object KeyStore {
       kCFAllocatorDefault,
       kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
       kSecAccessControlPrivateKeyUsage or kSecAccessControlBiometryCurrentSet,
-//      kSecAccessControlPrivateKeyUsage or kSecAccessControlDevicePasscode,
       null
-    )!!.autorelease(this)
+    )?.autorelease(this)
 
     CFDictionarySetValue(
       privateKeyAttributes,
@@ -104,11 +101,12 @@ object KeyStore {
   }
 
   @OptIn(ExperimentalForeignApi::class)
+  @Suppress("UNCHECKED_CAST")
   fun getPrivateKey(): SecKeyRef = memScoped {
     val attributes = dictionary()
     CFDictionarySetValue(attributes, kSecAttrKeyClass, kSecAttrKeyClassPrivate)
     CFDictionarySetValue(attributes, kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom)
-    val bitsRef = ByteArray(256).bridgingRetain().autorelease(this)
+    val bitsRef = 256.bridgingRetain().autorelease(this)
     CFDictionarySetValue(attributes, kSecAttrKeySizeInBits, bitsRef)
     val labelRef = LABEL_ID.encodeToByteArray().bridgingRetain().autorelease(this)
     CFDictionarySetValue(attributes, kSecAttrApplicationTag, labelRef)
@@ -116,9 +114,8 @@ object KeyStore {
 
     val result = alloc<CFTypeRefVar>()
     val code = SecItemCopyMatching(attributes, result.ptr)
-    println(code)
 
-    return result.value!! as SecKeyRef
+    return result.value as SecKeyRef? ?: throw Exception("Error fetching private key $code")
   }
 
   @OptIn(ExperimentalForeignApi::class)
@@ -138,7 +135,7 @@ object KeyStore {
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  fun decrypt(encryptedData: ByteArray): String = memScoped {
+  fun decrypt(encryptedData: ByteArray): ByteArray = memScoped {
     val privateKey = getPrivateKey()
     val error = alloc<CFErrorRefVar>()
     val decryptedData = SecKeyCreateDecryptedData(
@@ -149,6 +146,6 @@ object KeyStore {
     )!!
     privateKey.autorelease(this)
     decryptedData.autorelease(this)
-    decryptedData.toByteArray().decodeToString()
+    decryptedData.toByteArray()
   }
 }
