@@ -16,3 +16,4 @@ debug
 /app/androidApp/dwebbrowser.jks
 *.xcarchive
 *.xcframework
+*.link
