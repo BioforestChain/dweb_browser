@@ -44,10 +44,6 @@ import platform.Security.kSecReturnRef
 object KeyStore {
   private val LABEL_ID = NSBundle.mainBundle.bundleIdentifier!!
 
-  init {
-    generatePrivateKey()
-  }
-
   @OptIn(ExperimentalForeignApi::class)
   fun dictionary() = memScoped {
     val dictionary = CFDictionaryCreateMutable(
@@ -62,7 +58,7 @@ object KeyStore {
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  private fun generatePrivateKey() = memScoped {
+  fun generatePrivateKey(): Unit = memScoped {
     val attributes = dictionary().autorelease(this)
     CFDictionarySetValue(attributes, kSecClass, kSecClassKey)
     val bitsRef = 256.bridgingRetain().autorelease(this)
