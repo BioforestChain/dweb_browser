@@ -9,7 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import org.dweb_browser.pure.image.compose.LocalImageLoader
+import org.dweb_browser.pure.image.compose.LocalCoilImageLoader
 
 @Composable
 fun ImageLoaderDemo() {
@@ -31,7 +31,7 @@ fun ImageLoaderDemo() {
 @Composable
 fun WebCanvasImageLoader(url: String) {
   BoxWithConstraints {
-    val imageLoader = LocalImageLoader.current
+    val imageLoader = LocalCoilImageLoader.current
     val imageBitmap = imageLoader.Load(url, maxWidth, maxHeight)
     imageBitmap.with(
       onError = {

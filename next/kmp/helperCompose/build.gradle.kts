@@ -7,7 +7,6 @@ kotlin {
     dependencies{
       implementation(projects.helper)
       implementation(projects.helperPlatform)
-      implementation(projects.pureIO)
     }
   }
   kmpAndroidTarget(project)

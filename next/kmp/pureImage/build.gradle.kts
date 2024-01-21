@@ -15,7 +15,7 @@ kotlin {
 
       // 加载图片 coil
       implementation(libs.coil.core)
-      implementation(libs.coil.network)
+      implementation(libs.coil.network.ktor)
       implementation(libs.coil.compose)
       implementation(libs.coil.svg)
       implementation(libs.coil.video)

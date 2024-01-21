@@ -163,7 +163,6 @@ fun JmmViewItem(
             model = jmmHistoryMetadata.metadata.logo,
             contentDescription = "icon",
             modifier = Modifier.size(56.dp),
-            contentScale = ContentScale.Fit
           )
         }
       }

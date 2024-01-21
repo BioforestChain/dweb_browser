@@ -41,7 +41,7 @@ google-material = "1.11.0"
 google-location = "21.0.1"
 data-gson = "2.10.1"
 data-moshi-pack = "1.0.1"
-coil-version = "3.0.0-alpha02"
+coil-version = "3.0.0-alpha03"
 camera-version = "1.4.0-alpha03"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
@@ -167,7 +167,7 @@ kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-s
 # 加载图片 coil
 coil-core = { group = "io.coil-kt.coil3", name = "coil", version.ref = "coil-version" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil-version" }
-coil-network = { group = "io.coil-kt.coil3", name = "coil-network", version.ref = "coil-version" }
+coil-network-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor", version.ref = "coil-version" }
 coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil-version" }
 coil-video = { group = "io.coil-kt.coil3", name = "coil-video", version.ref = "coil-version" }
 coil-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil-version" }

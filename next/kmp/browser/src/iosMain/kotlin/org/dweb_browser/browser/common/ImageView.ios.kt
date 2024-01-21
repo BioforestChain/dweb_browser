@@ -4,25 +4,16 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.layout.ContentScale
-import org.dweb_browser.pure.image.compose.LocalImageLoader
+import org.dweb_browser.pure.image.compose.LocalCoilImageLoader
 
 @Composable
 actual fun AsyncImage(
   model: String,
   contentDescription: String?,
   modifier: Modifier,
-  alignment: Alignment,
-  contentScale: ContentScale,
-  alpha: Float,
-  colorFilter: ColorFilter?,
-  filterQuality: FilterQuality,
 ) {
-  val imageLoader = LocalImageLoader.current
+  val imageLoader = LocalCoilImageLoader.current
   BoxWithConstraints(modifier) {
     val imageBitmap = imageLoader.Load(model, maxWidth, maxHeight)
     imageBitmap.with {

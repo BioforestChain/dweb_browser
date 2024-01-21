@@ -22,8 +22,9 @@ import androidx.compose.ui.graphics.painter.Painter
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.compose.rememberVectorPainterWithTint
+import org.dweb_browser.pure.image.compose.CoilImageLoader
 import org.dweb_browser.pure.image.compose.ImageLoadResult
-import org.dweb_browser.pure.image.compose.ImageLoader2
+import org.dweb_browser.pure.image.compose.LocalCoilImageLoader
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import squircleshape.SquircleShape
 
@@ -48,7 +49,7 @@ fun AppIcon(
   iconMaskable: Boolean = false,
   iconMonochrome: Boolean = false,
   iconDescription: String = "icon",
-  iconLoader: ImageLoader2? = null,
+  iconLoader: CoilImageLoader = LocalCoilImageLoader.current,
   iconFetchHook: FetchHook? = null,
 ) {
   AppIconOuter(
@@ -82,7 +83,7 @@ fun AppIcon(
   iconMaskable: Boolean = false,
   iconMonochrome: Boolean = false,
   iconDescription: String = "icon",
-  iconLoader: ImageLoader2? = null,
+  iconLoader: CoilImageLoader = LocalCoilImageLoader.current,
   iconFetchHook: FetchHook? = null,
 ) {
   AppIconOuter(
@@ -108,7 +109,7 @@ fun AppIcon(
   iconPlaceholder: Painter? = null,
   iconError: Painter? = null,
   iconDescription: String = "icon",
-  iconLoader: ImageLoader2? = null,
+  iconLoader: CoilImageLoader = LocalCoilImageLoader.current,
   iconFetchHook: FetchHook? = null,
 ) {
   AppIconOuter(
@@ -137,15 +138,13 @@ private fun AppIconOuter(
   iconMaskable: Boolean,
   iconMonochrome: Boolean,
   iconDescription: String,
-  iconLoader: ImageLoader2? = null,
-  iconFetchHook: FetchHook? = null,
+  iconLoader: CoilImageLoader,
+  iconFetchHook: FetchHook?,
 ) {
-  val loader2 = iconLoader ?: ImageLoader2.GetImageLoader2()
-
   BoxWithConstraints {
     val icon = when (iconSrc) {
       is String -> {
-        loader2.Load(iconSrc, maxWidth, maxHeight, iconFetchHook)
+        iconLoader.Load(iconSrc, maxWidth, maxHeight, iconFetchHook)
       }
 
       is ImageLoadResult -> {

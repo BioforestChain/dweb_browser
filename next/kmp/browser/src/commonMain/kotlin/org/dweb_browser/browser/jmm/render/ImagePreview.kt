@@ -27,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -81,8 +80,6 @@ internal fun ImagePreview(
         pageContent = { index ->
           AsyncImage(model = imageList[index],
             contentDescription = "Picture",
-            alignment = Alignment.Center,
-            contentScale = ContentScale.FillWidth,
             modifier = Modifier
               .fillMaxSize()
               .clickableWithNoEffect { previewState.showPreview.targetState = false })

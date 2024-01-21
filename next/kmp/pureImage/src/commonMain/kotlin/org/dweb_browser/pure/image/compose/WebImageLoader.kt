@@ -17,13 +17,13 @@ import org.dweb_browser.pure.image.offscreenwebcanvas.waitReady
 import org.dweb_browser.pure.image.setHook
 
 
-val LocalImageLoader = compositionChainOf("ImageLoader") { ImageLoader() }
+val LocalWebImageLoader = compositionChainOf("ImageLoader") { WebImageLoader() }
 
 @Composable
 internal expect fun rememberOffscreenWebCanvas(): OffscreenWebCanvas
 
 
-class ImageLoader {
+class WebImageLoader {
   @Composable
   fun Load(
     url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook? = null
@@ -78,9 +78,7 @@ class ImageLoader {
       val key =
         "url=$url; containerWidth=$containerWidth; containerHeight=$containerHeight; hook=$hook"
 
-      return map[key]?.let {
-        it.result
-      }
+      return map[key]?.result
     }
 
     fun save(cache: CacheItem) {

@@ -42,14 +42,14 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.pure.image.compose.LocalImageLoader
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.image.compose.LocalCoilImageLoader
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
@@ -356,7 +356,7 @@ data class AlertModal internal constructor(
         when (val url = iconUrl) {
           null -> Icon(imageVector = Icons.Default.WarningAmber, contentDescription = iconAlt)
           else -> {
-            val imageLoader = LocalImageLoader.current
+            val imageLoader = LocalCoilImageLoader.current
 
             /**
              * IconButtonTokens.IconSize
