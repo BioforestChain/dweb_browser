@@ -9,10 +9,12 @@ import UIKit
 import SwiftUI
 
 var browserViewDelegate: WebBrowserViewDelegate {
+    assert(DwebWebView.delegate != nil, "不应该在DwebWebView.delegate为空的时候，获取browserViewDelegate")
     return DwebWebView.delegate ?? WebBrowserDefaultProvider(trackModel: false)
 }
 
 var browserViewDataSource: WebBrowserViewDataSource {
+    assert(DwebWebView.dataSource != nil, "不应该在DwebWebView.dataSource为空的时候，获取browserViewDataSource")
     return DwebWebView.dataSource ?? WebBrowserDefaultProvider(trackModel: false)
 }
 
