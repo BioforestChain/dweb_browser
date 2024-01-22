@@ -2,12 +2,14 @@ package org.dweb_browser.sys.mediacapture
 
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.AVFAudio.AVAudioApplication
@@ -73,15 +75,15 @@ actual class MediaCaptureManage actual constructor() {
     return status
   }
 
-  actual suspend fun takePicture(microModule: MicroModule): String {
+  actual suspend fun takePicture(microModule: MicroModule): PureStream? {
     val result = CompletableDeferred<String>()
     MediaCaptureHandler().launchCameraString {
       result.complete(it)
     }
-    return result.await()
+    return PureStream(result.await().toByteArray())
   }
 
-  actual suspend fun captureVideo(microModule: MicroModule): String {
+  actual suspend fun captureVideo(microModule: MicroModule): PureStream? {
     val result = CompletableDeferred<String>()
     withMainContext {
       val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
@@ -91,11 +93,11 @@ actual class MediaCaptureManage actual constructor() {
       }
       rootController?.presentViewController(videoController,true,null)
     }
-    return result.await()
+    return PureStream(result.await().toByteArray())
   }
 
-  actual suspend fun recordSound(microModule: MicroModule): String {
+  actual suspend fun recordSound(microModule: MicroModule): PureStream? {
     WARNING("Not yet implemented captureVideo")
-    return ""
+    return null
   }
 }

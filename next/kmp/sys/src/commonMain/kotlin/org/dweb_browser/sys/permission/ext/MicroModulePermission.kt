@@ -17,3 +17,7 @@ suspend fun MicroModule.requestSystemPermissions(vararg permissionsTasks: System
 
 suspend fun MicroModule.requestSystemPermission(permissionsTask: SystemPermissionTask) =
   requestSystemPermissions(permissionsTask)[permissionsTask.name] == AuthorizationStatus.GRANTED
+
+suspend fun MicroModule.requestSystemPermission(
+  name: SystemPermissionName, title: String, description: String
+) = requestSystemPermission(SystemPermissionTask(name, title, description))

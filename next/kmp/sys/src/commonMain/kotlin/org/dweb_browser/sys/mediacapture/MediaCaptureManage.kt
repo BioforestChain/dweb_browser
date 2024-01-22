@@ -2,6 +2,7 @@ package org.dweb_browser.sys.mediacapture
 
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.pure.http.PureStream
 
 @Serializable
 enum class CameraSource(val type: String) {
@@ -93,7 +94,7 @@ data class Photo(
 )
 
 expect class MediaCaptureManage() {
-  suspend fun takePicture(microModule: MicroModule): String
-  suspend fun captureVideo(microModule: MicroModule): String
-  suspend fun recordSound(microModule: MicroModule): String
+  suspend fun takePicture(microModule: MicroModule): PureStream?
+  suspend fun captureVideo(microModule: MicroModule): PureStream?
+  suspend fun recordSound(microModule: MicroModule): PureStream?
 }

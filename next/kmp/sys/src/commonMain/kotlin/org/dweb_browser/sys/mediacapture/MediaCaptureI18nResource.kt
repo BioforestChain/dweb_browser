@@ -46,4 +46,14 @@ object MediaCaptureI18nResource {
     Language.ZH to "DwebBrowser正在向您获取“麦克风”权限，同意后，将用于为您提供拍照服务",
     Language.EN to "DwebBrowser is asking you for \"Camera\" permissions, and if you agree, it will be used to provide you with photo services"
   )
+
+  val capture_no_found_picture = SimpleI18nResource(
+    Language.ZH to "未发现相册信息", Language.EN to "no album found"
+  )
+  val capture_no_found_video = SimpleI18nResource(
+    Language.ZH to "未发现视频信息", Language.EN to "no video found"
+  )
+  val capture_no_found_audio = SimpleI18nResource(
+    Language.ZH to "未发现录音信息", Language.EN to "no audio found"
+  )
 }

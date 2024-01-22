@@ -1,7 +1,11 @@
 package org.dweb_browser.sys.mediacapture
 
 import android.Manifest
+import android.annotation.SuppressLint
+import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.sys.permission.AndroidPermissionTask
 import org.dweb_browser.sys.permission.PermissionActivity
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
@@ -34,15 +38,24 @@ actual class MediaCaptureManage actual constructor() {
     }
   }
 
-  actual suspend fun takePicture(microModule: MicroModule): String {
-    return MediaCaptureActivity.launchAndroidTakePicture(microModule)?.toString() ?: ""
-  }
+  @SuppressLint("Recycle")
+  actual suspend fun takePicture(microModule: MicroModule): PureStream? =
+    MediaCaptureActivity.launchAndroidTakePicture(microModule)?.let { uri ->
+      val inputStream = getAppContext().contentResolver.openInputStream(uri)
+      inputStream?.let { PureStream(it.toByteReadChannel()) }
+    }
 
-  actual suspend fun captureVideo(microModule: MicroModule): String {
-    return MediaCaptureActivity.launchAndroidCaptureVideo(microModule)?.toString() ?: ""
-  }
+  @SuppressLint("Recycle")
+  actual suspend fun captureVideo(microModule: MicroModule): PureStream? =
+    MediaCaptureActivity.launchAndroidCaptureVideo(microModule)?.let { uri ->
+      val inputStream = getAppContext().contentResolver.openInputStream(uri)
+      inputStream?.let { PureStream(it.toByteReadChannel()) }
+    }
 
-  actual suspend fun recordSound(microModule: MicroModule): String {
-    return MediaCaptureActivity.launchAndroidRecordSound(microModule)?.toString() ?: ""
-  }
+  @SuppressLint("Recycle")
+  actual suspend fun recordSound(microModule: MicroModule): PureStream? =
+    MediaCaptureActivity.launchAndroidRecordSound(microModule)?.let { uri ->
+      val inputStream = getAppContext().contentResolver.openInputStream(uri)
+      inputStream?.let { PureStream(it.toByteReadChannel()) }
+    }
 }

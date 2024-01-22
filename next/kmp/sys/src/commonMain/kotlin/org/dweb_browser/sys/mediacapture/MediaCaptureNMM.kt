@@ -1,22 +1,21 @@
 package org.dweb_browser.sys.mediacapture
 
-import kotlinx.serialization.Serializable
+import io.ktor.http.HttpStatusCode
+import io.ktor.utils.io.core.toByteArray
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.sys.permission.SystemPermissionName
-import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermission
 
 val debugMediaCapture = Debugger("MediaCapture")
-
-@Serializable
-data class MediaCaptureResult(val success: Boolean, val message: String, val data: String)
 
 class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCapture") {
   private val mediaCaptureManage = MediaCaptureManage()
@@ -33,19 +32,22 @@ class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCaptur
       /**
        * /capture?mime=* 提供相应的系统选择器，目前支持：音频、视频、照片 三种媒体捕捉
        */
-      "/capture" bind PureMethod.GET by defineJsonResponse {
+      "/capture" bind PureMethod.GET by definePureStreamHandler {
         val mimeType = request.queryOrNull("mime") ?: "*"
         val fromMM = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@MediaCaptureNMM
-        val mediaCaptureResult = if (mimeType.startsWith("video", true)) {
+
+        if (mimeType.startsWith("video", true)) {
           captureVideo(fromMM)
         } else if (mimeType.startsWith("image", true)) {
           takePicture(fromMM)
         } else if (mimeType.startsWith("audio", true)) {
           recordAudio(fromMM)
         } else {
-          MediaCaptureResult(false, MediaCaptureI18nResource.type_issue.text, "")
+          PureResponse(
+            status = HttpStatusCode.OK,
+            body = PureStreamBody(MediaCaptureI18nResource.type_issue.text.toByteArray())
+          ).stream()
         }
-        mediaCaptureResult.toJsonElement()
       }
     )
   }
@@ -53,70 +55,63 @@ class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCaptur
   override suspend fun _shutdown() {
   }
 
-  private suspend fun takePicture(fromMM: MicroModule): MediaCaptureResult {
+  private suspend fun takePicture(fromMM: MicroModule): PureStream {
     debugMediaCapture("takePicture", "enter")
     return if (fromMM.requestSystemPermission(
-        SystemPermissionTask(
-          name = SystemPermissionName.CAMERA,
-          title = MediaCaptureI18nResource.request_permission_title_camera.text,
-          description = MediaCaptureI18nResource.request_permission_message_take_picture.text
-        )
+        name = SystemPermissionName.CAMERA,
+        title = MediaCaptureI18nResource.request_permission_title_camera.text,
+        description = MediaCaptureI18nResource.request_permission_message_take_picture.text
       )
     ) {
-      val data = mediaCaptureManage.takePicture(fromMM)
-      if (data.isNotEmpty()) {
-        MediaCaptureResult(true, "Success", data)
-      } else {
-        MediaCaptureResult(false, MediaCaptureI18nResource.data_is_null.text, "")
-      }
+      mediaCaptureManage.takePicture(fromMM) ?: PureResponse(
+        status = HttpStatusCode.OK,
+        body = PureStreamBody(MediaCaptureI18nResource.capture_no_found_picture.text.toByteArray())
+      ).stream()
     } else {
-      MediaCaptureResult(false, MediaCaptureI18nResource.permission_denied_take_picture.text, "")
+      PureResponse(
+        status = HttpStatusCode.OK,
+        body = PureStreamBody(MediaCaptureI18nResource.permission_denied_take_picture.text.toByteArray())
+      ).stream()
     }
   }
 
-  private suspend fun captureVideo(fromMM: MicroModule): MediaCaptureResult {
+  private suspend fun captureVideo(fromMM: MicroModule): PureStream {
     debugMediaCapture("captureVideo", "enter")
     return if (fromMM.requestSystemPermission(
-        SystemPermissionTask(
-          name = SystemPermissionName.CAMERA,
-          title = MediaCaptureI18nResource.request_permission_title_camera.text,
-          description = MediaCaptureI18nResource.request_permission_message_take_picture.text
-        )
+        name = SystemPermissionName.CAMERA,
+        title = MediaCaptureI18nResource.request_permission_title_camera.text,
+        description = MediaCaptureI18nResource.request_permission_message_take_picture.text
       )
     ) {
-      val data = mediaCaptureManage.captureVideo(fromMM)
-      if (data.isNotEmpty()) {
-        MediaCaptureResult(true, "Success", data)
-      } else {
-        MediaCaptureResult(false, MediaCaptureI18nResource.data_is_null.text, "")
-      }
+      mediaCaptureManage.captureVideo(fromMM) ?: PureResponse(
+        status = HttpStatusCode.OK,
+        body = PureStreamBody(MediaCaptureI18nResource.capture_no_found_video.text.toByteArray())
+      ).stream()
     } else {
-      MediaCaptureResult(
-        false,
-        MediaCaptureI18nResource.permission_denied_take_picture.text,
-        ""
-      )
+      PureResponse(
+        status = HttpStatusCode.OK,
+        body = PureStreamBody(MediaCaptureI18nResource.permission_denied_capture_video.text.toByteArray())
+      ).stream()
     }
   }
 
-  private suspend fun recordAudio(fromMM: MicroModule): MediaCaptureResult {
+  private suspend fun recordAudio(fromMM: MicroModule): PureStream {
     debugMediaCapture("recordSound", "enter")
     return if (fromMM.requestSystemPermission(
-        SystemPermissionTask(
-          name = SystemPermissionName.MICROPHONE,
-          title = MediaCaptureI18nResource.request_permission_message_audio.text,
-          description = MediaCaptureI18nResource.request_permission_message_audio.text
-        )
+        name = SystemPermissionName.MICROPHONE,
+        title = MediaCaptureI18nResource.request_permission_message_audio.text,
+        description = MediaCaptureI18nResource.request_permission_message_audio.text
       )
     ) {
-      val data = mediaCaptureManage.recordSound(fromMM)
-      if (data.isNotEmpty()) {
-        MediaCaptureResult(true, "Success", data)
-      } else {
-        MediaCaptureResult(false, MediaCaptureI18nResource.data_is_null.text, "")
-      }
+      mediaCaptureManage.recordSound(fromMM) ?: PureResponse(
+        status = HttpStatusCode.OK,
+        body = PureStreamBody(MediaCaptureI18nResource.capture_no_found_audio.text.toByteArray())
+      ).stream()
     } else {
-      MediaCaptureResult(false, MediaCaptureI18nResource.permission_denied_record_audio.text, "")
+      PureResponse(
+        status = HttpStatusCode.OK,
+        body = PureStreamBody(MediaCaptureI18nResource.permission_denied_record_audio.text.toByteArray())
+      ).stream()
     }
   }
 }
