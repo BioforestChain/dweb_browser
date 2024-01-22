@@ -44,7 +44,7 @@ class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCaptur
           recordAudio(fromMM)
         } else {
           PureResponse(
-            status = HttpStatusCode.OK,
+            status = HttpStatusCode.NotAcceptable,
             body = PureStreamBody(MediaCaptureI18nResource.type_issue.text.toByteArray())
           ).stream()
         }
@@ -64,12 +64,12 @@ class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCaptur
       )
     ) {
       mediaCaptureManage.takePicture(fromMM) ?: PureResponse(
-        status = HttpStatusCode.OK,
+        status = HttpStatusCode.NotFound,
         body = PureStreamBody(MediaCaptureI18nResource.capture_no_found_picture.text.toByteArray())
       ).stream()
     } else {
       PureResponse(
-        status = HttpStatusCode.OK,
+        status = HttpStatusCode.Unauthorized,
         body = PureStreamBody(MediaCaptureI18nResource.permission_denied_take_picture.text.toByteArray())
       ).stream()
     }
@@ -84,12 +84,12 @@ class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCaptur
       )
     ) {
       mediaCaptureManage.captureVideo(fromMM) ?: PureResponse(
-        status = HttpStatusCode.OK,
+        status = HttpStatusCode.NotFound,
         body = PureStreamBody(MediaCaptureI18nResource.capture_no_found_video.text.toByteArray())
       ).stream()
     } else {
       PureResponse(
-        status = HttpStatusCode.OK,
+        status = HttpStatusCode.Unauthorized,
         body = PureStreamBody(MediaCaptureI18nResource.permission_denied_capture_video.text.toByteArray())
       ).stream()
     }
@@ -104,12 +104,12 @@ class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCaptur
       )
     ) {
       mediaCaptureManage.recordSound(fromMM) ?: PureResponse(
-        status = HttpStatusCode.OK,
+        status = HttpStatusCode.NotFound,
         body = PureStreamBody(MediaCaptureI18nResource.capture_no_found_audio.text.toByteArray())
       ).stream()
     } else {
       PureResponse(
-        status = HttpStatusCode.OK,
+        status = HttpStatusCode.Unauthorized,
         body = PureStreamBody(MediaCaptureI18nResource.permission_denied_record_audio.text.toByteArray())
       ).stream()
     }

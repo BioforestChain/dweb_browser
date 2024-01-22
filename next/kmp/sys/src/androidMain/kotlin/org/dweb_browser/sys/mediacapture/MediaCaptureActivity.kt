@@ -2,16 +2,11 @@ package org.dweb_browser.sys.mediacapture
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.view.WindowInsetsController
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.FileProvider
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
@@ -76,21 +71,6 @@ class MediaCaptureActivity : ComponentActivity() {
         }
       }.await()
     }
-
-    suspend fun launchAndroidGetPhoto(microModule: MicroModule): Uri? {
-      val taskId = randomUUID()
-      return CompletableDeferred<Uri?>().also { task ->
-        launchTasks[taskId] = task
-        task.invokeOnCompletion {
-          launchTasks.remove(taskId)
-        }
-        microModule.startAppActivity(MediaCaptureActivity::class.java) { intent ->
-          intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-          intent.putExtra(EXTRA_TASK_ID_KEY, taskId)
-          intent.putExtra(EXTRA_TYPE_KEY, LaunchGetPhoto)
-        }
-      }.await()
-    }
   }
 
   private lateinit var taskId: String
@@ -113,17 +93,6 @@ class MediaCaptureActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    WindowCompat.setDecorFitsSystemWindows(window, false)
-    window.setFlags(
-      WindowManager.LayoutParams.FLAG_FULLSCREEN,
-      WindowManager.LayoutParams.FLAG_FULLSCREEN
-    )
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      window.decorView.windowInsetsController?.apply {
-        hide(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
-        systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-      }
-    }
 
     taskId = (intent.getStringExtra(EXTRA_TASK_ID_KEY) ?: finish()) as String
     val launchType = intent.getIntExtra(EXTRA_TYPE_KEY, -1)
@@ -166,51 +135,5 @@ class MediaCaptureActivity : ComponentActivity() {
         }
       }
     }
-
-//    setContent {
-//      DwebBrowserAppTheme {
-//        if (showChoose.value) {
-//          Box(
-//            modifier = Modifier.fillMaxSize()
-//              .background(MaterialTheme.colorScheme.primary.copy(0.3f))
-//              .clickableWithNoEffect { finish() }) {
-//            Card(
-//              modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(96.dp)
-//                .clickableWithNoEffect { /* 不响应 */ },
-//              shape = RoundedCornerShape(
-//                topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp
-//              )
-//            ) {
-//              Row(
-//                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.spacedBy(16.dp)
-//              ) {
-//                ChooseItem(Icons.Default.Photo, MediaCaptureI18nResource.choose_photo.text) {
-//
-//                }
-//                ChooseItem(Icons.Default.PhotoCamera, MediaCaptureI18nResource.choose_camera.text) {
-//
-//                }
-//              }
-//            }
-//          }
-//        }
-//      }
-//    }
   }
-
-//  @Composable
-//  fun ChooseItem(vector: ImageVector, title: String, onClick: () -> Unit) {
-//    Column(
-//      horizontalAlignment = Alignment.CenterHorizontally,
-//      verticalArrangement = Arrangement.spacedBy(8.dp),
-//    ) {
-//      Icon(
-//        imageVector = vector,
-//        contentDescription = title,
-//        modifier = Modifier.size(48.dp).clickable { onClick() })
-//      Text(text = title)
-//    }
-//  }
 }
