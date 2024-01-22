@@ -14,14 +14,19 @@ enum SheetCategory: String {
 }
 
 struct SheetSegmentView: View {
-    @EnvironmentObject var selectedTab: SelectedTab
+    @EnvironmentObject var states: BrowserViewStates
     @EnvironmentObject var dragScale: WndDragScale
     @State var selectedCategory = SheetCategory.bookmark
-    var isShowingWeb: Bool
+    var isShowingWeb: Bool {
+        if states.webcacheStore.caches.count == 0 {
+            return true
+        }
+        return states.webcacheStore.cache(at: states.selectedTabIndex).shouldShowWeb
+    }
     var categoryList: [SheetCategory] {
         isShowingWeb ? [.menu, .bookmark, .history] : [.bookmark, .history]
     }
-
+    var curCache: WebCache { states.webcacheStore.cache(at: states.selectedTabIndex)  }
     var body: some View {
         VStack {
             HStack {
@@ -40,7 +45,7 @@ struct SheetSegmentView: View {
             .padding(.horizontal, 16)
 
             if selectedCategory == .menu {
-                MenuView()
+                MenuView(webCache: curCache)
             } else if selectedCategory == .bookmark {
                 BookmarkView()
             } else if selectedCategory == .history {
@@ -57,6 +62,6 @@ struct SheetSegmentView: View {
 
 struct HalfSheetPickerView_Previews: PreviewProvider {
     static var previews: some View {
-        SheetSegmentView(selectedCategory: .bookmark, isShowingWeb: false)
+        SheetSegmentView(selectedCategory: .bookmark)
     }
 }

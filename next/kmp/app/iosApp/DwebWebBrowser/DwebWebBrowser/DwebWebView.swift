@@ -27,8 +27,7 @@ var browserViewDataSource: WebBrowserViewDataSource {
         super.init(frame: frame)
         DwebWebView.delegate = delegate
         DwebWebView.dataSource = dataSource
-        setupContainerView()
-        setupBrowser()
+        setupView()        
     }
         
     public required init?(coder: NSCoder) {
@@ -42,11 +41,14 @@ var browserViewDataSource: WebBrowserViewDataSource {
     fileprivate var isTransitionEffect = false
     fileprivate var snap: UIView?
     
-    private lazy var browserStates: BrowserViewStates = {
-        BrowserViewStates()
-    }()
+    var browerView: BrowserView? {
+        if let hostingController = hostVC as? UIHostingController<BrowserView> {
+            return hostingController.rootView
+        }
+        return nil
+    }
     
-    private lazy var hostVC: UIViewController = UIHostingController(rootView: BrowserView(states: browserStates, toolBarState: browserStates.toolBarState))
+    private lazy var hostVC: UIViewController = UIHostingController(rootView: BrowserView())
     
     private lazy var browserContainerView: UIView = {
         let v = UIView(frame: CGRect.zero)
@@ -61,12 +63,8 @@ var browserViewDataSource: WebBrowserViewDataSource {
         return blurView
     }()
         
-    fileprivate func setupContainerView() {
+    fileprivate func setupView() {
         addFullSize(to: self, subView: browserContainerView)
-    }
-    
-    func setupBrowser() {
-        hostVC = UIHostingController(rootView: BrowserView(states: browserStates, toolBarState: browserStates.toolBarState))
         addFullSize(to: browserContainerView, subView: hostVC.view)
     }
     
@@ -86,17 +84,18 @@ var browserViewDataSource: WebBrowserViewDataSource {
 
 public extension DwebWebView {
     @objc func doSearch(key: String) {
-        browserStates.doSearch(key)
+        browerView?.doSearch(searchKey: key)
     }
     
     @objc func colorSchemeChanged(color: Int32) {
-        browserStates.updateColorScheme(newScheme: Int(color))
+        browerView?.updateColorScheme(color: Int(color))
     }
     
     @objc func gobackIfCanDo() -> Bool {
-        return browserStates.doBackIfCan()
+        guard let browser = browerView else { return false }
+        return browser.gobackIfCanDo()
     }
-    
+  
     @objc func browserClear() {
         isTransitionEffect = false
         snap = nil

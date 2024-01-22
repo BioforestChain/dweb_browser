@@ -12,7 +12,7 @@ var disabledDragGesture = DragGesture().onChanged { _ in }.onEnded { _ in }
 struct PagingScrollView: View {
     @EnvironmentObject var toolBarState: ToolBarState
     @EnvironmentObject var addressBar: AddressBarState
-    @EnvironmentObject var selectedTab: SelectedTab
+    @EnvironmentObject var states: BrowserViewStates
     @EnvironmentObject var animation: ShiftAnimation
     @EnvironmentObject var webcacheStore: WebCacheStore
     @EnvironmentObject var dragScale: WndDragScale
@@ -23,7 +23,7 @@ struct PagingScrollView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack {
-                TabView(selection: $selectedTab.curIndex) {
+                TabView(selection: $states.selectedTabIndex) {
                     ForEach(webcacheStore.caches.indices, id: \.self) { (index: Int) in
                         let cache = webcacheStore.cache(at: index)
                         let webwrapper = webcacheStore.webWrappers[index]
@@ -33,7 +33,7 @@ struct PagingScrollView: View {
                                     ZStack {
                                         HStack {
                                             TabPageView(webCache: cache, webWrapper: webwrapper,
-                                                        isVisible: index == selectedTab.curIndex,
+                                                        isVisible: index == states.selectedTabIndex,
                                                         doneLoading: loadingFinished)
                                                 .highPriorityGesture(disabledDragGesture)
                                         }
@@ -50,7 +50,7 @@ struct PagingScrollView: View {
                             AddressBar(webCache: cache,
                                        webMonitor: webcacheStore.webWrappers[index].webMonitor,
                                        tabIndex: index,
-                                       isVisible: index == selectedTab.curIndex)
+                                       isVisible: index == states.selectedTabIndex)
 
                                 .background(Color.bkColor)
                                 .offset(y: addressbarOffset)

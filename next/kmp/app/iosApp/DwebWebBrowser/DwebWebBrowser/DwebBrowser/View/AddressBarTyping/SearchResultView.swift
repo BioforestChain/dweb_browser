@@ -10,7 +10,6 @@ import SwiftUI
 struct SearchResultView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var openingLink: OpeningLink
-    @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var dragScale: WndDragScale
 
     @State private var tapHasBeenHandled = false
@@ -26,18 +25,17 @@ struct SearchResultView: View {
                             .frame(width: dragScale.properValue(floor: 12, ceiling: 30), height: dragScale.properValue(floor: 12, ceiling: 30))
                             .padding(.leading, dragScale.properValue(floor: 8, ceiling: 16))
 
-                        VStack(alignment: .leading, spacing: 4, content: {
+                        VStack(alignment: .leading, spacing: 4) {
                             Text(searcher.name)
                                 .foregroundColor(.primary)
                                 .font(.system(size: dragScale.scaledFontSize(maxSize: 18)))
                                 .lineLimit(1)
-
-                            Text(addressBar.inputText.trim())
+                            Text(addressBar.inputText.trim)
                                 .foregroundColor(Color(.systemGray2))
                                 .font(.system(size: dragScale.scaledFontSize(maxSize: 12)))
                                 .lineLimit(1)
                                 .padding(.trailing, 8)
-                        })
+                        }
                         Spacer()
                     }
 

@@ -11,19 +11,18 @@ import UIKit
 
 struct ToolbarView: View {
     @EnvironmentObject var toolbarState: ToolBarState
-    @EnvironmentObject var selectedTab: SelectedTab
+    @EnvironmentObject var cacheStore: WebCacheStore
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var dragScale: WndDragScale
+    @EnvironmentObject var states: BrowserViewStates
 
     @State private var toolbarHeight: CGFloat = toolBarH
     @State private var loadingDone: Bool = false
 
-    let webCount: Int
-    let isWebVisible: Bool
     @ObservedObject var webMonitor: WebWrapper
-
-    private var canCreateDesktopLink: Bool { isWebVisible && loadingDone }
+    private var isWebVisible: Bool { !states.webcacheStore.cache(at: states.selectedTabIndex).isBlank() }
+    private var canCreateDesktopLink: Bool {isWebVisible && loadingDone }
 
     var body: some View {
         GeometryReader { _ in
@@ -49,7 +48,7 @@ struct ToolbarView: View {
                     .frame(height: min(size.width / 14, size.height / 1.9))
 
                     Spacer()
-                    Text("\(webCount)个标签页")
+                    Text("\(cacheStore.cacheCount)个标签页")
                         .foregroundColor(.primary)
                         .font(dragScale.scaledFont())
                         .fontWeight(.semibold)

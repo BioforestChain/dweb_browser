@@ -7,17 +7,15 @@
 
 import SwiftUI
 struct MenuView: View {
-    @EnvironmentObject var selectedTab: SelectedTab
-    @EnvironmentObject var webcacheStore: WebCacheStore
+
     @EnvironmentObject var dragScale: WndDragScale
     @Environment(\.modelContext) var modelContext
 
     @State private var isTraceless: Bool = TracelessMode.shared.isON
     @State var toastOpacity: CGFloat = 0.0
-    var webCache: WebCache { webcacheStore.cache(at: selectedTab.curIndex) }
 
     @State private var offsetY: CGFloat = 300
-
+    let webCache: WebCache
     var body: some View {
         ZStack {
             ScrollView(.vertical) {

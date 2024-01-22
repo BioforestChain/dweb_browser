@@ -10,7 +10,6 @@ import Foundation
 import SwiftUI
 
 class BrowserViewStates: ObservableObject {    
-    @Published var selectedTab = SelectedTab()
     @Published var addressBar = AddressBarState()
     @Published var openingLink = OpeningLink()
     @Published var toolBarState = ToolBarState()
@@ -19,9 +18,9 @@ class BrowserViewStates: ObservableObject {
     @Published var wndArea = BrowserArea()
     @Published var searchKey: String? = nil
     @Published var colorSchemeManager = ColorSchemeManager()
-
+    @Published var selectedTabIndex = 0
+    
     func clear() {
-        selectedTab = SelectedTab()
         addressBar = AddressBarState()
         openingLink = OpeningLink()
         toolBarState = ToolBarState()
@@ -29,6 +28,7 @@ class BrowserViewStates: ObservableObject {
         dragScale = WndDragScale()
         wndArea = BrowserArea()
         searchKey = nil
+        selectedTabIndex = 0
     }
 }
 
@@ -50,9 +50,9 @@ extension BrowserViewStates {
             return true
         } else {
             guard webcacheStore.caches.count > 0 else { return false }
-            let shouldShowWeb = webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb
+            let shouldShowWeb = webcacheStore.cache(at: selectedTabIndex).shouldShowWeb
             guard shouldShowWeb else { return false }
-            let webwrapper = webcacheStore.webWrappers[selectedTab.curIndex]
+            let webwrapper = webcacheStore.webWrappers[selectedTabIndex]
             if webwrapper.webView.canGoBack {
                 webwrapper.webView.goBack()
                 return true

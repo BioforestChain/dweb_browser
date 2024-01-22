@@ -41,7 +41,6 @@ struct SearchTypingView: View {
     }
 
     func releaseFocuse() {
-//        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         addressBar.inputText = ""
         addressBar.searchInputText = ""
         addressBar.isFocused = false

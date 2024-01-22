@@ -10,36 +10,25 @@ import UIKit
 import Combine
 
 struct BrowserView: View {
-    @ObservedObject var states: BrowserViewStates
-    @ObservedObject var toolBarState: ToolBarState
-    @State private var curWebVisible = false
-    @State private var cancels = Set<AnyCancellable>()
-    
-    func doObserverAction() {
-        states.selectedTab.$curIndex.sink { index in
-            curWebVisible = states.webcacheStore.cache(at: index).shouldShowWeb
-        }.store(in: &cancels)
-    }
-
+    @StateObject private  var states = BrowserViewStates()
+    @State private var presentSheet = false
     var body: some View {
         ZStack {
             GeometryReader { geometry in
                 ZStack {
                     VStack(spacing: 0) {
                         TabsContainerView()
-                        ToolbarView(webCount: states.webcacheStore.cacheCount,
-                                    isWebVisible: curWebVisible,
-                                    webMonitor: states.webcacheStore.webWrappers[states.selectedTab.curIndex])
+                        ToolbarView(webMonitor: states.webcacheStore.webWrappers[states.selectedTabIndex])
                             .frame(height: states.addressBar.isFocused ? 0 : states.dragScale.toolbarHeight)
                     }
                     .background(Color.bkColor)
                     .environmentObject(states.webcacheStore)
                     .environmentObject(states.openingLink)
-                    .environmentObject(states.selectedTab)
                     .environmentObject(states.addressBar)
                     .environmentObject(states.toolBarState)
                     .environmentObject(states.dragScale)
                     .environmentObject(states.wndArea)
+                    .environmentObject(states)
                 }
                 .onAppear {
                     states.dragScale.onWidth = (geometry.size.width - 10) / screen_width
@@ -47,21 +36,33 @@ struct BrowserView: View {
                 .onChange(of: geometry.size) { _, newSize in
                     states.dragScale.onWidth = (newSize.width - 10) / screen_width
                 }
-
-                .resizableSheet(isPresented: $toolBarState.showMoreMenu) {
-                    SheetSegmentView(isShowingWeb: showWeb())
-                        .environmentObject(states.selectedTab)
+                .resizableSheet(isPresented: $presentSheet) {
+                    SheetSegmentView()
+                        .environmentObject(states)
                         .environmentObject(states.openingLink)
-                        .environmentObject(states.webcacheStore)
                         .environmentObject(states.dragScale)
                         .environmentObject(states.toolBarState)
                 }
                 .onChange(of: geometry.frame(in: .global)) { _, frame in
                     states.wndArea.frame = frame
                 }
+                
+                .onReceive(states.toolBarState.$showMoreMenu) { showMenu in
+                    if showMenu {
+                        presentSheet = true
+                    }else{
+                        if presentSheet{
+                            presentSheet = false
+                        }
+                    }
+                }
+                .onChange(of: presentSheet) { oldValue, present in
+                    if present == false{
+                        states.toolBarState.showMoreMenu = false
+                    }
+                }
             }
             .task {
-                doObserverAction()
                 states.doSearchIfNeed()
                 if let key = states.searchKey, !key.isEmpty {
                     states.searchKey = nil
@@ -75,11 +76,16 @@ struct BrowserView: View {
         }
         .clipped()
     }
-
-    func showWeb() -> Bool {
-        if states.webcacheStore.caches.count == 0 {
-            return true
-        }
-        return states.webcacheStore.cache(at: states.selectedTab.curIndex).shouldShowWeb
+    
+    func doSearch(searchKey: String){
+        states.doSearch(searchKey)
+    }
+    func updateColorScheme(color: Int){
+        states.updateColorScheme(newScheme: color)
+        print("aaaaa")
+    }
+    
+    func gobackIfCanDo() -> Bool{
+        states.doBackIfCan()
     }
 }

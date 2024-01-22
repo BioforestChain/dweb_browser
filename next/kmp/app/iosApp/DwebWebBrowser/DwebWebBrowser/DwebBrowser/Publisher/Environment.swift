@@ -28,10 +28,6 @@ class WebMonitor: ObservableObject{
     @Published var isLoadingDone : Bool = false
 }
 
-class SelectedTab: ObservableObject {
-    @Published var curIndex: Int = 0
-}
-
 class WndDragScale: ObservableObject {
     @Published var onWidth: CGFloat = 1 {
         didSet {

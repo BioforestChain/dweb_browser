@@ -9,7 +9,7 @@ import SwiftUI
 import WebKit
 
 struct TabsContainerView: View {
-    @EnvironmentObject var selectedTab: SelectedTab
+    @EnvironmentObject var states: BrowserViewStates
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
@@ -76,7 +76,7 @@ struct TabsContainerView: View {
             .onReceive(toolbarState.$createTabTapped) { createTabTapped in
                 if createTabTapped { // 准备放大动画
                     webcacheStore.createOne()
-                    selectedTab.curIndex = webcacheStore.cacheCount - 1
+                    states.selectedTabIndex = webcacheStore.cacheCount - 1
                     selectedCellFrame = CGRect(x: geo.frame(in: .global).midX, y: geo.frame(in: .global).midY, width: 5, height: 5)
                     toolbarState.shouldExpand = true
                 }

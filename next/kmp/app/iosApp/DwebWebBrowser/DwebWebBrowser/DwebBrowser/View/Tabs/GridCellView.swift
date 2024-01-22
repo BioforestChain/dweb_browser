@@ -33,7 +33,6 @@ struct WebsiteIconImage: View {
 struct GridCell: View {
     @ObservedObject var webCache: WebCache
     var isSelected: Bool
-    @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var deleteCache: DeleteCache
     @EnvironmentObject var dragScale: WndDragScale
 
