@@ -3,6 +3,8 @@ package org.dweb_browser.js_backend.http
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import node.http.createServer
 import node.http.IncomingMessage
 import node.http.ServerResponse
@@ -66,24 +68,15 @@ class HttpServer private constructor(){
     fun routeRemove(route: Route) = _router.remove(route.path)
 
     companion object{
+        private val mutex = Mutex()
         val deferredInstance = CompletableDeferred<HttpServer>()
-        fun createHttpServer(): CompletableDeferred<HttpServer>{
-            return if(deferredInstance.isCompleted){
-                deferredInstance
-            }else{
-                deferredInstance.complete(HttpServer())
-                deferredInstance
+        suspend fun createHttpServer(): CompletableDeferred<HttpServer>{
+            mutex.withLock {
+                if (!deferredInstance.isCompleted) {
+                    deferredInstance.complete(HttpServer())
+                }
             }
+            return deferredInstance
         }
     }
 }
-
-
-
-
-
-
-
-
-
-

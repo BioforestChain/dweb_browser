@@ -30,7 +30,6 @@ class BrowserViewModel(frontendViewModelId: String) : BaseViewModel(frontendView
                 console.log("重这里发出的消息", it[0], it[1])
             }
         }
-
     }
 }
 
