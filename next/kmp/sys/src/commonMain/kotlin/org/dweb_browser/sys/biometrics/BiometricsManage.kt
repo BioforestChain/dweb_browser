@@ -1,6 +1,7 @@
 package org.dweb_browser.sys.biometrics
 
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.StringEnumSerializer
 
 @Serializable
@@ -27,6 +28,7 @@ expect object BiometricsManage {
 
   suspend fun biometricsResultContent(
     biometricsNMM: BiometricsNMM,
+    remoteMMID: MMID,
     title: String?,
     subtitle: String?,
     input: ByteArray? = null,

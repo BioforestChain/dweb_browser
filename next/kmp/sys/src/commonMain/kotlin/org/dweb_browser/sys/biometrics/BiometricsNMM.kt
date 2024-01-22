@@ -36,10 +36,36 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
         val input = request.queryOrNull("input")?.encodeToByteArray()
         val mode = request.queryAsOrNull<InputMode>("mode") ?: InputMode.None
         val biometricsResult =
-          BiometricsManage.biometricsResultContent(this@BiometricsNMM, title, subtitle, input, mode)
+          BiometricsManage.biometricsResultContent(
+            this@BiometricsNMM,
+            ipc.remote.mmid,
+            title,
+            subtitle,
+            input,
+            mode
+          )
         debugBiometrics("biometrics", biometricsResult.toJsonElement())
         return@defineJsonResponse biometricsResult.toJsonElement()
-      }).cors()
+      },
+      "/biometrics" bind PureMethod.POST by defineJsonResponse {
+        val title = request.queryOrNull("title")
+        val subtitle = request.queryOrNull("subtitle")
+        val input = request.body.toPureBinary()
+        val mode = request.queryAsOrNull<InputMode>("mode") ?: InputMode.None
+
+        val biometricsResult =
+          BiometricsManage.biometricsResultContent(
+            this@BiometricsNMM,
+            ipc.remote.mmid,
+            title,
+            subtitle,
+            input,
+            mode
+          )
+        debugBiometrics("biometrics", biometricsResult.toJsonElement())
+        return@defineJsonResponse biometricsResult.toJsonElement()
+      }
+    ).cors()
   }
 
   override suspend fun _shutdown() {

@@ -2,6 +2,7 @@ package org.dweb_browser.sys.biometrics
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
+import org.dweb_browser.core.help.types.MMID
 import platform.LocalAuthentication.LAContext
 import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthentication
 
@@ -16,6 +17,7 @@ actual object BiometricsManage {
 
   actual suspend fun biometricsResultContent(
     biometricsNMM: BiometricsNMM,
+    remoteMMID: MMID,
     title: String?,
     subtitle: String?,
     input: ByteArray?,
@@ -24,7 +26,7 @@ actual object BiometricsManage {
     val result = CompletableDeferred<BiometricsResult>()
     val safeTitle = title ?: BiometricsI18nResource.default_title.text
     val safeSubtitle = subtitle ?: BiometricsI18nResource.default_subtitle.text
-    val description = biometricsNMM.mmid
+    val description = remoteMMID
     LAContext().evaluatePolicy(
       LAPolicyDeviceOwnerAuthentication, "$safeTitle\n $safeSubtitle\n $description"
     ) { success, error ->

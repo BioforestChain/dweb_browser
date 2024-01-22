@@ -31,7 +31,7 @@ kotlin {
       //
       implementation(libs.google.material)
       // 生物识别
-      implementation(libs.androidx.biometric)
+      implementation(libs.androidx.biometric.ktx)
       //扫码核心库
       implementation(libs.camera.barcode)
       // 获取定位

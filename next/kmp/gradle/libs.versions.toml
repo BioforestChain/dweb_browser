@@ -179,7 +179,7 @@ camera-barcode = { group = "com.google.mlkit", name = "barcode-scanning", versio
 # 解压文件
 commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress" }
 # 生物识别
-androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "androidx-biometric" }
+androidx-biometric-ktx = { group = "androidx.biometric", name = "biometric-ktx", version.ref = "androidx-biometric" }
 # 测试相关
 test-kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 test-kotlin-coroutines-debug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinx-coroutines" }

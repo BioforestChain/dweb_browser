@@ -9,7 +9,10 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
+import androidx.biometric.auth.AuthPromptCallback
+import androidx.biometric.auth.authenticateWithClass3Biometrics
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.getAppContext
@@ -43,6 +46,7 @@ actual object BiometricsManage {
 
   actual suspend fun biometricsResultContent(
     biometricsNMM: BiometricsNMM,
+    remoteMMID: MMID,
     title: String?,
     subtitle: String?,
     input: ByteArray?,
@@ -71,60 +75,6 @@ actual object BiometricsManage {
       biometricsActivity.finish()
     }
 
-    val executor = ContextCompat.getMainExecutor(biometricsActivity)
-    val biometricPrompt = BiometricPrompt(biometricsActivity, executor,
-      object : BiometricPrompt.AuthenticationCallback() {
-        override fun onAuthenticationError(
-          errorCode: Int,
-          errString: CharSequence
-        ) {
-          super.onAuthenticationError(errorCode, errString)
-          resultDeferred.complete(BiometricsResult(false, errString.toString()))
-        }
-
-        override fun onAuthenticationSucceeded(
-          result: BiometricPrompt.AuthenticationResult
-        ) {
-          super.onAuthenticationSucceeded(result)
-          debugBiometrics(
-            "onAuthenticationSucceeded",
-            result.cryptoObject ?: "<no cryptoObject>"
-          )
-          try {
-            val cipherResult = if (input != null) {
-              result.cryptoObject?.cipher?.let { cipher ->
-                encryptData(input, cipher)
-              }
-            } else null
-            if (cipherResult == null) {
-              resultDeferred.complete(BiometricsResult(true, ""))
-            } else {
-              resultDeferred.complete(BiometricsResult(true, cipherResult.toBase64(), "base64"))
-            }
-          } catch (e: Throwable) {
-            resultDeferred.complete(BiometricsResult(true, ""))
-          }
-        }
-
-        override fun onAuthenticationFailed() {
-          super.onAuthenticationFailed()
-          resultDeferred.complete(
-            BiometricsResult(
-              false,
-              BiometricsI18nResource.authentication_failed.text
-            )
-          )
-        }
-      })
-
-    val promptInfo = BiometricPrompt.PromptInfo.Builder()
-      .setTitle(title ?: BiometricsI18nResource.default_title.text)
-      .setSubtitle(subtitle ?: BiometricsI18nResource.default_subtitle.text)
-      .setDescription(biometricsNMM.mmid)
-      .setNegativeButtonText(BiometricsI18nResource.cancel_button.text)
-      .setConfirmationRequired(true)
-      .build()
-
     val crypto = when (mode) {
       InputMode.None -> {
         null
@@ -141,12 +91,57 @@ actual object BiometricsManage {
         BiometricPrompt.CryptoObject(cipher)
       }
     }
+
     withMainContext {
-      if (crypto == null) {
-        biometricPrompt.authenticate(promptInfo)
-      } else {
-        biometricPrompt.authenticate(promptInfo, crypto)
-      }
+      biometricsActivity.authenticateWithClass3Biometrics(
+        crypto,
+        title ?: BiometricsI18nResource.default_title.text,
+        BiometricsI18nResource.cancel_button.text,
+        subtitle ?: BiometricsI18nResource.default_subtitle.text,
+        remoteMMID,
+        true,
+        ContextCompat.getMainExecutor(biometricsActivity),
+        object : AuthPromptCallback() {
+          // 这个地方不需要resultDeferred.complete，因为失败可以进行多次尝试，不应该直接返回，而应该在多次失败之后直接error再返回
+          override fun onAuthenticationFailed(activity: FragmentActivity?) {
+            super.onAuthenticationFailed(activity)
+          }
+
+          override fun onAuthenticationError(
+            activity: FragmentActivity?,
+            errorCode: Int,
+            errString: CharSequence
+          ) {
+            super.onAuthenticationError(activity, errorCode, errString)
+            resultDeferred.complete(BiometricsResult(false, errString.toString()))
+          }
+
+          override fun onAuthenticationSucceeded(
+            activity: FragmentActivity?,
+            result: BiometricPrompt.AuthenticationResult
+          ) {
+            super.onAuthenticationSucceeded(activity, result)
+            debugBiometrics(
+              "onAuthenticationSucceeded",
+              result.cryptoObject ?: "<no cryptoObject>"
+            )
+            try {
+              val cipherResult = if (input != null) {
+                result.cryptoObject?.cipher?.let { cipher ->
+                  encryptData(input, cipher)
+                }
+              } else null
+              if (cipherResult == null) {
+                resultDeferred.complete(BiometricsResult(true, ""))
+              } else {
+                resultDeferred.complete(BiometricsResult(true, cipherResult.toBase64(), "base64"))
+              }
+            } catch (e: Throwable) {
+              resultDeferred.complete(BiometricsResult(true, ""))
+            }
+          }
+        }
+      )
     }
 
     return resultDeferred.await()
