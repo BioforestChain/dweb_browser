@@ -15,7 +15,13 @@ actual object KeyApi {
 
   private val ROOT_KEY_MMID = getAppContext().packageName
 
-  actual fun generatePrivateKey() = generateKeyPair()
+  actual fun generatePrivateKey() {
+    if(getPrivateKeyEntry() != null) {
+      return
+    }
+
+    generateKeyPair()
+  }
 
   actual fun encrypt(input: ByteArray): ByteArray = getCipher(Cipher.ENCRYPT_MODE).doFinal(input)
 
@@ -23,7 +29,7 @@ actual object KeyApi {
     getCipher(Cipher.DECRYPT_MODE).doFinal(encryptedData)
 
   private fun getCipher(mode: Int): Cipher {
-    val privateKeyEntry = getPrivateKeyEntry()
+    val privateKeyEntry = getPrivateKeyEntry()!!
     val cipher = Cipher.getInstance(
       KeyProperties.KEY_ALGORITHM_RSA + "/"
           + KeyProperties.BLOCK_MODE_ECB + "/"
@@ -38,7 +44,7 @@ actual object KeyApi {
     return cipher
   }
 
-  private fun getPrivateKeyEntry() = keyStore.getEntry(ROOT_KEY_MMID, null) as PrivateKeyEntry
+  private fun getPrivateKeyEntry() = keyStore.getEntry(ROOT_KEY_MMID, null) as? PrivateKeyEntry
 
   private fun generateKeyPair() {
     val keyPairGenerator =

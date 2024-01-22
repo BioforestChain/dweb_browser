@@ -21,6 +21,8 @@ import platform.Security.SecKeyCreateDecryptedData
 import platform.Security.SecKeyCreateEncryptedData
 import platform.Security.SecKeyCreateRandomKey
 import platform.Security.SecKeyRef
+import platform.Security.errSecItemNotFound
+import platform.Security.errSecSuccess
 import platform.Security.kSecAccessControlBiometryCurrentSet
 import platform.Security.kSecAccessControlPrivateKeyUsage
 import platform.Security.kSecAttrAccessControl
@@ -57,8 +59,16 @@ object KeyStore {
     dictionary
   }
 
+  /**
+   * 当前iOS硬件级别的加密主要由 Secure Enclave 来提供，而想要使用 kSecAttrTokenIDSecureEnclave 创建密钥，
+   * 当前只支持 kSecAttrKeyTypeECSECPrimeRandom 椭圆曲线密钥，因此iOS改用椭圆曲线算法进行密钥生成，
+   * 支持Face ID来获取密钥。之后的加解密数据采用kSecKeyAlgorithmECIESEncryptionCofactorX963SHA256AESGCM算法进行加解密；
+   * */
   @OptIn(ExperimentalForeignApi::class)
   fun generatePrivateKey(): Unit = memScoped {
+    if (findPrivateKeyStatus().first == errSecSuccess) {
+      return
+    }
     val attributes = dictionary().autorelease(this)
     CFDictionarySetValue(attributes, kSecClass, kSecClassKey)
     val bitsRef = 256.bridgingRetain().autorelease(this)
@@ -67,10 +77,7 @@ object KeyStore {
     CFDictionarySetValue(attributes, kSecAttrTokenID, kSecAttrTokenIDSecureEnclave)
 
     val privateKeyAttributes = CFDictionaryCreateMutable(
-      kCFAllocatorDefault,
-      1,
-      kCFTypeDictionaryKeyCallBacks.ptr,
-      kCFTypeDictionaryValueCallBacks.ptr
+      kCFAllocatorDefault, 1, kCFTypeDictionaryKeyCallBacks.ptr, kCFTypeDictionaryValueCallBacks.ptr
     )?.autorelease(this)
 
     val accessControl = SecAccessControlCreateWithFlags(
@@ -81,9 +88,7 @@ object KeyStore {
     )?.autorelease(this)
 
     CFDictionarySetValue(
-      privateKeyAttributes,
-      kSecAttrAccessControl,
-      accessControl
+      privateKeyAttributes, kSecAttrAccessControl, accessControl
     )
     CFDictionarySetValue(privateKeyAttributes, kSecAttrIsPermanent, kCFBooleanTrue)
     val labelRef = LABEL_ID.encodeToByteArray().bridgingRetain().autorelease(this)
@@ -98,7 +103,7 @@ object KeyStore {
 
   @OptIn(ExperimentalForeignApi::class)
   @Suppress("UNCHECKED_CAST")
-  fun getPrivateKey(): SecKeyRef = memScoped {
+  fun findPrivateKeyStatus(): Pair<Int, SecKeyRef?> = memScoped {
     val attributes = dictionary()
     CFDictionarySetValue(attributes, kSecAttrKeyClass, kSecAttrKeyClassPrivate)
     CFDictionarySetValue(attributes, kSecAttrKeyType, kSecAttrKeyTypeECSECPrimeRandom)
@@ -111,7 +116,13 @@ object KeyStore {
     val result = alloc<CFTypeRefVar>()
     val code = SecItemCopyMatching(attributes, result.ptr)
 
-    return result.value as SecKeyRef? ?: throw Exception("Error fetching private key $code")
+    return Pair(code, result.value as? SecKeyRef)
+  }
+
+  @OptIn(ExperimentalForeignApi::class)
+  fun getPrivateKey(): SecKeyRef = memScoped {
+    val (code, privateKey) = findPrivateKeyStatus()
+    return privateKey ?: throw Exception("Error fetching private key $code")
   }
 
   @OptIn(ExperimentalForeignApi::class)
