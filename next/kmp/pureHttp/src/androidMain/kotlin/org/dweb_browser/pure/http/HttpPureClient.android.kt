@@ -1,5 +1,7 @@
 package org.dweb_browser.pure.http
 
-actual class HttpPureClient : KtorPureClient(io.ktor.client.engine.cio.CIO) {
+import org.dweb_browser.pure.http.ktor.KtorPureClient
+
+actual class HttpPureClient : KtorPureClient(io.ktor.client.engine.okhttp.OkHttp) {
 
 }

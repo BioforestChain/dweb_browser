@@ -1,11 +1,7 @@
 package org.dweb_browser.pure.http
 
-actual class HttpPureClient {
-  actual suspend fun fetch(request: PureClientRequest): PureResponse {
-    TODO("Not yet implemented")
-  }
+import org.dweb_browser.pure.http.ktor.KtorPureClient
 
-  actual suspend fun websocket(request: PureClientRequest): PureResponse {
-    TODO("Not yet implemented")
-  }
+actual class HttpPureClient : KtorPureClient(io.ktor.client.engine.js.Js) {
+
 }

@@ -1,4 +1,4 @@
-package org.dweb_browser.pure.http
+package org.dweb_browser.pure.http.ktor
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.createApplicationPlugin
@@ -18,6 +18,10 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.pure.http.HttpPureServerOnRequest
+import org.dweb_browser.pure.http.PureChannel
+import org.dweb_browser.pure.http.PureFrame
+import org.dweb_browser.pure.http.PureResponse
 
 val debugHttpPureServer = Debugger("httpPureServer")
 

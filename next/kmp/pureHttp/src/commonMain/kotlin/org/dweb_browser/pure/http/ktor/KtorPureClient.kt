@@ -1,4 +1,4 @@
-package org.dweb_browser.pure.http
+package org.dweb_browser.pure.http.ktor
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngineFactory
@@ -15,11 +15,20 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.pure.http.PureChannel
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureFrame
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.pure.http.PureStreamBody
+import org.dweb_browser.pure.http.PureStringBody
+import org.dweb_browser.pure.http.dataUriToPureResponse
+import org.dweb_browser.pure.http.tryDoHttpPureServerResponse
 
 val debugHttpPureClient = Debugger("httpPureClient")
 
 open class KtorPureClient(engine: HttpClientEngineFactory<*>) {
-  private val ktorClient = HttpClient(engine) {
+  val ktorClient = HttpClient(engine) {
     install(HttpTimeout) {
       connectTimeoutMillis = 30_000L
     }

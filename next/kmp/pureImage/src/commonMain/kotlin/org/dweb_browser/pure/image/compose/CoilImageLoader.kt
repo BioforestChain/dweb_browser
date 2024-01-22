@@ -21,6 +21,7 @@ import coil3.request.crossfade
 import coil3.svg.SvgDecoder
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.HttpResponseData
 import io.ktor.http.Headers
@@ -29,15 +30,22 @@ import io.ktor.http.content.OutgoingContent
 import io.ktor.util.InternalAPI
 import io.ktor.util.date.GMTDate
 import io.ktor.util.flattenEntries
+import kotlinx.coroutines.CoroutineDispatcher
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.pure.http.PureStream
+import org.dweb_browser.pure.http.defaultHttpPureClient
+import org.dweb_browser.pure.http.ktor.KtorPureClient
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHookContext
 import org.dweb_browser.pure.image.removeOriginAndAcceptEncoding
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.measureTimedValue
+
+val debugCoilImageLoader = Debugger("coilImageLoader")
 
 val LocalCoilImageLoader = compositionLocalOf { CoilImageLoader(null) }
 
@@ -73,12 +81,13 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
   fun Load(
     url: String, containerWidth: Int, containerHeight: Int, hook: FetchHook? = null
   ): ImageLoadResult {
-
-    val safeHook: FetchHook? = remember(hook) {
+    val requestHref = url.replace(Regex("\\{WIDTH\\}"), containerWidth.toString())
+      .replace(Regex("\\{HEIGHT\\}"), containerHeight.toString())
+    val safeHook: FetchHook? = remember(requestHref, hook) {
       hook?.let {
         {
-          when (url) {
-            url -> hook()
+          when (request.href) {
+            requestHref -> hook()
             else -> null
           }
         }
@@ -111,7 +120,12 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
 
   companion object {
 
-    private val defaultHttpClient = lazy { HttpClient() }
+    private val defaultHttpClient = lazy {
+      when (val pureClient = defaultHttpPureClient) {
+        is KtorPureClient -> pureClient.ktorClient
+        else -> HttpClient()
+      }
+    }
 
     private fun buildLoader(
       coroutineContext: CoroutineContext,
@@ -124,17 +138,19 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
       } else {
         add(KtorNetworkFetcherFactory(lazy {
           val ktorClient = defaultHttpClient.value
-
-          HttpClient(engine = object : HttpClientEngine by ktorClient.engine {
+          val ktorEngine = ktorClient.engine
+          HttpClient(engine = object : HttpClientEngine {
             @InternalAPI
-            override suspend fun execute(data: HttpRequestData): HttpResponseData {
+            override suspend fun execute(data: HttpRequestData) = measureTimedValue {
               val hookList = hooks.toList()
               val hookContext by lazy {
                 FetchHookContext(
                   PureServerRequest(
                     data.url.toString(),
                     PureMethod.from(data.method),
-                    PureHeaders(data.headers.flattenEntries().removeOriginAndAcceptEncoding()),
+                    PureHeaders(
+                      data.headers.flattenEntries().removeOriginAndAcceptEncoding()
+                    ),
                     when (val body = data.body) {
                       is OutgoingContent.ByteArrayContent -> IPureBody.from(body.bytes())
                       is OutgoingContent.NoContent -> IPureBody.Empty
@@ -147,7 +163,7 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
               }
               for (hook in hookList) {
                 val pureResponse = hookContext.hook() ?: continue
-                return HttpResponseData(
+                return@measureTimedValue HttpResponseData(
                   statusCode = pureResponse.status,
                   headers = Headers.build {
                     for ((key, value) in pureResponse.headers) {
@@ -160,8 +176,20 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
                   callContext = coroutineContext
                 )
               }
-              return ktorClient.engine.execute(data)
+              ktorEngine.execute(data)
+            }.let {
+              debugCoilImageLoader("execute", "url=${data.url} duration=${it.duration}")
+              it.value
             }
+
+            override val config: HttpClientEngineConfig = ktorEngine.config
+            override val dispatcher: CoroutineDispatcher = ktorEngine.dispatcher
+
+            override fun close() {
+              ktorEngine.close()
+            }
+
+            override val coroutineContext: CoroutineContext = ktorEngine.coroutineContext
           }) { }
         }))
       }

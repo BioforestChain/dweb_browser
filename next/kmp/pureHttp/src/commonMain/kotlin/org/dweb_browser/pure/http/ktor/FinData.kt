@@ -1,4 +1,4 @@
-package org.dweb_browser.pure.http
+package org.dweb_browser.pure.http.ktor
 
 class FinData<T : Any>(val concat: (List<T>) -> T) {
   private val chunks = mutableListOf<T>();

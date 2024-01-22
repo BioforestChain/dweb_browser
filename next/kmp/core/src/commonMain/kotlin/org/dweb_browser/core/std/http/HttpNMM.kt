@@ -44,7 +44,7 @@ import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.pure.http.PureTextFrame
-import org.dweb_browser.pure.http.isWebSocket
+import org.dweb_browser.pure.http.ktor.isWebSocket
 import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.pure.http.websocket
 import kotlin.random.Random

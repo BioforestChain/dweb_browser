@@ -5,6 +5,9 @@ plugins {
 kotlin {
   kmpCommonTarget(project) {
     dependencies {
+      implementation(libs.ktor.http)
+      implementation(libs.ktor.client.encoding)
+
       implementation(projects.helper)
       implementation(projects.helperPlatform)
     }
@@ -20,18 +23,15 @@ kotlin {
 
   val ktorMain by sourceSets.creating {
     dependencies {
-      implementation(libs.ktor.http)
-      implementation(libs.ktor.server.core)
-      implementation(libs.ktor.client.encoding)
-
       implementation(libs.ktor.io)
+      implementation(libs.ktor.server.core)
       implementation(libs.ktor.server.cio)
       implementation(libs.ktor.server.websockets)
     }
   }
   kmpAndroidTarget(project) {
     dependencies {
-      implementation(libs.ktor.client.cio)
+      implementation(libs.ktor.client.okhttp)
     }
   }
   kmpIosTarget(project) {
@@ -40,6 +40,8 @@ kotlin {
     }
   }
   kmpNodeJsTarget(project) {
-
+    dependencies {
+      implementation(libs.ktor.client.js)
+    }
   }
 }

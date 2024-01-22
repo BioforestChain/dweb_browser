@@ -53,6 +53,7 @@ gradle.projectsEvaluated {
 
   tasks.withType<NodeJsExec>().all {
     if (npmProject.target.compilations.first().kotlinOptions.useEsClasses) {
+      println("update js suffix(.js -> .mjs) in task $name")
       inputFileProperty.fileValue(
         File(
           inputFileProperty.get().asFile.absolutePath.replace(

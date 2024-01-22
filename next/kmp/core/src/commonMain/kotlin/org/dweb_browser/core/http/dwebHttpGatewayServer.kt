@@ -8,7 +8,7 @@ import org.dweb_browser.pure.http.HttpPureServer
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureServerRequest
-import org.dweb_browser.pure.http.debugHttpPureServer
+import org.dweb_browser.pure.http.ktor.debugHttpPureServer
 
 
 typealias HttpGateway = suspend (request: PureServerRequest) -> PureResponse?

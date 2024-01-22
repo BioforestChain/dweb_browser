@@ -16,6 +16,7 @@ class SafeHashMap<K, V> : MutableMap<K, V> {
   override fun isEmpty() = sync { isEmpty() }
 
   override fun remove(key: K) = sync { remove(key) }
+  fun remove(key: K, value: V) = sync { remove(key, value) }
 
   override fun putAll(from: Map<out K, V>) = sync { putAll(from) }
 
