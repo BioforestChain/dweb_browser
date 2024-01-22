@@ -8,7 +8,8 @@ import kotlin.js.Promise
 suspend fun main() {
 
   BrowserViewModel("js.backend.dweb")
-  val http = httpServerDeferred.await().start(8888)
+  val electronAppHttpSever = ElectronAppHttpServer().whenReady.await()
+  electronAppHttpSever.start(8888)
 
   app.whenReady().await()
 
@@ -17,7 +18,7 @@ suspend fun main() {
     height = 600.0
   }
 
-  win.loadURL("${http.getAddress()}/jsFrontEnd/index.html")
+  win.loadURL("${electronAppHttpSever.getAddress()}/jsFrontEnd/index.html")
   win.webContents.openDevTools()
 }
 

@@ -1,13 +1,18 @@
 package info.bagen.dwebbrowser
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import node.buffer.BufferEncoding
 import node.fs.readFile
 import node.http.IncomingMessage
+import node.http.Server
 import node.http.ServerResponse
 import org.dweb_browser.js_backend.http.HttpServer
+import org.dweb_browser.js_backend.http.MatchPattern
+import org.dweb_browser.js_backend.http.Method
+import org.dweb_browser.js_backend.http.Route
 
 // 创建一个 httpServer 对象
 private fun  httpServerListener(req: IncomingMessage, res: ServerResponse<*>) {
@@ -59,5 +64,29 @@ private fun setContentType(fileName: String, res: ServerResponse<*>) {
     }
 }
 
-val httpServerDeferred = HttpServer.createHttpServer(::httpServerListener)
+class ElectronAppHttpServer(){
+    val scope = CoroutineScope(Dispatchers.Unconfined)
+    val whenReady = CompletableDeferred<HttpServer>()
+    lateinit var httpServer: HttpServer
+    init {
+        scope.launch {
+            httpServer = HttpServer.createHttpServer().await()
+            whenReady.complete(httpServer)
+            httpServer.routeAdd(
+                Route("/jsFrontEnd", Method.GET, MatchPattern.PREFIX, ::httpServerListener),
+            )
+        }
+    }
+
+    suspend  fun start(listeningListener: ( Server<IncomingMessage, ServerResponse<*>>.() -> Unit)? = null): HttpServer{
+        whenReady.await()
+        return httpServer.start(listeningListener)
+    }
+
+    suspend fun start(port: Int = 8888, listeningListener: ( Server<IncomingMessage, ServerResponse<*>>.() -> Unit)? = null): HttpServer{
+        whenReady.await()
+        return start(port, listeningListener)
+    }
+}
+
 
