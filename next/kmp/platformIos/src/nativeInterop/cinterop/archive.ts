@@ -7,11 +7,20 @@ export const doArchiveItemTask = (fw: string) =>
     () => buildArchive(fw, sourceCodeDir + fw + "/", "generic/platform=iOS Simulator", "archives/" + fw + "-iOS_Simulator"),
   );
 
-const buildArchive = (prjectName: string, dir: string, destination: string, archivePath: string) =>
+const buildArchive = (prjectName: string, dir: string, destination: string, archivePath: string) => {
+  exec([
+    "cd",
+    path.resolve(dir),
+  ]);
+
   exec([
     "xcodebuild",
-//    "-quiet",
     "clean",
+  ]);
+
+  exec([
+    "xcodebuild",
+    "-quiet",
     "archive",
     "-workspace",
     path.resolve(dir, "../DwebBrowser.xcworkspace"),
@@ -24,6 +33,7 @@ const buildArchive = (prjectName: string, dir: string, destination: string, arch
     "SKIP_INSTALL=NO",
     "BUILD_LIBRARY_FOR_DISTRIBUTION=YES",
   ]);
+ }
 
 if (import.meta.main) {
   Deno.exit(await doArchiveTask());
