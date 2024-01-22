@@ -8,6 +8,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -21,6 +22,9 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsExec
+import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
+import java.io.File
 import java.nio.file.Files
 
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
@@ -106,6 +110,49 @@ fun KotlinMultiplatformExtension.kmpNodeJsTarget(
     }
   }
   dsl.provides(nodeMain, nodeTest)
+  project.fixJsInputFilePath()
+}
+
+fun RegularFileProperty.fixSuffix(isEsm: Boolean) {
+  val inputFilePath = get().asFile.absolutePath
+  if (isEsm) {
+    if (inputFilePath.endsWith(".js")) {
+      println("update js suffix(.js -> .mjs)")
+      fileValue(
+        File(inputFilePath.replace(Regex("\\.js$"), ".mjs"))
+      )
+    }
+  } else {
+    if (inputFilePath.endsWith(".mjs")) {
+      println("update js suffix(.mjs -> .js)")
+      fileValue(
+        File(inputFilePath.replace(Regex("\\.mjs$"), ".js"))
+      )
+    }
+  }
+}
+
+fun Project.fixJsInputFilePath() {
+  afterEvaluate {
+//    tasks.forEach {
+//      with(it) {
+//        if (name.contains("Test")) {
+//          println("NodeJs<${this::class.java.packageName}/${this::class.java.name}> Test ${project.name}/$name")
+//        }
+//      }
+//    }
+    tasks.withType<NodeJsExec>().all {
+      // 参考源代码进行的配置： https://github.com/JetBrains/kotlin/blob/ae09c0fb6031d653b3c975d757b3bdbd4c36a311/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/ir/KotlinJsIrTarget.kt#L435
+      val moduleKind = npmProject.target.compilations.first().kotlinOptions.moduleKind
+      println("NodeJsExec ${project.name}/$name moduleKind=$moduleKind")
+      inputFileProperty.fixSuffix(moduleKind == "es")
+    }
+
+    tasks.withType<KotlinJsTest>().all {
+      println("KotlinJsTest ${project.name}/$name")
+      inputFileProperty.fixSuffix(false)
+    }
+  }
 }
 
 class KmpNodeWasmTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(kmpe) {
@@ -320,6 +367,7 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
     implementation(kotlin("test"))
     implementation(libs.test.kotlin.coroutines.test)
     implementation(libs.test.kotlin.coroutines.debug)
+    implementationPlatform("Test")
   }
   applyDefaultHierarchyTemplate {
     dsl.applyHierarchySets.forEach { it() }

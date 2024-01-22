@@ -46,10 +46,10 @@ fun includeUI(dirName: String) {
   }
 }
 
+include(":platformTest")
 include(":platformIos")
 include(":platformNode")
 include(":platformBrowser")
-//
 //
 include(":helper")
 include(":helperCompose")

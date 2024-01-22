@@ -12,7 +12,7 @@ configurations.all {
     with(requested) {
       if (group belong "org.jetbrains.compose" && !(group belong "org.jetbrains.compose.compiler")) {
         if (version != composeVersion) {
-          println("resolutionStrategy ${group}:${name}:${version}")
+//          println("resolutionStrategy ${group}:${name}:${version}")
           useVersion(composeVersion)
         }
       }

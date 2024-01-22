@@ -37,32 +37,13 @@ kotlin {
   }
 }
 
-
-// Electron tasks
-
-tasks.withType<org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask>()
-  .configureEach {
-
-  }
-
-
+project.fixJsInputFilePath()
 /**
  * 在buildSrc执行后，当前这个project的tasks列出来了，我们可以基于这些task开始我们自己的扩展注册了
  */
 gradle.projectsEvaluated {
 
   tasks.withType<NodeJsExec>().all {
-    if (npmProject.target.compilations.first().kotlinOptions.useEsClasses) {
-      println("update js suffix(.js -> .mjs) in task $name")
-      inputFileProperty.fileValue(
-        File(
-          inputFileProperty.get().asFile.absolutePath.replace(
-            Regex("\\.js$"), ".mjs"
-          )
-        )
-      )
-    }
-
     val electronExecTask = createElectronExec(
       npmProject,
       inputFileProperty,
@@ -89,9 +70,9 @@ gradle.projectsEvaluated {
  * - 把jsFrontend打包到electronApp的resources/jsFrontEnd目录
  * - 执行:electronApp:jsElectronDevelopmentRun任务
  */
-tasks.register("jsElectronDevelopmentRunWithJsFrontendDistribution"){
-  doFirst{
-    exec{
+tasks.register("jsElectronDevelopmentRunWithJsFrontendDistribution") {
+  doFirst {
+    exec {
       workingDir("${rootProject.projectDir}")
       commandLine("./gradlew", ":jsFrontend:browserBrowserDistribution")
 
