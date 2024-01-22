@@ -243,7 +243,7 @@ class DWebViewEngine internal constructor(
   }
 
   internal val dWebChromeClient = DWebChromeClient(this).also {
-    it.addWebChromeClient(DWebFileChooser(remoteMM, ioScope))
+    it.addWebChromeClient(DWebFileChooser(remoteMM, ioScope, activity))
     it.addWebChromeClient(DWebPermissionRequest(remoteMM, ioScope))
   }
 

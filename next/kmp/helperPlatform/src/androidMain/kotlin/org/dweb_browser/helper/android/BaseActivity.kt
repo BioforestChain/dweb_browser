@@ -43,6 +43,20 @@ abstract class BaseActivity : ComponentActivity() {
     }
   }
 
+  val getContentLauncher = QueueResultLauncher(this, ActivityResultContracts.GetContent())
+  val getMultipleContentsLauncher =
+    QueueResultLauncher(this, ActivityResultContracts.GetMultipleContents())
+
+  val recordSoundLauncher =
+    QueueResultLauncher(this, ExtensionResultContracts.RecordSound())
+
+
+  val captureVideoLauncher =
+    QueueResultLauncher(this, ActivityResultContracts.CaptureVideo())
+
+  val takePictureLauncher =
+    QueueResultLauncher(this, ActivityResultContracts.TakePicture())
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     queueResultLauncherRegistries.forEach { it() }

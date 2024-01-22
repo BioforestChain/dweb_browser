@@ -4,49 +4,55 @@ import android.net.Uri
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import androidx.core.content.FileProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.dwebview.DwebViewI18nResource
+import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.sys.filechooser.debugFileChooser
-import org.dweb_browser.sys.filechooser.ext.openSystemFileChooser
-import org.dweb_browser.sys.mediacapture.MediaCaptureResult
-import org.dweb_browser.sys.mediacapture.ext.mediaCapture
+import org.dweb_browser.sys.permission.SystemPermissionName
+import org.dweb_browser.sys.permission.SystemPermissionTask
+import org.dweb_browser.sys.permission.ext.requestSystemPermission
+import java.io.File
 
-class DWebFileChooser(val remoteMM: MicroModule, val ioScope: CoroutineScope) : WebChromeClient() {
+class DWebFileChooser(
+  private val remoteMM: MicroModule,
+  private val ioScope: CoroutineScope,
+  private val activity: BaseActivity?
+) : WebChromeClient() {
   override fun onShowFileChooser(
     webView: WebView,
     filePathCallback: ValueCallback<Array<Uri>>,
     fileChooserParams: FileChooserParams
-  ): Boolean {
+  ): Boolean = activity?.let { context ->
     val mimeTypes = fileChooserParams.acceptTypes.joinToString(",").ifEmpty { "*/*" }
     val captureEnabled = fileChooserParams.isCaptureEnabled
-    debugFileChooser("onShowFileChooser", "mimeTypes=$mimeTypes, enable=$captureEnabled, multi=${fileChooserParams.mode}")
-    if (captureEnabled && (mimeTypes.startsWith("video/") ||
-          mimeTypes.startsWith("audio/") || mimeTypes.startsWith("image/"))
-    ) {
-      ioScope.launch {
-        val mediaCaptureResult =
-          Json.decodeFromString<MediaCaptureResult>(remoteMM.mediaCapture(mimeTypes))
-        if (mediaCaptureResult.success) {
-          filePathCallback.onReceiveValue(arrayOf(Uri.parse(mediaCaptureResult.data)))
-        } else {
-          filePathCallback.onReceiveValue(null)
-        }
+    debugFileChooser(
+      tag = "onShowFileChooser",
+      msg = "mimeTypes=$mimeTypes, enable=$captureEnabled, multi=${fileChooserParams.mode}"
+    )
+    if (captureEnabled) {
+      if (mimeTypes.startsWith("video/")) {
+        ioScope.launch { filePathCallback.onReceiveValue(captureVideo()) }
+        return true
+      } else if (mimeTypes.startsWith("image/")) {
+        ioScope.launch { filePathCallback.onReceiveValue(takePicture()) }
+        return true
+      } else if (mimeTypes.startsWith("audio/")) {
+        ioScope.launch { filePathCallback.onReceiveValue(recordAudio()) }
+        return true
       }
-      return true
     }
 
     ioScope.launch {
       try {
         if (fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE) {
-          val list = remoteMM.openSystemFileChooser(mimeTypes, multiple = true, limit = 9)
-          val uris = list.map { Uri.parse(it) }
+          val uris = context.getMultipleContentsLauncher.launch(mimeTypes)
           filePathCallback.onReceiveValue(uris.toTypedArray())
         } else {
-          val list = remoteMM.openSystemFileChooser(mimeTypes)
-          list.firstOrNull()?.let { uri ->
-            filePathCallback.onReceiveValue(arrayOf(Uri.parse(uri)))
+          context.getContentLauncher.launch(mimeTypes)?.let { uri ->
+            filePathCallback.onReceiveValue(arrayOf(uri))
           } ?: filePathCallback.onReceiveValue(null)
         }
       } catch (e: Exception) {
@@ -54,5 +60,53 @@ class DWebFileChooser(val remoteMM: MicroModule, val ioScope: CoroutineScope) : 
       }
     }
     return true
+  } ?: super.onShowFileChooser(webView, filePathCallback, fileChooserParams)
+
+  private suspend fun captureVideo(): Array<Uri>? = activity?.let { context ->
+    if (!remoteMM.requestSystemPermission(
+        SystemPermissionTask(
+          SystemPermissionName.CAMERA,
+          DwebViewI18nResource.permission_tip_camera_title.text,
+          DwebViewI18nResource.permission_tip_camera_message.text
+        )
+      )
+    ) return null
+    val tmpFile = File.createTempFile("temp_capture", ".mp4", context.cacheDir);
+    val tmpUri = FileProvider.getUriForFile(
+      context, "${context.packageName}.file.opener.provider", tmpFile
+    )
+    if (context.captureVideoLauncher.launch(tmpUri)) arrayOf(tmpUri) else null
+  }
+
+  private suspend fun takePicture(): Array<Uri>? = activity?.let { context ->
+    if (!remoteMM.requestSystemPermission(
+        SystemPermissionTask(
+          SystemPermissionName.CAMERA,
+          DwebViewI18nResource.permission_tip_camera_title.text,
+          DwebViewI18nResource.permission_tip_camera_message.text
+        )
+      )
+    ) return null
+    val tmpFile = File.createTempFile("temp_capture", ".jpg", context.cacheDir);
+    val tmpUri = FileProvider.getUriForFile(
+      context, "${context.packageName}.file.opener.provider", tmpFile
+    )
+    if (context.takePictureLauncher.launch(tmpUri)) arrayOf(tmpUri) else null
+  }
+
+  private suspend fun recordAudio(): Array<Uri>? = activity?.let { context ->
+    if (!remoteMM.requestSystemPermission(
+        SystemPermissionTask(
+          SystemPermissionName.MICROPHONE,
+          DwebViewI18nResource.permission_tip_microphone_title.text,
+          DwebViewI18nResource.permission_tip_microphone_message.text
+        )
+      )
+    ) return null
+    val tmpFile = File.createTempFile("temp_capture", ".ogg", context.cacheDir);
+    val tmpUri = FileProvider.getUriForFile(
+      context, "${context.packageName}.file.opener.provider", tmpFile
+    )
+    if (context.recordSoundLauncher.launch(tmpUri)) arrayOf(tmpUri) else null
   }
 }
