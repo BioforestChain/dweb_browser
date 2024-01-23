@@ -25,6 +25,7 @@ import org.dweb_browser.sys.boot.BootNMM
 import org.dweb_browser.sys.mediacapture.MediaCaptureNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
+import org.dweb_browser.sys.contact.ContactNMM
 import org.dweb_browser.sys.device.DeviceNMM
 import org.dweb_browser.sys.filechooser.FileChooserNMM
 import org.dweb_browser.sys.haptics.HapticsNMM
@@ -95,6 +96,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val zipNMM = ZipNMM().setup()
 
   val mediaCaptureNMM = MediaCaptureNMM().setup()
+  val contactNMM = ContactNMM().setup()
   /// 扫码
   val scannerNMM = ScanningNMM().setup()
   val qrCodeScanNMM = QRCodeScanNMM().setup()

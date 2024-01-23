@@ -18,6 +18,7 @@
   <uses-permission android:name="android.permission.READ_PHONE_STATE" /><!-- 手机 -->
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
   <!-- <uses-permission android:name="android.permission.USE_BIOMETRIC" />--> <!--生物识别-->
+  <uses-permission android:name="android.permission.READ_CONTACTS" />
 
   <application>
 
@@ -45,6 +46,10 @@
       android:theme="@style/Theme.DwebBrowser.Transparent" />
     <activity
       android:name=".mediacapture.MediaCaptureActivity"
+      android:exported="true"
+      android:theme="@style/Theme.DwebBrowser.Transparent" />
+    <activity
+      android:name=".contact.ContactPickerActivity"
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
   </application>
