@@ -48,7 +48,7 @@ struct GridCell: View {
                             .frame(width: geo.size.width, height: geo.size.height * cellImageHeightRatio)
                             .cornerRadius(gridcellCornerR)
                             .overlay(RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.cellBorder, lineWidth: 2)
+                                .stroke(Color.cellBorderColor, lineWidth: 2)
                                 .opacity(isSelected ? 1 : 0)
                             )
                             .clipped()
