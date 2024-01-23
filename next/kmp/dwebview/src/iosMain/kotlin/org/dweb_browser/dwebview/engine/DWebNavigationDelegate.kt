@@ -161,7 +161,7 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
     completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
   ) {
     /// 这里在IO线程处理，否则会警告：This method should not be called on the main thread as it may lead to UI unresponsiveness.
-    engine.remoteMM.ioAsyncScope.launch {
+    engine.ioScope.launch {
       if (didReceiveAuthenticationChallenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
         completionHandler(
           NSURLSessionAuthChallengeUseCredential,
