@@ -86,4 +86,8 @@ struct BrowserView: View {
     func gobackIfCanDo() -> Bool{
         states.doBackIfCan()
     }
+    
+    func resetStates(){
+        states.clear()
+    }
 }

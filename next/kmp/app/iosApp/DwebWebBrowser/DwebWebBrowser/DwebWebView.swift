@@ -99,6 +99,7 @@ public extension DwebWebView {
     @objc func browserClear() {
         isTransitionEffect = false
         snap = nil
+        browerView?.resetStates()
     }
     
     @objc func browserActive(on: Bool) {

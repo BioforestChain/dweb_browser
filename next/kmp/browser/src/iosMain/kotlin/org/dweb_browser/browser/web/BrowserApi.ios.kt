@@ -18,6 +18,7 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.platform.ios_browser.DwebWebView
 import org.dweb_browser.platform.ios_browser.browserActiveOn
+import org.dweb_browser.platform.ios_browser.browserClear
 import org.dweb_browser.platform.ios_browser.colorSchemeChangedWithColor
 import org.dweb_browser.platform.ios_browser.doSearchWithKey
 import org.dweb_browser.platform.ios_browser.gobackIfCanDo
@@ -45,6 +46,9 @@ private var browserObserver = BrowserIosWinObserver(::winVisibleChange, ::winClo
 
 @OptIn(ExperimentalForeignApi::class)
 private fun winClose(): Unit {
+  iOSViewHolder?.let{
+    it.browserClear()
+  }
   iOSViewHolder = null
   iOSViewDelegateHolder = null
   iOSViewDataSourceHolder = null
