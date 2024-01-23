@@ -25,24 +25,32 @@ import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
 import platform.CoreGraphics.CGRectMake
+import platform.Foundation.validateValue
 import kotlin.experimental.ExperimentalNativeApi
 
 actual fun ImageBitmap.toImageResource(): ImageResource? = null
 actual fun getImageResourceRootPath(): String = ""
 
+/*
+* 持有iOSViewHolder, iOSViewDelegate, iOSViewDataSource，是为了确保在win不可见，compose不会将iOS浏览器销毁。
+* iOS浏览器只有在win close的时候，才会销毁。
+* */
 @kotlinx.cinterop.ExperimentalForeignApi
-var iOSViewHolder: DwebWebView? = null
+private var iOSViewHolder: DwebWebView? = null
+private var iOSViewDelegateHolder: BrowserIosDelegate? = null
+private var iOSViewDataSourceHolder: BrowserIosDataSource? = null
 
 private var browserObserver = BrowserIosWinObserver(::winVisibleChange, ::winClose)
 
 @OptIn(ExperimentalForeignApi::class)
 private fun winClose(): Unit {
   iOSViewHolder = null
+  iOSViewDelegateHolder = null
+  iOSViewDataSourceHolder = null
 }
 
 @OptIn(ExperimentalForeignApi::class)
 private fun winVisibleChange(isVisible: Boolean): Unit {
-  println("mike winVisibleChange")
   iOSViewHolder?.let {
     it.browserActiveOn(isVisible)
   }
@@ -57,14 +65,22 @@ actual fun CommonBrowserView(
 ) {
 
   val iOSDelegate = remember {
-    BrowserIosDelegate().apply {
-      this.browserViewModel = viewModel
+    when (val delegate = iOSViewDelegateHolder) {
+      null -> BrowserIosDelegate().apply {
+        browserViewModel = viewModel
+        iOSViewDelegateHolder = this
+      }
+      else -> delegate
     }
   }
 
   val iOSDataSource = remember {
-    BrowserIosDataSource().apply {
-      this.browserViewModel = viewModel
+    when (val dataSource = iOSViewDataSourceHolder) {
+      null -> BrowserIosDataSource().apply {
+        browserViewModel = viewModel
+        iOSViewDataSourceHolder = this
+      }
+      else -> dataSource
     }
   }
 

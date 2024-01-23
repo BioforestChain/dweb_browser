@@ -82,7 +82,6 @@ struct BrowserView: View {
     }
     func updateColorScheme(color: Int){
         states.updateColorScheme(newScheme: color)
-        print("aaaaa")
     }
     
     func gobackIfCanDo() -> Bool{
