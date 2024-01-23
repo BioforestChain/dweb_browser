@@ -6,13 +6,14 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.ext.requestSystemPermission
 
 val debugContact = Debugger("ContactPicker")
 
-class ContactNMM : NativeMicroModule("contact-picker.sys.dweb", "MediaCapture") {
+class ContactNMM : NativeMicroModule("contact-picker.sys.dweb", "ContactPicker") {
   private val contactManage = ContactManage()
 
   init {
@@ -24,7 +25,7 @@ class ContactNMM : NativeMicroModule("contact-picker.sys.dweb", "MediaCapture") 
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
-      "/pickContact" bind PureMethod.GET by defineEmptyResponse {
+      "/pickContact" bind PureMethod.GET by defineJsonResponse {
         debugContact("pickContact", "enter")
         val fromMM = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@ContactNMM
         if (requestSystemPermission(
@@ -33,7 +34,7 @@ class ContactNMM : NativeMicroModule("contact-picker.sys.dweb", "MediaCapture") 
             description = ContactI18nResource.request_permission_message_pick_contact.text
           )
         ) {
-          contactManage.pickContact(fromMM) ?: throwException(HttpStatusCode.NotFound)
+          contactManage.pickContact(fromMM)?.toJsonElement() ?: throwException(HttpStatusCode.NotFound)
         } else {
           throwException(
             HttpStatusCode.Unauthorized,
