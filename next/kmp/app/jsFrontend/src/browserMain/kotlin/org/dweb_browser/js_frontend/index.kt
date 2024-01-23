@@ -31,7 +31,7 @@ fun createApp(viewModel: ViewModel): ReactElement<PropsWithChildren>{
     var currentState by viewModel.toUseState<Int>("currentCount")
 
     h1 {
-      + "标题"
+      + "标题1"
     }
     p {
       span{
@@ -58,7 +58,12 @@ fun createApp(viewModel: ViewModel): ReactElement<PropsWithChildren>{
       }
       + "测试请求html"
     }
-
+    button{
+      onClick = {
+        viewModel.electronWindowOperation.close()
+      }
+      + "关闭window"
+    }
   }.create()
 }
 

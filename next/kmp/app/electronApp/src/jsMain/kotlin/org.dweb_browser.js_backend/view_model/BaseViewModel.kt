@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
  *
  */
 abstract class BaseViewModel(
-    private val frontendViewModelId: String,
+    val frontendViewModelId: String
 ){
     abstract val state: MutableMap<dynamic, dynamic>
     val scope = CoroutineScope(Dispatchers.Unconfined)
@@ -50,6 +50,7 @@ abstract class BaseViewModel(
                 onData {
                     console.log("服务端 同步状态的数据 it", it)
                     // 用来同步状态
+                    // TODO: 需要添加一个判断有 
                     state[it[0]] = it[1]
                 }
                 syncStateToUI()

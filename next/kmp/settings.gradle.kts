@@ -65,10 +65,7 @@ include(":browser")
 include(":sys")
 include(":shared")
 //
-includeUI("pureCrypto")
-includeUI("helper")
-//
-includeApp("androidApp")
+//includeApp("androidApp")
 includeApp("electronApp")
 includeApp("jsFrontend")
 

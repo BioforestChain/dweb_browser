@@ -11,6 +11,9 @@ import node.http.ServerResponse
 import node.http.Server
 import node.url.parse
 
+/**
+ * 单例模式全局只允许有一个httpServer
+ */
 class HttpServer private constructor(){
     val scope = CoroutineScope(Dispatchers.Default)
     private var _port: Int = 8888
@@ -63,6 +66,8 @@ class HttpServer private constructor(){
 
     fun getServer() = _server
 
+    // TODO: 需要添加一个判断 - 如果之前的路由已经有了相同匹配条件就不能够重复添加
+    // path ， method , matchPattern 相同
     fun routeAdd(route: Route) = _router.add(route)
     fun routeRemove(path: String) = _router.remove(path)
     fun routeRemove(route: Route) = _router.remove(route.path)

@@ -23,14 +23,14 @@ class WS private constructor(){
     init {
         scope.launch {
             HttpServer.deferredInstance.await().run {
+                console.log("注册了 upgrade")
                 getServer().on("upgrade") { req: IncomingMessage, socket: Socket ->
-                    console.log("req.url",req.url)
+                    console.log("接受到了 upgrade 请求req.url",req.url)
                     val frontendViewModelId: String = req.url?.let {
-                        parse(it).query?.let { str ->
-                            require(str is String)
-                            str.split("=")[1].trim()
+                        parse(it, true).query?.let {o: dynamic->
+                            o["frontend_view_module_id"]
                         }
-                    } ?: throw(Throwable("""
+                    } as? String ?: throw(Throwable("""
                             frontendViewModelId == null
                             req.url : ${req.url}
                             at class WS
@@ -57,3 +57,5 @@ class WS private constructor(){
         }
     }
 }
+
+

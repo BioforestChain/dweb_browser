@@ -26,6 +26,7 @@ kotlin {
       implementation(libs.kotlin.js)
       implementation(libs.kotlin.electron)
 
+
 //      implementation(projects.pureCrypto)
 //      implementation(projects.jsFrontend)
       implementation(npm("electron", "^28.1.1"))
@@ -33,6 +34,8 @@ kotlin {
 //      implementation(npm("${rootProject.name}-${projects.jsBackend.name}-node", "workspace:^"))
       // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-serialization-json-js
       implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-js:1.6.2")
+//      implementation("org.jetbrains.kotlin-wrappers:kotlin-extensions:1.0.1-pre.689")
+
     }
   }
 }

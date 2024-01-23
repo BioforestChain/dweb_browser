@@ -16,7 +16,6 @@ import org.dweb_browser.js_backend.http.Route
 
 // 创建一个 httpServer 对象
 private fun  httpServerListener(req: IncomingMessage, res: ServerResponse<*>) {
-    console.log("req.url: ${req.url}")
     when {
         req.url?.endsWith(".html") == true || req.url?.endsWith(".js") == true || req.url?.endsWith(
             ".js.map"

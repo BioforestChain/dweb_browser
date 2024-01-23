@@ -25,12 +25,13 @@ open class DwebWebSocket(
     var readyState = WebSocket.CLOSED
 
     fun start(){
+        console.log("发起了 upgrade 请求")
         socket = WebSocket(url)
         socket.onopen = {
             whenOpened.complete(Unit)
             readyState = WebSocket.OPEN
             onOpenedCallbackList.forEach { cb -> cb(it)}
-//            console.log("socket onopen")
+            console.log("socket onopen")
         }
         socket.onerror = {
             console.error("onError")
@@ -87,6 +88,7 @@ open class DwebWebSocket(
     fun send(data: String){
         scope.launch {
             whenOpened.await()
+            console.log("向后端发送了数据： ", data)
             socket.send(data)
         }
     }

@@ -1,6 +1,7 @@
 package org.dweb_browser.js_frontend.view_model
 
 import js.json.JSON
+import kotlinx.browser.window
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,9 +26,9 @@ typealias HandleMessageDataList = (arr: dynamic) -> Unit
 
 abstract class BaseViewModel(
     frontendViewModelId: String,
-    websocketUrl: String
-) : DwebWebSocket("${websocketUrl}?frontend_view_module_id=$frontendViewModelId") {
+) : DwebWebSocket("ws://${window.location.host}?frontend_view_module_id=$frontendViewModelId") {
     abstract var state: MutableMap<dynamic, dynamic>
+
     private val handleMessageDataList = mutableListOf<HandleMessageDataList>()
 
     /**
@@ -72,6 +73,9 @@ abstract class BaseViewModel(
         send(str)
     }
 
+    /**
+     * 把当前BaseViewModel转为ReactState使用
+     */
     fun <T> toUseState(key: dynamic): RectState<T>{
         return RectState<T>(state[key] as T, key, this@BaseViewModel)
     }

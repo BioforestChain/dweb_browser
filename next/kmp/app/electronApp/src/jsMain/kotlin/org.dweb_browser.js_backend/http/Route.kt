@@ -18,7 +18,7 @@ class Route(
         return if(matchPattern === MatchPattern.FULL){
             path == reqPath && method.value == reqMethod
         }else{
-            path.startsWith(path) && method.value == reqMethod
+            reqPath.startsWith(path) && method.value == reqMethod
         }
     }
 }
