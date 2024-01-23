@@ -54,7 +54,7 @@ struct SheetSegmentView: View {
 
             Spacer()
         }
-        .background(Color.bkColor)
+        .background(Color.bk)
         .cornerRadius(gridcellCornerR)
         .modelContainer(for: Bookmark.self)
     }

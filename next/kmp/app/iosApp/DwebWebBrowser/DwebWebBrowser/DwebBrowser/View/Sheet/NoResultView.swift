@@ -10,7 +10,7 @@ import SwiftUI
 enum EmptyType {
     case bookmark, history
     
-    var image: UIImage { .assetsImage(name: self == .bookmark ? "bookmark_empty":"history_empty") }
+    var image: UIImage { self == .bookmark ? UIImage(resource: .bookmarkEmpty) : UIImage(resource: .historyEmpty) }
     var msg: String { self == .bookmark ? "暂无书签":"暂无记录" }
 }
 
@@ -20,7 +20,7 @@ struct NoResultView: View {
     var body: some View {
         
         ZStack {
-            Color.bkColor
+            Color.bk
                 .edgesIgnoringSafeArea(.top)
             
             VStack(spacing: 24, content: {

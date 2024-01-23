@@ -94,7 +94,7 @@ struct TabGridView: View {
                         detector.send(newFrames)
                     }
                 }
-                .background(Color.bkColor)
+                .background(Color.bk)
                 .coordinateSpace(name: "ScrollView")
                 .onReceive(publisher) {
                     if $0.count > 0 {

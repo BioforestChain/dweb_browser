@@ -29,7 +29,7 @@ struct SearchTypingView: View {
             
             SearchResultView()
         }
-        .background(Color.bkColor)
+        .background(Color.bk)
 
         .onDisappear {
             addressBar.inputText = ""

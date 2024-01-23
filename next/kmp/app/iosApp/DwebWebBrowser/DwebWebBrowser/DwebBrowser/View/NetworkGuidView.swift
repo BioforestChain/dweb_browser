@@ -15,7 +15,7 @@ public struct NetworkGuidView: View {
     
     public var body: some View {
         ZStack(alignment: .top) {
-            Color.bkColor
+            Color.bk
             VStack {
                 Group {
                     Spacer().frame(height: 10)
@@ -25,7 +25,7 @@ public struct NetworkGuidView: View {
                         .foregroundColor(.secondary)
                     Spacer().frame(height: 52)
 
-                    Image(uiImage: UIImage.assetsImage(name: "wifi_error"))
+                    Image(uiImage: .wifiError)
                         .resizable()
                         .frame(width: 80, height: 80)
 
@@ -65,13 +65,13 @@ public struct NetworkGuidView: View {
                     .foregroundColor(Color(.systemGray))
 
                 TabView {
-                    Image(uiImage: UIImage.assetsImage(name: "network_1"))
+                    Image(.network1)
                         .resizable()
                         .frame(width: imageWidth, height: imageHeight)
-                    Image(uiImage: UIImage.assetsImage(name: "network_2"))
+                    Image(.network2)
                         .resizable()
                         .frame(width: imageWidth, height: imageHeight)
-                    Image(uiImage: UIImage.assetsImage(name: "network_3"))
+                    Image(.network3)
                         .resizable()
                         .frame(width: imageWidth, height: imageHeight)
                 }

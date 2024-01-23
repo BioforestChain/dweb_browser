@@ -91,7 +91,7 @@ struct TabPageView: View {
             if webCache.shouldShowWeb {
                 webComponent
             } else {
-                Color.bkColor.overlay {
+                Color.bk.overlay {
                     BlankTabView()
                         .environmentObject(dragScale)
                         .opacity(addressBar.isFocused ? 0 : 1)

@@ -24,10 +24,10 @@ var browserViewDataSource: WebBrowserViewDataSource {
     fileprivate static weak var dataSource: WebBrowserViewDataSource? = nil
     
     @objc public init(frame: CGRect, delegate: WebBrowserViewDelegate?, dataSource: WebBrowserViewDataSource?) {
-        super.init(frame: frame)
         DwebWebView.delegate = delegate
         DwebWebView.dataSource = dataSource
-        setupView()        
+        super.init(frame: frame)
+        setupView()
     }
         
     public required init?(coder: NSCoder) {

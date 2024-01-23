@@ -17,7 +17,7 @@ struct BlankTabView: View {
     var body: some View {
         VStack {
             VStack {
-                Image(uiImage: .assetsImage(name: "dweb_icon"))
+                Image(.dwebIcon)
                     .resizable()
                     .frame(width: dragScale.properValue(floor: scale == nil ? pageWidth : pageWidth * scale!, ceiling: scale == nil ? pageHeight : pageHeight * scale!), height: dragScale.properValue(floor: scale == nil ? pageWidth : pageWidth * scale!, ceiling: scale == nil ? pageHeight : pageHeight * scale!))
                 Text("Dweb Browser")

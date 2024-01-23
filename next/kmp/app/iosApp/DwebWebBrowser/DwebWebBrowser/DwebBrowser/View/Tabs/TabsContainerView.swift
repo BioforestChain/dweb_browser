@@ -39,7 +39,7 @@ struct TabsContainerView: View {
                     .environmentObject(webcacheStore)
 
                 if isExpanded, !animation.progress.isAnimating() {
-                    Color.bkColor.ignoresSafeArea()
+                    Color.bk.ignoresSafeArea()
                 }
 
                 PagingScrollView(showTabPage: $showTabPage)
@@ -67,7 +67,7 @@ struct TabsContainerView: View {
                     }
                 }
             }
-            .background(Color.bkColor)
+            .background(.bk)
             .onAppear {
                 geoRect = geo.frame(in: .global)
                 Log("tabs contianer rect: \(geoRect)")
@@ -96,7 +96,7 @@ struct TabsContainerView: View {
     }
 
     var animationImage: some View {
-        Color.bkColor
+        Color.bk
             .overlay(
                 Image(uiImage: animation.snapshotImage)
                     .resizable()

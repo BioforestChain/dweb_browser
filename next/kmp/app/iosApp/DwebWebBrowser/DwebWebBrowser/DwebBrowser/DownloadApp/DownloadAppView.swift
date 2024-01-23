@@ -110,7 +110,7 @@ struct DownloadAppView: View {
                     .padding(.bottom, 5)
                     .opacity(calculateNavigationViewSubViewAlpha())
             }
-            Image(uiImage: viewModel.iconImage ?? UIImage.assetsImage(name: "360so"))
+            Image(uiImage: viewModel.iconImage ?? UIImage(resource: ._360So))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 40, height: 40)
@@ -128,7 +128,7 @@ struct DownloadAppView: View {
             let size = proxy.size
             let height = size.height + minY
             
-            Image(uiImage: UIImage.assetsImage(name: "dweb_icon"))
+            Image(.dwebIcon)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: size.width, height: height > 0 ? height : 150, alignment: .top)
@@ -141,7 +141,7 @@ struct DownloadAppView: View {
     @ViewBuilder
     func AppTitleView() -> some View {
         HStack(alignment: .top) {
-            Image(uiImage: viewModel.iconImage ?? UIImage.assetsImage(name: "360so"))
+            Image(uiImage: viewModel.iconImage ?? UIImage(resource: ._360So))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 80, height: 80)

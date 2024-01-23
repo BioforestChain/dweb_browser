@@ -21,7 +21,7 @@ struct BrowserView: View {
                         ToolbarView(webMonitor: states.webcacheStore.webWrappers[states.selectedTabIndex].webMonitor)
                             .frame(height: states.addressBar.isFocused ? 0 : states.dragScale.toolbarHeight)
                     }
-                    .background(Color.bkColor)
+                    .background(.bk)
                     .environmentObject(states.webcacheStore)
                     .environmentObject(states.openingLink)
                     .environmentObject(states.addressBar)

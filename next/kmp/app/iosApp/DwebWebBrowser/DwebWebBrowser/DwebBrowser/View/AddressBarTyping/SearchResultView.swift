@@ -70,6 +70,6 @@ struct SearchResultView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .background(Color.bkColor)
+        .background(.bk)
     }
 }

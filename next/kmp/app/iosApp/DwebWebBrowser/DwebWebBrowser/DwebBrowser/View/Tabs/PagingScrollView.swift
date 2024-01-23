@@ -52,7 +52,7 @@ struct PagingScrollView: View {
                                        tabIndex: index,
                                        isVisible: index == states.selectedTabIndex)
 
-                                .background(Color.bkColor)
+                            .background(.bk)
                                 .offset(y: addressbarOffset)
                                 .animation(.default, value: addressbarOffset)
                                 .highPriorityGesture(addressBar.isFocused ? disabledDragGesture : nil)

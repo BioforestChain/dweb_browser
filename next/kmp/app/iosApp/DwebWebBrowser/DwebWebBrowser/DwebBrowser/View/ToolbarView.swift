@@ -83,7 +83,7 @@ struct ToolbarView: View {
                         .renderingMode(.template)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .background(Color.bkColor)
+                        .background(Color.bk)
                         .foregroundColor(canCreateDesktopLink ? .primary : .gray)
                         .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
                 }

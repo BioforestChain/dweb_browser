@@ -27,7 +27,7 @@ struct MenuCell: View {
                 .scaleEffect(dragScale.onWidth)
         }
         .frame(height: 50 * dragScale.onWidth)
-        .background(Color.menubkColor)
+        .background(.menubk)
         .cornerRadius(6)
         .padding(.horizontal, 16)
     }

@@ -297,13 +297,13 @@ class ScannerViewController: UIViewController {
     private lazy var closeBtn: UIButton = {
         let button = UIButton()
         button.frame = CGRect(x: 16, y: 16, width: 36, height: 36)
-        button.setImage(UIImage.assetsImage(name: "scan_close"), for: .normal)
+        button.setImage(UIImage(resource: .scanClose), for: .normal)
         button.addTarget(self, action: #selector(closeAction), for: .touchUpInside)
         return button
     }()
     
     private lazy var viewFinder: UIImageView? = {
-        let image = UIImage.assetsImage(name: "viewfinder")
+        let image = UIImage(resource: .viewfinder)
         let imageView = UIImageView(image: image)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView

@@ -33,7 +33,7 @@ struct MenuView: View {
                     tracelessView
                 }
                 .padding(.vertical, dragScale.properValue(floor: 10, ceiling: 32))
-                .background(Color.bkColor)
+                .background(.bk)
                 .frame(maxWidth: .infinity)
 
 //                toast
@@ -63,7 +63,7 @@ struct MenuView: View {
                 .scaleEffect(dragScale.onWidth)
         }
         .frame(height: 50 * dragScale.onWidth)
-        .background(Color.menubkColor)
+        .background(Color.menubk)
         .cornerRadius(6)
         .padding(.horizontal, 16)
         .onChange(of: isTraceless) { _, newValue in
