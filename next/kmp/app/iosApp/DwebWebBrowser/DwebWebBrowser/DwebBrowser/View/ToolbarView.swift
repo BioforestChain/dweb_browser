@@ -17,15 +17,15 @@ struct ToolbarView: View {
     @EnvironmentObject var dragScale: WndDragScale
     @EnvironmentObject var states: BrowserViewStates
     
-    @State private var toolbarHeight: CGFloat = toolBarH
-    @State private var loadingDone: Bool = false
-    @State private var isShowingWeb: Bool = false
-    
     @ObservedObject var webMonitor: WebMonitor
+
+    @State private var loadingDone: Bool = false
+
+    private var isShowingWeb: Bool { cacheStore.cache(at: states.selectedTabIndex).shouldShowWeb }
     private var canCreateDesktopLink: Bool { isShowingWeb && loadingDone }
     
     var body: some View {
-        GeometryReader { _ in
+        Group {
             if toolbarState.shouldExpand {
                 fiveButtons
             } else {
@@ -90,15 +90,11 @@ struct ToolbarView: View {
                 .onReceive(webMonitor.$isLoadingDone) { done in
                     loadingDone = done
                 }
-                .onReceive(states.$selectedTabIndex) { index in
-                    isShowingWeb = !cacheStore.cache(at: states.selectedTabIndex).isBlank()
-                }
                 .disabled(!canCreateDesktopLink)
                 
                 Spacer()
-                if isShowingWeb {
+                if isShowingWeb, loadingDone {
                     BiColorButton(imageName: "add", disabled: false) {
-                        Log("open new tab was clicked")
                         toolbarState.createTabTapped = true
                     }
                 } else {
@@ -124,7 +120,6 @@ struct ToolbarView: View {
                         withAnimation {
                             toolbarState.showMoreMenu = true
                         }
-                        Log("more menu was clicked")
                     }
                     Spacer()
                 }
