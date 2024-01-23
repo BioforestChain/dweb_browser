@@ -9,6 +9,9 @@ import SwiftUI
 
 struct HistoryView: View {
     @EnvironmentObject var dragScale: WndDragScale
+    @EnvironmentObject var openingLink: OpeningLink
+    @EnvironmentObject var toolBarState: ToolBarState
+
     @StateObject var historyStore = DwebBrowserHistoryStore.shared
 
     var body: some View {
@@ -35,6 +38,11 @@ struct HistoryView: View {
                                     .lineLimit(1)
 
                                     Spacer()
+                                }
+                                .onTapGesture {
+                                    guard let historyUrl = URL(string: record.data.url) else { return }
+                                    openingLink.clickedLink = historyUrl
+                                    toolBarState.showMoreMenu = false
                                 }
                                 .padding(.top, 4)
                                 .onAppear {
