@@ -10,6 +10,7 @@ import Foundation
 import SwiftUI
 
 class BrowserViewStates: ObservableObject {    
+    static let shared = BrowserViewStates()
     @Published var addressBar = AddressBarState()
     @Published var openingLink = OpeningLink()
     @Published var toolBarState = ToolBarState()

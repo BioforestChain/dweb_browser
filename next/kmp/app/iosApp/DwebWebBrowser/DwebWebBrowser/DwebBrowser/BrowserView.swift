@@ -10,7 +10,7 @@ import UIKit
 import Combine
 
 struct BrowserView: View {
-    @StateObject private  var states = BrowserViewStates()
+    @ObservedObject private var states = BrowserViewStates.shared
     @State private var presentSheet = false
     var body: some View {
         ZStack {
@@ -83,7 +83,6 @@ struct BrowserView: View {
     func updateColorScheme(color: Int){
         states.updateColorScheme(newScheme: color)
     }
-    
     func gobackIfCanDo() -> Bool{
         states.doBackIfCan()
     }

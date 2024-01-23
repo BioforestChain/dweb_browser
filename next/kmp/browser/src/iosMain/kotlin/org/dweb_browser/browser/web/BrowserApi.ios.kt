@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -123,7 +124,10 @@ actual fun CommonBrowserView(
   // 窗口返回按钮
   win.GoBackHandler { backHandler() }
 
-  iOSView.colorSchemeChangedWithColor(win.state.colorScheme.ordinal)
+  LaunchedEffect(win.state.colorScheme) {
+    iOSView.colorSchemeChangedWithColor(win.state.colorScheme.ordinal)
+  }
+
   Box {
     UIKitView(
       factory = {
