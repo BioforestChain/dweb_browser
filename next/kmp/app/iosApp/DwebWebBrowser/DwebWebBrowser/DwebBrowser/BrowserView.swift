@@ -18,7 +18,7 @@ struct BrowserView: View {
                 ZStack {
                     VStack(spacing: 0) {
                         TabsContainerView()
-                        ToolbarView(webMonitor: states.webcacheStore.webWrappers[states.selectedTabIndex])
+                        ToolbarView(webMonitor: states.webcacheStore.webWrappers[states.selectedTabIndex].webMonitor)
                             .frame(height: states.addressBar.isFocused ? 0 : states.dragScale.toolbarHeight)
                     }
                     .background(Color.bkColor)
