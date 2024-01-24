@@ -5,6 +5,11 @@ plugins {
 }
 
 kotlin {
+  kmpCommonTarget(project) {
+    dependencies {
+      implementation(libs.test.kotlin.coroutines.test)
+    }
+  }
   kmpAndroidTarget(project)
   kmpIosTarget(project)
   kmpNodeJsTarget(project)

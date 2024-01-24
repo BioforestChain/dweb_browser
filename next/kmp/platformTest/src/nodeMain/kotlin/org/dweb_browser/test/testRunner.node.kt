@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.promise
+import kotlinx.coroutines.test.TestResult
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -11,6 +12,10 @@ import kotlin.coroutines.EmptyCoroutineContext
 actual fun runCommonTest(
   context: CoroutineContext?,
   block: suspend CoroutineScope.() -> Unit
-) {
-  GlobalScope.promise(context ?: EmptyCoroutineContext, block = block)
+): TestResult {
+//  TestScope(context ?: EmptyCoroutineContext)
+//    //
+//    .runTest(testBody = block)
+//  runTest(context ?: EmptyCoroutineContext, testBody = block)
+  return GlobalScope.promise(context ?: EmptyCoroutineContext, block = block)
 }
