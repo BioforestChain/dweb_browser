@@ -7,28 +7,27 @@
 
 import Network
 import SwiftUI
+import Combine
 
 public class NetworkManager: ObservableObject {
     @Published public var isNetworkAvailable = true
-    private var monitor: NWPathMonitor? // 声明为实例变量
+    private let monitor = NWPathMonitor()
+    private let queue = DispatchQueue(label: "NetworkMonitor")
 
     public init() {
         checkNetworkPermission()
     }
-
+    
     public func checkNetworkPermission() {
-        monitor = NWPathMonitor()
-        let queue = DispatchQueue(label: "NetworkMonitor")
-        monitor?.start(queue: queue)
-        monitor?.pathUpdateHandler = { [weak self] path in
+        monitor.start(queue: queue)
+        monitor.pathUpdateHandler = { [weak self] path in
             DispatchQueue.main.async {
-                Log( "network permission \(path.status)")
+                Log( "network status is \(path.status)")
                 self?.isNetworkAvailable = path.status == .satisfied
             }
         }
     }
     deinit {
-        monitor?.cancel()
+        monitor.cancel()
     }
 }
-

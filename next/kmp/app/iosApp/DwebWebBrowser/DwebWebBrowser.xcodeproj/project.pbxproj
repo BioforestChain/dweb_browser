@@ -24,7 +24,7 @@
 		4803BFAB2B4FF279006B2F79 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF502B4FF279006B2F79 /* Environment.swift */; };
 		4803BFAC2B4FF279006B2F79 /* ColorSchemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF512B4FF279006B2F79 /* ColorSchemeManager.swift */; };
 		4803BFAD2B4FF279006B2F79 /* WebCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF522B4FF279006B2F79 /* WebCacheStore.swift */; };
-		4803BFAE2B4FF279006B2F79 /* NetworkPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF532B4FF279006B2F79 /* NetworkPermission.swift */; };
+		4803BFAE2B4FF279006B2F79 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF532B4FF279006B2F79 /* NetworkManager.swift */; };
 		4803BFAF2B4FF279006B2F79 /* DownloadAppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF552B4FF279006B2F79 /* DownloadAppManager.swift */; };
 		4803BFB02B4FF279006B2F79 /* HapticsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF562B4FF279006B2F79 /* HapticsHelper.swift */; };
 		4803BFB62B4FF279006B2F79 /* DwebBrowserHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF5F2B4FF279006B2F79 /* DwebBrowserHistoryStore.swift */; };
@@ -96,7 +96,7 @@
 		4803BF502B4FF279006B2F79 /* Environment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		4803BF512B4FF279006B2F79 /* ColorSchemeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorSchemeManager.swift; sourceTree = "<group>"; };
 		4803BF522B4FF279006B2F79 /* WebCacheStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebCacheStore.swift; sourceTree = "<group>"; };
-		4803BF532B4FF279006B2F79 /* NetworkPermission.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkPermission.swift; sourceTree = "<group>"; };
+		4803BF532B4FF279006B2F79 /* NetworkManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		4803BF552B4FF279006B2F79 /* DownloadAppManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppManager.swift; sourceTree = "<group>"; };
 		4803BF562B4FF279006B2F79 /* HapticsHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HapticsHelper.swift; sourceTree = "<group>"; };
 		4803BF5F2B4FF279006B2F79 /* DwebBrowserHistoryStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebBrowserHistoryStore.swift; sourceTree = "<group>"; };
@@ -217,7 +217,7 @@
 				4803BF502B4FF279006B2F79 /* Environment.swift */,
 				4803BF512B4FF279006B2F79 /* ColorSchemeManager.swift */,
 				4803BF522B4FF279006B2F79 /* WebCacheStore.swift */,
-				4803BF532B4FF279006B2F79 /* NetworkPermission.swift */,
+				4803BF532B4FF279006B2F79 /* NetworkManager.swift */,
 			);
 			path = Publisher;
 			sourceTree = "<group>";
@@ -552,7 +552,7 @@
 				4803BFD92B4FF279006B2F79 /* SheetSegmentView.swift in Sources */,
 				4803BFBD2B4FF279006B2F79 /* BrowserView.swift in Sources */,
 				4803BFA12B4FF279006B2F79 /* CustomUIScrollView.swift in Sources */,
-				4803BFAE2B4FF279006B2F79 /* NetworkPermission.swift in Sources */,
+				4803BFAE2B4FF279006B2F79 /* NetworkManager.swift in Sources */,
 				4803BFCC2B4FF279006B2F79 /* ToolbarView.swift in Sources */,
 				4803C0122B4FF6D8006B2F79 /* NetworkGuidView.swift in Sources */,
 				4803BFA22B4FF279006B2F79 /* DownloadAppView.swift in Sources */,

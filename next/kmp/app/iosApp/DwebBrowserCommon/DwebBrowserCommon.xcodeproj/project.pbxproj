@@ -10,14 +10,12 @@
 		48334DD92B50D08900399FFF /* DwebBrowserCommon.docc in Sources */ = {isa = PBXBuildFile; fileRef = 48334DD82B50D08900399FFF /* DwebBrowserCommon.docc */; };
 		48334DDA2B50D08900399FFF /* DwebBrowserCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = 48334DD72B50D08900399FFF /* DwebBrowserCommon.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		48334DE22B50D0D700399FFF /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48334DE12B50D0D700399FFF /* Logger.swift */; };
-		48334DE32B50D0D700399FFF /* NetworkPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48334DE02B50D0D700399FFF /* NetworkPermission.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		48334DD42B50D08900399FFF /* DwebBrowserCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebBrowserCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		48334DD72B50D08900399FFF /* DwebBrowserCommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebBrowserCommon.h; sourceTree = "<group>"; };
 		48334DD82B50D08900399FFF /* DwebBrowserCommon.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DwebBrowserCommon.docc; sourceTree = "<group>"; };
-		48334DE02B50D0D700399FFF /* NetworkPermission.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkPermission.swift; sourceTree = "<group>"; };
 		48334DE12B50D0D700399FFF /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -335,7 +333,6 @@
 				48334DD82B50D08900399FFF /* DwebBrowserCommon.docc */,
 				48334DD72B50D08900399FFF /* DwebBrowserCommon.h */,
 				48334DE12B50D0D700399FFF /* Logger.swift */,
-				48334DE02B50D0D700399FFF /* NetworkPermission.swift */,
 			);
 			path = DwebBrowserCommon;
 			sourceTree = "<group>";
@@ -421,7 +418,6 @@
 			files = (
 				48334DD92B50D08900399FFF /* DwebBrowserCommon.docc in Sources */,
 				48334DE22B50D0D700399FFF /* Logger.swift in Sources */,
-				48334DE32B50D0D700399FFF /* NetworkPermission.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
