@@ -94,6 +94,7 @@ if (enableElectronApp) {
   includeApp("electronApp")
   includeApp("jsFrontend")
   includeApp("demoReactApp")
+  includeApp("demoComposeApp")
 }
 
 File(
