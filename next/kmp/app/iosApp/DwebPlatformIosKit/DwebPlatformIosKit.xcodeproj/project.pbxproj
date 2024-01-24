@@ -13,24 +13,9 @@
 		46E836332B284F1500281558 /* DwebWKWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E836322B284F1500281558 /* DwebWKWebView.swift */; };
 		4803C0082B4FF4A1006B2F79 /* DependencyHeaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803C0072B4FF4A1006B2F79 /* DependencyHeaders.swift */; };
 		48334DE52B50D0F600399FFF /* DwebBrowserCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 48334DE42B50D0F600399FFF /* DwebBrowserCommon.framework */; };
-		48334DE62B50D0F600399FFF /* DwebBrowserCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 48334DE42B50D0F600399FFF /* DwebBrowserCommon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		48E148E42B1D68EC00B69C64 /* DwebLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */; };
 		48F677012B54C8B800607EAC /* DwebPlatformIosKit.docc in Sources */ = {isa = PBXBuildFile; fileRef = 48F677002B54C8B800607EAC /* DwebPlatformIosKit.docc */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		48334DE72B50D0F600399FFF /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				48334DE62B50D0F600399FFF /* DwebBrowserCommon.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		3D50D2D52B064BA5008891FC /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -64,14 +49,6 @@
 				1A0D764658CEB4E1ECCC5B2E /* Intermediates.noindex */,
 			);
 			path = "X-Build";
-			sourceTree = "<group>";
-		};
-		1A0D70DC4877E7FC3C58A827 /* Headers */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Headers;
-			path = "../X-Build/Intermediates.noindex/ArchiveIntermediates/DwebPlatformIosKit/InstallationBuildProductsLocation/Library/Frameworks/DwebPlatformIosKit.framework/Headers";
 			sourceTree = "<group>";
 		};
 		1A0D71F59A6CBB8DB53DF86E /* DwebPlatformIosKit.build */ = {
@@ -173,14 +150,6 @@
 			path = DwebPlatformIosKit.xcodeproj/project.xcworkspace/xcshareddata/swiftpm;
 			sourceTree = "<group>";
 		};
-		1A0D7EC136AD27BCAECCEC3A /* f47a20781d2b7b0024de4ff4f53e8e88.xcbuilddata */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = f47a20781d2b7b0024de4ff4f53e8e88.xcbuilddata;
-			path = "../X-Build/Intermediates.noindex/ArchiveIntermediates/DwebPlatformIosKit/IntermediateBuildFilesPath/XCBuildData/f47a20781d2b7b0024de4ff4f53e8e88.xcbuilddata";
-			sourceTree = "<group>";
-		};
 		3D50D2CB2B064BA5008891FC = {
 			isa = PBXGroup;
 			children = (
@@ -246,7 +215,6 @@
 				3D50D2D12B064BA5008891FC /* Sources */,
 				3D50D2D22B064BA5008891FC /* Frameworks */,
 				3D50D2D32B064BA5008891FC /* Resources */,
-				48334DE72B50D0F600399FFF /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -450,6 +418,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -478,10 +447,11 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -489,6 +459,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -517,9 +488,10 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

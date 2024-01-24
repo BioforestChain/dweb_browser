@@ -70,30 +70,13 @@
 		4803C01E2B4FF9E8006B2F79 /* BrowserWebSiteInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803C01D2B4FF9E8006B2F79 /* BrowserWebSiteInfo.swift */; };
 		4819C2D62B4FDF88001BB45D /* DwebWebBrowser.docc in Sources */ = {isa = PBXBuildFile; fileRef = 4819C2D52B4FDF88001BB45D /* DwebWebBrowser.docc */; };
 		4819C2E42B4FEB9B001BB45D /* DwebPlatformIosKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4819C2E32B4FEB9B001BB45D /* DwebPlatformIosKit.framework */; };
-		4819C2E52B4FEB9B001BB45D /* DwebPlatformIosKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4819C2E32B4FEB9B001BB45D /* DwebPlatformIosKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		48334DE92B50D10400399FFF /* DwebBrowserCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 48334DE82B50D10400399FFF /* DwebBrowserCommon.framework */; };
-		48334DEA2B50D10400399FFF /* DwebBrowserCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 48334DE82B50D10400399FFF /* DwebBrowserCommon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		48334DF22B50DBF700399FFF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4803BFE52B4FF2A8006B2F79 /* Assets.xcassets */; };
 		48334DF42B50DF9700399FFF /* Bundle+module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48334DF32B50DF9700399FFF /* Bundle+module.swift */; };
 		48334DF62B50E12000399FFF /* Browser.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF6C2B4FF279006B2F79 /* Browser.xcdatamodeld */; };
 		48EEA8EE2B4FF17F006DA0F3 /* DwebWebBrowser.h in Headers */ = {isa = PBXBuildFile; fileRef = 48EEA8E12B4FF17F006DA0F3 /* DwebWebBrowser.h */; };
 		48EEA8F02B4FF17F006DA0F3 /* DwebWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EEA8E62B4FF17F006DA0F3 /* DwebWebView.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		4819C2E62B4FEB9B001BB45D /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				48334DEA2B50D10400399FFF /* DwebBrowserCommon.framework in Embed Frameworks */,
-				4819C2E52B4FEB9B001BB45D /* DwebPlatformIosKit.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		4803BF402B4FF279006B2F79 /* JmmAppDownloadManifest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JmmAppDownloadManifest.swift; sourceTree = "<group>"; };
@@ -463,7 +446,6 @@
 				4819C2CD2B4FDF88001BB45D /* Sources */,
 				4819C2CE2B4FDF88001BB45D /* Frameworks */,
 				4819C2CF2B4FDF88001BB45D /* Resources */,
-				4819C2E62B4FEB9B001BB45D /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -723,6 +705,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -749,9 +732,10 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -760,6 +744,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -786,9 +771,10 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

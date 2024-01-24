@@ -12,6 +12,7 @@ kotlin {
       implementation(projects.helper)
       implementation(projects.helperPlatform)
     }
+    @Suppress("OPT_IN_USAGE")
     applyHierarchy {
       common {
         group("ktor") {
