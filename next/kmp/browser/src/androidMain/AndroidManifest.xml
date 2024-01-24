@@ -30,7 +30,8 @@
       android:launchMode="singleTask"
       android:theme="@style/Theme.DwebBrowser.FullScreen">
       <intent-filter>
-        <action android:name="android.intent.action.VIEW" />
+        <action android:name="info.bagen.dwebbrowser.scan" />
+        <category android:name="android.intent.category.DEFAULT" />
       </intent-filter>
     </activity>
   </application>

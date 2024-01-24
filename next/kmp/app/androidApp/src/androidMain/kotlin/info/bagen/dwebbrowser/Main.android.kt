@@ -38,6 +38,7 @@ import org.dweb_browser.sys.permission.PermissionNMM
 import org.dweb_browser.sys.permission.PermissionProviderTNN
 import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
+import org.dweb_browser.sys.shortcut.ShortcutNMM
 import org.dweb_browser.sys.toast.ToastNMM
 
 suspend fun startDwebBrowser(): DnsNMM {
@@ -97,6 +98,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   val mediaCaptureNMM = MediaCaptureNMM().setup()
   val contactNMM = ContactNMM().setup()
+  val shortcutNMM = ShortcutNMM().setup()
   /// 扫码
   val scannerNMM = ScanningNMM().setup()
   val qrCodeScanNMM = QRCodeScanNMM().setup()
@@ -147,6 +149,7 @@ suspend fun startDwebBrowser(): DnsNMM {
       jmmNMM.mmid,// 为了使得桌面能够显示模块管理，以及安装的相应应用图标
       browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
       deskNMM.mmid,//
+      shortcutNMM.mmid, // 为了启动时，注入快捷内容
     )
   ).setup()
 
