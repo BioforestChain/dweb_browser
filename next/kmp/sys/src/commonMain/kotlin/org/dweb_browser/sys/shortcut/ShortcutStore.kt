@@ -18,6 +18,10 @@ data class SystemShortcut(
 ) {
   @Transient
   val iconImage get() = icon?.toImageBitmap()
+
+  override fun toString(): String {
+    return "SystemShortcut(title=$title, mmid=$mmid, uri=$uri, order=$order)"
+  }
 }
 
 internal fun SystemShortcut.swap(item: SystemShortcut) {

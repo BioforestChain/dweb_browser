@@ -70,7 +70,16 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
       getMainWindow().apply {
         state.setFromManifest(this@ShortcutNMM)
         windowAdapterManager.provideRender(id) { modifier ->
-          ShortcutManagerRender(modifier, this, store)
+          ShortcutManagerRender(modifier, this, shortcutList) { current, swap ->
+            ioAsyncScope.launch {
+              val currentItem = shortcutList[current]
+              val swapItem = shortcutList[swap]
+              currentItem.swap(swapItem)
+              shortcutList[current] = swapItem
+              shortcutList[swap] = currentItem
+              shortcutManage.registryShortcut(shortcutList)
+            }
+          }
         }
       }
     }
@@ -84,6 +93,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
       val map = store.getAll()
       val list = map.values.sortedBy { it.order }
       shortcutList.addAll(list)
+      shortcutManage.registryShortcut(shortcutList)
       // 监听 dns 中应用的变化来实时更新快捷方式列表
       doObserve("file://dns.std.dweb/observe/install-apps") {
         // 对排序app列表进行更新
