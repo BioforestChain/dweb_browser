@@ -3,12 +3,12 @@ package org.dweb_browser.core.http
 
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.help.AdapterManager
+import org.dweb_browser.core.std.http.debugHttp
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.pure.http.HttpPureServer
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureServerRequest
-import org.dweb_browser.pure.http.ktor.debugHttpPureServer
 
 
 typealias HttpGateway = suspend (request: PureServerRequest) -> PureResponse?
@@ -36,7 +36,7 @@ class DwebHttpGatewayServer private constructor() {
       null -> rawRequest
       else -> rawRequest.copy(href = url)
     };
-    debugHttpPureServer("doGateway", pureRequest.href)
+    debugHttp("doGateway", pureRequest.href)
     try {
       gatewayAdapterManager.doGateway(pureRequest)
     } catch (e: Throwable) {
@@ -46,6 +46,10 @@ class DwebHttpGatewayServer private constructor() {
 
   val startServer = SuspendOnce {
     server.start(0u).toInt()
+  }
+
+  val closeServer = SuspendOnce {
+    server.close()
   }
 
   suspend fun getPort() = startServer()

@@ -1,11 +1,10 @@
 package org.dweb_browser.core.std.http.net
 
-import io.ktor.server.engine.ApplicationEngine
 import org.dweb_browser.core.http.DwebHttpGatewayServer
-import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.std.http.Gateway
+import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.PureServerRequest
 
 typealias GatewayHandler = suspend (request: PureServerRequest) -> Gateway?
 typealias GatewayHttpHandler = suspend (gateway: Gateway, request: PureServerRequest) -> PureResponse?
@@ -21,16 +20,11 @@ class Http1Server {
 
   private var bindingPort = -1
 
-  private var server: ApplicationEngine? = null
-
   suspend fun createServer(
     gatewayHandler: GatewayHandler,
     httpHandler: GatewayHttpHandler,
     errorHandler: GatewayErrorHandler
   ) {
-    if (server != null) {
-      throw Exception("server alter created")
-    }
     DwebHttpGatewayServer.gatewayAdapterManager.append { request ->
       when (val gateway = gatewayHandler(request)) {
         null -> errorHandler(request, null)
@@ -44,11 +38,8 @@ class Http1Server {
   val authority get() = "localhost:$bindingPort"
   val origin get() = "$PREFIX$authority"
 
-  fun closeServer() {
-    server?.also {
-      it.stop()
-      server = null
-    } ?: throw Exception("server not created")
+  suspend fun closeServer() {
+    dwebHttpGatewayServer.closeServer()
   }
 }
 
