@@ -8,8 +8,30 @@
    1. 改进底层模块之间的通讯标准与生命周期的管理方案
    1. 推出一种 KMP 与各个原生平台之间数据状态管理的互操作方案
 1. KMP/Desktop 平台
-   1. 迁移内核模块到 js 与 wasi 平台
+   1. 迁移内核模块到 jsBrowser 与 jsNode 平台
    1. 初步完成桌面版的适配
+
+## 2024-01
+
+1. KMP 多平台
+   1. 架构改进，现有 platform*、helper*、pure*、lib* 系列的模块
+   1. 完成 pureHttp 的抽象定义，兼容现有平台的实现
+   1. 完成 pureImage 的实现改进，引入 Coil-3.alpha
+   1. 初步完成 pureCrypto 的定义与实现
+   1. 实现 multipart.http.std.dweb，使用 rust-ffi 实现核心流式解析
+   1. Jmm 下载按钮防抖
+1. KMP/Android 平台
+   1. 完善权限管理（permission.sys.dweb）的相关开发
+      > 同时适配一些应用市场的上架需求
+   1. 原生浏览器应用（web.browser.dweb）新增搜索引擎自动化配置
+   1. 新增 Android 自动升级的功能（临时方案）
+1. KMP/IOS 平台
+   1. 项目架构升级成 xcworkspace，更新打包脚本
+   1. 改进原生浏览器应用（web.browser.dweb）暗色模式的支持
+   1. 修复更新应用后数据被删除的问题
+1. docs
+   1. 更新介绍文档和 plaoc 插件文档
+   1. 更新使用 VitePress 框架
 
 ## 2023-12
 
