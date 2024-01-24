@@ -27,6 +27,23 @@ import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import java.io.File
 import java.nio.file.Files
 
+
+val properties = java.util.Properties().also { properties ->
+  File("local.properties").apply {
+    println("local.properties=${absolutePath}")
+    if (exists()) {
+      inputStream().use { properties.load(it) }
+    }
+  }
+}
+val disabledApps = (properties.getOrDefault("app.disable", "") as String)
+  .split(",")
+  .map { it.trim().lowercase() };
+val disableAndroidApp = disabledApps.contains("android");
+val disableIosApp = disabledApps.contains("ios");
+val disableElectronApp = disabledApps.contains("electron");
+val disableLibs = disableAndroidApp && disableIosApp
+
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   kotlinOptions {
     freeCompilerArgs += "-Xexpect-actual-classes"
@@ -44,6 +61,11 @@ fun KotlinMultiplatformExtension.kmpBrowserJsTarget(
   project: Project,
   configure: KmpBrowserJsTargetDsl.() -> Unit = {},
 ) {
+  if (disableElectronApp) {
+    return
+  }
+  println("kmpBrowserJsTarget: ${project.name}")
+
   val libs = project.the<LibrariesForLibs>()
   val dsl = KmpBrowserJsTargetDsl(this)
   dsl.configure()
@@ -82,6 +104,11 @@ fun KotlinMultiplatformExtension.kmpNodeJsTarget(
   project: Project,
   configure: KmpNodeJsTargetDsl.() -> Unit = {},
 ) {
+  if (disableElectronApp) {
+    return
+  }
+  println("kmpNodeJsTarget: ${project.name}")
+
   val libs = project.the<LibrariesForLibs>()
   val dsl = KmpNodeJsTargetDsl(this)
   dsl.configure()
@@ -254,6 +281,10 @@ fun KotlinSourceSet.autoLink(): KotlinSourceSet {
 }
 
 open class KmpBaseTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
+  val enableAndroidApp = !disableAndroidApp
+  val enableIosApp = !disableIosApp
+  val enableLibs = enableAndroidApp || enableIosApp
+  val enableElectronApp = !disableElectronApp
   internal val dependsOnList = mutableSetOf<KotlinSourceSet>()
   val dependsOn = dependsOnList::add
   internal val configureDependencyList = mutableSetOf<KotlinDependencyHandler.() -> Unit>()
@@ -314,16 +345,6 @@ fun KotlinDependencyHandler.implementationPlatform(platformName: String) {
 }
 
 val configuredCommonProjects = mutableMapOf<Project, KmpCommonTargetConfigure>()
-fun KotlinDependencyHandler.implementationCommonMain(libs: LibrariesForLibs) {
-  implementation(kotlin("stdlib"))
-  implementation(libs.kotlinx.coroutines.core)
-  implementation(libs.kotlinx.atomicfu)
-  implementation(libs.kotlinx.io)
-
-  implementation(libs.kotlin.serialization.json)
-  implementation(libs.kotlin.serialization.cbor)
-}
-
 
 class KmpCommonTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(kmpe) {
   companion object {
@@ -360,7 +381,13 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
 
   dsl.provides(sourceSets.commonMain, sourceSets.commonTest)
   sourceSets.commonMain.dependencies {
-    implementationCommonMain(libs)
+    implementation(kotlin("stdlib"))
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.atomicfu)
+    implementation(libs.kotlinx.io)
+
+    implementation(libs.kotlin.serialization.json)
+    implementation(libs.kotlin.serialization.cbor)
   }
 
   sourceSets.commonTest.dependencies {
@@ -444,20 +471,28 @@ class KmpAndroidTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl
   internal val configureInstrumentedTestDependencyList =
     mutableSetOf<KotlinDependencyHandler.() -> Unit>()
   val instrumentedTestDependencies = configureInstrumentedTestDependencyList::add
+
 }
 
 fun KotlinMultiplatformExtension.kmpAndroidTarget(
   project: Project,
+  forceEnable: Boolean = false,
   configure: KmpAndroidTargetDsl.() -> Unit = {}
 ) {
-  val libs = project.the<LibrariesForLibs>()
+  if (disableAndroidApp && !forceEnable) {
+    return
+  }
+  println("kmpAndroidTarget: ${project.name}")
+
   val dsl = KmpAndroidTargetDsl(this)
   dsl.configure()
+  val libs = project.the<LibrariesForLibs>()
 
   kmpCommonTarget(project)
   dsl.provides(sourceSets.androidMain)
   sourceSets.androidMain.dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.annotation)
   }
   androidTarget {
     compilations.all {
@@ -486,9 +521,14 @@ fun KotlinMultiplatformExtension.kmpIosTarget(
   project: Project,
   configure: KmpIosTargetDsl.() -> Unit = {}
 ) {
-  val libs = project.the<LibrariesForLibs>()
+  if (disableIosApp) {
+    return
+  }
+  println("kmpIosTarget: ${project.name}")
+
   val dsl = KmpIosTargetDsl(this)
   dsl.configure()
+  val libs = project.the<LibrariesForLibs>()
 
   kmpCommonTarget(project)
   sourceSets.iosMain.dependencies {
@@ -524,3 +564,5 @@ fun Project.configureJvmTests(fn: Test.() -> Unit = {}) {
     fn()
   }
 }
+
+infix fun String.belong(domain: String) = this == domain || this.startsWith("$domain.")

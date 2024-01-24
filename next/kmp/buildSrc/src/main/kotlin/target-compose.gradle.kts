@@ -1,12 +1,12 @@
 import org.gradle.accessors.dm.LibrariesForLibs
 
+val libs = the<LibrariesForLibs>()
+
 plugins {
   id("org.jetbrains.compose")
 }
 
-val libs = the<LibrariesForLibs>()
 private val composeVersion: String = libs.versions.jetbrains.compose.version.get()
-infix fun String.belong(domain: String) = this == domain || this.startsWith("$domain.")
 configurations.all {
   resolutionStrategy.eachDependency {
     with(requested) {

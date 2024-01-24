@@ -3,14 +3,6 @@ plugins {
 }
 
 kotlin {
-  listOf(
-    iosX64(), iosArm64(), iosSimulatorArm64()
-  ).forEach {
-    it.binaries.framework {
-      baseName = "DwebShared"
-      isStatic = true
-    }
-  }
   kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
@@ -26,8 +18,18 @@ kotlin {
       implementation(projects.sys)
     }
   }
-  kmpIosTarget(project)
+  kmpIosTarget(project) {
+    listOf(
+      iosX64(), iosArm64(), iosSimulatorArm64()
+    ).forEach {
+      it.binaries.framework {
+        baseName = "DwebShared"
+        isStatic = true
+      }
+    }
+  }
   kmpAndroidTarget(project)
+  kmpNodeJsTarget(project)
 }
 
 android {

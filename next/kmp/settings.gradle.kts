@@ -46,17 +46,39 @@ fun includeUI(dirName: String) {
   }
 }
 
+val properties = java.util.Properties().also { properties ->
+  file("local.properties").apply {
+    if (exists()) {
+      inputStream().use { properties.load(it) }
+    }
+  }
+}
+val disabledApps = (properties.getOrDefault("app.disable", "") as String)
+  .split(",")
+  .map { it.trim().lowercase() }
+val enableAndroidApp = !disabledApps.contains("android")
+val enableIosApp = !disabledApps.contains("ios")
+val enableElectronApp = !disabledApps.contains("electron")
+val enableLibs = enableAndroidApp || enableIosApp
+
 include(":platformTest")
-include(":platformIos")
-include(":platformNode")
-include(":platformBrowser")
+if (enableIosApp) {
+  include(":platformIos")
+}
+if (enableElectronApp) {
+  include(":platformNode")
+  include(":platformBrowser")
+}
+
 include(":helper")
 include(":helperCompose")
 include(":helperPlatform")
+
 include(":pureHttp")
 include(":pureIO")
 include(":pureCrypto")
 include(":pureImage")
+
 include(":window")
 include(":core")
 include(":dwebview")
@@ -65,21 +87,25 @@ include(":sys")
 include(":shared")
 includeUI("pureCrypto")
 includeUI("helper")
-includeApp("androidApp")
-includeApp("electronApp")
-includeApp("jsFrontend")
+if (enableAndroidApp) {
+  includeApp("androidApp")
+}
+if (enableElectronApp) {
+  includeApp("electronApp")
+  includeApp("jsFrontend")
+}
 
-
-File(rootDir, "../../toolkit/dweb_browser_libs/rust_library").eachDir { dir ->
-  if (File(dir, "build.gradle.kts").exists()) {
-    include(dir.name)
-    project(":${dir.name}").apply {
-      projectDir = file(dir)
-      buildFileName = "build-mobile.gradle.kts"
+File(
+  rootDir,
+  "../../toolkit/dweb_browser_libs/rust_library"
+).listFiles { file -> file.isDirectory }
+  ?.forEach { dir ->
+    if (File(dir, "build.gradle.kts").exists()) {
+      include(dir.name)
+      project(":${dir.name}").apply {
+        name = "lib_${dir.name}"
+        projectDir = file(dir)
+        buildFileName = "build-mobile.gradle.kts"
+      }
     }
   }
-}
-
-fun File.eachDir(block: (File) -> Unit) {
-  listFiles()?.filter { it.isDirectory }?.forEach { block(it) }
-}

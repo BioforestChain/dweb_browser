@@ -48,4 +48,5 @@ kotlin {
 //    }
 //  }
   kmpIosTarget(project)
+  kmpNodeJsTarget(project)
 }

@@ -104,6 +104,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@js-joda/core@npm:3.2.0":
+  version: 3.2.0
+  resolution: "@js-joda/core@npm:3.2.0"
+  checksum: f3b3f58f6788bd1318ef66d108f7bd8f4c09224b826d37d4f0e460d80ed2246ea09da2d88ef66701e5affc19218dee5f42f2ec8f7a99d2d3aa8baf5ecff94ce7
+  languageName: node
+  linkType: hard
+
 "@leichtgewicht/ip-codec@npm:^2.0.1":
   version: 2.0.4
   resolution: "@leichtgewicht/ip-codec@npm:2.0.4"
@@ -645,6 +652,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"Kotlin-DateTime-library-kotlinx-datetime@workspace:packages_imported/Kotlin-DateTime-library-kotlinx-datetime/0.5.0":
+  version: 0.0.0-use.local
+  resolution: "Kotlin-DateTime-library-kotlinx-datetime@workspace:packages_imported/Kotlin-DateTime-library-kotlinx-datetime/0.5.0"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    format-util: "npm:^1.0.5"
+  languageName: unknown
+  linkType: soft
+
 "abab@npm:^2.0.6":
   version: 2.0.6
   resolution: "abab@npm:2.0.6"
@@ -1153,6 +1169,48 @@ __metadata:
   languageName: node
   linkType: hard
 
+"coil-compose-core-js@workspace:packages_imported/coil-compose-core-js/3.0.0-alpha03":
+  version: 0.0.0-use.local
+  resolution: "coil-compose-core-js@workspace:packages_imported/coil-compose-core-js/3.0.0-alpha03"
+  languageName: unknown
+  linkType: soft
+
+"coil-compose-js@workspace:packages_imported/coil-compose-js/3.0.0-alpha03":
+  version: 0.0.0-use.local
+  resolution: "coil-compose-js@workspace:packages_imported/coil-compose-js/3.0.0-alpha03"
+  languageName: unknown
+  linkType: soft
+
+"coil-core-js@workspace:packages_imported/coil-core-js/3.0.0-alpha03":
+  version: 0.0.0-use.local
+  resolution: "coil-core-js@workspace:packages_imported/coil-core-js/3.0.0-alpha03"
+  languageName: unknown
+  linkType: soft
+
+"coil-js@workspace:packages_imported/coil-js/3.0.0-alpha03":
+  version: 0.0.0-use.local
+  resolution: "coil-js@workspace:packages_imported/coil-js/3.0.0-alpha03"
+  languageName: unknown
+  linkType: soft
+
+"coil-network-core-js@workspace:packages_imported/coil-network-core-js/3.0.0-alpha03":
+  version: 0.0.0-use.local
+  resolution: "coil-network-core-js@workspace:packages_imported/coil-network-core-js/3.0.0-alpha03"
+  languageName: unknown
+  linkType: soft
+
+"coil-network-ktor-js@workspace:packages_imported/coil-network-ktor-js/3.0.0-alpha03":
+  version: 0.0.0-use.local
+  resolution: "coil-network-ktor-js@workspace:packages_imported/coil-network-ktor-js/3.0.0-alpha03"
+  languageName: unknown
+  linkType: soft
+
+"coil-svg-js@workspace:packages_imported/coil-svg-js/3.0.0-alpha03":
+  version: 0.0.0-use.local
+  resolution: "coil-svg-js@workspace:packages_imported/coil-svg-js/3.0.0-alpha03"
+  languageName: unknown
+  linkType: soft
+
 "color-convert@npm:^2.0.1":
   version: 2.0.1
   resolution: "color-convert@npm:2.0.1"
@@ -1189,6 +1247,12 @@ __metadata:
   checksum: 74c781a5248c2402a0a3e966a0a2bba3c054aad144f5c023364be83265e796b20565aa9feff624132ff629aa64e16999fa40a743c10c12f7c61e96a794b99288
   languageName: node
   linkType: hard
+
+"components-resources-js@workspace:packages_imported/components-resources-js/1.6.0-dev1369":
+  version: 0.0.0-use.local
+  resolution: "components-resources-js@workspace:packages_imported/components-resources-js/1.6.0-dev1369"
+  languageName: unknown
+  linkType: soft
 
 "compressible@npm:~2.0.16":
   version: 2.0.18
@@ -1491,6 +1555,105 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dweb-browser-kmp-browser-browser-test@workspace:packages/dweb-browser-kmp-browser-browser-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-browser-browser-test@workspace:packages/dweb-browser-kmp-browser-browser-test"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    karma: "npm:6.4.2"
+    karma-chrome-launcher: "npm:3.2.0"
+    karma-mocha: "npm:2.0.1"
+    karma-sourcemap-loader: "npm:0.4.0"
+    karma-webpack: "npm:5.0.0"
+    mocha: "npm:10.2.0"
+    node-fetch: "npm:2.6.7"
+    source-map-loader: "npm:4.0.1"
+    typescript: "npm:5.0.4"
+    webpack: "npm:5.82.0"
+    webpack-cli: "npm:5.1.0"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-browser-browser@workspace:packages/dweb-browser-kmp-browser-browser":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-browser-browser@workspace:packages/dweb-browser-kmp-browser-browser"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    node-fetch: "npm:2.6.7"
+    typescript: "npm:5.0.4"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-core-node-test@workspace:packages/dweb-browser-kmp-core-node-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-core-node-test@workspace:packages/dweb-browser-kmp-core-node-test"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    mocha: "npm:10.2.0"
+    node-fetch: "npm:2.6.7"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-core-node@workspace:packages/dweb-browser-kmp-core-node":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-core-node@workspace:packages/dweb-browser-kmp-core-node"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    node-fetch: "npm:2.6.7"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-dwebview-browser-test@workspace:packages/dweb-browser-kmp-dwebview-browser-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-dwebview-browser-test@workspace:packages/dweb-browser-kmp-dwebview-browser-test"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    karma: "npm:6.4.2"
+    karma-chrome-launcher: "npm:3.2.0"
+    karma-mocha: "npm:2.0.1"
+    karma-sourcemap-loader: "npm:0.4.0"
+    karma-webpack: "npm:5.0.0"
+    mocha: "npm:10.2.0"
+    node-fetch: "npm:2.6.7"
+    source-map-loader: "npm:4.0.1"
+    typescript: "npm:5.0.4"
+    webpack: "npm:5.82.0"
+    webpack-cli: "npm:5.1.0"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-dwebview-browser@workspace:packages/dweb-browser-kmp-dwebview-browser":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-dwebview-browser@workspace:packages/dweb-browser-kmp-dwebview-browser"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    node-fetch: "npm:2.6.7"
+    typescript: "npm:5.0.4"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
 "dweb-browser-kmp-electronApp-test@workspace:packages/dweb-browser-kmp-electronApp-test":
   version: 0.0.0-use.local
   resolution: "dweb-browser-kmp-electronApp-test@workspace:packages/dweb-browser-kmp-electronApp-test"
@@ -1512,6 +1675,110 @@ __metadata:
     electron: "npm:^28.1.1"
     format-util: "npm:^1.0.5"
     source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-helper-node-test@workspace:packages/dweb-browser-kmp-helper-node-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-helper-node-test@workspace:packages/dweb-browser-kmp-helper-node-test"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    format-util: "npm:^1.0.5"
+    mocha: "npm:10.2.0"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-helper-node@workspace:packages/dweb-browser-kmp-helper-node":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-helper-node@workspace:packages/dweb-browser-kmp-helper-node"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    format-util: "npm:^1.0.5"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-helperCompose-browser-test@workspace:packages/dweb-browser-kmp-helperCompose-browser-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-helperCompose-browser-test@workspace:packages/dweb-browser-kmp-helperCompose-browser-test"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    format-util: "npm:^1.0.5"
+    karma: "npm:6.4.2"
+    karma-chrome-launcher: "npm:3.2.0"
+    karma-mocha: "npm:2.0.1"
+    karma-sourcemap-loader: "npm:0.4.0"
+    karma-webpack: "npm:5.0.0"
+    mocha: "npm:10.2.0"
+    source-map-loader: "npm:4.0.1"
+    typescript: "npm:5.0.4"
+    webpack: "npm:5.82.0"
+    webpack-cli: "npm:5.1.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-helperCompose-browser@workspace:packages/dweb-browser-kmp-helperCompose-browser":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-helperCompose-browser@workspace:packages/dweb-browser-kmp-helperCompose-browser"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    format-util: "npm:^1.0.5"
+    typescript: "npm:5.0.4"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-helperPlatform-node-test@workspace:packages/dweb-browser-kmp-helperPlatform-node-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-helperPlatform-node-test@workspace:packages/dweb-browser-kmp-helperPlatform-node-test"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    format-util: "npm:^1.0.5"
+    mocha: "npm:10.2.0"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-helperPlatform-node@workspace:packages/dweb-browser-kmp-helperPlatform-node":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-helperPlatform-node@workspace:packages/dweb-browser-kmp-helperPlatform-node"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    format-util: "npm:^1.0.5"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-helperUI-browser-test@workspace:packages/dweb-browser-kmp-helperUI-browser-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-helperUI-browser-test@workspace:packages/dweb-browser-kmp-helperUI-browser-test"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    format-util: "npm:^1.0.5"
+    karma: "npm:6.4.2"
+    karma-chrome-launcher: "npm:3.2.0"
+    karma-mocha: "npm:2.0.1"
+    karma-sourcemap-loader: "npm:0.4.0"
+    karma-webpack: "npm:5.0.0"
+    mocha: "npm:10.2.0"
+    source-map-loader: "npm:4.0.1"
+    typescript: "npm:5.0.4"
+    webpack: "npm:5.82.0"
+    webpack-cli: "npm:5.1.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-helperUI-browser@workspace:packages/dweb-browser-kmp-helperUI-browser":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-helperUI-browser@workspace:packages/dweb-browser-kmp-helperUI-browser"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    format-util: "npm:^1.0.5"
     typescript: "npm:5.0.4"
   languageName: unknown
   linkType: soft
@@ -1720,6 +1987,134 @@ __metadata:
     format-util: "npm:^1.0.5"
     source-map-support: "npm:0.5.21"
     typescript: "npm:5.0.4"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-pureImage-browser-test@workspace:packages/dweb-browser-kmp-pureImage-browser-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-pureImage-browser-test@workspace:packages/dweb-browser-kmp-pureImage-browser-test"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    karma: "npm:6.4.2"
+    karma-chrome-launcher: "npm:3.2.0"
+    karma-mocha: "npm:2.0.1"
+    karma-sourcemap-loader: "npm:0.4.0"
+    karma-webpack: "npm:5.0.0"
+    mocha: "npm:10.2.0"
+    node-fetch: "npm:2.6.7"
+    source-map-loader: "npm:4.0.1"
+    typescript: "npm:5.0.4"
+    webpack: "npm:5.82.0"
+    webpack-cli: "npm:5.1.0"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-pureImage-browser@workspace:packages/dweb-browser-kmp-pureImage-browser":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-pureImage-browser@workspace:packages/dweb-browser-kmp-pureImage-browser"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    node-fetch: "npm:2.6.7"
+    typescript: "npm:5.0.4"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-shared-node-test@workspace:packages/dweb-browser-kmp-shared-node-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-shared-node-test@workspace:packages/dweb-browser-kmp-shared-node-test"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    mocha: "npm:10.2.0"
+    node-fetch: "npm:2.6.7"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-shared-node@workspace:packages/dweb-browser-kmp-shared-node":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-shared-node@workspace:packages/dweb-browser-kmp-shared-node"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    node-fetch: "npm:2.6.7"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-sys-node-test@workspace:packages/dweb-browser-kmp-sys-node-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-sys-node-test@workspace:packages/dweb-browser-kmp-sys-node-test"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    mocha: "npm:10.2.0"
+    node-fetch: "npm:2.6.7"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-sys-node@workspace:packages/dweb-browser-kmp-sys-node":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-sys-node@workspace:packages/dweb-browser-kmp-sys-node"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    node-fetch: "npm:2.6.7"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-window-browser-test@workspace:packages/dweb-browser-kmp-window-browser-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-window-browser-test@workspace:packages/dweb-browser-kmp-window-browser-test"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    karma: "npm:6.4.2"
+    karma-chrome-launcher: "npm:3.2.0"
+    karma-mocha: "npm:2.0.1"
+    karma-sourcemap-loader: "npm:0.4.0"
+    karma-webpack: "npm:5.0.0"
+    mocha: "npm:10.2.0"
+    node-fetch: "npm:2.6.7"
+    source-map-loader: "npm:4.0.1"
+    typescript: "npm:5.0.4"
+    webpack: "npm:5.82.0"
+    webpack-cli: "npm:5.1.0"
+    ws: "npm:8.5.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-window-browser@workspace:packages/dweb-browser-kmp-window-browser":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-window-browser@workspace:packages/dweb-browser-kmp-window-browser"
+  dependencies:
+    "@js-joda/core": "npm:3.2.0"
+    abort-controller: "npm:3.0.0"
+    format-util: "npm:^1.0.5"
+    node-fetch: "npm:2.6.7"
+    typescript: "npm:5.0.4"
+    ws: "npm:8.5.0"
   languageName: unknown
   linkType: soft
 
@@ -4553,6 +4948,12 @@ __metadata:
   checksum: 41602dce540e46d599edba9d9860193398d135f7ff72cab629db5171516cfae628d21e7bfccde1bbfdf11c48726bc2a6d1a8fb8701125852fbfda7cf19c6aa83
   languageName: node
   linkType: hard
+
+"skiko-js@workspace:packages_imported/skiko-js/0.7.90":
+  version: 0.0.0-use.local
+  resolution: "skiko-js@workspace:packages_imported/skiko-js/0.7.90"
+  languageName: unknown
+  linkType: soft
 
 "smart-buffer@npm:^4.2.0":
   version: 4.2.0

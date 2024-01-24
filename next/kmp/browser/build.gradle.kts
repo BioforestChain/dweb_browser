@@ -49,7 +49,8 @@ kotlin {
   kmpIosTarget(project) {
     dependencies {
       //解压缩
-      implementation(projects.ziplib)
+      implementation(projects.libZiplib)
     }
   }
+  kmpBrowserJsTarget(project)
 }
