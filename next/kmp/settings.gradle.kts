@@ -93,6 +93,7 @@ if (enableAndroidApp) {
 if (enableElectronApp) {
   includeApp("electronApp")
   includeApp("jsFrontend")
+  includeApp("demoReactApp")
 }
 
 File(

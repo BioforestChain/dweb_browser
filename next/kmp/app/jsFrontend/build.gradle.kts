@@ -12,37 +12,11 @@ beforeEvaluate {
 kotlin {
   kmpBrowserJsTarget(project) {
     js{
-//      binaries.library()
-
-        browser{
-            commonWebpackConfig {
-                devServer = (devServer?: KotlinWebpackConfig.DevServer()).apply {
-                    open = false
-                }
-                cssSupport {
-                    enabled.set(true)
-                }
-            }
-            // 分发到electronApp作为静态资源使用
-            distribution {
-                outputDirectory = File("${rootProject.rootDir}/app/electronApp/src/jsMain/resources/jsFrontEnd")
-            }
-        }
-      // 测试用
-      binaries.executable()
+      binaries.library()
     }
     dependencies {
       implementation("org.jetbrains.kotlin-wrappers:kotlin-react:18.2.0-pre.687")
       implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:18.2.0-pre.687")
-//      implementation("org.jetbrains.kotlin-wrappers:kotlin-react-redux:7.2.6-pre.687")
-//      implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom:6.20.1-pre.687")
-
-//        implementation(enforcedPlatform("org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom:1.0.0-pre.680"))
-//        implementation("org.jetbrains.kotlin-wrappers:kotlin-react")
-//        implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom")
-
-        //Kotlin React Emotion (CSS) (chapter 3)
-//        implementation("org.jetbrains.kotlin-wrappers:kotlin-emotion:18.2.0-pre.687")
     }
   }
 }

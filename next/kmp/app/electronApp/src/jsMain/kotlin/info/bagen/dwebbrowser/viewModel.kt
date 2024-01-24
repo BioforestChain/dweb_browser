@@ -38,7 +38,7 @@ class BrowserViewModel: BaseBrowserWindowModel("js.backend.dweb") {
     // 测试数据
     override val state = mutableMapOf<dynamic, dynamic>("currentCount" to 1)
     override val electronBrowserWindowOptions: BrowserWindowConstructorOptions = ElectronBrowserWindowOptions.create()
-    override val electronLoadUrlPath: String = "/jsFrontEnd/index.html"
+    override val electronLoadUrlPath: String = "/demoReactApp/index.html"
     override val electronIsOpenDevtools: Boolean = true
 
     init {

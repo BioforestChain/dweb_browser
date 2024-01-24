@@ -73,11 +73,11 @@ gradle.projectsEvaluated {
  * - 把jsFrontend打包到electronApp的resources/jsFrontEnd目录
  * - 执行:electronApp:jsElectronDevelopmentRun任务
  */
-tasks.register("jsElectronDevelopmentRunWithJsFrontendDistribution") {
+tasks.register("jsElectronDevelopmentRunWithDemoReactAppDistribution") {
   doFirst {
     exec {
       workingDir("${rootProject.projectDir}")
-      commandLine("./gradlew", ":jsFrontend:browserBrowserDistribution")
+      commandLine("./gradlew", ":demoReactApp:browserBrowserDistribution")
 
     }
   }

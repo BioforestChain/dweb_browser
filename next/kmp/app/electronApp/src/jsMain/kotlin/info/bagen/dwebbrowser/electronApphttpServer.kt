@@ -72,7 +72,7 @@ class ElectronAppHttpServer(){
             httpServer = HttpServer.createHttpServer().await()
             whenReady.complete(httpServer)
             httpServer.routeAdd(
-                Route("/jsFrontEnd", Method.GET, MatchPattern.PREFIX, ::httpServerListener),
+                Route("/demoReactApp", Method.GET, MatchPattern.PREFIX, ::httpServerListener),
             )
         }
     }
