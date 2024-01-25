@@ -1,5 +1,6 @@
 package org.dweb_browser.js_frontend.view_model
 
+import androidx.compose.runtime.Composable
 import js.json.JSON
 import kotlinx.browser.window
 import kotlinx.coroutines.CompletableDeferred
@@ -12,6 +13,9 @@ import org.dweb_browser.js_frontend.dweb_web_socket.DwebWebSocket
 import react.StateSetter
 import react.useState
 import kotlin.reflect.KProperty
+import androidx.compose.runtime.MutableState as IMutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 
 
 typealias HandleMessageDataList = (arr: dynamic) -> Unit
@@ -90,28 +94,7 @@ abstract class BaseViewModel(
                 }
             }
         }
-//        operator fun component1(): T = state.component1()
-//        operator fun component2(): StateSetter<T> = state.component2()
-        //        operator fun getValue(
-//            thisRef: Nothing?,
-//            property: KProperty<*>,
-//        ): T= state.getValue(thisRef, property)
 
-        //        operator fun getValue(
-//            thisRef: Nothing?,
-//            property: KProperty<*>,
-//        ): T= _value
-//        operator fun setValue(
-//            thisRef: Nothing?,
-//            property: KProperty<*>,
-//            value: T,
-//        ) {
-//            // 设置ViewModel的数据
-//            viewModel.set(key, value)
-//            console.log(thisRef, property, value)
-//            state.setValue(thisRef, property, value)
-//            _value = value
-//        }
         operator fun component1(): T = state
 
         operator fun component2(): StateSetter<T> = setState
@@ -128,6 +111,53 @@ abstract class BaseViewModel(
             // 设置ViewModel的数据
             viewModel.set(key, value)
             setState(value)
+        }
+    }
+
+    // TODO: 创建 mutableState 对象
+    // TODO: 保存 mutableState 对象
+    // TODO: 不能够采用一对多，否则会有问题
+    // TODO: 需要传递一个Key 实现转为mutableState
+    // TODO: 相同的Key返回相同的MutableState
+    // TODO: 生产？ 更新UI ？ 同步数据
+
+    private val mutableStateMap = mutableMapOf<Any, MutableState<dynamic>>()
+    @Composable
+    fun toMutableStateOf(key: dynamic) = remember {
+        val initValue = state[key]
+        if(initValue == null){
+            throw(Throwable("""
+                state[key] == null
+                key = $key
+                at toMutableStateOf
+            """.trimIndent()))
+        }
+        var mutableState = mutableStateMap[key]
+        if(mutableState == null){
+            mutableState = MutableState(state[key])
+            mutableStateMap[key] = mutableState
+        }
+        mutableState
+    }
+
+    class MutableState<T>(val initValue: T) : IMutableState<T> {
+
+        val mutableState = mutableStateOf<T>(initValue)
+        override var value: T
+            get() = mutableState.value
+            set(value) {
+                console.log("需要同步UI的数据到服务器")
+                // TODO: 需要同步UI的数据到服务器
+                mutableState.value = value
+            }
+
+        override fun component1() = mutableState.component1()
+        override fun component2() = mutableState.component2()
+        operator fun getValue(thisObj: Any?, property: KProperty<*>): T = value
+        operator fun setValue(
+            thisObj: Any?, property: KProperty<*>, value: T
+        ) {
+            this.value = value
         }
     }
 }

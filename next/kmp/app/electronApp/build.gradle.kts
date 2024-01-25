@@ -88,3 +88,19 @@ tasks.register("jsElectronDevelopmentRunWithDemoReactAppDistribution") {
     }
   }
 }
+
+tasks.register("jsElectronDevelopmentRunWithDemoComposeAppDistribution") {
+  doFirst {
+    exec {
+      workingDir("${rootProject.projectDir}")
+      commandLine("./gradlew", ":demoComposeApp:browserBrowserDistribution")
+
+    }
+  }
+  doLast {
+    exec {
+      workingDir("${rootProject.projectDir}")
+      commandLine("./gradlew", ":electronApp:jsElectronDevelopmentRun")
+    }
+  }
+}

@@ -13,7 +13,7 @@ import org.dweb_browser.js_backend.http.HttpServer
 import org.dweb_browser.js_backend.http.MatchPattern
 import org.dweb_browser.js_backend.http.Method
 import org.dweb_browser.js_backend.http.Route
-
+需要从这里重新配置 httpServer 添加 wasm 文件的资源获取
 // 创建一个 httpServer 对象
 private fun  httpServerListener(req: IncomingMessage, res: ServerResponse<*>) {
     when {
