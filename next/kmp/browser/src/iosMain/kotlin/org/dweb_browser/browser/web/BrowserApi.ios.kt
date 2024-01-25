@@ -1,8 +1,6 @@
 package org.dweb_browser.browser.web
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
@@ -15,7 +13,6 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.WARNING
 import org.dweb_browser.platform.ios_browser.DwebWebView
 import org.dweb_browser.platform.ios_browser.browserActiveOn
 import org.dweb_browser.platform.ios_browser.browserClear
@@ -145,16 +142,4 @@ actual fun CommonBrowserView(
 //    iOSView.setScale(windowRenderScope.scale)
     iOSView.WindowFrameStyleEffect()
   }
-}
-
-// TODO 由于版本androidx.compose 升级为 1.2.0-beta1 但是jetpack-compose版本没有出来，临时增加
-@Composable
-actual fun CommonSwipeDismiss(
-  background: @Composable RowScope.() -> Unit,
-  dismissContent: @Composable RowScope.() -> Unit,
-  modifier: Modifier,
-  onRemove: () -> Unit
-) {
-  WARNING("Not yet implemented CommonSwipeDismiss")
-  Row { dismissContent() }
 }

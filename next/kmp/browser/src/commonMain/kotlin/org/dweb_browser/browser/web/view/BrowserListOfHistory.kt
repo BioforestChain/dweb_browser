@@ -77,8 +77,7 @@ fun BrowserListOfHistory(
 
       itemsIndexed(webSiteInfoList) { index, webSiteInfo ->
         if (index > 0) Divider(modifier = Modifier.fillMaxWidth().height(1.dp))
-        ListSwipeItem(
-          webSiteInfo = webSiteInfo,
+        org.dweb_browser.helper.compose.ListSwipeItem(
           onRemove = {
             scope.launch {
               webSiteInfoList.remove(webSiteInfo)

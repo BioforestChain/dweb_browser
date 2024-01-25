@@ -3,13 +3,17 @@ plugins {
 }
 
 kotlin {
-  kmpComposeTarget(project){
-    dependencies{
+  kmpComposeTarget(project) {
+    dependencies {
       implementation(projects.helper)
       implementation(projects.helperPlatform)
     }
   }
-  kmpAndroidTarget(project)
+  kmpAndroidTarget(project) {
+    dependencies {
+      implementation(libs.compose.material3)
+    }
+  }
   kmpIosTarget(project)
   kmpBrowserJsTarget(project)
 }

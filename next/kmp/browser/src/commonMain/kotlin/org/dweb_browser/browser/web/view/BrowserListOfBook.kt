@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.web.CommonSwipeDismiss
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.model.BrowserViewModel
 
@@ -68,35 +67,13 @@ fun BrowserListOfBook(
       if (index > 0) Divider(
         modifier = Modifier.width(1.dp), color = MaterialTheme.colorScheme.surface
       )
-      ListSwipeItem(
-        webSiteInfo = webSiteInfo,
-        onRemove = { viewModel.removeBookLink(it) }
+      org.dweb_browser.helper.compose.ListSwipeItem(
+        onRemove = { viewModel.removeBookLink(webSiteInfo) }
       ) {
         RowItemBook(webSiteInfo, { onSearch(it.url) }) { onOpenSetting(it) }
       }
     }
   }
-}
-
-@Composable
-internal fun ListSwipeItem(
-  webSiteInfo: WebSiteInfo,
-  onRemove: (WebSiteInfo) -> Unit,
-  listItemView: @Composable RowScope.() -> Unit
-) {
-  // SwipeToDismiss(
-  CommonSwipeDismiss(
-    background = { // "背景 "，即原来显示的内容被划走一部分时显示什么
-      Box(
-        Modifier
-          .fillMaxSize()
-          .background(MaterialTheme.colorScheme.background)
-      )
-    },
-    dismissContent = { // ”前景“ 显示的内容
-      listItemView()
-    }
-  ) { onRemove(webSiteInfo) }
 }
 
 @Composable
