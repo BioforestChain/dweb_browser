@@ -11,4 +11,11 @@ actual class ShortcutManage {
     WARNING("Not yet implemented registryShortcut")
     return false
   }
+
+  /**
+   * 存储到系统文件，用于打开”更多“时，加载列表
+   */
+  actual suspend fun saveToSystemPreference(shortcutList: List<SystemShortcut>) {
+    WARNING("Not yet implemented saveToSystemPreference")
+  }
 }

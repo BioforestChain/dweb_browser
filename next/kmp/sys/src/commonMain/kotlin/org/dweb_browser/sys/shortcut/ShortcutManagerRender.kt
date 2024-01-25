@@ -16,9 +16,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AppShortcut
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Shortcut
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -98,7 +98,7 @@ fun ShortcutManagerRender(
                   bitmap = iconImage,
                   contentDescription = "shortcut"
                 )
-              } ?: Icon(Icons.Default.Shortcut, contentDescription = "shortcut")
+              } ?: Icon(Icons.Default.AppShortcut, contentDescription = "shortcut")
             },
             trailingContent = {
               Row(

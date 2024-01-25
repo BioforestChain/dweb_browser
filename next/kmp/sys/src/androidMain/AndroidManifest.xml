@@ -52,5 +52,13 @@
       android:name=".contact.ContactPickerActivity"
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
+    <activity
+      android:name=".shortcut.ShortcutManageActivity"
+      android:exported="true"
+      android:theme="@style/Theme.DwebBrowser.FullScreen">
+      <intent-filter>
+        <action android:name="info.bagen.dwebbrowser.shortcut.more" />
+      </intent-filter>
+    </activity>
   </application>
 </manifest> 

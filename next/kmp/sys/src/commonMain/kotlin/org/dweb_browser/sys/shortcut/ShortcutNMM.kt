@@ -105,6 +105,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
       val map = store.getAll()
       val list = map.values.sortedBy { it.order }
       shortcutList.addAll(list)
+      shortcutManage.saveToSystemPreference(shortcutList)
       shortcutManage.registryShortcut(shortcutList)
       // 监听 dns 中应用的变化来实时更新快捷方式列表
       doObserve("file://dns.std.dweb/observe/install-apps") {
@@ -112,12 +113,14 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
         debugShortcut("listenApps", "add=$adds, remove=$removes, updates=$updates")
         removes.map { mmid ->
           shortcutList.removeAll { it.mmid == mmid }
+          shortcutManage.saveToSystemPreference(shortcutList)
           shortcutManage.registryShortcut(shortcutList)
         }
         adds.map { mmid ->
           val addList = map.values.filter { it.mmid == mmid }
           if (addList.isNotEmpty()) {
             shortcutList.addAll(addList)
+            shortcutManage.saveToSystemPreference(shortcutList)
             shortcutManage.registryShortcut(shortcutList)
           }
         }

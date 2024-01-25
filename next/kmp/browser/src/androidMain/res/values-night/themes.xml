@@ -17,9 +17,4 @@
     <item name="android:windowDisablePreview">true</item>
     <item name="isLightTheme">false</item>
   </style>
-
-  <style name="Theme.DwebBrowser.FullScreen" parent="Theme.Material3.Dark.NoActionBar">
-    <item name="android:windowFullscreen">true</item>
-    <item name="android:windowNoTitle">true</item>
-  </style>
 </resources>
