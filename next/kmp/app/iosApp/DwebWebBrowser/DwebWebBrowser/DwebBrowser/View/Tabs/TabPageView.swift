@@ -68,16 +68,16 @@ struct TabPageView: View {
                                 .frame(width: geo.size.width, height: geo.size.height)
                             let render = ImageRenderer(content: toSnapView)
                             render.scale = UIScreen.main.scale
-                            
+
                             let defSnapshotImage = colorScheme == .light ? lightSnapshotImage : darkSnapshotImage
                             animation.snapshotImage = render.uiImage ?? defSnapshotImage
-                            
-                            if colorScheme == .light{
+
+                            if colorScheme == .light {
                                 lightSnapshotImage = animation.snapshotImage
-                            }else{
+                            } else {
                                 darkSnapshotImage = animation.snapshotImage
                             }
-                            
+
                             webCache.snapshotUrl = UIImage.createLocalUrl(withImage: animation.snapshotImage, imageName: webCache.id.uuidString + String(describing: colorScheme))
                             animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                         }
@@ -87,15 +87,12 @@ struct TabPageView: View {
     }
 
     var content: some View {
-        ZStack {
+        Group {
             if webCache.shouldShowWeb {
                 webComponent
             } else {
-                Color.bk.overlay {
-                    BlankTabView()
-                        .environmentObject(dragScale)
-                        .opacity(addressBar.isFocused ? 0 : 1)
-                }
+                BlankTabView()
+                    .opacity(addressBar.isFocused ? 0 : 1)
             }
         }
     }
@@ -142,8 +139,7 @@ struct TabPageView: View {
             }
             .onChange(of: toolbarState.creatingDesktopLink) { _, _ in
                 Task {
-                    browserViewDelegate.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString) { e in
-                        
+                    browserViewDelegate.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString) { _ in
                     }
                 }
             }

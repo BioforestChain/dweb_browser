@@ -39,30 +39,28 @@ struct GridCell: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             GeometryReader { geo in
-
                 VStack(spacing: 0) {
-                    if webCache.shouldShowWeb {
-                        Image(uiImage: webCache.snapshotImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: geo.size.width, height: geo.size.height * cellImageHeightRatio)
-                            .cornerRadius(gridcellCornerR)
-                            .overlay(RoundedRectangle(cornerRadius: 10)
-                                .stroke(.cellBorder, lineWidth: 2)
-                                .opacity(isSelected ? 1 : 0)
-                            )
-                            .clipped()
-                    } else {
-                        BlankTabView(scale: geo.size.width / screen_width * 1.2)
-                            .frame(width: geo.size.width, height: geo.size.height * cellImageHeightRatio)
-                            .background(Color.bk)
-                            .cornerRadius(gridcellCornerR)
-                            .overlay(RoundedRectangle(cornerRadius: 10)
-                                .stroke(isSelected ? .cellBorder : .bk, lineWidth: 2)
-                            )
-                            .clipped()
+                    ZStack {
+                        let shape = RoundedRectangle(cornerRadius: gridcellCornerR)
+                        Group {
+                            if webCache.shouldShowWeb {
+                                Image(uiImage: webCache.snapshotImage)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            } else {
+                                BlankTabView()
+                            }
+                        }
+                        .frame(height: geo.size.height * cellImageHeightRatio)
+                        .background(Color.bk)
+                        .cornerRadius(gridcellCornerR)
+
+                        shape.strokeBorder(lineWidth: 3)
+                            .foregroundColor(.cellBorder)
+                            .opacity(isSelected ? 1 : 0)
                     }
-                    HStack {
+
+                    HStack() {
                         WebsiteIconImage(iconUrl: webCache.webIconUrl)
                             .aspectRatio(contentMode: .fit)
                             .frame(height: geo.size.height * 0.1)
@@ -71,12 +69,12 @@ struct GridCell: View {
                             .font(.system(size: dragScale.scaledFontSize(maxSize: 20))) // 设置字体大小为 20，粗细为 semibold
                             .lineLimit(1)
                     }
-                    .padding(.vertical, 3)
-                    .frame(height: geo.size.height * cellTitleHeightRatio)
-                }
-                .contentShape(Rectangle())
-            }
+                    .frame(height: geo.size.height * 0.15)
 
+
+//                    .padding(.vertical, 3)
+                }
+            }
             deleteButton
         }
     }
@@ -94,33 +92,5 @@ struct GridCell: View {
         }
         .padding(.top, 8)
         .padding(.trailing, 8)
-    }
-}
-
-struct ImagePartialView: View {
-
-  var image: Image
-
-  var body: some View {
-
-    GeometryReader { geo in
-
-      image
-        .resizable()
-        .frame(width: 800, height: 1000)
-        .clipped()
-        .offset(x: 100, y: 200)
-        .frame(width: 300, height: 450)
-
-    }
-
-  }
-}
-
-struct GridCell_Previews: PreviewProvider {
-    static var previews: some View {
-        ImagePartialView(image: Image(uiImage: UIImage(resource: .dwebIcon) ))
-            .frame(width: 300,height: 600)
-            .background(.green)
     }
 }

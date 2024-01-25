@@ -12,8 +12,6 @@ import UIKit
 let screen_width = UIScreen.main.bounds.width
 let screen_height = UIScreen.main.bounds.height
 
-let toolBarH: CGFloat = 50
-
 let addressbarHolder = "搜索或输入网址"
 
 let maxAddressBarH: CGFloat = 60
@@ -27,14 +25,9 @@ let emptyURL = URL(string: emptyLink)!
 let gridVSpace: CGFloat = 20.0
 let gridHSpace: CGFloat = 18.0
 
-let gridCellW: CGFloat = (screen_width - gridHSpace * 3.0) / 2
-let gridCellH: CGFloat = gridCellW * 1.5
 let cellWHratio = 2.0 / 3.0
 let cellImageHeightRatio = 0.85
-let cellTitleHeightRatio = 0.15
 
-let cellImageH: CGFloat = gridCellH * 0.9
-let gridcellBottomH: CGFloat = gridCellH * 0.1
 let gridcellCornerR: CGFloat = 10
 
 enum EnterType {
@@ -48,4 +41,3 @@ var lightSnapshotImage = UIImage.snapshotImage(from: URL.lightSnapshot)
 var darkSnapshotImage = UIImage.snapshotImage(from: URL.darkSnapshot)
 
 let webtag = "webtag"
-
