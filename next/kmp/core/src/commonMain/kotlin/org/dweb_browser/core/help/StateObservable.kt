@@ -3,12 +3,12 @@ package org.dweb_browser.core.help
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.compose.IsChange
+import org.dweb_browser.pure.http.PureStream
 
 open class StateObservable(
   needFirstCall: Boolean = false,

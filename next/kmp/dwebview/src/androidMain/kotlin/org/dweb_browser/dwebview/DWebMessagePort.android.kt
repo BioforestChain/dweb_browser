@@ -9,6 +9,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.ipc.helper.DWebMessage
+import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.defaultAsyncExceptionHandler

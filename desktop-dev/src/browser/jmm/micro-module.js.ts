@@ -1,7 +1,7 @@
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
-import { IPC_ROLE, Ipc, IpcResponse } from "../../core/ipc/index.ts";
+import { IPC_ROLE, Ipc, IpcError, IpcResponse } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
 import { connectAdapterManager } from "../../core/nativeConnect.ts";
 import type { $IpcSupportProtocols, $MMID } from "../../core/types.ts";
@@ -220,7 +220,7 @@ export class JsMicroModule extends MicroModule {
             await this.ipcBridge(mmid, targetIpc).promise;
           }
         } catch (err) {
-          this.ipcConnectFail(mmid, err);
+          jsIpc.postMessage(new IpcError(503, err));
         }
       }
       if (ipcEvent.name === "restart") {
@@ -282,27 +282,6 @@ export class JsMicroModule extends MicroModule {
       })().catch(task.reject);
       return task;
     });
-  }
-
-  async ipcConnectFail(mmid: $MMID, reason: unknown) {
-    let errMessage = "";
-    if (reason instanceof Error) {
-      errMessage = reason.message + "\n" + (reason.stack || "");
-    } else {
-      errMessage = String(reason);
-    }
-    /**
-     * 向js模块发起连接
-     */
-    return await this.nativeFetch(
-      buildUrl(new URL(`file://js.browser.dweb/create-ipc-fail`), {
-        search: {
-          process_id: this._process_id,
-          mmid: mmid,
-          reason: errMessage,
-        },
-      })
-    ).boolean();
   }
 
   async _shutdown() {

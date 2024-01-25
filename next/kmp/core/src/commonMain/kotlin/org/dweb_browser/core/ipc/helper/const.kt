@@ -8,6 +8,14 @@ import org.dweb_browser.helper.IntEnumSerializer
 import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.toBase64ByteArray
 
+
+const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
+
+/**IpcPool*/
+data class IpcPoolMessageArgs(val message: IpcPoolPack, val ipc:Ipc)
+typealias OnIpcPoolMessage = Callback<IpcPoolMessageArgs>
+
+/**Ipc*/
 data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc)
 typealias OnIpcMessage = Callback<IpcMessageArgs>
 

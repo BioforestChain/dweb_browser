@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview
 
 import android.annotation.SuppressLint
 import androidx.webkit.WebMessagePortCompat
+import org.dweb_browser.core.ipc.helper.IWebMessageChannel
 
 @SuppressLint("RestrictedApi")
 class DWebMessageChannel internal constructor(

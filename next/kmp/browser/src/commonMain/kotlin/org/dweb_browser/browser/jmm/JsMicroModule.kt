@@ -9,15 +9,17 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.CommonAppManifest
-import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.IpcSupportProtocols
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.IpcOptions
+import org.dweb_browser.core.ipc.MessagePortIpc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
+import org.dweb_browser.core.ipc.helper.IpcError
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
@@ -26,13 +28,15 @@ import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.ipcMessageToJson
 import org.dweb_browser.core.ipc.helper.jsonToIpcMessage
+import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.ConnectResult
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.ModuleType
 import org.dweb_browser.core.module.connectAdapterManager
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.PermissionProvider
-import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
+import org.dweb_browser.dwebview.ipcWeb.ALL_MESSAGE_PORT_CACHE
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.JsonLoose
@@ -62,6 +66,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     ipc_support_protocols = IpcSupportProtocols(
       cbor = true, protobuf = false, raw = true
     )
+    type = ModuleType.JsModule
   }) {
 
   companion object {
@@ -126,12 +131,25 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
   private var processId: String? = null
   private var fetchIpc: Ipc? = null
 
-  val pid = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
+  private val pid = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
+
+  /**创建js文件流*/
   private suspend fun createNativeStream(): ReadableStreamIpc =
     withContext(ioAsyncScope.coroutineContext) {
       debugJsMM("createNativeStream", "pid=$pid, root=${metadata.server}")
       processId = pid
-      val streamIpc = ReadableStreamIpc(this@JsMicroModule, "code-server")
+      val streamIpc = kotlinIpcPool.create<ReadableStreamIpc>(
+        "code-server",
+        IpcOptions(this@JsMicroModule)
+      )
+      streamIpc.bindIncomeStream(
+        nativeFetch(
+          PureClientRequest(URLBuilder("file://js.browser.dweb/create-process").apply {
+            parameters["entry"] = metadata.server.entry
+            parameters["process_id"] = pid
+          }.buildUnsafeString(), PureMethod.POST, body = PureStreamBody(streamIpc.input.stream))
+        ).stream()
+      )
       streamIpc.onRequest { (request, ipc) ->
         debugJsMM("streamIpc.onRequest", "path=${request.uri.fullPath}")
         val response = if (request.uri.fullPath.endsWith("/")) {
@@ -142,7 +160,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
             "file://" + (metadata.server.root + request.uri.fullPath).replace(Regex("/{2,}"), "/")
           )
         }
-        ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
+        ipc.postMessage(IpcResponse.fromResponse(request.reqId, response, ipc))
       }
       streamIpc.bindIncomeStream(
         nativeFetch(
@@ -205,14 +223,14 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
             // 转发请求
             val request = ipcRequest.toPure().toClient()
             val response = nativeFetch(request)
-            val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
+            val ipcResponse = IpcResponse.fromResponse(ipcRequest.reqId, response, ipc)
             ipc.postMessage(ipcResponse)
           }
         }.onFailure {
           debugJsMM("onProxyRequest", "fail ${ipcRequest.uri} ${it}")
           ipc.postMessage(
             IpcResponse.fromText(
-              ipcRequest.req_id, 500, text = it.message ?: "", ipc = ipc
+              ipcRequest.reqId, 500, text = it.message ?: "", ipc = ipc
             )
           )
         }
@@ -248,6 +266,14 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
           if (targetIpc is BridgeAbleIpc) {
             ipcBridge(targetIpc.remote.mmid, targetIpc.bridgeOriginIpc)
+          if (targetIpc.remote.mmid != mmid) {
+            if (targetIpc.remote.type == ModuleType.JsModule) {
+              // 如果是jsMM互联，那么直接把port分配给两个人
+              ipcBridgeJsMM(mmid, targetIpc.remote.mmid)
+            } else {
+              // 如果是jsMM(self)连接NativeMM那么继续走桥接
+              ipcBridge(event.mmid, targetIpc)
+            }
           }
 
           /**
@@ -264,7 +290,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           )
           jsIpc.postMessage(IpcEvent.fromUtf8("dns/connect/done", Json.encodeToString(done)))
         } catch (e: Exception) {
-          ipcConnectFail(mmid, e);
+          jsIpc.postMessage(IpcError(503, e.message))
           printError("dns/connect", e)
         }
       }
@@ -343,19 +369,19 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
    * 桥接ipc到js内部：
    * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
    */
-  private fun _ipcBridge(fromMMID: MMID, targetIpc: Ipc?) = fromMMIDOriginIpcWM.getOrPut(fromMMID) {
-    PromiseOut<JmmIpc>().alsoLaunchIn(ioAsyncScope) {
-      debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
-      /**
-       * 向js模块发起连接
-       */
-      val portId = nativeFetch(
-        URLBuilder("file://js.browser.dweb/create-ipc").apply {
-          parameters["process_id"] = pid
-          parameters["mmid"] = fromMMID
-        }.buildUnsafeString()
-      ).int()
-      val toJmmIpc = JmmIpc(
+  private suspend fun ipcBridgeSelf(fromMMID: MMID): MessagePortIpc {
+    /**
+     * 向js模块发起连接
+     */
+    val portId = nativeFetch(
+      URLBuilder("file://js.browser.dweb/create-ipc").apply {
+        parameters["process_id"] = pid
+        parameters["mmid"] = fromMMID
+      }.buildUnsafeString()
+    ).int()
+
+    // 跟NativeMicroModule连接的才是需要转发桥接
+     val toJmmIpc = JmmIpc(
         portId,
         this@JsMicroModule,
         fromMMID,
@@ -364,46 +390,80 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       toJmmIpc.onClose {
         fromMMIDOriginIpcWM.remove(fromMMID)
       }
+      return toJmmIpc
+    // return kotlinIpcPool.create(
+    //   "native-ipcBridge",
+    //   IpcOptions(this@JsMicroModule, port = ALL_MESSAGE_PORT_CACHE[portId])
+    // )
+  }
 
-      /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理
-      if (targetIpc != null) {
-        /**
-         * 将两个消息通道间接互联
-         */
-        toJmmIpc.onMessage { (ipcMessage) ->
-          targetIpc.postMessage(ipcMessage)
-        }
-        targetIpc.onMessage { (ipcMessage) ->
-          toJmmIpc.postMessage(ipcMessage)
-        }
-        /**
-         * 监听关闭事件
-         */
-        toJmmIpc.onClose {
-          targetIpc.close()
-        }
-        targetIpc.onClose {
-          toJmmIpc.close()
+  /**桥接两个JsMM*/
+  private suspend fun ipcBridgeJsMM(fromMMID: MMID, toMMID: MMID): Boolean {
+    return nativeFetch(
+      URLBuilder("file://js.browser.dweb/create-ipc").apply {
+        parameters["process_id"] = pid
+        parameters["from_mmid"] = fromMMID
+        parameters["to_mmid"] = toMMID
+      }.buildUnsafeString()
+    ).boolean()
+  }
+
+  private fun ipcBridgeFactory(fromMMID: MMID, targetIpc: Ipc?) =
+    fromMMIDOriginIpcWM.getOrPut(fromMMID) {
+      PromiseOut<Ipc>().also { po ->
+        ioAsyncScope.launch {
+          try {
+            debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
+
+            val toJmmIpc = ipcBridgeSelf(fromMMID)
+            // 如果是jsMM相互连接，直接把port丢过去
+
+            /// 如果传入了 targetIpc，并且当互联当不是jsMM才会启动桥接
+            /// 那么启动桥接模式，我们会中转所有的消息给 targetIpc，包括关闭
+            /// 那么这个 targetIpc 理论上就可以作为 toJmmIpc 的代理
+            if (targetIpc != null) {
+              /**
+               * 将两个消息通道间接互联，这里targetIpc明确为NativeModule
+               */
+              toJmmIpc.onMessage { (ipcMessage) ->
+                targetIpc.postMessage(ipcMessage)
+              }
+              targetIpc.onMessage { (ipcMessage) ->
+                toJmmIpc.postMessage(ipcMessage)
+              }
+              /**
+               * 监听关闭事件
+               */
+              toJmmIpc.onClose {
+                fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
+                targetIpc.close()
+              }
+              targetIpc.onClose {
+                fromMMIDOriginIpcWM.remove(toJmmIpc.remote.mmid)
+                toJmmIpc.close()
+              }
+            } else {
+              toJmmIpc.onClose {
+                fromMMIDOriginIpcWM.remove(toJmmIpc.remote.mmid)
+              }
+            }
+            po.resolve(toJmmIpc);
+          } catch (e: Exception) {
+            debugJsMM("ipcBridgeFactory Error", e)
+            targetIpc?.postMessage(IpcError(503, e.message))
+            po.reject(e)
+          }
         }
       }
       toJmmIpc
     }
-  }
+
 
   private suspend fun ipcBridge(fromMMID: MMID, targetIpc: Ipc? = null) =
     withContext(ioAsyncScope.coroutineContext) {
-      return@withContext _ipcBridge(fromMMID, targetIpc).waitPromise()
+      return@withContext ipcBridgeFactory(fromMMID, targetIpc).waitPromise()
     }
 
-  private suspend fun ipcConnectFail(mmid: MMID, reason: Any): Boolean {
-    val errMessage = if (reason is Exception) {
-      reason.message + "\n" + (reason.message ?: "")
-    } else {
-      reason.toString()
-    }
-    val url = "file://js.browser.dweb/create-ipc-fail?process_id=$pid&mmid=$mmid&reason=$errMessage"
-    return nativeFetch(url).boolean()
-  }
 
   override suspend fun _shutdown() {
     debugJsMM("closeJsProcessSignal emit", "$mmid/$metadata")

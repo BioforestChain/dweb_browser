@@ -1,7 +1,5 @@
 package org.dweb_browser.browser.jsProcess
 
-//import org.dweb_browser.core.module.getAppContext
-//import org.dweb_browser.dwebview.engine.DWebViewEngine
 import io.ktor.http.fullPath
 import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Mutex
@@ -13,8 +11,10 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -63,7 +63,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           if (internalPath == "/bootstrap.js") {
             ipc.postMessage(
               IpcResponse.fromBinary(
-                request.req_id,
+                request.reqId,
                 200,
                 PureHeaders(JS_CORS_HEADERS),
                 JS_PROCESS_WORKER_CODE.await(),
@@ -73,14 +73,14 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           } else {
             ipc.postMessage(
               IpcResponse.fromText(
-                request.req_id, 404, PureHeaders(JS_CORS_HEADERS), "// no found $internalPath", ipc
+                request.reqId, 404, PureHeaders(JS_CORS_HEADERS), "// no found $internalPath", ipc
               )
             )
           }
         } else {
           val response = nativeFetch("file:///sys/browser/js-process.main${request.uri.fullPath}")
           ipc.postMessage(
-            IpcResponse.fromResponse(request.req_id, response, ipc)
+            IpcResponse.fromResponse(request.reqId, response, ipc)
           )
         }
       }
@@ -118,7 +118,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           ipc.onClose {
             closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.remote.mmid)
           }
-
           PromiseOut<Int>().also { processIdMap[processId] = it }
         }
         val result = createProcessAndRun(
@@ -147,7 +146,20 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         }.waitPromise()
 
         // 返回 port_id
-        createIpc(ipc, apis, ipcProcessID, mmid)
+        createIpc(apis, ipcProcessID, mmid)
+      },
+      /// 桥接两个JMM
+      "/bridge-ipc" bind PureMethod.GET by defineEmptyResponse {
+        val processId = request.query("process_id")
+        val fromMMid = request.query("from_mmid")
+        val toMMid = request.query("to_mmid")
+        val ipcProcessID = ipcProcessIdMapLock.withLock {
+          ipcProcessIdMap[ipc.remote.mmid]?.get(processId)
+            ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processId invalid")
+        }.waitPromise()
+
+        // 返回 port_id
+        bridgeIpc(apis, ipcProcessID, fromMMid, toMMid)
       },
       /// 关闭process
       "/close-all-process" bind PureMethod.GET by defineBooleanResponse {
@@ -157,19 +169,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           /// 强制关闭Ipc
           ipc.close()
         }
-      },
-      // ipc 创建错误
-      "/create-ipc-fail" bind PureMethod.GET by defineBooleanResponse {
-        val processId = request.query("process_id")
-        val processMap = ipcProcessIdMap[ipc.remote.mmid]?.get(processId)
-        debugJsProcess("create-ipc-fail", ipc.remote.mmid)
-        if (processMap === null) {
-          throw Exception("ipc:${ipc.remote.mmid}/processId:${processId} invalid")
-        }
-        val mmid = request.query("mmid")
-        val reason = request.query("reason")
-        apis.createIpcFail(processId, mmid, reason)
-        return@defineBooleanResponse false
       })
   }
 
@@ -194,9 +193,12 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     /**
      * 远端是代码服务，所以这里是 client 的身份
      */
-    val streamIpc = ReadableStreamIpc(ipc.remote, "code-proxy-server").also {
-      it.bindIncomeStream(requestMessage.body.toPureStream());
-    }
+    val streamIpc =
+      kotlinIpcPool.create<ReadableStreamIpc>(
+        "code-proxy-server",
+        IpcOptions(ipc.remote, stream = requestMessage.body.toPureStream())
+      )
+
     this.addToIpcSet(streamIpc)
 
     /**
@@ -222,8 +224,8 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
 
     codeProxyServerIpc.onRequest { (request, ipc) ->
       ipc.postResponse(
-        request.req_id,
-        // 转发给远端来处理
+        request.reqId,
+        // 转发给远端来处理 IpcServerRequest -> PureServerRequest -> PureClientRequest
         /// TODO 对代码进行翻译处理
         streamIpc.request(request.toPure().toClient()).let {
           /// 加入跨域配置
@@ -264,7 +266,8 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     /**
      * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
      *
-     * TODO 所有的 ipcMessage 应该都有 headers，这样我们在 workerIpcMessage.headers 中附带上当前的 processId，回来的 remoteIpcMessage.headers 同样如此，否则目前的模式只能代理一个 js-process 的消息。另外开 streamIpc 导致的翻译成本是完全没必要的
+     * TODO 所有的 ipcMessage 应该都有 headers，这样我们在 workerIpcMessage.headers 中附带上当前的 processId，
+     * 回来的 remoteIpcMessage.headers 同样如此，否则目前的模式只能代理一个 js-process 的消息。另外开 streamIpc 导致的翻译成本是完全没必要的
      */
     processHandler.ipc.onMessage { (workerIpcMessage) ->
       /**
@@ -272,6 +275,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
        */
       ipc.postMessage(workerIpcMessage)
     }
+    // TODO
     ipc.onMessage { (remoteIpcMessage) ->
       processHandler.ipc.postMessage(remoteIpcMessage)
     }
@@ -301,10 +305,20 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     val streamIpc: ReadableStreamIpc, val processHandler: ProcessHandler
   )
 
+  /**创建到worker的Ipc 如果是worker到worker互联，则每个人分配一个messageChannel的port*/
   private suspend fun createIpc(
-    ipc: Ipc, apis: JsProcessWebApi, process_id: Int, mmid: MMID
+    apis: JsProcessWebApi, processId: Int, mmid: MMID
   ): Int {
-    return apis.createIpc(process_id, mmid)
+    return apis.createIpc(processId, mmid)
+  }
+
+  private suspend fun bridgeIpc(
+    apis: JsProcessWebApi,
+    processId: Int,
+    fromMMid: MMID,
+    toMMid: MMID
+  ): Boolean {
+    return apis.bridgeIpc(processId, fromMMid, toMMid)
   }
 
   private suspend fun closeAllProcessByIpc(

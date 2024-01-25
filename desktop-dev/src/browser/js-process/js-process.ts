@@ -201,23 +201,6 @@ export class JsProcessNMM extends NativeMicroModule {
         const port_id = await this.createIpc(ipc, apis, await process_id_po.promise, mmid);
         return Response.json(port_id);
       })
-      /**
-       * 创建ipc失败的回调
-       * 之所以存在这个接口，是因为ipc的创建可能是由js-process内部自己发起的，而它是基于ipcEvent来发起连接指令，
-       * 因此它会自己等待 '/create-ipc' 发来的连接成功的消息，
-       * 因此如果失败了，我们也需要发送一个类似的指令告诉它
-       */
-      .get("/create-ipc-fail", async (event) => {
-        const { ipc } = event;
-        const args = query_createIpcFail(event.searchParams);
-        const process_id_po = ipcProcessIdMap.get(ipc.remote.mmid)?.get(args.process_id);
-        if (process_id_po === undefined) {
-          throw new Error(`ipc:${ipc.remote.mmid}/processId:${args.process_id} invalid`);
-        }
-        const process_id = await process_id_po.promise;
-        await apis.createIpcFail(process_id, args.mmid, args.reason);
-        return Response.json(true);
-      })
       .get("/close-all-process", async (event) => {
         const res = await this.closeAllProcessByIpc(apis, ipcProcessIdMap, event.ipc.remote.mmid);
         return Response.json(res);

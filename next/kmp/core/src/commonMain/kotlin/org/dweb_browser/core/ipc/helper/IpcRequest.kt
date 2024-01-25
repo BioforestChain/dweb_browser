@@ -34,7 +34,7 @@ const val PURE_CHANNEL_EVENT_PREFIX = "§"
 const val X_IPC_UPGRADE_KEY = "X-Dweb-Ipc-Upgrade-Key"
 
 class IpcClientRequest(
-  req_id: Int,
+  reqId: Int,
   url: String,
   method: PureMethod,
   headers: PureHeaders,
@@ -42,7 +42,7 @@ class IpcClientRequest(
   ipc: Ipc,
   override val from: Any? = null
 ) : IpcRequest(
-  req_id = req_id,
+  reqId = reqId,
   url = url,
   method = method,
   headers = headers,
@@ -52,14 +52,14 @@ class IpcClientRequest(
   companion object {
 
     fun fromText(
-      req_id: Int,
+      reqId: Int,
       url: String,
       method: PureMethod = PureMethod.GET,
       headers: PureHeaders = PureHeaders(),
       text: String,
       ipc: Ipc
     ) = IpcClientRequest(
-      req_id,
+      reqId,
       url,
       method,
       headers,// 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
@@ -68,14 +68,14 @@ class IpcClientRequest(
     );
 
     fun fromBinary(
-      req_id: Int,
+      reqId: Int,
       method: PureMethod,
       url: String,
       headers: PureHeaders = PureHeaders(),
       binary: ByteArray,
       ipc: Ipc
     ) = IpcClientRequest(
-      req_id,
+      reqId,
       url,
       method,
       headers.also {
@@ -87,7 +87,7 @@ class IpcClientRequest(
     )
 
     suspend fun fromStream(
-      req_id: Int,
+      reqId: Int,
       method: PureMethod,
       url: String,
       headers: PureHeaders = PureHeaders(),
@@ -95,7 +95,7 @@ class IpcClientRequest(
       ipc: Ipc,
       size: Long? = null
     ) = IpcClientRequest(
-      req_id,
+      reqId,
       url,
       method,
       headers.also {
@@ -109,9 +109,13 @@ class IpcClientRequest(
     )
 
     suspend fun fromRequest(
-      req_id: Int, ipc: Ipc, url: String, init: IpcRequestInit, from: Any? = null
+      reqId: Int,
+      ipc: Ipc,
+      url: String,
+      init: IpcRequestInit,
+      from: Any? = null
     ) = IpcClientRequest(
-      req_id,
+      reqId,
       url,
       init.method,
       init.headers,
@@ -121,13 +125,13 @@ class IpcClientRequest(
     )
 
     suspend fun PureClientRequest.toIpc(
-      req_id: Int,
+      reqId: Int,
       postIpc: Ipc,
     ): IpcClientRequest {
       val pureRequest = this
       if (pureRequest.hasChannel) {
         val eventNameBase =
-          "$PURE_CHANNEL_EVENT_PREFIX-${postIpc.uid}/${req_id}/${duplexAcc.inc().value}"
+          "$PURE_CHANNEL_EVENT_PREFIX-${postIpc.channelId}/${reqId}/${duplexAcc.inc().value}"
 
         debugIpc("ipcClient/hasChannel") { "create ipcEventBaseName:$eventNameBase => request:$pureRequest" }
         CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
@@ -148,7 +152,7 @@ class IpcClientRequest(
         }
 
         val ipcRequest = fromRequest(
-          req_id, postIpc, pureRequest.href,
+          reqId, postIpc, pureRequest.href,
           IpcRequestInit(
             pureRequest.method,
             IPureBody.Empty,
@@ -165,7 +169,7 @@ class IpcClientRequest(
         return ipcRequest
       }
       return fromRequest(
-        req_id, postIpc, pureRequest.href,
+        reqId, postIpc, pureRequest.href,
         IpcRequestInit(pureRequest.method, pureRequest.body, pureRequest.headers)
       )
     }
@@ -174,7 +178,7 @@ class IpcClientRequest(
   internal val server = LateInit<IpcServerRequest>()
   fun toServer(serverIpc: Ipc) = server.getOrInit {
     IpcServerRequest(
-      req_id = req_id,
+      reqId = reqId,
       url = url,
       method = method,
       headers = headers,
@@ -189,7 +193,7 @@ class IpcClientRequest(
 
 
 class IpcServerRequest(
-  req_id: Int,
+  reqId: Int,
   url: String,
   method: PureMethod,
   headers: PureHeaders,
@@ -198,7 +202,7 @@ class IpcServerRequest(
   override val from: Any? = null
 ) :
   IpcRequest(
-    req_id = req_id,
+    reqId = reqId,
     url = url,
     method = method,
     headers = headers,
@@ -265,7 +269,7 @@ class IpcServerRequest(
  *
  */
 sealed class IpcRequest(
-  val req_id: Int,
+  val reqId: Int,
   val url: String,
   val method: PureMethod,
   val headers: PureHeaders,
@@ -273,16 +277,9 @@ sealed class IpcRequest(
   val ipc: Ipc,
 ) : IpcMessage(IPC_MESSAGE_TYPE.REQUEST), IFrom {
 
-
   val uri by lazy { Url(url) }
 
-  init {
-    if (body is IpcBodySender) {
-      IpcBodySender.IPC.usableByIpc(ipc, body)
-    }
-  }
-
-  override fun toString() = "IpcRequest@$req_id/$method/$url".let { str ->
+  override fun toString() = "IpcRequest@$reqId/$method/$url".let { str ->
     if (debugIpc.isEnable) "$str{${
       headers.toList().joinToString(", ") { it.first + ":" + it.second }
     }}" + "" else str
@@ -382,14 +379,14 @@ sealed class IpcRequest(
   }
 
   val ipcReqMessage by lazy {
-    IpcReqMessage(req_id, method, url, headers.toMap(), body.metaBody)
+    IpcReqMessage(reqId, method, url, headers.toMap(), body.metaBody)
   }
 
 }
 
 @Serializable
 data class IpcReqMessage(
-  val req_id: Int,
+  val reqId: Int,
   val method: PureMethod,
   val url: String,
   val headers: MutableMap<String, String>,

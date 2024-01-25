@@ -83,6 +83,7 @@ class RunningApp(
 //      throw Exception("app代码异常，无法连接,请反馈后重新下载")
 //    }
 
+    ipc.awaitStart()
     ipc.postMessage(IpcEvent.createRenderer(newWin.id))
     return newWin
   }

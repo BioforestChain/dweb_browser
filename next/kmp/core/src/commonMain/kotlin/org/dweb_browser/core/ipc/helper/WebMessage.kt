@@ -1,4 +1,4 @@
-package org.dweb_browser.dwebview
+package org.dweb_browser.core.ipc.helper
 
 import org.dweb_browser.helper.Signal
 

@@ -8,7 +8,9 @@ import { IpcRequest } from "./IpcRequest.ts";
 import type { IpcResponse } from "./IpcResponse.ts";
 import {
   $IpcMessage,
+  $OnIpcErrorMessage,
   $OnIpcEventMessage,
+  $OnIpcLifeCycleMessage,
   $OnIpcRequestMessage,
   $OnIpcStreamMessage,
   IPC_MESSAGE_TYPE,
@@ -138,7 +140,7 @@ export abstract class Ipc {
     return this._onStreamSignal.listen(cb);
   }
 
-  private __onEventSignal = new CacheGetter(() => {
+  private _onEventSignal = new CacheGetter(() => {
     const signal = this._createSignal<$OnIpcEventMessage>(false);
     this.onMessage((event, ipc) => {
       if (event.type === IPC_MESSAGE_TYPE.EVENT) {
@@ -147,12 +149,37 @@ export abstract class Ipc {
     });
     return signal;
   });
-  private get _onEventSignal() {
-    return this.__onEventSignal.value;
-  }
 
   onEvent(cb: $OnIpcEventMessage) {
-    return this._onEventSignal.listen(cb);
+    return this._onEventSignal.value.listen(cb);
+  }
+
+  private _lifeCycleSignal = new CacheGetter(() => {
+    const signal = this._createSignal<$OnIpcLifeCycleMessage>(false);
+    this.onMessage((event, ipc) => {
+      if (event.type === IPC_MESSAGE_TYPE.LIFE_CYCLE) {
+        signal.emit(event, ipc);
+      }
+    });
+    return signal;
+  });
+
+  onLifeCycle(cb: $OnIpcLifeCycleMessage) {
+    return this._lifeCycleSignal.value.listen(cb);
+  }
+
+  private _errorSignal = new CacheGetter(() => {
+    const signal = this._createSignal<$OnIpcErrorMessage>(false);
+    this.onMessage((event, ipc) => {
+      if (event.type === IPC_MESSAGE_TYPE.ERROR) {
+        signal.emit(event, ipc);
+      }
+    });
+    return signal;
+  });
+
+  onError(cb: $OnIpcErrorMessage) {
+    return this._errorSignal.value.listen(cb);
   }
 
   abstract _doClose(): void;

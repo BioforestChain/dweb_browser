@@ -1,3 +1,59 @@
+## 关于当前环境
+
+```mermaid
+---
+title: dwebBrowser的三个环境与IpcPool的对应
+---
+flowchart LR
+    IpcPool1(IpcPool/kotlin)
+    jsWorker1(IpcPool/js-worker/每个worker环境隔离)
+    IpcPool3(IpcPool/plaoc前端)
+    IpcPool4(IpcPool/外部)
+    network((net))
+   IpcPool1 -- connectAdapter ipcBridge messagePort --- jsWorker1
+   IpcPool1 -- ktor --- network -- fetch/ws --- IpcPool3
+   jsWorker1 -- port1 MssageChannel port2 --- jsWorker1
+
+   network-.->jsWorker1;
+  IpcPool4-.->IpcPool1;
+```
+
+
+## 关于Ipc
+
+```mermaid
+---
+title: IpcPool
+---
+classDiagram
+    class IpcPool{
+      跟环境一一对应
+      fork()
+    }
+    IpcPool --|> Endpoint1: create(endpoint,option)
+    IpcPool --|> Endpoint2: create(endpoint,option)
+    IpcPool --|> Endpoint3: create(endpoint,option)
+    class NaviteIpc1{
+      channel
+    }
+    class MessagePortIpc{
+      port
+    }
+    class ReadableStreamIpc{
+      inputStream/outputStream
+    }
+    Endpoint1 --|> NaviteIpc1: Ipc(channeId,ipcPool)
+    NaviteIpc1 --|> NaviteIpc2: fork
+    Endpoint2 --|> MessagePortIpc: Ipc(channeId,ipcPool)
+    Endpoint3 --|> ReadableStreamIpc: Ipc(channeId,ipcPool)
+```
+
+### 目标
+1. IpcBody对应各个上下文的IpcPool更加清晰，并且可以针对上下文转发或者其他操作。
+2. 提供了标准，互相连接更方便
+3. 各司其职，连接在pool完成，ipc负责通信。
+4. 减少有些地方抽象一层ReadableStream的编解码
+
 ## 关于 IpcRequest 与 PureRequest 的关系
 
 ```mermaid

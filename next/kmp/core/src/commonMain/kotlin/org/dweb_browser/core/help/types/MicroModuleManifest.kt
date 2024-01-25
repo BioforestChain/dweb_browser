@@ -1,6 +1,7 @@
 package org.dweb_browser.core.help.types
 
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.module.ModuleType
 import org.dweb_browser.helper.PropMetas
 import org.dweb_browser.helper.PropMetasSerializer
 
@@ -24,6 +25,7 @@ class MicroModuleManifest private constructor(
         cbor = true, protobuf = true, raw = true
       )
     )
+    private val P_type = P.required<ModuleType>("type", ModuleType.NativeModule)
   }
 
 
@@ -34,7 +36,7 @@ class MicroModuleManifest private constructor(
     }
   }
   override var ipc_support_protocols by P_ipc_support_protocols(p)
-
+  override var type by P_type(p)
   override var id by P.getRequired<String>("id")(p) {
     p.set("mmid", value)
     afterWrite = {
@@ -48,5 +50,6 @@ class MicroModuleManifest private constructor(
 interface IMicroModuleManifest : ICommonAppManifest {
   var mmid: MMID
   var ipc_support_protocols: IpcSupportProtocols
+  var type: ModuleType
   fun toCommonAppManifest(): CommonAppManifest
 }
