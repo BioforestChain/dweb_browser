@@ -13,9 +13,9 @@ onMounted(() => {
 // router.push("/webview");
 // router.push("/splashscreen")
 // router.push("/serviceworker");
-router.push("/camera");
+// router.push("/shortcut");
 // router.push("/inputfile");
-// router.push("/barcodescanning");
+router.push("/barcodescanning");
 // router.push("/network");
 // router.push("/safearea");
 // router.push("/haptics");

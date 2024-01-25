@@ -26,6 +26,7 @@ export const routes = [
 
   { title: "device", path: "/device", component: () => import("./pages/Device.vue") },
   { title: "window", path: "/webview", component: () => import("./pages/Window.vue") },
+  { title: "shortcut", path: "/shortcut", component: () => import("./pages/Shortcut.vue") },
   { title: "motionSensors", path: "/motionSensors", component: () => import("./pages/MotionSensors.vue") },
 ];
 //satisfies (RouteRecordRaw & { title: string })[];

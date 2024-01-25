@@ -1,88 +1,46 @@
-
 export enum CameraDirection {
-  FRONT = "FRONT", // 前置摄像头
-  BACK = "BACK", // 后置摄像头
+  /**
+   * 前置摄像头
+   * @since 2.0.0
+   */
+  FRONT = "user",
+  /**
+   * 后置摄像头
+   * @since 2.0.0
+   */
+  BACK = "environment",
 }
 
-
 export enum SupportedFormat {
-  // BEGIN 1D Product
-  /**
-   * Android only, UPC_A is part of EAN_13 according to Apple docs
-   */
-  UPC_A = "UPC_A",
-
-  UPC_E = "UPC_E",
-
-  /**
-   * Android only
-   */
-  UPC_EAN_EXTENSION = "UPC_EAN_EXTENSION",
-
-  EAN_8 = "EAN_8",
-
-  EAN_13 = "EAN_13",
-  // END 1D Product
-
-  // BEGIN 1D Industrial
-  CODE_39 = "CODE_39",
-
-  /**
-   * iOS only
-   */
-  CODE_39_MOD_43 = "CODE_39_MOD_43",
-
-  CODE_93 = "CODE_93",
-
-  CODE_128 = "CODE_128",
-
-  /**
-   * Android only
-   */
-  CODABAR = "CODABAR",
-
-  ITF = "ITF",
-
-  /**
-   * iOS only
-   */
-  ITF_14 = "ITF_14",
-  // END 1D Industrial
-
-  // BEGIN 2D
-  AZTEC = "AZTEC",
-
-  DATA_MATRIX = "DATA_MATRIX",
-
-  /**
-   * Android only
-   */
-  MAXICODE = "MAXICODE",
-
-  PDF_417 = "PDF_417",
-
   QR_CODE = "QR_CODE",
-
-  /**
-   * Android only
-   */
-  RSS_14 = "RSS_14",
-
-  /**
-   * Android only
-   */
-  RSS_EXPANDED = "RSS_EXPANDED",
-  // END 2D
 }
 
 export interface ScanOptions {
   /**
-   * This parameter can be used to make the scanner only recognize specific types of barcodes.
-   *  If `targetedFormats` is _not specified_ or _left empty_, _all types_ of barcodes will be targeted.
-   *
-   * @since 1.2.0
+   * 图片偏转角度
+   * @since 2.0.0
    */
-  targetedFormats?: SupportedFormat[];
+  rotation?: number;
+  /**
+   * 选择前后摄像头
+   * @since 2.0.0
+   */
+  direction?: CameraDirection;
+  /**
+   * video显示宽度
+   * @since 2.0.0
+   */
+  width?: number;
+  /**
+   * video显示高度
+   * @since 2.0.0
+   */
+  height?: number;
+  /**
+   * 图片识别类型
+   * @since 2.0.0
+   */
+  formats?: SupportedFormat;
 }
 export type ScanResult = {
   hasContent: boolean;

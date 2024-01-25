@@ -25,8 +25,8 @@ import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
-import org.dweb_browser.platform.ios.BgPlaceholderView
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.platform.ios.BgPlaceholderView
 import platform.UIKit.UIView
 
 private var vcIdAcc by SafeInt(0);
@@ -107,25 +107,26 @@ class PureViewController(
       }
       ComposeUIViewController({
         delegate = object : ComposeUIViewControllerDelegate {
+          // 视图被加载后立即调用
           override fun viewDidLoad() {
             scope.launch { createSignal.emit(createParams) }
           }
-
+          //当视图控制器的视图即将被添加到视图层次结构中时触发
           override fun viewWillAppear(animated: Boolean) {
             scope.launch { resumeSignal.emit() }
           }
-
+          // 视图控制器的视图已经被添加到视图层次结构后调用
           override fun viewDidAppear(animated: Boolean) {
             backgroundView.value?.also { bgView ->
               bgView.superview?.sendSubviewToBack(bgView)
             }
             scope.launch { stopSignal.emit() }
           }
-
+          // 在视图即将从视图层次结构中移除时调用
           override fun viewWillDisappear(animated: Boolean) {
             println("QWQ viewWillDisappear animated=$animated")
           }
-
+          // 视图已经从视图层次结构中移除后会调用此函数
           override fun viewDidDisappear(animated: Boolean) {
             println("QWQ viewDidDisappear animated=$animated")
           }

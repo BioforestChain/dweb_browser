@@ -44,16 +44,12 @@ const onStop = defineLogAction(
 
 const taskPhoto = defineLogAction(
   async () => {
-    result.value = await barcodeScanner.startScanning();
+    result.value = await barcodeScanner.startScanning({
+      width:1280,
+      height:720
+    });
   },
   { name: "taskPhoto", args: [result], logPanel: $logPanel }
-);
-
-const getSupportedformats = defineLogAction(
-  async () => {
-    //result.value = await barcodeScanner.getSupportedFormats();
-  },
-  { name: "supportedFormats", args: [result], logPanel: $logPanel }
 );
 </script>
 

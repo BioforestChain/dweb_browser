@@ -26,7 +26,6 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
       "/process" byChannel { ctx ->
         var rotation = 0;
         for (frame in ctx) {
-
           when (frame) {
             is PureTextFrame -> rotation = frame.data.toFloatOrNull()?.toInt() ?: 0;
             is PureBinaryFrame -> {

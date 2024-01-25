@@ -2,7 +2,13 @@ import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { CloseWatcher } from "../close-watcher/index.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";
-import { BarcodeScannerPermission, CameraDirection, ScanResult, SupportedFormat } from "./barcode-scanning.type.ts";
+import {
+  BarcodeScannerPermission,
+  CameraDirection,
+  ScanOptions,
+  ScanResult,
+  SupportedFormat,
+} from "./barcode-scanning.type.ts";
 
 export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   static readonly tagName = "dweb-barcode-scanning";
@@ -10,7 +16,6 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 
   private _video: HTMLVideoElement | null = null;
   private _canvas: HTMLCanvasElement | null = null;
-  private _formats = SupportedFormat.QR_CODE;
   private _direction: string = CameraDirection.BACK;
   private _activity?: PromiseOut<string[]>;
   private _isCloceLock = false;
@@ -56,13 +61,16 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * 启动扫码
    * @returns
    */
-  async startScanning(rotation = 0, formats = SupportedFormat.QR_CODE): Promise<ScanResult> {
+  async startScanning(scanOptions?: ScanOptions): Promise<ScanResult> {
+    const rotation = scanOptions?.rotation ?? 0;
+    const formats = scanOptions?.formats ?? SupportedFormat.QR_CODE;
+    const direction = scanOptions?.direction ?? CameraDirection.BACK;
     try {
       if (!this._isCloceLock) {
         this.createClose();
       }
       await this.createElement();
-      const permission = await this._startVideo();
+      const permission = await this._startVideo(direction, scanOptions?.width, scanOptions?.height);
       let data: string[] = [];
       if (permission === BarcodeScannerPermission.UserAgree) {
         data = await this.taskPhoto(rotation, formats);
@@ -163,12 +171,13 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * 启动摄像
    * @returns
    */
-  private async _startVideo() {
+  private async _startVideo(direction: CameraDirection, width?: number, height?: number) {
     // 判断是否支持
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       const constraints: MediaStreamConstraints = {
-        video: { facingMode: this._direction },
+        video: { facingMode: direction, width: { exact: width }, height: { exact: height } },
       };
+      console.log("video window=>", width, height);
       return await navigator.mediaDevices
         .getUserMedia(constraints)
         .then(async (stream) => {
@@ -195,25 +204,26 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     if (!this._video) {
       throw new Error("not create video");
     }
-    this._video.srcObject = mediastream;
-    const videoTracks = mediastream.getVideoTracks();
-    if (videoTracks.length > 0 && this._canvas) {
-      this._canvas.captureStream(100);
-      const ctx = this._canvas.getContext("2d");
-      // 压缩为 100 * 100
-      const update = () =>
-        requestAnimationFrame(() => {
-          if (ctx && this._video) {
-            ctx.drawImage(this._video, 0, 0, this._canvas?.width ?? 480, this._canvas?.height ?? 360);
-            update();
-          }
-        });
-      update();
-    }
-    await this._video.play();
-    this._video?.parentElement?.setAttribute(
-      "style",
-      `
+    try {
+      this._video.srcObject = mediastream;
+      const videoTracks = mediastream.getVideoTracks();
+      if (videoTracks.length > 0 && this._canvas) {
+        this._canvas.captureStream(100);
+        const ctx = this._canvas.getContext("2d");
+        // 压缩为 100 * 100
+        const update = () =>
+          requestAnimationFrame(() => {
+            if (ctx && this._video) {
+              ctx.drawImage(this._video, 0, 0, this._canvas?.width ?? 480, this._canvas?.height ?? 360);
+              update();
+            }
+          });
+        update();
+      }
+      await this._video.play();
+      this._video?.parentElement?.setAttribute(
+        "style",
+        `
       position:fixed; top: 0; left: 0; width:100%; height: 100%; background-color: black;
       -webkit-transition:all 0.2s linear;
       -moz-transition:all 0.2s linear;
@@ -221,7 +231,10 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       -o-transition:all 0.2s linear;
       transition:all 0.2s linear;
       visibility: visible;`
-    );
+      );
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   private _stop() {
@@ -285,7 +298,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       this._video.setAttribute("autoplay", "true");
 
       const userAgent = navigator.userAgent.toLowerCase();
-      const isSafari = userAgent.includes("safari") && !userAgent.includes("chrome");
+      const isSafari = (userAgent.includes("safari") || userAgent.includes("iphone")) && !userAgent.includes("chrome");
 
       // iOS 上的 Safari 需要设置 autoplay、muted 和 playsinline 属性，video.play() 才能成功
       // 如果没有这些属性，this.video.play() 将抛出 NotAllowedError
