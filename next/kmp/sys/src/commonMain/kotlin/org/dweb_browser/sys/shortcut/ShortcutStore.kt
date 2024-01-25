@@ -24,12 +24,6 @@ data class SystemShortcut(
   }
 }
 
-internal fun SystemShortcut.swap(item: SystemShortcut) {
-  val curOrder = this.order
-  this.order = item.order
-  item.order = curOrder
-}
-
 class ShortcutStore(nmm: NativeMicroModule) {
   private val shortcutStore = nmm.createStore("shortcut", false)
 

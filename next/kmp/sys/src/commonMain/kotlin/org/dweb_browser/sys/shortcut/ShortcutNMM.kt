@@ -25,7 +25,7 @@ val debugShortcut = Debugger("Shortcut")
 
 class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
   private val shortcutManage = ShortcutManage()
-  private val shortcutList = mutableStateListOf<SystemShortcut>()
+
   init {
     short_name = "Shortcut"
     categories = listOf(
@@ -43,7 +43,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val store = ShortcutStore(this)
-    loadShortcut(store)
+    val shortcutList = loadShortcut(store)
 
     routes(
       "/registry" bind PureMethod.GET by defineBooleanResponse {
@@ -74,21 +74,21 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
             modifier = modifier,
             windowRenderScope = this,
             shortcutList = shortcutList,
+            onDragMove = { from, to ->
+              shortcutList.add(to.index, shortcutList.removeAt(from.index))
+            },
+            onDragEnd = { _, _ ->
+              ioAsyncScope.launch {
+                shortcutManage.registryShortcut(shortcutList)
+                shortcutManage.saveToSystemPreference(shortcutList)
+              }
+            },
             onRemove = { item ->
               ioAsyncScope.launch {
                 shortcutList.removeAll { it.uri == item.uri }
                 shortcutManage.registryShortcut(shortcutList)
+                shortcutManage.saveToSystemPreference(shortcutList)
                 store.delete(item.uri)
-              }
-            },
-            onSwapItem = { current, swap ->
-              ioAsyncScope.launch {
-                val currentItem = shortcutList[current]
-                val swapItem = shortcutList[swap]
-                currentItem.swap(swapItem)
-                shortcutList[current] = swapItem
-                shortcutList[swap] = currentItem
-                shortcutManage.registryShortcut(shortcutList)
               }
             }
           )
@@ -100,13 +100,14 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
   override suspend fun _shutdown() {
   }
 
-  private fun loadShortcut(store: ShortcutStore) {
+  private suspend fun loadShortcut(store: ShortcutStore): MutableList<SystemShortcut> {
+    val shortcutList = mutableStateListOf<SystemShortcut>()
+    val map = store.getAll()
+    val list = map.values.sortedBy { it.order }
+    shortcutList.addAll(list)
+    shortcutManage.saveToSystemPreference(shortcutList)
+    shortcutManage.registryShortcut(shortcutList)
     ioAsyncScope.launch {
-      val map = store.getAll()
-      val list = map.values.sortedBy { it.order }
-      shortcutList.addAll(list)
-      shortcutManage.saveToSystemPreference(shortcutList)
-      shortcutManage.registryShortcut(shortcutList)
       // 监听 dns 中应用的变化来实时更新快捷方式列表
       doObserve("file://dns.std.dweb/observe/install-apps") {
         // 对排序app列表进行更新
@@ -126,6 +127,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
         }
       }
     }
+    return shortcutList
   }
 
   private suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {

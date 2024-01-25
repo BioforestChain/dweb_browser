@@ -54,6 +54,7 @@ import org.dweb_browser.browser.jmm.JmmHistoryController
 import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmTabs
+import org.dweb_browser.helper.compose.NoDataRender
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.formatDatestampByMilliseconds
 import org.dweb_browser.helper.toSpaceSize
@@ -107,9 +108,7 @@ fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
   }
 
   if (list.isEmpty()) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      Text(text = BrowserI18nResource.no_apps_data())
-    }
+    NoDataRender(BrowserI18nResource.no_apps_data())
     return
   }
 

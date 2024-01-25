@@ -1,95 +1,88 @@
 package org.dweb_browser.sys.shortcut
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AppShortcut
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.compose.ListSwipeItem
-import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.helper.compose.NoDataRender
+import org.dweb_browser.helper.compose.reorder.ItemPosition
+import org.dweb_browser.helper.compose.reorder.ReorderAbleItem
+import org.dweb_browser.helper.compose.reorder.detectReorderAfterLongPress
+import org.dweb_browser.helper.compose.reorder.rememberReorderAbleLazyListState
+import org.dweb_browser.helper.compose.reorder.reorderAble
 import org.dweb_browser.sys.window.core.WindowRenderScope
 
 @Composable
 fun ShortcutManagerRender(
-  modifier: Modifier,
+  modifier: Modifier = Modifier,
   windowRenderScope: WindowRenderScope,
   shortcutList: MutableList<SystemShortcut>,
-  onRemove: (SystemShortcut) -> Unit,
-  onSwapItem: (Int, Int) -> Unit
+  onDragMove: (ItemPosition, ItemPosition) -> Unit,
+  onDragEnd: (startIndex: Int, endIndex: Int) -> Unit,
+  onRemove: (SystemShortcut) -> Unit
 ) {
   Box(
     modifier = modifier
       .fillMaxSize()
       .requiredSize(
-        (windowRenderScope.width / windowRenderScope.scale).dp,
-        (windowRenderScope.height / windowRenderScope.scale).dp
+        width = (windowRenderScope.width / windowRenderScope.scale).dp,
+        height = (windowRenderScope.height / windowRenderScope.scale).dp
       ) // 原始大小
       .scale(windowRenderScope.scale)
   ) {
-    val size = shortcutList.size
-    if (size == 0) {
-      Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-          horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-          Icon(
-            Icons.Rounded.Info,
-            "no data",
-            modifier = Modifier.size(42.dp),
-            tint = LocalContentColor.current.copy(alpha = 0.5f)
-          )
-          Spacer(Modifier.height(24.dp))
-          Text(
-            text = ShortcutI18nResource.render_no_data(),
-            style = MaterialTheme.typography.labelMedium
-          )
-        }
-      }
-      return
+    if (shortcutList.isEmpty()) {
+      NoDataRender(ShortcutI18nResource.render_no_data())
+    } else {
+      ShortcutListView(Modifier.fillMaxWidth(), shortcutList, onDragMove, onDragEnd, onRemove)
     }
+  }
+}
 
-    val b1 = MaterialTheme.colorScheme.background
-    val b2 = MaterialTheme.colorScheme.outlineVariant
-    LazyColumn {
-      itemsIndexed(shortcutList) { index, item ->
+@Composable
+private fun ShortcutListView(
+  modifier: Modifier = Modifier,
+  shortcutList: MutableList<SystemShortcut>,
+  onDragMove: (ItemPosition, ItemPosition) -> Unit,
+  onDragEnd: (startIndex: Int, endIndex: Int) -> Unit,
+  onRemove: (SystemShortcut) -> Unit
+) {
+  val state = rememberReorderAbleLazyListState(onMove = onDragMove, onDragEnd = onDragEnd)
+  LazyColumn(
+    state = state.listState,
+    modifier = modifier.reorderAble(state)
+  ) {
+    items(shortcutList, key = { it.uri }) { item ->
+      ReorderAbleItem(state, item.uri) { dragging ->
+        val elevation = animateDpAsState(if (dragging) 8.dp else 0.dp, label = "")
         ListSwipeItem(
-          modifier = Modifier.fillMaxWidth().background(b2).padding(bottom = 1.dp).height(72.dp),
-          background = {
-            Box(modifier = Modifier.fillMaxSize().background(b2))
-          },
+          modifier = Modifier.detectReorderAfterLongPress(state)
+            .shadow(elevation.value).fillMaxWidth().height(72.dp),
           onRemove = { onRemove(item) }
         ) {
           ListItem(
             modifier = Modifier.fillMaxSize(),
-            colors = ListItemDefaults.colors(containerColor = b1),
+            colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.background),
             headlineContent = {
-              Text(item.title)
+              Text(text = item.title)
             },
             leadingContent = {
               item.iconImage?.let { iconImage ->
@@ -99,33 +92,6 @@ fun ShortcutManagerRender(
                   contentDescription = "shortcut"
                 )
               } ?: Icon(Icons.Default.AppShortcut, contentDescription = "shortcut")
-            },
-            trailingContent = {
-              Row(
-                modifier = Modifier.width(64.dp),
-                verticalAlignment = Alignment.CenterVertically
-              ) {
-                Icon(
-                  modifier = Modifier.size(32.dp).clickableWithNoEffect {
-                    if (index > 0) {
-                      onSwapItem(index, index - 1)
-                    }
-                  },
-                  imageVector = Icons.Default.ArrowUpward,
-                  contentDescription = "MoveUp",
-                  tint = if (index == 0) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onBackground
-                )
-                Icon(
-                  modifier = Modifier.size(32.dp).clickableWithNoEffect {
-                    if (index < size - 1) {
-                      onSwapItem(index, index + 1)
-                    }
-                  },
-                  imageVector = Icons.Default.ArrowDownward,
-                  contentDescription = "MoveDown",
-                  tint = if (index == size - 1) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.onBackground
-                )
-              }
             }
           )
         }
