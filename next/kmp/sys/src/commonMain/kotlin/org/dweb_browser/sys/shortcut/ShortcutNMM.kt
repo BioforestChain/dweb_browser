@@ -70,16 +70,28 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
       getMainWindow().apply {
         state.setFromManifest(this@ShortcutNMM)
         windowAdapterManager.provideRender(id) { modifier ->
-          ShortcutManagerRender(modifier, this, shortcutList) { current, swap ->
-            ioAsyncScope.launch {
-              val currentItem = shortcutList[current]
-              val swapItem = shortcutList[swap]
-              currentItem.swap(swapItem)
-              shortcutList[current] = swapItem
-              shortcutList[swap] = currentItem
-              shortcutManage.registryShortcut(shortcutList)
+          ShortcutManagerRender(
+            modifier = modifier,
+            windowRenderScope = this,
+            shortcutList = shortcutList,
+            onRemove = { item ->
+              ioAsyncScope.launch {
+                shortcutList.removeAll { it.uri == item.uri }
+                shortcutManage.registryShortcut(shortcutList)
+                store.delete(item.uri)
+              }
+            },
+            onSwapItem = { current, swap ->
+              ioAsyncScope.launch {
+                val currentItem = shortcutList[current]
+                val swapItem = shortcutList[swap]
+                currentItem.swap(swapItem)
+                shortcutList[current] = swapItem
+                shortcutList[swap] = currentItem
+                shortcutManage.registryShortcut(shortcutList)
+              }
             }
-          }
+          )
         }
       }
     }
