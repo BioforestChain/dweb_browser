@@ -7,7 +7,7 @@ import {
   CameraDirection,
   ScanOptions,
   ScanResult,
-  SupportedFormat,
+  ScannerContoller,
 } from "./barcode-scanning.type.ts";
 
 export class HTMLDwebBarcodeScanningElement extends HTMLElement {
@@ -16,12 +16,23 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 
   private _video: HTMLVideoElement | null = null;
   private _canvas: HTMLCanvasElement | null = null;
-  private _direction: string = CameraDirection.BACK;
+  private controller: ScannerContoller | undefined;
+  // private _formats: SupportedFormat | undefined;
   private _activity?: PromiseOut<string[]>;
+  private _rotation?: number = 0;
   private _isCloceLock = false;
 
   constructor() {
     super();
+  }
+  async connectedCallback() {
+    if (!this.controller) {
+      this.controller = await this.plugin.createProcesser();
+    }
+  }
+
+  disconnectedCallback() {
+    this.controller?.stop();
   }
 
   private createClose() {
@@ -62,9 +73,14 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * @returns
    */
   async startScanning(scanOptions?: ScanOptions): Promise<ScanResult> {
-    const rotation = scanOptions?.rotation ?? 0;
-    const formats = scanOptions?.formats ?? SupportedFormat.QR_CODE;
+    const rotation = scanOptions?.rotation;
     const direction = scanOptions?.direction ?? CameraDirection.BACK;
+    // const formats = scanOptions?.formats ?? SupportedFormat.QR_CODE;
+    // 有更改的时候才发送更新
+    if (rotation && this._rotation != rotation) {
+      this._rotation = rotation;
+      this.controller?.setRotation(this._rotation);
+    }
     try {
       if (!this._isCloceLock) {
         this.createClose();
@@ -73,7 +89,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       const permission = await this._startVideo(direction, scanOptions?.width, scanOptions?.height);
       let data: string[] = [];
       if (permission === BarcodeScannerPermission.UserAgree) {
-        data = await this.taskPhoto(rotation, formats);
+        data = await this.taskPhoto();
       }
       return {
         hasContent: data.length !== 0,
@@ -102,9 +118,9 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     }
     this._stop();
   }
-  taskPhoto(rotation: number, formats: SupportedFormat) {
+  taskPhoto() {
     if (this._activity === undefined) {
-      this._taskPhoto((this._activity = new PromiseOut()), rotation, formats);
+      this._taskPhoto((this._activity = new PromiseOut()));
     } else {
       console.warn("already running taskPhoto");
     }
@@ -115,7 +131,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * 不断识图的任务
    * @returns
    */
-  private async _taskPhoto(task: PromiseOut<string[]>, rotation: number, formats: SupportedFormat) {
+  private async _taskPhoto(task: PromiseOut<string[]>) {
     if (this._canvas === null) {
       console.error("service close！");
       return [];
@@ -123,8 +139,6 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     try {
       task.resolve(
         (async () => {
-          const controller = await this.plugin.createProcesser(formats);
-          controller.setRotation(rotation);
           const toBlob = (quality = 0.8) => {
             const blob = new PromiseOut<Blob>();
             const canvas = this._canvas;
@@ -152,8 +166,8 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
           };
           while (task.readyState === PromiseOut.PENDING) {
             await waitFrame();
-            const result = await controller.process(await toBlob());
-            if (result.length != 0) {
+            const result = await this.controller?.process(await toBlob());
+            if (result && result.length != 0) {
               return result.map((it) => it.data);
             }
           }

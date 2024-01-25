@@ -42,6 +42,13 @@ export interface ScanOptions {
    */
   formats?: SupportedFormat;
 }
+
+export type ScannerContoller = {
+  setRotation(rotation: number): void;
+  process(data: Uint8Array | Blob): Promise<BarcodeResult[]>;
+  stop(): void;
+};
+
 export type ScanResult = {
   hasContent: boolean;
 
@@ -54,4 +61,22 @@ export enum BarcodeScannerPermission {
   UserReject = "UserReject", //用户拒绝
   UserAgree = "UserAgree", // 用户同意
   UserError = "UserError", // 用户手机版本太低，不支持扫码
+}
+export interface BarcodeResult {
+  data: string;
+  boundingBox: Rect;
+  topLeft: Point;
+  topRight: Point;
+  bottomLeft: Point;
+  bottomRight: Point;
+}
+interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+interface Point {
+  x: number;
+  y: number;
 }

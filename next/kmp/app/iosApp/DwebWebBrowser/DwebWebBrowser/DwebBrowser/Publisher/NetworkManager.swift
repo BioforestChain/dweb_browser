@@ -22,7 +22,7 @@ public class NetworkManager: ObservableObject {
         monitor.start(queue: queue)
         monitor.pathUpdateHandler = { [weak self] path in
             DispatchQueue.main.async {
-                Log( "network status is \(path.status)")
+//                 Log( "network status is \(path.status)")
                 self?.isNetworkAvailable = path.status == .satisfied
             }
         }

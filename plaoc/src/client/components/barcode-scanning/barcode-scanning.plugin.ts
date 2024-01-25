@@ -1,26 +1,7 @@
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { SupportedFormat } from "./barcode-scanning.type.ts";
-
-export interface BarcodeResult {
-  data: string;
-  boundingBox: Rect;
-  topLeft: Point;
-  topRight: Point;
-  bottomLeft: Point;
-  bottomRight: Point;
-}
-interface Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-interface Point {
-  x: number;
-  y: number;
-}
+import { BarcodeResult, SupportedFormat } from "./barcode-scanning.type.ts";
 export class BarcodeScannerPlugin extends BasePlugin {
   constructor() {
     super("barcode-scanning.sys.dweb");
@@ -111,12 +92,6 @@ export class BarcodeScannerPlugin extends BasePlugin {
     return await this.fetchApi(`/stop`).boolean();
   }
 }
-
-export type ScannerContoller = {
-  setRotation(rotation: number): void;
-  process(data: Uint8Array | Blob): Promise<BarcodeResult[]>;
-  stop(): void;
-};
 
 export type DeCodeType = {
   rawValue: string;

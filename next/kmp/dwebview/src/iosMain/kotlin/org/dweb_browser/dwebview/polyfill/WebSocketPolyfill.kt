@@ -1,9 +1,6 @@
 package org.dweb_browser.dwebview.polyfill
 
 import io.ktor.websocket.CloseReason
-import io.ktor.websocket.Frame
-import io.ktor.websocket.WebSocketSession
-import io.ktor.websocket.close
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.std.dns.httpFetch
@@ -14,6 +11,7 @@ import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toKString
 import org.dweb_browser.helper.toNSString
 import org.dweb_browser.pure.http.PureBinaryFrame
+import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.pure.http.websocket
 import platform.Foundation.NSArray
@@ -29,7 +27,7 @@ val debugIosWebSocket = Debugger("ios-ws-polyfill")
 
 class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
   WKScriptMessageHandlerWithReplyProtocol {
-  private val wsMap = mutableMapOf<Int, WebSocketSession>()
+  private val wsMap = mutableMapOf<Int, PureChannelContext>()
 
   private class WKScriptMessageEvent(
     private val msgBody: Any,
@@ -61,6 +59,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                 val url = (message.objectAtIndex(2u) as NSString).toKString()
                 val pureChannel = httpFetch.client.websocket(url)
                 pureChannel.start().apply {
+                  wsMap[wsId] = this
                   sendOpen(wsId)
                   for (frame in income) {
                     when (frame) {
@@ -93,17 +92,19 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
 
             "frame-text" -> {
               wsMap[wsId]!!.run {
-                val fin = (message.objectAtIndex(2u) as NSNumber).boolValue
-                val data = (message.objectAtIndex(3u) as NSString).toKString().encodeToByteArray()
-                outgoing.send(Frame.Text(fin, data))
+                // TODO 是否是最后一个消息
+                val fin = (message.objectAtIndex(2u) as NSNumber).intValue
+                val data = (message.objectAtIndex(3u) as NSString).toKString()
+                outgoing.send(PureTextFrame(data))
               }
             }
 
             "frame-binary" -> {
               wsMap[wsId]!!.run {
+                // TODO 是否是最后一个消息
                 val fin = (message.objectAtIndex(2u) as NSNumber).boolValue
                 val data = (message.objectAtIndex(3u) as NSString).toKString().toBase64ByteArray()
-                outgoing.send(Frame.Binary(fin, data))
+                outgoing.send(PureBinaryFrame(data))
               }
             }
 
@@ -112,7 +113,8 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                 val reasonCode = (message.objectAtIndex(2u) as NSNumber?)?.shortValue
                 val reasonMessage = (message.objectAtIndex(3u) as NSString?)?.toKString()
                 close(
-                  CloseReason(reasonCode ?: CloseReason.Codes.NORMAL.code, reasonMessage ?: "")
+                  cause = Throwable((reasonCode ?: CloseReason.Codes.NORMAL.code).toString()),
+                  reason = CancellationException(reasonMessage)
                 )
               }
             }
@@ -137,10 +139,6 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
         "arg1".toNSString() to arg1?.toNSString(),
         "arg2".toNSString() to arg2?.toNSString(),
       )
-//      engine.callAsyncJavaScript<Unit>(
-//        functionBody = "console.log(`webkit.messageHandlers.websocket.event.dispatchEvent(new MessageEvent('message',{data:[$wsId,'$cmd',arg1,arg2]}))`)",
-//        arguments = null
-//      )
       debugIosWebSocket("sendMessage", "wsId=$wsId cmd=$cmd")
       runCatching {
         engine.awaitAsyncJavaScript<Unit>(

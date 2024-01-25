@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
-import LogPanel, { defineLogAction } from "../components/LogPanel.vue";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 import { HTMLDwebBarcodeScanningElement, barcodeScannerPlugin, type ScannerContoller } from "../plugin";
 
 const title = "Scanner";
@@ -9,12 +9,12 @@ const title = "Scanner";
 const $logPanel = ref<typeof LogPanel>();
 const $barcodeScannerPlugin = ref<HTMLDwebBarcodeScanningElement>();
 
-// let console: Console;
+let console: Console;
 let scanner = barcodeScannerPlugin;
 let barcodeScanner: HTMLDwebBarcodeScanningElement;
 let scannerServer: ScannerContoller;
 onMounted(async () => {
-  // console = toConsole($logPanel);
+  console = toConsole($logPanel);
   barcodeScanner = $barcodeScannerPlugin.value!;
   scannerServer = await scanner.createProcesser();
 });
@@ -45,8 +45,8 @@ const onStop = defineLogAction(
 const taskPhoto = defineLogAction(
   async () => {
     result.value = await barcodeScanner.startScanning({
-      width:1280,
-      height:720
+      width: 1280,
+      height: 720,
     });
   },
   { name: "taskPhoto", args: [result], logPanel: $logPanel }

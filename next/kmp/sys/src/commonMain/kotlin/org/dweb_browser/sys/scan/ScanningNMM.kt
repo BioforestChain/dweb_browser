@@ -38,6 +38,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
                 debugScanning("/process byChannel", e.stackTraceToString())
                 emptyList()
               }
+              debugScanning("/process=result",result[0].data)
               // 不论 result 是否为空数组，都进行响应
               ctx.sendJson(result)
             }
