@@ -142,6 +142,7 @@ class DWebView(
     withMainContext {
       engine.destroy()
       engine.navigationDelegate = null
+      engine.UIDelegate = null
       engine.removeFromSuperview()
       engine.dwebNavigationDelegate.webViewWebContentProcessDidTerminate(webView = engine)
       engine.mainScope.cancel(null)

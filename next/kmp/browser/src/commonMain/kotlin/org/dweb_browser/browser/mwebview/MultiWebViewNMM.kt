@@ -101,7 +101,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
       win.onClose {
         controllerMap.remove(remoteMmid)
       }
-      MultiWebViewController(win, ipc, remoteMm, this)
+      MultiWebViewController(win, ipc, this, remoteMm)
     }
 
     Pair(controller.openWebView(url), controller)
