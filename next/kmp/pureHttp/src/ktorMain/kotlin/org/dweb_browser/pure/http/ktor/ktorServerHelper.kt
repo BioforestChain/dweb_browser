@@ -20,6 +20,7 @@ import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.pure.http.PureStringBody
+import org.dweb_browser.pure.http.debugKtor
 import org.dweb_browser.pure.http.isWebSocket
 
 suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {

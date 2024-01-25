@@ -44,7 +44,6 @@ import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.pure.http.PureTextFrame
-import org.dweb_browser.pure.http.ktor.isWebSocket
 import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.pure.http.websocket
 import kotlin.random.Random
@@ -624,7 +623,7 @@ fun findDwebGateway(request: PureServerRequest): DwebGatewayInfo? {
   }
   val x_dweb_host = query_x_dweb_host ?: header_auth_host ?: header_x_dweb_host ?: header_host
   return x_dweb_host?.let { host ->
-    val isWs = request.isWebSocket()
+    val isWs = request.isWebSocket
     val protocol = when (is_https) {
       true -> if (isWs) URLProtocol.WSS else URLProtocol.HTTPS
       false -> if (isWs) URLProtocol.WS else URLProtocol.HTTP

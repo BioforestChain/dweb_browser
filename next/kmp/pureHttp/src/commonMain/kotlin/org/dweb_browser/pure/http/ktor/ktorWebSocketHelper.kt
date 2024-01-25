@@ -8,6 +8,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.pure.http.PureFinData
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureFrame
@@ -36,9 +37,9 @@ suspend fun pipeToPureChannel(
     ws.close()
   }
   val finBinary =
-    FinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
+    PureFinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
   val finText =
-    FinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
+    PureFinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
   /// 将从客户端收到的数据，转成 PureFrame 的标准传输到 pureChannel 中
   for (frame in ws.incoming) {// 注意，这里ws.incoming要立刻进行，不能在launch中异步执行，否则ws将无法完成连接建立
     debugPureChannel("WebSocketToPureChannel") { "ws-to-income:$frame/$url" }

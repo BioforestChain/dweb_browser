@@ -7,67 +7,12 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.writeAvailable
-import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.SafeInt
-import org.dweb_browser.helper.readByteArray
-import org.dweb_browser.pure.http.DEFAULT_BUFFER_SIZE
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStreamBody
-import org.dweb_browser.pure.http.isWebSocket
-
-val debugKtor = Debugger("ktor")
-
-var debugStreamAccId by SafeInt(1)
-
-private suspend fun ByteReadPacket.copyToWithFlush(
-  output: ByteWriteChannel, bufferSize: Int = DEFAULT_BUFFER_SIZE
-): Long {
-  val id = debugStreamAccId++
-  debugKtor("copyToWithFlush", "SS[$id] start")
-  var bytesCopied: Long = 0
-//  val buffer = ByteArray(bufferSize)
-  try {
-    do {
-      when (val canReadSize = remaining) {
-        0L, -1L -> {
-          debugKtor("copyToWithFlush", "SS[$id] no byte!($canReadSize)")
-          output.flush()
-          break
-        }
-
-        else -> {
-          debugKtor("copyToWithFlush", "SS[$id] can bytes($canReadSize)")
-          val buffer = readByteArray()
-
-          debugKtor("copyToWithFlush", "SS[$id] ${buffer.size}/$canReadSize bytes")
-          if (buffer.isNotEmpty()) {
-            bytesCopied += buffer.size
-            output.writeAvailable(src = buffer)
-            output.flush()
-          } else {
-            break
-          }
-        }
-      }
-    } while (true)
-  } catch (e: Throwable) {
-    // 有异常，那么可能是 output 的写入出现的异常，这时候需要将 input 也给关闭掉，因为已经不再读取了
-    close()
-    debugKtor("InputStream.copyToWithFlush", "", e)
-  }
-  debugKtor("copyToWithFlush", "SS[$id] end")
-  return bytesCopied
-}
-
-fun PureRequest.isWebSocket() = isWebSocket(this.method, this.headers)
 
 fun PureClientRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequestBuilder ->
   httpRequestBuilder.fromPureClientRequest(this)

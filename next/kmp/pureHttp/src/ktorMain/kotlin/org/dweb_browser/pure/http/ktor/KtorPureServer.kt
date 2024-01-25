@@ -44,7 +44,7 @@ open class KtorPureServer(
                 val url = rawRequest.href
                 var pureRequest = rawRequest
                 var pureChannelDeferred: CompletableDeferred<PureChannel>? = null
-                if (pureRequest.isWebSocket()) {
+                if (pureRequest.isWebSocket) {
                   pureRequest = pureRequest.copy(channel = CompletableDeferred<PureChannel>().also {
                     pureChannelDeferred = it
                   })

@@ -1,6 +1,6 @@
-package org.dweb_browser.pure.http.ktor
+package org.dweb_browser.pure.http
 
-class FinData<T : Any>(val concat: (List<T>) -> T) {
+class PureFinData<T : Any>(val concat: (List<T>) -> T) {
   private val chunks = mutableListOf<T>();
   fun append(chunk: T, fin: Boolean): T? = when {
     fin -> when {

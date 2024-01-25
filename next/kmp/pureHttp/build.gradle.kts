@@ -43,6 +43,7 @@ kotlin {
   kmpNodeJsTarget(project) {
     dependencies {
       implementation(libs.ktor.client.js)
+      implementation(npm("ws", "^8.16.0"))
     }
   }
 }

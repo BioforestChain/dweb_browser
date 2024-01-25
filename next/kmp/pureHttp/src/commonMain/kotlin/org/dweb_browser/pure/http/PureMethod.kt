@@ -26,6 +26,7 @@ enum class PureMethod(val method: String, val ktorMethod: HttpMethod) {
 
   companion object {
     val ALL_VALUES = PureMethod.entries.associateBy { it.method }
-    fun from(ktorMethod: HttpMethod) = entries.first { it.ktorMethod == ktorMethod }
+    fun from(ktorMethod: HttpMethod) = from(ktorMethod.value)
+    fun from(method: String) = ALL_VALUES[method.uppercase()] ?: GET
   }
 }

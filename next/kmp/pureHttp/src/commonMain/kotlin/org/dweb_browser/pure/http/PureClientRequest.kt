@@ -86,6 +86,8 @@ sealed class PureRequest : PureUrl, IFrom {
     href.toIpcUrl()
   }
 
+  val isWebSocket get() = isWebSocket(this.method, this.headers)
+
   private val channelPreparer get() = this.channel ?: throw Exception("no support as channel");
 
   val hasChannel get() = this.channel != null
