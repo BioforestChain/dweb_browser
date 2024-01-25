@@ -12,6 +12,7 @@ import node.http.IncomingMessage
 import node.http.ServerEvent
 import node.http.ServerOptions
 import node.http.createServer
+import node.net.Socket
 import npm.ws.WebSocket.WebSocket
 import npm.ws.WebSocket.WebSocketServer
 import org.dweb_browser.helper.consumeEachArrayRange
@@ -68,7 +69,7 @@ actual class HttpPureServer actual constructor(actual val onRequest: HttpPureSer
         val pureChannelDeferred = CompletableDeferred<PureChannel>()
         val pureRequest =
           req.asPureRequest("127.0.0.1:${portDeferred.await()}", pureChannelDeferred)
-        val pureResponse = onRequest(pureRequest) ?: PureResponse(HttpStatusCode.GatewayTimeout)
+        val pureResponse = onRequest(pureRequest) ?: PureResponse(HttpStatusCode.WS_BAD_GATEWAY)
         when (pureResponse.status.value) {
           /// 如果是200响应头，说明是传统的响应模式，这时候只处理输出，websocket的incoming数据完全忽视
           200 -> {
@@ -113,8 +114,12 @@ actual class HttpPureServer actual constructor(actual val onRequest: HttpPureSer
           }
 
           else -> {
-            socket.write("HTTP/1.1 ${pureResponse.status.value} ${pureResponse.status.description}\r\n\r\n");
-            socket.end(pureResponse.body.toPureString())
+            val errorInfo =
+              "HTTP/1.1 ${pureResponse.status.value} ${pureResponse.status.description}\r\n\r\n"
+            (socket as Socket).apply {
+              write(errorInfo);
+              end()
+            }
           }
         }
       }

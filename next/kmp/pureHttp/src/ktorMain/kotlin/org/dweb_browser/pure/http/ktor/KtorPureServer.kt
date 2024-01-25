@@ -22,6 +22,7 @@ import org.dweb_browser.pure.http.HttpPureServerOnRequest
 import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureResponse
+import org.dweb_browser.pure.http.WS_BAD_GATEWAY
 
 val debugHttpPureServer = Debugger("httpPureServer")
 
@@ -49,7 +50,10 @@ open class KtorPureServer(
                     pureChannelDeferred = it
                   })
                 }
-                val response = onRequest(pureRequest) ?: PureResponse(HttpStatusCode.GatewayTimeout)
+                val response = onRequest(pureRequest) ?: when {
+                  pureRequest.hasChannel -> PureResponse(HttpStatusCode.WS_BAD_GATEWAY)
+                  else -> PureResponse(HttpStatusCode.BadRequest)
+                }
 
                 if (pureRequest.hasChannel) {
                   /// 如果是101响应头，那么使用WebSocket来作为双工的通讯标准进行传输，这里使用PureChannel来承担这层抽象

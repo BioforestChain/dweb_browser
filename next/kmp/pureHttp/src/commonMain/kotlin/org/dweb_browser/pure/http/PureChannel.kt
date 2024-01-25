@@ -1,5 +1,6 @@
 package org.dweb_browser.pure.http
 
+import io.ktor.http.HttpStatusCode
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 import kotlinx.atomicfu.updateAndGet
@@ -149,3 +150,20 @@ class PureBinaryFrame(val data: ByteArray) : PureFrame()
 //@Serializable
 //@SerialName("pong")
 //data object PurePongFrame : PureFrame()
+
+
+val HttpStatusCode.Companion.WS_CLOSE_NORMAL by lazy { HttpStatusCode(1000, "Close normal") }
+val HttpStatusCode.Companion.WS_CLOSE_GOING_AWAY by lazy { HttpStatusCode(1001, "Close going away") }
+val HttpStatusCode.Companion.WS_CLOSE_PROTOCOL_ERROR by lazy { HttpStatusCode(1002, "Close protocol error") }
+val HttpStatusCode.Companion.WS_CLOSE_UNSUPPORTED by lazy { HttpStatusCode(1003, "Close unsupported") }
+val HttpStatusCode.Companion.WS_CLOSED_NO_STATUS by lazy { HttpStatusCode(1005, "Closed no status") }
+val HttpStatusCode.Companion.WS_CLOSE_ABNORMAL by lazy { HttpStatusCode(1006, "Close abnormal") }
+val HttpStatusCode.Companion.WS_UNSUPPORTED_PAYLOAD by lazy { HttpStatusCode(1007, "Unsupported payload") }
+val HttpStatusCode.Companion.WS_POLICY_VIOLATION by lazy { HttpStatusCode(1008, "Policy violation") }
+val HttpStatusCode.Companion.WS_CLOSE_TOO_LARGE by lazy { HttpStatusCode(1009, "Close too large") }
+val HttpStatusCode.Companion.WS_MANDATORY_EXTENSION by lazy { HttpStatusCode(1010, "Mandatory extension") }
+val HttpStatusCode.Companion.WS_SERVER_ERROR by lazy { HttpStatusCode(1011, "Server error") }
+val HttpStatusCode.Companion.WS_SERVICE_RESTART by lazy { HttpStatusCode(1012, "Service restart") }
+val HttpStatusCode.Companion.WS_TRY_AGAIN_LATER by lazy { HttpStatusCode(1013, "Try again later") }
+val HttpStatusCode.Companion.WS_BAD_GATEWAY by lazy { HttpStatusCode(1014, "Bad gateway") }
+val HttpStatusCode.Companion.WS_TLS_HANDSHAKE_FAIL by lazy { HttpStatusCode(1015, "TLS handshake fail") }

@@ -147,11 +147,11 @@ ktor-io-wasm = { group = "io.ktor", name = "ktor-io", version.ref = "ktor-wasm-v
 ktor-http-wasm = { group = "io.ktor", name = "ktor-http", version.ref = "ktor-wasm-version" }
 
 # JavaScript
-kotlin-js = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-js", version = "1.0.0-pre.685" }
-kotlin-browser = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-browser", version = "1.0.0-pre.685" }
-kotlin-web = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-web", version = "1.0.0-pre.685" }
-kotlin-node = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-node", version = "18.16.12-pre.685" }
-kotlin-electron = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-electron", version = "24.6.3-pre.685" }
+kotlin-js = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-js", version = "1.0.0-pre.690" }
+kotlin-browser = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-browser", version = "1.0.0-pre.690" }
+kotlin-web = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-web", version = "1.0.0-pre.690" }
+kotlin-node = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-node", version = "20.11.5-pre.690" }
+kotlin-electron = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-electron", version = "24.6.3-pre.690" }
 
 
 accompanist-webview = { group = "com.google.accompanist", name = "accompanist-webview", version.ref = "accompanist" }
