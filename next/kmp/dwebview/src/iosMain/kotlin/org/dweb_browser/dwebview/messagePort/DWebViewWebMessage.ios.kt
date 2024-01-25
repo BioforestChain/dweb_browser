@@ -3,7 +3,7 @@ package org.dweb_browser.dwebview.messagePort
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.dweb_browser.dwebview.DWebMessage
+import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import platform.Foundation.NSNumber

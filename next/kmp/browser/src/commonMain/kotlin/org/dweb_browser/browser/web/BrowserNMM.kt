@@ -85,6 +85,20 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     )
   }
 
+  private val API_PREFIX = "/api/"
+  private suspend fun createBrowserWebServer(): HttpDwebServer {
+    val browserServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = ""))
+    browserServer.listen().onRequest { (request, ipc) ->
+      val pathName = request.uri.encodedPath
+      debugBrowser("createBrowserWebServer", pathName)
+      if (!pathName.startsWith(API_PREFIX)) {
+        val response = nativeFetch("file:///sys/browser/web${pathName}?mode=stream")
+        ipc.postMessage(IpcResponse.fromResponse(request.reqId, response, ipc))
+      }
+    }
+    return browserServer
+  }
+
   /**
    * 用来加载WebLink数据的，并且监听是否添加到桌面操作
    */

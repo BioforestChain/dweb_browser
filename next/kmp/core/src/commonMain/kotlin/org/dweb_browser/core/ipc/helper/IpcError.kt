@@ -4,9 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class IpcError(
-  val channelId: Int,
   val errorCode: Int,
-  val message: String = "",
+  val message: String? = null,
 ) : IpcMessage(IPC_MESSAGE_TYPE.ERROR) {
-  override fun toString() = "IpcError(channelId=$channelId,errorCode=$errorCode,message=$message)"
+  override fun toString() = "IpcError(errorCode=$errorCode,message=$message)"
 }

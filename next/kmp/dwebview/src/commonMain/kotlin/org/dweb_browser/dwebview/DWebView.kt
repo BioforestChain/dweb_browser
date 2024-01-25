@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.ipc.helper.IWebMessageChannel
+import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Debugger

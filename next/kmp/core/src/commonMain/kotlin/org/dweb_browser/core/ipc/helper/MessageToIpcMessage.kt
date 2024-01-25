@@ -33,8 +33,8 @@ fun bytesToIpcMessage(data: ByteArray, ipc: Ipc): Any {
   ) {
     return data
   }
-
-  return jsonToIpcMessage(data.decodeToString(), ipc)
+  val pack = jsonToIpcPack(data.decodeToString())
+  return IpcPoolPack(pack.pid, jsonToIpcPoolPack(pack.ipcMessageString, ipc))
 }
 
 /***
@@ -43,22 +43,27 @@ fun bytesToIpcMessage(data: ByteArray, ipc: Ipc): Any {
  */
 private class IpcMessageType(val type: IPC_MESSAGE_TYPE)
 
-@OptIn(ExperimentalSerializationApi::class)
-fun cborToIpcMessage(data: ByteArray, ipc: Ipc): Any {
-  if (data.contentEquals(IpcMessageConst.closeCborByteArray) || data.contentEquals(IpcMessageConst.pingCborByteArray) || data.contentEquals(
-      IpcMessageConst.pongCborByteArray
-    )
+fun unByteSpecial(data: ByteArray): ByteArray? {
+  // 判断特殊的字节
+  if (data.contentEquals(IpcMessageConst.closeCborByteArray) ||
+    data.contentEquals(IpcMessageConst.pingCborByteArray) ||
+    data.contentEquals(IpcMessageConst.pongCborByteArray)
   ) {
     return data
   }
+  return null
+}
 
+@OptIn(ExperimentalSerializationApi::class)
+fun cborToIpcMessage(data: ByteArray, ipc: Ipc): IpcMessage {
   try {
+    // 解析出对象
     val ipcMessage = CborLoose.decodeFromByteArray<IpcMessageType>(data)
     return when (ipcMessage.type) {
       IPC_MESSAGE_TYPE.REQUEST -> Cbor.decodeFromByteArray<IpcReqMessage>(data).let {
         // 这里是指接收到数据而反序列化出 IpcRequest，所以不是发起者，而是响应者，因此是 IpcServerRequest
         IpcServerRequest(
-          it.req_id,
+          it.reqId,
           it.url,
           it.method,
           PureHeaders(it.headers),
@@ -87,9 +92,16 @@ fun cborToIpcMessage(data: ByteArray, ipc: Ipc): Any {
       IPC_MESSAGE_TYPE.ERROR -> Cbor.decodeFromByteArray<IpcError>(data)
     }
   } catch (e: Exception) {
-    return data
+    e.printStackTrace()
+    return IpcError(400, e.message)
   }
 }
+
+@OptIn(ExperimentalSerializationApi::class)
+fun cborToIpcPoolPack(pack: ByteArray) = run { Cbor.decodeFromByteArray<PackIpcMessage>(pack) }
+
+@OptIn(ExperimentalSerializationApi::class)
+fun ipcPoolPackToCbor(pack: PackIpcMessage) = run { Cbor.encodeToByteArray<PackIpcMessage>(pack) }
 
 @OptIn(ExperimentalSerializationApi::class)
 fun ipcMessageToCbor(data: IpcMessage) = when (data) {
@@ -109,35 +121,45 @@ fun ipcMessageToCbor(data: IpcMessage) = when (data) {
   is IpcError -> Cbor.encodeToByteArray<IpcError>(data)
 }
 
-fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
+fun unStringSpecial(data: String): String? {
   if (data == "close" || data == "ping" || data == "pong") {
     return data
   }
+  return null
+}
 
+fun jsonToIpcPack(data: String): IpcPoolPackString {
+  return Json.decodeFromString<IpcPoolPackString>(data)
+}
+
+fun jsonToIpcPoolPack(data: String, ipc: Ipc): IpcMessage {
   try {
-    val typeInfo = Regex(""""type"\s*:\s*(\d+)""").find(data) ?: return data
+    val typeInfo = Regex(""""type"\s*:\s*(\d+)""").find(data)
+      ?: throw Exception("jsonToIpcMessage: parsing failed packet=>$data")
     return when (JsonLoose.decodeFromString<IPC_MESSAGE_TYPE>(typeInfo.groupValues[1])) {
-      IPC_MESSAGE_TYPE.REQUEST -> Json.decodeFromString<IpcReqMessage>(data).let {
-        // 这里是指接收到数据而反序列化出 IpcRequest，所以不是发起者，而是响应者，因此是 IpcServerRequest
-        IpcServerRequest(
-          it.req_id,
-          it.url,
-          it.method,
-          PureHeaders(it.headers),
-          IpcBodyReceiver.from(it.metaBody, ipc),
-          ipc
-        )
-      }
+      IPC_MESSAGE_TYPE.REQUEST -> Json.decodeFromString<IpcReqMessage>(data)
+        .let {
+          // 这里是指接收到数据而反序列化出 IpcRequest，所以不是发起者，而是响应者，因此是 IpcServerRequest
+          IpcServerRequest(
+            it.reqId,
+            it.url,
+            it.method,
+            PureHeaders(it.headers),
+            IpcBodyReceiver.from(it.metaBody, ipc),
+            ipc
+          )
+        }
 
-      IPC_MESSAGE_TYPE.RESPONSE -> Json.decodeFromString<IpcResMessage>(data).let {
-        IpcResponse(
-          it.req_id,
-          it.statusCode,
-          PureHeaders(it.headers),
-          IpcBodyReceiver.from(it.metaBody, ipc),
-          ipc
-        )
-      }
+      IPC_MESSAGE_TYPE.RESPONSE -> Json.decodeFromString<IpcResMessage>(data)
+        .let {
+          IpcResponse(
+            it.req_id,
+            it.statusCode,
+            PureHeaders(it.headers),
+            IpcBodyReceiver.from(it.metaBody, ipc),
+            ipc
+          )
+        }
 
       IPC_MESSAGE_TYPE.EVENT -> Json.decodeFromString<IpcEvent>(data)
       IPC_MESSAGE_TYPE.STREAM_DATA -> Json.decodeFromString<IpcStreamData>(data)
@@ -149,24 +171,27 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
       IPC_MESSAGE_TYPE.ERROR -> Json.decodeFromString<IpcError>(data)
     }
   } catch (e: Exception) {
-    printError("jsonToIpcMessage=>",e.message)
-    return data
+    e.printStackTrace()
+    return IpcError(500, e.message)
   }
 }
 
-fun ipcMessageToJson(data: IpcMessage) = when (data) {
-  is IpcRequest -> Json.encodeToString(data.ipcReqMessage)
-  is IpcResponse -> Json.encodeToString(data.ipcResMessage)
-  is IpcStreamData -> Json.encodeToString(data.jsonAble)
-  is IpcEvent -> Json.encodeToString(data.jsonAble)
-  is IpcEventJsonAble -> Json.encodeToString(data)
-  is IpcReqMessage -> Json.encodeToString(data)
-  is IpcResMessage -> Json.encodeToString(data)
-  is IpcStreamAbort -> Json.encodeToString(data)
-  is IpcStreamDataJsonAble -> Json.encodeToString(data)
-  is IpcStreamEnd -> Json.encodeToString(data)
-  is IpcStreamPaused -> Json.encodeToString(data)
-  is IpcStreamPulling -> Json.encodeToString(data)
-  is IpcLifeCycle -> Json.encodeToString(data)
-  is IpcError -> Json.encodeToString(data)
+fun ipcPoolPackToJson(pack: IpcPoolPack): String {
+  val ipcMessageString = when (pack.ipcMessage) {
+    is IpcRequest -> Json.encodeToString(pack.ipcMessage.ipcReqMessage)
+    is IpcResponse -> Json.encodeToString(pack.ipcMessage.ipcResMessage)
+    is IpcStreamData -> Json.encodeToString(pack.ipcMessage.jsonAble)
+    is IpcEvent -> Json.encodeToString(pack.ipcMessage.jsonAble)
+    is IpcEventJsonAble -> Json.encodeToString(pack.ipcMessage)
+    is IpcReqMessage -> Json.encodeToString(pack.ipcMessage)
+    is IpcResMessage -> Json.encodeToString(pack.ipcMessage)
+    is IpcStreamAbort -> Json.encodeToString(pack.ipcMessage)
+    is IpcStreamDataJsonAble -> Json.encodeToString(pack.ipcMessage)
+    is IpcStreamEnd -> Json.encodeToString(pack.ipcMessage)
+    is IpcStreamPaused -> Json.encodeToString(pack.ipcMessage)
+    is IpcStreamPulling -> Json.encodeToString(pack.ipcMessage)
+    is IpcLifeCycle -> Json.encodeToString(pack.ipcMessage)
+    is IpcError -> Json.encodeToString(pack.ipcMessage)
+  }
+  return Json.encodeToString(IpcPoolPackString(pack.pid, ipcMessageString))
 }

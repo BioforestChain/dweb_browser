@@ -5,7 +5,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.CommonAppManifest
@@ -28,6 +27,10 @@ typealias NativeOptions = MutableMap<String, String>
 
 enum class MMState {
   BOOTSTRAP, SHUTDOWN,
+}
+
+enum class ModuleType {
+  JsModule, NativeModule
 }
 
 val debugMicroModule = Debugger("MicroModule")
@@ -75,22 +78,18 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
   private suspend fun afterBootstrap(bootstrapContext: BootstrapContext) {
     debugMicroModule("afterBootstrap", "ready: $mmid, ${_ipcSet.size}")
+    // TODO waterbang
     onConnect { (ipc) ->
-      ipc.readyInMicroModule("onConnect")
+      ipc.awaitStart()
     }
+    // 等待mm连接池中的ipc都连接完成
     for (ipc in _ipcSet) {
-      ipc.readyInMicroModule("afterBootstrap")
+      ipc.awaitStart()
     }
     this.runningStateLock.resolve()
     readyLock.unlock()
   }
 
-  private fun Ipc.readyInMicroModule(tag: String) {
-    debugMicroModule("ready/$tag", "(self)$mmid=>${remote.mmid}(remote)")
-    ioAsyncScope.launch {
-      this@readyInMicroModule.readyPingPong(this@MicroModule)
-    }
-  }
 
   private val lifecycleLock = Mutex()
 
@@ -157,17 +156,17 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   val onAfterShutdown = _afterShutdownSignal.toListener()
 
   /**
-   * 连接池
+   * MicroModule连接池
    */
   private val _ipcSet = mutableSetOf<Ipc>();
 
-  fun addToIpcSet(ipc: Ipc): Boolean {
+  suspend fun addToIpcSet(ipc: Ipc): Boolean {
     debugMicroModule(
       "addToIpcSet",
       "$mmid => ${ipc.remote.mmid}, ${runningStateLock.isResolved}:${runningStateLock.value}"
     )
     if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
-      ipc.readyInMicroModule("addToIpcSet")
+      ipc.awaitStart()
     }
     return if (this._ipcSet.add(ipc)) {
       ipc.onClose {

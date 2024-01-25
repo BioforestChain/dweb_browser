@@ -1,17 +1,18 @@
 import { ChangeableMap } from "@dweb-browser/desktop/helper/ChangeableMap.ts";
 import { PromiseOut } from "@dweb-browser/desktop/helper/PromiseOut.ts";
 
+interface $JsMMFactory {
+  env_script_url: string;
+  worker: Worker;
+  fetch_port: MessagePort;
+}
+
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
 // 也可以用在其他的 .html 文件中 但是内容需要部分的修改
 // 如果我们使用其他的 ***.html 文件作为渲染进程总的主线程，同样需要用这个来协调 js-worker 同 native 之间通信；
-const ALL_PROCESS_MAP = new ChangeableMap<
-  number,
-  {
-    env_script_url: string;
-    worker: Worker;
-    fetch_port: MessagePort;
-  }
->();
+const ALL_PROCESS_MAP = new ChangeableMap<number, $JsMMFactory>();
+// 用来记录mmid对应的jsProcess
+const MMID_PROCESS = new ChangeableMap<string, number>();
 let acc_process_id = 0;
 const allocProcessId = () => acc_process_id++;
 
@@ -86,7 +87,9 @@ const createProcess = async (
 
   /// 保存 js-process
   ALL_PROCESS_MAP.set(process_id, { worker, fetch_port, env_script_url });
-
+  const mmid = JSON.parse(metadata_json).mmid;
+  console.log("createJsprocess=>", mmid);
+  MMID_PROCESS.set(mmid, process_id);
   /// TODO 使用 weaklock 来检测线程是否唤醒
 
   /// 这些是 js 的对象，返回是要返回到 原生环境里
@@ -108,7 +111,19 @@ const createProcess = async (
  */
 const createIpc = async (process_id: number, mmid: string, ipc_port: MessagePort, env_json = "{}") => {
   const process = _forceGetProcess(process_id);
+  await _processFactory(process, mmid, ipc_port, env_json);
+};
 
+/**
+ * 桥接两个JsMM，避免转发消耗性能
+ * @param mmid
+ */
+const bridgeIpc = async (mmid: string, ipc_port: MessagePort, env_json = "{}") => {
+  const process = _getJsProcess(mmid);
+  await _processFactory(process, mmid, ipc_port, env_json);
+};
+
+const _processFactory = async (process: $JsMMFactory, mmid: string, ipc_port: MessagePort, env_json = "{}") => {
   process.worker.postMessage(["ipc-connect", mmid, env_json], [ipc_port]);
   /// 等待连接任务完成
   const connect_ready_po = new PromiseOut<void>();
@@ -123,11 +138,6 @@ const createIpc = async (process_id: number, mmid: string, ipc_port: MessagePort
   return;
 };
 
-const createIpcFail = async (process_id: number, mmid: string, reason: string) => {
-  const process = _forceGetProcess(process_id);
-  process.worker.postMessage(["ipc-connect-fail", mmid, reason]);
-};
-
 // 根据 process_id 获取进程
 const _forceGetProcess = (process_id: number) => {
   const process = ALL_PROCESS_MAP.get(process_id);
@@ -135,6 +145,14 @@ const _forceGetProcess = (process_id: number) => {
     throw new Error(`no found worker by id: ${process_id}`);
   }
   return process;
+};
+
+const _getJsProcess = (mmid: string) => {
+  const processId = MMID_PROCESS.get(mmid);
+  if (processId === undefined) {
+    throw new Error(`no found worker by mmid: ${mmid}`);
+  }
+  return _forceGetProcess(processId);
 };
 
 /**
@@ -184,7 +202,6 @@ export const APIS = {
   createProcess,
   runProcessMain,
   createIpc,
-  createIpcFail,
   destroyProcess,
 };
 export type $RunMainConfig = {

@@ -1,6 +1,7 @@
 import { simpleDecoder, simpleEncoder } from "../../helper/encoding.ts";
-import type { Ipc } from "./ipc.ts";
+import type { IpcError } from "./IpcError.ts";
 import type { IpcEvent } from "./IpcEvent.ts";
+import type { IpcLifeCycle } from "./IpcLifeCycle.ts";
 import type { IpcReqMessage, IpcRequest } from "./IpcRequest.ts";
 import type { IpcResMessage, IpcResponse } from "./IpcResponse.ts";
 import type { IpcStreamAbort } from "./IpcStreamAbort.ts";
@@ -8,6 +9,7 @@ import type { IpcStreamData } from "./IpcStreamData.ts";
 import type { IpcStreamEnd } from "./IpcStreamEnd.ts";
 import type { IpcStreamPaused } from "./IpcStreamPaused.ts";
 import type { IpcStreamPulling } from "./IpcStreamPulling.ts";
+import type { Ipc } from "./ipc.ts";
 
 export const enum IPC_METHOD {
   GET = "GET",
@@ -84,6 +86,10 @@ export const enum IPC_MESSAGE_TYPE {
   STREAM_ABORT,
   /** 类型：事件 */
   EVENT,
+  /**错误响应 */
+  ERROR,
+  /**生命周期 */
+  LIFE_CYCLE,
 }
 
 /**
@@ -103,15 +109,28 @@ export const enum IPC_ROLE {
   CLIENT = "client",
 }
 
+export const enum IPC_STATE {
+  OPENING = 1,
+  OPEN = 2,
+  CLOSING = 3,
+  CLOSED = 4,
+}
+
 export class IpcMessage<T extends IPC_MESSAGE_TYPE> {
   constructor(readonly type: T) {}
 }
 
 /** 接收到的消息，可传输的数据 */
-export type $IpcTransferableMessage = IpcReqMessage | IpcResMessage | IpcEvent | $IpcStreamMessage;
+export type $IpcTransferableMessage =
+  | IpcReqMessage
+  | IpcResMessage
+  | IpcEvent
+  | $IpcStreamMessage
+  | IpcError
+  | IpcLifeCycle;
 
 /** 发送的消息 */
-export type $IpcMessage = IpcRequest | IpcResponse | IpcEvent | $IpcStreamMessage;
+export type $IpcMessage = IpcRequest | IpcResponse | IpcEvent | $IpcStreamMessage | IpcError | IpcLifeCycle;
 
 export type $IpcStreamMessage = IpcStreamData | IpcStreamPulling | IpcStreamPaused | IpcStreamEnd | IpcStreamAbort;
 
@@ -134,6 +153,18 @@ export type $OnIpcEventMessage = (
 export type $OnIpcStreamMessage = (
   /// 这里只会有两种类型的数据
   message: $IpcStreamMessage,
+  ipc: Ipc
+) => unknown;
+
+export type $OnIpcLifeCycleMessage = (
+  /// 这里只会有两种类型的数据
+  message: IpcLifeCycle,
+  ipc: Ipc
+) => unknown;
+
+export type $OnIpcErrorMessage = (
+  /// 这里只会有两种类型的数据
+  message: IpcError,
   ipc: Ipc
 ) => unknown;
 

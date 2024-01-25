@@ -16,7 +16,9 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.by
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.ReadableStreamIpc
+import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.debugFetch
@@ -125,7 +127,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     }
 
     selfIpc.onRequest { (ipcRequest, ipc) ->
-      println(ipcRequest.req_id)
+      println(ipcRequest.reqId)
     }
 
     val token = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
@@ -544,18 +546,19 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   /**
    *  绑定流监听
    */
-  private fun listen(
+  private suspend fun listen(
     token: String, message: PureServerRequest, routes: List<CommonRoute>
   ): PureStream {
     debugHttp("LISTEN", tokenMap.keys.toList())
     val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
     debugHttp("LISTEN/start", "host: ${gateway.urlInfo.host}, token: $token")
 
-    val streamIpc = ReadableStreamIpc(
-      gateway.listener.mainIpc.remote, "http-gateway/${gateway.urlInfo.host}"
+    val streamIpc = kotlinIpcPool.create<ReadableStreamIpc>(
+      "http-gateway/${gateway.urlInfo.host}",
+      IpcOptions(gateway.listener.mainIpc.remote)
     )
-    /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
     streamIpc.bindIncomeStream(message.body.toPureStream())
+    /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
     /// 自己nmm销毁的时候，ipc也会被全部销毁
     this.addToIpcSet(streamIpc)
     /// 自己创建的，就要自己销毁：这个listener被销毁的时候，streamIpc也要进行销毁

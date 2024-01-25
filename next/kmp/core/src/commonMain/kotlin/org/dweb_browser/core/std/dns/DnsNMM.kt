@@ -141,6 +141,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   private suspend fun connectTo(
     fromMM: MicroModule, toMPID: MPID, reason: PureRequest
   ) = mmConnectsMapLock.withLock {
+    // 找到要连接的模块
     val toMicroModule = query(toMPID, fromMM) ?: throw Throwable("not found app->$toMPID")
     debugDNS(
       "connectTo",
