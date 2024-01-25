@@ -15,4 +15,9 @@ class PureFinData<T : Any>(val concat: (List<T>) -> T) {
       null
     }
   }
+
+  companion object {
+    fun text() = PureFinData<String> { list -> list.reduce { acc, bytes -> acc + bytes } }
+    fun binary() = PureFinData<ByteArray> { list -> list.reduce { acc, bytes -> acc + bytes } }
+  }
 }

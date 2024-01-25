@@ -12,6 +12,7 @@ import org.dweb_browser.helper.toKString
 import org.dweb_browser.helper.toNSString
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureChannelContext
+import org.dweb_browser.pure.http.PureFinData
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.pure.http.websocket
 import platform.Foundation.NSArray
@@ -52,6 +53,8 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
           val wsId = (message.objectAtIndex(0u) as NSNumber).intValue
           val cmd = (message.objectAtIndex(1u) as NSString).toKString()
           debugIosWebSocket("scriptMessageChannel") { "wsId=$wsId cmd=$cmd message=$message" }
+          var pureTextFinData: PureFinData<String>? = null
+          var pureBinaryFinData: PureFinData<ByteArray>? = null
 
           when (cmd) {
             "connect" -> engine.ioScope.launch {
@@ -92,19 +95,39 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
 
             "frame-text" -> {
               wsMap[wsId]!!.run {
-                // TODO 是否是最后一个消息
-                val fin = (message.objectAtIndex(2u) as NSNumber).intValue
+                val fin = (message.objectAtIndex(2u) as NSNumber).boolValue
+                if (!fin && pureTextFinData == null) {
+                  pureTextFinData = PureFinData.text()
+                }
                 val data = (message.objectAtIndex(3u) as NSString).toKString()
-                outgoing.send(PureTextFrame(data))
+                val pureFrame = when (val finData = pureTextFinData) {
+                  null -> PureTextFrame(data)
+                  else -> {
+                    finData.append(data, fin)?.let { PureTextFrame(it) }
+                  }
+                }
+                if (pureFrame != null) {
+                  outgoing.send(pureFrame)
+                }
               }
             }
 
             "frame-binary" -> {
               wsMap[wsId]!!.run {
-                // TODO 是否是最后一个消息
                 val fin = (message.objectAtIndex(2u) as NSNumber).boolValue
+                if (!fin && pureBinaryFinData == null) {
+                  pureBinaryFinData = PureFinData.binary()
+                }
                 val data = (message.objectAtIndex(3u) as NSString).toKString().toBase64ByteArray()
-                outgoing.send(PureBinaryFrame(data))
+                val pureFrame = when (val finData = pureBinaryFinData) {
+                  null -> PureBinaryFrame(data)
+                  else -> {
+                    finData.append(data, fin)?.let { PureBinaryFrame(it) }
+                  }
+                }
+                if (pureFrame != null) {
+                  outgoing.send(pureFrame)
+                }
               }
             }
 
