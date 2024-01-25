@@ -23,6 +23,7 @@ import platform.WebKit.WKScriptMessage
 import platform.WebKit.WKScriptMessageHandlerWithReplyProtocol
 import platform.WebKit.WKUserContentController
 import platform.darwin.NSObject
+import kotlin.coroutines.cancellation.CancellationException
 
 val debugIosWebSocket = Debugger("ios-ws-polyfill")
 
@@ -69,6 +70,9 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                   }
                   sendClose(wsId)
                 }
+              } catch (e: CancellationException) {
+                // kotlinx.coroutines.JobCancellationException: Job was cancelled;
+                // DWebViewEngine已经destroy触发了ioScope.cancel(null), 注入的脚本已经被销毁，无法send
               } catch (e: Throwable) {
                 sendError(wsId, e)
                 val foundCode =
