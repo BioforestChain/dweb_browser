@@ -9,12 +9,12 @@ kotlinCompilerExtensionVersion = "1.5.8"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
-agp = "8.2.1"
+agp = "8.2.2"
 kotlin-version = "1.9.22"
 androidx-test = "1.5.0"
 androidx-compose-ui-test = "1.5.4"
 androidx-lifecycle = "2.7.0"
-compose-bom = "2023.10.01"
+compose-bom = "2024.01.01"
 
 androidx-activity = "1.8.2"
 androidx-appcompat = "1.6.1"
@@ -43,21 +43,21 @@ google-location = "21.1.0"
 data-gson = "2.10.1"
 data-moshi-pack = "1.0.1"
 coil-version = "3.0.0-alpha03"
-camera-version = "1.4.0-alpha03"
+camera-version = "1.4.0-alpha04"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
 jetbrains-compose-version = "1.6.0-dev1369" # "1.5.11"
 
 # 测试
 test-junit-bom = "5.9.2"
-animation-core-android = "1.5.4"
-material3Android = "1.2.0-beta02"
+animation-core-android = "1.6.0"
+material3Android = "1.2.0-rc01"
 
 kotlinxSerializationVersion = "1.6.2"
 
 # jna
 java-jna-version = "5.13.0"
-webkit = "1.10.0-rc01"
+webkit = "1.10.0"
 
 qiniu-version = "8.6.0"
 
