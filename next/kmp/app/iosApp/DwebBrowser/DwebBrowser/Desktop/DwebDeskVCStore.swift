@@ -9,6 +9,7 @@
 import DwebShared
 import SwiftUI
 import UIKit
+import Observation
 
 class DwebVCData {
     var vc: UIViewController
@@ -20,17 +21,15 @@ class DwebVCData {
     }
 }
 
-class DwebDeskVCStore: ObservableObject {
-    static let shared = DwebDeskVCStore()
-
-    @Published var vcs = [DwebVCData]()
-    @Published var navgationBarVisible: Visibility = .visible
+@Observable class DwebDeskVCStore {
+    var vcs = [DwebVCData]()
+    var navgationBarVisible: Visibility = .visible
 
     init() {
         regiserDeskEvent()
     }
 
-    func startUpNMMs(_ app: UIApplication) {
+    class func startUpNMMs(_ app: UIApplication) {
         #if DEBUG
             let debugMode = true
         #else

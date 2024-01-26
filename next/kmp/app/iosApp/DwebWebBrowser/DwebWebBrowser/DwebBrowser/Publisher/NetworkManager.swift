@@ -6,11 +6,10 @@
 //
 
 import Network
-import SwiftUI
-import Combine
+import Observation
 
-public class NetworkManager: ObservableObject {
-    @Published public var isNetworkAvailable = true
+@Observable public class NetworkManager {
+    public var isNetworkAvailable = true
     private let monitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "NetworkMonitor")
 

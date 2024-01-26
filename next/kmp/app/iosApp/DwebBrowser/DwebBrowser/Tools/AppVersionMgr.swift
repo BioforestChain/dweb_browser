@@ -7,10 +7,10 @@
 //
 
 import Foundation
-import Combine
+import Observation
 
-class AppVersionMgr: ObservableObject {
-    @Published var needUpdate = false
+@Observable class AppVersionMgr {
+    var needUpdate = false
     
     static let appStoreURL = "itms-apps://itunes.apple.com/app/id6443558874"
     static let appInfoUrl = URL(string: "https://itunes.apple.com/lookup?id=6443558874")!
