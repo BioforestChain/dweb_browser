@@ -68,6 +68,7 @@ export class Server_external extends HttpServer {
   private needActivity = true;
   protected async _provider(event: FetchEvent): Promise<$OnFetchReturn> {
     const { pathname } = event;
+    // 建立跟自己前端的双工连接
     if (pathname.startsWith(`/${this.token}`)) {
       if (!event.ipcRequest.hasDuplex) {
         return { status: 500 };
@@ -79,7 +80,7 @@ export class Server_external extends HttpServer {
       const streamIpc = new ReadableStreamIpc(
         {
           mmid: jsProcess.mmid,
-          name: jsProcess.mmid,
+          name: `${this._getOptions().subdomain}.${jsProcess.mmid}`,
           ipc_support_protocols: {
             cbor: false,
             protobuf: false,
@@ -92,6 +93,7 @@ export class Server_external extends HttpServer {
         IPC_ROLE.SERVER
       );
       this.ipcPo.toggleOpen(streamIpc);
+      // 拿到自己前端的channel
       const pureServerChannel = event.ipcRequest.getChannel();
       pureServerChannel.start();
 
@@ -99,12 +101,14 @@ export class Server_external extends HttpServer {
 
       // fetch(https://ext.dweb) => ipcRequest => streamIpc.request => streamIpc.postMessage => chunk => outgoing => ws.onMessage
       void (async () => {
+        // 拿到网络层来的外部消息，发到前端处理
         for await (const chunk of streamRead(streamIpc.stream)) {
           pureServerChannel.outgoing.controller.enqueue(new PureBinaryFrame(concat(chunk)));
         }
       })();
       // ws.send => income.pureFrame =>
       void (async () => {
+        //  绑定自己前端发送的数据通道
         for await (const pureFrame of streamRead(pureServerChannel.income.stream)) {
           if (pureFrame instanceof PureBinaryFrame) {
             incomeStream.controller.enqueue(pureFrame.data);
@@ -115,7 +119,7 @@ export class Server_external extends HttpServer {
       void streamIpc.bindIncomeStream(incomeStream.stream).finally(() => {
         this.ipcPo.toggleClose();
       });
-
+      // 接收前端的externalFetch函数发送的跟外部通信的消息
       streamIpc.onFetch(async (event) => {
         const mmid = event.headers.get("mmid") as $MMID;
         if (!mmid) {
@@ -161,7 +165,7 @@ export class Server_external extends HttpServer {
     } else {
       // 接收别人传递过来的消息
       const ipc = await this.ipcPo.waitOpen();
-      // 发送到前端监听，并拿去返回值
+      // 发送到前端监听，并去（respondWith）拿返回值
       const response = (await ipc.request(event.request.url, event.request)).toResponse();
       // ipc.postMessage(response)
       // 构造返回值给对方

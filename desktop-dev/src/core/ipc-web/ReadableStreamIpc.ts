@@ -41,12 +41,12 @@ export class ReadableStreamIpc extends Ipc {
   }
 
   private PONG_DATA = once(() => {
-    const pong = encode("pong");
+    const pong = this.support_cbor ? encode("pong") : simpleEncoder("pong", "utf8");
     return ReadableStreamIpc.concatLen(pong);
   });
 
   private CLOSE_DATA = once(() => {
-    const close = encode("close");
+    const close = this.support_cbor ? encode("close") : simpleEncoder("close", "utf8");
     return ReadableStreamIpc.concatLen(close);
   });
 

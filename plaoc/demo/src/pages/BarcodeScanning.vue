@@ -37,7 +37,7 @@ const onFileChanged = defineLogAction(
 
 const onStop = defineLogAction(
   async () => {
-    await scanner.stop();
+    barcodeScanner.stopScanning();
   },
   { name: "onStop", args: [], logPanel: $logPanel }
 );

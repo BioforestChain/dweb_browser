@@ -10,12 +10,23 @@ import {
   ScannerContoller,
 } from "./barcode-scanning.type.ts";
 
+const css = String.raw;
+const html = String.raw;
+// const asStyle = (cssText: string) => {
+//   const styleText = cssText
+//     .match(/\{([\w\W]*)\}/)![1]
+//     .trim()
+//     .replace(/\n/g, " ");
+//   return styleText;
+// };
 export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   static readonly tagName = "dweb-barcode-scanning";
   readonly plugin = barcodeScannerPlugin;
 
-  private _video: HTMLVideoElement | null = null;
-  private _canvas: HTMLCanvasElement | null = null;
+  private readonly _dialog: HTMLDialogElement | null = null;
+  private readonly _video: HTMLVideoElement;
+  private readonly _canvas: HTMLCanvasElement;
+  private readonly _ctx: CanvasRenderingContext2D;
   private controller: ScannerContoller | undefined;
   // private _formats: SupportedFormat | undefined;
   private _activity?: PromiseOut<string[]>;
@@ -24,7 +35,82 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 
   constructor() {
     super();
+    const shadow = this.attachShadow({ mode: "open" });
+    let mainHtml = html`<canvas slot="canvas"></canvas>
+      <video muted autoplay hidden playsinline></video>
+      <style>
+        :host {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        video {
+          display: none;
+        }
+        video::-webkit-media-controls {
+          display: none !important;
+        }
+
+        video::-webkit-media-controls-start-playback-button {
+          display: none !important;
+          -webkit-appearance: none;
+        }
+    
+        canvas {
+          object-fit: cover;
+          max-width: 100%;
+          max-height: 100%;
+        }
+        dialog {
+          max-height: unset;
+          max-width: unset;
+          padding: 0;
+          border: 0;
+          margin: 0;
+          width: 100%;
+          height: 100%;
+
+          user-select: none;
+          -webkit-user-select: none;
+        }
+        dialog::backdrop {
+          background-color: rgba(0, 0, 0, 0.5);
+          pointer-events: none;
+          -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
+        }
+      </style>`;
+    if (HTMLDwebBarcodeScanningElement._support_native_request_full_screen === false) {
+      mainHtml = html`<dialog>${mainHtml}</dialog>`;
+    }
+    shadow.innerHTML = mainHtml;
+    this._dialog = shadow.querySelector("dialog");
+    this._canvas = shadow.querySelector("canvas")!;
+    this._video = shadow.querySelector("video")!;
+    this._ctx = this._canvas.getContext("2d")!;
   }
+  static readonly _support_native_request_full_screen = typeof document.body.requestFullscreen === "function";
+
+  override async requestFullscreen(options?: FullscreenOptions) {
+    const dialog = this._dialog;
+    if (dialog === null) {
+      return super.requestFullscreen(options);
+    }
+    dialog.showModal();
+
+    if (this._isCloceLock == false) {
+      const closer = new CloseWatcher();
+
+      this._isCloceLock = true;
+      closer.addEventListener("close", (_event) => {
+        this._isCloceLock = false;
+        if (this._activity !== undefined) {
+          this.stopScanning();
+        }
+      });
+    }
+  }
+
   async connectedCallback() {
     if (!this.controller) {
       this.controller = await this.plugin.createProcesser();
@@ -33,17 +119,6 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 
   disconnectedCallback() {
     this.controller?.stop();
-  }
-
-  private createClose() {
-    const closer = new CloseWatcher();
-    this._isCloceLock = true;
-    closer.addEventListener("close", (_event) => {
-      this._isCloceLock = false;
-      if (this._activity !== undefined) {
-        this.stopScanning();
-      }
-    });
   }
 
   /**
@@ -82,13 +157,10 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       this.controller?.setRotation(this._rotation);
     }
     try {
-      if (!this._isCloceLock) {
-        this.createClose();
-      }
-      await this.createElement();
       const permission = await this._startVideo(direction, scanOptions?.width, scanOptions?.height);
       let data: string[] = [];
       if (permission === BarcodeScannerPermission.UserAgree) {
+        this.requestFullscreen({ navigationUI: "show" });
         data = await this.taskPhoto();
       }
       return {
@@ -108,16 +180,30 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       this._activity.resolve([]);
       this._activity = undefined;
     }
-    this.stopCamera();
+    if (this._video.srcObject) {
+      /// 插件停止处理
+      this.plugin.stop();
+
+      /// 视频停止播放
+      this._video.pause();
+      // const st = this._video.srcObject;
+      // if (st instanceof MediaStream) {
+      //   const tracks = st.getTracks();
+      //   for (let i = 0; i < tracks.length; i++) {
+      //     const track = tracks[i];
+      //     track.stop();
+      //   }
+      // }
+      this._video.srcObject = null;
+    }
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = undefined;
+    }
+
+    this._dialog?.close();
   }
 
-  // deno-lint-ignore no-explicit-any
-  private stopCamera(error?: any) {
-    if (error) {
-      console.error(error);
-    }
-    this._stop();
-  }
   taskPhoto() {
     if (this._activity === undefined) {
       this._taskPhoto((this._activity = new PromiseOut()));
@@ -159,14 +245,10 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
             }
             return blob.promise;
           };
-          const waitFrame = () => {
-            const frame = new PromiseOut<void>();
-            requestAnimationFrame(() => frame.resolve());
-            return frame.promise;
-          };
+          const waitFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
           while (task.readyState === PromiseOut.PENDING) {
             await waitFrame();
-            const result = await this.controller?.process(await toBlob());
+            const result: { data: string }[] = []; // await this.controller?.process(await toBlob());
             if (result && result.length != 0) {
               return result.map((it) => it.data);
             }
@@ -189,20 +271,22 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     // 判断是否支持
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       const constraints: MediaStreamConstraints = {
-        video: { facingMode: direction, width: { exact: width }, height: { exact: height } },
+        video: {
+          facingMode: direction,
+          width: { exact: width ?? innerWidth * devicePixelRatio },
+          height: { exact: height ?? innerHeight * devicePixelRatio },
+        },
       };
       console.log("video window=>", width, height);
-      return await navigator.mediaDevices
-        .getUserMedia(constraints)
-        .then(async (stream) => {
-          await this.gotMedia(stream);
-          return BarcodeScannerPermission.UserAgree;
-        })
-        .catch((e) => {
-          console.error("You need to authorize the camera permission to use the scan code!", e);
-          this.stopScanning();
-          return BarcodeScannerPermission.UserReject;
-        });
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      try {
+        await this.gotMedia(stream);
+        return BarcodeScannerPermission.UserAgree;
+      } catch (e) {
+        console.warn("You need to authorize the camera permission to use the scan code!", e);
+        this.stopScanning();
+        return BarcodeScannerPermission.UserReject;
+      }
     } else {
       this.stopScanning();
       console.error("Your browser does not support scanning code!");
@@ -210,131 +294,37 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     }
   }
 
+  private rafId?: number;
   /**
    * 拿到帧对象
    * @param mediastream
    */
   private async gotMedia(mediastream: MediaStream) {
-    if (!this._video) {
-      throw new Error("not create video");
-    }
-    try {
-      this._video.srcObject = mediastream;
-      const videoTracks = mediastream.getVideoTracks();
-      if (videoTracks.length > 0 && this._canvas) {
-        this._canvas.captureStream(100);
-        const ctx = this._canvas.getContext("2d");
-        // 压缩为 100 * 100
-        const update = () =>
-          requestAnimationFrame(() => {
-            if (ctx && this._video) {
-              ctx.drawImage(this._video, 0, 0, this._canvas?.width ?? 480, this._canvas?.height ?? 360);
-              update();
-            }
-          });
-        update();
-      }
-      await this._video.play();
-      this._video?.parentElement?.setAttribute(
-        "style",
-        `
-      position:fixed; top: 0; left: 0; width:100%; height: 100%; background-color: black;
-      -webkit-transition:all 0.2s linear;
-      -moz-transition:all 0.2s linear;
-      -ms-transition:all 0.2s linear;
-      -o-transition:all 0.2s linear;
-      transition:all 0.2s linear;
-      visibility: visible;`
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  private _stop() {
-    if (this._video) {
-      this._video.pause();
-
-      const st = this._video.srcObject;
-      if (st) {
-        // deno-lint-ignore no-explicit-any
-        const tracks = (st as any).getTracks();
-
-        for (let i = 0; i < tracks.length; i++) {
-          const track = tracks[i];
-          track.stop();
-        }
-      }
-
-      this._video.parentElement?.remove();
-      this._video = null;
-    }
-    if (this._canvas) {
-      this._canvas.getContext("2d")?.clearRect(0, 0, this._canvas.width, this._canvas.height);
-      this._canvas = null;
-    }
-  }
-
-  /**
-   * 创建video
-   * @param direction
-   * @returns
-   */
-  private createElement(direction: CameraDirection = CameraDirection.BACK) {
-    return new Promise((resolve, reject) => {
-      const body = document.body;
-
-      const video = document.getElementById("video");
-      const canvas = document.getElementById("canvas");
-
-      if (video) {
-        reject("camera already started");
-        return { message: "camera already started" };
-      }
-      const parent = document.createElement("div");
-      parent.setAttribute("class", "plaoc-scanning");
-      // parent.setAttribute(
-      //   "style",
-      //   "position:fixed; top: 0; left: 0; width:100%; height: 100%; background-color: black;visibility: hidden;"
-      // );
-      this._video = document.createElement("video");
-      this._video.id = "video";
-
-      // 如果摄像头朝后，请勿翻转视频源
-      if (direction !== CameraDirection.BACK) {
-        this._video.setAttribute(
-          "style",
-          "-webkit-transform: scaleX(-1); transform: scaleX(-1); width:100%; height: 100%;"
-        );
-      } else {
-        this._video.setAttribute("style", "width:100%; height: 100%;");
-      }
-      this._video.setAttribute("autoplay", "true");
-
-      const userAgent = navigator.userAgent.toLowerCase();
-      const isSafari = (userAgent.includes("safari") || userAgent.includes("iphone")) && !userAgent.includes("chrome");
-
-      // iOS 上的 Safari 需要设置 autoplay、muted 和 playsinline 属性，video.play() 才能成功
-      // 如果没有这些属性，this.video.play() 将抛出 NotAllowedError
-      // https://developer.apple.com/documentation/webkit/delivering_video_content_for_safari
-      if (isSafari) {
-        this._video.setAttribute("muted", "true");
-        this._video.setAttribute("playsinline", "true");
-      }
-
-      parent.appendChild(this._video);
-      if (!canvas) {
-        this._canvas = document.createElement("canvas");
-        this._canvas.setAttribute("style", "visibility: hidden;");
-        this._canvas.width = 480;
-        this._canvas.height = 360;
-        this._canvas.id = "canvas";
-        parent.appendChild(this._canvas);
-      }
-      body.appendChild(parent);
-      resolve(true);
+    this._video.srcObject = mediastream;
+    await new Promise((resolve, reject) => {
+      this._video.onloadedmetadata = resolve;
+      this._video.onerror = reject;
     });
+    this._canvas.width = this._video.videoWidth;
+    this._canvas.height = this._video.videoHeight;
+    this._canvas.style.width = this._canvas.width + "px";
+    this._canvas.style.height = this._canvas.height + "px";
+    const videoTracks = mediastream.getVideoTracks();
+    if (videoTracks.length > 0 && this._canvas) {
+      this._canvas.captureStream(100);
+      // 压缩为 100 * 100
+      const update = () => {
+        this.rafId = requestAnimationFrame(() => {
+          this._ctx.drawImage(this._video, 0, 0, this._canvas.width, this._canvas.height);
+          update();
+        });
+      };
+      update();
+    }
+    // this.requestFullscreen?.({ navigationUI: "show" });
   }
+
+  // document.exitFullscreen?.();
 }
 if (!customElements.get(HTMLDwebBarcodeScanningElement.tagName)) {
   customElements.define(HTMLDwebBarcodeScanningElement.tagName, HTMLDwebBarcodeScanningElement);

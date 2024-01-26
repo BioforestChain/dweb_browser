@@ -40,25 +40,21 @@ export class Server_www extends _Server_www {
     // console.log("native fetch start:", proxyUrl.href);
     const remoteIpcResponse = await jsProcess.nativeRequest(proxyUrl);
     // console.log("native fetch end:", proxyUrl.href,remoteIpcResponse.headers.get("Content-Type"));
-    const headers = new IpcHeaders(remoteIpcResponse.headers);
     /// 对 html 做强制代理，似的能加入一些特殊的头部信息，确保能正确访问内部的资源
     const contentType = remoteIpcResponse.headers.get("Content-Type");
+    const headers = new IpcHeaders(remoteIpcResponse.headers);
     if (contentType && (contentType.startsWith("text/html") || !contentType.includes("javascript"))) {
       // 强制声明解除安全性限制
       headers.init("Access-Control-Allow-Private-Network", "true");
       // 移除在iframe中渲染的限制
       headers.delete("X-Frame-Options");
-      /// 代理转发
-      return {
-        status: remoteIpcResponse.statusCode,
-        headers,
-        body: remoteIpcResponse.body,
-      };
-    } else {
-      return {
-        status: 301,
-        headers: headers.init("location", proxyUrl.href),
-      };
     }
+    
+    /// 内容代理转发，这里一般来说不再允许301，允许301的条件太过苛刻，需要远端服务器支持
+    return {
+      status: remoteIpcResponse.statusCode,
+      headers,
+      body: remoteIpcResponse.body,
+    };
   }
 }
