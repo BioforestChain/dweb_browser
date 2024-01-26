@@ -35,7 +35,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
                   rotation
                 );
               } catch (e: Throwable) {
-                debugScanning("/process byChannel", e.stackTraceToString())
+                debugScanning("/process byChannel", null, e)
                 emptyList()
               }
               debugScanning("/process=result") { result.joinToString(", ") { it.data } }
