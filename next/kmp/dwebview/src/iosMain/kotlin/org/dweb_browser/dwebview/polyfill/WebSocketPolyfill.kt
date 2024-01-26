@@ -103,7 +103,10 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                 val pureFrame = when (val finData = pureTextFinData) {
                   null -> PureTextFrame(data)
                   else -> {
-                    finData.append(data, fin)?.let { PureTextFrame(it) }
+                    finData.append(data, fin)?.let {
+                      pureTextFinData = null
+                      PureTextFrame(it)
+                    }
                   }
                 }
                 if (pureFrame != null) {
@@ -122,7 +125,10 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                 val pureFrame = when (val finData = pureBinaryFinData) {
                   null -> PureBinaryFrame(data)
                   else -> {
-                    finData.append(data, fin)?.let { PureBinaryFrame(it) }
+                    finData.append(data, fin)?.let {
+                      pureBinaryFinData = null
+                      PureBinaryFrame(it)
+                    }
                   }
                 }
                 if (pureFrame != null) {

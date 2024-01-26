@@ -114,7 +114,9 @@
       return ("" + data).length;
     }
     async *#normalizeData(data: $SendData): AsyncGenerator<$SendDataRaw> {
-      if (data instanceof Blob) {
+      if (data instanceof Uint8Array && data.byteLength <= maxBinaryFrameSize) {
+        yield data;
+      } else if (data instanceof Blob) {
         if (data.size > maxBinaryFrameSize) {
           const reader = data.stream().getReader();
           while (true) {

@@ -123,6 +123,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   }
 
   disconnectedCallback() {
+    this.stopScanning();
     this.controller?.stop();
   }
 
