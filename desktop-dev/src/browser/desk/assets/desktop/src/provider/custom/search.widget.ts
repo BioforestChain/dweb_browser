@@ -54,11 +54,16 @@ Object.assign(globalThis, {
     const q = formData.get("q") as string;
     const method = formEle.method;
     let url: string;
-
+    //  dweb://install?url=http://172.30.94.135:8096/metadata.json
     if (startsWithIgnoreCase(q)) {
       url = q.replace(/^dweb:/i, "dweb:");
     } else {
-      const query = new URLSearchParams(formData).toString();
+      const query = new URLSearchParams();
+      for (const [key, value] of formData.entries()) {
+        if (typeof value === "string") {
+          query.append(key, value);
+        }
+      }
       url = formEle.action + "?" + query;
     }
     const xhr = new XMLHttpRequest();
