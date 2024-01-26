@@ -43,11 +43,9 @@ export interface ScanOptions {
   formats?: SupportedFormat;
 }
 
-export type ScannerContoller = {
-  setRotation(rotation: number): void;
-  process(data: Uint8Array | Blob): Promise<BarcodeResult[]>;
-  stop(): void;
-};
+export type ScannerProcesser = Awaited<
+  ReturnType<import("./barcode-scanning.plugin.ts").BarcodeScannerPlugin["createProcesser"]>
+>;
 
 export type ScanResult = {
   hasContent: boolean;

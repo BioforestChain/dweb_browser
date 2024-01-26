@@ -7,10 +7,9 @@ import {
   CameraDirection,
   ScanOptions,
   ScanResult,
-  ScannerContoller,
+  ScannerProcesser,
 } from "./barcode-scanning.type.ts";
 
-const css = String.raw;
 const html = String.raw;
 // const asStyle = (cssText: string) => {
 //   const styleText = cssText
@@ -27,7 +26,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   private readonly _video: HTMLVideoElement;
   private readonly _canvas: HTMLCanvasElement;
   private readonly _ctx: CanvasRenderingContext2D;
-  private controller: ScannerContoller | undefined;
+  private controller: ScannerProcesser | undefined;
   // private _formats: SupportedFormat | undefined;
   private _activity?: PromiseOut<string[]>;
   private _rotation?: number = 0;
@@ -229,39 +228,38 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       return [];
     }
     try {
-      task.resolve(
-        (async () => {
-          const toBlob = (quality = 0.8) => {
-            const blob = new PromiseOut<Blob>();
-            const canvas = this._canvas;
-            if (canvas) {
-              canvas.toBlob(
-                (imageBlob) => {
-                  if (imageBlob) {
-                    blob.resolve(imageBlob);
-                  } else {
-                    blob.reject("canvas fail to toBlob");
-                  }
-                },
-                "image/jpeg",
-                quality
-              );
-            } else {
-              blob.reject("canvas stop");
-            }
-            return blob.promise;
-          };
-          const waitFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
-          while (task.readyState === PromiseOut.PENDING) {
-            await waitFrame();
-            const result: { data: string }[] = []; // await this.controller?.process(await toBlob());
-            if (result && result.length != 0) {
-              return result.map((it) => it.data);
-            }
+      const result = await (async () => {
+        const toBlob = (quality = 0.8) => {
+          const blob = new PromiseOut<Blob>();
+          const canvas = this._canvas;
+          if (canvas) {
+            canvas.toBlob(
+              (imageBlob) => {
+                if (imageBlob) {
+                  blob.resolve(imageBlob);
+                } else {
+                  blob.reject("canvas fail to toBlob");
+                }
+              },
+              "image/jpeg",
+              quality
+            );
+          } else {
+            blob.reject("canvas stop");
           }
-          return [];
-        })()
-      );
+          return blob.promise;
+        };
+        const waitFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+        while (task.readyState === PromiseOut.PENDING) {
+          await waitFrame();
+          const result = await this.controller?.process(await toBlob());
+          if (result && result.length != 0) {
+            return result.map((it) => it.data);
+          }
+        }
+        return [];
+      })();
+      task.resolve(result);
     } catch (e) {
       task.reject(e);
     } finally {
