@@ -6,22 +6,8 @@ import kotlinx.coroutines.Deferred
 import kotlin.js.Promise
 
 suspend fun main() {
-
-//  BrowserViewModel()
-//  val electronAppHttpSever = ElectronAppHttpServer().whenReady.await()
-//  electronAppHttpSever.start(8888)
-//
-//  app.whenReady().await()
-//
-//  val win = createBrowserWindow {
-//    width = 1000.0
-//    height = 600.0
-//  }
-//
-//  win.loadURL("${electronAppHttpSever.getAddress()}/jsFrontEnd/index.html")
-//  win.webContents.openDevTools()
-
-  BrowserViewModel()
+//  BrowserDemoReactAppViewModel()
+  BrowserDemoComposeAppViewModel()
   ElectronAppHttpServer().whenReady.await().start()
 }
 

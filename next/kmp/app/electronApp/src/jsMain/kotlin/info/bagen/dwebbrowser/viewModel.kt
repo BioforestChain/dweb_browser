@@ -34,9 +34,9 @@ class Options(
 /**
  * example
  */
-class BrowserViewModel: BaseBrowserWindowModel("js.backend.dweb") {
+class BrowserDemoReactAppViewModel: BaseBrowserWindowModel("js.backend.dweb") {
     // 测试数据
-    override val state = mutableMapOf<dynamic, dynamic>("currentCount" to 1)
+    override val state = mutableMapOf<dynamic, dynamic>("currentCount" to 10)
     override val electronBrowserWindowOptions: BrowserWindowConstructorOptions = ElectronBrowserWindowOptions.create()
     override val electronLoadUrlPath: String = "/demoReactApp/index.html"
     override val electronIsOpenDevtools: Boolean = true
@@ -45,6 +45,26 @@ class BrowserViewModel: BaseBrowserWindowModel("js.backend.dweb") {
         // 添加一个状态监听器
         onStateChangeByBrowser {
             console.log("接受到了UI发送过来的消息")
+            // TODO: 需要删除 - 测试服务器端向客户端同步数据
+            scope.launch {
+                // 测试项 客户端同步 viewModel
+                syncDataToUI(it[0], it[1] + 1)
+            }
+        }
+    }
+}
+
+class BrowserDemoComposeAppViewModel: BaseBrowserWindowModel("js.backend.dweb") {
+    // 测试数据
+    override val state = mutableMapOf<dynamic, dynamic>("currentCount" to 1)
+    override val electronBrowserWindowOptions: BrowserWindowConstructorOptions = ElectronBrowserWindowOptions.create()
+    override val electronLoadUrlPath: String = "/demoComposeApp/index.html"
+    override val electronIsOpenDevtools: Boolean = true
+
+    init {
+        // 添加一个状态监听器
+        onStateChangeByBrowser {
+            console.log("接受到了UI发送过来的消息", it[0])
             // TODO: 需要删除 - 测试服务器端向客户端同步数据
             scope.launch {
                 // 测试项 客户端同步 viewModel

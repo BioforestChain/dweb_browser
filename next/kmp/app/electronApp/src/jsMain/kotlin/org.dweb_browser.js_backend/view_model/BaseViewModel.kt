@@ -77,6 +77,8 @@ abstract class BaseViewModel(
             state.forEach {
                 syncDataToUI(it.key, it.value)
             }
+            // 发送初始化数据同步完成的消息
+            syncDataToUI("syncDataToUiState", "sync-data-to-ui-done")
         }
     }
 

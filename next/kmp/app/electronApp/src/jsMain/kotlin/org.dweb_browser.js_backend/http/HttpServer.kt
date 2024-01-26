@@ -29,17 +29,17 @@ class HttpServer private constructor(){
             at requestListener
             at HttpServer
         """.trimIndent()))
+
         val route = req.url?.let { parse(it,false)}?.pathname?.let { reqPath ->
-            _router.getAllRoutes().values.firstOrNull{
+            _router.getAllRoutes().values.firstOrNull {
                 it.hasMatch(reqPath, reqMethod)
             }
-        }?:throw(Throwable("""
-            没有匹配的路由监听器
-            req.url = ${req.url}
-            at requestListener
-            at HttpServer
-        """.trimIndent()))
-        route(req, res)
+        }
+
+        when(route){
+            null -> res.notFound()
+            else -> route(req, res)
+        }
     }
 
     // TODO: 这里也必须要保证值值调用一次
@@ -85,3 +85,5 @@ class HttpServer private constructor(){
         }
     }
 }
+
+

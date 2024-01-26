@@ -16,6 +16,7 @@ import kotlin.reflect.KProperty
 import androidx.compose.runtime.MutableState as IMutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.flow.collect
 
 
 typealias HandleMessageDataList = (arr: dynamic) -> Unit
@@ -41,14 +42,20 @@ abstract class BaseViewModel(
         }
 
         handleMessageDataList.add() {
-            // 同步状态
-            state[it[0] as String] = it[1] as Any
-            if(!whenSyncDataFromServerStart.isCompleted)whenSyncDataFromServerStart.complete(Unit)
+            val key = it[0]
+            val value = it[1]
+            console.log("接受到了从服务器端同步过来的数据： ", key, value)
+            when{
+                key is String && key == "syncDataToUiState" && value == "sync-data-to-ui-done" ->{
+                    if(!whenSyncDataFromServerStart.isCompleted)whenSyncDataFromServerStart.complete(Unit)
+                }
+                else -> state[it[0] as String] = it[1] as Any
+            }
         }
     }
 
     // TODO: toFlow 必须只能够返回一个
-    fun toFlow() = channelFlow<Array<String>> {
+    fun toFlow() = channelFlow<Array<dynamic>> {
         fun handle(it: dynamic) {
             scope.launch {
                 this@channelFlow.send(it)
@@ -125,39 +132,50 @@ abstract class BaseViewModel(
     @Composable
     fun toMutableStateOf(key: dynamic) = remember {
         val initValue = state[key]
-        if(initValue == null){
-            throw(Throwable("""
+            ?: throw(Throwable("""
                 state[key] == null
                 key = $key
                 at toMutableStateOf
             """.trimIndent()))
-        }
         var mutableState = mutableStateMap[key]
         if(mutableState == null){
-            mutableState = MutableState(state[key])
+            mutableState = MutableState(key, state[key],this@BaseViewModel)
             mutableStateMap[key] = mutableState
         }
         mutableState
     }
 
-    class MutableState<T>(val initValue: T) : IMutableState<T> {
-
+    class MutableState<T>(
+        val key: dynamic,
+        val initValue: T,
+        val viewModel: BaseViewModel
+    ) : IMutableState<T> {
         val mutableState = mutableStateOf<T>(initValue)
         override var value: T
             get() = mutableState.value
             set(value) {
-                console.log("需要同步UI的数据到服务器")
-                // TODO: 需要同步UI的数据到服务器
                 mutableState.value = value
             }
 
         override fun component1() = mutableState.component1()
         override fun component2() = mutableState.component2()
         operator fun getValue(thisObj: Any?, property: KProperty<*>): T = value
+
         operator fun setValue(
             thisObj: Any?, property: KProperty<*>, value: T
         ) {
+            viewModel.set(key, value)
             this.value = value
+        }
+
+        init{
+            CoroutineScope(Dispatchers.Default).launch {
+                viewModel.toFlow().collect{
+                    if(it[0] == key){
+                        this@MutableState.value = it[1]
+                    }
+                }
+            }
         }
     }
 }

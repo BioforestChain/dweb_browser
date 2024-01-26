@@ -106,19 +106,20 @@ abstract class BaseBrowserWindowModel(frontendViewModelId: String) :
                 // frontendViewModelId=xxx前后端匹配的viewModelId
                 Route("/browser-window-operation", Method.GET, MatchPattern.PREFIX, ::_electronAppHttpSeverHandler),
             )
-            app.whenReady().await()
-            browserWindow = BrowserWindow(electronBrowserWindowOptions).apply {
-                initBrowserWindowAddEventListener()
-            }
-            baseBrowserWindowModelReady.complete(this@BaseBrowserWindowModel)
-            browserWindow.loadURL("${electronAppHttpSever.getAddress()}${electronLoadUrlPath}")
-            if (electronIsOpenDevtools) browserWindow.webContents.openDevTools()
+            console.log("没有打开BrowserWindow??")
+//            需要删除 - 需要恢复打开electronApp
+//            app.whenReady().await()
+//            browserWindow = BrowserWindow(electronBrowserWindowOptions).apply {
+//                initBrowserWindowAddEventListener()
+//            }
+//            baseBrowserWindowModelReady.complete(this@BaseBrowserWindowModel)
+//            browserWindow.loadURL("${electronAppHttpSever.getAddress()}${electronLoadUrlPath}")
+//            if (electronIsOpenDevtools) browserWindow.webContents.openDevTools()
         }
 
     }
 
     private fun _electronAppHttpSeverHandler(req: IncomingMessage, res: ServerResponse<*>){
-        console.log("---")
         (req.url?.let { parse(it, true).query }?:throw(Throwable("""
             req.url === null
             req.url: ${req.url}
