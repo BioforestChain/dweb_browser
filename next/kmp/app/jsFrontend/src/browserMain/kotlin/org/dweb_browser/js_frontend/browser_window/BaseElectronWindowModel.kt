@@ -6,11 +6,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.dweb_browser.js_frontend.view_model.BaseViewModel
+import org.dweb_browser.js_frontend.view_model_state.ViewModelState
 
 import web.http.fetch
 import web.http.Response
 
-abstract class BaseElectronWindowModel(frontendViewModelId: String): BaseViewModel(frontendViewModelId){
+abstract class BaseElectronWindowModel(frontendViewModelId: String, state: ViewModelState): BaseViewModel(frontendViewModelId, state){
     val electronWindowOperation = ElectronWindowOperation(frontendViewModelId)
 
 }

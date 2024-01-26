@@ -16,8 +16,8 @@ import viewModel.ViewModel
 suspend fun main() {
 //    val viewModel = ViewModel(mutableMapOf<String, dynamic>("currentCount" to 10))
     val viewModel = ViewModel()
-    viewModel.start()
-    viewModel.whenSyncDataFromServerStart.await()
+    viewModel.dwebWebSocket.start()
+    viewModel.whenSyncDataFromServerDone.await()
     onWasmReady {
         CanvasBasedWindow("Chat") {
             Column(modifier = Modifier.fillMaxSize()) {

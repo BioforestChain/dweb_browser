@@ -16,10 +16,11 @@ import web.http.fetch
 import viewModel.ViewModel
 
 
-fun main(){
+suspend fun main(){
 //    val viewModel = ViewModel(mutableMapOf<String, dynamic>("currentCount" to 10))
     val viewModel = ViewModel()
-    viewModel.start()
+    viewModel.dwebWebSocket.start()
+    viewModel.whenSyncDataFromServerDone.await()
     val container = document.getElementById("root") ?: error("Couldn't find root container!")
     val root = createRoot(container)
     root.render(createApp(viewModel))

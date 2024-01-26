@@ -25,16 +25,17 @@ typealias HandleMessageDataList = (arr: dynamic) -> Unit
 
 abstract class BaseViewModel(
     frontendViewModelId: String,
-) : DwebWebSocket("ws://${window.location.host}?frontend_view_module_id=$frontendViewModelId") {
-    abstract var state: ViewModelState
+    val state: ViewModelState
+) {
+    val dwebWebSocket = DwebWebSocket("ws://${window.location.host}?frontend_view_module_id=$frontendViewModelId")
     private val handleMessageDataList = mutableListOf<HandleMessageDataList>()
 
     /**
      *
      */
-    val whenSyncDataFromServerStart = CompletableDeferred<Unit>()
+    val whenSyncDataFromServerDone = CompletableDeferred<Unit>()
     init {
-        onMessage {
+        dwebWebSocket.onMessage {
             val data = it.data
             require(data is String)
             val arr: dynamic = JSON.parse(data)
@@ -47,17 +48,11 @@ abstract class BaseViewModel(
             console.log("接受到了从服务器端同步过来的数据： ", key, value)
             when{
                 key is String && key == "syncDataToUiState" && value == "sync-data-to-ui-done" ->{
-                    if(!whenSyncDataFromServerStart.isCompleted)whenSyncDataFromServerStart.complete(Unit)
+                    if(!whenSyncDataFromServerDone.isCompleted)whenSyncDataFromServerDone.complete(Unit)
                 }
                 else -> state[it[0] as String] = it[1] as Any
             }
         }
-    }
-
-    /**
-     * 继承的类一定要执行者方法
-     */
-    protected fun init(){
         state.onUpdate(::syncStateToServer)
     }
 
@@ -67,18 +62,7 @@ abstract class BaseViewModel(
     fun syncStateToServer(key: dynamic, value: dynamic){
         val a = arrayOf(key, value)
         val str = kotlin.js.JSON.stringify(a)
-        send(str)
-    }
-
-
-    /**
-     * 设置状态的值
-     */
-    fun <ValueType> set(key: String, value: ValueType){
-        state[key] = value
-        val a = arrayOf(key, value)
-        val str = kotlin.js.JSON.stringify(a)
-        send(str)
+        dwebWebSocket.send(str)
     }
 }
 

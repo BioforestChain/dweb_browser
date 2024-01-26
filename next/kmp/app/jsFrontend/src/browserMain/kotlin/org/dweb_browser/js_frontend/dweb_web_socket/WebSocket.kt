@@ -26,6 +26,11 @@ open class DwebWebSocket(
 
     fun start(){
         console.log("发起了 upgrade 请求")
+        val has = urlHasFrontedViewModelId()
+        if(!has){
+            console.error("url缺少frontend_view_module_id 查询参数:$url")
+            return
+        }
         socket = WebSocket(url)
         socket.onopen = {
             whenOpened.complete(Unit)
@@ -47,6 +52,11 @@ open class DwebWebSocket(
             readyState = WebSocket.CLOSED
             onCloseCallbackList.forEach{ cb -> cb(it) }
         }
+    }
+
+    // TODO: 检查 url 是否带有  frontend_view_module_id 的参数
+    private fun urlHasFrontedViewModelId(): Boolean{
+        return url.contains("frontend_view_module_id")
     }
 
     private val onOpenedCallbackList = mutableListOf<OnOpenedCallback>()
