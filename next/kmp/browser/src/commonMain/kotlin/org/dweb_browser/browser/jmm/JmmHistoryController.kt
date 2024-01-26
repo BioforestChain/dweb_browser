@@ -53,7 +53,7 @@ class JmmHistoryController(
       state.mode = org.dweb_browser.sys.window.core.constant.WindowMode.MAXIMIZE
       state.setFromManifest(jmmNMM)
       windowAdapterManager.provideRender(id) { modifier ->
-        ManagerViewRender(modifier, this)
+        ManagerViewRender(modifier = modifier, windowRenderScope = this)
       }
       show()
     }

@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -54,6 +52,7 @@ import org.dweb_browser.browser.jmm.JmmHistoryController
 import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmTabs
+import org.dweb_browser.helper.compose.LazySwipeColumn
 import org.dweb_browser.helper.compose.NoDataRender
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.formatDatestampByMilliseconds
@@ -112,15 +111,17 @@ fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
     return
   }
 
-  LazyColumn(modifier = Modifier.fillMaxSize()) {
-    itemsIndexed(list) { _, metadata ->
-      JmmViewItem(
-        jmmHistoryMetadata = metadata,
-        buttonClick = { scope.launch { this@JmmTabsView.buttonClick(metadata) } },
-        uninstall = { scope.launch { this@JmmTabsView.unInstall(metadata) } },
-        detail = { scope.launch { this@JmmTabsView.openInstallerView(metadata) } }
-      )
-    }
+  LazySwipeColumn(
+    items = list, key = { item -> item.originUrl },
+    onRemove = { item -> jmmHistoryMetadata.remove(item) },
+    background = { Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) }
+  ) { metadata ->
+    JmmViewItem(
+      jmmHistoryMetadata = metadata,
+      buttonClick = { scope.launch { this@JmmTabsView.buttonClick(metadata) } },
+      uninstall = { scope.launch { this@JmmTabsView.unInstall(metadata) } },
+      detail = { scope.launch { this@JmmTabsView.openInstallerView(metadata) } }
+    )
   }
 }
 
