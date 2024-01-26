@@ -42,14 +42,14 @@ const onStop = defineLogAction(
   { name: "onStop", args: [], logPanel: $logPanel }
 );
 
-const taskPhoto = defineLogAction(
+const takePhoto = defineLogAction(
   async () => {
     result.value = await barcodeScanner.startScanning({
       width: 1280,
       height: 720,
     });
   },
-  { name: "taskPhoto", args: [result], logPanel: $logPanel }
+  { name: "takePhoto", args: [result], logPanel: $logPanel }
 );
 </script>
 
@@ -64,7 +64,7 @@ const taskPhoto = defineLogAction(
       <FieldLabel label="Vibrate Pattern:">
         <input type="file" @change="onFileChanged($event)" accept="image/*" capture />
       </FieldLabel>
-      <button class="inline-block rounded-full btn btn-accent" @click="taskPhoto">scanner</button>
+      <button class="inline-block rounded-full btn btn-accent" @click="takePhoto">scanner</button>
       <button class="inline-block rounded-full btn btn-accent" @click="onStop">stop</button>
       <!-- <button class="inline-block rounded-full btn btn-accent" @click="getSupportedformats">getSupportedFormats</button> -->
     </article>

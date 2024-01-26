@@ -55,7 +55,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
           display: none !important;
           -webkit-appearance: none;
         }
-    
+
         canvas {
           object-fit: cover;
           max-width: 100%;
@@ -85,6 +85,12 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     }
     shadow.innerHTML = mainHtml;
     this._dialog = shadow.querySelector("dialog");
+    this._dialog?.addEventListener("close", () => {
+      this.stopScanning();
+    });
+    this._dialog?.addEventListener("dblclick", () => {
+      this._dialog?.close();
+    });
     this._canvas = shadow.querySelector("canvas")!;
     this._video = shadow.querySelector("video")!;
     this._ctx = this._canvas.getContext("2d")!;
@@ -100,13 +106,13 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 
     if (this._isCloceLock == false) {
       const closer = new CloseWatcher();
+      dialog.onclose = () => closer.close();
 
       this._isCloceLock = true;
       closer.addEventListener("close", (_event) => {
         this._isCloceLock = false;
-        if (this._activity !== undefined) {
-          this.stopScanning();
-        }
+        dialog.onclose = null;
+        dialog.close();
       });
     }
   }

@@ -45,7 +45,7 @@ class PureServerTest {
     channel.start().apply {
       val incomeRes = mutableListOf<String>()
       val outgoingRes = mutableListOf<String>()
-      
+
       launch {
         for (echoMsg in income) {
           require(echoMsg is PureTextFrame)
