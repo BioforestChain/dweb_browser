@@ -1248,9 +1248,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"components-resources-js@workspace:packages_imported/components-resources-js/1.6.0-dev1369":
+"components-resources-js@workspace:packages_imported/components-resources-js/1.6.0-beta01":
   version: 0.0.0-use.local
-  resolution: "components-resources-js@workspace:packages_imported/components-resources-js/1.6.0-dev1369"
+  resolution: "components-resources-js@workspace:packages_imported/components-resources-js/1.6.0-beta01"
   languageName: unknown
   linkType: soft
 
@@ -3518,9 +3518,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"kotlin-cssom-core@workspace:packages_imported/kotlin-cssom-core/0.0.1-pre.687":
+"kotlin-cssom-core@workspace:packages_imported/kotlin-cssom-core/0.0.1-pre.690":
   version: 0.0.0-use.local
-  resolution: "kotlin-cssom-core@workspace:packages_imported/kotlin-cssom-core/0.0.1-pre.687"
+  resolution: "kotlin-cssom-core@workspace:packages_imported/kotlin-cssom-core/0.0.1-pre.690"
   dependencies:
     format-util: "npm:^1.0.5"
   languageName: unknown
@@ -3534,18 +3534,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"kotlin-electron@workspace:packages_imported/kotlin-electron/24.6.3-pre.685":
+"kotlin-electron@workspace:packages_imported/kotlin-electron/24.6.3-pre.690":
   version: 0.0.0-use.local
-  resolution: "kotlin-electron@workspace:packages_imported/kotlin-electron/24.6.3-pre.685"
+  resolution: "kotlin-electron@workspace:packages_imported/kotlin-electron/24.6.3-pre.690"
   dependencies:
     electron: "npm:^24.6.3"
     format-util: "npm:^1.0.5"
   languageName: unknown
   linkType: soft
 
-"kotlin-node@workspace:packages_imported/kotlin-node/18.16.12-pre.685":
+"kotlin-node@workspace:packages_imported/kotlin-node/20.11.5-pre.690":
   version: 0.0.0-use.local
-  resolution: "kotlin-node@workspace:packages_imported/kotlin-node/18.16.12-pre.685"
+  resolution: "kotlin-node@workspace:packages_imported/kotlin-node/20.11.5-pre.690"
   dependencies:
     format-util: "npm:^1.0.5"
   languageName: unknown

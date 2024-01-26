@@ -24,7 +24,7 @@ suspend fun main() {
                 Row(
                     modifier = Modifier.fillMaxWidth().height(100.dp)
                 ) {
-                    var count by viewModel.toMutableStateOf("currentCount")
+                    var count by viewModel.state.toMutableStateOf("currentCount")
                     Button(onClick = {
                         count = count+1
                     }) {

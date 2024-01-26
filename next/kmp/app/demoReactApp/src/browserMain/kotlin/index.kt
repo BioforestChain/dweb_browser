@@ -17,16 +17,19 @@ import viewModel.ViewModel
 
 
 fun main(){
-    val viewModel = ViewModel(mutableMapOf<String, dynamic>("currentCount" to 10))
+//    val viewModel = ViewModel(mutableMapOf<String, dynamic>("currentCount" to 10))
+    val viewModel = ViewModel()
     viewModel.start()
     val container = document.getElementById("root") ?: error("Couldn't find root container!")
     val root = createRoot(container)
     root.render(createApp(viewModel))
 }
 
+
+
 fun createApp(viewModel: ViewModel): ReactElement<PropsWithChildren>{
     return FC<Props>{ props ->
-        var currentState by viewModel.toUseState<Int>("currentCount")
+        var currentState by viewModel.state.toUseState<Int>("currentCount")
 
         h1 {
             + "标题1"
