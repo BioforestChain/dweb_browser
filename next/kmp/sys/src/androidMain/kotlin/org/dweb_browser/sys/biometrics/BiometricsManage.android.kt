@@ -75,26 +75,26 @@ actual object BiometricsManage {
       biometricsActivity.finish()
     }
 
-    val crypto = when (mode) {
-      InputMode.None -> {
-        null
-      }
-
-      InputMode.ENCRYPT, InputMode.DECRYPT -> {
-        val secretKey = getSecretKey(biometricsNMM.mmid)
-        val cipher = getCipher()
-
-        cipher.init(
-          if (mode == InputMode.DECRYPT)
-            Cipher.DECRYPT_MODE else Cipher.ENCRYPT_MODE, secretKey
-        )
-        BiometricPrompt.CryptoObject(cipher)
-      }
-    }
+//    val crypto = when (mode) {
+//      InputMode.None -> {
+//        null
+//      }
+//
+//      InputMode.ENCRYPT, InputMode.DECRYPT -> {
+//        val secretKey = getSecretKey(biometricsNMM.mmid)
+//        val cipher = getCipher()
+//
+//        cipher.init(
+//          if (mode == InputMode.DECRYPT)
+//            Cipher.DECRYPT_MODE else Cipher.ENCRYPT_MODE, secretKey
+//        )
+//        BiometricPrompt.CryptoObject(cipher)
+//      }
+//    }
 
     withMainContext {
       biometricsActivity.authenticateWithClass3Biometrics(
-        crypto,
+        null,
         title ?: BiometricsI18nResource.default_title.text,
         BiometricsI18nResource.cancel_button.text,
         subtitle ?: BiometricsI18nResource.default_subtitle.text,
@@ -125,20 +125,21 @@ actual object BiometricsManage {
               "onAuthenticationSucceeded",
               result.cryptoObject ?: "<no cryptoObject>"
             )
-            try {
-              val cipherResult = if (input != null) {
-                result.cryptoObject?.cipher?.let { cipher ->
-                  encryptData(input, cipher)
-                }
-              } else null
-              if (cipherResult == null) {
-                resultDeferred.complete(BiometricsResult(true, ""))
-              } else {
-                resultDeferred.complete(BiometricsResult(true, cipherResult.toBase64(), "base64"))
-              }
-            } catch (e: Throwable) {
-              resultDeferred.complete(BiometricsResult(true, ""))
-            }
+//            try {
+//              val cipherResult = if (input != null) {
+//                result.cryptoObject?.cipher?.let { cipher ->
+//                  encryptData(input, cipher)
+//                }
+//              } else null
+//              if (cipherResult == null) {
+//                resultDeferred.complete(BiometricsResult(true, ""))
+//              } else {
+//                resultDeferred.complete(BiometricsResult(true, cipherResult.toBase64(), "base64"))
+//              }
+//            } catch (e: Throwable) {
+//              resultDeferred.complete(BiometricsResult(true, ""))
+//            }
+            resultDeferred.complete(BiometricsResult(true, ""))
           }
         }
       )
