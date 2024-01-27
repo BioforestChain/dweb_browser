@@ -29,6 +29,9 @@ import org.dweb_browser.pure.http.PureMethod
 fun MicroModule.createStore(storeName: String, encrypt: Boolean) =
   MicroModuleStore(this, storeName, encrypt)
 
+fun MicroModule.createStore(storeName: String, cipherChunkKey: ByteArray, encrypt: Boolean) =
+  MicroModuleStore(this, storeName, cipherChunkKey, encrypt)
+
 private val defaultSimpleStoreCache by atomic(WeakHashMap<MicroModule, MicroModuleStore>())
 
 val MicroModule.store: MicroModuleStore
@@ -37,8 +40,15 @@ val MicroModule.store: MicroModuleStore
   }
 
 class MicroModuleStore(
-  private val mm: MicroModule, private val storeName: String, private val encrypt: Boolean
-) {
+  private val mm: MicroModule,
+  private val storeName: String,
+  private val cipherChunkKey: ByteArray?,
+  private val encrypt: Boolean,
+  ) {
+  constructor(
+    mm: MicroModule, storeName: String, encrypt: Boolean
+  ) : this(mm, storeName, null, encrypt)
+
   private val taskQueues = Channel<Task<*>>(onBufferOverflow = BufferOverflow.SUSPEND)
   private val storeMutex = Mutex()
 
@@ -61,14 +71,17 @@ class MicroModuleStore(
   private val cipherPlainKey = mm.mmid + "/" + storeName
   private var cipherKey: ByteArray? = null
 
-
   private val queryPath =
     "/data/store/$storeName${if (encrypt) ".ebor" else ".cbor"}".encodeURIComponent()
 
   @OptIn(ExperimentalSerializationApi::class)
   private var _store = exec<MutableMap<String, ByteArray>> {
     if (encrypt) {
-      cipherKey = sha256(cipherPlainKey)
+      cipherKey = if (cipherChunkKey != null) {
+        sha256(cipherChunkKey)
+      } else {
+        sha256(cipherPlainKey)
+      }
     }
 
     try {
