@@ -2,6 +2,7 @@ package org.dweb_browser.sys.device
 
 import platform.UIKit.UIDevice
 
+@OptIn(ExperimentalSettingsImplementation::class)
 actual class DeviceManage actual constructor() {
 
   private val configUUID = "ConfigUUID"

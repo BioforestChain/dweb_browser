@@ -45,6 +45,7 @@ import platform.UIKit.UIApplication
 
 val dwebViewController = nativeViewController
 val dwebDeepLinkHook = deepLinkHook
+@Suppress("UNUSED_VARIABLE")
 suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   nativeMicroModuleUIApplication = app;
 

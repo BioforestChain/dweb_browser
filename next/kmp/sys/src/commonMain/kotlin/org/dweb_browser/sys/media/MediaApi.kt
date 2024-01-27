@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.media
 
-import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultipartFieldDescription
 
@@ -13,6 +12,6 @@ expect fun MediaPicture.Companion.create(
 abstract class MediaPicture(saveLocation: String, desc: MultipartFieldDescription) {
   companion object {}
 
-  abstract suspend fun consumePicktureChunk(chunk: ByteArray)
+  abstract suspend fun consumePictureChunk(chunk: ByteArray)
   abstract suspend fun savePicture()
 }

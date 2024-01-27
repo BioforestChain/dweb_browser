@@ -186,11 +186,11 @@ class TaskbarView private constructor(
   override fun FloatWindow() {
     DisposableEffect(Unit) {
       scope.launch {
-        nativeViewController.addOrUpdate(pvc, zIndex = Int.MAX_VALUE - 1)
+        nativeViewController.addOrUpdate(pvc, zIndex = Int.MAX_VALUE - 1, visible = true)
       }
       onDispose {
         scope.launch {
-          nativeViewController.remove(pvc)
+          nativeViewController.addOrUpdate(pvc, visible = false)
         }
       }
     }

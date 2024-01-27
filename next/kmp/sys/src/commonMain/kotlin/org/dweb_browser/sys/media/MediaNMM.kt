@@ -70,7 +70,7 @@ class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
             ioAsyncScope.launch {
               for (task in channel) {
                 fieldMediaMap[task.field_index]?.also {
-                  it.consumePicktureChunk(task.chunk)
+                  it.consumePictureChunk(task.chunk)
                 }
               }
               deferred.complete(true)

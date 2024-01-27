@@ -7,9 +7,9 @@
 //
 
 import DwebShared
+import Observation
 import SwiftUI
 import UIKit
-import Observation
 
 class DwebVCData {
     var vc: UIViewController
@@ -53,6 +53,14 @@ class DwebVCData {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             Log("vcId=\(prop.vcId) zIndex=\(prop.zIndex) visible=\(prop.visible)")
+
+            if let data = self.vcs.first(where: { data in data.vc == vc }) {
+                updateHook(
+                    prop: HelperPlatformDwebUIViewControllerProperty(
+                        vcId: data.prop.vcId, zIndex: prop.zIndex, visible: prop.visible))
+                return
+            }
+
             let data = DwebVCData(vc: vc, prop: prop)
             Main_iosKt.dwebViewController.emitOnInit(vcId: prop.vcId)
             self.vcs.append(data)

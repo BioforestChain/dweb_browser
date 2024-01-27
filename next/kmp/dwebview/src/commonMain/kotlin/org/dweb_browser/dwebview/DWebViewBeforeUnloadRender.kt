@@ -24,8 +24,6 @@ fun IDWebView.BeforeUnloadDialog() {
   }
   val hook = beforeUnloadMessageHook ?: return
 
-  val scope = rememberCoroutineScope()
-
   AlertDialog(
     title = {
       Text(hook.message)// TODO i18n

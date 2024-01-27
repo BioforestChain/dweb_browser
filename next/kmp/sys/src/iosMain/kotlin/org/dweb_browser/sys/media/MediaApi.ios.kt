@@ -45,7 +45,7 @@ actual fun MediaPicture.Companion.create(saveLocation: String, desc: MultipartFi
 
 class MediaPictureImpl(saveLocation: String, desc: MultipartFieldDescription) : MediaPicture(saveLocation, desc) {
   val data = NSMutableData()
-  override suspend fun consumePicktureChunk(chunk: ByteArray) {
+  override suspend fun consumePictureChunk(chunk: ByteArray) {
     data.appendData(chunk.toNSData())
   }
 

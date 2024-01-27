@@ -16,7 +16,6 @@ data class SystemShortcut(
   var order: Long = datetimeNow(), // 用于排序，按照时间顺序来，如果后面调整顺序，就修改这个值
   var mmid: MMID = "",
 ) {
-  @Transient
   val iconImage get() = icon?.toImageBitmap()
 
   override fun toString(): String {

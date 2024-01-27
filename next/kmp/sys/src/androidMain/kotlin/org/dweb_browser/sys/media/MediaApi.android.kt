@@ -79,7 +79,7 @@ class MediaPictureImpl(saveLocation: String, desc: MultipartFieldDescription) : 
       ?.also { outputStream = context.contentResolver.openOutputStream(it) }
   }
 
-  override suspend fun consumePicktureChunk(chunk: ByteArray) {
+  override suspend fun consumePictureChunk(chunk: ByteArray) {
     outputStream?.apply {
       write(chunk)
       flush()

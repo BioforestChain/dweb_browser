@@ -1,8 +1,8 @@
 package org.dweb_browser.sys.clipboard
 
 import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
+import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.Foundation.NSData
 import platform.Foundation.NSURL
 import platform.Foundation.base64Encoding
@@ -47,16 +47,16 @@ actual class ClipboardManage {
 
   actual fun read(): ClipboardData {
     val pasteboard = UIPasteboard.generalPasteboard
-    var value: String = ""
-    var type: String = ""
+    var value = ""
+    var type = ""
     if (pasteboard.hasStrings) {
       value = pasteboard.string.toString()
       type = "text/plain"
     } else if (pasteboard.hasImages) {
       val image = pasteboard.image
       if (image != null) {
-        val data = UIImagePNGRepresentation(image!!)
-        var base64 = data?.base64Encoding()
+        val data = UIImagePNGRepresentation(image)
+        val base64 = data?.base64Encoding()
         if (base64 != null) {
           value = "data:image/png;base64,$base64!!"
         }

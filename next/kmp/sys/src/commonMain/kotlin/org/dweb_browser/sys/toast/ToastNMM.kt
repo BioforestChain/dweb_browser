@@ -2,9 +2,9 @@ package org.dweb_browser.sys.toast
 
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.pure.http.PureMethod
 
 class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 
@@ -43,7 +43,7 @@ enum class EToast(val type: String) {
   Long("long"), Short("short")
 }
 
-enum class DurationType(duration: Long) {
+enum class DurationType(val duration: Long) {
   SHORT(2000L), LONG(3500L)
 }
 

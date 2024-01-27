@@ -109,8 +109,7 @@ actual class ContactManage {
     if (contact.emailAddresses.isEmpty()) return emptyList()
 
     return contact.emailAddresses.map {
-      val email = (it as CNLabeledValue).value
-      (email as String)
+      (it as CNLabeledValue).value.toString()
     }
   }
 }
