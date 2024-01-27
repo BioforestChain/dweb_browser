@@ -1,7 +1,6 @@
 package org.dweb_browser.js_backend.browser_window
 
 import electron.BrowserWindow
-import info.bagen.dwebbrowser.ElectronAppHttpServer
 import kotlinx.coroutines.launch
 import org.dweb_browser.js_backend.http.HttpServer
 import electron.app
@@ -107,7 +106,8 @@ abstract class BaseBrowserWindowModel(
                 // 格式：xxx/browser-window-operation?operation=close&frontendViewModelId=xxx
                 // operation=close 定义操作
                 // frontendViewModelId=xxx前后端匹配的viewModelId
-                Route("/browser-window-operation", Method.GET, MatchPattern.PREFIX, ::_electronAppHttpSeverHandler),
+                // TODO: 这里要重新设计 subdomain需要配置
+                Route("","/browser-window-operation", Method.GET, MatchPattern.PREFIX, ::_electronAppHttpSeverHandler),
             )
             console.log("没有打开BrowserWindow??")
 //            需要删除 - 需要恢复打开electronApp

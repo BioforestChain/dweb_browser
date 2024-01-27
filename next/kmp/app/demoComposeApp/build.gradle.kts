@@ -20,7 +20,7 @@ kotlin {
                 }
                 // 分发到electronApp作为静态资源使用
                 distribution {
-                    outputDirectory = File("${rootProject.rootDir}/app/electronApp/src/jsMain/resources/demoComposeApp")
+                    outputDirectory = File("${rootProject.rootDir}/app/electronApp/src/jsMain/resources/demo/compose/app")
                 }
             }
             binaries.executable()

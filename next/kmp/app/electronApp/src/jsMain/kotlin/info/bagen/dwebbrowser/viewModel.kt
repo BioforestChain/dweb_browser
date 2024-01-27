@@ -36,7 +36,7 @@ class Options(
  * example
  */
 class BrowserDemoReactAppViewModel: BaseBrowserWindowModel(
-    "js.backend.dweb",
+    "demo.react.app",
     viewModelMutableMapOf("currentCount" to 10) // 测试数据
 ) {
     override val electronBrowserWindowOptions: BrowserWindowConstructorOptions = ElectronBrowserWindowOptions.create()
@@ -51,9 +51,10 @@ class BrowserDemoReactAppViewModel: BaseBrowserWindowModel(
     }
 }
 
-class BrowserDemoComposeAppViewModel: BaseBrowserWindowModel("js.backend.dweb", viewModelMutableMapOf("currentCount" to 10) ) {
+class BrowserDemoComposeAppViewModel: BaseBrowserWindowModel("demo.compose.app", viewModelMutableMapOf("currentCount" to 10) ) {
     // 测试数据
     override val electronBrowserWindowOptions: BrowserWindowConstructorOptions = ElectronBrowserWindowOptions.create()
+    // TODO: 这里pat还有问题
     override val electronLoadUrlPath: String = "/demoComposeApp/index.html"
     override val electronIsOpenDevtools: Boolean = true
 

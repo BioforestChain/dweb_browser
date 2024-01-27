@@ -23,19 +23,19 @@ class HttpServer private constructor(){
     private val _router = Router()
 
     private fun requestListener(req: IncomingMessage, res: ServerResponse<*>){
+        // http://demo.compose.app.localhost:8888/index.html
+        val subDomain = req.headers.host?.split(".localhost")?.get(0)?:""
         val reqMethod = req.method?:throw(Throwable("""
             req.method == null
             req.method: ${req.method}
             at requestListener
             at HttpServer
         """.trimIndent()))
-
         val route = req.url?.let { parse(it,false)}?.pathname?.let { reqPath ->
             _router.getAllRoutes().values.firstOrNull {
-                it.hasMatch(reqPath, reqMethod)
+                it.hasMatch(reqPath, reqMethod, subDomain)
             }
         }
-
         when(route){
             null -> res.notFound()
             else -> route(req, res)

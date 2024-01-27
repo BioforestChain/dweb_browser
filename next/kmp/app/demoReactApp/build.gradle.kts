@@ -23,7 +23,7 @@ kotlin {
                 }
                 // 分发到electronApp作为静态资源使用
                 distribution {
-                    outputDirectory = File("${rootProject.rootDir}/app/electronApp/src/jsMain/resources/demoReactApp")
+                    outputDirectory = File("${rootProject.rootDir}/app/electronApp/src/jsMain/resources/demo/react/app")
                 }
             }
             // 测试用

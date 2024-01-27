@@ -25,21 +25,31 @@ class WS private constructor(){
             HttpServer.deferredInstance.await().run {
                 console.log("注册了 upgrade")
                 getServer().on("upgrade") { req: IncomingMessage, socket: Socket ->
-                    console.log("接受到了 upgrade 请求req.url",req.url)
-                    val frontendViewModelId: String = req.url?.let {
-                        parse(it, true).query?.let {o: dynamic->
-                            o["frontend_view_module_id"]
-                        }
-                    } as? String ?: throw(Throwable("""
-                            frontendViewModelId == null
-                            req.url : ${req.url}
-                            at class WS
-                            at Ws.kt
-                        """.trimIndent()))
+                    val moduleId = req.headers.host?.split(".localhost")?.get(0)?.apply {
+                        console.log("给 $this 模块创建了socket")
+                        ViewModelSocket(socket, req.headers["sec-websocket-key"] as String, this)
+                        whenReady.complete(Unit)
+                    }?:throw(Throwable("""
+//                            moduleId == null
+//                            req.headers.host? : ${req.headers.host}
+//                            at class WS
+//                            at Ws.kt
+//                        """.trimIndent()))
 
-                    console.log("frontendViewModelId: ", frontendViewModelId)
-                    ViewModelSocket(socket, req.headers["sec-websocket-key"] as String, frontendViewModelId)
-                    whenReady.complete(Unit)
+//                    val frontendViewModelId: String = req.url?.let {
+//                        parse(it, true).query?.let {o: dynamic->
+//                            o["frontend_view_module_id"]
+//                        }
+//                    } as? String ?: throw(Throwable("""
+//                            frontendViewModelId == null
+//                            req.url : ${req.url}
+//                            at class WS
+//                            at Ws.kt
+//                        """.trimIndent()))
+//
+//                    console.log("frontendViewModelId: ", frontendViewModelId)
+//                    ViewModelSocket(socket, req.headers["sec-websocket-key"] as String, frontendViewModelId)
+//                    whenReady.complete(Unit)
                 }
             }
         }

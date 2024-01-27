@@ -5,9 +5,10 @@ class Router(){
 
     fun getAllRoutes() = _routes
     fun add(route: Route){
-        _routes[route.path] = route
+        console.log("添加了route", route.subDomain)
+        _routes["${route.subDomain}-${route.path}"] = route
     }
 
-    fun remove(path: String) = _routes.remove(path)
-    fun remove(route: Route) = _routes.remove(route.path)
+    fun remove(key: String) = _routes.remove(key)
+    fun remove(route: Route) = _routes.remove("${route.subDomain}-${route.path}")
 }

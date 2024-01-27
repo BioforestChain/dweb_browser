@@ -7,6 +7,7 @@ import org.dweb_browser.js_backend.http.MatchPattern
 import org.dweb_browser.js_backend.http.Method
 
 class Route(
+    val subDomain: String,
     val path: String,
     val method: Method,
     val matchPattern: MatchPattern,
@@ -14,11 +15,11 @@ class Route(
 ){
 
     operator fun invoke(req: IncomingMessage, res: ServerResponse<*>) = listener(req, res)
-    fun hasMatch(reqPath: String,  reqMethod: String): Boolean{
+    fun hasMatch(reqPath: String,  reqMethod: String, sd: String): Boolean{
         return if(matchPattern === MatchPattern.FULL){
-            path == reqPath && method.value == reqMethod
+            path == reqPath && method.value == reqMethod && subDomain == sd
         }else{
-            reqPath.startsWith(path) && method.value == reqMethod
+            reqPath.startsWith(path) && method.value == reqMethod && subDomain == sd
         }
     }
 }
