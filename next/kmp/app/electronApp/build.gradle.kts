@@ -36,6 +36,10 @@ kotlin {
       implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-js:1.6.2")
 //      implementation("org.jetbrains.kotlin-wrappers:kotlin-extensions:1.0.1-pre.689")
 
+      implementation(kotlin("test"))
+      implementation(project(":platformTest"))
+
+
     }
   }
 }

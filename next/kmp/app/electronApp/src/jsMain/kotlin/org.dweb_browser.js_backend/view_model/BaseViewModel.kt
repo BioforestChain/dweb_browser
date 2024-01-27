@@ -4,78 +4,69 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.dweb_browser.js_backend.view_model_state.OnUpdateCallback
+import org.dweb_browser.js_backend.view_model_state.ViewModelMutableMap
+import org.dweb_browser.js_backend.view_model_state.ViewModelState
+import org.dweb_browser.js_backend.view_model_state.ViewModelStateRole
+import org.dweb_browser.js_backend.view_model_state.viewModelMutableMapOf
 
 /**
  *
  * 定义一个基础的ViewModel
- * @property state {MutableMap<dynamic, dynamic>}
- * - 需要再继承类中实现的抽象类
- * @property scope {CoroutineScope}
- * @property whenReady {CompletableDeferred<Unit>}
- * - 是否准备好发送数据的表示
- * @property onStateChangeByBrowser {(cb: OnDataCallback) -> Unit}
- * - 添加监听状态的变化监听器
- * @property syncDataToUI {(key: dynamic, value: dynamic) -> Unit}
- * - 同步数据给UI的方法
+ * 通过ViewModel自动实现同客户端ViewModel数据的同步
  *
- * example
- * class BrowserViewModel(frontendViewModelId: String) : BaseViewModel(frontendViewModelId) {
- *     // 测试数据
- *     override val state = mutableMapOf<dynamic, dynamic>("currentCount" to 1)
- *     init {
- *         // 添加一个状态监听器
- *         onStateChangeByBrowser {
- *             // 当接受到UI同步过来的数据会调用
- *             // 不需要再这里进行状态同步的操作BaseViewModel会自动更新State
- *             scope.launch {
- *                 // 把服务端的State同步到UI的viewModel
- *                 syncDataToUI(it[0], it[1] + 1)
- *             }
- *         }
- *     }
- * }
- *
+ * 抽象功能设计
+ * - 可以设置状态
+ *      - 包括设置状态和同步状态给客户端
+ * - 可以监听状态的变化
+ *      - 监听客户端同步过来的状态
  */
 abstract class BaseViewModel(
-    val frontendViewModelId: String
+    val frontendViewModelId: String,
+    initVieModelMutableMap: ViewModelMutableMap? = null
 ){
-    abstract val state: MutableMap<dynamic, dynamic>
-    val scope = CoroutineScope(Dispatchers.Unconfined)
     var whenReady = CompletableDeferred<Unit>()
+    val scope = CoroutineScope(Dispatchers.Unconfined)
+    private val viewModelState: ViewModelState = ViewModelState(initVieModelMutableMap?:viewModelMutableMapOf())
     private var socket: CompletableDeferred<ViewModelSocket> = ViewModelSocket.getViewModelSocket(frontendViewModelId)
 
     init {
         scope.launch {
             socket.await().run {
                 onData {
-                    console.log("服务端 同步状态的数据 it", it)
-                    // 用来同步状态
-                    // TODO: 需要添加一个判断有 
-                    state[it[0]] = it[1]
+                    // 接受到了UI同步过来的数据
+                    viewModelState.set(it[0], it[1], ViewModelStateRole.CLIENT)
                 }
-                syncStateToUI()
+                syncViewModelStateToUI()
                 whenReady.complete(Unit)
             }
+        }
+
+        // 以服务器角色更新了viewModelState之后就必须要报数据同步给UI
+        viewModelState.onUpdate(ViewModelStateRole.SERVER){key, value ->
+            syncDataToUI(key,value)
         }
     }
 
     /**
-     * 添加状态变化的监听器方法
+     * 添加一个监听客户端角色更新状态的监听器
      */
-    fun onStateChangeByBrowser(cb: OnDataCallback){
-        scope.launch {
-            socket.await().run {
-                onData(cb)
-            }
-        }
+    fun onUpdateByClient(cb: OnUpdateCallback) = viewModelState.onUpdate(ViewModelStateRole.CLIENT, cb)
+
+    /**
+     * 设置状态的值
+     */
+    operator fun set(key: dynamic, value: dynamic){
+        viewModelState[key] = value
     }
+
     /**
      * 同步数据给UI
      */
-    private suspend fun syncStateToUI(){
+    private suspend fun syncViewModelStateToUI(){
         socket.await().run {
-            state.forEach {
-                syncDataToUI(it.key, it.value)
+            viewModelState.forEach {key, value ->
+                syncDataToUI(key, value)
             }
             // 发送初始化数据同步完成的消息
             syncDataToUI("syncDataToUiState", "sync-data-to-ui-done")
@@ -89,7 +80,7 @@ abstract class BaseViewModel(
      * @param value {dynamic
      * - 同步数据的value
      */
-    fun syncDataToUI(key: dynamic, value: dynamic){
+    private fun syncDataToUI(key: dynamic, value: dynamic){
         scope.launch {
             socket.await().run {
                 write(JSON.stringify(arrayOf(key, value)))

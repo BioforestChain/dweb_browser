@@ -51,7 +51,7 @@ class HttpServer private constructor(){
     fun start(listeningListener: ( Server<IncomingMessage, ServerResponse<*>>.() -> Unit)? = null): HttpServer{
         _isStart = true;
         _server.listen(_port){
-            _address = "http://127.0.0.1:${_server.address().asDynamic().port}"
+            _address = "http://localhost:${_server.address().asDynamic().port}"
             console.log(_address)
             if(listeningListener != null) {
                 listeningListener(_server)

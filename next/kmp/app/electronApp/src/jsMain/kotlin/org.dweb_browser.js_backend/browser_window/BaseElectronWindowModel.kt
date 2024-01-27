@@ -25,7 +25,7 @@ import node.querystring.parse as queryStringParse
 import org.dweb_browser.js_backend.http.MatchPattern
 import org.dweb_browser.js_backend.http.Method
 import org.dweb_browser.js_backend.http.Route
-
+import org.dweb_browser.js_backend.view_model_state.ViewModelMutableMap
 
 
 typealias OnBrowserTitleUpdateCallback = (event: Event, title: String, explicitSet: Boolean) -> Unit
@@ -59,8 +59,11 @@ typealias OnAppCommandCallback = (event: Event, command: String) -> Unit
 /**
  * View ===  Window
  */
-abstract class BaseBrowserWindowModel(frontendViewModelId: String) :
-    BaseViewModel(frontendViewModelId) {
+abstract class BaseBrowserWindowModel(
+    frontendViewModelId: String,
+    initVieModelMutableMap: ViewModelMutableMap? = null
+) :
+    BaseViewModel(frontendViewModelId, initVieModelMutableMap) {
     lateinit var electronAppHttpSever: HttpServer
     lateinit var browserWindow: BrowserWindow
     val baseBrowserWindowModelReady = CompletableDeferred<BaseBrowserWindowModel>()
