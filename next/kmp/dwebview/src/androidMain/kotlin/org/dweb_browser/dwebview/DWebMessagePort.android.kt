@@ -71,7 +71,6 @@ class DWebMessagePort private constructor(internal val port: WebMessagePortCompa
 
   @SuppressLint("RequiresFeature")
   override suspend fun close() {
-    Runnable { }
     port.close()
   }
 
@@ -79,20 +78,18 @@ class DWebMessagePort private constructor(internal val port: WebMessagePortCompa
 
   @SuppressLint("RequiresFeature")
   override suspend fun postMessage(event: DWebMessage) {
-    if (event is DWebMessage.DWebMessageBytes) {
-      port.postMessage(
-        WebMessageCompat(
-          event.data,
-          event.ports.map { (it as DWebMessagePort).port }.toTypedArray()
-        )
-      )
-    } else if (event is DWebMessage.DWebMessageString) {
-      port.postMessage(
-        WebMessageCompat(
-          event.data,
-          event.ports.map { (it as DWebMessagePort).port }.toTypedArray()
-        )
-      )
+    val ports = if (event.ports.isEmpty()) null
+    else event.ports.map { (it as DWebMessagePort).port }.toTypedArray()
+
+    val msgCompat = when (event) {
+      is DWebMessage.DWebMessageBytes -> {
+        WebMessageCompat(event.data, ports)
+      }
+
+      is DWebMessage.DWebMessageString -> {
+        WebMessageCompat(event.data, ports)
+      }
     }
+    port.postMessage(msgCompat)
   }
 }

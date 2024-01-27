@@ -20,15 +20,17 @@ enum class DWebMessageBytesEncode {
   Protobuf
 }
 
-sealed class DWebMessage {
-  data class DWebMessageString(
-    val data: String,
-    val ports: List<IWebMessagePort> = emptyList()
-  ) : DWebMessage()
+sealed interface DWebMessage {
+  val ports: List<IWebMessagePort>
 
-  data class DWebMessageBytes(
+  class DWebMessageString(
+    val data: String,
+    override val ports: List<IWebMessagePort> = emptyList()
+  ) : DWebMessage
+
+  class DWebMessageBytes(
     val data: ByteArray,
-    val ports: List<IWebMessagePort> = emptyList(),
+    override val ports: List<IWebMessagePort> = emptyList(),
     val encode: DWebMessageBytesEncode = DWebMessageBytesEncode.Normal
-  ) : DWebMessage()
+  ) : DWebMessage
 }

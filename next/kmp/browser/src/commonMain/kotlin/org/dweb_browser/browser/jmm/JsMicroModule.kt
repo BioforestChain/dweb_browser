@@ -282,6 +282,9 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
             }.buildUnsafeString()
           ).int()
           val originIpc = JmmIpc(portId, this@JsMicroModule, fromMMID)
+          originIpc.onClose {
+            fromMMIDOriginIpcWM.remove(fromMMID)
+          }
 
           /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理
           if (targetIpc != null) {
@@ -298,16 +301,10 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
              * 监听关闭事件
              */
             originIpc.onClose {
-              fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
               targetIpc.close()
             }
             targetIpc.onClose {
-              fromMMIDOriginIpcWM.remove(originIpc.remote.mmid)
               originIpc.close()
-            }
-          } else {
-            originIpc.onClose {
-              fromMMIDOriginIpcWM.remove(originIpc.remote.mmid)
             }
           }
           po.resolve(originIpc);

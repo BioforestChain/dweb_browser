@@ -136,7 +136,13 @@ export class JsProcessMicroModule implements $MicroModule {
         let rote = IPC_ROLE.CLIENT as IPC_ROLE;
         const port_po = mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
           rote = IPC_ROLE.SERVER;
-          return new PromiseOut<Ipc>();
+          const ipc_po = new PromiseOut<Ipc>();
+          ipc_po.onSuccess((ipc) => {
+            ipc.onClose(() => {
+              this._ipcConnectsMap.delete(ipc.remote.mmid);
+            });
+          });
+          return ipc_po;
         });
         const ipc = new MessagePortIpc(
           port,
