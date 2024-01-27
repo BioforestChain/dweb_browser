@@ -14,7 +14,6 @@ struct TabsContainerView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
     @EnvironmentObject var dragScale: WndDragScale
-    @EnvironmentObject var browserArea: BrowserArea
 
     @StateObject var gridState = TabGridState()
     @StateObject var animation = ShiftAnimation()

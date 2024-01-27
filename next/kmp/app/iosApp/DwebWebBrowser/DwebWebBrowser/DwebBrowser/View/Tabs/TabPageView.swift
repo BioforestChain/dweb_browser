@@ -23,8 +23,6 @@ struct TabPageView: View {
     let isVisible: Bool
     var doneLoading: (WebCache) -> Void
 
-    @State private var snapshotHeight: CGFloat = 0
-
     var body: some View {
         GeometryReader { geo in
             content
@@ -41,10 +39,6 @@ struct TabPageView: View {
                         openingLink.clickedLink = emptyURL
                         print("clickedLink has changed at index: \(link)")
                     }
-                }
-                .onAppear {
-                    print("tabPage rect: \(geo.frame(in: .global))")
-                    snapshotHeight = geo.frame(in: .global).height
                 }
 
                 .onChange(of: toolbarState.shouldExpand) { _, shouldExpand in
@@ -100,6 +94,7 @@ struct TabPageView: View {
     var webComponent: some View {
         let _ = Self._printChanges()
         return TabWebView(webView: webWrapper.webView)
+            .environmentObject(dragScale)
             .id(webWrapper.id)
             .onAppear {
                 if webWrapper.estimatedProgress < 0.001 {

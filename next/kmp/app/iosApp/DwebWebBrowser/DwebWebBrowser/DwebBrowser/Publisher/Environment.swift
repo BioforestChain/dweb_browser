@@ -9,10 +9,6 @@ import Combine
 import Foundation
 import SwiftUI
 
-class BrowserArea: ObservableObject {
-    @Published var frame: CGRect = .zero
-}
-
 class WebMonitor: ObservableObject{
     @Published var loadingProgress: Double = 0{
         willSet{

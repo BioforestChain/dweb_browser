@@ -79,7 +79,7 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
 
 // A container for using a BrowserWebview in SwiftUI
 struct TabWebView: View, UIViewRepresentable {
-    /// The BrowserWebview to display
+    @EnvironmentObject var scale: WndDragScale
     let innerWeb: WebView
 
     init(webView: WebView) {
@@ -93,6 +93,39 @@ struct TabWebView: View, UIViewRepresentable {
     func updateUIView(_ uiView: WebView, context: UIViewRepresentableContext<TabWebView>) {
         Log("visiting updateUIView function")
     }
+
+    // 创建一个Coordinator
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    // 在这里定义你的Coordinator类
+    class Coordinator: NSObject {
+        var parent: TabWebView
+        var cancellable = Set<AnyCancellable>()
+
+        init(_ parent: TabWebView) {
+            self.parent = parent
+            // 现在我们可以使用self.parent来设置我们的观察者
+            super.init() // 调用super.init()
+            self.parent.scale.$onWidth.sink { [weak self] newScale in
+                DispatchQueue.main.async {
+//                       let jsString = """
+//                           document.getElementsByTagName('body')[0].style.transform = 'scale(\(newScale))';
+//                           document.getElementsByTagName('body')[0].style.transformOrigin = 'top left';
+//                       """
+//
+//                       self?.parent.innerWeb.evaluateJavaScript(jsString) { result, error in
+//                           if let error = error {
+//                               print(error.localizedDescription)
+//                           }
+//                       }
+
+                    self?.parent.innerWeb.scrollView.zoomScale = newScale // 根据需要调整
+                }
+            }.store(in: &cancellable)
+        }
+    }
 }
 
 class LocalWebView: WKWebView {
@@ -101,8 +134,8 @@ class LocalWebView: WKWebView {
     }
 }
 
-#if TestOriginWebView
-typealias WebView = LocalWebView
-#else
+// #if TestOriginWebView
+// typealias WebView = LocalWebView
+// #else
 typealias WebView = WebBrowserViewWebDataSource.WebType
-#endif
+// #endif

@@ -9,14 +9,13 @@
 import Foundation
 import SwiftUI
 
-class BrowserViewStates: ObservableObject {    
+class BrowserViewStates: ObservableObject {
     static let shared = BrowserViewStates()
     @Published var addressBar = AddressBarState()
     @Published var openingLink = OpeningLink()
     @Published var toolBarState = ToolBarState()
     @Published var webcacheStore = WebCacheStore()
     @Published var dragScale = WndDragScale()
-    @Published var wndArea = BrowserArea()
     @Published var searchKey: String? = nil
     @Published var colorSchemeManager = ColorSchemeManager()
     @Published var selectedTabIndex = 0
@@ -27,7 +26,6 @@ class BrowserViewStates: ObservableObject {
         toolBarState = ToolBarState()
         webcacheStore = WebCacheStore()
         dragScale = WndDragScale()
-        wndArea = BrowserArea()
         searchKey = nil
         selectedTabIndex = 0
     }

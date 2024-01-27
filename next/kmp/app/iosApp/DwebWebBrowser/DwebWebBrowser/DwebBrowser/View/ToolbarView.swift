@@ -42,7 +42,6 @@ struct ToolbarView: View {
                     Spacer().frame(width: size.width / 15)
                     
                     BiColorButton(imageName: "add", disabled: false) {
-                        Log("open new tab was clicked")
                         toolbarState.createTabTapped = true
                     }
                     .frame(height: min(size.width / 14, size.height / 1.9))

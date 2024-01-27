@@ -27,14 +27,7 @@ struct BrowserView: View {
                     .environmentObject(states.addressBar)
                     .environmentObject(states.toolBarState)
                     .environmentObject(states.dragScale)
-                    .environmentObject(states.wndArea)
                     .environmentObject(states)
-                }
-                .onAppear {
-                    states.dragScale.onWidth = (geometry.size.width - 10) / screen_width
-                }
-                .onChange(of: geometry.size) { _, newSize in
-                    states.dragScale.onWidth = (newSize.width - 10) / screen_width
                 }
                 .resizableSheet(isPresented: $presentSheet) {
                     SheetSegmentView()
@@ -43,10 +36,10 @@ struct BrowserView: View {
                         .environmentObject(states.dragScale)
                         .environmentObject(states.toolBarState)
                 }
-                .onChange(of: geometry.frame(in: .global)) { _, frame in
-                    states.wndArea.frame = frame
+                .onChange(of: geometry.size, initial: true) { _, newSize in
+                    states.dragScale.onWidth = (newSize.width - 6.0) / screen_width
                 }
-                
+
                 .onReceive(states.toolBarState.$showMoreMenu) { showMenu in
                     if showMenu {
                         presentSheet = true
