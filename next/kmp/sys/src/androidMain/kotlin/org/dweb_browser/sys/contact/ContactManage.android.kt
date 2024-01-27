@@ -53,7 +53,7 @@ actual class ContactManage {
         val number = queryContactData1(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, _id)
         val email = queryContactData1(ContactsContract.CommonDataKinds.Email.CONTENT_URI, _id)
         debugContact("pickContact", "_id=$_id, number=$number, email=$email")
-        ContactInfo(displayName!!, number, email)
+        ContactInfo(displayName!!, listOf(number), listOf(email))
       }
     }
 

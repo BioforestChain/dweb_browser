@@ -27,6 +27,7 @@ import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
+import org.dweb_browser.sys.contact.ContactNMM
 import org.dweb_browser.sys.device.DeviceNMM
 import org.dweb_browser.sys.haptics.HapticsNMM
 import org.dweb_browser.sys.location.LocationNMM
@@ -112,7 +113,8 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   val mediaNMM = MediaNMM().setup()
   /// multipart
   val multipartNMM = MultipartNMM().setup()
-
+  /// Contact
+  val contactNMM = ContactNMM().setup()
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()

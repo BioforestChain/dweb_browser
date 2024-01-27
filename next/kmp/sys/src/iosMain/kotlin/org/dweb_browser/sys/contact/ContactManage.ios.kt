@@ -1,23 +1,117 @@
 package org.dweb_browser.sys.contact
 
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.helper.WARNING
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
+import platform.Contacts.CNContact
+import platform.Contacts.CNContactFormatter
+import platform.Contacts.CNContactFormatterStyle
+import platform.Contacts.CNLabeledValue
+import platform.Contacts.CNPhoneNumber
+import platform.ContactsUI.CNContactPickerDelegateProtocol
+import platform.ContactsUI.CNContactPickerViewController
+import platform.darwin.NSObject
+
 
 actual class ContactManage {
   init {
     SystemPermissionAdapterManager.append {
       when (task.name) {
+        // iOS使用CNContactPickerViewController控件，不再需要向iOS系统索要权限，所以直接放开联系人权限。
         SystemPermissionName.CONTACTS -> AuthorizationStatus.GRANTED
         else -> null
       }
     }
   }
 
+  class CNContactDelegate(val cancel: () -> Unit, val selected: (CNContact) -> Unit) : NSObject(),
+    CNContactPickerDelegateProtocol {
+
+    override fun contactPickerDidCancel(picker: CNContactPickerViewController) {
+      cancel()
+    }
+
+    override fun contactPicker(
+      picker: CNContactPickerViewController,
+      didSelectContact: CNContact
+    ) {
+      picker.dismissModalViewControllerAnimated(true)
+      selected(didSelectContact)
+    }
+  }
+
+
+  var delegateHolder: CNContactDelegate? = null
+
+  @OptIn(ExperimentalForeignApi::class)
   actual suspend fun pickContact(microModule: MicroModule): ContactInfo? {
-    WARNING("Not yet implemented")
-    return null
+
+    val scope = CoroutineScope(Dispatchers.Main)
+    val deferred = CompletableDeferred<CNContact?>()
+
+    scope.launch {
+
+      val controller = MicroModule.getUIApplication().keyWindow?.rootViewController
+
+      if (controller != null) {
+        val delegate = CNContactDelegate(cancel = {
+          deferred.complete(null)
+        }, selected = {
+          deferred.complete(it)
+        })
+
+        val picker = CNContactPickerViewController().apply {
+          setDelegate(delegate)
+        }
+        controller.presentModalViewController(picker, true)
+        delegateHolder = delegate
+      } else {
+        deferred.complete(null)
+      }
+    }
+
+    val contact = deferred.await()
+    delegateHolder = null
+
+    return contact?.let {
+      ContactInfo(
+        getContactName(it),
+        getPhoneNumbers(it),
+        getEmails(it)
+      )
+    }
+  }
+
+  private fun getContactName(contact: CNContact): String {
+    return CNContactFormatter.stringFromContact(
+      contact,
+      CNContactFormatterStyle.CNContactFormatterStyleFullName
+    ) ?: ""
+  }
+
+  private fun getPhoneNumbers(contact: CNContact): List<String> {
+    if (contact.phoneNumbers.isEmpty()) return emptyList()
+
+    return contact.phoneNumbers.map {
+      val phoneNumber = (it as CNLabeledValue).value
+      (phoneNumber as CNPhoneNumber).stringValue
+    }
+  }
+
+  private fun getEmails(contact: CNContact): List<String> {
+    if (contact.emailAddresses.isEmpty()) return emptyList()
+
+    return contact.emailAddresses.map {
+      val email = (it as CNLabeledValue).value
+      (email as String)
+    }
   }
 }
+

@@ -6,8 +6,8 @@ import org.dweb_browser.core.module.MicroModule
 @Serializable
 data class ContactInfo(
   val name: String, // 联系人姓名
-  val phone: String, // 联系人电话
-  val email: String? = null, // 电子邮件
+  val phone: List<String>, // 联系人电话
+  val email: List<String>, // 电子邮件
 )
 
 expect class ContactManage() {
