@@ -134,133 +134,129 @@ fun JmmViewItem(
 ) {
   var showMore by remember(jmmHistoryMetadata) { mutableStateOf(false) }
 
-  ListItem(
-    headlineContent = {
-      Text(
-        text = jmmHistoryMetadata.metadata.name,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        color = MaterialTheme.colorScheme.onBackground,
-        fontWeight = FontWeight.W700
-      )
-    },
-    supportingContent = {
-      Row {
-        Text(text = jmmHistoryMetadata.metadata.bundle_size.toSpaceSize())
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = jmmHistoryMetadata.installTime.formatDatestampByMilliseconds())
-        Spacer(modifier = Modifier.width(8.dp))
-        Icon(
-          imageVector = if (showMore) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-          contentDescription = "More",
+  Column {
+    ListItem(
+      headlineContent = {
+        Text(
+          text = jmmHistoryMetadata.metadata.name,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          color = MaterialTheme.colorScheme.onBackground,
+          fontWeight = FontWeight.W700
         )
-      }
-    },
-    leadingContent = {
-      Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
-        key(jmmHistoryMetadata.metadata.logo) {
-          AsyncImage(
-            model = jmmHistoryMetadata.metadata.logo,
-            contentDescription = "icon",
-            modifier = Modifier.size(56.dp),
+      },
+      supportingContent = {
+        Row {
+          Text(text = jmmHistoryMetadata.metadata.bundle_size.toSpaceSize())
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(text = jmmHistoryMetadata.installTime.formatDatestampByMilliseconds())
+          Spacer(modifier = Modifier.width(8.dp))
+          Icon(
+            imageVector = if (showMore) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+            contentDescription = "More",
           )
         }
-      }
-    },
-    trailingContent = {
-      Box(
-        modifier = Modifier.size(64.dp).clickableWithNoEffect { buttonClick() },
-        contentAlignment = Alignment.Center
-      ) {
-        val progress = with(jmmHistoryMetadata.state) {
-          if (total > 0) current * 1.0f / total else 0f
+      },
+      leadingContent = {
+        Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
+          key(jmmHistoryMetadata.metadata.logo) {
+            AsyncImage(
+              model = jmmHistoryMetadata.metadata.logo,
+              contentDescription = "icon",
+              modifier = Modifier.size(56.dp),
+            )
+          }
         }
-        val primary = MaterialTheme.colorScheme.primary
-        when (jmmHistoryMetadata.state.state) {
-          JmmStatus.Downloading -> {
-            Box(
-              modifier = Modifier.size(40.dp),
-              contentAlignment = Alignment.Center
-            ) {
-              // 画圆
-              Canvas(modifier = Modifier.fillMaxSize()) {
-                drawArc(
-                  color = primary,
-                  startAngle = -90f,
-                  sweepAngle = progress * 360f,
-                  useCenter = false,
-                  style = Stroke(width = 8f)
+      },
+      trailingContent = {
+        Box(
+          modifier = Modifier.size(64.dp).clickableWithNoEffect { buttonClick() },
+          contentAlignment = Alignment.Center
+        ) {
+          val progress = with(jmmHistoryMetadata.state) {
+            if (total > 0) current * 1.0f / total else 0f
+          }
+          val primary = MaterialTheme.colorScheme.primary
+          when (jmmHistoryMetadata.state.state) {
+            JmmStatus.Downloading -> {
+              Box(
+                modifier = Modifier.size(40.dp),
+                contentAlignment = Alignment.Center
+              ) {
+                // 画圆
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                  drawArc(
+                    color = primary,
+                    startAngle = -90f,
+                    sweepAngle = progress * 360f,
+                    useCenter = false,
+                    style = Stroke(width = 8f)
+                  )
+                }
+                // 画图标
+                Image(
+                  imageVector = Icons.Default.Download,
+                  contentDescription = "Download",
+                  modifier = Modifier.clip(CircleShape).size(36.dp),
+                  contentScale = ContentScale.FillBounds
                 )
               }
-              // 画图标
-              Image(
-                imageVector = Icons.Default.Download,
-                contentDescription = "Download",
-                modifier = Modifier.clip(CircleShape).size(36.dp),
-                contentScale = ContentScale.FillBounds
-              )
             }
-          }
 
-          JmmStatus.Paused -> {
-            Box(
-              modifier = Modifier
-                .size(width = 64.dp, height = 30.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.outlineVariant)
-            ) {
+            JmmStatus.Paused -> {
               Box(
                 modifier = Modifier
-                  .size(width = (64 * progress).dp, height = 30.dp)
-                  .background(MaterialTheme.colorScheme.primary)
-              )
+                  .size(width = 64.dp, height = 30.dp)
+                  .clip(RoundedCornerShape(8.dp))
+                  .background(MaterialTheme.colorScheme.outlineVariant)
+              ) {
+                Box(
+                  modifier = Modifier
+                    .size(width = (64 * progress).dp, height = 30.dp)
+                    .background(MaterialTheme.colorScheme.primary)
+                )
 
-              Text(
-                text = jmmHistoryMetadata.state.state.showText(),
-                color = MaterialTheme.colorScheme.background,
-                fontWeight = FontWeight.W900,
-                modifier = Modifier.align(Alignment.Center),
-              )
+                Text(
+                  text = jmmHistoryMetadata.state.state.showText(),
+                  color = MaterialTheme.colorScheme.background,
+                  fontWeight = FontWeight.W900,
+                  modifier = Modifier.align(Alignment.Center),
+                )
+              }
             }
-          }
 
-          else -> {
-            Box(
-              modifier = Modifier
-                .size(width = 64.dp, height = 30.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.primary),
-              contentAlignment = Alignment.Center
-            ) {
-              Text(
-                text = jmmHistoryMetadata.state.state.showText(),
-                color = MaterialTheme.colorScheme.background,
-                fontWeight = FontWeight.W900,
-                textAlign = TextAlign.Center,
-              )
+            else -> {
+              Box(
+                modifier = Modifier
+                  .size(width = 64.dp, height = 30.dp)
+                  .clip(RoundedCornerShape(8.dp))
+                  .background(MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center
+              ) {
+                Text(
+                  text = jmmHistoryMetadata.state.state.showText(),
+                  color = MaterialTheme.colorScheme.background,
+                  fontWeight = FontWeight.W900,
+                  textAlign = TextAlign.Center,
+                )
+              }
             }
           }
         }
-      }
-    },
-    modifier = Modifier.clickableWithNoEffect {
-      showMore = !showMore
-    }
-  )
-  if (showMore) {
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(start = 72.dp)
-    ) {
-      if (jmmHistoryMetadata.state.state == JmmStatus.INSTALLED) {
-        TextButton(onClick = uninstall) {
-          Text(text = BrowserI18nResource.jmm_history_uninstall())
+      },
+      modifier = Modifier.clickableWithNoEffect { showMore = !showMore }
+    )
+    if (showMore) {
+      Row(modifier = Modifier.fillMaxWidth().padding(start = 72.dp)) {
+        if (jmmHistoryMetadata.state.state == JmmStatus.INSTALLED) {
+          TextButton(onClick = uninstall) {
+            Text(text = BrowserI18nResource.jmm_history_uninstall())
+          }
         }
-      }
 
-      TextButton(onClick = detail) {
-        Text(text = BrowserI18nResource.jmm_history_details())
+        TextButton(onClick = detail) {
+          Text(text = BrowserI18nResource.jmm_history_details())
+        }
       }
     }
   }
