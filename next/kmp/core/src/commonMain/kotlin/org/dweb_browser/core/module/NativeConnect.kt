@@ -2,8 +2,8 @@ package org.dweb_browser.core.module
 
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.help.AdapterManager
-import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.pure.http.PureRequest
 
 /**
  * 两个模块的连接结果：
@@ -11,9 +11,9 @@ import org.dweb_browser.core.ipc.Ipc
  * 1. fromIpc 是肯定有的，这个对象是我们当前的上下文发起连接得来的通道，要与 toMM 通讯都需要通过它
  * 1. toIpc 则不一定，远程模块可能是自己创建了 Ipc，我们的上下文拿不到这个内存对象
  */
-data class ConnectResult(val ipcForFromMM: Ipc, val ipcForToMM: Ipc) {
-  val component1 get() = ipcForFromMM
-  val component2 get() = ipcForToMM
+class ConnectResult(val ipcForFromMM: Ipc, val ipcForToMM: Ipc) {
+  operator fun component1() = ipcForFromMM
+  operator fun component2() = ipcForToMM
 }
 
 typealias ConnectAdapter = suspend (fromMM: MicroModule, toMM: MicroModule, reason: PureRequest) -> ConnectResult?

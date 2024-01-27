@@ -94,7 +94,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     this._video = shadow.querySelector("video")!;
     this._ctx = this._canvas.getContext("2d")!;
   }
-  static readonly _support_native_request_full_screen = typeof document.body.requestFullscreen === "function";
+  static readonly _support_native_request_full_screen = false; // typeof document.body.requestFullscreen === "function";
 
   override async requestFullscreen(options?: FullscreenOptions) {
     const dialog = this._dialog;

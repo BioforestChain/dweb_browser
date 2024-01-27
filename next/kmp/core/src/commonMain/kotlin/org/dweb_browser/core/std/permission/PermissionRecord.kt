@@ -98,5 +98,3 @@ enum class AuthorizationStatus(val status: String, val allow: Boolean) {
     val ALL_VALUES = entries.associateBy { it.status }
   }
 }
-
-val forwardReason = randomUUID()

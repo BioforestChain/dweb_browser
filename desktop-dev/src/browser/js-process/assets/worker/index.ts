@@ -17,6 +17,7 @@ import * as core from "./std-dweb-core.ts";
 import * as http from "./std-dweb-http.ts";
 
 import {
+  $messageToIpcMessage,
   $OnFetch,
   $OnIpcEventMessage,
   $OnIpcRequestMessage,
@@ -24,6 +25,7 @@ import {
   Ipc,
   IPC_ROLE,
   IpcEvent,
+  IpcRequest,
   MessagePortIpc,
   MWEBVIEW_LIFECYCLE_EVENT,
 } from "./std-dweb-core.ts";
@@ -136,10 +138,10 @@ export class JsProcessMicroModule implements $MicroModule {
         let rote = IPC_ROLE.CLIENT as IPC_ROLE;
         const port_po = mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
           rote = IPC_ROLE.SERVER;
-          const ipc_po = new PromiseOut<Ipc>();
+          const ipc_po = new PromiseOut<MessagePortIpc>();
           ipc_po.onSuccess((ipc) => {
             ipc.onClose(() => {
-              this._ipcConnectsMap.delete(ipc.remote.mmid);
+              this._ipcConnectsMap.delete(mmid);
             });
           });
           return ipc_po;
@@ -213,15 +215,27 @@ export class JsProcessMicroModule implements $MicroModule {
     this.name = `js process of ${this.mmid}`;
     this.host = this.meta.envString("host");
     this.fetchIpc = new MessagePortIpc(this.nativeFetchPort, this, IPC_ROLE.SERVER);
-    this.fetchIpc.onEvent((ipcEvent) => {
+    this.fetchIpc.onEvent(async (ipcEvent) => {
       if (ipcEvent.name === "dns/connect/done" && typeof ipcEvent.data === "string") {
         const { connect, result } = JSON.parse(ipcEvent.data);
+        /// 这里之所以 connect 和 result 存在不一致的情况，是因为 subprotocol 的存在
         const task = this._ipcConnectsMap.get(connect);
         if (task && task.is_resolved === false) {
           const resultTask = this._ipcConnectsMap.get(result);
           if (resultTask && resultTask !== task) {
             task.resolve(resultTask.promise);
           }
+        }
+      } else if (ipcEvent.name.startsWith("forward/")) {
+        const [_, action, mmid] = ipcEvent.name.split("/");
+        const ipc = await this.connect(mmid as $MMID);
+        if (action === "request") {
+          const response = await ipc.request(
+            $messageToIpcMessage(JSON.parse(ipcEvent.data as string), ipc) as IpcRequest
+          );
+          this.fetchIpc.postMessage(IpcEvent.fromText(`forward/response/${mmid}`, JSON.stringify(response.ipcResMessage())));
+        } else if (action === "close") {
+          ipc.close();
         }
       }
     });
@@ -315,10 +329,10 @@ export class JsProcessMicroModule implements $MicroModule {
     return this._onCloseSignal.listen(cb);
   }
 
-  private _ipcConnectsMap = new Map<$MMID, PromiseOut<Ipc>>();
+  private _ipcConnectsMap = new Map<$MMID, PromiseOut<MessagePortIpc>>();
   async connect(mmid: $MMID) {
     const ipc = await mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
-      const ipc_po = new PromiseOut<Ipc>();
+      const ipc_po = new PromiseOut<MessagePortIpc>();
       // 发送指令
       this.fetchIpc.postMessage(
         IpcEvent.fromText(
@@ -332,7 +346,7 @@ export class JsProcessMicroModule implements $MicroModule {
       );
       ipc_po.onSuccess((ipc) => {
         ipc.onClose(() => {
-          this._ipcConnectsMap.delete(ipc.remote.mmid);
+          this._ipcConnectsMap.delete(mmid);
         });
       });
       return ipc_po;

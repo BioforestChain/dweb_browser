@@ -26,7 +26,6 @@ import org.dweb_browser.core.module.connectMicroModules
 import org.dweb_browser.core.std.dns.ext.createActivity
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.ext.requestPermissions
-import org.dweb_browser.core.std.permission.forwardReason
 import org.dweb_browser.core.std.permission.permissionAdapterManager
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
@@ -149,12 +148,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     )
 
     val toMMID = toMicroModule.mmid
-    val fromMMID =
-      if (reason.method == PureMethod.CONNECT && reason.body.toPureString() == forwardReason) {
-        reason.url.host // 特殊的代理模式
-      } else {
-        fromMM.mmid
-      }
+    val fromMMID = fromMM.mmid
 
     val toRunningApp = _open(toMicroModule.mmid, fromMM)
     debugDNS("connectTo", "keyMap($fromMMID <=> $toMMID)")
