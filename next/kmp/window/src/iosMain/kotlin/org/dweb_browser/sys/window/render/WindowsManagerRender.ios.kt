@@ -7,12 +7,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.LocalCompositionChain
+import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.window.core.WindowController
@@ -20,6 +21,50 @@ import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
+
+class IosWindowNativeView(
+  params: Map<String, Any?>,
+  private val win: WindowController,
+  private val windowsManager: WindowsManager<*>
+) {
+  val pvc = PureViewController(params).also { pvc ->
+    pvc.onCreate { params ->
+      @Suppress("UNCHECKED_CAST") pvc.addContent {
+        val maxWidth by params["maxWidth"] as State<Float>
+        val maxHeight by params["maxHeight"] as State<Float>
+        val compositionChain by params["compositionChain"] as State<CompositionChain>
+        compositionChain.Provider(LocalCompositionChain.current)
+          .Provider(LocalWindowsManager provides windowsManager) {
+            /// 渲染窗口
+            win.Render(
+              modifier = Modifier.windowImeOutsetBounds(),
+              maxWinWidth = maxWidth,
+              maxWinHeight = maxHeight
+            )
+          }
+      }
+    }
+  }
+
+  companion object {
+    val INSTANCES = WeakHashMap<WindowController, IosWindowNativeView>()
+  }
+}
+
+fun WindowController.getIosWindowNativeView(
+  windowsManager: WindowsManager<*>,
+  maxWidth: State<Float>,
+  maxHeight: State<Float>,
+  compositionChain: State<CompositionChain>
+) = IosWindowNativeView.INSTANCES.getOrPut(this) {
+  IosWindowNativeView(
+    mutableMapOf(
+      "maxWidth" to maxWidth,
+      "maxHeight" to maxHeight,
+      "compositionChain" to compositionChain,
+    ), this, windowsManager
+  )
+}
 
 @Composable
 fun RenderWindowInNewLayer(
@@ -33,35 +78,8 @@ fun RenderWindowInNewLayer(
   val maxWidth = rememberUpdatedState(currentMaxWidth)
   val maxHeight = rememberUpdatedState(currentMaxHeight)
   val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
-  val params = remember {
-    mutableMapOf(
-      "maxWidth" to maxWidth,
-      "maxHeight" to maxHeight,
-      "compositionChain" to compositionChain,
-    )
-  }
+  val pvc = win.getIosWindowNativeView(windowsManager, maxWidth, maxHeight, compositionChain).pvc
 
-  @Suppress("NAME_SHADOWING", "UNCHECKED_CAST")
-  val pvc = remember {
-    PureViewController(params).also { pvc ->
-      pvc.onCreate { params ->
-        @Suppress("UNCHECKED_CAST") pvc.addContent {
-          val maxWidth by params["maxWidth"] as State<Float>
-          val maxHeight by params["maxHeight"] as State<Float>
-          val compositionChain by params["compositionChain"] as State<CompositionChain>
-          compositionChain.Provider(LocalCompositionChain.current)
-            .Provider(LocalWindowsManager provides windowsManager) {
-              /// 渲染窗口
-              win.Render(
-                modifier = Modifier.windowImeOutsetBounds(),
-                maxWinWidth = maxWidth,
-                maxWinHeight = maxHeight
-              )
-            }
-        }
-      }
-    }
-  }
   val zIndex by win.watchedState(zIndexBase) { zIndex + zIndexBase }
   /// 启动
   DisposableEffect(pvc) {

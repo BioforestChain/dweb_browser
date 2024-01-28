@@ -67,15 +67,18 @@ class DwebComposeRootViewController: UIViewController {
         }
         
         vcs.forEach { vc in
-            addChild(vc)
-            addFullSreen(subView: vc.view, to: touchDispatchView)
-            vc.didMove(toParent: self)
+            if !children.contains(vc) {
+                addChild(vc)
+                addFullSreen(subView: vc.view, to: touchDispatchView)
+                vc.didMove(toParent: self)
+            }
+            
+            touchDispatchView.bringSubviewToFront(vc.view)
         }
     }
     
     func addFullSreen(subView: UIView, to container: UIView) {
         container.addSubview(subView)
-        container.bringSubviewToFront(subView)
         subView.backgroundColor = .clear
         
         /// 填充父级视图
