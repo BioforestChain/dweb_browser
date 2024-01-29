@@ -169,6 +169,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           mmConnectsMap.remove(aKey)
           mmConnectsMap.remove(bKey)
         }
+        aConnectResult.ipcForToMM.onClose {
+          mmConnectsMap.remove(aKey)
+          mmConnectsMap.remove(bKey)
+        }
         aConnectResult
       }
     }
