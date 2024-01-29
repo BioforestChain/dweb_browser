@@ -89,7 +89,6 @@ class SubDomainHttpServer(
 
     private fun  httpServerListener(req: IncomingMessage, res: ServerResponse<*>) {
         req.url?.let { url ->
-            console.log("走到了这里", req.url)
             when {
                 url == "/"
                         || url.endsWith(".html")

@@ -5,7 +5,7 @@ import kotlinx.coroutines.Deferred
 import org.dweb_browser.js_backend.browser_window.ElectronBrowserWindowModule
 import kotlin.js.Promise
 
-suspend fun main() {
+fun main() {
   ElectronBrowserWindowModule("demo.compose.app", mutableMapOf<dynamic,dynamic>("currentCount" to 10))
 }
 

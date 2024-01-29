@@ -28,7 +28,7 @@ import org.dweb_browser.js_backend.ws.WS
  *      - 监听客户端同步过来的状态
  */
 open class BaseViewModel(
-    val frontendViewModelId: String, initVieModelMutableMap: ViewModelMutableMap? = null
+    val subDomain: String, initVieModelMutableMap: ViewModelMutableMap? = null
 ) {
     val scope = CoroutineScope(Dispatchers.Unconfined)
     private val viewModelState: ViewModelState =
@@ -39,7 +39,7 @@ open class BaseViewModel(
     init {
         console.log("BaseViewModel init")
         var remove = WS.onUpgrade { req: IncomingMessage, socket: Socket, head: Buffer ->
-            val currentFrontendViewModelId = req.headers.host?.split(".localhost")?.get(0)?: console.error(
+            val currentSubDomain = req.headers.host?.split(".localhost")?.get(0)?: console.error(
                 """
                     moduleId == null
                     req.headers.host? : ${req.headers.host}
@@ -48,14 +48,14 @@ open class BaseViewModel(
                 """.trimIndent()
             )
 
-            if(currentFrontendViewModelId == frontendViewModelId){
-                console.log("给 $frontendViewModelId 模块创建了socket")
-                ViewModelSocket(socket, req.headers["sec-websocket-key"] as String, frontendViewModelId).apply {
+            if(currentSubDomain == subDomain){
+                console.log("给 $subDomain 模块创建了socket")
+                ViewModelSocket(socket, req.headers["sec-websocket-key"] as String).apply {
                     onData {
                         viewModelState.set(it[0], it[1], ViewModelStateRole.CLIENT)
                     }
                     sockets.add(this)
-                    onClose { sockets.remove(this) }
+                    onClose { console.log("删除了 ViewModelSocket");sockets.remove(this) }
                     this@BaseViewModel.syncViewModelStateToUI()
                 }
             }

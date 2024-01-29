@@ -9,10 +9,9 @@ interface IElectronBrowserWindowModule{
     val viewModel: BaseViewModel
 }
 
-
 class ElectronBrowserWindowModule(
     override val moduleId: String, /* example: demo.compose.app */
 ): IElectronBrowserWindowModule{
-    override val controller: ElectronBrowserWindowController = ElectronBrowserWindowController(moduleId)
-    override val viewModel: BaseViewModel =  BaseViewModel(moduleId, ViewModelState(mutableMapOf<dynamic,dynamic>()))
+    override val controller: ElectronBrowserWindowController = ElectronBrowserWindowController()
+    override val viewModel: BaseViewModel =  BaseViewModel(ViewModelState(mutableMapOf<dynamic,dynamic>()))
 }

@@ -29,7 +29,6 @@ typealias OnErrorCallback = (err: Throwable) -> Unit
 class ViewModelSocket(
     val socket: Socket,
     secWebsocketKey: String,
-    val frontendViewModelId: String,
 ){
     val scope = CoroutineScope(Dispatchers.Default)
     // 不要把_onDataCBList等变量移动到init的后面

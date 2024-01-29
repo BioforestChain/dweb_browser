@@ -3,7 +3,6 @@ package org.dweb_browser.js_backend.browser_window
 import electron.BrowserWindow
 import electron.BrowserWindowConstructorOptions
 import electron.Rectangle
-import info.bagen.dwebbrowser.BrowserDemoComposeAppViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

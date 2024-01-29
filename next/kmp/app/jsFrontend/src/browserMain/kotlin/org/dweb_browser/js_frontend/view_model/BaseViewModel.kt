@@ -1,33 +1,17 @@
 package org.dweb_browser.js_frontend.view_model
 
-import androidx.compose.runtime.Composable
 import js.json.JSON
 import kotlinx.browser.window
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.launch
 import org.dweb_browser.js_frontend.dweb_web_socket.DwebWebSocket
-import react.StateSetter
-import react.useState
-import kotlin.reflect.KProperty
-import androidx.compose.runtime.MutableState as IMutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import kotlinx.coroutines.flow.collect
 import org.dweb_browser.js_frontend.view_model_state.ViewModelState
-
 
 typealias HandleMessageDataList = (arr: dynamic) -> Unit
 
-
 open class BaseViewModel(
-    frontendViewModelId: String,
     val state: ViewModelState
 ) {
-    val dwebWebSocket = DwebWebSocket("ws://${window.location.host}?frontend_view_module_id=$frontendViewModelId")
+    val dwebWebSocket = DwebWebSocket("ws://${window.location.host}")
     private val handleMessageDataList = mutableListOf<HandleMessageDataList>()
 
     /**

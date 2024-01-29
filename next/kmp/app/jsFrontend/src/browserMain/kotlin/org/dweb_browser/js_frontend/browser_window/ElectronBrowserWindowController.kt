@@ -8,9 +8,7 @@ import kotlinx.coroutines.launch
 import web.http.Response
 import web.http.fetch
 
-class ElectronBrowserWindowController(
-    var frontendViewModelId: String
-){
+class ElectronBrowserWindowController{
     fun close(): CompletableDeferred<Response> {
         return _operation("close")
     }
