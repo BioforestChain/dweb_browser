@@ -175,17 +175,14 @@ class JmmController(private val jmmNMM: JmmNMM, val jmmStore: JmmStore) {
   /**
    * 创建任务，如果存在则恢复
    */
-  suspend fun createDownloadTask(metadata: JmmHistoryMetadata) = debounce(
-    scope = jmmNMM.ioAsyncScope,
-    action = {
-      val exists = metadata.taskId?.let { jmmNMM.existsDownload(it) } ?: false
-      if (!exists) {
-        val taskId = with(metadata.metadata) { jmmNMM.createDownloadTask(bundle_url, bundle_size) }
-        metadata.taskId = taskId
-        jmmStore.saveHistoryMetadata(metadata.originUrl, metadata)
-      }
+  suspend fun createDownloadTask(metadata: JmmHistoryMetadata) {
+    val exists = metadata.taskId?.let { jmmNMM.existsDownload(it) } ?: false
+    if (!exists) {
+      val taskId = with(metadata.metadata) { jmmNMM.createDownloadTask(bundle_url, bundle_size) }
+      metadata.taskId = taskId
+      jmmStore.saveHistoryMetadata(metadata.originUrl, metadata)
     }
-  )
+  }
 
   private suspend fun watchProcess(jmmHistoryMetadata: JmmHistoryMetadata) {
     val taskId = jmmHistoryMetadata.taskId ?: return
