@@ -13,7 +13,7 @@ export const routes = [
   { title: "Barcode Scanning", path: "/barcodescanning", component: () => import("./pages/BarcodeScanning.vue") },
   { title: "Torch", path: "/torch", component: () => import("./pages/Torch.vue") },
 
-  { title: "Geolocation", path: "/haptics", component: () => import("./pages/Geolocation.vue") },
+  { title: "Geolocation", path: "/geolocation", component: () => import("./pages/Geolocation.vue") },
   { title: "Haptics", path: "/haptics", component: () => import("./pages/Haptics.vue") },
 
   { title: "Close Watcher", path: "/closewatcher", component: () => import("./pages/CloseWatcher.vue") },

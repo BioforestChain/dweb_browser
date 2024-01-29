@@ -6,10 +6,13 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DwebViewI18nResource
 import org.dweb_browser.helper.android.BaseActivity
+import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.filechooser.debugFileChooser
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
@@ -37,7 +40,13 @@ class DWebFileChooser(
         ioScope.launch { filePathCallback.onReceiveValue(captureVideo()) }
         return true
       } else if (mimeTypes.startsWith("image/")) {
-        ioScope.launch { filePathCallback.onReceiveValue(takePicture()) }
+        // filePathCallback.onReceiveValue 需要在主线程调用，否则会卡住，导致应用crash
+        ioScope.launch {
+          val uriList = takePicture()
+          withMainContext {
+            filePathCallback.onReceiveValue(uriList)
+          }
+        }
         return true
       } else if (mimeTypes.startsWith("audio/")) {
         ioScope.launch { filePathCallback.onReceiveValue(recordAudio()) }
