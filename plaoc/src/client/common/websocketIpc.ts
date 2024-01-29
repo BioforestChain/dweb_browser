@@ -1,4 +1,3 @@
-
 import { ReadableStreamIpc } from "dweb/core/ipc-web/index.ts";
 import type { $MicroModuleManifest } from "dweb/core/types.ts";
 import { PromiseOut } from "dweb/helper/PromiseOut.ts";
@@ -57,7 +56,7 @@ export const createMockModuleServerIpc: (wsUrl: URL, remote: $MicroModuleManifes
           throw new Error("should not happend");
         }
       } catch (err) {
-        console.error(err);
+        console.error("onmessage=>", err);
       }
     };
     /// 响应服务器将响应内容写入serverIpc，这里读取写入的内容，将响应的内容通过代理层传回
@@ -66,6 +65,7 @@ export const createMockModuleServerIpc: (wsUrl: URL, remote: $MicroModuleManifes
         ws.send(chunk);
       },
       complete() {
+        console.log("streamReadAll=>", "complete");
         /// 服务器关闭
         ws.close();
       },

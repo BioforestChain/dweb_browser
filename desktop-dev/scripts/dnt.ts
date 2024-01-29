@@ -55,7 +55,7 @@ export const doBuild = async (args = Deno.args, _version?: string) => {
       description: "Distributed web browser",
       license: "MIT",
       config: {
-        electron_mirror: "https://npm.taobao.org/mirrors/electron/",
+        electron_mirror: "https://npmmirror.com/mirrors/electron/",
       },
       scripts: {
         start: "electron ./",

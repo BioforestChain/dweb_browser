@@ -16,6 +16,7 @@ import org.dweb_browser.pure.http.PureFinData
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.pure.http.websocket
 import platform.Foundation.NSArray
+import platform.Foundation.NSNull
 import platform.Foundation.NSNumber
 import platform.Foundation.NSString
 import platform.WebKit.WKScriptMessage
@@ -118,8 +119,18 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
 
             "close" -> {
               wsMap[wsId]!!.run {
-                val reasonCode = (message.objectAtIndex(2u) as NSNumber?)?.shortValue
-                val reasonMessage = (message.objectAtIndex(3u) as NSString?)?.toKString()
+                val nsNumber = message.objectAtIndex(2u)
+                val reasonCode = if (nsNumber is NSNull) {
+                  null
+                } else {
+                  (nsNumber as NSNumber?)?.shortValue
+                }
+                val nsString = message.objectAtIndex(3u)
+                val reasonMessage = if (nsString is NSNull) {
+                  "close"
+                } else {
+                  (nsString as NSString?)?.toKString()
+                }
                 close(
                   cause = Throwable((reasonCode ?: CloseReason.Codes.NORMAL.code).toString()),
                   reason = CancellationException(reasonMessage)

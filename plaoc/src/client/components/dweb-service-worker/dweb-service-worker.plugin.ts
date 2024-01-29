@@ -23,7 +23,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     const ipc = await createMockModuleServerIpc(url, {
       mmid: mmid,
       ipc_support_protocols: {
-        cbor: true,
+        cbor: false,
         protobuf: false,
         raw: false,
       },
