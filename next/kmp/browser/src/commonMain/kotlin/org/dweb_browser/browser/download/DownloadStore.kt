@@ -12,7 +12,7 @@ class DownloadStore(mm: MicroModule) {
     return store.getOrPut(key) { value }
   }
 
-  suspend fun get(key: String): DownloadTask? {
+  suspend fun get(key: TaskId): DownloadTask? {
     return store.getOrNull(key)
   }
 

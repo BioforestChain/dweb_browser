@@ -22,3 +22,17 @@ private fun main() {
   val a = 23634L
   println("a=$a, result=${a.toSpaceSize()}")
 }
+
+/**
+ * 用于对 或 判断的返回
+ */
+inline fun <T> T.valueIn(vararg item: T): Boolean {
+  return item.contains(this)
+}
+
+/**
+ * 用于对 或 判断的返回
+ */
+inline fun <T> T.valueNotIn(vararg item: T): Boolean {
+  return !item.contains(this)
+}

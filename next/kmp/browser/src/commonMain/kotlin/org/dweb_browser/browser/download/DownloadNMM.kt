@@ -11,6 +11,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.valueNotIn
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.sys.window.core.helper.setFromManifest
@@ -47,6 +48,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val controller = DownloadController(this)
+    controller.loadDownloadList()
     onAfterShutdown {
       ioAsyncScope.launch {
         controller.downloadManagers.suspendForEach { _, downloadTask ->
@@ -70,7 +72,8 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       "/start" bind PureMethod.GET by defineBooleanResponse {
         val taskId = request.query("taskId")
         debugDownload("/start", taskId)
-        val task = controller.downloadManagers.get(taskId) ?: return@defineBooleanResponse false
+        val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
+        debugDownload("/start", "task=$task")
         controller.startDownload(task)
       },
       // 监控下载进度
@@ -90,7 +93,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       // 暂停下载
       "/pause" bind PureMethod.GET by defineBooleanResponse {
         val taskId = request.query("taskId")
-        val task = controller.downloadManagers.get(taskId) ?: return@defineBooleanResponse false
+        val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
         controller.pauseDownload(task)
         true
       },
@@ -104,13 +107,14 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val taskId = request.query("taskId")
         controller.removeDownload(taskId)
       },
-      // taskId是否存在
+      // taskId是否存在, -1 是不存在，其他返回值是下载的进度
       "/exists" bind PureMethod.GET by defineBooleanResponse {
         val taskId = request.query("taskId")
-        controller.downloadManagers.get(taskId)?.status?.state?.let { state ->
-          state != DownloadState.Completed && state != DownloadState.Canceled
-        } ?: false
-      },
+        debugDownload("exists", "$taskId=>${controller.downloadManagers[taskId]}")
+        controller.downloadManagers[taskId]?.status?.state?.valueNotIn(
+          DownloadState.Completed, DownloadState.Canceled
+        ) ?: false
+      }
     )
     onRenderer {
       controller.renderDownloadWindow(wid)

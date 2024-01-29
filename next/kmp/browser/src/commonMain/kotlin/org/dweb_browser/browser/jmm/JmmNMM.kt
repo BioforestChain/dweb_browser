@@ -80,16 +80,6 @@ class JmmNMM :
     val jmmController = JmmController(this, store)
     jmmController.loadHistoryMetadataUrl() // 加载之前加载过的应用
 
-    /// 注册子协议
-//    this.protocol("file.std.dweb") {
-//      this.onConnect { (clientIpc) ->
-//        println("xxxxx=> ${clientIpc.remote.mmid}")
-//        val fileSubIpc = connect("file.std.dweb")
-//        clientIpc.pipe(fileSubIpc)
-//        fileSubIpc.pipe(clientIpc)
-//      }
-//    }
-
     val routeInstallHandler = defineEmptyResponse {
       val metadataUrl = request.query("url")
       coroutineScope {
@@ -159,7 +149,7 @@ class JmmNMM :
   private val widDeferredAtomic = atomic(CompletableDeferred<String>())
   suspend fun getMainWindowId() = widDeferredAtomic.value.await()
   suspend fun getMainWindow() = getWindow(getMainWindowId())
-  val hasMainWindow get() = widDeferredAtomic.value.isCompleted
+  private val hasMainWindow get() = widDeferredAtomic.value.isCompleted
 
   private suspend fun openMainWindow() = getWindow(
     nativeFetch("file://gui.jmm.browser.dweb/openMainWindow").text()
@@ -198,7 +188,7 @@ class JmmNMM :
 
 class JmmGuiNMM : NativeMicroModule("gui.jmm.browser.dweb", "Js MicroModule Management") {
   init {
-    short_name = BrowserI18nResource.jmm_short_name.text;
+    short_name = BrowserI18nResource.jmm_short_name.text
     categories = listOf(MICRO_MODULE_CATEGORY.Application)
     icons = listOf(
       ImageResource(
@@ -214,12 +204,11 @@ class JmmGuiNMM : NativeMicroModule("gui.jmm.browser.dweb", "Js MicroModule Mana
       "/openMainWindow" bind PureMethod.GET by defineStringResponse {
         getOrOpenMainWindowId()
       },
-    ).protected("jmm.browser.dweb");
+    ).protected("jmm.browser.dweb")
     onRenderer {
       nativeFetch(PureMethod.GET, "file://jmm.browser.dweb/renderer?wid=$wid")
     }
   }
-
 
   override suspend fun _shutdown() {
   }

@@ -35,8 +35,6 @@ class JmmInstallerController(
   var jmmHistoryMetadata by ObservableMutableState(initJmmHistoryMetadata) {}
     internal set
 
-  val ioAsyncScope = jmmNMM.ioAsyncScope
-
   private var viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
   private val getViewLock = Mutex()
 
@@ -51,7 +49,7 @@ class JmmInstallerController(
       viewDeferred = CompletableDeferred()
     }
     /// 创建 BottomSheets 视图，提供渲染适配
-    jmmNMM.createBottomSheets() { modifier ->
+    jmmNMM.createBottomSheets { modifier ->
       Render(modifier, this)
     }.also {
       viewDeferred.complete(it)
@@ -70,7 +68,7 @@ class JmmInstallerController(
     val bottomSheets = getView()
     bottomSheets.open()
     bottomSheets.onClose {
-      /// TODO 如果应用正在下载，则显示toast应用正在安装中
+      /// TODO 如果应用正在下载，则显示 toast 应用正在安装中
     }
   }
 
@@ -87,23 +85,26 @@ class JmmInstallerController(
   /**
    * 创建任务，如果存在则恢复
    */
-  suspend fun createAndStartDownload() = debounce(scope = jmmNMM.ioAsyncScope,action = {
-    // todo 这里在加载的过程中可以先给一个loading效果
-    jmmHistoryMetadata.updateState(JmmStatus.Downloading)
-    if (jmmHistoryMetadata.taskId == null ||
-      (jmmHistoryMetadata.state.state != JmmStatus.INSTALLED &&
-          jmmHistoryMetadata.state.state != JmmStatus.Completed)
-    ) {
-      jmmController.createDownloadTask(jmmHistoryMetadata)
+  suspend fun createAndStartDownload() = debounce(
+    scope = jmmNMM.ioAsyncScope,
+    action = {
+      // todo 这里在加载的过程中可以先给一个loading效果
+      debugJMM("download/create", jmmHistoryMetadata)
+      if (jmmHistoryMetadata.taskId == null ||
+        (jmmHistoryMetadata.state.state != JmmStatus.INSTALLED &&
+            jmmHistoryMetadata.state.state != JmmStatus.Completed)
+      ) {
+        jmmController.createDownloadTask(jmmHistoryMetadata)
+      }
+      // 已经注册完监听了，开始
+      startDownload()
     }
-    // 已经注册完监听了，开始
-    startDownload()
-  })
+  )
 
   suspend fun startDownload() {
     jmmController.start(jmmHistoryMetadata).falseAlso {
       showToastText(BrowserI18nResource.toast_message_download_download_fail.text)
-      jmmHistoryMetadata.updateState(JmmStatus.Failed)
+      jmmHistoryMetadata.updateState(JmmStatus.Failed, jmmController.jmmStore)
     }
   }
 
@@ -117,5 +118,5 @@ class JmmInstallerController(
     jmmNMM.getOrOpenMainWindow().closeRoot()
   }
 
-  suspend fun showToastText(message: String) = jmmController.showToastText(message)
+  private suspend fun showToastText(message: String) = jmmController.showToastText(message)
 }

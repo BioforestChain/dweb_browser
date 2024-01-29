@@ -126,7 +126,7 @@ data class DownloadStateEvent(
 )
 
 class DownloadController(private val downloadNMM: DownloadNMM) {
-  private val store = DownloadStore(downloadNMM)
+  private val downloadStore = DownloadStore(downloadNMM)
   val downloadManagers: ChangeableMutableMap<TaskId, DownloadTask> =
     ChangeableMutableMap() // 用于监听下载列表
   val downloadList: MutableList<DownloadTask> = mutableStateListOf()
@@ -141,12 +141,12 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       downloadManagers.onChange { (type, _, value) ->
         when (type) {
           ChangeableType.Add -> {
-            store.set(value!!.id, value)
+            downloadStore.set(value!!.id, value)
             downloadList.add(0, value)
           }
 
           ChangeableType.Remove -> {
-            store.delete(value!!.id)
+            downloadStore.delete(value!!.id)
             downloadList.remove(value)
           }
 
@@ -161,18 +161,20 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
           }
         }
       }
+    }
+  }
 
-      downloadManagers.putAll(store.getAll())
-      // 如果是从文件中读取的，需要将下载中的状态统一置为暂停。其他状态保持不变
-      downloadManagers.suspendForEach { _, downloadTask ->
-        if (downloadTask.status.state == DownloadState.Downloading) {
-          if (fileExists(downloadTask.filepath)) { // 为了保证下载中的状态current值正确
-            downloadTask.status.current = fileInfo(downloadTask.filepath).size ?: 0L
-          }
-          downloadTask.status.state = DownloadState.Paused
+  suspend fun loadDownloadList() {
+    downloadManagers.putAll(downloadStore.getAll())
+    // 如果是从文件中读取的，需要将下载中的状态统一置为暂停。其他状态保持不变
+    downloadManagers.suspendForEach { _, downloadTask ->
+      if (downloadTask.status.state == DownloadState.Downloading) {
+        if (fileExists(downloadTask.filepath)) { // 为了保证下载中的状态current值正确
+          downloadTask.status.current = fileInfo(downloadTask.filepath).size ?: 0L
         }
-        downloadTask.pauseFlag = false
+        downloadTask.status.state = DownloadState.Paused
       }
+      downloadTask.pauseFlag = false
     }
   }
 
@@ -195,6 +197,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     )
     recover(task, 0L)
     downloadManagers.put(task.id, task)
+    downloadStore.set(task.id, task) // 保存下载状态
     debugDownload("createTaskFactory", "${task.id} -> $task")
     return task
   }
@@ -303,7 +306,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     // 暂停并不会删除文件
     task.status.state = DownloadState.Paused
     task.pauseFlag = true
-    store.set(task.id, task) // 保存到文件
+    downloadStore.set(task.id, task) // 保存到文件
   }
 
   /**
@@ -379,14 +382,14 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
             downloadTask.status.current = 0L
             // 触发取消 存储到硬盘
             input.cancel()
-            store.set(downloadTask.id, downloadTask)
+            downloadStore.set(downloadTask.id, downloadTask)
             downloadTask.downloadSignal.emit(downloadTask)
           } else if (last) {
             output.close()
             input.cancel()
             downloadTask.status.state = DownloadState.Completed
             // 触发完成 存储到硬盘
-            store.set(downloadTask.id, downloadTask)
+            downloadStore.set(downloadTask.id, downloadTask)
             downloadTask.downloadSignal.emit(downloadTask)
           } else {
             downloadTask.status.current += byteArray.size

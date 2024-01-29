@@ -89,4 +89,8 @@ class JmmHistoryController(
   suspend fun unInstall(metadata: JmmHistoryMetadata) {
     jmmController.uninstall(metadata.metadata.id)
   }
+
+  suspend fun removeHistoryMetadata(originUrl: String) {
+    jmmController.removeHistoryMetadata(originUrl)
+  }
 }

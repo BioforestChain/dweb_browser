@@ -14,6 +14,7 @@ import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.debugMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.buildUnsafeString
@@ -94,6 +95,7 @@ class MicroModuleStore(
       else Cbor.decodeFromByteArray(data)
     } catch (e: Throwable) {
       // debugger(e)
+      debugMicroModule("store/init", "e->${e.message}")
       mutableMapOf()
     }
   }

@@ -43,14 +43,14 @@ class ChangeableMutableMap<K, V>(
 
   fun isEmpty() = cMaps.isEmpty()
 
-  fun get(key: K) = cMaps[key]
+  operator fun get(key: K) = cMaps[key]
 
   val size get() = cMaps.size
 
   suspend fun suspendForEach(each: suspend (K, V) -> Unit) =
     cMaps.forEach { (key, value) -> each(key, value) }
 
-  fun forEach(each: (K, V) -> Unit) = cMaps.forEach { (key, value) -> each(key, value) }
+  suspend fun forEach(each: suspend (K, V) -> Unit) = cMaps.forEach { (key, value) -> each(key, value) }
 
   private fun emitBackground(type: ChangeableType, key: K? = null, value: V? = null) {
     CoroutineScope(context).launch {

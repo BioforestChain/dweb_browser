@@ -6,6 +6,8 @@ import androidx.compose.material.icons.filled.InstallMobile
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.atomicfu.AtomicInt
+import kotlinx.atomicfu.atomic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -17,7 +19,6 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.datetimeNow
@@ -83,6 +84,8 @@ data class JmmHistoryMetadata(
   val installTime: Long = datetimeNow(), // 表示安装应用的时间
   var upgradeTime: Long = datetimeNow()
 ) {
+  @Transient
+  private var downloadCount:AtomicInt = atomic(0)
   var state by ObservableMutableState(_state) { _state = it }
   var metadata by ObservableMutableState(_metadata) { _metadata = it }
 
@@ -99,19 +102,20 @@ data class JmmHistoryMetadata(
         DownloadState.Completed -> JmmStatus.Completed
       }
     )
-    if (downloadTask.status.state != DownloadState.Downloading) {
+    if (downloadTask.status.state != DownloadState.Downloading ||
+      (downloadCount.getAndAdd(1) >= 10)) {
+      downloadCount.value = 0
       store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
     }
   }
 
-  suspend fun updateState(jmmStatus: JmmStatus, store: JmmStore? = null) {
+  suspend fun updateState(jmmStatus: JmmStatus, store: JmmStore) {
     state = state.copy(state = jmmStatus)
-    store?.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
+    store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
   }
 
   suspend fun installComplete(store: JmmStore) {
     debugJMM("installComplete")
-    taskId = null
     state = state.copy(state = JmmStatus.INSTALLED)
     store.saveHistoryMetadata(originUrl, this)
     store.setApp(
@@ -121,7 +125,6 @@ data class JmmHistoryMetadata(
 
   suspend fun installFail(store: JmmStore) {
     debugJMM("installFail")
-    taskId = null
     state = state.copy(state = JmmStatus.Failed)
     store.saveHistoryMetadata(originUrl, this)
   }

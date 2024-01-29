@@ -6,19 +6,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -113,7 +109,12 @@ fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
 
   LazySwipeColumn(
     items = list, key = { item -> item.originUrl },
-    onRemove = { item -> jmmHistoryMetadata.remove(item) },
+    onRemove = { item ->
+      scope.launch {
+        jmmHistoryMetadata.remove(item)
+        removeHistoryMetadata(item.originUrl)
+      }
+    },
     background = { Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) }
   ) { metadata ->
     JmmViewItem(
@@ -146,15 +147,13 @@ fun JmmViewItem(
         )
       },
       supportingContent = {
-        Row {
-          Text(text = jmmHistoryMetadata.metadata.bundle_size.toSpaceSize())
-          Spacer(modifier = Modifier.width(8.dp))
-          Text(text = jmmHistoryMetadata.installTime.formatDatestampByMilliseconds())
-          Spacer(modifier = Modifier.width(8.dp))
-          Icon(
-            imageVector = if (showMore) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-            contentDescription = "More",
+        Column {
+          Text(
+            text = jmmHistoryMetadata.metadata.version,
+            fontWeight = FontWeight.SemiBold
           )
+          Text(text = jmmHistoryMetadata.metadata.bundle_size.toSpaceSize())
+          Text(text = jmmHistoryMetadata.installTime.formatDatestampByMilliseconds())
         }
       },
       leadingContent = {

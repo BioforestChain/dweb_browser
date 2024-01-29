@@ -59,15 +59,14 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowRenderS
         .padding(0.dp, 0.dp, 0.dp, bottomSafePadding.dp)
         .scale(scale)
     }) {
-      val jmmMetadata = this@Render.jmmHistoryMetadata
-      jmmMetadata.metadata.Render { index, imageLazyListState ->
+      jmmHistoryMetadata.metadata.Render { index, imageLazyListState ->
         previewState.selectIndex.value = index
         previewState.imageLazy = imageLazyListState
         previewState.offset.value = measureCenterOffset(index, previewState)
         previewState.showPreview.targetState = true
       }
       BottomDownloadButton()
-      ImagePreview(jmmMetadata.metadata, previewState)
+      ImagePreview(jmmHistoryMetadata.metadata, previewState)
       WebviewVersionWarningDialog()
     }
   }
