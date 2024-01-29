@@ -54,7 +54,6 @@ class JmmController(private val jmmNMM: JmmNMM, val jmmStore: JmmStore) {
   suspend fun loadHistoryMetadataUrl() {
     historyMetadataMaps.putAll(jmmStore.getHistoryMetadata())
     historyMetadataMaps.forEach { key, historyMetadata ->
-      debugJMM("lin.huang", "enter $historyMetadata")
       if (historyMetadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) {
         val current = historyMetadata.taskId?.let { jmmNMM.currentDownload(it) }
           ?: -1L // 获取下载的进度，如果进度 >= 0 表示有下载
@@ -63,7 +62,6 @@ class JmmController(private val jmmNMM: JmmNMM, val jmmStore: JmmStore) {
         } else {
           historyMetadata.state.copy(state = JmmStatus.Init)
         }
-        debugJMM("lin.huang", "leave $historyMetadata")
         jmmStore.saveHistoryMetadata(key, historyMetadata)
       } else if (jmmNMM.bootstrapContext.dns.query(historyMetadata.metadata.id) == null) {
         historyMetadata.state = historyMetadata.state.copy(state = JmmStatus.Init) // 如果没有找到，说明被卸载了
