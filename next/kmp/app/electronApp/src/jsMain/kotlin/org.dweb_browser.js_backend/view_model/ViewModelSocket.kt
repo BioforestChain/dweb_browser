@@ -3,20 +3,16 @@ package org.dweb_browser.js_backend.view_model
 import js.array.push
 import js.core.BigInt
 import js.typedarrays.Uint8Array
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import node.buffer.Buffer
 import node.buffer.BufferEncoding
 import node.crypto.BinaryToTextEncoding
 import node.crypto.createHash
-import node.http.IncomingMessage
 import node.net.Socket
 import node.net.SocketEvent
-import org.dweb_browser.js_backend.ws.WS
 import kotlin.experimental.xor
 
 /**
@@ -60,13 +56,6 @@ class ViewModelSocket(
                 }
             }
         }
-        // TODO: 创建socket模块的逻辑还需要再修改修改
-        // TODO: 需要处理页面多次的关闭开启
-//        viewModelSocketMap[frontendViewModelId] = this@ViewModelSocket
-//        ViewModelSocketDeferredMap[frontendViewModelId]?.let{
-//            it.complete(this@ViewModelSocket)
-//            ViewModelSocketDeferredMap.remove(frontendViewModelId)
-//        }
     }
 
     private fun _onConnectCallback(){

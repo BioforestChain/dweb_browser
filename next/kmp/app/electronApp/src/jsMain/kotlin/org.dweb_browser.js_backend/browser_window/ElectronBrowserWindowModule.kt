@@ -40,7 +40,6 @@ class ElectronBrowserWindowModule(
             width = 1300.0
             height = 1000.0
         })
-
     }
 }
 

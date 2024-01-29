@@ -12,12 +12,13 @@ import node.fs.ReadFileBufferAsyncOptions
 import node.http.RequestListener
 import node.url.parse
 
+external val __dirname: String
+
 // 创建一个 httpServer 对象
 private fun getFilenameByRequestUrl(req: IncomingMessage): String{
-    val basePath = path.resolve("", "./kotlin")
     val subDomain = req.headers.host?.split(".localhost")?.get(0)?:""
     val pathStr = "./${subDomain.split(".").joinToString("/")}/${if(req.url == "/") "/index.html" else req.url}"
-    return path.resolve(basePath, pathStr)
+    return path.resolve(__dirname, pathStr)
 }
 
 private fun getAssets(req: IncomingMessage, res: ServerResponse<*>) {
@@ -110,7 +111,6 @@ class SubDomainHttpServer(
                             it.hasMatch(reqPath, reqMethod, subDomain)
                         }
                     }
-                    console.log("route: ", route)
                     when(route){
                         null -> res.notFound()
                         else -> route(req, res)

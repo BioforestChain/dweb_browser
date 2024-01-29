@@ -352,6 +352,7 @@ class ElectronBrowserWindowController private constructor(
             return ElectronBrowserWindowController(subDomain)
         }
 
+
         @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
         fun createBrowserWindowOptions(): BrowserWindowConstructorOptions{
             return {} as BrowserWindowConstructorOptions

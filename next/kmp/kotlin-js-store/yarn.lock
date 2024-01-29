@@ -1248,9 +1248,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"components-resources-js@workspace:packages_imported/components-resources-js/1.6.0-beta01":
+"components-resources-js@workspace:packages_imported/components-resources-js/1.6.0-dev1369":
   version: 0.0.0-use.local
-  resolution: "components-resources-js@workspace:packages_imported/components-resources-js/1.6.0-beta01"
+  resolution: "components-resources-js@workspace:packages_imported/components-resources-js/1.6.0-dev1369"
   languageName: unknown
   linkType: soft
 
