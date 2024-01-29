@@ -4,14 +4,17 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import node.buffer.Buffer
 import node.http.createServer
 import node.http.IncomingMessage
 import node.http.ServerResponse
 import node.net.Socket
+import node.stream.Duplex
 import node.url.parse
 import org.dweb_browser.js_backend.http.HttpServer
 import org.dweb_browser.js_backend.view_model.ViewModelSocket
 
+typealias onUpgradeCallback = (req: IncomingMessage, socket: Socket, head: Buffer) -> Unit
 
 /**
  * WS依赖HttpServer
@@ -24,32 +27,8 @@ class WS private constructor(){
         scope.launch {
             HttpServer.deferredInstance.await().run {
                 console.log("注册了 upgrade")
-                getServer().on("upgrade") { req: IncomingMessage, socket: Socket ->
-                    val moduleId = req.headers.host?.split(".localhost")?.get(0)?.apply {
-                        console.log("给 $this 模块创建了socket")
-                        ViewModelSocket(socket, req.headers["sec-websocket-key"] as String, this)
-                        whenReady.complete(Unit)
-                    }?:throw(Throwable("""
-//                            moduleId == null
-//                            req.headers.host? : ${req.headers.host}
-//                            at class WS
-//                            at Ws.kt
-//                        """.trimIndent()))
-
-//                    val frontendViewModelId: String = req.url?.let {
-//                        parse(it, true).query?.let {o: dynamic->
-//                            o["frontend_view_module_id"]
-//                        }
-//                    } as? String ?: throw(Throwable("""
-//                            frontendViewModelId == null
-//                            req.url : ${req.url}
-//                            at class WS
-//                            at Ws.kt
-//                        """.trimIndent()))
-//
-//                    console.log("frontendViewModelId: ", frontendViewModelId)
-//                    ViewModelSocket(socket, req.headers["sec-websocket-key"] as String, frontendViewModelId)
-//                    whenReady.complete(Unit)
+                getServer().on("upgrade"){req: IncomingMessage, socket: Socket, head: Buffer ->
+                    onUpgradeCallbackList.forEach { cb ->cb(req, socket, head) }
                 }
             }
         }
@@ -64,6 +43,15 @@ class WS private constructor(){
                 deferredInstance.complete(WS())
                 deferredInstance
             }
+        }
+
+        var onUpgradeCallbackList = mutableListOf<onUpgradeCallback>()
+        fun onUpgrade(cb: onUpgradeCallback): () -> Unit{
+            if(!deferredInstance.isCompleted) {
+                deferredInstance.complete(WS())
+            }
+            onUpgradeCallbackList.add(cb)
+            return {onUpgradeCallbackList.remove(cb)}
         }
     }
 }

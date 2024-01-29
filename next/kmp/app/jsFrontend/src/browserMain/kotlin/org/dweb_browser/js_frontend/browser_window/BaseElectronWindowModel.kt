@@ -11,29 +11,33 @@ import org.dweb_browser.js_frontend.view_model_state.ViewModelState
 import web.http.fetch
 import web.http.Response
 
-abstract class BaseElectronWindowModel(frontendViewModelId: String, state: ViewModelState): BaseViewModel(frontendViewModelId, state){
-    val electronWindowOperation = ElectronWindowOperation(frontendViewModelId)
+//abstract class BaseElectronWindowModel(frontendViewModelId: String, state: ViewModelState): BaseViewModel(frontendViewModelId, state){
+//    val electronWindowOperation = ElectronWindowOperation(frontendViewModelId)
+//
+//}
 
-}
+///**
+// * 控制window的类
+// */
+//class ElectronWindowOperation(
+//    val frontendViewModelId: String,
+//){
+//    fun close(): CompletableDeferred<Response>{
+//        return _operation("close")
+//    }
+//
+//    private fun _operation(operation: String): CompletableDeferred<Response>{
+//        val deferred = CompletableDeferred<Response>()
+//        CoroutineScope(Dispatchers.Unconfined).launch {
+//            deferred.complete(fetch("http://${window.location.host}/browser-window-operation?operation=${operation}&frontendViewModelId=${frontendViewModelId}"))
+//        }
+//        return deferred
+//    }
+//}
 
-/**
- * 控制window的类
- */
-class ElectronWindowOperation(
-    val frontendViewModelId: String,
-){
-    fun close(): CompletableDeferred<Response>{
-        return _operation("close")
-    }
 
-    private fun _operation(operation: String): CompletableDeferred<Response>{
-        val deferred = CompletableDeferred<Response>()
-        CoroutineScope(Dispatchers.Unconfined).launch {
-            deferred.complete(fetch("http://${window.location.host}/browser-window-operation?operation=${operation}&frontendViewModelId=${frontendViewModelId}"))
-        }
-        return deferred
-    }
-}
+
+
 
 
 

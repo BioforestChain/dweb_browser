@@ -60,11 +60,13 @@ class ViewModelSocket(
                 }
             }
         }
-        viewModelSocketMap[frontendViewModelId] = this@ViewModelSocket
-        ViewModelSocketDeferredMap[frontendViewModelId]?.let{
-            it.complete(this@ViewModelSocket)
-            ViewModelSocketDeferredMap.remove(frontendViewModelId)
-        }
+        // TODO: 创建socket模块的逻辑还需要再修改修改
+        // TODO: 需要处理页面多次的关闭开启
+//        viewModelSocketMap[frontendViewModelId] = this@ViewModelSocket
+//        ViewModelSocketDeferredMap[frontendViewModelId]?.let{
+//            it.complete(this@ViewModelSocket)
+//            ViewModelSocketDeferredMap.remove(frontendViewModelId)
+//        }
     }
 
     private fun _onConnectCallback(){
@@ -74,7 +76,6 @@ class ViewModelSocket(
 
     private fun _onCloseCallback(hadError: Boolean){
         console.log("socket on close")
-        viewModelSocketMap.remove(frontendViewModelId)
         _onCloseCallbackList.forEach { cb -> cb(hadError) }
     }
 
@@ -101,6 +102,9 @@ class ViewModelSocket(
                 scope.launch {
                     _realDataFlow.emit(str)
                 }
+            }
+            OPCODES.CLOSE.value -> {
+                // 不需要处理
             }
             else -> {
                 console.error("还有没有处理的消息类型 opcode: $opcode")
@@ -148,22 +152,6 @@ class ViewModelSocket(
      */
     fun write(arg: String): Unit{
         socket.write(_encodeDataFrame(arg))
-    }
-
-    companion object{
-        val viewModelSocketMap = mutableMapOf<String, ViewModelSocket>()
-        val ViewModelSocketDeferredMap = mutableMapOf<String, CompletableDeferred<ViewModelSocket>>()
-        fun getViewModelSocket(frontendViewModelId: String): CompletableDeferred<ViewModelSocket>{
-            if(!WS.deferredInstance.isCompleted) WS.createWS()
-            val deferred = CompletableDeferred<ViewModelSocket>()
-            val viewModelSocket = viewModelSocketMap[frontendViewModelId]
-            if(viewModelSocket != null){
-                deferred.complete(viewModelSocket)
-            }else{
-                ViewModelSocketDeferredMap[frontendViewModelId] = deferred
-            }
-            return deferred
-        }
     }
 }
 

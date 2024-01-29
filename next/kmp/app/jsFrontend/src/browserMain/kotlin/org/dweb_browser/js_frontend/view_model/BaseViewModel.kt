@@ -23,7 +23,7 @@ import org.dweb_browser.js_frontend.view_model_state.ViewModelState
 typealias HandleMessageDataList = (arr: dynamic) -> Unit
 
 
-abstract class BaseViewModel(
+open class BaseViewModel(
     frontendViewModelId: String,
     val state: ViewModelState
 ) {

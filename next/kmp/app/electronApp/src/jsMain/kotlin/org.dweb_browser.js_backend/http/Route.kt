@@ -6,7 +6,7 @@ import node.http.ServerResponse
 import org.dweb_browser.js_backend.http.MatchPattern
 import org.dweb_browser.js_backend.http.Method
 
-class Route(
+open class Route(
     val subDomain: String,
     val path: String,
     val method: Method,

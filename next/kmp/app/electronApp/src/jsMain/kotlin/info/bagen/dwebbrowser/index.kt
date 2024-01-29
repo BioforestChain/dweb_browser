@@ -1,15 +1,12 @@
 package info.bagen.dwebbrowser
 
-import electron.app
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
-import org.dweb_browser.js_backend.http.SubDomainHttpServer
+import org.dweb_browser.js_backend.browser_window.ElectronBrowserWindowModule
 import kotlin.js.Promise
 
 suspend fun main() {
-//  BrowserDemoReactAppViewModel()
-  BrowserDemoComposeAppViewModel()
-  SubDomainHttpServer("demo.compose.app").whenReady.await().start()
+  ElectronBrowserWindowModule("demo.compose.app", mutableMapOf<dynamic,dynamic>("currentCount" to 10))
 }
 
 fun <T> Promise<T>.toDeferred(): Deferred<T> {

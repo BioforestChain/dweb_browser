@@ -9,38 +9,49 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.CanvasBasedWindow
+import org.dweb_browser.js_frontend.browser_window.ElectronBrowserWindowModule
 import org.jetbrains.skiko.wasm.onWasmReady
-import viewModel.ViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
 suspend fun main() {
+    val module = ElectronBrowserWindowModule("js.backend.dweb")
 //    val viewModel = ViewModel(mutableMapOf<String, dynamic>("currentCount" to 10))
-    val viewModel = ViewModel()
-    viewModel.dwebWebSocket.start()
-    viewModel.whenSyncDataFromServerDone.await()
+//    val viewModel = ViewModel()
+    module.viewModel.dwebWebSocket.start()
+    module.viewModel.whenSyncDataFromServerDone.await()
     onWasmReady {
         CanvasBasedWindow("Chat") {
             Column(modifier = Modifier.fillMaxSize()) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().height(100.dp)
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
                 ) {
-                    var count by viewModel.state.toMutableStateOf("currentCount")
+                    var count by module.viewModel.state.toMutableStateOf("currentCount")
                     Button(onClick = {
                         count = count+1
                     }) {
                         Text("increment count:$count")
                     }
                 }
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                ) {
+                    Button(onClick = {
+                        module.controller.close()
+                    }) {
+                        Text("increment count: close")
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                ) {
+                    Button(onClick = {
+                        module.controller.reload()
+                    }) {
+                        Text("increment count: reload")
+                    }
+                }
             }
         }
     }
 }
-
-// 测试 mutalbeState 是否可以实现一对多
-
-
-
-
-
-
-

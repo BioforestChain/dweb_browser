@@ -16,7 +16,7 @@ import node.url.parse
  */
 class HttpServer private constructor(){
     val scope = CoroutineScope(Dispatchers.Default)
-    private var _port: Int = 8888
+    private var _port: Int = 0
     private val _server = createServer(::requestListener)
     private lateinit var _address: String
     private var _isStart = false
@@ -48,11 +48,14 @@ class HttpServer private constructor(){
         return start(listeningListener)
     }
 
+    /**
+     * 使用随机的port
+     */
     fun start(listeningListener: ( Server<IncomingMessage, ServerResponse<*>>.() -> Unit)? = null): HttpServer{
         _isStart = true;
         _server.listen(_port){
-            _address = "http://localhost:${_server.address().asDynamic().port}"
-            console.log(_address)
+            _address = "http://localhost:${serverGetPort()}"
+            console.log("httpServer run at: $_address")
             if(listeningListener != null) {
                 listeningListener(_server)
             }
@@ -72,7 +75,21 @@ class HttpServer private constructor(){
     fun routeRemove(path: String) = _router.remove(path)
     fun routeRemove(route: Route) = _router.remove(route.path)
 
+    /**
+     * 获取port
+     */
+    fun serverGetPort() = _server.address().asDynamic().port
+
+
+    fun serverGetHost() = "${hostName}:${serverGetPort()}"
+
+    fun serverGetHostName() = hostName
+
+    fun serverGetProtocol() = protocol
+
     companion object{
+        var protocol = "http:"
+        val hostName = "localhost"
         private val mutex = Mutex()
         val deferredInstance = CompletableDeferred<HttpServer>()
         suspend fun createHttpServer(): CompletableDeferred<HttpServer>{
