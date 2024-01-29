@@ -74,9 +74,9 @@ actual fun <T : WindowController> WindowsManager<T>.EffectSafeModel() {
 
   if (safeMode) {
     DisposableEffect(secureViewController) {
-      secureViewController.setSafeMode(safe = true)
+      secureViewController.setSafeMode(true)
       onDispose {
-        secureViewController.setSafeMode(safe = false)
+        secureViewController.setSafeMode(false)
       }
     }
   }

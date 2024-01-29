@@ -14,14 +14,27 @@ public var dateformate: DateFormatter = {
 }()
 
 public func Log(time: String = dateformate.string(from: Date()),
-         file: String = #file,
-         function: String = #function,
-         line: Int = #line,
-         category: String = "iOS",
-         _ msg: String? = nil) {
-#if DEBUG
-    print("[\(category)] [\(file.components(separatedBy: "/").last ?? "null"):\(function):\(line)] [\(time)] \(msg ?? "")")
-#else
-#endif
+                file: String = #file,
+                function: String = #function,
+                line: Int = #line,
+                category: String = "iOS",
+                _ msg: String? = nil)
+{
+    #if DEBUG
+        print("[\(category)] [\(file.components(separatedBy: "/").last ?? "null"):\(function):\(line)] [\(time)] \(msg ?? "")")
+    #else
+    #endif
 }
 
+public func Log(time: String = dateformate.string(from: Date()),
+                file: String = #file,
+                function: String = #function,
+                line: Int = #line,
+                category: String = "iOS",
+                _ msg: () -> String?)
+{
+    #if DEBUG
+        Log(time: time, file: file, line: line, category: category, msg())
+    #else
+    #endif
+}
