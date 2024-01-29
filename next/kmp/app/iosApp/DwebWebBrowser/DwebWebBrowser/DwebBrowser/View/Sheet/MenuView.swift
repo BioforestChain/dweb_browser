@@ -7,12 +7,10 @@
 
 import SwiftUI
 struct MenuView: View {
-
     @EnvironmentObject var dragScale: WndDragScale
     @Environment(\.modelContext) var modelContext
 
     @State private var isTraceless: Bool = TracelessMode.shared.isON
-    @State var toastOpacity: CGFloat = 0.0
 
     @State private var offsetY: CGFloat = 300
     let webCache: WebCache
@@ -35,10 +33,6 @@ struct MenuView: View {
                 .padding(.vertical, dragScale.properValue(floor: 10, ceiling: 32))
                 .background(.bk)
                 .frame(maxWidth: .infinity)
-
-//                toast
-//                    .opacity(toastOpacity)
-//                    .scaleEffect(dragScale.onWidth)
             }
         }
     }
@@ -72,30 +66,20 @@ struct MenuView: View {
     }
 
     private func addToBookmark() {
-        Task(priority: .background) {
-            var imgData: Data? = nil
+        Task(priority: .medium) {
+            var imgData: Data? = try Data(contentsOf: URL.defaultWebIconURL)
             if webCache.webIconUrl.isFileURL {
                 imgData = try? Data(contentsOf: webCache.webIconUrl)
             } else {
                 let (data, response) = try await URLSession.shared.data(from: webCache.webIconUrl)
-                guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
-                    Log("Invalid or unsuccessful HTTP response")
-                    return
-                }
-                let image = UIImage(data: data)?.resize(toSize: CGSize(width: 32, height: 32))
-                imgData = image?.pngData()
+                if let httpResponse = response as? HTTPURLResponse,
+                   (200 ... 299).contains(httpResponse.statusCode){
+                    let image = UIImage(data: data)?.resize(toSize: CGSize(width: 32, height: 32))
+                    imgData = image?.pngData()
+                } 
+
             }
             browserViewDataSource.addBookmark(title: webCache.title, url: webCache.lastVisitedUrl.absoluteString, icon: imgData)
-        }
-        
-        withAnimation {
-            toastOpacity = 1.0
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            withAnimation {
-                toastOpacity = 0
-            }
         }
     }
 }
