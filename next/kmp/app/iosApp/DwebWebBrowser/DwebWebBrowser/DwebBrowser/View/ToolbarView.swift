@@ -10,18 +10,19 @@ import SwiftUI
 import UIKit
 
 struct ToolbarView: View {
+    @Environment(SelectedTab.self) var seletecdTab
+
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var cacheStore: WebCacheStore
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var dragScale: WndDragScale
-    @EnvironmentObject var states: BrowserViewStates
     
     @ObservedObject var webMonitor: WebMonitor
 
     @State private var loadingDone: Bool = false
 
-    private var isShowingWeb: Bool { cacheStore.cache(at: states.selectedTabIndex).shouldShowWeb }
+    private var isShowingWeb: Bool { cacheStore.cache(at: seletecdTab.index).shouldShowWeb }
     private var canCreateDesktopLink: Bool { isShowingWeb && loadingDone }
     
     var body: some View {

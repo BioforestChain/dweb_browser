@@ -11,6 +11,7 @@ import Combine
 
 struct BrowserView: View {
     @ObservedObject private var states = BrowserViewStates.shared
+    @State private var selectedTab = SelectedTab()
     @State private var presentSheet = false
     var body: some View {
         ZStack {
@@ -18,7 +19,7 @@ struct BrowserView: View {
                 ZStack {
                     VStack(spacing: 0) {
                         TabsContainerView()
-                        ToolbarView(webMonitor: states.webcacheStore.webWrappers[states.selectedTabIndex].webMonitor)
+                        ToolbarView(webMonitor: states.webcacheStore.webWrappers[selectedTab.index].webMonitor)
                             .frame(height: states.addressBar.isFocused ? 0 : states.dragScale.toolbarHeight)
                     }
                     .background(.bk)
@@ -27,11 +28,11 @@ struct BrowserView: View {
                     .environmentObject(states.addressBar)
                     .environmentObject(states.toolBarState)
                     .environmentObject(states.dragScale)
-                    .environmentObject(states)
+                    .environment(selectedTab)
                 }
                 .resizableSheet(isPresented: $presentSheet) {
-                    SheetSegmentView()
-                        .environmentObject(states)
+                    SheetSegmentView(webCache: states.webcacheStore.cache(at: selectedTab.index))
+                        .environment(selectedTab)
                         .environmentObject(states.openingLink)
                         .environmentObject(states.dragScale)
                         .environmentObject(states.toolBarState)
@@ -77,10 +78,11 @@ struct BrowserView: View {
         states.updateColorScheme(newScheme: color)
     }
     func gobackIfCanDo() -> Bool{
-        states.doBackIfCan()
+        states.doBackIfCan(selected: selectedTab.index)
     }
     
     func resetStates(){
         states.clear()
+        selectedTab.index = 0
     }
 }

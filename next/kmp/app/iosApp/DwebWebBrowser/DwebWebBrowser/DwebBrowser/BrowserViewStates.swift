@@ -18,7 +18,6 @@ class BrowserViewStates: ObservableObject {
     @Published var dragScale = WndDragScale()
     @Published var searchKey: String? = nil
     @Published var colorSchemeManager = ColorSchemeManager()
-    @Published var selectedTabIndex = 0
     
     func clear() {
         addressBar = AddressBarState()
@@ -27,13 +26,12 @@ class BrowserViewStates: ObservableObject {
         webcacheStore = WebCacheStore()
         dragScale = WndDragScale()
         searchKey = nil
-        selectedTabIndex = 0
     }
 }
 
 // 这个地方暴露BrowserView的行为给外部使用
 extension BrowserViewStates {
-    func doBackIfCan() -> Bool {
+    func doBackIfCan(selected index: Int) -> Bool {
         if addressBar.isFocused {
             addressBar.inputText = ""
             addressBar.isFocused = false
@@ -49,9 +47,9 @@ extension BrowserViewStates {
             return true
         } else {
             guard webcacheStore.caches.count > 0 else { return false }
-            let shouldShowWeb = webcacheStore.cache(at: selectedTabIndex).shouldShowWeb
+            let shouldShowWeb = webcacheStore.cache(at: index).shouldShowWeb
             guard shouldShowWeb else { return false }
-            let webwrapper = webcacheStore.webWrappers[selectedTabIndex]
+            let webwrapper = webcacheStore.webWrappers[index]
             if webwrapper.webView.canGoBack {
                 webwrapper.webView.goBack()
                 return true

@@ -23,7 +23,7 @@ struct CellFramePreferenceKey: PreferenceKey {
 }
 
 struct TabGridView: View {
-    @EnvironmentObject var states: BrowserViewStates
+    @Environment(SelectedTab.self) var seletecdTab
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
     @Environment(\.colorScheme) var colorScheme
@@ -47,6 +47,8 @@ struct TabGridView: View {
     }
 
     var body: some View {
+//        @Bindable var seletecdTab = seletecdTab
+
         GeometryReader { geo in
             ScrollViewReader { scrollproxy in
                 ScrollView {
@@ -67,8 +69,8 @@ struct TabGridView: View {
                                 .onTapGesture {
                                     guard let tapIndex = webcacheStore.index(of: webCache) else { return }
                                     let geoFrame = geo.frame(in: .global)
-                                    if states.selectedTabIndex != tapIndex {
-                                        states.selectedTabIndex = tapIndex
+                                    if seletecdTab.index != tapIndex {
+                                        seletecdTab.index = tapIndex
                                     }
                                     prepareToShrink(geoFrame: geoFrame, scrollproxy: scrollproxy) {
                                         withAnimation {
@@ -105,12 +107,12 @@ struct TabGridView: View {
                     guard let cache = webcacheStore.caches.filter({ $0.id == operateId }).first else { return }
                     guard let deleteIndex = webcacheStore.index(of: cache) else { return }
 
-                    if deleteIndex <= states.selectedTabIndex {
-                        if states.selectedTabIndex > 0 {
-                            states.selectedTabIndex -= 1
+                    if deleteIndex <= seletecdTab.index {
+                        if seletecdTab.index > 0 {
+                            seletecdTab.index -= 1
                         }
                     }
-                    selectedCellFrame = cellFrame(at: states.selectedTabIndex)
+                    selectedCellFrame = cellFrame(at: seletecdTab.index)
 
                     
                     let webview = webcacheStore.webWrapper(at: deleteIndex).webView
@@ -118,7 +120,7 @@ struct TabGridView: View {
 
                     if webcacheStore.cacheCount == 1 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            states.selectedTabIndex = 0
+                            seletecdTab.index = 0
                             selectedCellFrame = CGRect(origin: CGPoint(x: screen_width/2, y: screen_height/2), size: CGSize(width: 5, height: 5))
                             toolbarState.shouldExpand = true
                         }
@@ -130,10 +132,10 @@ struct TabGridView: View {
                 }
                 .onChange(of: toolbarState.shouldExpand) { _, shouldExpand in
                     if shouldExpand { // 准备放大动画
-                        animation.snapshotImage = webcacheStore.animateSnapshot(index: states.selectedTabIndex, colorScheme: colorScheme)
+                        animation.snapshotImage = webcacheStore.animateSnapshot(index: seletecdTab.index, colorScheme: colorScheme)
                         animation.progress = .startExpanding
-                        if cellFrame(at: states.selectedTabIndex) != .zero {
-                            selectedCellFrame = cellFrame(at: states.selectedTabIndex)
+                        if cellFrame(at: seletecdTab.index) != .zero {
+                            selectedCellFrame = cellFrame(at: seletecdTab.index)
                         } else {
                             selectedCellFrame = CGRect(x: screen_width/2.0, y: screen_height/2.0, width: 5, height: 5)
                         }
@@ -152,28 +154,26 @@ struct TabGridView: View {
                         }
                     }
                 }
-                .task {
-                    states.$selectedTabIndex.debounce(for: .seconds(0.5), scheduler: DispatchQueue.main).sink { index in
-                        let currentFrame = cellFrame(at: index)
-                        let geoFrame = geo.frame(in: .global)
-                        let needScroll = !(geoFrame.minY <= currentFrame.minY && geoFrame.maxY >= currentFrame.maxY)
-                        if needScroll {
-                            let webCache = webcacheStore.cache(at: states.selectedTabIndex)
-                            scrollproxy.scrollTo(webCache.id, anchor: .top)
-                        }
-                    }.store(in: &subscriptions)
-                }
+                .onChange(of: seletecdTab.index, { _, index in
+                    let currentFrame = cellFrame(at: index)
+                    let geoFrame = geo.frame(in: .global)
+                    let needScroll = !(geoFrame.minY <= currentFrame.minY && geoFrame.maxY >= currentFrame.maxY)
+                    if needScroll {
+                        let webCache = webcacheStore.cache(at: seletecdTab.index)
+                        scrollproxy.scrollTo(webCache.id, anchor: .center)
+                    }
+                })
             }
         }
     }
 
     func prepareToShrink(geoFrame: CGRect, scrollproxy: ScrollViewProxy, afterObtainCellFrame: @escaping () -> Void) {
-        selectedCellFrame = cellFrame(at: states.selectedTabIndex)
+        selectedCellFrame = cellFrame(at: seletecdTab.index)
         afterObtainCellFrame()
     }
 
     func isSelected(webCache: WebCache) -> Bool {
-        webcacheStore.index(of: webCache) == states.selectedTabIndex
+        webcacheStore.index(of: webCache) == seletecdTab.index
     }
 
     func cellFrame(at index: Int) -> CGRect {

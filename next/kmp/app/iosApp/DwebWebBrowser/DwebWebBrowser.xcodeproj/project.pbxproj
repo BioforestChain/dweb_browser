@@ -287,30 +287,14 @@
 		4803BF8A2B4FF279006B2F79 /* Sheet */ = {
 			isa = PBXGroup;
 			children = (
-				4803BF8B2B4FF279006B2F79 /* Bookmark */,
-				4803BF8D2B4FF279006B2F79 /* NoResultView.swift */,
 				4803BF8E2B4FF279006B2F79 /* SheetSegmentView.swift */,
-				4803BF8F2B4FF279006B2F79 /* history */,
-				4803BF912B4FF279006B2F79 /* MenuCell.swift */,
 				4803BF932B4FF279006B2F79 /* MenuView.swift */,
+				4803BF8C2B4FF279006B2F79 /* BookmarkView.swift */,
+				4803BF902B4FF279006B2F79 /* HistoryView.swift */,
+				4803BF8D2B4FF279006B2F79 /* NoResultView.swift */,
+				4803BF912B4FF279006B2F79 /* MenuCell.swift */,
 			);
 			path = Sheet;
-			sourceTree = "<group>";
-		};
-		4803BF8B2B4FF279006B2F79 /* Bookmark */ = {
-			isa = PBXGroup;
-			children = (
-				4803BF8C2B4FF279006B2F79 /* BookmarkView.swift */,
-			);
-			path = Bookmark;
-			sourceTree = "<group>";
-		};
-		4803BF8F2B4FF279006B2F79 /* history */ = {
-			isa = PBXGroup;
-			children = (
-				4803BF902B4FF279006B2F79 /* HistoryView.swift */,
-			);
-			path = history;
 			sourceTree = "<group>";
 		};
 		4803BF962B4FF279006B2F79 /* Helper */ = {

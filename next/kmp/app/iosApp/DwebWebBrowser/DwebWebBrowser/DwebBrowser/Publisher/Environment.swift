@@ -8,6 +8,12 @@
 import Combine
 import Foundation
 import SwiftUI
+import Observation
+
+@Observable
+class SelectedTab {
+    var index: Int = 0
+}
 
 class WebMonitor: ObservableObject{
     @Published var loadingProgress: Double = 0{

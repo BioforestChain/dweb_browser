@@ -9,7 +9,7 @@ import SwiftUI
 import WebKit
 
 struct TabsContainerView: View {
-    @EnvironmentObject var states: BrowserViewStates
+    @Environment(SelectedTab.self) var seletecdTab
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
@@ -32,7 +32,6 @@ struct TabsContainerView: View {
     var body: some View {
         GeometryReader { geo in
             // 层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
-
             ZStack {
                 TabGridView(animation: animation, gridState: gridState, selectedCellFrame: $selectedCellFrame)
                     .environmentObject(webcacheStore)
@@ -75,7 +74,7 @@ struct TabsContainerView: View {
             .onReceive(toolbarState.$createTabTapped) { createTabTapped in
                 if createTabTapped { // 准备放大动画
                     webcacheStore.createOne()
-                    states.selectedTabIndex = webcacheStore.cacheCount - 1
+                    seletecdTab.index = webcacheStore.cacheCount - 1
                     selectedCellFrame = CGRect(x: geo.frame(in: .global).midX, y: geo.frame(in: .global).midY, width: 5, height: 5)
                     toolbarState.shouldExpand = true
                 }
@@ -91,7 +90,6 @@ struct TabsContainerView: View {
             }
         }
         .coordinateSpace(.named("TabsContainer"))
-
     }
 
     var animationImage: some View {
