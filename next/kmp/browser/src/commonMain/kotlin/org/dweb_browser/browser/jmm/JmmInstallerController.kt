@@ -7,13 +7,11 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.ui.Render
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.debounce
-import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 
 internal val LocalShowWebViewVersion = compositionChainOf("ShowWebViewVersion") {
@@ -97,16 +95,11 @@ class JmmInstallerController(
         jmmController.createDownloadTask(jmmHistoryMetadata)
       }
       // 已经注册完监听了，开始
-      startDownload()
+      jmmController.start(jmmHistoryMetadata)
     }
   )
 
-  suspend fun startDownload() {
-    jmmController.start(jmmHistoryMetadata).falseAlso {
-      showToastText(BrowserI18nResource.toast_message_download_download_fail.text)
-      jmmHistoryMetadata.updateState(JmmStatus.Failed, jmmController.jmmStore)
-    }
-  }
+  suspend fun startDownload() = jmmController.start(jmmHistoryMetadata)
 
   suspend fun pauseDownload() = jmmController.pause(jmmHistoryMetadata.taskId)
 
@@ -117,6 +110,4 @@ class JmmInstallerController(
   suspend fun closeSelf() {
     jmmNMM.getOrOpenMainWindow().closeRoot()
   }
-
-  private suspend fun showToastText(message: String) = jmmController.showToastText(message)
 }

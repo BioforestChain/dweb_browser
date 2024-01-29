@@ -15,6 +15,7 @@ import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.download.ext.cancelDownload
 import org.dweb_browser.browser.download.ext.createChannelOfDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
+import org.dweb_browser.browser.download.ext.currentDownload
 import org.dweb_browser.browser.download.ext.existsDownload
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.startDownload
@@ -27,7 +28,6 @@ import org.dweb_browser.helper.LateInit
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.datetimeNow
-import org.dweb_browser.helper.debounce
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
@@ -53,15 +53,21 @@ class JmmController(private val jmmNMM: JmmNMM, val jmmStore: JmmStore) {
 
   suspend fun loadHistoryMetadataUrl() {
     historyMetadataMaps.putAll(jmmStore.getHistoryMetadata())
-    historyMetadataMaps.forEach { _, historyMetadata ->
+    historyMetadataMaps.forEach { key, historyMetadata ->
+      debugJMM("lin.huang", "enter $historyMetadata")
       if (historyMetadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) {
-        if (historyMetadata.taskId?.let { jmmNMM.existsDownload(it) } == true) {
-          historyMetadata.state = historyMetadata.state.copy(state = JmmStatus.Paused)
+        val current = historyMetadata.taskId?.let { jmmNMM.currentDownload(it) }
+          ?: -1L // 获取下载的进度，如果进度 >= 0 表示有下载
+        historyMetadata.state = if (current >= 0L) {
+          historyMetadata.state.copy(state = JmmStatus.Paused, current = current)
         } else {
-          historyMetadata.state = historyMetadata.state.copy(state = JmmStatus.Init)
+          historyMetadata.state.copy(state = JmmStatus.Init)
         }
+        debugJMM("lin.huang", "leave $historyMetadata")
+        jmmStore.saveHistoryMetadata(key, historyMetadata)
       } else if (jmmNMM.bootstrapContext.dns.query(historyMetadata.metadata.id) == null) {
         historyMetadata.state = historyMetadata.state.copy(state = JmmStatus.Init) // 如果没有找到，说明被卸载了
+        jmmStore.saveHistoryMetadata(key, historyMetadata)
       }
     }
   }
@@ -228,15 +234,22 @@ class JmmController(private val jmmNMM: JmmNMM, val jmmStore: JmmStore) {
     }
   }
 
-  suspend fun start(jmmHistoryMetadata: JmmHistoryMetadata) =
-    jmmHistoryMetadata.taskId?.let { taskId ->
-      if (jmmNMM.existsDownload(taskId) && jmmHistoryMetadata.state.state != JmmStatus.Downloading) {
-        jmmHistoryMetadata.updateState(JmmStatus.Downloading, jmmStore)
+  suspend fun start(jmmHistoryMetadata: JmmHistoryMetadata): Boolean {
+    val success = jmmHistoryMetadata.taskId?.let { taskId ->
+      if (jmmNMM.existsDownload(taskId) && jmmNMM.startDownload(taskId)) {
         watchProcess(jmmHistoryMetadata)
-        jmmNMM.startDownload(taskId)
         true
       } else jmmHistoryMetadata.state.state == JmmStatus.Downloading
     } ?: false
+    debugJMM("start", "$success => $jmmHistoryMetadata")
+    if (success) {
+      jmmHistoryMetadata.updateState(JmmStatus.Downloading, jmmStore)
+    } else {
+      showToastText(BrowserI18nResource.toast_message_download_download_fail.text)
+      jmmHistoryMetadata.updateState(JmmStatus.Failed, jmmStore)
+    }
+    return success
+  }
 
   suspend fun pause(taskId: TaskId?) = taskId?.let { jmmNMM.pauseDownload(taskId) } ?: false
 
@@ -276,7 +289,7 @@ class JmmController(private val jmmNMM: JmmNMM, val jmmStore: JmmStore) {
     }
   }
 
-  suspend fun showToastText(message: String) = jmmNMM.showToast(message)
+  private suspend fun showToastText(message: String) = jmmNMM.showToast(message)
 
   private suspend fun getAppSessionInfo(mmid: MMID, version: String) =
     Json.decodeFromString<SessionInfo>(

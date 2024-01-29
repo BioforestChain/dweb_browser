@@ -84,8 +84,6 @@ data class JmmHistoryMetadata(
   val installTime: Long = datetimeNow(), // 表示安装应用的时间
   var upgradeTime: Long = datetimeNow()
 ) {
-  @Transient
-  private var downloadCount:AtomicInt = atomic(0)
   var state by ObservableMutableState(_state) { _state = it }
   var metadata by ObservableMutableState(_metadata) { _metadata = it }
 
@@ -102,9 +100,7 @@ data class JmmHistoryMetadata(
         DownloadState.Completed -> JmmStatus.Completed
       }
     )
-    if (downloadTask.status.state != DownloadState.Downloading ||
-      (downloadCount.getAndAdd(1) >= 10)) {
-      downloadCount.value = 0
+    if (downloadTask.status.state != DownloadState.Downloading) {
       store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
     }
   }

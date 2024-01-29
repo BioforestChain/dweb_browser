@@ -35,6 +35,10 @@ class DownloadModel(val downloadController: DownloadController) {
     downloadController.pauseDownload(downloadTask)
 
   suspend fun close() = downloadController.close()
+
+  fun removeDownloadTask(downloadTask: DownloadTask) {
+    downloadController.removeDownload(downloadTask.id)
+  }
 }
 
 fun getIconByMime(mime: String): ImageVector {

@@ -127,7 +127,7 @@ data class DownloadStateEvent(
 
 class DownloadController(private val downloadNMM: DownloadNMM) {
   private val downloadStore = DownloadStore(downloadNMM)
-  val downloadManagers: ChangeableMutableMap<TaskId, DownloadTask> =
+  val downloadTaskMaps: ChangeableMutableMap<TaskId, DownloadTask> =
     ChangeableMutableMap() // 用于监听下载列表
   val downloadList: MutableList<DownloadTask> = mutableStateListOf()
   private var winLock = Mutex(false)
@@ -138,7 +138,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     // 从内存中恢复状态
     downloadNMM.ioAsyncScope.launch {
       // 状态改变的时候存储保存到内存
-      downloadManagers.onChange { (type, _, value) ->
+      downloadTaskMaps.onChange { (type, _, value) ->
         when (type) {
           ChangeableType.Add -> {
             downloadStore.set(value!!.id, value)
@@ -152,7 +152,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
 
           ChangeableType.PutAll -> {
             downloadList.addAll(
-              downloadManagers.toMutableList().sortedByDescending { it.createTime }
+              downloadTaskMaps.toMutableList().sortedByDescending { it.createTime }
             )
           }
 
@@ -165,9 +165,9 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   }
 
   suspend fun loadDownloadList() {
-    downloadManagers.putAll(downloadStore.getAll())
+    downloadTaskMaps.putAll(downloadStore.getAll())
     // 如果是从文件中读取的，需要将下载中的状态统一置为暂停。其他状态保持不变
-    downloadManagers.suspendForEach { _, downloadTask ->
+    downloadTaskMaps.suspendForEach { _, downloadTask ->
       if (downloadTask.status.state == DownloadState.Downloading) {
         if (fileExists(downloadTask.filepath)) { // 为了保证下载中的状态current值正确
           downloadTask.status.current = fileInfo(downloadTask.filepath).size ?: 0L
@@ -196,7 +196,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       status = DownloadStateEvent(total = params.total)
     )
     recover(task, 0L)
-    downloadManagers.put(task.id, task)
+    downloadTaskMaps.put(task.id, task)
     downloadStore.set(task.id, task) // 保存下载状态
     debugDownload("createTaskFactory", "${task.id} -> $task")
     return task
@@ -312,7 +312,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   /**
    * 取消下载
    */
-  suspend fun cancelDownload(taskId: TaskId) = downloadManagers.get(taskId)?.let { downloadTask ->
+  suspend fun cancelDownload(taskId: TaskId) = downloadTaskMaps[taskId]?.let { downloadTask ->
     // 如果有文件,直接删除
     if (fileExists(downloadTask.filepath)) {
       fileRemove(downloadTask.filepath)
@@ -326,9 +326,10 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   } ?: false
 
   fun removeDownload(taskId: TaskId) {
-    downloadManagers.remove(taskId)?.let { downloadTask ->
+    downloadTaskMaps.remove(taskId)?.let { downloadTask ->
       downloadTask.readChannel?.cancel()
       downloadTask.readChannel = null
+      downloadNMM.ioAsyncScope.launch { fileRemove(downloadTask.filepath) }
     }
   }
 
@@ -355,8 +356,9 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     // 如果内存中没有，或者对方不支持Range，需要重新下载,否则这个channel是从支持的断点开始
     val stream = task.readChannel ?: return false
     debugDownload("downloadFactory", task.id)
-    val buffer = middleware(task, stream)
-    fileAppend(task, buffer)
+    downloadNMM.ioAsyncScope.launch { // 正式下载需要另外起一个协程，不影响当前的返回值
+      fileAppend(task, middleware(task, stream))
+    }
     return true
   }
 
@@ -368,7 +370,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     downloadTask.status.state = DownloadState.Downloading
     val taskId = downloadTask.id
     // 重要记录点 存储到硬盘
-    downloadManagers.put(taskId, downloadTask)
+    downloadTaskMaps.put(taskId, downloadTask)
     downloadNMM.ioAsyncScope.launch {
       debugDownload("middleware", "start id:$taskId current:${downloadTask.status.current}")
       downloadTask.downloadSignal.emit(downloadTask)

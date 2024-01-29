@@ -51,7 +51,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     controller.loadDownloadList()
     onAfterShutdown {
       ioAsyncScope.launch {
-        controller.downloadManagers.suspendForEach { _, downloadTask ->
+        controller.downloadTaskMaps.suspendForEach { _, downloadTask ->
           controller.pauseDownload(downloadTask)
         }
       }
@@ -72,14 +72,14 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       "/start" bind PureMethod.GET by defineBooleanResponse {
         val taskId = request.query("taskId")
         debugDownload("/start", taskId)
-        val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
+        val task = controller.downloadTaskMaps[taskId] ?: return@defineBooleanResponse false
         debugDownload("/start", "task=$task")
         controller.startDownload(task)
       },
       // 监控下载进度
       "/watch/progress" byChannel { ctx ->
         val taskId = request.query("taskId")
-        val downloadTask = controller.downloadManagers.get(taskId)
+        val downloadTask = controller.downloadTaskMaps.get(taskId)
           ?: return@byChannel close(Throwable("not Found download task!"))
         debugDownload("/watch/progress", "taskId=$taskId")
         // 给别人的需要给picker地址
@@ -93,7 +93,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       // 暂停下载
       "/pause" bind PureMethod.GET by defineBooleanResponse {
         val taskId = request.query("taskId")
-        val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
+        val task = controller.downloadTaskMaps[taskId] ?: return@defineBooleanResponse false
         controller.pauseDownload(task)
         true
       },
@@ -110,10 +110,20 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       // taskId是否存在, -1 是不存在，其他返回值是下载的进度
       "/exists" bind PureMethod.GET by defineBooleanResponse {
         val taskId = request.query("taskId")
-        debugDownload("exists", "$taskId=>${controller.downloadManagers[taskId]}")
-        controller.downloadManagers[taskId]?.status?.state?.valueNotIn(
+        debugDownload("exists", "$taskId=>${controller.downloadTaskMaps[taskId]}")
+        controller.downloadTaskMaps[taskId]?.status?.state?.valueNotIn(
           DownloadState.Completed, DownloadState.Canceled
         ) ?: false
+      },
+      // taskId是否存在, -1 是不存在，其他返回值是下载的进度
+      "/current" bind PureMethod.GET by defineNumberResponse {
+        val taskId = request.query("taskId")
+        debugDownload("exists", "$taskId=>${controller.downloadTaskMaps[taskId]}")
+        controller.downloadTaskMaps[taskId]?.status?.let { status ->
+          if (status.state.valueNotIn(DownloadState.Completed, DownloadState.Canceled)) {
+            status.current
+          } else -1L
+        } ?: -1L
       }
     )
     onRenderer {

@@ -25,6 +25,7 @@ import org.dweb_browser.browser.common.SingleChoiceSegmentedButtonRow
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.model.DownloadTab
 import org.dweb_browser.browser.download.model.LocalDownloadModel
+import org.dweb_browser.helper.compose.LazySwipeColumn
 
 @Composable
 fun DownloadView() {
@@ -80,17 +81,11 @@ fun DownloadTabView() {
     return
   }
 
-  LazyColumn {
-    list.forEach { downloadTask ->
-      item(downloadTask.id) {
-        DownloadItem(downloadTask) { decompressModel.show(it) }
-        Spacer(
-          Modifier
-            .height(1.dp)
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.outlineVariant)
-        )
-      }
-    }
+  LazySwipeColumn(
+    items = list,
+    key = { item -> item.id },
+    onRemove = { item -> viewModel.removeDownloadTask(item)}
+  ) { downloadTask ->
+    DownloadItem(downloadTask) { decompressModel.show(it) }
   }
 }

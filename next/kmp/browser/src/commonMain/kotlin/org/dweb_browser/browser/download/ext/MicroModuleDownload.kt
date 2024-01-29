@@ -22,6 +22,9 @@ suspend fun NativeMicroModule.cancelDownload(taskId: String) =
 suspend fun NativeMicroModule.existsDownload(taskId: String) =
   nativeFetch("file://download.browser.dweb/exists?taskId=$taskId").boolean()
 
+suspend fun NativeMicroModule.currentDownload(taskId: String) =
+  nativeFetch("file://download.browser.dweb/current?taskId=$taskId").long()
+
 suspend fun NativeMicroModule.removeDownload(taskId: String) =
   nativeFetch(
     PureClientRequest(

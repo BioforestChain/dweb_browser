@@ -1,6 +1,8 @@
 package org.dweb_browser.helper.compose
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -55,7 +58,9 @@ fun <T> LazySwipeColumn(
   key: (item: T) -> Any,
   onRemove: (item: T) -> Unit,
   modifier: Modifier = Modifier,
-  background: @Composable RowScope.() -> Unit,
+  background: @Composable RowScope.() -> Unit = {
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+  },
   content: @Composable RowScope.(item: T) -> Unit,
 ) {
   LazyColumn(modifier = Modifier.fillMaxSize()) {
