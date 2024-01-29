@@ -6,7 +6,12 @@ export default defineConfig({
   plugins: [
     vue({
       customElement: /^dweb\-/,
-      template: { transformAssetUrls },
+      template: {
+        transformAssetUrls,
+        compilerOptions: {
+          isCustomElement: (tag) => tag.startsWith("dweb-"),
+        }
+      }
     }),
     vuetify({
       autoImport: true,
