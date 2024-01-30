@@ -34,7 +34,8 @@ class ElectronBrowserWindowModule(
     override val viewModel: BaseViewModel = BaseViewModel(subDomain, initVieModelMutableMap)
     init {
         viewModel.onUpdateByClient{key: dynamic, value: dynamic ->
-            viewModel[key] = value + 1
+            console.log("server received data from client ", value)
+//            viewModel[key] = value + 1
         }
         controller.open(ElectronBrowserWindowController.createBrowserWindowOptions().apply {
             width = 1300.0
