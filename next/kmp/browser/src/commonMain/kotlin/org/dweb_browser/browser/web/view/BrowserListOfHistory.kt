@@ -46,9 +46,7 @@ fun BrowserListOfHistory(
       ?: Box(modifier = Modifier.fillMaxWidth()) {
         Text(
           text = BrowserI18nResource.browser_empty_list(),
-          modifier = Modifier
-            .align(Alignment.TopCenter)
-            .padding(top = 100.dp)
+          modifier = Modifier.align(Alignment.TopCenter).padding(top = 100.dp)
         )
       }
     return
@@ -56,18 +54,14 @@ fun BrowserListOfHistory(
   val currentDay = datetimeNowToEpochDay()
 
   LazyColumn(
-    modifier = modifier
-      .background(MaterialTheme.colorScheme.background)
-      .padding(horizontal = 16.dp)
+    modifier = modifier.background(MaterialTheme.colorScheme.background).padding(horizontal = 16.dp)
   ) {
     for (day in currentDay downTo currentDay - 6) {
       val webSiteInfoList = viewModel.getHistoryLinks()[day.toString()] ?: continue
       stickyHeader(key = day) {
         Text(
           text = day.formatToStickyName(),
-          modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
+          modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)
             .padding(vertical = 12.dp),
           fontWeight = FontWeight(500),
           fontSize = 15.sp,
@@ -87,9 +81,7 @@ fun BrowserListOfHistory(
         ) {
           val shape = when (index) {
             0 -> RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
-            webSiteInfoList.size - 1 -> RoundedCornerShape(
-              bottomStart = 6.dp, bottomEnd = 6.dp
-            )
+            webSiteInfoList.size - 1 -> RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp)
 
             else -> RoundedCornerShape(0.dp)
           }
@@ -100,12 +92,9 @@ fun BrowserListOfHistory(
   }
 }
 
-
 @Composable
 private fun RowItemHistory(
-  webSiteInfo: WebSiteInfo,
-  shape: RoundedCornerShape,
-  onClick: (WebSiteInfo) -> Unit
+  webSiteInfo: WebSiteInfo, shape: RoundedCornerShape, onClick: (WebSiteInfo) -> Unit
 ) {
   Column(modifier = Modifier
     .fillMaxWidth()
@@ -127,11 +116,7 @@ private fun RowItemHistory(
       color = MaterialTheme.colorScheme.onSurface,
       modifier = Modifier.fillMaxWidth()
     )
-    Spacer(
-      modifier = Modifier
-        .fillMaxWidth()
-        .height(4.dp)
-    )
+    Spacer(modifier = Modifier.fillMaxWidth().height(4.dp))
     Text(
       text = webSiteInfo.url,
       maxLines = 1,
@@ -143,8 +128,3 @@ private fun RowItemHistory(
     )
   }
 }
-
-data class WebSiteInfoList(
-  val key: String,
-  val value: MutableList<WebSiteInfo>,
-)

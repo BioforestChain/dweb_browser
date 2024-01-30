@@ -27,7 +27,6 @@ actual fun CommonSwipeDismiss(
     confirmValueChange = { true },
     positionalThreshold = with(LocalDensity.current) { { 56.dp.toPx() } }
   )
-
   LaunchedEffect(dismissState) {
     snapshotFlow { dismissState.currentValue }.collect {
       if (it != SwipeToDismissBoxValue.Settled) {

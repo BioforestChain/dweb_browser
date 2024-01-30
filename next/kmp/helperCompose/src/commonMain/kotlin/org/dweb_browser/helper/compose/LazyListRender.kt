@@ -29,8 +29,14 @@ fun <T> LazyReorderColumn(
   onDragMove: (ItemPosition, ItemPosition) -> Unit,
   onDragEnd: (startIndex: Int, endIndex: Int) -> Unit,
   modifier: Modifier = Modifier,
+  noDataValue: String = "No Data",
+  noDataContent: @Composable (() -> Unit)? = null,
   content: @Composable RowScope.(item: T) -> Unit,
 ) {
+  if (items.isEmpty()) {
+    noDataContent?.let { it() } ?: NoDataRender(noDataValue)
+    return
+  }
   val state = rememberReorderAbleLazyListState(onMove = onDragMove, onDragEnd = onDragEnd)
   LazyColumn(
     state = state.listState,
@@ -58,11 +64,15 @@ fun <T> LazySwipeColumn(
   key: (item: T) -> Any,
   onRemove: (item: T) -> Unit,
   modifier: Modifier = Modifier,
-  background: @Composable RowScope.() -> Unit = {
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
-  },
+  noDataValue: String = "No Data",
+  noDataContent: @Composable (() -> Unit)? = null,
+  background: @Composable RowScope.() -> Unit = { DeleteBackground() },
   content: @Composable RowScope.(item: T) -> Unit,
 ) {
+  if (items.isEmpty()) {
+    noDataContent?.let { it() } ?: NoDataRender(noDataValue)
+    return
+  }
   LazyColumn(modifier = Modifier.fillMaxSize()) {
     items(items, key = { item -> key(item) }) { item ->
       ListSwipeItem(
@@ -86,8 +96,14 @@ fun <T> LazySwipeAndReorderColumn(
   onDragEnd: (startIndex: Int, endIndex: Int) -> Unit,
   onRemove: (item: T) -> Unit,
   modifier: Modifier = Modifier,
+  noDataValue: String = "No Data",
+  noDataContent: @Composable (() -> Unit)? = null,
   content: @Composable (item: T) -> Unit,
 ) {
+  if (items.isEmpty()) {
+    noDataContent?.let { it() } ?: NoDataRender(noDataValue)
+    return
+  }
   val state = rememberReorderAbleLazyListState(onMove = onDragMove, onDragEnd = onDragEnd)
   LazyColumn(
     state = state.listState,
@@ -127,7 +143,14 @@ fun <T> LazySwipeAndReorderList(
   leadingContent: @Composable ((item: T) -> Unit)? = null,
   trailingContent: @Composable ((item: T) -> Unit)? = null,
   colors: ListItemColors = ListItemDefaults.colors(),
+  background: @Composable RowScope.() -> Unit = { DeleteBackground() },
+  noDataValue: String = "No Data",
+  noDataContent: @Composable (() -> Unit)? = null,
 ) {
+  if (items.isEmpty()) {
+    noDataContent?.let { it() } ?: NoDataRender(noDataValue)
+    return
+  }
   val state = rememberReorderAbleLazyListState(onMove = onDragMove, onDragEnd = onDragEnd)
   LazyColumn(
     state = state.listState,
@@ -142,7 +165,8 @@ fun <T> LazySwipeAndReorderList(
         val elevation = animateDpAsState(if (dragging) 8.dp else 0.dp, label = "")
         ListSwipeItem(
           modifier = Modifier.detectReorderAfterLongPress(state).shadow(elevation.value),
-          onRemove = { onRemove(item) }
+          onRemove = { onRemove(item) },
+          background = background
         ) {
           ListItem(
             modifier = Modifier.fillMaxSize(),
@@ -157,4 +181,9 @@ fun <T> LazySwipeAndReorderList(
       }
     }
   }
+}
+
+@Composable
+private fun RowScope.DeleteBackground() {
+  Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
 }

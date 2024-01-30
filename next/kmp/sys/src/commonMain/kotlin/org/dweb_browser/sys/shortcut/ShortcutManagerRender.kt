@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.compose.LazySwipeAndReorderList
-import org.dweb_browser.helper.compose.NoDataRender
 import org.dweb_browser.helper.compose.reorder.ItemPosition
 import org.dweb_browser.sys.window.core.WindowRenderScope
 
@@ -40,38 +39,25 @@ fun ShortcutManagerRender(
       ) // 原始大小
       .scale(windowRenderScope.scale)
   ) {
-    if (shortcutList.isEmpty()) {
-      NoDataRender(ShortcutI18nResource.render_no_data())
-    } else {
-      ShortcutListView(shortcutList, onDragMove, onDragEnd, onRemove)
-    }
+    LazySwipeAndReorderList(
+      items = shortcutList,
+      key = { item -> item.uri },
+      modifier = Modifier.fillMaxWidth().height(72.dp),
+      onDragMove = onDragMove,
+      onDragEnd = onDragEnd,
+      onRemove = onRemove,
+      colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.background),
+      headlineContent = { item -> Text(text = item.title) },
+      leadingContent = { item ->
+        item.iconImage?.let { iconImage ->
+          Image(
+            modifier = Modifier.size(72.dp),
+            bitmap = iconImage,
+            contentDescription = "shortcut"
+          )
+        } ?: Icon(Icons.Default.AppShortcut, contentDescription = "shortcut")
+      },
+      noDataValue = ShortcutI18nResource.render_no_data()
+    )
   }
-}
-
-@Composable
-private fun ShortcutListView(
-  shortcutList: MutableList<SystemShortcut>,
-  onDragMove: (ItemPosition, ItemPosition) -> Unit,
-  onDragEnd: (startIndex: Int, endIndex: Int) -> Unit,
-  onRemove: (SystemShortcut) -> Unit
-) {
-  LazySwipeAndReorderList(
-    items = shortcutList,
-    key = { item -> item.uri },
-    modifier = Modifier.fillMaxWidth().height(72.dp),
-    onDragMove = onDragMove,
-    onDragEnd = onDragEnd,
-    onRemove = onRemove,
-    colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.background),
-    headlineContent = { item -> Text(text = item.title) },
-    leadingContent = { item ->
-      item.iconImage?.let { iconImage ->
-        Image(
-          modifier = Modifier.size(72.dp),
-          bitmap = iconImage,
-          contentDescription = "shortcut"
-        )
-      } ?: Icon(Icons.Default.AppShortcut, contentDescription = "shortcut")
-    }
-  )
 }

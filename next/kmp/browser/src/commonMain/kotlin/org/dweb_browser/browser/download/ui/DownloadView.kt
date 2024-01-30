@@ -74,17 +74,12 @@ fun DownloadTabView() {
   val list = viewModel.downloadController.downloadList.filter {
     downloadTab == DownloadTab.Downloads || it.status.state == DownloadState.Completed
   }
-  if (list.isEmpty()) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      Text(text = BrowserI18nResource.no_download_links())
-    }
-    return
-  }
 
   LazySwipeColumn(
     items = list,
     key = { item -> item.id },
-    onRemove = { item -> viewModel.removeDownloadTask(item)}
+    onRemove = { item -> viewModel.removeDownloadTask(item)},
+    noDataValue = BrowserI18nResource.no_download_links()
   ) { downloadTask ->
     DownloadItem(downloadTask) { decompressModel.show(it) }
   }
