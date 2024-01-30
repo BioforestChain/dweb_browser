@@ -34,10 +34,15 @@ struct SheetSegmentView: View {
             Picker("Select image", selection: $selectedCategory) {
                 ForEach(categoryList, id: \.self) {
                     Image(uiImage: .assetsImage(name: $0.rawValue))
+                        .resizable()
+                        .frame(height: dragScale.properValue(floor: 13, ceiling: 26))
+
                 }
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
+            .frame(height: dragScale.properValue(floor: 20, ceiling: 30))
+
 
             if selectedCategory == .menu {
                 MenuView(webCache: webCache)

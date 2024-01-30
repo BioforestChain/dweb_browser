@@ -47,6 +47,7 @@ struct GridCell: View {
                                 Image(uiImage: webCache.snapshotImage)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
+                                    .frame(width: geo.size.width)
                             } else {
                                 BlankTabView()
                             }

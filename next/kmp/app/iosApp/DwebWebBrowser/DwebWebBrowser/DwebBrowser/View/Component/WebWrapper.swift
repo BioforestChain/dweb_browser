@@ -121,7 +121,7 @@ struct TabWebView: View, UIViewRepresentable {
 //                           }
 //                       }
 
-                    self?.parent.innerWeb.scrollView.zoomScale = newScale // 根据需要调整
+//                    self?.parent.innerWeb.scrollView.zoomScale = newScale // 根据需要调整
                 }
             }.store(in: &cancellable)
         }

@@ -67,6 +67,7 @@
 		48334DF62B50E12000399FFF /* Browser.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF6C2B4FF279006B2F79 /* Browser.xcdatamodeld */; };
 		48EEA8EE2B4FF17F006DA0F3 /* DwebWebBrowser.h in Headers */ = {isa = PBXBuildFile; fileRef = 48EEA8E12B4FF17F006DA0F3 /* DwebWebBrowser.h */; };
 		48EEA8F02B4FF17F006DA0F3 /* DwebWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EEA8E62B4FF17F006DA0F3 /* DwebWebView.swift */; };
+		F0DA27022B679F350005ED24 /* MenuViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0DA27012B679F350005ED24 /* MenuViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -131,6 +132,7 @@
 		48334DF32B50DF9700399FFF /* Bundle+module.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+module.swift"; sourceTree = "<group>"; };
 		48EEA8E12B4FF17F006DA0F3 /* DwebWebBrowser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DwebWebBrowser.h; sourceTree = "<group>"; };
 		48EEA8E62B4FF17F006DA0F3 /* DwebWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebWebView.swift; sourceTree = "<group>"; };
+		F0DA27012B679F350005ED24 /* MenuViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -293,6 +295,7 @@
 				4803BF902B4FF279006B2F79 /* HistoryView.swift */,
 				4803BF8D2B4FF279006B2F79 /* NoResultView.swift */,
 				4803BF912B4FF279006B2F79 /* MenuCell.swift */,
+				F0DA27012B679F350005ED24 /* MenuViewModel.swift */,
 			);
 			path = Sheet;
 			sourceTree = "<group>";
@@ -461,6 +464,7 @@
 				4803BFDB2B4FF279006B2F79 /* MenuCell.swift in Sources */,
 				4803BFD22B4FF279006B2F79 /* AddressBarView.swift in Sources */,
 				4803BFB62B4FF279006B2F79 /* DwebBrowserHistoryStore.swift in Sources */,
+				F0DA27022B679F350005ED24 /* MenuViewModel.swift in Sources */,
 				4803BFDE2B4FF279006B2F79 /* BrowserViewStates.swift in Sources */,
 				4803C01E2B4FF9E8006B2F79 /* BrowserWebSiteInfo.swift in Sources */,
 				4803BFD82B4FF279006B2F79 /* NoResultView.swift in Sources */,
