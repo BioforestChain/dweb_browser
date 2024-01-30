@@ -63,10 +63,7 @@ expect class LocationManage() {
    * 返回的Boolean表示是否正常发送，如果发送遗产，关闭监听。
    */
   suspend fun observeLocation(
-    mmid: MMID,
-    fps: Long,
-    precise: Boolean,
-    callback: LocationObserverCallback
+    mmid: MMID, fps: Long, precise: Boolean, callback: LocationObserverCallback
   )
 
   /**

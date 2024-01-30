@@ -84,10 +84,7 @@ actual class LocationManage {
   // TODO 这里没有看到任何对于异常情况自动解除监听的行为
   @OptIn(ExperimentalForeignApi::class)
   actual suspend fun observeLocation(
-    mmid: MMID,
-    fps: Long,
-    precise: Boolean,
-    callback: LocationObserverCallback
+    mmid: MMID, fps: Long, precise: Boolean, callback: LocationObserverCallback
   ) {
     DwebLocationRequestApi().requestTrack(mmid, fps.toLong()) { location, code, error ->
       val geolocation = location as platform.CoreLocation.CLLocation?
