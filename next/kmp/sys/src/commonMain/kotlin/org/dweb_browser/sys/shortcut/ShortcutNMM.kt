@@ -9,11 +9,9 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.createChannel
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.pure.http.queryAs
@@ -49,16 +47,15 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
     routes(
       "/registry" bind PureMethod.GET by defineBooleanResponse {
         val systemShortcut = request.queryAs<SystemShortcut>()
-        systemShortcut.mmid = ipc.remote.mmid // TODO 这个需要额外初始化，传参未必包含改字段
+        systemShortcut.mmid = ipc.remote.mmid // TODO 这个需要额外初始化，传参不需要包含该字段
         debugShortcut("registry", "shortcut=$systemShortcut")
 
-        var imageResource: ImageResource? = null
         if (systemShortcut.icon == null) {
           bootstrapContext.dns.query(ipc.remote.mmid)?.let { fromMM ->
-            imageResource = fromMM.icons.firstOrNull() ?: icons.first()
+            val imageResource = fromMM.icons.firstOrNull() ?: icons.first()
+            systemShortcut.icon = shortcutManage.getValidIcon(this@ShortcutNMM, imageResource)
           }
         }
-        systemShortcut.icon = shortcutManage.getVaildIcon(systemShortcut.icon, this@ShortcutNMM, imageResource)
         shortcutList.removeAll { it.uri == systemShortcut.uri }
         shortcutList.add(systemShortcut)
         store.set(systemShortcut.uri, systemShortcut)

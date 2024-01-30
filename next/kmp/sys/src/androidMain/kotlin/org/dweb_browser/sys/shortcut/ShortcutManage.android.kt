@@ -98,14 +98,7 @@ actual class ShortcutManage {
       .build()
   }
 
-  actual suspend fun getVaildIcon(icon: ByteArray?, nmm: MicroModule, resource: ImageResource?): ByteArray? {
-    if (icon != null) {
-      return icon
-    } else if (resource != null) {
-      return nmm.nativeFetch(resource.src).body.toPureBinary()
-    } else {
-      return null
-    }
+  actual suspend fun getValidIcon(microModule: MicroModule, resource: ImageResource): ByteArray? {
+    return microModule.nativeFetch(resource.src).body.toPureBinary()
   }
-
 }

@@ -74,7 +74,7 @@ actual class ShortcutManage {
   }
 
   // iOS: 由于无法正确解析SVG图片，所以iOS会一直返回null.
-  actual suspend fun getVaildIcon(icon: ByteArray?, nmm:MicroModule, resource: ImageResource?): ByteArray? {
+  actual suspend fun getValidIcon(microModule: MicroModule, resource: ImageResource): ByteArray? {
     return null
   }
 }
