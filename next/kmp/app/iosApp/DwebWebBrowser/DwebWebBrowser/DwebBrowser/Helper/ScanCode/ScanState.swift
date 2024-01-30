@@ -8,7 +8,7 @@
 import AVFoundation
 import SwiftUI
 
-enum ScanError: Error {
+public enum ScanError: Error {
     /// The camera could not be accessed.
     case badInput
 
@@ -22,9 +22,9 @@ enum ScanError: Error {
     case permissionDenied
 }
 
-struct ScanResult {
+public struct ScanResult {
     /// The contents of the code.
-    let string: String
+    public let string: String
 
     /// The type of code that was matched.
     let type: AVMetadataObject.ObjectType
@@ -37,7 +37,7 @@ struct ScanResult {
 }
 
 /// The operating mode for CodeScannerView.
-enum ScanMode {
+public enum ScanMode {
     /// Scan exactly one code, then stop.
     case once
 

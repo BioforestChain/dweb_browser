@@ -8,7 +8,7 @@
 import SwiftUI
 import AVFoundation
 
-struct CodeScannerView: UIViewControllerRepresentable {
+public struct CodeScannerView: UIViewControllerRepresentable {
     
     let codeTypes: [AVMetadataObject.ObjectType]
     let scanMode: ScanMode
@@ -22,7 +22,7 @@ struct CodeScannerView: UIViewControllerRepresentable {
     var videoCaptureDevice: AVCaptureDevice?
     var completion: (Result<ScanResult, ScanError>) -> Void
     
-    init(
+    public init(
         codeTypes: [AVMetadataObject.ObjectType],
         scanMode: ScanMode = .once,
         manualSelect: Bool = false,
@@ -47,11 +47,11 @@ struct CodeScannerView: UIViewControllerRepresentable {
         self.videoCaptureDevice = videoCaptureDevice
         self.completion = completion
     }
-    func makeUIViewController(context: Context) -> ScannerViewController {
+    public func makeUIViewController(context: Context) -> ScannerViewController {
         return ScannerViewController(showViewfinder: showViewfinder, parentView: self)
     }
     
-    func updateUIViewController(_ uiViewController: ScannerViewController, context: Context) {
+    public func updateUIViewController(_ uiViewController: ScannerViewController, context: Context) {
         
         uiViewController.parentView = self
         uiViewController.updateViewController(

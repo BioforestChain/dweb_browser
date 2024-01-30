@@ -22,7 +22,7 @@ import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.debugTest
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
-import org.dweb_browser.shared.bridge.WKWebViewBridge
+import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
@@ -40,11 +40,20 @@ import org.dweb_browser.sys.permission.PermissionNMM
 import org.dweb_browser.sys.permission.PermissionProviderTNN
 import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
+import org.dweb_browser.sys.shortcut.ShortcutNMM
 import org.dweb_browser.sys.toast.ToastNMM
 import platform.UIKit.UIApplication
 
 val dwebViewController = nativeViewController
 val dwebDeepLinkHook = deepLinkHook
+private lateinit var dnsNMM: DnsNMM
+
+suspend fun dnsFetch(url: String): PureResponse? {
+  return dnsNMM.let {
+    it.nativeFetch(url)
+  }
+}
+
 @Suppress("UNUSED_VARIABLE")
 suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   nativeMicroModuleUIApplication = app;
@@ -54,7 +63,7 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   }
 
   /// 初始化DNS服务
-  val dnsNMM = DnsNMM().also { dnsNMM ->
+  dnsNMM = DnsNMM().also { dnsNMM ->
     // 启动的时候就开始监听deeplink
     dwebDeepLinkHook.deeplinkSignal.listen {
       dnsNMM.nativeFetch(it)
@@ -116,14 +125,14 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   val multipartNMM = MultipartNMM().setup()
   /// Contact
   val contactNMM = ContactNMM().setup()
+  /// shortcut
+  val shortcutNMM = ShortcutNMM().setup()
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()
   val deskNMM = DeskNMM().setup()
 
-  val browserNMM = BrowserNMM().setup().also {
-    WKWebViewBridge.shared.webBrowserNMM = it
-  }
+  val browserNMM = BrowserNMM().setup()
 
   /// 启动程序
   val bootNMM = BootNMM(

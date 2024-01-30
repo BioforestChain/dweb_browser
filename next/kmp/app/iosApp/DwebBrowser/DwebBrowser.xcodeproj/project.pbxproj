@@ -15,6 +15,7 @@
 		4803C0182B4FF907006B2F79 /* KotlinComposeMetalRedrawerFix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803C0162B4FF897006B2F79 /* KotlinComposeMetalRedrawerFix.swift */; };
 		4819C2DF2B4FE87A001BB45D /* DwebPlatformIosKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4819C2DE2B4FE87A001BB45D /* DwebPlatformIosKit.framework */; };
 		4819C2E02B4FE87A001BB45D /* DwebPlatformIosKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4819C2DE2B4FE87A001BB45D /* DwebPlatformIosKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		481E15652B6750AE003870F6 /* ShortcutTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481E15642B6750AE003870F6 /* ShortcutTools.swift */; };
 		48334DC72B50CF7100399FFF /* TouchThroughView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48334DC62B50CF7000399FFF /* TouchThroughView.swift */; };
 		48334DC92B50CFFF00399FFF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 48334DC82B50CFFF00399FFF /* Assets.xcassets */; };
 		48334DEC2B50D11300399FFF /* DwebBrowserCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 48334DEB2B50D11300399FFF /* DwebBrowserCommon.framework */; };
@@ -50,6 +51,7 @@
 		4803C0162B4FF897006B2F79 /* KotlinComposeMetalRedrawerFix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KotlinComposeMetalRedrawerFix.swift; sourceTree = "<group>"; };
 		4819C2DE2B4FE87A001BB45D /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4819C2E72B4FEC13001BB45D /* DwebWebBrowser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebWebBrowser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		481E15642B6750AE003870F6 /* ShortcutTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutTools.swift; sourceTree = "<group>"; };
 		48334DC62B50CF7000399FFF /* TouchThroughView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TouchThroughView.swift; sourceTree = "<group>"; };
 		48334DC82B50CFFF00399FFF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		48334DEB2B50D11300399FFF /* DwebBrowserCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebBrowserCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -89,6 +91,7 @@
 			isa = PBXGroup;
 			children = (
 				F0A0E3682B4D27950024D8DE /* AppVersionMgr.swift */,
+				481E15642B6750AE003870F6 /* ShortcutTools.swift */,
 			);
 			path = Tools;
 			sourceTree = "<group>";
@@ -248,6 +251,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				481E15652B6750AE003870F6 /* ShortcutTools.swift in Sources */,
 				48334DC72B50CF7100399FFF /* TouchThroughView.swift in Sources */,
 				4803C0152B4FF846006B2F79 /* DwebDeepLink.swift in Sources */,
 				48F54EDB2B17233E003A64AC /* DwebDeskVCStore.swift in Sources */,

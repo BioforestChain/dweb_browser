@@ -13,6 +13,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.pure.http.queryAs
@@ -50,15 +51,14 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
         val systemShortcut = request.queryAs<SystemShortcut>()
         systemShortcut.mmid = ipc.remote.mmid // TODO 这个需要额外初始化，传参未必包含改字段
         debugShortcut("registry", "shortcut=$systemShortcut")
+
+        var imageResource: ImageResource? = null
         if (systemShortcut.icon == null) {
           bootstrapContext.dns.query(ipc.remote.mmid)?.let { fromMM ->
-            fromMM.icons.firstOrNull()?.let { imageRes ->
-              systemShortcut.icon = nativeFetch(imageRes.src).body.toPureBinary()
-            } ?: run {
-              systemShortcut.icon = nativeFetch(icons.first().src).body.toPureBinary()
-            }
+            imageResource = fromMM.icons.firstOrNull() ?: icons.first()
           }
         }
+        systemShortcut.icon = shortcutManage.getVaildIcon(systemShortcut.icon, this@ShortcutNMM, imageResource)
         shortcutList.removeAll { it.uri == systemShortcut.uri }
         shortcutList.add(systemShortcut)
         store.set(systemShortcut.uri, systemShortcut)
@@ -80,14 +80,12 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
             onDragEnd = { _, _ ->
               ioAsyncScope.launch {
                 shortcutManage.registryShortcut(shortcutList)
-                shortcutManage.saveToSystemPreference(shortcutList)
               }
             },
             onRemove = { item ->
               ioAsyncScope.launch {
                 shortcutList.removeAll { it.uri == item.uri }
                 shortcutManage.registryShortcut(shortcutList)
-                shortcutManage.saveToSystemPreference(shortcutList)
                 store.delete(item.uri)
               }
             }
@@ -105,7 +103,6 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
     val map = store.getAll()
     val list = map.values.sortedBy { it.order }
     shortcutList.addAll(list)
-    shortcutManage.saveToSystemPreference(shortcutList)
     shortcutManage.registryShortcut(shortcutList)
     ioAsyncScope.launch {
       // 监听 dns 中应用的变化来实时更新快捷方式列表
@@ -114,14 +111,12 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
         debugShortcut("listenApps", "add=$adds, remove=$removes, updates=$updates")
         removes.map { mmid ->
           shortcutList.removeAll { it.mmid == mmid }
-          shortcutManage.saveToSystemPreference(shortcutList)
           shortcutManage.registryShortcut(shortcutList)
         }
         adds.map { mmid ->
           val addList = map.values.filter { it.mmid == mmid }
           if (addList.isNotEmpty()) {
             shortcutList.addAll(addList)
-            shortcutManage.saveToSystemPreference(shortcutList)
             shortcutManage.registryShortcut(shortcutList)
           }
         }

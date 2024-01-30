@@ -9,7 +9,10 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.platform.toAndroidBitmap
 import org.dweb_browser.helper.saveString
 import org.dweb_browser.sys.R
@@ -42,6 +45,7 @@ actual class ShortcutManage {
       })
       list.add(build.build())
     }
+    context.saveString("shortcuts", Json.encodeToString(shortcutList))
     if (list.isEmpty()) return false
     if (list.size <= MaxCount) {
       ShortcutManagerCompat.setDynamicShortcuts(context, list)
@@ -94,10 +98,14 @@ actual class ShortcutManage {
       .build()
   }
 
-  /**
-   * 存储到系统文件，用于打开”更多“时，加载列表
-   */
-  actual suspend fun saveToSystemPreference(shortcutList: List<SystemShortcut>) {
-    context.saveString("shortcuts", Json.encodeToString(shortcutList))
+  actual suspend fun getVaildIcon(icon: ByteArray?, nmm: MicroModule, resource: ImageResource?): ByteArray? {
+    if (icon != null) {
+      return icon
+    } else if (resource != null) {
+      return nmm.nativeFetch(resource.src).body.toPureBinary()
+    } else {
+      return null
+    }
   }
+
 }

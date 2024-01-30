@@ -8,7 +8,7 @@
 import UIKit
 import AVFoundation
 
-class ScannerViewController: UIViewController {
+public class ScannerViewController: UIViewController {
     
     private let photoOutput = AVCapturePhotoOutput()
     private var isCapturing = false
@@ -50,7 +50,7 @@ class ScannerViewController: UIViewController {
     }
     
     
-    override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
         self.addOrientationDidChangeObserver()
         self.setBackgroundColor()
@@ -313,7 +313,7 @@ class ScannerViewController: UIViewController {
 
 extension ScannerViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+    public func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         isGalleryShowing = false
         dismiss(animated: true)
         
@@ -341,7 +341,7 @@ extension ScannerViewController: UIImagePickerControllerDelegate, UINavigationCo
         
     }
     
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+    public func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         isGalleryShowing = false
         dismiss(animated: true)
     }
@@ -349,7 +349,7 @@ extension ScannerViewController: UIImagePickerControllerDelegate, UINavigationCo
 
 extension ScannerViewController: AVCaptureMetadataOutputObjectsDelegate {
     
-    func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+    public func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
         guard let metadataObject = metadataObjects.first else { return }
         guard let readableObject = metadataObject as? AVMetadataMachineReadableCodeObject else { return }
         guard let stringValue = readableObject.stringValue else { return }

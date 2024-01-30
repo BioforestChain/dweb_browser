@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import DwebShared
 
 class DwebBrowserAppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
@@ -24,21 +25,34 @@ class DwebBrowserAppDelegate: NSObject, UIApplicationDelegate {
 }
 
 class SceneDelegate: NSObject, UIWindowSceneDelegate {
-    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        if let urlContext = connectionOptions.urlContexts.first {
-            let url = urlContext.url
+    
+    private var toHandShortcut: UIApplicationShortcutItem? = nil
 
-            if url.scheme == "dweb" {
-                DwebDeepLink.shared.openDeepLink(url: url.absoluteString)
-            }
-        }
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        handDeepLink(connectionOptions.urlContexts.first?.url)
+        toHandShortcut = connectionOptions.shortcutItem
+    }
+    
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        let _ = handShortcut(toHandShortcut)
+        toHandShortcut = nil
+    }
+    
+    func windowScene(_ windowScene: UIWindowScene, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+        toHandShortcut = shortcutItem
     }
 
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
-        guard let url = URLContexts.first?.url else { return }
-
-        if url.scheme == "dweb" {
-            DwebDeepLink.shared.openDeepLink(url: url.absoluteString)
-        }
+        handDeepLink(URLContexts.first?.url)
+    }
+    
+    private func handShortcut(_ item: UIApplicationShortcutItem?) -> Bool {
+        guard let item = item else { return false }
+        return ShortcutTools.hand(item)
+    }
+    
+    private func handDeepLink(_ url: URL?) {
+        guard let url = url, url.scheme == "dweb" else { return }
+        DwebDeepLink.shared.openDeepLink(url: url.absoluteString)
     }
 }
