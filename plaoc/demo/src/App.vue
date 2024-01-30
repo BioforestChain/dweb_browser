@@ -15,7 +15,7 @@ onMounted(() => {
 // router.push("/serviceworker");
 // router.push("/shortcut");
 // router.push("/inputfile");
-router.push("/barcodescanning");
+// router.push("/barcodescanning");
 // router.push("/network");
 // router.push("/safearea");
 // router.push("/haptics");

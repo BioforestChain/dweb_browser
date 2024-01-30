@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
-import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 
 const title = "InputFile";
@@ -12,9 +11,10 @@ let console: Console;
 let inputFile: HTMLInputElement;
 
 const fileData = reactive({
-  capture: false as boolean | "user" | "environment",
+  capture: false,
   accept: [] as string[],
   multiple: false,
+  items: ["*/*", "image/*", "video/*", "audio/*"],
 });
 
 onMounted(() => {
@@ -37,39 +37,30 @@ const resetInput = defineLogAction(
 
     <article class="card-body">
       <h2 class="card-title">InputFile</h2>
-      <FieldLabel>
-        <input
+      <div v-if="fileData.capture">
+        <v-file-input
+          label="File input"
+          variant="solo"
           ref="$inputFile"
           type="file"
-          :capture="fileData.capture"
-          :accept="fileData.accept.join(',')"
+          capture
+          :accept="fileData.accept"
           :multiple="fileData.multiple"
-        />
-      </FieldLabel>
-
-      <FieldLabel label="accept:">
-        <div class="flex flex-row">
-          <input class="flex-2" type="text" v-model="fileData.accept" />
-          <select class="flex-1" multiple v-model="fileData.accept">
-            <option value="*/*">any</option>
-            <option value="image/*">image</option>
-            <option value="video/*">video</option>
-            <option value="audio/*">audio</option>
-          </select>
-        </div>
-      </FieldLabel>
-      <FieldLabel label="multiple:">
-        <input type="checkbox" v-model="fileData.multiple" />
-      </FieldLabel>
-      <FieldLabel label="capture:">
-        <select v-model="fileData.capture">
-          <option :value="false">false</option>
-          <option :value="true">true</option>
-          <option value="user">user</option>
-          <option value="environment">environment</option>
-        </select>
-      </FieldLabel>
-
+        ></v-file-input>
+      </div>
+      <div v-else>
+        <v-file-input
+          label="File input"
+          variant="solo"
+          ref="$inputFile"
+          type="file"
+          :accept="fileData.accept"
+          :multiple="fileData.multiple"
+        ></v-file-input>
+      </div>
+      <v-select variant="solo" label="accept" :items="fileData.items" v-model="fileData.accept"></v-select>
+      <v-switch v-model="fileData.multiple" label="multiple"></v-switch>
+      <v-switch v-model="fileData.capture" color="indigo-darken-3" label="capture"></v-switch>
       <div class="text-xs mockup-code min-w-max">
         <code>这是传输的json配置</code>
       </div>

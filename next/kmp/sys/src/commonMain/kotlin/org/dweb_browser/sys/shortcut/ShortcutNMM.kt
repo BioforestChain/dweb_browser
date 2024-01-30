@@ -14,7 +14,6 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
-import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getMainWindow
@@ -45,11 +44,11 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
     val shortcutList = loadShortcut(store)
 
     routes(
-      "/registry" bind PureMethod.GET by defineBooleanResponse {
-        val systemShortcut = request.queryAs<SystemShortcut>()
-        systemShortcut.mmid = ipc.remote.mmid // TODO 这个需要额外初始化，传参不需要包含该字段
+      "/registry" bind PureMethod.POST by defineBooleanResponse {
+        val title = request.query("title")
+        val url = request.query("url")
+        val systemShortcut = SystemShortcut(title, url,icon = request.body.toPureBinary(), mmid = ipc.remote.mmid)
         debugShortcut("registry", "shortcut=$systemShortcut")
-
         if (systemShortcut.icon == null) {
           bootstrapContext.dns.query(ipc.remote.mmid)?.let { fromMM ->
             val imageResource = fromMM.icons.firstOrNull() ?: icons.first()

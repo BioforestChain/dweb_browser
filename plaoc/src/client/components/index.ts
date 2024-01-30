@@ -20,11 +20,12 @@ export * from "./motionSensors/index.ts";
 export * from "./native-ui/navigation-bar/index.ts";
 export * from "./native-ui/safe-area/index.ts";
 export * from "./native-ui/status-bar/index.ts";
+export * from "./native-ui/torch/index.ts";
 export * from "./native-ui/virtual-keyboard/index.ts";
 export * from "./network/index.ts";
 export * from "./share/index.ts";
+export * from "./shortcut/index.ts";
 export * from "./splash-screen/index.ts";
 export * from "./toast/index.ts";
-export * from "./native-ui/torch/index.ts";
 export * from "./window/index.ts";
 

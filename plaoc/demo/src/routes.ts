@@ -1,4 +1,5 @@
 export const routes = [
+  { title: "index", path: "/", component: () => import("./pages/Index.vue") },
   { title: "window", path: "/window", component: () => import("./pages/Window.vue") },
   { title: "Input File", path: "/inputfile", component: () => import("./pages/InputFile.vue") },
   { title: "Camera", path: "/camera", component: () => import("./pages/Camera.vue") },
@@ -25,7 +26,6 @@ export const routes = [
   { title: "bluetooth", path: "/bluetooth", component: () => import("./pages/Bluetooth.vue") },
 
   { title: "device", path: "/device", component: () => import("./pages/Device.vue") },
-  { title: "window", path: "/webview", component: () => import("./pages/Window.vue") },
   { title: "shortcut", path: "/shortcut", component: () => import("./pages/Shortcut.vue") },
   { title: "motionSensors", path: "/motionSensors", component: () => import("./pages/MotionSensors.vue") },
 ];

@@ -1,7 +1,6 @@
 package org.dweb_browser.sys.shortcut
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.file.ext.createStore
@@ -19,7 +18,7 @@ data class SystemShortcut(
   val iconImage get() = icon?.toImageBitmap()
 
   override fun toString(): String {
-    return "SystemShortcut(title=$title, mmid=$mmid, uri=$uri, order=$order)"
+    return "SystemShortcut(title=$title, mmid=$mmid, uri=$uri,icon=${icon?.size}, order=$order)"
   }
 }
 

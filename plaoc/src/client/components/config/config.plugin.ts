@@ -11,7 +11,8 @@ export class ConfigPlugin extends BasePlugin {
    * 设置语言
    * @param lang 语言
    * @param isReload 是否重新加载
-   * @returns
+   * @returns boolean
+   * @since 1.0.0
    */
   @bindThis
   async setLang(lang: string, isReload = true) {
@@ -25,7 +26,11 @@ export class ConfigPlugin extends BasePlugin {
     }
     return res;
   }
-
+  /**
+   * 获取当前语言
+   * @returns string
+   * @since 1.0.0
+   */
   @bindThis
   async getLang() {
     return this.fetchApi("/getLang", { base: location.href }).text();

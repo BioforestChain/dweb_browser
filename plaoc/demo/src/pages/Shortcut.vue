@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
+import { ShortcutOption, shortcutPlugin } from "../plugin";
 
 const $logPanel = ref<typeof LogPanel>();
 let console: Console;
@@ -8,38 +9,49 @@ let console: Console;
 onMounted(async () => {
   console = toConsole($logPanel);
 });
-// 获取图片位置
+
+const shortcut = reactive({
+  title: "",
+  url: "",
+  icon: new Uint8Array(),
+} as ShortcutOption);
+
+const registry = async () => {
+  const res = await shortcutPlugin.registry(shortcut);
+  console.log("registry=>", res);
+};
+
+const onFileChanged = async ($event: Event) => {
+  const target = $event.target as HTMLInputElement;
+  if (target && target.files?.[0]) {
+    const img = target.files[0];
+    console.info("photo ==> ", img.name, img.type, img.size);
+    shortcut.icon = new Uint8Array(await img.arrayBuffer());
+  }
+};
 </script>
 
 <template>
   <dweb-biometrics ref="$biometricsPlugin"></dweb-biometrics>
   <div class="card glass">
     <figure class="icon">
-      <div class="swap-on">📸</div>
+      <div class="swap-on">🔗</div>
     </figure>
     <article class="card-body">
-      <h2 class="card-title">获取图片</h2>
-      <!-- <FieldLabel label="cameraSource:">
-        <select name="camera-source" id="camera-source" v-model="">
-          <option value="PROMPT">PROMPT</option>
-          <option value="CAMERA">CAMERA</option>
-          <option value="PHOTOS">PHOTOS</option>
-        </select>
-      </FieldLabel>
-      <FieldLabel label="cameraResultType:">
-        <select name="camera-result-type" id="ccamera-result-type" v-model="cameraResultType">
-          <option value="Uri">Uri</option>
-          <option value="Base64">Base64</option>
-        </select>
-      </FieldLabel>
-      <div>
-        <div class="text-caption">压缩率</div>
-        <v-slider v-model="quality" thumb-label="always"></v-slider>
-      </div>
+      <h2 class="card-title">设置短连接</h2>
+      <v-text-field label="显示标题" v-model="shortcut.title"></v-text-field>
+      <v-text-field label="短连接跳转地址" v-model="shortcut.url"></v-text-field>
+      <v-file-input
+        label="File input"
+        variant="solo"
+        ref="$inputFile"
+        type="file"
+        accept="image/*"
+        @change="onFileChanged($event)"
+      ></v-file-input>
       <div class="justify-end card-actions btn-group">
-        <button class="inline-block rounded-full btn btn-accent" @click="getPhoto">getPhoto</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="registry">注册短链接</button>
       </div>
-      <img :src="webPathImage" /> -->
     </article>
   </div>
   <div class="divider">LOG</div>
