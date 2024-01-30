@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import { HTMLDwebBarcodeScanningElement, barcodeScannerPlugin, type ScannerContoller } from "../plugin";
+import { HTMLDwebBarcodeScanningElement, ScannerProcesser, barcodeScannerPlugin } from "../plugin";
 
 const title = "Scanner";
 
@@ -12,7 +12,7 @@ const $barcodeScannerPlugin = ref<HTMLDwebBarcodeScanningElement>();
 let console: Console;
 let scanner = barcodeScannerPlugin;
 let barcodeScanner: HTMLDwebBarcodeScanningElement;
-let scannerServer: ScannerContoller;
+let scannerServer: ScannerProcesser;
 onMounted(async () => {
   console = toConsole($logPanel);
   barcodeScanner = $barcodeScannerPlugin.value!;

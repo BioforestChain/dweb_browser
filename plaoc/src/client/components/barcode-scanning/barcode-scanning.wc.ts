@@ -150,8 +150,10 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   }
 
   /**
-   * 启动扫码
-   * @returns
+   * 启动扫码，webComponent版
+   * @param scanOptions
+   * @returns ScanResult
+   * @since 1.0.0
    */
   async startScanning(scanOptions?: ScanOptions): Promise<ScanResult> {
     const rotation = scanOptions?.rotation;
@@ -180,6 +182,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   }
   /**
    * 停止扫码
+   * @since 1.0.0
    */
   stopScanning() {
     if (this._activity !== undefined) {
@@ -210,7 +213,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     this._dialog?.close();
   }
 
-  taskPhoto() {
+  private taskPhoto() {
     if (this._activity === undefined) {
       this._taskPhoto((this._activity = new PromiseOut()));
     } else {

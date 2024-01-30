@@ -6,11 +6,26 @@ export class BarcodeScannerPlugin extends BasePlugin {
   constructor() {
     super("barcode-scanning.sys.dweb");
   }
-
+  /**
+   * 识别二维码
+   * @param data 
+   * @param rotation 
+   * @param formats 
+   * @returns string[]
+   * @since 1.0.0
+   */
   async process(data: Uint8Array | Blob, rotation = 0, formats = SupportedFormat.QR_CODE) {
     return (await this.processV2(data, rotation, formats)).map((item) => item.data);
   }
 
+  /**
+   * 识别二维码
+   * @param data 
+   * @param rotation 
+   * @param formats 
+   * @returns BarcodeResult[]
+   * @since 2.0.0
+   */
   async processV2(data: Uint8Array | Blob, rotation = 0, formats = SupportedFormat.QR_CODE) {
     const req = this.buildApiRequest("/process", {
       search: {
@@ -29,7 +44,8 @@ export class BarcodeScannerPlugin extends BasePlugin {
    * @param blob
    * @param rotation
    * @param formats
-   * @returns
+   * @returns ScannerProcesser
+   * @since 2.0.0
    */
   @bindThis
   async createProcesser(formats = SupportedFormat.QR_CODE) {
@@ -85,16 +101,12 @@ export class BarcodeScannerPlugin extends BasePlugin {
   }
   /**
    * 停止扫码
-   * @returns
+   * @returns boolean
+   * @since 1.0.0
    */
   @bindThis
   async stop() {
     return await this.fetchApi(`/stop`).boolean();
   }
 }
-
-export type DeCodeType = {
-  rawValue: string;
-  format: string;
-};
 export const barcodeScannerPlugin = new BarcodeScannerPlugin();
