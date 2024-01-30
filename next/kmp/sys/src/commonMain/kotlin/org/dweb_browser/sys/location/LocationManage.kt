@@ -47,7 +47,7 @@ data class GeolocationPosition(
   }
 }
 
-typealias LocationObserverCallback = suspend (GeolocationPosition) -> Unit
+typealias LocationObserverCallback = suspend (GeolocationPosition) -> Boolean
 
 /**
  * 如果想优化，可以参考：https://github.com/icerockdev/moko-geo/blob/master/geo/src/commonMain/kotlin/dev/icerock/moko/geo/LocationTracker.kt
