@@ -26,7 +26,6 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.core.helper.setFromManifest
-import org.dweb_browser.sys.window.core.helper.setWindowStateFromAppManifest
 import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindowId
@@ -35,8 +34,7 @@ import org.dweb_browser.sys.window.ext.onRenderer
 
 val debugJMM = Debugger("JMM")
 
-class JmmNMM :
-  NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
+class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
   companion object {
     init {
       IDWebView.Companion.brands.add(
@@ -62,8 +60,9 @@ class JmmNMM :
           val root = usrRootMap.getOrPut(fromMM.mmid) {
             fromMM.ioAsyncScope.async {
               this@JmmNMM.withBootstrap {
-                this@JmmNMM.nativeFetch("file://file.std.dweb/realPath?path=/data/apps/${fromMM.mmid}-${fromMM.version}")
-                  .text()
+                this@JmmNMM.nativeFetch(
+                  "file://file.std.dweb/realPath?path=/data/apps/${fromMM.mmid}-${fromMM.version}"
+                ).text()
               }
             }
           }.await()
@@ -197,7 +196,7 @@ class JmmGuiNMM : NativeMicroModule("gui.jmm.browser.dweb", "Js MicroModule Mana
       ImageResource(
         src = "file:///sys/icons/jmm.browser.dweb.svg",
         type = "image/svg+xml",
-        purpose = "monochrome"
+        // purpose = "monochrome"
       )
     )
   }

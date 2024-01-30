@@ -45,7 +45,6 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.AuthorizationRecord
 import org.dweb_browser.core.std.permission.PermissionHooks
 import org.dweb_browser.core.std.permission.PermissionProvider
@@ -55,7 +54,6 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.helper.toStrict
