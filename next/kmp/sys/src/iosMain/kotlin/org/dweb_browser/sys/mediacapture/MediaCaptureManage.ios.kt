@@ -1,13 +1,14 @@
 package org.dweb_browser.sys.mediacapture
 
-import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.core.toByteArray
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
-import org.dweb_browser.core.ipc.helper.ReadableStream
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.NSInputStreamToByteReadChannel
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
@@ -22,8 +23,9 @@ import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.authorizationStatusForMediaType
 import platform.AVFoundation.requestAccessForMediaType
 import platform.UIKit.UIApplication
-import platform.UIKit.UIColor
-import platform.UIKit.UIModalPresentationFullScreen
+import org.dweb_browser.platform.ios.SoundRecordManager
+import platform.Foundation.NSInputStream
+import platform.Foundation.NSURL
 
 actual class MediaCaptureManage actual constructor() {
   init {
@@ -76,28 +78,67 @@ actual class MediaCaptureManage actual constructor() {
   }
 
   actual suspend fun takePicture(microModule: MicroModule): PureStream? {
-    val result = CompletableDeferred<String>()
+    val result = CompletableDeferred<ByteArray>()
     MediaCaptureHandler().launchCameraString {
       result.complete(it)
     }
-    return PureStream(result.await().toByteArray())
+    return PureStream(result.await())
   }
 
   actual suspend fun captureVideo(microModule: MicroModule): PureStream? {
-    val result = CompletableDeferred<String>()
+    val result = CompletableDeferred<ByteReadChannel>()
     withMainContext {
       val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
       val videoController = MediaVideoViewController()
+      val coroutineScope =
+        CoroutineScope(CoroutineName("video-stream") + ioAsyncExceptionHandler)
       videoController.videoPathBlock = {
-        result.complete(it)
+        val inputStream = NSURL.URLWithString(it)?.let { url -> NSInputStream(url) }
+        val byteChannel =
+          inputStream?.let { stream ->
+            NSInputStreamToByteReadChannel(coroutineScope,
+              stream
+            )
+          }
+        if (byteChannel != null) {
+          result.complete(byteChannel)
+        } else {
+          result.complete(ByteReadChannel(""))
+        }
       }
       rootController?.presentViewController(videoController,true,null)
     }
-    return PureStream(result.await().toByteArray())
+    return PureStream(result.await())
   }
 
+  @OptIn(ExperimentalForeignApi::class)
   actual suspend fun recordSound(microModule: MicroModule): PureStream? {
-    WARNING("Not yet implemented captureVideo")
-    return null
+    val result = CompletableDeferred<ByteReadChannel>()
+    val manager = SoundRecordManager()
+    val coroutineScope =
+      CoroutineScope(CoroutineName("record-stream") + ioAsyncExceptionHandler)
+    withMainContext {
+      val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
+      val recordController = manager.create()
+      manager.completeRecordWithCallback { path ->
+        recordController.dismissViewControllerAnimated(true, null)
+        if (path != null) {
+          val inputStream = NSURL.URLWithString(path)?.let { url -> NSInputStream(url) }
+          val byteChannel =
+            inputStream?.let { stream ->
+              NSInputStreamToByteReadChannel(coroutineScope,
+                stream
+              )
+            }
+          if (byteChannel != null) {
+            result.complete(byteChannel)
+          } else {
+            result.complete(ByteReadChannel(""))
+          }
+        }
+      }
+      rootController?.presentViewController(recordController,true,null)
+    }
+    return PureStream(result.await())
   }
 }
