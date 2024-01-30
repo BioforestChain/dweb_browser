@@ -40,8 +40,8 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.core.windowInstancesManager
 import org.dweb_browser.sys.window.ext.getMainWindow
+import org.dweb_browser.sys.window.ext.getWindow
 
 @Serializable
 data class DownloadTask(
@@ -418,7 +418,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
    */
   private var win: WindowController? = null
   suspend fun renderDownloadWindow(wid: UUID) = winLock.withLock {
-    (windowInstancesManager.get(wid) ?: throw Exception("invalid wid: $wid")).also { newWin ->
+    downloadNMM.getWindow(wid).also { newWin ->
       if (win == newWin) {
         return@withLock
       }

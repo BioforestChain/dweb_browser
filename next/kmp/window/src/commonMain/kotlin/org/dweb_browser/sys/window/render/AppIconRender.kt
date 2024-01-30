@@ -12,6 +12,10 @@ import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,9 +26,9 @@ import androidx.compose.ui.graphics.painter.Painter
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.compose.rememberVectorPainterWithTint
-import org.dweb_browser.pure.image.compose.CoilImageLoader
 import org.dweb_browser.pure.image.compose.ImageLoadResult
 import org.dweb_browser.pure.image.compose.LocalCoilImageLoader
+import org.dweb_browser.pure.image.compose.LocalWebImageLoader
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import squircleshape.SquircleShape
 
@@ -49,7 +53,6 @@ fun AppIcon(
   iconMaskable: Boolean = false,
   iconMonochrome: Boolean = false,
   iconDescription: String = "icon",
-  iconLoader: CoilImageLoader = LocalCoilImageLoader.current,
   iconFetchHook: FetchHook? = null,
 ) {
   AppIconOuter(
@@ -62,7 +65,6 @@ fun AppIcon(
     iconMaskable = iconMaskable,
     iconMonochrome = iconMonochrome,
     iconDescription = iconDescription,
-    iconLoader = iconLoader,
     iconFetchHook = iconFetchHook,
   )
 }
@@ -83,7 +85,6 @@ fun AppIcon(
   iconMaskable: Boolean = false,
   iconMonochrome: Boolean = false,
   iconDescription: String = "icon",
-  iconLoader: CoilImageLoader = LocalCoilImageLoader.current,
   iconFetchHook: FetchHook? = null,
 ) {
   AppIconOuter(
@@ -96,7 +97,6 @@ fun AppIcon(
     iconMaskable = iconMaskable,
     iconMonochrome = iconMonochrome,
     iconDescription = iconDescription,
-    iconLoader = iconLoader,
     iconFetchHook = iconFetchHook,
   )
 }
@@ -109,7 +109,6 @@ fun AppIcon(
   iconPlaceholder: Painter? = null,
   iconError: Painter? = null,
   iconDescription: String = "icon",
-  iconLoader: CoilImageLoader = LocalCoilImageLoader.current,
   iconFetchHook: FetchHook? = null,
 ) {
   AppIconOuter(
@@ -122,7 +121,6 @@ fun AppIcon(
     iconMaskable = iconResource.purpose.contains(ImageResourcePurposes.Maskable),
     iconMonochrome = iconResource.purpose.contains(ImageResourcePurposes.Monochrome),
     iconDescription = iconDescription,
-    iconLoader = iconLoader,
     iconFetchHook = iconFetchHook,
   )
 }
@@ -138,13 +136,28 @@ private fun AppIconOuter(
   iconMaskable: Boolean,
   iconMonochrome: Boolean,
   iconDescription: String,
-  iconLoader: CoilImageLoader,
   iconFetchHook: FetchHook?,
 ) {
-  BoxWithConstraints {
+  var isSuccess by remember { mutableStateOf(false) }
+  // 如果没有提供背景色，那么就根据图标颜色进行自适应显示显示黑色或者白色的底色
+  val safeContainerColor = containerColor
+    ?: (if (color.luminance() > 0.5f) Color.Black else Color.White).copy(alpha = 0.2f)
+  // 只有加载成功的时候，才会显示背景裁切图
+  val containerModifier = if (isSuccess) {
+    modifier
+      .clip(SquircleShape())
+      .background(safeContainerColor)
+  } else {
+    modifier
+  }
+  BoxWithConstraints(modifier = containerModifier, contentAlignment = Alignment.Center) {
     val icon = when (iconSrc) {
       is String -> {
-        iconLoader.Load(iconSrc, maxWidth, maxHeight, iconFetchHook)
+//        if (iconSrc.endsWith(".webp")) {
+        LocalWebImageLoader.current.Load(iconSrc, maxWidth, maxHeight, iconFetchHook)
+//        } else {
+//          LocalCoilImageLoader.current.Load(iconSrc, maxWidth, maxHeight, iconFetchHook)
+//        }
       }
 
       is ImageLoadResult -> {
@@ -155,28 +168,16 @@ private fun AppIconOuter(
 
       else -> throw Exception("Invalid icon src type: $iconSrc")
     }
-    // 如果没有提供背景色，那么就根据图标颜色进行自适应显示显示黑色或者白色的底色
-    val safeContainerColor = containerColor
-      ?: (if (color.luminance() > 0.5f) Color.Black else Color.White).copy(alpha = 0.2f)
-    // 只有加载成功的时候，才会显示背景裁切图
-    val containerModifier = if (icon.isSuccess) {
-      modifier
-        .clip(SquircleShape())
-        .background(safeContainerColor)
-    } else {
-      modifier
-    }
-    Box(modifier = containerModifier, contentAlignment = Alignment.Center) {
-      AppIconInner(
-        icon = icon,
-        color = color,
-        iconPlaceholder = iconPlaceholder,
-        iconError = iconError,
-        iconMaskable = iconMaskable,
-        iconMonochrome = iconMonochrome,
-        iconDescription = iconDescription,
-      )
-    }
+    isSuccess = icon.isSuccess
+    AppIconInner(
+      icon = icon,
+      color = color,
+      iconPlaceholder = iconPlaceholder,
+      iconError = iconError,
+      iconMaskable = iconMaskable,
+      iconMonochrome = iconMonochrome,
+      iconDescription = iconDescription,
+    )
   }
 }
 

@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Observable
@@ -55,6 +56,7 @@ import org.dweb_browser.helper.platform.theme.md_theme_dark_surface
 import org.dweb_browser.helper.platform.theme.md_theme_light_inverseOnSurface
 import org.dweb_browser.helper.platform.theme.md_theme_light_onSurface
 import org.dweb_browser.helper.platform.theme.md_theme_light_surface
+import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.WindowsManager
@@ -673,6 +675,14 @@ fun WindowController.buildTheme(): WindowControllerTheme {
   )
 }
 
+val MicroModuleFetchHookCache = WeakHashMap<MicroModule, FetchHook>()
+val MicroModule.imageFetchHook
+  get() = MicroModuleFetchHookCache.getOrPut(this) {
+    {
+      nativeFetch(request.url)
+    }
+  }
+
 /**
  * 图标渲染
  */
@@ -687,15 +697,15 @@ fun WindowController.IconRender(
   val iconMaskable by watchedState { iconMaskable }
   val iconMonochrome by watchedState { iconMonochrome }
   val microModule by state.constants.microModule
-  AppIcon(icon = iconUrl,
+  AppIcon(
+    icon = iconUrl,
     modifier,
     color = primaryColor,
     containerColor = primaryContainerColor,
     iconMonochrome = iconMonochrome,
     iconMaskable = iconMaskable,
-    iconFetchHook = microModule?.let { mm ->
-      return@let { mm.nativeFetch(request.url) }
-    })
+    iconFetchHook = microModule?.imageFetchHook,
+  )
 }
 
 /**

@@ -32,6 +32,7 @@ import io.ktor.util.date.GMTDate
 import io.ktor.util.flattenEntries
 import kotlinx.coroutines.CoroutineDispatcher
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
@@ -103,10 +104,12 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
     val platformContext = LocalPlatformContext.current
     return produceState(ImageLoadResult.Setup) {
       value = ImageLoadResult.Loading;
-      value = when (val result = loader.execute(ImageRequest.Builder(platformContext).run {
+      val imgReq = ImageRequest.Builder(platformContext).run {
+        size(containerWidth, containerHeight)
         data(url)
         build()
-      })) {
+      }
+      value = when (val result = loader.execute(imgReq)) {
         is ErrorResult -> ImageLoadResult.error(result.throwable)
         is SuccessResult -> ImageLoadResult.success(
           result.image.toImageBitmap()
@@ -121,6 +124,7 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
   companion object {
 
     private val defaultHttpClient = lazy {
+      @Suppress("USELESS_IS_CHECK")
       when (val pureClient = defaultHttpPureClient) {
         is KtorPureClient -> pureClient.ktorClient
         else -> HttpClient()
@@ -173,7 +177,7 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
                   body = pureResponse.body.toPureStream().getReader("to HttpResponseData"),
                   version = HttpProtocolVersion.HTTP_1_1,
                   requestTime = GMTDate(null),
-                  callContext = coroutineContext
+                  callContext = ioAsyncExceptionHandler
                 )
               }
               ktorEngine.execute(data)

@@ -13,6 +13,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.ext.getWindow
 import org.dweb_browser.sys.window.render.emitFocusOrBlur
 
@@ -101,6 +102,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
       win.onClose {
         controllerMap.remove(remoteMmid)
       }
+      win.state.setFromManifest(remoteMm)
       MultiWebViewController(win, ipc, this, remoteMm)
     }
 

@@ -36,12 +36,12 @@ class WebCanvasContextSession private constructor(internal val core: OffscreenWe
     /// fetch 如果使用 mode:'no-cors'，那么blob始终为空，所以匿名模式没有意义
     "(await fetchImageBitmap(wrapUrlByProxy(`$imageUri`),$containerWidth,$containerHeight))"
 
-  suspend fun toDataURL(type: String = "image/png", quality: Float = 1.0f): String {
+  suspend fun toDataURL(type: String = "image/png", quality: Float = 0.8f): String {
     jsCode += "return canvasToDataURL(canvas,{type:`$type`,quality:$quality});"
     return core.evalJavaScriptReturnString(getExecCode())
   }
 
-  suspend fun toImageBitmap(type: String = "image/png", quality: Float = 1.0f): ImageBitmap {
+  suspend fun toImageBitmap(type: String = "image/png", quality: Float = 0.8f): ImageBitmap {
     jsCode += "return canvasToBlob(canvas,{type:`$type`,quality:$quality});"
     return core.evalJavaScriptReturnByteArray(getExecCode()).toImageBitmap()
   }

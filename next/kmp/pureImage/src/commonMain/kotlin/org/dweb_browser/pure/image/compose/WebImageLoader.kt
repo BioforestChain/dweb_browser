@@ -1,11 +1,18 @@
 package org.dweb_browser.pure.image.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.compose.compositionChainOf
@@ -24,6 +31,8 @@ internal expect fun rememberOffscreenWebCanvas(): OffscreenWebCanvas
 
 
 class WebImageLoader {
+  private val scope = CoroutineScope(ioAsyncExceptionHandler)
+
   @Composable
   fun Load(
     url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook? = null
@@ -31,7 +40,13 @@ class WebImageLoader {
     val density = LocalDensity.current.density
     val containerWidth = (maxWidth.value * density).toInt()
     val containerHeight = (maxHeight.value * density).toInt()
-    return Load(url, containerWidth, containerHeight, hook)
+    return load(
+      rememberOffscreenWebCanvas(),
+      url,
+      containerWidth,
+      containerHeight,
+      hook
+    ).collectAsState().value
   }
 
 
@@ -40,10 +55,20 @@ class WebImageLoader {
     val containerWidth: Int,
     val containerHeight: Int,
     val hook: (FetchHook)?,
-    private val _result: @Composable () -> ImageLoadResult,
+    private val _result: StateFlow<ImageLoadResult>,
   ) {
-    val key =
-      "url=$url; containerWidth=$containerWidth; containerHeight=$containerHeight; hook=$hook"
+    companion object {
+      fun genKey(
+        url: String,
+        containerWidth: Int,
+        containerHeight: Int,
+        hook: (FetchHook)?,
+      ) =
+        "url=$url; containerWidth=$containerWidth; containerHeight=$containerHeight; hook=${hook.hashCode()}"
+
+    }
+
+    val key = genKey(url, containerWidth, containerHeight, hook)
     val result get() = _result.also { hot = 30f }
     internal var hot = 0f
   }
@@ -51,18 +76,21 @@ class WebImageLoader {
   /**
    * 缓存器，每隔一秒钟对所有对缓存对象进行检查，对于已经长时间没有访问的缓存对象，进行删除
    */
-  private class CacheMap {
+  private class CacheMap(val scope: CoroutineScope) {
     private val map = SafeHashMap<String, CacheItem>()
-    private val scope = CoroutineScope(ioAsyncExceptionHandler)
 
     init {
       scope.launch {
         while (true) {
-          delay(1000)
+          delay(5000)
           for ((key, cache) in map) {
-            cache.hot -= 1f
-            if (cache.hot <= 0) {
+            if (cache.result.value.isError) {
               map.remove(key)
+            } else {
+              cache.hot -= 5f
+              if (cache.hot <= 0) {
+                map.remove(key)
+              }
             }
           }
         }
@@ -74,9 +102,8 @@ class WebImageLoader {
       containerWidth: Int,
       containerHeight: Int,
       hook: (FetchHook)?
-    ): (@Composable () -> ImageLoadResult)? {
-      val key =
-        "url=$url; containerWidth=$containerWidth; containerHeight=$containerHeight; hook=$hook"
+    ): StateFlow<ImageLoadResult>? {
+      val key = CacheItem.genKey(url, containerWidth, containerHeight, hook)
 
       return map[key]?.result
     }
@@ -84,26 +111,27 @@ class WebImageLoader {
     fun save(cache: CacheItem) {
       map[cache.key] = cache
     }
+
+    fun delete(cache: CacheItem) {
+      map.remove(cache.key)
+    }
   }
 
-  private val caches = CacheMap()
+  private val caches = CacheMap(scope)
 
-  @Composable
-  fun Load(
+  fun load(
+    webCanvas: OffscreenWebCanvas,
     url: String, containerWidth: Int, containerHeight: Int, hook: (FetchHook)? = null
-  ): ImageLoadResult {
-    caches.get(url, containerWidth, containerHeight, hook)?.also {
-      return@Load it()
-    }
-    val webCanvas = rememberOffscreenWebCanvas();
-    val imageBitmap = @Composable {
-      produceState(ImageLoadResult.Setup) {
-        val dispose = if (hook != null) {
-          webCanvas.setHook(url, hook)
-        } else null
-        value = try {
+  ): StateFlow<ImageLoadResult> =
+    caches.get(url, containerWidth, containerHeight, hook) ?: run {
+      val imageResultState = MutableStateFlow(ImageLoadResult.Setup)
+      val cacheItem = CacheItem(url, containerWidth, containerHeight, hook, imageResultState)
+      caches.save(cacheItem)
+      scope.launch {
+        val dispose = hook?.let { webCanvas.setHook(url, it) }
+        imageResultState.value = try {
           webCanvas.waitReady()
-          value = ImageLoadResult.Loading;
+          imageResultState.value = ImageLoadResult.Loading;
           val imageBitmap = webCanvas.buildTask {
             renderImage(url, containerWidth, containerHeight)
             toImageBitmap()
@@ -114,10 +142,8 @@ class WebImageLoader {
         } finally {
           dispose?.invoke()
         }
-      }.value
+      }
+
+      imageResultState
     }
-    return imageBitmap.also {
-      caches.save(CacheItem(url, containerWidth, containerHeight, hook, it))
-    }()
-  }
 }

@@ -25,7 +25,10 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowRenderProvider
+import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.helper.setWindowStateFromAppManifest
 import org.dweb_browser.sys.window.ext.createBottomSheets
+import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.getOrOpenMainWindowId
 import org.dweb_browser.sys.window.ext.getWindow
 import org.dweb_browser.sys.window.ext.onRenderer
@@ -206,6 +209,7 @@ class JmmGuiNMM : NativeMicroModule("gui.jmm.browser.dweb", "Js MicroModule Mana
       },
     ).protected("jmm.browser.dweb")
     onRenderer {
+      getMainWindow().state.setFromManifest(this@JmmGuiNMM)
       nativeFetch(PureMethod.GET, "file://jmm.browser.dweb/renderer?wid=$wid")
     }
   }

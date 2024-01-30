@@ -64,6 +64,7 @@ import org.dweb_browser.sys.window.ext.createBottomSheets
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 import org.dweb_browser.sys.window.render.AppIcon
+import org.dweb_browser.sys.window.render.imageFetchHook
 
 class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Management") {
   init {
@@ -108,10 +109,6 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
 
   override suspend fun _shutdown() {}
 
-  val iconFetchHook: FetchHook = {
-    nativeFetch(request.url)
-  }
-
   @OptIn(ExperimentalMaterial3Api::class)
   val hooks = object : PermissionHooks {
     override suspend fun onRequestPermissions(
@@ -149,7 +146,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                 else -> Box(Modifier.size(32.dp)) {
                   AppIcon(
                     applicantIcon,
-                    iconFetchHook = iconFetchHook,
+                    iconFetchHook = imageFetchHook,
                   )
                 }
               }
@@ -176,7 +173,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                       AppIcon(
                         iconResource = it,
                         modifier = Modifier.size(6.dp),
-                        iconFetchHook = iconFetchHook,
+                        iconFetchHook = imageFetchHook,
                       )
                     }
                   }) {
@@ -192,7 +189,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
                         iconResource = providerIcon,
                         modifier = Modifier.size(24.dp),
                         iconDescription = module.name,
-                        iconFetchHook = iconFetchHook,
+                        iconFetchHook = imageFetchHook,
                       )
                     }
                   }

@@ -1,6 +1,8 @@
 package org.dweb_browser.pure.image.offscreenwebcanvas
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.fromFilePath
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -10,6 +12,7 @@ import org.dweb_browser.pure.http.HttpPureServer
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureChannel
+import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureTextFrame
 import org.jetbrains.compose.resources.InternalResourceApi
@@ -27,38 +30,44 @@ internal class OffscreenWebCanvasMessageChannel {
   private val server = HttpPureServer {
     val pathname = it.url.encodedPath
     if (pathname == "/channel" && it.hasChannel) {
-      val pureChannel = it.getChannel()
-      lock.withLock {
-        if (session != null) {
-          freeSession()
-        }
-        session = pureChannel
-        dataChannel.complete(pureChannel)
-      }
-      pureChannel.start().apply {
-        for (frame in income) {
-          if (session != pureChannel) {
-            return@apply
+      it.byChannel {
+        val pureChannel = this
+        lock.withLock {
+          if (session != null) {
+            freeSession()
           }
-          when (frame) {
-            is PureBinaryFrame -> onMessageSignal.emit(ChannelMessage(binary = frame.data))
-            is PureTextFrame -> onMessageSignal.emit(ChannelMessage(text = frame.data))
+          session = pureChannel
+          dataChannel.complete(pureChannel)
+        }
+        pureChannel.start().apply {
+          for (frame in income) {
+            if (session != pureChannel) {
+              return@apply
+            }
+            when (frame) {
+              is PureBinaryFrame -> onMessageSignal.emit(ChannelMessage(binary = frame.data))
+              is PureTextFrame -> onMessageSignal.emit(ChannelMessage(text = frame.data))
+            }
           }
         }
-      }
 
-      lock.withLock {
-        if (session == pureChannel) {
-          freeSession()
+        lock.withLock {
+          if (session == pureChannel) {
+            freeSession()
+          }
         }
       }
-      PureResponse()
     } else if (pathname == "/proxy") {
       proxy.proxy(it)
     } else {
       runCatching {
         val content = readResourceBytes("offscreen-web-canvas$pathname")
-        PureResponse(body = IPureBody.from(content))
+        PureResponse(body = IPureBody.from(content), headers = PureHeaders().apply {
+          val extension = ContentType.fromFilePath(pathname)
+          extension.firstOrNull()?.apply {
+            init("Content-Type", toString())
+          }
+        })
       }.getOrElse {
         PureResponse(
           HttpStatusCode.NotFound,

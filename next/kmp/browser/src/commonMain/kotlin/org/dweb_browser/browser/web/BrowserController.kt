@@ -27,7 +27,7 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.core.windowInstancesManager
+import org.dweb_browser.sys.window.ext.getWindow
 
 class BrowserController(
   private val browserNMM: BrowserNMM,
@@ -114,7 +114,7 @@ class BrowserController(
    */
   private var win: WindowController? = null
   suspend fun renderBrowserWindow(wid: UUID) = winLock.withLock {
-    (windowInstancesManager.get(wid) ?: throw Exception("invalid wid: $wid")).also { newWin ->
+    browserNMM.getWindow(wid).also { newWin ->
       if (win == newWin) {
         return@withLock
       }

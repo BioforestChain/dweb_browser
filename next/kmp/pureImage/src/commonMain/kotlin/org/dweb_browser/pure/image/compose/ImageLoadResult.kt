@@ -17,6 +17,7 @@ class ImageLoadResult(
   }
 
   val isSuccess get() = success != null
+  val isError get() = error != null
   inline fun with(
     onBusy: (String) -> Unit = {},
     onError: (Throwable) -> Unit = {},
