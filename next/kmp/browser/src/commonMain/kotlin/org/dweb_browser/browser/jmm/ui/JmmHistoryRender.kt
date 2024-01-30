@@ -40,7 +40,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.browser.common.CommonSimpleTopBar
 import org.dweb_browser.browser.common.SegmentedButton
 import org.dweb_browser.browser.common.SingleChoiceSegmentedButtonRow
@@ -52,6 +51,7 @@ import org.dweb_browser.helper.compose.LazySwipeColumn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.formatDatestampByMilliseconds
 import org.dweb_browser.helper.toSpaceSize
+import org.dweb_browser.pure.image.compose.CoilAsyncImage
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
@@ -154,7 +154,7 @@ fun JmmViewItem(
       leadingContent = {
         Box(modifier = Modifier.height(72.dp), contentAlignment = Alignment.Center) {
           key(jmmHistoryMetadata.metadata.logo) {
-            AsyncImage(
+            CoilAsyncImage(
               model = jmmHistoryMetadata.metadata.logo,
               contentDescription = "icon",
               modifier = Modifier.size(56.dp),

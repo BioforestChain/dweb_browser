@@ -12,8 +12,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.pure.image.compose.CoilAsyncImage
 
 /**
  * 应用介绍的图片展示部分
@@ -36,7 +36,7 @@ internal fun CaptureListView(
           .padding(end = 16.dp)
           .size(ImageWidth, ImageHeight)
       ) {
-        AsyncImage(model = item, contentDescription = null)
+        CoilAsyncImage(model = item, contentDescription = null)
       }
     }
   }

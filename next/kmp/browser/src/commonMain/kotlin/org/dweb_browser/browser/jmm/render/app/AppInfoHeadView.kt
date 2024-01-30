@@ -21,11 +21,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.browser.jmm.render.HeadHeight
 import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.browser.jmm.render.VerticalPadding
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.pure.image.compose.CoilAsyncImage
 
 /**
  * 顶部的头像和应用名称
@@ -39,7 +39,7 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
       .padding(horizontal = HorizontalPadding, vertical = VerticalPadding),
     verticalAlignment = Alignment.CenterVertically
   ) {
-    AsyncImage(
+    CoilAsyncImage(
       model = jmmAppInstallManifest.logo,
       contentDescription = "AppIcon",
       modifier = Modifier

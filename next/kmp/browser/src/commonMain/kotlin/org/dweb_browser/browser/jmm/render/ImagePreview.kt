@@ -28,9 +28,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.browser.common.AsyncImage
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.pure.image.compose.CoilAsyncImage
 
 /**
  * 图片预览图
@@ -78,7 +78,7 @@ internal fun ImagePreview(
         contentPadding = PaddingValues(0.dp),
         beyondBoundsPageCount = 0,
         pageContent = { index ->
-          AsyncImage(model = imageList[index],
+          CoilAsyncImage(model = imageList[index],
             contentDescription = "Picture",
             modifier = Modifier
               .fillMaxSize()
