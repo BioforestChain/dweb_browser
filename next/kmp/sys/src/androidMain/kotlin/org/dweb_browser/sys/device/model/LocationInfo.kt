@@ -77,41 +77,40 @@ class LocationInfo : LocationListener {
       latlong[1] = 0.0
 
       try {
-        val locationM = getAppContext()
-          .getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        locationM.requestLocationUpdates(
+        val manager = getAppContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        manager.requestLocationUpdates(
           LocationManager.GPS_PROVIDER,
           MIN_TIME_BW_UPDATES,
           MIN_DISTANCE_CHANGE_FOR_UPDATES.toFloat(), this, Looper.getMainLooper()
         )
 
-        val locationGPS = locationM.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+        val locationGPS = manager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
         if (locationGPS != null) {
           latlong[0] = locationGPS.latitude
           latlong[1] = locationGPS.longitude
-          locationM.removeUpdates(this)
+          manager.removeUpdates(this)
           return latlong
         }
 
-        locationM.requestLocationUpdates(
+        manager.requestLocationUpdates(
           LocationManager.NETWORK_PROVIDER,
           MIN_TIME_BW_UPDATES,
           MIN_DISTANCE_CHANGE_FOR_UPDATES.toFloat(), this, Looper.getMainLooper()
         )
-        val locationNet = locationM.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        val locationNet = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         if (locationNet != null) {
           latlong[0] = locationNet.latitude
           latlong[1] = locationNet.longitude
-          locationM.removeUpdates(this)
+          manager.removeUpdates(this)
           return latlong
         }
 
         val locationPassive =
-          locationM.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
+          manager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
         if (locationPassive != null) {
           latlong[0] = locationPassive.latitude
           latlong[1] = locationPassive.longitude
-          locationM.removeUpdates(this)
+          manager.removeUpdates(this)
           return latlong
         }
       } catch (e: Throwable) {

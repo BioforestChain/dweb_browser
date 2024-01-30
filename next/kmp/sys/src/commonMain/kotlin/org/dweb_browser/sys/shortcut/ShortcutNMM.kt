@@ -29,7 +29,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
   init {
     short_name = "Shortcut"
     categories = listOf(
-      MICRO_MODULE_CATEGORY.Application,
+//      MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,
       MICRO_MODULE_CATEGORY.Hub_Service
     )

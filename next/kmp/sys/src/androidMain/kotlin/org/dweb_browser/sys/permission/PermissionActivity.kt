@@ -3,9 +3,9 @@ package org.dweb_browser.sys.permission
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,7 +35,6 @@ import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.saveString
 
-
 const val EXTRA_PERMISSION_KEY = "permission"
 const val EXTRA_TASK_ID_KEY = "taskId"
 
@@ -48,7 +47,7 @@ data class AndroidPermissionTask(
   val description: String
 )
 
-class PermissionActivity : AppCompatActivity() {
+class PermissionActivity : ComponentActivity() {
   companion object {
     private val launchTasks = mutableMapOf<UUID, CompletableDeferred<TaskResult>>()
     suspend fun launchAndroidSystemPermissionRequester(

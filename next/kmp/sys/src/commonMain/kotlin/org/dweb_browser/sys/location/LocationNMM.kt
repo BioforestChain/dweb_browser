@@ -1,6 +1,6 @@
 package org.dweb_browser.sys.location
 
-import kotlinx.serialization.Serializable
+import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -11,16 +11,12 @@ import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 
 val debugLocation = Debugger("Location")
-
-@Serializable
-data class LocationResult(
-  val success: Boolean, val message: String, val data: GeolocationPosition? = null
-)
 
 class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
   init {
@@ -39,53 +35,49 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       "/location" bind PureMethod.GET by defineJsonResponse {
-        debugLocation("location", "enter")
-        val permission = requestSystemPermissions(
-          SystemPermissionTask(
-            name = SystemPermissionName.LOCATION,
-            title = LocationI18nResource.request_permission_title.text,
-            description = LocationI18nResource.request_permission_message.text
-          )
-        )
-        val result = if (permission.filterValues { it != AuthorizationStatus.GRANTED }.isEmpty()) {
-          LocationResult(true, "Success", locationManage.getCurrentLocation())
+        val precise = request.queryOrNull("precise")?.let { it.lowercase() == "true" } ?: true
+        debugLocation("location/get", "enter")
+        if (requestSystemPermission()) {
+          locationManage.getCurrentLocation(precise)?.toJsonElement()
+            ?: throwException(HttpStatusCode.NoContent)
         } else {
-          LocationResult(false, "permission denied")
+          throwException(HttpStatusCode.Unauthorized, LocationI18nResource.permission_denied.text)
         }
-        result.toJsonElement()
       },
-      "/observe" byChannel { ctx ->
-        debugLocation("observe", "enter")
+      "/location" byChannel { ctx ->
         val remoteMmid = ipc.remote.mmid
-        val fps = try {
-          request.query("fps").toInt()
-        } catch (e: NumberFormatException) {
-          debugLocation("observe", "fps error")
-          5
-        }
-        locationManage.observeLocation(remoteMmid, fps) {
-          try {
-            ctx.sendJsonLine(it.toJsonElement())
-            true // 这边表示正常，继续监听
-          } catch (e: Exception) {
-            debugLocation("observe", e.message ?: "close observe")
-            close(cause = e)
-            false // 这边表示异常，关闭监听
+        val fps = request.queryOrNull("fps")?.toLong() ?: 5L
+        debugLocation("location/byChannel", "enter => $remoteMmid->$fps")
+        if (requestSystemPermission()) {
+          locationManage.observeLocation(remoteMmid, fps, true) {
+            try {
+              ctx.sendJsonLine(it.toJsonElement())
+              true // 这边表示正常，继续监听
+            } catch (e: Exception) {
+              debugLocation("observe", e.message ?: "close observe")
+              close(cause = e)
+              false // 这边表示异常，关闭监听
+            }
+          }
+          onClose {
+            locationManage.removeLocationObserve(remoteMmid)
           }
         }
-        onClose {
-          locationManage.removeLocationObserve(remoteMmid)
-        }
-      },
-      "/removeObserve" bind PureMethod.GET by defineEmptyResponse {
-        debugLocation("removeObserve", "enter")
-        val remoteMmid = ipc.remote.mmid
-        locationManage.removeLocationObserve(remoteMmid)
       }
     )
-    debugLocation("_bootstrap", "done")
   }
 
   override suspend fun _shutdown() {
+  }
+
+  private suspend fun requestSystemPermission(): Boolean {
+    val permission = requestSystemPermissions(
+      SystemPermissionTask(
+        name = SystemPermissionName.LOCATION,
+        title = LocationI18nResource.request_permission_title.text,
+        description = LocationI18nResource.request_permission_message.text
+      )
+    )
+    return permission.filterValues { it != AuthorizationStatus.GRANTED }.isEmpty()
   }
 }

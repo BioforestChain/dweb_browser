@@ -47,6 +47,8 @@ data class GeolocationPosition(
   }
 }
 
+typealias LocationObserverCallback = suspend (GeolocationPosition) -> Unit
+
 /**
  * 如果想优化，可以参考：https://github.com/icerockdev/moko-geo/blob/master/geo/src/commonMain/kotlin/dev/icerock/moko/geo/LocationTracker.kt
  */
@@ -54,7 +56,7 @@ expect class LocationManage() {
   /**
    * 获取当前的位置信息
    */
-  suspend fun getCurrentLocation(): GeolocationPosition
+  suspend fun getCurrentLocation(precise: Boolean): GeolocationPosition?
 
   /**
    * 监听位置信息，位置信息变化及时通知
@@ -62,8 +64,9 @@ expect class LocationManage() {
    */
   suspend fun observeLocation(
     mmid: MMID,
-    fps: Int,
-    callback: suspend (GeolocationPosition) -> Boolean
+    fps: Long,
+    precise: Boolean,
+    callback: LocationObserverCallback
   )
 
   /**

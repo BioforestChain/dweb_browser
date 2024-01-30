@@ -71,7 +71,7 @@ actual class LocationManage {
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  actual suspend fun getCurrentLocation(): GeolocationPosition {
+  actual suspend fun getCurrentLocation(precise: Boolean): GeolocationPosition? {
     val promiseOut = PromiseOut<GeolocationPosition>()
     DwebLocationRequestApi().requestLocationWithCompleted { location, code, error ->
       val geolocation = location as platform.CoreLocation.CLLocation?
@@ -85,8 +85,9 @@ actual class LocationManage {
   @OptIn(ExperimentalForeignApi::class)
   actual suspend fun observeLocation(
     mmid: MMID,
-    fps: Int,
-    callback: suspend (GeolocationPosition) -> Boolean
+    fps: Long,
+    precise: Boolean,
+    callback: LocationObserverCallback
   ) {
     DwebLocationRequestApi().requestTrack(mmid, fps.toLong()) { location, code, error ->
       val geolocation = location as platform.CoreLocation.CLLocation?
