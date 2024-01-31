@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AppShortcut
+import androidx.compose.material.icons.filled.Reorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -56,6 +57,9 @@ fun ShortcutManagerRender(
             contentDescription = "shortcut"
           )
         } ?: Icon(Icons.Default.AppShortcut, contentDescription = "shortcut")
+      },
+      trailingContent = { _ ->
+        Icon(Icons.Default.Reorder, contentDescription = "reorder")
       },
       noDataValue = ShortcutI18nResource.render_no_data()
     )
