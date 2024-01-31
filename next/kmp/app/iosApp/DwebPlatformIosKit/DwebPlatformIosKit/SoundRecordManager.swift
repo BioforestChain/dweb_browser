@@ -19,4 +19,13 @@ import SwiftUI
     @objc public func completeRecord(callback: @escaping (String) -> Void) {
         RecordManager.shared.completeCallback = callback
     }
+    
+    @objc public func completeSingleRecord(callback: @escaping (String) -> Void) {
+        RecordManager.shared.completeSingleRecordCallback = callback
+    }
+    
+    @objc public func createRecordController() -> UIViewController {
+        let soundController = UIHostingController(rootView: SingleRecrodView())
+        return soundController
+    }
 }

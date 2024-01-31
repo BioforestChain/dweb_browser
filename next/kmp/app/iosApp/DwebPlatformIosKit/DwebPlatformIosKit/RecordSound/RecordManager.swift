@@ -26,6 +26,7 @@ class RecordManager: NSObject {
     var path: String = ""
     var record_duration: Int = 0
     var completeCallback: ((String) -> Void)?
+    var completeSingleRecordCallback: ((String) -> Void)?
     
     override init() {
         let session = AVAudioSession.sharedInstance()
@@ -53,7 +54,7 @@ class RecordManager: NSObject {
     }
     
     func stopRecorder() {
-        record_duration = Int(recorder?.currentTime ?? 0)
+        record_duration = min(Int(round(recorder?.currentTime ?? 0)), 59)
         recorder?.stop()
         recorder = nil
     }

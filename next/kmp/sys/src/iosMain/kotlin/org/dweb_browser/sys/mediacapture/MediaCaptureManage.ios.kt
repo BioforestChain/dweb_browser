@@ -93,18 +93,10 @@ actual class MediaCaptureManage actual constructor() {
       val coroutineScope =
         CoroutineScope(CoroutineName("video-stream") + ioAsyncExceptionHandler)
       videoController.videoPathBlock = {
-        val inputStream = NSURL.URLWithString(it)?.let { url -> NSInputStream(url) }
-        val byteChannel =
-          inputStream?.let { stream ->
-            NSInputStreamToByteReadChannel(coroutineScope,
-              stream
-            )
-          }
-        if (byteChannel != null) {
-          result.complete(byteChannel)
-        } else {
-          result.complete(ByteReadChannel(""))
-        }
+        val url = NSURL.fileURLWithPath(it)
+        val inputStream = NSInputStream(url)
+        val byteChannel = NSInputStreamToByteReadChannel(coroutineScope,inputStream)
+        result.complete(byteChannel)
       }
       rootController?.presentViewController(videoController,true,null)
     }
@@ -119,22 +111,16 @@ actual class MediaCaptureManage actual constructor() {
       CoroutineScope(CoroutineName("record-stream") + ioAsyncExceptionHandler)
     withMainContext {
       val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
-      val recordController = manager.create()
-      manager.completeRecordWithCallback { path ->
+      val recordController = manager.createRecordController()//manager.create()
+      manager.completeSingleRecordWithCallback { path ->
         recordController.dismissViewControllerAnimated(true, null)
         if (path != null) {
-          val inputStream = NSURL.URLWithString(path)?.let { url -> NSInputStream(url) }
-          val byteChannel =
-            inputStream?.let { stream ->
-              NSInputStreamToByteReadChannel(coroutineScope,
-                stream
-              )
-            }
-          if (byteChannel != null) {
-            result.complete(byteChannel)
-          } else {
-            result.complete(ByteReadChannel(""))
-          }
+          val url = NSURL.fileURLWithPath(path)
+          val inputStream = NSInputStream(url)
+          val byteChannel = NSInputStreamToByteReadChannel(coroutineScope,inputStream)
+          result.complete(byteChannel)
+        } else {
+          result.complete(ByteReadChannel(""))
         }
       }
       rootController?.presentViewController(recordController,true,null)
