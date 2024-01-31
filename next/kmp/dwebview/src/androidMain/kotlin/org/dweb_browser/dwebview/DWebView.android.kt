@@ -23,6 +23,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.proxy.DwebViewProxyOverride
 import org.dweb_browser.helper.Bounds
@@ -63,6 +64,9 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   companion object {
     val prepare = SuspendOnce {
       coroutineScope {
+        launch(ioAsyncExceptionHandler) {
+          DwebViewPolyfill.prepare();
+        }
         DwebViewProxy.prepare();
         launch {
           DwebViewProxyOverride.prepare()

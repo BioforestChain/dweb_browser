@@ -3,6 +3,7 @@ package org.dweb_browser.sys.window.render
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,10 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import org.dweb_browser.helper.compose.LocalCompositionChain
+import org.dweb_browser.helper.compose.LocalFocusRequester
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.helper.platform.LocalPureViewController
@@ -121,6 +124,7 @@ fun WindowController.Render(
       val windowFrameStyle = WindowFrameStyle(scale, opacity)
       LocalCompositionChain.current.Provider(
         LocalWindowFrameStyle provides windowFrameStyle,
+        LocalFocusRequester provides win.focusRequester,
       ) {
         win.state.safePadding = winPadding.safeAreaInsets
         /// 开始绘制窗口
@@ -137,7 +141,7 @@ fun WindowController.Render(
             }
             .shadow(
               elevation = elevation.dp, shape = winPadding.boxRounded.toRoundedCornerShape()
-            ),
+            ).focusable(),
         ) {
           //#region 窗口内容
           Column(

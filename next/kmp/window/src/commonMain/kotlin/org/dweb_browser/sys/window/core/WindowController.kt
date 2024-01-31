@@ -3,6 +3,7 @@ package org.dweb_browser.sys.window.core
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.focus.FocusRequester
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -96,6 +97,11 @@ abstract class WindowController(
 
   suspend fun focus() = managerRunOr({ it.focusWindow(this) }, { simpleFocus() })
 
+  val focusRequester = FocusRequester().also { focusRequester ->
+    onFocus {
+      focusRequester.requestFocus()
+    }
+  }
 
   internal open suspend fun simpleBlur() {
     state.focus = false

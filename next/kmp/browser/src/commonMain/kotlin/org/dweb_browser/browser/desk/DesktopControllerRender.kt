@@ -11,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,7 +29,6 @@ fun DesktopController.Render(
 ) {
   // TODO 这里的颜色应该是自动适应的，特别是窗口最大化的情况下，遮盖了顶部 status-bar 的时候，需要根据 status-bar 来改变颜色
   SetSystemBarsColor(Color.Transparent, if (isSystemInDarkTheme()) Color.White else Color.Black)
-
   LocalCompositionChain.current.Provider(
     LocalWindowMM provides microModule,
   ) {

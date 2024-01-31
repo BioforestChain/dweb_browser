@@ -9,6 +9,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
@@ -69,7 +70,7 @@ class DWebView(
   companion object {
     val prepare = SuspendOnce {
       coroutineScope {
-        CoroutineScope(ioAsyncExceptionHandler).launch {
+        launch(ioAsyncExceptionHandler) {
           DwebViewPolyfill.prepare();
         }
         DwebViewProxy.prepare();

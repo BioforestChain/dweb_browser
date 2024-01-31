@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { $WidgetCustomData } from "src/types/app.type.ts";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import widget_inner_css from "./widget-inner.scss?inline";
 import "./widget-public.scss";
 
@@ -60,6 +60,7 @@ const buildWidgetElement = (widgetMetaData: $WidgetCustomData) => {
 
     private static template = document.createElement("template");
     private static style = createStyleHelper(true);
+    #input?: HTMLInputElement;
     static updateMeta(meta: $WidgetCustomData) {
       this.meta = meta;
       this.template.innerHTML = meta.templateHtml;
@@ -72,6 +73,13 @@ const buildWidgetElement = (widgetMetaData: $WidgetCustomData) => {
 
       WidgetElement.baseStyle.installStyle(shadow);
       WidgetElement.style.installStyle(shadow);
+
+      this.#input = shadow.querySelector("input") ?? undefined;
+    }
+
+    override blur(): void {
+      this.#input?.blur();
+      super.blur();
     }
   }
   return WidgetElement;
@@ -89,8 +97,14 @@ const html = computed(() => {
   return `<${tagName}></${tagName}>`;
 });
 </script>
+<script lang="ts">
+const widgetRef = ref<HTMLDivElement>();
+export const widgetInputBlur = () => {
+  (widgetRef.value?.firstChild as HTMLElement).blur();
+};
+</script>
 <template>
-  <div class="widget" draggable="false" v-html="html"></div>
+  <div class="widget" draggable="false" v-html="html" ref="widgetRef"></div>
 </template>
 <style scoped lang="scss">
 .widget {

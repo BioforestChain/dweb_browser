@@ -1,21 +1,30 @@
 package org.dweb_browser.dwebview
 
+import android.content.Context
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusTarget
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import com.google.accompanist.web.AccompanistWebChromeClient
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewNavigator
 import com.google.accompanist.web.rememberWebViewState
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.compose.LocalFocusRequester
 
 @Composable
 actual fun IDWebView.Render(
@@ -29,7 +38,17 @@ actual fun IDWebView.Render(
   val navigator = rememberWebViewNavigator(webView.ioScope)
   val client = remember { AccompanistWebViewClient() }
   val chromeClient = remember { AccompanistWebChromeClient() }
-  BoxWithConstraints {
+  val focusRequester = LocalFocusRequester.current
+  BoxWithConstraints(
+    modifier = when (focusRequester) {
+      null -> Modifier
+      else -> Modifier.focusRequester(focusRequester).onFocusChanged {
+        if (it.isFocused) {
+          webView.requestFocus()
+        }
+      }.focusable()
+    }
+  ) {
     val contentScale by contentScale
     WebView(
       state = state,
@@ -52,6 +71,21 @@ actual fun IDWebView.Render(
       chromeClient = chromeClient,
       captureBackPresses = false,
     )
+    /// 处理键盘响应
+    val imm = remember(webView) {
+      webView.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    }
+    DisposableEffect(webView) {
+      webView.setOnFocusChangeListener { v, hasFocus ->
+        if (hasFocus) {
+          imm.hideSoftInputFromWindow(webView.windowToken, 0)
+        }
+      }
+      onDispose {
+        webView.onFocusChangeListener = null
+      }
+    }
+    /// 生命周期
     onDispose?.also {
       DisposableEffect(this) {
         onDispose {

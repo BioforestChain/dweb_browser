@@ -32,6 +32,7 @@ import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.UserAgentData
+import org.dweb_browser.dwebview.polyfill.setupKeyboardPolyfill
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
@@ -134,7 +135,7 @@ class DWebViewEngine internal constructor(
     }
   }
 
-  private fun addDocumentStartJavaScript(script: String) {
+  fun addDocumentStartJavaScript(script: String) {
     if (supportDocumentStartScript) {
       WebViewCompat.addDocumentStartJavaScript(this, script, setOf("*"))
     } else {
@@ -276,6 +277,8 @@ class DWebViewEngine internal constructor(
     settings.allowContentAccess = true
     settings.mediaPlaybackRequiresUserGesture = false
     setLayerType(LAYER_TYPE_HARDWARE, null) // 增加硬件加速，避免滑动时画面出现撕裂
+
+    setupKeyboardPolyfill(this)
 
     super.setWebViewClient(dWebViewClient)
     super.setWebChromeClient(dWebChromeClient)

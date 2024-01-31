@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.WebLoadErrorState
 import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.WebLoadSuccessState
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.launchWithMain
@@ -37,7 +38,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
     extends.remove(client)
 
   private fun inners(methodName: String) = extends.hasMethod(methodName)
-//        .also { debugDWebView("WebViewClient", "calling method: $methodName") }
+        .also { debugDWebView("WebViewClient", "calling method: $methodName") }
 
 
   override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {

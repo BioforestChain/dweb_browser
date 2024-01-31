@@ -13,6 +13,7 @@ import type { $WidgetAppData } from "src/types/app.type.ts";
 import { computed, reactive, ref, shallowRef, watch } from "vue";
 import AppUnInstallDialog from "../app-uninstall-dialog/app-uninstall-dialog.vue";
 import { ownReason, showOverlay } from "../widget-menu-overlay/widget-menu-overlay.vue";
+import { widgetInputBlur } from "../widget-custom/widget-custom.vue"
 import delete_svg from "./delete.svg";
 import details_svg from "./details.svg";
 import quit_svg from "./quit.svg";
@@ -146,11 +147,11 @@ function outsideCloseMenu(e: PointerEvent) {
           v-bind="props"
           class="app-wrap ios-ani"
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
-          @click="[$menu.close, doOpen]"
+          @click="doOpen"
+          @click.capture="widgetInputBlur"
           @menu="$menu.show"
         >
           <AppIcon
-            @click="doOpen"
             :class="{
               'animate-slow-bounce': opening,
               'animate-app-pulse': closing,

@@ -5,6 +5,7 @@ export default defineConfig(() => {
       target: "esnext",
       lib: {
         entry: {
+          "keyboard.android": "./src/keyboard.android.ts",
           "websocket.ios": "./src/websocket.ios.ts",
           "favicon.ios": "./src/favicon.ios.ts",
         },
