@@ -2,9 +2,13 @@ package info.bagen.dwebbrowser
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.js_backend.browser_window.ElectronBrowserWindowModule
 import kotlin.js.Promise
 
+@Serializable
 class Person(
   @JsName("name")
   val name: String,
@@ -17,7 +21,24 @@ fun main() {
     "currentCount" to 10,
     "persons" to listOf(Person("bill", 1), Person("jack", 2))
   )
-  ElectronBrowserWindowModule("demo.compose.app", state)
+  ElectronBrowserWindowModule(
+    subDomain = "demo.compose.app",
+    valueEncodeToString = {key: dynamic, value: dynamic ->
+      val str = when(key.toString()){
+        "currentCount" -> "10"
+        else -> Json.encodeToString<ArrayList<Person>>(value)
+      }
+
+      str
+    },
+    valueDecodeFromString = { key: dynamic, value: String ->
+      when(key){
+        "currentCount" -> value.toInt()
+        else -> Json.decodeFromString<ArrayList<Person>>(value)
+      }
+    },
+    initVieModelMutableMap = state
+  )
 }
 
 fun <T> Promise<T>.toDeferred(): Deferred<T> {

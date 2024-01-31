@@ -4,6 +4,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import node.buffer.Buffer
 import node.http.IncomingMessage
 import node.net.Socket
@@ -28,11 +29,16 @@ import org.dweb_browser.js_backend.ws.WS
  *      - 监听客户端同步过来的状态
  */
 open class BaseViewModel(
-    val subDomain: String, initVieModelMutableMap: ViewModelMutableMap? = null
+    val subDomain: String,
+    // 编码value的方法
+    val valueEncodeToString: (key:dynamic,value: dynamic) -> String,
+    // 解码value的方法
+    val valueDecodeFromString: (key: dynamic, value: String) -> dynamic,
+    initVieModelMutableMap: ViewModelMutableMap
 ) {
     val scope = CoroutineScope(Dispatchers.Unconfined)
     private val viewModelState: ViewModelState =
-        ViewModelState(initVieModelMutableMap ?: viewModelMutableMapOf())
+        ViewModelState(initVieModelMutableMap)
     private val sockets = mutableListOf<ViewModelSocket>()
     // 通过在执行 getViewModelSocket 解决一对多的问题
 
@@ -50,7 +56,7 @@ open class BaseViewModel(
 
             if(currentSubDomain == subDomain){
                 console.log("给 $subDomain 模块创建了socket")
-                ViewModelSocket(socket, req.headers["sec-websocket-key"] as String).apply {
+                ViewModelSocket(socket, req.headers["sec-websocket-key"] as String, valueEncodeToString, valueDecodeFromString, ).apply {
                     onData {
                         viewModelState.set(it[0], it[1], ViewModelStateRole.CLIENT)
                     }
@@ -102,8 +108,9 @@ open class BaseViewModel(
     private fun syncDataToUI(key: dynamic, value: dynamic) {
         scope.launch {
             sockets.forEach {
-                it.write(JSON.stringify(arrayOf(key, value)))
+                it.write(key, value)
             }
         }
     }
 }
+

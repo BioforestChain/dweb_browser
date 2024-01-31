@@ -203,6 +203,7 @@ class ViewModelState(
             initValue.iterator().forEach(::add)
         }
 
+
         var firstStateRecord = mutableStateList.firstStateRecord
 
         fun prependStateRecord(value: StateRecord)= mutableStateList.prependStateRecord(value)
@@ -226,8 +227,10 @@ class ViewModelState(
 
         fun add(el: T): Boolean{
             return mutableStateList.add(el).also {
-//                if(this) console.log("需要同步给Server add: el: ", el)
-                if(it) viewModelState.set(key, this@MutableStateList.toList(), true)
+                if(it) {
+                    console.log("需要同步给Server add: el: ", el)
+                    viewModelState.set(key, this@MutableStateList.toList(), true)
+                }
             }
         }
 
@@ -239,11 +242,15 @@ class ViewModelState(
 
         fun addAll(els: Collection<T>): Boolean{
             return mutableStateList.addAll(els).also {
-                if(it) console.log("需要同步给Server addAll els", els)
+
+                if(it) {
+                    console.log("需要同步给Server addAll els", els)
+                    console.log(mutableStateList.toList())
+                }
 
             }
         }
-        fun addAll(index: Int, els: Collection<T>): Boolean{
+        fun addAll(index: Int, els: dynamic): Boolean{
             return mutableStateList.addAll(index, els).also {
                 if(it)  viewModelState.set(key, this@MutableStateList.toList(), true)
             }
@@ -327,3 +334,4 @@ class ViewModelState(
         }
     }
 }
+

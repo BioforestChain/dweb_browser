@@ -12,6 +12,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.CanvasBasedWindow
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 import org.dweb_browser.js_frontend.browser_window.ElectronBrowserWindowModule
 import org.dweb_browser.js_frontend.view_model_state.ViewModelState
@@ -19,9 +22,26 @@ import org.jetbrains.skiko.wasm.onWasmReady
 
 @OptIn(ExperimentalComposeUiApi::class)
 suspend fun main() {
+
     // class 有额外的 p98_1:0这样的属性问题
     // 在 main() 里面声明的类不会有
-    val module = ElectronBrowserWindowModule("js.backend.dweb")
+    val module = ElectronBrowserWindowModule(
+        moduleId =  "js.backend.dweb",
+        valueEncodeToString = {key: dynamic, value: dynamic ->
+            val str = when(key.toString()){
+                "currentCount" -> "10"
+                else -> Json.encodeToString<ArrayList<Person>>(value)
+            }
+            str
+        },
+        valueDecodeFromString = {key: dynamic, value: String ->
+            console.log("value: ", value)
+            when(key){
+                "currentCount" -> value.toInt()
+                else -> Json.decodeFromString<ArrayList<Person>>(value)
+            }
+        }
+    )
     module.viewModel.dwebWebSocket.start()
     module.viewModel.whenSyncDataFromServerDone.await()
     onWasmReady {
@@ -70,8 +90,8 @@ suspend fun main() {
                         Text("list add")
                     }
                     Button(onClick = {
-                        val ps = listOf(Person(name = "name-1-${list.size}", id=list.size + 1), Person(name = "name-1-${list.size}", id=list.size + 1))
-                        list.addAll(ps)
+//                        val ps = arrayOf(Person(name = "name-1-${list.size}", id=list.size + 1), Person(name = "name-1-${list.size}", id=list.size + 1))
+//                        list.addAll(ps)
                     }){
                         Text("list addAll")
                     }
@@ -90,6 +110,33 @@ suspend fun main() {
     }
 }
 
+
+
+@Serializable
 class Person(
-    @JsName("name") val name: String, @JsName("id") val id: Int
+    @JsName("name")
+    val name: String,
+    @JsName("id")
+    val id: Int
 )
+
+
+
+//@Serializable
+//data class Person(
+//    @JsName("name") val name: String, @JsName("id") val id: Int
+//)
+
+// 用来测试实例化类没有额外的属性
+//fun main(){
+//    val bill = Person("bill", 1)
+//    // 使用 kotlinx Serialization 可以避免额外的
+//    val str = Json.encodeToString(bill)
+//    val b = Json.decodeFromString<Person>(str)
+//    console.log("str:", str)
+//    console.log("b: ", b)
+//    console.log(JSON.stringify(bill))
+//
+//    val list = listOf(bill)
+//    console.log(Json.encodeToString(list))
+//}

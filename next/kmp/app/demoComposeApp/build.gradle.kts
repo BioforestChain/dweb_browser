@@ -1,3 +1,5 @@
+import org.gradle.internal.impldep.org.glassfish.jaxb.runtime.v2.runtime.reflect.opt.OptimizedAccessorFactory.noOptimization
+import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
@@ -17,12 +19,14 @@ kotlin {
                     cssSupport {
                         enabled.set(true)
                     }
+
                 }
                 // 分发到electronApp作为静态资源使用
                 distribution {
                     outputDirectory = File("${rootProject.rootDir}/app/electronApp/src/jsMain/resources/demo/compose/app")
                 }
             }
+
             binaries.executable()
         }
         dependencies {
@@ -42,10 +46,10 @@ compose.experimental {
 }
 
 
-
 // Electron tasks
 
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask>()
     .configureEach {
 
     }
+

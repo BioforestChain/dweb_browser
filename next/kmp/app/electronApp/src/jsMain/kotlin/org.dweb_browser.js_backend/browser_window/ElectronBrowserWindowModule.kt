@@ -28,13 +28,22 @@ interface IElectronBrowserWindowModule{
 
 class ElectronBrowserWindowModule(
     override val subDomain: String, /* example: demo.compose.app */
-    initVieModelMutableMap: ViewModelMutableMap? = null
+    // 编码value的方法
+    val valueEncodeToString: (key:dynamic,value: dynamic) -> String,
+    // 解码value的方法
+    val valueDecodeFromString: (key: dynamic, value: String) -> dynamic,
+    initVieModelMutableMap: ViewModelMutableMap
 ) : IElectronBrowserWindowModule{
     override val controller: ElectronBrowserWindowController = ElectronBrowserWindowController.create(subDomain)
-    override val viewModel: BaseViewModel = BaseViewModel(subDomain, initVieModelMutableMap)
+    override val viewModel: BaseViewModel = BaseViewModel(
+        subDomain = subDomain,
+        valueEncodeToString = valueEncodeToString,
+        valueDecodeFromString = valueDecodeFromString,
+        initVieModelMutableMap = initVieModelMutableMap
+    )
     init {
         viewModel.onUpdateByClient{key: dynamic, value: dynamic ->
-            console.log("server received data from client ", value)
+            console.error("server received data from client ", value)
 //            viewModel[key] = value + 1
         }
         controller.open(ElectronBrowserWindowController.createBrowserWindowOptions().apply {

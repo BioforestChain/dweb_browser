@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import node.buffer.Buffer
 import node.buffer.BufferEncoding
 import node.crypto.BinaryToTextEncoding
@@ -14,6 +15,9 @@ import node.crypto.createHash
 import node.net.Socket
 import node.net.SocketEvent
 import kotlin.experimental.xor
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * @param arg {Array<dynamic>}
@@ -29,6 +33,10 @@ typealias OnErrorCallback = (err: Throwable) -> Unit
 class ViewModelSocket(
     val socket: Socket,
     secWebsocketKey: String,
+    // 编码value的方法
+    val valueEncodeToString: (key: dynamic, value: dynamic) -> String,
+    // 解码value的方法
+    val valueDecodeFromString: (key: dynamic, value: String) -> dynamic,
 ){
     val scope = CoroutineScope(Dispatchers.Default)
     // 不要把_onDataCBList等变量移动到init的后面
@@ -51,7 +59,11 @@ class ViewModelSocket(
         scope.launch {
             _realDataFlow.collect{
                 _onDataCBList.forEach { cb ->
-                    cb(JSON.parse(it))
+                    val syncData = Json.decodeFromString<SyncData>(it)
+                    val value = valueDecodeFromString(syncData.key, syncData.value)
+                    console.log("接收到了同步的数据 key,value: ", syncData.key, value)
+                    console.error("需要处理但是还没有处理")
+                    cb(arrayOf(syncData.key, syncData.value))
                 }
             }
         }
@@ -138,8 +150,16 @@ class ViewModelSocket(
      *  - arr[0]表示的是viewModel的key
      *  - arr[1]表示的是ViewModel的value
      */
-    fun write(arg: String): Unit{
-        socket.write(_encodeDataFrame(arg))
+    fun write(key: dynamic, value: dynamic): Unit{
+        val valueString = when(key){
+            "syncDataToUiState" -> value
+            else -> valueEncodeToString(key, value)
+        }
+        console.log("valueString: ", valueString)
+        val syncData = SyncData(key.toString(), valueString)
+        val jsonString = Json.encodeToString<SyncData>(syncData)
+        console.error("write jsonString", jsonString)
+        socket.write(_encodeDataFrame(jsonString))
     }
 }
 
@@ -290,3 +310,11 @@ private fun _encodeDataFrame(
     val a = arrayOf(Buffer.from(bufferArr), payloadData)
     return Buffer.concat(a);
 };
+
+@Serializable
+data class SyncData(
+    @JsName("key")
+    val key: String,
+    @JsName("value")
+    val value: String
+)
