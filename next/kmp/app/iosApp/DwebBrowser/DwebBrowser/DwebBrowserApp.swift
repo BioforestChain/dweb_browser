@@ -10,7 +10,6 @@ struct DwebBrowserApp: App {
     var body: some Scene {
         WindowGroup {
             content
-                .deskAlertTip()
         }
     }
 
@@ -25,12 +24,24 @@ struct DwebBrowserApp: App {
 
 struct DwebFrameworkContentView: View {
     @Binding var vcs: [DwebVCData]
+    @State private var isDidAppear = false
+    
     var body: some View {
         ZStack {
             if vcs.isEmpty {
                 Text("Loading...")
             } else {
                 DwebDeskRootView(vcs: vcs.map { $0.vc })
+            }
+        }
+        .overlay {
+            if isDidAppear {
+                Color.clear.deskAlertTip()
+            }
+        }
+        .task {
+            DwebLifeStatusCenter.shared.register(.didRender) {
+                self.isDidAppear = true
             }
         }
     }

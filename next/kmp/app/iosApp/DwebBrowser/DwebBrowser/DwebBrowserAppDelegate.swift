@@ -14,6 +14,7 @@ class DwebBrowserAppDelegate: NSObject, UIApplicationDelegate {
         Log("Launch! home path:\(NSHomeDirectory())")
         KotlinComposeRedrawerFix.fix()
         DwebDeskVCStore.startUpNMMs(application)
+        let _ = DwebLifeStatusCenter.shared
         return true
     }
 

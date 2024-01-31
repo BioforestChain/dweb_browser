@@ -76,6 +76,13 @@ class DwebComposeRootViewController: UIViewController {
             touchDispatchView.bringSubviewToFront(vc.view)
         }
     }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            DwebLifeStatusCenter.shared.postDidRendedNotification()
+        }
+    }
     
     func addFullSreen(subView: UIView, to container: UIView) {
         container.addSubview(subView)

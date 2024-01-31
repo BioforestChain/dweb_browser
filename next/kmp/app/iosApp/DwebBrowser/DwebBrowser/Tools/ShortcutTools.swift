@@ -15,17 +15,21 @@ import SwiftUI
 struct ShortcutTools {
     static func hand(_ item: UIApplicationShortcutItem) -> Bool {
         if DwebShortcutHandler().isScanShortcut(shortcut: item) {
-            let keyWindow = UIApplication.shared.currentWindow
-            let scanView = CodeScannerView(codeTypes: [.qr], showViewfinder: true) { result in
-                guard case let .success(qrCode) = result else { return }
-                Log("\(qrCode.string)")
-                DwebDeepLink.shared.openDeepLink(url: qrCode.string)
-                if let vc = keyWindow?.rootViewController?.presentedViewController as? UIHostingController<CodeScannerView> {
-                    vc.dismiss(animated: true)
+            DwebLifeStatusCenter.shared.register(.didRender) {
+                DispatchQueue.main.async {
+                    let keyWindow = UIApplication.shared.currentWindow
+                    let scanView = CodeScannerView(codeTypes: [.qr], showViewfinder: true) { result in
+                        guard case let .success(qrCode) = result else { return }
+                        Log("\(qrCode.string)")
+                        DwebDeepLink.shared.openDeepLink(url: qrCode.string)
+                        if let vc = keyWindow?.rootViewController?.presentedViewController as? UIHostingController<CodeScannerView> {
+                            vc.dismiss(animated: true)
+                        }
+                    }
+                    let hostVC = UIHostingController(rootView: scanView)
+                    keyWindow?.rootViewController?.present(hostVC, animated: true)
                 }
             }
-            let hostVC = UIHostingController(rootView: scanView)
-            keyWindow?.rootViewController?.present(hostVC, animated: true)
             return true
         } else {
             return DwebShortcutHandler().hand(shortcut: item)
