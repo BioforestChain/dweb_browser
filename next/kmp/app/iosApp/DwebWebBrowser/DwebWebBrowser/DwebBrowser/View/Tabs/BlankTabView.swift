@@ -13,7 +13,7 @@ struct BlankTabView: View {
         GeometryReader { geo in
             let width = geo.size.width
             ZStack {
-                Color.clear
+                Color.bk
                 VStack {
                     Image(.dwebIcon)
                         .resizable()

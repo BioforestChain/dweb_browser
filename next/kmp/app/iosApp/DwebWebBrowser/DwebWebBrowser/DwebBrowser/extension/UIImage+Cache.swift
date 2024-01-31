@@ -19,7 +19,7 @@ extension UIImage {
         do {
             let documentsDirectory = URL.documentsDirectory
             let filePath = documentsDirectory.appendingPathComponent(imageName + snapshotId + ".jpg")
-            removeImage(with: filePath)
+            deleteImage(with: filePath)
             try image.jpegData(compressionQuality: 1.0)?.write(to: filePath, options: .atomic)
              
             return filePath
@@ -28,20 +28,40 @@ extension UIImage {
             return URL.defaultSnapshotURL
         }
     }
+
     
     // 删除缓存的图片
     static func removeImage(with fileUrl: URL) {
+        let deleteFileUrls = relatedImageUrls(with: fileUrl.path)
+        let _ = deleteFileUrls.map { deleteImage(with: $0) }
+    }
+    
+    private static func deleteImage(with imageUrl: URL){
         let fileManager = FileManager.default
-        if fileManager.fileExists(atPath: fileUrl.path) {
+        if fileManager.fileExists(atPath: imageUrl.path) {
             do {
-                try fileManager.removeItem(at: fileUrl)
-                Log("deleted old snapshot for replacement successfully.")
+                try fileManager.removeItem(at: imageUrl)
             } catch {
                 Log("Error while deleting the snapshot: \(error.localizedDescription)")
             }
-        } else {
-            Log("snapshot does not exist.")
         }
+    }
+    
+    private static func relatedImageUrls(with filePath: String) -> [URL] {
+        let suffixs = ["light_snapshot", "webtag_snapshot", "dark_snapshot"]
+        guard let suffix = suffixs.filter({ filePath.contains($0) }).first else { return [] }
+        var imagePath = filePath.replacingOccurrences(of: suffix, with: "")
+        var urls: [URL] = []
+        
+        if let range = imagePath.range(of: ".jpg") {
+            for i in 0...2 {
+                var path = imagePath
+                path.insert(contentsOf: suffixs[i], at: range.lowerBound)
+                urls.append(URL(fileURLWithPath: path))
+            }
+            return urls
+        }
+        return []
     }
 
     static func snapshotImage(from localUrl: URL) -> UIImage {
