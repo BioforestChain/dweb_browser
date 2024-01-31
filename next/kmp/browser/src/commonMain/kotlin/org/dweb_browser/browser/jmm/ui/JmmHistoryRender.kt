@@ -3,6 +3,7 @@ package org.dweb_browser.browser.jmm.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,6 +48,7 @@ import org.dweb_browser.browser.jmm.JmmHistoryController
 import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmTabs
+import org.dweb_browser.browser.jmm.debugJMM
 import org.dweb_browser.helper.compose.LazySwipeColumn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.formatDatestampByMilliseconds
@@ -147,8 +149,13 @@ fun JmmViewItem(
             text = jmmHistoryMetadata.metadata.version,
             fontWeight = FontWeight.SemiBold
           )
-          Text(text = jmmHistoryMetadata.metadata.bundle_size.toSpaceSize())
-          Text(text = jmmHistoryMetadata.installTime.formatDatestampByMilliseconds())
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+          ) {
+            Text(text = jmmHistoryMetadata.metadata.bundle_size.toSpaceSize())
+            Text(text = jmmHistoryMetadata.installTime.formatDatestampByMilliseconds())
+          }
         }
       },
       leadingContent = {
