@@ -37,7 +37,12 @@ class DWebFileChooser(
     )
     if (captureEnabled) {
       if (mimeTypes.startsWith("video/")) {
-        ioScope.launch { filePathCallback.onReceiveValue(captureVideo()) }
+        ioScope.launch {
+          val uriList = captureVideo()
+          withMainContext {
+            filePathCallback.onReceiveValue(uriList)
+          }
+        }
         return true
       } else if (mimeTypes.startsWith("image/")) {
         // filePathCallback.onReceiveValue 需要在主线程调用，否则会卡住，导致应用crash
@@ -49,7 +54,12 @@ class DWebFileChooser(
         }
         return true
       } else if (mimeTypes.startsWith("audio/")) {
-        ioScope.launch { filePathCallback.onReceiveValue(recordAudio()) }
+        ioScope.launch {
+          val uriList = recordAudio()
+          withMainContext {
+            filePathCallback.onReceiveValue(uriList)
+          }
+        }
         return true
       }
     }
@@ -58,14 +68,18 @@ class DWebFileChooser(
       try {
         if (fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE) {
           val uris = context.getMultipleContentsLauncher.launch(mimeTypes)
-          filePathCallback.onReceiveValue(uris.toTypedArray())
+          withMainContext {
+            filePathCallback.onReceiveValue(uris.toTypedArray())
+          }
         } else {
           context.getContentLauncher.launch(mimeTypes)?.let { uri ->
-            filePathCallback.onReceiveValue(arrayOf(uri))
-          } ?: filePathCallback.onReceiveValue(null)
+            withMainContext {
+              filePathCallback.onReceiveValue(arrayOf(uri))
+            }
+          } ?: withMainContext { filePathCallback.onReceiveValue(null) }
         }
       } catch (e: Exception) {
-        filePathCallback.onReceiveValue(null)
+        withMainContext { filePathCallback.onReceiveValue(null) }
       }
     }
     return true
