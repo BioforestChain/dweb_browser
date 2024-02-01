@@ -42,7 +42,6 @@ suspend fun main() {
             }
         }
     )
-    module.viewModel.dwebWebSocket.start()
     module.viewModel.whenSyncDataFromServerDone.await()
     onWasmReady {
         CanvasBasedWindow("Chat") {

@@ -1,4 +1,4 @@
-package org.dweb_browser.js_frontend.dweb_web_socket
+package org.dweb_browser.js_frontend.view_model
 
 
 import kotlinx.coroutines.CompletableDeferred
@@ -8,17 +8,15 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.w3c.dom.MessageEvent
 import org.w3c.dom.WebSocket
 import org.w3c.dom.events.Event
-import kotlin.js.JSON
 
 typealias OnOpenedCallback = (e: Event) -> Unit
 typealias OnErrorCallback = (e: Event) -> Unit
 typealias OnCloseCallback = (e: Event) -> Unit
 typealias OnSyncFromServerCallback = (key: String, value: String) -> Unit
 
-open class DwebWebSocket(
+open class ViewModelSocket(
     val url: String
 ){
     val scope = CoroutineScope(Dispatchers.Default)
