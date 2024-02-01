@@ -1,9 +1,12 @@
 package org.dweb_browser.browser.desk
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.removeWhen
+import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.helper.setDefaultFloatWindowBounds
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -75,5 +78,17 @@ class DesktopWindowsManager internal constructor(
       .removeWhen(viewBox.lifecycleScope)
 
   }
+
+  override fun windowToggleKeepBackground(
+    win: WindowController,
+    keepBackground: Boolean?
+  ): Deferred<Unit> =
+    /// 内部模块的设置，不允许修改
+    if (win.state.constants.owner.let {
+        it.endsWith(".browser.dweb") || it.endsWith(".std.dweb") || it.endsWith(".sys.dweb")
+      })
+      CompletableDeferred(Unit)
+    else
+      super.windowToggleKeepBackground(win, keepBackground)
 }
 

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.HelpCenter
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.LayersClear
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.LocationOff
 import androidx.compose.material.icons.outlined.Person
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.twotone.Gavel
 import androidx.compose.material.icons.twotone.HelpCenter
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.Language
+import androidx.compose.material.icons.twotone.Layers
 import androidx.compose.material.icons.twotone.LightMode
 import androidx.compose.material.icons.twotone.LocationOn
 import androidx.compose.material.icons.twotone.Person
@@ -87,7 +89,7 @@ fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
           selectedIconVector = Icons.TwoTone.PushPin,
           labelText = "置顶",
           selected = isAlwaysOnTop,
-        ) { win.toggleAlwaysOnTop() }
+        ) { win.toggleAlwaysOnTop(it) }
       }
       /// 窗口颜色偏好
       item {
@@ -106,13 +108,28 @@ fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
             WindowColorScheme.Dark -> Icons.TwoTone.DarkMode
           },
           labelText = when (colorScheme) {
-            WindowColorScheme.Normal -> "默认"
+            WindowColorScheme.Normal -> "默认配色"
             WindowColorScheme.Light -> "亮色"
             WindowColorScheme.Dark -> "深色"
           },
           selected = isCustomColorScheme,
         ) { win.toggleColorScheme() }
       }
+      item {
+        val keepBackground by win.watchedState { keepBackground }
+        WindowMenuItem(
+          iconVector = Icons.Outlined.LayersClear,
+          selectedIconVector = Icons.TwoTone.Layers,
+          labelText = when {
+            keepBackground -> "允许后台"
+            else -> "前台模式"
+          },
+          selected = keepBackground,
+        ) {
+          win.toggleKeepBackground(it)
+        }
+      }
+      @Suppress("ConstantConditionIf")
       if (true) return@LazyVerticalGrid // 下面功能暂时未完善，上架时有要求，暂时隐藏不具备的功能
       // 分享应用 ！
       item {

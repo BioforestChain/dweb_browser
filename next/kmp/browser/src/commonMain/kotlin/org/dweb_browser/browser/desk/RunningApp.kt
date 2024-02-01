@@ -34,7 +34,7 @@ class RunningApp(
   /**
    * 创建一个窗口
    */
-  private suspend fun createWindow(): WindowController {
+  private suspend fun createWindow(referenceState: WindowState? = null): WindowController {
     val manifest = ipc.remote
     // 打开安装窗口
     val newWin = windowAdapterManager.createWindow(
@@ -44,7 +44,13 @@ class RunningApp(
           ownerVersion = manifest.version,
           provider = manifest.mmid,
         )
-      )
+      ).apply {
+        if (referenceState != null) {
+          colorScheme = referenceState.colorScheme
+          alwaysOnTop = referenceState.alwaysOnTop
+          keepBackground = referenceState.keepBackground
+        }
+      }
     )
     windows.add(newWin)
     /// 窗口销毁的时候
@@ -81,13 +87,22 @@ class RunningApp(
     mainWin!!
   }
 
+  /**
+   * 最后一次窗口的state信息，在重新启动的新窗口的时候，用来参考、继承
+   */
+  private var latestWindowState: WindowState? = null
+
   private suspend fun warpCreateWindow() =
-    createWindow().also { win ->
+    createWindow(latestWindowState).also { win ->
+      latestWindowState = win.state
       win.onClose {
         if (mainWin == win) {
           mainWin = null
         }
-        bootstrapContext.dns.close(ipc.remote.mmid)
+        /// 如果不是允许后台运行，那么主窗口关闭后，也要直接关闭程序
+        if (!win.state.keepBackground) {
+          bootstrapContext.dns.close(ipc.remote.mmid)
+        }
       }
     }
 

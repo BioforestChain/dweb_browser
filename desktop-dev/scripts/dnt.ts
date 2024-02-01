@@ -193,6 +193,7 @@ export const doBuild = async (args = Deno.args, _version?: string) => {
           packageJson.devDependencies[name] = packageJson.dependencies[name];
           delete packageJson.dependencies[name];
         };
+        moveDepToDev("mica-electron");
         moveDepToDev("electron");
         moveDepToDev("lit");
       });

@@ -73,6 +73,7 @@ export const enum IPC_HANDLE_EVENT {
   Activity = "activity", // 激活应用程序时发出。各种操作都可以触发此事件，例如首次启动应用程序、在应用程序已运行时尝试重新启动该应用程序，或者单击应用程序的停靠栏或任务栏图标。
   Close = "close", // 关闭app
   Renderer = "renderer", // 窗口激活时发出，这里可以拿到应用的窗口句柄（wid）
+  RendererDestroy = "renderer-destroy", // 窗口激活时发出，这里可以拿到应用的窗口句柄（wid）
   Shortcut = "shortcut",// dinamic quick action
   // WindowAllClosed = "window-all-closed", // 关闭应用程序窗口
   // DidBecomeActive = "did-become-active", // 每次应用程序激活时都会发出，而不仅仅是在单击 Dock 图标或重新启动应用程序时发出。

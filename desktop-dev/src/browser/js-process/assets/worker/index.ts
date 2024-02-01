@@ -200,9 +200,12 @@ export class JsProcessMicroModule implements $MicroModule {
           if (ipcEvent.name === IPC_HANDLE_EVENT.Renderer) {
             return this._rendererSignal.emit(ipcEvent, ipc);
           }
+          if (ipcEvent.name === IPC_HANDLE_EVENT.RendererDestroy) {
+            return this._rendererDestroySignal.emit(ipcEvent, ipc);
+          }
           // quick action
           if (ipcEvent.name === IPC_HANDLE_EVENT.Shortcut) {
-            return this._shortcutSignal.emit(ipcEvent,ipc)
+            return this._shortcutSignal.emit(ipcEvent, ipc);
           }
 
           // 关闭
@@ -241,7 +244,9 @@ export class JsProcessMicroModule implements $MicroModule {
           const response = await ipc.request(
             $messageToIpcMessage(JSON.parse(ipcEvent.data as string), ipc) as IpcRequest
           );
-          this.fetchIpc.postMessage(IpcEvent.fromText(`forward/response/${mmid}`, JSON.stringify(response.ipcResMessage())));
+          this.fetchIpc.postMessage(
+            IpcEvent.fromText(`forward/response/${mmid}`, JSON.stringify(response.ipcResMessage()))
+          );
         } else if (action === "close") {
           ipc.close();
         }
@@ -324,6 +329,10 @@ export class JsProcessMicroModule implements $MicroModule {
   private _rendererSignal = createSignal<$OnIpcEventMessage>(false);
   onRenderer(cb: $OnIpcEventMessage) {
     return this._rendererSignal.listen(cb);
+  }
+  private _rendererDestroySignal = createSignal<$OnIpcEventMessage>(false);
+  onRendererDestroy(cb: $OnIpcEventMessage) {
+    return this._rendererDestroySignal.listen(cb);
   }
 
   onRequest(request: $OnIpcRequestMessage) {

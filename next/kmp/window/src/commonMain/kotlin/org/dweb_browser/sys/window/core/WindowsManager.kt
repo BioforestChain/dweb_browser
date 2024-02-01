@@ -49,7 +49,8 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
     get() {
       /// 从最顶层的窗口往下遍历
       fun findInWinList(winList: List<T>): T? {
-        for (win in winList.toMutableList().asReversed()) { // 增加 toMutableList 是为了避免 winList数据变化引起的 for 异常
+        for (win in winList.toMutableList()
+          .asReversed()) { // 增加 toMutableList 是为了避免 winList数据变化引起的 for 异常
           if (win.isFocused()) {
             /// 如果发现之前赋值过，这时候需要将之前的窗口给blur掉
             return win
@@ -123,6 +124,7 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
 
     /// 第一次装载窗口，默认将它聚焦到最顶层
     if (autoFocus) {
+      @Suppress("DeferredResultUnused")
       focusWindow(win) // void job
     }
   }
@@ -257,7 +259,7 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
     reOrderZIndex()
   }
 
-  private fun <T : WindowController, R> winLifecycleScopeAsync(
+  protected fun <T : WindowController, R> winLifecycleScopeAsync(
     @Suppress("UNUSED_PARAMETER") win: T, block: suspend CoroutineScope.() -> R
   ) = viewBox.lifecycleScope.async {
     // TODO 检测 win 的所属权
@@ -370,34 +372,39 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
   fun windowSetStyle(
     win: WindowController,
     style: WindowStyle,
-  ) = viewBox.lifecycleScope.async {
+  ) = winLifecycleScopeAsync(win) {
     win.simpleSetStyle(style)
   }
 
-  fun windowEmitGoBack(win: WindowController) = viewBox.lifecycleScope.async {
+  fun windowEmitGoBack(win: WindowController) = winLifecycleScopeAsync(win) {
     win.simpleEmitGoBack()
   }
 
-  fun windowEmitGoForward(win: WindowController) = viewBox.lifecycleScope.async {
+  fun windowEmitGoForward(win: WindowController) = winLifecycleScopeAsync(win) {
     win.simpleEmitGoForward()
   }
 
-  fun windowHideCloseTip(win: WindowController) = viewBox.lifecycleScope.async {
+  fun windowHideCloseTip(win: WindowController) = winLifecycleScopeAsync(win) {
     win.simpleHideCloseTip()
   }
 
   fun windowToggleMenuPanel(win: WindowController, show: Boolean?) =
-    viewBox.lifecycleScope.async {
+    winLifecycleScopeAsync(win) {
       win.simpleToggleMenuPanel(show)
     }
 
   fun windowToggleAlwaysOnTop(win: WindowController, onTop: Boolean?) =
-    viewBox.lifecycleScope.async {
+    winLifecycleScopeAsync(win) {
       win.simpleToggleAlwaysOnTop(onTop)
     }
 
+  open fun windowToggleKeepBackground(win: WindowController, keepBackground: Boolean?) =
+    winLifecycleScopeAsync(win) {
+      win.simpleToggleKeepBackground(keepBackground)
+    }
+
   fun windowToggleColorScheme(win: WindowController, colorScheme: WindowColorScheme?) =
-    viewBox.lifecycleScope.async {
+    winLifecycleScopeAsync(win) {
       win.simpleToggleColorScheme(colorScheme)
     }
 }

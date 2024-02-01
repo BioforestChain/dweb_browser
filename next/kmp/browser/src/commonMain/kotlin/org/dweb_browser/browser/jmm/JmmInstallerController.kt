@@ -12,6 +12,9 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
+import org.dweb_browser.sys.window.ext.createBottomSheets
+import org.dweb_browser.sys.window.ext.getMainWindowId
+import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
 internal val LocalShowWebViewVersion = compositionChainOf("ShowWebViewVersion") {
   mutableStateOf(false)

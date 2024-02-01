@@ -22,7 +22,7 @@ const INTERNAL_PREFIX = "/internal/";
 
 /**给前端的api服务 */
 export class Server_api extends HttpServer {
-  constructor(public widPo: PromiseOut<string>, private handlers: $OnFetch[] = []) {
+  constructor(public getWid: ()=>Promise<string>, private handlers: $OnFetch[] = []) {
     super();
   }
   protected _getOptions(): $DwebHttpServerOptions {
@@ -57,7 +57,7 @@ export class Server_api extends HttpServer {
       if (pathname === "/restart") {
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
         setTimeout(async () => {
-          const winId = await this.widPo.promise;
+          const winId = await this.getWid();
           console.log("关闭窗口", winId);
           close_window(winId);
           jsProcess.restart();
@@ -86,7 +86,7 @@ export class Server_api extends HttpServer {
     const pathname = event.pathname.slice(INTERNAL_PREFIX.length);
     // 返回窗口的操作id给前端
     if (pathname === "window-info") {
-      return Response.json({ wid: await this.widPo.promise });
+      return Response.json({ wid: await this.getWid() });
     }
     if (pathname === "callback") {
       const id = event.searchParams.get("id");

@@ -237,6 +237,11 @@ class WindowState(
   var alwaysOnTop by WindowPropertyField.AlwaysOnTop.toObserve(observable)
 
   /**
+   * 是否在窗口都关闭后，仍然保持在后台运行
+   */
+  var keepBackground by WindowPropertyField.KeepBackground.toObserve(observable)
+
+  /**
    * 当前窗口所属的桌面 编号
    * 目前有 0 和 1 两个桌面,其中 0 为 taskbar 中的 toogleDesktopButton 开关所代表的 “临时桌面”。
    * 目前,点击 toogleDesktopButton 的效果就是将目前打开的窗口都收纳入“临时桌面”;

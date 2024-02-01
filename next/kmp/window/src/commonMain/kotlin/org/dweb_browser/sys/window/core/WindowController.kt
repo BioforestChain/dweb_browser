@@ -99,7 +99,14 @@ abstract class WindowController(
 
   val focusRequester = FocusRequester().also { focusRequester ->
     onFocus {
-      focusRequester.requestFocus()
+      try {
+        focusRequester.requestFocus()
+      } catch (e: Throwable) {
+        // ignore FocusRequesterNotInitialized error
+        if (e.message?.contains("FocusRequester is not initialized") != true) {
+          throw e
+        }
+      }
     }
   }
 
@@ -352,6 +359,18 @@ abstract class WindowController(
   suspend fun disableAlwaysOnTop() = toggleAlwaysOnTop(false)
 
   suspend fun enableAlwaysOnTop() = toggleAlwaysOnTop(true)
+
+  internal open suspend fun simpleToggleKeepBackground(keepBackground: Boolean? = null) {
+    state.keepBackground = keepBackground ?: !state.keepBackground
+  }
+
+  suspend fun toggleKeepBackground(keepBackground: Boolean? = null) =
+    managerRunOr({ it.windowToggleKeepBackground(this, keepBackground) },
+      { simpleToggleKeepBackground(keepBackground) })
+
+  suspend fun disableKeepBackground() = toggleKeepBackground(false)
+
+  suspend fun enableKeepBackground() = toggleKeepBackground(true)
 
   internal open suspend fun simpleToggleColorScheme(colorScheme: WindowColorScheme? = null) {
     state.colorScheme = colorScheme ?: state.colorScheme.next()

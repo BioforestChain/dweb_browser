@@ -38,14 +38,14 @@ fun WindowMenuItem(
   selected: Boolean = false,
   selectedIconVector: ImageVector = iconVector,
   enabled: Boolean = true,
-  onClick: suspend () -> Unit = {}
+  onSelectedChange: suspend (Boolean) -> Unit = {}
 ) {
   val scope = rememberCoroutineScope()
   val winTheme = LocalWindowControllerTheme.current
 
   Column(horizontalAlignment = Alignment.CenterHorizontally) {
     val onCheckedChange: (Boolean) -> Unit = {
-      scope.launch { onClick() }
+      scope.launch { onSelectedChange(it) }
     }
     val content = @Composable {
       Icon(

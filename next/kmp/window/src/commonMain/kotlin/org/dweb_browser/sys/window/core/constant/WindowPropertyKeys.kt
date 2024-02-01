@@ -22,6 +22,7 @@ enum class WindowPropertyKeys(val fieldName: String) {
   FlashColor("flashColor"),
   ProgressBar("progressBar"),
   AlwaysOnTop("alwaysOnTop"),
+  KeepBackground("keepBackground"),
   DesktopIndex("desktopIndex"),
   ScreenId("screenId"),
   TopBarOverlay("topBarOverlay"),

@@ -7,6 +7,7 @@ import org.dweb_browser.browser.jmm.ui.ManagerViewRender
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.ext.getMainWindow
 
 /**
  * JS 模块安装 的 控制器

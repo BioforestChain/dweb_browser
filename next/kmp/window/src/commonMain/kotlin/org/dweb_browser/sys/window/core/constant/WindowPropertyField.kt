@@ -97,6 +97,7 @@ open class WindowPropertyField<T : Any> private constructor(
     val FlashColor = required(WindowPropertyKeys.FlashColor, Color.White.toHex(true))
     val ProgressBar = required(WindowPropertyKeys.ProgressBar, -1f)
     val AlwaysOnTop = required(WindowPropertyKeys.AlwaysOnTop, false)
+    val KeepBackground = required(WindowPropertyKeys.KeepBackground, false)
     val DesktopIndex = required(WindowPropertyKeys.DesktopIndex, 1)
     val ScreenId = required(WindowPropertyKeys.ScreenId, -1)
     val TopBarOverlay = required(WindowPropertyKeys.TopBarOverlay, false)
