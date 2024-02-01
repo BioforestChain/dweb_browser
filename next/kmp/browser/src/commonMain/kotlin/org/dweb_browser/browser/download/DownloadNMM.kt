@@ -79,7 +79,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       // 监控下载进度
       "/watch/progress" byChannel { ctx ->
         val taskId = request.query("taskId")
-        val downloadTask = controller.downloadTaskMaps.get(taskId)
+        val downloadTask = controller.downloadTaskMaps[taskId]
           ?: return@byChannel close(Throwable("not Found download task!"))
         debugDownload("/watch/progress", "taskId=$taskId")
         // 给别人的需要给picker地址

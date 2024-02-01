@@ -46,7 +46,7 @@ import org.dweb_browser.helper.toSpaceSize
 internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
   val jmmInstallerController = LocalJmmInstallerController.current
-  val (jmmState, canSupportTarget) = with(jmmInstallerController.jmmHistoryMetadata) {
+  val (jmmState, canSupportTarget) = with(jmmInstallerController.installMetadata) {
     Pair(state, metadata.canSupportTarget(JsMicroModule.VERSION))
   }
 
@@ -99,12 +99,12 @@ internal fun BoxScope.BottomDownloadButton() {
               jmmInstallerController.createAndStartDownload()
             }
 
-            JmmStatus.Downloading -> {
-              jmmInstallerController.pauseDownload()
-            }
-
             JmmStatus.Paused -> {
               jmmInstallerController.startDownload()
+            }
+
+            JmmStatus.Downloading -> {
+              jmmInstallerController.pause()
             }
 
             JmmStatus.Completed -> {}

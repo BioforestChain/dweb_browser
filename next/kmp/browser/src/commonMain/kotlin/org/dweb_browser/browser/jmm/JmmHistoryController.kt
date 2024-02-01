@@ -70,18 +70,17 @@ class JmmHistoryController(
         jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${historyMetadata.metadata.id}")
       }
 
+      JmmStatus.Paused -> {
+        jmmController.startDownloadTask(historyMetadata)
+      }
+
       JmmStatus.Downloading -> {
         jmmController.pause(historyMetadata.taskId)
       }
 
-      JmmStatus.Paused -> {
-        jmmController.start(historyMetadata)
-      }
-
-      JmmStatus.Completed, JmmStatus.Canceled -> {}
+      JmmStatus.Completed -> {}
       else -> {
-        jmmController.createDownloadTask(historyMetadata)
-        jmmController.start(historyMetadata)
+        jmmController.createAndStartDownloadTask(historyMetadata)
       }
     }
   }

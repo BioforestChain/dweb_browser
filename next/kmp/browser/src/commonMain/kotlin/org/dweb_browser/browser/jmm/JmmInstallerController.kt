@@ -11,7 +11,6 @@ import org.dweb_browser.browser.jmm.ui.Render
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.compose.compositionChainOf
-import org.dweb_browser.helper.debounce
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 
 internal val LocalShowWebViewVersion = compositionChainOf("ShowWebViewVersion") {
@@ -30,7 +29,7 @@ class JmmInstallerController(
   private val jmmController: JmmController,
   private val openFromHistory: Boolean,
 ) {
-  var jmmHistoryMetadata by ObservableMutableState(initJmmHistoryMetadata) {}
+  var installMetadata by ObservableMutableState(initJmmHistoryMetadata) {}
     internal set
 
   private var viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
@@ -66,48 +65,31 @@ class JmmInstallerController(
     val bottomSheets = getView()
     bottomSheets.open()
     bottomSheets.onClose {
-      /// TODO 如果应用正在下载，则显示 toast 应用正在安装中
     }
   }
 
   suspend fun openApp() {
-    jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${jmmHistoryMetadata.metadata.id}")
+    jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${installMetadata.metadata.id}")
     closeSelf() // 打开应用后，需要关闭当前安装界面
   }
 
   // 关闭原来的app
   suspend fun closeApp() {
-    jmmNMM.nativeFetch("file://desk.browser.dweb/closeApp?app_id=${jmmHistoryMetadata.metadata.id}")
+    jmmNMM.nativeFetch("file://desk.browser.dweb/closeApp?app_id=${installMetadata.metadata.id}")
   }
 
   /**
    * 创建任务，如果存在则恢复
    */
-  suspend fun createAndStartDownload() = debounce(
-    scope = jmmNMM.ioAsyncScope,
-    action = {
-      // todo 这里在加载的过程中可以先给一个loading效果
-      debugJMM("download/create", jmmHistoryMetadata)
-      if (jmmHistoryMetadata.taskId == null ||
-        (jmmHistoryMetadata.state.state != JmmStatus.INSTALLED &&
-            jmmHistoryMetadata.state.state != JmmStatus.Completed)
-      ) {
-        jmmController.createDownloadTask(jmmHistoryMetadata)
-      }
-      // 已经注册完监听了，开始
-      jmmController.start(jmmHistoryMetadata)
-    }
-  )
+  suspend fun createAndStartDownload() = jmmController.createAndStartDownloadTask(installMetadata)
 
-  suspend fun startDownload() = jmmController.start(jmmHistoryMetadata)
+  suspend fun startDownload() = jmmController.startDownloadTask(installMetadata)
 
-  suspend fun pauseDownload() = jmmController.pause(jmmHistoryMetadata.taskId)
+  suspend fun pause() = jmmController.pause(installMetadata.taskId)
 
-  suspend fun cancel() = jmmController.cancel(jmmHistoryMetadata.taskId)
+  suspend fun cancel() = jmmController.cancel(installMetadata.taskId)
 
-  suspend fun exists() = jmmController.exists(jmmHistoryMetadata.taskId)
+  suspend fun exists() = jmmController.exists(installMetadata.taskId)
 
-  suspend fun closeSelf() {
-    jmmNMM.getOrOpenMainWindow().closeRoot()
-  }
+  suspend fun closeSelf() { jmmNMM.getOrOpenMainWindow().closeRoot() }
 }

@@ -173,6 +173,8 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "安装失败", Language.EN to "Installed Fail")
   val toast_message_download_download_fail =
     SimpleI18nResource(Language.ZH to "下载失败", Language.EN to "Download Fail")
+  val toast_message_download_downloading =
+    SimpleI18nResource(Language.ZH to "正在下载中...", Language.EN to "Downloading...")
 
 
   val jmm_short_name =

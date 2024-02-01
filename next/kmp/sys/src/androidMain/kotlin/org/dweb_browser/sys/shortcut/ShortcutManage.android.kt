@@ -36,6 +36,8 @@ actual class ShortcutManage {
       build.setShortLabel(shortcutItem.title)
       shortcutItem.icon?.let { icon ->
         build.setIcon(IconCompat.createWithBitmap(icon.toAndroidBitmap()))
+      } ?: run {
+        build.setIcon(IconCompat.createWithResource(context, R.drawable.ic_launcher_foreground))
       }
       build.setIntent(Intent().apply {
         action = Intent.ACTION_VIEW

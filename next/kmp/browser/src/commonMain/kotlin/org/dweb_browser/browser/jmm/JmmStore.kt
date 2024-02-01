@@ -87,6 +87,9 @@ data class JmmHistoryMetadata(
   var state by ObservableMutableState(_state) { _state = it }
   var metadata by ObservableMutableState(_metadata) { _metadata = it }
 
+  @Transient
+  var pauseFlag = false // 为了保证是被用户暂停，还是应用强制退出后，导致的暂停
+
   suspend fun updateByDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
     state = state.copy(
       current = downloadTask.status.current,
