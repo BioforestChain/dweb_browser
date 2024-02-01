@@ -1,10 +1,9 @@
 package org.dweb_browser.js_backend.browser_window
 
-import electron.BrowserWindowConstructorOptions
-import org.dweb_browser.js_backend.http.HttpServer
 import org.dweb_browser.js_backend.view_model.BaseViewModel
 import org.dweb_browser.js_backend.view_model_state.ViewModelMutableMap
-import org.dweb_browser.js_backend.browser_window.ElectronBrowserWindowController
+import org.dweb_browser.js_backend.view_model.DecodeValueFromString
+import org.dweb_browser.js_backend.view_model.EncodeValueToString
 
 
 /**
@@ -28,22 +27,21 @@ interface IElectronBrowserWindowModule{
 
 class ElectronBrowserWindowModule(
     override val subDomain: String, /* example: demo.compose.app */
-    // 编码value的方法
-    val valueEncodeToString: (key:dynamic,value: dynamic) -> String,
-    // 解码value的方法
-    val valueDecodeFromString: (key: dynamic, value: String) -> dynamic,
+    val encodeValueToString: EncodeValueToString,
+    val decodeValueFromString: DecodeValueFromString,
     initVieModelMutableMap: ViewModelMutableMap
 ) : IElectronBrowserWindowModule{
     override val controller: ElectronBrowserWindowController = ElectronBrowserWindowController.create(subDomain)
     override val viewModel: BaseViewModel = BaseViewModel(
         subDomain = subDomain,
-        valueEncodeToString = valueEncodeToString,
-        valueDecodeFromString = valueDecodeFromString,
+        encodeValueToString = encodeValueToString,
+        decodeValueFromString = decodeValueFromString,
         initVieModelMutableMap = initVieModelMutableMap
     )
     init {
-        viewModel.onUpdateByClient{key: dynamic, value: dynamic ->
-            console.error("server received data from client ", value)
+        viewModel.onUpdateByClient{key: String, value: dynamic ->
+            console.error("server received data from client key: value", key, ":", value)
+
 //            viewModel[key] = value + 1
         }
         controller.open(ElectronBrowserWindowController.createBrowserWindowOptions().apply {

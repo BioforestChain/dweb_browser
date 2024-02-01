@@ -23,7 +23,7 @@ fun main() {
   )
   ElectronBrowserWindowModule(
     subDomain = "demo.compose.app",
-    valueEncodeToString = {key: dynamic, value: dynamic ->
+    encodeValueToString = {key: dynamic, value: dynamic ->
       val str = when(key.toString()){
         "currentCount" -> "10"
         else -> Json.encodeToString<ArrayList<Person>>(value)
@@ -31,7 +31,7 @@ fun main() {
 
       str
     },
-    valueDecodeFromString = { key: dynamic, value: String ->
+    decodeValueFromString = { key: dynamic, value: String ->
       when(key){
         "currentCount" -> value.toInt()
         else -> Json.decodeFromString<ArrayList<Person>>(value)

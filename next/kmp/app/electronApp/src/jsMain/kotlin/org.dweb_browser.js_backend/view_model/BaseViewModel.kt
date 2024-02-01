@@ -30,10 +30,8 @@ import org.dweb_browser.js_backend.ws.WS
  */
 open class BaseViewModel(
     val subDomain: String,
-    // 编码value的方法
-    val valueEncodeToString: (key:dynamic,value: dynamic) -> String,
-    // 解码value的方法
-    val valueDecodeFromString: (key: dynamic, value: String) -> dynamic,
+    val encodeValueToString: EncodeValueToString,
+    val decodeValueFromString: DecodeValueFromString,
     initVieModelMutableMap: ViewModelMutableMap
 ) {
     val scope = CoroutineScope(Dispatchers.Unconfined)
@@ -56,9 +54,14 @@ open class BaseViewModel(
 
             if(currentSubDomain == subDomain){
                 console.log("给 $subDomain 模块创建了socket")
-                ViewModelSocket(socket, req.headers["sec-websocket-key"] as String, valueEncodeToString, valueDecodeFromString, ).apply {
-                    onData {
-                        viewModelState.set(it[0], it[1], ViewModelStateRole.CLIENT)
+                ViewModelSocket(
+                    socket, 
+                    req.headers["sec-websocket-key"].toString(), 
+                    encodeValueToString =  encodeValueToString, 
+                    decodeValueFromString = decodeValueFromString
+                ).apply {
+                    onData { key: String, value: dynamic ->
+                        viewModelState.set(key,value, ViewModelStateRole.CLIENT)
                     }
                     sockets.add(this)
                     onClose { console.log("删除了 ViewModelSocket");sockets.remove(this) }

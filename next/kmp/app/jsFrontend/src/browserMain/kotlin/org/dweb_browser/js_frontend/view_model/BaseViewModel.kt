@@ -11,13 +11,13 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 typealias HandleMessageDataList = (arr: dynamic) -> Unit
+typealias EncodeValueToString = (key: String, value: dynamic) -> String
+typealias DecodeValueFromString = (key: String, value: String) -> dynamic
 
 open class BaseViewModel(
     val state: ViewModelState,
-    // 编码value的方法
-    val valueEncodeToString: (key: dynamic, value: dynamic) -> String,
-    // 解码value的方法
-    val valueDecodeFromString: (key: dynamic, value: String) -> dynamic,
+    val encodeValueToString: EncodeValueToString,/**编码value的方法*/
+    val decodeValueFromString: DecodeValueFromString,/**解码value的方法*/
 ) {
     val dwebWebSocket = DwebWebSocket("ws://${window.location.host}")
     private val handleMessageDataList = mutableListOf<HandleMessageDataList>()
@@ -34,7 +34,7 @@ open class BaseViewModel(
             val key = syncData.key
             val value = when(key){
                 "syncDataToUiState" -> syncData.value
-                else -> valueDecodeFromString(key, syncData.value)
+                else -> decodeValueFromString(key, syncData.value)
             }
             handleMessageDataList.forEach { cb -> cb(arrayOf(key, value)) }
         }
@@ -56,7 +56,7 @@ open class BaseViewModel(
      * 同步数据到 Server
      */
     fun syncStateToServer(key: dynamic, value: dynamic){
-        val valueString = valueEncodeToString(key, value)
+        val valueString = encodeValueToString(key, value)
         val syncData = SyncData(key.toString(), valueString)
         val jsonSyncData = Json.encodeToString<SyncData>(syncData)
         dwebWebSocket.send(jsonSyncData)

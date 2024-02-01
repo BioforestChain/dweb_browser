@@ -27,14 +27,14 @@ suspend fun main() {
     // 在 main() 里面声明的类不会有
     val module = ElectronBrowserWindowModule(
         moduleId =  "js.backend.dweb",
-        valueEncodeToString = {key: dynamic, value: dynamic ->
+        encodeValueToString = {key: String, value: dynamic ->
             val str = when(key.toString()){
                 "currentCount" -> "10"
                 else -> Json.encodeToString<ArrayList<Person>>(value)
             }
             str
         },
-        valueDecodeFromString = {key: dynamic, value: String ->
+        decodeValueFromString = {key: String, value: String ->
             console.log("value: ", value)
             when(key){
                 "currentCount" -> value.toInt()

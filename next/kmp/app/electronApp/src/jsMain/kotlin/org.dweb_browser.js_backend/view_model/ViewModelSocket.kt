@@ -24,19 +24,22 @@ import kotlinx.serialization.json.Json
  * - arr[0] 是被改变状态的key
  * - arr[1] 是被改变状态的value
  */
-typealias OnDataCallback = (arg: Array<dynamic>) -> Unit
+typealias OnDataCallback = (key: String, value: dynamic) -> Unit
 typealias OnConnectCallback = () -> Unit
 typealias OnCloseCallback = (hadError: Boolean) -> Unit
 typealias OnEndCallback = () -> Unit
 typealias OnErrorCallback = (err: Throwable) -> Unit
+typealias EncodeValueToString = (key: String, value: dynamic) -> String
+typealias DecodeValueFromString = (key: String, value: String) -> dynamic
 
+/**
+ * 提供前后端同步的功能
+ */
 class ViewModelSocket(
     val socket: Socket,
-    secWebsocketKey: String,
-    // 编码value的方法
-    val valueEncodeToString: (key: dynamic, value: dynamic) -> String,
-    // 解码value的方法
-    val valueDecodeFromString: (key: dynamic, value: String) -> dynamic,
+    val secWebsocketKey: String,
+    val encodeValueToString: EncodeValueToString, /**编码value的方法*/
+    val decodeValueFromString: DecodeValueFromString, /** 解码value的方法*/
 ){
     val scope = CoroutineScope(Dispatchers.Default)
     // 不要把_onDataCBList等变量移动到init的后面
@@ -60,10 +63,8 @@ class ViewModelSocket(
             _realDataFlow.collect{
                 _onDataCBList.forEach { cb ->
                     val syncData = Json.decodeFromString<SyncData>(it)
-                    val value = valueDecodeFromString(syncData.key, syncData.value)
-                    console.log("接收到了同步的数据 key,value: ", syncData.key, value)
-                    console.error("需要处理但是还没有处理")
-                    cb(arrayOf(syncData.key, syncData.value))
+                    val value = decodeValueFromString(syncData.key, syncData.value)
+                    cb(syncData.key, value)
                 }
             }
         }
@@ -153,12 +154,10 @@ class ViewModelSocket(
     fun write(key: dynamic, value: dynamic): Unit{
         val valueString = when(key){
             "syncDataToUiState" -> value
-            else -> valueEncodeToString(key, value)
+            else -> encodeValueToString(key, value)
         }
-        console.log("valueString: ", valueString)
         val syncData = SyncData(key.toString(), valueString)
         val jsonString = Json.encodeToString<SyncData>(syncData)
-        console.error("write jsonString", jsonString)
         socket.write(_encodeDataFrame(jsonString))
     }
 }
