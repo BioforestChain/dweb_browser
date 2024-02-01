@@ -56,14 +56,23 @@ struct TabPageView: View {
                                 animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                             }
                         } else {
+//                            if colorScheme == .dark {
+//                                UIApplication.shared.windows.first?.overrideUserInterfaceStyle = .dark // 或者 .light
+//                            }else{
+//                                UIApplication.shared.windows.first?.overrideUserInterfaceStyle = .light // 或者 .light
+//                            }
+                            
+
                             let toSnapView = content
                                 .environment(\.colorScheme, colorScheme)
                                 .frame(width: geo.size.width, height: geo.size.height)
+
                             let render = ImageRenderer(content: toSnapView)
                             render.scale = UIScreen.main.scale
+                            let image = render.uiImage
 
                             let defSnapshotImage = colorScheme == .light ? lightSnapshotImage : darkSnapshotImage
-                            animation.snapshotImage = render.uiImage ?? defSnapshotImage
+                            animation.snapshotImage = image ?? defSnapshotImage
 
                             if colorScheme == .light {
                                 lightSnapshotImage = animation.snapshotImage
