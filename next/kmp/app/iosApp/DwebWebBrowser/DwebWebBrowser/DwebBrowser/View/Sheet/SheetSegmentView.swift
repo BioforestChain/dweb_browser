@@ -20,7 +20,7 @@ struct SheetSegmentView: View {
     @State private var selectedCategory = SheetCategory.bookmark
     
     var categoryList: [SheetCategory] {
-        webCache.shouldShowWeb ? [.menu, .bookmark, .history] : [.bookmark, .history]
+        webCache.isWebVisible ? [.menu, .bookmark, .history] : [.bookmark, .history]
     }
     var body: some View {
         VStack {

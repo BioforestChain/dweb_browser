@@ -9,49 +9,38 @@ import Combine
 import Foundation
 import SwiftUI
 import UIKit
+import Observation
 
-// 打开新页面时
-class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
-    enum CodingKeys: String, CodingKey {
-        case id
-        case webIconUrl
-        case lastVisitedUrl
-        case title
-        case snapshotUrl
-    }
-    
+@Observable
+class WebCache: Identifiable, Hashable, Codable, Equatable {
+
     var id = UUID()
-    private var cancellables = Set<AnyCancellable>()
-    var snapshotCancellable: AnyCancellable?
-    let snapshotImageChangedPublisher = PassthroughSubject<Void, Never>()
-
-    @Published var webIconUrl: URL // url to the source of somewhere in internet
-    @Published var lastVisitedUrl: URL // the website that user has opened on webview
-    @Published var shouldShowWeb: Bool
-
-    @Published var title: String // page title
-    @Published var snapshotImage = lightSnapshotImage
-    @Published var snapshotUrl: URL // local file path is direct to the image has saved in document dir
+    var webIconUrl: URL // url to the source of somewhere in internet
+    var lastVisitedUrl: URL
+    var title: String // page title
+    var snapshotImage = lightSnapshotImage {
+        didSet{
+            snapshotChangedHandler()
+        }
+    }
+    var snapshotUrl: URL // local file path is direct to the image has saved in document dir
     {
         didSet {
             snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
-            snapshotImageChangedPublisher.send()
         }
     }
-    
+    var snapshotChangedHandler: () -> Void = {}
+    var isWebVisible: Bool { lastVisitedUrl != emptyURL }
+
     init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = emptyURL, title: String = "起始页", snapshotUrl: URL = URL.defaultSnapshotURL) {
-        shouldShowWeb = false
         webIconUrl = icon
         self.lastVisitedUrl = lastVisitedUrl
         self.title = title
         self.snapshotUrl = snapshotUrl
         snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
-        observeUrl()
-        snapshotCancellable = snapshotImageChangedPublisher.sink {}
     }
     
     required init(from decoder: Decoder) throws {
-        shouldShowWeb = false
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         webIconUrl = try container.decodeIfPresent(URL.self, forKey: .webIconUrl) ?? URL.defaultWebIconURL
@@ -59,12 +48,6 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
         title = try container.decode(String.self, forKey: .title)
         snapshotUrl = try container.decodeIfPresent(URL.self, forKey: .snapshotUrl) ?? URL.defaultSnapshotURL
         snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
-        observeUrl()
-        snapshotCancellable = snapshotImageChangedPublisher.sink {}
-    }
-    
-    deinit {
-        snapshotCancellable?.cancel()
     }
     
     func encode(to encoder: Encoder) throws {
@@ -96,36 +79,28 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
         WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "apple")
     }
     
-    func isBlank() -> Bool {
-        return lastVisitedUrl == emptyURL
-    }
-    
-    private func observeUrl() {
-        $lastVisitedUrl
-            .map { $0 != emptyURL }
-            .sink(receiveValue: { [weak self] isAvailable in
-                self?.shouldShowWeb = isAvailable
-            })
-            .store(in: &cancellables)
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case webIconUrl
+        case lastVisitedUrl
+        case title
+        case snapshotUrl
     }
 }
 
 class WebCacheStore: ObservableObject {
     private let userdefaultKey = "userdefaultWebCache"
-    @Published var caches: [WebCache] = []
+    @Published var caches: [WebCache] = []{
+        didSet{
+            saveCaches()
+        }
+    }
     @Published var webWrappers: [WebWrapper] = []
 
     var cancellables = Set<AnyCancellable>()
     init() {
         loadCaches()
-        caches.forEach { webCache in
-            webCache.snapshotImageChangedPublisher
-                .dropFirst()
-                .sink { [weak self] _ in
-                    self?.saveCaches()
-                }
-                .store(in: &cancellables)
-        }
         
         $caches.sink { [weak self] webCaches in
                 Log("caches titles \(webCaches.map { $0.title })")
@@ -140,13 +115,7 @@ class WebCacheStore: ObservableObject {
     
     func createOne() {
         let cache = WebCache()
-        cache.snapshotImageChangedPublisher
-            .dropFirst()
-            .sink { [weak self] _ in
-                self?.saveCaches()
-            }
-            .store(in: &cancellables)
-        
+        cache.snapshotChangedHandler = saveCaches
         caches.append(cache)
         saveCaches()
     }
@@ -207,12 +176,12 @@ class WebCacheStore: ObservableObject {
             }
         }
         return image
-        
     }
     
     private func loadCaches() {
         if let data = UserDefaults.standard.data(forKey: userdefaultKey) {
             if let items = try? JSONDecoder().decode([WebCache].self, from: data) {
+                let _ = items.map({ $0.snapshotChangedHandler = saveCaches })
                 caches = items
             }
         }

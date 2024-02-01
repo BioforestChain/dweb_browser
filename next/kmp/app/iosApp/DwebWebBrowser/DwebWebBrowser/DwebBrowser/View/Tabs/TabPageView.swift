@@ -22,6 +22,7 @@ struct TabPageView: View {
     @ObservedObject var webWrapper: WebWrapper
     let isVisible: Bool
     var doneLoading: (WebCache) -> Void
+    @State var shouldShowWeb = false
 
     var body: some View {
         GeometryReader { geo in
@@ -30,11 +31,9 @@ struct TabPageView: View {
                     guard link != emptyURL else { return }
                     if isVisible {
                         webCache.lastVisitedUrl = link
-                        if webCache.shouldShowWeb {
+                        if webCache.isWebVisible {
                             webWrapper.webMonitor.isLoadingDone = false
                             webWrapper.webView.load(URLRequest(url: link))
-                        } else {
-                            webCache.shouldShowWeb = true
                         }
                         openingLink.clickedLink = emptyURL
                         print("clickedLink has changed at index: \(link)")
@@ -44,7 +43,7 @@ struct TabPageView: View {
                 .onChange(of: toolbarState.shouldExpand) { _, shouldExpand in
                     if isVisible, !shouldExpand { // 截图，为缩小动画做准备
                         animation.snapshotImage = UIImage.snapshotImage(from: .defaultSnapshotURL)
-                        if webCache.shouldShowWeb {
+                        if webCache.isWebVisible {
                             webWrapper.webView.scrollView.showsVerticalScrollIndicator = false
                             webWrapper.webView.scrollView.showsHorizontalScrollIndicator = false
                             webWrapper.webView.takeSnapshot(with: nil) { image, _ in
@@ -81,13 +80,16 @@ struct TabPageView: View {
     }
 
     var content: some View {
-        Group {
-            if webCache.shouldShowWeb {
+        return Group {
+            if shouldShowWeb {
                 webComponent
             } else {
                 BlankTabView()
                     .opacity(addressBar.isFocused ? 0 : 1)
             }
+        }
+        .onChange(of: webCache.lastVisitedUrl, initial: true) { oldValue, newValue in
+            shouldShowWeb = webCache.lastVisitedUrl != emptyURL
         }
     }
 

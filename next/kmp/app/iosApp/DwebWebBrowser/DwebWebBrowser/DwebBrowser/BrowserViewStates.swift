@@ -47,8 +47,8 @@ extension BrowserViewStates {
             return true
         } else {
             guard webcacheStore.caches.count > 0 else { return false }
-            let shouldShowWeb = webcacheStore.cache(at: index).shouldShowWeb
-            guard shouldShowWeb else { return false }
+            let isWebVisible = webcacheStore.cache(at: index).isWebVisible
+            guard isWebVisible else { return false }
             let webwrapper = webcacheStore.webWrappers[index]
             if webwrapper.webView.canGoBack {
                 webwrapper.webView.goBack()

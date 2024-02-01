@@ -47,8 +47,6 @@ struct TabGridView: View {
     }
 
     var body: some View {
-//        @Bindable var seletecdTab = seletecdTab
-
         GeometryReader { geo in
             ScrollViewReader { scrollproxy in
                 ScrollView {

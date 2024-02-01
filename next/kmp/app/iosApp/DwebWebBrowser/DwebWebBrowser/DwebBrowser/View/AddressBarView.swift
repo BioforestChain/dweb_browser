@@ -12,7 +12,7 @@ struct AddressBar: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var dragScale: WndDragScale
-    @ObservedObject var webCache: WebCache
+    var webCache: WebCache
     @ObservedObject var webMonitor: WebMonitor
     let tabIndex: Int
     let isVisible: Bool
@@ -57,7 +57,7 @@ struct AddressBar: View {
                     if shouldShowProgress {
                         cancelLoadingButton
                     } else {
-                        if !webCache.isBlank() {
+                        if webCache.isWebVisible {
                             reloadButton
                         }
                     }
@@ -81,7 +81,7 @@ struct AddressBar: View {
             .focused($isAdressBarFocused)
             .font(dragScale.scaledFont())
             .onTapGesture {
-                if webCache.isBlank() {
+                if !webCache.isWebVisible {
                     inputText = ""
                 }
                 isAdressBarFocused = true
@@ -95,13 +95,13 @@ struct AddressBar: View {
                     return //
                 }
                 inputText = webCache.lastVisitedUrl.absoluteString
-                displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.domain
+                displayText = webCache.isWebVisible ? webCache.lastVisitedUrl.domain : addressbarHolder
             }
 
             .onChange(of: webCache.lastVisitedUrl) { _, url in
                 guard enterType == .none else { return }
                 inputText = url.absoluteString
-                displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.domain
+                displayText = webCache.isWebVisible ? webCache.lastVisitedUrl.domain : addressbarHolder
             }
             .onChange(of: addressBar.isFocused) { _, isFocused in
                 Log(" addressBar.isFocused onChange:\(isFocused)")

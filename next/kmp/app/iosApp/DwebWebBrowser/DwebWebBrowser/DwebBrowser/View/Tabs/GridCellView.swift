@@ -31,7 +31,7 @@ struct WebsiteIconImage: View {
 }
 
 struct GridCell: View {
-    @ObservedObject var webCache: WebCache
+    var webCache: WebCache
     var isSelected: Bool
     @EnvironmentObject var deleteCache: DeleteCache
     @EnvironmentObject var dragScale: WndDragScale
@@ -43,7 +43,7 @@ struct GridCell: View {
                     ZStack {
                         let shape = RoundedRectangle(cornerRadius: gridcellCornerR)
                         Group {
-                            if webCache.shouldShowWeb {
+                            if webCache.isWebVisible {
                                 Image(uiImage: webCache.snapshotImage)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)

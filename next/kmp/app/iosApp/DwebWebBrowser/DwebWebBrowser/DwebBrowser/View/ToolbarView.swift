@@ -22,7 +22,7 @@ struct ToolbarView: View {
 
     @State private var loadingDone: Bool = false
 
-    private var isShowingWeb: Bool { cacheStore.cache(at: seletecdTab.index).shouldShowWeb }
+    private var isShowingWeb: Bool { cacheStore.cache(at: seletecdTab.index).isWebVisible }
     private var canCreateDesktopLink: Bool { isShowingWeb && loadingDone }
     
     var body: some View {
