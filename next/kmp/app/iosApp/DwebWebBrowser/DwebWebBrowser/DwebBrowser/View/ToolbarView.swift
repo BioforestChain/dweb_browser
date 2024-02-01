@@ -33,6 +33,8 @@ struct ToolbarView: View {
                 threeButtons
             }
         }
+        .frame(height: addressBar.isFocused ? 0 : dragScale.toolbarHeight)
+        .opacity(addressBar.isFocused ? 0 : 1)
     }
     
     var threeButtons: some View {
@@ -42,7 +44,7 @@ struct ToolbarView: View {
                 HStack(alignment: .center) {
                     Spacer().frame(width: size.width / 15)
                     
-                    BiColorButton(imageName: "add", disabled: false) {
+                    BiColorButton(imageName: "add") {
                         toolbarState.createTabTapped = true
                     }
                     .frame(height: min(size.width / 14, size.height / 1.9))
@@ -71,86 +73,89 @@ struct ToolbarView: View {
     }
     
     var fiveButtons: some View {
-        ZStack {
-            HStack(alignment: .center) {
-                Spacer()
+        HStack(alignment: .center) {
+            Spacer()
                 
-                Button(action: {
-                    toolbarState.creatingDesktopLink.toggle()
-                    print("trying to appnd an link on desktop")
-                }) {
-                    Image(systemName: "apps.iphone.badge.plus")
-                        .renderingMode(.template)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .background(Color.bk)
-                        .foregroundColor(canCreateDesktopLink ? .primary : .gray)
-                        .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
-                }
-                .onReceive(webMonitor.$isLoadingDone) { done in
-                    loadingDone = done
-                }
-                .disabled(!canCreateDesktopLink)
+            Button(action: {
+                toolbarState.creatingDesktopLink.toggle()
+            }) {
+                plusImage
+            }
+            .onReceive(webMonitor.$isLoadingDone) { done in
+                loadingDone = done
+            }
+            .disabled(!canCreateDesktopLink)
                 
-                Spacer()
-                if isShowingWeb, loadingDone {
-                    BiColorButton(imageName: "add", disabled: false) {
-                        toolbarState.createTabTapped = true
-                    }
-                } else {
-                    BiColorButton(imageName: "scan", disabled: false) {
-                        Log("scan qrcode")
-                        browserViewDataSource.requestCameraPermission { result in
-                            Log("\(result)")
-                            guard result else { return }
+            Spacer()
+            if canCreateDesktopLink {
+                BiColorButton(imageName: "add") {
+                    toolbarState.createTabTapped = true
+                }
+            } else {
+                BiColorButton(imageName: "scan") {
+                    doScan()
+                }
+            }
+            Spacer()
+            BiColorButton(imageName: "shift") {
+                Log("shift tab was clicked")
+                toolbarState.shouldExpand = false
+            }
+            Spacer()
+            BiColorButton(imageName: "more") {
+                withAnimation {
+                    toolbarState.showMoreMenu = true
+                }
+            }
+            Spacer()
+                
+        }
+        .clipped()
+            .sheet(isPresented: $toolbarState.isPresentingScanner) {
+                CodeScannerView(codeTypes: [.qr], showViewfinder: true) { response in
+                    toolbarState.isPresentingScanner = false
+                    if case let .success(result) = response {
+                        Log(result.string)
+                        let url = URL(string: result.string)
+                        if url?.scheme == "dweb" {
+                            browserViewDelegate.openDeepLink(url: result.string)
+                        } else {
+                            addressBar.inputText = result.string
+                            let url = URL.createUrl(addressBar.inputText)
                             DispatchQueue.main.async {
-                                self.toolbarState.isPresentingScanner = true
-                            }
-                        }
-                    }
-                }
-                Spacer()
-                Group {
-                    BiColorButton(imageName: "shift", disabled: false) {
-                        Log("shift tab was clicked")
-                        toolbarState.shouldExpand = false
-                    }
-                    Spacer()
-                    BiColorButton(imageName: "more", disabled: false) {
-                        withAnimation {
-                            toolbarState.showMoreMenu = true
-                        }
-                    }
-                    Spacer()
-                }
-                
-                .clipped()
-                .sheet(isPresented: $toolbarState.isPresentingScanner) {
-                    CodeScannerView(codeTypes: [.qr], showViewfinder: true) { response in
-                        toolbarState.isPresentingScanner = false
-                        if case let .success(result) = response {
-                            Log(result.string)
-                            let url = URL(string: result.string)
-                            if url?.scheme == "dweb" {
-                                browserViewDelegate.openDeepLink(url: result.string)
-                            } else {
-                                addressBar.inputText = result.string
-                                let url = URL.createUrl(addressBar.inputText)
-                                DispatchQueue.main.async {
-                                    openingLink.clickedLink = url
-                                    addressBar.isFocused = false
-                                }
+                                openingLink.clickedLink = url
+                                addressBar.isFocused = false
                             }
                         }
                     }
                 }
             }
+    }
+    
+    var plusImage: some View{
+        Image(systemName: "apps.iphone.badge.plus")
+            .renderingMode(.template)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .background(Color.bk)
+            .foregroundColor(canCreateDesktopLink ? .primary : .gray)
+            .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
+    }
+    
+    private func doScan() {
+        Log("scan qrcode")
+        browserViewDataSource.requestCameraPermission { result in
+            Log("\(result)")
+            guard result else { return }
+            DispatchQueue.main.async {
+                self.toolbarState.isPresentingScanner = true
+            }
         }
     }
 }
 
-internal let toolItemMinWidth = 14.0
-internal let toolItemMaxWidth = toolItemMinWidth * 2
-internal let toolBarMinHeight = toolItemMinWidth + 4.0
+let toolItemMinWidth = 14.0
+let toolItemMaxWidth = toolItemMinWidth * 2
+let toolBarMinHeight = toolItemMinWidth + 4.0
 
-internal let addressbarMinHeight = toolBarMinHeight
+let addressbarMinHeight = toolBarMinHeight

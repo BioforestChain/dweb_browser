@@ -9,7 +9,6 @@ import SwiftUI
 
 struct BiColorButton: View {
     let imageName: String
-    let disabled: Bool
     let action: () -> Void
 
     var body: some View {
@@ -19,9 +18,8 @@ struct BiColorButton: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .background(.bk)
-                .foregroundColor(disabled ? .gray : .primary)
+                .foregroundColor(.primary)
                 .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
         }
-        .disabled(disabled)
     }
 }

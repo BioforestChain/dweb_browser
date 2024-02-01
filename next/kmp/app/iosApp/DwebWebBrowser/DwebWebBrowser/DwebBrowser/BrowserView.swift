@@ -20,7 +20,6 @@ struct BrowserView: View {
                     VStack(spacing: 0) {
                         TabsContainerView()
                         ToolbarView(webMonitor: states.webcacheStore.webWrappers[selectedTab.index].webMonitor)
-                            .frame(height: states.addressBar.isFocused ? 0 : states.dragScale.toolbarHeight)
                     }
                     .background(.bk)
                     .environment(states.webcacheStore)
