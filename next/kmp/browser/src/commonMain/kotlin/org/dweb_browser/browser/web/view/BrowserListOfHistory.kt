@@ -99,7 +99,7 @@ private fun RowItemHistory(
   Column(modifier = Modifier
     .fillMaxWidth()
     .background(MaterialTheme.colorScheme.background)
-    .height(66.dp)
+    .height(72.dp) // 66
     .clip(shape)
     .background(MaterialTheme.colorScheme.surface)
     .clickable { onClick(webSiteInfo) }

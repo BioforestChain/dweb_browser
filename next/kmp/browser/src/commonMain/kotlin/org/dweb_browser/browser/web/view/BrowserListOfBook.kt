@@ -61,7 +61,7 @@ private fun RowItemBook(
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .height(50.dp)
+      .height(72.dp)
       .background(MaterialTheme.colorScheme.surface)
       .clickable { onClick(webSiteInfo) },
     verticalAlignment = Alignment.CenterVertically
