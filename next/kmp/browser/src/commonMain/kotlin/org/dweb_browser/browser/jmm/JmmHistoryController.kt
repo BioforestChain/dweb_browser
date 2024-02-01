@@ -32,7 +32,7 @@ class JmmHistoryController(
           ChangeableType.PutAll -> {
             jmmHistoryMetadata.addAll(
               jmmController.historyMetadataMaps.toMutableList()
-                .sortedByDescending { it.installTime }
+                .sortedByDescending { it.upgradeTime }
             )
           }
 

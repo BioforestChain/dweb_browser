@@ -50,7 +50,8 @@ class ChangeableMutableMap<K, V>(
   suspend fun suspendForEach(each: suspend (K, V) -> Unit) =
     cMaps.forEach { (key, value) -> each(key, value) }
 
-  suspend fun forEach(each: suspend (K, V) -> Unit) = cMaps.forEach { (key, value) -> each(key, value) }
+  suspend fun forEach(each: suspend (K, V) -> Unit) =
+    cMaps.forEach { (key, value) -> each(key, value) }
 
   private fun emitBackground(type: ChangeableType, key: K? = null, value: V? = null) {
     CoroutineScope(context).launch {
@@ -66,15 +67,4 @@ class ChangeableMutableMap<K, V>(
   fun getOrPut(key: K, defaultValue: () -> V) = cMaps.getOrPut(key, defaultValue)
   fun getOrDefault(key: K, defaultValue: () -> V) = cMaps.getOrDefault(key, defaultValue)
   fun getOrElse(key: K, defaultValue: () -> V) = cMaps.getOrElse(key, defaultValue)
-
-  suspend fun replaceOrPut(
-    key: K,  replace: suspend (V) -> V?, defaultValue: () -> V
-  ): V {
-    val value = get(key)
-    return if (value == null) {
-      defaultValue().also { answer -> put(key, answer) }
-    } else {
-      replace(value)?.also { answer -> put(key, answer) } ?: value
-    }
-  }
 }

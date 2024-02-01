@@ -6,8 +6,6 @@ import androidx.compose.material.icons.filled.InstallMobile
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
-import kotlinx.atomicfu.AtomicInt
-import kotlinx.atomicfu.atomic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -53,11 +51,11 @@ class JmmStore(microModule: MicroModule) {
   /*****************************************************************************
    * JMM对应的json地址存储，以及下载的 taskId 信息
    */
-  suspend fun saveHistoryMetadata(url: String, metadata: JmmHistoryMetadata) {
-    storeHistoryMetadata.set(url, metadata)
+  suspend fun saveHistoryMetadata(mmid: String, metadata: JmmHistoryMetadata) {
+    storeHistoryMetadata.set(mmid, metadata)
   }
 
-  suspend fun getHistoryMetadata(): MutableMap<String, JmmHistoryMetadata> {
+  suspend fun getAllHistoryMetadata(): MutableMap<String, JmmHistoryMetadata> {
     return storeHistoryMetadata.getAll()
   }
 
@@ -68,6 +66,8 @@ class JmmStore(microModule: MicroModule) {
   suspend fun deleteHistoryMetadata(url: String): Boolean {
     return storeHistoryMetadata.delete(url)
   }
+
+  suspend fun clearHistoryMetadata() = storeHistoryMetadata.clear()
 }
 
 /**
