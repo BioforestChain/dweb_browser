@@ -42,7 +42,7 @@ fun ShortcutManagerRender(
   ) {
     LazySwipeAndReorderList(
       items = shortcutList,
-      key = { item -> item.uri },
+      key = { item -> item.title },
       modifier = Modifier.fillMaxWidth().height(72.dp),
       onDragMove = onDragMove,
       onDragEnd = onDragEnd,

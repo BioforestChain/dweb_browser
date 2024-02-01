@@ -1,1 +1,1 @@
-export * from "npm:@dweb-browser/js-process@0.2.7";
+export * from "npm:@dweb-browser/js-process@0.3.0";

@@ -8,6 +8,7 @@ const router = useRouter();
 onMounted(() => {
   Object.assign(globalThis, { PLAOC });
 });
+router.push("/shortcut");
 // router.push("/biometrics")
 // router.push("/share")
 // router.push("/webview");

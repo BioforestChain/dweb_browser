@@ -1,8 +1,8 @@
 export interface ShortcutOption {
-  // 标题
+  /**标题 */
   title: string;
-  // 打开应用的地址
-  url: string;
-  // 应用icon
-  icon: Uint8Array;
+  /**传递给应用的数据 */
+  data: string;
+  /**应用icon,不传递默认使用appIcon */
+  icon: Uint8Array | null;
 }

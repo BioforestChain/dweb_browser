@@ -40,7 +40,7 @@ const main = async () => {
       await mwebview_activate(wid);
     }
   });
-
+  // 用来接收别人发过来的激活事件
   jsProcess.onActivity(async (ipcEvent) => {
     console.log(`${jsProcess.mmid} onActivity`, ipcEvent.data);
     const win_id = await apply_window();
@@ -53,6 +53,10 @@ const main = async () => {
     widPo.resolve(ipcEvent.text);
     tryOpenView();
   });
+ // quick action event
+  jsProcess.onShortcut( (ipcEvent) => {
+    console.log(`${jsProcess.mmid} onShortcut`, ipcEvent.text);
+  })
 
   jsProcess.onClose(() => {
     console.log("app后台被关闭。");

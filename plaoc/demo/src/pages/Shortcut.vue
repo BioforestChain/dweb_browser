@@ -11,9 +11,9 @@ onMounted(async () => {
 });
 
 const shortcut = reactive({
-  title: "",
-  url: "",
-  icon: new Uint8Array(),
+  title: "新年快乐",
+  data: "这是一条发到ipcEvent的消息🧨",
+  icon: null,
 } as ShortcutOption);
 
 const registry = async () => {
@@ -40,7 +40,7 @@ const onFileChanged = async ($event: Event) => {
     <article class="card-body">
       <h2 class="card-title">设置短连接</h2>
       <v-text-field label="显示标题" v-model="shortcut.title"></v-text-field>
-      <v-text-field label="短连接跳转地址" v-model="shortcut.url"></v-text-field>
+      <v-text-field label="传递的数据" v-model="shortcut.data"></v-text-field>
       <v-file-input
         label="File input"
         variant="solo"

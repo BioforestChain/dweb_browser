@@ -32,7 +32,7 @@ actual class ShortcutManage {
     val list = mutableListOf<ShortcutInfoCompat>()
     list.addAll(getDefaultShortcuts())
     shortcutList.forEach { shortcutItem ->
-      val build = ShortcutInfoCompat.Builder(context, shortcutItem.uri)
+      val build = ShortcutInfoCompat.Builder(context, shortcutItem.data)
       build.setShortLabel(shortcutItem.title)
       shortcutItem.icon?.let { icon ->
         build.setIcon(IconCompat.createWithBitmap(icon.toAndroidBitmap()))
@@ -41,7 +41,7 @@ actual class ShortcutManage {
         action = Intent.ACTION_VIEW
         `package` = context.packageName
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        data = Uri.parse(shortcutItem.uri)
+        data = Uri.parse("dweb://shortcutopen?mmid=${shortcutItem.mmid}&data=${shortcutItem.data}")
       })
       list.add(build.build())
     }

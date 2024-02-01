@@ -1,3 +1,4 @@
+import { encode } from "cbor-x";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import type { ShortcutOption } from "./shortcut.type.ts";
@@ -14,14 +15,19 @@ export class ShortcutPlugin extends BasePlugin {
    * @since 2.0.0
    */
   @bindThis
-  async registry(option: ShortcutOption) {
-    return await this.fetchApi(`/registry`, {
+   registry(option: ShortcutOption) {
+    const body = encode({
+      title: option.title,
+      data: option.data,
+      icon: option.icon,
+    });
+    return this.fetchApi(`/registry`, {
       method: "POST",
-      search: {
-        title: option.title,
-        url: option.url,
+      body: body,
+      headers: {
+        "Content-Type": "application/cbor",
+        "Content-Length": body.length,
       },
-      body: option.icon,
     }).boolean();
   }
 }

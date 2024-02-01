@@ -8,7 +8,7 @@ import type { $BootstrapContext } from "./bootstrapContext.ts";
 import type { MICRO_MODULE_CATEGORY } from "./category.const.ts";
 import type { Ipc, IpcEvent } from "./ipc/index.ts";
 import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID, $MicroModule, $MicroModuleManifest } from "./types.ts";
-import { MWEBVIEW_LIFECYCLE_EVENT } from "./types.ts";
+import { IPC_HANDLE_EVENT } from "./types.ts";
 
 export abstract class MicroModule implements $MicroModule {
   abstract mmid: $MMID;
@@ -140,10 +140,10 @@ export abstract class MicroModule implements $MicroModule {
   beConnect(ipc: Ipc, reason: Request) {
     this.addToIpcSet(ipc);
     ipc.onEvent((event, ipc) => {
-      if (event.name == MWEBVIEW_LIFECYCLE_EVENT.Activity) {
+      if (event.name == IPC_HANDLE_EVENT.Activity) {
         this._activitySignal.emit(event, ipc);
       }
-      if (event.name == MWEBVIEW_LIFECYCLE_EVENT.Renderer) {
+      if (event.name == IPC_HANDLE_EVENT.Renderer) {
         this._activitySignal.emit(event, ipc)
       }
     });

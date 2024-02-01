@@ -6,14 +6,12 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.toJsonElement
 import platform.UIKit.UIApplicationShortcutItem
-import platform.UIKit.UIImage
 import platform.UIKit.shortcutItems
 
-private val maxCount = 4
-private val scanMmid = "barcode-scanning.sys.dweb"
-private val shortcutMmid = "shortcut.sys.dweb"
+private const val maxCount = 4
+private const val scanMmid = "barcode-scanning.sys.dweb"
+private const val shortcutMmid = "shortcut.sys.dweb"
 
 fun ShortcutManage.Companion.isScan(shortcut: UIApplicationShortcutItem): Boolean {
   return when (shortcut.type) {
@@ -32,11 +30,12 @@ actual class ShortcutManage {
 
     scope.launch {
       val app = MicroModule.getUIApplication()
-      val hasAddScan = app.shortcutItems?.firstOrNull { it ->
+      // 这里获取的都是动态的quick action
+      val hasAddScan = app.shortcutItems?.firstOrNull {
         val item = it as UIApplicationShortcutItem
         return@firstOrNull item.type == scanMmid
       } != null
-
+      // 没有添加过扫码的就添加一下
       if (!hasAddScan) {
         app.shortcutItems = listOf(getScanShortcutItem())
       }

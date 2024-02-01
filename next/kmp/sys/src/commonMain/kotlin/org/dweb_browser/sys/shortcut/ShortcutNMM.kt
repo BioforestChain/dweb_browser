@@ -2,13 +2,19 @@ package org.dweb_browser.sys.shortcut
 
 import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.cbor.Cbor
+import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.http.router.bindDwebDeeplink
+import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.createChannel
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
@@ -25,6 +31,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
   private val shortcutManage = ShortcutManage()
 
   init {
+    dweb_deeplinks = listOf("dweb://shortcutopen")
     short_name = "Shortcut"
     categories = listOf(
 //      MICRO_MODULE_CATEGORY.Application,
@@ -39,27 +46,45 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
     }
   }
 
+  @OptIn(ExperimentalSerializationApi::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val store = ShortcutStore(this)
     val shortcutList = loadShortcut(store)
 
     routes(
       "/registry" bind PureMethod.POST by defineBooleanResponse {
-        val title = request.query("title")
-        val url = request.query("url")
-        val systemShortcut = SystemShortcut(title, url,icon = request.body.toPureBinary(), mmid = ipc.remote.mmid)
-        debugShortcut("registry", "shortcut=$systemShortcut")
+        val body = request.body.toPureBinary()
+        val data = Cbor.decodeFromByteArray<ShortcutParameter>(body)
+        debugShortcut("/registry=>", "data=$data")
+        val systemShortcut = SystemShortcut(
+          data.title,
+          mmid = ipc.remote.mmid,
+          data = data.data,
+          icon = data.icon
+        )
         if (systemShortcut.icon == null) {
           bootstrapContext.dns.query(ipc.remote.mmid)?.let { fromMM ->
             val imageResource = fromMM.icons.firstOrNull() ?: icons.first()
             systemShortcut.icon = shortcutManage.getValidIcon(this@ShortcutNMM, imageResource)
           }
         }
-        shortcutList.removeAll { it.uri == systemShortcut.uri }
+        // 移除重复的
+        val remove = shortcutList.removeAll { it.title == systemShortcut.title && it.mmid == systemShortcut.mmid }
+        debugShortcut("/registry=>", "remove=$remove")
+        if (remove) {
+          store.delete(systemShortcut.title)
+        }
         shortcutList.add(systemShortcut)
-        store.set(systemShortcut.uri, systemShortcut)
+        store.set(systemShortcut.title, systemShortcut)
         shortcutManage.registryShortcut(shortcutList)
       },
+      "shortcutopen" bindDwebDeeplink defineEmptyResponse {
+        val mmid = request.query("mmid")
+        val data = request.query("data")
+        val (ipc) = bootstrapContext.dns.connect(mmid)
+        debugShortcut("shortcut-open=>", "${ipc.remote.mmid}=> $data")
+        ipc.postMessage(IpcEvent.fromUtf8("shortcut",data))
+      }
     )
 
     onRenderer {
@@ -80,9 +105,9 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
             },
             onRemove = { item ->
               ioAsyncScope.launch {
-                shortcutList.removeAll { it.uri == item.uri }
+                shortcutList.removeAll { it.data == item.data }
                 shortcutManage.registryShortcut(shortcutList)
-                store.delete(item.uri)
+                store.delete(item.data)
               }
             }
           )

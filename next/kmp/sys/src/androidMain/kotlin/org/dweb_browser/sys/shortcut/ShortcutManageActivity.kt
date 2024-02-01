@@ -51,7 +51,7 @@ class ShortcutManageActivity : ComponentActivity() {
             action = Intent.ACTION_VIEW
             `package` = packageName
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            data = Uri.parse(item.uri)
+            data = Uri.parse(item.title)
           })
         }
       }
@@ -104,8 +104,8 @@ private fun VerticalReorderList(modifier: Modifier = Modifier, shortcuts: List<S
   )
   LazyColumn(state = state.listState, modifier = modifier.reorderAble(state)) {
 
-    items(shortcutList, key = { it.uri }) { item ->
-      ReorderAbleItem(state, item.uri) { dragging ->
+    items(shortcutList, key = { it.title }) { item ->
+      ReorderAbleItem(state, item.title) { dragging ->
         val elevation = animateDpAsState(if (dragging) 8.dp else 0.dp, label = "")
         ListSwipeItem(
           modifier = Modifier.detectReorderAfterLongPress(state)

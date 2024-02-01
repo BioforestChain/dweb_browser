@@ -23,11 +23,11 @@ import {
   $OnIpcRequestMessage,
   createFetchHandler,
   Ipc,
+  IPC_HANDLE_EVENT,
   IPC_ROLE,
   IpcEvent,
   IpcRequest,
   MessagePortIpc,
-  MWEBVIEW_LIFECYCLE_EVENT,
 } from "./std-dweb-core.ts";
 
 declare global {
@@ -192,13 +192,21 @@ export class JsProcessMicroModule implements $MicroModule {
         /// 分发绑定的事件
         ipc.onRequest((ipcRequest, ipc) => this._onRequestSignal.emit(ipcRequest, ipc));
         ipc.onEvent((ipcEvent, ipc) => {
-          if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Activity) {
+          // 激活
+          if (ipcEvent.name === IPC_HANDLE_EVENT.Activity) {
             return this._activitySignal.emit(ipcEvent, ipc);
           }
-          if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Renderer) {
+          // 渲染
+          if (ipcEvent.name === IPC_HANDLE_EVENT.Renderer) {
             return this._rendererSignal.emit(ipcEvent, ipc);
           }
-          if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Close) {
+          // quick action
+          if (ipcEvent.name === IPC_HANDLE_EVENT.Shortcut) {
+            return this._shortcutSignal.emit(ipcEvent,ipc)
+          }
+
+          // 关闭
+          if (ipcEvent.name === IPC_HANDLE_EVENT.Close) {
             return this._onCloseSignal.emit(ipcEvent, ipc);
           }
         });
@@ -305,6 +313,10 @@ export class JsProcessMicroModule implements $MicroModule {
   private _onRequestSignal = createSignal<$OnIpcRequestMessage>(false);
   // 应用激活信号
   private _activitySignal = createSignal<$OnIpcEventMessage>(false);
+  private _shortcutSignal = createSignal<$OnIpcEventMessage>(false);
+  onShortcut(cb: $OnIpcEventMessage) {
+    return this._shortcutSignal.listen(cb);
+  }
   onActivity(cb: $OnIpcEventMessage) {
     return this._activitySignal.listen(cb);
   }
