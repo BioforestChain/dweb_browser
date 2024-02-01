@@ -56,7 +56,7 @@ class ViewModelState(
      * - viewModelState[key] = value
      */
     operator fun set(key: dynamic, value:dynamic){
-        state.put(key, value)
+        state[key] = value
         onUpdateCallbackList[ViewModelStateRole.SERVER]?.forEach {
             it(key, value)
         }

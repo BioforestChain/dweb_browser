@@ -15,31 +15,26 @@ import node.crypto.createHash
 import node.net.Socket
 import node.net.SocketEvent
 import kotlin.experimental.xor
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-/**
- * @param arg {Array<dynamic>}
- * - arr[0] 是被改变状态的key
- * - arr[1] 是被改变状态的value
- */
-typealias OnDataCallback = (key: String, value: dynamic) -> Unit
+typealias OnDataCallback = (key: String, value: String) -> Unit
 typealias OnConnectCallback = () -> Unit
 typealias OnCloseCallback = (hadError: Boolean) -> Unit
 typealias OnEndCallback = () -> Unit
 typealias OnErrorCallback = (err: Throwable) -> Unit
-typealias EncodeValueToString = (key: String, value: dynamic) -> String
-typealias DecodeValueFromString = (key: String, value: String) -> dynamic
+
 
 /**
  * 提供前后端同步的功能
+ *
+ * 1. 功能设计
+ * - 同步数据给Client
+ * - 接受Client同步过来的数据
  */
 class ViewModelSocket(
     val socket: Socket,
     val secWebsocketKey: String,
-    val encodeValueToString: EncodeValueToString, /**编码value的方法*/
-    val decodeValueFromString: DecodeValueFromString, /** 解码value的方法*/
 ){
     val scope = CoroutineScope(Dispatchers.Default)
     // 不要把_onDataCBList等变量移动到init的后面
@@ -63,8 +58,7 @@ class ViewModelSocket(
             _realDataFlow.collect{
                 _onDataCBList.forEach { cb ->
                     val syncData = Json.decodeFromString<SyncData>(it)
-                    val value = decodeValueFromString(syncData.key, syncData.value)
-                    cb(syncData.key, value)
+                    cb(syncData.key, syncData.value)
                 }
             }
         }
@@ -145,18 +139,9 @@ class ViewModelSocket(
 
     /**
      * 向UI发送数据
-     * @param arg {String}
-     * - arg参数的规范：
-     *  - 必须是一个数组类型的JsonString
-     *  - arr[0]表示的是viewModel的key
-     *  - arr[1]表示的是ViewModel的value
      */
-    fun write(key: dynamic, value: dynamic): Unit{
-        val valueString = when(key){
-            "syncDataToUiState" -> value
-            else -> encodeValueToString(key, value)
-        }
-        val syncData = SyncData(key.toString(), valueString)
+    fun write(key: String, value: String): Unit{
+        val syncData = SyncData(key, value)
         val jsonString = Json.encodeToString<SyncData>(syncData)
         socket.write(_encodeDataFrame(jsonString))
     }

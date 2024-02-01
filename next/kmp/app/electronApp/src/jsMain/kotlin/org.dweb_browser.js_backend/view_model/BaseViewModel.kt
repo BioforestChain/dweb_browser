@@ -1,21 +1,19 @@
 package org.dweb_browser.js_backend.view_model
 
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import node.buffer.Buffer
 import node.http.IncomingMessage
 import node.net.Socket
-import node.net.SocketEvent
-import node.stream.Duplex
 import org.dweb_browser.js_backend.view_model_state.OnUpdateCallback
 import org.dweb_browser.js_backend.view_model_state.ViewModelMutableMap
 import org.dweb_browser.js_backend.view_model_state.ViewModelState
 import org.dweb_browser.js_backend.view_model_state.ViewModelStateRole
-import org.dweb_browser.js_backend.view_model_state.viewModelMutableMapOf
 import org.dweb_browser.js_backend.ws.WS
+
+typealias EncodeValueToString = (key: String, value: dynamic) -> String
+typealias DecodeValueFromString = (key: String, value: String) -> dynamic
 
 /**
  *
@@ -57,11 +55,10 @@ open class BaseViewModel(
                 ViewModelSocket(
                     socket, 
                     req.headers["sec-websocket-key"].toString(), 
-                    encodeValueToString =  encodeValueToString, 
-                    decodeValueFromString = decodeValueFromString
                 ).apply {
-                    onData { key: String, value: dynamic ->
-                        viewModelState.set(key,value, ViewModelStateRole.CLIENT)
+                    onData { key: String, value: String ->
+                        val v = decodeValueFromString(key, value)
+                        viewModelState.set(key, v, ViewModelStateRole.CLIENT)
                     }
                     sockets.add(this)
                     onClose { console.log("删除了 ViewModelSocket");sockets.remove(this) }
@@ -108,10 +105,14 @@ open class BaseViewModel(
      * @param value {dynamic
      * - 同步数据的value
      */
-    private fun syncDataToUI(key: dynamic, value: dynamic) {
+    private fun syncDataToUI(key: String, value: dynamic) {
         scope.launch {
             sockets.forEach {
-                it.write(key, value)
+                val valueString = when (key) {
+                    "syncDataToUiState" -> value
+                    else -> encodeValueToString(key, value)
+                }
+                it.write(key, valueString)
             }
         }
     }
