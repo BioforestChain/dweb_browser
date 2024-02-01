@@ -38,17 +38,6 @@ class ElectronBrowserWindowModule(
         decodeValueFromString = decodeValueFromString,
         initVieModelMutableMap = initVieModelMutableMap
     )
-    init {
-        viewModel.onUpdateByClient{key: String, value: dynamic ->
-            console.error("server received data from client key: value", key, ":", value)
-
-//            viewModel[key] = value + 1
-        }
-        controller.open(ElectronBrowserWindowController.createBrowserWindowOptions().apply {
-            width = 1300.0
-            height = 1000.0
-        })
-    }
 }
 
 

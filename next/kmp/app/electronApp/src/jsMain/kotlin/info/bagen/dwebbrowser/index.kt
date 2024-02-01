@@ -5,6 +5,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.js_backend.browser_window.ElectronBrowserWindowController
 import org.dweb_browser.js_backend.browser_window.ElectronBrowserWindowModule
 import kotlin.js.Promise
 
@@ -21,7 +22,7 @@ fun main() {
     "currentCount" to 10,
     "persons" to listOf(Person("bill", 1), Person("jack", 2))
   )
-  ElectronBrowserWindowModule(
+  val demoComposeApp = ElectronBrowserWindowModule(
     subDomain = "demo.compose.app",
     encodeValueToString = {key: dynamic, value: dynamic ->
       val str = when(key.toString()){
@@ -38,7 +39,17 @@ fun main() {
       }
     },
     initVieModelMutableMap = state
-  )
+  ).apply {
+    viewModel.onUpdateByClient{key: String, value: dynamic ->
+      console.error("server received data from client key: value", key, ":", value)
+
+//            viewModel[key] = value + 1
+    }
+    controller.open(ElectronBrowserWindowController.createBrowserWindowOptions().apply {
+      width = 1300.0
+      height = 1000.0
+    })
+  }
 }
 
 fun <T> Promise<T>.toDeferred(): Deferred<T> {
