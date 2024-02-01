@@ -17,8 +17,11 @@ import node.net.SocketEvent
 import kotlin.experimental.xor
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.js_common.view_model.SyncData
+import org.dweb_browser.js_common.view_model.SyncType
 
-typealias OnDataCallback = (key: String, value: String) -> Unit
+
+typealias OnDataCallback = (key: String, value: String, syncType: SyncType) -> Unit
 typealias OnConnectCallback = () -> Unit
 typealias OnCloseCallback = (hadError: Boolean) -> Unit
 typealias OnEndCallback = () -> Unit
@@ -58,7 +61,7 @@ class ViewModelSocket(
             _realDataFlow.collect{
                 _onDataCBList.forEach { cb ->
                     val syncData = Json.decodeFromString<SyncData>(it)
-                    cb(syncData.key, syncData.value)
+                    cb(syncData.key, syncData.value, syncData.type)
                 }
             }
         }
@@ -140,8 +143,8 @@ class ViewModelSocket(
     /**
      * 向UI发送数据
      */
-    fun write(key: String, value: String): Unit{
-        val syncData = SyncData(key, value)
+    fun write(key: String, value: String, type: SyncType){
+        val syncData = SyncData(key, value, type)
         val jsonString = Json.encodeToString<SyncData>(syncData)
         socket.write(_encodeDataFrame(jsonString))
     }
@@ -294,11 +297,3 @@ private fun _encodeDataFrame(
     val a = arrayOf(Buffer.from(bufferArr), payloadData)
     return Buffer.concat(a);
 };
-
-@Serializable
-data class SyncData(
-    @JsName("key")
-    val key: String,
-    @JsName("value")
-    val value: String
-)

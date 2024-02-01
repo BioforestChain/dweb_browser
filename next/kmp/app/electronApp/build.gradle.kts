@@ -22,7 +22,6 @@ kotlin {
       implementation(libs.kotlinx.coroutines.core)
       implementation(libs.kotlinx.atomicfu)
       implementation(libs.kotlinx.io)
-
       implementation(libs.kotlin.js)
       implementation(libs.kotlin.electron)
 
@@ -38,7 +37,7 @@ kotlin {
 
       implementation(kotlin("test"))
       implementation(project(":platformTest"))
-
+      implementation(project(":jsCommon"))
 
     }
   }

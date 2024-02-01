@@ -24,6 +24,7 @@ kotlin {
       api(compose.material)
       @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
       api(compose.components.resources)
+      implementation(project(":jsCommon"))
     }
   }
 }

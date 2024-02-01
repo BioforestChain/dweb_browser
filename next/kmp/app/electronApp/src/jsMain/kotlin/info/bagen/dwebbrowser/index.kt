@@ -20,7 +20,7 @@ class Person(
 fun main() {
   val state = mutableMapOf<dynamic, dynamic>(
     "currentCount" to 10,
-    "persons" to listOf(Person("bill", 1), Person("jack", 2))
+    "persons" to mutableListOf(Person("bill", 1), Person("jack", 2))
   )
   val demoComposeApp = ElectronBrowserWindowModule(
     subDomain = "demo.compose.app",
@@ -40,9 +40,8 @@ fun main() {
     },
     initVieModelMutableMap = state
   ).apply {
-    viewModel.onUpdateByClient{key: String, value: dynamic ->
-      console.error("server received data from client key: value", key, ":", value)
-
+    viewModel.onUpdateByClient{key: String, value: dynamic, syncType ->
+      console.error("server received data from client key: value : syncType ", key, ":", value, ":", syncType)
 //            viewModel[key] = value + 1
     }
     controller.open(ElectronBrowserWindowController.createBrowserWindowOptions().apply {

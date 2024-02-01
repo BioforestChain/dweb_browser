@@ -2,8 +2,10 @@ package org.dweb_browser.js_frontend.view_model
 
 import kotlinx.browser.window
 import kotlinx.coroutines.CompletableDeferred
+import org.dweb_browser.js_common.view_model.SyncType
+import org.dweb_browser.js_common.view_model.ViewModelStateRole
 
-typealias HandleMessageDataList = (key: String, value: dynamic) -> Unit
+typealias HandleMessageDataList = (key: String, value: dynamic, syncType: SyncType) -> Unit
 typealias EncodeValueToString = (key: String, value: dynamic) -> String
 typealias DecodeValueFromString = (key: String, value: String) -> dynamic
 
@@ -17,33 +19,32 @@ open class ViewModel(
 
     val whenSyncDataFromServerDone = CompletableDeferred<Unit>()
     init {
-        viewModelSocket.onSyncFromServer {key, valueString ->
+        viewModelSocket.onSyncFromServer {key, valueString, syncType ->
             val value = when(key){
                 "syncDataToUiState" -> valueString
                 else -> decodeValueFromString(key, valueString)
             }
-            handleMessageDataList.forEach { cb -> cb(key, value) }
+            handleMessageDataList.forEach { cb -> cb(key, value, syncType) }
         }
 
-        handleMessageDataList.add() {key, value ->
-
+        handleMessageDataList.add() {key, value, syncType ->
             when{
                 key == "syncDataToUiState" && value == "sync-data-to-ui-done" ->{
                     if(!whenSyncDataFromServerDone.isCompleted)whenSyncDataFromServerDone.complete(Unit)
                 }
-                else -> state[key] = value
+                else -> state.set(key, value, ViewModelStateRole.CLIENT, syncType)
             }
         }
-        state.onUpdate(::syncStateToServer)
+        state.onUpdate(ViewModelStateRole.CLIENT, ::syncStateToServer)
         viewModelSocket.start()
     }
 
     /**
      * 同步数据到 Server
      */
-    private fun syncStateToServer(key: String, value: dynamic){
+    private fun syncStateToServer(key: String, value: dynamic, syncType: SyncType){
         val valueString = encodeValueToString(key, value)
-        viewModelSocket.syncToServer(key, valueString)
+        viewModelSocket.syncToServer(key, valueString, syncType)
     }
 }
 

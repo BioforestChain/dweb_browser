@@ -91,6 +91,7 @@ if (enableAndroidApp) {
   includeApp("androidApp")
 }
 if (enableElectronApp) {
+  includeApp("jsCommon")
   includeApp("electronApp")
   includeApp("jsFrontend")
   includeApp("demoReactApp")

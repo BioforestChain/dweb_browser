@@ -22,12 +22,13 @@ suspend fun main() {
 
     // class 有额外的 p98_1:0这样的属性问题
     // 在 main() 里面声明的类不会有
+
     val module = ElectronBrowserWindowModule(
         moduleId =  "js.backend.dweb",
         encodeValueToString = {key: String, value: dynamic ->
             val str = when(key.toString()){
                 "currentCount" -> "10"
-                else -> Json.encodeToString<ArrayList<Person>>(value)
+                else -> Json.encodeToString<MutableList<Person>>(value)
             }
             str
         },
@@ -35,7 +36,7 @@ suspend fun main() {
             console.log("value: ", value)
             when(key){
                 "currentCount" -> value.toInt()
-                else -> Json.decodeFromString<ArrayList<Person>>(value)
+                else -> Json.decodeFromString<MutableList<Person>>(value)
             }
         }
     )

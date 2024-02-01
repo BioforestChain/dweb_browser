@@ -1859,6 +1859,35 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"dweb-browser-kmp-jsCommon-test@workspace:packages/dweb-browser-kmp-jsCommon-test":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-jsCommon-test@workspace:packages/dweb-browser-kmp-jsCommon-test"
+  dependencies:
+    format-util: "npm:^1.0.5"
+    karma: "npm:6.4.2"
+    karma-chrome-launcher: "npm:3.2.0"
+    karma-mocha: "npm:2.0.1"
+    karma-sourcemap-loader: "npm:0.4.0"
+    karma-webpack: "npm:5.0.0"
+    mocha: "npm:10.2.0"
+    source-map-loader: "npm:4.0.1"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+    webpack: "npm:5.82.0"
+    webpack-cli: "npm:5.1.0"
+  languageName: unknown
+  linkType: soft
+
+"dweb-browser-kmp-jsCommon@workspace:packages/dweb-browser-kmp-jsCommon":
+  version: 0.0.0-use.local
+  resolution: "dweb-browser-kmp-jsCommon@workspace:packages/dweb-browser-kmp-jsCommon"
+  dependencies:
+    format-util: "npm:^1.0.5"
+    source-map-support: "npm:0.5.21"
+    typescript: "npm:5.0.4"
+  languageName: unknown
+  linkType: soft
+
 "dweb-browser-kmp-jsFrontend-browser-test@workspace:packages/dweb-browser-kmp-jsFrontend-browser-test":
   version: 0.0.0-use.local
   resolution: "dweb-browser-kmp-jsFrontend-browser-test@workspace:packages/dweb-browser-kmp-jsFrontend-browser-test"

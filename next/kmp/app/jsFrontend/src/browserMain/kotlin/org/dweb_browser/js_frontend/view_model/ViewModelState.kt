@@ -9,76 +9,33 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import org.dweb_browser.js_common.view_model.CommonViewModelState
+import org.dweb_browser.js_common.view_model.SyncType
+import org.dweb_browser.js_common.view_model.ViewModelStateRole
 import react.StateSetter
 import react.useState
 import kotlin.reflect.KProperty
 
 
-typealias OnUpdateCallback = (key: dynamic, value: dynamic) -> Unit
+
 typealias ViewModelMutableMap  = MutableMap<dynamic, dynamic>
 typealias ViewModelStateFlowContextType = Array<dynamic>
-fun viewModelMutableMapOf(vararg pairs: Pair<dynamic, dynamic>) = mutableMapOf(*pairs)
 class ViewModelState(
-    initState: ViewModelMutableMap? = null
-){
+    initState: ViewModelMutableMap
+): CommonViewModelState(initState){
 
     private val scope = CoroutineScope(Dispatchers.Default)
     private val mutableSharedFlow = MutableSharedFlow<ViewModelStateFlowContextType>()
 
-    private var _state: ViewModelMutableMap
-    init {
-        _state = initState?: viewModelMutableMapOf()
-    }
-
-    /**
-     * 设置 _state 状态的时候使用
-     * @param key {dynamic}
-     * - 对应 map.key
-     * @param value {dynamic}
-     * - 对应 map.value
-     * @param isInside {Boolean}
-     * - 是否是内部设置
-     * - true 表示是内部设置会执行通过 onUpdate 添加的监听器
-     * - false 表示是外部设置，会同步给 useState mutableStateOf...
-     */
-    fun set(key: dynamic, value:dynamic, isInside: Boolean = false){
-        _state.put(key, value)
-        if(isInside){
-            _onUpdateCallbackList.forEach { cb -> cb(key, value) }
-        }else{
-            scope.launch {
-                // 同步给 toUseState 对象 toMutableState 对象
-                mutableSharedFlow.emit(arrayOf(key, value))
-            }
-        }
-    }
-
     operator fun set(key: dynamic, value:dynamic){
-        _state.put(key, value)
-        scope.launch {
-            // 同步给 toUseState 对象 toMutableState 对象
-            mutableSharedFlow.emit(arrayOf(key, value))
-        }
-    }
-
-
-
-
-    private val _onUpdateCallbackList = mutableListOf<OnUpdateCallback>()
-
-    /**
-     * 内部导致 _state 发生更改的时候会调用
-     */
-    fun onUpdate(cb: OnUpdateCallback): () -> Unit{
-        _onUpdateCallbackList.add(cb)
-        return {_onUpdateCallbackList.remove(cb)}
+        set(key, value, ViewModelStateRole.CLIENT, SyncType.REPLACE)
     }
 
     /**
      * 把ViewModelState对的对应的key转为
      * 可以在React中使用,等效于useState功能
      */
-    fun <T> toUseState(key: dynamic) = RectState<T>(_state[key] as T, key, this@ViewModelState)
+    fun <T> toUseState(key: dynamic) = RectState<T>(state[key] as T, key, this@ViewModelState)
     class RectState<T>(arg: T, private val key: dynamic, val viewModelState: ViewModelState){
         private var state: dynamic = null
         private var setState: dynamic = null
@@ -112,7 +69,7 @@ class ViewModelState(
             value: T,
         ) {
             // 设置ViewModel的数据
-            viewModelState.set(key, value, true)
+            viewModelState.set(key, value, ViewModelStateRole.CLIENT, SyncType.REPLACE)
             setState(value)
         }
 
@@ -126,10 +83,10 @@ class ViewModelState(
      * 可以在Compose中使用,等效于mutableStateOf功能
      */
     @Composable
-    fun toMutableStateOf(key: dynamic) = remember {
+    fun toMutableStateOf(key: String) = remember {
         var mutableState = MutableState.mutableStateMap[key]
         if(mutableState == null){
-            mutableState = MutableState(key, _state[key],this@ViewModelState)
+            mutableState = MutableState(key, state[key],this@ViewModelState)
             MutableState.mutableStateMap[key] = mutableState
         }
         mutableState
@@ -156,7 +113,7 @@ class ViewModelState(
         operator fun setValue(
             thisObj: Any?, property: KProperty<*>, value: T
         ) {
-            viewModelState.set(key, value, true)
+            viewModelState.set(key, value, ViewModelStateRole.CLIENT, SyncType.REPLACE)
             this.value = value
         }
 
@@ -184,7 +141,7 @@ class ViewModelState(
         var mutableStateList = MutableStateList.mutableStateListMap[key]
         console.log(1)
         if(mutableStateList == null){
-            mutableStateList = MutableStateList(key, _state[key],this@ViewModelState)
+            mutableStateList = MutableStateList(key, state[key],this@ViewModelState)
         }
         mutableStateList
     }
@@ -225,7 +182,7 @@ class ViewModelState(
             return mutableStateList.add(el).also {
                 if(it) {
                     console.log("需要同步给Server add: el: ", el)
-                    viewModelState.set(key, this@MutableStateList.toList(), true)
+                    viewModelState.set(key, this@MutableStateList.toList(), ViewModelStateRole.CLIENT, SyncType.ADD)
                 }
             }
         }
@@ -248,7 +205,7 @@ class ViewModelState(
         }
         fun addAll(index: Int, els: dynamic): Boolean{
             return mutableStateList.addAll(index, els).also {
-                if(it)  viewModelState.set(key, this@MutableStateList.toList(), true)
+                if(it)  viewModelState.set(key, this@MutableStateList.toList(), ViewModelStateRole.CLIENT, SyncType.ADD_ALL)
             }
         }
 

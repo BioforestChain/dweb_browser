@@ -7,6 +7,10 @@ import node.buffer.Buffer
 import node.http.IncomingMessage
 import node.net.Socket
 import org.dweb_browser.js_backend.ws.WS
+import org.dweb_browser.js_common.view_model.SyncType
+import org.dweb_browser.js_common.view_model.ViewModelMutableMap
+import org.dweb_browser.js_common.view_model.ViewModelStateRole
+import org.dweb_browser.js_common.view_model.OnUpdateCallback
 
 typealias EncodeValueToString = (key: String, value: dynamic) -> String
 typealias DecodeValueFromString = (key: String, value: String) -> dynamic
@@ -52,9 +56,9 @@ open class ViewModel(
                     socket, 
                     req.headers["sec-websocket-key"].toString(), 
                 ).apply {
-                    onData { key: String, value: String ->
+                    onData { key: String, value: String, syncType: SyncType ->
                         val v = decodeValueFromString(key, value)
-                        viewModelState.set(key, v, ViewModelStateRole.CLIENT)
+                        viewModelState.set(key, v, ViewModelStateRole.CLIENT, syncType)
                     }
                     sockets.add(this)
                     onClose { console.log("删除了 ViewModelSocket");sockets.remove(this) }
@@ -64,8 +68,8 @@ open class ViewModel(
         }
 
         // 以服务器角色更新了viewModelState之后就必须要报数据同步给UI
-        viewModelState.onUpdate(ViewModelStateRole.SERVER) { key, value ->
-            syncDataToUI(key, value)
+        viewModelState.onUpdate(ViewModelStateRole.SERVER) { key, value, syncType ->
+            syncDataToUI(key, value, syncType)
         }
     }
 
@@ -76,7 +80,7 @@ open class ViewModel(
         viewModelState.onUpdate(ViewModelStateRole.CLIENT, cb)
 
     /**
-     * 设置状态的值
+     * 设置状态的值快捷方式
      */
     operator fun set(key: dynamic, value: dynamic) {
         viewModelState[key] = value
@@ -87,10 +91,10 @@ open class ViewModel(
      */
     private fun syncViewModelStateToUI() {
         viewModelState.forEach { key, value ->
-            syncDataToUI(key, value)
+            syncDataToUI(key, value, SyncType.REPLACE)
         }
         // 发送初始化数据同步完成的消息
-        syncDataToUI("syncDataToUiState", "sync-data-to-ui-done")
+        syncDataToUI("syncDataToUiState", "sync-data-to-ui-done", SyncType.REPLACE)
         console.log("syncViewModelStateToUI done")
     }
 
@@ -101,14 +105,14 @@ open class ViewModel(
      * @param value {dynamic
      * - 同步数据的value
      */
-    private fun syncDataToUI(key: String, value: dynamic) {
+    private fun syncDataToUI(key: String, value: dynamic, syncType: SyncType) {
         scope.launch {
             sockets.forEach {
                 val valueString = when (key) {
                     "syncDataToUiState" -> value
                     else -> encodeValueToString(key, value)
                 }
-                it.write(key, valueString)
+                it.write(key, valueString.toString(), syncType)
             }
         }
     }

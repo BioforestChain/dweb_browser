@@ -1,6 +1,7 @@
 package org.dweb_browser.js_frontend.view_model
 
 
+
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -8,13 +9,15 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.js_common.view_model.SyncData
+import org.dweb_browser.js_common.view_model.SyncType
 import org.w3c.dom.WebSocket
 import org.w3c.dom.events.Event
 
 typealias OnOpenedCallback = (e: Event) -> Unit
 typealias OnErrorCallback = (e: Event) -> Unit
 typealias OnCloseCallback = (e: Event) -> Unit
-typealias OnSyncFromServerCallback = (key: String, value: String) -> Unit
+typealias OnSyncFromServerCallback = (key: String, value: String, syncType: SyncType) -> Unit
 
 open class ViewModelSocket(
     val url: String
@@ -42,7 +45,7 @@ open class ViewModelSocket(
             val data = it.data
             require(data is String)
             val syncData = Json.decodeFromString<SyncData>(data)
-            onSyncFromServerCallbackList.forEach { cb -> cb(syncData.key, syncData.value) }
+            onSyncFromServerCallbackList.forEach { cb -> cb(syncData.key, syncData.value, syncData.type) }
         }
 
         socket.onclose = {
@@ -89,20 +92,12 @@ open class ViewModelSocket(
     }
 
 
-    fun syncToServer(key: String, value: String){
+    fun syncToServer(key: String, value: String, syncType: SyncType){
         scope.launch {
             whenOpened.await()
-            val syncData = SyncData(key, value)
+            val syncData = SyncData(key, value, syncType)
             val jsonSyncData = Json.encodeToString<SyncData>(syncData)
             socket.send(jsonSyncData)
         }
     }
 }
-
-@Serializable
-data class SyncData(
-    @JsName("key")
-    val key: String,
-    @JsName("value")
-    val value: String
-)
