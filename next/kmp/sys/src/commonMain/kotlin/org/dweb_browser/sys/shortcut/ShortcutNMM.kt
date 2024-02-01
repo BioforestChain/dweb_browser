@@ -34,7 +34,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
     dweb_deeplinks = listOf("dweb://shortcutopen")
     short_name = "Shortcut"
     categories = listOf(
-//      MICRO_MODULE_CATEGORY.Application,
+      MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Service,
       MICRO_MODULE_CATEGORY.Hub_Service
     )
@@ -105,9 +105,9 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
             },
             onRemove = { item ->
               ioAsyncScope.launch {
-                shortcutList.removeAll { it.data == item.data }
+                shortcutList.removeAll { it.title == item.title }
                 shortcutManage.registryShortcut(shortcutList)
-                store.delete(item.data)
+                store.delete(item.title)
               }
             }
           )

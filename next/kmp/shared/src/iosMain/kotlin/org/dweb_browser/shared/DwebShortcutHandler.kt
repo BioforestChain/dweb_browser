@@ -1,7 +1,6 @@
 package org.dweb_browser.shared
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.sys.shortcut.ShortcutManage
 import org.dweb_browser.sys.shortcut.isScan
@@ -9,9 +8,10 @@ import platform.UIKit.UIApplicationShortcutItem
 
 object DwebShortcutHandler {
   fun hand(shortcut: UIApplicationShortcutItem): Boolean {
-    val url = "file://desk.browser.dweb" + "/openAppOrActivate?app_id=" + shortcut.type
-    CoroutineScope(Dispatchers.Main).launch {
-      dnsFetch(url)
+    val mmid = shortcut.type
+    val data = shortcut.userInfo?.get(mmid)
+    MainScope().launch {
+      dnsFetch("dweb://shortcutopen?mmid=${mmid}&data=${data}")
     }
     return true
   }

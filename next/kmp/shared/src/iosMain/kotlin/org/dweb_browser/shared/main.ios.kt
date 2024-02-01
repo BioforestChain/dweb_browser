@@ -49,10 +49,8 @@ val dwebViewController = nativeViewController
 val dwebDeepLinkHook = deepLinkHook
 private lateinit var dnsNMM: DnsNMM
 
-suspend fun dnsFetch(url: String): PureResponse? {
-  return dnsNMM.let {
-    it.nativeFetch(url)
-  }
+suspend fun dnsFetch(url: String): PureResponse {
+  return dnsNMM.nativeFetch(url)
 }
 
 @Suppress("UNUSED_VARIABLE")

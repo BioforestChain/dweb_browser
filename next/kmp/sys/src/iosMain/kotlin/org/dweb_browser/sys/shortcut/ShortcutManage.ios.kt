@@ -50,7 +50,7 @@ actual class ShortcutManage {
         getShortItem(it)
       }
       if (shortcuts.count() > maxCount) {
-        shortcuts.add(maxCount-1, getMoreShortcutItem())
+        shortcuts.add(maxCount - 1, getMoreShortcutItem())
       }
       val app = MicroModule.getUIApplication()
       app.shortcutItems = shortcuts
@@ -58,16 +58,16 @@ actual class ShortcutManage {
     return true
   }
 
-  private fun getShortItem(item: SystemShortcut) : UIApplicationShortcutItem {
-    return UIApplicationShortcutItem(item.mmid, item.title)
+  private fun getShortItem(item: SystemShortcut): UIApplicationShortcutItem {
+    return UIApplicationShortcutItem(item.mmid, item.title, null, null, mapOf(Pair(item.mmid,item.data)))
   }
 
-  private fun getScanShortcutItem() : UIApplicationShortcutItem {
+  private fun getScanShortcutItem(): UIApplicationShortcutItem {
     val title = ShortcutI18nResource.default_qrcode_title.text
     return UIApplicationShortcutItem(scanMmid, title)
   }
 
-  private fun getMoreShortcutItem() : UIApplicationShortcutItem {
+  private fun getMoreShortcutItem(): UIApplicationShortcutItem {
     val title = ShortcutI18nResource.more_title.text
     return UIApplicationShortcutItem(shortcutMmid, title)
   }
