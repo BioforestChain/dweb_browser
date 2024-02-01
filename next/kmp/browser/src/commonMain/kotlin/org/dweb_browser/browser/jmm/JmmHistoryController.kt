@@ -5,7 +5,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.download.model.ChangeableType
 import org.dweb_browser.browser.jmm.ui.ManagerViewRender
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getMainWindow
 
@@ -48,16 +48,13 @@ class JmmHistoryController(
     jmmNMM.getMainWindow().hide()
   }
 
-  suspend fun openHistoryView() {
+  suspend fun openHistoryView(win: WindowController) {
     // 主界面定义
-    with(jmmNMM.getMainWindow()) {
-      state.mode = org.dweb_browser.sys.window.core.constant.WindowMode.MAXIMIZE
-      state.setFromManifest(jmmNMM)
-      windowAdapterManager.provideRender(id) { modifier ->
-        ManagerViewRender(modifier = modifier, windowRenderScope = this)
-      }
-      show()
+    win.maximize()
+    windowAdapterManager.provideRender(win.id) { modifier ->
+      ManagerViewRender(modifier = modifier, windowRenderScope = this)
     }
+    win.show()
   }
 
   suspend fun openInstallerView(jmmHistoryMetadata: JmmHistoryMetadata) =

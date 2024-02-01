@@ -722,7 +722,7 @@ fun WindowController.IdRender(
       .widthIn(min = minWidth.dp)
   ) {
     val textStyle = MaterialTheme.typography.bodySmall
-    AutoSizeText(text = idForRender,
+    AutoSizeText(text = incForRender,
       color = contentColor,
       style = textStyle,
       modifier = Modifier.align(Alignment.Center),
@@ -735,4 +735,4 @@ fun WindowController.IdRender(
 /**
  * 用来窗口渲染的唯一标识
  */
-val WindowController.idForRender get() = state.constants.owner
+val WindowController.incForRender get() = state.constants.owner

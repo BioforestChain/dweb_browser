@@ -14,13 +14,12 @@ import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.createChannel
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
-import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
@@ -69,7 +68,8 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
           }
         }
         // 移除重复的
-        val remove = shortcutList.removeAll { it.title == systemShortcut.title && it.mmid == systemShortcut.mmid }
+        val remove =
+          shortcutList.removeAll { it.title == systemShortcut.title && it.mmid == systemShortcut.mmid }
         debugShortcut("/registry=>", "remove=$remove")
         if (remove) {
           store.delete(systemShortcut.title)
@@ -83,13 +83,13 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
         val data = request.query("data")
         val (ipc) = bootstrapContext.dns.connect(mmid)
         debugShortcut("shortcut-open=>", "${ipc.remote.mmid}=> $data")
-        ipc.postMessage(IpcEvent.fromUtf8("shortcut",data))
+        ipc.postMessage(IpcEvent.fromUtf8("shortcut", data))
       }
     )
 
     onRenderer {
       getMainWindow().apply {
-        state.setFromManifest(this@ShortcutNMM)
+        setStateFromManifest(this@ShortcutNMM)
         windowAdapterManager.provideRender(id) { modifier ->
           ShortcutManagerRender(
             modifier = modifier,

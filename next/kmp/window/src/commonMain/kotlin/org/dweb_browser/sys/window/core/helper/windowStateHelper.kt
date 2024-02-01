@@ -2,21 +2,26 @@ package org.dweb_browser.sys.window.core.helper
 
 import org.dweb_browser.core.help.types.ICommonAppManifest
 import org.dweb_browser.helper.ComparableWrapper
+import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.enumToComparable
+import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import kotlin.math.sqrt
 
-fun WindowState.setFromManifest(manifest: ICommonAppManifest) {
-  setWindowStateFromAppManifest(this, manifest)
-}
-
-fun setWindowStateFromAppManifest(windowState: WindowState, manifest: ICommonAppManifest) {
+suspend fun WindowController.setStateFromManifest(manifest: ICommonAppManifest) {
+  val win = this
+  val windowState = win.state
   windowState.title = manifest.name
   manifest.theme_color?.let {
     windowState.themeColor = it
+  }
+  manifest.display?.let { mode ->
+    if (mode == DisplayMode.Fullscreen) {
+      win.maximize()
+    }
   }
 
   /**

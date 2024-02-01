@@ -39,6 +39,7 @@ import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.sys.toast.ext.showToast
+import org.dweb_browser.sys.window.core.WindowController
 
 class JmmController(private val jmmNMM: JmmNMM, val jmmStore: JmmStore) {
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
@@ -50,7 +51,7 @@ class JmmController(private val jmmNMM: JmmNMM, val jmmStore: JmmStore) {
   private val historyController = JmmHistoryController(jmmNMM, this)
 
   // 打开历史界面
-  suspend fun openHistoryView() = historyController.openHistoryView()
+  suspend fun openHistoryView(win: WindowController) = historyController.openHistoryView(win)
 
   suspend fun loadHistoryMetadataUrl() {
     historyMetadataMaps.putAll(jmmStore.getHistoryMetadata())

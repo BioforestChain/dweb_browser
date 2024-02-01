@@ -55,7 +55,7 @@ import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.core.helper.pickLargest
-import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.createBottomSheets
@@ -97,7 +97,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
 
     onRenderer {
       getMainWindow().apply {
-        state.setFromManifest(this@PermissionNMM)
+        setStateFromManifest(this@PermissionNMM)
         windowAdapterManager.provideRender(id) { modifier ->
           PermissionManagerRender(modifier, this, permissionStdProtocol)
         }

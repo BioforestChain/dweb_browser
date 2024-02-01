@@ -20,7 +20,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.toast.ext.showToast
-import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 
@@ -122,10 +122,10 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
 
     onRenderer {
       getMainWindow().apply {
-        state.setFromManifest(this@JmmNMM)
+        setStateFromManifest(this@JmmNMM)
         state.keepBackground = true/// 保持在后台运行
+        jmmController.openHistoryView(this)
       }
-      jmmController.openHistoryView()
     }
   }
 

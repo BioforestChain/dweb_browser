@@ -22,7 +22,8 @@ class RunningApp(
    * 这个 ipc 是 running 的标志，这个是我们主动建立的连接，对方如果关闭这个，那么意味着desk会释放掉相关的资源，并且要求dns将它关闭
    */
   val ipc: Ipc,
-  val bootstrapContext: BootstrapContext
+  val bootstrapContext: BootstrapContext,
+  defaultWindowState: WindowState? = null
 ) {
   val onClose = ipc.onClose
 
@@ -49,6 +50,8 @@ class RunningApp(
           colorScheme = referenceState.colorScheme
           alwaysOnTop = referenceState.alwaysOnTop
           keepBackground = referenceState.keepBackground
+          mode = referenceState.mode
+          bounds = referenceState.bounds
         }
       }
     )
@@ -89,8 +92,9 @@ class RunningApp(
 
   /**
    * 最后一次窗口的state信息，在重新启动的新窗口的时候，用来参考、继承
+   * TODO 这个属性最好持久化存储
    */
-  private var latestWindowState: WindowState? = null
+  private var latestWindowState: WindowState? = defaultWindowState
 
   private suspend fun warpCreateWindow() =
     createWindow(latestWindowState).also { win ->

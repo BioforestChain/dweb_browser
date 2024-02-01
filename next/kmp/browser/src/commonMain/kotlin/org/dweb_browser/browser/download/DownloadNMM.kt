@@ -10,11 +10,12 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.valueNotIn
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
-import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 
@@ -27,6 +28,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
 //      MICRO_MODULE_CATEGORY.Application,
       MICRO_MODULE_CATEGORY.Network_Service,
     )
+    display = DisplayMode.Fullscreen
     icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))
   }
 
@@ -128,7 +130,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     )
     onRenderer {
       controller.renderDownloadWindow(wid)
-      getMainWindow().state.setFromManifest(this@DownloadNMM)
+      getMainWindow().setStateFromManifest(this@DownloadNMM)
     }
   }
 

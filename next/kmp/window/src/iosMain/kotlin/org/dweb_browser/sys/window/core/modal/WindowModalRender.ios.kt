@@ -31,7 +31,7 @@ import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 import org.dweb_browser.sys.window.render.LocalWindowPadding
-import org.dweb_browser.sys.window.render.idForRender
+import org.dweb_browser.sys.window.render.incForRender
 import platform.UIKit.UIAction
 import platform.UIKit.UIAlertAction
 import platform.UIKit.UIAlertActionStyleCancel
@@ -222,7 +222,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
       // 显示可拖动的手柄
       sheet.setPrefersGrabberVisible(true)
       // 添加窗口标识
-      sheet.sourceView?.addMmid(win.idForRender)
+      sheet.sourceView?.addMmid(win.incForRender)
       sheet.delegate = sheetUiDelegate
       sheetUiDelegate.afterDismiss.invokeOnCompletion {
         emitModalVisibilityChange(EmitModalVisibilityState.ForceClose)

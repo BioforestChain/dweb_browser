@@ -24,8 +24,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.core.constant.WindowMode
-import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getWindow
 
@@ -119,10 +118,8 @@ class BrowserController(
         return@withLock
       }
       win = newWin
-      newWin.state.apply {
-        mode = WindowMode.MAXIMIZE
-        setFromManifest(browserNMM)
-      }
+      newWin.setStateFromManifest(browserNMM)
+
       /// 提供渲染适配
       windowAdapterManager.provideRender(wid) { modifier ->
         Render(modifier, this)

@@ -19,12 +19,13 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.ext.deletePermission
+import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.sys.permission.ext.requestSystemPermissions
-import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
@@ -33,7 +34,7 @@ class PermissionProviderTNN :
   NativeMicroModule("provider.test.permission.sys.dweb", "Permission Provider") {
   init {
     short_name = name
-    categories = listOf(MICRO_MODULE_CATEGORY.Service,)
+    categories = listOf(MICRO_MODULE_CATEGORY.Service)
     icons = listOf(
       ImageResource(src = "file:///sys/icons/test-yellow.svg", type = "image/svg+xml")
     )
@@ -73,12 +74,13 @@ class PermissionApplicantTMM :
     icons = listOf(
       ImageResource(src = "file:///sys/icons/test-pink.svg", type = "image/svg+xml")
     )
+    display = DisplayMode.Fullscreen
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     onRenderer {
-      val win = getMainWindow().also { it.maximize() }
-      win.state.setFromManifest(this@PermissionApplicantTMM)
+      val win = getMainWindow()
+      win.setStateFromManifest(this@PermissionApplicantTMM)
       windowAdapterManager.provideRender(wid) { modifier ->
         Column(modifier) {
           var okk by remember {
