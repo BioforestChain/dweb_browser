@@ -5,6 +5,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.w3c.dom.MessageEvent
 import org.w3c.dom.WebSocket
 import org.w3c.dom.events.Event
@@ -13,7 +16,7 @@ import kotlin.js.JSON
 typealias OnOpenedCallback = (e: Event) -> Unit
 typealias OnErrorCallback = (e: Event) -> Unit
 typealias OnCloseCallback = (e: Event) -> Unit
-typealias OnMessageCallback = (e: MessageEvent) -> Unit
+typealias OnSyncFromServerCallback = (key: String, value: String) -> Unit
 
 open class DwebWebSocket(
     val url: String
@@ -38,8 +41,10 @@ open class DwebWebSocket(
             onErrorCallbackList.forEach { cb -> cb(it) }
         }
         socket.onmessage = {
-//            console.log("onMessage", it)
-            onMessageCallbackList.forEach { cb -> cb(it) }
+            val data = it.data
+            require(data is String)
+            val syncData = Json.decodeFromString<SyncData>(data)
+            onSyncFromServerCallbackList.forEach { cb -> cb(syncData.key, syncData.value) }
         }
 
         socket.onclose = {
@@ -65,11 +70,11 @@ open class DwebWebSocket(
         }
     }
 
-    private val onMessageCallbackList = mutableListOf<OnMessageCallback>()
-    fun onMessage(cb: OnMessageCallback): () -> Unit {
-        onMessageCallbackList.add(cb)
+    private val onSyncFromServerCallbackList = mutableListOf<OnSyncFromServerCallback>()
+    fun onSyncFromServer(cb: OnSyncFromServerCallback): () -> Unit {
+        onSyncFromServerCallbackList.add(cb)
         return {
-            onMessageCallbackList.remove(cb)
+            onSyncFromServerCallbackList.remove(cb)
         }
     }
 
@@ -85,11 +90,21 @@ open class DwebWebSocket(
         socket.close()
     }
 
-    fun send(data: String){
+
+    fun syncToServer(key: String, value: String){
         scope.launch {
             whenOpened.await()
-            console.log("向后端发送了数据： ", data)
-            socket.send(data)
+            val syncData = SyncData(key, value)
+            val jsonSyncData = Json.encodeToString<SyncData>(syncData)
+            socket.send(jsonSyncData)
         }
     }
 }
+
+@Serializable
+data class SyncData(
+    @JsName("key")
+    val key: String,
+    @JsName("value")
+    val value: String
+)

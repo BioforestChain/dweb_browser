@@ -27,14 +27,11 @@ open class BaseViewModel(
      */
     val whenSyncDataFromServerDone = CompletableDeferred<Unit>()
     init {
-        dwebWebSocket.onMessage {
-            val data = it.data
-            require(data is String)
-            val syncData = Json.decodeFromString<SyncData>(data)
-            val key = syncData.key
+        dwebWebSocket.onSyncFromServer {key, valueString ->
+
             val value = when(key){
-                "syncDataToUiState" -> syncData.value
-                else -> decodeValueFromString(key, syncData.value)
+                "syncDataToUiState" -> valueString
+                else -> decodeValueFromString(key, valueString)
             }
             handleMessageDataList.forEach { cb -> cb(arrayOf(key, value)) }
         }
@@ -55,19 +52,11 @@ open class BaseViewModel(
     /**
      * 同步数据到 Server
      */
-    fun syncStateToServer(key: dynamic, value: dynamic){
+    fun syncStateToServer(key: String, value: dynamic){
         val valueString = encodeValueToString(key, value)
-        val syncData = SyncData(key.toString(), valueString)
-        val jsonSyncData = Json.encodeToString<SyncData>(syncData)
-        dwebWebSocket.send(jsonSyncData)
+        dwebWebSocket.syncToServer(key, valueString)
     }
 }
 
-@Serializable
-data class SyncData(
-    @JsName("key")
-    val key: String,
-    @JsName("value")
-    val value: String
-)
+
 
