@@ -23,7 +23,7 @@ struct BrowserView: View {
                             .frame(height: states.addressBar.isFocused ? 0 : states.dragScale.toolbarHeight)
                     }
                     .background(.bk)
-                    .environmentObject(states.webcacheStore)
+                    .environment(states.webcacheStore)
                     .environmentObject(states.openingLink)
                     .environmentObject(states.addressBar)
                     .environmentObject(states.toolBarState)

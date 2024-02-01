@@ -7,28 +7,37 @@
 
 import Combine
 import Foundation
+import Observation
 import SwiftUI
 import UIKit
-import Observation
+
+enum CodingKeys: String, CodingKey {
+    case id
+    case webIconUrl
+    case lastVisitedUrl
+    case title
+    case snapshotUrl
+}
 
 @Observable
 class WebCache: Identifiable, Hashable, Codable, Equatable {
-
     var id = UUID()
     var webIconUrl: URL // url to the source of somewhere in internet
     var lastVisitedUrl: URL
     var title: String // page title
     var snapshotImage = lightSnapshotImage {
-        didSet{
+        didSet {
             snapshotChangedHandler()
         }
     }
+
     var snapshotUrl: URL // local file path is direct to the image has saved in document dir
     {
         didSet {
             snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
         }
     }
+
     var snapshotChangedHandler: () -> Void = {}
     var isWebVisible: Bool { lastVisitedUrl != emptyURL }
 
@@ -78,39 +87,22 @@ class WebCache: Identifiable, Hashable, Codable, Equatable {
     static var example: WebCache {
         WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "apple")
     }
-    
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case webIconUrl
-        case lastVisitedUrl
-        case title
-        case snapshotUrl
-    }
 }
 
-class WebCacheStore: ObservableObject {
+@Observable
+class WebCacheStore {
     private let userdefaultKey = "userdefaultWebCache"
-    @Published var caches: [WebCache] = []{
-        didSet{
+    var caches: [WebCache] = [] {
+        didSet {
+            webWrappers = caches.map { webWrapper(of: $0.id) }
             saveCaches()
         }
     }
-    @Published var webWrappers: [WebWrapper] = []
 
-    var cancellables = Set<AnyCancellable>()
+    var webWrappers: [WebWrapper] = []
+
     init() {
         loadCaches()
-        
-        $caches.sink { [weak self] webCaches in
-                Log("caches titles \(webCaches.map { $0.title })")
-                let cacheIds = webCaches.map { $0.id }
-                let newStore = cacheIds.map {
-                    self?.webWrapper(of: $0) ?? WebWrapper(cacheID: $0)
-                }
-                self?.webWrappers = newStore
-            }
-            .store(in: &cancellables)
     }
     
     func createOne() {
@@ -157,20 +149,20 @@ class WebCacheStore: ObservableObject {
         return webWrapper(of: cache.id)
     }
     
-    func animateSnapshot(index: Int, colorScheme:  ColorScheme) -> UIImage{
+    func animateSnapshot(index: Int, colorScheme: ColorScheme) -> UIImage {
         guard index >= 0, index < cacheCount else { return lightSnapshotImage }
         // TODO: imge 和url没有保持同步
         let cache = caches[index]
         let imageUrlString = cache.snapshotUrl.absoluteString
         
         var image = cache.snapshotImage
-        if !imageUrlString.contains(webtag){
-            if colorScheme == .light{
-                if !imageUrlString.contains("light"){
+        if !imageUrlString.contains(webtag) {
+            if colorScheme == .light {
+                if !imageUrlString.contains("light") {
                     image = lightSnapshotImage
                 }
             } else if colorScheme == .dark {
-                if !imageUrlString.contains("dark"){
+                if !imageUrlString.contains("dark") {
                     image = darkSnapshotImage
                 }
             }
@@ -181,7 +173,7 @@ class WebCacheStore: ObservableObject {
     private func loadCaches() {
         if let data = UserDefaults.standard.data(forKey: userdefaultKey) {
             if let items = try? JSONDecoder().decode([WebCache].self, from: data) {
-                let _ = items.map({ $0.snapshotChangedHandler = saveCaches })
+                let _ = items.map { $0.snapshotChangedHandler = saveCaches }
                 caches = items
             }
         }

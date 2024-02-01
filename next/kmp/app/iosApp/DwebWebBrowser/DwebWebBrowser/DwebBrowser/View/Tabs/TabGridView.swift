@@ -24,8 +24,8 @@ struct CellFramePreferenceKey: PreferenceKey {
 
 struct TabGridView: View {
     @Environment(SelectedTab.self) var seletecdTab
+    @Environment(WebCacheStore.self) var webcacheStore
     @EnvironmentObject var toolbarState: ToolBarState
-    @EnvironmentObject var webcacheStore: WebCacheStore
     @Environment(\.colorScheme) var colorScheme
 
     @ObservedObject var animation: ShiftAnimation

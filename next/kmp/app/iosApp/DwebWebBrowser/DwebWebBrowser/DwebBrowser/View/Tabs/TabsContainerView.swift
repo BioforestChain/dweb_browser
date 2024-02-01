@@ -10,9 +10,10 @@ import WebKit
 
 struct TabsContainerView: View {
     @Environment(SelectedTab.self) var seletecdTab
+    @Environment(WebCacheStore.self) var webcacheStore
+
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var addressBar: AddressBarState
-    @EnvironmentObject var webcacheStore: WebCacheStore
     @EnvironmentObject var dragScale: WndDragScale
 
     @StateObject var gridState = TabGridState()
@@ -34,14 +35,14 @@ struct TabsContainerView: View {
             // 层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
             ZStack {
                 TabGridView(animation: animation, gridState: gridState, selectedCellFrame: $selectedCellFrame)
-                    .environmentObject(webcacheStore)
+                    .environment(webcacheStore)
 
                 if isExpanded, !animation.progress.isAnimating() {
                     Color.bk.ignoresSafeArea()
                 }
 
                 PagingScrollView(showTabPage: $showTabPage)
-                    .environmentObject(webcacheStore)
+                    .environment(webcacheStore)
                     .environmentObject(animation)
                     .allowsHitTesting(showTabPage) // This line allows TabGridView to receive the tap event, down through click
                 

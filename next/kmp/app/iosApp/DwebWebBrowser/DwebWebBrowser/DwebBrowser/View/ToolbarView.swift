@@ -11,9 +11,9 @@ import UIKit
 
 struct ToolbarView: View {
     @Environment(SelectedTab.self) var seletecdTab
+    @Environment(WebCacheStore.self) var webcacheStore
 
     @EnvironmentObject var toolbarState: ToolBarState
-    @EnvironmentObject var cacheStore: WebCacheStore
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var dragScale: WndDragScale
@@ -22,7 +22,7 @@ struct ToolbarView: View {
 
     @State private var loadingDone: Bool = false
 
-    private var isShowingWeb: Bool { cacheStore.cache(at: seletecdTab.index).isWebVisible }
+    private var isShowingWeb: Bool { webcacheStore.cache(at: seletecdTab.index).isWebVisible }
     private var canCreateDesktopLink: Bool { isShowingWeb && loadingDone }
     
     var body: some View {
@@ -48,7 +48,7 @@ struct ToolbarView: View {
                     .frame(height: min(size.width / 14, size.height / 1.9))
                     
                     Spacer()
-                    Text("\(cacheStore.cacheCount)个标签页")
+                    Text("\(webcacheStore.cacheCount)个标签页")
                         .foregroundColor(.primary)
                         .font(dragScale.scaledFont())
                         .fontWeight(.semibold)
