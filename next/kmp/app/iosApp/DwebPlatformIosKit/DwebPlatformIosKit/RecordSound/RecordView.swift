@@ -95,7 +95,6 @@ struct RecordView: View {
         recordsCount += 1
         withAnimation {
             let model = SoundEntity(context: modelContext)
-            model.id = UUID()
             model.nameString = "标准\(recordsCount)"
             model.timeStamp = Int64(Date().timeStamp)
             model.duration = Int64(duration)

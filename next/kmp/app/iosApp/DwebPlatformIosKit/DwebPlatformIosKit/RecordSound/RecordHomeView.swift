@@ -10,7 +10,7 @@ import CoreData
 
 struct RecordHomeView: View {
     
-    @StateObject private var dataController = DataController()
+    @StateObject private var dataController = SoundDataController.shared
     var body: some View {
         RecordMainView()
             .background(Color(uiColor: bkColor))

@@ -29,6 +29,7 @@ import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.contact.ContactNMM
 import org.dweb_browser.sys.device.DeviceNMM
+import org.dweb_browser.sys.filechooser.FileChooserNMM
 import org.dweb_browser.sys.haptics.HapticsNMM
 import org.dweb_browser.sys.location.LocationNMM
 import org.dweb_browser.sys.media.MediaNMM
@@ -127,6 +128,7 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
   val contactNMM = ContactNMM().setup()
   /// shortcut
   val shortcutNMM = ShortcutNMM().setup()
+  val fileChooserNMM = FileChooserNMM().setup()
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().setup()

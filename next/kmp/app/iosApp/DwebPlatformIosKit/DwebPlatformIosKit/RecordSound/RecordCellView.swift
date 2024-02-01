@@ -21,15 +21,25 @@ struct RecordCellView: View {
     @State private var isSlideDrag: Bool = false
     let model: SoundEntity
     @Binding var selectedIndex: Int?
+    @Binding var choosedIndex: Int?
     let index: Int
     
     
     var body: some View {
         VStack(alignment: .leading) {
             VStack(alignment: .leading) {
-                Text(model.nameString ?? "")
-                    .font(Font.system(size: 16.0, weight: .bold))
-                    .padding(.top,8)
+                HStack {
+                    Text(model.nameString ?? "")
+                        .font(Font.system(size: 16.0, weight: .bold))
+                        .padding(.top,8)
+                    Spacer()
+                    Image(systemName: choosedIndex == index ? "checkmark.circle.fill" : "checkmark.circle")
+                        .foregroundColor(choosedIndex == index ? .blue : .black)
+                        .padding(.top, 8)
+                        .onTapGesture {
+                            choosedIndex = index == choosedIndex ? nil : index
+                        }
+                }
                 
                 HStack {
                     Text(changeStampToDate(stamp: Int(model.timeStamp)))
@@ -165,7 +175,7 @@ struct RecordCellView: View {
             Spacer()
             
         }
-        .padding(.all,4)
+        .padding(.horizontal,16)
     }
     
     private func updatePlayingTime(value: Int) {

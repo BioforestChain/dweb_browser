@@ -8,7 +8,9 @@
 import Foundation
 import CoreData
 
-class DataController: ObservableObject {
+class SoundDataController: ObservableObject {
+    
+    static let shared = SoundDataController()
     
     init() {
         
@@ -34,4 +36,5 @@ class DataController: ObservableObject {
         }
         return container
     }()
+    
 }
