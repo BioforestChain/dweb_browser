@@ -13,8 +13,8 @@ class DwebBrowserAppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         Log("Launch! home path:\(NSHomeDirectory())")
         KotlinComposeRedrawerFix.fix()
-        DwebDeskVCStore.startUpNMMs(application)
         let _ = DwebLifeStatusCenter.shared
+        DwebDeskVCStore.startUpNMMs(application)
         return true
     }
 

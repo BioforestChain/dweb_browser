@@ -15,7 +15,7 @@ import SwiftUI
 struct ShortcutTools {
     static func hand(_ item: UIApplicationShortcutItem) -> Bool {
         if DwebShortcutHandler().isScanShortcut(shortcut: item) {
-            DwebLifeStatusCenter.shared.register(.didRender) {
+            DwebLifeStatusCenter.shared.register(.didRended) {
                 DispatchQueue.main.async {
                     let keyWindow = UIApplication.shared.currentWindow
                     let scanView = CodeScannerView(codeTypes: [.qr], showViewfinder: true) { result in

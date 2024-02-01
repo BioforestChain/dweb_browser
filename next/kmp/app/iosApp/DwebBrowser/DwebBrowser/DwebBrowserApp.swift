@@ -40,7 +40,7 @@ struct DwebFrameworkContentView: View {
             }
         }
         .task {
-            DwebLifeStatusCenter.shared.register(.didRender) {
+            DwebLifeStatusCenter.shared.register(.didRended) {
                 self.isDidAppear = true
             }
         }

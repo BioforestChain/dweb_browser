@@ -18,10 +18,22 @@ public func Log(time: String = dateformate.string(from: Date()),
                 function: String = #function,
                 line: Int = #line,
                 category: String = "iOS",
-                _ msg: String? = nil)
+                _ msg: String? = nil,
+                separator: String = " ",
+                terminator: String = "\n")
 {
     #if DEBUG
-        print("[\(category)] [\(file.components(separatedBy: "/").last ?? "null"):\(function):\(line)] [\(time)] \(msg ?? "")")
+        print("[\(category)] [\(file.components(separatedBy: "/").last ?? "null"):\(function):\(line)] [\(time)] \(msg ?? "")", separator: separator, terminator: terminator)
+    #else
+    #endif
+}
+
+public func LogRaw(_ msg: String? = nil,
+                   separator: String = " ",
+                   terminator: String = "\n")
+{
+    #if DEBUG
+        print("\(msg ?? "")", separator: separator, terminator: terminator)
     #else
     #endif
 }

@@ -29,39 +29,48 @@ class DwebLifeStatusCenter {
             case actived (Bool)
             case unactived (Bool)
             case terminate
+            
+            static func += (left: inout Status, right: Event) {
+                left = Record.updateStatus(by: right, status: left)
+            }
+            
+            static func == (left: Status, right: Event) -> Bool {
+                return Record.match(for: right, status: left)
+            }
         }
         
-        enum StatusEvent {
+        enum Event {
             case didLaunched
             case didActived
             case didUnactived
-            case didRender
+            case didRended
             case willTerminated
         }
                 
-        static func updateStatus(by event: StatusEvent, status: Status) -> Status {
+        private static func updateStatus(by event: Event, status: Status) -> Status {
              switch (status, event) {
                 case (_, .didLaunched): return .launched(false)
                 case (_, .willTerminated): return .terminate
                 case let (.launched(rended), .didActived): return .actived(rended)
-                case (.launched(_), .didRender): return .launched(true)
+                case (.launched(_), .didRended): return .launched(true)
                 case let (.launched(rended), .didUnactived): return .unactived(rended)
-                case (.actived(_), .didRender): return .actived(true)
+                case (.actived(_), .didRended): return .actived(true)
                 case let (.actived(rended), .didUnactived): return .unactived(rended)
-                case (.unactived(_), .didRender): return .unactived(true)
+                case (.unactived(_), .didRended): return .unactived(true)
                 case let (.unactived(rended), .didActived): return .actived(rended)
                 default:
+                 Log("Invaild: \(status) + \(event)")
                  return status
             }
         }
         
-        static func match(for event: StatusEvent, status: Status) -> Bool {
+        private static func match(for event: Event, status: Status) -> Bool {
             switch status {
                 case .launched(false): event == .didLaunched
                 case .actived(false): event == .didActived
                 case .unactived(false): event == .didUnactived
                 case .terminate: event == .willTerminated
-                case .launched(true), .actived(true), .unactived(true): event == .didRender
+                case .launched(true), .actived(true), .unactived(true): event == .didRended
                 default: false
             }
         }
@@ -70,32 +79,38 @@ class DwebLifeStatusCenter {
     
     actor TaskStore {
         typealias Action = ()->Void
-        private typealias Task = (Record.StatusEvent, Action)
+        private typealias Task = (Record.Event, Action)
         
+        private(set) var status: Record.Status = .none
+
         private lazy var tasks: [Task] = {
             [Task]()
         }()
         
-        func register(_ for: Record.StatusEvent, action: @escaping Action) {
+        func register(_ for: Record.Event, action: @escaping Action) {
+            if status == `for` {
+                action()
+                return
+            }
             tasks.append((`for`, action))
         }
         
-        func doRegistedAction(_ status : Record.Status) {
+        func reduce(_ event: Record.Event) {
+            Log("\(status) + \(event) ==> ", terminator: "")
+            status += event
+            LogRaw("\(status)")
+            doRegistedAction(status)
+        }
+        
+        private func doRegistedAction(_ status : Record.Status) {
             Log("action for: \(status)")
-            tasks.lazy.filter { Record.match(for: $0.0, status: status) }.forEach { $0.1() }
-            tasks.removeAll { Record.match(for: $0.0, status: status) }
+            tasks.lazy.filter { status == $0.0 }.forEach { $0.1() }
+            tasks.removeAll { status == $0.0 }
         }
     }
     
     static let shared = DwebLifeStatusCenter()
-    
-    
-    private(set) var status: Record.Status = .none {
-        didSet {
-            doStatusActions()
-        }
-    }
-    
+
     private lazy var taskStore: TaskStore = {
         TaskStore()
     }()
@@ -104,18 +119,9 @@ class DwebLifeStatusCenter {
         self.addObservers()
     }
     
-    func register(_ for: Record.StatusEvent, action: @escaping TaskStore.Action) {
+    func register(_ for: Record.Event, action: @escaping TaskStore.Action) {
         Task {
             await taskStore.register(`for`, action: action)
-            if Record.match(for: `for`, status: status) {
-                await taskStore.doRegistedAction(status)
-            }
-        }
-    }
-    
-    private func doStatusActions() {
-        Task {
-            await taskStore.doRegistedAction(status)
         }
     }
     
@@ -127,29 +133,35 @@ class DwebLifeStatusCenter {
         NotificationCenter.default.addObserver(self, selector: #selector(appDidRended), name: NSNotification.Name.DwebAppDidRendedNotificationName, object: nil)
     }
     
+    private func doNotificationHandle(_ event: Record.Event) {
+        Task {
+            await taskStore.reduce(event)
+        }
+    }
+    
     @objc private func appDidLaunched() {
         Log()
-        status = Record.updateStatus(by: .didLaunched, status: status)
+        doNotificationHandle(.didLaunched)
     }
     
     @objc private func appDidActived() {
         Log()
-        status = Record.updateStatus(by: .didActived, status: status)
+        doNotificationHandle(.didActived)
     }
     
     @objc private func appDidUnActived() {
         Log()
-        status = Record.updateStatus(by: .didUnactived, status: status)
+        doNotificationHandle(.didUnactived)
     }
     
     @objc private func appWillTerminated() {
         Log()
-        status = Record.updateStatus(by: .willTerminated, status: status)
+        doNotificationHandle(.willTerminated)
     }
     
     @objc private func appDidRended() {
         Log()
-        status = Record.updateStatus(by: .didRender, status: status)
+        doNotificationHandle(.didRended)
     }
     
     deinit {
