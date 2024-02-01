@@ -1,7 +1,7 @@
 package org.dweb_browser.js_backend.browser_window
 
-import org.dweb_browser.js_backend.view_model.BaseViewModel
-import org.dweb_browser.js_backend.view_model_state.ViewModelMutableMap
+import org.dweb_browser.js_backend.view_model.ViewModel
+import org.dweb_browser.js_backend.view_model.ViewModelMutableMap
 import org.dweb_browser.js_backend.view_model.DecodeValueFromString
 import org.dweb_browser.js_backend.view_model.EncodeValueToString
 
@@ -22,7 +22,7 @@ import org.dweb_browser.js_backend.view_model.EncodeValueToString
 interface IElectronBrowserWindowModule{
     val subDomain: String
     val controller: ElectronBrowserWindowController
-    val viewModel: BaseViewModel
+    val viewModel: ViewModel
 }
 
 class ElectronBrowserWindowModule(
@@ -32,7 +32,7 @@ class ElectronBrowserWindowModule(
     initVieModelMutableMap: ViewModelMutableMap
 ) : IElectronBrowserWindowModule{
     override val controller: ElectronBrowserWindowController = ElectronBrowserWindowController.create(subDomain)
-    override val viewModel: BaseViewModel = BaseViewModel(
+    override val viewModel: ViewModel = ViewModel(
         subDomain = subDomain,
         encodeValueToString = encodeValueToString,
         decodeValueFromString = decodeValueFromString,

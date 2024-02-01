@@ -1,7 +1,6 @@
-import kotlinx.coroutines.CompletableDeferred
-import org.dweb_browser.js_backend.view_model_state.ViewModelState
-import org.dweb_browser.js_backend.view_model_state.ViewModelStateRole
-import org.dweb_browser.js_backend.view_model_state.viewModelMutableMapOf
+import org.dweb_browser.js_backend.view_model.ViewModelState
+import org.dweb_browser.js_backend.view_model.ViewModelStateRole
+import org.dweb_browser.js_backend.view_model.viewModelMutableMapOf
 import org.dweb_browser.test.runCommonTest
 
 import kotlin.test.Test
@@ -29,7 +28,7 @@ class TestViewModelState(){
         val newValue = "10"
         val instance = ViewModelState(viewModelMutableMapOf())
         var hasCallback = false
-        instance.onUpdate(ViewModelStateRole.SERVER){key, value ->
+        instance.onUpdate(ViewModelStateRole.SERVER){ key, value ->
             assertEquals(key,newKey)
             assertEquals(value, newValue)
             hasCallback = true
@@ -48,12 +47,12 @@ class TestViewModelState(){
         val newValue = "10"
         val instance = ViewModelState(viewModelMutableMapOf())
         var hasCallback = false
-        instance.onUpdate(ViewModelStateRole.SERVER){key, value ->
+        instance.onUpdate(ViewModelStateRole.SERVER){ key, value ->
             assertEquals(key,newKey)
             assertEquals(value, newValue)
             hasCallback = true
         }
-        instance.set(newKey, newValue,ViewModelStateRole.SERVER)
+        instance.set(newKey, newValue, ViewModelStateRole.SERVER)
         assertEquals(hasCallback, true, " instance.set(newKey, newValue,ViewModelStateRole.SERVER) 失败")
         console.log("testSetByServerRole 完成")
     }
@@ -66,12 +65,12 @@ class TestViewModelState(){
         val newValue = "10"
         val instance = ViewModelState(viewModelMutableMapOf())
         var hasCallback = false
-        instance.onUpdate(ViewModelStateRole.CLIENT){key, value ->
+        instance.onUpdate(ViewModelStateRole.CLIENT){ key, value ->
             assertEquals(key,newKey)
             assertEquals(value, newValue)
             hasCallback = true
         }
-        instance.set(newKey, newValue,ViewModelStateRole.CLIENT)
+        instance.set(newKey, newValue, ViewModelStateRole.CLIENT)
         assertEquals(hasCallback, true, " instance.set(newKey, newValue,ViewModelStateRole.CLIENT) 失败")
         console.log("testSetByClientRole 完成")
     }

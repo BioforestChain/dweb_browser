@@ -6,10 +6,6 @@ import kotlinx.coroutines.launch
 import node.buffer.Buffer
 import node.http.IncomingMessage
 import node.net.Socket
-import org.dweb_browser.js_backend.view_model_state.OnUpdateCallback
-import org.dweb_browser.js_backend.view_model_state.ViewModelMutableMap
-import org.dweb_browser.js_backend.view_model_state.ViewModelState
-import org.dweb_browser.js_backend.view_model_state.ViewModelStateRole
 import org.dweb_browser.js_backend.ws.WS
 
 typealias EncodeValueToString = (key: String, value: dynamic) -> String
@@ -26,7 +22,7 @@ typealias DecodeValueFromString = (key: String, value: String) -> dynamic
  * - 可以监听状态的变化
  *      - 监听客户端同步过来的状态
  */
-open class BaseViewModel(
+open class ViewModel(
     val subDomain: String,
     val encodeValueToString: EncodeValueToString,
     val decodeValueFromString: DecodeValueFromString,
@@ -62,7 +58,7 @@ open class BaseViewModel(
                     }
                     sockets.add(this)
                     onClose { console.log("删除了 ViewModelSocket");sockets.remove(this) }
-                    this@BaseViewModel.syncViewModelStateToUI()
+                    this@ViewModel.syncViewModelStateToUI()
                 }
             }
         }

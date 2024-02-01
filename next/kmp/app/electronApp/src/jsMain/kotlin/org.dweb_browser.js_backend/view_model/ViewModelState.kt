@@ -1,4 +1,4 @@
-package org.dweb_browser.js_backend.view_model_state
+package org.dweb_browser.js_backend.view_model
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

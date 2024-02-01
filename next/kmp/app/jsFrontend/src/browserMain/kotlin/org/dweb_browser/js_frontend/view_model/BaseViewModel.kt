@@ -2,16 +2,15 @@ package org.dweb_browser.js_frontend.view_model
 
 import kotlinx.browser.window
 import kotlinx.coroutines.CompletableDeferred
-import org.dweb_browser.js_frontend.view_model_state.ViewModelState
 
 typealias HandleMessageDataList = (key: String, value: dynamic) -> Unit
 typealias EncodeValueToString = (key: String, value: dynamic) -> String
 typealias DecodeValueFromString = (key: String, value: String) -> dynamic
 
-open class BaseViewModel(
+open class ViewModel(
     val state: ViewModelState,
     val encodeValueToString: EncodeValueToString,/**编码value的方法*/
-    val decodeValueFromString: DecodeValueFromString,/**解码value的方法*/
+    val decodeValueFromString: DecodeValueFromString, /**解码value的方法*/
 ) {
     val viewModelSocket = ViewModelSocket("ws://${window.location.host}")
     private val handleMessageDataList = mutableListOf<HandleMessageDataList>()
