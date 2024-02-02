@@ -9,10 +9,12 @@ import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthentication
 actual object BiometricsManage {
 
   @OptIn(ExperimentalForeignApi::class)
-  actual suspend fun isSupportBiometrics(
-    biometricsData: BiometricsData, biometricsNMM: BiometricsNMM
-  ): Boolean {
-    return LAContext().canEvaluatePolicy(LAPolicyDeviceOwnerAuthentication, null)
+  actual suspend fun checkSupportBiometrics(): Int {
+    return if (LAContext().canEvaluatePolicy(LAPolicyDeviceOwnerAuthentication, null)) {
+      0
+    } else {
+      -1
+    }
   }
 
   actual suspend fun biometricsResultContent(

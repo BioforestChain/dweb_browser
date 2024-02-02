@@ -1,6 +1,7 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BaseResult } from "../../util/response.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
+import { BioetricsCheckResult } from "./biometrics.type.ts";
 
 export class BiometricsPlugin extends BasePlugin {
   constructor() {
@@ -9,11 +10,12 @@ export class BiometricsPlugin extends BasePlugin {
 
   /**
    * 检查是否支持生物识别
-   * @returns boolean
+   * (ios始终返回支持人脸识别)
+   * @returns BioetricsCheckResult
    */
   @bindThis
-  async check(): Promise<boolean> {
-    return await this.fetchApi("/check").boolean();
+  check(): Promise<BioetricsCheckResult> {
+    return this.fetchApi("/check").number();
   }
   /**
    * 生物识别

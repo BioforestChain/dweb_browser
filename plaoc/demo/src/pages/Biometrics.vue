@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { biometricsPlugin, HTMLDwebBiometricsElement } from "../plugin"
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
+import { onMounted, ref } from "vue";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
+import { BioetricsCheckResult, HTMLDwebBiometricsElement, biometricsPlugin } from "../plugin";
 const $logPanel = ref<typeof LogPanel>();
 let console: Console;
 
@@ -12,25 +12,41 @@ let biometrics: HTMLDwebBiometricsElement;
 onMounted(async () => {
   console = toConsole($logPanel);
   biometrics = $biometricsPlugin.value!;
-})
+});
 
 // plugin调用方法
-const fingerprint = defineLogAction(async () => {
-  return await biometricsPlugin.biometrics()
-}, { name: "fingerprint", args: [], logPanel: $logPanel })
+const fingerprint = defineLogAction(
+  async () => {
+    return await biometricsPlugin.biometrics();
+  },
+  { name: "fingerprint", args: [], logPanel: $logPanel }
+);
 
-const check = defineLogAction(async () => {
-  return await biometricsPlugin.check()
-}, { name: "check", args: [], logPanel: $logPanel })
+const check = defineLogAction(
+  async () => {
+    const data = await biometricsPlugin.check();
+    if (BioetricsCheckResult.BIOMETRIC_SUCCESS === data) {
+      console.log("设备支持扫码");
+    }
+    return data;
+  },
+  { name: "check", args: [], logPanel: $logPanel }
+);
 
 // webComponent 的调用方法
-const fingerprintWb = defineLogAction(async () => {
-  return await biometrics.biometrics()
-}, { name: "fingerprint", args: [], logPanel: $logPanel })
+const fingerprintWb = defineLogAction(
+  async () => {
+    return await biometrics.biometrics();
+  },
+  { name: "fingerprint", args: [], logPanel: $logPanel }
+);
 
-const checkWb = defineLogAction(async () => {
-  return await biometrics.check()
-}, { name: "check", args: [], logPanel: $logPanel })
+const checkWb = defineLogAction(
+  async () => {
+    return await biometrics.check();
+  },
+  { name: "check", args: [], logPanel: $logPanel }
+);
 
 const title = "BiometricsManager";
 </script>
@@ -57,4 +73,3 @@ const title = "BiometricsManager";
   <div class="divider">LOG</div>
   <LogPanel ref="$logPanel"></LogPanel>
 </template>
-

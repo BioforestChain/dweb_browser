@@ -66,12 +66,12 @@ const main = async () => {
     setWinId(ipcEvent.text);
     tryOpenView();
   });
-  jsProcess.onRendererDestroy(async (ipcEvent) => {
+  jsProcess?.onRendererDestroy(async (ipcEvent) => {
     console.log(`${jsProcess.mmid} onRendererDestroy`, ipcEvent.text);
     delWinId(ipcEvent.text);
   });
   // quick action event
-  jsProcess.onShortcut((ipcEvent) => {
+  jsProcess?.onShortcut((ipcEvent) => {
     console.log(`${jsProcess.mmid} onShortcut`, ipcEvent.text);
   });
 

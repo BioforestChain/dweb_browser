@@ -20,14 +20,13 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(/** 检查识别支持生物识别*/
-      "/check" bind PureMethod.GET by defineBooleanResponse {
+    routes(
+      /** 检查识别支持生物识别*/
+      "/check" bind PureMethod.GET by defineNumberResponse {
         val type = request.queryOrNull("type") ?: ""
         val biometricsData = request.queryAs<BiometricsData>()
         debugBiometrics("check", "type=$type, data=$biometricsData")
-        return@defineBooleanResponse BiometricsManage.isSupportBiometrics(
-          biometricsData = biometricsData, biometricsNMM = this@BiometricsNMM
-        )
+        BiometricsManage.checkSupportBiometrics()
       },
       /** 生物识别*/
       "/biometrics" bind PureMethod.GET by defineJsonResponse {

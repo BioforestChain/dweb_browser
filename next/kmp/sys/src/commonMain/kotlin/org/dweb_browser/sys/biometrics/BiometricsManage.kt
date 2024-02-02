@@ -22,9 +22,7 @@ data class BiometricsData(
 
 expect object BiometricsManage {
 
-  suspend fun isSupportBiometrics(
-    biometricsData: BiometricsData, biometricsNMM: BiometricsNMM
-  ): Boolean
+  suspend fun checkSupportBiometrics(): Int
 
   suspend fun biometricsResultContent(
     biometricsNMM: BiometricsNMM,

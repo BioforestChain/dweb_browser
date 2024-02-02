@@ -18,7 +18,6 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.module.startAppActivity
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.withMainContext
 import java.security.KeyStore
 import javax.crypto.Cipher
@@ -27,21 +26,9 @@ import javax.crypto.SecretKey
 
 actual object BiometricsManage {
 
-  actual suspend fun isSupportBiometrics(
-    biometricsData: BiometricsData, biometricsNMM: BiometricsNMM
-  ): Boolean {
-    return when (val info = BiometricManager.from(getAppContext())
-      .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL)) {
-      BiometricManager.BIOMETRIC_SUCCESS, BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-        debugBiometrics("canAuthenticate-true", info)
-        true
-      }
-
-      else -> {
-        debugBiometrics("canAuthenticate-false", info)
-        false
-      }
-    }
+  actual suspend fun checkSupportBiometrics(): Int {
+    return BiometricManager.from(getAppContext())
+      .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL)
   }
 
   actual suspend fun biometricsResultContent(
