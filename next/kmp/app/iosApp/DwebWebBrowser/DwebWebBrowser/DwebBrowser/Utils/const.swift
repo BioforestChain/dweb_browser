@@ -15,9 +15,7 @@ let screen_height = UIScreen.main.bounds.height
 let addressbarHolder = "搜索或输入网址"
 
 let maxAddressBarH: CGFloat = 60
-let minAddressBarH: CGFloat = 25
 let maxToolBarH: CGFloat = 50
-let minToolBarH: CGFloat = 25
 
 let emptyLink = "about:blank"
 let emptyURL = URL(string: emptyLink)!

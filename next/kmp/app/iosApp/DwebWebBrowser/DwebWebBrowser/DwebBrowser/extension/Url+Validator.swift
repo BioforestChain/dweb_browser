@@ -23,7 +23,7 @@ extension URL {
 
     var canBeOpen: Bool {
         // 特殊处理dweb和about这两种schema, 用于打开内部页面
-        if self.scheme == "dweb" || self.scheme == "about" {
+        if self.scheme == "dweb" {
             return true
         }
         return UIApplication.shared.canOpenURL(self)

@@ -10,6 +10,7 @@ import SwiftUI
 struct BiColorButton: View {
     let imageName: String
     let action: () -> Void
+    @EnvironmentObject var dragScale: WndDragScale
 
     var body: some View {
         Button(action: action) {
@@ -19,7 +20,7 @@ struct BiColorButton: View {
                 .aspectRatio(contentMode: .fit)
                 .background(.bk)
                 .foregroundColor(.primary)
-                .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
+                .frame(width: dragScale.toolbarItemWidth, height: dragScale.toolbarItemWidth)
         }
     }
 }

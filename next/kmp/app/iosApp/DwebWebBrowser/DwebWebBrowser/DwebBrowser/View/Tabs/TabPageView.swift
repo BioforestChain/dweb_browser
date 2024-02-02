@@ -81,12 +81,13 @@ struct TabPageView: View {
     }
 
     var content: some View {
-        return Group {
+        Group {
             if shouldShowWeb {
                 webComponent
             } else {
                 BlankTabView()
                     .opacity(addressBar.isFocused ? 0 : 1)
+                    .environmentObject(dragScale)
             }
         }
         .onChange(of: webCache.lastVisitedUrl, initial: true) { _, _ in
@@ -95,8 +96,7 @@ struct TabPageView: View {
     }
 
     var webComponent: some View {
-        let _ = Self._printChanges()
-        return TabWebView(webView: webWrapper.webView)
+        TabWebView(webView: webWrapper.webView)
             .environmentObject(dragScale)
             .id(webWrapper.id)
             .onAppear {
@@ -133,12 +133,6 @@ struct TabPageView: View {
             .onChange(of: addressBar.stopLoadingOfIndex) { _, _ in
                 if isVisible {
                     webWrapper.webView.stopLoading()
-                }
-            }
-            .onChange(of: toolbarState.creatingDesktopLink) { _, _ in
-                Task {
-                    browserViewDelegate.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString, title: webCache.title, iconString: webCache.webIconUrl.absoluteString) { _ in
-                    }
                 }
             }
     }

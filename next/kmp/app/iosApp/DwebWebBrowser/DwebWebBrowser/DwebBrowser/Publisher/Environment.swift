@@ -45,6 +45,7 @@ class WndDragScale: ObservableObject {
     }
 
     var addressbarHeight: CGFloat { properValue(max: maxAddressBarH) }
+    var toolbarItemWidth: CGFloat { properValue(max: 28.0) }
 
     var scaledFont_8: Font { Font.system(size: 1.0 * max(5, onWidth * 8)) }
     var scaledFont_12: Font { Font.system(size: 1.0 * max(6, onWidth * 12)) }
@@ -67,7 +68,6 @@ class ToolBarState: ObservableObject {
     @Published var shouldExpand = true
     @Published var createTabTapped = false
     @Published var showMoreMenu = false
-    @Published var creatingDesktopLink = false
     @Published var isPresentingScanner = false
 }
 

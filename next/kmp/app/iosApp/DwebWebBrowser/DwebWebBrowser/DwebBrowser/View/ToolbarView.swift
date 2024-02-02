@@ -21,7 +21,6 @@ struct ToolbarView: View {
     @ObservedObject var webMonitor: WebMonitor
 
     @State private var loadingDone: Bool = false
-
     private var isShowingWeb: Bool { webcacheStore.cache(at: seletecdTab.index).isWebVisible }
     private var canCreateDesktopLink: Bool { isShowingWeb && loadingDone }
     
@@ -47,7 +46,6 @@ struct ToolbarView: View {
                     BiColorButton(imageName: "add") {
                         toolbarState.createTabTapped = true
                     }
-                    .frame(height: min(size.width / 14, size.height / 1.9))
                     
                     Spacer()
                     Text("\(webcacheStore.cacheCount)个标签页")
@@ -77,7 +75,7 @@ struct ToolbarView: View {
             Spacer()
                 
             Button(action: {
-                toolbarState.creatingDesktopLink.toggle()
+                creatDesktopLink()
             }) {
                 plusImage
             }
@@ -108,38 +106,21 @@ struct ToolbarView: View {
                 }
             }
             Spacer()
-                
         }
         .clipped()
-            .sheet(isPresented: $toolbarState.isPresentingScanner) {
-                CodeScannerView(codeTypes: [.qr], showViewfinder: true) { response in
-                    toolbarState.isPresentingScanner = false
-                    if case let .success(result) = response {
-                        Log(result.string)
-                        let url = URL(string: result.string)
-                        if url?.scheme == "dweb" {
-                            browserViewDelegate.openDeepLink(url: result.string)
-                        } else {
-                            addressBar.inputText = result.string
-                            let url = URL.createUrl(addressBar.inputText)
-                            DispatchQueue.main.async {
-                                openingLink.clickedLink = url
-                                addressBar.isFocused = false
-                            }
-                        }
-                    }
-                }
-            }
+        .sheet(isPresented: $toolbarState.isPresentingScanner) {
+            CodeScannerView(codeTypes: [.qr], showViewfinder: true, completion: scanCompletion)
+        }
     }
     
-    var plusImage: some View{
+    var plusImage: some View {
         Image(systemName: "apps.iphone.badge.plus")
             .renderingMode(.template)
             .resizable()
             .aspectRatio(contentMode: .fit)
             .background(Color.bk)
             .foregroundColor(canCreateDesktopLink ? .primary : .gray)
-            .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
+            .frame(width: dragScale.toolbarItemWidth, height: dragScale.toolbarItemWidth)
     }
     
     private func doScan() {
@@ -152,10 +133,32 @@ struct ToolbarView: View {
             }
         }
     }
+    
+    private func scanCompletion(response: Result<ScanResult, ScanError>) {
+        toolbarState.isPresentingScanner = false
+        if case let .success(result) = response {
+            Log(result.string)
+            let url = URL(string: result.string)
+            if url?.scheme == "dweb" {
+                browserViewDelegate.openDeepLink(url: result.string)
+            } else {
+                addressBar.inputText = result.string
+                let url = URL.createUrl(addressBar.inputText)
+                DispatchQueue.main.async {
+                    openingLink.clickedLink = url
+                    addressBar.isFocused = false
+                }
+            }
+        }
+    }
+    
+    private func creatDesktopLink() {
+        Task {
+            let webCache = webcacheStore.cache(at: seletecdTab.index)
+            browserViewDelegate.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString,
+                                                  title: webCache.title,
+                                                  iconString: webCache.webIconUrl.absoluteString){ e in  }
+        }
+    }
 }
 
-let toolItemMinWidth = 14.0
-let toolItemMaxWidth = toolItemMinWidth * 2
-let toolBarMinHeight = toolItemMinWidth + 4.0
-
-let addressbarMinHeight = toolBarMinHeight
