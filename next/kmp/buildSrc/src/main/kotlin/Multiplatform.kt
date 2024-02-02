@@ -47,6 +47,7 @@ val disableLibs = disableAndroidApp && disableIosApp
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   kotlinOptions {
     freeCompilerArgs += "-Xexpect-actual-classes"
+    freeCompilerArgs += "-Xcontext-receivers"
   }
 }
 
@@ -399,6 +400,11 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
   applyDefaultHierarchyTemplate {
     dsl.applyHierarchySets.forEach { it() }
   }
+  targets.all {
+    compilations.all {
+      configureCompilation()
+    }
+  }
 
   if (project.extensions.findByName("android") != null) {
     // LibraryExtension or BaseApplicationExtension
@@ -536,11 +542,6 @@ fun KotlinMultiplatformExtension.kmpIosTarget(
   }
   dsl.provides(sourceSets.iosMain, sourceSets.iosTest)
 
-  targets.all {
-    compilations.all {
-      configureCompilation()
-    }
-  }
   iosX64()
   iosArm64()
   iosSimulatorArm64()

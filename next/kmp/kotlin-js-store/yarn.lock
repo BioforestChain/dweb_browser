@@ -3613,9 +3613,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"ktor-ktor-client-core@workspace:packages_imported/ktor-ktor-client-core/2.3.7":
+"ktor-ktor-client-core@workspace:packages_imported/ktor-ktor-client-core/2.3.8":
   version: 0.0.0-use.local
-  resolution: "ktor-ktor-client-core@workspace:packages_imported/ktor-ktor-client-core/2.3.7"
+  resolution: "ktor-ktor-client-core@workspace:packages_imported/ktor-ktor-client-core/2.3.8"
   dependencies:
     abort-controller: "npm:3.0.0"
     node-fetch: "npm:2.6.7"
