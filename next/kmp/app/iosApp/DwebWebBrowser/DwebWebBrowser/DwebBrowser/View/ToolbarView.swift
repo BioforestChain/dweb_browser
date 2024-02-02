@@ -33,7 +33,7 @@ struct ToolbarView: View {
                 threeButtons
             }
         }
-        .frame(height: addressBar.isFocused ? 0 : dragScale.toolbarHeight)
+        .frame(height: addressBar.isFocused ? 0 : dragScale.properValue(max: maxToolBarH))
         .opacity(addressBar.isFocused ? 0 : 1)
     }
     
@@ -52,7 +52,7 @@ struct ToolbarView: View {
                     Spacer()
                     Text("\(webcacheStore.cacheCount)个标签页")
                         .foregroundColor(.primary)
-                        .font(dragScale.scaledFont())
+                        .font(dragScale.scaledFont_18)
                         .fontWeight(.semibold)
                     
                     Spacer()
@@ -62,7 +62,7 @@ struct ToolbarView: View {
                     } label: {
                         Text("完成")
                             .foregroundColor(Color.primary)
-                            .font(dragScale.scaledFont())
+                            .font(dragScale.scaledFont_18)
                             .fontWeight(.semibold)
                     }
                     

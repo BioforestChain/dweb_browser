@@ -62,7 +62,7 @@ struct TabsContainerView: View {
                             .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
                             .frame(width: selectedCellFrame.width, height: selectedCellFrame.height * cellImageHeightRatio)
                             .position(x: selectedCellFrame.midX,
-                                      y: selectedCellFrame.midY - dragScale.toolbarHeight/2)
+                                      y: selectedCellFrame.midY - dragScale.properValue(max: maxToolBarH) / 2)
                     }
                 }
             }

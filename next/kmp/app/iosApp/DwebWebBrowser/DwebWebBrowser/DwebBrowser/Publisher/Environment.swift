@@ -7,27 +7,28 @@
 
 import Combine
 import Foundation
-import SwiftUI
 import Observation
+import SwiftUI
 
 @Observable
 class SelectedTab {
     var index: Int = 0
 }
 
-class WebMonitor: ObservableObject{
-    @Published var loadingProgress: Double = 0{
-        willSet{
-            if newValue >= 1.0{
+class WebMonitor: ObservableObject {
+    @Published var loadingProgress: Double = 0 {
+        willSet {
+            if newValue >= 1.0 {
                 isLoadingDone = true
-            }else {
-                if isLoadingDone != false{
+            } else {
+                if isLoadingDone != false {
                     isLoadingDone = false
                 }
             }
         }
     }
-    @Published var isLoadingDone : Bool = false
+
+    @Published var isLoadingDone: Bool = false
 }
 
 class WndDragScale: ObservableObject {
@@ -38,19 +39,19 @@ class WndDragScale: ObservableObject {
             }
         }
     }
-    
-    func properValue(floor: CGFloat, ceiling: CGFloat) -> CGFloat{
-        min(ceiling, max(floor, ceiling * onWidth))
-    }
-    func scaledFont(maxSize: CGFloat = 18) -> Font{
-        Font.system(size:  max(10, onWidth * maxSize))
-    }
-    func scaledFontSize(maxSize: CGFloat = 18) -> CGFloat{
-        max(10, onWidth * maxSize)
+
+    func properValue(max value: CGFloat) -> CGFloat {
+        min(value, max(value * 0.333, value * onWidth))
     }
 
-    var addressbarHeight: CGFloat { properValue(floor: minAddressBarH, ceiling: maxAddressBarH)}
-    var toolbarHeight: CGFloat { properValue(floor: minToolBarH, ceiling: maxToolBarH)}
+    var addressbarHeight: CGFloat { properValue(max: maxAddressBarH) }
+
+    var scaledFont_8: Font { Font.system(size: 1.0 * max(5, onWidth * 8)) }
+    var scaledFont_12: Font { Font.system(size: 1.0 * max(6, onWidth * 12)) }
+    var scaledFont_16: Font { Font.system(size: 1.0 * max(8, onWidth * 16)) }
+    var scaledFont_18: Font { Font.system(size: 1.0 * max(9, onWidth * 18)) }
+    var scaledFont_20: Font { Font.system(size: 1.0 * max(10, onWidth * 20)) }
+    var scaledFont_22: Font { Font.system(size: 1.0 * max(11, onWidth * 22)) }
 }
 
 class AddressBarState: ObservableObject {
@@ -60,7 +61,6 @@ class AddressBarState: ObservableObject {
     @Published var needRefreshOfIndex: Int = -1
     @Published var stopLoadingOfIndex: Int = -1
     @Published var searchInputText: String? = nil
-
 }
 
 class ToolBarState: ObservableObject {
@@ -72,7 +72,7 @@ class ToolBarState: ObservableObject {
 }
 
 class ShiftAnimation: ObservableObject {
-    @Published var snapshotImage: UIImage = UIImage()
+    @Published var snapshotImage: UIImage = lightSnapshotImage
     @Published var progress: AnimationProgress = .invisible
 }
 
@@ -84,7 +84,7 @@ class TracelessMode {
             browserViewDataSource.trackModel = newValue
         }
     }
-    
+
     private init() {
         isON = browserViewDataSource.trackModel
     }

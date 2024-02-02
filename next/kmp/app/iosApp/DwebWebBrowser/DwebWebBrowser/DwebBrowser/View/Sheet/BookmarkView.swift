@@ -24,11 +24,11 @@ struct BookmarkView: View {
                         HStack {
                             Image(uiImage: bookmark.icon)
                                 .resizable()
-                                .frame(width: dragScale.properValue(floor: 14, ceiling: 24),
-                                       height: dragScale.properValue(floor: 14, ceiling: 24))
+                                .frame(width: dragScale.properValue(max: 24),
+                                       height: dragScale.properValue(max: 24))
                                 .cornerRadius(4)
                             Text(bookmark.data.title)
-                                .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
+                                .font(dragScale.scaledFont_16)
                                 .lineLimit(1)
                                 .padding(.leading, 6)
                             Spacer()

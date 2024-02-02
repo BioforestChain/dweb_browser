@@ -19,7 +19,7 @@ struct BlankTabView: View {
                         .resizable()
                         .frame(width: width * 0.5, height: width * 0.5)
                     Text("Dweb Browser")
-                        .font(.system(size: 23 * width / screen_width))
+                        .font(dragScale.scaledFont_22)
                 }
             }
         }

@@ -14,14 +14,15 @@ struct SearchTypingView: View {
     var body: some View {
         VStack(spacing: 0) {
             Text("搜索")
-                .font(.system(size: dragScale.scaledFontSize(maxSize: 20), weight: .heavy))
+                .font(dragScale.scaledFont_18)
+                .fontWeight(.heavy)
                 .padding(.vertical, 6)
 
             HStack {
                 Spacer()
                 Button(action: releaseFocuse) {
                     Text("取消")
-                        .font(.system(size: dragScale.scaledFontSize(maxSize: 18)))
+                        .font(dragScale.scaledFont_18)
                         .foregroundColor(Color.primary)
                 }
                 .padding(.trailing, 20)

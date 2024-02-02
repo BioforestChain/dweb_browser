@@ -67,7 +67,7 @@ struct GridCell: View {
                             .frame(height: geo.size.height * 0.1)
                         
                         Text(webCache.title)
-                            .font(.system(size: dragScale.scaledFontSize(maxSize: 20))) // 设置字体大小为 20，粗细为 semibold
+                            .font(dragScale.scaledFont_20) // 设置字体大小为 20，粗细为 semibold
                             .lineLimit(1)
                     }
                     .frame(height: geo.size.height * 0.15)

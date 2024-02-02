@@ -14,7 +14,7 @@ struct MenuView: View {
     var body: some View {
         ZStack {
             ScrollView(.vertical) {
-                VStack(spacing: dragScale.properValue(floor: 5, ceiling: 16)) {
+                VStack(spacing: dragScale.properValue(max: 16)) {
                     Button {
                         viewmodel.addToBookmark(cache: webCache)
                     } label: {
@@ -27,7 +27,7 @@ struct MenuView: View {
 
                     tracelessView
                 }
-                .padding(.vertical, dragScale.properValue(floor: 10, ceiling: 32))
+                .padding(.vertical, dragScale.properValue(max: 32))
                 .background(.bk)
                 .frame(maxWidth: .infinity)
             }
@@ -38,7 +38,7 @@ struct MenuView: View {
         HStack {
             Text("无痕模式")
                 .foregroundColor(.primary)
-                .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
+                .font(dragScale.scaledFont_16)
                 .padding(.leading, 16)
 
             Toggle("", isOn: $viewmodel.isTraceless)

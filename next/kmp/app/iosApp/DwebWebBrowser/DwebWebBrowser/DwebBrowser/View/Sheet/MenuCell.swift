@@ -18,7 +18,7 @@ struct MenuCell: View {
             Text(title)
                 .padding(.leading, 16)
                 .foregroundColor(.primary)
-                .font(.system(size: dragScale.scaledFontSize(maxSize: 16)))
+                .font(dragScale.scaledFont_16)
             Spacer()
             Image(uiImage: .assetsImage(name: imageName))
                 .renderingMode(.template)

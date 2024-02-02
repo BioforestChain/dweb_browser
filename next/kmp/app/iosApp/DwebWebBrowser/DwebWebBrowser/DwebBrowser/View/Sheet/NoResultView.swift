@@ -27,10 +27,10 @@ struct NoResultView: View {
                 Image(uiImage: empty.image)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: dragScale.properValue(floor: 50, ceiling: 120), height: dragScale.properValue(floor: 50, ceiling: 120))
+                    .frame(width: dragScale.properValue(max: 120), height: dragScale.properValue(max: 120))
 
                 Text(empty.msg)
-                    .font(.system(size: dragScale.scaledFontSize(maxSize: 22)))
+                    .font(dragScale.scaledFont_22)
                     .foregroundColor(Color(.systemGray))
             })
         }

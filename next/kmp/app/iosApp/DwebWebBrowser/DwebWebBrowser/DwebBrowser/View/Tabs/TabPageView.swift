@@ -22,7 +22,7 @@ struct TabPageView: View {
     @ObservedObject var webWrapper: WebWrapper
     let isVisible: Bool
     var doneLoading: (WebCache) -> Void
-    @State var shouldShowWeb = false
+    @State private var shouldShowWeb = false
 
     var body: some View {
         GeometryReader { geo in
@@ -56,23 +56,15 @@ struct TabPageView: View {
                                 animation.progress = animation.progress == .obtainedCellFrame ? .startShrinking : .obtainedSnapshot
                             }
                         } else {
-//                            if colorScheme == .dark {
-//                                UIApplication.shared.windows.first?.overrideUserInterfaceStyle = .dark // 或者 .light
-//                            }else{
-//                                UIApplication.shared.windows.first?.overrideUserInterfaceStyle = .light // 或者 .light
-//                            }
-                            
-
                             let toSnapView = content
                                 .environment(\.colorScheme, colorScheme)
                                 .frame(width: geo.size.width, height: geo.size.height)
 
                             let render = ImageRenderer(content: toSnapView)
                             render.scale = UIScreen.main.scale
-                            let image = render.uiImage
 
                             let defSnapshotImage = colorScheme == .light ? lightSnapshotImage : darkSnapshotImage
-                            animation.snapshotImage = image ?? defSnapshotImage
+                            animation.snapshotImage = render.uiImage ?? defSnapshotImage
 
                             if colorScheme == .light {
                                 lightSnapshotImage = animation.snapshotImage
@@ -97,7 +89,7 @@ struct TabPageView: View {
                     .opacity(addressBar.isFocused ? 0 : 1)
             }
         }
-        .onChange(of: webCache.lastVisitedUrl, initial: true) { oldValue, newValue in
+        .onChange(of: webCache.lastVisitedUrl, initial: true) { _, _ in
             shouldShowWeb = webCache.lastVisitedUrl != emptyURL
         }
     }

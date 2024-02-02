@@ -79,7 +79,7 @@ struct AddressBar: View {
             .padding(.trailing, 60)
             .keyboardType(.webSearch)
             .focused($isAdressBarFocused)
-            .font(dragScale.scaledFont())
+            .font(dragScale.scaledFont_18)
             .onTapGesture {
                 if !webCache.isWebVisible {
                     inputText = ""

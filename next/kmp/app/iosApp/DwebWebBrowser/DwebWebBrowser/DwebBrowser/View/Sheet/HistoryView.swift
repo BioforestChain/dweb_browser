@@ -29,11 +29,11 @@ struct HistoryView: View {
                                     VStack(alignment: .leading, spacing: 5) {
                                         Text(record.data.title != "" ? record.data.title : " ")
                                             .foregroundStyle(Color.primary)
-                                            .font(dragScale.scaledFont(maxSize: 16))
+                                            .font(dragScale.scaledFont_16)
 
                                         Text(record.data.url)
                                             .foregroundStyle(Color(.systemGray3))
-                                            .font(dragScale.scaledFont(maxSize: 8))
+                                            .font(dragScale.scaledFont_8)
                                     }
                                     .lineLimit(1)
 

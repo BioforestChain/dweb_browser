@@ -27,21 +27,21 @@ struct SheetSegmentView: View {
             HStack {
                 RoundedRectangle(cornerRadius: 10)
                     .foregroundColor(Color.secondary)
-                    .frame(width: dragScale.properValue(floor: 45, ceiling: 60), height: dragScale.properValue(floor: 6, ceiling: 9))
+                    .frame(width: dragScale.properValue(max: 60), height: dragScale.properValue(max: 9))
             }
-            .frame(height: dragScale.properValue(floor: 20, ceiling: 30))
+            .frame(height: dragScale.properValue(max: 30))
             
             Picker("Select image", selection: $selectedCategory) {
                 ForEach(categoryList, id: \.self) {
                     Image(uiImage: .assetsImage(name: $0.rawValue))
                         .resizable()
-                        .frame(height: dragScale.properValue(floor: 13, ceiling: 26))
+                        .frame(height: dragScale.properValue(max: 26))
 
                 }
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
-            .frame(height: dragScale.properValue(floor: 20, ceiling: 30))
+            .frame(height: dragScale.properValue(max: 30))
 
 
             if selectedCategory == .menu {
