@@ -11,9 +11,10 @@ import org.dweb_browser.js_common.view_model.SyncType
 import org.dweb_browser.js_common.view_model.ViewModelMutableMap
 import org.dweb_browser.js_common.view_model.ViewModelStateRole
 import org.dweb_browser.js_common.view_model.OnUpdateCallback
+import org.dweb_browser.js_common.view_model.EncodeValueToString
+import org.dweb_browser.js_common.view_model.DecodeValueFromString
 
-typealias EncodeValueToString = (key: String, value: dynamic) -> String
-typealias DecodeValueFromString = (key: String, value: String) -> dynamic
+
 
 /**
  *
@@ -57,7 +58,7 @@ open class ViewModel(
                     req.headers["sec-websocket-key"].toString(), 
                 ).apply {
                     onData { key: String, value: String, syncType: SyncType ->
-                        val v = decodeValueFromString(key, value)
+                        val v = decodeValueFromString(key, value, syncType)
                         viewModelState.set(key, v, ViewModelStateRole.CLIENT, syncType)
                     }
                     sockets.add(this)
@@ -110,7 +111,7 @@ open class ViewModel(
             sockets.forEach {
                 val valueString = when (key) {
                     "syncDataToUiState" -> value
-                    else -> encodeValueToString(key, value)
+                    else -> encodeValueToString(key, value, syncType)
                 }
                 it.write(key, valueString.toString(), syncType)
             }

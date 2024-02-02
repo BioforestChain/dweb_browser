@@ -2,8 +2,8 @@ package org.dweb_browser.js_backend.browser_window
 
 import org.dweb_browser.js_backend.view_model.ViewModel
 import org.dweb_browser.js_common.view_model.ViewModelMutableMap
-import org.dweb_browser.js_backend.view_model.DecodeValueFromString
-import org.dweb_browser.js_backend.view_model.EncodeValueToString
+import org.dweb_browser.js_common.view_model.DecodeValueFromString
+import org.dweb_browser.js_common.view_model.EncodeValueToString
 
 
 /**

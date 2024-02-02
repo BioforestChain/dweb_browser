@@ -7,6 +7,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.js_backend.browser_window.ElectronBrowserWindowController
 import org.dweb_browser.js_backend.browser_window.ElectronBrowserWindowModule
+import org.dweb_browser.js_common.view_model.SyncType
 import kotlin.js.Promise
 
 @Serializable
@@ -24,18 +25,18 @@ fun main() {
   )
   val demoComposeApp = ElectronBrowserWindowModule(
     subDomain = "demo.compose.app",
-    encodeValueToString = {key: dynamic, value: dynamic ->
+    encodeValueToString = {key: String, value: dynamic, syncType: SyncType ->
       val str = when(key.toString()){
-        "currentCount" -> "10"
+        "currentCount" -> "$value"
         else -> Json.encodeToString<ArrayList<Person>>(value)
       }
 
       str
     },
-    decodeValueFromString = { key: dynamic, value: String ->
+    decodeValueFromString = { key: String, value: String, syncType: SyncType ->
       when(key){
         "currentCount" -> value.toInt()
-        else -> Json.decodeFromString<ArrayList<Person>>(value)
+        else -> Json.decodeFromString<Person>(value)
       }
     },
     initVieModelMutableMap = state

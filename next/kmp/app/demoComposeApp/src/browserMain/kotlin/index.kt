@@ -12,6 +12,7 @@ import androidx.compose.ui.window.CanvasBasedWindow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.js_common.view_model.SyncType
 
 import org.dweb_browser.js_frontend.browser_window.ElectronBrowserWindowModule
 import org.dweb_browser.js_frontend.view_model.ViewModelState
@@ -25,14 +26,14 @@ suspend fun main() {
 
     val module = ElectronBrowserWindowModule(
         moduleId =  "js.backend.dweb",
-        encodeValueToString = {key: String, value: dynamic ->
+        encodeValueToString = {key: String, value: dynamic, syncType: SyncType ->
             val str = when(key.toString()){
-                "currentCount" -> "10"
-                else -> Json.encodeToString<MutableList<Person>>(value)
+                "currentCount" -> "$value"
+                else -> Json.encodeToString<Person>(value)
             }
             str
         },
-        decodeValueFromString = {key: String, value: String ->
+        decodeValueFromString = {key: String, value: String, syncType: SyncType ->
             console.log("value: ", value)
             when(key){
                 "currentCount" -> value.toInt()

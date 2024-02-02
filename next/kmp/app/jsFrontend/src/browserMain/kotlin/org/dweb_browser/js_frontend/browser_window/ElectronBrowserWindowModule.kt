@@ -1,8 +1,8 @@
 package org.dweb_browser.js_frontend.browser_window
 
 import org.dweb_browser.js_frontend.view_model.ViewModel
-import org.dweb_browser.js_frontend.view_model.DecodeValueFromString
-import org.dweb_browser.js_frontend.view_model.EncodeValueToString
+import org.dweb_browser.js_common.view_model.DecodeValueFromString
+import org.dweb_browser.js_common.view_model.EncodeValueToString
 import org.dweb_browser.js_frontend.view_model.ViewModelState
 
 interface IElectronBrowserWindowModule {

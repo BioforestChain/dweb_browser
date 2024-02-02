@@ -182,7 +182,7 @@ class ViewModelState(
             return mutableStateList.add(el).also {
                 if(it) {
                     console.log("需要同步给Server add: el: ", el)
-                    viewModelState.set(key, this@MutableStateList.toList(), ViewModelStateRole.CLIENT, SyncType.ADD)
+                    viewModelState.set(key, el, ViewModelStateRole.CLIENT, SyncType.ADD)
                 }
             }
         }

@@ -4,10 +4,11 @@ import kotlinx.browser.window
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.js_common.view_model.SyncType
 import org.dweb_browser.js_common.view_model.ViewModelStateRole
+import org.dweb_browser.js_common.view_model.EncodeValueToString
+import org.dweb_browser.js_common.view_model.DecodeValueFromString
 
 typealias HandleMessageDataList = (key: String, value: dynamic, syncType: SyncType) -> Unit
-typealias EncodeValueToString = (key: String, value: dynamic) -> String
-typealias DecodeValueFromString = (key: String, value: String) -> dynamic
+
 
 open class ViewModel(
     val state: ViewModelState,
@@ -22,7 +23,7 @@ open class ViewModel(
         viewModelSocket.onSyncFromServer {key, valueString, syncType ->
             val value = when(key){
                 "syncDataToUiState" -> valueString
-                else -> decodeValueFromString(key, valueString)
+                else -> decodeValueFromString(key, valueString, syncType)
             }
             handleMessageDataList.forEach { cb -> cb(key, value, syncType) }
         }
@@ -32,7 +33,7 @@ open class ViewModel(
                 key == "syncDataToUiState" && value == "sync-data-to-ui-done" ->{
                     if(!whenSyncDataFromServerDone.isCompleted)whenSyncDataFromServerDone.complete(Unit)
                 }
-                else -> state.set(key, value, ViewModelStateRole.CLIENT, syncType)
+                else -> state.set(key, value, ViewModelStateRole.SERVER, syncType)
             }
         }
         state.onUpdate(ViewModelStateRole.CLIENT, ::syncStateToServer)
@@ -43,7 +44,9 @@ open class ViewModel(
      * 同步数据到 Server
      */
     private fun syncStateToServer(key: String, value: dynamic, syncType: SyncType){
-        val valueString = encodeValueToString(key, value)
+        console.log("syncStateToServer", key, value)
+        val valueString = encodeValueToString(key, value, syncType)
+        console.log("valueString: ", valueString)
         viewModelSocket.syncToServer(key, valueString, syncType)
     }
 }

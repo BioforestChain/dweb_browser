@@ -43,21 +43,17 @@ open class CommonViewModelState(
      * - ViewModelStateRole.CLIENT 客户端角色
      */
     fun set(key: String, value:dynamic, role: ViewModelStateRole, syncType: SyncType){
-        console.log("value",value)
-        console.log("State: ", state)
-
+        console.log("CommonViewModelState: ", key, value, role, syncType)
         when(syncType.value){
             SyncType.REPLACE.value ->  state[key] = value
             SyncType.ADD.value -> {
-                val v = state[key]
-                require(v is List<*>)
+                val v: MutableList<dynamic> = state[key]
                 v.add(value)
-                console.log("state[key]: ",state[key])
             }
             else -> console.error("viewModelState 还没有处理 ${syncType.value} 类型的数据设置")
         }
-
-        onUpdateCallbackList[role]?.forEach { cb -> cb(key,value, syncType) }
+        console.log("CommonViewModelState after set", key, state[key])
+        onUpdateCallbackList[role]?.forEach { cb -> cb(key, value, syncType) }
     }
 
     /**
@@ -76,6 +72,7 @@ open class CommonViewModelState(
      * 遍历状态
      */
     fun forEach(cb: (key: dynamic, value: dynamic) -> Unit){
+        console.log("commonViewModelStateForEach: ", state)
         state.forEach {
             cb(it.key, it.value)
         }
