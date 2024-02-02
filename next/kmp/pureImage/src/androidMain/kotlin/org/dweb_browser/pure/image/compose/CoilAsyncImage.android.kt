@@ -1,5 +1,7 @@
 package org.dweb_browser.pure.image.compose
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,17 +26,34 @@ actual fun CoilAsyncImage(
   filterQuality: FilterQuality,
   clipToBounds: Boolean,
   modelEqualityDelegate: EqualityDelegate,
-) = AsyncImage(
-  model,
-  contentDescription,
-  modifier,
-  transform,
-  onState,
-  alignment,
-  contentScale,
-  alpha,
-  colorFilter,
-  filterQuality,
-  clipToBounds,
-  modelEqualityDelegate
-)
+) {
+  if(model is String && model.startsWith("data:image")) {
+    val imageLoader = LocalCoilImageLoader.current
+    BoxWithConstraints(modifier) {
+      val imageBitmap = imageLoader.Load(model, maxWidth, maxHeight)
+      imageBitmap.with(onError = {
+        val webImageBitmap = LocalWebImageLoader.current.Load(model, maxWidth, maxHeight)
+        webImageBitmap.with {
+          Image(it, contentDescription = model, modifier = modifier)
+        }
+      }) {
+        Image(it, contentDescription = model, modifier = modifier)
+      }
+    }
+  } else {
+    AsyncImage(
+      model,
+      contentDescription,
+      modifier,
+      transform,
+      onState,
+      alignment,
+      contentScale,
+      alpha,
+      colorFilter,
+      filterQuality,
+      clipToBounds,
+      modelEqualityDelegate
+    )
+  }
+}

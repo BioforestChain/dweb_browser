@@ -39,17 +39,21 @@ actual fun CoilAsyncImage(
   clipToBounds: Boolean,
   modelEqualityDelegate: EqualityDelegate,
 ) {
-  if (model is String && (model.endsWith(".svg") || model.endsWith(".webp"))) {
+  if (model is String && (model.endsWith(".svg") || model.endsWith(".webp") || model.startsWith("data:"))) {
+    var url = model
+    if(model.startsWith("data://localhost/")) {
+      url = model.replace("data://localhost/", "data:")
+    }
     val imageLoader = LocalCoilImageLoader.current
     BoxWithConstraints(modifier) {
-      val imageBitmap = imageLoader.Load(model, maxWidth, maxHeight)
+      val imageBitmap = imageLoader.Load(url, maxWidth, maxHeight)
       imageBitmap.with(onError = {
-        val webImageBitmap = LocalWebImageLoader.current.Load(model, maxWidth, maxHeight)
+        val webImageBitmap = LocalWebImageLoader.current.Load(url, maxWidth, maxHeight)
         webImageBitmap.with {
-          Image(it, contentDescription = model, modifier = modifier)
+          Image(it, contentDescription = url, modifier = modifier)
         }
       }) {
-        Image(it, contentDescription = model, modifier = modifier)
+        Image(it, contentDescription = url, modifier = modifier)
       }
     }
   } else {

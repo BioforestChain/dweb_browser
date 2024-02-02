@@ -3,7 +3,6 @@ package org.dweb_browser.sys.window.render
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -27,7 +26,6 @@ import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.compose.rememberVectorPainterWithTint
 import org.dweb_browser.pure.image.compose.ImageLoadResult
-import org.dweb_browser.pure.image.compose.LocalCoilImageLoader
 import org.dweb_browser.pure.image.compose.LocalWebImageLoader
 import org.dweb_browser.pure.image.offscreenwebcanvas.FetchHook
 import squircleshape.SquircleShape
@@ -153,8 +151,12 @@ private fun AppIconOuter(
   BoxWithConstraints(modifier = containerModifier, contentAlignment = Alignment.Center) {
     val icon = when (iconSrc) {
       is String -> {
-//        if (iconSrc.endsWith(".webp")) {
-        LocalWebImageLoader.current.Load(iconSrc, maxWidth, maxHeight, iconFetchHook)
+        var iconUrl = iconSrc
+        if (iconSrc.startsWith("data://localhost/")) {
+          iconUrl = iconSrc.replace("data://localhost/", "data:")
+        }
+        //        if (iconSrc.endsWith(".webp")) {
+        LocalWebImageLoader.current.Load(iconUrl, maxWidth, maxHeight, iconFetchHook)
 //        } else {
 //          LocalCoilImageLoader.current.Load(iconSrc, maxWidth, maxHeight, iconFetchHook)
 //        }
