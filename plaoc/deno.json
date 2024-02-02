@@ -29,6 +29,7 @@
     "strict": true,
     "strictNullChecks": true,
     "noImplicitOverride": true,
+    "experimentalDecorators": true,
     "types": [
       "deno-ns"
     ],
