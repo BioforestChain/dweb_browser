@@ -27,17 +27,33 @@ suspend fun main() {
     val module = ElectronBrowserWindowModule(
         moduleId =  "js.backend.dweb",
         encodeValueToString = {key: String, value: dynamic, syncType: SyncType ->
-            val str = when(key.toString()){
-                "currentCount" -> "$value"
-                else -> Json.encodeToString<Person>(value)
+            when{
+                key == "currentCount" -> "$value"
+                key == "persons" && syncType.value == SyncType.ADD.value -> Json.encodeToString<Person>(value)
+                else -> throw(Throwable("""
+                    encodeValueToString还没有没处理的
+                    key: $key
+                    value: $value
+                    syncType: ${SyncType}
+                    at decodeValueFromString
+                    at index.kt
+                    at demoComposeApp
+                """.trimIndent()))
             }
-            str
         },
         decodeValueFromString = {key: String, value: String, syncType: SyncType ->
-            console.log("value: ", value)
-            when(key){
-                "currentCount" -> value.toInt()
-                else -> Json.decodeFromString<MutableList<Person>>(value)
+            when{
+                key == "currentCount" -> value.toInt()
+                key == "persons" && syncType.value == SyncType.REPLACE.value -> Json.decodeFromString<MutableList<Person>>(value)
+                else -> console.error("""
+                      decodeValueFromString还没有没处理的
+                      key: $key
+                      value: $value
+                      syncType: ${SyncType}
+                      at decodeValueFromString
+                      at index.kt
+                      at demoComposeApp
+                """.trimIndent())
             }
         }
     )

@@ -26,17 +26,29 @@ fun main() {
   val demoComposeApp = ElectronBrowserWindowModule(
     subDomain = "demo.compose.app",
     encodeValueToString = {key: String, value: dynamic, syncType: SyncType ->
-      val str = when(key.toString()){
+      val str = when(key){
         "currentCount" -> "$value"
         else -> Json.encodeToString<ArrayList<Person>>(value)
       }
-
       str
     },
     decodeValueFromString = { key: String, value: String, syncType: SyncType ->
-      when(key){
-        "currentCount" -> value.toInt()
-        else -> Json.decodeFromString<Person>(value)
+//      when(key){
+//        "currentCount" -> value.toInt()
+//        else -> Json.decodeFromString<Person>(value)
+//      }
+      when{
+        key === "currentCount" -> value.toInt()
+        key === "persons" && syncType.value === SyncType.ADD.value -> Json.decodeFromString<Person>(value)
+        else -> console.error("""
+          decodeValueFromString还没有没处理的
+          key: $key
+          value: $value
+          syncType: ${SyncType}
+          at decodeValueFromString
+          at index.kt
+          at electronApp
+        """.trimIndent())
       }
     },
     initVieModelMutableMap = state
