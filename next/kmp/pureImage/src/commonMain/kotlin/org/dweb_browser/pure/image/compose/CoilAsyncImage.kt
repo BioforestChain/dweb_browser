@@ -55,7 +55,7 @@ fun CoilAsyncImage(
 )
 
 @Composable
-fun CoilAsyncImage(
+expect fun CoilAsyncImage(
   model: Any?,
   contentDescription: String?,
   modifier: Modifier = Modifier,
@@ -68,17 +68,4 @@ fun CoilAsyncImage(
   filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
   clipToBounds: Boolean = true,
   modelEqualityDelegate: EqualityDelegate = DefaultModelEqualityDelegate,
-) = AsyncImage(
-  model,
-  contentDescription,
-  modifier,
-  transform,
-  onState,
-  alignment,
-  contentScale,
-  alpha,
-  colorFilter,
-  filterQuality,
-  clipToBounds,
-  modelEqualityDelegate
 )

@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import coil3.ComponentRegistry
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.annotation.ExperimentalCoilApi
@@ -197,6 +198,7 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
           }) { }
         }))
       }
+      addPlatformComponents()
       add(SvgDecoder.Factory())
     }.memoryCache {
       MemoryCache.Builder()
@@ -210,3 +212,4 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
   }
 }
 
+internal expect fun ComponentRegistry.Builder.addPlatformComponents()
