@@ -37,9 +37,11 @@ fun main() {
 //        "currentCount" -> value.toInt()
 //        else -> Json.decodeFromString<Person>(value)
 //      }
+
+//       从这里开始重写写 syncType 的比较判断
       when{
-        key === "currentCount" -> value.toInt()
-        key === "persons" && syncType.value === SyncType.ADD.value -> Json.decodeFromString<Person>(value)
+        key == "currentCount" -> value.toInt()
+        key == "persons" && syncType == SyncType.ADD -> Json.decodeFromString<Person>(value)
         else -> console.error("""
           decodeValueFromString还没有没处理的
           key: $key

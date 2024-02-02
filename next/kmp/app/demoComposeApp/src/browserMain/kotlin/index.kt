@@ -29,7 +29,7 @@ suspend fun main() {
         encodeValueToString = {key: String, value: dynamic, syncType: SyncType ->
             when{
                 key == "currentCount" -> "$value"
-                key == "persons" && syncType.value == SyncType.ADD.value -> Json.encodeToString<Person>(value)
+                key == "persons" && syncType == SyncType.ADD -> Json.encodeToString<Person>(value)
                 else -> throw(Throwable("""
                     encodeValueToString还没有没处理的
                     key: $key
@@ -44,7 +44,7 @@ suspend fun main() {
         decodeValueFromString = {key: String, value: String, syncType: SyncType ->
             when{
                 key == "currentCount" -> value.toInt()
-                key == "persons" && syncType.value == SyncType.REPLACE.value -> Json.decodeFromString<MutableList<Person>>(value)
+                key == "persons" && syncType == SyncType.REPLACE -> Json.decodeFromString<MutableList<Person>>(value)
                 else -> console.error("""
                       decodeValueFromString还没有没处理的
                       key: $key

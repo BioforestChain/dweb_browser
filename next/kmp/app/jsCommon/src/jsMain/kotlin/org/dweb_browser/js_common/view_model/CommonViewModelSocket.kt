@@ -10,10 +10,7 @@ data class SyncData(
     @JsName("type")
     val type: SyncType
 
-){
-
-
-}
+)
 
 @Serializable
 class SyncType private constructor(@JsName("value") val value: String){

@@ -44,9 +44,9 @@ open class CommonViewModelState(
      */
     fun set(key: String, value:dynamic, role: ViewModelStateRole, syncType: SyncType){
         console.log("CommonViewModelState: ", key, value, role, syncType)
-        when(syncType.value){
-            SyncType.REPLACE.value ->  state[key] = value
-            SyncType.ADD.value -> {
+        when(syncType){
+            SyncType.REPLACE ->  state[key] = value
+            SyncType.ADD -> {
                 val v: MutableList<dynamic> = state[key]
                 v.add(value)
             }

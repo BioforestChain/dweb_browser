@@ -45,6 +45,11 @@ class TestSyncType{
         val value = replace == replace2
         console.log("replace == replace2", replace == replace2)
         assertEquals(true, value)
+
+        when(replace){
+            replace2 -> console.log("相等")
+            else -> console.error("不相等")
+        }
     }
 }
 
