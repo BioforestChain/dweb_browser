@@ -9,10 +9,19 @@ data class SyncData(
     val value: String,
     @JsName("type")
     val type: SyncType
-)
+
+){
+
+
+}
 
 @Serializable
 class SyncType private constructor(@JsName("value") val value: String){
+    override fun equals(other: Any?): Boolean {
+        if(this === other) return true
+        if(other !is SyncType) return false
+        return this.value == other.value
+    }
     companion object{
         val REPLACE = SyncType("REPLACE")
         val SET = SyncType("SET")
