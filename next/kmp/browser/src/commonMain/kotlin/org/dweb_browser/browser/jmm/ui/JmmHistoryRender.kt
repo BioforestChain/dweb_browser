@@ -273,4 +273,5 @@ private fun JmmStatus.showText() =
     JmmStatus.Completed -> BrowserI18nResource.install_button_installing()
     JmmStatus.INSTALLED -> BrowserI18nResource.install_button_open()
     JmmStatus.NewVersion -> BrowserI18nResource.install_button_update()
+    JmmStatus.VersionLow -> BrowserI18nResource.install_button_open() // 理论上历史列表应该不存在这状态
   }

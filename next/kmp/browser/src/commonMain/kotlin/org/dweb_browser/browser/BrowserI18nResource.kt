@@ -49,6 +49,7 @@ object BrowserI18nResource {
   val install_button_installing =
     SimpleI18nResource(Language.ZH to "安装中", Language.EN to "Installing")
   val install_button_open = SimpleI18nResource(Language.ZH to "打开", Language.EN to "Open")
+  val install_button_lower = SimpleI18nResource(Language.ZH to "已安装新版本", Language.EN to "Version Low")
   val install_button_retry =
     SimpleI18nResource(Language.ZH to "重载失效资源", Language.EN to "Retry")
   val install_button_retry2 = SimpleI18nResource(Language.ZH to "重试", Language.EN to "Retry")

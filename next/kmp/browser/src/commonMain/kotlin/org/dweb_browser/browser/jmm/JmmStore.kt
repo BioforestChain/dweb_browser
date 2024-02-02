@@ -136,11 +136,13 @@ data class JmmStatusEvent(
   val state: JmmStatus = JmmStatus.Init,
 )
 
-fun JmmAppInstallManifest.createJmmHistoryMetadata(url: String) = JmmHistoryMetadata(
+fun JmmAppInstallManifest.createJmmHistoryMetadata(
+  url: String, state: JmmStatus = JmmStatus.Init, installTime: Long = datetimeNow()
+) = JmmHistoryMetadata(
   originUrl = url,
   _metadata = this,
-  _state = JmmStatusEvent(total = this.bundle_size),
-  installTime = datetimeNow()
+  _state = JmmStatusEvent(total = this.bundle_size, state = state),
+  installTime = installTime
 )
 
 @Serializable
@@ -167,7 +169,10 @@ enum class JmmStatus {
   INSTALLED,
 
   /** 新版本 */
-  NewVersion;
+  NewVersion,
+
+  /** 版本偏低 */
+  VersionLow;
 }
 
 enum class JmmTabs(val index: Int, val title: SimpleI18nResource, val vector: ImageVector) {

@@ -108,6 +108,7 @@ internal fun BoxScope.BottomDownloadButton() {
             }
 
             JmmStatus.Completed -> {}
+            JmmStatus.VersionLow -> {} // 版本偏低时，不响应按键
             JmmStatus.INSTALLED -> {
               jmmInstallerController.openApp()
             }
@@ -121,7 +122,7 @@ internal fun BoxScope.BottomDownloadButton() {
         disabledContainerColor = MaterialTheme.colorScheme.errorContainer,
         disabledContentColor = MaterialTheme.colorScheme.onErrorContainer,
       ),
-      enabled = canSupportTarget
+      enabled = canSupportTarget && jmmState.state != JmmStatus.VersionLow // 版本太低，按键置灰
     ) {
       if (canSupportTarget) {
         val (text, total, current) = JmmStatusText(jmmState)
@@ -230,6 +231,12 @@ fun JmmStatusText(state: JmmStatusEvent): Triple<String, String, String?> {
 
     JmmStatus.Failed -> Triple(
       first = BrowserI18nResource.install_button_retry(),
+      second = "",
+      third = null
+    )
+
+    JmmStatus.VersionLow -> Triple(
+      first = BrowserI18nResource.install_button_lower(),
       second = "",
       third = null
     )
