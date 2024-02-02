@@ -7,6 +7,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.helper.ImageResource
 import platform.UIKit.UIApplicationShortcutItem
+import platform.UIKit.UIApplicationShortcutIcon
 import platform.UIKit.shortcutItems
 
 private const val maxCount = 4
@@ -58,18 +59,39 @@ actual class ShortcutManage {
     return true
   }
 
+  /**
+   * see: https://github.com/BioforestChain/dweb_browser/issues/62
+   */
   private fun getShortItem(item: SystemShortcut): UIApplicationShortcutItem {
-    return UIApplicationShortcutItem(item.mmid, item.title, null, null, mapOf(Pair(item.mmid,item.data)))
+    return UIApplicationShortcutItem(
+      item.mmid,
+      item.title,
+      null,
+      null,
+      mapOf(Pair(item.mmid, item.data))
+    )
   }
 
   private fun getScanShortcutItem(): UIApplicationShortcutItem {
     val title = ShortcutI18nResource.default_qrcode_title.text
-    return UIApplicationShortcutItem(scanMmid, title)
+    return UIApplicationShortcutItem(
+      scanMmid,
+      title,
+      null,
+      UIApplicationShortcutIcon.iconWithSystemImageName("qrcode.viewfinder"),
+      null
+    )
   }
 
   private fun getMoreShortcutItem(): UIApplicationShortcutItem {
     val title = ShortcutI18nResource.more_title.text
-    return UIApplicationShortcutItem(shortcutMmid, title)
+    return UIApplicationShortcutItem(
+      shortcutMmid,
+      title,
+      null,
+      UIApplicationShortcutIcon.iconWithSystemImageName("ellipsis.circle"),
+      null
+    )
   }
 
   // iOS: 由于无法正确解析SVG图片，所以iOS会一直返回null.
