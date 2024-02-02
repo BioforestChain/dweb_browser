@@ -17,8 +17,8 @@ struct SingleRecrodView: View {
     @State var nameString: String = ""
     @State private var isPlaying: Bool = false
     @State private var isRecording: Bool = false
-    @State private var isEndable: Bool = false
-    @State private var isPlayEndable: Bool = false
+    @State private var isEndable: Bool = true
+    @State private var isPlayEndable: Bool = true
     @State private var isRecordEndable: Bool = false
     private let recordManager = RecordManager.shared
     @State private var timer: Timer?
@@ -28,18 +28,20 @@ struct SingleRecrodView: View {
     @State private var voiceIndex = 0
     @State var heights: [CGFloat] = Array(repeating: 0, count: Int(UIScreen.main.bounds.width / 4))
     @State var totalHeights: [CGFloat] = []
-    
-    
+    private let voiceHeight: CGFloat = 400
+    @State private var isClickFinish = false
     
     var body: some View {
         VStack(alignment: .center) {
-            TextField("录音标题", text: $nameString)
+//            TextField("录音标题", text: $nameString)
+            Text("录音")
+                .fontWeight(.bold)
                 .lineLimit(1)
                 .multilineTextAlignment(.center)
-                .padding(.top, 20)
+                .padding(.top, 26)
             
             VoiceAnimationView(heights: $heights)
-                .frame(height: 200)
+                .frame(height: voiceHeight)
                 .background(.secondary.opacity(0.3))
                 .padding(.top,20)
             
@@ -89,6 +91,7 @@ struct SingleRecrodView: View {
                 .padding(.leading,50)
                 
                 Button {
+                    isClickFinish = true
                     RecordManager.shared.completeSingleRecordCallback?(recordPath)
                 } label: {
                     Image(systemName: "checkmark.circle.fill")
@@ -161,6 +164,10 @@ struct SingleRecrodView: View {
         .onAppear {
             totalHeights = heights
         }
+        .onDisappear {
+            guard !isClickFinish else { return }
+            RecordManager.shared.completeSingleRecordCallback?("")
+        }
     }
     
     private func startTimer() {
@@ -189,7 +196,7 @@ struct SingleRecrodView: View {
     
     private func updateVoiceValue(value: CGFloat) {
         heights.removeFirst()
-        heights.append(value * 100)
+        heights.append(value * (voiceHeight - 200))
         if isRecording {
             totalHeights.append(value)
         }
