@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import LogPanel, { defineLogAction } from "../components/LogPanel.vue";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 import * as plaoc from "../plugin";
 import { dwebServiceWorker, updateControllerPlugin } from "../plugin";
+
 const $logPanel = ref<typeof LogPanel>();
-// let console: Console;
+let console: Console;
 
 Object.assign(globalThis, { dwebServiceWorker, plaoc });
 
-const progress = ref(0);
+// const progress = ref(0);
 
 onMounted(async () => {
-  // console = toConsole($logPanel);
+  console = toConsole($logPanel);
   // app暂停触发事件（这个时候后台还会运行，前端界面被关闭）
   dwebServiceWorker.addEventListener("pause", (event) => {
     console.log("app pause", event);
@@ -20,23 +21,10 @@ onMounted(async () => {
   dwebServiceWorker.addEventListener("resume", (event) => {
     console.log("app resume", event);
   });
-
-  // const updateContoller = updateControllerPlugin.listen;
-
-  // updateContoller.addEventListener("start", (event) => {
-  //   console.log("Dweb Service Worker updateContoller start =>", event);
-  // });
-  // updateContoller.addEventListener("end", (event) => {
-  //   console.log("Dweb Service Worker updateContoller end =>", event);
-  // });
-  // updateContoller.addEventListener("progress", (event) => {
-  //   const progressRate = event.detail.progress;
-  //   progress.value = parseFloat(progressRate);
-  //   console.log("Dweb Service Worker updateContoller progress =>", progressRate, parseFloat(progressRate));
-  // });
-  // updateContoller.addEventListener("cancel", (event) => {
-  //   console.log("Dweb Service Worker updateContoller cancel =>", event);
-  // });
+  dwebServiceWorker.addEventListener("shortcut", (event) => {
+    console.log("shortcut", event.data);
+    plaoc.toastPlugin.show({ text: event.data });
+  });
 });
 
 const close = defineLogAction(
@@ -76,7 +64,7 @@ const cancel = defineLogAction(
 
 const download = defineLogAction(
   async () => {
-    return await updateControllerPlugin.download("http://172.30.93.165:8096/metadata.json");
+    return await updateControllerPlugin.download("http://172.30.95.93:8096/metadata.json");
   },
   { name: "download", args: [], logPanel: $logPanel }
 );
@@ -133,7 +121,7 @@ const title = "Dweb Service Worker";
       <div class="justify-end card-actions btn-group">
         <button class="inline-block rounded-full btn btn-accent" @click="download">下载新版本</button>
       </div>
-      <div>
+      <!-- <div>
         <progress class="w-56 progress progress-accent" :value="progress" max="100"></progress>
         <div class="stat">
           <div class="stat-figure text-secondary">
@@ -147,7 +135,7 @@ const title = "Dweb Service Worker";
           <div class="stat-title">download Task runing</div>
           <div class="stat-desc text-secondary">{{ 100 - progress }} tasks remaining</div>
         </div>
-      </div>
+      </div> -->
     </article>
 
     <article class="card-body">
@@ -158,14 +146,14 @@ const title = "Dweb Service Worker";
       </div>
     </article>
 
-    <article class="card-body">
+    <!-- <article class="card-body">
       <h2 class="card-title">下载控制器： 暂停/重下/取消</h2>
       <div class="justify-end card-actions btn-group">
         <button class="inline-block rounded-full btn btn-accent" @click="pause">pause</button>
         <button class="inline-block rounded-full btn btn-accent" @click="resume">resume</button>
         <button class="inline-block rounded-full btn btn-accent" @click="cancel">cancel</button>
       </div>
-    </article>
+    </article> -->
   </div>
   <div class="divider">LOG</div>
   <LogPanel ref="$logPanel"></LogPanel>

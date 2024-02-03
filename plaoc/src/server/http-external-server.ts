@@ -1,5 +1,4 @@
-import { concat } from "https://deno.land/std@0.140.0/bytes/mod.ts";
-import type { $MMID, $MicroModuleManifest, $OnFetch } from "./deps.ts";
+import type { $MMID, $OnFetch } from "./deps.ts";
 import {
   $DwebHttpServerOptions,
   $Ipc,
@@ -7,16 +6,12 @@ import {
   $OnFetchReturn,
   $ReadableStreamIpc,
   FetchEvent,
-  IPC_ROLE,
   IpcEvent,
   IpcResponse,
-  PureBinaryFrame,
-  ReadableStreamIpc,
-  ReadableStreamOut,
   jsProcess,
   mapHelper,
-  streamRead,
 } from "./deps.ts";
+import { createDuplexIpc } from "./helper/duplexIpc.ts";
 import { HttpServer } from "./helper/http-helper.ts";
 import { PromiseToggle } from "./helper/promise-toggle.ts";
 
@@ -56,7 +51,7 @@ export class Server_external extends HttpServer {
       .cors();
   }
 
-  private ipcPo = new PromiseToggle<$ReadableStreamIpc, void>({ type: "close", value: undefined });
+  ipcPo = new PromiseToggle<$ReadableStreamIpc, void>({ type: "close", value: undefined });
 
   //窗口关闭的时候需要重新等待连接
   closeRegisterIpc() {
@@ -77,48 +72,12 @@ export class Server_external extends HttpServer {
         this.ipcPo.openValue!.close();
         this.ipcPo.toggleClose();
       }
-      const streamIpc = new ReadableStreamIpc(
-        {
-          mmid: jsProcess.mmid,
-          name: `${this._getOptions().subdomain}.${jsProcess.mmid}`,
-          ipc_support_protocols: {
-            cbor: false,
-            protobuf: false,
-            raw: false,
-          },
-          dweb_deeplinks: [],
-          categories: [],
-        } satisfies $MicroModuleManifest,
-        //@ts-ignore
-        IPC_ROLE.SERVER
-      );
-      this.ipcPo.toggleOpen(streamIpc);
-      // 拿到自己前端的channel
-      const pureServerChannel = event.ipcRequest.getChannel();
-      pureServerChannel.start();
-
-      const incomeStream = new ReadableStreamOut<Uint8Array>();
-
-      // fetch(https://ext.dweb) => ipcRequest => streamIpc.request => streamIpc.postMessage => chunk => outgoing => ws.onMessage
-      void (async () => {
-        // 拿到网络层来的外部消息，发到前端处理
-        for await (const chunk of streamRead(streamIpc.stream)) {
-          pureServerChannel.outgoing.controller.enqueue(new PureBinaryFrame(concat(chunk)));
-        }
-      })();
-      // ws.send => income.pureFrame =>
-      void (async () => {
-        //  绑定自己前端发送的数据通道
-        for await (const pureFrame of streamRead(pureServerChannel.income.stream)) {
-          if (pureFrame instanceof PureBinaryFrame) {
-            incomeStream.controller.enqueue(pureFrame.data);
-          }
-        }
-      })();
-
-      void streamIpc.bindIncomeStream(incomeStream.stream).finally(() => {
+      // 跟自己建立双工通信
+      const streamIpc = createDuplexIpc(this._getOptions().subdomain, jsProcess.mmid, event.ipcRequest, () => {
         this.ipcPo.toggleClose();
       });
+      this.ipcPo.toggleOpen(streamIpc);
+
       // 接收前端的externalFetch函数发送的跟外部通信的消息
       streamIpc.onFetch(async (event) => {
         const mmid = event.headers.get("mmid") as $MMID;

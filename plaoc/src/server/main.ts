@@ -70,10 +70,6 @@ const main = async () => {
     console.log(`${jsProcess.mmid} onRendererDestroy`, ipcEvent.text);
     delWinId(ipcEvent.text);
   });
-  // quick action event
-  jsProcess?.onShortcut((ipcEvent) => {
-    console.log(`${jsProcess.mmid} onShortcut`, ipcEvent.text);
-  });
 
   jsProcess.onClose(() => {
     console.log("app后台被关闭。");
@@ -87,6 +83,13 @@ const main = async () => {
   const wwwServer = new Server_www(plaocConfig, await MiddlewareImporter.init(plaocConfig.config.middlewares?.www));
   const externalServer = new Server_external(await MiddlewareImporter.init(plaocConfig.config.middlewares?.external));
   const apiServer = new Server_api(getWinId, await MiddlewareImporter.init(plaocConfig.config.middlewares?.api));
+
+  // quick action event
+  jsProcess?.onShortcut(async (ipcEvent) => {
+    console.log(`${jsProcess.mmid} onShortcut`, ipcEvent.text);
+    const ipc = await externalServer.ipcPo.waitOpen();
+    ipc.postMessage(ipcEvent);
+  });
 
   const wwwListenerTask = wwwServer.start().finally(() => console.log("wwwServer started"));
   const externalListenerTask = externalServer.start().finally(() => console.log("externalServer started"));

@@ -1,9 +1,15 @@
 import { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
+import { PlaocEvent } from "./IpcEvent.ts";
 
 export interface DwebWorkerEventMap {
   pause: Event; // 监听应用暂停
   resume: Event; // 监听应用恢复
   fetch: ServiceWorkerFetchEvent;
+  shortcut:PlaocEvent; 
+}
+
+export enum eventHandle {
+  shortcut = "shortcut"
 }
 
 

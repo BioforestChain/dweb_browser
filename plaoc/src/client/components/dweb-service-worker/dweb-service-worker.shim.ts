@@ -1,35 +1,57 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { ListenerCallback } from "../base/BaseEvent.ts";
 import { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
+import { PlaocEvent } from "./IpcEvent.ts";
 import { dwebServiceWorkerPlugin } from "./dweb-service-worker.plugin.ts";
-import { DwebWorkerEventMap } from "./dweb-service-worker.type.ts";
+import { DwebWorkerEventMap, eventHandle } from "./dweb-service-worker.type.ts";
 class DwebServiceWorker extends EventTarget {
   plugin = dwebServiceWorkerPlugin;
   ws: WebSocket | undefined;
 
   messageQueue: ServiceWorkerFetchEvent[] = [];
+  shortQueue: PlaocEvent[] = [];
   private isRegister = false;
 
   constructor() {
     super();
+    // 事件分发中心
     this.plugin.ipcPromise.then((ipc) => {
-      ipc.onFetch((event) => {
-        console.log("收到消息", event.pathname, this.isRegister);
-        const serviceEvent = new ServiceWorkerFetchEvent(event, this.plugin);
+      ipc.onFetch((fetchEvent) => {
+        console.log("收到fetch消息", fetchEvent.pathname, this.isRegister);
+        const serviceEvent = new ServiceWorkerFetchEvent(fetchEvent, this.plugin);
         if (!this.isRegister) {
           this.messageQueue.push(serviceEvent);
         }
         this.dispatchEvent(serviceEvent);
       });
+      ipc.onEvent((event) => {
+        console.log("收到Event消息", event.name, event.text, this.isRegister);
+        const plaocEvent = new PlaocEvent(event.name, event.text);
+        // shortcut
+        if (!this.isRegister && event.name === eventHandle.shortcut) {
+          this.shortQueue.push(plaocEvent);
+        }
+
+        this.dispatchEvent(plaocEvent);
+      });
     });
   }
 
   // 模拟messagePort 的start
-  start() {
+  private start() {
     console.log("触发缓存消息", this.messageQueue.length);
     while (this.messageQueue.length > 0) {
       const event = this.messageQueue.shift();
       console.log("派发消息", event, "当前消息：", this.messageQueue.length);
+      event && this.dispatchEvent(event);
+    }
+  }
+
+  private startShortcut() {
+    console.log("触发startShortcut缓存消息", this.shortQueue.length);
+    while (this.shortQueue.length > 0) {
+      const event = this.shortQueue.shift();
+      console.log("派发startShortcut消息", event, "当前消息：", this.shortQueue.length);
       event && this.dispatchEvent(event);
     }
   }
@@ -66,9 +88,13 @@ class DwebServiceWorker extends EventTarget {
     options?: boolean | AddEventListenerOptions
   ) {
     void super.addEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
+    this.isRegister = true;
+    // 虽然有类型安全，但是这里还是做强验证
     if (eventName === "fetch") {
-      this.isRegister = true;
       this.start();
+    } 
+     if (eventName === "shortcut") {
+      this.startShortcut();
     }
   }
 
@@ -78,9 +104,7 @@ class DwebServiceWorker extends EventTarget {
     listenerFunc: ListenerCallback<DwebWorkerEventMap[K]>,
     options?: boolean | EventListenerOptions
   ) {
-    if (eventName === "fetch") {
-      this.isRegister = false;
-    }
+    this.isRegister = false;
     return super.removeEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
   }
 }
