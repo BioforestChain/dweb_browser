@@ -394,7 +394,7 @@ class DWebViewEngine internal constructor(
     val webView = this
     val field = WebView::class.java.getDeclaredField("mProvider");
     field.isAccessible = true;
-    if (field.type.toString() != "class com.android.webview.chromium.WebViewChromium") return@lazy null
+    if (field.type.toString() != "interface android.webkit.WebViewProvider") return@lazy null
     val mProvider = field.get(webView);
     for (field1 in mProvider.javaClass.fields.iterator()) {
       if (field1.type.toString() == "class org.chromium.android_webview.AwContents") {
