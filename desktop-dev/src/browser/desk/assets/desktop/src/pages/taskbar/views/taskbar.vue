@@ -216,8 +216,7 @@ const iconSize = "45px";
         </div> -->
       </button>
     </div>
-    <template v-if="!isSingleIconMode">
-      <hr v-if="appRefList.length !== 0" class="my-divider" />
+    <hr v-if="appRefList.length !== 0" class="my-divider" />
       <button class="desktop-button app-icon-wrapper z-grid" @click="toggleDesktopButton">
         <AppIcon
           class="z-view"
@@ -227,7 +226,6 @@ const iconSize = "45px";
           bg-disable-translucent
         ></AppIcon>
       </button>
-    </template>
   </div>
 </template>
 <style scoped lang="scss">
