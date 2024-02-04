@@ -136,13 +136,11 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     // 如果历史没有该应用，那么会直接添加，
     // 如果历史已经存在该应用，判断版本如果高于历史，替换历史版本
     val (historyMetadata, save) = historyMetadataMaps[installManifest.id]?.let { metadata ->
-      val (exist, higher) = jmmNMM.bootstrapContext.dns.query(installManifest.id)?.let { install ->
-        Pair(true, installManifest.version.isGreaterThan(install.version))
-      } ?: Pair(false, true)
+      val installMM = jmmNMM.bootstrapContext.dns.query(installManifest.id)
       // val highThanHis = installManifest.version.isGreaterThan(metadata.metadata.version)
-      debugJMM("openInstallerView", "exist=($exist, $higher)")
-      if (exist) { // 表示已安装过当前应用
-        if (higher) { // 比安装高，直接进行替换吧，暂时不考虑是否比列表中的版本高。
+      debugJMM("openInstallerView", "installMM=${installMM?.version}")
+      installMM?.let { // 表示已安装过当前应用
+        if (installManifest.version.isGreaterThan(installMM.version)) { // 比安装高，直接进行替换吧，暂时不考虑是否比列表中的版本高。
           oldVersion = metadata.metadata.version
           val session = getAppSessionInfo(installManifest.id, metadata.metadata.version)
           debugJMM("openInstallerView", "replace session=$session")
@@ -155,10 +153,12 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
             ),
             true
           )
+        } else if (installManifest.version == installMM.version){
+          Pair(installManifest.createJmmHistoryMetadata(originUrl, JmmStatus.INSTALLED), false)
         } else { // 比安装的应用版本还低的，直接不能安装，提示版本过低，不存储
           Pair(installManifest.createJmmHistoryMetadata(originUrl, JmmStatus.VersionLow), false)
         }
-      } else { // 从未安装过，直接替换成当前的，不考虑是否比历史列表高
+      } ?: run { // 从未安装过，直接替换成当前的，不考虑是否比历史列表高
         Pair(installManifest.createJmmHistoryMetadata(originUrl), true)
       }
     } ?: Pair(installManifest.createJmmHistoryMetadata(originUrl), true)
@@ -239,7 +239,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
           else -> {}
         }
       }
-      debugJMM("/watch process error=>", res)
+      debugJMM("watchProcess", "/watch process error=>$res")
     }
   }
 
@@ -271,9 +271,11 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
         metadata.pauseFlag = true
         watchProcess(metadata)
       }
+      true
     } else {
       showToastText(BrowserI18nResource.toast_message_download_download_fail.text)
       metadata.updateState(JmmStatus.Failed, jmmStore)
+      false
     }
   } ?: false
 
