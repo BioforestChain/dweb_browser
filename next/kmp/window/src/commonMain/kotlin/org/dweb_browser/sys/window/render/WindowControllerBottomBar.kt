@@ -229,6 +229,7 @@ internal fun WindowBottomNavigationThemeBar(
   val infoHeight = min(bottomBarHeight * 0.25f, LocalWindowLimits.current.bottomBarBaseHeight)
   val isMaximized by win.watchedIsMaximized()
   val buttonRoundedSize = infoHeight * 2
+  val infoTextHeight = if(safeAreaInsets.bottom > 0 && isMaximized) safeAreaInsets.bottom else infoHeight
   Box(modifier = Modifier.fillMaxSize()) {
     var paddingTop = infoHeight / 3
     var paddingBottom = infoHeight / 2
@@ -441,7 +442,7 @@ internal fun WindowBottomNavigationThemeBar(
     WindowBottomBarInfoText(
       win,
       Modifier
-        .height(infoHeight.dp)
+        .height(infoTextHeight.dp)
         .fillMaxWidth(0.618f)
         .zIndex(2f)
         .align(Alignment.BottomCenter)
