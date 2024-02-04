@@ -84,7 +84,7 @@ suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): Per
 
             else -> status
           }
-        }.toMutableMap();
+        }.toMutableMap()
         /// 将需要询问的权限交给钩子，等得到授权结果。更新result表；并保存
         if (needAskPermissions.isNotEmpty()) {
           // 询问授权结果

@@ -21,7 +21,7 @@ class PermissionTable(private val nmm: NativeMicroModule) {
    *
    * 这里跟着 PERMISSION_ID 走，应用在被卸载的时候，它对别人的授权记录会被删除，但是别人对它的授权记录还是保留
    */
-  private val permissionStore = nmm.createStore("authorization", false)
+  private val permissionStore = nmm.createStore("authorization", true)
   private val authorizationMap =
     mutableStateMapOf<PERMISSION_ID, MutableMap<MMID/* applicantMmid */, AuthorizationRecord>>()
 
