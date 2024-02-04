@@ -6,8 +6,8 @@ import dev.whyoleg.cryptography.algorithms.symmetric.AES
 class AES256GCM {
   companion object {
     // 使用 SymmetricKeySize.B256 的长度作为key
-    internal val aesGcm = CryptographyProvider.Default.get(AES.GCM)
-    internal val keyDecoder = aesGcm.keyDecoder()
+    private val aesGcm = CryptographyProvider.Default.get(AES.GCM)
+    private val keyDecoder = aesGcm.keyDecoder()
 
     /**
      * 将指定字符串，通过 sha256 转成合法的 AES.GCM 的 key
@@ -18,7 +18,7 @@ class AES256GCM {
   }
 }
 
- suspend fun common_cipher_aes_256_gcm(
+suspend fun common_cipher_aes_256_gcm(
   key: ByteArray,
   data: ByteArray
 ): ByteArray {
