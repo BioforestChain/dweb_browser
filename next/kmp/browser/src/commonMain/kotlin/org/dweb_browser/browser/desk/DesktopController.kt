@@ -66,7 +66,7 @@ open class DesktopController private constructor(
       url = getDesktopUrl().toString(),
       privateNet = true,
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
-      displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Ignore,
+      displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
     );
     val webView = activity.createDwebView(deskNMM, options)
     // 隐藏滚动条
