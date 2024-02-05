@@ -1,7 +1,10 @@
 import { concat } from "https://deno.land/std@0.140.0/bytes/mod.ts";
-import type { $IpcRequest, $MMID, $MicroModuleManifest } from "../deps.ts";
+import type { $IpcRequest, $MMID, $MicroModuleManifest, $ReadableStreamIpc } from "../deps.ts";
 import { IPC_ROLE, PureBinaryFrame, ReadableStreamIpc, ReadableStreamOut, streamRead } from "../deps.ts";
-export const createDuplexIpc = (subdomain: string, mmid: $MMID, ipcRequest: $IpcRequest, onClose: () => unknown) => {
+
+type CreateDuplexIpcType = (subdomain: string, mmid: $MMID, ipcRequest: $IpcRequest, onClose: () => unknown) =>  $ReadableStreamIpc;
+
+export const createDuplexIpc: CreateDuplexIpcType = (subdomain: string, mmid: $MMID, ipcRequest: $IpcRequest, onClose: () => unknown) => {
   const streamIpc = new ReadableStreamIpc(
     {
       mmid: mmid,
