@@ -64,7 +64,6 @@ onUnmounted(() => {
 <style scoped>
 .tile-panel {
   width: 100%;
-  height: 100%;
   grid-area: view;
   z-index: 1;
   align-self: start;
@@ -77,6 +76,7 @@ onUnmounted(() => {
   justify-items: stretch;
   padding-inline: 0.5em;
   padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 </style>
 <!-- grid-template-rows: repeat(auto-fill, calc(1px * v-bind("props.rowTemplateSize"))); -->
