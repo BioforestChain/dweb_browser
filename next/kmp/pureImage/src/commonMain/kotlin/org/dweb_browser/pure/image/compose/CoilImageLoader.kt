@@ -124,12 +124,10 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
 
   companion object {
 
-    private val defaultHttpClient = lazy {
-      @Suppress("USELESS_IS_CHECK")
-      when (val pureClient = defaultHttpPureClient) {
-        is KtorPureClient -> pureClient.ktorClient
-        else -> HttpClient()
-      }
+    private val defaultHttpClient = @Suppress("USELESS_IS_CHECK")
+    when (val pureClient = defaultHttpPureClient) {
+      is KtorPureClient -> pureClient.ktorClient
+      else -> HttpClient()
     }
 
     private fun buildLoader(
@@ -141,62 +139,63 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
       if (hooks == null) {
         add(KtorNetworkFetcherFactory(defaultHttpClient))
       } else {
-        add(KtorNetworkFetcherFactory(lazy {
-          val ktorClient = defaultHttpClient.value
-          val ktorEngine = ktorClient.engine
-          HttpClient(engine = object : HttpClientEngine {
-            @InternalAPI
-            override suspend fun execute(data: HttpRequestData) = measureTimedValue {
-              val hookList = hooks.toList()
-              val hookContext by lazy {
-                FetchHookContext(
-                  PureServerRequest(
-                    data.url.toString(),
-                    PureMethod.from(data.method),
-                    PureHeaders(
-                      data.headers.flattenEntries().removeOriginAndAcceptEncoding()
+        val ktorEngine = defaultHttpClient.engine
+        add(
+          KtorNetworkFetcherFactory(
+            HttpClient(engine = object : HttpClientEngine {
+              @InternalAPI
+              override suspend fun execute(data: HttpRequestData) = measureTimedValue {
+                val hookList = hooks.toList()
+                val hookContext by lazy {
+                  FetchHookContext(
+                    PureServerRequest(
+                      data.url.toString(),
+                      PureMethod.from(data.method),
+                      PureHeaders(
+                        data.headers.flattenEntries().removeOriginAndAcceptEncoding()
+                      ),
+                      when (val body = data.body) {
+                        is OutgoingContent.ByteArrayContent -> IPureBody.from(body.bytes())
+                        is OutgoingContent.NoContent -> IPureBody.Empty
+                        is OutgoingContent.ProtocolUpgrade -> throw Exception("no support ProtocolUpgrade")
+                        is OutgoingContent.ReadChannelContent -> IPureBody.from(PureStream(body.readFrom()))
+                        is OutgoingContent.WriteChannelContent -> throw Exception("no support WriteChannelContent")
+                      }
                     ),
-                    when (val body = data.body) {
-                      is OutgoingContent.ByteArrayContent -> IPureBody.from(body.bytes())
-                      is OutgoingContent.NoContent -> IPureBody.Empty
-                      is OutgoingContent.ProtocolUpgrade -> throw Exception("no support ProtocolUpgrade")
-                      is OutgoingContent.ReadChannelContent -> IPureBody.from(PureStream(body.readFrom()))
-                      is OutgoingContent.WriteChannelContent -> throw Exception("no support WriteChannelContent")
-                    }
-                  ),
-                )
+                  )
+                }
+                for (hook in hookList) {
+                  val pureResponse = hookContext.hook() ?: continue
+                  return@measureTimedValue HttpResponseData(
+                    statusCode = pureResponse.status,
+                    headers = Headers.build {
+                      for ((key, value) in pureResponse.headers) {
+                        this.append(key, value)
+                      }
+                    },
+                    body = pureResponse.body.toPureStream().getReader("to HttpResponseData"),
+                    version = HttpProtocolVersion.HTTP_1_1,
+                    requestTime = GMTDate(null),
+                    callContext = ioAsyncExceptionHandler
+                  )
+                }
+                ktorEngine.execute(data)
+              }.let {
+                debugCoilImageLoader("execute", "url=${data.url} duration=${it.duration}")
+                it.value
               }
-              for (hook in hookList) {
-                val pureResponse = hookContext.hook() ?: continue
-                return@measureTimedValue HttpResponseData(
-                  statusCode = pureResponse.status,
-                  headers = Headers.build {
-                    for ((key, value) in pureResponse.headers) {
-                      this.append(key, value)
-                    }
-                  },
-                  body = pureResponse.body.toPureStream().getReader("to HttpResponseData"),
-                  version = HttpProtocolVersion.HTTP_1_1,
-                  requestTime = GMTDate(null),
-                  callContext = ioAsyncExceptionHandler
-                )
+
+              override val config: HttpClientEngineConfig = ktorEngine.config
+              override val dispatcher: CoroutineDispatcher = ktorEngine.dispatcher
+
+              override fun close() {
+                ktorEngine.close()
               }
-              ktorEngine.execute(data)
-            }.let {
-              debugCoilImageLoader("execute", "url=${data.url} duration=${it.duration}")
-              it.value
-            }
 
-            override val config: HttpClientEngineConfig = ktorEngine.config
-            override val dispatcher: CoroutineDispatcher = ktorEngine.dispatcher
-
-            override fun close() {
-              ktorEngine.close()
-            }
-
-            override val coroutineContext: CoroutineContext = ktorEngine.coroutineContext
-          }) { }
-        }))
+              override val coroutineContext: CoroutineContext = ktorEngine.coroutineContext
+            })
+          )
+        )
       }
       addPlatformComponents()
       add(SvgDecoder.Factory())
