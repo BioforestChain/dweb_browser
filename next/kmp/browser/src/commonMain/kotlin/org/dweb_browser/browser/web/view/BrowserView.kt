@@ -131,8 +131,10 @@ fun BrowserViewForWindow(
   ) {
     // 窗口 BottomSheet 的按钮
     val win = LocalWindowController.current
-    fun backHandler() {
-      val browserContentItem = viewModel.currentTab ?: return
+
+    // 窗口级返回操作
+    win.GoBackHandler {
+      val browserContentItem = viewModel.currentTab ?: return@GoBackHandler
       scope.launch {
         if (showSearchView.value) { // 如果显示搜索界面，优先关闭搜索界面
           focusManager.clearFocus()
@@ -145,8 +147,8 @@ fun BrowserViewForWindow(
           qrCodeScanModel.state.value = QRCodeState.Hide
         } else {
           browserContentItem.contentWebItem.value?.let { contentWebItem ->
-            if (contentWebItem.viewItem.webView.historyCanGoBack()) {
-              contentWebItem.viewItem.webView.historyGoBack()
+            if (contentWebItem.viewItem.webView.canGoBack()) {
+              contentWebItem.viewItem.webView.goBack()
             } else {
               viewModel.closeWebView(browserContentItem)
             }
@@ -154,9 +156,6 @@ fun BrowserViewForWindow(
         }
       }
     }
-
-    // 窗口级返回操作
-    win.GoBackHandler { backHandler() }
 
     Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
       Box(

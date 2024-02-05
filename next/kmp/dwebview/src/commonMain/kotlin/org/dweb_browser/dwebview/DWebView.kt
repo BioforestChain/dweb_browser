@@ -75,8 +75,9 @@ abstract class IDWebView(initUrl: String?) {
   suspend fun goBack() {
     if (closeWatcher.canClose) {
       closeWatcher.close()
+    } else {
+      this.historyGoBack()
     }
-    this.historyGoBack()
   }
 
   val canGoBackStateFlow by lazy {
