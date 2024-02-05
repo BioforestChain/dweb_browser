@@ -93,10 +93,14 @@ actual class MediaCaptureManage actual constructor() {
       val coroutineScope =
         CoroutineScope(CoroutineName("video-stream") + ioAsyncExceptionHandler)
       videoController.videoPathBlock = {
-        val url = NSURL.fileURLWithPath(it)
-        val inputStream = NSInputStream(url)
-        val byteChannel = NSInputStreamToByteReadChannel(coroutineScope,inputStream)
-        result.complete(byteChannel)
+        if (it.isNotEmpty()) {
+          val url = NSURL.fileURLWithPath(it)
+          val inputStream = NSInputStream(url)
+          val byteChannel = NSInputStreamToByteReadChannel(coroutineScope, inputStream)
+          result.complete(byteChannel)
+        } else {
+          result.complete(ByteReadChannel.Empty)
+        }
       }
       rootController?.presentViewController(videoController,true,null)
     }

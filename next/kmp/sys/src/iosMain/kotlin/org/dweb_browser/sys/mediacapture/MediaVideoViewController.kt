@@ -69,6 +69,8 @@ class MediaVideoViewController : UIViewController(nibName = null, bundle = null)
     private var timeLabel: UILabel? = null
     //默认最大录制时长: 秒
     var maxDuration: Int = 60
+    //界面离开方式
+    private var isClickVideoButton: Boolean = false
 
     var videoPathBlock: (path: String) -> Unit = {}
 
@@ -79,7 +81,7 @@ class MediaVideoViewController : UIViewController(nibName = null, bundle = null)
         initTopView()
     }
 
-    override fun viewWillDisappear(animated: Boolean) {
+    override fun viewDidDisappear(animated: Boolean) {
         videoPathBlock(delegate.filePath)
         stopRecording()
         this.captureSession.stopRunning()
@@ -227,6 +229,7 @@ class MediaVideoViewController : UIViewController(nibName = null, bundle = null)
             initTimer()
             startRecording()
         } else {
+            isClickVideoButton = true
             stopRecording()
         }
     }
@@ -272,6 +275,9 @@ class MediaVideoViewController : UIViewController(nibName = null, bundle = null)
                     if (err != null) {
                         message = "保存失败: ${err.localizedDescription}"
                     }
+                }
+                if (!isClickVideoButton) {
+                    return@performChanges
                 }
                 filePath = didFinishRecordingToOutputFileAtURL.absoluteString.toString()
                 dispatch_async(dispatch_get_main_queue()) {
