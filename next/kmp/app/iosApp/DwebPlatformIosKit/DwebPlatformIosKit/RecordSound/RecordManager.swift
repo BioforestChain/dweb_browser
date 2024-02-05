@@ -11,6 +11,11 @@ import AVFoundation
 @Observable
 class RecordManager: NSObject {
     
+    enum RecordDisappearType {
+        case clickRecord
+        case enterBackground
+    }
+    
     static let shared = RecordManager()
     private var recorder: AVAudioRecorder?
     private var recorderSettings: [String:Any] = [:]
@@ -25,10 +30,13 @@ class RecordManager: NSObject {
     
     var path: String = ""
     var record_duration: Int = 0
+    var isRecording: Bool = false
+    var disappearType: RecordDisappearType = .clickRecord
     var completeCallback: ((String) -> Void)?
     var completeSingleRecordCallback: ((String) -> Void)?
     
     override init() {
+        super.init()
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.playAndRecord)
         try? session.setActive(true)
@@ -38,6 +46,18 @@ class RecordManager: NSObject {
                  AVEncoderAudioQualityKey: AVAudioQuality.max.rawValue,
                       AVEncoderBitRateKey: 320000,
                           AVSampleRateKey: 44100.0]
+        
+        self.addAudioNotification()
+    }
+    
+    private func addAudioNotification() {
+//        NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption(noti:)), name: AVAudioSession.interruptionNotification, object: AVAudioSession.sharedInstance())
+//        
+//        NotificationCenter.default.addObserver(self, selector: #selector(handleRouteChange(noti:)), name: AVAudioSession.routeChangeNotification, object: AVAudioSession.sharedInstance())
+    }
+    
+    func removeNotification() {
+        NotificationCenter.default.removeObserver(self)
     }
     
     func startRecorder() {
@@ -84,6 +104,58 @@ extension RecordManager: AVAudioRecorderDelegate {
   
     func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
         path = recorder.url.absoluteString
-        completeCallback?(path)
+        if disappearType == .clickRecord {
+            completeCallback?(path)
+        }
+    }
+}
+
+extension RecordManager {
+    
+    //系统中断响应通知
+    @objc private func handleInterruption(noti: Notification) {
+        guard let userInfo = noti.userInfo,
+            let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
+        
+        switch type {
+        case .began:
+            if let recorder = recorder, recorder.isRecording {
+                //停止录音
+                print("began")
+            }
+        case .ended:
+            print("ended")
+            try? AVAudioSession.sharedInstance().setActive(true)
+            if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
+                let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                if options.contains(.shouldResume) {
+                    // Interruption ends. Resume playback.
+                } else {
+                    // Interruption ends. Don't resume playback.
+                }
+            }
+        default:
+            print("unknown type: \(type)")
+        }
+    }
+    
+    //响应音频路由变化
+    @objc private func handleRouteChange(noti: Notification) {
+        guard let userInfo = noti.userInfo,
+              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+            return
+        }
+        
+        // Switch over the route change reason.
+        switch reason {
+        case .newDeviceAvailable: // New device found.
+            //暂停录音
+            isRecording = false
+        case .oldDeviceUnavailable: // Old device removed.
+            isRecording = false
+        default: ()
+        }
     }
 }

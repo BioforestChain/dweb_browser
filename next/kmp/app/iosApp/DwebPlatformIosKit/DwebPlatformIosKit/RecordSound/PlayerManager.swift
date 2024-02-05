@@ -31,17 +31,25 @@ class PlayerManager {
             }
         }
         
-        NotificationCenter.default.addObserver(self, selector: #selector(finishPlayer(noti:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
+        addAudioNotification()
+    }
+    
+    private func addAudioNotification() {
+//        NotificationCenter.default.addObserver(self, selector: #selector(finishPlayer(noti:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
+//        
+//        NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption(noti:)), name: AVAudioSession.interruptionNotification, object: AVAudioSession.sharedInstance())
+//        
+//        NotificationCenter.default.addObserver(self, selector: #selector(handleRouteChange(noti:)), name: AVAudioSession.routeChangeNotification, object: AVAudioSession.sharedInstance())
+    }
+    
+    func removeNotification() {
+        NotificationCenter.default.removeObserver(self)
     }
     
     //保留小数点位数
     func roundToPlaces(value:Double, places:Int) -> Double {
         let divisor = pow(10.0, Double(places))
         return round(value * divisor) / divisor
-    }
-    
-    func removeNotification() {
-        NotificationCenter.default.removeObserver(self)
     }
     
     func play() {
@@ -64,9 +72,55 @@ class PlayerManager {
 //            player?.play()
         }
     }
+}
+
+extension PlayerManager {
     
     //结束播放
     @objc private func finishPlayer(noti: Notification) {
         self.isFinish = true
+    }
+    
+    //系统中断响应通知
+    @objc private func handleInterruption(noti: Notification) {
+        guard let userInfo = noti.userInfo,
+            let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
+        
+        switch type {
+        case .began:
+            player?.pause()
+        case .ended:
+            try? AVAudioSession.sharedInstance().setActive(true)
+            if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
+                let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                if options.contains(.shouldResume) {
+                    // Interruption ends. Resume playback.
+                    player?.play()
+                } else {
+                    // Interruption ends. Don't resume playback.
+                }
+            }
+        default:
+            print("unknown type: \(type)")
+        }
+    }
+    
+    //响应音频路由变化
+    @objc private func handleRouteChange(noti: Notification) {
+        guard let userInfo = noti.userInfo,
+              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+            return
+        }
+        
+        // Switch over the route change reason.
+        switch reason {
+        case .newDeviceAvailable: // New device found.
+            print("unknown type: \(reason)")
+        case .oldDeviceUnavailable: // Old device removed.
+            print("unknown type: \(reason)")
+        default: ()
+        }
     }
 }

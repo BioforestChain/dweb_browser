@@ -15,7 +15,6 @@ struct RecordView: View {
     private let recordManager = RecordManager.shared
     @State private var timer: Timer?
     @State var timeString: String = "00:00"
-    @State private var counter = 0
     @State private var isRecording = false
     @State private var recordDuration: Int = 0
     @EnvironmentObject var environ: EnvironmentModel
@@ -30,15 +29,7 @@ struct RecordView: View {
                     .frame(height: 40)
             }
             Button(action: {
-                isRecording = !isRecording
-                environ.isRecording = isRecording
-                if isRecording {
-                    recordManager.startRecorder()
-                    startTimer()
-                } else {
-                    recordManager.stopRecorder()
-                    stopTimer()
-                }
+                isRecording.toggle()
             }, label: {
                 ZStack(alignment: .center) {
                     Color.white
@@ -56,6 +47,16 @@ struct RecordView: View {
             })
             .padding(.top,16)
         }
+        .onChange(of: isRecording, { oldValue, newValue in
+            environ.isRecording = newValue
+            if newValue {
+                recordManager.startRecorder()
+                startTimer()
+            } else {
+                recordManager.stopRecorder()
+                stopTimer()
+            }
+        })
         .onChange(of: recordManager.record_duration, { oldValue, newValue in
             if newValue > 0 {
                 recordDuration = Int(newValue)
@@ -66,27 +67,42 @@ struct RecordView: View {
                 updateRecordData(duration: recordDuration, path: newValue)
             }
         }
+        .onChange(of: recordManager.isRecording) { oldValue, newValue in
+            isRecording = newValue
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification), perform: { _ in
+            print("didEnterBackgroundNotification")
+            //TODO 进入后台
+            recordManager.disappearType = .enterBackground
+            isRecording = false
+        })
+        .onDisappear {
+            //TODO 界面消失后的操作
+            recordManager.stopRecorder()
+            stopTimer()
+            recordManager.removeNotification()
+        }
     }
     
     private func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true, block: { _ in
+        let startStamp = Date().timeStamp
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block: { _ in
             let meter = self.recordManager.voiceMeters()
             self.updateVoiceValue(value: CGFloat(meter))
-            self.counter += 1
-            if self.counter > 119 {
+            let endStamp = Date().timeStamp
+            let distance = endStamp - startStamp
+            if distance > 59 {
                 self.stopTimer()
             } else {
-                if self.counter % 2 == 0 {
-                    self.timeString = handleTimeFormattor(time: counter / 2)
-                }
+                self.timeString = handleTimeFormattor(time: distance)
             }
         })
+        
     }
     
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
-        self.counter = 0
         self.timeString = "00:00"
         self.voiceNumber = 0
     }

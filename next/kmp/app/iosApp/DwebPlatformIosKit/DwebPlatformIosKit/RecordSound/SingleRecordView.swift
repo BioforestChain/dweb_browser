@@ -24,7 +24,6 @@ struct SingleRecrodView: View {
     @State private var timer: Timer?
     @State var timeString: String = "00:00"
     @State private var recordPath: String = ""
-    @State private var counter = 0
     @State private var voiceIndex = 0
     @State var heights: [CGFloat] = Array(repeating: 0, count: Int(UIScreen.main.bounds.width / 4))
     @State var totalHeights: [CGFloat] = []
@@ -161,10 +160,19 @@ struct SingleRecrodView: View {
             }
             PlayerManager.shared.isFinish = false
         })
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification), perform: { _ in
+            
+            isRecording = false
+        })
         .onAppear {
             totalHeights = heights
         }
         .onDisappear {
+            timer?.invalidate()
+            timer = nil
+            recordManager.stopRecorder()
+            PlayerManager.shared.stop()
+            recordManager.removeNotification()
             guard !isClickFinish else { return }
             RecordManager.shared.completeSingleRecordCallback?("")
         }
@@ -175,7 +183,6 @@ struct SingleRecrodView: View {
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block: { _ in
             let meter = self.recordManager.voiceMeters()
             self.updateVoiceValue(value: CGFloat(meter))
-            self.counter += 1
             let endStamp = Date().timeStamp
             let distance = endStamp - startStamp
             if distance > 59 {
@@ -191,7 +198,6 @@ struct SingleRecrodView: View {
         timer = nil
         self.isRecording = false
         isEndable = false
-        self.counter = 0
     }
     
     private func updateVoiceValue(value: CGFloat) {
@@ -214,7 +220,6 @@ struct SingleRecrodView: View {
         heights = Array(repeating: 0, count: Int(UIScreen.main.bounds.width / 4))
         totalHeights = heights
         self.timeString = "00:00"
-        self.counter = 0
     }
 }
 

@@ -113,11 +113,11 @@ actual class MediaCaptureManage actual constructor() {
       val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
       val recordController = manager.createRecordController()//manager.create()
       manager.completeSingleRecordWithCallback { path ->
-        recordController.dismissViewControllerAnimated(true, null)
-        if (path != null) {
+          recordController.dismissViewControllerAnimated(true, null)
+        if (!path.isNullOrEmpty()) {
           val url = NSURL.fileURLWithPath(path)
           val inputStream = NSInputStream(url)
-          val byteChannel = NSInputStreamToByteReadChannel(coroutineScope,inputStream)
+          val byteChannel = NSInputStreamToByteReadChannel(coroutineScope, inputStream)
           result.complete(byteChannel)
         } else {
           result.complete(ByteReadChannel(""))

@@ -72,6 +72,7 @@ struct RecordMainView: View {
             recordsCount = records.count
         })
         .onDisappear {
+            PlayerManager.shared.stop()
             guard !isClickSend else { return }
             RecordManager.shared.completeCallback?("")
         }
