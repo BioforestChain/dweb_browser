@@ -35,10 +35,10 @@ class PlayerManager {
     }
     
     private func addAudioNotification() {
-//        NotificationCenter.default.addObserver(self, selector: #selector(finishPlayer(noti:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
-//        
+        NotificationCenter.default.addObserver(self, selector: #selector(finishPlayer(noti:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
+        
 //        NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption(noti:)), name: AVAudioSession.interruptionNotification, object: AVAudioSession.sharedInstance())
-//        
+       
 //        NotificationCenter.default.addObserver(self, selector: #selector(handleRouteChange(noti:)), name: AVAudioSession.routeChangeNotification, object: AVAudioSession.sharedInstance())
     }
     
@@ -89,8 +89,10 @@ extension PlayerManager {
         
         switch type {
         case .began:
+            print("play begin")
             player?.pause()
         case .ended:
+            print("play end")
             try? AVAudioSession.sharedInstance().setActive(true)
             if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
                 let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
