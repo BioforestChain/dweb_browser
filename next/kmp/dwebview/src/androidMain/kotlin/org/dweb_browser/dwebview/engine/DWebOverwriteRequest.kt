@@ -6,16 +6,18 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import io.ktor.http.ContentType
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureHeaders
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
+import java.io.InputStream
 
 class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
@@ -43,6 +45,7 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
     }
     return super.shouldOverrideUrlLoading(view, request)
   }
+  /// TODO 因为 Chrome 错误地设置了 InputStream
 
   override fun shouldInterceptRequest(
     view: WebView, request: WebResourceRequest
@@ -57,20 +60,42 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
         )
       }
 
-      val contentType = (response.headers.get("Content-Type") ?: "").split(';', limit = 2)
+      val contentType = response.headers.get("Content-Type")
+        ?.let { ContentType.parse(it) } // (response.headers.get("Content-Type") ?: "").split(';', limit = 2)
 
       val statusCode = response.status.value
       debugDWebView("dwebProxy end", "[$statusCode]${request.url}")
       if (statusCode in 301..399) {
         return super.shouldInterceptRequest(view, request)
       }
+      val inputStreamSource =
+        response.body.toPureStream().getReader("DwebView shouldInterceptRequest").toInputStream()
+      val safeContentLength = response.headers.get("Content-Length")?.toInt()
+      val inputStreamProxy = object : InputStream() {
+        override fun available(): Int {
+          /// 这个如果错误地给出去，chromium会把它当成 Content-Length 写入到头部，这回导致浏览器内部的解码器出错
+          return safeContentLength ?: super.available()
+        }
+
+        override fun read(): Int {
+          return inputStreamSource.read()
+        }
+
+        override fun read(b: ByteArray?, off: Int, len: Int): Int {
+          return inputStreamSource.read(b!!, off, len)
+        }
+
+        override fun close() {
+          inputStreamSource.close()
+        }
+      }
       return WebResourceResponse(
-        contentType.firstOrNull(),
-        contentType.lastOrNull(),
+        contentType?.let { "${it.contentType}/${it.contentSubtype}" },
+        contentType?.parameter("charset"),
         response.status.value,
         response.status.description,
         response.headers.toMap().let { it - "Content-Type" }, // 修复 content-type 问题
-        response.body.toPureStream().getReader("DwebView shouldInterceptRequest").toInputStream(),
+        inputStreamProxy,
       )
     }
     return super.shouldInterceptRequest(view, request)

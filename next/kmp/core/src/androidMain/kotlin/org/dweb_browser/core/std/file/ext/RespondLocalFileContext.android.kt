@@ -5,11 +5,14 @@ import org.dweb_browser.pure.http.PureResponse
 import java.io.File
 import java.io.InputStream
 
-fun RespondLocalFileContext.returnFile(inputStream: InputStream) =
-  returnFile(inputStream.toByteReadChannel())
+fun RespondLocalFileContext.returnFile(inputStream: InputStream, size: Long) =
+  returnFile(inputStream.toByteReadChannel(), size)
 
 fun RespondLocalFileContext.returnFile(file: File) =
-  if (preferenceStream) returnFile(file.inputStream()) else returnFile(file.readBytes())
+  if (preferenceStream) returnFile(
+    file.inputStream(),
+    file.length()
+  ) else returnFile(file.readBytes())
 
 fun String.parseToDirnameAndBasename(): Pair<String, String> {
   var basename = ""

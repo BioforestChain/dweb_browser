@@ -155,20 +155,15 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
             returnNoFound(e.message)
           }
         } else if (firstSegment == "picker") {
-          return@respondLocalFile returnFile(
-            SystemFileSystem.source(
-              pickerPathToRealPathMap[request.url.encodedPath]!!
-            ).buffer().toByteReadChannel()
-          )
+          val filePath = pickerPathToRealPathMap[request.url.encodedPath]!!
+
+          return@respondLocalFile returnFile(SystemFileSystem, filePath)
         }
         return@respondLocalFile when (val vfsDirectory = findVfsDirectory(firstSegment)) {
           null -> returnNext()
           else -> {
             val vfsPath = VirtualFsPath(fromMM, filePath) { vfsDirectory }
-            returnFile(
-              SystemFileSystem.source(vfsPath.fsFullPath).buffer()
-                .toByteReadChannel(fromMM.ioAsyncScope)
-            )
+            returnFile(SystemFileSystem, vfsPath.fsFullPath, fromMM.ioAsyncScope)
           }
         }
       }

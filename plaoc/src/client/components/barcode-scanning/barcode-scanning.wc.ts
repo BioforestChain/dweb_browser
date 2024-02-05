@@ -195,14 +195,11 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 
       /// 视频停止播放
       this._video.pause();
-      // const st = this._video.srcObject;
-      // if (st instanceof MediaStream) {
-      //   const tracks = st.getTracks();
-      //   for (let i = 0; i < tracks.length; i++) {
-      //     const track = tracks[i];
-      //     track.stop();
-      //   }
-      // }
+      const st = this._video.srcObject;
+      /// 需要通过stop来释放
+      if (st instanceof MediaStream) {
+        st.getTracks().forEach((track) => track.stop());
+      }
       this._video.srcObject = null;
     }
     if (this.rafId) {
@@ -281,8 +278,8 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       const constraints: MediaStreamConstraints = {
         video: {
           facingMode: direction,
-          width: { exact: width ?? innerWidth * devicePixelRatio },
-          height: { exact: height ?? innerHeight * devicePixelRatio },
+          width: { exact: width ?? innerWidth },
+          height: { exact: height ?? innerHeight },
         },
       };
       console.log("video window=>", width, height);
@@ -291,6 +288,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
         await this.gotMedia(stream);
         return BarcodeScannerPermission.UserAgree;
       } catch (e) {
+        // TODO 提供警告信息：可能是权限问题、可能是摄像头占用问题
         console.warn("You need to authorize the camera permission to use the scan code!", e);
         this.stopScanning();
         return BarcodeScannerPermission.UserReject;
