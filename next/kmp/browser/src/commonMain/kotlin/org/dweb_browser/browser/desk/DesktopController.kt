@@ -3,6 +3,7 @@ package org.dweb_browser.browser.desk
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
@@ -10,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -78,8 +80,18 @@ open class DesktopController private constructor(
   @Composable
   fun DesktopView(content: @Composable IDWebView.() -> Unit) {
     var view by remember { mutableStateOf<IDWebView?>(null) }
-    LaunchedEffect(this) {
-      view = desktopView()
+    val scope = rememberCoroutineScope()
+    DisposableEffect(this) {
+      val job = scope.launch {
+        view = desktopView()
+      }
+      onDispose {
+        job.cancel()
+        view?.ioScope?.launch {
+          view?.destroy()
+          view = null
+        }
+      }
     }
     view?.also { view ->
       val safeContent = WindowInsets.safeContent
