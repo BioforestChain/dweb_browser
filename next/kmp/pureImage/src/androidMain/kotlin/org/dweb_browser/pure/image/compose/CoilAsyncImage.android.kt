@@ -27,16 +27,9 @@ actual fun CoilAsyncImage(
   clipToBounds: Boolean,
   modelEqualityDelegate: EqualityDelegate,
 ) {
-  if(model is String && model.startsWith("data:image")) {
-    val imageLoader = LocalCoilImageLoader.current
+  if (model is String && model.startsWith("data:image")) {
     BoxWithConstraints(modifier) {
-      val imageBitmap = imageLoader.Load(model, maxWidth, maxHeight)
-      imageBitmap.with(onError = {
-        val webImageBitmap = LocalWebImageLoader.current.Load(model, maxWidth, maxHeight)
-        webImageBitmap.with {
-          Image(it, contentDescription = model, modifier = modifier)
-        }
-      }) {
+      PureImageLoader.SmartLoad(model, maxWidth, maxHeight).with {
         Image(it, contentDescription = model, modifier = modifier)
       }
     }

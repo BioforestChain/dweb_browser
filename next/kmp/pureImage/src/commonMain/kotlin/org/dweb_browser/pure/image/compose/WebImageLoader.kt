@@ -1,15 +1,10 @@
 package org.dweb_browser.pure.image.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,14 +25,15 @@ val LocalWebImageLoader = compositionChainOf("ImageLoader") { WebImageLoader() }
 internal expect fun rememberOffscreenWebCanvas(): OffscreenWebCanvas
 
 
-class WebImageLoader {
+class WebImageLoader : PureImageLoader {
   private val scope = CoroutineScope(ioAsyncExceptionHandler)
 
   @Composable
-  fun Load(
-    url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook? = null
+  override fun Load(
+    url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook?
   ): ImageLoadResult {
     val density = LocalDensity.current.density
+    // 这里直接计算应该会比remember来的快
     val containerWidth = (maxWidth.value * density).toInt()
     val containerHeight = (maxHeight.value * density).toInt()
     return load(

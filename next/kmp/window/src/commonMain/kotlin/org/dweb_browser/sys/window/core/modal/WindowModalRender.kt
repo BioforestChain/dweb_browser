@@ -49,7 +49,7 @@ import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.image.compose.LocalCoilImageLoader
+import org.dweb_browser.pure.image.compose.PureImageLoader
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
@@ -356,8 +356,6 @@ data class AlertModal internal constructor(
         when (val url = iconUrl) {
           null -> Icon(imageVector = Icons.Default.WarningAmber, contentDescription = iconAlt)
           else -> {
-            val imageLoader = LocalCoilImageLoader.current
-
             /**
              * IconButtonTokens.IconSize
              */
@@ -365,7 +363,7 @@ data class AlertModal internal constructor(
              * IconButtonTokens.IconSize
              */
             val iconSize = 24.dp
-            imageLoader.Load(url, iconSize, iconSize).with(onError = {
+            PureImageLoader.SmartLoad(url, iconSize, iconSize).with(onError = {
               Icon(imageVector = Icons.Default.ErrorOutline, contentDescription = iconAlt)
             }, onBusy = {
               CircularProgressIndicator(

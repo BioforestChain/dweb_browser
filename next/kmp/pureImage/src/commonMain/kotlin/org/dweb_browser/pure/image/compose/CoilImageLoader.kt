@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import coil3.ComponentRegistry
@@ -23,6 +22,7 @@ import coil3.svg.SvgDecoder
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.HttpClientEngineConfig
+import io.ktor.client.engine.callContext
 import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.HttpResponseData
 import io.ktor.http.Headers
@@ -33,7 +33,7 @@ import io.ktor.util.date.GMTDate
 import io.ktor.util.flattenEntries
 import kotlinx.coroutines.CoroutineDispatcher
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
@@ -51,28 +51,25 @@ val debugCoilImageLoader = Debugger("coilImageLoader")
 
 val LocalCoilImageLoader = compositionLocalOf { CoilImageLoader(null) }
 
-class CoilImageLoader(private val diskCache: DiskCache? = null) {
+class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoader {
   private val hooks = mutableSetOf<FetchHook>()
   private var cache: Pair<PlatformContext, ImageLoader>? = null
-  val currentLoader: ImageLoader
-    @Composable
-    get() {
-      val cache = cache
-      if (LocalPlatformContext.current == cache?.first) {
-        return cache.second
-      }
-      val platformContext = LocalPlatformContext.current
-      val scope = rememberCoroutineScope()
-      return buildLoader(scope.coroutineContext, platformContext, hooks, diskCache).also {
-        this.cache = platformContext to it
-      }
+  private fun getLoader(platformContext: PlatformContext): ImageLoader {
+    val cache = cache
+    if (platformContext == cache?.first) {
+      return cache.second
     }
+    return buildLoader(platformContext, hooks, diskCache).also {
+      this.cache = platformContext to it
+    }
+  }
 
   @Composable
-  fun Load(
-    url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook? = null
+  override fun Load(
+    url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook?
   ): ImageLoadResult {
     val density = LocalDensity.current.density
+    // 这里直接计算应该会比remember来的快
     val containerWidth = (maxWidth.value * density).toInt()
     val containerHeight = (maxHeight.value * density).toInt()
     return Load(url, containerWidth, containerHeight, hook)
@@ -83,13 +80,21 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
   fun Load(
     url: String, containerWidth: Int, containerHeight: Int, hook: FetchHook? = null
   ): ImageLoadResult {
-    val requestHref = url.replace(Regex("\\{WIDTH\\}"), containerWidth.toString())
-      .replace(Regex("\\{HEIGHT\\}"), containerHeight.toString())
-    val safeHook: FetchHook? = remember(requestHref, hook) {
+    val requestHref = remember(url) {
+      url.replace(Regex("\\{WIDTH\\}"), containerWidth.toString())
+        .replace(Regex("\\{HEIGHT\\}"), containerHeight.toString())
+    }
+    /// 这里需要对url进行一次统一的包装，以避免coil的keyer面对file协议的时候异常
+    val wrappedRequestHref = remember(requestHref) {
+      buildUrlString("https://image.std.dweb") {
+        parameters.append("url", requestHref)
+      }
+    }
+    val safeHook: FetchHook? = remember(wrappedRequestHref, hook) {
       hook?.let {
         {
           when (request.href) {
-            requestHref -> hook()
+            wrappedRequestHref -> this.copy(request = request.copy(href = requestHref)).hook()
             else -> null
           }
         }
@@ -100,14 +105,14 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
       hooks.add(safeHook)
     }
 
-    val loader = currentLoader
-
     val platformContext = LocalPlatformContext.current
+    val loader = getLoader(platformContext)
+
     return produceState(ImageLoadResult.Setup) {
       value = ImageLoadResult.Loading;
       val imgReq = ImageRequest.Builder(platformContext).run {
         size(containerWidth, containerHeight)
-        data(url)
+        data(wrappedRequestHref)
         build()
       }
       value = when (val result = loader.execute(imgReq)) {
@@ -131,7 +136,6 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
     }
 
     private fun buildLoader(
-      coroutineContext: CoroutineContext,
       platformContext: PlatformContext,
       hooks: Set<FetchHook>? = null,
       diskCache: DiskCache? = null
@@ -170,13 +174,14 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
                     statusCode = pureResponse.status,
                     headers = Headers.build {
                       for ((key, value) in pureResponse.headers) {
-                        this.append(key, value)
+                        append(key, value)
                       }
                     },
-                    body = pureResponse.body.toPureStream().getReader("to HttpResponseData"),
+                    /// 这里硬性要求返回 ByteReadChannel
+                    body = pureResponse.stream().getReader("to HttpResponseData"),
                     version = HttpProtocolVersion.HTTP_1_1,
                     requestTime = GMTDate(null),
-                    callContext = ioAsyncExceptionHandler
+                    callContext = callContext()
                   )
                 }
                 ktorEngine.execute(data)
@@ -197,8 +202,8 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) {
           )
         )
       }
-      addPlatformComponents()
       add(SvgDecoder.Factory())
+      addPlatformComponents()
     }.memoryCache {
       MemoryCache.Builder()
         // Set the max size to 25% of the app's available memory.
