@@ -1,5 +1,7 @@
 package org.dweb_browser.core.ipc
 
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -25,7 +27,7 @@ class NativeIpc(
   override val supportRaw = true
   override val supportBinary = true
 
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+  private val ioAsyncScope =  CoroutineScope(CoroutineName("native-ipc") + ioAsyncExceptionHandler)
 
   init {
     port.onMessage { message ->
