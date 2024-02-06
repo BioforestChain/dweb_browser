@@ -98,7 +98,7 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
   }
   static fromBinary(req_id: number, statusCode: number, headers = new IpcHeaders(), binary: $Binary, ipc: Ipc) {
     headers.init("Content-Type", "application/octet-stream");
-    headers.init("Content-Length", binary.byteLength + "");
+    headers.set("Content-Length", binary.byteLength + "");
     return new IpcResponse(req_id, statusCode, headers, IpcBodySender.fromBinary(binaryToU8a(binary), ipc), ipc);
   }
   static fromStream(

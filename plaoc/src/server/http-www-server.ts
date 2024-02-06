@@ -1,12 +1,5 @@
 import { $PlaocConfig } from "./const.ts";
-import {
-  $DwebHttpServerOptions,
-  $OnFetch,
-  $OnFetchReturn,
-  FetchEvent,
-  IpcResponse,
-  jsProcess,
-} from "./deps.ts";
+import { $DwebHttpServerOptions, $OnFetch, $OnFetchReturn, FetchEvent, IpcResponse, jsProcess } from "./deps.ts";
 import { HttpServer } from "./helper/http-helper.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
 import { setupDB } from "./shim/db.shim.ts";
@@ -31,6 +24,7 @@ export class Server_www extends HttpServer {
       subdomain: "www",
     };
   }
+  private encoder = new TextEncoder();
   async start() {
     // 设置默认语言
     const lang = await jsProcess.nativeFetch("file://config.sys.dweb/getLang").text();
@@ -79,11 +73,14 @@ export class Server_www extends HttpServer {
         ) {
           const rawText = await remoteIpcResponse.toResponse().text();
           const text = `<script>(${setupDB.toString()})("${(await this.sessionInfo).installTime}");</script>${rawText}`;
-          remoteIpcResponse = IpcResponse.fromText(
+          const binary = this.encoder.encode(text);
+          remoteIpcResponse.headers.set("Content-Length", binary.length + "");
+          // fromBinary 会自动添加正确的 ContentLength, 否则在Safari上会异常
+          remoteIpcResponse = IpcResponse.fromBinary(
             remoteIpcResponse.req_id,
             remoteIpcResponse.statusCode,
             remoteIpcResponse.headers,
-            text,
+            binary,
             remoteIpcResponse.ipc
           );
         }
