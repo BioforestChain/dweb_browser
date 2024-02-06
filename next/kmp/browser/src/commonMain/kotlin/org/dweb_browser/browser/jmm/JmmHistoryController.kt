@@ -73,12 +73,13 @@ class JmmHistoryController(
       }
 
       JmmStatus.Downloading -> {
-        jmmController.pause(historyMetadata.taskId)
+        jmmController.pause(historyMetadata)
       }
 
       JmmStatus.Completed -> {}
       else -> {
-        jmmController.createAndStartDownloadTask(historyMetadata)
+        jmmController.createDownloadTask(historyMetadata)
+        jmmController.startDownloadTask(historyMetadata)
       }
     }
   }

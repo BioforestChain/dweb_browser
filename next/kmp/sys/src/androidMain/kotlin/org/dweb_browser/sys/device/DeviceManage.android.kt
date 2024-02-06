@@ -59,6 +59,6 @@ actual class DeviceManage actual constructor() {
     val (packageManager, packageName) = getAppContext().let { context ->
       Pair(context.packageManager, context.packageName)
     }
-    return packageManager.getPackageInfo(packageName, 0).versionName.substring(0, 10)
+    return packageManager.getPackageInfo(packageName, 0).versionName
   }
 }

@@ -123,39 +123,30 @@ class NewVersionController(private val deskNMM: DeskNMM, val desktopController: 
 
   private suspend fun watchProcess(newVersionItem: NewVersionItem) = newVersionItem.taskId?.let {
     deskNMM.ioAsyncScope.launch {
-      val ret = deskNMM.createChannelOfDownload(it) { pureFrame, close ->
-        when (pureFrame) {
-          is PureTextFrame -> {
-            Json.decodeFromString<DownloadTask>(pureFrame.data).also { downloadTask ->
-              // debugDesk("NewVersion", downloadTask)
-              when (downloadTask.status.state) {
-                DownloadState.Completed -> {
-                  newVersionItem.updateDownloadTask(downloadTask, store)
-                  // 关闭watchProcess
-                  close()
-                  newVersionItem.pauseFlag = false
-                  // 跳转到安装界面
-                  if (checkInstallPermission()) { // 先判断是否有权限
-                    val realPath = deskNMM.realFile(downloadTask.filepath)
-                    newVersionType.value = NewVersionType.Hide
-                    manage.installApk(realPath)
-                    // 清除保存的新版本信息
-                    store.clear()
-                    // deskNMM.removeDownload(downloadTask.id) 不能在这边删除
-                  } else {
-                    debugDesk("NewVersion", "no Install Apk Permission")
-                    updateVersionType(NewVersionType.Install)
-                  }
-                }
-
-                else -> {
-                  newVersionItem.updateDownloadTask(downloadTask, store)
-                }
-              }
+      val ret = deskNMM.createChannelOfDownload(it) {
+        when (downloadTask.status.state) {
+          DownloadState.Completed -> {
+            newVersionItem.updateDownloadTask(downloadTask, store)
+            // 关闭watchProcess
+            channel.close()
+            newVersionItem.pauseFlag = false
+            // 跳转到安装界面
+            if (checkInstallPermission()) { // 先判断是否有权限
+              val realPath = deskNMM.realFile(downloadTask.filepath)
+              newVersionType.value = NewVersionType.Hide
+              manage.installApk(realPath)
+              // 清除保存的新版本信息
+              store.clear()
+              // deskNMM.removeDownload(downloadTask.id) 不能在这边删除
+            } else {
+              debugDesk("NewVersion", "no Install Apk Permission")
+              updateVersionType(NewVersionType.Install)
             }
           }
 
-          else -> {}
+          else -> {
+            newVersionItem.updateDownloadTask(downloadTask, store)
+          }
         }
       }
       debugDesk("NewVersion", "watch process error=>$ret")

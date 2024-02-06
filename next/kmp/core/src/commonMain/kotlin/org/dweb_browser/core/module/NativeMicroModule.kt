@@ -40,6 +40,7 @@ import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.pure.http.PureBinary
 import org.dweb_browser.pure.http.PureBinaryBody
 import org.dweb_browser.pure.http.PureChannel
+import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureMethod
@@ -344,7 +345,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
  */
 suspend fun NativeMicroModule.createChannel(
   urlPath: String,
-  resolve: suspend (frame: PureFrame, close: (suspend () -> Unit)) -> Unit,
+  resolve: suspend PureChannelContext.()->Unit
 ): PureResponse {
   val channelDef = CompletableDeferred<PureChannel>()
   val request = PureClientRequest(
@@ -355,13 +356,7 @@ suspend fun NativeMicroModule.createChannel(
   val channel = PureChannel(from = request).also { channelDef.complete(it) }
   val res = nativeFetch(request)
   if (res.isOk) {
-    channel.start().run {
-      for (frame in this) {
-        resolve(frame) {
-          channel.close()
-        }
-      }
-    }
+    channel.start().resolve()
   }
   return res
 }

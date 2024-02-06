@@ -27,7 +27,7 @@ import org.dweb_browser.core.std.file.ext.appendFile
 import org.dweb_browser.core.std.file.ext.existFile
 import org.dweb_browser.core.std.file.ext.infoFile
 import org.dweb_browser.core.std.file.ext.removeFile
-import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.Queue
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.consumeEachArrayRange
@@ -64,7 +64,9 @@ data class DownloadTask(
   /** 文件路径 */
   var filepath: String,
   /** 标记当前下载状态 */
-  val status: DownloadStateEvent
+  val status: DownloadStateEvent,
+/// DBEUG
+  var frame: Int = 0,
 ) {
 
   @Transient
@@ -72,30 +74,34 @@ data class DownloadTask(
 
   // 监听下载进度 不存储到内存
   @Transient
-  val downloadSignal: Signal<DownloadTask> = Signal()
+  private val changeSignal: Signal<DownloadTask> = Signal()
 
   @Transient
-  val onDownload = downloadSignal.toListener()
+  val emitChanged = Queue.merge {
+    changeSignal.emit(this)
+    frame++
+  }
 
-  // 帮助实现下载暂停
   @Transient
-  var paused = PromiseOut<Unit>()
+  val onChange = changeSignal.toListener()
 
+  //  // 帮助实现下载暂停
+//  @Transient
+//  var paused = PromiseOut<Unit>()
+//
   @Transient
   var pauseFlag = false
-  suspend fun pauseWait() {
-    if (pauseFlag) {
-      debugDownload("DownloadTask", "下载暂停🚉${this.id}  ${this.status.current}")
-      // 触发状态更新
-      this.downloadSignal.emit(this)
-      paused.waitPromise()
-      // 还原状态
-      this.status.state = DownloadState.Downloading
-      paused = PromiseOut()
-      pauseFlag = false
-      debugDownload("DownloadTask", "下载恢复🍅")
-    }
+
+  @Transient
+  var paused = Mutex()
+
+  fun cancel() {
+    status.state = DownloadState.Canceled
+    status.current = 0L
+    readChannel?.cancel()
+    readChannel = null
   }
+
 }
 
 @Serializable
@@ -125,7 +131,8 @@ data class DownloadStateEvent(
   var total: Long = 1,
   var state: DownloadState = DownloadState.Init,
   var stateMessage: String = ""
-)
+) {
+}
 
 class DownloadController(private val downloadNMM: DownloadNMM) {
   private val downloadStore = DownloadStore(downloadNMM)
@@ -176,7 +183,6 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
         }
         downloadTask.status.state = DownloadState.Paused
       }
-      downloadTask.pauseFlag = false // 为了避免之前暂停的下载，再重启启动应用后，这个需要置为false
       debugDownload("LoadList", downloadTask)
     }
   }
@@ -207,9 +213,14 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   /**
    * 恢复(创建)下载，需要重新创建连接🔗
    */
-  private suspend fun recoverDownload(task: DownloadTask) {
+  private suspend fun doDownload(task: DownloadTask): Boolean {
+    if (task.readChannel != null) {
+      return true
+    }
     val start = task.status.current
     debugDownload("recoverDownload", "start=$start => $task")
+    task.status.state = DownloadState.Downloading // 这边开始请求http了，属于开始下载
+    task.emitChanged()
     val response = downloadNMM.nativeFetch(PureClientRequest(
       href = task.url,
       method = PureMethod.GET,
@@ -221,11 +232,11 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     if (!response.isOk) {
       task.status.state = DownloadState.Failed
       task.status.stateMessage = response.status.description
+      task.emitChanged()
       downloadNMM.showToast(response.status.toString())
-      return
+      return false
     }
 
-    task.status.state = DownloadState.Downloading
     task.mime = mimeFactory(response.headers, task.url)
     // 判断地址是否支持断点
     val (supportRange, contentLength) = with(response.headers) {
@@ -242,7 +253,57 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       task.status.current = 0L
       task.status.total = contentLength
     }
-    task.readChannel = response.stream().getReader("downloadTask#${task.id}")
+    val streamReader = response.stream().getReader("downloadTask#${task.id}")
+    task.readChannel = streamReader
+    task.emitChanged()
+
+    debugDownload("downloadFactory", task.id)
+    val output = createByteChannel()
+    val taskId = task.id
+    // 重要记录点 存储到硬盘
+    downloadTaskMaps.put(taskId, task)
+    // 正式下载需要另外起一个协程，不影响当前的返回值
+    downloadNMM.ioAsyncScope.launch {
+      debugDownload("middleware", "start id:$taskId current:${task.status.current}")
+      task.emitChanged()
+      try {
+        streamReader.consumeEachArrayRange { byteArray, last ->
+          // 处理是否暂停
+          task.paused.withLock {}
+          if (byteArray.isNotEmpty()) {
+            task.status.current += byteArray.size
+            output.writePacket(ByteReadPacket(byteArray))
+          }
+          if (last) {
+            output.close()
+            streamReader.cancel()
+            task.status.state = DownloadState.Completed
+            // 触发完成 存储到硬盘
+            downloadStore.set(task.id, task)
+          } else if (output.isClosedForRead) {
+            breakLoop()
+            task.cancel()
+            // 触发取消 存储到硬盘
+            streamReader.cancel()
+            downloadStore.set(task.id, task)
+          }
+          // 触发更新
+          task.emitChanged()
+          // debugDownload("middleware", "progress id:$taskId current:${downloadTask.status.current}")
+        }
+        debugDownload("middleware", "end id:$taskId, ${task.status}")
+      } catch (e: Throwable) {
+        // 这里捕获的一般是 connection reset by peer 当前没有重试机制，用户再次点击即为重新下载
+        debugDownload("middleware", "${e.message}")
+        task.readChannel?.cancel()
+        task.readChannel = null
+        task.status.state = DownloadState.Failed
+        // 触发失败
+        task.emitChanged()
+      }
+    }
+    fileAppend(task, output)
+    return true
   }
 
   private fun mimeFactory(header: PureHeaders, filePath: String): String {
@@ -293,8 +354,10 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   /**
    * 启动
    */
-  suspend fun startDownload(task: DownloadTask) = if (task.pauseFlag) { // 表示只是短暂的暂停，不用从内存中恢复
-    task.paused.resolve(Unit)
+  suspend fun startDownload(task: DownloadTask) = if (task.paused.isLocked) { // 表示只是短暂的暂停，不用从内存中恢复
+    task.paused.unlock()
+    task.status.state = DownloadState.Downloading
+    task.emitChanged()
     true
   } else { // 触发断点逻辑
     downloadFactory(task)
@@ -304,10 +367,13 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
    * 暂停⏸️
    */
   suspend fun pauseDownload(task: DownloadTask) {
-    // 暂停并不会删除文件
-    task.status.state = DownloadState.Paused
-    task.pauseFlag = true
-    downloadStore.set(task.id, task) // 保存到文件
+    if (task.status.state == DownloadState.Downloading) {
+      task.status.state = DownloadState.Paused
+      task.emitChanged()
+      task.paused.tryLock()
+      // 暂停并不会删除文件
+      downloadStore.set(task.id, task) // 保存到文件
+    }
   }
 
   /**
@@ -319,10 +385,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       fileRemove(downloadTask.filepath)
     }
     // 修改状态
-    downloadTask.status.state = DownloadState.Canceled
-    downloadTask.status.current = 0L
-    downloadTask.readChannel?.cancel()
-    downloadTask.readChannel = null
+    downloadTask.cancel()
     true
   } ?: false
 
@@ -337,68 +400,25 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   /**
    * 执行下载任务 ,可能是断点下载
    */
-  suspend fun downloadFactory(task: DownloadTask): Boolean {
-    recoverDownload(task) // 恢复下载？ 根据下载情况，判断是否支持断点下载等。
-    // 如果内存中没有，或者对方不支持Range，需要重新下载,否则这个channel是从支持的断点开始
-    val stream = task.readChannel ?: return false
-    debugDownload("downloadFactory", task.id)
-    task.status.state = DownloadState.Downloading // 这边开始启动下载了，状态改为下载中
-    downloadNMM.ioAsyncScope.launch { // 正式下载需要另外起一个协程，不影响当前的返回值
-      fileAppend(task, middleware(task, stream))
-    }
-    return true
-  }
-
-  /**
-   * 下载 task 中间件
-   */
-  private fun middleware(downloadTask: DownloadTask, input: ByteReadChannel): ByteReadChannel {
-    val output = createByteChannel()
-    downloadTask.status.state = DownloadState.Downloading
-    val taskId = downloadTask.id
-    // 重要记录点 存储到硬盘
-    downloadTaskMaps.put(taskId, downloadTask)
-    downloadNMM.ioAsyncScope.launch {
-      debugDownload("middleware", "start id:$taskId current:${downloadTask.status.current}")
-      downloadTask.downloadSignal.emit(downloadTask)
-      try {
-        input.consumeEachArrayRange { byteArray, last ->
-          // 处理是否暂停
-          downloadTask.pauseWait()
-          if (output.isClosedForRead) {
-            breakLoop()
-            downloadTask.status.state = DownloadState.Canceled
-            downloadTask.status.current = 0L
-            // 触发取消 存储到硬盘
-            input.cancel()
-            downloadStore.set(downloadTask.id, downloadTask)
-            downloadTask.downloadSignal.emit(downloadTask)
-          } else if (last) {
-            output.close()
-            input.cancel()
-            downloadTask.status.state = DownloadState.Completed
-            // 触发完成 存储到硬盘
-            downloadStore.set(downloadTask.id, downloadTask)
-            downloadTask.downloadSignal.emit(downloadTask)
-          } else {
-            downloadTask.status.current += byteArray.size
-            // 触发进度更新
-            downloadTask.downloadSignal.emit(downloadTask)
-            output.writePacket(ByteReadPacket(byteArray))
-          }
-          // debugDownload("middleware", "progress id:$taskId current:${downloadTask.status.current}")
-        }
-        debugDownload("middleware", "end id:$taskId, ${downloadTask.status}")
-      } catch (e: Throwable) {
-        // 这里捕获的一般是 connection reset by peer 当前没有重试机制，用户再次点击即为重新下载
-        debugDownload("middleware", "${e.message}")
-        downloadTask.status.state = DownloadState.Failed
-        // 触发失败
-        downloadTask.downloadSignal.emit(downloadTask)
+  suspend fun downloadFactory(task: DownloadTask): Boolean =
+    when (task.status.state) {
+      DownloadState.Init, DownloadState.Failed, DownloadState.Canceled -> {
+        doDownload(task) // 执行下载
       }
+
+      DownloadState.Paused -> when (task.readChannel) {
+        /// 从磁盘中恢复下载
+        null -> doDownload(task)
+        else -> {
+          task.status.state = DownloadState.Downloading // 这边开始请求http了，属于开始下载
+          task.emitChanged()
+          true
+        }
+      }
+
+      DownloadState.Downloading, DownloadState.Completed -> true
     }
-    return output
-  }
+
 
   /**
    * 窗口是单例模式

@@ -28,11 +28,11 @@ internal val LocalJmmInstallerController =
  */
 class JmmInstallerController(
   private val jmmNMM: JmmNMM,
-  initJmmHistoryMetadata: JmmHistoryMetadata,
+  private val jmmHistoryMetadata: JmmHistoryMetadata,
   private val jmmController: JmmController,
   private val openFromHistory: Boolean,
 ) {
-  var installMetadata by ObservableMutableState(initJmmHistoryMetadata) {}
+  var installMetadata by ObservableMutableState(jmmHistoryMetadata) {}
     internal set
 
   private var viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
@@ -84,15 +84,16 @@ class JmmInstallerController(
   /**
    * 创建任务，如果存在则恢复
    */
-  suspend fun createAndStartDownload() = jmmController.createAndStartDownloadTask(installMetadata)
+  suspend fun createAndStartDownload(): Boolean {
+    jmmController.createDownloadTask(installMetadata)
+    return jmmController.startDownloadTask(installMetadata)
+  }
 
   suspend fun startDownload() = jmmController.startDownloadTask(installMetadata)
 
-  suspend fun pause() = jmmController.pause(installMetadata.taskId)
+  suspend fun pause() = jmmController.pause(installMetadata)
 
-  suspend fun cancel() = jmmController.cancel(installMetadata.taskId)
-
-  suspend fun exists() = jmmController.exists(installMetadata.taskId)
-
-  suspend fun closeSelf() { jmmNMM.getOrOpenMainWindow().closeRoot() }
+  suspend fun closeSelf() {
+    jmmNMM.getOrOpenMainWindow().closeRoot()
+  }
 }

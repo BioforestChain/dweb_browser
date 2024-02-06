@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,21 +33,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmStatusEvent
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jmm.LocalJmmInstallerController
+import org.dweb_browser.helper.compose.produceEvent
 import org.dweb_browser.helper.toSpaceSize
 
 @Composable
 internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
   val jmmInstallerController = LocalJmmInstallerController.current
-  val (jmmState, canSupportTarget) = with(jmmInstallerController.installMetadata) {
-    Pair(state, metadata.canSupportTarget(JsMicroModule.VERSION))
-  }
+  val jmmState = jmmInstallerController.installMetadata.state
+  val canSupportTarget =
+    jmmInstallerController.installMetadata.metadata.canSupportTarget(JsMicroModule.VERSION)
 
   Box(
     modifier = Modifier
@@ -84,34 +83,30 @@ internal fun BoxScope.BottomDownloadButton() {
       modifier.background(MaterialTheme.colorScheme.primary)
     }
 
-    val scope = rememberCoroutineScope()
-
     ElevatedButton(
-      onClick = {
-        scope.launch {
-          when (jmmState.state) {
-            JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled -> {
-              jmmInstallerController.createAndStartDownload()
-            }
+      onClick = produceEvent(jmmState) {
+        when (jmmState.state) {
+          JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled -> {
+            jmmInstallerController.createAndStartDownload()
+          }
 
-            JmmStatus.NewVersion -> {
-              jmmInstallerController.closeApp()
-              jmmInstallerController.createAndStartDownload()
-            }
+          JmmStatus.NewVersion -> {
+            jmmInstallerController.closeApp()
+            jmmInstallerController.createAndStartDownload()
+          }
 
-            JmmStatus.Paused -> {
-              jmmInstallerController.startDownload()
-            }
+          JmmStatus.Paused -> {
+            jmmInstallerController.startDownload()
+          }
 
-            JmmStatus.Downloading -> {
-              jmmInstallerController.pause()
-            }
+          JmmStatus.Downloading -> {
+            jmmInstallerController.pause()
+          }
 
-            JmmStatus.Completed -> {}
-            JmmStatus.VersionLow -> {} // 版本偏低时，不响应按键
-            JmmStatus.INSTALLED -> {
-              jmmInstallerController.openApp()
-            }
+          JmmStatus.Completed -> {}
+          JmmStatus.VersionLow -> {} // 版本偏低时，不响应按键
+          JmmStatus.INSTALLED -> {
+            jmmInstallerController.openApp()
           }
         }
       },

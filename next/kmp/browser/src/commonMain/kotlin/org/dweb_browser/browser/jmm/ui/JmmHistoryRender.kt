@@ -48,7 +48,6 @@ import org.dweb_browser.browser.jmm.JmmHistoryController
 import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmTabs
-import org.dweb_browser.browser.jmm.debugJMM
 import org.dweb_browser.helper.compose.LazySwipeColumn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.formatDatestampByMilliseconds

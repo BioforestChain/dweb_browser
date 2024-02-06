@@ -88,10 +88,10 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         debugDownload("/watch/progress", "taskId=$taskId")
         // 给别人的需要给picker地址
         val pickFilepath = pickFile(downloadTask.filepath)
-        downloadTask.onDownload {
+        downloadTask.onChange {
           ctx.sendJsonLine(it.copy(filepath = pickFilepath))
         }.removeWhen(onClose)
-        downloadTask.downloadSignal.emit(downloadTask)
+        downloadTask.emitChanged()
       },
       // 暂停下载
       "/pause" bind PureMethod.GET by defineBooleanResponse {

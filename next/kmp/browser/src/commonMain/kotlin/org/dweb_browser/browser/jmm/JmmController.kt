@@ -11,7 +11,6 @@ import kotlinx.serialization.json.buildJsonObject
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
-import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.download.ext.cancelDownload
 import org.dweb_browser.browser.download.ext.createChannelOfDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
@@ -32,14 +31,12 @@ import org.dweb_browser.helper.LateInit
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.datetimeNow
-import org.dweb_browser.helper.debounce
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.valueIn
 import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 
@@ -147,8 +144,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
           val session = getAppSessionInfo(installManifest.id, metadata.metadata.version)
           debugJMM("openInstallerView", "replace session=$session")
           if (metadata.state.state.valueIn(
-              JmmStatus.Downloading,
-              JmmStatus.Paused
+              JmmStatus.Downloading, JmmStatus.Paused
             )
           ) { // 如果列表的应用是下载中的，那么需要移除掉
             metadata.taskId?.let { taskId -> jmmNMM.cancelDownload(taskId) }
@@ -189,7 +185,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       .sortedByDescending { it.installTime }.toMutableList()
     list.forEachIndexed { index, jmmHistoryMetadata ->
       if (index == 0) {
-        jmmHistoryMetadata.updateState(JmmStatus.Init, jmmStore)
+        jmmHistoryMetadata.initState(jmmStore)
       } else {
         historyMetadataMaps.remove(jmmHistoryMetadata.originUrl)
       }
@@ -202,37 +198,27 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
   private suspend fun watchProcess(metadata: JmmHistoryMetadata) {
     val taskId = metadata.taskId ?: return
     jmmNMM.ioAsyncScope.launch {
-      val res = jmmNMM.createChannelOfDownload(taskId) { pureFrame, close ->
-        when (pureFrame) {
-          is PureTextFrame -> {
-            Json.decodeFromString<DownloadTask>(pureFrame.data).also { downloadTask ->
-              when (downloadTask.status.state) {
-                DownloadState.Completed -> {
-                  metadata.updateByDownloadTask(downloadTask, jmmStore)
-                  if (decompress(downloadTask, metadata)) {
-                    jmmNMM.bootstrapContext.dns.uninstall(metadata.metadata.id)
-                    jmmNMM.bootstrapContext.dns.install(JsMicroModule(metadata.metadata))
-                    metadata.installComplete(jmmStore)
-                  } else {
-                    showToastText(BrowserI18nResource.toast_message_download_unzip_fail.text)
-                    metadata.installFail(jmmStore)
-                  }
-                  // 关闭watchProcess
-                  close()
-                  metadata.pauseFlag = false
-                  // 删除缓存的zip文件
-                  remove(downloadTask.filepath)
-                  // 更新完需要删除旧的app版本，这里如果有保存用户数据需要一起移动过去，但是现在这里是单纯的删除
-                  if (oldVersion != null) {
-                    remove("/data/apps/${metadata.metadata.id}-${oldVersion}")
-                    oldVersion = null
-                  }
-                }
-
-                else -> {
-                  metadata.updateByDownloadTask(downloadTask, jmmStore)
-                }
-              }
+      val res = jmmNMM.createChannelOfDownload(taskId) {
+        metadata.updateByDownloadTask(downloadTask, jmmStore)
+        when (downloadTask.status.state) {
+          DownloadState.Completed -> {
+            if (decompress(downloadTask, metadata)) {
+              jmmNMM.bootstrapContext.dns.uninstall(metadata.metadata.id)
+              jmmNMM.bootstrapContext.dns.install(JsMicroModule(metadata.metadata))
+              metadata.installComplete(jmmStore)
+            } else {
+              showToastText(BrowserI18nResource.toast_message_download_unzip_fail.text)
+              metadata.installFail(jmmStore)
+            }
+            // 关闭watchProcess
+            channel.close()
+            metadata.pauseFlag = false
+            // 删除缓存的zip文件
+            remove(downloadTask.filepath)
+            // 更新完需要删除旧的app版本，这里如果有保存用户数据需要一起移动过去，但是现在这里是单纯的删除
+            if (oldVersion != null) {
+              remove("/data/apps/${metadata.metadata.id}-${oldVersion}")
+              oldVersion = null
             }
           }
 
@@ -246,46 +232,37 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
   /**
    * 创建任务并下载，可以判断 taskId 在 download 中是否存在，如果不存在就创建，存在直接下载
    */
-  suspend fun createAndStartDownloadTask(metadata: JmmHistoryMetadata) = debounce(
-    scope = ioAsyncScope,
-    action = {
-      val exists = metadata.taskId?.let { jmmNMM.existsDownload(it) } ?: false
-      debugJMM("JmmController", "createAndStartDownloadTask exists=$exists => $metadata")
-      if (!exists) {
-        val taskId = with(metadata.metadata) {
-          jmmNMM.createDownloadTask(url = bundle_url, total = bundle_size)
-        }
-        metadata.taskId = taskId
-        jmmStore.saveHistoryMetadata(metadata.originUrl, metadata)
+  suspend fun createDownloadTask(metadata: JmmHistoryMetadata) {
+    val exists = metadata.taskId?.let { jmmNMM.existsDownload(it) } ?: false
+    debugJMM("JmmController", "createAndStartDownloadTask exists=$exists => $metadata")
+    if (!exists) {
+      val taskId = with(metadata.metadata) {
+        jmmNMM.createDownloadTask(url = bundle_url, total = bundle_size)
       }
-      if (metadata.state.state == JmmStatus.Downloading) {
-        showToastText(BrowserI18nResource.toast_message_download_downloading.text)
-      } else {
-        startDownloadTask(metadata)
-      }
+      metadata.taskId = taskId
+      watchProcess(metadata)
+      jmmStore.saveHistoryMetadata(metadata.originUrl, metadata)
     }
-  )
+    if (metadata.state.state == JmmStatus.Downloading) {
+      showToastText(BrowserI18nResource.toast_message_download_downloading.text)
+    }
+  }
 
   suspend fun startDownloadTask(metadata: JmmHistoryMetadata) = metadata.taskId?.let { taskId ->
     if (jmmNMM.startDownload(taskId)) {
-      metadata.updateState(JmmStatus.Downloading, jmmStore)
       if (!metadata.pauseFlag) {
         metadata.pauseFlag = true
-        watchProcess(metadata)
       }
       true
     } else {
       showToastText(BrowserI18nResource.toast_message_download_download_fail.text)
-      metadata.updateState(JmmStatus.Failed, jmmStore)
       false
     }
   } ?: false
 
-  suspend fun pause(taskId: TaskId?) = taskId?.let { jmmNMM.pauseDownload(taskId) } ?: false
-
-  suspend fun cancel(taskId: TaskId?) = taskId?.let { jmmNMM.cancelDownload(taskId) } ?: false
-
-  suspend fun exists(taskId: TaskId?) = taskId?.let { jmmNMM.existsDownload(taskId) } ?: false
+  suspend fun pause(metadata: JmmHistoryMetadata) = metadata.taskId?.let { taskId ->
+    jmmNMM.pauseDownload(taskId)
+  } ?: false
 
   private suspend fun decompress(
     task: DownloadTask,

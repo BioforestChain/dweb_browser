@@ -101,7 +101,7 @@ fun DownloadItem(downloadTask: DownloadTask, onClick: (DownloadTask) -> Unit) {
 
   LaunchedEffect(downloadTask) { // 监听状态，更新显示
     if (downloadTask.status.state != DownloadState.Completed) {
-      downloadTask.onDownload {
+      downloadTask.onChange {
         taskState = it.status.state
         taskCurrent = it.status.current
       }

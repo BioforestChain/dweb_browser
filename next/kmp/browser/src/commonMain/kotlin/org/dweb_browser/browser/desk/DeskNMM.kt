@@ -85,15 +85,16 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   private suspend fun listenApps() = ioAsyncScope.launch {
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
-      val response = createChannel(urlPath) { frame, close ->
-        when (frame) {
-          is PureTextFrame -> {
-            Json.decodeFromString<ChangeState<MMID>>(frame.data).also {
-              it.cb()
+      val response = createChannel(urlPath) {
+        for (frame in income){
+          when (frame) {
+            is PureTextFrame -> {
+              Json.decodeFromString<ChangeState<MMID>>(frame.data).also {
+                it.cb()
+              }
             }
+            else -> {}
           }
-
-          else -> {}
         }
       }
       debugDesk("doObserve error", response.status)

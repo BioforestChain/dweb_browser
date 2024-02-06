@@ -147,15 +147,17 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
   }
 
   private suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
-    val response = createChannel(urlPath) { frame, _ ->
-      when (frame) {
-        is PureTextFrame -> {
-          Json.decodeFromString<ChangeState<MMID>>(frame.data).also {
-            it.cb()
+    val response = createChannel(urlPath) {
+      for (frame in income){
+        when (frame) {
+          is PureTextFrame -> {
+            Json.decodeFromString<ChangeState<MMID>>(frame.data).also {
+              it.cb()
+            }
           }
-        }
 
-        else -> {}
+          else -> {}
+        }
       }
     }
     debugShortcut("doObserve error", response.status)

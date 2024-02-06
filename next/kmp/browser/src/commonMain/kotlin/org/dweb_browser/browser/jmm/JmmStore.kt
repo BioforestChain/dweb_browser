@@ -108,8 +108,8 @@ data class JmmHistoryMetadata(
     }
   }
 
-  suspend fun updateState(jmmStatus: JmmStatus, store: JmmStore) {
-    state = state.copy(state = jmmStatus)
+  suspend fun initState(store: JmmStore) {
+    state = state.copy(state = JmmStatus.Init)
     store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
   }
 
