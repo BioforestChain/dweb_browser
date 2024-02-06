@@ -16,8 +16,8 @@ struct ToolbarView: View {
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
-    @EnvironmentObject var dragScale: WndDragScale
-    
+    @Environment(WndDragScale.self) var dragScale
+
     @ObservedObject var webMonitor: WebMonitor
 
     @State private var loadingDone: Bool = false

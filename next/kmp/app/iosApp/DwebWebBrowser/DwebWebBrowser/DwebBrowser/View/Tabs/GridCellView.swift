@@ -34,7 +34,7 @@ struct GridCell: View {
     var webCache: WebCache
     var isSelected: Bool
     @EnvironmentObject var deleteCache: DeleteCache
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
 
     var body: some View {
         ZStack(alignment: .topTrailing) {

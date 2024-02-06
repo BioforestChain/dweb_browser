@@ -15,7 +15,7 @@ struct PagingScrollView: View {
     @EnvironmentObject var toolBarState: ToolBarState
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var animation: ShiftAnimation
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
 
     @Binding var showTabPage: Bool
     @State private var addressbarOffset: CGFloat = 0
@@ -64,6 +64,7 @@ struct PagingScrollView: View {
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             }
+            
         }
     }
 

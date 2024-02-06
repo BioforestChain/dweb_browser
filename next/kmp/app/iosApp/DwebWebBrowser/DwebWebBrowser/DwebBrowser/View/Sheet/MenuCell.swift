@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct MenuCell: View {
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
 
     var title: String = ""
     var imageName: String = ""

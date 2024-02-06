@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SearchTypingView: View {
     @EnvironmentObject var addressBar: AddressBarState
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
 
     var body: some View {
         VStack(spacing: 0) {

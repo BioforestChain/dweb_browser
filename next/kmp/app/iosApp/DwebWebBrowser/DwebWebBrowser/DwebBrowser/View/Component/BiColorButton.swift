@@ -10,7 +10,7 @@ import SwiftUI
 struct BiColorButton: View {
     let imageName: String
     let action: () -> Void
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
 
     var body: some View {
         Button(action: action) {

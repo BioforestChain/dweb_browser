@@ -15,7 +15,7 @@ struct TabPageView: View {
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
 
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
     @Environment(\.colorScheme) var colorScheme
 
     var webCache: WebCache
@@ -87,7 +87,7 @@ struct TabPageView: View {
             } else {
                 BlankTabView()
                     .opacity(addressBar.isFocused ? 0 : 1)
-                    .environmentObject(dragScale)
+                    .environment(dragScale)
             }
         }
         .onChange(of: webCache.lastVisitedUrl, initial: true) { _, _ in
@@ -97,7 +97,7 @@ struct TabPageView: View {
 
     var webComponent: some View {
         TabWebView(webView: webWrapper.webView)
-            .environmentObject(dragScale)
+            .environment(dragScale)
             .id(webWrapper.id)
             .onAppear {
                 if webWrapper.estimatedProgress < 0.001 {

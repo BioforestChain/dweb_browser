@@ -7,7 +7,7 @@
 
 import SwiftUI
 struct BlankTabView: View {
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
 
     var body: some View {
         GeometryReader { geo in

@@ -10,7 +10,7 @@ import SwiftUI
 struct SearchResultView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var openingLink: OpeningLink
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
 
     @State private var tapHasBeenHandled = false
     var body: some View {

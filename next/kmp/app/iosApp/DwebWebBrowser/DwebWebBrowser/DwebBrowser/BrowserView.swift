@@ -6,38 +6,41 @@
 //
 
 import SwiftUI
-import UIKit
+
 import Combine
 
 struct BrowserView: View {
-    @ObservedObject private var states = BrowserViewStates.shared
-    @State private var selectedTab = SelectedTab()
+    @ObservedObject var states = BrowserViewStates.shared
+    @State var selectedTab = SelectedTab()
+    @State var webcacheStore = WebCacheStore()
+    @State var dragScale = WndDragScale()
     @State private var presentSheet = false
+
     var body: some View {
         ZStack {
             GeometryReader { geometry in
                 ZStack {
                     VStack(spacing: 0) {
                         TabsContainerView()
-                        ToolbarView(webMonitor: states.webcacheStore.webWrappers[selectedTab.index].webMonitor)
+                        ToolbarView(webMonitor: webcacheStore.webWrappers[selectedTab.index].webMonitor)
                     }
                     .background(.bk)
-                    .environment(states.webcacheStore)
+                    .environment(webcacheStore)
+                    .environment(dragScale)
                     .environmentObject(states.openingLink)
                     .environmentObject(states.addressBar)
                     .environmentObject(states.toolBarState)
-                    .environmentObject(states.dragScale)
                     .environment(selectedTab)
                 }
                 .resizableSheet(isPresented: $presentSheet) {
-                    SheetSegmentView(webCache: states.webcacheStore.cache(at: selectedTab.index))
+                    SheetSegmentView(webCache: webcacheStore.cache(at: selectedTab.index))
                         .environment(selectedTab)
+                        .environment(dragScale)
                         .environmentObject(states.openingLink)
-                        .environmentObject(states.dragScale)
                         .environmentObject(states.toolBarState)
                 }
                 .onChange(of: geometry.size, initial: true) { _, newSize in
-                    states.dragScale.onWidth = (newSize.width - 6.0) / screen_width
+                    dragScale.onWidth = (newSize.width - 6.0) / screen_width
                 }
 
                 .onReceive(states.toolBarState.$showMoreMenu) { showMenu in
@@ -76,12 +79,21 @@ struct BrowserView: View {
     func updateColorScheme(color: Int){
         states.updateColorScheme(newScheme: color)
     }
-    func gobackIfCanDo() -> Bool{
-        states.doBackIfCan(selected: selectedTab.index)
+    
+    func gobackIfCanDo() -> Bool {
+        var webCanGoBack = false
+        if webcacheStore.cache(at: selectedTab.index).isWebVisible,
+           webcacheStore.webWrappers[selectedTab.index].webView.canGoBack{
+            webCanGoBack = true
+            webcacheStore.webWrappers[selectedTab.index].webView.goBack()
+        }
+        return states.doBackIfCan(isWebCanGoBack: webCanGoBack)
     }
     
     func resetStates(){
         states.clear()
         selectedTab.index = 0
+        webcacheStore.resetWrappers()
+        dragScale = WndDragScale()
     }
 }

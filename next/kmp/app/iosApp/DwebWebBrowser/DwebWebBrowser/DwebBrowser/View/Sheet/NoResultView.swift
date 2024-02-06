@@ -16,7 +16,7 @@ enum EmptyType {
 
 struct NoResultView: View {
     var empty: EmptyType
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
     var body: some View {
         
         ZStack {

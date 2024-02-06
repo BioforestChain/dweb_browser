@@ -31,8 +31,9 @@ class WebMonitor: ObservableObject {
     @Published var isLoadingDone: Bool = false
 }
 
-class WndDragScale: ObservableObject {
-    @Published var onWidth: CGFloat = 1 {
+@Observable
+class WndDragScale {
+    var onWidth: CGFloat = 1 {
         didSet {
             if onWidth < 0 {
                 onWidth = 0

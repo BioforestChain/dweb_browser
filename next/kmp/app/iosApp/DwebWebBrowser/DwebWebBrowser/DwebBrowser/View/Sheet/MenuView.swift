@@ -7,7 +7,7 @@
 
 import SwiftUI
 struct MenuView: View {
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
     @State private var viewmodel = MenuViewModel()
     
     let webCache: WebCache

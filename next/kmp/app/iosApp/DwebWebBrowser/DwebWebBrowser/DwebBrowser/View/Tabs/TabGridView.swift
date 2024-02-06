@@ -112,9 +112,9 @@ struct TabGridView: View {
                     }
                     selectedCellFrame = cellFrame(at: seletecdTab.index)
 
-                    
-                    let webview = webcacheStore.webWrapper(at: deleteIndex).webView
-                    browserViewDataSource.destroyWebView(web: webview)
+                    if let wrapper = webcacheStore.webWrapper(of: operateId) {
+                        browserViewDataSource.destroyWebView(web: wrapper.webView)
+                    }
 
                     if webcacheStore.cacheCount == 1 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {

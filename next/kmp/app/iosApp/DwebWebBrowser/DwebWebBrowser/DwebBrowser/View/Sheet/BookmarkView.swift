@@ -9,7 +9,7 @@ import SwiftData
 import SwiftUI
 
 struct BookmarkView: View {
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var toolBarState: ToolBarState
 

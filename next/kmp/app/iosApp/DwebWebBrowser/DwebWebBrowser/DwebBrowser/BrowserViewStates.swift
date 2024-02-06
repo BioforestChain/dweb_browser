@@ -14,8 +14,6 @@ class BrowserViewStates: ObservableObject {
     @Published var addressBar = AddressBarState()
     @Published var openingLink = OpeningLink()
     @Published var toolBarState = ToolBarState()
-    @Published var webcacheStore = WebCacheStore()
-    @Published var dragScale = WndDragScale()
     @Published var searchKey: String? = nil
     @Published var colorSchemeManager = ColorSchemeManager()
     
@@ -23,38 +21,38 @@ class BrowserViewStates: ObservableObject {
         addressBar = AddressBarState()
         openingLink = OpeningLink()
         toolBarState = ToolBarState()
-        webcacheStore = WebCacheStore()
-        dragScale = WndDragScale()
         searchKey = nil
     }
 }
 
 // 这个地方暴露BrowserView的行为给外部使用
 extension BrowserViewStates {
-    func doBackIfCan(selected index: Int) -> Bool {
+    func doBackIfCan(isWebCanGoBack: Bool) -> Bool {
         if addressBar.isFocused {
             addressBar.inputText = ""
             addressBar.isFocused = false
             return true
-        } else if toolBarState.showMoreMenu {
+        }
+        
+        if toolBarState.showMoreMenu {
             toolBarState.showMoreMenu = false
             return true
-        } else if !toolBarState.shouldExpand {
+        }
+        
+        if !toolBarState.shouldExpand {
             toolBarState.shouldExpand = true
             return true
-        } else if toolBarState.isPresentingScanner {
+        }
+        
+        if toolBarState.isPresentingScanner {
             toolBarState.isPresentingScanner = false
             return true
-        } else {
-            guard webcacheStore.caches.count > 0 else { return false }
-            let isWebVisible = webcacheStore.cache(at: index).isWebVisible
-            guard isWebVisible else { return false }
-            let webwrapper = webcacheStore.webWrappers[index]
-            if webwrapper.webView.canGoBack {
-                webwrapper.webView.goBack()
-                return true
-            }
         }
+        
+        if isWebCanGoBack {
+            return true
+        }
+
         return false
     }
     

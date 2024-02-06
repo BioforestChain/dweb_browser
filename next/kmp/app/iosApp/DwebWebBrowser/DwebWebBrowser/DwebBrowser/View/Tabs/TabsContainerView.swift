@@ -14,7 +14,7 @@ struct TabsContainerView: View {
 
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var addressBar: AddressBarState
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
 
     @StateObject var gridState = TabGridState()
     @StateObject var animation = ShiftAnimation()

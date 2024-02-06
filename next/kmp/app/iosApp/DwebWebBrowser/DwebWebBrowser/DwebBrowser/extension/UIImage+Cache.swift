@@ -33,7 +33,7 @@ extension UIImage {
     // 删除缓存的图片
     static func removeImage(with fileUrl: URL) {
         let deleteFileUrls = relatedImageUrls(with: fileUrl.path)
-        let _ = deleteFileUrls.map { deleteImage(with: $0) }
+        deleteFileUrls.forEach { deleteImage(with: $0) }
     }
     
     private static func deleteImage(with imageUrl: URL){
@@ -50,7 +50,7 @@ extension UIImage {
     private static func relatedImageUrls(with filePath: String) -> [URL] {
         let suffixs = ["light_snapshot", "webtag_snapshot", "dark_snapshot"]
         guard let suffix = suffixs.filter({ filePath.contains($0) }).first else { return [] }
-        var imagePath = filePath.replacingOccurrences(of: suffix, with: "")
+        let imagePath = filePath.replacingOccurrences(of: suffix, with: "")
         var urls: [URL] = []
         
         if let range = imagePath.range(of: ".jpg") {

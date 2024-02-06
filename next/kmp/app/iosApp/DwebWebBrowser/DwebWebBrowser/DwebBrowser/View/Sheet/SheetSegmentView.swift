@@ -16,7 +16,7 @@ enum SheetCategory: String {
 struct SheetSegmentView: View {
     let webCache: WebCache
     
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
     @State private var selectedCategory = SheetCategory.bookmark
     
     var categoryList: [SheetCategory] {

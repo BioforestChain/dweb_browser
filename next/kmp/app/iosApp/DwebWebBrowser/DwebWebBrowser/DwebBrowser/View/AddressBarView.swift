@@ -11,7 +11,7 @@ import SwiftUI
 struct AddressBar: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var openingLink: OpeningLink
-    @EnvironmentObject var dragScale: WndDragScale
+    @Environment(WndDragScale.self) var dragScale
     var webCache: WebCache
     @ObservedObject var webMonitor: WebMonitor
     let tabIndex: Int
