@@ -4,7 +4,12 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.pure.http.PureMethod
+
+
+val debugToast = Debugger("toast")
+
 
 class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 
@@ -23,6 +28,7 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
           EToast.Long.type -> DurationType.LONG
           else -> DurationType.SHORT
         }
+        debugToast("/show","message=$message,duration=${duration},position=${position}")
         val positionType = when (position) {
           PositionType.BOTTOM.position -> PositionType.BOTTOM
           PositionType.CENTER.position -> PositionType.CENTER

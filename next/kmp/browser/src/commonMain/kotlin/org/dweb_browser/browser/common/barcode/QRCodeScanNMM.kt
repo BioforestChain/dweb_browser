@@ -21,10 +21,10 @@ class QRCodeScanNMM : NativeMicroModule("qrcode-scan.browser.dweb", "QRCode-Scan
         title = "申请相机权限",
       )
     )
-    QRCodeScanController.controller.init(this@QRCodeScanNMM)
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    QRCodeScanController.controller.init(this@QRCodeScanNMM)
     routes(
       "/scan" bind PureMethod.GET by defineEmptyResponse {
 

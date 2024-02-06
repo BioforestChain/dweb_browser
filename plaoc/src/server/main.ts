@@ -66,7 +66,7 @@ const main = async () => {
     setWinId(ipcEvent.text);
     tryOpenView();
   });
-  jsProcess?.onRendererDestroy(async (ipcEvent) => {
+  jsProcess?.onRendererDestroy?.(async (ipcEvent) => {
     console.log(`${jsProcess.mmid} onRendererDestroy`, ipcEvent.text);
     delWinId(ipcEvent.text);
   });
@@ -85,7 +85,7 @@ const main = async () => {
   const apiServer = new Server_api(getWinId, await MiddlewareImporter.init(plaocConfig.config.middlewares?.api));
 
   // quick action event
-  jsProcess?.onShortcut(async (ipcEvent) => {
+  jsProcess?.onShortcut?.(async (ipcEvent) => {
     console.log(`${jsProcess.mmid} onShortcut`, ipcEvent.text);
     const ipc = await externalServer.ipcPo.waitOpen();
     ipc.postMessage(ipcEvent);
@@ -115,4 +115,10 @@ const main = async () => {
   //#endregion
 };
 
-main();
+try {
+  await main();
+} catch (e) {
+  // todo 这里应该发送IpcError消息,这里是临时方案
+  jsProcess.close(e)
+  console.error("后端错误：", e);
+}

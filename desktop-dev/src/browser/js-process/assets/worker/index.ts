@@ -404,6 +404,15 @@ export class JsProcessMicroModule implements $MicroModule {
   onConnect(cb: $Callback<[Ipc]>) {
     return this._connectSignal.listen(cb);
   }
+  // 提供一个关闭通信的功能
+  close(reson?: any) {
+    this._ipcConnectsMap.forEach(async (ipc) => {
+      ipc.promise.then((res) => {
+        res.postMessage(IpcEvent.fromText("close", reson));
+        res.close();
+      });
+    });
+  }
 }
 
 /// 消息通道构造器

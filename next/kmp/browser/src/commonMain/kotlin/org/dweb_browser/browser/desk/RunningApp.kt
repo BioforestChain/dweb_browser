@@ -1,5 +1,9 @@
 package org.dweb_browser.browser.desk
 
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.ipc.Ipc
@@ -67,7 +71,21 @@ class RunningApp(
     }
 
     /// 等待握手完成后，通知模块，提供渲染
-    ipc.afterReady()
+    // TODO 这里可能会失败,并且卡在这里，这里应该是ipc.onError 去提醒用户,因此急迫需要一个全局能反馈信息的地方
+    try {
+      val job = CoroutineScope(CoroutineName("await-error")).launch {
+        delay(3000)
+        newWin.closeRoot(true)
+        windowAdapterManager.renderProviders.remove(newWin.id)
+        windows.remove(newWin)
+        ipc.stopReady()
+      }
+      ipc.afterReady()
+      job.cancel()
+    } catch (e: Exception) {
+      throw Exception("app代码异常，无法连接,请反馈后重新下载")
+    }
+
     ipc.postMessage(IpcEvent.createRenderer(newWin.id))
     return newWin
   }

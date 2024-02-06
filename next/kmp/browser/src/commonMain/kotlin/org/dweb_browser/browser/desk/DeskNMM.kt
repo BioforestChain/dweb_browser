@@ -42,7 +42,7 @@ val debugDesk = Debugger("desk")
 
 class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   init {
-    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop)
     dweb_protocols = listOf("window.sys.dweb")
   }
 
