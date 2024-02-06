@@ -63,7 +63,6 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     private val pickerPathToRealPathMap = mutableMapOf<String, Path>()
   }
 
-
   /**
    * 虚拟的路径映射
    */
@@ -106,10 +105,10 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     request.query(pathKey)
   )
 
-  fun IHandlerContext.getPath(pathKey: String = "path"): Path {
+  private fun IHandlerContext.getPath(pathKey: String = "path"): Path {
     val virtualPath = request.query(pathKey)
     if (virtualPath.startsWith("/picker")) {
-      return pickerPathToRealPathMap[virtualPath] ?: throwException(HttpStatusCode.Found)
+      return pickerPathToRealPathMap[virtualPath] ?: throwException(HttpStatusCode.NotFound)
     }
     return getVfsPath(pathKey).fsFullPath
   }
@@ -139,6 +138,10 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     }
     getCacheVirtualFsDirectory().also {
       debugFile("DIR/CACHE", it.getFsBasePath(this))
+      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
+    }
+    getExternalDownloadVirtualFsDirectory().also {
+      debugFile("DIR/Ext Download", it.getFsBasePath(this))
       fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
     }
     /// nativeFetch 适配 file:///*/** 的请求
@@ -293,7 +296,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       "/exist" bind PureMethod.GET by defineBooleanResponse {
         try {
           SystemFileSystem.exists(getPath())
-        } catch (e: ResponseException) {
+        } catch (e: Exception) {
           return@defineBooleanResponse false
         }
       },
@@ -321,13 +324,22 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           // 需要保证文件夹为空
           SystemFileSystem.deleteRecursively(targetPath, false)
         }
+        // atomicMove 如果是不同的文件系统时，移动会失败，如 data 目录移动到 外部download目录，所以需要使用copy后自行删除源文件
         SystemFileSystem.atomicMove(sourcePath, targetPath)
         true
       },
-      "/copy" bind PureMethod.POST by defineBooleanResponse {
-        SystemFileSystem.copy(
-          getPath("sourcePath"), getPath("targetPath")
-        )
+      "/copy" bind PureMethod.GET by defineBooleanResponse {
+        // 由于 copy 需要保证目标Path的父级节点存在，所以增加判断构建操作
+        val sourcePath = getPath("sourcePath")
+        val targetPath = getPath("targetPath")
+        debugFile("copy", "$sourcePath => $targetPath")
+        SystemFileSystem.deleteRecursively(targetPath, false) // 先删除，避免拷贝到失败
+        targetPath.parent?.let { parentPath ->
+          if (!SystemFileSystem.exists(parentPath)) {
+            SystemFileSystem.createDirectories(parentPath, true)
+          }
+        }
+        SystemFileSystem.copy(sourcePath, targetPath)
         true
       },
       "/watch" byChannel {

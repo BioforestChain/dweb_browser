@@ -14,6 +14,7 @@ interface IPureViewController {
   val lifecycleScope: CoroutineScope
 
   val onCreate: Signal.Listener<IPureViewCreateParams>
+  val onStart: Signal.Listener<Unit>
   val onResume: Signal.Listener<Unit>
   val onPause: Signal.Listener<Unit>
   val onStop: Signal.Listener<Unit>

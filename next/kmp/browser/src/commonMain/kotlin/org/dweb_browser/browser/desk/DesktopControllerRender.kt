@@ -11,10 +11,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import org.dweb_browser.browser.desk.version.NewVersionView
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.compose.LocalCompositionChain
@@ -67,5 +67,7 @@ fun DesktopController.Render(
       }
       break
     }
+    //// 新版本
+    newVersionController.NewVersionView()
   }
 }

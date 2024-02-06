@@ -15,6 +15,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
+import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
@@ -64,9 +65,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
           val root = usrRootMap.getOrPut(fromMM.mmid) {
             fromMM.ioAsyncScope.async {
               this@JmmNMM.withBootstrap {
-                this@JmmNMM.nativeFetch(
-                  "file://file.std.dweb/realPath?path=/data/apps/${fromMM.mmid}-${fromMM.version}"
-                ).text()
+                this@JmmNMM.realFile("/data/apps/${fromMM.mmid}-${fromMM.version}")
               }
             }
           }.await()

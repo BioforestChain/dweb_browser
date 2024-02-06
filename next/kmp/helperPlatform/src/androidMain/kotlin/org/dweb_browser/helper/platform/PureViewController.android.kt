@@ -25,6 +25,8 @@ open class PureViewController : BaseActivity(), IPureViewController {
   override val onDestroy = destroySignal.toListener()
   private val stopSignal = SimpleSignal()
   override val onStop = stopSignal.toListener()
+  private val startSignal = SimpleSignal()
+  override val onStart = startSignal.toListener()
   private val resumeSignal = SimpleSignal()
   override val onResume = resumeSignal.toListener()
   private val pauseSignal = SimpleSignal()
@@ -50,31 +52,28 @@ open class PureViewController : BaseActivity(), IPureViewController {
     }
   }
 
+  final override fun onStart() {
+    super.onStart()
+    lifecycleScope.launch { startSignal.emit() }
+  }
+
   final override fun onResume() {
     super.onResume()
-    lifecycleScope.launch {
-      resumeSignal.emit()
-    }
+    lifecycleScope.launch { resumeSignal.emit() }
   }
 
   final override fun onPause() {
     super.onPause()
-    lifecycleScope.launch {
-      pauseSignal.emit()
-    }
+    lifecycleScope.launch { pauseSignal.emit() }
   }
 
   final override fun onStop() {
-    lifecycleScope.launch {
-      stopSignal.emit()
-    }
+    lifecycleScope.launch { stopSignal.emit() }
     super.onStop()
   }
 
   final override fun onDestroy() {
-    lifecycleScope.launch {
-      destroySignal.emit()
-    }
+    lifecycleScope.launch { destroySignal.emit() }
     super.onDestroy()
   }
 

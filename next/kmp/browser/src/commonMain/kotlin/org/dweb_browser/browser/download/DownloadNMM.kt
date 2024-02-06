@@ -8,13 +8,14 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.pickFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.valueNotIn
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
+import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
@@ -63,7 +64,8 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       "/create" bind PureMethod.GET by defineStringResponse {
         val mmid = ipc.remote.mmid
         val params = request.queryAs<DownloadTaskParams>()
-        val downloadTask = controller.createTaskFactory(params, mmid)
+        val externalDownload = request.queryAsOrNull<Boolean>("external") ?: false
+        val downloadTask = controller.createTaskFactory(params, mmid, externalDownload)
         debugDownload("/create", "mmid=$mmid, taskId=$downloadTask, params=$params")
         if (params.start) {
           controller.downloadFactory(downloadTask)
@@ -85,8 +87,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
           ?: return@byChannel close(Throwable("not Found download task!"))
         debugDownload("/watch/progress", "taskId=$taskId")
         // 给别人的需要给picker地址
-        val pickFilepath =
-          nativeFetch("file://file.std.dweb/picker?path=${downloadTask.filepath}").text()
+        val pickFilepath = pickFile(downloadTask.filepath)
         downloadTask.onDownload {
           ctx.sendJsonLine(it.copy(filepath = pickFilepath))
         }.removeWhen(onClose)

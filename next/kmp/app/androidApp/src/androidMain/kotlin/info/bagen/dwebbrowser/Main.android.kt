@@ -1,9 +1,6 @@
 package info.bagen.dwebbrowser
 
 import android.webkit.WebView
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.websocket.WebSockets
 import org.dweb_browser.browser.common.barcode.QRCodeScanNMM
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM

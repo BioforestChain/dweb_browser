@@ -59,6 +59,13 @@ class PureHeaders() {
     return headersMap[key.asKey()]
   }
 
+  // add by jackie at 240205
+  fun getByIgnoreCase(key: String): String? {
+    return headersMap.filterKeys { mapKey ->
+      mapKey.equals(key, true)
+    }.values.firstOrNull()
+  }
+
   fun getOrDefault(key: String, default: String) = headersMap[key.asKey()] ?: default
 
   fun has(key: String): Boolean {

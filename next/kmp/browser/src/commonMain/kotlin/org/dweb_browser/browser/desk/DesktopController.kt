@@ -22,6 +22,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
+import org.dweb_browser.browser.desk.version.NewVersionController
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
@@ -44,6 +45,7 @@ open class DesktopController private constructor(
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
 ) {
+  val newVersionController = NewVersionController(deskNMM, this)
   var activity: IPureViewController? = null
     set(value) {
       if (field == value) {

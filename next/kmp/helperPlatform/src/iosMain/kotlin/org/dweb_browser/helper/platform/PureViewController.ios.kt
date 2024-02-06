@@ -68,12 +68,13 @@ class PureViewController(
   suspend fun waitInit() = initDeferred.await()
 
   private val createSignal = Signal<IPureViewCreateParams>()
-
   override val onCreate = createSignal.toListener()
 
   private val stopSignal = SimpleSignal()
-
   override val onStop = stopSignal.toListener()
+
+  private val startSignal = SimpleSignal() // TODO 没有调用实现
+  override val onStart = startSignal.toListener()
 
   private val resumeSignal = SimpleSignal()
   override val onResume = resumeSignal.toListener()
@@ -82,7 +83,6 @@ class PureViewController(
   override val onPause = pauseSignal.toListener()
 
   private val destroySignal = SimpleSignal()
-
   override val onDestroy = destroySignal.toListener()
 
   private val touchSignal = Signal<TouchEvent>()

@@ -7,8 +7,11 @@ import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureMethod
 
-suspend fun NativeMicroModule.createDownloadTask(url: String, total: Long) =
-  nativeFetch("file://download.browser.dweb/create?url=$url&total=$total").text()
+suspend fun NativeMicroModule.createDownloadTask(
+  url: String, total: Long = 1L, external: Boolean = false
+) = nativeFetch(
+  url = "file://download.browser.dweb/create?url=$url&total=$total&external=$external"
+).text()
 
 suspend fun NativeMicroModule.startDownload(taskId: String) =
   nativeFetch("file://download.browser.dweb/start?taskId=$taskId").boolean()
@@ -28,7 +31,8 @@ suspend fun NativeMicroModule.currentDownload(taskId: String) =
 suspend fun NativeMicroModule.removeDownload(taskId: String) =
   nativeFetch(
     PureClientRequest(
-      "file://download.browser.dweb/remove?taskId=${taskId}", PureMethod.DELETE
+      href = "file://download.browser.dweb/remove?taskId=${taskId}",
+      method = PureMethod.DELETE
     )
   ).boolean()
 

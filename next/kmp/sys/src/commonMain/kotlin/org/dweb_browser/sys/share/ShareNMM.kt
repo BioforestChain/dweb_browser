@@ -14,8 +14,10 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.appendFile
+import org.dweb_browser.core.std.file.ext.realFile
+import org.dweb_browser.core.std.file.ext.writeFile
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachCborPacket
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultiPartFileEncode
@@ -104,7 +106,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
                     MultipartFileType.End -> {
                       val packet = Cbor.decodeFromByteArray<MultipartFieldEnd>(multipartFilePackage.chunk)
                       fieldWritePathMap[packet.fieldIndex]?.also { writePath ->
-                        val realPath = nativeFetch("file://file.std.dweb/realPath?path=${writePath}").text()
+                        val realPath = this@ShareNMM.realFile(writePath)
                         fileList.add("file://$realPath")
                         channel.close()
                       }
@@ -169,20 +171,14 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
     }
 
     val writePath = "/cache/${randomUUID()}/${multiPartFile.name}"
-    nativeFetch(PureClientRequest(buildUrlString("file://file.std.dweb/write") {
-      parameters.append("path", writePath)
-      parameters.append("create", "true")
-    }, PureMethod.POST, body = IPureBody.from(data)))
+    this@ShareNMM.writeFile(writePath, body = IPureBody.from(data))
 
-    val realPath = nativeFetch("file://file.std.dweb/realPath?path=${writePath}").text()
+    val realPath = this@ShareNMM.realFile(writePath)
     return "file://$realPath"
   }
 
   private suspend fun multipartFileDataAppendToTempFile(writePath: String, chunk: ByteArray) {
-    nativeFetch(PureClientRequest(buildUrlString("file://file.std.dweb/append") {
-      parameters.append("path", writePath)
-      parameters.append("create", "true")
-    }, PureMethod.PUT, body = IPureBody.from(chunk)))
+    this@ShareNMM.appendFile(writePath, IPureBody.Companion.from(chunk))
   }
 
   override suspend fun _shutdown() {}

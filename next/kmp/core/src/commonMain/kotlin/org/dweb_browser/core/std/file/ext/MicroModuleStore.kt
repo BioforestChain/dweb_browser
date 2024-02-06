@@ -86,7 +86,7 @@ class MicroModuleStore(
     }
 
     try {
-      val readRequest = mm.nativeFetch("file://file.std.dweb/read?path=$queryPath&create=true")
+      val readRequest = mm.readFile(queryPath, true)
       val data = readRequest.binary().let {
         if (it.isEmpty()) it else cipherKey?.let { key -> decipher_aes_256_gcm(key, it) } ?: it
       }
@@ -157,16 +157,12 @@ class MicroModuleStore(
   suspend fun save() {
     exec {
       val map = getStore()
-      mm.nativeFetch(
-        PureClientRequest(
-          URLBuilder("file://file.std.dweb/write").apply {
-            parameters["path"] = queryPath
-            parameters["create"] = "true"
-          }.buildUnsafeString(),
-          PureMethod.POST,
-          body = IPureBody.from(
-            Cbor.encodeToByteArray(map)
-              .let { cipherKey?.let { key -> cipher_aes_256_gcm(key, it) } ?: it })
+      mm.writeFile(
+        path = queryPath,
+        body = IPureBody.from(
+          Cbor.encodeToByteArray(map).let {
+            cipherKey?.let { key -> cipher_aes_256_gcm(key, it) } ?: it
+          }
         )
       )
     }.await()

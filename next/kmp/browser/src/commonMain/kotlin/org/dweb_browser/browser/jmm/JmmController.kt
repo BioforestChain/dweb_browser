@@ -24,6 +24,10 @@ import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.pickFile
+import org.dweb_browser.core.std.file.ext.readFile
+import org.dweb_browser.core.std.file.ext.removeFile
+import org.dweb_browser.core.std.file.ext.writeFile
 import org.dweb_browser.helper.LateInit
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.buildUrlString
@@ -35,8 +39,6 @@ import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.valueIn
 import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
@@ -144,7 +146,11 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
           oldVersion = metadata.metadata.version
           val session = getAppSessionInfo(installManifest.id, metadata.metadata.version)
           debugJMM("openInstallerView", "replace session=$session")
-          if (metadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) { // 如果列表的应用是下载中的，那么需要移除掉
+          if (metadata.state.state.valueIn(
+              JmmStatus.Downloading,
+              JmmStatus.Paused
+            )
+          ) { // 如果列表的应用是下载中的，那么需要移除掉
             metadata.taskId?.let { taskId -> jmmNMM.cancelDownload(taskId) }
           }
           Pair(
@@ -153,7 +159,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
             ),
             true
           )
-        } else if (installManifest.version == installMM.version){
+        } else if (installManifest.version == installMM.version) {
           Pair(installManifest.createJmmHistoryMetadata(originUrl, JmmStatus.INSTALLED), false)
         } else { // 比安装的应用版本还低的，直接不能安装，提示版本过低，不存储
           Pair(installManifest.createJmmHistoryMetadata(originUrl, JmmStatus.VersionLow), false)
@@ -191,13 +197,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     return true
   }
 
-  suspend fun remove(filepath: String): Boolean {
-    return jmmNMM.nativeFetch(
-      PureClientRequest(
-        "file://file.std.dweb/remove?path=${filepath}&recursive=true", PureMethod.DELETE
-      )
-    ).boolean()
-  }
+  suspend fun remove(filepath: String) = jmmNMM.removeFile(filepath)
 
   private suspend fun watchProcess(metadata: JmmHistoryMetadata) {
     val taskId = metadata.taskId ?: return
@@ -252,7 +252,9 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       val exists = metadata.taskId?.let { jmmNMM.existsDownload(it) } ?: false
       debugJMM("JmmController", "createAndStartDownloadTask exists=$exists => $metadata")
       if (!exists) {
-        val taskId = with(metadata.metadata) { jmmNMM.createDownloadTask(bundle_url, bundle_size) }
+        val taskId = with(metadata.metadata) {
+          jmmNMM.createDownloadTask(url = bundle_url, total = bundle_size)
+        }
         metadata.taskId = taskId
         jmmStore.saveHistoryMetadata(metadata.originUrl, metadata)
       }
@@ -291,29 +293,25 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
   ): Boolean {
     var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
     jmm = jmm.substring(0, jmm.lastIndexOf("."))
-    val sourcePath = jmmNMM.nativeFetch(buildUrlString("file://file.std.dweb/picker") {
-      parameters.append("path", task.filepath)
-    }).text()
-    val targetPath = jmmNMM.nativeFetch(buildUrlString("file://file.std.dweb/picker") {
-      parameters.append("path", "/data/apps/$jmm")
-    }).text()
+    val sourcePath = jmmNMM.pickFile(task.filepath)
+    val targetPath = jmmNMM.pickFile("/data/apps/$jmm")
     return jmmNMM.nativeFetch(buildUrlString("file://zip.browser.dweb/decompress") {
       parameters.append("sourcePath", sourcePath)
       parameters.append("targetPath", targetPath)
     }).boolean().trueAlso {
       // 保存 session（记录安装时间） 和 metadata （app数据源）
-      jmmNMM.nativeFetch(PureClientRequest(buildUrlString("file://file.std.dweb/write") {
-        parameters.append("path", "/data/apps/$jmm/usr/sys/metadata.json")
-        parameters.append("create", "true")
-      }, PureMethod.POST, body = IPureBody.from(Json.encodeToString(jmmHistoryMetadata.metadata))))
-      jmmNMM.nativeFetch(PureClientRequest(buildUrlString("file://file.std.dweb/write") {
-        parameters.append("path", "/data/apps/$jmm/usr/sys/session.json")
-        parameters.append("create", "true")
-      }, PureMethod.POST, body = IPureBody.from(Json.encodeToString(buildJsonObject {
-        put("installTime", JsonPrimitive(jmmHistoryMetadata.installTime))
-        put("updateTime", JsonPrimitive(datetimeNow()))
-        put("installUrl", JsonPrimitive(jmmHistoryMetadata.originUrl))
-      }))))
+      jmmNMM.writeFile(
+        path = "/data/apps/$jmm/usr/sys/metadata.json",
+        body = IPureBody.from(Json.encodeToString(jmmHistoryMetadata.metadata))
+      )
+      jmmNMM.writeFile(
+        path = "/data/apps/$jmm/usr/sys/session.json",
+        body = IPureBody.from(Json.encodeToString(buildJsonObject {
+          put("installTime", JsonPrimitive(jmmHistoryMetadata.installTime))
+          put("updateTime", JsonPrimitive(datetimeNow()))
+          put("installUrl", JsonPrimitive(jmmHistoryMetadata.originUrl))
+        }))
+      )
     }
   }
 
@@ -321,8 +319,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
 
   private suspend fun getAppSessionInfo(mmid: MMID, version: String) =
     Json.decodeFromString<SessionInfo>(
-      jmmNMM.nativeFetch("file://file.std.dweb/read?path=/data/apps/${mmid}-${version}/usr/sys/session.json")
-        .text()
+      jmmNMM.readFile("/data/apps/${mmid}-${version}/usr/sys/session.json").text()
     )
 
   suspend fun removeHistoryMetadata(originUrl: String) {

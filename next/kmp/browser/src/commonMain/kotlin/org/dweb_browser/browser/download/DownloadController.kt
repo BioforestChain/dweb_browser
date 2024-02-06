@@ -4,9 +4,8 @@ import androidx.compose.runtime.mutableStateListOf
 import io.ktor.http.ContentRange
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.http.URLBuilder
+import io.ktor.http.RangeUnits
 import io.ktor.http.fromFilePath
-import io.ktor.http.headers
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
@@ -24,6 +23,10 @@ import org.dweb_browser.browser.download.ui.DecompressModel
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileMetadata
+import org.dweb_browser.core.std.file.ext.appendFile
+import org.dweb_browser.core.std.file.ext.existFile
+import org.dweb_browser.core.std.file.ext.infoFile
+import org.dweb_browser.core.std.file.ext.removeFile
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.UUID
@@ -173,7 +176,8 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
         }
         downloadTask.status.state = DownloadState.Paused
       }
-      downloadTask.pauseFlag = false
+      downloadTask.pauseFlag = false // 为了避免之前暂停的下载，再重启启动应用后，这个需要置为false
+      debugDownload("LoadList", downloadTask)
     }
   }
 
@@ -181,7 +185,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
    * 创建新下载任务
    */
   suspend fun createTaskFactory(
-    params: DownloadNMM.DownloadTaskParams, originMmid: MMID
+    params: DownloadNMM.DownloadTaskParams, originMmid: MMID, externalDownload: Boolean
   ): DownloadTask {
     // 查看是否创建过相同的task,并且相同的task已经下载完成
     val task = DownloadTask(
@@ -191,10 +195,9 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       originUrl = params.originUrl,
       openDappUri = params.openDappUri,
       mime = "application/octet-stream",
-      filepath = fileCreateByPath(params.url),
+      filepath = fileCreateByPath(params.url, externalDownload),
       status = DownloadStateEvent(total = params.total)
     )
-    recover(task, 0L)
     downloadTaskMaps.put(task.id, task)
     downloadStore.set(task.id, task) // 保存下载状态
     debugDownload("createTaskFactory", "${task.id} -> $task")
@@ -204,31 +207,42 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   /**
    * 恢复(创建)下载，需要重新创建连接🔗
    */
-  private suspend fun recover(task: DownloadTask, start: Long) {
-    debugDownload("recover", start)
-    val response = downloadNMM.nativeFetch(URLBuilder(task.url).also {
-      headers { append(HttpHeaders.Range, ContentRange.TailFrom(start).toString()) }
-    }.buildString())
-    // 直接变成失败
-    task.mime = mimeFactory(response.headers, task.url)
+  private suspend fun recoverDownload(task: DownloadTask) {
+    val start = task.status.current
+    debugDownload("recoverDownload", "start=$start => $task")
+    val response = downloadNMM.nativeFetch(PureClientRequest(
+      href = task.url,
+      method = PureMethod.GET,
+      headers = PureHeaders().apply {
+        init(HttpHeaders.Range, "${RangeUnits.Bytes}=${ContentRange.TailFrom(start)}")
+      }
+    ))
+
     if (!response.isOk) {
       task.status.state = DownloadState.Failed
       task.status.stateMessage = response.status.description
       downloadNMM.showToast(response.status.toString())
-    } else {
-      // 下载流程初始化成功
-      task.status.state = DownloadState.Init
-      response.headers.get("Content-Length")?.toLong()?.let { total ->
-        debugDownload("recover", "content-length=$total")
-        task.status.current = start
-        task.status.total = total + start
-        // 使用 total 和 task的total进行比对
-      } ?: kotlin.run {
-        // TODO 如果识别不到Content-Length，目前当做是无法进行ContentRange操作
-        task.status.current = 0L
-      }
-      task.readChannel = response.stream().getReader("downloadTask#${task.id}")
+      return
     }
+
+    task.status.state = DownloadState.Downloading
+    task.mime = mimeFactory(response.headers, task.url)
+    // 判断地址是否支持断点
+    val (supportRange, contentLength) = with(response.headers) {
+      Pair(
+        getByIgnoreCase("Accept-Ranges")?.equals("bytes", true) == true,
+        getByIgnoreCase("Content-Length")?.toLong() ?: 1L
+      )
+    }
+    debugDownload("recoverDownload", "supportRange=$supportRange, contentLength=$contentLength")
+    if (supportRange) {
+      task.status.current = start
+      task.status.total = contentLength + start
+    } else {
+      task.status.current = 0L
+      task.status.total = contentLength
+    }
+    task.readChannel = response.stream().getReader("downloadTask#${task.id}")
   }
 
   private fun mimeFactory(header: PureHeaders, filePath: String): String {
@@ -248,44 +262,32 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   /**
    * 创建不重复的文件
    */
-  private suspend fun fileCreateByPath(url: String): String {
+  private suspend fun fileCreateByPath(url: String, externalDownload: Boolean): String {
     var index = 0
     val fileName = url.substring(url.lastIndexOf("/") + 1)
     while (true) {
-      val path = "/data/download/${index++}_${fileName}"
+      val path = if (externalDownload) {
+        "/download/${index++}_${fileName}"
+      } else {
+        "/data/download/${index++}_${fileName}"
+      }
       if (!fileExists(path)) {
         return path
       }
     }
   }
 
-  private suspend fun fileExists(path: String): Boolean {
-    val response = downloadNMM.nativeFetch("file://file.std.dweb/exist?path=$path")
-    return response.boolean()
-  }
+  private suspend fun fileExists(path: String) = downloadNMM.existFile(path)
 
   private suspend fun fileInfo(path: String): FileMetadata {
-    val response = downloadNMM.nativeFetch("file://file.std.dweb/info?path=$path")
-    return Json.decodeFromString(response.text())
+    return Json.decodeFromString(downloadNMM.infoFile(path))
   }
 
-  private suspend fun fileRemove(filepath: String): Boolean {
-    return downloadNMM.nativeFetch(
-      PureClientRequest(
-        "file://file.std.dweb/remove?path=${filepath}&recursive=true", PureMethod.DELETE
-      )
-    ).boolean()
-  }
+  private suspend fun fileRemove(filepath: String) = downloadNMM.removeFile(filepath)
 
   //  追加写入文件，断点续传
   private suspend fun fileAppend(task: DownloadTask, stream: ByteReadChannel) {
-    downloadNMM.nativeFetch(
-      PureClientRequest(
-        "file://file.std.dweb/append?path=${task.filepath}&create=true",
-        PureMethod.PUT,
-        body = PureStreamBody(stream)
-      )
-    )
+    downloadNMM.appendFile(task.filepath, PureStreamBody(stream))
   }
 
   /**
@@ -336,25 +338,11 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
    * 执行下载任务 ,可能是断点下载
    */
   suspend fun downloadFactory(task: DownloadTask): Boolean {
-    if (fileExists(task.filepath)) {
-      // 已经存在了，并且对方支持range 从断点开始
-      val current = fileInfo(task.filepath).size
-      debugDownload("downloadFactory", "是否支持range:$current")
-
-      // 已经存在并且下载完成
-      if (current != null) {
-        // 开始断点续传，这是在内存中恢复的，创建了一个新的channel
-        recover(task, current)
-        // task.status.current = current
-        // 恢复状态 改状态为暂停，并且卡住
-        // task.status.state = DownloadState.Paused
-        // task.pauseFlag = true
-        // task.pauseWait()
-      }
-    }
+    recoverDownload(task) // 恢复下载？ 根据下载情况，判断是否支持断点下载等。
     // 如果内存中没有，或者对方不支持Range，需要重新下载,否则这个channel是从支持的断点开始
     val stream = task.readChannel ?: return false
     debugDownload("downloadFactory", task.id)
+    task.status.state = DownloadState.Downloading // 这边开始启动下载了，状态改为下载中
     downloadNMM.ioAsyncScope.launch { // 正式下载需要另外起一个协程，不影响当前的返回值
       fileAppend(task, middleware(task, stream))
     }
@@ -398,9 +386,9 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
             downloadTask.downloadSignal.emit(downloadTask)
             output.writePacket(ByteReadPacket(byteArray))
           }
-          debugDownload("middleware", "progress id:$taskId current:${downloadTask.status.current}")
+          // debugDownload("middleware", "progress id:$taskId current:${downloadTask.status.current}")
         }
-        debugDownload("middleware", "end id:$taskId")
+        debugDownload("middleware", "end id:$taskId, ${downloadTask.status}")
       } catch (e: Throwable) {
         // 这里捕获的一般是 connection reset by peer 当前没有重试机制，用户再次点击即为重新下载
         debugDownload("middleware", "${e.message}")

@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.device
 
+import org.dweb_browser.helper.WARNING
 import platform.UIKit.UIDevice
 
 @OptIn(ExperimentalSettingsImplementation::class)
@@ -18,4 +19,8 @@ actual class DeviceManage actual constructor() {
     return uuid
   }
 
+  actual fun deviceAppVersion(): String {
+    WARNING("Not yet implemented deviceAppVersion")
+    return ""
+  }
 }

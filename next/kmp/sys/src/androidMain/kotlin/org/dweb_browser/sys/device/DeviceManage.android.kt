@@ -2,6 +2,7 @@ package org.dweb_browser.sys.device
 
 import android.Manifest
 import android.os.Environment
+import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.permission.AndroidPermissionTask
 import org.dweb_browser.sys.permission.PermissionActivity
@@ -52,5 +53,12 @@ actual class DeviceManage actual constructor() {
       debugDevice("uuid", "${e.message}")
     }
     return randomUUID()
+  }
+
+  actual fun deviceAppVersion(): String {
+    val (packageManager, packageName) = getAppContext().let { context ->
+      Pair(context.packageManager, context.packageName)
+    }
+    return packageManager.getPackageInfo(packageName, 0).versionName.substring(0, 10)
   }
 }

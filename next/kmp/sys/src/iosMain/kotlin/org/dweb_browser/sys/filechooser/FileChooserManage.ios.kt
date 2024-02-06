@@ -35,6 +35,7 @@ actual class FileChooserManage {
     SystemPermissionAdapterManager.append {
       when (task.name) {
         SystemPermissionName.PHONE -> photoAuthorizationStatus()
+        SystemPermissionName.STORAGE -> AuthorizationStatus.GRANTED
         else -> null
       }
     }

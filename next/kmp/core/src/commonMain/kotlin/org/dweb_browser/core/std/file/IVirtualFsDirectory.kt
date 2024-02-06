@@ -58,6 +58,11 @@ expect fun FileNMM.getDataVirtualFsDirectory(): IVirtualFsDirectory
  */
 expect fun FileNMM.getCacheVirtualFsDirectory(): IVirtualFsDirectory
 
+/**
+ * 外部下载文件夹，这里的空间不会被回收
+ */
+expect fun FileNMM.getExternalDownloadVirtualFsDirectory(): IVirtualFsDirectory
+
 class FileDirectoryAdapterManager internal constructor() : AdapterManager<IVirtualFsDirectory>()
 
 val fileTypeAdapterManager = FileDirectoryAdapterManager()

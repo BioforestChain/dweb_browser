@@ -30,7 +30,11 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
           deviceManage.deviceUUID()
         }
         UUIDResponse(uuid).toJsonElement()
-      }
+      },
+      /** 获取设备当前安装的 DwebBrowser 版本 */
+      "/version" bind PureMethod.GET by defineStringResponse {
+        deviceManage.deviceAppVersion()
+      },
     )
   }
 

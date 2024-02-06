@@ -9,10 +9,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.core.view.WindowCompat
 import com.qiniu.android.storage.UploadManager
-import kotlinx.coroutines.launch
-import org.dweb_browser.browser.desk.version.NewVersionModel
-import org.dweb_browser.browser.desk.version.NewVersionView
-import org.dweb_browser.browser.desk.version.VersionType
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.toJsonElement
@@ -27,7 +23,6 @@ class DesktopActivity : PureViewController() {
       /// 禁止自适应布局，执行后，可以将我们的内容嵌入到状态栏和导航栏，但是会发现我们的界面呗状态栏和导航栏给覆盖了，这时候就需要systemUiController来改颜色
       WindowCompat.setDecorFitsSystemWindows(window, false)
       // lifecycleScope.launch { uploadDeviceInfo(this@DesktopActivity) } // 提交系统信息
-      lifecycleScope.launch { NewVersionModel.loadNewVersionItem() }
     }
 
     addContent {
@@ -37,10 +32,6 @@ class DesktopActivity : PureViewController() {
     }
 
     DesktopViewControllerCore(this)
-
-    addContent {
-      NewVersionView()
-    }
 
     addContent {
       val imeVisible = LocalWindowsImeVisible.current
@@ -57,24 +48,6 @@ class DesktopActivity : PureViewController() {
           imeVisible.value = visible*/
           imeVisible.value = ime.getBottom(density) != 0
         }
-      }
-    }
-
-    onResume {
-      when (NewVersionModel.preVersionType) {
-        VersionType.Install -> {
-          if (NewVersionModel.checkInstallPermission()) {
-            NewVersionModel.installApk()
-          } else {
-            NewVersionModel.updateVersionType(VersionType.Install)
-          }
-        }
-
-        VersionType.NewVersion -> {
-          NewVersionModel.updateVersionType(VersionType.NewVersion)
-        }
-
-        VersionType.Hide, VersionType.Download -> {}
       }
     }
   }

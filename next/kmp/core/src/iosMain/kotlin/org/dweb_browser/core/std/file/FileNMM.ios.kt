@@ -26,3 +26,12 @@ actual fun FileNMM.getCacheVirtualFsDirectory() = commonVirtualFsDirectoryFactor
     NSCachesDirectory, NSUserDomainMask, true
   ).first().toString()
 )
+
+/**
+ * 外部下载文件夹，这里的空间不会被回收??
+ */
+actual fun FileNMM.getExternalDownloadVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
+  "download", NSSearchPathForDirectoriesInDomains(
+    NSCachesDirectory, NSUserDomainMask, true
+  ).first().toString()
+)
