@@ -25,7 +25,7 @@ export const dwebTarget = () => {
     const userAgentData = self.navigator.userAgentData;
 
     if (!userAgentData) {
-      return 1.0;
+      return 2.0;
     }
     const brands = userAgentData.brands.filter((value) => {
       return value.brand === "jmm.browser.dweb";

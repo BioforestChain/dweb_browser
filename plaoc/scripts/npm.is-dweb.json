@@ -6,7 +6,7 @@
     "watchDir": "./src/is-dweb",
     "denoShim": false,
     "name": "@plaoc/is-dweb",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "lib": [
       "ES2022",
       "DOM"
