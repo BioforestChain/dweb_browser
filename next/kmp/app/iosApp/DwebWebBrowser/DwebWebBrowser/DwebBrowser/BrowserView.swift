@@ -74,7 +74,10 @@ struct BrowserView: View {
     }
     
     func doNewTabUrl(url: String, blank: Bool) {
-        states.doNewTabUrl(url: url, blank: blank)
+        if blank {
+            webcacheStore.createOne()
+        }
+        states.doSearch(url)
     }
     
     func doSearch(searchKey: String){
