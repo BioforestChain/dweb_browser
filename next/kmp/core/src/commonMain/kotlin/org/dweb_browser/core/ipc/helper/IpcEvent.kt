@@ -22,22 +22,29 @@ object IpcEventSerializer :
 
 @Serializable(with = IpcEventSerializer::class)
 class IpcEvent(
-  val name: String, val data: Any /*String or ByteArray*/, val encoding: IPC_DATA_ENCODING
+  val name: String,
+  val data: Any /*String or ByteArray*/,
+  val encoding: IPC_DATA_ENCODING,
+  val orderBy: Int? = null
 ) : IpcMessage(IPC_MESSAGE_TYPE.EVENT) {
   override fun toString() = "IpcEvent(name=$name, data=$encoding::${data.toString().trim()})"
 
   companion object {
-    fun fromBinary(name: String, data: ByteArray) = IpcEvent(name, data, IPC_DATA_ENCODING.BINARY)
+    fun fromBinary(name: String, data: ByteArray, orderBy: Int? = null) =
+      IpcEvent(name, data, IPC_DATA_ENCODING.BINARY, orderBy)
 
-    fun fromBase64(name: String, data: ByteArray) =
-      IpcEvent(name, data.toBase64(), IPC_DATA_ENCODING.BASE64)
+    fun fromBase64(name: String, data: ByteArray, orderBy: Int? = null) =
+      IpcEvent(name, data.toBase64(), IPC_DATA_ENCODING.BASE64, orderBy)
 
-    fun fromUtf8(name: String, data: ByteArray) = fromUtf8(name, data.decodeToString())
+    fun fromUtf8(name: String, data: ByteArray, orderBy: Int? = null) =
+      fromUtf8(name, data.decodeToString(), orderBy)
 
-    fun fromUtf8(name: String, data: String) = IpcEvent(name, data, IPC_DATA_ENCODING.UTF8)
-    fun fromPureFrame(name: String, pureFrame: PureFrame) = when (pureFrame) {
-      is PureTextFrame -> IpcEvent.fromUtf8(name, pureFrame.data)
-      is PureBinaryFrame -> IpcEvent.fromBinary(name, pureFrame.data)
+    fun fromUtf8(name: String, data: String, orderBy: Int? = null) =
+      IpcEvent(name, data, IPC_DATA_ENCODING.UTF8, orderBy)
+
+    fun fromPureFrame(name: String, pureFrame: PureFrame, orderBy: Int? = null) = when (pureFrame) {
+      is PureTextFrame -> IpcEvent.fromUtf8(name, pureFrame.data, orderBy)
+      is PureBinaryFrame -> IpcEvent.fromBinary(name, pureFrame.data, orderBy)
     }.also { it.pureFrame = pureFrame }
 
 

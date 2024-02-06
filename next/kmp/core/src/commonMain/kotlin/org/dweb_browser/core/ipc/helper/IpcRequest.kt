@@ -314,13 +314,14 @@ sealed class IpcRequest(
       val eventData = "$eventNameBase/data"
       val eventClose = "$eventNameBase/close"
       val started = CompletableDeferred<IpcEvent>()
+      val orderBy = Ipc.order_by_acc++
       /// 将收到的IpcEvent转成PureFrame
       val off = ipc.onEvent { (ipcEvent) ->
         when (ipcEvent.name) {
           eventData -> {
             debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent $pureChannel" }
             if (!channelByIpcEmit.isClosedForSend)
-            channelByIpcEmit.send(ipcEvent.toPureFrame())
+              channelByIpcEmit.send(ipcEvent.toPureFrame())
           }
 
           eventStart -> {
@@ -339,19 +340,19 @@ sealed class IpcRequest(
       waitReadyToStart()
       debugIpc(_debugTag) { "waitRemoteStart:$eventNameBase $pureChannel" }
       // 首先自己发送start，告知对方自己已经准备好数据接收了
-      ipc.postMessage(IpcEvent.fromUtf8(eventStart, ""))
+      ipc.postMessage(IpcEvent.fromUtf8(eventStart, "", orderBy))
       // 同时也要等待对方发送 start 信号过来，那么也将 start 回传，避免对方遗漏前面的 start 消息
       val ipcStartEvent = started.await()
       debugIpc(_debugTag) { "$ipc postIpcEventStart:$ipcStartEvent $pureChannel" }
       ipc.postMessage(ipcStartEvent)
       /// 将PureFrame转成IpcEvent，然后一同发给对面
       for (pureFrame in channelForIpcPost) {
-        val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame)
+        val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame, orderBy)
         debugIpc(_debugTag) { "$ipc postIpcEventData:$ipcDataEvent $pureChannel" }
         ipc.postMessage(ipcDataEvent)
       }
       // 关闭的时候，发一个信号给对面
-      val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "")
+      val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "", orderBy)
       debugIpc(_debugTag) { "$ipc postIpcEventClose:$ipcCloseEvent $pureChannel" }
       ipc.postMessage(ipcCloseEvent)
       off() // 移除事件监听

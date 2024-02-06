@@ -7,6 +7,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -55,6 +56,7 @@ abstract class Ipc {
   companion object {
     private var uid_acc by SafeInt(1)
     private var req_id_acc by SafeInt(0)
+    var order_by_acc by SafeInt(0)
     private val ipcMessageCoroutineScope =
       CoroutineScope(CoroutineName("ipc-message") + ioAsyncExceptionHandler)
   }
@@ -196,16 +198,58 @@ abstract class Ipc {
 
   fun onStream(cb: OnIpcStreamMessage) = _streamSignal.listen(cb)
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   private val _eventSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     _createSignal<IpcEventMessageArgs>().also { signal ->
+      val orderByChannels = SafeHashMap<Int, Channel<IpcEventMessageArgs>>()
       _messageSignal.listen { args ->
         if (args.message is IpcEvent) {
-          ipcMessageCoroutineScope.launch {
-            signal.emit(
-              IpcEventMessageArgs(
-                args.message, args.ipc
-              )
-            )
+          val eventArgs = IpcEventMessageArgs(
+            args.message, args.ipc
+          )
+          when (val orderBy = args.message.orderBy) {
+            /// 无序模式
+            null -> ipcMessageCoroutineScope.launch {
+              signal.emit(eventArgs)
+            }
+            /// 有序模式
+            else -> {
+              val orderedEvents = orderByChannels.getOrPut(orderBy) {
+                Channel<IpcEventMessageArgs>(capacity = Channel.UNLIMITED).also { events ->
+                  var lastEmitTime = 0;
+                  /// 进行有序地发送
+                  val sendJob = ipcMessageCoroutineScope.launch {
+                    for (it in events) {
+                      signal.emit(it)
+                      lastEmitTime = 10
+                    }
+                  }
+                  val destroyEvents = {
+                    sendJob.cancel()
+
+                    orderByChannels.remove(orderBy)
+                    events.close()
+                  }
+                  /// 定时器释放内存
+                  val gcJob = ipcMessageCoroutineScope.launch {
+                    while (true) {
+                      delay(100)
+                      lastEmitTime--
+                      if (lastEmitTime <= 0 && events.isEmpty) {
+                        destroyEvents()
+                        break
+                      }
+                    }
+                  }
+                  /// ipc 关闭时释放
+                  onClose {
+                    gcJob.cancel()
+                    destroyEvents()
+                  }
+                }
+              }
+              orderedEvents.send(eventArgs)
+            }
           }
         }
       }

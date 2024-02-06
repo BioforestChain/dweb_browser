@@ -8,46 +8,25 @@ import org.dweb_browser.helper.IntEnumSerializer
 import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.toBase64ByteArray
 
-data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc) {
-  val component1 get() = message
-  val component2 get() = ipc
-}
+data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc)
 typealias OnIpcMessage = Callback<IpcMessageArgs>
 
-data class IpcRequestMessageArgs(val request: IpcServerRequest, val ipc: Ipc) {
-  val component1 get() = request
-  val component2 get() = ipc
-}
+data class IpcRequestMessageArgs(val request: IpcServerRequest, val ipc: Ipc)
 typealias OnIpcRequestMessage = Callback<IpcRequestMessageArgs>
 
-data class IpcResponseMessageArgs(val response: IpcResponse, val ipc: Ipc) {
-  val component1 get() = response
-  val component2 get() = ipc
-}
+data class IpcResponseMessageArgs(val response: IpcResponse, val ipc: Ipc)
 typealias OnIpcResponseMessage = Callback<IpcResponseMessageArgs>
 
-data class IpcStreamMessageArgs(val response: IpcStream, val ipc: Ipc) {
-  val component1 get() = response
-  val component2 get() = ipc
-}
+data class IpcStreamMessageArgs(val response: IpcStream, val ipc: Ipc)
 typealias OnIpcStreamMessage = Callback<IpcStreamMessageArgs>
 
-data class IpcEventMessageArgs(val event: IpcEvent, val ipc: Ipc) {
-  val component1 get() = event
-  val component2 get() = ipc
-}
+data class IpcEventMessageArgs(val event: IpcEvent, val ipc: Ipc)
 typealias OnIpcEventMessage = Callback<IpcEventMessageArgs>
 
-data class IpcLifeCycleMessageArgs(val event: IpcLifeCycle, val ipc: Ipc) {
-  val component1 get() = event
-  val component2 get() = ipc
-}
+data class IpcLifeCycleMessageArgs(val event: IpcLifeCycle, val ipc: Ipc)
 typealias OnIpcLifeCycleMessage = Callback<IpcLifeCycleMessageArgs>
 
-data class IpcErrorMessageArgs(val event: IpcError, val ipc: Ipc) {
-  val component1 get() = event
-  val component2 get() = ipc
-}
+data class IpcErrorMessageArgs(val event: IpcError, val ipc: Ipc)
 typealias OnIpcErrorMessage = Callback<IpcErrorMessageArgs>
 
 @Serializable(IPC_MESSAGE_TYPE_Serializer::class)
