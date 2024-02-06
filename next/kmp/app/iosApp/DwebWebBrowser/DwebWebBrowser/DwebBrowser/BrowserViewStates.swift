@@ -67,6 +67,14 @@ extension BrowserViewStates {
         colorSchemeManager.colorScheme = LocalColorScheme(rawValue: newScheme)!
     }
     
+    // 用于打开网页在新标签页
+    func doNewTabUrl(url: String, blank: Bool) {
+        if blank {
+            webcacheStore.createOne()
+        }
+        doSearchIfNeed(key: url)
+    }
+    
     func doSearchIfNeed(key: String? = nil) {
         let localKey = key != nil ? key : searchKey
         guard let key = localKey, !key.isEmpty else {

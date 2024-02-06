@@ -74,6 +74,12 @@ data class BrowserPagerState @OptIn(ExperimentalFoundationApi::class) constructo
   val pagerStateNavigator: PagerState, // 用于表示下面搜索框等内容
 )
 
+data class DwebLinkSearchItem(val link: String, val blank: Boolean) {
+  companion object {
+    val Empty = DwebLinkSearchItem("", false)
+  }
+}
+
 val LocalBrowserPageState = compositionChainOf<BrowserPagerState>("LocalBrowserPageState")
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -87,7 +93,8 @@ class BrowserViewModel(
   private val browserContentItems: MutableList<BrowserContentItem> = mutableStateListOf() // 多浏览器列表
   val currentTab get() = currentBrowserContentItem.value
   val listSize get() = browserContentItems.size
-  val dwebLinkSearch: MutableState<String> = mutableStateOf("") // 为了获取desk传过来的地址信息
+  val dwebLinkSearch: MutableState<DwebLinkSearchItem> =
+    mutableStateOf(DwebLinkSearchItem.Empty) // 为了获取desk传过来的地址信息
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false)
   val showMultiView: MutableTransitionState<Boolean> = MutableTransitionState(false)
   val isNoTrace by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -130,7 +137,11 @@ class BrowserViewModel(
   /**
    * 请求系统权限
    */
-  suspend fun requestSystemPermission(title: String = "", description: String = "", permissionName: SystemPermissionName): Boolean {
+  suspend fun requestSystemPermission(
+    title: String = "",
+    description: String = "",
+    permissionName: SystemPermissionName
+  ): Boolean {
     return browserNMM.requestSystemPermission(
       SystemPermissionTask(
         permissionName,
@@ -203,10 +214,14 @@ class BrowserViewModel(
   private suspend fun createBrowserContentItem(url: String? = null) =
     BrowserContentItem().apply { contentWebItem.value = url?.let { createContentWebView(url) } }
 
-  internal suspend fun openBrowserView(search: String? = null, url: String? = null) {
+  internal suspend fun openBrowserView(
+    search: String? = null,
+    url: String? = null,
+    blank: Boolean? = false
+  ) {
     // 先判断search是否不为空，然后在判断search是否是地址，
     debugBrowser("openBrowserView", "search=$search, url=$url")
-    dwebLinkSearch.value = search ?: url ?: ConstUrl.BLANK.url
+    dwebLinkSearch.value = DwebLinkSearchItem(search ?: url ?: ConstUrl.BLANK.url, blank ?: false)
   }
 
   /**
@@ -239,8 +254,8 @@ class BrowserViewModel(
     // 增加判断是否有传入需要检索的内容，如果有，就进行显示搜索界面
     val showSearchView = LocalShowSearchView.current
     LaunchedEffect(dwebLinkSearch) {
-      snapshotFlow { dwebLinkSearch.value }.collect { searchUrl ->
-        if (parseDwebLinkSearch(searchUrl)) {
+      snapshotFlow { dwebLinkSearch.value }.collect { searchItem ->
+        if (parseDwebLinkSearch(searchItem.link)) {
           showSearchView.value = true
         }
       }
@@ -248,7 +263,7 @@ class BrowserViewModel(
     LaunchedEffect(showSearchView) {
       snapshotFlow { showSearchView.value }.collect { show ->
         if (!show) {
-          dwebLinkSearch.value = ""
+          dwebLinkSearch.value = DwebLinkSearchItem.Empty
         }
       }
     }
@@ -325,7 +340,9 @@ class BrowserViewModel(
       }
       val title = contentWebItem.viewItem.webView.getTitle()
       browserNMM.postSystemShare(title = title, url = url).let { result ->
-        if (!result.success) { showToastMessage(result.message) }
+        if (!result.success) {
+          showToastMessage(result.message)
+        }
       }
     } ?: showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
   }

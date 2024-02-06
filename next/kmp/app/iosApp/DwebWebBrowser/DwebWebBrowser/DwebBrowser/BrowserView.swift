@@ -73,6 +73,10 @@ struct BrowserView: View {
         .clipped()
     }
     
+    func doNewTabUrl(url: String, blank: Bool) {
+        states.doNewTabUrl(url: url, blank: blank)
+    }
+    
     func doSearch(searchKey: String){
         states.doSearch(searchKey)
     }

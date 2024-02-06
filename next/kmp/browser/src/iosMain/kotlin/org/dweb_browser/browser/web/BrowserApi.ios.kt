@@ -11,12 +11,15 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.util.isUrl
 import org.dweb_browser.browser.web.model.BrowserViewModel
+import org.dweb_browser.browser.web.model.DwebLinkSearchItem
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.platform.ios_browser.DwebWebView
 import org.dweb_browser.platform.ios_browser.browserActiveOn
 import org.dweb_browser.platform.ios_browser.browserClear
 import org.dweb_browser.platform.ios_browser.colorSchemeChangedWithColor
+import org.dweb_browser.platform.ios_browser.doNewTabUrlWithUrl
 import org.dweb_browser.platform.ios_browser.doSearchWithKey
 import org.dweb_browser.platform.ios_browser.gobackIfCanDo
 import org.dweb_browser.platform.ios_browser.prepareToKmp
@@ -105,9 +108,14 @@ actual fun CommonBrowserView(
   browserObserver.browserViewModel = viewModel
 
   key(viewModel.dwebLinkSearch.value) {
-    if (viewModel.dwebLinkSearch.value.isNotEmpty()) {
-      iOSView.doSearchWithKey(viewModel.dwebLinkSearch.value.toString())
-      viewModel.dwebLinkSearch.value = ""
+    if (viewModel.dwebLinkSearch.value.link.isNotEmpty()) {
+      if(viewModel.dwebLinkSearch.value.blank) {
+        iOSView.doNewTabUrlWithUrl(viewModel.dwebLinkSearch.value.link, viewModel.dwebLinkSearch.value.blank)
+      } else {
+        iOSView.doSearchWithKey(viewModel.dwebLinkSearch.value.link)
+      }
+
+      viewModel.dwebLinkSearch.value = DwebLinkSearchItem.Empty
     }
   }
 

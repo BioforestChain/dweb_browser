@@ -20,6 +20,7 @@ import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.sys.window.ext.onRenderer
 import org.dweb_browser.sys.window.ext.openMainWindow
 
@@ -64,7 +65,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     }
     val openBrowser = defineBooleanResponse {
       debugBrowser("do openinbrowser", request.href)
-      browserController.openBrowserView(url = request.query("url"))
+      browserController.openBrowserView(url = request.query("url"), blank = request.queryAsOrNull("blank"))
       openMainWindow().let { true }
     }
 

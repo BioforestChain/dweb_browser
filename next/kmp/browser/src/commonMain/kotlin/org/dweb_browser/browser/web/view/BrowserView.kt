@@ -525,7 +525,7 @@ fun BrowserSearchView(
   val searchHint = BrowserI18nResource.browser_search_hint()
   val focusManager = LocalFocusManager.current
   if (showSearchView) {
-    val dwebLink = viewModel.dwebLinkSearch.value
+    val dwebLink = viewModel.dwebLinkSearch.value.link
     val inputText = if (dwebLink.trim().isEmpty() || dwebLink == ConstUrl.BLANK.url) {
       viewModel.currentTab?.contentWebItem?.value?.viewItem?.webView?.getUrl() ?: ""
     } else dwebLink
