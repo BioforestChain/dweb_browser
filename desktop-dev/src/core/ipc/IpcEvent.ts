@@ -3,20 +3,25 @@ import { simpleDecoder } from "../../helper/encoding.ts";
 import { $dataToBinary, $dataToText, IPC_DATA_ENCODING, IPC_MESSAGE_TYPE, IpcMessage } from "./const.ts";
 
 export class IpcEvent extends IpcMessage<IPC_MESSAGE_TYPE.EVENT> {
-  constructor(readonly name: string, readonly data: string | Uint8Array, readonly encoding: IPC_DATA_ENCODING) {
+  constructor(
+    readonly name: string,
+    readonly data: string | Uint8Array,
+    readonly encoding: IPC_DATA_ENCODING,
+    readonly orderBy: number | null = null
+  ) {
     super(IPC_MESSAGE_TYPE.EVENT);
   }
-  static fromBase64(name: string, data: Uint8Array) {
-    return new IpcEvent(name, simpleDecoder(data, "base64"), IPC_DATA_ENCODING.BASE64);
+  static fromBase64(name: string, data: Uint8Array, orderBy: number | null = null) {
+    return new IpcEvent(name, simpleDecoder(data, "base64"), IPC_DATA_ENCODING.BASE64, orderBy);
   }
-  static fromBinary(name: string, data: Uint8Array) {
-    return new IpcEvent(name, data, IPC_DATA_ENCODING.BINARY);
+  static fromBinary(name: string, data: Uint8Array, orderBy: number | null = null) {
+    return new IpcEvent(name, data, IPC_DATA_ENCODING.BINARY, orderBy);
   }
-  static fromUtf8(name: string, data: Uint8Array) {
-    return new IpcEvent(name, simpleDecoder(data, "utf8"), IPC_DATA_ENCODING.UTF8);
+  static fromUtf8(name: string, data: Uint8Array, orderBy: number | null = null) {
+    return new IpcEvent(name, simpleDecoder(data, "utf8"), IPC_DATA_ENCODING.UTF8, orderBy);
   }
-  static fromText(name: string, data: string) {
-    return new IpcEvent(name, data, IPC_DATA_ENCODING.UTF8);
+  static fromText(name: string, data: string, orderBy: number | null = null) {
+    return new IpcEvent(name, data, IPC_DATA_ENCODING.UTF8, orderBy);
   }
   #binary = new CacheGetter(() => $dataToBinary(this.data, this.encoding));
 

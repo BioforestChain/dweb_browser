@@ -57,11 +57,11 @@ export const ipcEventToPureFrame = (ipcEvent: IpcEvent) => {
   }
 };
 
-export const pureFrameToIpcEvent = (eventName: string, pureFrame: $PureFrame) => {
+export const pureFrameToIpcEvent = (eventName: string, pureFrame: $PureFrame, orderBy: number | null = null) => {
   if (pureFrame.type === PureFrameType.Text) {
-    return IpcEvent.fromText(eventName, pureFrame.data);
+    return IpcEvent.fromText(eventName, pureFrame.data, orderBy);
   }
-  return IpcEvent.fromBinary(eventName, pureFrame.data);
+  return IpcEvent.fromBinary(eventName, pureFrame.data, orderBy);
 };
 
 export const pureChannelToIpcEvent = async (
@@ -78,6 +78,7 @@ export const pureChannelToIpcEvent = async (
   const eventData = `${channelId}/data`;
   const eventClose = `${channelId}/close`;
   const started = new PromiseOut<IpcEvent>();
+  const orderBy = Ipc.order_by_acc++;
 
   const off = ipc.onEvent((ipcEvent) => {
     switch (ipcEvent.name) {
@@ -92,15 +93,17 @@ export const pureChannelToIpcEvent = async (
         break;
     }
   });
-  ipc.postMessage(IpcEvent.fromText(eventStart, ""));
+  // 首先自己发送start，告知对方自己已经准备好数据接收了
+  ipc.postMessage(IpcEvent.fromText(eventStart, "", orderBy));
 
   void (async () => {
     ipc.postMessage(await started.promise);
+    /// 将PureFrame转成IpcEvent，然后一同发给对面
     for await (const pureFrame of streamRead(channelReadOut)) {
-      ipc.postMessage(pureFrameToIpcEvent(eventData, pureFrame));
+      ipc.postMessage(pureFrameToIpcEvent(eventData, pureFrame,orderBy));
     }
     // 关闭的时候，发一个信号给对面
-    const ipcCloseEvent = IpcEvent.fromText(eventClose, "");
+    const ipcCloseEvent = IpcEvent.fromText(eventClose, "",orderBy);
     ipc.postMessage(ipcCloseEvent);
     off(); // 移除事件监听
   })();

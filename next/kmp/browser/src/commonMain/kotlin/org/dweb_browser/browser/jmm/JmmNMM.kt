@@ -84,7 +84,12 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
 
     val routeInstallHandler = defineEmptyResponse {
       val metadataUrl = request.query("url")
+      // 打开渲染器
+
       coroutineScope {
+        launch {
+          jmmController.openOrUpsetInstallerView(metadataUrl)
+        }
         // 加载url资源，这一步可能要多一些时间
         val response = nativeFetch(metadataUrl)
         if (!response.isOk) {
@@ -92,10 +97,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
           showToast(message)
           throwException(HttpStatusCode.ExpectationFailed, message)
         }
-        // 打开渲染器
-        launch {
-          jmmController.openOrUpsetInstallerView(metadataUrl)
-        }
+
         val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
         debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
         jmmController.openOrUpsetInstallerView(

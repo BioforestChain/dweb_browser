@@ -29,8 +29,10 @@ export {
 } from "../helper/ipcFetchHelper.ts";
 
 let ipc_uid_acc = 0;
+let _order_by_acc = 0;
 export abstract class Ipc {
   readonly uid = ipc_uid_acc++;
+  static order_by_acc = _order_by_acc++;
   /**
    * 是否支持使用 MessagePack 直接传输二进制
    * 在一些特殊的场景下支持字符串传输，比如与webview的通讯
