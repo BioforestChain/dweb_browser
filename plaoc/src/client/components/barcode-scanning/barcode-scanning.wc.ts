@@ -176,6 +176,13 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
         content: data,
         permission,
       };
+    } catch (e) {
+      console.log("startScanning error", e);
+      return {
+        hasContent: false,
+        content: [],
+        permission: e,
+      };
     } finally {
       this.stopScanning();
     }
@@ -275,14 +282,34 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   private async _startVideo(direction: CameraDirection, width?: number, height?: number) {
     // 判断是否支持
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      // const devices = await navigator.mediaDevices.enumerateDevices();
+      // console.log("devices", devices);
+      // for (const device of devices) {
+      //   await navigator.mediaDevices
+      //     .getUserMedia({ video: { deviceId: device.deviceId }, audio: false })
+      //     .then(async (stream) => {
+      //       stream.getTracks().forEach((track) => track.stop());
+      //       console.log("可调用摄像头：", stream.getVideoTracks());
+      //       // const camera = devices.find((device) => device.kind === "videoinput");
+      //       // 之后再枚举设备
+      //       return;
+      //     });
+      // }
+
+      const expectWidth = width ?? innerWidth * devicePixelRatio;
+      const expectHeight = height ?? innerHeight * devicePixelRatio;
+      // ideal 理想的分辨率
       const constraints: MediaStreamConstraints = {
+        audio: false,
         video: {
-          facingMode: direction,
-          width: { exact: width ?? innerWidth },
-          height: { exact: height ?? innerHeight },
+          // deviceId: camera ?camera.deviceId : undefined,
+          facingMode: { exact: direction },
+          width: { min: 1280, ideal: expectWidth, max: 1920 },
+          height: { min: 720, ideal: expectHeight, max: 1080 },
         },
       };
-      console.log("video window=>", width, height);
+      console.log("video window=>", expectWidth, expectHeight, innerWidth, innerHeight);
+
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       try {
         await this.gotMedia(stream);
@@ -316,6 +343,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     this._canvas.style.width = this._canvas.width + "px";
     this._canvas.style.height = this._canvas.height + "px";
     const videoTracks = mediastream.getVideoTracks();
+    console.log("当前使用的摄像头：", videoTracks);
     if (videoTracks.length > 0 && this._canvas) {
       this._canvas.captureStream(100);
       // 压缩为 100 * 100

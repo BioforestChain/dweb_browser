@@ -44,10 +44,7 @@ const onStop = defineLogAction(
 
 const takePhoto = defineLogAction(
   async () => {
-    result.value = await barcodeScanner.startScanning({
-      width: 1280,
-      height: 720,
-    });
+    result.value = await barcodeScanner.startScanning();
   },
   { name: "takePhoto", args: [result], logPanel: $logPanel }
 );
