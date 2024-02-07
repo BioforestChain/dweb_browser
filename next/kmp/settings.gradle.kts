@@ -112,3 +112,4 @@ File(
       }
     }
   }
+include(":benchmark")

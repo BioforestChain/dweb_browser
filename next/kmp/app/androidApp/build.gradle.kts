@@ -76,6 +76,7 @@ android {
   android.buildFeatures.buildConfig = true
   buildTypes {
     getByName("release") {
+      // signingConfig = signingConfigs.getByName("debug") // 如果是测试benchmark需要使用debug
       signingConfig = signingConfigs.getByName("release")
       isMinifyEnabled = true // 开启代码混淆
       setProguardFiles(listOf("proguard-rules.pro"))
@@ -92,6 +93,11 @@ android {
       resValue("string", "appName", "Kmp-$userName")
       applicationIdSuffix = ".kmp.$userName"
       versionNameSuffix = null // ".kmp.$userName"
+    }
+    create("benchmark") {
+      initWith(buildTypes.getByName("release"))
+      matchingFallbacks += listOf("release")
+      isDebuggable = false
     }
   }
 }

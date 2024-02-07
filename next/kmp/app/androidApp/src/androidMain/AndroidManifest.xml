@@ -7,16 +7,13 @@
     android:required="false" />
 
   <uses-permission android:name="android.permission.INTERNET" />
-  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-  <!--蓝牙-->
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- 蓝牙 -->
   <!--<uses-permission android:name="android.permission.BLUETOOTH" />
   <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
   <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
   <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
   <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />-->
-
-  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-  <!--位置-->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- 位置 -->
   <!--<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />-->
@@ -26,7 +23,6 @@
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" /> <!-- 弹出横幅通知的权限 -->
   <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" /> <!--webview select-->
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" /> <!-- 存储卡 -->
-
   <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
   <!--<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
   <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" /> -->
@@ -41,6 +37,10 @@
     android:supportsRtl="true"
     android:theme="@style/Theme.dwebbrowser"
     tools:ignore="ManifestResource">
+    <profileable
+      android:shell="true"
+      tools:targetApi="29" />
+
     <activity
       android:name=".SplashActivity"
       android:exported="true"
@@ -51,13 +51,11 @@
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
-
     <activity
       android:name=".DeepLinkActivity"
       android:exported="true"
       android:launchMode="singleTask"
       android:theme="@style/Theme.DwebBrowser.Transparent">
-
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
 
@@ -92,4 +90,5 @@
         android:resource="@xml/file_opener_paths" />
     </provider>
   </application>
-</manifest> 
+
+</manifest>

@@ -60,6 +60,10 @@ java-jna-version = "5.13.0"
 webkit = "1.10.0"
 
 qiniu-version = "8.6.0"
+junit = "1.1.5"
+espresso-core = "3.5.1"
+uiautomator = "2.2.0"
+benchmark-macro-junit4 = "1.2.0-beta01"
 
 [libraries]
 # AndroidTest
@@ -203,6 +207,10 @@ gradlePlugin-jetbrainsCompose = { group = "org.jetbrains.compose", name = "compo
 
 # 七牛数据
 qiniu-upload = { group = "com.qiniu", name = "qiniu-android-sdk", version.ref = "qiniu-version" }
+junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
+benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark-macro-junit4" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
