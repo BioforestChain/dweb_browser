@@ -2,6 +2,7 @@ package org.dweb_browser.helper.platform
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
@@ -94,7 +95,7 @@ class PureViewController(
 
   private val scope = nativeViewController.scope
 
-  @OptIn(ExperimentalForeignApi::class)
+  @OptIn(ExperimentalForeignApi::class, ExperimentalComposeApi::class)
   val getUiViewController = SuspendOnce {
     withMainContext {
       val backgroundView = mutableStateOf<UIView?>(null)
@@ -106,6 +107,7 @@ class PureViewController(
         }
       }
       ComposeUIViewController({
+        platformLayers = false
         delegate = object : ComposeUIViewControllerDelegate {
           // 视图被加载后立即调用
           override fun viewDidLoad() {
