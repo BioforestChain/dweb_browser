@@ -50,6 +50,7 @@ import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmTabs
 import org.dweb_browser.helper.compose.LazySwipeColumn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.helper.compose.produceEvent
 import org.dweb_browser.helper.formatDatestampByMilliseconds
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.pure.image.compose.CoilAsyncImage
@@ -115,7 +116,7 @@ fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
   ) { metadata ->
     JmmViewItem(
       jmmHistoryMetadata = metadata,
-      buttonClick = { scope.launch { this@JmmTabsView.buttonClick(metadata) } },
+      buttonClick = produceEvent(metadata) { this@JmmTabsView.buttonClick(metadata) },
       uninstall = { scope.launch { this@JmmTabsView.unInstall(metadata) } },
       detail = { scope.launch { this@JmmTabsView.openInstallerView(metadata) } }
     )
