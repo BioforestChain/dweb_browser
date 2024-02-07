@@ -88,9 +88,10 @@ data class JmmHistoryMetadata(
   var metadata by ObservableMutableState(_metadata) { _metadata = it }
 
   @Transient
-  var pauseFlag = false // 为了保证是被用户暂停，还是应用强制退出后，导致的暂停
+  var alreadyWatch = false // 为了保证是被用户暂停，还是应用强制退出后，导致的暂停
 
   suspend fun updateByDownloadTask(downloadTask: DownloadTask, store: JmmStore) {
+    val lastState = state.state
     state = state.copy(
       current = downloadTask.status.current,
       total = downloadTask.status.total,
@@ -103,20 +104,20 @@ data class JmmHistoryMetadata(
         DownloadState.Completed -> JmmStatus.Completed
       }
     )
-    if (downloadTask.status.state != DownloadState.Downloading) {
-      store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
+    if (lastState != state.state) { // 只要前后不一样，就进行保存，否则不保存，主要为了防止downloading频繁保存
+      store.saveHistoryMetadata(this.metadata.id, this@JmmHistoryMetadata)
     }
   }
 
   suspend fun initState(store: JmmStore) {
     state = state.copy(state = JmmStatus.Init)
-    store.saveHistoryMetadata(originUrl, this@JmmHistoryMetadata)
+    store.saveHistoryMetadata(this.metadata.id, this@JmmHistoryMetadata)
   }
 
   suspend fun installComplete(store: JmmStore) {
     debugJMM("installComplete")
     state = state.copy(state = JmmStatus.INSTALLED)
-    store.saveHistoryMetadata(originUrl, this)
+    store.saveHistoryMetadata(this.metadata.id, this)
     store.setApp(
       metadata.id, JsMicroModuleDBItem(metadata, originUrl)
     )
@@ -125,7 +126,7 @@ data class JmmHistoryMetadata(
   suspend fun installFail(store: JmmStore) {
     debugJMM("installFail")
     state = state.copy(state = JmmStatus.Failed)
-    store.saveHistoryMetadata(originUrl, this)
+    store.saveHistoryMetadata(this.metadata.id, this)
   }
 }
 

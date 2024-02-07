@@ -32,6 +32,7 @@ import org.dweb_browser.helper.LateInit
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
@@ -71,9 +72,10 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       historyMetadataMaps.putAll(loadMap)
     }
     historyMetadataMaps.forEach { key, historyMetadata ->
+      debugJMM("lin.huang", "key=$key, historyMetadata=$historyMetadata")
       if (historyMetadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) {
-        val current = historyMetadata.taskId?.let { jmmNMM.currentDownload(it) }
-          ?: -1L // 获取下载的进度，如果进度 >= 0 表示有下载
+        // 获取下载的进度，如果进度 >= 0 表示有下载
+        val current = historyMetadata.taskId?.let { jmmNMM.currentDownload(it) } ?: -1L
         historyMetadata.state = if (current >= 0L) {
           historyMetadata.state.copy(state = JmmStatus.Paused, current = current)
         } else {
@@ -96,32 +98,30 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
    * 打开安装器视图
    */
   suspend fun openOrUpsetInstallerView(
-    originUrl: String,
-    installManifest: JmmAppInstallManifest? = null,
-    fromHistory: Boolean = false
+    originUrl: String, openHistoryMetadata: JmmHistoryMetadata? = null, fromHistory: Boolean = false
   ) = installViews.getOrPut(originUrl) {
     LateInit()
   }.let {
-    debugJMM("openInstallerView", "$originUrl, $fromHistory, ${installManifest?.version}")
+    debugJMM("openInstallerView", "$originUrl, $fromHistory, $openHistoryMetadata")
     val jmmInstallerController = it.getOrInit {
       JmmInstallerController(
-        jmmNMM,
-        (installManifest ?: JmmAppInstallManifest()).createJmmHistoryMetadata(originUrl),
-        this@JmmController,
-        fromHistory
+        jmmNMM = jmmNMM,
+        jmmHistoryMetadata = openHistoryMetadata
+          ?: JmmAppInstallManifest().createJmmHistoryMetadata(originUrl),
+        jmmController = this@JmmController,
+        openFromHistory = fromHistory
       )
     }
-    if (fromHistory || installManifest == null) {
+    if (fromHistory || openHistoryMetadata == null) {
       jmmInstallerController.openRender()
       return@let
     }
+    val installManifest = openHistoryMetadata.metadata
     val baseURI = when (installManifest.baseURI?.isUrlOrHost()) {
       true -> installManifest.baseURI!!
       else -> when (val baseUri = installManifest.baseURI) {
         null -> originUrl
-        else -> buildUrlString(originUrl) {
-          resolvePath(baseUri)
-        }
+        else -> buildUrlString(originUrl) { resolvePath(baseUri) }
       }.also { uri ->
         installManifest.baseURI = uri
       }
@@ -135,40 +135,46 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     // 这边只是打开安装界面，
     // 如果历史没有该应用，那么会直接添加，
     // 如果历史已经存在该应用，判断版本如果高于历史，替换历史版本
-    val (historyMetadata, save) = historyMetadataMaps[installManifest.id]?.let { metadata ->
+    val historyMetadata: JmmHistoryMetadata
+    val save: Boolean
+    val metadata = historyMetadataMaps[installManifest.id]
+    if (metadata != null) {
       val installMM = jmmNMM.bootstrapContext.dns.query(installManifest.id)
-      // val highThanHis = installManifest.version.isGreaterThan(metadata.metadata.version)
       debugJMM("openInstallerView", "installMM=${installMM?.version}")
-      installMM?.let { // 表示已安装过当前应用
+      if (installMM != null) { // 表示已安装过当前应用
         if (installManifest.version.isGreaterThan(installMM.version)) { // 比安装高，直接进行替换吧，暂时不考虑是否比列表中的版本高。
           oldVersion = metadata.metadata.version
           val session = getAppSessionInfo(installManifest.id, metadata.metadata.version)
           debugJMM("openInstallerView", "replace session=$session")
-          if (metadata.state.state.valueIn(
-              JmmStatus.Downloading, JmmStatus.Paused
-            )
-          ) { // 如果列表的应用是下载中的，那么需要移除掉
+          // 如果列表的应用是下载中的，那么需要移除掉
+          if (metadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) {
             metadata.taskId?.let { taskId -> jmmNMM.cancelDownload(taskId) }
           }
-          Pair(
-            installManifest.createJmmHistoryMetadata(
-              originUrl, JmmStatus.NewVersion, session.installTime
-            ),
-            true
+          historyMetadata = installManifest.createJmmHistoryMetadata(
+            originUrl, JmmStatus.NewVersion, session.installTime
           )
+          save = true
         } else if (installManifest.version == installMM.version) {
-          Pair(installManifest.createJmmHistoryMetadata(originUrl, JmmStatus.INSTALLED), false)
+          historyMetadata = installManifest.createJmmHistoryMetadata(originUrl, JmmStatus.INSTALLED)
+          save = false
         } else { // 比安装的应用版本还低的，直接不能安装，提示版本过低，不存储
-          Pair(installManifest.createJmmHistoryMetadata(originUrl, JmmStatus.VersionLow), false)
+          historyMetadata =
+            installManifest.createJmmHistoryMetadata(originUrl, JmmStatus.VersionLow)
+          save = false
         }
-      } ?: run { // 从未安装过，直接替换成当前的，不考虑是否比历史列表高
-        Pair(installManifest.createJmmHistoryMetadata(originUrl), true)
+      } else {// 从未安装过，直接替换成当前的，不考虑是否比历史列表高
+        historyMetadata = openHistoryMetadata
+        save = true
       }
-    } ?: Pair(installManifest.createJmmHistoryMetadata(originUrl), true)
+    } else { // 从未安装过，直接替换成当前的，不考虑是否比历史列表高
+      historyMetadata = openHistoryMetadata
+      save = true
+    }
+
     debugJMM("openInstallerView", historyMetadata)
     if (save) { // 只有需要存储的时候才存起来
       historyMetadataMaps.put(historyMetadata.metadata.id, historyMetadata)
-      jmmStore.saveHistoryMetadata(historyMetadata.originUrl, historyMetadata) // 不管是否替换的，都进行一次存储新状态
+      jmmStore.saveHistoryMetadata(historyMetadata.metadata.id, historyMetadata) // 不管是否替换的，都进行一次存储新状态
     }
     jmmInstallerController.installMetadata = historyMetadata
     jmmInstallerController.openRender()
@@ -182,20 +188,13 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     jmmNMM.removeFile("/data/apps/${mmid}-${data.installManifest.version}")
     // 从磁盘中移除整个
     jmmStore.deleteApp(mmid)
-    val list = historyMetadataMaps.cMaps.values.filter { it.metadata.id == mmid }
-      .sortedByDescending { it.installTime }.toMutableList()
-    list.forEachIndexed { index, jmmHistoryMetadata ->
-      if (index == 0) {
-        jmmHistoryMetadata.initState(jmmStore)
-      } else {
-        historyMetadataMaps.remove(jmmHistoryMetadata.originUrl)
-      }
-    }
+    historyMetadataMaps[mmid]?.initState(jmmStore) // 恢复成Init状态
     return true
   }
 
   private suspend fun watchProcess(metadata: JmmHistoryMetadata) {
     val taskId = metadata.taskId ?: return
+    metadata.alreadyWatch = true
     jmmNMM.ioAsyncScope.launch {
       val res = jmmNMM.createChannelOfDownload(taskId) {
         metadata.updateByDownloadTask(downloadTask, jmmStore)
@@ -211,7 +210,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
             }
             // 关闭watchProcess
             channel.close()
-            metadata.pauseFlag = false
+            metadata.alreadyWatch = false
             // 删除缓存的zip文件
             jmmNMM.removeFile(downloadTask.filepath)
             // 更新完需要删除旧的app版本，这里如果有保存用户数据需要一起移动过去，但是现在这里是单纯的删除
@@ -240,7 +239,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       }
       metadata.taskId = taskId
       watchProcess(metadata)
-      jmmStore.saveHistoryMetadata(metadata.originUrl, metadata)
+      jmmStore.saveHistoryMetadata(metadata.metadata.id, metadata)
     }
     if (metadata.state.state == JmmStatus.Downloading) {
       jmmNMM.showToast(BrowserI18nResource.toast_message_download_downloading.text)
@@ -248,14 +247,11 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
   }
 
   suspend fun startDownloadTask(metadata: JmmHistoryMetadata) = metadata.taskId?.let { taskId ->
-    if (jmmNMM.startDownload(taskId)) {
-      if (!metadata.pauseFlag) {
-        metadata.pauseFlag = true
-      }
-      true
-    } else {
+    if (!metadata.alreadyWatch) {
+      watchProcess(metadata)
+    }
+    jmmNMM.startDownload(taskId).falseAlso {
       jmmNMM.showToast(BrowserI18nResource.toast_message_download_download_fail.text)
-      false
     }
   } ?: false
 
@@ -297,6 +293,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     )
 
   suspend fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
+    debugJMM("lin.huang", "removeHistoryMetadata $historyMetadata")
     historyMetadata.taskId?.let { taskId -> jmmNMM.removeDownload(taskId) }
     jmmStore.deleteHistoryMetadata(historyMetadata.metadata.id)
   }

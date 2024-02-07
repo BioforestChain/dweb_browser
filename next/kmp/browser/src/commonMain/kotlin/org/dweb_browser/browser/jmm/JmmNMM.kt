@@ -98,7 +98,9 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
         }
         val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
         debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
-        jmmController.openOrUpsetInstallerView(metadataUrl, jmmAppInstallManifest)
+        jmmController.openOrUpsetInstallerView(
+          metadataUrl, jmmAppInstallManifest.createJmmHistoryMetadata(metadataUrl)
+        )
       }
     }
     routes(
@@ -115,7 +117,9 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
         val mmid = request.query("app_id")
         debugJMM("detailApp", mmid)
         val info = store.getApp(mmid) ?: return@defineBooleanResponse false
-        jmmController.openOrUpsetInstallerView(info.originUrl, info.installManifest)
+        jmmController.openOrUpsetInstallerView(
+          info.originUrl, info.installManifest.createJmmHistoryMetadata(info.originUrl)
+        )
         true
       }).cors()
 

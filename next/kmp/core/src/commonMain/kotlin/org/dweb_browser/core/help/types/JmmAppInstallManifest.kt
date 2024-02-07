@@ -21,7 +21,7 @@ class JmmAppInstallManifest private constructor(
   companion object {
 
     internal val P =
-      PropMetas("JmmAppInstallManifest", { JmmAppInstallManifest(it) }).extends(JmmAppManifest.P)
+      PropMetas("JmmAppInstallManifest") { JmmAppInstallManifest(it) }.extends(JmmAppManifest.P)
 
     /** 安装是展示用的 icon */
     private val P_logo = P.required<String>("logo", "")
