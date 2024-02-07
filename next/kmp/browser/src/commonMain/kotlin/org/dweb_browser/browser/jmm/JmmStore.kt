@@ -59,12 +59,12 @@ class JmmStore(microModule: MicroModule) {
     return storeHistoryMetadata.getAll()
   }
 
-  suspend fun getHistoryMetadata(url: String): String? {
-    return storeHistoryMetadata.getOrNull<String>(url)
+  suspend fun getHistoryMetadata(mmid: String): String? {
+    return storeHistoryMetadata.getOrNull<String>(mmid)
   }
 
-  suspend fun deleteHistoryMetadata(url: String): Boolean {
-    return storeHistoryMetadata.delete(url)
+  suspend fun deleteHistoryMetadata(mmid: String): Boolean {
+    return storeHistoryMetadata.delete(mmid)
   }
 
   suspend fun clearHistoryMetadata() = storeHistoryMetadata.clear()

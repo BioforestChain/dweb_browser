@@ -96,29 +96,23 @@ fun JmmHistoryController.ManagerViewRender(
 
 @Composable
 fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
-  val scope = rememberCoroutineScope()
   // 这个后续需要优化，目前下载完成后，历史展示没有直接刷新
-  val list = jmmHistoryMetadata.filter {
+  val list = jmmHistoryMetadataList.filter {
     (tab == JmmTabs.Installed && it.state.state == JmmStatus.INSTALLED) ||
         (tab == JmmTabs.NoInstall && it.state.state != JmmStatus.INSTALLED)
   }
 
   LazySwipeColumn(
     items = list, key = { item -> item.originUrl },
-    onRemove = { item ->
-      scope.launch {
-        jmmHistoryMetadata.remove(item)
-        removeHistoryMetadata(item.originUrl)
-      }
-    },
+    onRemove = { item -> removeHistoryMetadata(item) },
     noDataValue = BrowserI18nResource.no_apps_data(),
     background = { Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) }
   ) { metadata ->
     JmmViewItem(
       jmmHistoryMetadata = metadata,
       buttonClick = produceEvent(metadata) { this@JmmTabsView.buttonClick(metadata) },
-      uninstall = { scope.launch { this@JmmTabsView.unInstall(metadata) } },
-      detail = { scope.launch { this@JmmTabsView.openInstallerView(metadata) } }
+      uninstall = { this@JmmTabsView.unInstall(metadata) },
+      detail = { this@JmmTabsView.openInstallerView(metadata) }
     )
   }
 }

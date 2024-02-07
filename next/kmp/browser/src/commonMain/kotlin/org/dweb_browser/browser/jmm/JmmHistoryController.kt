@@ -15,29 +15,29 @@ import org.dweb_browser.sys.window.ext.getMainWindow
 class JmmHistoryController(
   private val jmmNMM: JmmNMM, private val jmmController: JmmController
 ) {
-  val jmmHistoryMetadata: MutableList<JmmHistoryMetadata> = mutableStateListOf()
+  val jmmHistoryMetadataList: MutableList<JmmHistoryMetadata> = mutableStateListOf()
 
   init {
     jmmController.ioAsyncScope.launch {
       jmmController.historyMetadataMaps.onChange { (changeableType, _, historyMetadata) ->
         when (changeableType) {
           ChangeableType.Add -> {
-            jmmHistoryMetadata.add(0, historyMetadata!!)
+            jmmHistoryMetadataList.add(0, historyMetadata!!)
           }
 
           ChangeableType.Remove -> {
-            jmmHistoryMetadata.remove(historyMetadata!!)
+            jmmHistoryMetadataList.remove(historyMetadata!!)
           }
 
           ChangeableType.PutAll -> {
-            jmmHistoryMetadata.addAll(
+            jmmHistoryMetadataList.addAll(
               jmmController.historyMetadataMaps.toMutableList()
                 .sortedByDescending { it.upgradeTime }
             )
           }
 
           ChangeableType.Clear -> {
-            jmmHistoryMetadata.clear()
+            jmmHistoryMetadataList.clear()
           }
         }
       }
@@ -56,11 +56,6 @@ class JmmHistoryController(
     }
     win.show()
   }
-
-  suspend fun openInstallerView(jmmHistoryMetadata: JmmHistoryMetadata) =
-    jmmController.openOrUpsetInstallerView(
-      jmmHistoryMetadata.originUrl, jmmHistoryMetadata.metadata, true
-    )
 
   suspend fun buttonClick(historyMetadata: JmmHistoryMetadata) {
     when (historyMetadata.state.state) {
@@ -84,11 +79,24 @@ class JmmHistoryController(
     }
   }
 
-  suspend fun unInstall(metadata: JmmHistoryMetadata) {
-    jmmController.uninstall(metadata.metadata.id)
+  fun openInstallerView(historyMetadata: JmmHistoryMetadata) {
+    jmmNMM.ioAsyncScope.launch {
+      jmmController.openOrUpsetInstallerView(
+        historyMetadata.originUrl, historyMetadata.metadata, true
+      )
+    }
   }
 
-  suspend fun removeHistoryMetadata(originUrl: String) {
-    jmmController.removeHistoryMetadata(originUrl)
+  fun unInstall(historyMetadata: JmmHistoryMetadata) {
+    jmmNMM.ioAsyncScope.launch {
+      jmmController.uninstall(historyMetadata.metadata.id)
+    }
+  }
+
+  fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
+    jmmNMM.ioAsyncScope.launch {
+      jmmHistoryMetadataList.remove(historyMetadata)
+      jmmController.removeHistoryMetadata(historyMetadata)
+    }
   }
 }

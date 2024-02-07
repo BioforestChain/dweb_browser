@@ -17,6 +17,7 @@ import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.currentDownload
 import org.dweb_browser.browser.download.ext.existsDownload
 import org.dweb_browser.browser.download.ext.pauseDownload
+import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
 import org.dweb_browser.browser.download.model.ChangeableMutableMap
 import org.dweb_browser.browser.util.isUrlOrHost
@@ -178,7 +179,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     // 在dns中移除app
     jmmNMM.bootstrapContext.dns.uninstall(mmid)
     // 在存储中移除整个app
-    remove("/data/apps/${mmid}-${data.installManifest.version}")
+    jmmNMM.removeFile("/data/apps/${mmid}-${data.installManifest.version}")
     // 从磁盘中移除整个
     jmmStore.deleteApp(mmid)
     val list = historyMetadataMaps.cMaps.values.filter { it.metadata.id == mmid }
@@ -193,8 +194,6 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     return true
   }
 
-  suspend fun remove(filepath: String) = jmmNMM.removeFile(filepath)
-
   private suspend fun watchProcess(metadata: JmmHistoryMetadata) {
     val taskId = metadata.taskId ?: return
     jmmNMM.ioAsyncScope.launch {
@@ -207,17 +206,17 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
               jmmNMM.bootstrapContext.dns.install(JsMicroModule(metadata.metadata))
               metadata.installComplete(jmmStore)
             } else {
-              showToastText(BrowserI18nResource.toast_message_download_unzip_fail.text)
+              jmmNMM.showToast(BrowserI18nResource.toast_message_download_unzip_fail.text)
               metadata.installFail(jmmStore)
             }
             // 关闭watchProcess
             channel.close()
             metadata.pauseFlag = false
             // 删除缓存的zip文件
-            remove(downloadTask.filepath)
+            jmmNMM.removeFile(downloadTask.filepath)
             // 更新完需要删除旧的app版本，这里如果有保存用户数据需要一起移动过去，但是现在这里是单纯的删除
             if (oldVersion != null) {
-              remove("/data/apps/${metadata.metadata.id}-${oldVersion}")
+              jmmNMM.removeFile("/data/apps/${metadata.metadata.id}-${oldVersion}")
               oldVersion = null
             }
           }
@@ -244,7 +243,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       jmmStore.saveHistoryMetadata(metadata.originUrl, metadata)
     }
     if (metadata.state.state == JmmStatus.Downloading) {
-      showToastText(BrowserI18nResource.toast_message_download_downloading.text)
+      jmmNMM.showToast(BrowserI18nResource.toast_message_download_downloading.text)
     }
   }
 
@@ -255,7 +254,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       }
       true
     } else {
-      showToastText(BrowserI18nResource.toast_message_download_download_fail.text)
+      jmmNMM.showToast(BrowserI18nResource.toast_message_download_download_fail.text)
       false
     }
   } ?: false
@@ -292,15 +291,14 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     }
   }
 
-  private suspend fun showToastText(message: String) = jmmNMM.showToast(message)
-
   private suspend fun getAppSessionInfo(mmid: MMID, version: String) =
     Json.decodeFromString<SessionInfo>(
       jmmNMM.readFile("/data/apps/${mmid}-${version}/usr/sys/session.json").text()
     )
 
-  suspend fun removeHistoryMetadata(originUrl: String) {
-    jmmStore.deleteHistoryMetadata(originUrl)
+  suspend fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
+    historyMetadata.taskId?.let { taskId -> jmmNMM.removeDownload(taskId) }
+    jmmStore.deleteHistoryMetadata(historyMetadata.metadata.id)
   }
 }
 
