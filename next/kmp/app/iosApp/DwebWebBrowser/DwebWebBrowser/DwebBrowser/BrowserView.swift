@@ -75,7 +75,7 @@ struct BrowserView: View {
     
     func doNewTabUrl(url: String, blank: Bool) {
         if blank {
-            webcacheStore.createOne()
+            states.toolBarState.createTabTapped = true
         }
         states.doSearch(url)
     }
