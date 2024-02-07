@@ -200,8 +200,10 @@ class BrowserViewModel(
         webView = dWebView,
         coroutineScope = coroutineScope,
       ).also { it.webView.setVerticalScrollBarVisible(false) }
-      dWebView.onCreateWindow {
-        val browserContentItem = createBrowserContentItem()
+      dWebView.onCreateWindow { itemDwebView ->
+        val browserContentItem = BrowserContentItem().apply {
+          contentWebItem.value = createContentWebView(itemDwebView)
+        }
         if (browserContentItems.add(browserContentItem)) {
           focusBrowserView(browserContentItem)
         }
