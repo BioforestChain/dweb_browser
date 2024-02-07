@@ -103,7 +103,7 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
         Box(
           modifier = Modifier
             .fillMaxSize()
-            .background(colorScheme.errorContainer),
+            .background(colorScheme.onPrimary),
           contentAlignment = Alignment.Center
         ) {
           /*Text(

@@ -10,7 +10,7 @@ import org.dweb_browser.pure.http.PureTextFrame
 
 @Serializable
 data class IpcEventJsonAble(
-  val name: String, val data: String, val encoding: IPC_DATA_ENCODING
+  val name: String, val data: String, val encoding: IPC_DATA_ENCODING, val orderBy: Int?
 ) : IpcMessage(IPC_MESSAGE_TYPE.EVENT) {
   fun toIpcEvent() = IpcEvent(name, data, encoding)
 }
@@ -76,6 +76,7 @@ class IpcEvent(
         name,
         data as String,
         encoding,
+        orderBy
       )
     }
   }

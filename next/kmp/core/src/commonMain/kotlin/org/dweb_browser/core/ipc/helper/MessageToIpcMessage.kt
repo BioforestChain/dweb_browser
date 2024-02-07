@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.CborLoose
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.printError
 import org.dweb_browser.pure.http.PureHeaders
 
 object IpcMessageConst {
@@ -148,6 +149,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
       IPC_MESSAGE_TYPE.ERROR -> Json.decodeFromString<IpcError>(data)
     }
   } catch (e: Exception) {
+    printError("jsonToIpcMessage=>",e.message)
     return data
   }
 }

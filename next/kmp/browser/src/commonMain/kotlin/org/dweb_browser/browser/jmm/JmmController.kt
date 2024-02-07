@@ -53,7 +53,6 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
 
   // 打开历史界面
   suspend fun openHistoryView(win: WindowController) = historyController.openHistoryView(win)
-
   suspend fun loadHistoryMetadataUrl() {
     val loadMap = jmmStore.getAllHistoryMetadata()
     if (loadMap.filter { (key, value) -> key != value.metadata.id }.isNotEmpty()) {
@@ -144,13 +143,13 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
         if (installManifest.version.isGreaterThan(installMM.version)) { // 比安装高，直接进行替换吧，暂时不考虑是否比列表中的版本高。
           oldVersion = metadata.metadata.version
           val session = getAppSessionInfo(installManifest.id, metadata.metadata.version)
-          debugJMM("openInstallerView", "replace session=$session")
+          debugJMM("openInstallerView", "is order app and session=$session")
           // 如果列表的应用是下载中的，那么需要移除掉
           if (metadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) {
             metadata.taskId?.let { taskId -> jmmNMM.cancelDownload(taskId) }
           }
           historyMetadata = installManifest.createJmmHistoryMetadata(
-            originUrl, JmmStatus.NewVersion, session.installTime
+            originUrl, JmmStatus.NewVersion, session?.installTime ?: datetimeNow()
           )
           save = true
         } else if (installManifest.version == installMM.version) {
@@ -173,7 +172,10 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     debugJMM("openInstallerView", historyMetadata)
     if (save) { // 只有需要存储的时候才存起来
       historyMetadataMaps.put(historyMetadata.metadata.id, historyMetadata)
-      jmmStore.saveHistoryMetadata(historyMetadata.metadata.id, historyMetadata) // 不管是否替换的，都进行一次存储新状态
+      jmmStore.saveHistoryMetadata(
+        historyMetadata.metadata.id,
+        historyMetadata
+      ) // 不管是否替换的，都进行一次存储新状态
     }
     jmmInstallerController.installMetadata = historyMetadata
     jmmInstallerController.openRender()
@@ -286,10 +288,17 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     }
   }
 
-  private suspend fun getAppSessionInfo(mmid: MMID, version: String) =
-    Json.decodeFromString<SessionInfo>(
-      jmmNMM.readFile("/data/apps/${mmid}-${version}/usr/sys/session.json").text()
-    )
+  private suspend fun getAppSessionInfo(mmid: MMID, version: String): SessionInfo? {
+    val session = jmmNMM.readFile("/data/apps/${mmid}-${version}/usr/sys/session.json")
+    return if (session.isOk) {
+      Json.decodeFromString<SessionInfo>(
+        session.text()
+      )
+    } else {
+      null
+    }
+  }
+
 
   suspend fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
     historyMetadata.taskId?.let { taskId -> jmmNMM.removeDownload(taskId) }
