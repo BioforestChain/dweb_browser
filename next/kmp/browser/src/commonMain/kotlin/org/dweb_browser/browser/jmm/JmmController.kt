@@ -72,7 +72,6 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       historyMetadataMaps.putAll(loadMap)
     }
     historyMetadataMaps.forEach { key, historyMetadata ->
-      debugJMM("lin.huang", "key=$key, historyMetadata=$historyMetadata")
       if (historyMetadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) {
         // 获取下载的进度，如果进度 >= 0 表示有下载
         val current = historyMetadata.taskId?.let { jmmNMM.currentDownload(it) } ?: -1L
@@ -293,7 +292,6 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     )
 
   suspend fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
-    debugJMM("lin.huang", "removeHistoryMetadata $historyMetadata")
     historyMetadata.taskId?.let { taskId -> jmmNMM.removeDownload(taskId) }
     jmmStore.deleteHistoryMetadata(historyMetadata.metadata.id)
   }

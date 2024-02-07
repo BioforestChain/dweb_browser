@@ -2,12 +2,10 @@ package org.dweb_browser.browser.desk.version
 
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.desk.DesktopController
 import org.dweb_browser.browser.desk.debugDesk
 import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.ext.createChannelOfDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
 import org.dweb_browser.browser.download.ext.existsDownload
@@ -18,8 +16,8 @@ import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.SimpleI18nResource
 import org.dweb_browser.helper.debounce
+import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.isGreaterThan
-import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.sys.device.ext.getDeviceAppVersion
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.ext.requestSystemPermission
@@ -121,35 +119,36 @@ class NewVersionController(private val deskNMM: DeskNMM, val desktopController: 
     debugDesk("NewVersion", "hasNew=${newVersionType.value} => $newVersionItem")
   }
 
-  private suspend fun watchProcess(newVersionItem: NewVersionItem) = newVersionItem.taskId?.let {
-    deskNMM.ioAsyncScope.launch {
-      val ret = deskNMM.createChannelOfDownload(it) {
-        when (downloadTask.status.state) {
-          DownloadState.Completed -> {
-            newVersionItem.updateDownloadTask(downloadTask, store)
-            // 关闭watchProcess
-            channel.close()
-            newVersionItem.pauseFlag = false
-            // 跳转到安装界面
-            if (checkInstallPermission()) { // 先判断是否有权限
-              val realPath = deskNMM.realFile(downloadTask.filepath)
-              newVersionType.value = NewVersionType.Hide
-              manage.installApk(realPath)
-              // 清除保存的新版本信息
-              store.clear()
-              // deskNMM.removeDownload(downloadTask.id) 不能在这边删除
-            } else {
-              debugDesk("NewVersion", "no Install Apk Permission")
-              updateVersionType(NewVersionType.Install)
+  private suspend fun watchProcess(newVersionItem: NewVersionItem) {
+    newVersionItem.taskId?.let { taskId ->
+      newVersionItem.alreadyWatch = true
+      deskNMM.ioAsyncScope.launch {
+        val ret = deskNMM.createChannelOfDownload(taskId) {
+          newVersionItem.updateDownloadTask(downloadTask, store)
+          when (downloadTask.status.state) {
+            DownloadState.Completed -> {
+              // 关闭watchProcess
+              channel.close()
+              newVersionItem.alreadyWatch = false
+              // 跳转到安装界面
+              if (checkInstallPermission()) { // 先判断是否有权限
+                val realPath = deskNMM.realFile(downloadTask.filepath)
+                newVersionType.value = NewVersionType.Hide
+                manage.installApk(realPath)
+                // 清除保存的新版本信息
+                store.clear()
+                // deskNMM.removeDownload(downloadTask.id) 不能在这边删除
+              } else {
+                debugDesk("NewVersion", "no Install Apk Permission")
+                updateVersionType(NewVersionType.Install)
+              }
             }
-          }
 
-          else -> {
-            newVersionItem.updateDownloadTask(downloadTask, store)
+            else -> {}
           }
         }
+        debugDesk("NewVersion", "watch process error=>$ret")
       }
-      debugDesk("NewVersion", "watch process error=>$ret")
     }
   }
 
@@ -171,27 +170,25 @@ class NewVersionController(private val deskNMM: DeskNMM, val desktopController: 
         if (!exists) {
           val taskId = deskNMM.createDownloadTask(url = newVersion.originUrl, external = true)
           newVersion.updateTaskId(taskId, store)
+          watchProcess(newVersion)
         }
         start()
       }
     }
   )
 
-  suspend fun start() = newVersionItem?.let { newVersionItem ->
-    newVersionItem.taskId?.let { taskId ->
-      if (deskNMM.startDownload(taskId)) {
-        newVersionItem.updateState(DownloadState.Downloading, store)
-        if (!newVersionItem.pauseFlag) {
-          newVersionItem.pauseFlag = true
-          watchProcess(newVersionItem)
+  suspend fun start() {
+    newVersionItem?.let { newVersion ->
+      newVersion.taskId?.let { taskId ->
+        if (!newVersion.alreadyWatch) {
+          watchProcess(newVersion)
         }
-        true
-      } else {
-        deskNMM.showToast(NewVersionI18nResource.toast_message_download_fail.text)
-        newVersionItem.updateState(DownloadState.Failed, store)
+        deskNMM.startDownload(taskId).falseAlso {
+          deskNMM.showToast(NewVersionI18nResource.toast_message_download_fail.text)
+        }
       }
-    } ?: false
-  } ?: false
+    }
+  }
 
   suspend fun pause() = newVersionItem?.taskId?.let { deskNMM.pauseDownload(it) } ?: false
 

@@ -41,25 +41,21 @@ data class NewVersionItem(
   var status by ObservableMutableState(_status) { _status = it }
 
   @Transient
-  var pauseFlag: Boolean = false
+  var alreadyWatch: Boolean = false
 
   suspend fun updateTaskId(taskId: TaskId, store: NewVersionStore) {
     this.taskId = taskId
     store.setNewVersion(this)
   }
 
-  suspend fun updateState(state: DownloadState, store: NewVersionStore) {
-    this.status = this.status.copy(state = state)
-    store.setNewVersion(this)
-  }
-
   suspend fun updateDownloadTask(downloadTask: DownloadTask, store: NewVersionStore) {
+    val lastState = this.status.state
     this.status = this.status.copy(
       current = downloadTask.status.current,
       total = downloadTask.status.total,
       state = downloadTask.status.state
     )
-    if (downloadTask.status.state != DownloadState.Downloading) {
+    if (lastState != this.status.state) {
       store.setNewVersion(this)
     }
   }
