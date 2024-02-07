@@ -103,7 +103,7 @@ fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
   }
 
   LazySwipeColumn(
-    items = list, key = { item -> item.originUrl },
+    items = list, key = { item -> item.metadata.id },
     onRemove = { item -> removeHistoryMetadata(item) },
     noDataValue = BrowserI18nResource.no_apps_data(),
     background = { Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) }

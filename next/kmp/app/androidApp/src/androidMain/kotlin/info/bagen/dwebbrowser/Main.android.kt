@@ -82,9 +82,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 安装系统应用
   val jsProcessNMM = JsProcessNMM().setup()
   val multiWebViewNMM = MultiWebViewNMM().setup()
-  val httpNMM = HttpNMM().also { it ->
-    dnsNMM.install(it)
-  }
+  val httpNMM = HttpNMM().setup()
 
   /// 安装系统桌面
   val browserNMM = BrowserNMM().setup()
@@ -121,7 +119,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 振动效果
   val hapticsNMM = HapticsNMM().setup()
   /// 手电筒
-  val torchNMM = TorchNMM().also() { dnsNMM.install(it) }
+  val torchNMM = TorchNMM().setup()
   /// 生物识别
   val biometricsNMM = BiometricsNMM().setup()
   /// 运动传感器

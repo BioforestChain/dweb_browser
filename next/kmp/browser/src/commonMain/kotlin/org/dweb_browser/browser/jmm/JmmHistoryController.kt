@@ -22,7 +22,12 @@ class JmmHistoryController(
       jmmController.historyMetadataMaps.onChange { (changeableType, _, historyMetadata) ->
         when (changeableType) {
           ChangeableType.Add -> {
-            jmmHistoryMetadataList.add(0, historyMetadata!!)
+            historyMetadata?.let {
+              jmmHistoryMetadataList.removeAll {
+                metadata -> metadata.metadata.id == historyMetadata.metadata.id
+              }
+              jmmHistoryMetadataList.add(0, historyMetadata)
+            }
           }
 
           ChangeableType.Remove -> {
@@ -30,6 +35,7 @@ class JmmHistoryController(
           }
 
           ChangeableType.PutAll -> {
+            jmmHistoryMetadataList.clear()
             jmmHistoryMetadataList.addAll(
               jmmController.historyMetadataMaps.toMutableList()
                 .sortedByDescending { it.upgradeTime }
