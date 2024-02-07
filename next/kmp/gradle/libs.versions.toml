@@ -46,7 +46,7 @@ coil-version = "3.0.0-alpha04"
 camera-version = "1.4.0-alpha04"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
-jetbrains-compose-version = "1.6.0-dev1369" # "1.5.11"
+jetbrains-compose-version = "1.6.0-beta02" # "1.5.11"
 
 # 测试
 test-junit-bom = "5.9.2"
