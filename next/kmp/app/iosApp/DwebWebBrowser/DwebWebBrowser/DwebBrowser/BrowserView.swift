@@ -46,14 +46,14 @@ struct BrowserView: View {
                 .onReceive(states.toolBarState.$showMoreMenu) { showMenu in
                     if showMenu {
                         presentSheet = true
-                    }else{
-                        if presentSheet{
+                    } else {
+                        if presentSheet {
                             presentSheet = false
                         }
                     }
                 }
-                .onChange(of: presentSheet) { oldValue, present in
-                    if present == false{
+                .onChange(of: presentSheet) { _, present in
+                    if present == false {
                         states.toolBarState.showMoreMenu = false
                     }
                 }
@@ -72,32 +72,46 @@ struct BrowserView: View {
         }
         .clipped()
     }
-    
-    func doNewTabUrl(url: String, blank: Bool) {
-        if blank {
+
+    func doNewTabUrl(url: String, target: String) {
+        switch target {
+        case AppBrowserTarget._blank.rawValue:
             states.toolBarState.createTabTapped = true
+        case AppBrowserTarget._self.rawValue:
+            break;
+        // TODO: 打开系统浏览器暂未实现
+        case AppBrowserTarget._system.rawValue:
+            if url.isURL(), let searchUrl = URL(string: url) {
+                UIApplication.shared.open(searchUrl)
+                return;
+            }
+            break;
+        default:
+            break
         }
         states.doSearch(url)
     }
-    
-    func doSearch(searchKey: String){
+
+    func doSearch(searchKey: String) {
         states.doSearch(searchKey)
     }
-    func updateColorScheme(color: Int){
+
+    func updateColorScheme(color: Int) {
         states.updateColorScheme(newScheme: color)
     }
-    
+
     func gobackIfCanDo() -> Bool {
         var webCanGoBack = false
         if webcacheStore.cache(at: selectedTab.index).isWebVisible,
-           webcacheStore.webWrappers[selectedTab.index].webView.canGoBack{
+           webcacheStore.webWrappers[selectedTab.index].webView.canGoBack
+        {
             webCanGoBack = true
             webcacheStore.webWrappers[selectedTab.index].webView.goBack()
         }
         return states.doBackIfCan(isWebCanGoBack: webCanGoBack)
     }
-    
-    func resetStates(){
+
+    func resetStates() {
         states.clear()
         selectedTab.index = 0
         webcacheStore.resetWrappers()

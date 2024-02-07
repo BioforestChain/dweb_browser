@@ -74,9 +74,9 @@ data class BrowserPagerState @OptIn(ExperimentalFoundationApi::class) constructo
   val pagerStateNavigator: PagerState, // 用于表示下面搜索框等内容
 )
 
-data class DwebLinkSearchItem(val link: String, val blank: Boolean) {
+data class DwebLinkSearchItem(val link: String, val target: String) {
   companion object {
-    val Empty = DwebLinkSearchItem("", false)
+    val Empty = DwebLinkSearchItem("", "_self")
   }
 }
 
@@ -217,11 +217,11 @@ class BrowserViewModel(
   internal suspend fun openBrowserView(
     search: String? = null,
     url: String? = null,
-    blank: Boolean? = false
+    target: String? = null
   ) {
     // 先判断search是否不为空，然后在判断search是否是地址，
-    debugBrowser("openBrowserView", "search=$search, url=$url")
-    dwebLinkSearch.value = DwebLinkSearchItem(search ?: url ?: ConstUrl.BLANK.url, blank ?: false)
+    debugBrowser("openBrowserView", "search=$search, url=$url, target=$target")
+    dwebLinkSearch.value = DwebLinkSearchItem(search ?: url ?: ConstUrl.BLANK.url, target ?: "_self")
   }
 
   /**

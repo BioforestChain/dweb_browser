@@ -143,8 +143,8 @@ class BrowserController(
 
   var viewModel = BrowserViewModel(this, browserNMM, browserServer)
 
-  suspend fun openBrowserView(search: String? = null, url: String? = null, blank: Boolean? = false) = winLock.withLock {
-    viewModel.openBrowserView(search, url, blank)
+  suspend fun openBrowserView(search: String? = null, url: String? = null, target: String? = null) = winLock.withLock {
+    viewModel.openBrowserView(search, url, target)
   }
 
   /**

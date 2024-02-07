@@ -87,8 +87,8 @@ public extension DwebWebView {
         browerView?.doSearch(searchKey: key)
     }
     
-    @objc func doNewTabUrl(url: String, blank: Bool) {
-        browerView?.doNewTabUrl(url: url, blank: blank)
+    @objc func doNewTabUrl(url: String, target: String) {
+        browerView?.doNewTabUrl(url: url, target: target)
     }
     
     @objc func colorSchemeChanged(color: Int32) {

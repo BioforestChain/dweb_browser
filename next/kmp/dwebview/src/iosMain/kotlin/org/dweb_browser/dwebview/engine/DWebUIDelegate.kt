@@ -98,7 +98,12 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
             if (urlScheme == "dweb") {
               engine.remoteMM.nativeFetch(url)
             } else if (isWebUrlScheme(urlScheme)) {
-              engine.remoteMM.nativeFetch("dweb://openinbrowser?url=${url}&blank=${forNavigationAction.targetFrame == null}")
+              var target = "_self"
+              if(forNavigationAction.targetFrame == null) {
+                target = "_blank"
+              }
+
+              engine.remoteMM.nativeFetch("dweb://openinbrowser?url=${url}&target=$target")
             }
           }
           null

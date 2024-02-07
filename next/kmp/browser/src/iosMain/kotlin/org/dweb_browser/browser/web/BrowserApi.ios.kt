@@ -12,6 +12,7 @@ import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.util.isUrl
+import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.DwebLinkSearchItem
 import org.dweb_browser.helper.ImageResource
@@ -46,7 +47,7 @@ private var browserObserver = BrowserIosWinObserver(::winVisibleChange, ::winClo
 
 @OptIn(ExperimentalForeignApi::class)
 private fun winClose(): Unit {
-  iOSViewHolder?.let{
+  iOSViewHolder?.let {
     it.browserClear()
   }
   iOSViewHolder = null
@@ -75,6 +76,7 @@ actual fun CommonBrowserView(
         browserViewModel = viewModel
         iOSViewDelegateHolder = this
       }
+
       else -> delegate
     }
   }
@@ -85,6 +87,7 @@ actual fun CommonBrowserView(
         browserViewModel = viewModel
         iOSViewDataSourceHolder = this
       }
+
       else -> dataSource
     }
   }
@@ -109,10 +112,15 @@ actual fun CommonBrowserView(
 
   key(viewModel.dwebLinkSearch.value) {
     if (viewModel.dwebLinkSearch.value.link.isNotEmpty()) {
-      if(viewModel.dwebLinkSearch.value.blank) {
-        iOSView.doNewTabUrlWithUrl(viewModel.dwebLinkSearch.value.link, viewModel.dwebLinkSearch.value.blank)
-      } else {
-        iOSView.doSearchWithKey(viewModel.dwebLinkSearch.value.link)
+      when (viewModel.dwebLinkSearch.value.target) {
+        AppBrowserTarget.BLANK.type, AppBrowserTarget.SYSTEM.type -> iOSView.doNewTabUrlWithUrl(
+          viewModel.dwebLinkSearch.value.link,
+          viewModel.dwebLinkSearch.value.target
+        )
+
+        AppBrowserTarget.SELF.type -> {
+          iOSView.doSearchWithKey(viewModel.dwebLinkSearch.value.link)
+        }
       }
 
       viewModel.dwebLinkSearch.value = DwebLinkSearchItem.Empty

@@ -39,3 +39,15 @@ var lightSnapshotImage = UIImage.snapshotImage(from: URL.lightSnapshot)
 var darkSnapshotImage = UIImage.snapshotImage(from: URL.darkSnapshot)
 
 let webtag = "webtag"
+
+/**
+ * target: The target in which to load the URL, an optional parameter that defaults to _self. (String)
+ *  _self: Opens in the Cordova WebView if the URL is in the white list, otherwise it opens in the InAppBrowser.
+ *  _blank: Opens in the InAppBrowser.
+ *  _system: Opens in the system's web browser.
+ */
+enum AppBrowserTarget: String {
+    case _self = "_self"
+    case _blank = "_blank"
+    case _system = "_system"
+}
