@@ -146,6 +146,7 @@ suspend fun startDwebBrowser(): DnsNMM {
       browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
       deskNMM.mmid,//
       shortcutNMM.mmid, // 为了启动时，注入快捷内容
+      qrCodeScanNMM.mmid,
     )
   ).setup()
 
