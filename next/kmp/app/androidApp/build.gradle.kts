@@ -91,7 +91,7 @@ android {
         .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
       resValue("string", "appName", "Kmp-$userName")
       applicationIdSuffix = ".kmp.$userName"
-      versionNameSuffix = ".kmp.$userName"
+      versionNameSuffix = null // ".kmp.$userName"
     }
   }
 }
