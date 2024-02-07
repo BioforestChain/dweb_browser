@@ -65,7 +65,6 @@ internal fun WindowMenuPanelByAlert(
   }
   if (isShowMenuPanel) {
     val winTheme = LocalWindowControllerTheme.current
-    println("QAQ LocalWindowControllerTheme winTheme=$winTheme")
     AlertDialog(
       onDismissRequest = {
         toggleMenu(false)

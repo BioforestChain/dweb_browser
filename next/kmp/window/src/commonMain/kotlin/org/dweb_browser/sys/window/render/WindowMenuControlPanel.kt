@@ -63,11 +63,8 @@ import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 
 @Composable
 fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
-  val winTheme = LocalWindowControllerTheme.current
-  println("QAQ WindowControlPanel win=$win")
   val winPadding = LocalWindowPadding.current
-  println("QAQ WindowControlPanel winPadding=$winPadding")
-
+  val winTheme = LocalWindowControllerTheme.current
   val isMaximized by win.watchedIsMaximized()
   val winBounds by win.watchedBounds()
   val maxHeight = winBounds.height.dp

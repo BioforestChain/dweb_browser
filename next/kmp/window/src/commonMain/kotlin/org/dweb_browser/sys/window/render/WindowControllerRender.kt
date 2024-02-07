@@ -80,7 +80,6 @@ fun WindowController.Render(
   )
 
   val theme = win.buildTheme();
-  println("QAQ xxxxxx win=$win")
   CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) {
     LocalCompositionChain.current.Provider(
       LocalWindowPadding provides winPadding,

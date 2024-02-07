@@ -41,7 +41,6 @@ internal fun WindowTopBar(
   win: WindowController,
 ) {
   val winPadding = LocalWindowPadding.current;
-  println("QAQ winPadding=$winPadding")
   val contentColor = LocalWindowControllerTheme.current.topContentColor
   Box(
     modifier = Modifier

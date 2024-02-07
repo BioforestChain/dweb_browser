@@ -50,9 +50,14 @@ actual fun NativeBackHandler(
   enabled: Boolean,
   onBack: () -> Unit
 ) {
-  nativeViewController.onGoBack {
-    if (enabled) {
-      onBack()
+  DisposableEffect(Unit){
+    val off = nativeViewController.onGoBack {
+      if (enabled) {
+        onBack()
+      }
+    }
+    onDispose {
+      off()
     }
   }
 }
