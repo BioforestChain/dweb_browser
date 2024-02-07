@@ -15,11 +15,10 @@ interface PureImageLoader {
     fun SmartLoad(
       url: String, maxWidth: Dp, maxHeight: Dp, hook: FetchHook? = null
     ): ImageLoadResult {
-
-        var fixUrl = url
-        if (fixUrl.startsWith("data://localhost/")) {
-          fixUrl = fixUrl.replace("data://localhost/", "data:")
-        }
+      var fixUrl = url
+      if (fixUrl.startsWith("data://localhost/")) {
+        fixUrl = fixUrl.replace("data://localhost/", "data:")
+      }
       val coilImageLoader = LocalCoilImageLoader.current
       val result1 = coilImageLoader.Load(fixUrl, maxWidth, maxHeight, hook)
       if (result1.isError) {

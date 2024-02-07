@@ -1,12 +1,13 @@
 package org.dweb_browser.helper
 
+const val GB = 1024 * 1024 * 1024 // 定义GB的计算常量
+const val MB = 1024 * 1024 // 定义MB的计算常量
+const val KB = 1024 // 定义KB的计算常量
+
 /**
  * 将Long转为带单位的空间值，如1.11 MB
  */
 fun Long.toSpaceSize(): String {
-  val GB = 1024 * 1024 * 1024 // 定义GB的计算常量
-  val MB = 1024 * 1024 // 定义MB的计算常量
-  val KB = 1024 // 定义KB的计算常量
   return if (this > GB) {
     "${((this * 100 / GB) / 100.00f)} GB";
   } else if (this > MB) {

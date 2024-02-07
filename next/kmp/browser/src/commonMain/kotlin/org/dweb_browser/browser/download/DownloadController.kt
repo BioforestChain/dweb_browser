@@ -239,12 +239,11 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
 
     task.mime = mimeFactory(response.headers, task.url)
     // 判断地址是否支持断点
-    val (supportRange, contentLength) = with(response.headers) {
-      Pair(
-        getByIgnoreCase("Accept-Ranges")?.equals("bytes", true) == true,
-        getByIgnoreCase("Content-Length")?.toLong() ?: 1L
-      )
-    }
+    val supportRange =
+      response.headers.getByIgnoreCase("Accept-Ranges")?.equals("bytes", true) == true
+    val contentLength =
+      response.headers.getByIgnoreCase("Content-Length")?.toLong() ?: task.status.total
+
     debugDownload("recoverDownload", "supportRange=$supportRange, contentLength=$contentLength")
     if (supportRange) {
       task.status.current = start
