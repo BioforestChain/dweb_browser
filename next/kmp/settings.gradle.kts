@@ -89,6 +89,7 @@ includeUI("pureCrypto")
 includeUI("helper")
 if (enableAndroidApp) {
   includeApp("androidApp")
+  includeApp("androidBenchmark")
 }
 if (enableElectronApp) {
   includeApp("jsCommon")
@@ -112,4 +113,3 @@ File(
       }
     }
   }
-include(":benchmark")

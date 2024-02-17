@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-  namespace = "com.example.benchmark"
+  namespace = "info.bagen.dwebbrowser.benchmark"
   compileSdk = 34
 
   compileOptions {
@@ -44,6 +44,7 @@ dependencies {
   implementation(libs.espresso.core)
   implementation(libs.uiautomator)
   implementation(libs.benchmark.macro.junit4)
+  implementation(project(":browser"))
 }
 
 androidComponents {

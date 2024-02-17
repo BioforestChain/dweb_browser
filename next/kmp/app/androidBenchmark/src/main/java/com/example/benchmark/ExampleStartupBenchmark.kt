@@ -1,11 +1,12 @@
 package com.example.benchmark
 
-import androidx.benchmark.macro.CompilationMode
 import androidx.benchmark.macro.StartupMode
 import androidx.benchmark.macro.StartupTimingMetric
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.uiautomator.By
+import org.dweb_browser.browser.BrowserI18nResource
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,6 +37,10 @@ class ExampleStartupBenchmark {
   ) {
     pressHome()
     startActivityAndWait()
+    device.findObject(By.text(BrowserI18nResource.privacy_button_agree.text)).click()
+    device.waitForIdle()
+    device.findObject(By.text(BrowserI18nResource.browser_short_name.text)).click()
+    device.waitForIdle()
   }
 }
 
