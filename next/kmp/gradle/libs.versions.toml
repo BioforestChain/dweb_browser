@@ -29,10 +29,10 @@ androidx-biometric = "1.2.0-alpha05"
 ktor-version = "2.3.8"
 ktor-wasm-version = "3.0.0-wasm2"
 
-kotlinx-coroutines = "1.7.3"
+kotlinx-coroutines = "1.8.0"
 kotlinx-datetime-version = "0.5.0"
 kotlinx-atomicfu-version = "0.23.2"
-kotlinx-io-version = "0.3.0"
+kotlinx-io-version = "0.3.1"
 kotlinx-html-version = "0.11.0"
 okio-version = "3.7.0"
 cryptography-version = "0.2.0"
@@ -46,14 +46,14 @@ coil-version = "3.0.0-alpha04"
 camera-version = "1.4.0-alpha04"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
-jetbrains-compose-version = "1.6.0-beta02" # "1.5.11"
+jetbrains-compose-version = "1.6.0-rc02" # "1.5.11"
 
 # 测试
 test-junit-bom = "5.9.2"
-animation-core-android = "1.6.0"
-material3Android = "1.2.0-rc01"
+animation-core-android = "1.6.1"
+material3Android = "1.2.0"
 
-kotlinxSerializationVersion = "1.6.2"
+kotlinx-serialization = "1.6.3"
 
 # jna
 java-jna-version = "5.13.0"
@@ -151,12 +151,11 @@ ktor-io-wasm = { group = "io.ktor", name = "ktor-io", version.ref = "ktor-wasm-v
 ktor-http-wasm = { group = "io.ktor", name = "ktor-http", version.ref = "ktor-wasm-version" }
 
 # JavaScript
-kotlin-js = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-js", version = "1.0.0-pre.690" }
-kotlin-browser = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-browser", version = "1.0.0-pre.690" }
-kotlin-web = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-web", version = "1.0.0-pre.690" }
-kotlin-node = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-node", version = "20.11.5-pre.690" }
-kotlin-electron = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-electron", version = "24.6.3-pre.690" }
-
+kotlin-js = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-js", version = "1.0.0-pre.697" }
+kotlin-browser = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-browser", version = "1.0.0-pre.697" }
+kotlin-web = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-web", version = "1.0.0-pre.697" }
+kotlin-node = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-node", version = "20.11.5-pre.697" }
+kotlin-electron = { group = "org.jetbrains.kotlin-wrappers", name = "kotlin-electron", version = "24.6.3-pre.697" }
 
 accompanist-webview = { group = "com.google.accompanist", name = "accompanist-webview", version.ref = "accompanist" }
 accompanist-navigation-material = { group = "com.google.accompanist", name = "accompanist-navigation-material", version.ref = "accompanist" }
@@ -169,8 +168,8 @@ google-material = { group = "com.google.android.material", name = "material", ve
 google-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "google-location" }
 # 数据 json
 data-gson = { group = "com.google.code.gson", name = "gson", version.ref = "data-gson" }
-kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationVersion" }
-kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-cbor", version.ref = "kotlinxSerializationVersion" }
+kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-cbor", version.ref = "kotlinx-serialization" }
 # 加载图片 coil
 coil-core = { group = "io.coil-kt.coil3", name = "coil", version.ref = "coil-version" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil-version" }
