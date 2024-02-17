@@ -44,3 +44,4 @@ plaoc/cli/bin
 
 # rust
 next/kmp/ziplib/uniffi/target
+next/kmp/app/androidApp/key.properties

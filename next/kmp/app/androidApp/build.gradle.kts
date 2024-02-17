@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
+import java.util.Properties
 
 plugins {
   id("target-compose")
@@ -35,6 +36,13 @@ kotlin {
     }
   }
 }
+
+val keystoreProperties = Properties()
+val keystorePropertiesFile = project.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+  keystoreProperties.load(keystorePropertiesFile.inputStream())
+}
+
 android {
   namespace = "info.bagen.dwebbrowser"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
@@ -70,6 +78,11 @@ android {
       enableV2Signing = true
       enableV3Signing = false
       enableV4Signing = false
+
+      keyAlias = keystoreProperties["keyAlias"]?.toString()
+      keyPassword = keystoreProperties["keyPassword"]?.toString()
+      storeFile = keystoreProperties["storeFile"]?.let { file(it.toString()) }
+      storePassword = keystoreProperties["storePassword"]?.toString()
     }
   }
 
