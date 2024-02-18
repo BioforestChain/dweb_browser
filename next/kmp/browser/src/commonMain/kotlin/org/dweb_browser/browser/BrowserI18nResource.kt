@@ -153,6 +153,7 @@ object BrowserI18nResource {
   val browser_multi_startup = SimpleI18nResource(Language.ZH to "起始页", Language.EN to "Start")
   val browser_multi_no_title =
     SimpleI18nResource(Language.ZH to "无标题", Language.EN to "No Title")
+  val search_short_name = SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search")
 
   val toast_message_add_book =
     SimpleI18nResource(Language.ZH to "添加书签成功", Language.EN to "Add Book Success")
