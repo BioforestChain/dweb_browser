@@ -46,6 +46,7 @@ class ExampleStartupBenchmark {
 
 /**
  * 产生 baseline profile 文件
+ * TODO 运行下面的 startup 前，需要进入 androidApp 的 build.gradle 修改 release 的 signingConfig 为 debug
  * 路径 build/outputs/connected_android_test_additional_output/benchmark/connected/AVD/BaselineProfileGenerator_startup-baseline-prof-2023-02-14-09-39-28.txt
  */
 @RunWith(AndroidJUnit4::class)
