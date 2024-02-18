@@ -1,11 +1,7 @@
 {
   "importMap": "./import_map.json",
   "lock": false,
-  "exclude": [
-    "dist/",
-    "bundle/",
-    "build/"
-  ],
+  "exclude": ["dist/", "bundle/", "build/"],
   "tasks": {
     "build": "deno task build:client && deno task build:server && deno task build:cli && deno task cp:cli",
     "build:client": "deno run -A ./scripts/npm-build.ts client",
@@ -30,31 +26,19 @@
     "strictNullChecks": true,
     "noImplicitOverride": true,
     "experimentalDecorators": true,
-    "types": [
-      "deno-ns"
-    ],
-    "lib": [
-      "dom",
-      "deno.window"
-    ]
+    "types": ["deno-ns"],
+    "lib": ["dom", "deno.window"]
   },
   "lint": {
     "rules": {
-      "exclude": [
-        "no-namespace",
-        "no-empty-interface",
-        "require-await",
-        "ban-ts-comment"
-      ]
+      "exclude": ["no-namespace", "no-empty-interface", "require-await", "ban-ts-comment"]
     }
   },
   "fmt": {
-    "options": {
-      "useTabs": false,
-      "lineWidth": 120,
-      "indentWidth": 2,
-      "singleQuote": false,
-      "proseWrap": "preserve"
-    }
+    "useTabs": false,
+    "lineWidth": 120,
+    "indentWidth": 2,
+    "singleQuote": false,
+    "proseWrap": "preserve"
   }
 }
