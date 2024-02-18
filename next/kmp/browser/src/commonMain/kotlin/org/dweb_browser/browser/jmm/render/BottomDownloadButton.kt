@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JmmStatus
@@ -26,6 +27,7 @@ import org.dweb_browser.browser.jmm.JmmStatusEvent
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jmm.LocalJmmInstallerController
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
+import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.produceEvent
 import org.dweb_browser.helper.toSpaceSize
 
@@ -117,7 +119,13 @@ internal fun BoxScope.BottomDownloadButton() {
               horizontalArrangement = Arrangement.Center
             ) {
               AutoResizeTextContainer(Modifier.weight(1f)) {
-                Text(text = label, textAlign = TextAlign.Center)
+                Text(
+                  text = label,
+                  textAlign = TextAlign.Center,
+                  softWrap = false,
+                  maxLines = 1,
+                  overflow = TextOverflow.Visible
+                )
               }
               Text(
                 text = info,
