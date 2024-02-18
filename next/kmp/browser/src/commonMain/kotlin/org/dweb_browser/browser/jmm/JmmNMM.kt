@@ -135,7 +135,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
       getMainWindow().apply {
         setStateFromManifest(this@JmmNMM)
         state.keepBackground = true/// 保持在后台运行
-//        jmmController.openHistoryView(this)
+        jmmController.openHistoryView(this)
       }
     }
   }

@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.jmm
 
+import androidx.compose.runtime.mutableStateMapOf
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -19,7 +20,6 @@ import org.dweb_browser.browser.download.ext.existsDownload
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
-import org.dweb_browser.browser.download.model.ChangeableMutableMap
 import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
@@ -46,15 +46,17 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   // 构建jmm历史记录
-  val historyMetadataMaps: ChangeableMutableMap<String, JmmHistoryMetadata> = ChangeableMutableMap()
+  val historyMetadataMaps: MutableMap<String, JmmHistoryMetadata> = mutableStateMapOf()
 
   // 构建历史的controller
   private val historyController = JmmHistoryController(jmmNMM, this)
 
   // 打开历史界面
   suspend fun openHistoryView(win: WindowController) = historyController.openHistoryView(win)
+
   suspend fun loadHistoryMetadataUrl() {
     val loadMap = jmmStore.getAllHistoryMetadata()
+    historyMetadataMaps.clear()
     if (loadMap.filter { (key, value) -> key != value.metadata.id }.isNotEmpty()) {
       // 为了替换掉旧数据，旧数据使用originUrl来保存的，现在改为mmid，add by 240201
       val saveMap = mutableMapOf<String, MutableList<JmmHistoryMetadata>>()
@@ -70,7 +72,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     } else {
       historyMetadataMaps.putAll(loadMap)
     }
-    historyMetadataMaps.forEach { key, historyMetadata ->
+    historyMetadataMaps.forEach { (key, historyMetadata) ->
       if (historyMetadata.state.state.valueIn(JmmStatus.Downloading, JmmStatus.Paused)) {
         // 获取下载的进度，如果进度 >= 0 表示有下载
         val current = historyMetadata.taskId?.let { jmmNMM.currentDownload(it) } ?: -1L
@@ -171,7 +173,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
 
     debugJMM("openInstallerView", historyMetadata)
     if (save) { // 只有需要存储的时候才存起来
-      historyMetadataMaps.put(historyMetadata.metadata.id, historyMetadata)
+      historyMetadataMaps[historyMetadata.metadata.id] = historyMetadata
       jmmStore.saveHistoryMetadata(
         historyMetadata.metadata.id,
         historyMetadata
@@ -301,6 +303,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
 
 
   suspend fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
+    historyMetadataMaps.remove(historyMetadata.metadata.id)
     historyMetadata.taskId?.let { taskId -> jmmNMM.removeDownload(taskId) }
     jmmStore.deleteHistoryMetadata(historyMetadata.metadata.id)
   }

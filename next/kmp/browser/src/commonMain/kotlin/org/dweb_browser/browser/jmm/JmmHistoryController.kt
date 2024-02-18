@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jmm
 
 import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.download.model.ChangeableType
 import org.dweb_browser.browser.jmm.ui.ManagerViewRender
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.sys.window.core.WindowController
@@ -16,39 +15,7 @@ class JmmHistoryController(
   private val jmmNMM: JmmNMM, private val jmmController: JmmController
 ) {
   val jmmHistoryMetadataList: MutableList<JmmHistoryMetadata> = mutableStateListOf()
-
-  init {
-    jmmController.ioAsyncScope.launch {
-      jmmController.historyMetadataMaps.onChange { (changeableType, _, historyMetadata) ->
-        when (changeableType) {
-          ChangeableType.Add -> {
-            historyMetadata?.let {
-              jmmHistoryMetadataList.removeAll {
-                metadata -> metadata.metadata.id == historyMetadata.metadata.id
-              }
-              jmmHistoryMetadataList.add(0, historyMetadata)
-            }
-          }
-
-          ChangeableType.Remove -> {
-            jmmHistoryMetadataList.remove(historyMetadata!!)
-          }
-
-          ChangeableType.PutAll -> {
-            jmmHistoryMetadataList.clear()
-            jmmHistoryMetadataList.addAll(
-              jmmController.historyMetadataMaps.toMutableList()
-                .sortedByDescending { it.upgradeTime }
-            )
-          }
-
-          ChangeableType.Clear -> {
-            jmmHistoryMetadataList.clear()
-          }
-        }
-      }
-    }
-  }
+  fun getHistoryMetadataMap() = jmmController.historyMetadataMaps
 
   suspend fun close() {
     jmmNMM.getMainWindow().hide()
@@ -97,7 +64,6 @@ class JmmHistoryController(
 
   fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
     jmmNMM.ioAsyncScope.launch {
-      jmmHistoryMetadataList.remove(historyMetadata)
       jmmController.removeHistoryMetadata(historyMetadata)
     }
   }
