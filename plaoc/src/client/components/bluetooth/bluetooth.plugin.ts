@@ -1,6 +1,6 @@
 /// <reference path="./web-bluetooth.d.ts"/>
 import { bindThis } from "../../helper/bindThis.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
+import { BasePlugin } from "../base/base.plugin.ts";
 import { $AllWatchControllerItem, $BluetoothPluginListener, $ResponseData } from "./bluetooth.type.ts";
 
 export class BluetoothPlugin extends BasePlugin {
@@ -52,9 +52,7 @@ export class BluetoothPlugin extends BasePlugin {
   // 创建监听
   // bluetooth 的状态变化全部通过这个 watch 接受
   private _watch = () => {
-    const url = new URL(BasePlugin.url.replace(/^http:/, "ws:").replace(/^https:/, "wss:"));
-    url.pathname = `${this.mmid}/watch`;
-    const ws = new WebSocket(url);
+    const ws = this.buildChannel("/watch");
     this._ws = ws;
     ws.onerror = (err) => {
       console.error("onerror", err);
@@ -386,8 +384,8 @@ class GattServerDisconnectedEvent extends Event {
   }
 }
 
-class AdvertisementreceivedEvent extends Event {
-  constructor(readonly data: unknown) {
-    super("advertisementreceived");
-  }
-}
+// class AdvertisementreceivedEvent extends Event {
+//   constructor(readonly data: unknown) {
+//     super("advertisementreceived");
+//   }
+// }

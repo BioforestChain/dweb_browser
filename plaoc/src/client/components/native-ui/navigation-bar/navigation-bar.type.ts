@@ -1,4 +1,4 @@
-import { $BarRawState, $BarState, $BarWritableState, BAR_STYLE as NAVIGATION_BAR_STYLE } from "../../base/BarPlugin.ts";
+import { $BarRawState, $BarState, $BarWritableState, BAR_STYLE as NAVIGATION_BAR_STYLE } from "../../base/bar.plugin.ts";
 export { NAVIGATION_BAR_STYLE };
 
 export type $NavigationBarRawState = $BarRawState;

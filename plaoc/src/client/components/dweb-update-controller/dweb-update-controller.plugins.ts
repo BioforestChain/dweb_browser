@@ -2,7 +2,7 @@
 // import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 // import { ListenerCallback } from "../base/BaseEvent.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
+import { BasePlugin } from "../base/base.plugin.ts";
 // import { $MMID } from "../index.ts";
 // import { UpdateControllerEvent, UpdateControllerMap } from "./dweb-update-controller.type.ts";
 

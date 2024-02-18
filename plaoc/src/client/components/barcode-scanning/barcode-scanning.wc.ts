@@ -11,13 +11,6 @@ import {
 } from "./barcode-scanning.type.ts";
 
 const html = String.raw;
-// const asStyle = (cssText: string) => {
-//   const styleText = cssText
-//     .match(/\{([\w\W]*)\}/)![1]
-//     .trim()
-//     .replace(/\n/g, " ");
-//   return styleText;
-// };
 export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   static readonly tagName = "dweb-barcode-scanning";
   readonly plugin = barcodeScannerPlugin;

@@ -2,8 +2,8 @@ import { ReadableStreamIpc } from "dweb/core/ipc-web/index.ts";
 import { IpcHeaders } from "dweb/core/ipc/index.ts";
 import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
-import type { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
+import { BasePlugin } from "../base/base.plugin.ts";
+import type { $BuildRequestWithBaseInit } from "../base/base.type.ts";
 import { $DwebResult } from "../base/base.type.ts";
 
 export class DwebServiceWorkerPlugin extends BasePlugin {

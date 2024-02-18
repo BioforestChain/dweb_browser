@@ -1,4 +1,4 @@
-import { BasePlugin } from "../components/base/BasePlugin.ts";
+import { BasePlugin } from "../components/base/base.plugin.ts";
 import { $Transform, JsonlinesStream } from "./JsonlinesStream.ts";
 import { ReadableStreamOut, streamRead } from "./readableStreamHelper.ts";
 
@@ -32,7 +32,7 @@ export class JsonlinesStreamResponse<RAW, STATE> {
       streamout.controller.enqueue(data);
     };
     ws.onclose = () => {
-      streamout.controller.close();
+      streamout.controller?.close();
     };
     ws.onerror = (event) => {
       streamout.controller.error(event);

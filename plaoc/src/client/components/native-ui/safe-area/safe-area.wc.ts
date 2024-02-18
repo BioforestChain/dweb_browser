@@ -5,14 +5,14 @@ export class HTMLDwebSafeAreaElement extends HTMLElement {
   static readonly tagName = "dweb-safe-area";
   readonly plugin = safeAreaPlugin;
 
-  @cacheGetter()
-  get setState() {
-    return safeAreaPlugin.setStateByKey;
-  }
-  @cacheGetter()
-  get setOverlay() {
-    return safeAreaPlugin.setOverlay;
-  }
+  // @cacheGetter()
+  // get setState() {
+  //   return safeAreaPlugin.setStateByKey;
+  // }
+  // @cacheGetter()
+  // get setOverlay() {
+  //   return safeAreaPlugin.setOverlay;
+  // }
   @cacheGetter()
   get getOverlay() {
     return safeAreaPlugin.getOverlay;

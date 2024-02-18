@@ -2,7 +2,7 @@ import { JsonlinesStreamResponse } from "../../helper/JsonlinesStreamHelper.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { $Callback, Signal } from "../../helper/createSignal.ts";
 import { $Coder } from "../../util/StateObserver.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
+import { BasePlugin } from "../base/base.plugin.ts";
 import { $Axis } from "./motionSensors.type.ts";
 
 export class MotionSensorsPlugin extends BasePlugin {

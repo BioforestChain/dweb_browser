@@ -1,7 +1,7 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { $AgbaColor } from "../../util/color.ts";
 import { $Insets, DOMInsets } from "../../util/insets.ts";
-import { $InsetsRawState, $InsetsState, InsetsPlugin } from "./InsetsPlugin.ts";
+import { $InsetsRawState, $InsetsState, InsetsPlugin } from "./insets.plugin.ts";
 
 /**
  * 条栏的风格

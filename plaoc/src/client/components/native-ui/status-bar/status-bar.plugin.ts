@@ -1,7 +1,7 @@
 import { bindThis } from "../../../helper/bindThis.ts";
 import { DOMInsets } from "../../../util/insets.ts";
-import { BAR_STYLE } from "../../base/BarPlugin.ts";
-import { BasePlugin } from "../../base/BasePlugin.ts";
+import { BAR_STYLE } from "../../base/bar.plugin.ts";
+import { BasePlugin } from "../../base/base.plugin.ts";
 import { windowPlugin } from "../../index.ts";
 import { $StatusBarState, $StatusBarWritableState } from "./status-bar.type.ts";
 /**

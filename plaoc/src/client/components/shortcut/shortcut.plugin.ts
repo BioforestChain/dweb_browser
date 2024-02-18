@@ -1,6 +1,6 @@
 import { encode } from "cbor-x";
 import { bindThis } from "../../helper/bindThis.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
+import { BasePlugin } from "../base/base.plugin.ts";
 import type { ShortcutOption } from "./shortcut.type.ts";
 
 export class ShortcutPlugin extends BasePlugin {

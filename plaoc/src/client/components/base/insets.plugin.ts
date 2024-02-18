@@ -2,7 +2,7 @@ import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { $Insets, DOMInsets, domInsetsToJson, insetsToDom } from "../../util/insets.ts";
 import { $Coder, StateObserver } from "../../util/StateObserver.ts";
-import { BasePlugin } from "./BasePlugin.ts";
+import { BasePlugin } from "./base.plugin.ts";
 
 export interface $InsetsRawState {
   overlay: boolean;

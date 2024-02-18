@@ -1,5 +1,5 @@
 import { $Callback, Signal } from "../../helper/createSignal.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
+import { BasePlugin } from "../base/base.plugin.ts";
 import { WindowModalController } from "./WindowModalController.ts";
 import { $BottomSheetsModal, $ModalCallback } from "./window.type.ts";
 

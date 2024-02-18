@@ -1,5 +1,5 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { BaseEvent, Tkit } from "../base/BaseEvent.ts";
+import { BaseEvent, Tkit } from "../base/base-event.ts";
 import { ConnectionStatus, ConnectionType, NetworkStatusMap } from "./network.type.ts";
 
 declare global {

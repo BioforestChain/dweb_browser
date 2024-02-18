@@ -6,7 +6,7 @@ import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { $Callback, Signal } from "../../helper/createSignal.ts";
 import { ReadableStreamOut, binaryStreamRead } from "../../helper/readableStreamHelper.ts";
 import { $Coder, StateObserver } from "../../util/StateObserver.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
+import { BasePlugin } from "../base/base.plugin.ts";
 import { WindowAlertController } from "./WindowAlertController.ts";
 import { WindowBottomSheetsController } from "./WindowBottomSheetsController.ts";
 import type {
@@ -138,7 +138,7 @@ export class WindowPlugin extends BasePlugin {
       streamout.controller.enqueue(data);
     };
     ws.onclose = async () => {
-      streamout.controller.close();
+      streamout.controller?.close();
     };
     ws.onerror = async (event) => {
       streamout.controller.error(event);

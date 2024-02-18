@@ -1,4 +1,4 @@
-import { $InsetsRawState, $InsetsState, $InsetsWritableState } from "../../base/InsetsPlugin.ts";
+import { $InsetsRawState, $InsetsState, $InsetsWritableState } from "../../base/insets.plugin.ts";
 
 export interface $VirtualKeyboardRawState extends $InsetsRawState {}
 export interface $VirtualKeyboardState extends $InsetsState {}

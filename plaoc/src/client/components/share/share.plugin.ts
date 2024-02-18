@@ -3,7 +3,7 @@ import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { FileData, FileDataEncode, normalToBase64String } from "../../util/file.ts";
 import { BaseResult } from "../../util/response.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
+import { BasePlugin } from "../base/base.plugin.ts";
 import { type ImageBlobOptions, type ShareOptions } from "./share.type.ts";
 export class SharePlugin extends BasePlugin {
   constructor() {

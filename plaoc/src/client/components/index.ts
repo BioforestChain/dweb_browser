@@ -6,7 +6,7 @@ export { createMockModuleServerIpc } from "../common/websocketIpc.ts";
 export * from "./barcode-scanning/index.ts";
 export * from "./biometrics/index.ts";
 // export * from "./bluetooth/index.ts";
-export * from "./base/BasePlugin.ts";
+export * from "./base/base.plugin.ts";
 export * from "./clipboard/index.ts";
 export * from "./close-watcher/index.ts";
 export * from "./config/index.ts";

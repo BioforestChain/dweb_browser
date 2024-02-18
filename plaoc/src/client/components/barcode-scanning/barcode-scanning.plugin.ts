@@ -1,6 +1,6 @@
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
+import { BasePlugin } from "../base/base.plugin.ts";
 import { BarcodeResult, SupportedFormat } from "./barcode-scanning.type.ts";
 export class BarcodeScannerPlugin extends BasePlugin {
   constructor() {
@@ -8,9 +8,9 @@ export class BarcodeScannerPlugin extends BasePlugin {
   }
   /**
    * 识别二维码
-   * @param data 
-   * @param rotation 
-   * @param formats 
+   * @param data
+   * @param rotation
+   * @param formats
    * @returns string[]
    * @since 1.0.0
    */
@@ -20,9 +20,9 @@ export class BarcodeScannerPlugin extends BasePlugin {
 
   /**
    * 识别二维码
-   * @param data 
-   * @param rotation 
-   * @param formats 
+   * @param data
+   * @param rotation
+   * @param formats
    * @returns BarcodeResult[]
    * @since 2.0.0
    */
@@ -48,21 +48,8 @@ export class BarcodeScannerPlugin extends BasePlugin {
    * @since 2.0.0
    */
   @bindThis
-  async createProcesser(formats = SupportedFormat.QR_CODE) {
-    const wsUrl = this.buildApiRequest("/process", {
-      search: {
-        formats,
-      },
-      method: "GET",
-    }).url.replace("http", "ws");
-    const ws = new WebSocket(wsUrl);
-    ws.binaryType = "blob";
-    await new Promise((resolve, reject) => {
-      ws.onopen = resolve;
-      ws.onerror = reject;
-      ws.onclose = reject;
-    });
-
+  async createProcesser() {
+    const ws = await this.buildChannel("/process");
     ws.onmessage = async (ev) => {
       const lock = locks.shift();
       const data = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();

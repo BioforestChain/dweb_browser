@@ -1,5 +1,5 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
+import { BasePlugin } from "../base/base.plugin.ts";
 import { dwebServiceWorker } from "../index.ts";
 
 export class ConfigPlugin extends BasePlugin {

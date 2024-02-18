@@ -9,7 +9,7 @@ import org.dweb_browser.helper.datetimeNow
 @Serializable
 data class GeolocationPositionState(val code: Int, val message: String?) {
   companion object {
-    val Success = GeolocationPositionState(0, "Success")
+    val Success = GeolocationPositionState(0, "success")
     val PERMISSION_DENIED = GeolocationPositionState(1, "permission denied")
     val POSITION_UNAVAILABLE = GeolocationPositionState(2, "position unavailable")
     val TIMEOUT = GeolocationPositionState(3, "timeout")

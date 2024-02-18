@@ -2,10 +2,11 @@ import type { $MMID } from "dweb/core/types.ts";
 import { X_PLAOC_QUERY } from "../../common/const.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
+import { $BuildChannelWithBaseInit, $BuildRequestWithBaseInit } from "./base.type.ts";
 
 export abstract class BasePlugin {
   private static urlData = new URLSearchParams(location.search);
-  static api_url = location.origin.replace("//www","//api");
+  static api_url = location.origin.replace("//www", "//api");
   static external_url = BasePlugin.getUrl(X_PLAOC_QUERY.EXTERNAL_URL);
 
   constructor(readonly mmid: $MMID) {}
@@ -17,6 +18,21 @@ export abstract class BasePlugin {
     const url = new URL(init?.base ?? BasePlugin.api_url);
     url.pathname = `${init?.pathPrefix ?? this.mmid}${pathname}`;
     return buildRequest(url, init);
+  }
+
+  async buildChannel(pathname: string, init?: $BuildChannelWithBaseInit) {
+    const url = new URL(init?.base ?? BasePlugin.api_url);
+    url.pathname = `${init?.pathPrefix ?? this.mmid}${pathname}`;
+    url.protocol = url.protocol.replace("http", "ws");
+    const ws = new WebSocket(url);
+    ws.binaryType = init?.binaryType ?? "blob";
+    await new Promise((resolve, reject) => {
+      ws.onopen = resolve;
+      ws.onerror = reject;
+      ws.onclose = reject;
+    });
+
+    return ws;
   }
 
   protected createSignal = createSignal;
@@ -34,10 +50,6 @@ export abstract class BasePlugin {
     localStorage.setItem("url:" + urlType, url);
     return url;
   }
-}
-
-export interface $BuildRequestWithBaseInit extends $BuildRequestInit {
-  base?: string;
 }
 
 if (typeof HTMLElement !== "function") {

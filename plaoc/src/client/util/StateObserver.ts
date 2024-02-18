@@ -1,4 +1,4 @@
-import { BasePlugin } from "../components/base/BasePlugin.ts";
+import { BasePlugin } from "../components/base/base.plugin.ts";
 import { $Transform, JsonlinesStream } from "../helper/JsonlinesStream.ts";
 import { bindThis } from "../helper/bindThis.ts";
 import { $Callback, createSignal } from "../helper/createSignal.ts";
@@ -34,7 +34,7 @@ export class StateObserver<RAW, STATE> {
       streamout.controller.enqueue(data);
     };
     ws.onclose = async () => {
-      streamout.controller.close();
+      streamout.controller?.close();
     };
     ws.onerror = async (event) => {
       streamout.controller.error(event);

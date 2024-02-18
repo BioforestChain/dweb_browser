@@ -1,5 +1,5 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { ListenerCallback } from "../base/BaseEvent.ts";
+import { ListenerCallback } from "../base/base-event.ts";
 import { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
 import { PlaocEvent } from "./IpcEvent.ts";
 import { dwebServiceWorkerPlugin } from "./dweb-service-worker.plugin.ts";
