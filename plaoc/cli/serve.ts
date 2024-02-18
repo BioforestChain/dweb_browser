@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import { Command, EnumType, colors, createHash } from "./deps.ts";
@@ -29,13 +30,12 @@ export const doServeCommand = new Command()
   .option("-d --dev <dev:boolean>", "Enable development mode.", {
     default: true,
   })
-  .action((options, arg1) => {
-    doServe({ ...options, webPublic: arg1 } satisfies $ServeOptions);
+  .action(async (options, arg1) => {
+    await startServe({ ...options, webPublic: arg1 } satisfies $ServeOptions);
   });
 
 export const doServe = async (flags: $ServeOptions) => {
   const port = +flags.port;
-
   if (Number.isFinite(port) === false) {
     throw new Error(`need input '--port 8080'`);
   }
@@ -46,6 +46,8 @@ export const doServe = async (flags: $ServeOptions) => {
   }
 
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
+  // 获取manifest.json文件路径，用于监听变化时重启服务
+  const menifestFilePath = metadataFlagHelper.metadataFilepaths.filter((item) => item.endsWith("manifest.json") && fs.existsSync(item))?.[0];
   // 注入plaoc.json
   const plaocHelper = new PlaocJsonGenerator(flags);
   // 尝试注入可编程后端
@@ -55,7 +57,7 @@ export const doServe = async (flags: $ServeOptions) => {
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   /// 启动http服务器
-  http
+  const server = http
     .createServer(async (req, res) => {
       if (req.method && req.url) {
         console.log(colors.blue(req.method), colors.green(req.url));
@@ -118,8 +120,30 @@ export const doServe = async (flags: $ServeOptions) => {
         );
         // console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.bundleName}`)
       }
-    })
-    .on("close", () => {
-      Deno.exit(1);
     });
+  // .on("close", () => {
+  //   Deno.exit(1);
+  // });
+
+  return { server, menifestFilePath };
+};
+
+const startServe = async (flags: $ServeOptions) => {
+  const { server, menifestFilePath } = await doServe(flags);
+  server.once("restart", () => {
+    server.once("close", async () => {
+      await startServe(flags);
+    });
+    server.close();
+  });
+
+  fs.watch(menifestFilePath, (eventname, filename) => {
+    if (eventname === "change" && filename.endsWith("manifest.json")) {
+      // \x1b[3J 清除所有内容
+      // \x1b[H 把光标移动到行首
+      // \x1b[2J 清除所有内容
+      console.log('\x1b[3J\x1b[H\x1b[2J');
+      server.emit("restart", []);
+    }
+  });
 };
