@@ -107,7 +107,6 @@ class PureViewController(
         }
       }
       ComposeUIViewController({
-        platformLayers = false
         delegate = object : ComposeUIViewControllerDelegate {
           // 视图被加载后立即调用
           override fun viewDidLoad() {
