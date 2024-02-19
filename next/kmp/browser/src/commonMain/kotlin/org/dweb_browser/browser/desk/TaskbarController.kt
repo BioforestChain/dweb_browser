@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
+import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
@@ -175,6 +176,13 @@ class TaskbarController private constructor(
     taskbarServer.startResult.urlInfo.buildInternalUrl().build {
       resolvePath("/taskbar.html")
     }
+
+  fun getTaskbarDWebViewOptions() = DWebViewOptions(
+    url = getTaskbarUrl().toString(),
+    privateNet = true,
+    detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
+    tag = 2,
+  )
 
   @Serializable
   data class ReSize(val width: Float, val height: Float)

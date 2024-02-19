@@ -15,8 +15,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -30,7 +30,6 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.platform.IPureViewBox
@@ -53,23 +52,27 @@ open class DesktopController private constructor(
       }
       field = value
 
-      if (_desktopView.isResolved) {
-        _desktopView = PromiseOut()
+      if (_desktopView.isCompleted) {
+        _desktopView = CompletableDeferred()
       }
       if (value != null) {
-        _desktopView.resolve(
-          deskNMM.ioAsyncScope.async { createDesktopView(value) },
-          deskNMM.ioAsyncScope
-        )
+        deskNMM.ioAsyncScope.launch {
+          runCatching {
+            _desktopView.complete(createDesktopView(value))
+          }.onFailure {
+            _desktopView.completeExceptionally(it)
+          }
+        }
       }
     }
-  private var _desktopView = PromiseOut<IDWebView>()
+  private var _desktopView = CompletableDeferred<IDWebView>()
   private suspend fun createDesktopView(activity: IPureViewController): IDWebView {
     val options = DWebViewOptions(
       url = getDesktopUrl().toString(),
       privateNet = true,
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
+      tag = 1
     );
     val webView = activity.createDwebView(deskNMM, options)
     // 隐藏滚动条
@@ -77,7 +80,7 @@ open class DesktopController private constructor(
     return webView
   }
 
-  private suspend fun desktopView() = _desktopView.waitPromise()
+  private suspend fun desktopView() = _desktopView.await()
 
   @Composable
   fun DesktopView(content: @Composable IDWebView.() -> Unit) {

@@ -92,36 +92,13 @@ fun timeEnd(label: String) {
 private val debugTagsRegex = mutableSetOf<Regex>()
 private val debugTags = mutableSetOf<String>()
 
-class addDebugTags {
-  suspend fun invoke(tags: Iterable<String>) {
-    for (tag in tags) {
-      if (tag.isEmpty()) {
-        continue
-      }
-      if (tag.startsWith('/') && tag.endsWith('/')) {
-        println("DEBUG!! ${tag.slice(1 until tag.length - 2)}")
-        debugTagsRegex.add(Regex(tag.slice(1 until tag.length - 2)))
-      } else {
-        debugTags.add(tag.trim())
-      }
-    }
-  }
-
-  companion object {
-    init {
-      // TODO: System.getProperty 未处理
-//      addDebugTags((System.getProperty("dweb-debug") ?: "").split(" "))
-    }
-  }
-}
-
 fun addDebugTags(tags: Iterable<String>) {
   for (tag in tags) {
     if (tag.isEmpty()) {
       continue
     }
     if (tag.startsWith('/') && tag.endsWith('/')) {
-      debugTagsRegex.add(Regex(tag.slice(1..tag.length - 2)))
+      debugTagsRegex.add(Regex(tag.slice(1..<tag.length - 1)))
     } else {
       debugTags.add(tag.trim())
     }

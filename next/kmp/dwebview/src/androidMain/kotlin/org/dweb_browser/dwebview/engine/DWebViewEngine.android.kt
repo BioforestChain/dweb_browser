@@ -288,6 +288,9 @@ class DWebViewEngine internal constructor(
       debugDWebView("loadInitUrl", options.url)
       loadUrl(options.url)
     }
+    options.tag?.also {
+      this.setTag(it, it)
+    }
   }
 
   /**

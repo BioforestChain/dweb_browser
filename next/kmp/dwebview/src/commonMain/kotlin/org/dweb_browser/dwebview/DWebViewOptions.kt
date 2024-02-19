@@ -31,6 +31,10 @@ data class DWebViewOptions(
    * 默认是走 `dweb://open?url=*`
    */
   val createWindowBehavior: CreateWindowBehavior = CreateWindowBehavior.Deeplink,
+  /**
+   * 标识
+   */
+  var tag: Int? = null
 ) {
 
   enum class DetachedStrategy {

@@ -36,10 +36,10 @@ import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.platform.ios.DwebHelper
-import org.dweb_browser.platform.ios.DwebWKWebView
 import org.dweb_browser.helper.toIosUIEdgeInsets
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.platform.ios.DwebHelper
+import org.dweb_browser.platform.ios.DwebWKWebView
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import platform.CoreGraphics.CGRect
 import platform.Foundation.NSBundle
@@ -250,6 +250,10 @@ class DWebViewEngine(
       UIScrollViewContentInsetAdjustmentBehavior.UIScrollViewContentInsetAdjustmentNever
     scrollView.insetsLayoutMarginsFromSafeArea = true
     scrollView.bounces = false
+
+    options.tag?.toLong()?.also {
+      this.tag = it
+    }
   }
 
 

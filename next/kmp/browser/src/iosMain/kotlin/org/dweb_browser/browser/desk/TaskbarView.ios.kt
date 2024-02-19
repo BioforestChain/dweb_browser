@@ -14,7 +14,6 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.launch
-import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.asIosWebView
@@ -54,11 +53,10 @@ class TaskbarView private constructor(
     @OptIn(ExperimentalForeignApi::class)
     suspend fun from(taskbarController: TaskbarController) = withMainContext {
       val webView = IDWebView.create(
-        CGRectMake(0.0, 0.0, 100.0, 100.0), taskbarController.deskNMM, DWebViewOptions(
-          url = taskbarController.getTaskbarUrl().toString(),
-          privateNet = true,
-          detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore
-        ), WKWebViewConfiguration()
+        CGRectMake(0.0, 0.0, 100.0, 100.0),
+        taskbarController.deskNMM,
+        taskbarController.getTaskbarDWebViewOptions(),
+        WKWebViewConfiguration()
       )
       TaskbarView(taskbarController, webView)
     }

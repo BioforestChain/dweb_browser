@@ -12,7 +12,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.create
@@ -28,11 +27,7 @@ class TaskbarView private constructor(
       val dwebView = IDWebView.create(
         context = getAppContext(),
         remoteMM = taskbarController.deskNMM,
-        options = DWebViewOptions(
-          url = taskbarController.getTaskbarUrl().toString(),
-          detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
-          privateNet = true,
-        )
+        options = taskbarController.getTaskbarDWebViewOptions(),
       )
       return TaskbarView(taskbarController, dwebView)
     }
