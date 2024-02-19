@@ -61,16 +61,11 @@ webkit = "1.10.0"
 
 qiniu-version = "8.6.0"
 junit = "1.1.5"
-espresso-core = "3.5.1"
+espresso = "3.5.1"
 uiautomator = "2.2.0"
 benchmark-macro-junit4 = "1.2.3"
 
 [libraries]
-# AndroidTest
-androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidx-test" }
-androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test", version.ref = "androidx-compose-ui-test" }
-androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "androidx-compose-ui-test" }
-androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "androidx-compose-ui-test" }
 
 # Compose
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
@@ -187,7 +182,12 @@ camera-barcode = { group = "com.google.mlkit", name = "barcode-scanning", versio
 commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress" }
 # 生物识别
 androidx-biometric-ktx = { group = "androidx.biometric", name = "biometric-ktx", version.ref = "androidx-biometric" }
+
 # 测试相关
+androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidx-test" }
+androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test", version.ref = "androidx-compose-ui-test" }
+androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "androidx-compose-ui-test" }
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "androidx-compose-ui-test" }
 test-kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 test-kotlin-coroutines-debug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinx-coroutines" }
 test-junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "test-junit-bom" }
@@ -195,6 +195,15 @@ test-junit-platform-launcher = { group = "org.junit.platform", name = "junit-pla
 test-junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
 test-junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine" }
 test-junit-vintage-engine = { group = "org.junit.vintage", name = "junit-vintage-engine" }
+androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test" }
+androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidx-test" }
+androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+androidx-test-espresso-web = { group = "androidx.test.espresso", name = "espresso-web", version.ref = "espresso" }
+androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
+benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark-macro-junit4" }
+
+
 
 # jna
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "java-jna-version" }
@@ -206,11 +215,6 @@ gradlePlugin-jetbrainsCompose = { group = "org.jetbrains.compose", name = "compo
 
 # 七牛数据
 qiniu-upload = { group = "com.qiniu", name = "qiniu-android-sdk", version.ref = "qiniu-version" }
-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit" }
-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark-macro-junit4" }
-
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-version" }

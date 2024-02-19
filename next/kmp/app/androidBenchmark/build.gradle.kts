@@ -1,4 +1,3 @@
-@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
   id("com.android.test")
   id("org.jetbrains.kotlin.android")
@@ -40,11 +39,14 @@ android {
 }
 
 dependencies {
-  implementation(libs.junit)
-  implementation(libs.espresso.core)
-  implementation(libs.uiautomator)
+  implementation(libs.androidx.test.junit)
+  implementation(libs.androidx.test.runner)
+  implementation(libs.androidx.test.rules)
+  implementation(libs.androidx.test.espresso.core)
+  implementation(libs.androidx.test.espresso.web)
+  implementation(libs.androidx.test.uiautomator)
   implementation(libs.benchmark.macro.junit4)
-  implementation(project(":browser"))
+  implementation(projects.browser)
 }
 
 androidComponents {
