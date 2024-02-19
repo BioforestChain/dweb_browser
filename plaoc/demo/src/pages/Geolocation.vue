@@ -26,10 +26,10 @@ async function createLocation() {
   onLocation();
 }
 function stop() {
-  contoller.closeLocation();
+  contoller.stop();
 }
 function onLocation() {
-  contoller.onLocation((res) => {
+  contoller.listen((res) => {
     console.log("location", res.state.message);
     const coords = res.coords;
     console.log(`经度：${coords.longitude}纬度：${coords.latitude}海拔：${coords.altitude}`);

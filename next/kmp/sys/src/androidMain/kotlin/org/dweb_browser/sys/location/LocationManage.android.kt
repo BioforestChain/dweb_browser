@@ -83,6 +83,9 @@ actual class LocationManage {
     }
   }
 
+  /**
+   *
+   */
   actual suspend fun observeLocation(
     mmid: MMID, fps: Long, precise: Boolean, callback: LocationObserverCallback
   ) {

@@ -20,7 +20,7 @@ export enum $GeolocationCode {
 
 export interface $GeolocationContoller {
   /**不断的监听位置 */
-  onLocation(callback: (position: $GeolocationPosition) => undefined): void;
+  listen(callback: (position: $GeolocationPosition) => undefined): void;
   /**关闭位置监听 */
-  closeLocation(): void;
+  stop(): void;
 }

@@ -283,11 +283,12 @@ export class JsProcessMicroModule implements $MicroModule {
   }
 
   async requestDwebPermissions(permissions: string) {
-    const requestPermissionResult: Record<string, string> = JSON.parse(
-      await (
-        await this.nativeRequest(`file://permission.std.dweb/request?permissions=${encodeURIComponent(permissions)}`)
-      ).body.text()
-    );
+    const res = await (
+      await this.nativeFetch(
+        new URL(`file://permission.std.dweb/request?permissions=${encodeURIComponent(permissions)}`)
+      )
+    ).text();
+    const requestPermissionResult: Record<string, string> = JSON.parse(res);
     return Object.values(requestPermissionResult).every((status) => status === "granted");
   }
 

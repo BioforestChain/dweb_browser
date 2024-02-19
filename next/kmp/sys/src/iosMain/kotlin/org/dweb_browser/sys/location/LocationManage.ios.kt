@@ -74,8 +74,7 @@ actual class LocationManage {
   actual suspend fun getCurrentLocation(precise: Boolean): GeolocationPosition? {
     val promiseOut = PromiseOut<GeolocationPosition>()
     DwebLocationRequestApi().requestLocationWithCompleted { location, code, error ->
-      val geolocation = location as platform.CoreLocation.CLLocation?
-      val geo = iOSLocationConvertToGeoGeolocationPosition(geolocation, code.toInt(), error)
+      val geo = iOSLocationConvertToGeoGeolocationPosition(location, code.toInt(), error)
       promiseOut.resolve(geo)
     }
     return promiseOut.waitPromise()
@@ -86,9 +85,8 @@ actual class LocationManage {
   actual suspend fun observeLocation(
     mmid: MMID, fps: Long, precise: Boolean, callback: LocationObserverCallback
   ) {
-    DwebLocationRequestApi().requestTrack(mmid, fps.toLong()) { location, code, error ->
-      val geolocation = location as platform.CoreLocation.CLLocation?
-      val geo = iOSLocationConvertToGeoGeolocationPosition(geolocation, code.toInt(), error)
+    DwebLocationRequestApi().requestTrack(mmid, fps) { location, code, error ->
+      val geo = iOSLocationConvertToGeoGeolocationPosition(location, code.toInt(), error)
       ioAsyncScope.launch {
         val continueTrack = callback(geo)
         if (!continueTrack) {

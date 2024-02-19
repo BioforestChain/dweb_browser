@@ -10,7 +10,7 @@ export class GeolocationPlugin extends BasePlugin {
   /**
    * 单次获取定位
    * (会自动跟用户申请权限)
-   * @returns
+   * @returns Promise<$GeolocationPosition>
    */
   @bindThis
   getLocation() {
@@ -20,23 +20,26 @@ export class GeolocationPlugin extends BasePlugin {
   /**
    * 创建对位置的不断监听
    * (会自动跟用户申请权限)
+   * @param fps
+   * @param precise
    * @returns Promise<$GeolocationContoller>
    */
-  async createLocation(fps: number): Promise<$GeolocationContoller> {
+  async createLocation(fps?: number, precise = false): Promise<$GeolocationContoller> {
     const ws = await this.buildChannel("/location", {
       search: {
         fps: fps,
+        precise: precise,
       },
     });
     const controller = {
-      onLocation(callback: (position: $GeolocationPosition) => void) {
+      listen(callback: (position: $GeolocationPosition) => void) {
         ws.onmessage = async (ev) => {
           const data = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();
           const res = JSON.parse(data) as $GeolocationPosition;
           callback(res);
         };
       },
-      closeLocation() {
+      stop() {
         ws.close();
       },
     };
