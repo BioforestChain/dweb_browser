@@ -17,6 +17,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.search.SearchEngine
+import org.dweb_browser.browser.search.SearchInject
+import org.dweb_browser.browser.search.ext.checkEngineAndGetHomeLink
+import org.dweb_browser.browser.search.ext.createChannelOfEngines
 import org.dweb_browser.browser.util.isDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.util.isUrlOrHost
@@ -30,7 +34,6 @@ import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
@@ -41,12 +44,10 @@ import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.withMainContext
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.sys.share.ext.postSystemShare
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermission
+import org.dweb_browser.sys.share.ext.postSystemShare
 import org.dweb_browser.sys.toast.ext.showToast
 
 val LocalBrowserModel = compositionChainOf<BrowserViewModel>("BrowserModel")
@@ -84,9 +85,7 @@ val LocalBrowserPageState = compositionChainOf<BrowserPagerState>("LocalBrowserP
 
 @OptIn(ExperimentalFoundationApi::class)
 class BrowserViewModel(
-  private val browserController: BrowserController,
-  val browserNMM: NativeMicroModule,
-  private val browserServer: HttpDwebServer,
+  private val browserController: BrowserController, private val browserNMM: NativeMicroModule,
 ) {
   private var webviewIdAcc by SafeInt(1)
   private val currentBrowserContentItem: MutableState<BrowserContentItem?> = mutableStateOf(null)
@@ -101,13 +100,20 @@ class BrowserViewModel(
     mutableStateOf(browserController.isNoTrace)
   }
 
-  val filterShowEngines
-    get() = browserController.searchEngines.filter { webEngine ->
-      webEngine.checked
-    }
+  val searchInjectList = mutableStateListOf<SearchInject>()
+  val searchEngineList = mutableStateListOf<SearchEngine>()
+  val filterShowEngines get() = searchEngineList.filter { it.enable }
+  fun filterFitUrlEngines(url: String) = searchEngineList.firstOrNull { it.fit(url) }
 
-  fun filterFitUrlEngines(url: String) = browserController.searchEngines.firstOrNull { it.fit(url) }
-  fun getSearchEngines() = browserController.searchEngines
+  fun checkAndSearch(key: String, hide: () -> Unit) = browserNMM.ioAsyncScope.launch  {
+    val homeLink = browserNMM.checkEngineAndGetHomeLink(key) // 将关键字对应的搜索引擎置为有效
+    debugBrowser("checkAndSearch", "homeLink=$homeLink")
+    if (homeLink.isNotEmpty()) { // 使用首页地址直接打开网页
+      hide()
+      searchWebView(homeLink)
+    }
+  }
+
   fun getBookLinks() = browserController.bookLinks
   fun getHistoryLinks() = browserController.historyLinks
   val browserOnVisible = browserController.onWindowVisiable
@@ -174,6 +180,13 @@ class BrowserViewModel(
         browserPagerState?.pagerStateNavigator?.scrollToPage(pagerIndex)
       }
     }
+
+    browserNMM.ioAsyncScope.launch {
+      browserNMM.createChannelOfEngines {
+        searchEngineList.clear()
+        searchEngineList.addAll(engineList)
+      }
+    }
   }
 
   suspend fun updateMultiViewState(show: Boolean, index: Int? = null) {
@@ -223,7 +236,8 @@ class BrowserViewModel(
   ) {
     // 先判断search是否不为空，然后在判断search是否是地址，
     debugBrowser("openBrowserView", "search=$search, url=$url, target=$target")
-    dwebLinkSearch.value = DwebLinkSearchItem(search ?: url ?: ConstUrl.BLANK.url, target ?: "_self")
+    dwebLinkSearch.value =
+      DwebLinkSearchItem(search ?: url ?: ConstUrl.BLANK.url, target ?: "_self")
   }
 
   /**
@@ -384,10 +398,11 @@ class BrowserViewModel(
   /**
    * 存储最后的搜索内容
    */
-  suspend fun saveLastKeyword(inputText: MutableState<String>, url: String) {
-    browserController.saveStringToStore(KEY_LAST_SEARCH_KEY, url)
-    inputText.value = url
-  }
+  fun saveLastKeyword(url: String) =
+    browserNMM.ioAsyncScope.launch {
+      browserController.saveStringToStore(KEY_LAST_SEARCH_KEY, url)
+      searchWebView(url)
+    }
 
   /**
    * 操作书签数据
@@ -443,19 +458,19 @@ class BrowserViewModel(
   /**
    * 搜索引擎
    */
-  fun addSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
-    browserController.searchEngines.add(item)
-    browserController.saveSearchEngines()
-  }
-
-  fun removeSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
-    browserController.searchEngines.remove(item)
-    browserController.saveSearchEngines()
-  }
-
-  fun updateSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
-    browserController.saveSearchEngines()
-  }
+//  fun addSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
+//    browserController.searchEngines.add(item)
+//    browserController.saveSearchEngines()
+//  }
+//
+//  fun removeSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
+//    browserController.searchEngines.remove(item)
+//    browserController.saveSearchEngines()
+//  }
+//
+//  fun updateSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
+//    browserController.saveSearchEngines()
+//  }
 
   suspend fun loadMoreHistory(off: Int) {
     browserController.loadMoreHistory(off)

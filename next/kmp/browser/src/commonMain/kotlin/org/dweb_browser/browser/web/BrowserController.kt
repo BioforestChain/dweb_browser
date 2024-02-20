@@ -14,8 +14,6 @@ import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.browser.web.data.WebLinkStore
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.model.BrowserViewModel
-import org.dweb_browser.browser.web.model.DefaultSearchWebEngine
-import org.dweb_browser.browser.web.model.WebEngine
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.helper.ImageResource
@@ -48,7 +46,7 @@ class BrowserController(
 
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
-  val searchEngines: MutableList<WebEngine> = mutableStateListOf()
+  //  val searchEngines: MutableList<WebEngine> = mutableStateListOf()
   val bookLinks: MutableList<WebSiteInfo> = mutableStateListOf()
   val historyLinks: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf()
   var isNoTrace: Boolean = false
@@ -64,26 +62,26 @@ class BrowserController(
           it.addAll(webSiteInfoList)
         }
       }
-      val engines = browserStore.getSearchEngines()
-      if (engines.isNotEmpty()) {
-        // 下面判断是否在 DefaultSearchWebEngine 有新增，有新增内置，需要补充进去
-        val notExists = DefaultSearchWebEngine.filter { default ->
-          engines.find { engine -> default.host == engine.host } == null
-        }
-        if (notExists.isNotEmpty()) {
-          DefaultSearchWebEngine.forEach { default ->
-            engines.find { it.host == default.host }?.let { engine ->
-              searchEngines.add(engine)
-            } ?: searchEngines.add(default)
-          }
-          browserStore.setSearchEngines(searchEngines)
-        } else {
-          searchEngines.addAll(engines)
-        }
-      } else {
-        searchEngines.addAll(DefaultSearchWebEngine)
-        browserStore.setSearchEngines(searchEngines)
-      }
+//      val engines = browserStore.getSearchEngines()
+//      if (engines.isNotEmpty()) {
+//        // 下面判断是否在 DefaultSearchWebEngine 有新增，有新增内置，需要补充进去
+//        val notExists = DefaultSearchWebEngine.filter { default ->
+//          engines.find { engine -> default.host == engine.host } == null
+//        }
+//        if (notExists.isNotEmpty()) {
+//          DefaultSearchWebEngine.forEach { default ->
+//            engines.find { it.host == default.host }?.let { engine ->
+//              searchEngines.add(engine)
+//            } ?: searchEngines.add(default)
+//          }
+//          browserStore.setSearchEngines(searchEngines)
+//        } else {
+//          searchEngines.addAll(engines)
+//        }
+//      } else {
+//        searchEngines.addAll(DefaultSearchWebEngine)
+//        browserStore.setSearchEngines(searchEngines)
+//      }
     }
   }
 
@@ -105,8 +103,7 @@ class BrowserController(
   suspend fun saveHistoryLinks(key: String, historyLinks: MutableList<WebSiteInfo>) =
     browserStore.setHistoryLinks(key, historyLinks)
 
-  suspend fun saveSearchEngines() =
-    browserStore.setSearchEngines(searchEngines)
+//  suspend fun saveSearchEngines() = browserStore.setSearchEngines(searchEngines)
 
   /**
    * 窗口是单例模式
@@ -141,11 +138,12 @@ class BrowserController(
     }
   }
 
-  var viewModel = BrowserViewModel(this, browserNMM, browserServer)
+  var viewModel = BrowserViewModel(this, browserNMM)
 
-  suspend fun openBrowserView(search: String? = null, url: String? = null, target: String? = null) = winLock.withLock {
-    viewModel.openBrowserView(search, url, target)
-  }
+  suspend fun openBrowserView(search: String? = null, url: String? = null, target: String? = null) =
+    winLock.withLock {
+      viewModel.openBrowserView(search, url, target)
+    }
 
   /**
    * 浏览器添加webLink到桌面

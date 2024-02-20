@@ -39,7 +39,7 @@ enum class SheetState {
 }
 
 enum class PageType {
-  Home, BookManager, EngineList, EngineManger;
+  Home, BookManager; //, EngineList, EngineManger;
 }
 
 enum class PopupViewState(
@@ -71,7 +71,7 @@ enum class PopupViewState(
 
 class ModalBottomModel {
   val state: MutableState<SheetState> = mutableStateOf(SheetState.PartiallyExpanded)
-  val show: MutableState<Boolean> = mutableStateOf(false)
+  val showBottomSheet = mutableStateOf(false)
   val tabIndex = mutableStateOf(PopupViewState.Options)
   val pageType = mutableStateOf(PageType.Home)
   val webSiteInfo: MutableState<WebSiteInfo?> = mutableStateOf(null)
@@ -80,11 +80,11 @@ class ModalBottomModel {
     state.value = SheetState.Hidden
     pageType.value = PageType.Home
     delay(50)
-    show.value = false
+    showBottomSheet.value = false
   }
 
   suspend fun show() {
-    show.value = true
+    showBottomSheet.value = true
     delay(50)
     state.value = SheetState.PartiallyExpanded
   }

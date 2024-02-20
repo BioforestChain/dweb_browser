@@ -30,7 +30,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -38,14 +37,11 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -87,12 +83,10 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.BrowserViewModel
-import org.dweb_browser.browser.web.model.LocalBrowserModel
 import org.dweb_browser.browser.web.model.LocalModalBottomSheet
 import org.dweb_browser.browser.web.model.PageType
 import org.dweb_browser.browser.web.model.PopupViewState
 import org.dweb_browser.browser.web.model.SheetState
-import org.dweb_browser.browser.web.model.WebEngine
 import org.dweb_browser.browser.web.model.toWebSiteInfo
 import org.dweb_browser.helper.PrivacyUrl
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -106,7 +100,7 @@ internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
   val bottomSheetModel = LocalModalBottomSheet.current
   val scope = rememberCoroutineScope()
 
-  if (bottomSheetModel.show.value) {
+  if (bottomSheetModel.showBottomSheet.value) {
     NativeBackHandler {
       scope.launch {
         if (bottomSheetModel.state.value != SheetState.Hidden) {
@@ -214,7 +208,7 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
   val selectedTabIndex = LocalModalBottomSheet.current.tabIndex
   val pageIndex = LocalModalBottomSheet.current.pageType
   val webSiteInfo = LocalModalBottomSheet.current.webSiteInfo
-  val webEngine = remember { mutableStateOf<WebEngine?>(null) }
+//  val searchEngine = remember { mutableStateOf<SearchEngine?>(null) }
 
   AnimatedContent(targetState = pageIndex, label = "",
     transitionSpec = {
@@ -235,7 +229,7 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
           viewModel = viewModel,
           selectedTabIndex = selectedTabIndex,
           openBookManager = { webSiteInfo.value = it; pageIndex.value = PageType.BookManager },
-          openEngineManger = { pageIndex.value = PageType.EngineList }
+//          openEngineManger = { pageIndex.value = PageType.EngineList }
         )
       }
 
@@ -243,17 +237,17 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
         PopBookManagerView(viewModel) { pageIndex.value = PageType.Home }
       }
 
-      PageType.EngineList -> {
-        PopSearchEngineListView(
-          viewModel = viewModel,
-          openEngineManger = { webEngine.value = it; pageIndex.value = PageType.EngineManger },
-          onBack = { pageIndex.value = PageType.Home }
-        )
-      }
-
-      PageType.EngineManger -> {
-        PopEngineManagerView(webEngine) { pageIndex.value = PageType.EngineList }
-      }
+//      PageType.EngineList -> {
+//        PopSearchEngineListView(
+//          viewModel = viewModel,
+//          openEngineManger = { webEngine.value = it; pageIndex.value = PageType.EngineManger },
+//          onBack = { pageIndex.value = PageType.Home }
+//        )
+//      }
+//
+//      PageType.EngineManger -> {
+//        PopEngineManagerView(webEngine) { pageIndex.value = PageType.EngineList }
+//      }
     }
   }
 }
@@ -261,87 +255,90 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
 /**
  * 配置搜索引擎
  */
-@Composable
-private fun PopSearchEngineListView(
-  viewModel: BrowserViewModel, openEngineManger: (WebEngine) -> Unit, onBack: () -> Unit
-) {
-  Column {
-    ManagerTitleView(title = BrowserI18nResource.browser_options_engine_list(), onBack = onBack)
-    LazyColumn {
-      itemsIndexed(viewModel.getSearchEngines()) { index, searchEngine ->
-        Row(
-          modifier = Modifier.clickable { /*openEngineManger(searchEngine)*/ }
-            .fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-          verticalAlignment = CenterVertically
-        ) {
-          Text(text = searchEngine.name, modifier = Modifier.width(100.dp))
-          Text(text = searchEngine.host, modifier = Modifier.weight(1f))
-          Box(modifier = Modifier.width(32.dp)) {
-            Checkbox(
-              checked = searchEngine.checked,
-              onCheckedChange = {
-                searchEngine.checked = it
-                viewModel.updateSearchEngine(searchEngine)
-              }
-            )
-          }
-        }
-      }
-    }
-  }
-}
+//@Composable
+//private fun PopSearchEngineListView(
+//  viewModel: BrowserViewModel, openEngineManger: (WebEngine) -> Unit, onBack: () -> Unit
+//) {
+//  Column {
+//    ManagerTitleView(title = BrowserI18nResource.browser_options_engine_list(), onBack = onBack)
+//    LazyColumn {
+//      itemsIndexed(viewModel.getSearchEngines()) { index, searchEngine ->
+//        Row(
+//          modifier = Modifier.clickable { /*openEngineManger(searchEngine)*/ }
+//            .fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+//          verticalAlignment = CenterVertically
+//        ) {
+//          Text(text = searchEngine.name, modifier = Modifier.width(100.dp))
+//          Text(text = searchEngine.host, modifier = Modifier.weight(1f))
+//          Box(modifier = Modifier.width(32.dp)) {
+//            Checkbox(
+//              checked = searchEngine.checked,
+//              onCheckedChange = {
+//                searchEngine.checked = it
+//                viewModel.updateSearchEngine(searchEngine)
+//              }
+//            )
+//          }
+//        }
+//      }
+//    }
+//  }
+//}
 
-@Composable
-private fun PopEngineManagerView(webEngine: MutableState<WebEngine?>, onBack: () -> Unit) {
-  val currentEngine = webEngine.value?.let {
-    remember { mutableStateOf(WebEngine(it.name, it.host, it.start)) }
-  } ?: return
-  val browserViewModel = LocalBrowserModel.current
-  Column {
-    ManagerTitleView(
-      title = BrowserI18nResource.browser_options_engine_update(),
-      onBack = onBack,
-      onDone = {
-        webEngine.value?.apply {
-          name = currentEngine.value.name
-          start = currentEngine.value.start
-          browserViewModel.updateSearchEngine(this)
-        }
-      }
-    )
-
-    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-      Text(BrowserI18nResource.browser_engine_tag_search())
-      OutlinedTextField(
-        value = currentEngine.value.name,
-        onValueChange = { currentEngine.value.name = it },
-        maxLines = 1,
-        modifier = Modifier.fillMaxWidth()
-      )
-    }
-
-    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-      Text(BrowserI18nResource.browser_engine_tag_host())
-      OutlinedTextField(
-        value = currentEngine.value.host,
-        maxLines = 1,
-        enabled = false,
-        onValueChange = {},
-        modifier = Modifier.fillMaxWidth()
-      )
-    }
-
-    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-      Text(BrowserI18nResource.browser_engine_tag_url())
-      OutlinedTextField(
-        value = currentEngine.value.start,
-        onValueChange = { currentEngine.value.start = it },
-        maxLines = 1,
-        modifier = Modifier.fillMaxWidth()
-      )
-    }
-  }
-}
+/**
+ * 用于管理 搜索引擎，目前转移到 search.browser.dweb #95
+ */
+//@Composable
+//private fun PopEngineManagerView(webEngine: MutableState<WebEngine?>, onBack: () -> Unit) {
+//  val currentEngine = webEngine.value?.let {
+//    remember { mutableStateOf(WebEngine(it.name, it.host, it.start)) }
+//  } ?: return
+//  val browserViewModel = LocalBrowserModel.current
+//  Column {
+//    ManagerTitleView(
+//      title = BrowserI18nResource.browser_options_engine_update(),
+//      onBack = onBack,
+//      onDone = {
+//        webEngine.value?.apply {
+//          name = currentEngine.value.name
+//          start = currentEngine.value.start
+//          browserViewModel.updateSearchEngine(this)
+//        }
+//      }
+//    )
+//
+//    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+//      Text(BrowserI18nResource.browser_engine_tag_search())
+//      OutlinedTextField(
+//        value = currentEngine.value.name,
+//        onValueChange = { currentEngine.value.name = it },
+//        maxLines = 1,
+//        modifier = Modifier.fillMaxWidth()
+//      )
+//    }
+//
+//    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+//      Text(BrowserI18nResource.browser_engine_tag_host())
+//      OutlinedTextField(
+//        value = currentEngine.value.host,
+//        maxLines = 1,
+//        enabled = false,
+//        onValueChange = {},
+//        modifier = Modifier.fillMaxWidth()
+//      )
+//    }
+//
+//    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+//      Text(BrowserI18nResource.browser_engine_tag_url())
+//      OutlinedTextField(
+//        value = currentEngine.value.start,
+//        onValueChange = { currentEngine.value.start = it },
+//        maxLines = 1,
+//        modifier = Modifier.fillMaxWidth()
+//      )
+//    }
+//  }
+//}
 
 @Composable
 private fun ManagerTitleView(
@@ -494,7 +491,7 @@ private fun PopTabRowContent(
   viewModel: BrowserViewModel,
   selectedTabIndex: MutableState<PopupViewState>,
   openBookManager: (WebSiteInfo) -> Unit,
-  openEngineManger: () -> Unit,
+//  openEngineManger: () -> Unit,
 ) {
   val popupViewState = remember { mutableStateOf(PopupViewState.Options) }
 
@@ -510,7 +507,7 @@ private fun PopTabRowContent(
       containerColor = MaterialTheme.colorScheme.background,
       divider = {}
     ) {
-      PopupViewState.values().forEachIndexed { index, tabItem ->
+      PopupViewState.entries.forEachIndexed { _, tabItem ->
         Tab(
           selected = selectedTabIndex.value == tabItem,
           onClick = { selectedTabIndex.value = tabItem },
@@ -524,7 +521,7 @@ private fun PopTabRowContent(
         )
       }
     }
-    PopContentView(popupViewState, viewModel, openBookManager, openEngineManger)
+    PopContentView(popupViewState, viewModel, openBookManager/*, openEngineManger*/)
   }
 }
 
@@ -534,7 +531,7 @@ private fun PopContentView(
   popupViewState: MutableState<PopupViewState>,
   viewModel: BrowserViewModel,
   openBookManager: (WebSiteInfo) -> Unit,
-  openEngineManger: () -> Unit
+//  openEngineManger: () -> Unit
 ) {
   val scope = rememberCoroutineScope()
   val bottomSheetModel = LocalModalBottomSheet.current
@@ -562,13 +559,13 @@ private fun PopContentView(
         }
       }
 
-      else -> PopContentOptionItem(viewModel) { openEngineManger() }
+      else -> PopContentOptionItem(viewModel)// { openEngineManger() }
     }
   }
 }
 
 @Composable
-private fun PopContentOptionItem(viewModel: BrowserViewModel, openEngineManage: () -> Unit) {
+private fun PopContentOptionItem(viewModel: BrowserViewModel/*, openEngineManage: () -> Unit*/) {
   val scope = rememberCoroutineScope()
   val bottomSheetModel = LocalModalBottomSheet.current
   LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -645,11 +642,11 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel, openEngineManage: 
         }
 
         // 搜索引擎
-        Spacer(modifier = Modifier.height(12.dp))
-        RowItemMenuView(
-          text = BrowserI18nResource.browser_options_search_engine(),
-          trailingIcon = Icons.Default.Settings
-        ) { openEngineManage() }
+//        Spacer(modifier = Modifier.height(12.dp))
+//        RowItemMenuView(
+//          text = BrowserI18nResource.browser_options_search_engine(),
+//          trailingIcon = Icons.Default.Settings
+//        ) { openEngineManage() }
       }
     }
   }

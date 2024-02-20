@@ -5,7 +5,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.web.model.WebEngine
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.datetimeNow
@@ -25,7 +24,7 @@ data class WebSiteInfo(
 ) {
   @Transient
   var iconImage: ImageBitmap? = null
-    get() = icon?.toImageBitmap() ?: null
+    get() = icon?.toImageBitmap()
 }
 
 @Composable
@@ -103,10 +102,10 @@ class BrowserStore(mm: MicroModule) {
   suspend fun saveString(key: String, data: String) = sharePreference.set(key, data)
   suspend fun getString(key: String) = sharePreference.getOrNull<String>(key)
 
-  suspend fun setSearchEngines(data: MutableList<WebEngine>) =
-    storeEngines.set(storeEngineKey, data)
-
-  suspend fun getSearchEngines() = storeEngines.getOrPut(storeEngineKey) {
-    mutableListOf<WebEngine>()
-  }
+//  suspend fun setSearchEngines(data: MutableList<WebEngine>) =
+//    storeEngines.set(storeEngineKey, data)
+//
+//  suspend fun getSearchEngines() = storeEngines.getOrPut(storeEngineKey) {
+//    mutableListOf<WebEngine>()
+//  }
 }

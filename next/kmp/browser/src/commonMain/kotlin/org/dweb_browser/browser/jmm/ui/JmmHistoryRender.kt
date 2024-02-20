@@ -98,12 +98,10 @@ fun JmmHistoryController.ManagerViewRender(
 @Composable
 fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
   // 这个后续需要优化，目前下载完成后，历史展示没有直接刷新
-  debugJMM("lin.huang", "JmmTabsView enter")
   val list = getHistoryMetadataMap().values.filter {
     (tab == JmmTabs.Installed && it.state.state == JmmStatus.INSTALLED) ||
         (tab == JmmTabs.NoInstall && it.state.state != JmmStatus.INSTALLED)
   }.sortedByDescending { it.upgradeTime }
-  debugJMM("lin.huang", "JmmTabsView ${list.size}")
 
   LazySwipeColumn(
     items = list, key = { item -> item.metadata.id },

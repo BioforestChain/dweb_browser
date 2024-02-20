@@ -73,15 +73,15 @@ import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.data.BrowserContentItem
 import org.dweb_browser.browser.web.data.ConstUrl
-import org.dweb_browser.browser.web.model.LocalModalBottomSheet
-import org.dweb_browser.browser.web.model.ModalBottomModel
-import org.dweb_browser.browser.web.model.SheetState
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserModel
 import org.dweb_browser.browser.web.model.LocalBrowserPageState
 import org.dweb_browser.browser.web.model.LocalInputText
+import org.dweb_browser.browser.web.model.LocalModalBottomSheet
 import org.dweb_browser.browser.web.model.LocalShowIme
 import org.dweb_browser.browser.web.model.LocalShowSearchView
+import org.dweb_browser.browser.web.model.ModalBottomModel
+import org.dweb_browser.browser.web.model.SheetState
 import org.dweb_browser.browser.web.model.parseInputText
 import org.dweb_browser.dwebview.rememberCanGoBack
 import org.dweb_browser.dwebview.rememberLoadingProgress
@@ -501,7 +501,7 @@ private fun BoxScope.ShowLinearProgressIndicator(contentWebItem: BrowserContentI
       0f, 1f -> {}
       else -> {
         LinearProgressIndicator(
-          progress = loadingProgress,
+          progress = { loadingProgress },
           modifier = Modifier
             .fillMaxWidth()
             .height(2.dp)
@@ -520,7 +520,6 @@ private fun BoxScope.ShowLinearProgressIndicator(contentWebItem: BrowserContentI
 fun BrowserSearchView(
   viewModel: BrowserViewModel, modifier: Modifier = Modifier, windowRenderScope: WindowRenderScope
 ) {
-  val scope = rememberCoroutineScope()
   var showSearchView by LocalShowSearchView.current
   val searchHint = BrowserI18nResource.browser_search_hint()
   val focusManager = LocalFocusManager.current
@@ -552,11 +551,9 @@ fun BrowserSearchView(
           showSearchView = false
         },
         onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
-          scope.launch {
-            showSearchView = false
-            viewModel.saveLastKeyword(inputTextState, url)
-            viewModel.searchWebView(url)
-          }
+          viewModel.saveLastKeyword(url)
+          inputTextState.value = url
+          showSearchView = false
         })
     }
   }

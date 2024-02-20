@@ -1,15 +1,17 @@
 package org.dweb_browser.browser.search
 
 import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
 
@@ -28,42 +30,50 @@ class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
 
     routes(
       /**
-       * 将当前搜索引擎置为有效
+       * 判断当前是否属于引擎关键字,如果是，返回首页地址
        */
-      "enable" bind PureMethod.GET by defineBooleanResponse {
+      "/check" bind PureMethod.GET by defineStringResponse {
         val key = request.queryOrNull("key")
         debugSearch("browser/enable", "key=$key")
-        key?.let {
-          controller.enableEngine(key)
-        } ?: throwException(HttpStatusCode.BadRequest, "not found key param")
+        key?.let { controller.checkAndEnableEngine(key) ?: "" } ?: ""
       },
       /**
        * 搜索所有可用引擎
        */
-      "engines" bind PureMethod.GET by defineJsonResponse {
-        val key = request.queryOrNull("key")
-        debugSearch("browser/engines", "key=$key")
-        key?.let {
-          controller.engineSearch(key)?.toJsonElement()
-            ?: throwException(HttpStatusCode.NotFound, "not found engine for $key")
-        } ?: throwException(HttpStatusCode.BadRequest, "not found key param")
+      "/observe/engines" byChannel { ctx ->
+        controller.onEngineUpdate {
+          debugSearch("browser", "/observe/engines => send")
+          ctx.sendJsonLine(controller.searchEngineList)
+        }.removeWhen(onClose)
+        controller.engineUpdateSignal.emit()
       },
       /**
        * 搜索都有注入的搜索列表
        */
-      "inject" bind PureMethod.GET by defineJsonResponse {
+      "/injects" bind PureMethod.GET by defineStringResponse {
         val key = request.queryOrNull("key")
-        debugSearch("browser/inject", "key=$key")
-        throwException(HttpStatusCode.BadRequest, "not found key param")
+        debugSearch("browser", "/injects key=$key")
+        key?.let {
+          val list = controller.containsInject(key)
+          if (list.isNotEmpty()) {
+            Json.encodeToString(list)
+          } else {
+            throwException(HttpStatusCode.BadRequest, "not found key param")
+          }
+        } ?: throwException(HttpStatusCode.BadRequest, "not found key param")
       },
     )
 
     protocol("search.std.dweb") {
       routes(
-        "inject" bind PureMethod.POST by defineBooleanResponse {
+        /**
+         * 注入离线搜索的内容
+         */
+        "/inject" bind PureMethod.POST by defineBooleanResponse {
           debugSearch("std/inject")
-          val injectEngine = request.queryAs<InjectEngine>()
-          true
+          val searchInject = request.queryAs<SearchInject>()
+          debugSearch("std/inject", "injectSearch=$searchInject")
+          controller.inject(searchInject)
         }
       )
     }

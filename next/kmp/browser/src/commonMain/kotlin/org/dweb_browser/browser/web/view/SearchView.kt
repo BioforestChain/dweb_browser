@@ -25,8 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -62,13 +61,16 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.search.SearchEngine
+import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.util.toRequestUrl
 import org.dweb_browser.browser.web.model.LocalBrowserModel
-import org.dweb_browser.browser.web.model.LocalModalBottomSheet
-import org.dweb_browser.browser.web.model.PageType
-import org.dweb_browser.browser.web.model.WebEngine
+import org.dweb_browser.browser.web.model.LocalShowSearchView
 import org.dweb_browser.browser.web.model.parseInputText
 import org.dweb_browser.helper.compose.clickableWithNoEffect
+import org.dweb_browser.sys.window.core.helper.pickLargest
+import org.dweb_browser.sys.window.core.helper.toStrict
+import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 
 /**
@@ -86,7 +88,7 @@ internal fun BoxScope.SearchView(
   val focusManager = LocalFocusManager.current
   val inputText = remember(text) { mutableStateOf(parseInputText(text, false)) }
   val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
-  val webEngine = LocalBrowserModel.current.filterFitUrlEngines(text)
+  val searchEngine = LocalBrowserModel.current.filterFitUrlEngines(text)
 
   Box(modifier = modifier) {
     homePreview?.let {
@@ -114,6 +116,9 @@ internal fun BoxScope.SearchView(
         focusManager.clearFocus()
         onClose()
       },
+      onOpenApp = {
+        // TODO 暂未实现
+      },
       onSearch = {
         focusManager.clearFocus()
         onSearch(it)
@@ -124,7 +129,7 @@ internal fun BoxScope.SearchView(
   key(inputText) {
     BrowserTextField(
       text = inputText,
-      webEngine = webEngine,
+      searchEngine = searchEngine,
       onSearch = { onSearch(it) },
       onValueChanged = { inputText.value = it; searchPreviewState.targetState = it.isNotEmpty() }
     )
@@ -135,10 +140,11 @@ internal fun BoxScope.SearchView(
 @Composable
 internal fun BoxScope.BrowserTextField(
   text: MutableState<String>,
-  webEngine: WebEngine?,
+  searchEngine: SearchEngine?,
   onSearch: (String) -> Unit,
   onValueChanged: (String) -> Unit
 ) {
+  val showSearchView = LocalShowSearchView.current
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
   var inputText by remember { mutableStateOf(text.value) }
@@ -165,8 +171,8 @@ internal fun BoxScope.BrowserTextField(
         if (it.key == Key.Enter) {
           inputText.toRequestUrl()?.let { url ->
             onSearch(url)
-          } ?: webEngine?.let { webEngine ->
-            onSearch("${webEngine.start}$inputText")
+          } ?: searchEngine?.let { searchEngine ->
+            onSearch("${searchEngine.searchLink}$inputText")
           } ?: focusManager.clearFocus(); keyboardController?.hide()
           true
         } else {
@@ -202,14 +208,13 @@ internal fun BoxScope.BrowserTextField(
         // 如果内容符合地址，直接进行搜索，其他情况就按照如果有搜索引擎就按照搜索引擎来，没有的就隐藏键盘
         inputText.toRequestUrl()?.let { url ->
           onSearch(url)
-        } ?: webEngine?.let { webEngine ->
-          onSearch("${webEngine.start}$inputText")
+        } ?: searchEngine?.let { searchEngine ->
+          onSearch("${searchEngine.searchLink}$inputText")
         } ?: run {
           focusManager.clearFocus()
           keyboardController?.hide()
-          if (browserViewModel.filterShowEngines.isEmpty()) {
-            browserViewModel.showToastMessage(BrowserI18nResource.browser_engine_toast_noFound.text)
-          }
+          // 如果引擎列表为空，这边不提示，而是直接判断当前的的内容是否符合搜索引擎的，如果符合，直接跳转到引擎首页
+          browserViewModel.checkAndSearch(inputText) { showSearchView.value = false }
         }
       }
     )
@@ -289,11 +294,13 @@ fun CustomTextField(
 }
 
 @Composable
-internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
+internal fun SearchPreview(
+  // 输入搜索内容后，显示的搜索信息
   show: MutableTransitionState<Boolean>,
   text: MutableState<String>,
   onClose: () -> Unit,
-  onSearch: (String) -> Unit
+  onOpenApp: (SearchInject) -> Unit,
+  onSearch: (String) -> Unit,
 ) {
   if (show.targetState) {
     LazyColumn(
@@ -325,6 +332,9 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
           )
         }
       }
+      item { // 本地资源
+        SearchItemLocals(text.value) { onOpenApp(it) }
+      }
       item { // 搜索引擎
         SearchItemEngines(text.value) { onSearch(it) }
       }
@@ -333,10 +343,60 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
 }
 
 @Composable
-private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
+private fun SearchItemLocals(text: String, openApp: (SearchInject) -> Unit) {
   val viewModel = LocalBrowserModel.current
-  val bottomModel = LocalModalBottomSheet.current
-  val scope = rememberCoroutineScope()
+  val injectList = viewModel.searchInjectList
+  if (injectList.isEmpty() && viewModel.filterShowEngines.isNotEmpty()) return // 如果本地资源为空，但是搜索引擎不为空，不需要显示这个内容
+  Column(modifier = Modifier.fillMaxWidth()) {
+    Text(
+      text = BrowserI18nResource.browser_search_local(),
+      color = MaterialTheme.colorScheme.outline,
+      modifier = Modifier.padding(vertical = 10.dp)
+    )
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(8.dp))
+        .background(MaterialTheme.colorScheme.background)
+    ) {
+      if (injectList.isEmpty()) {
+        androidx.compose.material3.ListItem(
+          headlineContent = {
+            Text(text = BrowserI18nResource.browser_search_noFound())
+          },
+          leadingContent = {
+            Icon(
+              imageVector = Icons.Default.Error,
+              contentDescription = null,
+              modifier = Modifier.size(40.dp)
+            )
+          },
+        )
+        return
+      }
+      injectList.forEachIndexed { index, searchInject ->
+        if (index > 0) HorizontalDivider()
+        androidx.compose.material3.ListItem(
+          headlineContent = {
+            Text(text = searchInject.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+          },
+          modifier = Modifier.clickable { openApp(searchInject) },
+          supportingContent = {
+            Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+          },
+          leadingContent = {
+            Image(searchInject.iconRes!!, contentDescription = searchInject.name)
+          }
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
+  val list = LocalBrowserModel.current.filterShowEngines
+  if (list.isEmpty()) return // 如果空的直接不显示
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
       text = BrowserI18nResource.browser_search_engine(),
@@ -349,52 +409,19 @@ private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
         .clip(RoundedCornerShape(8.dp))
         .background(MaterialTheme.colorScheme.background)
     ) {
-      val list = viewModel.filterShowEngines
-      if (list.isEmpty()) {
-        // TODO 提示需要去设置里面配置搜索引擎
+      list.forEachIndexed { index, searchEngine ->
+        if (index > 0) HorizontalDivider()
         androidx.compose.material3.ListItem(
           headlineContent = {
-            Text(text = BrowserI18nResource.browser_engine_tips_noFound())
+            Text(text = searchEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
           },
-          leadingContent = {
-            Icon(
-              imageVector = Icons.Default.Error,
-              contentDescription = null,
-              modifier = Modifier.size(40.dp)
-            )
-          },
-          trailingContent = {
-            Icon(
-              imageVector = Icons.Default.Settings,
-              contentDescription = null,
-              modifier = Modifier.size(32.dp).clickable {
-                scope.launch {
-                  bottomModel.show()
-                  bottomModel.pageType.value = PageType.EngineList
-                }
-              }
-            )
-          }
-        )
-        return
-      }
-      list.forEachIndexed { index, webEngine ->
-        if (index > 0) Divider(modifier = Modifier.fillMaxWidth().height(1.dp))
-        androidx.compose.material3.ListItem(
-          headlineContent = {
-            Text(text = webEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-          },
-          modifier = Modifier.clickable { onSearch("${webEngine.start}$text") },
+          modifier = Modifier.clickable { onSearch("${searchEngine.searchLink}$text") },
           supportingContent = {
             Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
           },
           leadingContent = {
-            webEngine.iconRes?.let { imageBitmap ->
-              Image(
-                bitmap = imageBitmap,
-                contentDescription = null,
-                modifier = Modifier.size(40.dp)
-              )
+            searchEngine.icon.toStrict().pickLargest()?.let {
+              AppIcon(icon = it.src, modifier = Modifier.size(56.dp))
             }
           }
         )

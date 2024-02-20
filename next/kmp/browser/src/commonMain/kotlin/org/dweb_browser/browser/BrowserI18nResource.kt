@@ -110,6 +110,8 @@ object BrowserI18nResource {
   val browser_short_name = SimpleI18nResource(Language.ZH to "浏览器", Language.EN to "Browser")
   val browser_search_engine =
     SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engine")
+  val browser_search_local =
+    SimpleI18nResource(Language.ZH to "本地资源", Language.EN to "Local Resource")
   val browser_search_title = SimpleI18nResource(Language.ZH to "搜索", Language.EN to "Search")
   val browser_search_cancel = SimpleI18nResource(Language.ZH to "取消", Language.EN to "Cancel")
   val browser_search_hint =
@@ -132,6 +134,10 @@ object BrowserI18nResource {
   val browser_engine_tips_noFound = SimpleI18nResource(
     Language.ZH to "未正确配置搜索引擎，请到“选项”中的“搜索引擎”中进行配置！",
     Language.EN to "Search engine not configured correctly, please go to \"Search Engine\" in \"Options\" to configure!"
+  )
+  val browser_search_noFound = SimpleI18nResource(
+    Language.ZH to "未检索到符合关键字的本地资源",
+    Language.EN to "No local resource matching the keyword was retrieved"
   )
   val browser_engine_toast_noFound = SimpleI18nResource(
     Language.ZH to "关键字搜索，需要通过搜索引擎，请先正确配置搜索引擎！",
