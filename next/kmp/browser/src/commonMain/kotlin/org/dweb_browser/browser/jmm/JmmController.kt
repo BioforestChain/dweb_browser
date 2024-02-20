@@ -270,6 +270,12 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     jmm = jmm.substring(0, jmm.lastIndexOf("."))
     val sourcePath = jmmNMM.pickFile(task.filepath)
     val targetPath = jmmNMM.pickFile("/data/apps/$jmm")
+
+    // 用于校验jmmApp下载文件是不是完整
+    if(!jmmAppHashVerify(jmmNMM, jmmHistoryMetadata, sourcePath)) {
+      return false
+    }
+
     return jmmNMM.nativeFetch(buildUrlString("file://zip.browser.dweb/decompress") {
       parameters.append("sourcePath", sourcePath)
       parameters.append("targetPath", targetPath)
