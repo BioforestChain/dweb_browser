@@ -289,7 +289,7 @@ class DWebViewEngine internal constructor(
       loadUrl(options.url)
     }
     options.tag?.also {
-      this.setTag(it, it)
+      this.id = it
     }
   }
 
