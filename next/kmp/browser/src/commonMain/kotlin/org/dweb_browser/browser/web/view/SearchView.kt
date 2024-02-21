@@ -71,7 +71,9 @@ import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.render.AppIcon
+import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
+import org.dweb_browser.sys.window.render.imageFetchHook
 
 /**
  * 组件： 搜索组件
@@ -396,6 +398,8 @@ private fun SearchItemLocals(text: String, openApp: (SearchInject) -> Unit) {
 @Composable
 private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
   val list = LocalBrowserModel.current.filterShowEngines
+  val state = LocalWindowController.current.state
+  val microModule by state.constants.microModule
   if (list.isEmpty()) return // 如果空的直接不显示
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
@@ -410,21 +414,23 @@ private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
         .background(MaterialTheme.colorScheme.background)
     ) {
       list.forEachIndexed { index, searchEngine ->
-        if (index > 0) HorizontalDivider()
-        androidx.compose.material3.ListItem(
-          headlineContent = {
-            Text(text = searchEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-          },
-          modifier = Modifier.clickable { onSearch("${searchEngine.searchLink}$text") },
-          supportingContent = {
-            Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-          },
-          leadingContent = {
-            searchEngine.icon.toStrict().pickLargest()?.let {
-              AppIcon(icon = it.src, modifier = Modifier.size(56.dp))
+        key(searchEngine.host) {
+          if (index > 0) HorizontalDivider()
+          androidx.compose.material3.ListItem(
+            headlineContent = {
+              Text(text = searchEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            },
+            modifier = Modifier.clickable { onSearch("${searchEngine.searchLink}$text") },
+            supportingContent = {
+              Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            },
+            leadingContent = {
+              searchEngine.icon.toStrict().pickLargest()?.let {
+                AppIcon(icon = it.src, modifier = Modifier.size(56.dp), iconFetchHook = microModule?.imageFetchHook)
+              }
             }
-          }
-        )
+          )
+        }
       }
     }
   }
