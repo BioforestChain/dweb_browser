@@ -68,9 +68,10 @@ import org.dweb_browser.browser.web.model.LocalBrowserModel
 import org.dweb_browser.browser.web.model.LocalShowSearchView
 import org.dweb_browser.browser.web.model.parseInputText
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.pure.image.compose.CoilAsyncImage
 import org.dweb_browser.sys.window.render.AppIcon
+import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
+import org.dweb_browser.sys.window.render.imageFetchHook
 
 /**
  * 组件： 搜索组件
@@ -396,6 +397,8 @@ private fun SearchItemLocals(text: String, openApp: (SearchInject) -> Unit) {
 private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
   val list = LocalBrowserModel.current.filterShowEngines
   if (list.isEmpty()) return // 如果空的直接不显示
+  val state = LocalWindowController.current.state
+  val microModule by state.constants.microModule
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
       text = BrowserI18nResource.browser_search_engine(),
@@ -420,10 +423,10 @@ private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
               Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
             },
             leadingContent = {
-              CoilAsyncImage(
-                model = searchEngine.iconLink,
-                modifier = Modifier.size(48.dp),
-                contentDescription = searchEngine.name
+              AppIcon(
+                icon = searchEngine.iconLink,
+                modifier = Modifier.size(56.dp),
+                iconFetchHook = microModule?.imageFetchHook
               )
             }
           )

@@ -37,7 +37,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "百度",
     searchLink = "https://www.baidu.com/s?wd=",
     homeLink = "https://www.baidu.com",
-    iconLink = "https://www.baidu.com/favicon.ico",
+    iconLink = "file:///sys/engines/baidu.svg",
   ),
   SearchEngine(
     host = "bing.com",
@@ -45,7 +45,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "Bing",
     searchLink = "https://www.bing.com/search?q=",
     homeLink = "https://www.bing.com",
-    iconLink = "https://www.bing.com/favicon.ico",
+    iconLink = "file:///sys/engines/bing.svg",
   ),
   SearchEngine(
     host = "sogou.com",
@@ -53,7 +53,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "搜狗",
     searchLink = "https://www.sogou.com/web?query=",
     homeLink = "https://www.sogou.com",
-    iconLink = "https://www.sogou.com/favicon.ico",
+    iconLink = "file:///sys/engines/sogou.svg",
   ),
   SearchEngine(
     host = "so.com",
@@ -61,7 +61,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "360",
     searchLink = "https://www.so.com/s?q=",
     homeLink = "https://www.so.com/",
-    iconLink = "https://www.so.com/favicon.ico",
+    iconLink = "file:///sys/engines/360.svg",
   ),
   SearchEngine(
     host = "google.com",
@@ -69,7 +69,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "Google",
     searchLink = "https://www.google.com/search?q=",
     homeLink = "https://www.google.com",
-    iconLink = "https://www.google.com/favicon.ico",
+    iconLink = "file:///sys/engines/google.svg",
   ),
   SearchEngine(
     host = "duckduckgo.com",
@@ -77,7 +77,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "DuckDuckGo",
     searchLink = "https://duckduckgo.com/?q=",
     homeLink = "https://duckduckgo.com",
-    iconLink = "https://duckduckgo.com/favicon.ico",
+    iconLink = "file:///sys/engines/duckgo.svg",
   ),
   SearchEngine(
     host = "yahoo.com",
@@ -85,7 +85,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "雅虎",
     searchLink = "https://sg.search.yahoo.com/search;?p=",
     homeLink = "https://sg.search.yahoo.com/",
-    iconLink = "https://sg.search.yahoo.com/favicon.ico",
+    iconLink = "file:///sys/engines/yahoo.svg",
   ),
   SearchEngine(
     host = "m.sm.cn",
@@ -93,7 +93,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "神马",
     searchLink = "https://so.m.sm.cn/s?q=",
     homeLink = "https://so.m.sm.cn",
-    iconLink = "https://sm01.alicdn.com/L1/272/1990/favicon/favicon.ico",
+    iconLink = "file:///sys/engines/sm.svg",
   ),
 )
 
