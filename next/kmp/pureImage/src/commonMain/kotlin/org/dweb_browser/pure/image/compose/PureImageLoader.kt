@@ -19,12 +19,11 @@ interface PureImageLoader {
       if (fixUrl.startsWith("data://localhost/")) {
         fixUrl = fixUrl.replace("data://localhost/", "data:")
       }
-      val coilImageLoader = LocalCoilImageLoader.current
-      val result1 = coilImageLoader.Load(fixUrl, maxWidth, maxHeight, hook)
-      if (result1.isError) {
+      val result = LocalCoilImageLoader.current.Load(fixUrl, maxWidth, maxHeight, hook)
+      if (result.isError) {
         return LocalWebImageLoader.current.Load(fixUrl, maxWidth, maxHeight, hook)
       }
-      return result1
+      return result
     }
   }
 }

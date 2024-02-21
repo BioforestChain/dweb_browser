@@ -20,7 +20,7 @@ val debugSearch = Debugger("search")
 class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
   init {
     short_name = BrowserI18nResource.search_short_name.text
-    categories = listOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
+    categories = listOf(MICRO_MODULE_CATEGORY.Web_Browser)
     icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))
     display = DisplayMode.Fullscreen
   }

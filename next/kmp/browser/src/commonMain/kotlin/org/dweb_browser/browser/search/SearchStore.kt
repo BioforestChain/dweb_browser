@@ -19,7 +19,7 @@ data class SearchEngine(
   val name: String,
   val searchLink: String,
   val homeLink: String,
-  val icon: List<ImageResource> = listOf(ImageResource("")),
+  val iconLink: String,
   var enable: Boolean = false
 ) {
   fun fit(url: String): Boolean {
@@ -37,9 +37,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "百度",
     searchLink = "https://www.baidu.com/s?wd=",
     homeLink = "https://www.baidu.com",
-    icon = listOf(
-      ImageResource(src = "file:///sys/engines/ic_engine_baidu.xml", type = "image/svg+xml")
-    )
+    iconLink = "https://www.baidu.com/favicon.ico",
   ),
   SearchEngine(
     host = "bing.com",
@@ -47,9 +45,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "Bing",
     searchLink = "https://www.bing.com/search?q=",
     homeLink = "https://www.bing.com",
-    icon = listOf(
-      ImageResource(src = "file:///sys/engines/ic_engine_bing.png", type = "image/png")
-    )
+    iconLink = "https://www.bing.com/favicon.ico",
   ),
   SearchEngine(
     host = "sogou.com",
@@ -57,9 +53,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "搜狗",
     searchLink = "https://www.sogou.com/web?query=",
     homeLink = "https://www.sogou.com",
-    icon = listOf(
-      ImageResource(src = "file:///sys/engines/ic_engine_sogou.xml", type = "image/svg+xml")
-    )
+    iconLink = "https://www.sogou.com/favicon.ico",
   ),
   SearchEngine(
     host = "so.com",
@@ -67,9 +61,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "360",
     searchLink = "https://www.so.com/s?q=",
     homeLink = "https://www.so.com/",
-    icon = listOf(
-      ImageResource(src = "file:///sys/engines/ic_engine_360.xml", type = "image/svg+xml")
-    )
+    iconLink = "https://www.so.com/favicon.ico",
   ),
   SearchEngine(
     host = "google.com",
@@ -77,9 +69,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "Google",
     searchLink = "https://www.google.com/search?q=",
     homeLink = "https://www.google.com",
-    icon = listOf(
-      ImageResource(src = "file:///sys/engines/ic_engine_baidu.xml", type = "image/svg+xml")
-    )
+    iconLink = "https://www.google.com/favicon.ico",
   ),
   SearchEngine(
     host = "duckduckgo.com",
@@ -87,9 +77,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "DuckDuckGo",
     searchLink = "https://duckduckgo.com/?q=",
     homeLink = "https://duckduckgo.com",
-    icon = listOf(
-      ImageResource(src = "file:///sys/engines/ic_engine_baidu.xml", type = "image/svg+xml")
-    )
+    iconLink = "https://duckduckgo.com/favicon.ico",
   ),
   SearchEngine(
     host = "yahoo.com",
@@ -97,9 +85,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "雅虎",
     searchLink = "https://sg.search.yahoo.com/search;?p=",
     homeLink = "https://sg.search.yahoo.com/",
-    icon = listOf(
-      ImageResource(src = "file:///sys/engines/ic_engine_baidu.xml", type = "image/svg+xml")
-    )
+    iconLink = "https://sg.search.yahoo.com/favicon.ico",
   ),
   SearchEngine(
     host = "m.sm.cn",
@@ -107,9 +93,7 @@ private val SearchEngineList = mutableStateListOf(
     name = "神马",
     searchLink = "https://so.m.sm.cn/s?q=",
     homeLink = "https://so.m.sm.cn",
-    icon = listOf(
-      ImageResource(src = "file:///sys/engines/ic_engine_baidu.xml", type = "image/svg+xml")
-    )
+    iconLink = "https://sm01.alicdn.com/L1/272/1990/favicon/favicon.ico",
   ),
 )
 
