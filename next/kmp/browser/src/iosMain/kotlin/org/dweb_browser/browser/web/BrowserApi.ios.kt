@@ -72,8 +72,7 @@ actual fun CommonBrowserView(
 
   val iOSDelegate = remember {
     when (val delegate = iOSViewDelegateHolder) {
-      null -> BrowserIosDelegate().apply {
-        browserViewModel = viewModel
+      null -> BrowserIosDelegate(viewModel).apply {
         iOSViewDelegateHolder = this
       }
 
@@ -83,8 +82,7 @@ actual fun CommonBrowserView(
 
   val iOSDataSource = remember {
     when (val dataSource = iOSViewDataSourceHolder) {
-      null -> BrowserIosDataSource().apply {
-        browserViewModel = viewModel
+      null -> BrowserIosDataSource(viewModel).apply {
         iOSViewDataSourceHolder = this
       }
 
@@ -94,11 +92,7 @@ actual fun CommonBrowserView(
 
   val iOSView = remember {
     when (val webView = iOSViewHolder) {
-      null -> DwebWebView(
-        CGRectMake(0.0, 0.0, 0.0, 0.0),
-        iOSDelegate,
-        iOSDataSource
-      ).also {
+      null -> DwebWebView(CGRectMake(0.0, 0.0, 0.0, 0.0), iOSDelegate, iOSDataSource).also {
         iOSViewHolder = it
       }
 

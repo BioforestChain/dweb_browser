@@ -2,35 +2,32 @@ package org.dweb_browser.browser.web
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
 import org.dweb_browser.helper.platform.NSDataHelper.toNSData
-import platform.Foundation.NSData
-import platform.UIKit.UIImage
-import org.dweb_browser.platform.ios_browser.WebBrowserViewDelegateProtocol
-import org.dweb_browser.platform.ios_browser.WebBrowserViewDataSourceProtocol
-import platform.Foundation.NSError
-import platform.posix.int32_t
-import platform.posix.int64_t
-import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
+import org.dweb_browser.platform.ios_browser.WebBrowserViewDataSourceProtocol
+import org.dweb_browser.platform.ios_browser.WebBrowserViewDelegateProtocol
 import org.dweb_browser.platform.ios_browser.WebBrowserViewSiteData
 import org.dweb_browser.sys.permission.SystemPermissionName
+import platform.Foundation.NSData
+import platform.Foundation.NSError
+import platform.UIKit.UIImage
 import platform.UIKit.UIScreen
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
+import platform.posix.int32_t
+import platform.posix.int64_t
 
 @OptIn(ExperimentalForeignApi::class)
-class BrowserIosDelegate(var browserViewModel: BrowserViewModel? = null) : NSObject(),
+class BrowserIosDelegate(private var browserViewModel: BrowserViewModel) : NSObject(),
   WebBrowserViewDelegateProtocol {
 
   private val scope = CoroutineScope(ioAsyncExceptionHandler)
@@ -42,7 +39,7 @@ class BrowserIosDelegate(var browserViewModel: BrowserViewModel? = null) : NSObj
     completionHandler: (NSError?) -> Unit
   ) {
     scope.launch {
-      browserViewModel?.addUrlToDesktop(title, link, iconString)
+      browserViewModel.addUrlToDesktop(title, link, iconString)
       completionHandler(null)
     }
   }
@@ -63,7 +60,7 @@ class BrowserIosDelegate(var browserViewModel: BrowserViewModel? = null) : NSObj
 
 
 @OptIn(ExperimentalForeignApi::class)
-class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null) : NSObject(),
+class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSObject(),
   WebBrowserViewDataSourceProtocol {
 
   private val scope = CoroutineScope(ioAsyncExceptionHandler)
@@ -81,18 +78,18 @@ class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null) : NSO
 
   private fun saveTrackModel(trackModel: Boolean) {
     scope.launch {
-      browserViewModel?.saveBrowserMode(trackModel)
+      browserViewModel.saveBrowserMode(trackModel)
     }
   }
 
-  override fun trackModel(): Boolean = browserViewModel?.isNoTrace?.value ?: false
+  override fun trackModel(): Boolean = browserViewModel.isNoTrace.value
 
   //#endregion
 
 
   //#region history
   override fun loadHistorys(): Map<Any?, List<*>>? {
-    val result = browserViewModel?.getHistoryLinks()?.mapValues { (key, lists) ->
+    val result = browserViewModel.getHistoryLinks().mapValues { (key, lists) ->
       lists.map {
         WebBrowserViewSiteData(it.id, it.title, it.url, it::iconUIImage)
       }
@@ -102,7 +99,7 @@ class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null) : NSO
 
   override fun loadMoreHistoryWithOff(off: int32_t, completionHandler: (NSError?) -> Unit) {
     scope.launch {
-      browserViewModel?.loadMoreHistory(off)
+      browserViewModel.loadMoreHistory(off)
       completionHandler(null)
     }
   }
@@ -120,26 +117,24 @@ class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null) : NSO
         icon = icon?.toByteArray(),
         type = WebSiteType.History
       )
-      browserViewModel?.addHistoryLink(webSiteInfo)
+      browserViewModel.addHistoryLink(webSiteInfo)
       completionHandler(null)
     }
   }
 
   override fun removeHistoryWithHistory(history: int64_t, completionHandler: (NSError?) -> Unit) {
     scope.launch {
-      browserViewModel?.let { vm ->
-        try {
-          val del = vm.getHistoryLinks().flatMap {
-            it.value
-          }.first {
-            it.id == history
-          }
-          vm.removeHistoryLink(del)
-        } catch (e: NoSuchElementException) {
-          println("not find")
-        } finally {
-          completionHandler(null)
+      try {
+        val del = browserViewModel.getHistoryLinks().flatMap {
+          it.value
+        }.first {
+          it.id == history
         }
+        browserViewModel.removeHistoryLink(del)
+      } catch (e: NoSuchElementException) {
+        println("not find")
+      } finally {
+        completionHandler(null)
       }
     }
   }
@@ -149,23 +144,21 @@ class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null) : NSO
   //#region bookmark
 
   override fun loadBookmarks(): List<*>? =
-    browserViewModel?.getBookLinks()?.map {
+    browserViewModel.getBookLinks().map {
       return@map WebBrowserViewSiteData(it.id, it.title, it.url, it::iconUIImage)
     }
 
   override fun addBookmarkWithTitle(title: String, url: String, icon: NSData?) {
     val webSiteInfo =
       WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type = WebSiteType.Book)
-    browserViewModel?.addBookLink(webSiteInfo)
+    browserViewModel.addBookLink(webSiteInfo)
   }
 
   override fun removeBookmarkWithBookmark(bookmark: int64_t) {
-    browserViewModel?.let { vm ->
-      val del = vm.getBookLinks().first {
-        it.id == bookmark
-      }
-      vm.removeBookLink(del)
+    val del = browserViewModel.getBookLinks().first {
+      it.id == bookmark
     }
+    browserViewModel.removeBookLink(del)
   }
 
   //#endregion
@@ -180,7 +173,7 @@ class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null) : NSO
   override fun getWebView(): objcnames.classes.DwebWKWebView {
     val engine = DWebViewEngine(
       UIScreen.mainScreen.bounds,
-      browserViewModel!!.browserNMM,
+      browserViewModel.browserNMM,
       DWebViewOptions(),
       WKWebViewConfiguration()
     )
@@ -193,8 +186,7 @@ class BrowserIosDataSource(var browserViewModel: BrowserViewModel? = null) : NSO
   override fun requestCameraPermissionWithCompleted(completed: (Boolean) -> Unit) {
     scope.launch {
       val result =
-        browserViewModel?.requestSystemPermission(permissionName = SystemPermissionName.CAMERA)
-          ?: true
+        browserViewModel.requestSystemPermission(permissionName = SystemPermissionName.CAMERA)
       completed(result)
     }
   }
