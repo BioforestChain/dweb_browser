@@ -5,16 +5,16 @@ minSdkVersion = "28" # Int
 targetSdkVersion = "34" # Int
 versionCode = "80" # Int
 versionName = "2.240130.0"
-kotlinCompilerExtensionVersion = "1.5.9"
+kotlinCompilerExtensionVersion = "1.5.10"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
 agp = "8.2.2"
 kotlin-version = "1.9.22"
-androidx-test = "1.5.0"
+androidx-test = "1.5.2"
 androidx-compose-ui-test = "1.6.1"
 androidx-lifecycle = "2.7.0"
-compose-bom = "2024.02.00"
+compose-bom = "2024.02.01"
 
 androidx-activity = "1.8.2"
 androidx-appcompat = "1.6.1"
