@@ -104,30 +104,29 @@ actual class LocationManage {
    */
   actual suspend fun observeLocation(
     mmid: MMID,
-    fps: Long,
+    fps: Double, minDistance: Double,
     precise: Boolean
   ): LocationFlow {
     // 创建监听回调
     return callbackFlow {
       val locationListener = createLocalListener(mmid) { location ->
-        debugLocation("observeLocation=>", " ${location.state}")
+        debugLocation("observeLocation=>", " ${location.state} ${Build.VERSION.SDK_INT}")
         this.trySend(location)
       }
-
       // 请求多次更新，这会通过回调触发到onLocationChanged
       if (Build.VERSION.SDK_INT >= 30) {
         manager.requestLocationUpdates(
           selectPrecise(precise),
-          fps,
-          1f,
+          fps.toLong(),
+          minDistance.toFloat(),
           context.mainExecutor,
           locationListener
         )
       } else {
         manager.requestLocationUpdates(
           selectPrecise(precise),
-          fps,
-          0f,
+          fps.toLong(),
+          minDistance.toFloat(),
           locationListener,
           Looper.getMainLooper()
         )
@@ -148,7 +147,7 @@ actual class LocationManage {
   }
 
 
-  // 选择经度
+  // 选择精度
   private fun selectPrecise(precise: Boolean): String {
     return if (precise) {
       LocationManager.GPS_PROVIDER //GPS 定位的精准度比较高，但是非常耗电。

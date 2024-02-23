@@ -27,7 +27,7 @@ export interface $LocationOptions {
 
 export interface $GeolocationContoller {
   /**不断的监听位置 */
-  listen(callback: (position: $GeolocationPosition) => undefined): void;
+  listen(callback: (position: $GeolocationPosition) => void): void;
   /**关闭位置监听 */
   stop(): void;
 }

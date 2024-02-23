@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.location
 
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -64,7 +63,7 @@ expect class LocationManage() {
    * 返回的Boolean表示是否正常发送，如果发送遗产，关闭监听。
    */
   suspend fun observeLocation(
-    mmid: MMID, fps: Long, precise: Boolean
+    mmid: MMID, fps: Double, minDistance: Double, precise: Boolean
   ): LocationFlow
 
   /**

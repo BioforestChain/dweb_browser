@@ -41,19 +41,20 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
     routes(
       "/location" byChannel { ctx ->
         val remoteMmid = ipc.remote.mmid
-        val fps = request.queryOrNull("fps")?.toLong() ?: 3000L
+        val fps = request.queryOrNull("fps")?.toDouble() ?: 3000.0
+        val minDistance = request.queryOrNull("minDistance")?.toDouble() ?: 1.0
         val precise = request.queryBoolean("precise")
+        debugLocation("locationChannel=>", "enter => $remoteMmid->$fps->$precise")
         if (requestSystemPermission()) {
           try {
             val flowJob = CoroutineScope(ioAsyncExceptionHandler).launch {
-              val flow = locationManage.observeLocation(remoteMmid, fps, precise)
+              val flow = locationManage.observeLocation(remoteMmid, fps, minDistance, precise)
               // 缓存通道
               flow.buffer().collect { position ->
-//                debugLocation("locationChannel=>", "loop:$position")
+                debugLocation("locationChannel=>", "loop:$position")
                 ctx.sendJsonLine(position.toJsonElement())
               }
             }
-            debugLocation("locationChannel=>", "enter => $remoteMmid->$fps->$precise channel:${ctx.getChannel()}")
             onClose {
               debugLocation("locationChannel=>", "onClose：$remoteMmid")
               locationManage.removeLocationObserve(remoteMmid)
