@@ -3,6 +3,8 @@ package org.dweb_browser.sys.location
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.withMainContext
@@ -22,7 +24,7 @@ import platform.darwin.NSObject
 /**
  * TODO 参考详见：https://github.com/icerockdev/moko-geo/blob/master/geo/src/iosMain/kotlin/dev/icerock/moko/geo/LocationTracker.kt
  */
-actual class LocationManage actual constructor(private val mm: LocationNMM) {
+actual class LocationManage {
 
   private val manager = CLLocationManager()
 
@@ -41,8 +43,7 @@ actual class LocationManage actual constructor(private val mm: LocationNMM) {
 
   private suspend fun locationAuthorizationStatus(): AuthorizationStatus {
     val status = when (manager.authorizationStatus) {
-      kCLAuthorizationStatusAuthorizedAlways,
-      kCLAuthorizationStatusAuthorizedWhenInUse -> AuthorizationStatus.GRANTED
+      kCLAuthorizationStatusAuthorizedAlways, kCLAuthorizationStatusAuthorizedWhenInUse -> AuthorizationStatus.GRANTED
 
       kCLAuthorizationStatusDenied -> AuthorizationStatus.DENIED
       else -> {
@@ -56,38 +57,46 @@ actual class LocationManage actual constructor(private val mm: LocationNMM) {
     return status
   }
 
-  private val delegate: CLLocationManagerDelegateProtocol = object : NSObject(),
-    CLLocationManagerDelegateProtocol {
-    override fun locationManagerDidChangeAuthorization(manager: CLLocationManager) {
-      when (manager.authorizationStatus) {
-        kCLAuthorizationStatusAuthorizedAlways,
-        kCLAuthorizationStatusAuthorizedWhenInUse -> result.complete(AuthorizationStatus.GRANTED)
+  private val delegate: CLLocationManagerDelegateProtocol =
+    object : NSObject(), CLLocationManagerDelegateProtocol {
+      override fun locationManagerDidChangeAuthorization(manager: CLLocationManager) {
+        when (manager.authorizationStatus) {
+          kCLAuthorizationStatusAuthorizedAlways, kCLAuthorizationStatusAuthorizedWhenInUse -> result.complete(
+            AuthorizationStatus.GRANTED
+          )
 
-        kCLAuthorizationStatusDenied -> result.complete(AuthorizationStatus.DENIED)
-        else -> result.complete(AuthorizationStatus.UNKNOWN)
+          kCLAuthorizationStatusDenied -> result.complete(AuthorizationStatus.DENIED)
+          else -> result.complete(AuthorizationStatus.UNKNOWN)
+        }
       }
     }
-  }
 
   @OptIn(ExperimentalForeignApi::class)
-  actual suspend fun getCurrentLocation(mmid: MMID, precise: Boolean): GeolocationPosition {
-    val deferred = CompletableDeferred<GeolocationPosition>()
-    api.requestLocationWithCompleted { location, code, error ->
-      val geo = toGeolocationPosition(location, code.toInt(), error)
-      deferred.complete(geo)
+  actual suspend fun getCurrentLocation(mmid: MMID, precise: Boolean): LocationFlow {
+    return callbackFlow {
+      api.requestLocationWithCompleted { location, code, error ->
+        val geo = toGeolocationPosition(location, code.toInt(), error)
+        trySend(geo)
+      }
+
+      awaitClose {
+        api.removeTrackWithMmid(mmid)
+      }
     }
-    return deferred.await()
   }
 
   // TODO 这里没有看到任何对于异常情况自动解除监听的行为
   @OptIn(ExperimentalForeignApi::class)
   actual suspend fun observeLocation(
-    mmid: MMID, fps: Long, precise: Boolean, locationFlow: LocationFlow
-  ) {
-    api.requestTrack(mmid, fps) { location, code, error ->
-      val geo = toGeolocationPosition(location, code.toInt(), error)
-      locationFlow.trySend(geo)
-      locationFlow.invokeOnClose {
+    mmid: MMID, fps: Long, precise: Boolean
+  ): LocationFlow {
+    return callbackFlow {
+      api.requestTrack(mmid, fps) { location, code, error ->
+        val geo = toGeolocationPosition(location, code.toInt(), error)
+        trySend(geo)
+      }
+
+      awaitClose {
         api.removeTrackWithMmid(mmid)
       }
     }
@@ -103,9 +112,7 @@ actual class LocationManage actual constructor(private val mm: LocationNMM) {
    */
   @OptIn(ExperimentalForeignApi::class)
   private fun toGeolocationPosition(
-    location: CLLocation?,
-    code: Int,
-    msg: String?
+    location: CLLocation?, code: Int, msg: String?
   ): GeolocationPosition {
 
     val state = when (code) {
