@@ -12,6 +12,7 @@ import org.dweb_browser.helper.toKString
 import org.dweb_browser.helper.toNSString
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureChannelContext
+import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureFinData
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.pure.http.websocket
@@ -70,6 +71,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                     when (frame) {
                       is PureBinaryFrame -> sendBinaryMessage(wsId, frame.data)
                       is PureTextFrame -> sendTextMessage(wsId, frame.data)
+                      is PureCloseFrame -> break
                     }
                   }
                   sendClose(wsId)
@@ -126,15 +128,15 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                   (nsNumber as NSNumber?)?.shortValue
                 }
                 val nsString = message.objectAtIndex(3u)
-                val reasonMessage = if (nsString is NSNull) {
-                  "close"
+                // 用户主动关闭不需要抛出异常，否则会导致PureChannel的close没有正确触发
+                if (nsString is NSNull) {
+                  close()
                 } else {
-                  (nsString as NSString?)?.toKString()
+                  close(
+                    cause = Throwable((reasonCode ?: CloseReason.Codes.NORMAL.code).toString()),
+                    reason = CancellationException((nsString as NSString?)?.toKString())
+                  )
                 }
-                close(
-                  cause = Throwable((reasonCode ?: CloseReason.Codes.NORMAL.code).toString()),
-                  reason = CancellationException(reasonMessage)
-                )
               }
             }
 
