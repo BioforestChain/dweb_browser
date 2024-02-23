@@ -1,10 +1,14 @@
 package org.dweb_browser.sys.motionSensors
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Sensors") {
   init {
@@ -16,30 +20,36 @@ class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Se
     routes(
       // 获取加速计 (push模式)
       "/observe/accelerometer" byChannel { ctx ->
-        val fps = request.queryAsOrNull<Int>("fps")
+        val fps = request.queryAsOrNull<Double>("fps")
         val motionSensors = MotionSensorsManage(this@MotionSensorsNMM)
-        motionSensors.startAccelerometerListener(fps)
 
-        motionSensors.onAccelerometerChanges {
-          ctx.sendJsonLine(it)
-        }
+        if(motionSensors.isSupportAccelerometer) {
+          val job = CoroutineScope(ioAsyncExceptionHandler).launch {
+            motionSensors.getAccelerometerFlow(fps).collect {
+              ctx.sendJsonLine(it)
+            }
+          }
 
-        onClose {
-          motionSensors.unregisterListener()
+          onClose {
+            job.cancel()
+          }
         }
       },
       // 获取陀螺仪 (push模式)
       "/observe/gyroscope" byChannel { ctx ->
         val motionSensors = MotionSensorsManage(this@MotionSensorsNMM)
-        val fps = request.queryAsOrNull<Int>("fps")
+        val fps = request.queryAsOrNull<Double>("fps")
 
-        motionSensors.startGyroscopeListener(fps)
-        motionSensors.onGyroscopeChanges {
-          ctx.sendJsonLine(it)
-        }
+        if(motionSensors.isSupportGyroscope) {
+          val job = CoroutineScope(ioAsyncExceptionHandler).launch {
+            motionSensors.getGyroscopeFlow(fps).collect {
+              ctx.sendJsonLine(it)
+            }
+          }
 
-        onClose {
-          motionSensors.unregisterListener()
+          onClose {
+            job.cancel()
+          }
         }
       }).cors()
   }

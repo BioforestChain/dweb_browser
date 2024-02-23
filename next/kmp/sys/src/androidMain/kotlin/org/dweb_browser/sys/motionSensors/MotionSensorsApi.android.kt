@@ -5,92 +5,78 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 
-actual class MotionSensorsManage actual constructor(mm: NativeMicroModule) : SensorEventListener {
-  private val sensorManager = getAppContext()
-    .getSystemService(Context.SENSOR_SERVICE) as SensorManager
-  private val accelerometerSignal = Signal<org.dweb_browser.sys.motionSensors.Axis>()
-  private var gyroscopeSignal = Signal<org.dweb_browser.sys.motionSensors.Axis>()
-  private val mainScope = MainScope()
+actual class MotionSensorsManage actual constructor(mm: NativeMicroModule) {
+  private val sensorManager =
+    getAppContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
   private val sensorsRegisterSet = mutableSetOf<Int>()
 
-  actual fun startAccelerometerListener(fps: Int?): Boolean {
-    if (sensorsRegisterSet.contains(Sensor.TYPE_ACCELEROMETER)) {
-      return true
-    }
+  actual val isSupportAccelerometer get() = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null
 
-    val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) ?: return false
-
-    return sensorManager.registerListener(
-      this,
-      accelerometer,
-      // 单位：微秒
-      if (fps != null) 1_000000 / fps else SensorManager.SENSOR_DELAY_NORMAL
-    ).also {
-      sensorsRegisterSet.add(Sensor.TYPE_ACCELEROMETER)
-    }
-  }
-
-  actual fun startGyroscopeListener(fps: Int?): Boolean {
-    if (sensorsRegisterSet.contains(Sensor.TYPE_GYROSCOPE)) {
-      return true
-    }
-
-    val gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) ?: return false
-
-    return sensorManager.registerListener(
-      this,
-      gyroscope,
-      // 单位：微秒
-      if (fps != null) 1_000000 / fps else SensorManager.SENSOR_DELAY_NORMAL
-    ).also {
-      sensorsRegisterSet.add(Sensor.TYPE_GYROSCOPE)
-    }
-  }
-
-  actual fun unregisterListener() {
-    sensorManager.unregisterListener(this)
-    mainScope.cancel()
-    accelerometerSignal.clear()
-    gyroscopeSignal.clear()
-  }
-
-  override fun onSensorChanged(event: SensorEvent?) {
-    if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
-      event.apply {
-        mainScope.launch(mainAsyncExceptionHandler) {
-          accelerometerSignal.emit(
-            org.dweb_browser.sys.motionSensors.Axis(
-              values[0].toDouble(), values[1].toDouble(), values[2].toDouble()
+  actual fun getAccelerometerFlow(fps: Double?): Flow<Axis> {
+    return callbackFlow {
+      val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)!!
+      val sensorEventListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent?) {
+          event?.apply {
+            trySend(
+              Axis(
+                values[0].toDouble(), values[1].toDouble(), values[2].toDouble()
+              )
             )
-          )
+          }
         }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
       }
-    } else if (event?.sensor?.type == Sensor.TYPE_GYROSCOPE) {
-      event.apply {
-        mainScope.launch(mainAsyncExceptionHandler) {
-          gyroscopeSignal.emit(
-            org.dweb_browser.sys.motionSensors.Axis(
-              values[0].toDouble(), values[1].toDouble(), values[2].toDouble()
-            )
-          )
-        }
+
+      sensorManager.registerListener(
+        sensorEventListener,
+        accelerometer,
+        if (fps != null && fps != 0.0) (1_000000 / fps).toInt() else SensorManager.SENSOR_DELAY_NORMAL
+      ).also {
+        sensorsRegisterSet.add(Sensor.TYPE_ACCELEROMETER)
+      }
+
+      awaitClose {
+        sensorManager.unregisterListener(sensorEventListener)
       }
     }
   }
 
-  // TODO: 精度变化
-  override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+  actual val isSupportGyroscope get() = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null
 
-  actual val onAccelerometerChanges = accelerometerSignal.toListener()
+  actual fun getGyroscopeFlow(fps: Double?): Flow<Axis> {
+    return callbackFlow {
+      val gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)!!
+      val sensorEventListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent?) {
+          event?.apply {
+            trySend(
+              Axis(
+                values[0].toDouble(), values[1].toDouble(), values[2].toDouble()
+              )
+            )
+          }
+        }
 
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+      }
 
-  actual val onGyroscopeChanges = gyroscopeSignal.toListener()
+      sensorManager.registerListener(
+        sensorEventListener,
+        gyroscope,
+        if (fps != null && fps != 0.0) (1_000000 / fps).toInt() else SensorManager.SENSOR_DELAY_NORMAL
+      )
+
+      awaitClose {
+        sensorManager.unregisterListener(sensorEventListener)
+      }
+    }
+  }
 }

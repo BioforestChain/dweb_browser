@@ -14,13 +14,6 @@ export class MotionSensorsPlugin extends BasePlugin {
     encode: (state) => state,
   };
 
-  private response = new JsonlinesStreamResponse(this, this.coder);
-
-  // private accelerometerSignal = new Signal<$Callback<[$Axis]>>();
-  // readonly onAccelerometer = this.accelerometerSignal.listen;
-  // private gyroscopeSignal = new Signal<$Callback<[$Axis]>>();
-  // readonly onGyroscope = this.gyroscopeSignal.listen;
-
   /**
    * 拿到加速计传感器控制器
    * @param fps 每秒帧率

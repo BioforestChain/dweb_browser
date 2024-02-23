@@ -2,80 +2,61 @@ package org.dweb_browser.sys.motionSensors
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 import platform.CoreMotion.CMMotionManager
 import platform.Foundation.NSOperationQueue
 
 actual class MotionSensorsManage actual constructor(mm: NativeMicroModule) {
   private val motionManager = CMMotionManager()
-  private val accelerometerSignal = Signal<Axis>()
-  private var gyroscopeSignal = Signal<Axis>()
-  private val mainScope = MainScope()
+
+  actual val isSupportAccelerometer get() = motionManager.isAccelerometerAvailable()
 
   @OptIn(ExperimentalForeignApi::class)
-  actual fun startAccelerometerListener(fps: Int?): Boolean {
-    if (!motionManager.isAccelerometerAvailable()) {
-//      throw Exception("设备硬件不支持加速计传感器")
-      println("设备硬件不支持加速计传感器")
-      return false
-    }
-
-    if (!motionManager.isAccelerometerActive()) {
-      motionManager.setAccelerometerUpdateInterval(
-        if (fps != null) (1 / fps).toDouble() else 0.025
-      )
-      motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue) { accelerometerData, error ->
-        accelerometerData?.acceleration?.useContents {
-          mainScope.launch(mainAsyncExceptionHandler) {
-            accelerometerSignal.emit(Axis(x, y, z))
+  actual fun getAccelerometerFlow(fps: Double?): Flow<Axis> {
+    return callbackFlow {
+      if (!motionManager.isAccelerometerActive()) {
+        motionManager.setAccelerometerUpdateInterval(
+          if (fps != null && fps != 0.0) (1 / fps) else 0.025
+        )
+        motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue) { accelerometerData, error ->
+          accelerometerData?.acceleration?.useContents {
+            trySend(Axis(x, y, z))
           }
         }
-      }
-    }
 
-    return motionManager.accelerometerActive
+        awaitClose {
+          motionManager.stopAccelerometerUpdates()
+        }
+      }
+
+      close()
+    }
   }
 
-  actual val onAccelerometerChanges = accelerometerSignal.toListener()
+  actual val isSupportGyroscope get() = motionManager.isGyroAvailable()
 
   @OptIn(ExperimentalForeignApi::class)
-  actual fun startGyroscopeListener(fps: Int?): Boolean {
-    if (!motionManager.isGyroAvailable()) {
-//      throw Exception("设备硬件不支持陀螺仪传感器")
-      println("设备硬件不支持陀螺仪传感器")
-      return false
-    }
-
-    if (!motionManager.isGyroActive()) {
-      motionManager.setGyroUpdateInterval(
-        if (fps != null) (1 / fps).toDouble() else 0.025
-      )
-      motionManager.startGyroUpdatesToQueue(NSOperationQueue.mainQueue) { gyroData, error ->
-        gyroData?.rotationRate?.useContents {
-          mainScope.launch(mainAsyncExceptionHandler) {
-            gyroscopeSignal.emit(Axis(x, y, z))
+  actual fun getGyroscopeFlow(fps: Double?): Flow<Axis> {
+    return callbackFlow {
+      if (!motionManager.isGyroActive()) {
+        motionManager.setGyroUpdateInterval(
+          if (fps != null && fps != 0.0) (1 / fps) else 0.025
+        )
+        motionManager.startGyroUpdatesToQueue(NSOperationQueue.mainQueue) { gyroData, error ->
+          gyroData?.rotationRate?.useContents {
+            trySend(Axis(x, y, z))
           }
         }
+
+        awaitClose {
+          motionManager.stopGyroUpdates()
+        }
       }
-    }
 
-    return motionManager.gyroActive
-  }
-
-
-  actual val onGyroscopeChanges = gyroscopeSignal.toListener()
-
-  actual fun unregisterListener() {
-    if (motionManager.isAccelerometerActive()) {
-      motionManager.stopAccelerometerUpdates()
-    }
-
-    if (motionManager.isGyroAvailable()) {
-      motionManager.stopGyroUpdates()
+      close()
     }
   }
 }
