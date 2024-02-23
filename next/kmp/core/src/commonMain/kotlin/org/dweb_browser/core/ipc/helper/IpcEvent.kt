@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.pure.http.PureBinaryFrame
+import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureTextFrame
 
@@ -43,8 +44,9 @@ class IpcEvent(
       IpcEvent(name, data, IPC_DATA_ENCODING.UTF8, orderBy)
 
     fun fromPureFrame(name: String, pureFrame: PureFrame, orderBy: Int? = null) = when (pureFrame) {
-      is PureTextFrame -> IpcEvent.fromUtf8(name, pureFrame.data, orderBy)
-      is PureBinaryFrame -> IpcEvent.fromBinary(name, pureFrame.data, orderBy)
+      is PureTextFrame -> fromUtf8(name, pureFrame.data, orderBy)
+      is PureBinaryFrame -> fromBinary(name, pureFrame.data, orderBy)
+      is PureCloseFrame -> fromUtf8(name, "close", orderBy)
     }.also { it.pureFrame = pureFrame }
 
 

@@ -21,9 +21,7 @@ export abstract class BasePlugin {
   }
 
   async buildChannel(pathname: string, init?: $BuildChannelWithBaseInit) {
-    const url = new URL(init?.base ?? BasePlugin.api_url);
-    url.pathname = `${init?.pathPrefix ?? this.mmid}${pathname}`;
-    url.protocol = url.protocol.replace("http", "ws");
+    const url = this.buildApiRequest(pathname, init).url.replace("http", "ws");
     const ws = new WebSocket(url);
     ws.binaryType = init?.binaryType ?? "blob";
     await new Promise((resolve, reject) => {

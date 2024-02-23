@@ -18,6 +18,13 @@ export enum $GeolocationCode {
   timeout = 3,
 }
 
+export interface $LocationOptions {
+  fps?: number;
+  precise?: boolean;
+  /**最小更新距离(米)(android only) */
+  minUpdateDistance?: number;
+}
+
 export interface $GeolocationContoller {
   /**不断的监听位置 */
   listen(callback: (position: $GeolocationPosition) => undefined): void;

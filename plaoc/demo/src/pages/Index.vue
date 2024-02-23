@@ -7,6 +7,7 @@ const go = (path: string) => {
 };
 
 const items = ref([
+  { text: "motionSensors", icon: "mdi-account", router: "/motionSensors" },
   { text: "window", icon: "mdi-clock", router: "./window" },
   { text: "inputfile", icon: "mdi-account", router: "/inputfile" },
   { text: "camera", icon: "mdi-flag", router: "/camera" },

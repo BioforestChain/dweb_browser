@@ -20,6 +20,7 @@ import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
@@ -132,7 +133,6 @@ class IpcClientRequest(
         CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
           val pureChannel = pureRequest.getChannel()
           debugIpc("ipcClient/channelToIpc") { "channelId:$eventNameBase => pureChannel:$pureChannel start!!" }
-
           /// 不论是请求者还是响应者
           /// 那么意味着数据需要通过ipc来进行发送。所以我需要将 pureChannel 中要发送的数据读取出来进行发送
           /// 反之，ipc收到的数据也要作为 pureChannel 的
@@ -345,11 +345,23 @@ sealed class IpcRequest(
       val ipcStartEvent = started.await()
       debugIpc(_debugTag) { "$ipc postIpcEventStart:$ipcStartEvent $pureChannel" }
       ipc.postMessage(ipcStartEvent)
+//      CoroutineScope(ioAsyncExceptionHandler).launch {
+//        select {
+//          channelForIpcPost.onReceiveCatching {
+//
+//          }
+//        }
+//      }
       /// 将PureFrame转成IpcEvent，然后一同发给对面
       for (pureFrame in channelForIpcPost) {
-        val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame, orderBy)
-        debugIpc(_debugTag) { "$ipc postIpcEventData:$ipcDataEvent $pureChannel" }
-        ipc.postMessage(ipcDataEvent)
+        when (pureFrame) {
+          PureCloseFrame -> break;
+          else -> {
+            val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame, orderBy)
+            debugIpc(_debugTag) { "$ipc postIpcEventData:$ipcDataEvent $pureChannel" }
+            ipc.postMessage(ipcDataEvent)
+          }
+        }
       }
       // 关闭的时候，发一个信号给对面
       val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "", orderBy)

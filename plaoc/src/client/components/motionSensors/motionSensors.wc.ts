@@ -4,18 +4,20 @@ export class HTMLDwebMotionSensorsElement extends HTMLElement {
   static readonly tagName = "dweb-motion-sensors";
   readonly plugin = motionSensorsPlugin;
 
-  startAccelerometer(fps?: number) {
-    motionSensorsPlugin.startAccelerometer(fps);
-    motionSensorsPlugin.onAccelerometer((axis) => {
+  async startAccelerometer(fps?: number) {
+    const controller = await motionSensorsPlugin.startAccelerometer(fps);
+    controller.listen((axis) => {
       this.dispatchEvent(new CustomEvent("readAccelerometer", { detail: axis }));
     });
+    return controller;
   }
 
-  startGyroscope(fps?: number) {
-    motionSensorsPlugin.startGyroscope(fps);
-    motionSensorsPlugin.onGyroscope((axis) => {
+  async startGyroscope(fps?: number) {
+    const controller = await motionSensorsPlugin.startGyroscope(fps);
+    controller.listen((axis) => {
       this.dispatchEvent(new CustomEvent("readGyroscope", { detail: axis }));
     });
+    return controller
   }
 }
 customElements.define(HTMLDwebMotionSensorsElement.tagName, HTMLDwebMotionSensorsElement);

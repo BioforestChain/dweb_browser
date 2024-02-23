@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import type { HTMLDwebMotionSensorsElement, $Axis } from "../plugin";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
+import type { $Axis, $MotionSensorsController, HTMLDwebMotionSensorsElement } from "../plugin";
 const title = "MotionSensors";
 
 const $logPanel = ref<typeof LogPanel>();
@@ -14,10 +14,11 @@ onMounted(() => {
   motionSensors = $motionSensorsPlugin.value!;
 });
 
+let contollerAccelerometer: $MotionSensorsController | null = null;
 
 const startAccelerometer = defineLogAction(
   async () => {
-    motionSensors.startAccelerometer(1);
+    contollerAccelerometer = await motionSensors.startAccelerometer(0.5);
     console.info("启动加速计传感器");
     motionSensors.addEventListener("readAccelerometer", (event: Event) => {
       const e = event as CustomEvent<$Axis>;
@@ -27,9 +28,19 @@ const startAccelerometer = defineLogAction(
   { name: "startAccelerometer", args: [], logPanel: $logPanel }
 );
 
+const stopAccelerometer = defineLogAction(
+  async () => {
+    console.info("关闭加速计传感器");
+    contollerAccelerometer?.stop();
+  },
+  { name: "stopAccelerometer", args: [], logPanel: $logPanel }
+);
+
+let contollerGyroscope: $MotionSensorsController | null = null;
+
 const startGyroscope = defineLogAction(
   async () => {
-    motionSensors.startGyroscope(1);
+    contollerGyroscope = await motionSensors.startGyroscope(1);
     console.info("启动陀螺仪传感器");
     motionSensors.addEventListener("readGyroscope", (event: Event) => {
       const e = event as CustomEvent<$Axis>;
@@ -38,7 +49,13 @@ const startGyroscope = defineLogAction(
   },
   { name: "startGyroscope", args: [], logPanel: $logPanel }
 );
-
+const stopGyroscope = defineLogAction(
+  async () => {
+    console.info("关闭螺仪传感器");
+    contollerGyroscope?.stop();
+  },
+  { name: "stopGyroscope", args: [], logPanel: $logPanel }
+);
 </script>
 <template>
   <dweb-motion-sensors ref="$motionSensorsPlugin"></dweb-motion-sensors>
@@ -52,7 +69,11 @@ const startGyroscope = defineLogAction(
 
       <div class="justify-end card-actions">
         <button class="inline-block rounded-full btn btn-accent" @click="startAccelerometer">启动加速计传感器</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="stopAccelerometer">关闭加速计传感器</button>
+      </div>
+      <div class="justify-end card-actions">
         <button class="inline-block rounded-full btn btn-accent" @click="startGyroscope">启动陀螺仪传感器</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="stopGyroscope">关闭陀螺仪传感器</button>
       </div>
     </article>
   </div>

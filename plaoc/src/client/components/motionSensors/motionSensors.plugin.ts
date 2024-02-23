@@ -1,9 +1,8 @@
 import { JsonlinesStreamResponse } from "../../helper/JsonlinesStreamHelper.ts";
 import { bindThis } from "../../helper/bindThis.ts";
-import { $Callback, Signal } from "../../helper/createSignal.ts";
 import { $Coder } from "../../util/StateObserver.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import { $Axis } from "./motionSensors.type.ts";
+import { $Axis, $MotionSensorsController } from "./motionSensors.type.ts";
 
 export class MotionSensorsPlugin extends BasePlugin {
   constructor() {
@@ -17,23 +16,35 @@ export class MotionSensorsPlugin extends BasePlugin {
 
   private response = new JsonlinesStreamResponse(this, this.coder);
 
-  private accelerometerSignal = new Signal<$Callback<[$Axis]>>();
-  readonly onAccelerometer = this.accelerometerSignal.listen;
-  private gyroscopeSignal = new Signal<$Callback<[$Axis]>>();
-  readonly onGyroscope = this.gyroscopeSignal.listen;
+  // private accelerometerSignal = new Signal<$Callback<[$Axis]>>();
+  // readonly onAccelerometer = this.accelerometerSignal.listen;
+  // private gyroscopeSignal = new Signal<$Callback<[$Axis]>>();
+  // readonly onGyroscope = this.gyroscopeSignal.listen;
 
   /**
-   * 启动加速计传感器
+   * 拿到加速计传感器控制器
    * @param fps 每秒帧率
    */
   @bindThis
-  async startAccelerometer(fps?: number) {
-    for await (const data of this.response.jsonlines("/observe/accelerometer", {
-      searchParams: new URLSearchParams(fps !== undefined ? "?fps=" + fps : ""),
-    })) {
-      console.log(data);
-      this.accelerometerSignal.emit(data);
-    }
+  async startAccelerometer(fps?: number): Promise<$MotionSensorsController> {
+    const ws = await this.buildChannel("/observe/accelerometer", {
+      search: {
+        fps: fps,
+      },
+    });
+    const controller = {
+      listen(callback: (position: $Axis) => void) {
+        ws.onmessage = async (ev) => {
+          const data = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();
+          const res = JSON.parse(data);
+          callback(res);
+        };
+      },
+      stop() {
+        ws.close();
+      },
+    };
+    return controller;
   }
 
   /**
@@ -42,11 +53,24 @@ export class MotionSensorsPlugin extends BasePlugin {
    */
   @bindThis
   async startGyroscope(fps?: number) {
-    for await (const data of this.response.jsonlines("/observe/gyroscope", {
-      searchParams: new URLSearchParams(fps !== undefined ? "?fps=" + fps : ""),
-    })) {
-      this.gyroscopeSignal.emit(data);
-    }
+    const ws = await this.buildChannel("/observe/gyroscope", {
+      search: {
+        fps: fps,
+      },
+    });
+    const controller = {
+      listen(callback: (position: $Axis) => void) {
+        ws.onmessage = async (ev) => {
+          const data = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();
+          const res = JSON.parse(data);
+          callback(res);
+        };
+      },
+      stop() {
+        ws.close();
+      },
+    };
+    return controller;
   }
 }
 

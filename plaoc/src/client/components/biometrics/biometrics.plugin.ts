@@ -16,6 +16,14 @@ export class BiometricsPlugin extends BasePlugin {
   @bindThis
   check(): Promise<BioetricsCheckResult> {
     return this.fetchApi("/check").number();
+    // const data = await res.text();
+    // if (data == "true") {
+    //   return 0;
+    // }
+    // if (data == "false") {
+    //   return -1;
+    // }
+    // return +data;
   }
   /**
    * 生物识别
