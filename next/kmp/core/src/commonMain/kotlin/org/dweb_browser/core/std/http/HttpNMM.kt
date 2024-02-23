@@ -36,6 +36,7 @@ import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
@@ -232,6 +233,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
                 when (frame) {
                   is PureBinaryFrame -> ctx.sendBinary(frame.data)
                   is PureTextFrame -> ctx.sendText(frame.data)
+                  is PureCloseFrame -> break
                 }
               }
             }

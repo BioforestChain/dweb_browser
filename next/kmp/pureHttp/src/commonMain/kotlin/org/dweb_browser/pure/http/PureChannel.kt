@@ -140,9 +140,9 @@ class PureTextFrame(val data: String) : PureFrame()
 @SerialName("binary")
 class PureBinaryFrame(val data: ByteArray) : PureFrame()
 
-//@Serializable
-//@SerialName("close")
-//data object PureCloseFrame : PureFrame()
+@Serializable
+@SerialName("close")
+data object PureCloseFrame : PureFrame()
 //
 //@Serializable
 //@SerialName("ping")

@@ -42,6 +42,10 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
               // 不论 result 是否为空数组，都进行响应
               ctx.sendJson(result)
             }
+
+            else -> {
+              ctx.getChannel().close()
+            }
           }
         }
       },

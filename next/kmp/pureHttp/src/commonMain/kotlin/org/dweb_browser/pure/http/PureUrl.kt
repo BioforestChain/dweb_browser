@@ -7,7 +7,7 @@ import org.dweb_browser.helper.Query
 interface PureUrl {
   val url: Url
 
-  fun queryBoolean(key: String, default: Boolean = false) =
+  fun queryBoolean(key: String, default: Boolean = true) =
     this.url.parameters[key]?.let { it.lowercase() == "true" } ?: default
 
   fun queryOrNull(key: String) = this.url.parameters[key]

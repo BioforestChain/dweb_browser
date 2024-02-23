@@ -1,6 +1,11 @@
 package org.dweb_browser.sys.location
 
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -9,6 +14,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.permission.SystemPermissionName
@@ -30,38 +36,47 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
     )
   }
 
-  private val locationManage = LocationManage()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    val locationManage = LocationManage()
     routes(
-      "/location" bind PureMethod.GET by defineJsonResponse {
-        val precise = request.queryBoolean("precise")
-        debugLocation("location/get", "enter")
-        if (requestSystemPermission()) {
-          locationManage.getCurrentLocation(precise)?.toJsonElement()
-            ?: throwException(HttpStatusCode.NoContent)
-        } else {
-          throwException(HttpStatusCode.Unauthorized, LocationI18nResource.permission_denied.text)
-        }
-      },
       "/location" byChannel { ctx ->
         val remoteMmid = ipc.remote.mmid
-        val fps = request.queryOrNull("fps")?.toLong() ?: 5L
+        val fps = request.queryOrNull("fps")?.toLong() ?: 3000L
         val precise = request.queryBoolean("precise")
-        debugLocation("location/byChannel", "enter => $remoteMmid->$fps")
         if (requestSystemPermission()) {
-          locationManage.observeLocation(remoteMmid, fps, precise) {
-            try {
-              ctx.sendJsonLine(it.toJsonElement())
-              true // 这边表示正常，继续监听
-            } catch (e: Exception) {
-              debugLocation("observe", e.message ?: "close observe")
-              close(cause = e)
-              false // 这边表示异常，关闭监听
+          try {
+            val flowJob = CoroutineScope(ioAsyncExceptionHandler).launch {
+              val flow = locationManage.observeLocation(remoteMmid, fps, precise)
+              // 缓存通道
+              flow.buffer().collect { position ->
+//                debugLocation("locationChannel=>", "loop:$position")
+                ctx.sendJsonLine(position.toJsonElement())
+              }
             }
+            debugLocation("locationChannel=>", "enter => $remoteMmid->$fps->$precise channel:${ctx.getChannel()}")
+            onClose {
+              debugLocation("locationChannel=>", "onClose：$remoteMmid")
+              locationManage.removeLocationObserve(remoteMmid)
+              flowJob.cancel()
+            }
+          } catch (e: Exception) {
+            debugLocation("locationChannel=>", e.message ?: "close observe")
+            close(cause = e)
           }
-          onClose {
-            locationManage.removeLocationObserve(remoteMmid)
+        }
+      },
+      "/location" bind PureMethod.GET by defineJsonResponse {
+        val precise = request.queryBoolean("precise")
+        val isPermission = requestSystemPermission()
+        debugLocation("location/get", "isPermission=>$isPermission")
+        if (isPermission) {
+          val res = CompletableDeferred<GeolocationPosition>()
+          locationManage.getCurrentLocation(ipc.remote.mmid, precise).take(1).collect {
+            res.complete(it)
           }
+          res.await().toJsonElement()
+        } else {
+          throwException(HttpStatusCode.Unauthorized, LocationI18nResource.permission_denied.text)
         }
       }
     )

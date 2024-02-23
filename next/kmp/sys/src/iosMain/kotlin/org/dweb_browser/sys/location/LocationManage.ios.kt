@@ -3,23 +3,18 @@ package org.dweb_browser.sys.location
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.platform.ios.DwebLocationRequestApi
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.platform.ios.DwebLocationRequestApi
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.CoreLocation.CLLocation
 import platform.CoreLocation.CLLocationManager
 import platform.CoreLocation.CLLocationManagerDelegateProtocol
+import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
 import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
 import platform.CoreLocation.kCLAuthorizationStatusDenied
-import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
 import platform.Foundation.timeIntervalSince1970
 import platform.darwin.NSObject
 
@@ -27,12 +22,14 @@ import platform.darwin.NSObject
 /**
  * TODO 参考详见：https://github.com/icerockdev/moko-geo/blob/master/geo/src/iosMain/kotlin/dev/icerock/moko/geo/LocationTracker.kt
  */
-actual class LocationManage {
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+actual class LocationManage actual constructor(private val mm: LocationNMM) {
 
   private val manager = CLLocationManager()
 
   val result = CompletableDeferred<AuthorizationStatus>()
+
+  @OptIn(ExperimentalForeignApi::class)
+  private val api = DwebLocationRequestApi()
 
   init {
     SystemPermissionAdapterManager.append {
@@ -42,10 +39,11 @@ actual class LocationManage {
     }
   }
 
-  private suspend fun locationAuthorizationStatus() : AuthorizationStatus {
+  private suspend fun locationAuthorizationStatus(): AuthorizationStatus {
     val status = when (manager.authorizationStatus) {
       kCLAuthorizationStatusAuthorizedAlways,
       kCLAuthorizationStatusAuthorizedWhenInUse -> AuthorizationStatus.GRANTED
+
       kCLAuthorizationStatusDenied -> AuthorizationStatus.DENIED
       else -> {
         withMainContext {
@@ -64,6 +62,7 @@ actual class LocationManage {
       when (manager.authorizationStatus) {
         kCLAuthorizationStatusAuthorizedAlways,
         kCLAuthorizationStatusAuthorizedWhenInUse -> result.complete(AuthorizationStatus.GRANTED)
+
         kCLAuthorizationStatusDenied -> result.complete(AuthorizationStatus.DENIED)
         else -> result.complete(AuthorizationStatus.UNKNOWN)
       }
@@ -71,38 +70,39 @@ actual class LocationManage {
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  actual suspend fun getCurrentLocation(precise: Boolean): GeolocationPosition? {
-    val promiseOut = PromiseOut<GeolocationPosition>()
-    DwebLocationRequestApi().requestLocationWithCompleted { location, code, error ->
-      val geo = iOSLocationConvertToGeoGeolocationPosition(location, code.toInt(), error)
-      promiseOut.resolve(geo)
+  actual suspend fun getCurrentLocation(mmid: MMID, precise: Boolean): GeolocationPosition {
+    val deferred = CompletableDeferred<GeolocationPosition>()
+    api.requestLocationWithCompleted { location, code, error ->
+      val geo = toGeolocationPosition(location, code.toInt(), error)
+      deferred.complete(geo)
     }
-    return promiseOut.waitPromise()
+    return deferred.await()
   }
 
   // TODO 这里没有看到任何对于异常情况自动解除监听的行为
   @OptIn(ExperimentalForeignApi::class)
   actual suspend fun observeLocation(
-    mmid: MMID, fps: Long, precise: Boolean, callback: LocationObserverCallback
+    mmid: MMID, fps: Long, precise: Boolean, locationFlow: LocationFlow
   ) {
-    DwebLocationRequestApi().requestTrack(mmid, fps) { location, code, error ->
-      val geo = iOSLocationConvertToGeoGeolocationPosition(location, code.toInt(), error)
-      ioAsyncScope.launch {
-        val continueTrack = callback(geo)
-        if (!continueTrack) {
-          DwebLocationRequestApi().removeTrackWithMmid(mmid)
-        }
+    api.requestTrack(mmid, fps) { location, code, error ->
+      val geo = toGeolocationPosition(location, code.toInt(), error)
+      locationFlow.trySend(geo)
+      locationFlow.invokeOnClose {
+        api.removeTrackWithMmid(mmid)
       }
     }
   }
 
   @OptIn(ExperimentalForeignApi::class)
   actual fun removeLocationObserve(mmid: MMID) {
-    DwebLocationRequestApi().removeTrackWithMmid(mmid)
+    api.removeTrackWithMmid(mmid)
   }
 
+  /**
+   * 将ios位置转换为需要结构
+   */
   @OptIn(ExperimentalForeignApi::class)
-  fun iOSLocationConvertToGeoGeolocationPosition(
+  private fun toGeolocationPosition(
     location: CLLocation?,
     code: Int,
     msg: String?
@@ -116,7 +116,7 @@ actual class LocationManage {
       else -> GeolocationPositionState.createOther(msg)
     }
 
-    var coords = GeolocationCoordinates(0.0, 0.0, 0.0)
+    var cords = GeolocationCoordinates(0.0, 0.0, 0.0)
     var time: Long = 0
 
     location?.let {
@@ -132,12 +132,12 @@ actual class LocationManage {
       val speed = if (it.speed < 0) null else it.speed
 
       //坐标
-      coords = GeolocationCoordinates(accuracy, latitude, longitude, altitude, null, heading, speed)
+      cords = GeolocationCoordinates(accuracy, latitude, longitude, altitude, null, heading, speed)
 
       //时间戳
       time = it.timestamp.timeIntervalSince1970().toLong()
     }
 
-    return GeolocationPosition(state, coords, time)
+    return GeolocationPosition(state, cords, time)
   }
 }

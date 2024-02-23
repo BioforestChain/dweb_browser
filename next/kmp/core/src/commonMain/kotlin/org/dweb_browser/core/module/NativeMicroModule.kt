@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -34,6 +35,8 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.commonAsyncExceptionHandler
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.toLittleEndianByteArray
 import org.dweb_browser.helper.trueAlso
@@ -42,11 +45,11 @@ import org.dweb_browser.pure.http.PureBinaryBody
 import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.PureStreamBody
+import kotlin.coroutines.coroutineContext
 
 val debugNMM = Debugger("NMM")
 
@@ -345,7 +348,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
  */
 suspend fun NativeMicroModule.createChannel(
   urlPath: String,
-  resolve: suspend PureChannelContext.()->Unit
+  resolve: suspend PureChannelContext.() -> Unit
 ): PureResponse {
   val channelDef = CompletableDeferred<PureChannel>()
   val request = PureClientRequest(

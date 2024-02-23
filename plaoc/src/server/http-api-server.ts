@@ -22,7 +22,7 @@ const INTERNAL_PREFIX = "/internal/";
 
 /**给前端的api服务 */
 export class Server_api extends HttpServer {
-  constructor(public getWid: ()=>Promise<string>, private handlers: $OnFetch[] = []) {
+  constructor(public getWid: () => Promise<string>, private handlers: $OnFetch[] = []) {
     super();
   }
   protected _getOptions(): $DwebHttpServerOptions {

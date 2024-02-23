@@ -1,5 +1,7 @@
 package org.dweb_browser.sys.location
 
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.core.help.types.MMID
@@ -47,27 +49,27 @@ data class GeolocationPosition(
   }
 }
 
-typealias LocationObserverCallback = suspend (GeolocationPosition) -> Boolean
+typealias LocationFlow = Flow<GeolocationPosition>
 
-/**
- * 如果想优化，可以参考：https://github.com/icerockdev/moko-geo/blob/master/geo/src/commonMain/kotlin/dev/icerock/moko/geo/LocationTracker.kt
- */
 expect class LocationManage() {
   /**
    * 获取当前的位置信息
    */
-  suspend fun getCurrentLocation(precise: Boolean): GeolocationPosition?
+  suspend fun getCurrentLocation(mmid: MMID, precise: Boolean): LocationFlow
+
+//  suspend fun startLocation(mmid: MMID)
 
   /**
    * 监听位置信息，位置信息变化及时通知
    * 返回的Boolean表示是否正常发送，如果发送遗产，关闭监听。
    */
   suspend fun observeLocation(
-    mmid: MMID, fps: Long, precise: Boolean, callback: LocationObserverCallback
-  )
+    mmid: MMID, fps: Long, precise: Boolean
+  ): LocationFlow
 
   /**
    * 移除定位监听
    */
   fun removeLocationObserve(mmid: MMID)
+
 }

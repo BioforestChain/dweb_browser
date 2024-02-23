@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.IFrom
 import org.dweb_browser.helper.LateInit
 import org.dweb_browser.helper.commonAsyncExceptionHandler
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toIpcUrl
 import kotlin.coroutines.coroutineContext
 
@@ -112,7 +113,8 @@ sealed class PureRequest : PureUrl, IFrom {
     localeChannel?.let { remoteChannel ->
       CompletableDeferred<PureChannel>().also { localeChannel ->
         val job = CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
-          localeChannel.complete(remoteChannel.await().reverse())
+          val channel = remoteChannel.await()
+          localeChannel.complete(channel.reverse())
         }
         localeChannel.invokeOnCompletion { job.cancel() }
       }
