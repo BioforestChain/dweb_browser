@@ -122,7 +122,6 @@ actual class LocationManage {
           locations.forEach { location ->
             callback(toGeolocationPosition(location))
           }
-          super.locationManager(manager, didUpdateLocations)
         }
 
         override fun locationManager(
@@ -141,14 +140,12 @@ actual class LocationManage {
               "didChangeAuthorizationStatus=> $didChangeAuthorizationStatus"
             )
           }
-          super.locationManager(manager, didChangeAuthorizationStatus)
         }
 
         override fun locationManager(manager: CLLocationManager, didFailWithError: NSError) {
           //处理失败情况
           debugLocation("createLocalManager=>", "iosError=> $didFailWithError")
           callback(GeolocationPosition.createErrorObj(GeolocationPositionState.POSITION_UNAVAILABLE))
-          super.locationManager(manager, didFailWithError)
         }
       }
     }

@@ -13,7 +13,6 @@
 		46E836332B284F1500281558 /* DwebWKWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E836322B284F1500281558 /* DwebWKWebView.swift */; };
 		4803C0082B4FF4A1006B2F79 /* DependencyHeaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803C0072B4FF4A1006B2F79 /* DependencyHeaders.swift */; };
 		48334DE52B50D0F600399FFF /* DwebBrowserCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 48334DE42B50D0F600399FFF /* DwebBrowserCommon.framework */; };
-		48E148E42B1D68EC00B69C64 /* DwebLocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */; };
 		48F677012B54C8B800607EAC /* DwebPlatformIosKit.docc in Sources */ = {isa = PBXBuildFile; fileRef = 48F677002B54C8B800607EAC /* DwebPlatformIosKit.docc */; };
 		8102DE032B6883F30009C2CF /* SingleRecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8102DE022B6883F30009C2CF /* SingleRecordView.swift */; };
 		8146C0A52B64D9D9001BC42A /* PlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8146C09D2B64D9D9001BC42A /* PlayerManager.swift */; };
@@ -41,7 +40,6 @@
 		4803C0032B4FF40A006B2F79 /* DwebBrowserTools.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebBrowserTools.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4803C0072B4FF4A1006B2F79 /* DependencyHeaders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyHeaders.swift; sourceTree = "<group>"; };
 		48334DE42B50D0F600399FFF /* DwebBrowserCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebBrowserCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebLocationManager.swift; sourceTree = "<group>"; };
 		48F677002B54C8B800607EAC /* DwebPlatformIosKit.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DwebPlatformIosKit.docc; sourceTree = "<group>"; };
 		8102DE022B6883F30009C2CF /* SingleRecordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleRecordView.swift; sourceTree = "<group>"; };
 		8146C09D2B64D9D9001BC42A /* PlayerManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerManager.swift; sourceTree = "<group>"; };
@@ -71,121 +69,12 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1A0D70C4DACA3D8D5377BCFF /* X-Build */ = {
-			isa = PBXGroup;
-			children = (
-				1A0D764658CEB4E1ECCC5B2E /* Intermediates.noindex */,
-			);
-			path = "X-Build";
-			sourceTree = "<group>";
-		};
-		1A0D71F59A6CBB8DB53DF86E /* DwebPlatformIosKit.build */ = {
-			isa = PBXGroup;
-			children = (
-				1A0D72E38ED609FBA6466952 /* Release-iphoneos */,
-			);
-			name = DwebPlatformIosKit.build;
-			path = ArchiveIntermediates/DwebPlatformIosKit/IntermediateBuildFilesPath/DwebPlatformIosKit.build;
-			sourceTree = "<group>";
-		};
-		1A0D72E38ED609FBA6466952 /* Release-iphoneos */ = {
-			isa = PBXGroup;
-			children = (
-				1A0D737F09C3B08B47C227B1 /* DwebPlatformIosKit.build */,
-			);
-			path = "Release-iphoneos";
-			sourceTree = "<group>";
-		};
-		1A0D737F09C3B08B47C227B1 /* DwebPlatformIosKit.build */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = DwebPlatformIosKit.build;
-			sourceTree = "<group>";
-		};
-		1A0D73A6C56AF8FF2F1F0781 /* EagerLinkingTBDs */ = {
-			isa = PBXGroup;
-			children = (
-				1A0D791F364F9D97ADD2E0DD /* Release-iphoneos */,
-			);
-			name = EagerLinkingTBDs;
-			path = ArchiveIntermediates/DwebPlatformIosKit/IntermediateBuildFilesPath/EagerLinkingTBDs;
-			sourceTree = "<group>";
-		};
-		1A0D73B2F02E7CD9D21E7E80 /* BuildProductsPath */ = {
-			isa = PBXGroup;
-			children = (
-				1A0D75E43CA7D1D18CBE31BB /* Release-iphoneos */,
-			);
-			name = BuildProductsPath;
-			path = ArchiveIntermediates/DwebPlatformIosKit/BuildProductsPath;
-			sourceTree = "<group>";
-		};
-		1A0D750B386CE56793D09D3F /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Frameworks;
-			sourceTree = "<group>";
-		};
-		1A0D75E43CA7D1D18CBE31BB /* Release-iphoneos */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "Release-iphoneos";
-			sourceTree = "<group>";
-		};
-		1A0D763B7C8BEEC5E9495081 /* InstallationBuildProductsLocation */ = {
-			isa = PBXGroup;
-			children = (
-				1A0D765E0930AF26355F199C /* Library */,
-			);
-			name = InstallationBuildProductsLocation;
-			path = ArchiveIntermediates/DwebPlatformIosKit/InstallationBuildProductsLocation;
-			sourceTree = "<group>";
-		};
-		1A0D764658CEB4E1ECCC5B2E /* Intermediates.noindex */ = {
-			isa = PBXGroup;
-			children = (
-				1A0D763B7C8BEEC5E9495081 /* InstallationBuildProductsLocation */,
-				1A0D73B2F02E7CD9D21E7E80 /* BuildProductsPath */,
-				1A0D73A6C56AF8FF2F1F0781 /* EagerLinkingTBDs */,
-				1A0D71F59A6CBB8DB53DF86E /* DwebPlatformIosKit.build */,
-			);
-			path = Intermediates.noindex;
-			sourceTree = "<group>";
-		};
-		1A0D765E0930AF26355F199C /* Library */ = {
-			isa = PBXGroup;
-			children = (
-				1A0D750B386CE56793D09D3F /* Frameworks */,
-			);
-			path = Library;
-			sourceTree = "<group>";
-		};
-		1A0D791F364F9D97ADD2E0DD /* Release-iphoneos */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "Release-iphoneos";
-			sourceTree = "<group>";
-		};
-		1A0D7A46F808C90DC8B83434 /* swiftpm */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = swiftpm;
-			path = DwebPlatformIosKit.xcodeproj/project.xcworkspace/xcshareddata/swiftpm;
-			sourceTree = "<group>";
-		};
 		3D50D2CB2B064BA5008891FC = {
 			isa = PBXGroup;
 			children = (
 				3D50D2D72B064BA5008891FC /* DwebPlatformIosKit */,
 				3D50D2D62B064BA5008891FC /* Products */,
 				4803BFFE2B4FF3EB006B2F79 /* Frameworks */,
-				1A0D7A46F808C90DC8B83434 /* swiftpm */,
-				1A0D70C4DACA3D8D5377BCFF /* X-Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -207,7 +96,6 @@
 				4803C0072B4FF4A1006B2F79 /* DependencyHeaders.swift */,
 				46282D672B0B603700A45995 /* DwebHelper.swift */,
 				81819D1C2B679984000C736B /* SoundRecordManager.swift */,
-				48E148E32B1D68EC00B69C64 /* DwebLocationManager.swift */,
 				46E836322B284F1500281558 /* DwebWKWebView.swift */,
 			);
 			path = DwebPlatformIosKit;
@@ -325,7 +213,6 @@
 			files = (
 				8146C0AC2B64D9D9001BC42A /* Date+format.swift in Sources */,
 				81E4C3F42B67410B0070FFBD /* EnvironmentModel.swift in Sources */,
-				48E148E42B1D68EC00B69C64 /* DwebLocationManager.swift in Sources */,
 				8146C0AA2B64D9D9001BC42A /* CustomSliderView.swift in Sources */,
 				46E836332B284F1500281558 /* DwebWKWebView.swift in Sources */,
 				8146C0AE2B64DAA5001BC42A /* RecordCellView.swift in Sources */,
