@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
-
 plugins {
   id("target-common")
   id("target-js")
@@ -12,27 +10,27 @@ beforeEvaluate {
 kotlin {
   js(IR) {
     binaries.library()
-    browser {  }
+    browser { }
 
-    nodejs{
+    nodejs {
 
     }
-    sourceSets{
-      val jsMain by getting{
-        dependencies{
-          implementation(kotlin("stdlib"))
-          implementation(libs.kotlinx.coroutines.core)
-          implementation(libs.kotlinx.atomicfu)
-          implementation(libs.kotlinx.io)
-          implementation(libs.kotlin.js)
-          implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-js:1.6.2")
-        }
+  }
+  sourceSets {
+    val jsMain by getting {
+      dependencies {
+        implementation(kotlin("stdlib"))
+        implementation(libs.kotlinx.coroutines.core)
+        implementation(libs.kotlinx.atomicfu)
+        implementation(libs.kotlinx.io)
+        implementation(libs.kotlin.js)
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-js:1.6.2")
       }
-      val jsTest by getting{
-        dependencies{
-          implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-js:1.6.2")
-          implementation(kotlin("test"))
-        }
+    }
+    val jsTest by getting {
+      dependencies {
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-js:1.6.2")
+        implementation(kotlin("test"))
       }
     }
   }
@@ -40,7 +38,7 @@ kotlin {
 
 
 tasks.register("stage") {
-    dependsOn("build")
+  dependsOn("build")
 }
 
 

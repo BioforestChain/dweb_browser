@@ -10,7 +10,7 @@ jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
 agp = "8.2.2"
-kotlin-version = "1.9.22"
+kotlin-version = "2.0.0-Beta4"
 androidx-test = "1.5.2"
 androidx-compose-ui-test = "1.6.1"
 androidx-lifecycle = "2.7.0"

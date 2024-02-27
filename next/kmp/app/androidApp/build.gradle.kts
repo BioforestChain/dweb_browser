@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
 import java.util.Properties
 
 plugins {
@@ -97,7 +96,7 @@ android {
       resValue("string", "appName", "Dweb Browser")
       applicationIdSuffix = null
       versionNameSuffix = null
-      archivesName = "Dweb Browser_v${libs.versions.versionName.get()}"
+      //"_v${libs.versions.versionName.get()}"
     }
     debug {
       signingConfig = signingConfigs.getByName("debug")

@@ -49,18 +49,18 @@ fun Project.createElectronExec(
 ): TaskProvider<Exec> {
 
   val outputDirectory = provider { npmProject.dir }
-  val mainFileName =
-    mainFile.map { it.asFile.toPath().relativize(npmProject.dir.toPath()).toString() }
-
-  val electronFileTask = createElectronProject(
-    taskName = "${taskName}CreateProject",
-    mainFileName = mainFileName,
-    outputDirectory = outputDirectory,
-  )
+//  val mainFileName =
+//    mainFile.map { it.asFile.toPath().relativize(npmProject.dir.toPath()).toString() }
+//
+//  val electronFileTask = createElectronProject(
+//    taskName = "${taskName}CreateProject",
+//    mainFileName = mainFileName,
+//    outputDirectory = outputDirectory,
+//  )
 
   println("createElectronExec/tasks.register $taskName")
   return tasks.register(taskName, Exec::class) {
-    dependsOn(electronFileTask)
+//    dependsOn(electronFileTask)
     dependsOn(":kotlinNpmInstall")
     dependsOn(":kotlinUpgradeYarnLock")
 
@@ -73,7 +73,7 @@ fun Project.createElectronExec(
     executable = "yarn"
     setArgs(listOf("run", "electron", "."))
 
-    workingDir = outputDirectory.get()
+//    workingDir = outputDirectory.get()
 
     configurationAction?.invoke(this)
   }
