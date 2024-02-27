@@ -7,8 +7,8 @@ export class HTMLGeolocationElement extends HTMLElement {
   plugin = geolocationPlugin;
 
   @cacheGetter()
-  getLocation() {
-    return this.plugin.getLocation();
+  get getLocation() {
+    return this.plugin.getLocation;
   }
  
   async createLocation(option?: $LocationOptions) {

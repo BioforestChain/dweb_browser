@@ -54,6 +54,8 @@
 	<string>Please allow "DwebBrowser" to use your location</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Please allow "DwebBrowser" to use your location</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Please allow "DwebBrowser" to use your location</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Please allow "DwebBrowser" to use your microphone</string>
 	<key>NSPhotoLibraryUsageDescription</key>

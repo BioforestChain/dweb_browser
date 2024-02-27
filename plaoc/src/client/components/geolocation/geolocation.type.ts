@@ -22,7 +22,7 @@ export interface $LocationOptions {
   fps?: number;
   precise?: boolean;
   /**最小更新距离(米)(android only) */
-  minUpdateDistance?: number;
+  minDistance?: number;
 }
 
 export interface $GeolocationContoller {

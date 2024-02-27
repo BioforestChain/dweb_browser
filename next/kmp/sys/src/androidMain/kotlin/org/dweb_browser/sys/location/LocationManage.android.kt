@@ -104,7 +104,7 @@ actual class LocationManage {
    */
   actual suspend fun observeLocation(
     mmid: MMID,
-    fps: Double, minDistance: Double,
+    minDistance: Double,
     precise: Boolean
   ): LocationFlow {
     // 创建监听回调
@@ -112,12 +112,15 @@ actual class LocationManage {
       val locationListener = createLocalListener(mmid) { location ->
         debugLocation("observeLocation=>", " ${location.state} ${Build.VERSION.SDK_INT}")
         this.trySend(location)
+        if (location.state !== GeolocationPositionState.Success) {
+          this.close()
+        }
       }
       // 请求多次更新，这会通过回调触发到onLocationChanged
       if (Build.VERSION.SDK_INT >= 30) {
         manager.requestLocationUpdates(
           selectPrecise(precise),
-          fps.toLong(),
+          0,
           minDistance.toFloat(),
           context.mainExecutor,
           locationListener
@@ -125,7 +128,7 @@ actual class LocationManage {
       } else {
         manager.requestLocationUpdates(
           selectPrecise(precise),
-          fps.toLong(),
+          0,
           minDistance.toFloat(),
           locationListener,
           Looper.getMainLooper()

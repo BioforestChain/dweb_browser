@@ -18,6 +18,8 @@ import platform.CoreLocation.CLLocationManagerDelegateProtocol
 import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
 import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
 import platform.CoreLocation.kCLAuthorizationStatusDenied
+import platform.CoreLocation.kCLAuthorizationStatusNotDetermined
+import platform.CoreLocation.kCLAuthorizationStatusRestricted
 import platform.CoreLocation.kCLLocationAccuracyBest
 import platform.CoreLocation.kCLLocationAccuracyKilometer
 import platform.Foundation.NSError
@@ -44,14 +46,15 @@ actual class LocationManage {
 
   /**获取权限状态*/
   private suspend fun locationAuthorizationStatus(mmid: MMID): AuthorizationStatus? {
-    val manager = managerMap[mmid] ?: return null
-    val result = CompletableDeferred<AuthorizationStatus>()
+    val manager = managerMap.getOrPut(mmid) {
+      CLLocationManager()
+    }
     return when (manager.authorizationStatus) {
       kCLAuthorizationStatusAuthorizedAlways, kCLAuthorizationStatusAuthorizedWhenInUse -> AuthorizationStatus.GRANTED
 
       kCLAuthorizationStatusDenied -> AuthorizationStatus.DENIED
       else -> {
-        withMainContext {
+          val result = CompletableDeferred<AuthorizationStatus>()
           manager.delegate = object : NSObject(), CLLocationManagerDelegateProtocol {
             override fun locationManagerDidChangeAuthorization(manager: CLLocationManager) {
               when (manager.authorizationStatus) {
@@ -59,81 +62,81 @@ actual class LocationManage {
                   AuthorizationStatus.GRANTED
                 )
 
-                kCLAuthorizationStatusDenied -> result.complete(AuthorizationStatus.DENIED)
+                kCLAuthorizationStatusDenied, kCLAuthorizationStatusRestricted -> {
+                  result.complete(AuthorizationStatus.DENIED)
+                }
+
+                kCLAuthorizationStatusNotDetermined -> {
+                  manager.requestWhenInUseAuthorization()
+                  result.complete(AuthorizationStatus.UNKNOWN)
+                }
+
                 else -> result.complete(AuthorizationStatus.UNKNOWN)
               }
             }
           }
           manager.requestWhenInUseAuthorization()
-          return@withMainContext result.await()
-        }
+          return result.await()
       }
     }
   }
 
   // 单次
   actual suspend fun getCurrentLocation(mmid: MMID, precise: Boolean): LocationFlow {
-    return callbackFlow {
-      createLocalManager(mmid, precise) {
-        this.trySend(it)
-      }
-      awaitClose {
-        managerMap[mmid]?.stopUpdatingLocation()
-      }
-    }
+    return createLocalManager(mmid, precise)
   }
 
-  // TODO 这里没有看到任何对于异常情况自动解除监听的行为
   actual suspend fun observeLocation(
-    mmid: MMID, fps: Double,minDistance:Double, precise: Boolean
+    mmid: MMID, minDistance: Double, precise: Boolean
   ): LocationFlow {
-    return callbackFlow {
-      createLocalManager(mmid, precise, fps,minDistance) {
-        this.trySend(it)
-      }
-      awaitClose {
-        managerMap[mmid]?.stopUpdatingLocation()
-      }
-    }
+    return createLocalManager(mmid, precise, minDistance)
   }
 
   //移除监听
   actual fun removeLocationObserve(mmid: MMID) {
     managerMap[mmid]?.stopUpdatingLocation()
+    managerMap.remove(mmid)
   }
 
   /**给每个模块创建控制器*/
   private fun createLocalManager(
     mmid: MMID,
     precise: Boolean = true,
-    fps: Double = 0.0,
     minDistance: Double = 0.0,
-    callback: (location: GeolocationPosition) -> Unit
-  ) {
-    val manager = CLLocationManager().apply {
-      desiredAccuracy = selectPrecise(precise)
-      distanceFilter = minDistance // 移动多少米才会更新
-      delegate = object : NSObject(), CLLocationManagerDelegateProtocol {
+  ): LocationFlow {
+    val manager = managerMap.getOrPut(mmid) {
+      CLLocationManager()
+    }
+    return callbackFlow {
+      val delegate = object : CLLocationManagerDelegateProtocol, NSObject() {
         override fun locationManager(
           manager: CLLocationManager,
           didUpdateLocations: List<*>
         ) {
-          val locations = didUpdateLocations as List<CLLocation>
-          locations.forEach { location ->
-            callback(toGeolocationPosition(location))
+          val locations = didUpdateLocations.map { it as CLLocation }
+          println("xxxxxx=> $locations")
+          if (locations.isNotEmpty()) {
+            locations.forEach {
+              this@callbackFlow.trySend(toGeolocationPosition(it))
+            }
           }
         }
-
+        // 检查权限状态
         override fun locationManager(
           manager: CLLocationManager,
           didChangeAuthorizationStatus: CLAuthorizationStatus
         ) {
           when (didChangeAuthorizationStatus) {
-            kCLAuthorizationStatusDenied -> callback(
-              GeolocationPosition.createErrorObj(
-                GeolocationPositionState.PERMISSION_DENIED
+            // 如果权限被拒接，再申请一下
+            kCLAuthorizationStatusDenied -> {
+              manager.requestWhenInUseAuthorization()
+              this@callbackFlow.trySend(
+                GeolocationPosition.createErrorObj(
+                  GeolocationPositionState.PERMISSION_DENIED
+                )
               )
-            )
+              this@callbackFlow.close()
+            }
 
             else -> debugLocation(
               "createLocalManager=>",
@@ -145,11 +148,30 @@ actual class LocationManage {
         override fun locationManager(manager: CLLocationManager, didFailWithError: NSError) {
           //处理失败情况
           debugLocation("createLocalManager=>", "iosError=> $didFailWithError")
-          callback(GeolocationPosition.createErrorObj(GeolocationPositionState.POSITION_UNAVAILABLE))
+          this@callbackFlow.trySend(GeolocationPosition.createErrorObj(GeolocationPositionState.POSITION_UNAVAILABLE))
+          this@callbackFlow.close()
         }
       }
+
+      manager.desiredAccuracy = selectPrecise(precise)
+      manager.distanceFilter = minDistance // 移动多少米才会更新
+      manager.delegate = delegate
+      manager.startUpdatingLocation()
+
+      awaitClose {
+        println("xxxxx awaitClose")
+        manager.stopUpdatingLocation()
+      }
     }
-    managerMap[mmid] = manager
+  }
+
+  // 选择精度
+  private fun selectPrecise(precise: Boolean): CLLocationAccuracy {
+    return if (precise) {
+      kCLLocationAccuracyBest //准确度相当高，可以用于需要较高精度的场景。
+    } else {
+      kCLLocationAccuracyKilometer //精度为最近的1公里，一般只用于粗略定位。
+    }
   }
 
   /**
@@ -181,15 +203,6 @@ actual class LocationManage {
     //时间戳
     val time = location.timestamp.timeIntervalSince1970().toLong()
     return GeolocationPosition(GeolocationPositionState.Success, cords, time)
-  }
-
-  // 选择精度
-  private fun selectPrecise(precise: Boolean): CLLocationAccuracy {
-    return if (precise) {
-      kCLLocationAccuracyBest //准确度相当高，可以用于需要较高精度的场景。
-    } else {
-      kCLLocationAccuracyKilometer //精度为最近的1公里，一般只用于粗略定位。
-    }
   }
 }
 

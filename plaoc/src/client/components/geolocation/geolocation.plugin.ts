@@ -27,9 +27,8 @@ export class GeolocationPlugin extends BasePlugin {
   async createLocation(option?: $LocationOptions): Promise<$GeolocationContoller> {
     const ws = await this.buildChannel("/location", {
       search: {
-        fps: option?.fps,
         precise: option?.precise,
-        minUpdateDistance: option?.minUpdateDistance,
+        minDistance: option?.minDistance,
       },
     });
     const controller = {

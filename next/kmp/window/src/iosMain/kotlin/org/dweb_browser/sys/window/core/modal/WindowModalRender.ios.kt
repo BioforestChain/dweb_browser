@@ -18,7 +18,7 @@ import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.unit.dp
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.CompositionChain
@@ -230,24 +230,26 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
     }
     /// 配置关闭按钮
     vc.navigationItem.rightBarButtonItem = closeBottom
-
-    val afterPresent = CompletableDeferred<Unit>()
-    uiViewController.presentViewController(
-      viewControllerToPresent = nav,
-      animated = true,
-      completion = {
-        emitModalVisibilityChange(EmitModalVisibilityState.Open)
-        afterPresent.complete(Unit)
-      });
-    // 等待显示出来
-    afterPresent.await()
-    // 至少显示200毫秒
-    delay(200)
-    // 等待Compose级别的关闭指令
-    sheetUiDelegate.afterDismiss.invokeOnCompletion {
-      // 关闭
-      nav.dismissViewControllerAnimated(flag = true, null)
+    MainScope().launch {
+      val afterPresent = CompletableDeferred<Unit>()
+      uiViewController.presentViewController(
+        viewControllerToPresent = nav,
+        animated = true,
+        completion = {
+          emitModalVisibilityChange(EmitModalVisibilityState.Open)
+          afterPresent.complete(Unit)
+        });
+      // 等待显示出来
+      afterPresent.await()
+      // 至少显示200毫秒
+//    delay(200)
+      // 等待Compose级别的关闭指令
+      sheetUiDelegate.afterDismiss.invokeOnCompletion {
+        // 关闭
+        nav.dismissViewControllerAnimated(flag = true, null)
+      }
     }
+
   }
   // 返回按钮按下的时候
   win.GoBackHandler {
