@@ -409,10 +409,10 @@ class DWebViewEngine internal constructor(
               val meta =
                 "(${method3.parameterTypes.joinToString(", ")})->${method3.returnType}"
               if (meta == "(class android.graphics.Rect)->void") {
-                println("found setDisplayCutoutSafeArea=${method3}")
+                println("SafeArea found setDisplayCutoutSafeArea=${method3}")
                 method3.isAccessible = true
                 return@lazy { rect: Rect ->
-                  println("run setDisplayCutoutSafeArea($rect)")
+                  println("SafeArea run setDisplayCutoutSafeArea($rect)")
                   method3.invoke(webContents, rect)
                   Unit
                 }

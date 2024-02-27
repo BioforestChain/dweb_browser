@@ -9,13 +9,21 @@
 
   <uses-feature android:name="android.hardware.camera.any" />
 
-  <application>
+  <application android:resizeableActivity="true">
+    <meta-data
+      android:name="android.max_aspect"
+      android:value="3" />
+    <meta-data
+      android:name="android.min_aspect"
+      android:value="1.0" />
+
     <activity
       android:name=".desk.DesktopActivity"
+      android:theme="@style/Theme.dwebbrowser"
+      android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout"
       android:exported="true"
       android:launchMode="singleTask"
-      android:screenOrientation="portrait"
-      android:theme="@style/Theme.dwebbrowser"
+      android:resizeableActivity="true"
       tools:ignore="LockedOrientationActivity"
       android:windowSoftInputMode="adjustResize" />
     <activity
