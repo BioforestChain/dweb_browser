@@ -12,5 +12,6 @@ kotlin {
   }
   kmpAndroidTarget(project)
   kmpIosTarget(project)
-  kmpNodeJsTarget(project)
+//  kmpNodeJsTarget(project)
+  kmpDesktopTarget(project)
 }

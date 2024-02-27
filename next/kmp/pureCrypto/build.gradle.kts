@@ -20,9 +20,9 @@ kotlin {
       implementation(libs.whyoleg.cryptography.provider.openssl3.prebuilt)
     }
   }
-  kmpNodeJsTarget(project) {
+  kmpDesktopTarget(project) {
     dependencies {
-      implementation(libs.whyoleg.cryptography.provider.webcrypto)
+      implementation(libs.whyoleg.cryptography.provider.jdk)
     }
   }
 }

@@ -14,9 +14,6 @@ kotlin {
   }
   kmpIosTarget(project) {
   }
-  kmpNodeJsTarget(project) {
-    dependencies {
-      implementation(libs.squareup.okio.nodefilesystem)
-    }
+  kmpDesktopTarget(project) {
   }
 }

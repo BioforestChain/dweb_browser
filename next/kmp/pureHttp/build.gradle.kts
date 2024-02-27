@@ -31,19 +31,15 @@ kotlin {
     }
   }
   kmpAndroidTarget(project) {
-    dependencies {
-      implementation(libs.ktor.client.okhttp)
-    }
   }
   kmpIosTarget(project) {
     dependencies {
       implementation(libs.ktor.client.darwin)
     }
   }
-  kmpNodeJsTarget(project) {
+  kmpDesktopTarget(project) {
     dependencies {
-      implementation(libs.ktor.client.js)
-      implementation(npm("ws", "^8.16.0"))
+      implementation(libs.ktor.client.okhttp)
     }
   }
 }

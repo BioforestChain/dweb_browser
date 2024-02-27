@@ -58,7 +58,7 @@ val disabledApps = (properties.getOrDefault("app.disable", "") as String)
   .map { it.trim().lowercase() }
 val enableAndroidApp = !disabledApps.contains("android")
 val enableIosApp = !disabledApps.contains("ios")
-val enableElectronApp = !disabledApps.contains("electron")
+val enableElectronApp = false// !disabledApps.contains("electron")
 val enableLibs = enableAndroidApp || enableIosApp
 
 include(":platformTest")
@@ -85,8 +85,8 @@ include(":dwebview")
 include(":browser")
 include(":sys")
 include(":shared")
-includeUI("pureCrypto")
-includeUI("helper")
+//includeUI("pureCrypto")
+//includeUI("helper")
 if (enableAndroidApp) {
   includeApp("androidApp")
   includeApp("androidBenchmark")

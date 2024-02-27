@@ -30,5 +30,5 @@ kotlin {
     }
   }
   kmpIosTarget(project)
-  kmpBrowserJsTarget(project)
+  kmpDesktopTarget(project)
 }

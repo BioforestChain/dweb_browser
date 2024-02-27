@@ -41,6 +41,7 @@ val disabledApps = (properties.getOrDefault("app.disable", "") as String)
   .map { it.trim().lowercase() };
 val disableAndroidApp = disabledApps.contains("android");
 val disableIosApp = disabledApps.contains("ios");
+val disableDesktopApp = disabledApps.contains("desktop");
 val disableElectronApp = disabledApps.contains("electron");
 val disableLibs = disableAndroidApp && disableIosApp
 
@@ -97,7 +98,6 @@ fun KotlinMultiplatformExtension.kmpBrowserJsTarget(
   }
   dsl.provides(browserMain, browserTest)
 }
-
 
 class KmpNodeJsTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpJsTargetDsl(kmpe)
 
@@ -517,6 +517,36 @@ fun KotlinMultiplatformExtension.kmpAndroidTarget(
     project.tasks.withType<AndroidLintAnalysisTask> {
       dependsOn("copyFontsToAndroidAssets")
     }
+  }
+}
+
+class KmpDesktopTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(kmpe)
+
+fun KotlinMultiplatformExtension.kmpDesktopTarget(
+  project: Project,
+  configure: KmpDesktopTargetDsl.() -> Unit = {},
+) {
+  if (disableDesktopApp) {
+    return
+  }
+
+  println("kmpAndroidTarget: ${project.name}")
+
+  val dsl = KmpDesktopTargetDsl(this)
+  dsl.configure()
+  val libs = project.the<LibrariesForLibs>()
+
+  kmpCommonTarget(project)
+  jvm("desktop")
+  val desktopMain = sourceSets.getByName("desktopMain")
+  val desktopTest = sourceSets.getByName("desktopTest")
+  dsl.provides(desktopMain, desktopTest)
+  desktopMain.dependencies {
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.annotation)
+  }
+  jvmToolchain {
+    languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_17.toString()))
   }
 }
 

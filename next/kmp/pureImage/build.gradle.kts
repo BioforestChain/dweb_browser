@@ -33,6 +33,6 @@ kotlin {
   kmpIosTarget(project) {
     dependsOn(androidAndIosMain)
   }
-  kmpBrowserJsTarget(project)
+  kmpDesktopTarget(project)
 }
 

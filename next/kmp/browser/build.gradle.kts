@@ -52,5 +52,5 @@ kotlin {
       implementation(projects.libZiplib)
     }
   }
-  kmpBrowserJsTarget(project)
+  kmpDesktopTarget(project)
 }

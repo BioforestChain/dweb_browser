@@ -23,6 +23,6 @@ kotlin {
   }
   kmpIosTarget(project) {
   }
-  kmpNodeJsTarget(project) {
+  kmpDesktopTarget(project) {
   }
 }

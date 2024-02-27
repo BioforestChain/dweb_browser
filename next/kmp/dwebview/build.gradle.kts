@@ -41,6 +41,6 @@ kotlin {
       implementation(projects.libReverseProxy)
     }
   }
-  kmpBrowserJsTarget(project)
+  kmpDesktopTarget(project)
 }
 

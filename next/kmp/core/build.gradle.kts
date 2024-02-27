@@ -23,5 +23,5 @@ kotlin {
       implementation(projects.libMultipart)
     }
   }
-  kmpNodeJsTarget(project)
+  kmpDesktopTarget(project)
 }

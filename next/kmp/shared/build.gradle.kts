@@ -29,7 +29,7 @@ kotlin {
     }
   }
   kmpAndroidTarget(project)
-  kmpNodeJsTarget(project)
+  kmpDesktopTarget(project)
 }
 
 android {
