@@ -318,9 +318,7 @@ data class AlertModal internal constructor(
       onDispose {
         job.cancel()
         /// 如果被销毁，那么也要进行安全的关闭
-        mm.ioAsyncScope.launch {
-          safeClose(mm)
-        }
+        /// 关闭动作只能被 dismiss 触发，不能因为Dispose触发，否则Activity重载时就会导致销毁
       }
     }
     // alert的默认返回值
@@ -480,23 +478,20 @@ class BottomSheetsModal private constructor(
       sendCallback(mm, OpenModalCallback(sessionId))
 
       debugModal("DisposableEffect", " disposable")
-      val job = dismissFlow.map {
-        if (!it) {
+      val job = dismissFlow.map { dismiss ->
+        if (!dismiss) {
           hasExpanded = true
         }
-        it
-      }.debounce(200).map {
-        debugModal("dismissFlow", "close=$it hasExpanded=$hasExpanded")
-        if (show && it && hasExpanded) {
+        dismiss
+      }.debounce(200).map { dismiss ->
+        debugModal("dismissFlow", "close=$dismiss hasExpanded=$hasExpanded")
+        if (dismiss && show && hasExpanded) {
           safeClose(mm)
         }
       }.launchIn(mm.ioAsyncScope)
       onDispose {
         job.cancel()
-        /// 如果被销毁，那么也要进行安全的关闭
-        mm.ioAsyncScope.launch {
-          safeClose(mm)
-        }
+        /// 关闭动作只能被 dismiss 触发，不能因为Dispose触发，否则Activity重载时就会导致销毁
       }
     }
     RenderImpl(emitModalVisibilityChange)
