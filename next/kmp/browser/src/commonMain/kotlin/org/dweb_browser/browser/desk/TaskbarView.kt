@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -101,6 +102,16 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
       val boxOffset = transition.animateOffset(label = "") { _ ->
         Offset(boxX, boxY)
       }.value
+
+      LaunchedEffect(safeBounds) {
+        /// safeBounds 发生改变，做防止溢出处理
+        setBoxX(boxX)
+        setBoxY(boxY)
+        /// safeBounds 发生改变，做再贴边处理
+        if (!inDrag) {
+          setBoxX(if (boxX > safeBounds.hCenter) safeBounds.right else safeBounds.left)
+        }
+      }
 
       val draggableHelper = remember(setBoxX, setBoxY) {
         DraggableHelper(onDragStart = {
