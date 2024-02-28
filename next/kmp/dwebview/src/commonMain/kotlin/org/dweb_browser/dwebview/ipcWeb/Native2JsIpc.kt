@@ -1,6 +1,10 @@
 package org.dweb_browser.dwebview.ipcWeb
 
+import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.IpcPool
 import org.dweb_browser.core.ipc.MessagePort
+import org.dweb_browser.core.ipc.MessagePortIpc
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.helper.SafeInt
 
@@ -23,18 +27,20 @@ suspend fun saveNative2JsIpcPort(port: IWebMessagePort) =
  * 那么连接发起方就可以通过这个 id(number) 和 Native2JsIpc 构造器来实现与 js-worker 的直连
  *
  */
-//open class Native2JsIpcPool(
-//  private val portId: Int,
-//  remote: IMicroModuleManifest,
-//  role: IPC_ROLE = IPC_ROLE.CLIENT,
-//) : MessagePortIpcPool(
-//  remote,
-//  role.role,
-//  ALL_MESSAGE_PORT_CACHE[portId] ?: throw Exception("no found port2(js-process) by id: $portId")
-//) {
-//  init {
-//    onClose {
-//      ALL_MESSAGE_PORT_CACHE.remove(portId)
-//    }
-//  }
-//}
+open class Native2JsIpc(
+  val portId: Int,
+  remote: IMicroModuleManifest,
+  channelId: String,
+  endpoint: IpcPool
+) : MessagePortIpc(
+  ALL_MESSAGE_PORT_CACHE[portId] ?: throw Exception("no found port2(js-process) by id: $portId"),
+  remote,
+  channelId,
+  endpoint
+) {
+  init {
+    onClose {
+      ALL_MESSAGE_PORT_CACHE.remove(portId)
+    }
+  }
+}

@@ -16,31 +16,21 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.IpcOptions
-import org.dweb_browser.core.ipc.MessagePortIpc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
-import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcError
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
-import org.dweb_browser.core.ipc.helper.IpcReqMessage
-import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.ipc.helper.IpcResponse
-import org.dweb_browser.core.ipc.helper.ipcMessageToJson
-import org.dweb_browser.core.ipc.helper.jsonToIpcMessage
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.ConnectResult
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.ModuleType
 import org.dweb_browser.core.module.connectAdapterManager
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.PermissionProvider
-import org.dweb_browser.dwebview.ipcWeb.ALL_MESSAGE_PORT_CACHE
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.JsonLoose
-import org.dweb_browser.helper.Once
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.buildUrlString
@@ -66,7 +56,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     ipc_support_protocols = IpcSupportProtocols(
       cbor = true, protobuf = false, raw = true
     )
-    type = ModuleType.JsModule
   }) {
 
   companion object {
@@ -266,15 +255,9 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
           if (targetIpc is BridgeAbleIpc) {
             ipcBridge(targetIpc.remote.mmid, targetIpc.bridgeOriginIpc)
-          if (targetIpc.remote.mmid != mmid) {
-            if (targetIpc.remote.type == ModuleType.JsModule) {
-              // 如果是jsMM互联，那么直接把port分配给两个人
-              ipcBridgeJsMM(mmid, targetIpc.remote.mmid)
-            } else {
-              // 如果是jsMM(self)连接NativeMM那么继续走桥接
-              ipcBridge(event.mmid, targetIpc)
-            }
           }
+          // 如果是jsMM互联，那么直接把port分配给两个人
+          // ipcBridgeJsMM(mmid, targetIpc.remote.mmid)
 
           /**
            * 连接成功，正式告知它数据返回。注意，create-ipc虽然也会resolve任务，但是我们还是需要一个明确的done事件，来确保逻辑闭环
@@ -305,71 +288,16 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
   private val fromMMIDOriginIpcWM = mutableMapOf<MMID, PromiseOut<JmmIpc>>();
 
-  class JmmIpc(
-    port_id: Int,
-    remote: IMicroModuleManifest,
-    val fromMMID: MMID,
-    private val fetchIpc: Ipc,
-  ) :
-    Native2JsIpc(port_id, remote), BridgeAbleIpc {
-    override val bridgeOriginIpc = this
-    val toForwardIpc = Once {
-      JmmForwardIpc(this, object : IMicroModuleManifest by remote {
-        override var mmid = fromMMID
-      }, IPC_ROLE.SERVER.role, fetchIpc)
-    }
-  }
 
   interface BridgeAbleIpc {
     val bridgeOriginIpc: JmmIpc
-  }
-
-  class JmmForwardIpc(
-    private val jmmIpc: JmmIpc,
-    override val remote: IMicroModuleManifest,
-    override val role: String,
-    private val fetchIpc: Ipc,
-  ) : Ipc(),BridgeAbleIpc {
-    override val bridgeOriginIpc = jmmIpc
-    private val requestEventName = "forward/request/${jmmIpc.fromMMID}"
-    private val responseEventName = "forward/response/${jmmIpc.fromMMID}"
-
-    init {
-      fetchIpc.onEvent { (ipcEvent) ->
-        if (ipcEvent.name == responseEventName) {
-          when (val ipcMessage = jsonToIpcMessage(ipcEvent.text, jmmIpc)) {
-            is IpcMessage -> {
-              _messageSignal.emit(IpcMessageArgs(ipcMessage, jmmIpc))
-            }
-
-            else -> {
-              debugJsMM("forward-response", ipcMessage, Exception("no support forward message"))
-            }
-          }
-        }
-      }.removeWhen(this.onClose)
-    }
-
-    override suspend fun _doPostMessage(data: IpcMessage) {
-      if (data is IpcRequest || data is IpcReqMessage) {
-        fetchIpc.postMessage(
-          IpcEvent.fromUtf8(requestEventName, ipcMessageToJson(data))
-        )
-      } else {
-        debugJsMM("forward-request", data, Exception("no support forward message"))
-      }
-    }
-
-    override suspend fun _doClose() {
-      fetchIpc.postMessage(IpcEvent.fromUtf8("forward/close/${jmmIpc.fromMMID}", ""))
-    }
   }
 
   /**
    * 桥接ipc到js内部：
    * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
    */
-  private suspend fun ipcBridgeSelf(fromMMID: MMID): MessagePortIpc {
+  private suspend fun ipcBridgeSelf(fromMMID: MMID): JmmIpc {
     /**
      * 向js模块发起连接
      */
@@ -381,20 +309,22 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     ).int()
 
     // 跟NativeMicroModule连接的才是需要转发桥接
-     val toJmmIpc = JmmIpc(
-        portId,
-        this@JsMicroModule,
-        fromMMID,
-        fetchIpc ?: throw CancellationException("ipcBridge abort")
-      )
-      toJmmIpc.onClose {
-        fromMMIDOriginIpcWM.remove(fromMMID)
-      }
-      return toJmmIpc
-    // return kotlinIpcPool.create(
-    //   "native-ipcBridge",
-    //   IpcOptions(this@JsMicroModule, port = ALL_MESSAGE_PORT_CACHE[portId])
-    // )
+    val toJmmIpc = JmmIpc(
+      portId,
+      this@JsMicroModule,
+      fromMMID,
+      fetchIpc ?: throw CancellationException("ipcBridge abort"),
+      "native-ipcBridge",
+      kotlinIpcPool
+    )
+//    kotlinIpcPool.create(
+//      "native-ipcBridge",
+//      IpcOptions(this@JsMicroModule, port = ALL_MESSAGE_PORT_CACHE[portId])
+//    )
+    toJmmIpc.onClose {
+      fromMMIDOriginIpcWM.remove(fromMMID)
+    }
+    return toJmmIpc
   }
 
   /**桥接两个JsMM*/
@@ -410,52 +340,39 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
   private fun ipcBridgeFactory(fromMMID: MMID, targetIpc: Ipc?) =
     fromMMIDOriginIpcWM.getOrPut(fromMMID) {
-      PromiseOut<Ipc>().also { po ->
-        ioAsyncScope.launch {
-          try {
-            debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
+      PromiseOut<JmmIpc>().alsoLaunchIn(ioAsyncScope) {
+        debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
 
-            val toJmmIpc = ipcBridgeSelf(fromMMID)
-            // 如果是jsMM相互连接，直接把port丢过去
+        val toJmmIpc = ipcBridgeSelf(fromMMID)
+        // 如果是jsMM相互连接，直接把port丢过去
 
-            /// 如果传入了 targetIpc，并且当互联当不是jsMM才会启动桥接
-            /// 那么启动桥接模式，我们会中转所有的消息给 targetIpc，包括关闭
-            /// 那么这个 targetIpc 理论上就可以作为 toJmmIpc 的代理
-            if (targetIpc != null) {
-              /**
-               * 将两个消息通道间接互联，这里targetIpc明确为NativeModule
-               */
-              toJmmIpc.onMessage { (ipcMessage) ->
-                targetIpc.postMessage(ipcMessage)
-              }
-              targetIpc.onMessage { (ipcMessage) ->
-                toJmmIpc.postMessage(ipcMessage)
-              }
-              /**
-               * 监听关闭事件
-               */
-              toJmmIpc.onClose {
-                fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
-                targetIpc.close()
-              }
-              targetIpc.onClose {
-                fromMMIDOriginIpcWM.remove(toJmmIpc.remote.mmid)
-                toJmmIpc.close()
-              }
-            } else {
-              toJmmIpc.onClose {
-                fromMMIDOriginIpcWM.remove(toJmmIpc.remote.mmid)
-              }
-            }
-            po.resolve(toJmmIpc);
-          } catch (e: Exception) {
-            debugJsMM("ipcBridgeFactory Error", e)
-            targetIpc?.postMessage(IpcError(503, e.message))
-            po.reject(e)
+        /// 如果传入了 targetIpc，并且当互联当不是jsMM才会启动桥接
+        /// 那么启动桥接模式，我们会中转所有的消息给 targetIpc，包括关闭
+        /// 那么这个 targetIpc 理论上就可以作为 toJmmIpc 的代理
+        if (targetIpc != null) {
+          /**
+           * 将两个消息通道间接互联，这里targetIpc明确为NativeModule
+           */
+          toJmmIpc.onMessage { (ipcMessage) ->
+            targetIpc.postMessage(ipcMessage)
+          }
+          targetIpc.onMessage { (ipcMessage) ->
+            toJmmIpc.postMessage(ipcMessage)
+          }
+          /**
+           * 监听关闭事件
+           */
+          toJmmIpc.onClose {
+            fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
+            targetIpc.close()
+          }
+          targetIpc.onClose {
+            fromMMIDOriginIpcWM.remove(toJmmIpc.remote.mmid)
+            toJmmIpc.close()
           }
         }
+        toJmmIpc
       }
-      toJmmIpc
     }
 
 

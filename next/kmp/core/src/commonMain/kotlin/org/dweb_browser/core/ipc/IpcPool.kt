@@ -7,7 +7,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IPC_STATE
-import org.dweb_browser.core.ipc.helper.IpcError
 import org.dweb_browser.core.ipc.helper.IpcLifeCycle
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
@@ -81,11 +80,9 @@ open class IpcPool {
     var ipc: Ipc? = null
     if (options.port != null) {
       ipc = MessagePortIpc(options.port, options.remote, channelId, this)
-    }
-    if (options.channel != null) {
+    } else if (options.channel != null) {
       ipc = NativeIpc(options.channel, options.remote, channelId, this)
-    }
-    if (options.stream != null) {
+    } else if (options.stream != null) {
       ipc = ReadableStreamIpc(
         options.remote,
         channelId,
@@ -96,8 +93,6 @@ open class IpcPool {
       throw Exception("create ipc error")
     }
     ipcHashMap[pid] = ipc
-    // TODO 跟对方通信 协商数据格式
-
     ipc.lifeCycleHook()
     if (!ipc.startDeferred.isCompleted) {
       ipc.start()
@@ -105,7 +100,9 @@ open class IpcPool {
     ipc as T
   }
 
+  /**生命周期初始化，协商数据格式*/
   private fun Ipc.lifeCycleHook() {
+    // TODO 跟对方通信 协商数据格式
     this.onLifeCycle { (lifeCycle, ipc) ->
       debugIpc("lifeCycleHook=>", lifeCycle.state)
       when (lifeCycle.state) {
@@ -126,19 +123,9 @@ open class IpcPool {
         IPC_STATE.CLOSED -> {
           ipc.close()
         }
-
-        else -> {
-          ipc.postMessage(IpcError(500, "Unable to process message"))
-        }
       }
     }
   }
-
-//  private fun getIpc(channelId: String): Ipc {
-//    val pid = ipcChannelMap[channelId] ?: throw Exception("this channelId $poolId not found!");
-//    val ipc = ipcHashMap[pid] ?: throw Exception("this ipc $pid not found!");
-//    return ipc
-//  }
 
   /**
    * 根据传进来的业务描述，注册一个Pid
@@ -175,21 +162,26 @@ open class IpcPool {
   init {
     ipcPoolScope.launch {
       // 监听ipc建立连接成功
-      ipcHashMap.onChange { (_, add) ->
+      ipcHashMap.onChange { (ipcMap, add) ->
+        // 消耗没有发送的消息
         cacheIpcPackList.filter { pack ->
           if (pack.pid == add.first()) {
-            debugIpcPool("处理消息：${add.first()} ${pack.pid}")
-            return@filter false
+            val ipc = ipcMap[pack.pid]
+            debugIpcPool("处理消息：${add.first()} ${pack.pid} ${ipc?.remote?.mmid}")
+            if (ipc == null) return@filter true // 消息未被消耗
+            ipc.postMessage(pack.ipcMessage)
+            return@filter false  // 消息已经消耗了
           }
-          return@filter true
+          return@filter true // 消息未被消耗
         }
       }
     }
     onMessage { (pack) ->
       val ipc = ipcHashMap[pack.pid]
-      ipc?.emitMessage(IpcMessageArgs(pack.ipcMessage, ipc))
       if (ipc == null) {
         cacheIpcPackList.add(pack)
+      } else {
+        ipc.emitMessage(IpcMessageArgs(pack.ipcMessage, ipc))
       }
     }
   }

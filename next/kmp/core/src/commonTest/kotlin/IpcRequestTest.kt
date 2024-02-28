@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.IpcRequestInit
@@ -15,6 +16,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class IpcRequestTest {
+
+  // 黑盒测试ipcRequest
   @Test
   fun testIpcRequestInBlackBox() = runCommonTest {
     val channel = NativeMessageChannel<IpcPoolPack, IpcPoolPack>("from.id.dweb", "to.id.dweb")
@@ -26,6 +29,7 @@ class IpcRequestTest {
     val receiverIpc = kotlinIpcPool.create<NativeIpc>(
       "test-request-2", IpcOptions(fromMM, channel = channel.port2)
     )
+
     launch {
       // send text body
       println("🧨=> send text body")
@@ -36,15 +40,21 @@ class IpcRequestTest {
         )
       )
       println("🧨=> ${response.statusCode}")
-      assertEquals(response.body.text(), "除夕快乐")
+      assertEquals(response.body.text(), "senderIpc 除夕快乐")
     }
     launch {
-      println("🧨=>  收到消息")
+      println("🧨=>  开始监听消息")
       receiverIpc.onRequest { (request, ipc) ->
         val data = request.body.toString()
-        println("结果🧨=> $data ${ipc.remote.mmid}")
+        println("receiverIpc结果🧨=> $data ${ipc.remote.mmid}")
+        assertEquals("senderIpc 除夕快乐", data)
+        ipc.postMessage(IpcResponse.fromText(request.reqId, text = "receiverIpc 除夕快乐", ipc = ipc))
+      }
+      senderIpc.onRequest { (request, ipc) ->
+        val data = request.body.text()
+        println("senderIpc结果🧨=> $data ${ipc.remote.mmid}")
         assertEquals("senderIpc", data)
-        ipc.postMessage(IpcResponse.fromText(request.reqId, text = "除夕快乐", ipc = ipc))
+        ipc.postMessage(IpcResponse.fromText(request.reqId, text = "senderIpc 除夕快乐", ipc = ipc))
       }
     }
   }

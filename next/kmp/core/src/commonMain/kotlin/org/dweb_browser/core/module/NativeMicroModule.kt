@@ -59,7 +59,6 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   constructor(mmid: MMID, name: String) : this(MicroModuleManifest().apply {
     this.mmid = mmid
     this.name = name
-    this.type = ModuleType.NativeModule
   })
 
   companion object {

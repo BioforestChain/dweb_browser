@@ -26,7 +26,8 @@ class NativeIpc(
 
   override val supportRaw = true
   override val supportBinary = true
-
+  
+  // 这里放在协程
   private val ioAsyncScope =  CoroutineScope(CoroutineName("native-ipc") + ioAsyncExceptionHandler)
 
   init {
@@ -45,10 +46,12 @@ class NativeIpc(
   }
 
 
-  override suspend fun doPostMessage(pid: Int, data: IpcMessage) =
-    withContext(ioAsyncScope.coroutineContext) {
+  override suspend fun doPostMessage(pid: Int, data: IpcMessage) {
+    ioAsyncScope.launch {
       port.postMessage(IpcPoolPack(pid, data))
     }
+  }
+
 
   override suspend fun doClose() {
     port.close()
