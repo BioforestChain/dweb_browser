@@ -100,6 +100,9 @@ struct AddressBar: View {
             .onChange(of: addressBar.isFocused) { _, isFocused in
                 if isVisible {
                     inputText = isFocused ? webCache.lastVisitedUrl.absoluteString : webCache.lastVisitedUrl.domain
+                    if inputText == emptyLink {
+                        inputText = ""
+                    }
                 }
                 if isFocused == false {
                     isAdressBarFocused = false

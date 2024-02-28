@@ -10,7 +10,7 @@ import SwiftUI
 import WebKit
 
 struct TabPageView: View {
-    @EnvironmentObject var animation: ShiftAnimation
+    @Environment(ShiftAnimation.self) var animation
     @EnvironmentObject var toolbarState: ToolBarState
     @Environment(OpeningLink.self) var openingLink
     @EnvironmentObject var addressBar: AddressBarState

@@ -17,12 +17,13 @@ struct TabsContainerView: View {
     @Environment(WndDragScale.self) var dragScale
 
     @StateObject var gridState = TabGridState()
-    @StateObject var animation = ShiftAnimation()
+    @State var animation = ShiftAnimation()
 
     @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
     @State var selectedCellFrame: CGRect = .zero
     @State private var isExpanded = true
     @State private var lastProgress: AnimationProgress = .invisible
+    @State var currentProgress: AnimationProgress = .invisible
     @State var showTabPage: Bool = true
 
     private var snapshotHeight: CGFloat { geoRect.height - dragScale.addressbarHeight }
@@ -34,8 +35,9 @@ struct TabsContainerView: View {
         GeometryReader { geo in
             // 层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
             ZStack {
-                TabGridView(animation: animation, gridState: gridState, selectedCellFrame: $selectedCellFrame)
+                TabGridView(gridState: gridState, selectedCellFrame: $selectedCellFrame)
                     .environment(webcacheStore)
+                    .environment(animation)
 
                 if isExpanded, !animation.progress.isAnimating() {
                     Color.bk.ignoresSafeArea()
@@ -43,19 +45,18 @@ struct TabsContainerView: View {
 
                 PagingScrollView(showTabPage: $showTabPage)
                     .environment(webcacheStore)
-                    .environmentObject(animation)
+                    .environment(animation)
                     .allowsHitTesting(showTabPage) // This line allows TabGridView to receive the tap event, down through click
-                
-                
+
                 if animation.progress.isAnimating() {
-                    if isExpanded {// 收缩
+                    if isExpanded { // 收缩
                         animationImage
                             .transition(.identityHack)
                             .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
                             .frame(width: geo.size.width,
                                    height: geo.size.height - dragScale.addressbarHeight)
                             .position(x: geo.size.width / 2.0,
-                                      y: geo.size.height / 2.0 - dragScale.addressbarHeight/2)
+                                      y: geo.size.height / 2.0 - dragScale.addressbarHeight / 2)
                     } else {
                         animationImage
                             .transition(.identityHack)
@@ -88,6 +89,7 @@ struct TabsContainerView: View {
                 if progress.isAnimating() {
                     showTabPage = false
                 }
+                startAnimation(progress: progress)
             }
         }
         .coordinateSpace(.named("TabsContainer"))
@@ -103,34 +105,32 @@ struct TabsContainerView: View {
             )
             .cornerRadius(isExpanded ? 0 : gridcellCornerR)
             .animation(.default, value: isExpanded)
-            .onReceive(animation.$progress, perform: { progress in
-                guard progress != lastProgress else {
-                    return
-                }
-                Log("animation turns into \(animation.progress)")
-                lastProgress = progress
+    }
+    
+    func startAnimation(progress: AnimationProgress){
+        guard progress != lastProgress else {
+            return
+        }
+        lastProgress = progress
 
-                if progress == .startShrinking || progress == .startExpanding {
-                    let isExpanding = animation.progress == .startExpanding
-                    Log("animation : \(progress)")
-                    if progress == .startShrinking {
-                        gridState.scale = 0.8
-                    }
+        if progress == .startShrinking || progress == .startExpanding {
+            let isExpanding = animation.progress == .startExpanding
+            if progress == .startShrinking {
+                gridState.scale = 0.8
+            }
 
-                    Log("start to shifting animation")
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        addressBar.shouldDisplay = isExpanding
-                        gridState.scale = isExpanding ? 0.8 : 1
-                        isExpanded = isExpanding
-                    }
+            withAnimation(.easeOut(duration: 0.3)) {
+                addressBar.shouldDisplay = isExpanding
+                gridState.scale = isExpanding ? 0.8 : 1
+                isExpanded = isExpanding
+            }
 
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                        showTabPage = isExpanded
-                        animation.progress = .invisible // change to expanded or shrinked
-                        gridState.scale = 1
-                    }
-                }
-            })
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                showTabPage = isExpanded
+                animation.progress = .invisible // change to expanded or shrinked
+                gridState.scale = 1
+            }
+        }
     }
 }
 

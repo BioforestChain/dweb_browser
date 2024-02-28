@@ -28,13 +28,6 @@ let cellImageHeightRatio = 0.85
 
 let gridcellCornerR: CGFloat = 10
 
-enum EnterType {
-    case search
-    case none
-}
-
-var enterType: EnterType = .none
-
 var lightSnapshotImage = UIImage.snapshotImage(from: URL.lightSnapshot)
 var darkSnapshotImage = UIImage.snapshotImage(from: URL.darkSnapshot)
 

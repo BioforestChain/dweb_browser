@@ -72,9 +72,10 @@ class ToolBarState: ObservableObject {
     @Published var isPresentingScanner = false
 }
 
-class ShiftAnimation: ObservableObject {
-    @Published var snapshotImage: UIImage = lightSnapshotImage
-    @Published var progress: AnimationProgress = .invisible
+@Observable
+class ShiftAnimation {
+    var snapshotImage: UIImage = lightSnapshotImage
+    var progress: AnimationProgress = .invisible
 }
 
 class TracelessMode {
@@ -100,6 +101,7 @@ class TabGridState: ObservableObject {
     @Published var scale = 1.0
 }
 
-class DeleteCache: ObservableObject {
-    @Published var cacheId = UUID()
+@Observable
+class DeleteCache {
+    var cacheId = UUID()
 }

@@ -33,7 +33,7 @@ struct WebsiteIconImage: View {
 struct GridCell: View {
     var webCache: WebCache
     var isSelected: Bool
-    @EnvironmentObject var deleteCache: DeleteCache
+    @Environment(DeleteCache.self) var deleteCache
     @Environment(WndDragScale.self) var dragScale
 
     var body: some View {
@@ -61,17 +61,16 @@ struct GridCell: View {
                             .opacity(isSelected ? 1 : 0)
                     }
 
-                    HStack() {
+                    HStack {
                         WebsiteIconImage(iconUrl: webCache.webIconUrl)
                             .aspectRatio(contentMode: .fit)
                             .frame(height: geo.size.height * 0.1)
-                        
+
                         Text(webCache.title)
                             .font(dragScale.scaledFont_20) // 设置字体大小为 20，粗细为 semibold
                             .lineLimit(1)
                     }
                     .frame(height: geo.size.height * 0.15)
-
 
 //                    .padding(.vertical, 3)
                 }

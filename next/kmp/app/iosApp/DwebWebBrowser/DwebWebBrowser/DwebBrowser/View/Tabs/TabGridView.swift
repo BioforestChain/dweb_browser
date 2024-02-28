@@ -27,8 +27,8 @@ struct TabGridView: View {
     @Environment(WebCacheStore.self) var webcacheStore
     @EnvironmentObject var toolbarState: ToolBarState
     @Environment(\.colorScheme) var colorScheme
+    @Environment(ShiftAnimation.self) var animation
 
-    @ObservedObject var animation: ShiftAnimation
     @ObservedObject var gridState: TabGridState
 
     @State var isFirstRecord: Bool = true
@@ -36,7 +36,7 @@ struct TabGridView: View {
 
     @Binding var selectedCellFrame: CGRect
 
-    @StateObject var deleteCache = DeleteCache()
+    @State var deleteCache = DeleteCache()
     @State private var subscriptions = Set<AnyCancellable>()
 
     let detector = CurrentValueSubject<[CellFrameInfo], Never>([])
@@ -79,7 +79,7 @@ struct TabGridView: View {
                         }
                         .shadow(color: Color.gray, radius: 2)
                     }
-                    .environmentObject(deleteCache)
+                    .environment(deleteCache)
                     .padding(gridHSpace)
                     .scaleEffect(x: gridState.scale, y: gridState.scale)
                     .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in

@@ -14,7 +14,7 @@ struct PagingScrollView: View {
     @Environment(WebCacheStore.self) var webcacheStore
     @EnvironmentObject var toolBarState: ToolBarState
     @EnvironmentObject var addressBar: AddressBarState
-    @EnvironmentObject var animation: ShiftAnimation
+    @Environment(ShiftAnimation.self) var animation
     @Environment(WndDragScale.self) var dragScale
 
     @Binding var showTabPage: Bool
