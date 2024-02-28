@@ -9,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import kotlinx.coroutines.launch
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.LocalCompositionChain
@@ -81,11 +80,11 @@ fun RenderWindowInNewLayer(
   val pvc = win.getIosWindowNativeView(windowsManager, maxWidth, maxHeight, compositionChain).pvc
 
   val zIndex by win.watchedState(zIndexBase) { zIndex + zIndexBase }
+  LaunchedEffect(pvc) {
+    nativeViewController.addOrUpdate(pvc, zIndex)
+  }
   /// 启动
   DisposableEffect(pvc) {
-    nativeScope.launch {
-      nativeViewController.addOrUpdate(pvc, zIndex)
-    }
     val off = win.onClose {
       nativeViewController.remove(pvc)
     }

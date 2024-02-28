@@ -2,8 +2,6 @@ package org.dweb_browser.browser.download.ext
 
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.download.DownloadTask
-import org.dweb_browser.browser.download.debugDownload
-import org.dweb_browser.browser.jmm.debugJMM
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.createChannel
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -11,7 +9,6 @@ import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureTextFrame
-import kotlin.coroutines.cancellation.CancellationException
 
 suspend fun NativeMicroModule.createDownloadTask(
   url: String, total: Long = 1L, external: Boolean = false
@@ -42,15 +39,16 @@ suspend fun NativeMicroModule.removeDownload(taskId: String) = nativeFetch(
 
 suspend fun NativeMicroModule.createChannelOfDownload(
   taskId: String, resolve: suspend WatchDownloadContext.() -> Unit,
-) = createChannel("file://download.browser.dweb/watch/progress?taskId=$taskId"){
-  for (pureFrame in income){
+) = createChannel("file://download.browser.dweb/watch/progress?taskId=$taskId") {
+  for (pureFrame in income) {
     when (pureFrame) {
       is PureTextFrame -> {
-        WatchDownloadContext(Json.decodeFromString<DownloadTask>(pureFrame.data),this).resolve()
+        WatchDownloadContext(Json.decodeFromString<DownloadTask>(pureFrame.data), this).resolve()
       }
+
       else -> {}
     }
   }
 }
 
-class WatchDownloadContext(val downloadTask: DownloadTask,val channel:PureChannelContext)
+class WatchDownloadContext(val downloadTask: DownloadTask, val channel: PureChannelContext)

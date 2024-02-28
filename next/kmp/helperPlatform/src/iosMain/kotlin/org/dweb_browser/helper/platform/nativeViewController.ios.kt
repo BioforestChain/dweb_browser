@@ -26,7 +26,7 @@ class NativeViewController private constructor() {
     val nativeViewController = NativeViewController();
   }
 
-  val scope = CoroutineScope(mainAsyncExceptionHandler);
+  val scope = CoroutineScope(mainAsyncExceptionHandler)
   val navigationBar get() = navigationBarHook
 
   fun setNavigationBarHook(hook: (visible: Boolean) -> Unit) {
