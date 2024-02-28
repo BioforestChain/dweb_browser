@@ -31,6 +31,9 @@ kotlin {
     }
   }
   kmpAndroidTarget(project) {
+    dependencies {
+      implementation(libs.ktor.client.okhttp)
+    }
   }
   kmpIosTarget(project) {
     dependencies {
