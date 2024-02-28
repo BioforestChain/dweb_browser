@@ -25,7 +25,6 @@ class MicroModuleManifest private constructor(
         cbor = true, protobuf = true, raw = true
       )
     )
-    private val P_type = P.required<ModuleType>("type", ModuleType.NativeModule)
   }
 
 
@@ -36,7 +35,6 @@ class MicroModuleManifest private constructor(
     }
   }
   override var ipc_support_protocols by P_ipc_support_protocols(p)
-  override var type by P_type(p)
   override var id by P.getRequired<String>("id")(p) {
     p.set("mmid", value)
     afterWrite = {
@@ -50,6 +48,5 @@ class MicroModuleManifest private constructor(
 interface IMicroModuleManifest : ICommonAppManifest {
   var mmid: MMID
   var ipc_support_protocols: IpcSupportProtocols
-  var type: ModuleType
   fun toCommonAppManifest(): CommonAppManifest
 }

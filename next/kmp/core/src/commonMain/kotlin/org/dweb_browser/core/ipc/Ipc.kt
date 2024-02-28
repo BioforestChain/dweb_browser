@@ -8,7 +8,6 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IPC_STATE
@@ -360,13 +359,6 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   private val reqIdSyncObj = SynchronizedObject()
   private fun allocReqId() = synchronized(reqIdSyncObj) { ++req_id_acc }
 
-  // 自定义注册 请求与响应 的id
-//    private fun registerReqId(req_id: Int = this.allocReqId()): CompletableDeferred<IpcResponse> {
-//      return _reqResMap.getOrPut(req_id) {
-//        return CompletableDeferred()
-//      }
-//    }
-
   /**----- 发送请求 end */
 
   /**----- close start*/
@@ -419,16 +411,6 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   internal val start = SuspendOnce {
     ipcLifeCycleState = IPC_STATE.OPENING
     this.postMessage(IpcLifeCycle(IPC_STATE.OPENING))
-//    ipcMessageCoroutineScope.launch {
-//      val ipc = this@Ipc
-//      val pingDelay = 200L
-//      var timeout = 30000L
-//      while (!startDeferred.isCompleted && !ipc.isClosed && timeout > 0L) {
-//        ipc.postMessage(IpcLifeCycle(IPC_STATE.OPENING))
-//        delay(pingDelay)
-//        timeout -= pingDelay
-//      }
-//    }
   }
 
   internal val closing = SuspendOnce {
