@@ -113,7 +113,7 @@ abstract class ITaskbarView(private val taskbarController: TaskbarController) {
         }
       }
 
-      val draggableHelper = remember(setBoxX, setBoxY) {
+      val draggableHelper = remember(setBoxX, setBoxY, safeBounds) {
         DraggableHelper(onDragStart = {
           inDrag = true
         }, onDrag = { dragAmount ->
