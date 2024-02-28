@@ -73,13 +73,13 @@ fun RenderWindowInNewLayer(
   currentMaxHeight: Float,
   zIndexBase: Int
 ) {
-  val nativeScope = nativeViewController.scope
   val maxWidth = rememberUpdatedState(currentMaxWidth)
   val maxHeight = rememberUpdatedState(currentMaxHeight)
   val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
   val pvc = win.getIosWindowNativeView(windowsManager, maxWidth, maxHeight, compositionChain).pvc
 
   val zIndex by win.watchedState(zIndexBase) { zIndex + zIndexBase }
+  // 防止Composable生命周期溢出
   LaunchedEffect(pvc) {
     nativeViewController.addOrUpdate(pvc, zIndex)
   }

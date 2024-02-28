@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.unit.dp
-import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -94,12 +93,11 @@ internal actual fun ModalState.RenderCloseTipImpl(onConfirmToClose: () -> Unit) 
 }
 
 
-@OptIn(ExperimentalForeignApi::class)
 @Composable
 internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean) {
   val uiViewController = LocalUIViewController.current
   val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
-  val win = parent;
+  val win = parent
   val scope = rememberCoroutineScope()
   val sheetUiDelegate by remember {
     lazy {
@@ -245,7 +243,9 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
     // 等待Compose级别的关闭指令
     sheetUiDelegate.afterDismiss.invokeOnCompletion {
       // 关闭
-      nav.dismissViewControllerAnimated(flag = true, null)
+      scope.launch {
+        nav.dismissViewControllerAnimated(flag = true, null)
+      }
     }
   }
   // 返回按钮按下的时候
@@ -254,6 +254,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
       sheetUiDelegate.afterDismiss.complete(Unit)
     }
   }
+
   /// compose销毁的时候
   DisposableEffect(sheetUiDelegate.afterDismiss) {
     this@RenderImpl.afterDestroy.invokeOnCompletion {
