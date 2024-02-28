@@ -12,7 +12,7 @@ import WebKit
 struct TabPageView: View {
     @EnvironmentObject var animation: ShiftAnimation
     @EnvironmentObject var toolbarState: ToolBarState
-    @EnvironmentObject var openingLink: OpeningLink
+    @Environment(OpeningLink.self) var openingLink
     @EnvironmentObject var addressBar: AddressBarState
 
     @Environment(WndDragScale.self) var dragScale

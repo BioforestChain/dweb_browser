@@ -47,8 +47,8 @@ struct PagingScrollView: View {
                                 }
                             }
                             .frame(height: max(geometry.size.height - dragScale.addressbarHeight, 0))
-                            AddressBar(webCache: cache,
-                                       webMonitor: webcacheStore.webWrappers[index].webMonitor,
+                            AddressBar(webMonitor: webcacheStore.webWrappers[index].webMonitor, 
+                                       webCache: cache,
                                        tabIndex: index,
                                        isVisible: index == seletecdTab.index)
 

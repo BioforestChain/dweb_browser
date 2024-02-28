@@ -33,18 +33,14 @@ struct SearchTypingView: View {
         .background(Color.bk)
 
         .onDisappear {
-            addressBar.inputText = ""
-            addressBar.searchInputText = ""
-            addressBar.isFocused = false
-            enterType = .none
+            releaseFocuse()
         }
-        .animation(.easeInOut, value: addressBar.inputText == "")
     }
 
     func releaseFocuse() {
-        addressBar.inputText = ""
-        addressBar.searchInputText = ""
-        addressBar.isFocused = false
+        withAnimation(.snappy) {
+            addressBar.isFocused = false
+        }
     }
 }
 

@@ -13,6 +13,12 @@ enum Engine: Int {
     case so360
 }
 
+enum SearcherPrefix: String {
+    case baidu = "https://m.baidu.com/s?word="
+    case sogou = "https://wap.sogou.com/web/searchList.jsp?keyword="
+    case so360 = "https://m.so.com/s?q="
+}
+
 struct Searcher: Identifiable {
     var id: Engine
     var name: String
@@ -24,17 +30,17 @@ struct Searcher: Identifiable {
 
     private func baidu(text: String) -> String {
         let query = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
-        return "https://m.baidu.com/s?word=\(query)"
+        return SearcherPrefix.baidu.rawValue + query
     }
 
     private func sogou(text: String) -> String {
         let query = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
-        return "https://wap.sogou.com/web/searchList.jsp?keyword=\(query)"
+        return SearcherPrefix.sogou.rawValue + query
     }
 
     private func so360(text: String) -> String {
         let query = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
-        return "https://m.so.com/s?q=\(query)"
+        return SearcherPrefix.so360.rawValue + query
     }
 
     static var baidu = Searcher(id: .baidu, name: "baidu", icon: "baidu", slogan: "百度一下，你就知道")
@@ -42,9 +48,17 @@ struct Searcher: Identifiable {
     static var so360 = Searcher(id: .so360, name: "360so", icon: "360so", slogan: "百毒不侵")
 }
 
+
 class WebSearcher: ObservableObject {
     static let shared = WebSearcher()
-    var searchers: [Searcher] = [.baidu, .sogou, .so360] //360搜索有一个验证页面，会失败，然后跳转至最初的页面，并且进度条展示不正常
+    var searchers: [Searcher] = [.baidu, .sogou, .so360]
 }
 
 let webSearchers = WebSearcher.shared.searchers
+
+
+/*
+ https://m.baidu.com/s?word=784
+ https://wap.sogou.com/web/searchList.jsp?keyword=6944
+ https://m.so.com/s?q=3689
+ */

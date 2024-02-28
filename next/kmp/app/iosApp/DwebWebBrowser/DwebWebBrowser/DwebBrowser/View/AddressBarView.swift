@@ -10,16 +10,17 @@ import SwiftUI
 
 struct AddressBar: View {
     @EnvironmentObject var addressBar: AddressBarState
-    @EnvironmentObject var openingLink: OpeningLink
     @Environment(WndDragScale.self) var dragScale
-    var webCache: WebCache
+    @Environment(OpeningLink.self) var openingLink
     @ObservedObject var webMonitor: WebMonitor
+
+    var webCache: WebCache
     let tabIndex: Int
     let isVisible: Bool
 
     @FocusState var isAdressBarFocused: Bool
     @State private var inputText: String = ""
-    @State private var displayText: String = ""
+
     @State var showProgress: Double = 0
 
     private var shouldShowProgress: Bool { webMonitor.loadingProgress > 0.0 && webMonitor.loadingProgress < 1.0 && !addressBar.isFocused }
@@ -70,7 +71,7 @@ struct AddressBar: View {
     }
 
     var textField: some View {
-        TextField(addressbarHolder, text: isAdressBarFocused ? $inputText : $displayText)
+        TextField(addressbarHolder, text: $inputText)
             .foregroundColor(.primary)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
@@ -80,54 +81,41 @@ struct AddressBar: View {
             .keyboardType(.webSearch)
             .focused($isAdressBarFocused)
             .font(dragScale.scaledFont_18)
-            .onTapGesture {
-                if !webCache.isWebVisible {
-                    inputText = ""
+            .onChange(of: isAdressBarFocused) { _, focused in
+                if focused {
+                    addressBar.isFocused = true
                 }
-                isAdressBarFocused = true
-                addressBar.isFocused = true
             }
 
             .onAppear {
-                if let searchInputText = addressBar.searchInputText,
-                   inputText == searchInputText
-                {
-                    return //
+                inputText = webCache.lastVisitedUrl.domain
+                if inputText == emptyLink {
+                    inputText = ""
                 }
-                inputText = webCache.lastVisitedUrl.absoluteString
-                displayText = webCache.isWebVisible ? webCache.lastVisitedUrl.domain : addressbarHolder
             }
 
             .onChange(of: webCache.lastVisitedUrl) { _, url in
-                guard enterType == .none else { return }
-                inputText = url.absoluteString
-                displayText = webCache.isWebVisible ? webCache.lastVisitedUrl.domain : addressbarHolder
+                inputText = url.domain
             }
             .onChange(of: addressBar.isFocused) { _, isFocused in
-                Log(" addressBar.isFocused onChange:\(isFocused)")
-                if !isFocused, isVisible {
-                    isAdressBarFocused = isFocused
-                    if addressBar.inputText.isEmpty { // 点击取消按钮
-                        inputText = webCache.lastVisitedUrl.absoluteString
-                    }
+                if isVisible {
+                    inputText = isFocused ? webCache.lastVisitedUrl.absoluteString : webCache.lastVisitedUrl.domain
+                }
+                if isFocused == false {
+                    isAdressBarFocused = false
                 }
             }
-            .onChange(of: addressBar.searchInputText) { _, searchInputText in
-                if !(searchInputText?.isEmpty ?? true) {
-                    inputText = searchInputText!
+            .onChange(of: addressBar.outerSearchText) { _, searchText in
+                if searchText != "" {
+                    inputText = searchText
+                    isAdressBarFocused = true
                 }
             }
             .onSubmit {
                 let url = URL.createUrl(inputText)
                 openingLink.clickedLink = url
-                isAdressBarFocused = false
                 addressBar.isFocused = false
                 showProgress = 0
-            }
-            .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)) { obj in
-                if let textField = obj.object as? UITextField {
-                    textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
-                }
             }
             .onChange(of: inputText) { _, text in
                 addressBar.inputText = text

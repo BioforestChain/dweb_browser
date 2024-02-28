@@ -9,10 +9,14 @@ import SwiftUI
 
 struct SearchResultView: View {
     @EnvironmentObject var addressBar: AddressBarState
-    @EnvironmentObject var openingLink: OpeningLink
+    @Environment(OpeningLink.self) var openingLink
     @Environment(WndDragScale.self) var dragScale
+    @Environment(WebCacheStore.self) var cacheStore
+    @Environment(SelectedTab.self) var seletedTab
 
     @State private var tapHasBeenHandled = false
+    
+    private var curCache: WebCache { cacheStore.cache(at: seletedTab.index)}
     var body: some View {
         Form {
             Section {
@@ -29,7 +33,6 @@ struct SearchResultView: View {
                             Text(searcher.name)
                                 .foregroundColor(.primary)
                                 .font(dragScale.scaledFont_18)
-                                .lineLimit(1)
                             Text(addressBar.inputText.trim)
                                 .foregroundColor(Color(.systemGray2))
                                 .font(dragScale.scaledFont_12)
@@ -41,11 +44,11 @@ struct SearchResultView: View {
 
                     .frame(height: dragScale.properValue(max: 50))
                     .contentShape(Rectangle())
-
-                    .highPriorityGesture(TapGesture().onEnded { _ in
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .simultaneousGesture(TapGesture().onEnded { _ in
                         tapHasBeenHandled = true
                         addressBar.isFocused = false
-                        guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
+                        guard let url = URL(string: searcher.inputHandler(addressBar.inputText.trim)) else { return }
                         openingLink.clickedLink = url
                     })
                 }
@@ -53,23 +56,25 @@ struct SearchResultView: View {
             } header: {
                 Text("搜索引擎")
                     .foregroundColor(.primary)
-                    .font(dragScale.scaledFont_12)
+                    .font(dragScale.scaledFont_16)
                     .padding(.top, 10)
                     .padding(.bottom, 6)
             }
             .textCase(nil)
             .listRowInsets(EdgeInsets())
         }
+        
         .onAppear {
             tapHasBeenHandled = false
         }
+
         .onTapGesture {
             if !tapHasBeenHandled {
                 addressBar.isFocused = false
-                addressBar.inputText = ""
             }
         }
         .scrollContentBackground(.hidden)
         .background(.bk)
     }
 }
+

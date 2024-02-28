@@ -12,16 +12,14 @@ import SwiftUI
 class BrowserViewStates: ObservableObject {
     static let shared = BrowserViewStates()
     @Published var addressBar = AddressBarState()
-    @Published var openingLink = OpeningLink()
     @Published var toolBarState = ToolBarState()
-    @Published var searchKey: String? = nil
+    @Published var searchKey: String = ""
     @Published var colorSchemeManager = ColorSchemeManager()
     
     func clear() {
         addressBar = AddressBarState()
-        openingLink = OpeningLink()
         toolBarState = ToolBarState()
-        searchKey = nil
+        searchKey = ""
     }
 }
 
@@ -56,10 +54,8 @@ extension BrowserViewStates {
         return false
     }
     
-    func doSearch(_ key: String?) {
-        guard let key = key, !key.isEmpty, searchKey != key else {
-            return
-        }
+    func doSearch(_ key: String) {
+        guard !key.isEmpty, searchKey != key else { return }
         searchKey = key
     }
     
@@ -67,9 +63,10 @@ extension BrowserViewStates {
         colorSchemeManager.colorScheme = LocalColorScheme(rawValue: newScheme)!
     }
     
-    func doSearchIfNeed(key: String? = nil) {
-        let localKey = key != nil ? key : searchKey
-        guard let key = localKey, !key.isEmpty else {
+    func doSearchIfNeed(key: String = "", openNewUrl: @escaping (URL)->Void) {
+        let searchText = key != "" ? key : searchKey
+
+        guard searchText != "" else {
             addressBar.isFocused = false
             return
         }
@@ -85,18 +82,17 @@ extension BrowserViewStates {
             toolBarState.showMoreMenu = false
         }
         
-        if key.isURL() {
-            searchKey = nil
-            addressBar.searchInputText = key
+        if searchText.isURL() {
+            searchKey = ""
+            addressBar.outerSearchText = key
             addressBar.isFocused = false
-            let url = URL.createUrl(key)
+            let url = URL.createUrl(searchText)
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + deadline) {
-                self.openingLink.clickedLink = url
+                openNewUrl(url)
             }
         } else {
-            enterType = .search
-            addressBar.isFocused = true
-            addressBar.searchInputText = key
+            addressBar.outerSearchText = searchText
         }
     }
 }

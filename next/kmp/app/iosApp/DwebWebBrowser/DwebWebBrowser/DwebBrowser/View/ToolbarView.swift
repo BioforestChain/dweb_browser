@@ -14,7 +14,7 @@ struct ToolbarView: View {
     @Environment(WebCacheStore.self) var webcacheStore
 
     @EnvironmentObject var toolbarState: ToolBarState
-    @EnvironmentObject var openingLink: OpeningLink
+    @Environment(OpeningLink.self) var openingLink
     @EnvironmentObject var addressBar: AddressBarState
     @Environment(WndDragScale.self) var dragScale
 

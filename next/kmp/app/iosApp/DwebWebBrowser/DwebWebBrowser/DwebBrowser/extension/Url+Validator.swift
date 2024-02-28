@@ -16,7 +16,7 @@ extension URL {
             }
             return url
         } else {
-            let searchString = "https://www.baidu.com/s?wd=\(urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
+            let searchString = SearcherPrefix.baidu.rawValue + (urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")
             return URL(string: searchString)!
         }
     }

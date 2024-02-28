@@ -33,9 +33,9 @@ extension String {
     
     var trim: String {
         var result = self
-        result = result.replacingOccurrences(of: "https://www.baidu.com/s?wd=", with: "")
-        result = result.replacingOccurrences(of: "https://www.sogou.com/web?query=", with: "")
-        result = result.replacingOccurrences(of: "https://www.so.com/s?q=", with: "")
+        result = result.replacingOccurrences(of: SearcherPrefix.baidu.rawValue, with: "")
+        result = result.replacingOccurrences(of: SearcherPrefix.sogou.rawValue, with: "")
+        result = result.replacingOccurrences(of: SearcherPrefix.so360.rawValue, with: "")
         
         return result.removingPercentEncoding ?? result
     }

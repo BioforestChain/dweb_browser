@@ -14,6 +14,7 @@ struct BrowserView: View {
     @State var selectedTab = SelectedTab()
     @State var webcacheStore = WebCacheStore()
     @State var dragScale = WndDragScale()
+    @State var openingLink = OpeningLink()
     @State private var presentSheet = false
 
     var body: some View {
@@ -27,7 +28,7 @@ struct BrowserView: View {
                     .background(.bk)
                     .environment(webcacheStore)
                     .environment(dragScale)
-                    .environmentObject(states.openingLink)
+                    .environment(openingLink)
                     .environmentObject(states.addressBar)
                     .environmentObject(states.toolBarState)
                     .environment(selectedTab)
@@ -36,7 +37,7 @@ struct BrowserView: View {
                     SheetSegmentView(webCache: webcacheStore.cache(at: selectedTab.index))
                         .environment(selectedTab)
                         .environment(dragScale)
-                        .environmentObject(states.openingLink)
+                        .environment(openingLink)
                         .environmentObject(states.toolBarState)
                 }
                 .onChange(of: geometry.size, initial: true) { _, newSize in
@@ -59,14 +60,18 @@ struct BrowserView: View {
                 }
             }
             .task {
-                states.doSearchIfNeed()
-                if let key = states.searchKey, !key.isEmpty {
-                    states.searchKey = nil
+                states.doSearchIfNeed() {
+                    self.openingLink.clickedLink = $0
+                }
+                if states.searchKey != "" {
+                    states.searchKey = ""
                 }
             }
             .onChange(of: states.searchKey) { _, newValue in
-                if let newValue = newValue, !newValue.isEmpty {
-                    states.doSearchIfNeed(key: newValue)
+                if !newValue.isEmpty {
+                    states.doSearchIfNeed(key: newValue) {
+                        self.openingLink.clickedLink = $0
+                    }
                 }
             }
         }
@@ -116,5 +121,6 @@ struct BrowserView: View {
         selectedTab.index = 0
         webcacheStore.resetWrappers()
         dragScale = WndDragScale()
+        openingLink = OpeningLink()
     }
 }

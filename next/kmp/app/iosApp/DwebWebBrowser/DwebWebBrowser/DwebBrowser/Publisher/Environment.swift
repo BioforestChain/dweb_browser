@@ -62,7 +62,7 @@ class AddressBarState: ObservableObject {
     @Published var shouldDisplay: Bool = true
     @Published var needRefreshOfIndex: Int = -1
     @Published var stopLoadingOfIndex: Int = -1
-    @Published var searchInputText: String? = nil
+    @Published var outerSearchText: String = ""
 }
 
 class ToolBarState: ObservableObject {
@@ -91,8 +91,9 @@ class TracelessMode {
     }
 }
 
-class OpeningLink: ObservableObject {
-    @Published var clickedLink: URL = emptyURL
+@Observable
+class OpeningLink{
+    var clickedLink: URL = emptyURL
 }
 
 class TabGridState: ObservableObject {
