@@ -30,6 +30,7 @@ struct DwebFrameworkContentView: View {
         ZStack {
             if vcs.isEmpty {
                 Text("Loading...")
+                    .accessibilityLabel("loading")
             } else {
                 DwebDeskRootView(vcs: vcs.map { $0.vc })
             }

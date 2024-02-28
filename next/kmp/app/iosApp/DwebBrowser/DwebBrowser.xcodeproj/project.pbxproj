@@ -10,12 +10,17 @@
 		1A0D794E6805F75B088C0939 /* DwebBrowserApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0D7C84CC71A12D5FCBBF78 /* DwebBrowserApp.swift */; };
 		3DD9B2722B60DCF000792CDA /* DwebWebBrowser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4819C2E72B4FEC13001BB45D /* DwebWebBrowser.framework */; };
 		3DD9B2732B60DCF000792CDA /* DwebWebBrowser.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4819C2E72B4FEC13001BB45D /* DwebWebBrowser.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		48001B9F2B8ED4CB00F47669 /* DwebBrowserUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48001B9E2B8ED4CB00F47669 /* DwebBrowserUITests.swift */; };
+		48001BA12B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48001BA02B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift */; };
+		48001BA82B8F0D5600F47669 /* DwebAppMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48001BA72B8F0D5600F47669 /* DwebAppMode.swift */; };
+		48001BAA2B8F1ADE00F47669 /* DwebUITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48001BA92B8F1ADE00F47669 /* DwebUITestCase.swift */; };
 		4803C00C2B4FF541006B2F79 /* DependencyHeaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803C00B2B4FF541006B2F79 /* DependencyHeaders.swift */; };
 		4803C0152B4FF846006B2F79 /* DwebDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803C0142B4FF846006B2F79 /* DwebDeepLink.swift */; };
 		4803C0182B4FF907006B2F79 /* KotlinComposeMetalRedrawerFix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803C0162B4FF897006B2F79 /* KotlinComposeMetalRedrawerFix.swift */; };
 		4819C2DF2B4FE87A001BB45D /* DwebPlatformIosKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4819C2DE2B4FE87A001BB45D /* DwebPlatformIosKit.framework */; };
 		4819C2E02B4FE87A001BB45D /* DwebPlatformIosKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4819C2DE2B4FE87A001BB45D /* DwebPlatformIosKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		481E15652B6750AE003870F6 /* ShortcutTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481E15642B6750AE003870F6 /* ShortcutTools.swift */; };
+		4824F5C62B8DC6CC00CD3D2D /* DwebBrowserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4824F5C52B8DC6CC00CD3D2D /* DwebBrowserTests.swift */; };
 		48334DC72B50CF7100399FFF /* TouchThroughView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48334DC62B50CF7000399FFF /* TouchThroughView.swift */; };
 		48334DC92B50CFFF00399FFF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 48334DC82B50CFFF00399FFF /* Assets.xcassets */; };
 		48334DEC2B50D11300399FFF /* DwebBrowserCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 48334DEB2B50D11300399FFF /* DwebBrowserCommon.framework */; };
@@ -29,6 +34,23 @@
 		48F54EDB2B17233E003A64AC /* DwebDeskVCStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48F54EDA2B17233E003A64AC /* DwebDeskVCStore.swift */; };
 		F0A0E3692B4D27950024D8DE /* AppVersionMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A0E3682B4D27950024D8DE /* AppVersionMgr.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		48001BA22B8ED4CB00F47669 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7555FF73242A565900829871 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7555FF7A242A565900829871;
+			remoteInfo = DwebBrowser;
+		};
+		4824F5C72B8DC6CC00CD3D2D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7555FF73242A565900829871 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7555FF7A242A565900829871;
+			remoteInfo = DwebBrowser;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		4819C2E12B4FE87A001BB45D /* Embed Frameworks */ = {
@@ -48,12 +70,19 @@
 
 /* Begin PBXFileReference section */
 		1A0D7C84CC71A12D5FCBBF78 /* DwebBrowserApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebBrowserApp.swift; sourceTree = "<group>"; };
+		48001B9C2B8ED4CB00F47669 /* DwebBrowserUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DwebBrowserUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		48001B9E2B8ED4CB00F47669 /* DwebBrowserUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserUITests.swift; sourceTree = "<group>"; };
+		48001BA02B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		48001BA72B8F0D5600F47669 /* DwebAppMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebAppMode.swift; sourceTree = "<group>"; };
+		48001BA92B8F1ADE00F47669 /* DwebUITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebUITestCase.swift; sourceTree = "<group>"; };
 		4803C00B2B4FF541006B2F79 /* DependencyHeaders.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DependencyHeaders.swift; sourceTree = "<group>"; };
 		4803C0142B4FF846006B2F79 /* DwebDeepLink.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeepLink.swift; sourceTree = "<group>"; };
 		4803C0162B4FF897006B2F79 /* KotlinComposeMetalRedrawerFix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KotlinComposeMetalRedrawerFix.swift; sourceTree = "<group>"; };
 		4819C2DE2B4FE87A001BB45D /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4819C2E72B4FEC13001BB45D /* DwebWebBrowser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebWebBrowser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		481E15642B6750AE003870F6 /* ShortcutTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutTools.swift; sourceTree = "<group>"; };
+		4824F5C32B8DC6CC00CD3D2D /* DwebBrowserTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DwebBrowserTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4824F5C52B8DC6CC00CD3D2D /* DwebBrowserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserTests.swift; sourceTree = "<group>"; };
 		48334DC62B50CF7000399FFF /* TouchThroughView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TouchThroughView.swift; sourceTree = "<group>"; };
 		48334DC82B50CFFF00399FFF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		48334DEB2B50D11300399FFF /* DwebBrowserCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebBrowserCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -71,6 +100,20 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		48001B992B8ED4CB00F47669 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4824F5C02B8DC6CC00CD3D2D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7555FF78242A565900829871 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -84,6 +127,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		48001B9D2B8ED4CB00F47669 /* DwebBrowserUITests */ = {
+			isa = PBXGroup;
+			children = (
+				48001B9E2B8ED4CB00F47669 /* DwebBrowserUITests.swift */,
+				48001BA02B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift */,
+				48001BA92B8F1ADE00F47669 /* DwebUITestCase.swift */,
+			);
+			path = DwebBrowserUITests;
+			sourceTree = "<group>";
+		};
 		4803C0172B4FF897006B2F79 /* Fix */ = {
 			isa = PBXGroup;
 			children = (
@@ -109,6 +162,14 @@
 				48334DC62B50CF7000399FFF /* TouchThroughView.swift */,
 			);
 			path = Desktop;
+			sourceTree = "<group>";
+		};
+		4824F5C42B8DC6CC00CD3D2D /* DwebBrowserTests */ = {
+			isa = PBXGroup;
+			children = (
+				4824F5C52B8DC6CC00CD3D2D /* DwebBrowserTests.swift */,
+			);
+			path = DwebBrowserTests;
 			sourceTree = "<group>";
 		};
 		4850503F2B146B5700080723 /* Preview Content */ = {
@@ -139,6 +200,8 @@
 			isa = PBXGroup;
 			children = (
 				7555FF7D242A565900829871 /* DwebBrowser */,
+				4824F5C42B8DC6CC00CD3D2D /* DwebBrowserTests */,
+				48001B9D2B8ED4CB00F47669 /* DwebBrowserUITests */,
 				7555FF7C242A565900829871 /* Products */,
 				7555FFB0242A642200829871 /* Frameworks */,
 			);
@@ -148,6 +211,8 @@
 			isa = PBXGroup;
 			children = (
 				7555FF7B242A565900829871 /* DwebBrowser.app */,
+				4824F5C32B8DC6CC00CD3D2D /* DwebBrowserTests.xctest */,
+				48001B9C2B8ED4CB00F47669 /* DwebBrowserUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -161,6 +226,7 @@
 				4803C00B2B4FF541006B2F79 /* DependencyHeaders.swift */,
 				4803C0142B4FF846006B2F79 /* DwebDeepLink.swift */,
 				48C4F2E22B85A26A00671A91 /* DwebBrowser-Bridging-Header.h */,
+				48001BA72B8F0D5600F47669 /* DwebAppMode.swift */,
 				48C4F2DC2B8593D900671A91 /* Config */,
 				487D7FC72B69E3BA00DA8162 /* ViewModifiers */,
 				4803C0172B4FF897006B2F79 /* Fix */,
@@ -186,6 +252,42 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		48001B9B2B8ED4CB00F47669 /* DwebBrowserUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 48001BA62B8ED4CB00F47669 /* Build configuration list for PBXNativeTarget "DwebBrowserUITests" */;
+			buildPhases = (
+				48001B982B8ED4CB00F47669 /* Sources */,
+				48001B992B8ED4CB00F47669 /* Frameworks */,
+				48001B9A2B8ED4CB00F47669 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				48001BA32B8ED4CB00F47669 /* PBXTargetDependency */,
+			);
+			name = DwebBrowserUITests;
+			productName = DwebBrowserUITests;
+			productReference = 48001B9C2B8ED4CB00F47669 /* DwebBrowserUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		4824F5C22B8DC6CC00CD3D2D /* DwebBrowserTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4824F5C92B8DC6CC00CD3D2D /* Build configuration list for PBXNativeTarget "DwebBrowserTests" */;
+			buildPhases = (
+				4824F5BF2B8DC6CC00CD3D2D /* Sources */,
+				4824F5C02B8DC6CC00CD3D2D /* Frameworks */,
+				4824F5C12B8DC6CC00CD3D2D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4824F5C82B8DC6CC00CD3D2D /* PBXTargetDependency */,
+			);
+			name = DwebBrowserTests;
+			productName = DwebBrowserTests;
+			productReference = 4824F5C32B8DC6CC00CD3D2D /* DwebBrowserTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		7555FF7A242A565900829871 /* DwebBrowser */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7555FFA5242A565B00829871 /* Build configuration list for PBXNativeTarget "DwebBrowser" */;
@@ -211,10 +313,18 @@
 		7555FF73242A565900829871 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1130;
+				LastSwiftUpdateCheck = 1520;
 				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = orgName;
 				TargetAttributes = {
+					48001B9B2B8ED4CB00F47669 = {
+						CreatedOnToolsVersion = 15.2;
+						TestTargetID = 7555FF7A242A565900829871;
+					};
+					4824F5C22B8DC6CC00CD3D2D = {
+						CreatedOnToolsVersion = 15.2;
+						TestTargetID = 7555FF7A242A565900829871;
+					};
 					7555FF7A242A565900829871 = {
 						CreatedOnToolsVersion = 11.3.1;
 					};
@@ -234,11 +344,27 @@
 			projectRoot = "";
 			targets = (
 				7555FF7A242A565900829871 /* DwebBrowser */,
+				4824F5C22B8DC6CC00CD3D2D /* DwebBrowserTests */,
+				48001B9B2B8ED4CB00F47669 /* DwebBrowserUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		48001B9A2B8ED4CB00F47669 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4824F5C12B8DC6CC00CD3D2D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7555FF79242A565900829871 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -272,10 +398,29 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		48001B982B8ED4CB00F47669 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				48001B9F2B8ED4CB00F47669 /* DwebBrowserUITests.swift in Sources */,
+				48001BA12B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift in Sources */,
+				48001BAA2B8F1ADE00F47669 /* DwebUITestCase.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4824F5BF2B8DC6CC00CD3D2D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4824F5C62B8DC6CC00CD3D2D /* DwebBrowserTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7555FF77242A565900829871 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				48001BA82B8F0D5600F47669 /* DwebAppMode.swift in Sources */,
 				487D7FCB2B6A24DC00DA8162 /* DwebLifeStatusCenter.swift in Sources */,
 				481E15652B6750AE003870F6 /* ShortcutTools.swift in Sources */,
 				48334DC72B50CF7100399FFF /* TouchThroughView.swift in Sources */,
@@ -293,7 +438,118 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		48001BA32B8ED4CB00F47669 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7555FF7A242A565900829871 /* DwebBrowser */;
+			targetProxy = 48001BA22B8ED4CB00F47669 /* PBXContainerItemProxy */;
+		};
+		4824F5C82B8DC6CC00CD3D2D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7555FF7A242A565900829871 /* DwebBrowser */;
+			targetProxy = 4824F5C72B8DC6CC00CD3D2D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		48001BA42B8ED4CB00F47669 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = F9M4UWUYYN;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.Identifier.iosApp2.toolsdemo.DwebBrowserUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = DwebBrowser;
+			};
+			name = Debug;
+		};
+		48001BA52B8ED4CB00F47669 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = F9M4UWUYYN;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.Identifier.iosApp2.toolsdemo.DwebBrowserUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = DwebBrowser;
+			};
+			name = Release;
+		};
+		4824F5CA2B8DC6CC00CD3D2D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = F9M4UWUYYN;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.Identifier.iosApp2.toolsdemo.DwebBrowserTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DwebBrowser.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DwebBrowser";
+			};
+			name = Debug;
+		};
+		4824F5CB2B8DC6CC00CD3D2D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = F9M4UWUYYN;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.Identifier.iosApp2.toolsdemo.DwebBrowserTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DwebBrowser.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DwebBrowser";
+			};
+			name = Release;
+		};
 		7555FFA3242A565B00829871 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -503,6 +759,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		48001BA62B8ED4CB00F47669 /* Build configuration list for PBXNativeTarget "DwebBrowserUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				48001BA42B8ED4CB00F47669 /* Debug */,
+				48001BA52B8ED4CB00F47669 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4824F5C92B8DC6CC00CD3D2D /* Build configuration list for PBXNativeTarget "DwebBrowserTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4824F5CA2B8DC6CC00CD3D2D /* Debug */,
+				4824F5CB2B8DC6CC00CD3D2D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		7555FF76242A565900829871 /* Build configuration list for PBXProject "DwebBrowser" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -23,7 +23,7 @@ class DwebLifeStatusCenter {
         
     struct Record {
         
-        enum Status {
+        enum Status: Equatable {
             case none
             case launched (Bool)
             case actived (Bool)
@@ -39,16 +39,17 @@ class DwebLifeStatusCenter {
             }
         }
         
-        enum Event {
+        enum Event: CaseIterable, Equatable {
             case didLaunched
             case didActived
             case didUnactived
             case didRended
             case willTerminated
         }
-                
+        
         private static func updateStatus(by event: Event, status: Status) -> Status {
              switch (status, event) {
+                case (.terminate, _): return .terminate
                 case (_, .didLaunched): return .launched(false)
                 case (_, .willTerminated): return .terminate
                 case let (.launched(rended), .didActived): return .actived(rended)
