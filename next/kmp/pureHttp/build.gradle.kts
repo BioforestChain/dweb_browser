@@ -18,6 +18,7 @@ kotlin {
         group("ktor") {
           withAndroidTarget()
           withIosTarget()
+          withJvm()
         }
       }
     }

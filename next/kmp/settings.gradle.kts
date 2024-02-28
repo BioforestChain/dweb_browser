@@ -59,7 +59,8 @@ val disabledApps = (properties.getOrDefault("app.disable", "") as String)
 val enableAndroidApp = !disabledApps.contains("android")
 val enableIosApp = !disabledApps.contains("ios")
 val enableElectronApp = false// !disabledApps.contains("electron")
-val enableLibs = enableAndroidApp || enableIosApp
+val enableDesktop = !disabledApps.contains("desktop")
+val enableLibs = enableAndroidApp || enableIosApp || enableDesktop
 
 include(":platformTest")
 if (enableIosApp) {
@@ -68,6 +69,9 @@ if (enableIosApp) {
 if (enableElectronApp) {
   include(":platformNode")
   include(":platformBrowser")
+}
+if (enableDesktop) {
+  include(":platformDesktop")
 }
 
 include(":helper")

@@ -15,6 +15,10 @@ kotlin {
         group("commonJs") {
           withJs()
         }
+        group("jvm") {
+          withJvm()
+          withAndroidTarget()
+        }
       }
     }
   }
