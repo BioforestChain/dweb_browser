@@ -12,7 +12,7 @@ struct AddressBar: View {
     @EnvironmentObject var addressBar: AddressBarState
     @Environment(WndDragScale.self) var dragScale
     @Environment(OpeningLink.self) var openingLink
-    @ObservedObject var webMonitor: WebMonitor
+    @Environment(WebMonitor.self) var webMonitor
 
     var webCache: WebCache
     let tabIndex: Int

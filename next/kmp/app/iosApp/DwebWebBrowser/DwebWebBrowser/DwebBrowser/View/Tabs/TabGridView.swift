@@ -28,8 +28,7 @@ struct TabGridView: View {
     @EnvironmentObject var toolbarState: ToolBarState
     @Environment(\.colorScheme) var colorScheme
     @Environment(ShiftAnimation.self) var animation
-
-    @ObservedObject var gridState: TabGridState
+    @Environment(TabGridState.self) var gridState
 
     @State var isFirstRecord: Bool = true
     @State var frames: [CellFrameInfo] = []

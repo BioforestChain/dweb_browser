@@ -16,7 +16,7 @@ struct TabsContainerView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @Environment(WndDragScale.self) var dragScale
 
-    @StateObject var gridState = TabGridState()
+    @State var gridState = TabGridState()
     @State var animation = ShiftAnimation()
 
     @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
@@ -35,9 +35,10 @@ struct TabsContainerView: View {
         GeometryReader { geo in
             // 层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
             ZStack {
-                TabGridView(gridState: gridState, selectedCellFrame: $selectedCellFrame)
+                TabGridView(selectedCellFrame: $selectedCellFrame)
                     .environment(webcacheStore)
                     .environment(animation)
+                    .environment(gridState)
 
                 if isExpanded, !animation.progress.isAnimating() {
                     Color.bk.ignoresSafeArea()

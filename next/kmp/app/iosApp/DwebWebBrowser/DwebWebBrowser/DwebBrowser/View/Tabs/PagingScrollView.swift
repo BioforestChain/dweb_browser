@@ -37,7 +37,7 @@ struct PagingScrollView: View {
                                                         doneLoading: loadingFinished)
                                                 .highPriorityGesture(disabledDragGesture)
                                         }
-                                        if addressBar.isFocused{
+                                        if addressBar.isFocused {
                                             SearchTypingView()
                                         }
                                     }
@@ -47,12 +47,11 @@ struct PagingScrollView: View {
                                 }
                             }
                             .frame(height: max(geometry.size.height - dragScale.addressbarHeight, 0))
-                            AddressBar(webMonitor: webcacheStore.webWrappers[index].webMonitor, 
-                                       webCache: cache,
+                            AddressBar(webCache: cache,
                                        tabIndex: index,
                                        isVisible: index == seletecdTab.index)
-
-                            .background(.bk)
+                                .environment(webcacheStore.webWrappers[index].webMonitor)
+                                .background(.bk)
                                 .offset(y: addressbarOffset)
                                 .animation(.default, value: addressbarOffset)
                                 .highPriorityGesture(addressBar.isFocused ? disabledDragGesture : nil)
@@ -64,7 +63,6 @@ struct PagingScrollView: View {
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             }
-            
         }
     }
 

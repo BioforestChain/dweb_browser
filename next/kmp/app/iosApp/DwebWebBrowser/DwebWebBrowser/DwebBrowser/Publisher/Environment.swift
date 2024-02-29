@@ -15,8 +15,9 @@ class SelectedTab {
     var index: Int = 0
 }
 
-class WebMonitor: ObservableObject {
-    @Published var loadingProgress: Double = 0 {
+@Observable
+class WebMonitor {
+    var loadingProgress: Double = 0 {
         willSet {
             if newValue >= 1.0 {
                 isLoadingDone = true
@@ -28,7 +29,7 @@ class WebMonitor: ObservableObject {
         }
     }
 
-    @Published var isLoadingDone: Bool = false
+    var isLoadingDone: Bool = false
 }
 
 @Observable
@@ -97,8 +98,9 @@ class OpeningLink{
     var clickedLink: URL = emptyURL
 }
 
-class TabGridState: ObservableObject {
-    @Published var scale = 1.0
+@Observable
+class TabGridState {
+    var scale = 1.0
 }
 
 @Observable

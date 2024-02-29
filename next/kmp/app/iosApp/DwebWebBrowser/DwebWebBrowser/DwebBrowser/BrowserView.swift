@@ -23,7 +23,8 @@ struct BrowserView: View {
                 ZStack {
                     VStack(spacing: 0) {
                         TabsContainerView()
-                        ToolbarView(webMonitor: webcacheStore.webWrappers[selectedTab.index].webMonitor)
+                        ToolbarView()
+                            .environment(webcacheStore.webWrappers[selectedTab.index].webMonitor)
                     }
                     .background(.bk)
                     .environment(webcacheStore)

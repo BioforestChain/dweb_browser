@@ -17,8 +17,7 @@ struct ToolbarView: View {
     @Environment(OpeningLink.self) var openingLink
     @EnvironmentObject var addressBar: AddressBarState
     @Environment(WndDragScale.self) var dragScale
-
-    @ObservedObject var webMonitor: WebMonitor
+    @Environment(WebMonitor.self) var webMonitor
 
     @State private var loadingDone: Bool = false
     private var isShowingWeb: Bool { webcacheStore.cache(at: seletecdTab.index).isWebVisible }
@@ -33,7 +32,10 @@ struct ToolbarView: View {
             }
         }
         .frame(height: addressBar.isFocused ? 0 : dragScale.properValue(max: maxToolBarH))
-        .opacity(addressBar.isFocused ? 0 : 1)
+        .opacity(addressBar.isFocused ? 0 : 1)        
+        .onChange(of: webMonitor.isLoadingDone) { _, isDone in
+            loadingDone = isDone
+        }
     }
     
     var threeButtons: some View {
@@ -79,9 +81,6 @@ struct ToolbarView: View {
             }) {
                 plusImage
             }
-            .onReceive(webMonitor.$isLoadingDone) { done in
-                loadingDone = done
-            }
             .disabled(!canCreateDesktopLink)
                 
             Spacer()
@@ -107,6 +106,7 @@ struct ToolbarView: View {
             }
             Spacer()
         }
+        
         .clipped()
         .sheet(isPresented: $toolbarState.isPresentingScanner) {
             CodeScannerView(codeTypes: [.qr], showViewfinder: true, completion: scanCompletion)
