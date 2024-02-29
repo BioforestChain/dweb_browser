@@ -25,13 +25,16 @@ import org.dweb_browser.sys.permission.SystemPermissionName
  */
 @SuppressLint("MissingPermission")
 actual class LocationManage {
+  companion object {
+    private val mmLocationCallback = mutableMapOf<MMID, LocationListener>()
+  }
+
   private val context = getAppContext()
 
   //  拿到位置控制器 （国内无法使用google play服务,因此不能使用LocationServices.API/FusedLocationProviderClient）
 //  private val locationClient: FusedLocationProviderClient? = null
   private var manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-  private val mmLocationCallback = mutableMapOf<MMID, LocationListener>()
 
   init {
     SystemPermissionAdapterManager.append {
