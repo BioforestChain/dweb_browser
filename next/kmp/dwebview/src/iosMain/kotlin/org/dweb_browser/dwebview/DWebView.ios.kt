@@ -5,11 +5,11 @@ import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
@@ -18,6 +18,7 @@ import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
 import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
@@ -31,6 +32,9 @@ import platform.Foundation.NSArray
 import platform.Foundation.NSString
 import platform.Foundation.create
 import platform.UIKit.UIUserInterfaceStyle
+import platform.UIKit.UIView
+import platform.UIKit.UIViewAutoresizingFlexibleHeight
+import platform.UIKit.UIViewAutoresizingFlexibleWidth
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
 import kotlin.native.runtime.NativeRuntimeApi
@@ -63,11 +67,44 @@ internal fun IDWebView.Companion.create(
   initUrl: String? = null,
 ) = DWebView(engine, initUrl)
 
+@OptIn(ExperimentalForeignApi::class, NativeRuntimeApi::class)
 class DWebView(
-  engine: DWebViewEngine,
+  viewEngine: DWebViewEngine,
   initUrl: String? = null
-) : IDWebView(initUrl ?: engine.options.url) {
+) : IDWebView(initUrl ?: viewEngine.options.url) {
+  init {
+    if (!tested) {
+      tested = true
+
+      MainScope().launch {
+        val view = DWebView(
+          DWebViewEngine(
+            CGRectMake(0.0, 0.0, 100.0, 100.0), remoteMM = viewEngine.remoteMM,
+            DWebViewOptions(url = "https://gaubee.com"),
+            WKWebViewConfiguration()
+          ), "https://gaubee.com"
+        )
+        view.onDestroy
+        view.onLoadStateChange
+        view.onReady
+        view.onBeforeUnload
+        view.loadingProgressFlow
+        view.onCreateWindow
+        view.closeWatcher
+        view.urlStateFlow
+
+        delay(3000)
+        view.destroy()
+        while (true) {
+          println("view._engine = ${view._engine}")
+          delay(2000)
+        }
+      }
+    }
+  }
+
   companion object {
+    var tested = false
     val prepare = SuspendOnce {
       coroutineScope {
         launch(ioAsyncExceptionHandler) {
@@ -85,14 +122,23 @@ class DWebView(
   }
 
   init {
-    engine.remoteMM.onAfterShutdown {
+    viewEngine.remoteMM.onAfterShutdown {
       destroy()
     }
   }
 
-  private var _engine: DWebViewEngine? = engine
+
+  private var _engine: DWebViewEngine? = viewEngine
   internal val engine get() = _engine ?: throw NullPointerException("dwebview already been destroy")
+  private val _engineLazy = RememberLazy(viewEngine) { _engine }
   override val ioScope get() = engine.ioScope
+
+  val viewWrapper by lazy {
+    val wrapper = UIView(engine.frame)
+    wrapper.addSubview(engine)
+    engine.autoresizingMask = UIViewAutoresizingFlexibleWidth or UIViewAutoresizingFlexibleHeight
+    wrapper
+  }
 
   override suspend fun startLoadUrl(url: String) = withMainContext {
     engine.loadUrl(url)
@@ -122,14 +168,24 @@ class DWebView(
   private var _destroyed = false
   private var _destroySignal = SimpleSignal();
 
+
   override val onDestroy by lazy { _destroySignal.toListener() }
-  override val onLoadStateChange by lazy { engine.loadStateChangeSignal.toListener() }
+  override val onLoadStateChange by _engineLazy.then {
+    engine.loadStateChangeSignal.toListener()
+  }
   override val onReady get() = engine.onReady
-  override val onBeforeUnload by lazy { engine.beforeUnloadSignal.toListener() }
-  override val loadingProgressFlow by lazy { engine.loadingProgressSharedFlow.asSharedFlow() }
-  override val closeWatcher: ICloseWatcher
-    get() = engine.closeWatcher
-  override val onCreateWindow by lazy { engine.createWindowSignal.toListener() }
+  override val onBeforeUnload by _engineLazy.then {
+    engine.beforeUnloadSignal.toListener()
+  }
+  override val loadingProgressFlow by _engineLazy.then {
+    engine.loadingProgressSharedFlow.asSharedFlow()
+  }
+  override val closeWatcherLazy: RememberLazy<ICloseWatcher> = _engineLazy.then {
+    engine.closeWatcher
+  }
+  override val onCreateWindow by _engineLazy.then {
+    engine.createWindowSignal.toListener()
+  }
 
   @OptIn(NativeRuntimeApi::class)
   override suspend fun destroy() {
@@ -139,16 +195,14 @@ class DWebView(
     _destroyed = true
     debugDWebView("DESTROY")
     loadUrl("about:blank?from=${getUrl()}", true)
+
     _destroySignal.emitAndClear(Unit)
     withMainContext {
       engine.destroy()
-      engine.navigationDelegate = null
-      engine.UIDelegate = null
-      engine.removeFromSuperview()
-      engine.dwebNavigationDelegate.webViewWebContentProcessDidTerminate(webView = engine)
-      engine.mainScope.cancel(null)
-      engine.ioScope.cancel(null)
       _engine = null
+      /// 开始释放lazy属性绑定
+      _engineLazy.setKey(null)
+      delay(1000)
       kotlin.native.runtime.GC.collect()
     }
   }
@@ -164,7 +218,7 @@ class DWebView(
     }
   }
 
-  override val urlStateFlow by lazy {
+  override val urlStateFlow by _engineLazy.then {
     generateOnUrlChangeFromLoadedUrlCache(engine.loadedUrlCache)
   }
 
@@ -271,7 +325,15 @@ class DWebView(
   }
 }
 
+/**
+ * 该接口请谨慎使用，很容易引起内存泄露
+ */
 fun IDWebView.asIosWebView(): DWebViewEngine {
   require(this is DWebView)
   return engine
+}
+
+fun IDWebView.asIosUIView(): UIView {
+  require(this is DWebView)
+  return viewWrapper
 }

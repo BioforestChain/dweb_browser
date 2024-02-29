@@ -27,6 +27,7 @@ import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.proxy.DwebViewProxyOverride
 import org.dweb_browser.helper.Bounds
+import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.withMainContext
@@ -283,7 +284,10 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   override val onBeforeUnload by lazy { engine.dWebChromeClient.beforeUnloadSignal.toListener() }
   override val loadingProgressFlow by lazy { engine.dWebChromeClient.loadingProgressSharedFlow.asSharedFlow() }
-  override val closeWatcher = engine.closeWatcher
+
+  override val closeWatcherLazy = RememberLazy<ICloseWatcher>(engine) {
+    engine.closeWatcher
+  }
   override val onCreateWindow by lazy { engine.createWindowSignal.toListener() }
 
   @SuppressLint("ClickableViewAccessibility")

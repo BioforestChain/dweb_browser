@@ -25,6 +25,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
 
 val debugDWebView = Debugger("dwebview")
@@ -80,10 +81,13 @@ abstract class IDWebView(initUrl: String?) {
     }
   }
 
-  val canGoBackStateFlow by lazy {
-    listOf(closeWatcher.canCloseFlow, urlStateFlow).merge().map { canGoBack() }
-      .distinctUntilChanged().stateIn(ioScope, SharingStarted.Eagerly, false)
+  private val canGoBackStateFlowLazy by lazy {
+    closeWatcherLazy.then {
+      listOf(closeWatcher.canCloseFlow, urlStateFlow).merge().map { canGoBack() }
+        .distinctUntilChanged().stateIn(ioScope, SharingStarted.Eagerly, false)
+    }
   }
+  val canGoBackStateFlow get() = canGoBackStateFlowLazy.value
 
 
   abstract suspend fun resolveUrl(url: String): String
@@ -135,7 +139,8 @@ abstract class IDWebView(initUrl: String?) {
   abstract val onReady: Signal.Listener<String>
   abstract val onBeforeUnload: Signal.Listener<WebBeforeUnloadArgs>
   abstract val loadingProgressFlow: SharedFlow<Float>
-  abstract val closeWatcher: ICloseWatcher
+  internal abstract val closeWatcherLazy: RememberLazy<ICloseWatcher>
+  val closeWatcher get() = closeWatcherLazy.value
   abstract val onCreateWindow: Signal.Listener<IDWebView>
 
   /**

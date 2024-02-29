@@ -14,12 +14,11 @@ actual fun IDWebView.Render(
   onDispose: (suspend IDWebView.() -> Unit)?,
 ) {
   require(this is DWebView)
-  val webView = engine
   UIKitView(
     factory = {
-      webView.also {
+      viewWrapper.also {
         onCreate?.also {
-          engine.ioScope.launch { onCreate(); }
+          ioScope.launch { onCreate(); }
         }
       }
     },
@@ -27,7 +26,7 @@ actual fun IDWebView.Render(
     update = {},
     onRelease = {
       onDispose?.also {
-        engine.ioScope.launch { onDispose(); }
+        ioScope.launch { onDispose(); }
       }
     })
 }

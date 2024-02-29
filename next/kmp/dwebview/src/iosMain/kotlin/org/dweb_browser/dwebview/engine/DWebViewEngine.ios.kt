@@ -11,6 +11,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -414,11 +415,20 @@ class DWebViewEngine(
 
   //#endregion
 
+  /**
+   * 必须在 mainThread 调用这个函数
+   */
   fun destroy() {
     estimatedProgressObserver.disconnect()
     configuration.userContentController.apply {
       removeAllUserScripts()
       removeAllScriptMessageHandlers()
     }
+    navigationDelegate = null
+    UIDelegate = null
+    removeFromSuperview()
+    dwebNavigationDelegate.webViewWebContentProcessDidTerminate(webView = this)
+    mainScope.cancel(null)
+    ioScope.cancel(null)
   }
 }
