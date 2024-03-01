@@ -92,13 +92,7 @@ class DWebView(
         view.onCreateWindow
         view.closeWatcher
         view.urlStateFlow
-
-        delay(3000)
         view.destroy()
-        while (true) {
-          println("view._engine = ${view._engine}")
-          delay(2000)
-        }
       }
     }
   }

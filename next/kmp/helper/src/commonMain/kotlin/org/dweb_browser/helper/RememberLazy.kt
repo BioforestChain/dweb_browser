@@ -7,7 +7,6 @@ class RememberLazy<T : Any?>(key: Any?, private val initializer: () -> T) : Memo
   init {
     onChange {
       if (_lazy.isInitialized()) {
-        println("reset ${_lazy.value}")
         _lazy = lazy(initializer)
       }
     }
