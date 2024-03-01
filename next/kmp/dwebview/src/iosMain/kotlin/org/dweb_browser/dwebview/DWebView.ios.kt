@@ -72,31 +72,6 @@ class DWebView(
   viewEngine: DWebViewEngine,
   initUrl: String? = null
 ) : IDWebView(initUrl ?: viewEngine.options.url) {
-  init {
-    if (!tested) {
-      tested = true
-
-      MainScope().launch {
-        val view = DWebView(
-          DWebViewEngine(
-            CGRectMake(0.0, 0.0, 100.0, 100.0), remoteMM = viewEngine.remoteMM,
-            DWebViewOptions(url = "https://gaubee.com"),
-            WKWebViewConfiguration()
-          ), "https://gaubee.com"
-        )
-        view.onDestroy
-        view.onLoadStateChange
-        view.onReady
-        view.onBeforeUnload
-        view.loadingProgressFlow
-        view.onCreateWindow
-        view.closeWatcher
-        view.urlStateFlow
-        view.destroy()
-      }
-    }
-  }
-
   companion object {
     var tested = false
     val prepare = SuspendOnce {
