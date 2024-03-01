@@ -36,7 +36,7 @@ class TaskbarView private constructor(
   @Composable
   override fun TaskbarViewRender(draggableHelper: DraggableHelper, modifier: Modifier) {
     val density = LocalDensity.current.density
-    Box(modifier = modifier.pointerInput(Unit) {
+    Box(modifier = modifier.pointerInput(draggableHelper) {
       detectDragGestures(onDragEnd = draggableHelper.onDragEnd,
         onDragCancel = draggableHelper.onDragEnd,
         onDragStart = draggableHelper.onDragStart,
