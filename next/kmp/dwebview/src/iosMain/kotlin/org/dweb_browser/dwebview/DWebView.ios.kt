@@ -19,6 +19,7 @@ import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
@@ -155,6 +156,7 @@ class DWebView(
   override val onCreateWindow by _engineLazy.then {
     engine.createWindowSignal.toListener()
   }
+  override val onDownloadListener by lazy { engine.downloadSignal.toListener() }
 
   @OptIn(NativeRuntimeApi::class)
   override suspend fun destroy() {

@@ -289,6 +289,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     engine.closeWatcher
   }
   override val onCreateWindow by lazy { engine.createWindowSignal.toListener() }
+  override val onDownloadListener by lazy { engine.dWebDownloadListener.downloadSignal.toListener() }
 
   @SuppressLint("ClickableViewAccessibility")
   override fun setOnTouchListener(onTouch: (IDWebView, MotionEventAction) -> Boolean) {

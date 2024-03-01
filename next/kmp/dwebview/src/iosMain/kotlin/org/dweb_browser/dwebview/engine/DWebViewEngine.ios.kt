@@ -20,6 +20,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
+import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
@@ -82,6 +83,7 @@ class DWebViewEngine(
   val loadingProgressSharedFlow = MutableSharedFlow<Float>()
   val closeSignal = SimpleSignal()
   val createWindowSignal = Signal<IDWebView>()
+  val downloadSignal = Signal<WebDownloadArgs>()
 
   internal val closeWatcher: CloseWatcher by lazy {
     CloseWatcher(this)

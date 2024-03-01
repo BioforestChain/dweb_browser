@@ -15,7 +15,6 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.search.SearchEngine
 import org.dweb_browser.browser.search.SearchInject
@@ -36,6 +35,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.SafeInt
@@ -105,7 +105,7 @@ class BrowserViewModel(
   val filterShowEngines get() = searchEngineList.filter { it.enable }
   fun filterFitUrlEngines(url: String) = searchEngineList.firstOrNull { it.fit(url) }
 
-  fun checkAndSearch(key: String, hide: () -> Unit) = browserNMM.ioAsyncScope.launch  {
+  fun checkAndSearch(key: String, hide: () -> Unit) = browserNMM.ioAsyncScope.launch {
     val homeLink = browserNMM.checkEngineAndGetHomeLink(key) // 将关键字对应的搜索引擎置为有效
     debugBrowser("checkAndSearch", "homeLink=$homeLink")
     if (homeLink.isNotEmpty()) { // 使用首页地址直接打开网页
@@ -221,6 +221,10 @@ class BrowserViewModel(
           focusBrowserView(browserContentItem)
         }
       }
+      dWebView.onDownloadListener { args: WebDownloadArgs ->
+        debugBrowser("download", args)
+        browserController.openDownloadView(args)
+      }
       BrowserContentItem.ContentWebItem(viewItem)
     }
 
@@ -322,7 +326,8 @@ class BrowserViewModel(
     browserContentItems.getOrNull(currentPage)?.captureView()
   }
 
-  suspend fun searchWebView(url: String) = withContext(ioAsyncExceptionHandler) {
+  // TODO 使用 withContext(ioAsyncExceptionHandler) 发现，如果当前协程没执行完成，挂起不会返回
+  fun searchWebView(url: String) = browserNMM.ioAsyncScope.launch(ioAsyncExceptionHandler) {
     showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
     currentTab?.let { browserContentItem ->
       if (url.isDeepLink()) { // 负责拦截browser的dweb_deeplink
@@ -398,11 +403,10 @@ class BrowserViewModel(
   /**
    * 存储最后的搜索内容
    */
-  fun saveLastKeyword(url: String) =
-    browserNMM.ioAsyncScope.launch {
-      browserController.saveStringToStore(KEY_LAST_SEARCH_KEY, url)
-      searchWebView(url)
-    }
+  fun saveLastKeyword(url: String) = browserNMM.ioAsyncScope.launch {
+    browserController.saveStringToStore(KEY_LAST_SEARCH_KEY, url)
+    searchWebView(url)
+  }
 
   /**
    * 操作书签数据

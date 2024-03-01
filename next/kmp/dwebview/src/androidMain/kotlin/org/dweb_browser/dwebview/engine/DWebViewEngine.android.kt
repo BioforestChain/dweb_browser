@@ -7,6 +7,7 @@ import android.graphics.Rect
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
 import android.view.WindowInsets
+import android.webkit.DownloadListener
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -222,7 +223,6 @@ class DWebViewEngine internal constructor(
     it.addWebViewClient(DWebOverwriteRequest(this@DWebViewEngine))
   }
 
-
   fun addWebViewClient(client: WebViewClient): () -> Unit {
     dWebViewClient.addWebViewClient(client)
     return {
@@ -258,6 +258,21 @@ class DWebViewEngine internal constructor(
     dWebChromeClient.addWebChromeClient(client)
   }
 
+  internal val dWebDownloadListener = DWebDownloadListener(this)
+
+  fun addDownloadListener(listener: DownloadListener): () -> Unit {
+    dWebDownloadListener.addDownloadListener(listener)
+    return {
+      dWebDownloadListener.removeDownloadListener(listener)
+    }
+  }
+
+  override fun setDownloadListener(listener: DownloadListener?) {
+    listener?.let {
+      dWebDownloadListener.addDownloadListener(listener)
+    }
+  }
+
   init {
     debugDWebView("INIT", options)
 
@@ -282,6 +297,7 @@ class DWebViewEngine internal constructor(
 
     super.setWebViewClient(dWebViewClient)
     super.setWebChromeClient(dWebChromeClient)
+    super.setDownloadListener(dWebDownloadListener)
 
     if (options.url.isNotEmpty()) {
       /// 开始加载

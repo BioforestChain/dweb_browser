@@ -200,9 +200,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
 
   override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
     return inners("shouldOverrideUrlLoading").mapFindNoNull {
-      it.shouldOverrideUrlLoading(
-        view, request
-      )
+      it.shouldOverrideUrlLoading(view, request)
     } ?: super.shouldOverrideUrlLoading(view, request)
   }
 
@@ -226,19 +224,13 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   @Deprecated("Deprecated in Java")
   override fun shouldInterceptRequest(view: WebView?, url: String?): WebResourceResponse? {
     return inners("shouldInterceptRequest").mapFindNoNull { it.shouldInterceptRequest(view, url) }
-      ?: super.shouldInterceptRequest(
-        view, url
-      )
+      ?: super.shouldInterceptRequest(view, url)
   }
 
   @Deprecated("Deprecated in Java")
   override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
     return inners("shouldOverrideUrlLoading").mapFindNoNull {
-      it.shouldOverrideUrlLoading(
-        view,
-        url
-      )
-    }
-      ?: super.shouldOverrideUrlLoading(view, url)
+      it.shouldOverrideUrlLoading(view, url)
+    } ?: super.shouldOverrideUrlLoading(view, url)
   }
 }

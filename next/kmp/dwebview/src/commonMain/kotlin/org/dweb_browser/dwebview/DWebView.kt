@@ -142,6 +142,7 @@ abstract class IDWebView(initUrl: String?) {
   internal abstract val closeWatcherLazy: RememberLazy<ICloseWatcher>
   val closeWatcher get() = closeWatcherLazy.value
   abstract val onCreateWindow: Signal.Listener<IDWebView>
+  abstract val onDownloadListener: Signal.Listener<WebDownloadArgs>
 
   /**
    * 响应webview的事件
@@ -250,4 +251,16 @@ typealias AsyncChannel = Channel<Result<String>>
 // 触发按键的事件
 enum class MotionEventAction {
   ACTION_DOWN, ACTION_UP, ACTION_MOVE
+}
+
+class WebDownloadArgs(
+  val url: String,
+  val userAgent: String,
+  val contentDisposition: String,
+  val mimetype: String,
+  val contentLength: Long
+) {
+  override fun toString(): String {
+    return "WebDownloadArgs(url=$url, userAgent=$userAgent, contentDisposition=$contentDisposition, mimetype=$mimetype, contentLength=$contentLength"
+  }
 }

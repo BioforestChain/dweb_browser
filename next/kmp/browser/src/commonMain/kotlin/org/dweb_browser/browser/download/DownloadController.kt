@@ -5,6 +5,7 @@ import io.ktor.http.ContentRange
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.RangeUnits
+import io.ktor.http.Url
 import io.ktor.http.fromFilePath
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
@@ -20,6 +21,7 @@ import org.dweb_browser.browser.download.model.ChangeableMutableMap
 import org.dweb_browser.browser.download.model.ChangeableType
 import org.dweb_browser.browser.download.model.DownloadModel
 import org.dweb_browser.browser.download.ui.DecompressModel
+import org.dweb_browser.browser.download.ui.lastPath
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileMetadata
@@ -102,6 +104,8 @@ data class DownloadTask(
     readChannel = null
   }
 
+  @Transient
+  var external: Boolean = false
 }
 
 @Serializable
@@ -210,6 +214,18 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     return task
   }
 
+  private suspend fun initMimeAndFilePathByHeaders(headers: PureHeaders, task: DownloadTask) {
+    /*val contentType = headers.get("Content-Type")
+    val fileName = headers.get("Content-Disposition")?.substringAfter("filename=")?.trim('"')
+    val lastPath = Url(task.url).encodedPath.lastPath()
+
+    if (contentType.isNullOrEmpty()) {
+      val extension = ContentType.fromFilePath(fileName)
+    } else {
+      task.mime = contentType
+    }*/
+  }
+
   /**
    * 恢复(创建)下载，需要重新创建连接🔗
    */
@@ -237,7 +253,10 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       return false
     }
 
+    initMimeAndFilePathByHeaders(response.headers, task)
+
     task.mime = mimeFactory(response.headers, task.url)
+    task.filepath = fileCreateByHeadersAndPath(response.headers, task.url, task.mime, task.external)
     // 判断地址是否支持断点
     val supportRange =
       response.headers.getByIgnoreCase("Accept-Ranges")?.equals("bytes", true) == true
@@ -305,9 +324,9 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     return true
   }
 
-  private fun mimeFactory(header: PureHeaders, filePath: String): String {
+  private fun mimeFactory(headers: PureHeaders, filePath: String): String {
     // 先从header判断
-    val contentType = header.get("Content-Type")
+    val contentType = headers.get("Content-Type")
     if (!contentType.isNullOrEmpty()) {
       return contentType
     }
@@ -320,11 +339,35 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   }
 
   /**
+   * 通过Header来创建不重复的文件
+   */
+  private suspend fun fileCreateByHeadersAndPath(
+    headers: PureHeaders, url: String, mime: String, externalDownload: Boolean
+  ): String {
+    // 先从header判断
+    var fileName = headers.get("Content-Disposition")?.substringAfter("filename=")?.trim('"')
+      ?: Url(url).encodedPath.lastPath()
+    if (fileName.isEmpty()) fileName = "${datetimeNow()}.${mime.substringAfter("/")}"
+
+    var index = 0
+    while (true) {
+      val path = if (externalDownload) {
+        "/download/${index++}_${fileName}"
+      } else {
+        "/data/download/${index++}_${fileName}"
+      }
+      if (!fileExists(path)) {
+        return path
+      }
+    }
+  }
+
+  /**
    * 创建不重复的文件
    */
   private suspend fun fileCreateByPath(url: String, externalDownload: Boolean): String {
     var index = 0
-    val fileName = url.substring(url.lastIndexOf("/") + 1)
+    val fileName = Url(url).encodedPath.lastPath()
     while (true) {
       val path = if (externalDownload) {
         "/download/${index++}_${fileName}"

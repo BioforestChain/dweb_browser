@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.web
 
+import androidx.compose.material3.ListItem
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import io.ktor.http.HttpStatusCode
@@ -14,8 +15,10 @@ import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.browser.web.data.WebLinkStore
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.model.BrowserViewModel
+import org.dweb_browser.browser.web.view.BrowserDownloadView
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.HttpDwebServer
+import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
@@ -24,6 +27,8 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.ext.createBottomSheets
+import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.getWindow
 
 class BrowserController(
@@ -176,4 +181,11 @@ class BrowserController(
 
   suspend fun saveStringToStore(key: String, data: String) = browserStore.saveString(key, data)
   suspend fun getStringFromStore(key: String) = browserStore.getString(key)
+
+  /**
+   * 打开BottomSheetModal
+   */
+  suspend fun openDownloadView(args: WebDownloadArgs) {
+    browserNMM.createBottomSheets { BrowserDownloadView(args) }.open()
+  }
 }

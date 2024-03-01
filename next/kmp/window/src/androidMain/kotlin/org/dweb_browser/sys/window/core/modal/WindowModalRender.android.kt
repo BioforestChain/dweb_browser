@@ -95,7 +95,8 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
       }
     },
     windowInsets = modalWindowInsets,
-    onDismissRequest = { emitModalVisibilityChange(EmitModalVisibilityState.TryClose) }) {
+    onDismissRequest = { emitModalVisibilityChange(EmitModalVisibilityState.TryClose) }
+  ) {
     /// 显示内容
     BoxWithConstraints(
       Modifier.padding(
