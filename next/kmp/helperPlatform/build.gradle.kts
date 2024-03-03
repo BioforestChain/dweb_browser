@@ -3,6 +3,18 @@ plugins {
 }
 
 kotlin {
+  kmpCommonTarget(project) {
+
+    @Suppress("OPT_IN_USAGE")
+    applyHierarchy {
+      common {
+        group("skiko") {
+          withIosTarget()
+          withJvm()
+        }
+      }
+    }
+  }
   kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
