@@ -15,7 +15,7 @@ actual suspend fun IDWebView.Companion.create(
 }
 
 abstract class DWebView(
-  viewEngine: DWebViewEngine,
+  val viewEngine: DWebViewEngine,
   initUrl: String? = null
 ) : IDWebView(initUrl ?: viewEngine.options.url) {
   companion object {
