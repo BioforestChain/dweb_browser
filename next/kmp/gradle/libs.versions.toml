@@ -54,6 +54,8 @@ material3Android = "1.2.0"
 
 kotlinx-serialization = "1.6.3"
 
+jxbrowser = "7.26"
+
 # jna
 java-jna-version = "5.13.0"
 webkit = "1.10.0"
@@ -202,7 +204,9 @@ androidx-test-espresso-web = { group = "androidx.test.espresso", name = "espress
 androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark-macro-junit4" }
 
-
+# JVM+Desktop
+jxbrowser-cross-platform = { group = "com.teamdev.jxbrowser", name = "jxbrowser-cross-platform", version.ref = "jxbrowser" }
+jxbrowser-swing = { group = "com.teamdev.jxbrowser", name = "jxbrowser-swing", version.ref = "jxbrowser" }
 
 # jna
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "java-jna-version" }

@@ -530,7 +530,7 @@ fun KotlinMultiplatformExtension.kmpDesktopTarget(
     return
   }
 
-  println("kmpAndroidTarget: ${project.name}")
+  println("KmpDesktopTarget: ${project.name}")
 
   val dsl = KmpDesktopTargetDsl(this)
   dsl.configure()

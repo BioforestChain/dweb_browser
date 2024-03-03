@@ -5,7 +5,6 @@ import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asSharedFlow
@@ -19,7 +18,6 @@ import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
@@ -74,7 +72,6 @@ class DWebView(
   initUrl: String? = null
 ) : IDWebView(initUrl ?: viewEngine.options.url) {
   companion object {
-    var tested = false
     val prepare = SuspendOnce {
       coroutineScope {
         launch(ioAsyncExceptionHandler) {

@@ -48,7 +48,17 @@ kotlin {
       }
     }
   }
-
+  kmpDesktopTarget(project) {
+    dependencies {
+      api(libs.java.jna.map {
+        project.dependencies.create(it, closureOf<ExternalModuleDependency> {
+          artifact {
+            type = "aar"
+          }
+        })
+      })
+    }
+  }
   sourceSets.all {
     languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
   }
