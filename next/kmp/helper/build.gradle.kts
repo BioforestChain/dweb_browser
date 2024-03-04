@@ -19,6 +19,7 @@ kotlin {
           withJvm()
           withAndroidTarget()
         }
+        withIosTarget()
       }
     }
   }
