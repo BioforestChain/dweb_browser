@@ -1,6 +1,7 @@
 package org.dweb_browser.core.std.file
 
 import okio.Path.Companion.toPath
+import org.dweb_browser.platform.desktop.os.OsType
 
 
 /**
@@ -15,24 +16,20 @@ actual fun FileNMM.Companion.getApplicationRootDir() =
 actual fun FileNMM.getDataVirtualFsDirectory() =
   commonVirtualFsDirectoryFactory(
     "data",
-    System.getProperty("os.name").lowercase().let { osName ->
-      if (osName.contains("win")) {
-        // Windows
-        System.getenv("APPDATA").let { appData ->
-          if (appData.isBlank()) {
-            FileNMM.Companion.getApplicationRootDir().resolve("data")
-          } else {
-            appData.toPath(true).resolve("Local/dweb-browser/data")
-          }
-        }
-      } else if (osName.contains("mac")) {
-        // MacOS
+    when (OsType.current) {
+      OsType.MacOS ->
         System.getProperty("user.home").toPath(true)
           .resolve("Library/Application Support/dweb-browser/data")
-      } else {
-        // unknown
-        FileNMM.Companion.getApplicationRootDir().resolve("data")
+
+      OsType.Windows -> System.getenv("APPDATA").let { appData ->
+        if (appData.isBlank()) {
+          FileNMM.Companion.getApplicationRootDir().resolve("data")
+        } else {
+          appData.toPath(true).resolve("Local/dweb-browser/data")
+        }
       }
+
+      else -> FileNMM.Companion.getApplicationRootDir().resolve("data")
     }
   )
 
