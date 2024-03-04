@@ -9,6 +9,17 @@ kotlin {
 
       implementation(projects.helper)
     }
+
+    @Suppress("OPT_IN_USAGE")
+    applyHierarchy {
+      common {
+        group("jvm") {
+          withJvm()
+          withAndroidTarget()
+        }
+        withIosTarget()
+      }
+    }
   }
   kmpAndroidTarget(project) {
   }
