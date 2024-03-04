@@ -45,7 +45,7 @@ kotlin {
     dependencies {
       implementation(libs.jxbrowser.cross.platform)
       implementation(libs.jxbrowser.swing)
-      implementation(projects.libReverseProxy)
+//      implementation(projects.libReverseProxy)
     }
   }
 }
