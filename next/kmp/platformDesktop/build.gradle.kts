@@ -7,6 +7,8 @@ plugins {
 kotlin {
   kmpDesktopTarget(project) {
     dependencies {
+      api(libs.jxbrowser.cross.platform)
+      api(libs.jxbrowser.swing)
     }
   }
 }

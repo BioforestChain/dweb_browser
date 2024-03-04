@@ -10,7 +10,7 @@ kotlin {
       common {
         group("skiko") {
           withIosTarget()
-          withJvm()
+          withDesktopTarget()
         }
       }
     }

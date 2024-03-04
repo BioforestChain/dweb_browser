@@ -19,7 +19,7 @@ kotlin {
     applyHierarchy {
       common {
         group("jvm") {
-          withJvm()
+          withDesktopTarget()
           withAndroidTarget()
         }
         withIosTarget()

@@ -9,7 +9,6 @@ import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImagePainter
 import coil3.compose.EqualityDelegate
 
-
 @Composable
 actual fun CoilAsyncImage(
   model: Any?,
@@ -23,7 +22,7 @@ actual fun CoilAsyncImage(
   colorFilter: ColorFilter?,
   filterQuality: FilterQuality,
   clipToBounds: Boolean,
-  modelEqualityDelegate: EqualityDelegate,
+  modelEqualityDelegate: EqualityDelegate
 ) {
   SkikoCoilAsyncImage(
     model,

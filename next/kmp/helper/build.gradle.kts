@@ -16,7 +16,7 @@ kotlin {
           withJs()
         }
         group("jvm") {
-          withJvm()
+          withDesktopTarget()
           withAndroidTarget()
         }
         withIosTarget()

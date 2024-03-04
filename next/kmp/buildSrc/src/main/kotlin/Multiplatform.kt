@@ -361,6 +361,10 @@ class KmpCommonTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(
       withIos()
     }
   }
+
+  fun org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder.withDesktopTarget() {
+    withJvm()
+  }
 }
 
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -544,6 +548,8 @@ fun KotlinMultiplatformExtension.kmpDesktopTarget(
   desktopMain.dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.annotation)
+
+    implementationPlatform("Desktop")
   }
   jvmToolchain {
     languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_17.toString()))
