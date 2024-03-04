@@ -21,7 +21,7 @@ import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeO
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
 
-class IosWindowNativeView(
+private class IosWindowNativeView(
   params: Map<String, Any?>,
   private val win: WindowController,
   private val windowsManager: WindowsManager<*>
@@ -50,7 +50,7 @@ class IosWindowNativeView(
   }
 }
 
-fun WindowController.getIosWindowNativeView(
+private fun WindowController.getIosWindowNativeView(
   windowsManager: WindowsManager<*>,
   maxWidth: State<Float>,
   maxHeight: State<Float>,
@@ -66,7 +66,7 @@ fun WindowController.getIosWindowNativeView(
 }
 
 @Composable
-fun RenderWindowInNewLayer(
+private fun RenderWindowInNewLayer(
   windowsManager: WindowsManager<*>,
   win: WindowController,
   currentMaxWidth: Float,

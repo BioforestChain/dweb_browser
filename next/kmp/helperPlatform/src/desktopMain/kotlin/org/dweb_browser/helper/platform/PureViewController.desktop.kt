@@ -11,10 +11,10 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.yield
+import org.dweb_browser.helper.Once
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 
@@ -118,7 +118,7 @@ class PureViewController(
   val density get() = _density
 
   @OptIn(ExperimentalComposeUiApi::class)
-  val getJPanel = SuspendOnce {
+  val getJPanel = Once {
     composePanel.also { panel ->
       panel.setContent {
         _density = LocalDensity.current.density

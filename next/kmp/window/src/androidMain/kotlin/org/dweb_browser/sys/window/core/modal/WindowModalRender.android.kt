@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.dweb_browser.sys.window.WindowI18nResource
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.render.LocalWindowPadding
@@ -31,11 +32,18 @@ internal actual fun ModalState.RenderCloseTipImpl(onConfirmToClose: () -> Unit) 
     onDismissRequest = {
       showCloseTip.value = ""
     },
-    title = { Text(text = "是否关闭抽屉面板") },
+    title = {
+      Text(
+        text = when (this) {
+          is AlertModal -> WindowI18nResource.modal_close_alert_tip()
+          is BottomSheetsModal -> WindowI18nResource.modal_close_bottom_sheet_tip()
+        }
+      )
+    },
     text = { Text(text = showCloseTip.value) },
     confirmButton = {
       ElevatedButton(onClick = { showCloseTip.value = "" }) {
-        Text("留下")
+        Text(WindowI18nResource.modal_close_tip_keep())
       }
     },
     dismissButton = {
@@ -43,7 +51,7 @@ internal actual fun ModalState.RenderCloseTipImpl(onConfirmToClose: () -> Unit) 
         onConfirmToClose()
         // showCloseTip.value = "";
       }) {
-        Text("关闭")
+        Text(WindowI18nResource.modal_close_tip_close())
       }
     },
   )
