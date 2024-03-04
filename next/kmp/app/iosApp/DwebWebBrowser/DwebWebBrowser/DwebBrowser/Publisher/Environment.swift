@@ -63,14 +63,21 @@ class AddressBarState: ObservableObject {
     @Published var shouldDisplay: Bool = true
     @Published var needRefreshOfIndex: Int = -1
     @Published var stopLoadingOfIndex: Int = -1
-    @Published var outerSearchText: String = ""
 }
 
-class ToolBarState: ObservableObject {
-    @Published var shouldExpand = true
-    @Published var createTabTapped = false
-    @Published var showMoreMenu = false
-    @Published var isPresentingScanner = false
+@Observable
+class ToolBarState {
+    var tabsState = TabsStates.expanded
+    var shouldCreateTab = false
+    var showMoreMenu = false
+    var isPresentingScanner = false
+    
+    enum TabsStates: Int {
+        case shouldExpand
+        case shouldShrink
+        case expanded
+        case shrinked
+    }
 }
 
 @Observable
@@ -96,6 +103,12 @@ class TracelessMode {
 @Observable
 class OpeningLink{
     var clickedLink: URL = emptyURL
+}
+
+@Observable
+class OuterSearch {
+    var content = ""
+    var shouldDoSearch = true
 }
 
 @Observable

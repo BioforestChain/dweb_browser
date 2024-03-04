@@ -12,7 +12,7 @@ struct TabsContainerView: View {
     @Environment(SelectedTab.self) var seletecdTab
     @Environment(WebCacheStore.self) var webcacheStore
 
-    @EnvironmentObject var toolbarState: ToolBarState
+    @Environment(ToolBarState.self) var toolbarState
     @EnvironmentObject var addressBar: AddressBarState
     @Environment(WndDragScale.self) var dragScale
 
@@ -73,13 +73,13 @@ struct TabsContainerView: View {
                 geoRect = geo.frame(in: .global)
                 Log("tabs contianer rect: \(geoRect)")
             }
-
-            .onReceive(toolbarState.$createTabTapped) { createTabTapped in
-                if createTabTapped { // 准备放大动画
+            .onChange(of: toolbarState.shouldCreateTab) { _, shouldCreate in
+                if shouldCreate { // 准备放大动画
                     webcacheStore.createOne()
                     seletecdTab.index = webcacheStore.cacheCount - 1
                     selectedCellFrame = CGRect(x: geo.frame(in: .global).midX, y: geo.frame(in: .global).midY, width: 5, height: 5)
-                    toolbarState.shouldExpand = true
+                    toolbarState.tabsState = .shouldExpand
+                    toolbarState.shouldCreateTab = false
                 }
             }
 
@@ -107,8 +107,8 @@ struct TabsContainerView: View {
             .cornerRadius(isExpanded ? 0 : gridcellCornerR)
             .animation(.default, value: isExpanded)
     }
-    
-    func startAnimation(progress: AnimationProgress){
+
+    func startAnimation(progress: AnimationProgress) {
         guard progress != lastProgress else {
             return
         }
@@ -125,12 +125,16 @@ struct TabsContainerView: View {
                 gridState.scale = isExpanding ? 0.8 : 1
                 isExpanded = isExpanding
             }
+            withAnimation(.smooth) {
+                toolbarState.tabsState = isExpanded ? .expanded : .shrinked
+            }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                 showTabPage = isExpanded
                 animation.progress = .invisible // change to expanded or shrinked
                 gridState.scale = 1
             }
+
         }
     }
 }

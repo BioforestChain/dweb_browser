@@ -11,7 +11,7 @@ import WebKit
 
 struct TabPageView: View {
     @Environment(ShiftAnimation.self) var animation
-    @EnvironmentObject var toolbarState: ToolBarState
+    @Environment(ToolBarState.self) var toolbarState
     @Environment(OpeningLink.self) var openingLink
     @EnvironmentObject var addressBar: AddressBarState
 
@@ -40,8 +40,8 @@ struct TabPageView: View {
                     }
                 }
 
-                .onChange(of: toolbarState.shouldExpand) { _, shouldExpand in
-                    if isVisible, !shouldExpand { // 截图，为缩小动画做准备
+                .onChange(of: toolbarState.tabsState) { _, state in
+                    if isVisible, state == .shouldShrink { // 截图，为缩小动画做准备
                         animation.snapshotImage = UIImage.snapshotImage(from: .defaultSnapshotURL)
                         if webCache.isWebVisible {
                             webWrapper.webView.scrollView.showsVerticalScrollIndicator = false

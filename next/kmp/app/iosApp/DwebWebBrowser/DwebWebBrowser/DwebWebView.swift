@@ -84,7 +84,7 @@ var browserViewDataSource: WebBrowserViewDataSource {
 
 public extension DwebWebView {
     @objc func doSearch(key: String) {
-        browerView?.doSearch(searchKey: key)
+        browerView?.searchFromOutside(outerSearchKey: key)
     }
     
     @objc func doNewTabUrl(url: String, target: String) {

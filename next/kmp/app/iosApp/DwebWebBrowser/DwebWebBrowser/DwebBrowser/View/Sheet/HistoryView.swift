@@ -10,7 +10,7 @@ import SwiftUI
 struct HistoryView: View {
     @Environment(WndDragScale.self) var dragScale
     @Environment(OpeningLink.self) var openingLink
-    @EnvironmentObject var toolBarState: ToolBarState
+    @Environment(ToolBarState.self) var toolBarState
 
     @StateObject var historyStore = DwebBrowserHistoryStore.shared
 

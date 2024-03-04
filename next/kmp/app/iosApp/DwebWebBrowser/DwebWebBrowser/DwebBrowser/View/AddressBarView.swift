@@ -13,6 +13,7 @@ struct AddressBar: View {
     @Environment(WndDragScale.self) var dragScale
     @Environment(OpeningLink.self) var openingLink
     @Environment(WebMonitor.self) var webMonitor
+    @Environment(OuterSearch.self) var outerSearch
 
     var webCache: WebCache
     let tabIndex: Int
@@ -42,6 +43,15 @@ struct AddressBar: View {
         }
         .onChange(of: webMonitor.loadingProgress) { _, newValue in
             showProgress = newValue
+        }
+        .onChange(of: outerSearch.content) { _, searchedText in
+            if searchedText != "" {
+                inputText = searchedText
+                isAdressBarFocused = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    outerSearch.shouldDoSearch = false
+                }
+            }
         }
         .frame(height: dragScale.addressbarHeight)
     }
@@ -99,21 +109,23 @@ struct AddressBar: View {
             }
             .onChange(of: addressBar.isFocused) { _, isFocused in
                 if isVisible {
-                    inputText = isFocused ? webCache.lastVisitedUrl.absoluteString : webCache.lastVisitedUrl.domain
-                    if inputText == emptyLink {
-                        inputText = ""
+                    if !outerSearch.shouldDoSearch{
+                        inputText = isFocused ? webCache.lastVisitedUrl.absoluteString : webCache.lastVisitedUrl.domain
+                        if inputText == emptyLink {
+                            inputText = ""
+                        }
                     }
                 }
                 if isFocused == false {
                     isAdressBarFocused = false
                 }
             }
-            .onChange(of: addressBar.outerSearchText) { _, searchText in
-                if searchText != "" {
-                    inputText = searchText
-                    isAdressBarFocused = true
-                }
-            }
+//            .onChange(of: openingLink.outerSearchText) { _, searchedText in
+//                if searchedText != "" {
+//                    inputText = searchedText
+//                    isAdressBarFocused = true
+//                }
+//            }
             .onSubmit {
                 let url = URL.createUrl(inputText)
                 openingLink.clickedLink = url

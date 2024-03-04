@@ -13,62 +13,65 @@ struct ToolbarView: View {
     @Environment(SelectedTab.self) var seletecdTab
     @Environment(WebCacheStore.self) var webcacheStore
 
-    @EnvironmentObject var toolbarState: ToolBarState
+    @Environment(ToolBarState.self) var toolbarState
     @Environment(OpeningLink.self) var openingLink
     @EnvironmentObject var addressBar: AddressBarState
     @Environment(WndDragScale.self) var dragScale
     @Environment(WebMonitor.self) var webMonitor
 
     @State private var loadingDone: Bool = false
+    @State private var isScanning: Bool = false
+    @State private var tabExpanded: Bool = true
+
     private var isShowingWeb: Bool { webcacheStore.cache(at: seletecdTab.index).isWebVisible }
     private var canCreateDesktopLink: Bool { isShowingWeb && loadingDone }
     
     var body: some View {
         Group {
-            if toolbarState.shouldExpand {
+            if tabExpanded {
                 fiveButtons
             } else {
                 threeButtons
             }
         }
         .frame(height: addressBar.isFocused ? 0 : dragScale.properValue(max: maxToolBarH))
-        .opacity(addressBar.isFocused ? 0 : 1)        
+        .opacity(addressBar.isFocused ? 0 : 1)
         .onChange(of: webMonitor.isLoadingDone) { _, isDone in
             loadingDone = isDone
+        }
+        .onChange(of: toolbarState.tabsState) { _, state in
+            if state == .expanded || state == .shrinked {
+                withAnimation(.snappy){
+                    tabExpanded = state == .expanded
+                }
+            }
         }
     }
     
     var threeButtons: some View {
-        ZStack {
-            GeometryReader { geo in
-                let size = geo.size
-                HStack(alignment: .center) {
-                    Spacer().frame(width: size.width / 15)
-                    
-                    BiColorButton(imageName: "add") {
-                        toolbarState.createTabTapped = true
-                    }
-                    
-                    Spacer()
-                    Text("\(webcacheStore.cacheCount)个标签页")
-                        .foregroundColor(.primary)
-                        .font(dragScale.scaledFont_18)
-                        .fontWeight(.semibold)
-                    
-                    Spacer()
-                    
-                    Button {
-                        toolbarState.shouldExpand = true
-                    } label: {
-                        Text("完成")
-                            .foregroundColor(Color.primary)
-                            .font(dragScale.scaledFont_18)
-                            .fontWeight(.semibold)
-                    }
-                    
-                    Spacer().frame(width: size.width / 15)
-                }
+        HStack {
+            BiColorButton(imageName: "add") {
+                toolbarState.shouldCreateTab = true
             }
+            .padding(.leading, screen_width * dragScale.onWidth / 15)
+                        
+            Spacer()
+            Text("\(webcacheStore.cacheCount)个标签页")
+                .foregroundColor(.primary)
+                .font(dragScale.scaledFont_18)
+                .fontWeight(.semibold)
+                        
+            Spacer()
+                        
+            Button {
+                toolbarState.tabsState = .shouldExpand
+            } label: {
+                Text("完成")
+                    .foregroundColor(Color.primary)
+                    .font(dragScale.scaledFont_18)
+                    .fontWeight(.semibold)
+            }
+            .padding(.trailing, screen_width * dragScale.onWidth / 15)
         }
     }
     
@@ -86,7 +89,7 @@ struct ToolbarView: View {
             Spacer()
             if canCreateDesktopLink {
                 BiColorButton(imageName: "add") {
-                    toolbarState.createTabTapped = true
+                    toolbarState.shouldCreateTab = true
                 }
             } else {
                 BiColorButton(imageName: "scan") {
@@ -95,8 +98,7 @@ struct ToolbarView: View {
             }
             Spacer()
             BiColorButton(imageName: "shift") {
-                Log("shift tab was clicked")
-                toolbarState.shouldExpand = false
+                toolbarState.tabsState = .shouldShrink
             }
             Spacer()
             BiColorButton(imageName: "more") {
@@ -108,8 +110,11 @@ struct ToolbarView: View {
         }
         
         .clipped()
-        .sheet(isPresented: $toolbarState.isPresentingScanner) {
+        .sheet(isPresented: $isScanning) {
             CodeScannerView(codeTypes: [.qr], showViewfinder: true, completion: scanCompletion)
+        }
+        .onChange(of: isScanning) { _, isPresenting in
+            toolbarState.isPresentingScanner = isPresenting
         }
     }
     
@@ -129,13 +134,13 @@ struct ToolbarView: View {
             Log("\(result)")
             guard result else { return }
             DispatchQueue.main.async {
-                self.toolbarState.isPresentingScanner = true
+                isScanning = true
             }
         }
     }
     
     private func scanCompletion(response: Result<ScanResult, ScanError>) {
-        toolbarState.isPresentingScanner = false
+        isScanning = false
         if case let .success(result) = response {
             Log(result.string)
             let url = URL(string: result.string)
@@ -157,8 +162,7 @@ struct ToolbarView: View {
             let webCache = webcacheStore.cache(at: seletecdTab.index)
             browserViewDelegate.createDesktopLink(link: webCache.lastVisitedUrl.absoluteString,
                                                   title: webCache.title,
-                                                  iconString: webCache.webIconUrl.absoluteString){ e in  }
+                                                  iconString: webCache.webIconUrl.absoluteString) { _ in }
         }
     }
 }
-

@@ -15,6 +15,9 @@ struct BrowserView: View {
     @State var webcacheStore = WebCacheStore()
     @State var dragScale = WndDragScale()
     @State var openingLink = OpeningLink()
+    @State var toolbarState = ToolBarState()
+    @State var outerSearch = OuterSearch()
+
     @State private var presentSheet = false
 
     var body: some View {
@@ -31,21 +34,21 @@ struct BrowserView: View {
                     .environment(dragScale)
                     .environment(openingLink)
                     .environmentObject(states.addressBar)
-                    .environmentObject(states.toolBarState)
+                    .environment(toolbarState)
                     .environment(selectedTab)
+                    .environment(outerSearch)
                 }
                 .resizableSheet(isPresented: $presentSheet) {
                     SheetSegmentView(webCache: webcacheStore.cache(at: selectedTab.index))
                         .environment(selectedTab)
                         .environment(dragScale)
                         .environment(openingLink)
-                        .environmentObject(states.toolBarState)
+                        .environment(toolbarState)
                 }
                 .onChange(of: geometry.size, initial: true) { _, newSize in
                     dragScale.onWidth = (newSize.width - 6.0) / screen_width
                 }
-
-                .onReceive(states.toolBarState.$showMoreMenu) { showMenu in
+                .onChange(of: toolbarState.showMoreMenu) { _, showMenu in
                     if showMenu {
                         presentSheet = true
                     } else {
@@ -56,22 +59,7 @@ struct BrowserView: View {
                 }
                 .onChange(of: presentSheet) { _, present in
                     if present == false {
-                        states.toolBarState.showMoreMenu = false
-                    }
-                }
-            }
-            .task {
-                states.doSearchIfNeed() {
-                    self.openingLink.clickedLink = $0
-                }
-                if states.searchKey != "" {
-                    states.searchKey = ""
-                }
-            }
-            .onChange(of: states.searchKey) { _, newValue in
-                if !newValue.isEmpty {
-                    states.doSearchIfNeed(key: newValue) {
-                        self.openingLink.clickedLink = $0
+                        toolbarState.showMoreMenu = false
                     }
                 }
             }
@@ -82,24 +70,25 @@ struct BrowserView: View {
     func doNewTabUrl(url: String, target: String) {
         switch target {
         case AppBrowserTarget._blank.rawValue:
-            states.toolBarState.createTabTapped = true
+            toolbarState.shouldCreateTab = true
         case AppBrowserTarget._self.rawValue:
-            break;
+            break
         // TODO: 打开系统浏览器暂未实现
         case AppBrowserTarget._system.rawValue:
             if url.isURL(), let searchUrl = URL(string: url) {
                 UIApplication.shared.open(searchUrl)
-                return;
+                return
             }
-            break;
         default:
             break
         }
-        states.doSearch(url)
+        searchFromOutside(outerSearchKey: url)
     }
 
-    func doSearch(searchKey: String) {
-        states.doSearch(searchKey)
+    func searchFromOutside(outerSearchKey: String) {
+        if outerSearchKey != "", outerSearch.content != outerSearchKey {
+            tryOuterTextSearch(searchText: outerSearchKey)
+        }
     }
 
     func updateColorScheme(color: Int) {
@@ -107,6 +96,26 @@ struct BrowserView: View {
     }
 
     func gobackIfCanDo() -> Bool {
+        if states.addressBar.isFocused {
+            states.addressBar.isFocused = false
+            return true
+        }
+
+        if toolbarState.showMoreMenu {
+            toolbarState.showMoreMenu = false
+            return true
+        }
+
+        if toolbarState.tabsState == .shrinked {
+            toolbarState.tabsState = .shouldExpand
+            return true
+        }
+
+        if toolbarState.isPresentingScanner {
+            toolbarState.isPresentingScanner = false
+            return true
+        }
+
         var webCanGoBack = false
         if webcacheStore.cache(at: selectedTab.index).isWebVisible,
            webcacheStore.webWrappers[selectedTab.index].webView.canGoBack
@@ -114,7 +123,39 @@ struct BrowserView: View {
             webCanGoBack = true
             webcacheStore.webWrappers[selectedTab.index].webView.goBack()
         }
-        return states.doBackIfCan(isWebCanGoBack: webCanGoBack)
+        return webCanGoBack
+    }
+
+    private func tryOuterTextSearch(searchText: String) {
+        guard searchText != "" else {
+            states.addressBar.isFocused = false
+            return
+        }
+
+        var deadline: CGFloat = 0.0
+        if toolbarState.tabsState == .shrinked {
+            deadline = 0.5
+            toolbarState.tabsState = .shouldExpand
+        }
+
+        if toolbarState.showMoreMenu {
+            deadline = 0.5
+            toolbarState.showMoreMenu = false
+        }
+
+        if searchText.isURL() {
+            states.addressBar.isFocused = false
+            let url = URL.createUrl(searchText)
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + deadline) {
+                openingLink.clickedLink = url
+            }
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { // 如果从外部搜索启动browser，需要等某些view初始化完成
+                outerSearch.shouldDoSearch = true
+                outerSearch.content = searchText
+            }
+        }
     }
 
     func resetStates() {
@@ -123,5 +164,7 @@ struct BrowserView: View {
         webcacheStore.resetWrappers()
         dragScale = WndDragScale()
         openingLink = OpeningLink()
+        toolbarState = ToolBarState()
+        outerSearch = OuterSearch()
     }
 }

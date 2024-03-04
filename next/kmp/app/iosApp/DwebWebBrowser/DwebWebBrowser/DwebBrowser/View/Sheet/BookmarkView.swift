@@ -11,7 +11,7 @@ import SwiftUI
 struct BookmarkView: View {
     @Environment(WndDragScale.self) var dragScale
     @Environment(OpeningLink.self) var openingLink
-    @EnvironmentObject var toolBarState: ToolBarState
+    @Environment(ToolBarState.self) var toolBarState
 
     @State private var bookmarks: [BrowserWebSiteInfo] = browserViewDataSource.loadBookmarksToBrowser() ?? []
 

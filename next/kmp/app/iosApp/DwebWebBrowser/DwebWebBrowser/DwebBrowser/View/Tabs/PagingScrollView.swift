@@ -12,7 +12,7 @@ var disabledDragGesture = DragGesture().onChanged { _ in }.onEnded { _ in }
 struct PagingScrollView: View {
     @Environment(SelectedTab.self) var seletecdTab
     @Environment(WebCacheStore.self) var webcacheStore
-    @EnvironmentObject var toolBarState: ToolBarState
+    @Environment(ToolBarState.self) var toolBarState
     @EnvironmentObject var addressBar: AddressBarState
     @Environment(ShiftAnimation.self) var animation
     @Environment(WndDragScale.self) var dragScale
