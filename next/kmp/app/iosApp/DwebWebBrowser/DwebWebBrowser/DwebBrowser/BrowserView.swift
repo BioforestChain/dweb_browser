@@ -92,7 +92,7 @@ struct BrowserView: View {
     }
 
     func updateColorScheme(color: Int) {
-        states.updateColorScheme(newScheme: color)
+        ColorSchemeManager.shared.colorScheme = LocalColorScheme(rawValue: color)!
     }
 
     func gobackIfCanDo() -> Bool {

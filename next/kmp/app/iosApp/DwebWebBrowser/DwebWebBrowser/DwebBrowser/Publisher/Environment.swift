@@ -120,3 +120,24 @@ class TabGridState {
 class DeleteCache {
     var cacheId = UUID()
 }
+
+enum LocalColorScheme: Int{
+    case unspecified, light, dark
+}
+
+class ColorSchemeManager: ObservableObject{
+    static let shared = ColorSchemeManager()
+    @AppStorage("colorScheme") var colorScheme: LocalColorScheme = .unspecified {
+        didSet{
+            applyColorScheme()
+        }
+    }
+    
+    func applyColorScheme(){
+        keyWindow?.overrideUserInterfaceStyle = UIUserInterfaceStyle(rawValue: colorScheme.rawValue)!
+    }
+    
+    private var keyWindow: UIWindow?{
+        return UIApplication.shared.keyWindow
+    }
+}
