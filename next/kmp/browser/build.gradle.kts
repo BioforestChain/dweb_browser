@@ -7,7 +7,7 @@ kotlin {
     @Suppress("OPT_IN_USAGE")
     applyHierarchy {
       group("jvm") {
-        withJvm()
+        withDesktopTarget()
         withAndroidTarget()
       }
       withIosTarget()
