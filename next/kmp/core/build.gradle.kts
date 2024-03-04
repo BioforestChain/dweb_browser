@@ -23,5 +23,9 @@ kotlin {
       implementation(projects.libMultipart)
     }
   }
-  kmpDesktopTarget(project)
+  kmpDesktopTarget(project) {
+    dependencies {
+      implementation(projects.libMultipart)
+    }
+  }
 }

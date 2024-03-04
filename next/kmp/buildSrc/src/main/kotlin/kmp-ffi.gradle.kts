@@ -14,6 +14,17 @@ kotlin {
       implementation(libs.squareup.okio)
       implementation(libs.kotlinx.datetime)
     }
+
+    @Suppress("OPT_IN_USAGE")
+    applyHierarchy {
+      common {
+        group("jvm") {
+          withJvm()
+          withAndroidTarget()
+        }
+        withIosTarget()
+      }
+    }
   }
 
   // 因为至少需要一个 target，所以如果lib被禁用，就 android 的强制开起来
@@ -50,13 +61,7 @@ kotlin {
   }
   kmpDesktopTarget(project) {
     dependencies {
-      api(libs.java.jna.map {
-        project.dependencies.create(it, closureOf<ExternalModuleDependency> {
-          artifact {
-            type = "aar"
-          }
-        })
-      })
+      api(libs.java.jna)
     }
   }
   sourceSets.all {
