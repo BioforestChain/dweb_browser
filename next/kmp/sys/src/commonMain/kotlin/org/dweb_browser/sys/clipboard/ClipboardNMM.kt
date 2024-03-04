@@ -21,12 +21,6 @@ data class ClipboardWriteResponse(val success: Boolean, val errorManager: String
 @Serializable
 data class ClipboardData(val value: String, val type: String)
 
-enum class ClipboardType {
-  STRING,
-  IMAGE,
-  URL
-}
-
 
 /** 剪切板微模块*/
 class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
@@ -70,18 +64,18 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
   }
 
   private fun write(
-    string: String? = null,
+    data: String? = null,
     image: String? = null,
     url: String? = null,
     labelValue: String? = "OcrText",
     onErrorCallback: (String) -> Unit
   ) {
-    val response: ClipboardWriteResponse = if (string != null) {
-      clipboardManage.write(label = labelValue, string, type = ClipboardType.STRING)
+    val response: ClipboardWriteResponse = if (data != null) {
+      clipboardManage.writeText(data, label = labelValue)
     } else if (image != null) {
-      clipboardManage.write(label = labelValue, image, type = ClipboardType.IMAGE)
+      clipboardManage.writeImage(image, label = labelValue)
     } else if (url != null) {
-      clipboardManage.write(label = labelValue, url, type = ClipboardType.URL)
+      clipboardManage.writeUrl(url, label = labelValue)
     } else {
       onErrorCallback("No data provided")
       return

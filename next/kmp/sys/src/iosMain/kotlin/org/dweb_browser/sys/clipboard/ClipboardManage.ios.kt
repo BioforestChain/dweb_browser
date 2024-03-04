@@ -1,13 +1,12 @@
 package org.dweb_browser.sys.clipboard
 
-import kotlinx.cinterop.BetaInteropApi
 import org.dweb_browser.core.std.permission.AuthorizationStatus
+import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.Foundation.NSData
 import platform.Foundation.NSURL
 import platform.Foundation.base64Encoding
-import platform.Foundation.create
 import platform.UIKit.UIImage
 import platform.UIKit.UIImagePNGRepresentation
 import platform.UIKit.UIPasteboard
@@ -21,36 +20,44 @@ actual class ClipboardManage {
     }
   }
 
-  @OptIn(BetaInteropApi::class)
-  actual fun write(
-    label: String?,
-    content: String?,
-    type: ClipboardType
-  ): ClipboardWriteResponse {
-    val pasteboard = UIPasteboard.generalPasteboard
-    when (type) {
-      ClipboardType.STRING -> {
-        pasteboard.string = content
-      }
+  val clipboard get() = UIPasteboard.generalPasteboard
 
-      ClipboardType.IMAGE -> {
-        if (content == null) {
-          return ClipboardWriteResponse(false, "image content is null")
-        }
-        val tmpImage = content.replace("data:image/png;base64,", "")
-        val data: NSData = NSData.create(base64Encoding = tmpImage)
-          ?: return ClipboardWriteResponse(false, "image data is null")
-        pasteboard.image = UIImage.imageWithData(data)
-      }
 
-      ClipboardType.URL -> {
-        if (content == null) {
-          return ClipboardWriteResponse(false, "url content is null")
-        }
-        pasteboard.URL = NSURL.URLWithString(content)
-      }
+  actual fun writeText(
+    content: String,
+    label: String?
+  ) = tryWriteClipboard {
+    clipboard.string = content
+  }
+
+  actual fun writeImage(
+    base64DataUri: String,
+    label: String?
+  ) = tryWriteClipboard {
+    val (imageData) = splitBase64DataUriToFile(base64DataUri)
+    val data: NSData = imageData.toNSData()
+    clipboard.image = UIImage.imageWithData(data)
+  }
+
+  actual fun writeUrl(
+    url: String,
+    label: String?
+  ) = tryWriteClipboard {
+    clipboard.URL = NSURL.URLWithString(url)
+  }
+
+  actual fun clear(): Boolean {
+    clipboard.apply {
+      string = null
+      strings = null
+      image = null
+      images = null
+      URL = null
+      URLs = null
+      color = null
+      colors = null
     }
-    return ClipboardWriteResponse(true)
+    return true
   }
 
   actual fun read(): ClipboardData {
