@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.clipboard
 
+import kotlinx.cinterop.BetaInteropApi
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
@@ -20,27 +21,34 @@ actual class ClipboardManage {
     }
   }
 
+  @OptIn(BetaInteropApi::class)
   actual fun write(
     label: String?,
     content: String?,
     type: ClipboardType
   ): ClipboardWriteResponse {
     val pasteboard = UIPasteboard.generalPasteboard
-    if (type == ClipboardType.STRING) {
-      pasteboard.string = content
-    } else if (type == ClipboardType.IMAGE) {
-      if (content == null) {
-        return ClipboardWriteResponse(false, "image content is null")
+    when (type) {
+      ClipboardType.STRING -> {
+        pasteboard.string = content
       }
-      var tmpImage = content!!.replace("data:image/png;base64,", "")
-      var data: NSData? = NSData.create(base64Encoding = tmpImage)
-        ?: return ClipboardWriteResponse(false, "image data is null")
-      pasteboard.image = data?.let { UIImage.imageWithData(it) }
-    } else if (type == ClipboardType.URL) {
-      if (content == null) {
-        return ClipboardWriteResponse(false, "url content is null")
+
+      ClipboardType.IMAGE -> {
+        if (content == null) {
+          return ClipboardWriteResponse(false, "image content is null")
+        }
+        val tmpImage = content.replace("data:image/png;base64,", "")
+        val data: NSData = NSData.create(base64Encoding = tmpImage)
+          ?: return ClipboardWriteResponse(false, "image data is null")
+        pasteboard.image = UIImage.imageWithData(data)
       }
-      pasteboard.URL = NSURL.URLWithString(content!!)
+
+      ClipboardType.URL -> {
+        if (content == null) {
+          return ClipboardWriteResponse(false, "url content is null")
+        }
+        pasteboard.URL = NSURL.URLWithString(content)
+      }
     }
     return ClipboardWriteResponse(true)
   }
@@ -58,7 +66,7 @@ actual class ClipboardManage {
         val data = UIImagePNGRepresentation(image)
         val base64 = data?.base64Encoding()
         if (base64 != null) {
-          value = "data:image/png;base64,$base64!!"
+          value = "data:image/png;base64,$base64"
         }
         type = "text/png"
       }
