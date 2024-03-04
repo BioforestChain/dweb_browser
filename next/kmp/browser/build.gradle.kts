@@ -3,6 +3,16 @@ plugins {
 }
 
 kotlin {
+  kmpCommonTarget(project) {
+    @Suppress("OPT_IN_USAGE")
+    applyHierarchy {
+      group("jvm") {
+        withJvm()
+        withAndroidTarget()
+      }
+      withIosTarget()
+    }
+  }
   kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
