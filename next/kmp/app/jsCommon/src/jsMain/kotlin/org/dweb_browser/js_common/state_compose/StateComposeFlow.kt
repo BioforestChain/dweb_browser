@@ -11,13 +11,19 @@ import org.dweb_browser.js_common.state_compose.state.EmitType
 import org.dweb_browser.js_common.state_compose.operation.OperationValueContainer
 import org.dweb_browser.js_common.state_compose.operation_role.OperationRoleFlowCore
 import org.dweb_browser.js_common.state_compose.state_role.StateRoleFlowCore
+import org.dweb_browser.js_common.view_model.Value
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
+import kotlin.reflect.safeCast
 
 
 typealias OnClose<T> = (T) -> Unit
 
-sealed class ComposeFlow<T : Any, CloseReason : Any>() {
-    abstract val stateRoleFlowCore: StateRoleFlowCore<T, CloseReason>
-    abstract val operationFlowCore: OperationRoleFlowCore<T, CloseReason>
+sealed class ComposeFlow<ItemType: Any, ValueType : Any, CloseReason : Any>{
+    abstract val itemKClass: KClass<ItemType>
+    abstract val valueKClass: KClass<ValueType>
+    abstract val stateRoleFlowCore: StateRoleFlowCore<ValueType, CloseReason>
+    abstract val operationFlowCore: OperationRoleFlowCore<ValueType, CloseReason>
 
     fun close() {
         stateRoleFlowCore.close()
@@ -45,43 +51,52 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
     suspend fun waitStateRoleFlowCoreClose() = stateRoleFlowCore.waitClose()
     suspend fun waitStateOperationRoleFlowCoreClose() = operationFlowCore.waitClose()
 
-    fun collect(collector: FlowCollector<T>) = stateRoleFlowCore.collect(collector)
-    fun collectClient(collector: FlowCollector<T>) = stateRoleFlowCore.collectClient(collector)
+    fun collect(collector: FlowCollector<ValueType>) = stateRoleFlowCore.collect(collector)
+    fun collectClient(collector: FlowCollector<ValueType>) = stateRoleFlowCore.collectClient(collector)
 
 
-    fun collectServer(collector: FlowCollector<T>) = stateRoleFlowCore.collectServer(collector)
-    fun collectOperationClient(collector: FlowCollector<OperationValueContainer<T>>) =
+    fun collectServer(collector: FlowCollector<ValueType>) = stateRoleFlowCore.collectServer(collector)
+    fun collectOperationClient(collector: FlowCollector<OperationValueContainer<ValueType>>) =
         operationFlowCore.collectClient(collector)
 
-    fun collectOperationServer(collector: FlowCollector<OperationValueContainer<T>>) =
+    fun collectOperationServer(collector: FlowCollector<OperationValueContainer<ValueType>>) =
         operationFlowCore.collectServer(collector)
 
 
-    fun encodeToString(value: OperationValueContainer<T>): String {
+    fun encodeToString(value: OperationValueContainer<ValueType>): String {
         return operationFlowCore.serialization.encodeToString(value)
     }
 
 
-    fun  decodeFromString(v: String): OperationValueContainer<T> = operationFlowCore.serialization.decodeFromString(v)
+    fun  decodeFromString(v: String): OperationValueContainer<ValueType> = operationFlowCore.serialization.decodeFromString(v)
 
     abstract fun operationToFlow()
-    abstract suspend fun emitByClient(v: T, emitType: EmitType)
-    abstract suspend fun emitByClient(v: T, emitType: EmitType, index: Int)
-    abstract suspend fun emitByServer(v: T, emitType: EmitType)
-    abstract suspend fun emitByServer(v: T, emitType: EmitType, index: Int)
+    abstract suspend fun emitByClient(v: ValueType, emitType: EmitType)
+    abstract suspend fun emitByClient(v: ValueType, emitType: EmitType, index: Int)
+
+    abstract suspend fun emitByClient(v: Any, emitType: EmitType)
+    abstract suspend fun emitByClient(v: Any, emitType: EmitType, index: Int)
+
+    abstract suspend fun emitByServer(v: ValueType, emitType: EmitType)
+    abstract suspend fun emitByServer(v: ValueType, emitType: EmitType, index: Int)
+
+    abstract suspend fun emitByServer(v: Any, emitType: EmitType)
+    abstract suspend fun emitByServer(v: Any, emitType: EmitType, index: Int)
 
     /**
      * 打包当前状态为一个操作
      * - 返回一个
      */
     abstract suspend fun packagingCurrentStateOperationValueContainerString(): String?
-    class StateComposeFlow<Item : Any, CloseReason : Any>(
-        override val stateRoleFlowCore: StateRoleFlowCore<Item, CloseReason>,
-        override val operationFlowCore: OperationRoleFlowCore<Item, CloseReason>
-    ) : ComposeFlow<Item, CloseReason>() {
+    class StateComposeFlow<ItemType: Any, ValueType : ItemType, CloseReason : Any>(
+        override val itemKClass: KClass<ItemType>,
+        override val valueKClass: KClass<ValueType>,
+        override val stateRoleFlowCore: StateRoleFlowCore<ValueType, CloseReason>,
+        override val operationFlowCore: OperationRoleFlowCore<ValueType, CloseReason>
+    ) : ComposeFlow<ItemType, ValueType, CloseReason>() {
 
-        private suspend fun getReplay(): Item?{
-            val deferred = CompletableDeferred<Item?>()
+        private suspend fun getReplay(): ValueType?{
+            val deferred = CompletableDeferred<ValueType?>()
             val job = Job()
             if(stateRoleFlowCore.hasReplay){
                 var jobInside: Job? = null
@@ -113,7 +128,7 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
         }
 
 
-        override suspend fun emitByClient(v: Item, emitType: EmitType) {
+        override suspend fun emitByClient(v: ValueType, emitType: EmitType) {
             when (emitType) {
                 EmitType.REPLACE -> operationFlowCore.emitByClient(v, emitType)
                 else -> throw Exception(
@@ -127,25 +142,14 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
             }
         }
 
-        // TODO: 临时使用
-        suspend inline fun <reified T: Any> emitByClient2(v: T, emitType: EmitType){
-            when (emitType) {
-                EmitType.REPLACE -> operationFlowCore.emitByClient(v as Item, emitType)
-                else -> throw Exception(
-                    """
-                    Illegal emitType parameter
-                    emitType: $emitType
-                    at StateComposeFlow
-                    at ComposeFlow
-                """.trimIndent()
-                )
-            }
+        override suspend fun emitByClient(v: Any, emitType: EmitType) {
+            emitByClient(valueKClass.cast(v), emitType)
         }
 
         @Deprecated(
             "Illegal_methods", ReplaceWith("emitByClient(v: Item, emitType: EmitType)")
         )
-        override suspend fun emitByClient(v: Item, emitType: EmitType, index: Int) {
+        override suspend fun emitByClient(v: ValueType, emitType: EmitType, index: Int) {
             throw Exception(
                 """
                     Illegal methods, please do not call
@@ -154,8 +158,14 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
                 """.trimIndent()
             )
         }
+        @Deprecated(
+            "Illegal_methods", ReplaceWith("emitByClient(v: Any, emitType: EmitType)")
+        )
+        override suspend fun emitByClient(v: Any, emitType: EmitType, index: Int) {
+            emitByClient(valueKClass.cast(v), emitType, index)
+        }
 
-        override suspend fun emitByServer(v: Item, emitType: EmitType) {
+        override suspend fun emitByServer(v: ValueType, emitType: EmitType) {
             when (emitType) {
                 EmitType.REPLACE -> operationFlowCore.emitByServer(v, emitType)
                 else -> throw Exception(
@@ -169,10 +179,12 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
             }
         }
 
+        override suspend fun emitByServer(v: Any, emitType: EmitType) = emitByServer(valueKClass.cast(v), emitType)
+
         @Deprecated(
             "Illegal_methods", ReplaceWith("emitByServer(v: Item, emitType: EmitType)")
         )
-        override suspend fun emitByServer(v: Item, emitType: EmitType, index: Int) {
+        override suspend fun emitByServer(v: ValueType, emitType: EmitType, index: Int) {
             throw Exception(
                 """
                     Illegal methods, please do not call
@@ -180,6 +192,12 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
                     at ComposeFlow
                 """.trimIndent()
             )
+        }
+        @Deprecated(
+            "Illegal_methods", ReplaceWith("emitByServer(v: Any, emitType: EmitType)")
+        )
+        override suspend fun emitByServer(v: Any, emitType: EmitType, index: Int) {
+            emitByServer(valueKClass.cast(v), emitType, index)
         }
 
 
@@ -215,10 +233,12 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
         }
     }
 
-    class ListComposeFlow<Item : Any, CloseReason : Any>(
-        override val stateRoleFlowCore: StateRoleFlowCore<List<Item>, CloseReason>,
-        override val operationFlowCore: OperationRoleFlowCore<List<Item>, CloseReason>
-    ) : ComposeFlow<List<Item>, CloseReason>() {
+    class ListComposeFlow<ItemType: Any, ValueType : List<ItemType>, CloseReason : Any>(
+        override val itemKClass: KClass<ItemType>,
+        override val valueKClass: KClass<ValueType>,
+        override val stateRoleFlowCore: StateRoleFlowCore<ValueType, CloseReason>,
+        override val operationFlowCore: OperationRoleFlowCore<ValueType, CloseReason>
+    ) : ComposeFlow<ItemType, ValueType, CloseReason>() {
         var canEmitAgain = true
         val emitAgainList = mutableListOf<suspend () -> Unit>()
         // 需要防止连续emit导致collect还没有执行的问题
@@ -247,10 +267,13 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
 
         /**
          * */
-        override suspend fun emitByClient(v: List<Item>, emitType: EmitType, index: Int) =
+        override suspend fun emitByClient(v: ValueType, emitType: EmitType, index: Int) =
             emitAgainAfterConsuming { operationFlowCore.emitByClient(v, emitType, index) }
 
-        override suspend fun emitByClient(v: List<Item>, emitType: EmitType) {
+        override suspend fun emitByClient(v: Any, emitType: EmitType, index: Int) =
+            emitByClient(valueKClass.cast(v), emitType, index)
+
+        override suspend fun emitByClient(v: ValueType, emitType: EmitType) {
             when (emitType) {
                 EmitType.REMOVE_AT -> throw Exception(
                     """
@@ -269,8 +292,10 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
             emitAgainAfterConsuming { operationFlowCore.emitByClient(v, emitType) }
         }
 
+        override suspend fun emitByClient(v: Any, emitType: EmitType) =
+            emitByClient(valueKClass.cast(v), emitType)
 
-        override suspend fun emitByServer(v: List<Item>, emitType: EmitType) {
+        override suspend fun emitByServer(v: ValueType, emitType: EmitType) {
             when (emitType) {
                 EmitType.REMOVE_AT -> throw Exception(
                     """
@@ -287,13 +312,19 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
             emitAgainAfterConsuming { operationFlowCore.emitByServer(v, emitType) }
         }
 
+        override suspend fun emitByServer(v: Any, emitType: EmitType) =
+            emitByServer(valueKClass.cast(v), emitType)
 
-        override suspend fun emitByServer(v: List<Item>, emitType: EmitType, index: Int) =
+
+
+        override suspend fun emitByServer(v: ValueType, emitType: EmitType, index: Int) =
             emitAgainAfterConsuming { operationFlowCore.emitByServer(v, emitType, index) }
 
+        override suspend fun emitByServer(v: Any, emitType: EmitType, index: Int) =
+            emitByServer(valueKClass.cast(v), emitType, index)
 
-        private suspend fun getReplay(): List<Item> {
-            val deferred = CompletableDeferred<List<Item>>()
+        private suspend fun getReplay(): ValueType {
+            val deferred = CompletableDeferred<ValueType>()
             val job = Job()
             if (stateRoleFlowCore.hasReplay) {
                 var jobInside: Job? = null
@@ -305,39 +336,39 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
                     }
                 }
             } else {
-                deferred.complete(listOf())
+                valueKClass.cast(listOf<ItemType>()).let { deferred.complete(it) }
             }
             return deferred.await()
         }
 
-        private suspend fun operationToFlowCore(container: OperationValueContainer<List<Item>>, role: Role){
+        private suspend fun operationToFlowCore(container: OperationValueContainer<ValueType>, role: Role){
             when (container.emitType) {
                 EmitType.REPLACE -> stateRoleFlowCore.emit(container.value, role)
                 EmitType.ADD -> {
                     val replay = getReplay().toMutableList()
                     container.value.forEach { replay.add(it) }
-
-                    stateRoleFlowCore.emit(replay, role)
+                    valueKClass.cast(replay).let { stateRoleFlowCore.emit(it, role) }
                 }
 
                 EmitType.CLEAR -> {
-                    stateRoleFlowCore.emit(listOf(), role)
+                    valueKClass.cast(listOf<ItemType>()).let { stateRoleFlowCore.emit(it, role) }
                 }
 
                 EmitType.REMOVE -> {
                     val replay = getReplay().toMutableList()
                     container.value.forEach { replay.remove(it) }
-                    stateRoleFlowCore.emit(replay, role)
+                    valueKClass.cast(replay).let{stateRoleFlowCore.emit(it, role)}
                 }
 
                 EmitType.REMOVE_AT -> {
                     val replay = getReplay().toMutableList()
                     replay.removeAt(container.index)
-                    stateRoleFlowCore.emit(replay, role)
+                    valueKClass.cast(replay).let { stateRoleFlowCore.emit(it, role) }
+
                 }
 
                 EmitType.ADD_AT -> {
-                    val mutableList = mutableListOf<Item>()
+                    val mutableList = mutableListOf<ItemType>()
                     val replay = getReplay()
                     when {
                         container.index < 0 -> {
@@ -360,7 +391,7 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
                             }
                         }
                     }
-                    stateRoleFlowCore.emit(mutableList, role)
+                    valueKClass.cast(mutableList).let { stateRoleFlowCore.emit(it, role) }
                 }
 
                 else -> throw Exception(
@@ -399,21 +430,25 @@ sealed class ComposeFlow<T : Any, CloseReason : Any>() {
     }
 
     companion object {
-        inline fun <reified T : Any, CloseReason : Any> createStateComposeFlowInstance(
-        ): StateComposeFlow<T, CloseReason> {
-            return StateComposeFlow<T, CloseReason>(
-                stateRoleFlowCore = StateRoleFlowCore.createStateRoleFlowCoreInstance<T, CloseReason>(
+        inline fun <reified ItemType : Any, reified ValueType: ItemType, CloseReason : Any> createStateComposeFlowInstance(
+        ): StateComposeFlow<ItemType, ValueType, CloseReason> {
+            return StateComposeFlow<ItemType, ValueType, CloseReason>(
+                itemKClass = ItemType::class,
+                valueKClass = ValueType::class,
+                stateRoleFlowCore = StateRoleFlowCore.createStateRoleFlowCoreInstance<ValueType, CloseReason>(
                 ),
-                operationFlowCore = OperationRoleFlowCore.createStateOperationRoleFlowCoreInstance<T, CloseReason>()
+                operationFlowCore = OperationRoleFlowCore.createStateOperationRoleFlowCoreInstance<ValueType, CloseReason>()
             )
         }
 
-        inline fun <reified T : Any, CloseReason : Any> createListComposeFlowInstance(
-        ): ListComposeFlow<T, CloseReason> {
-            return ListComposeFlow<T, CloseReason>(
-                stateRoleFlowCore = StateRoleFlowCore.createStateRoleFlowCoreInstance<List<T>, CloseReason>(
+        inline fun <reified ItemType : Any, reified ValueType: List<ItemType>, CloseReason : Any> createListComposeFlowInstance(
+        ): ListComposeFlow<ItemType, ValueType, CloseReason> {
+            return ListComposeFlow<ItemType, ValueType, CloseReason>(
+                itemKClass = ItemType::class,
+                valueKClass = ValueType::class,
+                stateRoleFlowCore = StateRoleFlowCore.createStateRoleFlowCoreInstance<ValueType, CloseReason>(
                 ),
-                operationFlowCore = OperationRoleFlowCore.createStateOperationRoleFlowCoreInstance<List<T>, CloseReason>()
+                operationFlowCore = OperationRoleFlowCore.createStateOperationRoleFlowCoreInstance<ValueType, CloseReason>()
             )
         }
     }
