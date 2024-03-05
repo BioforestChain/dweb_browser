@@ -45,8 +45,8 @@ actual class FileChooserManage {
   }
 
   actual suspend fun openFileChooser(
-    microModule: MicroModule, mimeTypes: String, multiple: Boolean, limit: Int
+    microModule: MicroModule, accept: String, multiple: Boolean, limit: Int
   ): List<String> {
-    return FileChooserActivity.launchAndroidFileChooser(microModule, mimeTypes, multiple, limit)
+    return FileChooserActivity.launchAndroidFileChooser(microModule, accept, multiple, limit)
   }
 }

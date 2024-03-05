@@ -1,29 +1,14 @@
 package org.dweb_browser.sys.filechooser
 
-import io.ktor.utils.io.ByteReadChannel
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.helper.NSInputStreamToByteReadChannel
-import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.SoundRecordManager
-import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.sys.mediacapture.MediaCaptureHandler
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
-import platform.AVFoundation.AVAuthorizationStatusAuthorized
-import platform.AVFoundation.AVAuthorizationStatusNotDetermined
-import platform.AVFoundation.AVCaptureDevice
-import platform.AVFoundation.AVMediaTypeVideo
-import platform.AVFoundation.authorizationStatusForMediaType
-import platform.AVFoundation.requestAccessForMediaType
-import platform.Foundation.NSInputStream
-import platform.Foundation.NSURL
 import platform.Photos.PHAuthorizationStatusAuthorized
 import platform.Photos.PHAuthorizationStatusNotDetermined
 import platform.Photos.PHPhotoLibrary
@@ -60,16 +45,16 @@ actual class FileChooserManage {
   }
 
   actual suspend fun openFileChooser(
-    microModule: MicroModule, mimeTypes: String, multiple: Boolean, limit: Int
+    microModule: MicroModule, accept: String, multiple: Boolean, limit: Int
   ): List<String> {
 //    WARNING("Not yet implemented openFileChooser")
-    if (mimeTypes.startsWith("image")) {
+    if (accept.startsWith("image/")) {
       val path = imagePath()
       return listOf(path)
-    } else if (mimeTypes.startsWith("video")) {
+    } else if (accept.startsWith("video/")) {
       val path = videoPath()
       return listOf(path)
-    } else if (mimeTypes.startsWith("audio")){
+    } else if (accept.startsWith("audio/")){
       val path = audioPath()
       return listOf(path)
     }
