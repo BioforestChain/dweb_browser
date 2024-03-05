@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SearchTypingView: View {
-    @EnvironmentObject var addressBar: AddressBarState
+    @Environment(AddressBarState.self) var addressBar
     @Environment(WndDragScale.self) var dragScale
 
     var body: some View {

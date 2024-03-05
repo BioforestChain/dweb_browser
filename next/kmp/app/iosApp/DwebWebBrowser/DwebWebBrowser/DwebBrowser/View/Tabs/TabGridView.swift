@@ -65,7 +65,6 @@ struct TabGridView: View {
 
                                 .onTapGesture {
                                     guard let tapIndex = webcacheStore.index(of: webCache) else { return }
-                                    let geoFrame = geo.frame(in: .global)
                                     if seletecdTab.index != tapIndex {
                                         seletecdTab.index = tapIndex
                                     }

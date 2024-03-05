@@ -111,17 +111,17 @@ class WebCacheStore {
         }
     }
 
-    func resetWrappers() {
-        webWrappers.forEach { browserViewDataSource.destroyWebView(web: $0.webView) }
-        caches = [.blank]
-    }
-
     var webWrappers: [WebWrapper] = []
 
     init() {
         loadCaches()
     }
-
+    
+    func resetWrappers() {
+        webWrappers.forEach { browserViewDataSource.destroyWebView(web: $0.webView) }
+        caches = [.blank]
+    }
+    
     func createOne() {
         let cache = WebCache()
         cache.snapshotChangedHandler = saveCaches

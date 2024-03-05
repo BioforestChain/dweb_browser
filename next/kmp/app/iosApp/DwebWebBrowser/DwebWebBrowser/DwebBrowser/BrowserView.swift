@@ -10,7 +10,7 @@ import SwiftUI
 import Combine
 
 struct BrowserView: View {
-    @ObservedObject var states = BrowserViewStates.shared
+    @State var addressBar = AddressBarState()
     @State var selectedTab = SelectedTab()
     @State var webcacheStore = WebCacheStore()
     @State var dragScale = WndDragScale()
@@ -33,7 +33,7 @@ struct BrowserView: View {
                     .environment(webcacheStore)
                     .environment(dragScale)
                     .environment(openingLink)
-                    .environmentObject(states.addressBar)
+                    .environment(addressBar)
                     .environment(toolbarState)
                     .environment(selectedTab)
                     .environment(outerSearch)
@@ -96,8 +96,8 @@ struct BrowserView: View {
     }
 
     func gobackIfCanDo() -> Bool {
-        if states.addressBar.isFocused {
-            states.addressBar.isFocused = false
+        if addressBar.isFocused {
+            addressBar.isFocused = false
             return true
         }
 
@@ -128,7 +128,7 @@ struct BrowserView: View {
 
     private func tryOuterTextSearch(searchText: String) {
         guard searchText != "" else {
-            states.addressBar.isFocused = false
+            addressBar.isFocused = false
             return
         }
 
@@ -144,7 +144,7 @@ struct BrowserView: View {
         }
 
         if searchText.isURL() {
-            states.addressBar.isFocused = false
+            addressBar.isFocused = false
             let url = URL.createUrl(searchText)
 
             DispatchQueue.main.asyncAfter(deadline: .now() + deadline) {
@@ -159,12 +159,12 @@ struct BrowserView: View {
     }
 
     func resetStates() {
-        states.clear()
         selectedTab.index = 0
         webcacheStore.resetWrappers()
         dragScale = WndDragScale()
         openingLink = OpeningLink()
         toolbarState = ToolBarState()
         outerSearch = OuterSearch()
+        addressBar = AddressBarState()
     }
 }

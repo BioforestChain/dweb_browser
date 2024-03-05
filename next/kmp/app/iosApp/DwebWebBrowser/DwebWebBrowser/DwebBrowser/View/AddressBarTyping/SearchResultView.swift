@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SearchResultView: View {
-    @EnvironmentObject var addressBar: AddressBarState
+    @Environment(AddressBarState.self) var addressBar
     @Environment(OpeningLink.self) var openingLink
     @Environment(WndDragScale.self) var dragScale
     @Environment(WebCacheStore.self) var cacheStore

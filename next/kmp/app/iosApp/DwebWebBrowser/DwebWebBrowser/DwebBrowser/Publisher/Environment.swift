@@ -57,12 +57,13 @@ class WndDragScale {
     var scaledFont_22: Font { Font.system(size: 1.0 * max(11, onWidth * 22)) }
 }
 
-class AddressBarState: ObservableObject {
-    @Published var isFocused = false
-    @Published var inputText: String = ""
-    @Published var shouldDisplay: Bool = true
-    @Published var needRefreshOfIndex: Int = -1
-    @Published var stopLoadingOfIndex: Int = -1
+@Observable
+class AddressBarState {
+    var isFocused = false
+    var inputText: String = ""
+    var shouldDisplay: Bool = true
+    var needRefreshOfIndex: Int = -1
+    var stopLoadingOfIndex: Int = -1
 }
 
 @Observable

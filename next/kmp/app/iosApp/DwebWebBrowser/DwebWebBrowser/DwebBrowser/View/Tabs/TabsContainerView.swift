@@ -13,7 +13,7 @@ struct TabsContainerView: View {
     @Environment(WebCacheStore.self) var webcacheStore
 
     @Environment(ToolBarState.self) var toolbarState
-    @EnvironmentObject var addressBar: AddressBarState
+    @Environment(AddressBarState.self) var addressBar
     @Environment(WndDragScale.self) var dragScale
 
     @State var gridState = TabGridState()

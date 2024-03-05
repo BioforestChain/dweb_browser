@@ -13,7 +13,7 @@ struct TabPageView: View {
     @Environment(ShiftAnimation.self) var animation
     @Environment(ToolBarState.self) var toolbarState
     @Environment(OpeningLink.self) var openingLink
-    @EnvironmentObject var addressBar: AddressBarState
+    @Environment(AddressBarState.self) var addressBar
 
     @Environment(WndDragScale.self) var dragScale
     @Environment(\.colorScheme) var colorScheme

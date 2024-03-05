@@ -13,7 +13,7 @@ struct PagingScrollView: View {
     @Environment(SelectedTab.self) var seletecdTab
     @Environment(WebCacheStore.self) var webcacheStore
     @Environment(ToolBarState.self) var toolBarState
-    @EnvironmentObject var addressBar: AddressBarState
+    @Environment(AddressBarState.self) var addressBar
     @Environment(ShiftAnimation.self) var animation
     @Environment(WndDragScale.self) var dragScale
 
@@ -25,39 +25,41 @@ struct PagingScrollView: View {
             VStack {
                 TabView(selection: $seletecdTab.index) {
                     ForEach(webcacheStore.caches.indices, id: \.self) { (index: Int) in
-                        let cache = webcacheStore.cache(at: index)
-                        let webwrapper = webcacheStore.webWrappers[index]
-                        LazyVStack(spacing: 0) {
-                            ZStack {
-                                if showTabPage {
-                                    ZStack {
-                                        HStack {
-                                            TabPageView(webCache: cache, webWrapper: webwrapper,
-                                                        isVisible: index == seletecdTab.index,
-                                                        doneLoading: loadingFinished)
-                                                .highPriorityGesture(disabledDragGesture)
+                        if index < webcacheStore.caches.count { //防止在视图重绘的时候，数组元素变化引起越界。
+                            let cache = webcacheStore.cache(at: index)
+                            let webwrapper = webcacheStore.webWrappers[index]
+                            LazyVStack(spacing: 0) {
+                                ZStack {
+                                    if showTabPage {
+                                        ZStack {
+                                            HStack {
+                                                TabPageView(webCache: cache, webWrapper: webwrapper,
+                                                            isVisible: index == seletecdTab.index,
+                                                            doneLoading: loadingFinished)
+                                                    .highPriorityGesture(disabledDragGesture)
+                                            }
+                                            if addressBar.isFocused {
+                                                SearchTypingView()
+                                            }
                                         }
-                                        if addressBar.isFocused {
-                                            SearchTypingView()
-                                        }
+                                    } else {
+                                        Rectangle().fill(Color.clear)
+                                            .highPriorityGesture(disabledDragGesture)
                                     }
-                                } else {
-                                    Rectangle().fill(Color.clear)
-                                        .highPriorityGesture(disabledDragGesture)
                                 }
+                                .frame(height: max(geometry.size.height - dragScale.addressbarHeight, 0))
+                                AddressBar(webCache: cache,
+                                           tabIndex: index,
+                                           isVisible: index == seletecdTab.index)
+                                    .environment(webcacheStore.webWrappers[index].webMonitor)
+                                    .background(.bk)
+                                    .offset(y: addressbarOffset)
+                                    .animation(.default, value: addressbarOffset)
+                                    .highPriorityGesture(addressBar.isFocused ? disabledDragGesture : nil)
+                                    .onChange(of: addressBar.shouldDisplay) { _, dispaly in
+                                        addressbarOffset = dispaly ? 0 : dragScale.addressbarHeight
+                                    }
                             }
-                            .frame(height: max(geometry.size.height - dragScale.addressbarHeight, 0))
-                            AddressBar(webCache: cache,
-                                       tabIndex: index,
-                                       isVisible: index == seletecdTab.index)
-                                .environment(webcacheStore.webWrappers[index].webMonitor)
-                                .background(.bk)
-                                .offset(y: addressbarOffset)
-                                .animation(.default, value: addressbarOffset)
-                                .highPriorityGesture(addressBar.isFocused ? disabledDragGesture : nil)
-                                .onChange(of: addressBar.shouldDisplay) { _, dispaly in
-                                    addressbarOffset = dispaly ? 0 : dragScale.addressbarHeight
-                                }
                         }
                     }
                 }

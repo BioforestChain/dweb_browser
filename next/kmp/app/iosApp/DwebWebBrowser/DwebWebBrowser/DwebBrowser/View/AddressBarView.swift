@@ -9,7 +9,7 @@ import Combine
 import SwiftUI
 
 struct AddressBar: View {
-    @EnvironmentObject var addressBar: AddressBarState
+    @Environment(AddressBarState.self) var addressBar
     @Environment(WndDragScale.self) var dragScale
     @Environment(OpeningLink.self) var openingLink
     @Environment(WebMonitor.self) var webMonitor

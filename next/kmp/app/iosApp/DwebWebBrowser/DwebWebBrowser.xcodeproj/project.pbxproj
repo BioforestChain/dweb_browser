@@ -48,7 +48,6 @@
 		4803BFDA2B4FF279006B2F79 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF902B4FF279006B2F79 /* HistoryView.swift */; };
 		4803BFDB2B4FF279006B2F79 /* MenuCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF912B4FF279006B2F79 /* MenuCell.swift */; };
 		4803BFDD2B4FF279006B2F79 /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF932B4FF279006B2F79 /* MenuView.swift */; };
-		4803BFDE2B4FF279006B2F79 /* BrowserViewStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF942B4FF279006B2F79 /* BrowserViewStates.swift */; };
 		4803BFDF2B4FF279006B2F79 /* resource.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4803BF952B4FF279006B2F79 /* resource.bundle */; };
 		4803BFE12B4FF279006B2F79 /* ScanState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF992B4FF279006B2F79 /* ScanState.swift */; };
 		4803BFE22B4FF279006B2F79 /* CodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF9A2B4FF279006B2F79 /* CodeScannerView.swift */; };
@@ -112,7 +111,6 @@
 		4803BF902B4FF279006B2F79 /* HistoryView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		4803BF912B4FF279006B2F79 /* MenuCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuCell.swift; sourceTree = "<group>"; };
 		4803BF932B4FF279006B2F79 /* MenuView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
-		4803BF942B4FF279006B2F79 /* BrowserViewStates.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowserViewStates.swift; sourceTree = "<group>"; };
 		4803BF952B4FF279006B2F79 /* resource.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = resource.bundle; sourceTree = "<group>"; };
 		4803BF992B4FF279006B2F79 /* ScanState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScanState.swift; sourceTree = "<group>"; };
 		4803BF9A2B4FF279006B2F79 /* CodeScannerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CodeScannerView.swift; sourceTree = "<group>"; };
@@ -150,7 +148,6 @@
 			isa = PBXGroup;
 			children = (
 				4803BF672B4FF279006B2F79 /* BrowserView.swift */,
-				4803BF942B4FF279006B2F79 /* BrowserViewStates.swift */,
 				4803BF462B4FF279006B2F79 /* extension */,
 				4803BF4F2B4FF279006B2F79 /* Publisher */,
 				4803BF642B4FF279006B2F79 /* Utils */,
@@ -462,7 +459,6 @@
 				4803BFD22B4FF279006B2F79 /* AddressBarView.swift in Sources */,
 				4803BFB62B4FF279006B2F79 /* DwebBrowserHistoryStore.swift in Sources */,
 				F0DA27022B679F350005ED24 /* MenuViewModel.swift in Sources */,
-				4803BFDE2B4FF279006B2F79 /* BrowserViewStates.swift in Sources */,
 				4803C01E2B4FF9E8006B2F79 /* BrowserWebSiteInfo.swift in Sources */,
 				4803BFD82B4FF279006B2F79 /* NoResultView.swift in Sources */,
 				4803C01B2B4FF9E1006B2F79 /* WebBrowserDefaultProvider.swift in Sources */,
