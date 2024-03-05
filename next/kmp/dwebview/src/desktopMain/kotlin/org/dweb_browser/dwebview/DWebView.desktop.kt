@@ -2,23 +2,24 @@ package org.dweb_browser.dwebview
 
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(
   mm: MicroModule,
   options: DWebViewOptions
-): IDWebView {
-  TODO("Not yet implemented")
-}
+): IDWebView = DWebView(DWebViewEngine(mm, options))
 
 class DWebView(
   val viewEngine: DWebViewEngine,
@@ -26,7 +27,9 @@ class DWebView(
 ) : IDWebView(initUrl ?: viewEngine.options.url) {
   companion object {
     val prepare = SuspendOnce {
-
+      coroutineScope {
+        DwebViewProxy.prepare()
+      }
     }
 
     init {
@@ -37,47 +40,96 @@ class DWebView(
   }
 
   override val ioScope: CoroutineScope
-    get() = TODO("Not yet implemented")
+    get() = viewEngine.ioScope
 
-  override suspend fun startLoadUrl(url: String): String {
-    TODO("Not yet implemented")
+  override suspend fun startLoadUrl(url: String): String = withMainContext {
+    viewEngine.loadUrl(url)
+    url
   }
 
-  override suspend fun resolveUrl(url: String): String {
-    TODO("Not yet implemented")
-  }
+  override suspend fun resolveUrl(url: String): String = viewEngine.resolveUrl(url)
 
-  override suspend fun getOriginalUrl(): String {
-    TODO("Not yet implemented")
+  override suspend fun getOriginalUrl(): String = withMainContext {
+    viewEngine.evaluateSyncJavascriptCode("javascript:window.location.href;") ?: viewEngine.getOriginalUrl()
   }
 
   override suspend fun getTitle(): String {
-    return viewEngine.mainFrame.executeJavaScript<String>("document.title") ?: ""
+    return viewEngine.mainFrame.executeJavaScript<String>("document.title") ?: viewEngine.getTitle()
   }
 
-  override suspend fun getIcon(): String {
-    TODO("Not yet implemented")
+  override suspend fun getIcon() = withMainContext {
+    viewEngine.evaluateSyncJavascriptCode(
+      """
+(function getAndroidIcon(preference_size = 64) {
+  const iconLinks = [
+    ...document.head.querySelectorAll(`link[rel*="icon"]`).values(),
+  ]
+    .map((ele) => {
+      return {
+        ele,
+        rel: ele.getAttribute("rel"),
+      };
+    })
+    .filter((link) => {
+      return (
+        link.rel === "icon" ||
+        link.rel === "shortcut icon" ||
+        link.rel === "apple-touch-icon" ||
+        link.rel === "apple-touch-icon-precomposed"
+      );
+    })
+    .map((link, index) => {
+      const sizes = parseInt(link.ele.getAttribute("sizes")) || 32;
+      return {
+        ...link,
+        // 上古时代的图标默认大小是32
+        sizes,
+        weight: sizes * 100 + index,
+      };
+    })
+    .sort((a, b) => {
+      const a_diff = Math.abs(a.sizes - preference_size);
+      const b_diff = Math.abs(b.sizes - preference_size);
+      /// 和预期大小接近的排前面
+      if (a_diff !== b_diff) {
+        return a_diff - b_diff;
+      }
+      /// 权重大的排前面
+      return b.weight - a.weight;
+    });
+
+  const href =
+    (
+      iconLinks
+        /// 优先不获取 ios 的指定图标
+        .filter((link) => {
+          return (
+            link.rel !== "apple-touch-icon" &&
+            link.rel !== "apple-touch-icon-precomposed"
+          );
+        })[0] ??
+      /// 获取标准网页图标
+      iconLinks[0]
+    )?.ele.href ?? "favicon.ico";
+
+  const iconUrl = new URL(href, document.baseURI);
+  return iconUrl.href;
+})()
+"""
+    ) ?: ""
   }
 
   override suspend fun destroy() {
     viewEngine.destroy()
   }
 
-  override suspend fun historyCanGoBack(): Boolean {
-    TODO("Not yet implemented")
-  }
+  override suspend fun historyCanGoBack(): Boolean = viewEngine.canGoBack()
 
-  override suspend fun historyGoBack(): Boolean {
-    TODO("Not yet implemented")
-  }
+  override suspend fun historyGoBack(): Boolean = viewEngine.goBack()
 
-  override suspend fun historyCanGoForward(): Boolean {
-    TODO("Not yet implemented")
-  }
+  override suspend fun historyCanGoForward(): Boolean = viewEngine.canGoForward()
 
-  override suspend fun historyGoForward(): Boolean {
-    TODO("Not yet implemented")
-  }
+  override suspend fun historyGoForward(): Boolean = viewEngine.goForward()
 
   override val urlStateFlow: StateFlow<String>
     get() = TODO("Not yet implemented")
@@ -146,7 +198,5 @@ class DWebView(
     TODO("Not yet implemented")
   }
 
-  override suspend fun getFavoriteIcon(): ImageBitmap? {
-    TODO("Not yet implemented")
-  }
+  override suspend fun getFavoriteIcon(): ImageBitmap? = viewEngine.getFavoriteIcon()
 }
