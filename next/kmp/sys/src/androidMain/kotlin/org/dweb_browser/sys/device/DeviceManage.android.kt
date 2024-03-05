@@ -12,7 +12,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
 
-actual class DeviceManage actual constructor() {
+actual object DeviceManage {
 
   init {
     SystemPermissionAdapterManager.append {

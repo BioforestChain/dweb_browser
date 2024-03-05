@@ -42,9 +42,9 @@ import org.dweb_browser.helper.toIosUIEdgeInsets
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.DwebHelper
 import org.dweb_browser.platform.ios.DwebWKWebView
+import org.dweb_browser.sys.device.DeviceManage
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import platform.CoreGraphics.CGRect
-import platform.Foundation.NSBundle
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
 import platform.UIKit.UIEdgeInsetsEqualToEdgeInsets
@@ -341,8 +341,7 @@ class DWebViewEngine(
    * 初始化设置 userAgent
    */
   private fun setUA() {
-    val versionName =
-      NSBundle.mainBundle.objectForInfoDictionaryKey("CFBundleShortVersionString") as String
+    val versionName = DeviceManage.deviceAppVersion()
     val brandList = mutableListOf<IDWebView.UserAgentBrandData>()
     IDWebView.brands.forEach {
       brandList.add(

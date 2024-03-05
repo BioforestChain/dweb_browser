@@ -3,6 +3,7 @@ package org.dweb_browser.dwebview.engine
 import androidx.compose.ui.graphics.ImageBitmap
 import com.teamdev.jxbrowser.browser.Browser
 import com.teamdev.jxbrowser.browser.CloseOptions
+import com.teamdev.jxbrowser.browser.event.RenderProcessStarted
 import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.net.HttpHeader
@@ -16,15 +17,20 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.encodeToJsonElement
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.polyfill.UserAgentData
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
+import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
+import org.dweb_browser.sys.device.DeviceManage
 import java.util.function.Consumer
 
 class DWebViewEngine internal constructor(
@@ -59,6 +65,10 @@ class DWebViewEngine internal constructor(
     val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
     dwebviewEngine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
 
+    browser.on(RenderProcessStarted::class.java) {
+      setUA()
+    }
+
     // 设置
     browser.settings().apply {
       enableJavaScript()
@@ -76,7 +86,7 @@ class DWebViewEngine internal constructor(
   /**
    * 执行同步JS代码
    */
-  suspend fun evaluateSyncJavascriptCode(script: String) =
+  fun evaluateSyncJavascriptCode(script: String) =
     mainFrame.executeJavaScript<String>(script)
 
   /**
@@ -144,5 +154,56 @@ class DWebViewEngine internal constructor(
 
   fun destroy() {
     browser.close(CloseOptions.newBuilder().build())
+  }
+
+  fun setUA() {
+    val brandList = mutableListOf<IDWebView.UserAgentBrandData>()
+    IDWebView.brands.forEach {
+      brandList.add(
+        IDWebView.UserAgentBrandData(
+          it.brand,
+          if (it.version.contains(".")) it.version.split(".").first() else it.version
+        )
+      )
+    }
+
+    val versionName = DeviceManage.deviceAppVersion()
+    brandList.add(IDWebView.UserAgentBrandData("DwebBrowser", versionName.split(".").first()))
+
+    evaluateSyncJavascriptCode(
+      """
+        ${UserAgentData.polyfillScript}
+        let userAgentData = ""
+        if (!navigator.userAgentData) {
+         userAgentData  = new NavigatorUAData(navigator, ${
+        JsonLoose.encodeToJsonElement(
+          brandList
+        )
+      });
+        } else {
+          userAgentData =
+           new NavigatorUAData(navigator, 
+           navigator.userAgentData.brands.concat(
+           ${
+        JsonLoose.encodeToJsonElement(
+          brandList
+        )
+      }));
+        }
+        Object.defineProperty(Navigator.prototype, 'userAgentData', {
+          enumerable: true,
+          configurable: true,
+          get: function getUseAgentData() {
+            return userAgentData;
+          }
+        });
+        Object.defineProperty(window, 'NavigatorUAData', {
+          enumerable: false,
+          configurable: true,
+          writable: true,
+          value: NavigatorUAData
+        });
+      """.trimIndent()
+    )
   }
 }

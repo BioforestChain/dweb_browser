@@ -14,20 +14,12 @@ object WebviewEngine {
     );
   }
 
-  private val engine: Engine? = null
-
-  fun hardwareAccelerated(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine {
-    if(engine == null) {
-      Engine.newInstance(
-        EngineOptions.newBuilder(HARDWARE_ACCELERATED).run {
-          optionsBuilder?.invoke(this)
-          build()
-        })
-    }
-
-    return engine!!
-  }
-
+  fun hardwareAccelerated(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine =
+    Engine.newInstance(
+      EngineOptions.newBuilder(HARDWARE_ACCELERATED).run {
+        optionsBuilder?.invoke(this)
+        build()
+      })
 
   fun offScreen(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine =
     Engine.newInstance(

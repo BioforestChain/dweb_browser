@@ -41,6 +41,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toAndroidRect
 import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.sys.device.DeviceManage
 
 
 /**
@@ -148,7 +149,7 @@ class DWebViewEngine internal constructor(
    * 初始化设置 userAgent
    */
   private fun setUA() {
-    val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
+    val versionName = DeviceManage.deviceAppVersion()
     if (WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)) {
       val oldUserAgent = WebSettingsCompat.getUserAgentMetadata(settings)
       val brandList = mutableListOf<BrandVersion>()

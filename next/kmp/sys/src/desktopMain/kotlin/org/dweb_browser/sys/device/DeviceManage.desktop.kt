@@ -5,7 +5,7 @@ import org.dweb_browser.core.std.file.getApplicationRootDir
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.platform.desktop.os.OsType
 
-actual class DeviceManage actual constructor() {
+actual object DeviceManage {
   val runtime by lazy { Runtime.getRuntime() }
   val uuid by lazy {
     runCatching {

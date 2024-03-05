@@ -20,20 +20,18 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   }
 
   val UUID_KEY = "DEVICE_UUID"
-
-  private val deviceManage = DeviceManage();
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 获取设备唯一标识uuid*/
       "/uuid" bind PureMethod.GET by defineJsonResponse {
         val uuid = store.getOrPut(UUID_KEY) {
-          deviceManage.deviceUUID()
+          DeviceManage.deviceUUID()
         }
         UUIDResponse(uuid).toJsonElement()
       },
       /** 获取设备当前安装的 DwebBrowser 版本 */
       "/version" bind PureMethod.GET by defineStringResponse {
-        deviceManage.deviceAppVersion()
+        DeviceManage.deviceAppVersion()
       },
     )
   }

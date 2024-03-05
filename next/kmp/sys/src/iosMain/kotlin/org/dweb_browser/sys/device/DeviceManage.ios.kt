@@ -1,10 +1,11 @@
 package org.dweb_browser.sys.device
 
 import org.dweb_browser.helper.WARNING
+import platform.Foundation.NSBundle
 import platform.UIKit.UIDevice
 
 @OptIn(ExperimentalSettingsImplementation::class)
-actual class DeviceManage actual constructor() {
+actual object DeviceManage {
 
   private val configUUID = "ConfigUUID"
 
@@ -20,7 +21,6 @@ actual class DeviceManage actual constructor() {
   }
 
   actual fun deviceAppVersion(): String {
-    WARNING("Not yet implemented deviceAppVersion")
-    return ""
+    return NSBundle.mainBundle.objectForInfoDictionaryKey("CFBundleShortVersionString") as String
   }
 }

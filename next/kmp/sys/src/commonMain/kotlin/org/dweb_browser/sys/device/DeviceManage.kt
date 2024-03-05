@@ -1,6 +1,6 @@
 package org.dweb_browser.sys.device
 
-expect class DeviceManage() {
+expect object DeviceManage {
 
   fun deviceUUID(): String
 
