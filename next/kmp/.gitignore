@@ -18,3 +18,5 @@ debug
 *.xcarchive
 *.xcframework
 *.link
+/app/electronApp/src/jsMain/resources/demo/
+/kotlin-js-store/
