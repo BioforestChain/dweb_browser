@@ -26,7 +26,7 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
         val type = request.queryOrNull("type") ?: ""
         val biometricsData = request.queryAs<BiometricsData>()
         debugBiometrics("check", "type=$type, data=$biometricsData")
-        BiometricsManage.checkSupportBiometrics()
+        BiometricsManage.checkSupportBiometrics().value
       },
       /** 生物识别*/
       "/biometrics" bind PureMethod.GET by defineJsonResponse {

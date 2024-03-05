@@ -17,6 +17,7 @@ import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.module.startAppActivity
+import org.dweb_browser.helper.getOrDefault
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.withMainContext
 import java.security.KeyStore
@@ -26,10 +27,11 @@ import javax.crypto.SecretKey
 
 actual object BiometricsManage {
 
-  actual suspend fun checkSupportBiometrics(): Int {
-    return BiometricManager.from(getAppContext())
-      .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL)
-  }
+  actual suspend fun checkSupportBiometrics() = BiometricCheckResult.ALL_VALUES.getOrDefault(
+    BiometricManager.from(getAppContext())
+      .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL),
+    BiometricCheckResult.BIOMETRIC_STATUS_UNKNOWN
+  )
 
   actual suspend fun biometricsResultContent(
     biometricsNMM: BiometricsNMM,
@@ -49,11 +51,9 @@ actual object BiometricsManage {
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-        intent.putExtras(
-          Bundle().apply {
-            putString("uid", uid)
-          }
-        )
+        intent.putExtras(Bundle().apply {
+          putString("uid", uid)
+        })
       }
       await()
     }
@@ -80,8 +80,7 @@ actual object BiometricsManage {
 //    }
 
     withMainContext {
-      biometricsActivity.authenticateWithClass3Biometrics(
-        null,
+      biometricsActivity.authenticateWithClass3Biometrics(null,
         title ?: BiometricsI18nResource.default_title.text,
         BiometricsI18nResource.cancel_button.text,
         subtitle ?: BiometricsI18nResource.default_subtitle.text,
@@ -95,22 +94,18 @@ actual object BiometricsManage {
           }
 
           override fun onAuthenticationError(
-            activity: FragmentActivity?,
-            errorCode: Int,
-            errString: CharSequence
+            activity: FragmentActivity?, errorCode: Int, errString: CharSequence
           ) {
             super.onAuthenticationError(activity, errorCode, errString)
             resultDeferred.complete(BiometricsResult(false, errString.toString()))
           }
 
           override fun onAuthenticationSucceeded(
-            activity: FragmentActivity?,
-            result: BiometricPrompt.AuthenticationResult
+            activity: FragmentActivity?, result: BiometricPrompt.AuthenticationResult
           ) {
             super.onAuthenticationSucceeded(activity, result)
             debugBiometrics(
-              "onAuthenticationSucceeded",
-              result.cryptoObject ?: "<no cryptoObject>"
+              "onAuthenticationSucceeded", result.cryptoObject ?: "<no cryptoObject>"
             )
 //            try {
 //              val cipherResult = if (input != null) {
@@ -128,8 +123,7 @@ actual object BiometricsManage {
 //            }
             resultDeferred.complete(BiometricsResult(true, ""))
           }
-        }
-      )
+        })
     }
 
     return resultDeferred.await()
@@ -137,9 +131,7 @@ actual object BiometricsManage {
 
   private fun getCipher(): Cipher {
     return Cipher.getInstance(
-      KeyProperties.KEY_ALGORITHM_AES + "/"
-          + KeyProperties.BLOCK_MODE_CBC + "/"
-          + KeyProperties.ENCRYPTION_PADDING_PKCS7
+      KeyProperties.KEY_ALGORITHM_AES + "/" + KeyProperties.BLOCK_MODE_CBC + "/" + KeyProperties.ENCRYPTION_PADDING_PKCS7
     )
   }
 
@@ -156,18 +148,15 @@ actual object BiometricsManage {
   private fun generateSecretKey(mmid: MMID): SecretKey {
     debugBiometrics("generateSecretKey", mmid)
     val keyGenParameterSpec: KeyGenParameterSpec = KeyGenParameterSpec.Builder(
-      mmid,
-      KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-    )
-      .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+      mmid, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+    ).setBlockModes(KeyProperties.BLOCK_MODE_CBC)
       .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
       .setUserAuthenticationRequired(true)
       // Invalidate the keys if the user has registered a new biometric
       // credential, such as a new fingerprint. Can call this method only
       // on Android 7.0 (API level 24) or higher. The variable
       // "invalidatedByBiometricEnrollment" is true by default.
-      .setInvalidatedByBiometricEnrollment(true)
-      .build()
+      .setInvalidatedByBiometricEnrollment(true).build()
     val keyGenerator = KeyGenerator.getInstance(
       KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore"
     )
