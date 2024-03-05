@@ -1,13 +1,18 @@
 package info.bagen.dwebbrowser
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.dweb_browser.js_backend.browser_window.ElectronBrowserWindowController
 import org.dweb_browser.js_backend.browser_window.ElectronBrowserWindowModule
-import org.dweb_browser.js_common.view_model.SyncType
+import org.dweb_browser.js_common.state_compose.state.EmitType
+import org.dweb_browser.js_common.view_model.DataState
+import org.dweb_browser.js_common.view_model.DataStateValue
 import kotlin.js.Promise
 
 @Serializable
@@ -18,47 +23,83 @@ class Person(
   val id: Int
 )
 
-fun main() {
-  val state = mutableMapOf<dynamic, dynamic>(
-    "currentCount" to 10,
-    "persons" to mutableListOf(Person("bill", 1), Person("jack", 2))
+suspend fun main() {
+
+  val count = DataStateValue.createStateValue<Int, String>()
+  val persons = DataStateValue.createListValue<Person, String>()
+//  val sub = DataStateValue.createMapValue(
+//    value = mapOf<String, DataStateValue<*>>(
+//      "count" to DataStateValue.createStateValue<Int, String>(),
+//      "persons" to DataStateValue.createListValue<Person, String>()
+//    )
+//  )
+
+  val dataState: DataState = mapOf<String, DataStateValue<*>>(
+    "count" to count,
+    "persons" to persons,
+//    "sub" to sub
   )
+
+  CoroutineScope(Dispatchers.Default).launch {
+    count.value.collectServer{
+      console.log("byServer")
+    }
+  }
+
+  val job = Job()
+  // 模拟数据生成在UI实例化之前的情况
+  CoroutineScope(Dispatchers.Default).launch {
+    count.value.emitByServer(10, emitType = EmitType.REPLACE)
+    persons.value.emitByServer(listOf(Person("bill", 1)), emitType = EmitType.REPLACE)
+//    sub.value.values.forEach {
+//        val dataValue = it.value;
+//        when(dataValue){
+//          is ComposeFlow.StateComposeFlow<*, *> -> {
+//            dataValue.emitByServer(1 as Nothing, emitType = EmitType.REPLACE)
+//          }
+//          is ComposeFlow.ListComposeFlow<*, *> -> {
+//            dataValue.emitByServer(listOf(Person("bill-2", 2)) as List<Nothing>, EmitType.REPLACE)
+//          }
+//        }
+//    }
+
+    job.cancel()
+  }
+
+  job.join()
+
   val demoComposeApp = ElectronBrowserWindowModule(
     subDomain = "demo.compose.app",
-    encodeValueToString = {key: String, value: dynamic, syncType: SyncType ->
-      val str = when(key){
-        "currentCount" -> "$value"
-        else -> Json.encodeToString<ArrayList<Person>>(value)
-      }
-      str
-    },
-    decodeValueFromString = { key: String, value: String, syncType: SyncType ->
-//      when(key){
-//        "currentCount" -> value.toInt()
-//        else -> Json.decodeFromString<Person>(value)
-//      }
-
-//       从这里开始重写写 syncType 的比较判断
-      when{
-        key == "currentCount" -> value.toInt()
-        key == "persons" && syncType == SyncType.ADD -> Json.decodeFromString<Person>(value)
-        else -> console.error("""
-          decodeValueFromString还没有没处理的
-          key: $key
-          value: $value
-          syncType: ${SyncType}
-          at decodeValueFromString
-          at index.kt
-          at electronApp
-        """.trimIndent())
-      }
-    },
-    initVieModelMutableMap = state
+    dataState = dataState
   ).apply {
-    viewModel.onUpdateByClient{key: String, value: dynamic, syncType ->
-      console.error("server received data from client key: value : syncType ", key, ":", value, ":", syncType)
-//            viewModel[key] = value + 1
+
+//    count.value.collectOperationServer{
+//      val socketData = SocketData(
+//        id = subDomain,
+//        path = "count",
+//        data = count.value.encodeToString(it)
+//      )
+//      val jsonStr = Json.encodeToString(socketData)
+//      console.log("jsonStr: ", jsonStr)
+//    }
+
+    // 测试初始化数据
+    CoroutineScope(Dispatchers.Default).launch {
+      delay(5000)
+      count.value.emitByServer(100, EmitType.REPLACE)
+      persons.value.emitByServer(listOf(Person(name = "bill-2", id = 2)), EmitType.ADD)
+      console.log("emitByServer")
     }
+
+
+
+
+
+
+//    viewModel.onUpdateByClient{key: String, value: dynamic, syncType ->
+//      console.error("server received data from client key: value : syncType ", key, ":", value, ":", syncType)
+////            viewModel[key] = value + 1
+//    }
     controller.open(ElectronBrowserWindowController.createBrowserWindowOptions().apply {
       width = 1300.0
       height = 1000.0
