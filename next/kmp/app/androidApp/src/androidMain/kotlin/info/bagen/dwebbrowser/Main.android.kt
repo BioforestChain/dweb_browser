@@ -18,7 +18,7 @@ import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.sys.biometrics.BiometricsNMM
-import org.dweb_browser.sys.boot.BootNMM
+import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.sys.mediacapture.MediaCaptureNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM

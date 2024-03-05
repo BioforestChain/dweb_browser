@@ -65,25 +65,6 @@ class RunningApp(
       // 从引用中移除
       windows.remove(newWin)
     }
-
-//    /// 等待握手完成后，通知模块，提供渲染
-//    // TODO 这里可能会失败,并且卡在这里，这里应该是ipc.onError 去提醒用户,因此急迫需要一个全局能反馈信息的地方
-//    try {
-//      val job = CoroutineScope(CoroutineName("await-error")).launch {
-//        delay(3000)
-//        newWin.closeRoot(true)
-//        windowAdapterManager.renderProviders.remove(newWin.id)
-//        windows.remove(newWin)
-//        ipc.stopReady()
-//      }
-//      ipc.afterReady()
-//      job.cancel()
-//    } catch (e: Exception) {
-//      debugDesk("createWindow", "app代码异常，无法连接,请反馈后重新下载", e)
-//      throw Exception("app代码异常，无法连接,请反馈后重新下载")
-//    }
-
-    ipc.awaitStart()
     ipc.postMessage(IpcEvent.createRenderer(newWin.id))
     return newWin
   }

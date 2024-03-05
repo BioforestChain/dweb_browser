@@ -24,7 +24,7 @@ import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.sys.biometrics.BiometricsNMM
-import org.dweb_browser.sys.boot.BootNMM
+import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.contact.ContactNMM

@@ -1,7 +1,6 @@
 package org.dweb_browser.core.help.types
 
 import kotlinx.serialization.Serializable
-import org.dweb_browser.core.module.ModuleType
 import org.dweb_browser.helper.PropMetas
 import org.dweb_browser.helper.PropMetasSerializer
 

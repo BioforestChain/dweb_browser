@@ -5,7 +5,7 @@ import { fetchExtends } from "../helper/fetchExtends/index.ts";
 import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.ts";
 import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.ts";
 import type { $BootstrapContext } from "./bootstrapContext.ts";
-import type { MICRO_MODULE_CATEGORY } from "./category.const.ts";
+import type { MICRO_MODULE_CATEGORY } from "./helper/category.const.ts";
 import type { Ipc, IpcEvent } from "./ipc/index.ts";
 import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID, $MicroModule, $MicroModuleManifest } from "./types.ts";
 import { IPC_HANDLE_EVENT } from "./types.ts";
@@ -38,7 +38,7 @@ export abstract class MicroModule implements $MicroModule {
 
   public addToIpcSet(ipc: Ipc) {
     if (this._running_state_lock.value === true) {
-      void ipc.ready();
+      // void ipc.ready();
     }
     this._ipcSet.add(ipc);
     ipc.onClose(() => {
@@ -69,10 +69,10 @@ export abstract class MicroModule implements $MicroModule {
     this._running_state_lock.resolve(true);
     /// 默认承认ready协议的存在，并在模块启动完成后，通知对方ready了
     this.onConnect((ipc) => {
-      void ipc.ready();
+      // void ipc.ready();
     });
     for (const ipc of this._ipcSet) {
-      void ipc.ready();
+      // void ipc.ready();
     }
   }
 

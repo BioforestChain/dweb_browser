@@ -5,7 +5,6 @@ import {
   $OnFetch,
   $OnFetchReturn,
   FetchEvent,
-  IPC_ROLE,
   IpcHeaders,
   IpcRequest,
   IpcResponse,
@@ -110,9 +109,7 @@ export class Server_api extends HttpServer {
           dweb_deeplinks: [],
           categories: [],
           name: "",
-        },
-        //@ts-ignore
-        IPC_ROLE.SERVER
+        }
       );
       readableStreamIpc.bindIncomeStream(event.request.body!);
       mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut()).resolve(readableStreamIpc);

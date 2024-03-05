@@ -20,7 +20,7 @@ import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.pure.http.PureHeaders
-import org.dweb_browser.sys.boot.BootNMM
+import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 

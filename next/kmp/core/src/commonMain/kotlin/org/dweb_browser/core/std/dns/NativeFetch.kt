@@ -34,7 +34,6 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
     val fetch = client::fetch
   }
 
-
   val httpFetch = HttpFetch(this)
 }
 

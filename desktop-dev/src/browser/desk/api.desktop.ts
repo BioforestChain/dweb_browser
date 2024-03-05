@@ -1,5 +1,5 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
-import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
 import { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { DeskNMM } from "./desk.nmm.ts";
 import { deskStore } from "./desk.store.ts";

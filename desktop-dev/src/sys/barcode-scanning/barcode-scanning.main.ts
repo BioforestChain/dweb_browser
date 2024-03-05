@@ -1,9 +1,9 @@
 // 模拟状态栏模块-用来提供状态UI的模块
 import type { Remote } from "comlink";
 import { match } from "ts-pattern";
-import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
 import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
-import { IPC_METHOD } from "../../core/ipc/const.ts";
+import { IPC_METHOD } from "../../core/ipc/helper/const.ts";
 import { IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";

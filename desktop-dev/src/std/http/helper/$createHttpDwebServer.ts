@@ -2,8 +2,7 @@ import type { $ReqMatcher } from "../../../core/helper/$ReqMatcher.ts";
 import type { $MicroModule } from "../../../core/types.ts";
 import type { $DwebHttpServerOptions } from "../net/createNetServer.ts";
 
-import { ReadableStreamIpc } from "../../../core/ipc-web/ReadableStreamIpc.ts";
-import { IPC_ROLE } from "../../../core/ipc/const.ts";
+import { ReadableStreamIpc } from "../../../core/ipc/ReadableStreamIpc.ts";
 
 import { once } from "../../../helper/$once.ts";
 import { PromiseOut } from "../../../helper/PromiseOut.ts";
@@ -73,7 +72,7 @@ export const listenHttpDwebServer = async (
 ) => {
   const httpModule = await microModule.connect("http.std.dweb");
   /// 创建一个基于 二进制流的 ipc 信道
-  const httpServerIpc = new ReadableStreamIpc(httpModule?.remote || microModule, IPC_ROLE.CLIENT);
+  const httpServerIpc = new ReadableStreamIpc(httpModule?.remote || microModule);
   const url = new URL(`file://http.std.dweb`);
   const ext = {
     pathname: "/listen",

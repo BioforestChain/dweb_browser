@@ -1,5 +1,5 @@
-import { ReadableStreamIpc } from "dweb/core/ipc-web/index.ts";
-import { IPC_ROLE, IpcResponse } from "dweb/core/ipc/index.ts";
+import { ReadableStreamIpc } from "dweb/core/index.ts";
+import { IpcResponse } from "dweb/core/ipc/index.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
@@ -127,8 +127,6 @@ export class WindowPlugin extends BasePlugin {
         categories: [],
         name: "",
       },
-      //@ts-ignore
-      IPC_ROLE.CLIENT
     );
     const ws = new WebSocket(url);
     ws.binaryType = "arraybuffer";

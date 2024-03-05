@@ -1,12 +1,12 @@
 import { $OffListener } from "../helper/createSignal.ts";
-import type { MICRO_MODULE_CATEGORY } from "./category.const.ts";
+import type { MICRO_MODULE_CATEGORY } from "./helper/category.const.ts";
 import { $deserializeRequestToParams } from "./helper/$deserializeRequestToParams.ts";
 import { $isMatchReq, $ReqMatcher } from "./helper/$ReqMatcher.ts";
 import { $serializeResultToResponse } from "./helper/$serializeResultToResponse.ts";
 import { $OnFetch, createFetchHandler } from "./helper/ipcFetchHelper.ts";
 import type { $PromiseMaybe, $Schema1, $Schema1ToType, $Schema2, $Schema2ToType } from "./helper/types.ts";
-import { NativeIpc } from "./ipc.native.ts";
-import { Ipc, IPC_ROLE, IpcRequest, IpcResponse } from "./ipc/index.ts";
+import { NativeIpc } from "./ipc/NativeIpc.ts";
+import { Ipc, IpcRequest, IpcResponse } from "./ipc/index.ts";
 import { MicroModule } from "./micro-module.ts";
 import { connectAdapterManager } from "./nativeConnect.ts";
 import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID } from "./types.ts";
@@ -15,8 +15,8 @@ connectAdapterManager.append((fromMM, toMM, reason) => {
   if (toMM instanceof NativeMicroModule) {
     const channel = new MessageChannel();
     const { port1, port2 } = channel;
-    const toNativeIpc = new NativeIpc(port1, fromMM, IPC_ROLE.SERVER);
-    const fromNativeIpc = new NativeIpc(port2, toMM, IPC_ROLE.CLIENT);
+    const toNativeIpc = new NativeIpc(port1, fromMM);
+    const fromNativeIpc = new NativeIpc(port2, toMM);
     fromMM.beConnect(fromNativeIpc, reason); // 通知发起连接者作为Client
     toMM.beConnect(toNativeIpc, reason); // 通知接收者作为Server
     return [fromNativeIpc, toNativeIpc];

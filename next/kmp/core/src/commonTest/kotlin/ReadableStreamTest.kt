@@ -5,7 +5,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.canReadContent
@@ -19,7 +18,7 @@ import kotlin.test.assertTrue
 class ReadableStreamTestTest {
   @OptIn(DelicateCoroutinesApi::class)
   @Test
-  fun `readablestream available test`() = runCommonTest {
+  fun readableStreamAvailableTest() = runCommonTest {
     println("start")
     val stream = ReadableStream(onStart = { controller ->
       GlobalScope.launch {

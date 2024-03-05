@@ -39,8 +39,9 @@ class IpcRequestTest {
           body = IPureBody.from("senderIpc")
         )
       )
-      println("🧨=> ${response.statusCode}")
-      assertEquals(response.body.text(), "senderIpc 除夕快乐")
+      val res = response.body.text()
+      println("🧨=> ${response.statusCode} $res")
+      assertEquals(res, "senderIpc 除夕快乐")
     }
     launch {
       println("🧨=>  开始监听消息")

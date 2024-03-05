@@ -1,5 +1,5 @@
 import type { Remote } from "comlink";
-import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
 import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
 import { Ipc, IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";

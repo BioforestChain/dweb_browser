@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IPC_STATE
@@ -106,6 +107,10 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
       debugIpcPool("fail to post message, already closed")
       return
     }
+    // 等待通信建立完成
+    if (isActivity && data !is IpcLifeCycle) {
+      awaitStart()
+    }
     // 发到pool进行分发消息
     this.endpoint.doPostMessage(channelId, data)
   }
@@ -192,7 +197,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     signal
   }
 
-  private fun onStream(cb: OnIpcStreamMessage) = _streamSignal.listen(cb)
+  fun onStream(cb: OnIpcStreamMessage) = _streamSignal.listen(cb)
 
   // 根据 StreamId 分发控制消息给当前这个endPoint的各个Body
   fun onPulling(
@@ -211,7 +216,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
 
   @OptIn(ExperimentalCoroutinesApi::class)
   private val _eventSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    _createSignal<IpcEventMessageArgs>().also { signal ->
+    createSignal<IpcEventMessageArgs>().also { signal ->
       val orderByChannels = SafeHashMap<Int, Channel<IpcEventMessageArgs>>()
       _messageSignal.listen { args ->
         if (args.message is IpcEvent) {
@@ -266,6 +271,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
       }
     }
   }
+
 
   fun onEvent(cb: OnIpcEventMessage) = _eventSignal.listen(cb)
 
@@ -403,13 +409,14 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   }
 
   /**----- close end*/
-
+  // 标记是否启动完成
   val startDeferred = CompletableDeferred<IpcLifeCycle>()
+  val isActivity = startDeferred.isCompleted
   suspend fun awaitStart() = startDeferred.await()
 
   // 告知对方我启动了
   internal val start = SuspendOnce {
-    ipcLifeCycleState = IPC_STATE.OPENING
+    ipcLifeCycleState = IPC_STATE.OPEN
     this.postMessage(IpcLifeCycle(IPC_STATE.OPENING))
   }
 
@@ -420,67 +427,35 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
       this.close()
     }
   }
-  // suspend fun request(ipcRequest: IpcRequest): IpcResponse {
-  //   val result = CompletableDeferred<IpcResponse>()
-  //   _reqResMap[ipcRequest.req_id] = result
-  //   this.postMessage(ipcRequest)
-  //   return result.await()
-  // }
 
-  // private suspend fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
-  //   val reqId = this.allocReqId()
-  //   return IpcClientRequest.fromRequest(reqId, this, url, init)
-  // }
+//   private val readyDeferred = CompletableDeferred<IpcEvent>()
+//   suspend fun afterReady() = readyDeferred.await()
+//
+//   // 取消等待了，再等下去没有意义
+//   fun stopReady() = readyDeferred.cancel()
 
-  // suspend fun request(pureRequest: PureClientRequest): PureResponse {
-  //   return this.request(
-  //     pureRequest.toIpc(allocReqId(), this)
-  //   ).toPure()
-  // }
-
-  // suspend fun request(url: String, init: IpcRequestInit): IpcResponse {
-  //   val ipcRequest = this._buildIpcRequest(url, init)
-  //   return request(ipcRequest)
-  // }
-
-  // private val reqIdSyncObj = SynchronizedObject()
-  // private fun allocReqId() = synchronized(reqIdSyncObj) { ++req_id_acc }
-
-  // /** 自定义注册 请求与响应 的id */
-  // private fun registerReqId(req_id: Int = this.allocReqId()): CompletableDeferred<IpcResponse> {
-  //   return _reqResMap.getOrPut(req_id) {
-  //     return CompletableDeferred()
-  //   }
-  // }
-
-  // private val readyDeferred = CompletableDeferred<IpcEvent>()
-  // suspend fun afterReady() = readyDeferred.await()
-
-  // // 取消等待了，再等下去没有意义
-  // fun stopReady() = readyDeferred.cancel()
-
-  // /// 应用级别的 Ready协议，使用ping-pong方式来等待对方准备完毕，这不是必要的，确保双方都准寻这个协议才有必要去使用
-  // /// 目前使用这个协议的主要是Web端（它同时还使用了 Activity协议）
-  // internal val readyPingPong = SuspendOnce1 { mm: MicroModule ->
-  //   this.onEvent { (event, ipc) ->
-  //     if (event.name == "ping") {
-  //       ipc.postMessage(IpcEvent("pong", event.data, event.encoding))
-  //     } else if (event.name == "pong") {
-  //       readyDeferred.complete(event)
-  //     }
-  //   }
-  //   mm.ioAsyncScope.launch {
-  //     val ipc = this@Ipc
-  //     val pingDelay = 200L
-  //     var timeout = 30000L
-  //     while (!readyDeferred.isCompleted && !ipc.isClosed && timeout > 0L) {
-  //       ipc.postMessage(IpcEvent.fromUtf8("ping", ""))
-  //       delay(pingDelay)
-  //       timeout -= pingDelay
-  //     }
-  //   }
-  //   readyDeferred.await()
-  // }
+  /// 应用级别的 Ready协议，使用ping-pong方式来等待对方准备完毕，这不是必要的，确保双方都准寻这个协议才有必要去使用
+  /// 目前使用这个协议的主要是Web端（它同时还使用了 Activity协议）
+//   internal val readyPingPong = SuspendOnce1 { mm: MicroModule ->
+//     this.onEvent { (event, ipc) ->
+//       if (event.name == "ping") {
+//         ipc.postMessage(IpcEvent("pong", event.data, event.encoding))
+//       } else if (event.name == "pong") {
+//         readyDeferred.complete(event)
+//       }
+//     }
+//     mm.ioAsyncScope.launch {
+//       val ipc = this@Ipc
+//       val pingDelay = 200L
+//       var timeout = 30000L
+//       while (!readyDeferred.isCompleted && !ipc.isClosed && timeout > 0L) {
+//         ipc.postMessage(IpcEvent.fromUtf8("ping", ""))
+//         delay(pingDelay)
+//         timeout -= pingDelay
+//       }
+//     }
+//     readyDeferred.await()
+//   }
 
 }
 

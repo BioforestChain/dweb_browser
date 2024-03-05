@@ -1,4 +1,4 @@
-import type { MICRO_MODULE_CATEGORY } from "./category.const.ts";
+import type { MICRO_MODULE_CATEGORY } from "./helper/category.const.ts";
 import type { $PromiseMaybe } from "./helper/types.ts";
 import type { MicroModule } from "./micro-module.ts";
 import type { $ConnectResult } from "./nativeConnect.ts";

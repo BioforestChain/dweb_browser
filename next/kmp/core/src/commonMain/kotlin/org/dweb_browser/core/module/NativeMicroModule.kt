@@ -150,7 +150,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
             )
           )
         }
-      }
+       }
     }
 
   fun defineEmptyResponse(

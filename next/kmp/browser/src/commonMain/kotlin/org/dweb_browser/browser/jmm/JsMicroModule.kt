@@ -131,14 +131,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         "code-server",
         IpcOptions(this@JsMicroModule)
       )
-      streamIpc.bindIncomeStream(
-        nativeFetch(
-          PureClientRequest(URLBuilder("file://js.browser.dweb/create-process").apply {
-            parameters["entry"] = metadata.server.entry
-            parameters["process_id"] = pid
-          }.buildUnsafeString(), PureMethod.POST, body = PureStreamBody(streamIpc.input.stream))
-        ).stream()
-      )
+
       streamIpc.onRequest { (request, ipc) ->
         debugJsMM("streamIpc.onRequest", "path=${request.uri.fullPath}")
         val response = if (request.uri.fullPath.endsWith("/")) {

@@ -1,3 +1,3 @@
-export * from "@dweb-browser/desktop/std/http/const.ts";
-export * from "@dweb-browser/desktop/std/http/helper/$createHttpDwebServer.ts";
-export * from "@dweb-browser/desktop/std/http/net/types.ts";
+export * from "../../../../std/http/const.ts";
+export * from "../../../../std/http/helper/$createHttpDwebServer.ts";
+export * from "../../../../std/http/net/types.ts";

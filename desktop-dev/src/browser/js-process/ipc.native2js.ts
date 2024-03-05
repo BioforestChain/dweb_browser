@@ -1,6 +1,5 @@
-import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
-import type { NativeIpc } from "../../core/ipc.native.ts";
-import { IPC_ROLE } from "../../core/ipc/const.ts";
+import { MessagePortIpc } from "../../core/ipc/MessagePortIpc.ts";
+import type { NativeIpc } from "../../core/ipc/NativeIpc.ts";
 
 /**
  * 单例模式用来保存全部的, port 发送给 woker.js 的对应 port
@@ -25,12 +24,12 @@ let all_ipc_id_acc = 0;
  * 那么连接发起方就可以通过这个 id(number) 和 Native2JsIpc 构造器来实现与 js-worker 的直连
  */
 export class Native2JsIpc extends MessagePortIpc {
-  constructor(port_id: number, remote: NativeIpc["remote"], role = IPC_ROLE.CLIENT) {
+  constructor(port_id: number, remote: NativeIpc["remote"]) {
     const port = ALL_IPC_CACHE.get(port_id);
     if (port === undefined) {
       throw new Error(`no found port2(js-process) by id: ${port_id}`);
     }
-    super(port, remote, role);
+    super(port, remote);
     /// TODO 这里应该放在和 ALL_IPC_CACHE.set 同一个函数下，只是原生的 MessageChannel 没有 close 事件，这里没有给它模拟，所以有问题
     this.onClose(() => {
       ALL_IPC_CACHE.delete(port_id);

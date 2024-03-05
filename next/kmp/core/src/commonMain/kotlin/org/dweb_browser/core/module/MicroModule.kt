@@ -29,10 +29,6 @@ enum class MMState {
   BOOTSTRAP, SHUTDOWN,
 }
 
-enum class ModuleType {
-  JsModule, NativeModule
-}
-
 val debugMicroModule = Debugger("MicroModule")
 
 abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleManifest by manifest {
@@ -78,7 +74,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
   private suspend fun afterBootstrap(bootstrapContext: BootstrapContext) {
     debugMicroModule("afterBootstrap", "ready: $mmid, ${_ipcSet.size}")
-    // TODO waterbang
     onConnect { (ipc) ->
       ipc.awaitStart()
     }
@@ -165,9 +160,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       "addToIpcSet",
       "$mmid => ${ipc.remote.mmid}, ${runningStateLock.isResolved}:${runningStateLock.value}"
     )
-    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
-      ipc.awaitStart()
-    }
+//    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
+//      ipc.awaitStart()
+//    }
     return if (this._ipcSet.add(ipc)) {
       ipc.onClose {
         _ipcSet.remove(ipc)

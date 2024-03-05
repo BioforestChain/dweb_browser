@@ -153,9 +153,6 @@ object BitmapUtil {
     return null
   }
 
-  fun deleteIconsFile(context: Context, fileName: String) =
-    FilesUtil.deleteQuietly(getIconsFile(context, fileName))
-
   private fun getIconsFile(context: Context, fileName: String): File {
     val filesDir = context.filesDir.absolutePath // 获取data/file路径
     return File(filesDir + File.separator + "icons").let { fileParent ->

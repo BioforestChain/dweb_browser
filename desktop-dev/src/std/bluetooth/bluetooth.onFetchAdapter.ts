@@ -1,5 +1,5 @@
 import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
-import { IPC_METHOD } from "../../core/ipc/const.ts";
+import { IPC_METHOD } from "../../core/ipc/helper/const.ts";
 import { IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 
 // export class Router {

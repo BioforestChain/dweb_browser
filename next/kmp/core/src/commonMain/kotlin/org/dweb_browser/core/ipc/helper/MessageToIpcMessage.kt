@@ -27,12 +27,12 @@ object IpcMessageConst {
 }
 
 fun bytesToIpcMessage(data: ByteArray, ipc: Ipc): Any {
-  if (data.contentEquals(IpcMessageConst.closeByteArray) || data.contentEquals(IpcMessageConst.pingByteArray) || data.contentEquals(
-      IpcMessageConst.pongByteArray
-    )
-  ) {
-    return data
-  }
+//  if (data.contentEquals(IpcMessageConst.closeByteArray) || data.contentEquals(IpcMessageConst.pingByteArray) || data.contentEquals(
+//      IpcMessageConst.pongByteArray
+//    )
+//  ) {
+//    return data
+//  }
   val pack = jsonToIpcPack(data.decodeToString())
   return IpcPoolPack(pack.pid, jsonToIpcPoolPack(pack.ipcMessageString, ipc))
 }

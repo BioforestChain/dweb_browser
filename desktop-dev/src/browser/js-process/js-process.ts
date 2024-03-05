@@ -1,10 +1,10 @@
 import { transfer, type Remote } from "comlink";
-import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
 import { $ReqMatcher, $isMatchReq } from "../../core/helper/$ReqMatcher.ts";
 import type { $PromiseMaybe } from "../../core/helper/types.ts";
-import { MessagePortIpc, ReadableStreamIpc } from "../../core/ipc-web/index.ts";
-import { IpcHeaders } from "../../core/ipc/IpcHeaders.ts";
-import { IPC_ROLE, Ipc, IpcRequest, IpcResponse } from "../../core/ipc/index.ts";
+import { MessagePortIpc, ReadableStreamIpc } from "../../core/index.ts";
+import { IpcHeaders } from "../../core/ipc/helper/IpcHeaders.ts";
+import { Ipc, IpcRequest, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $MMID } from "../../core/types.ts";
 import { once } from "../../helper/$once.ts";
@@ -229,7 +229,7 @@ export class JsProcessNMM extends NativeMicroModule {
     /**
      * 远端是代码服务，所以这里是 client 的身份
      */
-    const streamIpc = new ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT);
+    const streamIpc = new ReadableStreamIpc(ipc.remote);
     void streamIpc.bindIncomeStream(requestMessage.body.stream());
     this.addToIpcSet(streamIpc);
     /**
@@ -319,7 +319,7 @@ export class JsProcessNMM extends NativeMicroModule {
      * 将 js-worker 中的请求进行中转代理
      * 在Android和IOS中的Webview默认只能传输字符串
      */
-    const ipc_to_worker = new MessagePortIpc(channel_for_worker.port1, ipc.remote, IPC_ROLE.CLIENT);
+    const ipc_to_worker = new MessagePortIpc(channel_for_worker.port1, ipc.remote);
 
     ipc_to_worker.onClose(() => {
       apis.destroyProcess(processInfo.process_id);

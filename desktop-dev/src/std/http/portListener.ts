@@ -1,5 +1,5 @@
 import { $isMatchReq, $ReqMatcher } from "../../core/helper/$ReqMatcher.ts";
-import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
+import type { ReadableStreamIpc } from "../../core/ipc/ReadableStreamIpc.ts";
 import type { Ipc } from "../../core/ipc/ipc.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { httpMethodCanOwnBody } from "../../helper/httpHelper.ts";

@@ -45,8 +45,8 @@ val debugStreamIpc = Debugger("stream-ipc")
  * 以及需要手动绑定输入流 {@link bindIncomeStream}
  */
 class ReadableStreamIpc(
-  override val remote: IMicroModuleManifest,
   channelId: String,
+  override val remote: IMicroModuleManifest,
   endpoint: IpcPool
 ) : Ipc(channelId, endpoint) {
   companion object {
@@ -86,6 +86,9 @@ class ReadableStreamIpc(
 
   private var reader: ByteReadChannel? = null
   private val _lock = SynchronizedObject()
+
+  // 判断流绑定
+  val isBinding = reader != null
 
   /**
    * 输入流要额外绑定
@@ -133,10 +136,14 @@ class ReadableStreamIpc(
       // 流是双向的，对方关闭的时候，自己也要关闭掉
       this.close()
     }
+
     /// 后台执行数据拉取
     incomeStreamCoroutineScope.launch {
-      readStream();
-      offAbort();
+      readStream()
+      offAbort()
+    }
+    incomeStreamCoroutineScope.launch {
+      this@ReadableStreamIpc.start()
     }
     this
   }
@@ -144,15 +151,15 @@ class ReadableStreamIpc(
   // 处理二进制消息
   private suspend fun byteFactory(byteArray: ByteArray) {
     val pack = cborToIpcPoolPack(byteArray)
-    unByteSpecial(pack.messageByteArray)?.let {
-      when (it) {
-        closeCborByteArray -> close()
-        pingCborByteArray -> enqueue(ipcPoolPackToCbor(PackIpcMessage(pack.pid, CBOR_PONG_DATA)))
-        pongCborByteArray -> debugStreamIpc("PONG", "$pack")
-        else -> throw Exception("unknown message: $pack")
-      }
-      return
-    }
+//    unByteSpecial(pack.messageByteArray)?.let {
+//      when (it) {
+//        closeCborByteArray -> close()
+//        pingCborByteArray -> enqueue(ipcPoolPackToCbor(PackIpcMessage(pack.pid, CBOR_PONG_DATA)))
+//        pongCborByteArray -> debugStreamIpc("PONG", "$pack")
+//        else -> throw Exception("unknown message: $pack")
+//      }
+//      return
+//    }
     val message = cborToIpcMessage(pack.messageByteArray, this@ReadableStreamIpc)
     val logMessage = message.toString().trim()
     debugStreamIpc("bindIncomeStream", "message=$logMessage => pid: ${pack.pid}")
@@ -167,15 +174,15 @@ class ReadableStreamIpc(
 
   private suspend fun stringFactory(byteArray: ByteArray) {
     val pack = jsonToIpcPack(byteArray.decodeToString())
-    unStringSpecial(pack.ipcMessageString)?.let {
-      when (it) {
-        "close" -> close()
-        "ping" -> enqueue(ipcPoolPackToCbor(PackIpcMessage(pack.pid, PONG_DATA)))
-        "pong" -> debugStreamIpc("PONG", "pack=$pack")
-        else -> throw Exception("unknown message: ${pack}")
-      }
-      return
-    }
+//    unStringSpecial(pack.ipcMessageString)?.let {
+//      when (it) {
+//        "close" -> close()
+//        "ping" -> enqueue(ipcPoolPackToCbor(PackIpcMessage(pack.pid, PONG_DATA)))
+//        "pong" -> debugStreamIpc("PONG", "pack=$pack")
+//        else -> throw Exception("unknown message: ${pack}")
+//      }
+//      return
+//    }
     val message = jsonToIpcPoolPack(pack.ipcMessageString, this@ReadableStreamIpc)
     val logMessage = message.toString().trim()
     debugStreamIpc("bindIncomeStream", "message=$logMessage => $pack")
@@ -193,7 +200,7 @@ class ReadableStreamIpc(
     if (supportCbor) {
       val message = ipcMessageToCbor(data)
       val pack = ipcPoolPackToCbor(PackIpcMessage(pid, message))
-      debugStreamIpc("post", "${message.size} => $input => $data")
+      debugStreamIpc("post supportCbor", "${message.size} => $input => $data")
       enqueue(
         pack.size.toLittleEndianByteArray(),
         pack

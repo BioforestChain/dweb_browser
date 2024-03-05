@@ -2,11 +2,8 @@ package org.dweb_browser.core.ipc
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
-import kotlinx.coroutines.withContext
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
@@ -22,13 +19,10 @@ class NativeIpc(
   channelId: String,
   endpoint: IpcPool
 ) : Ipc(channelId, endpoint) {
-  override fun toString() = "NativeIpc@($port)"
+  override fun toString() = "NativeIpc@($port,channelId=$channelId,remote:${remote.mmid})"
 
-  override val supportRaw = true
-  override val supportBinary = true
-  
   // 这里放在协程
-  private val ioAsyncScope =  CoroutineScope(CoroutineName("native-ipc") + ioAsyncExceptionHandler)
+  private val ioAsyncScope = CoroutineScope(CoroutineName("native-ipc") + ioAsyncExceptionHandler)
 
   init {
     port.onMessage { pack ->

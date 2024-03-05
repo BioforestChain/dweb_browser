@@ -1,7 +1,7 @@
 import process from "node:process";
 import { JsMicroModule } from "../../browser/jmm/micro-module.js.ts";
 import type { $BootstrapContext, $DnsMicroModule } from "../../core/bootstrapContext.ts";
-import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
 import { $normalizeRequestInitAsIpcRequestArgs, buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { IpcEvent, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";

@@ -2,7 +2,6 @@ package org.dweb_browser.core.ipc
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.IMicroModuleManifest
@@ -51,17 +50,17 @@ open class IpcPool {
   companion object {
     private fun randomPoolId() = "kotlin-${randomUUID()}"
     private val ipcPoolScope =
-      CoroutineScope(CoroutineName("ipc-message") + ioAsyncExceptionHandler)
+      CoroutineScope(CoroutineName("ipc-pool-kotlin") + ioAsyncExceptionHandler)
     private val poolMutex = Mutex()
-
-    //缓存消息，需要过一段时间进行回收
-    private val cacheIpcPackList = mutableListOf<IpcPoolPack>()
   }
 
-  // body 计数,每一个ipcPool都会绑定一个body流
+  /**每一个ipcPool都会绑定一个body流池,只有当不在同一个IpcPool的时候才需要互相拉取*/
   val poolId: UUID = randomPoolId()
 
-  // 用于存储Ipc协商的
+  /**body  流池 <streamId,PureStream> */
+  val streamPool = mutableMapOf<String, PureStream>()
+
+  // 用于存储channelId 对应的 pid
   private val ipcChannelMap = HashMap<String, Int>()
   private val ipcHashMap: ChangeableMap<Int, Ipc> = ChangeableMap()
 
@@ -76,26 +75,31 @@ open class IpcPool {
     channelId: String,
     options: IpcOptions
   ) = poolMutex.withLock {
-    val pid = generatePid(channelId)
-    var ipc: Ipc? = null
-    if (options.port != null) {
-      ipc = MessagePortIpc(options.port, options.remote, channelId, this)
+    val mm = options.remote
+    // 创建不同的Ipc
+    val ipc = if (options.port != null) {
+      MessagePortIpc(options.port, mm, channelId, this)
     } else if (options.channel != null) {
-      ipc = NativeIpc(options.channel, options.remote, channelId, this)
-    } else if (options.stream != null) {
-      ipc = ReadableStreamIpc(
-        options.remote,
+      NativeIpc(options.channel, mm, channelId, this)
+    } else {
+      ReadableStreamIpc(
         channelId,
+        mm,
         this
-      ).bindIncomeStream(options.stream)
+      )
     }
-    if (ipc == null) {
-      throw Exception("create ipc error")
+    if (ipc is ReadableStreamIpc && options.stream != null) {
+      ipc.bindIncomeStream(options.stream)
     }
+    //  有新的ipc激活了
+    val pid = generatePid(channelId)
     ipcHashMap[pid] = ipc
     ipc.lifeCycleHook()
+    // 如果还没启动，自我启动一下
     if (!ipc.startDeferred.isCompleted) {
-      ipc.start()
+      if (!(ipc is ReadableStreamIpc && !ipc.isBinding)) {
+        ipc.start()
+      }
     }
     ipc as T
   }
@@ -106,6 +110,7 @@ open class IpcPool {
     this.onLifeCycle { (lifeCycle, ipc) ->
       debugIpc("lifeCycleHook=>", lifeCycle.state)
       when (lifeCycle.state) {
+        // 收到打开中的消息，也告知自己已经准备好了
         IPC_STATE.OPENING -> {
           ipc.postMessage(IpcLifeCycle(IPC_STATE.OPEN))
         }
@@ -132,9 +137,8 @@ open class IpcPool {
    */
   private fun generatePid(channelId: String): Int {
     val pid = ipcChannelMap[channelId]
-    // 只要注册过了，只有注册的那个人可以使用
     if (pid != null) {
-      throw Exception("The ipc already exists!")
+      return pid
     }
     val hashPid = "${channelId}${pid}".hashCode()
     ipcChannelMap[channelId] = hashPid
@@ -160,33 +164,18 @@ open class IpcPool {
    * 为了防止消息丢失，得有一开始的握手和消息断开
    */
   init {
-    ipcPoolScope.launch {
-      // 监听ipc建立连接成功
-      ipcHashMap.onChange { (ipcMap, add) ->
-        // 消耗没有发送的消息
-        cacheIpcPackList.filter { pack ->
-          if (pack.pid == add.first()) {
-            val ipc = ipcMap[pack.pid]
-            debugIpcPool("处理消息：${add.first()} ${pack.pid} ${ipc?.remote?.mmid}")
-            if (ipc == null) return@filter true // 消息未被消耗
-            ipc.postMessage(pack.ipcMessage)
-            return@filter false  // 消息已经消耗了
-          }
-          return@filter true // 消息未被消耗
-        }
-      }
-    }
-    onMessage { (pack) ->
-      val ipc = ipcHashMap[pack.pid]
-      if (ipc == null) {
-        cacheIpcPackList.add(pack)
-      } else {
-        ipc.emitMessage(IpcMessageArgs(pack.ipcMessage, ipc))
-      }
+    onMessage { (pack, ipc) ->
+      ipc.emitMessage(IpcMessageArgs(pack.ipcMessage, ipc))
     }
   }
 
   /**-----close start*/
+
+  //关闭信号
+  val closeSignal = SimpleSignal()
+
+  /**用来释放一些跟ipcPool绑定的资源*/
+  val onClose = this.closeSignal.toListener()
   private var _closed = false
   val isClosed get() = _closed
   suspend fun close() {
@@ -195,35 +184,8 @@ open class IpcPool {
     }
     this._closed = true
     this.closeSignal.emitAndClear()
+    // 释放自己内部的资源
     this.ipcChannelMap.clear()
-
-    /// 关闭的时候会自动触发销毁
-    this.destroy(false)
-  }
-
-  //关闭信号
-  val closeSignal = SimpleSignal()
-  val onClose = this.closeSignal.toListener()
-
-  //销毁信号
-  private val _destroySignal = SimpleSignal()
-  val onDestroy = this._destroySignal.toListener()
-
-  private var _destroyed = false
-  val isDestroy get() = _destroyed
-
-  /**
-   * 销毁实例
-   */
-  suspend fun destroy(close: Boolean = true) {
-    if (_destroyed) {
-      return
-    }
-    _destroyed = true
-    if (close) {
-      this.close()
-    }
-    this._destroySignal.emitAndClear()
   }
 
   /**-----close end*/
