@@ -23,7 +23,7 @@ class ModalStateTest {
   class SimpleWindowController(
     override val coroutineScope: CoroutineScope = CoroutineScope(defaultAsyncExceptionHandler)
   ) : WindowController(WindowState(WindowConstants(owner = "", ownerVersion = ""))) {
-    override val viewController: IPureViewBox get() = TODO("???")
+    override val viewBox: IPureViewBox get() = TODO("???")
   }
 
   @Test

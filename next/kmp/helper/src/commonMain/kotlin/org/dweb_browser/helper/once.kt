@@ -39,6 +39,8 @@ class Once<R>(val runnable: () -> R) {
     }
     return result as R
   }
+  @Suppress("UNCHECKED_CAST")
+  val cache get() = result as R?
 }
 
 class SuspendOnce1<A1, R>(val runnable: suspend (A1) -> R) {

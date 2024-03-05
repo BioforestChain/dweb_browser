@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.window.core
 
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.UUID
 
@@ -17,6 +18,10 @@ class WindowInstancesManager {
     window.onClose {
       instances.remove(window.id)
     }
+  }
+
+  fun findByOwner(mmid: MMID): WindowController? {
+    return instances.firstNotNullOfOrNull { if (it.value.state.constants.owner == mmid) it.value else null }
   }
 
   val onAdd = instances.onChange

@@ -1,13 +1,11 @@
 package org.dweb_browser.sys.ext
 
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.helper.WeakHashMap
-import java.awt.Component
+import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.sys.window.core.windowInstancesManager
 
-
-private val MicroModuleComponentWM = WeakHashMap<MicroModule, Component>()
-var MicroModule.currentComponent
-  get() = MicroModuleComponentWM[this]
-  set(value) {
-    MicroModuleComponentWM[this] = value
+val MicroModule.currentJComponent
+  get() = windowInstancesManager.findByOwner(mmid)?.pureViewController.let {
+    require(it is PureViewController);
+    it.getJPanel.cache
   }

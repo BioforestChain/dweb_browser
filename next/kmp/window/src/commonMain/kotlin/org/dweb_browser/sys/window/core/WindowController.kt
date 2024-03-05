@@ -40,6 +40,7 @@ abstract class WindowController(
 
   internal val _pureViewControllerState = MutableStateFlow<IPureViewController?>(null)
   val pureViewControllerState: StateFlow<IPureViewController?> get() = _pureViewControllerState
+  val pureViewController get() = pureViewControllerState.value
 
   /**
    * 窗口管理器
@@ -64,7 +65,7 @@ abstract class WindowController(
   /**
    * 在Android中，一个窗口对象必然附加在某一个Context/Activity中
    */
-  abstract val viewController: IPureViewBox
+  abstract val viewBox: IPureViewBox
 
   /**
    * 需要提供一个生命周期对象
