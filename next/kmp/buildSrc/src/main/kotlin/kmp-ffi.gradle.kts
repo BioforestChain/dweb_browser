@@ -29,7 +29,7 @@ kotlin {
 
   // 因为至少需要一个 target，所以如果lib被禁用，就 android 的强制开起来
   // 不可以直接禁用这个 module，这样会使得 libs.projects.lib* 找不到目标
-  kmpAndroidTarget(project, !disableLibs) {
+  kmpAndroidTarget(project, Features.libs.disabled) {
     dependencies {
       api(libs.java.jna.map {
         project.dependencies.create(it, closureOf<ExternalModuleDependency> {

@@ -28,22 +28,34 @@ import java.io.File
 import java.nio.file.Files
 
 
-val properties = java.util.Properties().also { properties ->
-  File("local.properties").apply {
-    println("local.properties=${absolutePath}")
-    if (exists()) {
-      inputStream().use { properties.load(it) }
+object Features {
+  private val properties = java.util.Properties().also { properties ->
+    File("local.properties").apply {
+      if (exists()) {
+        inputStream().use { properties.load(it) }
+      }
     }
   }
+
+  private val disabled = (properties.getOrDefault("app.disable", "") as String)
+    .split(",")
+    .map { it.trim().lowercase() };
+
+  private val enabled = (properties.getOrDefault("app.experimental.enabled", "") as String)
+    .split(",")
+    .map { it.trim().lowercase() };
+
+  class Bool(val enabled: Boolean) {
+    val disabled = !enabled
+  }
+
+  val androidApp = Bool(!disabled.contains("android"));
+  val iosApp = Bool(!disabled.contains("ios"));
+  val desktopApp = Bool(enabled.contains("desktop"));
+  val electronApp = Bool(enabled.contains("electron"));
+  val libs = Bool(androidApp.enabled || iosApp.enabled || desktopApp.enabled)
 }
-val disabledApps = (properties.getOrDefault("app.disable", "") as String)
-  .split(",")
-  .map { it.trim().lowercase() };
-val disableAndroidApp = disabledApps.contains("android");
-val disableIosApp = disabledApps.contains("ios");
-val disableDesktopApp = disabledApps.contains("desktop");
-val disableElectronApp = disabledApps.contains("electron");
-val disableLibs = disableAndroidApp && disableIosApp
+
 
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   kotlinOptions {
@@ -63,7 +75,7 @@ fun KotlinMultiplatformExtension.kmpBrowserJsTarget(
   project: Project,
   configure: KmpBrowserJsTargetDsl.() -> Unit = {},
 ) {
-  if (disableElectronApp) {
+  if (Features.electronApp.disabled) {
     return
   }
   println("kmpBrowserJsTarget: ${project.name}")
@@ -105,7 +117,7 @@ fun KotlinMultiplatformExtension.kmpNodeJsTarget(
   project: Project,
   configure: KmpNodeJsTargetDsl.() -> Unit = {},
 ) {
-  if (disableElectronApp) {
+  if (Features.electronApp.disabled) {
     return
   }
   println("kmpNodeJsTarget: ${project.name}")
@@ -282,10 +294,7 @@ fun KotlinSourceSet.autoLink(): KotlinSourceSet {
 }
 
 open class KmpBaseTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
-  val enableAndroidApp = !disableAndroidApp
-  val enableIosApp = !disableIosApp
-  val enableLibs = enableAndroidApp || enableIosApp
-  val enableElectronApp = !disableElectronApp
+  val features = Features
   internal val dependsOnList = mutableSetOf<KotlinSourceSet>()
   val dependsOn = dependsOnList::add
   internal val configureDependencyList = mutableSetOf<KotlinDependencyHandler.() -> Unit>()
@@ -489,7 +498,7 @@ fun KotlinMultiplatformExtension.kmpAndroidTarget(
   forceEnable: Boolean = false,
   configure: KmpAndroidTargetDsl.() -> Unit = {}
 ) {
-  if (disableAndroidApp && !forceEnable) {
+  if (Features.androidApp.disabled && !forceEnable) {
     return
   }
   println("kmpAndroidTarget: ${project.name}")
@@ -530,7 +539,7 @@ fun KotlinMultiplatformExtension.kmpDesktopTarget(
   project: Project,
   configure: KmpDesktopTargetDsl.() -> Unit = {},
 ) {
-  if (disableDesktopApp) {
+  if (Features.desktopApp.disabled) {
     return
   }
 
@@ -563,7 +572,7 @@ fun KotlinMultiplatformExtension.kmpIosTarget(
   project: Project,
   configure: KmpIosTargetDsl.() -> Unit = {}
 ) {
-  if (disableIosApp) {
+  if (Features.iosApp.disabled) {
     return
   }
   println("kmpIosTarget: ${project.name}")
