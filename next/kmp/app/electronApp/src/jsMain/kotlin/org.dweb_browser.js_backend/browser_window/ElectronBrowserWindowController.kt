@@ -12,6 +12,7 @@ import electron.core.BrowserWindowEvent
 import electron.core.Event
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.await
+import kotlinx.coroutines.delay
 import node.http.IncomingMessage
 import node.http.ServerResponse
 import org.dweb_browser.js_backend.http.MatchPattern
@@ -77,7 +78,10 @@ class ElectronBrowserWindowController private constructor(
             }
             baseBrowserWindowModelReady.complete(this@ElectronBrowserWindowController)
             browserWindow.loadURL("${subDomainHttpServer.getBaseUrl()}/index.html")
-            browserWindow.webContents.openDevTools()
+            CoroutineScope(Dispatchers.Default).launch {
+                delay(1000)
+                browserWindow.webContents.openDevTools()
+            }
             console.log(browserWindow.isMovable())
         }
         return baseBrowserWindowModelReady
