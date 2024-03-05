@@ -29,6 +29,39 @@ dependencyResolutionManagement {
     maven("https://us-maven.pkg.dev/jxbrowser/releases")
   }
 }
+//apply(from = "gradle/features.gradle.kts")
+/**
+ * 好像无法与buildSrc共享代码，但是gradle官方却有相关的例子，只不过这种共享好像达不到我们的需求
+ * https://github.com/gradle/gradle/blob/master/settings.gradle.kts#L38C1-L38C13
+ */
+object Features {
+  private val properties = java.util.Properties().also { properties ->
+    java.io.File("local.properties").apply {
+      if (exists()) {
+        inputStream().use { properties.load(it) }
+      }
+    }
+  }
+
+  private val disabled = (properties.getOrDefault("app.disable", "") as String)
+    .split(",")
+    .map { it.trim().lowercase() };
+
+  private val enabled = (properties.getOrDefault("app.experimental.enabled", "") as String)
+    .split(",")
+    .map { it.trim().lowercase() };
+
+  class Bool(val enabled: Boolean) {
+    val disabled = !enabled
+  }
+
+  val androidApp = Bool(!disabled.contains("android"));
+  val iosApp = Bool(!disabled.contains("ios"));
+  val desktopApp = Bool(enabled.contains("desktop"));
+  val electronApp = Bool(enabled.contains("electron"));
+  val libs = Bool(androidApp.enabled || iosApp.enabled || desktopApp.enabled)
+}
+
 
 rootProject.name = "dweb-browser-kmp"
 
@@ -46,15 +79,6 @@ fun includeUI(dirName: String) {
     projectDir = file("$dirName/ui")
   }
 }
-
-val properties = java.util.Properties().also { properties ->
-  file("local.properties").apply {
-    if (exists()) {
-      inputStream().use { properties.load(it) }
-    }
-  }
-}
-
 
 include(":platformTest")
 if (Features.iosApp.enabled) {
