@@ -1,10 +1,8 @@
 package org.dweb_browser.sys.location
 
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.DwebPermission
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -47,17 +45,17 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
         debugLocation("locationChannel=>", "enter => $remoteMmid->$precise")
         if (requestSystemPermission()) {
           try {
+            val observer = locationManage.observeLocation(minDistance, precise)
+            // 缓存通道
             val flowJob = CoroutineScope(ioAsyncExceptionHandler).launch {
-              val flow = locationManage.observeLocation(remoteMmid, minDistance, precise)
-              // 缓存通道
-              flow.buffer().collect { position ->
+              observer.flow.buffer().collect { position ->
                 debugLocation("locationChannel=>", "loop:$position")
                 ctx.sendJsonLine(position.toJsonElement())
               }
             }
             onClose {
               debugLocation("locationChannel=>", "onClose：$remoteMmid")
-              locationManage.removeLocationObserve(remoteMmid)
+              locationManage.removeLocationObserve(observer.id)
               flowJob.cancel()
             }
           } catch (e: Exception) {
@@ -72,11 +70,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
         val isPermission = requestSystemPermission()
         debugLocation("location/get", "isPermission=>$isPermission")
         if (isPermission) {
-          val res = CompletableDeferred<GeolocationPosition>()
-          locationManage.getCurrentLocation(ipc.remote.mmid, precise).take(1).collect {
-            res.complete(it)
-          }
-          res.await().toJsonElement()
+          locationManage.getCurrentLocation(ipc.remote.mmid, precise).toJsonElement()
         } else {
           throwException(HttpStatusCode.Unauthorized, LocationI18nResource.permission_denied.text)
         }

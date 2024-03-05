@@ -5,7 +5,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.randomUUID
 
 @Serializable
 data class GeolocationPositionState(val code: Int, val message: String?) {
@@ -48,27 +50,26 @@ data class GeolocationPosition(
   }
 }
 
-typealias LocationFlow = Flow<GeolocationPosition>
+open class LocationObserver(val flow: Flow<GeolocationPosition>) {
+  val id = randomUUID()
+}
 
 expect class LocationManage() {
   /**
    * 获取当前的位置信息
    */
-  suspend fun getCurrentLocation(mmid: MMID, precise: Boolean): LocationFlow
-
-//  suspend fun startLocation(mmid: MMID)
+  suspend fun getCurrentLocation(mmid: MMID, precise: Boolean): GeolocationPosition
 
   /**
    * 监听位置信息，位置信息变化及时通知
    * 返回的Boolean表示是否正常发送，如果发送遗产，关闭监听。
    */
   suspend fun observeLocation(
-    mmid: MMID, minDistance: Double, precise: Boolean
-  ): LocationFlow
+    minDistance: Double, precise: Boolean
+  ): LocationObserver
 
   /**
    * 移除定位监听
    */
-  fun removeLocationObserve(mmid: MMID)
-
+  suspend fun removeLocationObserve(observerId: UUID)
 }
