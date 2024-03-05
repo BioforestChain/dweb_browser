@@ -9,148 +9,127 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.CanvasBasedWindow
+import kotlinx.browser.window
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.dweb_browser.js_common.view_model.SyncType
-
+import org.dweb_browser.js_common.state_compose.ComposeFlow
+import org.dweb_browser.js_common.view_model.DataState
+import org.dweb_browser.js_common.view_model.DataStateValue
 import org.dweb_browser.js_frontend.browser_window.ElectronBrowserWindowModule
-import org.dweb_browser.js_frontend.view_model.ViewModelState
+import org.dweb_browser.js_frontend.state_compose.MutableState
+import org.dweb_browser.js_frontend.state_compose.toMutableStateListOf
 import org.jetbrains.skiko.wasm.onWasmReady
+import org.dweb_browser.js_frontend.state_compose.toMutableStateOf
+
+
+@Serializable
+class Person(
+    @JsName("name") val name: String, @JsName("id") val id: Int
+)
 
 @OptIn(ExperimentalComposeUiApi::class)
 suspend fun main() {
 
     // class 有额外的 p98_1:0这样的属性问题
     // 在 main() 里面声明的类不会有
+    var personCount = 0
 
-    val module = ElectronBrowserWindowModule(
-        moduleId =  "js.backend.dweb",
-        encodeValueToString = {key: String, value: dynamic, syncType: SyncType ->
-            when{
-                key == "currentCount" -> "$value"
-                key == "persons" && syncType == SyncType.ADD -> Json.encodeToString<Person>(value)
-                else -> throw(Throwable("""
-                    encodeValueToString还没有没处理的
-                    key: $key
-                    value: $value
-                    syncType: ${SyncType}
-                    at decodeValueFromString
-                    at index.kt
-                    at demoComposeApp
-                """.trimIndent()))
+    val count = DataStateValue.createStateValue<Int, String>()
+    val persons = DataStateValue.createListValue<Person, String>()
+//    val sub = DataStateValue.createMapValue(
+//        value = mapOf<String, DataStateValue<*>>(
+//            "count" to DataStateValue.createStateValue<Int, String>(),
+//            "persons" to DataStateValue.createListValue<Person, String>()
+//        )
+//    )
+
+    val dataState: DataState = mapOf<String, DataStateValue<*>>(
+        "count" to count,
+        "persons" to persons,
+//        "sub" to sub
+    )
+
+    val windowModule = ElectronBrowserWindowModule(
+        VMId = "demo.compose.app", dataState = dataState
+    ) {
+        console.log(" 接受到了服务器发送过来的同步数据", it)
+        when{
+            it.path == "count" -> {
+                val operationValueContainer = count.value.decodeFromString(it.data)
+                CoroutineScope(Dispatchers.Default).launch{
+                        count.value.emitByServer(operationValueContainer.value, operationValueContainer.emitType)
+                }
             }
-        },
-        decodeValueFromString = {key: String, value: String, syncType: SyncType ->
-            when{
-                key == "currentCount" -> value.toInt()
-                key == "persons" && syncType == SyncType.REPLACE -> Json.decodeFromString<MutableList<Person>>(value)
-                else -> console.error("""
-                      decodeValueFromString还没有没处理的
-                      key: $key
-                      value: $value
-                      syncType: ${SyncType}
-                      at decodeValueFromString
-                      at index.kt
-                      at demoComposeApp
-                """.trimIndent())
+
+            it.path == "persons" -> {
+                val operationValueContainer = persons.value.decodeFromString(it.data)
+                CoroutineScope(Dispatchers.Default).launch {
+                    if(operationValueContainer.index != -1){
+                        persons.value.emitByServer(operationValueContainer.value, operationValueContainer.emitType)
+                    }else{
+                        persons.value.emitByServer(operationValueContainer.value, operationValueContainer.emitType, operationValueContainer.index)
+                    }
+
+                }
+            }
+            else -> {
+                console.log(it)
+                console.log(it.path.split("/"))
             }
         }
-    )
-    module.viewModel.whenSyncDataFromServerDone.await()
+    }
+
     onWasmReady {
         CanvasBasedWindow("Chat") {
-            val list: ViewModelState.MutableStateList<Person> =
-                module.viewModel.state.toMutableStateListOf("persons")
+//            var a by ComposeFlow.createStateComposeFlowInstance<Int, String>().toMutableStateOf(1)
+//            val b by (DataStateValue.StateFlow.createStateFlow<Int, String>().flow as ComposeFlow.StateComposeFlow).toMutableStateOf(1)
+//            val c by (DataStateValue.createValueStateFlowInstance<Int, String>().flow as ComposeFlow.StateComposeFlow).toMutableStateOf(1)
+//            val d by (count.flow as ComposeFlow.StateComposeFlow).toMutableStateOf(1)
             Column(modifier = Modifier.fillMaxSize()) {
+                var insidePersons = persons.value.toMutableStateListOf()
                 Row(
                     modifier = Modifier.fillMaxWidth().height(50.dp)
                 ) {
-                    var count by module.viewModel.state.toMutableStateOf("currentCount")
-
-                    Button(onClick = {
-                        count = count + 1
-                    }) {
-                        Text("increment count:$count")
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(50.dp)
-                ) {
-                    Button(onClick = {
-                        module.controller.close()
-                    }) {
-                        Text("increment count: close")
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(50.dp)
-                ) {
-                    Button(onClick = {
-                        module.controller.reload()
-                    }) {
-                        Text("increment count: reload")
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(50.dp)
-                ) {
-                    Button(onClick = {
-                        val p = Person(name = "name-${list.size}", id=list.size + 1)
-                        list.add(p)
-                    }) {
-                        Text("list add")
-                    }
-                    Button(onClick = {
-//                        val ps = arrayOf(Person(name = "name-1-${list.size}", id=list.size + 1), Person(name = "name-1-${list.size}", id=list.size + 1))
-//                        list.addAll(ps)
+                    Button(onClick={
+                        window.location.reload()
                     }){
-                        Text("list addAll")
+                        Text("reload")
+                    }
+
+                    var insideCount by count.value.toMutableStateOf(1)
+
+
+                    Button(onClick = {
+                        insideCount++
+                        console.log("insideCount: ", insideCount)
+                    }) {
+                        Text("increment count:$insideCount")
+                    }
+
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                ) {
+                    Button(onClick = {
+                        personCount++;
+                        CoroutineScope(Dispatchers.Default).launch {
+                            insidePersons.add(Person("$personCount name", personCount))
+                        }
+
+                    }) {
+                        Text("increment count: add")
                     }
                 }
 
-                list.forEach {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().height(50.dp)
-                    ) {
-                        Text("name: ${it.name}")
-                        Text("id: ${it.id}")
+                insidePersons.forEach {
+                    Row(){
+                        Text("${it.id} - ${it.name}")
                     }
                 }
             }
         }
     }
 }
-
-
-
-@Serializable
-class Person(
-    @JsName("name")
-    val name: String,
-    @JsName("id")
-    val id: Int
-)
-
-
-
-//@Serializable
-//data class Person(
-//    @JsName("name") val name: String, @JsName("id") val id: Int
-//)
-
-// 用来测试实例化类没有额外的属性
-//fun main(){
-//    val bill = Person("bill", 1)
-//    // 使用 kotlinx Serialization 可以避免额外的
-//    val str = Json.encodeToString(bill)
-//    val b = Json.decodeFromString<Person>(str)
-//    console.log("str:", str)
-//    console.log("b: ", b)
-//    console.log(JSON.stringify(bill))
-//
-//    val list = listOf(bill)
-//    console.log(Json.encodeToString(list))
-//}
