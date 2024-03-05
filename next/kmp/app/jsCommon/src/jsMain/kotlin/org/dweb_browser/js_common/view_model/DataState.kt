@@ -146,22 +146,22 @@ class Value<T: Any>(
 sealed class DataStateValue<T: Any>(){
     abstract val value: T
     class StateValue<Item: Any, ClosedReason: Any >(
-        override val value: ComposeFlow.StateComposeFlow<Item, ClosedReason>
-    ): DataStateValue<ComposeFlow.StateComposeFlow<Item, ClosedReason>>()
+        override val value: ComposeFlow.StateComposeFlow<Item, Item, ClosedReason>
+    ): DataStateValue<ComposeFlow.StateComposeFlow<Item, Item,  ClosedReason>>()
 
     class ListValue<Item: Any, ClosedReason: Any>(
-        override val value: ComposeFlow.ListComposeFlow<Item, ClosedReason>
-    ): DataStateValue<ComposeFlow.ListComposeFlow<Item, ClosedReason>>()
+        override val value: ComposeFlow.ListComposeFlow<Item, List<Item>,ClosedReason>
+    ): DataStateValue<ComposeFlow.ListComposeFlow<Item, List<Item>,ClosedReason>>()
     // TODO: 是否需要Map??? 
 //    class MapValue<T: Map<String, DataStateValue<*>>>(override val value: T): DataStateValue<T>()
 
     companion object{
         inline fun <reified T: Any, ClosedReason: Any>createStateValue(): StateValue<T, ClosedReason>{
-            return StateValue(value = ComposeFlow.createStateComposeFlowInstance<T, ClosedReason>())
+            return StateValue(value = ComposeFlow.createStateComposeFlowInstance<T, T,  ClosedReason>())
         }
 
         inline fun <reified T: Any, ClosedReason: Any>createListValue(): ListValue<T, ClosedReason>{
-            return ListValue(value = ComposeFlow.createListComposeFlowInstance<T, ClosedReason>())
+            return ListValue(value = ComposeFlow.createListComposeFlowInstance<T, List<T>, ClosedReason>())
         }
 
 //         fun <T: Map<String, DataStateValue<*>>>createMapValue(value: T): MapValue<T>{

@@ -12,31 +12,31 @@ import kotlin.reflect.KProperty
 
 
 @Composable
-fun <T: Any, CloseReason: Any> ComposeFlow.StateComposeFlow<T, CloseReason>.toMutableStateOf(
-    initValue: T
-): MutableState<T, CloseReason> {
+fun <ItemType: Any, ValueType: ItemType, CloseReason: Any> ComposeFlow.StateComposeFlow<ItemType, ValueType, CloseReason>.toMutableStateOf(
+    initValue: ValueType
+): MutableState<ItemType, ValueType, CloseReason> {
     return remember {
         MutableState(initValue, this)
     }
 }
 
-class MutableState<T: Any, CloseReason: Any>(
-    initValue: T,
-    val stateCompose: ComposeFlow.StateComposeFlow<T, CloseReason>,
+class MutableState<ItemType: Any, ValueType: ItemType, CloseReason: Any>(
+    initValue: ValueType,
+    val stateCompose: ComposeFlow.StateComposeFlow<ItemType, ValueType, CloseReason>,
 ){
     val mutableState = mutableStateOf(initValue)
 
-    var value: T
+    var value: ValueType
         get() = mutableState.value
         set(value) {
             mutableState.value = value
         }
     fun component1() = mutableState.component1()
     fun component2() = mutableState.component2()
-    operator fun getValue(thisObj: Any?, property: KProperty<*>): T = value
+    operator fun getValue(thisObj: Any?, property: KProperty<*>): ValueType = value
 
     operator fun setValue(
-        thisObj: Any?, property: KProperty<*>, value: T
+        thisObj: Any?, property: KProperty<*>, value: ValueType
     ) {
         CoroutineScope(Dispatchers.Default).launch {
             stateCompose.emitByClient(value, EmitType.REPLACE)
