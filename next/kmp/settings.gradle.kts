@@ -54,13 +54,13 @@ val properties = java.util.Properties().also { properties ->
     }
   }
 }
-val disabledApps = (properties.getOrDefault("app.disable", "") as String)
+val enabledApps = (properties.getOrDefault("app.experimental.enabled", "") as String)
   .split(",")
   .map { it.trim().lowercase() }
-val enableAndroidApp = !disabledApps.contains("android")
-val enableIosApp = !disabledApps.contains("ios")
-val enableElectronApp = !disabledApps.contains("electron")
-val enableDesktop = !disabledApps.contains("desktop")
+val enableAndroidApp = enabledApps.contains("android")
+val enableIosApp = enabledApps.contains("ios")
+val enableElectronApp = enabledApps.contains("electron")
+val enableDesktop = enabledApps.contains("desktop")
 val enableLibs = enableAndroidApp || enableIosApp || enableDesktop
 
 include(":platformTest")
