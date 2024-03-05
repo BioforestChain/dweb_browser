@@ -9,7 +9,7 @@ kotlinCompilerExtensionVersion = "1.5.10"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
-agp = "8.2.2"
+agp = "8.3.0"
 kotlin-version = "1.9.22"
 androidx-test = "1.5.2"
 androidx-compose-ui-test = "1.6.2"

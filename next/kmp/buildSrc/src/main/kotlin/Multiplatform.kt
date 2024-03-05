@@ -412,7 +412,7 @@ fun KotlinMultiplatformExtension.kmpCommonTarget(
 
   if (project.extensions.findByName("android") != null) {
     // LibraryExtension or BaseApplicationExtension
-    project.extensions.configure<com.android.build.api.dsl.CommonExtension<*, *, *, *, *>>("android") {
+    project.extensions.configure<com.android.build.api.dsl.CommonExtension<*, *, *, *, *, *>>("android") {
       namespace =
         "org.dweb_browser.${project.name.replace(Regex("[A-Z]+")) { (if (it.range.first == 0) "" else ".") + it.value.lowercase() }}"
       println("namespace: $namespace")
