@@ -1,6 +1,7 @@
 package org.dweb_browser.dwebview
 
 import androidx.compose.ui.graphics.ImageBitmap
+import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharedFlow
@@ -8,6 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
+import org.dweb_browser.dwebview.messagePort.DWebMessagePort
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
@@ -131,18 +134,26 @@ class DWebView(
 
   override suspend fun historyGoForward(): Boolean = viewEngine.goForward()
 
-  override val urlStateFlow by lazy { generateOnUrlChangeFromLoadedUrlCache() }
+  override val urlStateFlow by lazy { generateOnUrlChangeFromLoadedUrlCache(viewEngine.loadedUrlCache) }
 
   override suspend fun createMessageChannel(): IWebMessageChannel {
-    TODO("Not yet implemented")
+    val channel = viewEngine.mainFrame.executeJavaScript<JsObject>("new MessageChannel()")
+    if(channel != null) {
+      val port1 = DWebMessagePort(channel.property<JsObject>("port1").get(), this)
+      val port2 = DWebMessagePort(channel.property<JsObject>("port2").get(), this)
+
+      return DWebMessageChannel(port1, port2)
+    }
+
+    throw NoSuchFieldException("MessageChannel create failed!")
   }
 
   override suspend fun postMessage(data: String, ports: List<IWebMessagePort>) {
-    TODO("Not yet implemented")
+    ports.first().onMessage.signal.emit(DWebMessage.DWebMessageString(data, ports))
   }
 
   override suspend fun postMessage(data: ByteArray, ports: List<IWebMessagePort>) {
-    TODO("Not yet implemented")
+    ports.first().onMessage.signal.emit(DWebMessage.DWebMessageBytes(data, ports))
   }
 
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) {

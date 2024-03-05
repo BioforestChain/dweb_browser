@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.teamdev.jxbrowser.browser.Browser
 import com.teamdev.jxbrowser.browser.CloseOptions
 import com.teamdev.jxbrowser.browser.event.BrowserClosed
-import com.teamdev.jxbrowser.browser.event.RenderProcessStarted
 import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
