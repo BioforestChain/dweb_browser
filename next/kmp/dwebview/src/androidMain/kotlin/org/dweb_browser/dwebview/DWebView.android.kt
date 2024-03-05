@@ -68,7 +68,6 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
         launch(ioAsyncExceptionHandler) {
           DwebViewPolyfill.prepare();
         }
-        DwebViewProxy.prepare();
         launch {
           DwebViewProxyOverride.prepare()
         }
