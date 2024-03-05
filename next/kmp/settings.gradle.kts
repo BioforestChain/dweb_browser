@@ -54,28 +54,21 @@ val properties = java.util.Properties().also { properties ->
     }
   }
 }
-val enabledApps = (properties.getOrDefault("app.experimental.enabled", "") as String)
-  .split(",")
-  .map { it.trim().lowercase() }
-val enableAndroidApp = enabledApps.contains("android")
-val enableIosApp = enabledApps.contains("ios")
-val enableElectronApp = enabledApps.contains("electron")
-val enableDesktop = enabledApps.contains("desktop")
-val enableLibs = enableAndroidApp || enableIosApp || enableDesktop
+
 
 include(":platformTest")
-if (enableIosApp) {
+if (Features.iosApp.enabled) {
   include(":platformIos")
 }
-if (enableElectronApp) {
+if (Features.electronApp.enabled) {
   include(":platformNode")
   include(":platformBrowser")
 }
-if (enableDesktop) {
+if (Features.desktopApp.enabled) {
   include(":platformDesktop")
 }
 
-if(enableLibs){
+if (Features.libs.enabled) {
   include(":helper")
   include(":helperCompose")
   include(":helperPlatform")
@@ -94,11 +87,11 @@ if(enableLibs){
 }
 //includeUI("pureCrypto")
 //includeUI("helper")
-if (enableAndroidApp) {
+if (Features.androidApp.enabled) {
   includeApp("androidApp")
   includeApp("androidBenchmark")
 }
-if (enableElectronApp) {
+if (Features.electronApp.enabled) {
   includeApp("jsCommon")
   includeApp("electronApp")
   includeApp("jsFrontend")
@@ -106,7 +99,7 @@ if (enableElectronApp) {
   includeApp("demoComposeApp")
 }
 
-if(enableLibs){
+if (Features.libs.enabled) {
   File(
     rootDir,
     "../../toolkit/dweb_browser_libs/rust_library"
