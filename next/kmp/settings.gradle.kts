@@ -59,7 +59,7 @@ val disabledApps = (properties.getOrDefault("app.disable", "") as String)
   .map { it.trim().lowercase() }
 val enableAndroidApp = !disabledApps.contains("android")
 val enableIosApp = !disabledApps.contains("ios")
-val enableElectronApp = false// !disabledApps.contains("electron")
+val enableElectronApp = !disabledApps.contains("electron")
 val enableDesktop = !disabledApps.contains("desktop")
 val enableLibs = enableAndroidApp || enableIosApp || enableDesktop
 
@@ -75,21 +75,23 @@ if (enableDesktop) {
   include(":platformDesktop")
 }
 
-include(":helper")
-include(":helperCompose")
-include(":helperPlatform")
+if(enableLibs){
+  include(":helper")
+  include(":helperCompose")
+  include(":helperPlatform")
 
-include(":pureHttp")
-include(":pureIO")
-include(":pureCrypto")
-include(":pureImage")
+  include(":pureHttp")
+  include(":pureIO")
+  include(":pureCrypto")
+  include(":pureImage")
 
-include(":window")
-include(":core")
-include(":dwebview")
-include(":browser")
-include(":sys")
-include(":shared")
+  include(":window")
+  include(":core")
+  include(":dwebview")
+  include(":browser")
+  include(":sys")
+  include(":shared")
+}
 //includeUI("pureCrypto")
 //includeUI("helper")
 if (enableAndroidApp) {
@@ -100,21 +102,24 @@ if (enableElectronApp) {
   includeApp("jsCommon")
   includeApp("electronApp")
   includeApp("jsFrontend")
-  includeApp("demoReactApp")
+//  includeApp("demoReactApp")
   includeApp("demoComposeApp")
 }
 
-File(
-  rootDir,
-  "../../toolkit/dweb_browser_libs/rust_library"
-).listFiles { file -> file.isDirectory }
-  ?.forEach { dir ->
-    if (File(dir, "build.gradle.kts").exists()) {
-      include(dir.name)
-      project(":${dir.name}").apply {
-        name = "lib_${dir.name}"
-        projectDir = file(dir)
-        buildFileName = "build-mobile.gradle.kts"
+if(enableLibs){
+  File(
+    rootDir,
+    "../../toolkit/dweb_browser_libs/rust_library"
+  ).listFiles { file -> file.isDirectory }
+    ?.forEach { dir ->
+      if (File(dir, "build.gradle.kts").exists()) {
+        include(dir.name)
+        project(":${dir.name}").apply {
+          name = "lib_${dir.name}"
+          projectDir = file(dir)
+          buildFileName = "build-mobile.gradle.kts"
+        }
       }
     }
-  }
+}
+
