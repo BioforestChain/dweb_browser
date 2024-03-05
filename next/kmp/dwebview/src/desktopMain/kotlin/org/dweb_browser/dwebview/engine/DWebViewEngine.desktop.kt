@@ -11,7 +11,10 @@ import org.dweb_browser.platform.desktop.webview.WebviewEngine
 import java.util.function.Consumer
 
 class DWebViewEngine(val options: DWebViewOptions) {
-  val browser: Browser = WebviewEngine.hardwareAccelerated.newBrowser()
+  companion object{
+    val dwebviewEngine = WebviewEngine.hardwareAccelerated()
+  }
+  val browser: Browser = dwebviewEngine.newBrowser()
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
   val mainFrame get() = browser.mainFrame().get()
 

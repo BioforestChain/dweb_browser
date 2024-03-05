@@ -1,6 +1,7 @@
 package org.dweb_browser.platform.desktop.webview
 
 import com.teamdev.jxbrowser.engine.Engine
+import com.teamdev.jxbrowser.engine.EngineOptions
 import com.teamdev.jxbrowser.engine.RenderingMode.HARDWARE_ACCELERATED
 import com.teamdev.jxbrowser.engine.RenderingMode.OFF_SCREEN
 
@@ -13,6 +14,19 @@ object WebviewEngine {
     );
   }
 
-  val hardwareAccelerated by lazy { Engine.newInstance(HARDWARE_ACCELERATED) }
-  val offScreen by lazy { Engine.newInstance(OFF_SCREEN) }
+  fun hardwareAccelerated(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine =
+    Engine.newInstance(
+      EngineOptions.newBuilder(HARDWARE_ACCELERATED).run {
+        optionsBuilder?.invoke(this)
+        build()
+      })
+
+  fun offScreen(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine =
+    Engine.newInstance(
+      EngineOptions.newBuilder(OFF_SCREEN).run {
+        optionsBuilder?.invoke(this)
+        build()
+      })
+
+  val offScreen by lazy { offScreen() }
 }
