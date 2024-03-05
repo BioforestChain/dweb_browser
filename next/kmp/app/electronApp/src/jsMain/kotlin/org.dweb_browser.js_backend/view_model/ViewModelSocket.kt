@@ -7,7 +7,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import node.buffer.Buffer
 import node.buffer.BufferEncoding
 import node.crypto.BinaryToTextEncoding
@@ -15,13 +14,10 @@ import node.crypto.createHash
 import node.net.Socket
 import node.net.SocketEvent
 import kotlin.experimental.xor
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.js_common.view_model.SyncData
-import org.dweb_browser.js_common.view_model.SyncType
+import org.dweb_browser.js_common.network.socket.SocketData
 
-
-typealias OnDataCallback = (key: String, value: String, syncType: SyncType) -> Unit
+typealias OnDataCallback = (socketData: SocketData) -> Unit
 typealias OnConnectCallback = () -> Unit
 typealias OnCloseCallback = (hadError: Boolean) -> Unit
 typealias OnEndCallback = () -> Unit
@@ -59,10 +55,9 @@ class ViewModelSocket(
         socket.on(SocketEvent.DATA, ::_onDataCallback)
         scope.launch {
             _realDataFlow.collect{
-                _onDataCBList.forEach { cb ->
-                    val syncData = Json.decodeFromString<SyncData>(it)
-                    cb(syncData.key, syncData.value, syncData.type)
-                }
+                console.log("接受到了Client同步数据 it: ", it)
+                val socketData = Json.decodeFromString<SocketData>(it)
+                _onDataCBList.forEach { it(socketData)}
             }
         }
     }
@@ -143,10 +138,8 @@ class ViewModelSocket(
     /**
      * 向UI发送数据
      */
-    fun write(key: String, value: String, type: SyncType){
-        val syncData = SyncData(key, value, type)
-        val jsonString = Json.encodeToString<SyncData>(syncData)
-        socket.write(_encodeDataFrame(jsonString))
+    fun write(value: String){
+        socket.write(_encodeDataFrame(value))
     }
 }
 
