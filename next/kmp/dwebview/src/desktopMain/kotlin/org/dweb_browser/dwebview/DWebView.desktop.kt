@@ -131,8 +131,7 @@ class DWebView(
 
   override suspend fun historyGoForward(): Boolean = viewEngine.goForward()
 
-  override val urlStateFlow: StateFlow<String>
-    get() = TODO("Not yet implemented")
+  override val urlStateFlow by lazy { generateOnUrlChangeFromLoadedUrlCache() }
 
   override suspend fun createMessageChannel(): IWebMessageChannel {
     TODO("Not yet implemented")

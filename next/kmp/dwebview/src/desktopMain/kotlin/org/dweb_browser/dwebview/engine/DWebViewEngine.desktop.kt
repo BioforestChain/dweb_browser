@@ -3,9 +3,12 @@ package org.dweb_browser.dwebview.engine
 import androidx.compose.ui.graphics.ImageBitmap
 import com.teamdev.jxbrowser.browser.Browser
 import com.teamdev.jxbrowser.browser.CloseOptions
+import com.teamdev.jxbrowser.browser.event.BrowserClosed
 import com.teamdev.jxbrowser.browser.event.RenderProcessStarted
 import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsPromise
+import com.teamdev.jxbrowser.navigation.LoadUrlParams
+import com.teamdev.jxbrowser.navigation.event.LoadStarted
 import com.teamdev.jxbrowser.net.HttpHeader
 import com.teamdev.jxbrowser.net.HttpStatus
 import com.teamdev.jxbrowser.net.Scheme
@@ -22,6 +25,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.dwebview.polyfill.UserAgentData
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.JsonLoose
@@ -59,15 +63,15 @@ class DWebViewEngine internal constructor(
   val mainFrame get() = browser.mainFrame().get()
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
+  internal val loadedUrlCache = LoadedUrlCache(ioScope)
 
   init {
     // 设置https代理
     val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
     dwebviewEngine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
 
-    browser.on(RenderProcessStarted::class.java) {
-      setUA()
-    }
+    // 添加监听事件
+    addListenerEvent()
 
     // 设置
     browser.settings().apply {
@@ -80,6 +84,18 @@ class DWebViewEngine internal constructor(
       allowJavaScriptAccessClipboard()
       allowScriptsToCloseWindows()
       allowLoadingImagesAutomatically()
+    }
+  }
+
+  private fun addListenerEvent() {
+    // 开始加载时，设置userAgent
+    browser.navigation().on(LoadStarted::class.java) {
+      setUA()
+    }
+
+    // browser关闭，销毁dwebviewEngine
+    browser.on(BrowserClosed::class.java) {
+      dwebviewEngine.close()
     }
   }
 
@@ -116,7 +132,28 @@ class DWebViewEngine internal constructor(
   }
 
   fun loadUrl(url: String) {
-    browser.navigation().loadUrl(url)
+    val safeUrl = resolveUrl(url)
+    loadedUrlCache.checkLoadedUrl(safeUrl) {
+      browser.navigation().loadUrl(url)
+      true
+    }
+  }
+
+  fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>, postData: String? = null) {
+    val safeUrl = resolveUrl(url)
+    loadedUrlCache.checkLoadedUrl(safeUrl, additionalHttpHeaders) {
+      val loadUrlParams = LoadUrlParams.newBuilder(url)
+      additionalHttpHeaders.forEach { (key, value) ->
+        loadUrlParams.addExtraHeader(HttpHeader.of(key, value))
+      }
+
+      if(postData != null) {
+        loadUrlParams.postData(postData)
+      }
+
+      browser.navigation().loadUrl(loadUrlParams.build())
+      true
+    }
   }
 
   fun resolveUrl(url: String): String {
