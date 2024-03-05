@@ -1,11 +1,12 @@
 import { once } from "../../helper/$once.ts";
 import { $Binary, binaryToU8a } from "../../helper/binaryHelper.ts";
-import { IPC_MESSAGE_TYPE, IpcMessage } from "./const.ts";
+import { IPC_MESSAGE_TYPE } from "./helper/const.ts";
+import { IpcMessage } from "./helper/IpcMessage.ts";
 import type { Ipc } from "./ipc.ts";
-import type { IpcBody } from "./IpcBody.ts";
-import { IpcBodySender, setStreamId } from "./IpcBodySender.ts";
-import { IpcHeaders } from "./IpcHeaders.ts";
-import type { MetaBody } from "./MetaBody.ts";
+import type { IpcBody } from "./stream/IpcBody.ts";
+import { IpcBodySender, setStreamId } from "./stream/IpcBodySender.ts";
+import { IpcHeaders } from "./helper/IpcHeaders.ts";
+import type { MetaBody } from "./stream/MetaBody.ts";
 
 export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
   constructor(

@@ -201,6 +201,6 @@ ALL_PROCESS_MAP.onChange(() => {
   document.body.innerHTML = innerHTML;
 });
 
-window.onbeforeunload = (event) => {
-  return (event.returnValue = "666");
-};
+// window.onbeforeunload = (event) => {
+//   return (event.returnValue = "666");
+// };

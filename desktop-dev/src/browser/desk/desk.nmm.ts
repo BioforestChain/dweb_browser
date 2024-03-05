@@ -1,5 +1,5 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
-import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
 import { buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { Ipc, IpcEvent } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";

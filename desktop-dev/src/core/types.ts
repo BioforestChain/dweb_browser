@@ -8,7 +8,7 @@ export interface $IpcSupportProtocols {
   protobuf: boolean;
   raw: boolean;
 }
-import { MICRO_MODULE_CATEGORY } from "./category.const.ts";
+import { MICRO_MODULE_CATEGORY } from "./helper/category.const.ts";
 /**
  * 一种通用的 “应用” 元数据格式
  */

@@ -23,10 +23,6 @@ import org.dweb_browser.pure.http.PureStreamBody
 data class DwebHttpServerOptions(
   val subdomain: String = "",
 ) {
-//  constructor(
-//    port: Int? = 80,
-//    subdomain: String? = "",
-//  ) : this(port ?: 80, subdomain ?: "")
 }
 
 suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions): HttpNMM.ServerStartResult {
@@ -61,8 +57,7 @@ suspend fun MicroModule.listenHttpDwebServer(
     kotlinIpcPool.create<ReadableStreamIpc>(
       "http-server/${startResult.urlInfo.host}",
       IpcOptions(httpIpc.remote)
-    )
-      .also {
+    ).also {
         it.bindIncomeStream(
           this.nativeFetch(
             PureClientRequest(

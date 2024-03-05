@@ -3,7 +3,7 @@ import { match } from "ts-pattern";
 import type { string as P_string } from "ts-pattern/dist/patterns.d.ts";
 import type { Pattern } from "ts-pattern/dist/types/Pattern.d.ts";
 
-import { IPC_METHOD } from "../core/ipc/const.ts";
+import { IPC_METHOD } from "../core/ipc/helper/const.ts";
 import { $OnFetch, FetchEvent } from "../core/ipc/index.ts";
 export type $PatternPathname =
   | string

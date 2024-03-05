@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
-import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
-import { IPC_METHOD } from "../../core/ipc/const.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
+import { IPC_METHOD } from "../../core/ipc/helper/const.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { CacheGetter } from "../../helper/cacheGetter.ts";
 import { electronConfig } from "../../helper/electronStore.ts";

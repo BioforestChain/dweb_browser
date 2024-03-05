@@ -3,9 +3,9 @@ import { CacheGetter } from "../../helper/cacheGetter.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { MicroModule } from "../micro-module.ts";
 import type { $MicroModuleManifest } from "../types.ts";
-import type { IpcHeaders } from "./IpcHeaders.ts";
 import { IpcRequest } from "./IpcRequest.ts";
 import type { IpcResponse } from "./IpcResponse.ts";
+import type { IpcHeaders } from "./helper/IpcHeaders.ts";
 import {
   $IpcMessage,
   $OnIpcErrorMessage,
@@ -14,14 +14,15 @@ import {
   $OnIpcRequestMessage,
   $OnIpcStreamMessage,
   IPC_MESSAGE_TYPE,
+  IPC_STATE,
   type $OnIpcMessage,
-} from "./const.ts";
+} from "./helper/const.ts";
 
-import { once } from "../../helper/helper.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { $OnFetch, createFetchHandler } from "../helper/ipcFetchHelper.ts";
-import { IpcEvent } from "./IpcEvent.ts";
+import { IpcLifeCycle } from "./IpcLifeCycle.ts";
 import { PureChannel, pureChannelToIpcEvent } from "./PureChannel.ts";
+import { IpcPool } from "./IpcPool.ts";
 export {
   FetchError,
   FetchEvent,
@@ -33,6 +34,7 @@ export {
 let ipc_uid_acc = 0;
 let _order_by_acc = 0;
 export abstract class Ipc {
+
   readonly uid = ipc_uid_acc++;
   static order_by_acc = _order_by_acc++;
   /**
@@ -70,8 +72,10 @@ export abstract class Ipc {
   }
 
   protected _support_binary = false;
-
+  // 跟ipc绑定的模块
   abstract readonly remote: $MicroModuleManifest;
+  // 当前ipc生命周期
+  private ipcLifeCycleState: IPC_STATE = IPC_STATE.OPENING;
   protected _closeSignal = createSignal<() => unknown>(false);
   onClose = this._closeSignal.listen;
   asRemoteInstance() {
@@ -79,7 +83,6 @@ export abstract class Ipc {
       return this.remote;
     }
   }
-  abstract readonly role: string;
 
   // deno-lint-ignore no-explicit-any
   private _createSignal<T extends $Callback<any[]>>(autoStart?: boolean) {
@@ -153,7 +156,7 @@ export abstract class Ipc {
   onEvent(cb: $OnIpcEventMessage) {
     return this._onEventSignal.value.listen(cb);
   }
-
+  // lifecycle start
   private _lifeCycleSignal = new CacheGetter(() => {
     const signal = this._createSignal<$OnIpcLifeCycleMessage>(false);
     this.onMessage((event, ipc) => {
@@ -168,6 +171,38 @@ export abstract class Ipc {
     return this._lifeCycleSignal.value.listen(cb);
   }
 
+  lifeCycleHook() {
+    // TODO 跟对方通信 协商数据格式
+    this.onLifeCycle((lifeCycle, ipc) => {
+      console.log("lifeCycleHook=>", lifeCycle.state);
+      switch (lifeCycle.state) {
+        // 收到打开中的消息，也告知自己已经准备好了
+        case IPC_STATE.OPENING: {
+          ipc.postMessage(new IpcLifeCycle(IPC_STATE.OPEN));
+          break;
+        }
+        // 收到对方完成开始建立连接
+        case IPC_STATE.OPEN: {
+          if (!ipc.startDeferred.is_resolved) {
+            ipc.startDeferred.resolve(lifeCycle);
+          }
+          break;
+        }
+        // 消息通道开始关闭
+        case IPC_STATE.CLOSING: {
+          ipc.closing();
+          break;
+        }
+        // 对方关了，代表没有消息发过来了，我也关闭
+        case IPC_STATE.CLOSED: {
+          ipc.close();
+        }
+      }
+    });
+  }
+
+  // lifecycle end
+
   private _errorSignal = new CacheGetter(() => {
     const signal = this._createSignal<$OnIpcErrorMessage>(false);
     this.onMessage((event, ipc) => {
@@ -180,21 +215,6 @@ export abstract class Ipc {
 
   onError(cb: $OnIpcErrorMessage) {
     return this._errorSignal.value.listen(cb);
-  }
-
-  abstract _doClose(): void;
-
-  private _closed = false;
-  close() {
-    if (this._closed) {
-      return;
-    }
-    this._closed = true;
-    this._doClose();
-    this._closeSignal.emitAndClear();
-  }
-  get isClosed() {
-    return this._closed;
   }
 
   private _req_id_acc = 0;
@@ -259,28 +279,64 @@ export abstract class Ipc {
     );
   }
 
-  private readyListener = once(async () => {
-    const ready = new PromiseOut<IpcEvent>();
-    this.onEvent((event, ipc) => {
-      if (event.name === "ping") {
-        ipc.postMessage(new IpcEvent("pong", event.data, event.encoding));
-      } else if (event.name === "pong") {
-        ready.resolve(event);
-      }
-    });
-    (async () => {
-      let timeDelay = 50;
-      while (!ready.is_resolved && !this.isClosed && timeDelay < 5000) {
-        this.postMessage(IpcEvent.fromText("ping", ""));
-        await PromiseOut.sleep(timeDelay).promise;
-        timeDelay *= 3;
-      }
-    })();
-    return await ready.promise;
-  });
-  ready() {
-    return this.readyListener();
+  // private readyListener = once(async () => {
+  //   const ready = new PromiseOut<IpcEvent>();
+  //   this.onEvent((event, ipc) => {
+  //     if (event.name === "ping") {
+  //       ipc.postMessage(new IpcEvent("pong", event.data, event.encoding));
+  //     } else if (event.name === "pong") {
+  //       ready.resolve(event);
+  //     }
+  //   });
+  //   (async () => {
+  //     let timeDelay = 50;
+  //     while (!ready.is_resolved && !this.isClosed && timeDelay < 5000) {
+  //       this.postMessage(IpcEvent.fromText("ping", ""));
+  //       await PromiseOut.sleep(timeDelay).promise;
+  //       timeDelay *= 3;
+  //     }
+  //   })();
+  //   return await ready.promise;
+  // });
+  // ready() {
+  //   return this.readyListener();
+  // }
+
+  // 标记是否启动完成
+  startDeferred = new PromiseOut<IpcLifeCycle>();
+  isActivity = this.startDeferred.is_resolved;
+  awaitStart = this.startDeferred.promise;
+  // 告知对方我启动了
+  start() {
+    this.ipcLifeCycleState = IPC_STATE.OPEN;
+    this.postMessage(new IpcLifeCycle(IPC_STATE.OPENING));
   }
+
+  closing() {
+    if (this.ipcLifeCycleState !== IPC_STATE.CLOSING) {
+      this.ipcLifeCycleState = IPC_STATE.CLOSING;
+      // TODO 这里是缓存消息处理的最后时间区间
+      this.close();
+    }
+  }
+
+  /**----- close start*/
+  abstract _doClose(): void;
+
+  private _closed = this.ipcLifeCycleState == IPC_STATE.CLOSED;
+  close() {
+    if (this._closed) {
+      return;
+    }
+    this.ipcLifeCycleState = IPC_STATE.CLOSED;
+    this._closed = true;
+    this._doClose();
+    this._closeSignal.emitAndClear();
+  }
+  get isClosed() {
+    return this._closed;
+  }
+  /**----- close end*/
 }
 export type $IpcRequestInit = {
   method?: string;

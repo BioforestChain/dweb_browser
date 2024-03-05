@@ -144,7 +144,7 @@ data class MetaBody(
   val jsonAble by lazy {
     when (type.encoding) {
       IPC_DATA_ENCODING.BINARY -> fromBase64(
-        senderPoolId, (data as ByteArray).toBase64(), streamId, receiverPoolId
+         (data as ByteArray).toBase64(),senderPoolId, streamId, receiverPoolId
       )
 
       else -> this

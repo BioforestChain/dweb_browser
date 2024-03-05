@@ -1,4 +1,5 @@
-import { IPC_MESSAGE_TYPE, IpcMessage } from "./const.ts";
+import { IPC_MESSAGE_TYPE } from "./helper/const.ts";
+import { IpcMessage } from "./helper/IpcMessage.ts";
 
 export class IpcError extends IpcMessage<IPC_MESSAGE_TYPE.ERROR> {
   constructor(readonly errorCode: number, readonly message?: string) {

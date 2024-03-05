@@ -1,4 +1,4 @@
-import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
 import { $CommonAppManifest, $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 
 /** Js模块应用 元数据 */

@@ -1,21 +1,21 @@
 /// <reference lib="webworker"/>
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
-import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MicroModule, $MMID } from "@dweb-browser/desktop/core/types.ts";
-import type { $RunMainConfig } from "../main/index.module.ts";
+import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MicroModule, $MMID } from "../../../../core/types.ts";
 
-import { $normalizeRequestInitAsIpcRequestArgs } from "@dweb-browser/desktop/core/helper/ipcRequestHelper.ts";
-import { $Callback, createSignal } from "@dweb-browser/desktop/helper/createSignal.ts";
-import { fetchExtends } from "@dweb-browser/desktop/helper/fetchExtends/index.ts";
-import { mapHelper } from "@dweb-browser/desktop/helper/mapHelper.ts";
-import { normalizeFetchArgs } from "@dweb-browser/desktop/helper/normalizeFetchArgs.ts";
-import { PromiseOut } from "@dweb-browser/desktop/helper/PromiseOut.ts";
-import { updateUrlOrigin } from "@dweb-browser/desktop/helper/urlHelper.ts";
-export type { fetchExtends } from "@dweb-browser/desktop/helper/fetchExtends/index.ts";
+import { $normalizeRequestInitAsIpcRequestArgs } from "../../../../core/helper/ipcRequestHelper.ts";
+import { $Callback, createSignal } from "../../../../helper/createSignal.ts";
+import { fetchExtends } from "../../../../helper/fetchExtends/index.ts";
+import { mapHelper } from "../../../../helper/mapHelper.ts";
+import { normalizeFetchArgs } from "../../../../helper/normalizeFetchArgs.ts";
+import { PromiseOut } from "../../../../helper/PromiseOut.ts";
+import { updateUrlOrigin } from "../../../../helper/urlHelper.ts";
+export type { fetchExtends } from "../../../../helper/fetchExtends/index.ts";
 
 import * as core from "./std-dweb-core.ts";
 import * as http from "./std-dweb-http.ts";
 
+import { $RunMainConfig } from "../main/index.ts";
 import {
   $messageToIpcMessage,
   $OnFetch,
@@ -24,7 +24,6 @@ import {
   createFetchHandler,
   Ipc,
   IPC_HANDLE_EVENT,
-  IPC_ROLE,
   IpcEvent,
   IpcRequest,
   MessagePortIpc,
@@ -135,9 +134,7 @@ export class JsProcessMicroModule implements $MicroModule {
           cbor: protocols.includes("cbor"),
           protobuf: protocols.includes("protobuf"),
         } satisfies $IpcSupportProtocols;
-        let rote = IPC_ROLE.CLIENT as IPC_ROLE;
         const port_po = mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
-          rote = IPC_ROLE.SERVER;
           const ipc_po = new PromiseOut<MessagePortIpc>();
           ipc_po.onSuccess((ipc) => {
             ipc.onClose(() => {
@@ -146,17 +143,13 @@ export class JsProcessMicroModule implements $MicroModule {
           });
           return ipc_po;
         });
-        const ipc = new MessagePortIpc(
-          port,
-          {
-            mmid,
-            ipc_support_protocols,
-            dweb_deeplinks: [],
-            categories: [],
-            name: this.name,
-          },
-          rote
-        );
+        const ipc = new MessagePortIpc(port, {
+          mmid,
+          ipc_support_protocols,
+          dweb_deeplinks: [],
+          categories: [],
+          name: this.name,
+        });
         port_po.resolve(ipc);
         if (typeof navigator === "object" && navigator.locks) {
           ipc.onEvent((event) => {
@@ -224,7 +217,7 @@ export class JsProcessMicroModule implements $MicroModule {
     this.mmid = meta.data.mmid;
     this.name = `js process of ${this.mmid}`;
     this.host = this.meta.envString("host");
-    this.fetchIpc = new MessagePortIpc(this.nativeFetchPort, this, IPC_ROLE.SERVER);
+    this.fetchIpc = new MessagePortIpc(this.nativeFetchPort, this);
     this.fetchIpc.onEvent(async (ipcEvent) => {
       if (ipcEvent.name === "dns/connect/done" && typeof ipcEvent.data === "string") {
         const { connect, result } = JSON.parse(ipcEvent.data);
@@ -387,9 +380,9 @@ export class JsProcessMicroModule implements $MicroModule {
   }
 
   private _appReady = new PromiseOut<void>();
-  private async afterIpcReady(ipc: Ipc) {
+  private async afterIpcReady(_ipc: Ipc) {
     await this._appReady.promise;
-    await ipc.ready();
+    // await ipc.ready();
   }
 
   ready() {
@@ -405,6 +398,7 @@ export class JsProcessMicroModule implements $MicroModule {
     return this._connectSignal.listen(cb);
   }
   // 提供一个关闭通信的功能
+  // deno-lint-ignore no-explicit-any
   close(reson?: any) {
     this._ipcConnectsMap.forEach(async (ipc) => {
       ipc.promise.then((res) => {

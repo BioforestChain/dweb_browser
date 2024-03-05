@@ -1,4 +1,4 @@
-import { ReadableStreamIpc } from "dweb/core/ipc-web/index.ts";
+import { ReadableStreamIpc } from "dweb/core/index.ts";
 import type { $MicroModuleManifest } from "dweb/core/types.ts";
 import { PromiseOut } from "dweb/helper/PromiseOut.ts";
 import { simpleEncoder } from "dweb/helper/encoding.ts";

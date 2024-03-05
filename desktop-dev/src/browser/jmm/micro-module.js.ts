@@ -1,7 +1,7 @@
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
-import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
-import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
-import { IPC_ROLE, Ipc, IpcError, IpcResponse } from "../../core/ipc/index.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
+import { ReadableStreamIpc } from "../../core/ipc/ReadableStreamIpc.ts";
+import { Ipc, IpcError, IpcResponse } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
 import { connectAdapterManager } from "../../core/nativeConnect.ts";
 import type { $IpcSupportProtocols, $MMID } from "../../core/types.ts";
@@ -147,7 +147,7 @@ export class JsMicroModule extends MicroModule {
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
     // 这个 streamIpc 专门服务于 file://js.browser.dweb/create-process
-    const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
+    const streamIpc = new ReadableStreamIpc(this);
     // 用来提供 JsMicroModule 匹配的 worker.js 代码
     streamIpc.onRequest(async (request) => {
       if (request.parsed_url.pathname.endsWith("/")) {

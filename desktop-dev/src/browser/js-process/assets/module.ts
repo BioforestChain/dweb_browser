@@ -4,7 +4,6 @@ export type { $MMID, $MicroModuleManifest } from "../../../core/helper/types.ts"
 export * from "../../../helper/PromiseOut.ts";
 export * from "../../../helper/binaryHelper.ts";
 export type { $JmmAppInstallManifest, $JmmAppManifest } from "../../jmm/types.ts";
-// export * from "../../../helper/color.ts"; // 没用到
 export * from "../../../helper/$debounce.ts";
 export * from "../../../helper/createSignal.ts";
 export * from "../../../helper/encoding.ts";
@@ -23,7 +22,6 @@ export const { jsProcess, http, ipc, core } = navigator.dweb;
 export const {
   FetchError,
   IPC_METHOD,
-  IPC_ROLE,
   Ipc,
   IpcBodySender,
   IpcEvent,

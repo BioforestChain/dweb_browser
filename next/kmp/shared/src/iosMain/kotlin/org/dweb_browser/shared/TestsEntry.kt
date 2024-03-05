@@ -5,7 +5,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.sys.boot.BootNMM
+import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
 import org.dweb_browser.sys.share.ext.postSystemShare

@@ -120,9 +120,9 @@ open class MessagePortIpc(
         when (event.encode) {
           DWebMessageBytesEncode.Normal -> when (val message =
             bytesToIpcMessage(event.data, ipc)) {
-            closeByteArray -> close()
-            pingByteArray -> port.postMessage(pongByteArray)
-            pongByteArray -> debugMessagePortIpc("PONG", endpoint.poolId)
+//            closeByteArray -> close()
+//            pingByteArray -> port.postMessage(pongByteArray)
+//            pongByteArray -> debugMessagePortIpc("PONG", endpoint)
             is IpcPoolPack -> {
               debugMessagePortIpc("ON-MESSAGE", "Normal.IpcPoolPack=> $endpoint => $message")
               // 分发消息
@@ -143,15 +143,15 @@ open class MessagePortIpc(
   }
 
   private suspend fun stringFactory(event: DWebMessage.DWebMessageString) {
-    unStringSpecial(event.data)?.let {
-      when (it) {
-        "close" -> close()
-        "ping" -> port.postMessage("pong")
-        "pong" -> debugMessagePortIpc("PONG", "${this@MessagePortIpc}")
-        else -> throw Exception("unknown message: $it")
-      }
-      return
-    }
+//    unStringSpecial(event.data)?.let {
+//      when (it) {
+//        "close" -> close()
+//        "ping" -> port.postMessage("pong")
+//        "pong" -> debugMessagePortIpc("PONG", "${this@MessagePortIpc}")
+//        else -> throw Exception("unknown message: $it")
+//      }
+//      return
+//    }
     val pack = jsonToIpcPack(event.data)
     val message = jsonToIpcPoolPack(pack.ipcMessageString, this@MessagePortIpc)
     debugMessagePortIpc("ON-MESSAGE", "${pack.pid} => $message")
@@ -165,18 +165,18 @@ open class MessagePortIpc(
   }
 
   private suspend fun cborFactory(event: DWebMessage.DWebMessageBytes) {
-    unByteSpecial(event.data)?.let {
-      when (it) {
-        IpcMessageConst.closeCborByteArray -> close()
-        IpcMessageConst.pingCborByteArray -> port.postMessage(
-          IpcMessageConst.pongCborByteArray
-        )
-
-        IpcMessageConst.pongCborByteArray -> debugMessagePortIpc("PONG", endpoint.poolId)
-        else -> throw Exception("unknown message: $it")
-      }
-      return
-    }
+//    unByteSpecial(event.data)?.let {
+//      when (it) {
+//        IpcMessageConst.closeCborByteArray -> close()
+//        IpcMessageConst.pingCborByteArray -> port.postMessage(
+//          IpcMessageConst.pongCborByteArray
+//        )
+//
+//        IpcMessageConst.pongCborByteArray -> debugMessagePortIpc("PONG", endpoint)
+//        else -> throw Exception("unknown message: $it")
+//      }
+//      return
+//    }
     val pack = cborToIpcPoolPack(event.data)
     val message = cborToIpcMessage(pack.messageByteArray, this@MessagePortIpc)
     debugMessagePortIpc("ON-MESSAGE", "$endpoint => $message")
