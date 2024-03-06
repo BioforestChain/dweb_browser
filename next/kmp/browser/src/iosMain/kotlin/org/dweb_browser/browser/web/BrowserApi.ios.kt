@@ -7,15 +7,12 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.interop.UIKitView
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.util.isUrl
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.DwebLinkSearchItem
-import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.platform.ios_browser.DwebWebView
 import org.dweb_browser.platform.ios_browser.browserActiveOn
 import org.dweb_browser.platform.ios_browser.browserClear
@@ -31,7 +28,6 @@ import platform.CoreGraphics.CGRectMake
 import platform.Foundation.validateValue
 import kotlin.experimental.ExperimentalNativeApi
 
-actual fun ImageBitmap.toImageResource(): ImageResource? = null
 actual fun getImageResourceRootPath(): String = ""
 
 /*
