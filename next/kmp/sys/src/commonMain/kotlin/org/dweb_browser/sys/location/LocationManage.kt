@@ -3,11 +3,8 @@ package org.dweb_browser.sys.location
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.datetimeNow
-import org.dweb_browser.helper.randomUUID
 
 @Serializable
 data class GeolocationPositionState(val code: Int, val message: String?) {
@@ -50,26 +47,35 @@ data class GeolocationPosition(
   }
 }
 
-open class LocationObserver(val flow: Flow<GeolocationPosition>) {
-  val id = randomUUID()
+abstract class LocationObserver {
+  abstract val flow: Flow<GeolocationPosition>
+
+  /**
+   * @param precise 是否使用高精度定位（需要传感器）
+   * @param minTimeMs 位置更新之间的最小时间间隔（以毫秒为单位）
+   * @param minDistance 位置更新之间的最小距离（以米为单位）
+   */
+  abstract fun start(precise: Boolean = true, minTimeMs: Long = 0, minDistance: Double = 0.0)
+  abstract fun stop()
+
+  private val destroySignal = SimpleSignal()
+  val onDestroy = destroySignal.toListener()
+  open suspend fun destroy() {
+    destroySignal.emitAndClear()
+    stop()
+  }
 }
 
 expect class LocationManage() {
   /**
    * 获取当前的位置信息
    */
-  suspend fun getCurrentLocation(mmid: MMID, precise: Boolean): GeolocationPosition
+  suspend fun getCurrentLocation(precise: Boolean): GeolocationPosition
 
   /**
+   * 创建一个监听器
    * 监听位置信息，位置信息变化及时通知
    * 返回的Boolean表示是否正常发送，如果发送遗产，关闭监听。
    */
-  suspend fun observeLocation(
-    minDistance: Double, precise: Boolean
-  ): LocationObserver
-
-  /**
-   * 移除定位监听
-   */
-  suspend fun removeLocationObserve(observerId: UUID)
+  suspend fun createLocationObserver(autoStart: Boolean = true): LocationObserver
 }
