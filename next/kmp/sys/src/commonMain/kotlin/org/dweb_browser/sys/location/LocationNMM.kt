@@ -45,7 +45,8 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
         debugLocation("locationChannel=>", "enter => $remoteMmid->$precise")
         if (requestSystemPermission()) {
           try {
-            val observer = locationManage.observeLocation(minDistance, precise)
+            val observer = locationManage.createLocationObserver(false)
+            observer.start(precise = precise, minDistance = minDistance)
             // 缓存通道
             val flowJob = CoroutineScope(ioAsyncExceptionHandler).launch {
               observer.flow.buffer().collect { position ->
@@ -55,7 +56,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
             }
             onClose {
               debugLocation("locationChannel=>", "onClose：$remoteMmid")
-              locationManage.removeLocationObserve(observer.id)
+              observer.destroy()
               flowJob.cancel()
             }
           } catch (e: Exception) {
