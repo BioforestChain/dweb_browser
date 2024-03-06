@@ -8,11 +8,10 @@ import org.dweb_browser.js_common.state_compose.state.EmitType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-
 class TestStateComposeFlow(){
     @Test
     fun testPackagingCurrentStateOperationValueContainerString() {
-        val flow = ComposeFlow.createStateComposeFlowInstance<Int, Int, String>()
+        val flow = ComposeFlow.createStateComposeFlowInstance<Int, Int, String>("id")
         val job = Job()
         CoroutineScope(Dispatchers.Default + job).launch{
             flow.collectServer{
@@ -31,7 +30,7 @@ class TestStateComposeFlow(){
 
     @Test
     fun testEmitByClientWithAny(){
-        val flow = ComposeFlow.createStateComposeFlowInstance<Int, Int, String>()
+        val flow = ComposeFlow.createStateComposeFlowInstance<Int, Int, String>("id")
         val map = mapOf<String,ComposeFlow.StateComposeFlow<*, *, *>>(
             "flow" to flow
         )
@@ -55,7 +54,7 @@ class TestStateComposeFlow(){
 
     @Test
     fun testEmitByServerWithAny(){
-        val flow = ComposeFlow.createStateComposeFlowInstance<Int, Int, String>()
+        val flow = ComposeFlow.createStateComposeFlowInstance<Int, Int, String>("id")
         val map = mapOf<String,ComposeFlow.StateComposeFlow<*, *, *>>(
             "flow" to flow
         )
