@@ -4,7 +4,10 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
@@ -100,41 +103,43 @@ actual class LocationManage {
   }
 
   // 单次
-  actual suspend fun getCurrentLocation(mmid: MMID, precise: Boolean): LocationFlow {
-    return createLocalManager(precise)
+  actual suspend fun getCurrentLocation(mmid: MMID, precise: Boolean): GeolocationPosition {
+    if (clLocationManager.location != null) {
+      return toGeolocationPosition(clLocationManager.location!!)
+    }
+
+    return createLocalListener(precise).take(1).first()
   }
 
   actual suspend fun observeLocation(
-    mmid: MMID, minDistance: Double, precise: Boolean
-  ): LocationFlow {
-    return createLocalManager(precise, minDistance)
+    minDistance: Double, precise: Boolean
+  ): LocationObserver {
+    return LocationObserver(createLocalListener(precise, minDistance))
   }
 
   //移除监听
-  actual fun removeLocationObserve(mmid: MMID) {
+  actual suspend fun removeLocationObserve(observerId: MMID) {
     clLocationManager.stopUpdatingLocation()
-    authorizationStatusMap.remove(mmid)
+    authorizationStatusMap.remove(observerId)
   }
 
   /**给每个模块创建控制器*/
-  private fun createLocalManager(
+  private fun createLocalListener(
     precise: Boolean = true,
     minDistance: Double = 0.0,
-  ): LocationFlow {
-    return callbackFlow {
-      clLocationManager.desiredAccuracy = selectPrecise(precise)
-      clLocationManager.distanceFilter = minDistance // 移动多少米才会更新
+  ): Flow<GeolocationPosition> = callbackFlow {
+    clLocationManager.desiredAccuracy = selectPrecise(precise)
+    clLocationManager.distanceFilter = minDistance // 移动多少米才会更新
 
-      locationDelegate.clLocationListeners.add {
-        it?.also { trySend(toGeolocationPosition(it)) }
-      }
+    locationDelegate.clLocationListeners.add {
+      it?.also { trySend(toGeolocationPosition(it)) }
+    }
 
-      clLocationManager.startUpdatingLocation()
+    clLocationManager.startUpdatingLocation()
 
-      awaitClose {
-        clLocationManager.stopUpdatingLocation()
-        locationDelegate.clLocationListeners.clear()
-      }
+    awaitClose {
+      clLocationManager.stopUpdatingLocation()
+      locationDelegate.clLocationListeners.clear()
     }
   }
 
