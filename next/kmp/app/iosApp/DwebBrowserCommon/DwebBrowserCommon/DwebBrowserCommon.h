@@ -14,5 +14,6 @@ FOUNDATION_EXPORT double DwebBrowserCommonVersionNumber;
 FOUNDATION_EXPORT const unsigned char DwebBrowserCommonVersionString[];
 
 // In this header, you should import all the public headers of your framework using statements like #import <DwebBrowserCommon/PublicHeader.h>
+#import <DwebBrowserCommon/DwebOrderFuncDump.h>
 
 

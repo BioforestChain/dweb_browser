@@ -78,5 +78,14 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>DwebConfigs</key>
+	<dict>
+		<key>Git</key>
+		<string>DwebGit</string>
+		<key>Order</key>
+		<string>DwebOrder</string>
+		<key>Mode</key>
+		<string>DwebMode</string>
+	</dict>
 </dict>
 </plist>

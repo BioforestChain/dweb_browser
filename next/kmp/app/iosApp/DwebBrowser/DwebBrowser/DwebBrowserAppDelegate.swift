@@ -15,6 +15,7 @@ class DwebBrowserAppDelegate: NSObject, UIApplicationDelegate {
         KotlinComposeRedrawerFix.fix()
         let _ = DwebLifeStatusCenter.shared
         DwebDeskVCStore.startUpNMMs(application)
+        DwebOrderFunDump.dumpOrderFileIfNeed()
         return true
     }
 

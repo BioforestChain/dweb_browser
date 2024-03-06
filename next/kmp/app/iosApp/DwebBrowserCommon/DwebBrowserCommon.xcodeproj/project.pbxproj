@@ -7,12 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		48308D0D2B98557800AC3FC6 /* DwebOrderFunDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48308D0A2B98557800AC3FC6 /* DwebOrderFunDump.swift */; };
+		48308D0E2B98557800AC3FC6 /* DwebOrderFuncDump.h in Headers */ = {isa = PBXBuildFile; fileRef = 48308D0B2B98557800AC3FC6 /* DwebOrderFuncDump.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		48308D0F2B98557800AC3FC6 /* DwebOrderFuncDump.m in Sources */ = {isa = PBXBuildFile; fileRef = 48308D0C2B98557800AC3FC6 /* DwebOrderFuncDump.m */; };
+		48308D112B9855C000AC3FC6 /* DwebConfigInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48308D102B9855C000AC3FC6 /* DwebConfigInfo.swift */; };
 		48334DD92B50D08900399FFF /* DwebBrowserCommon.docc in Sources */ = {isa = PBXBuildFile; fileRef = 48334DD82B50D08900399FFF /* DwebBrowserCommon.docc */; };
 		48334DDA2B50D08900399FFF /* DwebBrowserCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = 48334DD72B50D08900399FFF /* DwebBrowserCommon.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		48334DE22B50D0D700399FFF /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48334DE12B50D0D700399FFF /* Logger.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		48308D0A2B98557800AC3FC6 /* DwebOrderFunDump.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebOrderFunDump.swift; sourceTree = "<group>"; };
+		48308D0B2B98557800AC3FC6 /* DwebOrderFuncDump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DwebOrderFuncDump.h; sourceTree = "<group>"; };
+		48308D0C2B98557800AC3FC6 /* DwebOrderFuncDump.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DwebOrderFuncDump.m; sourceTree = "<group>"; };
+		48308D102B9855C000AC3FC6 /* DwebConfigInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebConfigInfo.swift; sourceTree = "<group>"; };
 		48334DD42B50D08900399FFF /* DwebBrowserCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebBrowserCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		48334DD72B50D08900399FFF /* DwebBrowserCommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebBrowserCommon.h; sourceTree = "<group>"; };
 		48334DD82B50D08900399FFF /* DwebBrowserCommon.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DwebBrowserCommon.docc; sourceTree = "<group>"; };
@@ -309,6 +317,16 @@
 			path = EagerLinkingTBDs;
 			sourceTree = "<group>";
 		};
+		48308D092B98557800AC3FC6 /* OrderDump */ = {
+			isa = PBXGroup;
+			children = (
+				48308D0A2B98557800AC3FC6 /* DwebOrderFunDump.swift */,
+				48308D0B2B98557800AC3FC6 /* DwebOrderFuncDump.h */,
+				48308D0C2B98557800AC3FC6 /* DwebOrderFuncDump.m */,
+			);
+			path = OrderDump;
+			sourceTree = "<group>";
+		};
 		48334DCA2B50D08900399FFF = {
 			isa = PBXGroup;
 			children = (
@@ -333,6 +351,8 @@
 				48334DD82B50D08900399FFF /* DwebBrowserCommon.docc */,
 				48334DD72B50D08900399FFF /* DwebBrowserCommon.h */,
 				48334DE12B50D0D700399FFF /* Logger.swift */,
+				48308D102B9855C000AC3FC6 /* DwebConfigInfo.swift */,
+				48308D092B98557800AC3FC6 /* OrderDump */,
 			);
 			path = DwebBrowserCommon;
 			sourceTree = "<group>";
@@ -345,6 +365,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				48334DDA2B50D08900399FFF /* DwebBrowserCommon.h in Headers */,
+				48308D0E2B98557800AC3FC6 /* DwebOrderFuncDump.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -416,7 +437,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				48308D0D2B98557800AC3FC6 /* DwebOrderFunDump.swift in Sources */,
+				48308D112B9855C000AC3FC6 /* DwebConfigInfo.swift in Sources */,
 				48334DD92B50D08900399FFF /* DwebBrowserCommon.docc in Sources */,
+				48308D0F2B98557800AC3FC6 /* DwebOrderFuncDump.m in Sources */,
 				48334DE22B50D0D700399FFF /* Logger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
