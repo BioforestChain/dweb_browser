@@ -26,6 +26,20 @@ suspend fun main() {
   val count = ComposeFlow.createStateComposeFlowInstance<Int, Int,String>("count_id")
   val persons = ComposeFlow.createListComposeFlowInstance<Person, List<Person>, String>("persons_id")
 
+  // 测试查看是否改变了内容
+  CoroutineScope(Dispatchers.Default).launch {
+    count.stateRoleFlowCore.collect{
+      console.log("count value: ", it)
+    }
+  }
+
+  CoroutineScope(Dispatchers.Default).launch {
+    persons.stateRoleFlowCore.collect{
+      console.log("persons value: ", it)
+    }
+  }
+
+
 
   // 模拟数据生成在UI实例化之前的情况
   CoroutineScope(Dispatchers.Default).launch {
@@ -36,8 +50,10 @@ suspend fun main() {
   ElectronBrowserWindowModule(
     subDomain = "demo.compose.app",
   ).apply {
-    viewModel.composeFlowListAdd(count)
-    viewModel.composeFlowListAdd(persons)
+    viewModel.run{
+      composeFlowListAdd(count)
+      composeFlowListAdd(persons)
+    }
 
     // 测试初始化数据
     // 模拟数据更新
