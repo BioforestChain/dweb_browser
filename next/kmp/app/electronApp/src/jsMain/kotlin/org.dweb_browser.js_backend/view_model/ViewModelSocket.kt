@@ -17,7 +17,7 @@ import kotlin.experimental.xor
 import kotlinx.serialization.json.Json
 import org.dweb_browser.js_common.network.socket.SocketData
 
-typealias OnDataCallback = (socketData: SocketData) -> Unit
+typealias OnDataCallback = (str: String) -> Unit
 typealias OnConnectCallback = () -> Unit
 typealias OnCloseCallback = (hadError: Boolean) -> Unit
 typealias OnEndCallback = () -> Unit
@@ -54,10 +54,10 @@ class ViewModelSocket(
         socket.on(SocketEvent.ERROR, ::_onErrorCallback)
         socket.on(SocketEvent.DATA, ::_onDataCallback)
         scope.launch {
-            _realDataFlow.collect{
-                console.log("接受到了Client同步数据 it: ", it)
-                val socketData = Json.decodeFromString<SocketData>(it)
-                _onDataCBList.forEach { it(socketData)}
+            _realDataFlow.collect{str ->
+                console.log("接受到了Client同步数据 str: ", str)
+//                val socketData = Json.decodeFromString<SocketData>(it)
+                _onDataCBList.forEach { it(str)}
             }
         }
     }

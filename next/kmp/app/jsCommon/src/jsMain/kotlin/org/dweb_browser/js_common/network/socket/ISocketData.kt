@@ -15,5 +15,6 @@ interface ISocketData<T: Any>{
      * path = "/a/b"
      */
     val path: String
+    val composeFlowId: String
     val data: OperationValueContainer<T>
 }

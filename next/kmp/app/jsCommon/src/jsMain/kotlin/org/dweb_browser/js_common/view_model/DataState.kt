@@ -139,39 +139,39 @@ import org.dweb_browser.js_common.state_compose.operation.OperationValueContaine
 //typealias DataState = Map<String, DataStateValue>
 
 
-class Value<T: Any>(
-    val value: T
-)
-
-sealed class DataStateValue<T: Any>(){
-    abstract val value: T
-    class StateValue<Item: Any, ClosedReason: Any >(
-        override val value: ComposeFlow.StateComposeFlow<Item, Item, ClosedReason>
-    ): DataStateValue<ComposeFlow.StateComposeFlow<Item, Item,  ClosedReason>>()
-
-    class ListValue<Item: Any, ClosedReason: Any>(
-        override val value: ComposeFlow.ListComposeFlow<Item, List<Item>,ClosedReason>
-    ): DataStateValue<ComposeFlow.ListComposeFlow<Item, List<Item>,ClosedReason>>()
-    // TODO: 是否需要Map??? 
-//    class MapValue<T: Map<String, DataStateValue<*>>>(override val value: T): DataStateValue<T>()
-
-    companion object{
-        inline fun <reified T: Any, ClosedReason: Any>createStateValue(): StateValue<T, ClosedReason>{
-            return StateValue(value = ComposeFlow.createStateComposeFlowInstance<T, T,  ClosedReason>())
-        }
-
-        inline fun <reified T: Any, ClosedReason: Any>createListValue(): ListValue<T, ClosedReason>{
-            return ListValue(value = ComposeFlow.createListComposeFlowInstance<T, List<T>, ClosedReason>())
-        }
-
-//         fun <T: Map<String, DataStateValue<*>>>createMapValue(value: T): MapValue<T>{
-//            return MapValue(value)
+//class Value<T: Any>(
+//    val value: T
+//)
+//
+//sealed class DataStateValue<T: Any>(){
+//    abstract val value: T
+//    class StateValue<Item: Any, ClosedReason: Any >(
+//        override val value: ComposeFlow.StateComposeFlow<Item, Item, ClosedReason>
+//    ): DataStateValue<ComposeFlow.StateComposeFlow<Item, Item,  ClosedReason>>()
+//
+//    class ListValue<Item: Any, ClosedReason: Any>(
+//        override val value: ComposeFlow.ListComposeFlow<Item, List<Item>,ClosedReason>
+//    ): DataStateValue<ComposeFlow.ListComposeFlow<Item, List<Item>,ClosedReason>>()
+//    // TODO: 是否需要Map???
+////    class MapValue<T: Map<String, DataStateValue<*>>>(override val value: T): DataStateValue<T>()
+//
+//    companion object{
+//        inline fun <reified T: Any, ClosedReason: Any>createStateValue(): StateValue<T, ClosedReason>{
+//            return StateValue(value = ComposeFlow.createStateComposeFlowInstance<T, T,  ClosedReason>())
 //        }
-    }
-}
-
-
-
-typealias DataState = Map<String, DataStateValue<*>>
+//
+//        inline fun <reified T: Any, ClosedReason: Any>createListValue(): ListValue<T, ClosedReason>{
+//            return ListValue(value = ComposeFlow.createListComposeFlowInstance<T, List<T>, ClosedReason>())
+//        }
+//
+////         fun <T: Map<String, DataStateValue<*>>>createMapValue(value: T): MapValue<T>{
+////            return MapValue(value)
+////        }
+//    }
+//}
+//
+//
+//
+//typealias DataState = Map<String, DataStateValue<*>>
 
 

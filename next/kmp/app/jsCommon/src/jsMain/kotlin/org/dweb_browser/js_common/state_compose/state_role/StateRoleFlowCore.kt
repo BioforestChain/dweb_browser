@@ -3,10 +3,13 @@ package org.dweb_browser.js_common.state_compose.state_role
 import org.dweb_browser.js_common.state_compose.role.Role
 import org.dweb_browser.js_common.state_compose.close.IClosed
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 
 class StateRoleFlowCore<T : Any, CloseReason : Any>(
 
@@ -47,6 +50,10 @@ class StateRoleFlowCore<T : Any, CloseReason : Any>(
 
     fun close() {
         close(null)
+    }
+
+    init{
+        __init__()
     }
 
     companion object {

@@ -11,15 +11,14 @@ import org.dweb_browser.js_common.state_compose.state.EmitType
 import org.dweb_browser.js_common.state_compose.operation.OperationValueContainer
 import org.dweb_browser.js_common.state_compose.operation_role.OperationRoleFlowCore
 import org.dweb_browser.js_common.state_compose.state_role.StateRoleFlowCore
-import org.dweb_browser.js_common.view_model.Value
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
-import kotlin.reflect.safeCast
 
 
 typealias OnClose<T> = (T) -> Unit
 
 sealed class ComposeFlow<ItemType: Any, ValueType : Any, CloseReason : Any>{
+    abstract val id: String
     abstract val itemKClass: KClass<ItemType>
     abstract val valueKClass: KClass<ValueType>
     abstract val stateRoleFlowCore: StateRoleFlowCore<ValueType, CloseReason>
@@ -92,7 +91,9 @@ sealed class ComposeFlow<ItemType: Any, ValueType : Any, CloseReason : Any>{
         override val itemKClass: KClass<ItemType>,
         override val valueKClass: KClass<ValueType>,
         override val stateRoleFlowCore: StateRoleFlowCore<ValueType, CloseReason>,
-        override val operationFlowCore: OperationRoleFlowCore<ValueType, CloseReason>
+        override val operationFlowCore: OperationRoleFlowCore<ValueType, CloseReason>,
+        override val id: String
+
     ) : ComposeFlow<ItemType, ValueType, CloseReason>() {
 
         private suspend fun getReplay(): ValueType?{
@@ -102,7 +103,6 @@ sealed class ComposeFlow<ItemType: Any, ValueType : Any, CloseReason : Any>{
                 var jobInside: Job? = null
                 CoroutineScope(Dispatchers.Default + job).launch {
                     jobInside = stateRoleFlowCore.collect{
-                        console.log(2)
                         deferred.complete(it)
                         job.cancel()
                         jobInside?.cancel()
@@ -237,7 +237,8 @@ sealed class ComposeFlow<ItemType: Any, ValueType : Any, CloseReason : Any>{
         override val itemKClass: KClass<ItemType>,
         override val valueKClass: KClass<ValueType>,
         override val stateRoleFlowCore: StateRoleFlowCore<ValueType, CloseReason>,
-        override val operationFlowCore: OperationRoleFlowCore<ValueType, CloseReason>
+        override val operationFlowCore: OperationRoleFlowCore<ValueType, CloseReason>,
+        override val id: String
     ) : ComposeFlow<ItemType, ValueType, CloseReason>() {
         var canEmitAgain = true
         val emitAgainList = mutableListOf<suspend () -> Unit>()
@@ -431,24 +432,28 @@ sealed class ComposeFlow<ItemType: Any, ValueType : Any, CloseReason : Any>{
 
     companion object {
         inline fun <reified ItemType : Any, reified ValueType: ItemType, CloseReason : Any> createStateComposeFlowInstance(
+            id: String
         ): StateComposeFlow<ItemType, ValueType, CloseReason> {
             return StateComposeFlow<ItemType, ValueType, CloseReason>(
                 itemKClass = ItemType::class,
                 valueKClass = ValueType::class,
                 stateRoleFlowCore = StateRoleFlowCore.createStateRoleFlowCoreInstance<ValueType, CloseReason>(
                 ),
-                operationFlowCore = OperationRoleFlowCore.createStateOperationRoleFlowCoreInstance<ValueType, CloseReason>()
+                operationFlowCore = OperationRoleFlowCore.createStateOperationRoleFlowCoreInstance<ValueType, CloseReason>(),
+                id = id
             )
         }
 
         inline fun <reified ItemType : Any, reified ValueType: List<ItemType>, CloseReason : Any> createListComposeFlowInstance(
+            id: String
         ): ListComposeFlow<ItemType, ValueType, CloseReason> {
             return ListComposeFlow<ItemType, ValueType, CloseReason>(
                 itemKClass = ItemType::class,
                 valueKClass = ValueType::class,
                 stateRoleFlowCore = StateRoleFlowCore.createStateRoleFlowCoreInstance<ValueType, CloseReason>(
                 ),
-                operationFlowCore = OperationRoleFlowCore.createStateOperationRoleFlowCoreInstance<ValueType, CloseReason>()
+                operationFlowCore = OperationRoleFlowCore.createStateOperationRoleFlowCoreInstance<ValueType, CloseReason>(),
+                id = id
             )
         }
     }

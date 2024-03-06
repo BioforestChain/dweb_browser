@@ -1,7 +1,6 @@
 package org.dweb_browser.js_backend.browser_window
 
 import org.dweb_browser.js_backend.view_model.ViewModel
-import org.dweb_browser.js_common.view_model.DataState
 
 
 /**
@@ -25,12 +24,10 @@ interface IElectronBrowserWindowModule{
 
 class ElectronBrowserWindowModule(
     override val subDomain: String, /* example: demo.compose.app */
-    dataState: DataState
 ) : IElectronBrowserWindowModule{
     override val controller: ElectronBrowserWindowController = ElectronBrowserWindowController.create(subDomain)
     override val viewModel: ViewModel = ViewModel(
         subDomain = subDomain,
-        dataState = dataState
     )
 }
 

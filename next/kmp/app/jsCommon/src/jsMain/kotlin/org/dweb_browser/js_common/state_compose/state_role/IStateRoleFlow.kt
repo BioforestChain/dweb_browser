@@ -36,7 +36,6 @@ interface IStateRoleFlow<T : Any> : IRoleFlow, IStateFlow<T> {
             hasStateAndRoleFlowConfluence = true
             CoroutineScope(Dispatchers.Default).launch {
                 stateFlow.combineTransform(roleFlow) { state: T, role: Role ->
-                    console.log("stateFlow 发生了变化", state)
                     hasReplay = true
                     emit(
                         StateAndRoleFlowElement(state, role)
@@ -48,6 +47,7 @@ interface IStateRoleFlow<T : Any> : IRoleFlow, IStateFlow<T> {
                     }
                 }
             }
+
         }
     }
 
@@ -72,7 +72,6 @@ interface IStateRoleFlow<T : Any> : IRoleFlow, IStateFlow<T> {
     fun collectClient(
         collector: FlowCollector<T>
     ): Job {
-        stateAndRoleFlowConfluence()
         val job = CoroutineScope(Dispatchers.Default).launch {
             stateClientFlow.collect(collector)
         }
@@ -85,7 +84,7 @@ interface IStateRoleFlow<T : Any> : IRoleFlow, IStateFlow<T> {
     fun collectServer(
         collector: FlowCollector<T>
     ): Job {
-        stateAndRoleFlowConfluence()
+
         val job = CoroutineScope(Dispatchers.Default).launch {
             stateServerFlow.collect(collector)
         }
@@ -123,5 +122,9 @@ interface IStateRoleFlow<T : Any> : IRoleFlow, IStateFlow<T> {
         jobs.forEach {
             it.cancel()
         }
+    }
+
+    fun __init__(){
+        stateAndRoleFlowConfluence()
     }
 }

@@ -8,12 +8,10 @@ import org.dweb_browser.js_common.network.socket.SyncState
 import org.w3c.dom.WebSocket
 import org.w3c.dom.events.Event
 
+typealias OnMessageCallback = (str: String) -> Boolean
 typealias OnOpenedCallback = (e: Event) -> Unit
 typealias OnErrorCallback = (e: Event) -> Unit
 typealias OnCloseCallback = (e: Event) -> Unit
-typealias OnSyncFromServerCallback = (value: String) -> Unit
-typealias OnSyncFromServerStartCallback = () -> Unit
-typealias OnSyncFromServerDoneCallback = () -> Unit
 
 open class Socket(
     val url: String
@@ -23,8 +21,7 @@ open class Socket(
     val whenColose = CompletableDeferred<Unit>()
     lateinit var socket: WebSocket;
     var readyState = WebSocket.CLOSED
-    val whenSyncDataStateStart = CompletableDeferred<Unit>()
-    val whenSyncDataStateDone = CompletableDeferred<Unit>()
+
 
     fun start(){
         console.log("发起了 upgrade 请求")
@@ -42,11 +39,8 @@ open class Socket(
         socket.onmessage = {
             val data = it.data
             require(data is String)
-            console.log("data: ", data)
-            when(data){
-                SyncState.SERVER_TO_CLIENT_START.value -> whenSyncDataStateStart.complete(Unit)
-                SyncState.SERVER_TO_CLIENT_DONE.value -> whenSyncDataStateDone.complete(Unit)
-                else ->  onSyncFromServerCallbackList.forEach { cb -> cb(data) }
+            for(cb in onMessageCallbackList){
+                if(cb(data)) break
             }
         }
 
@@ -55,6 +49,12 @@ open class Socket(
             readyState = WebSocket.CLOSED
             onCloseCallbackList.forEach{ cb -> cb(it) }
         }
+    }
+
+    private val onMessageCallbackList = mutableListOf<OnMessageCallback>()
+    fun onMessage(cb: OnMessageCallback): () -> Unit{
+        onMessageCallbackList.add(cb)
+        return {onMessageCallbackList.remove(cb)}
     }
 
     private val onOpenedCallbackList = mutableListOf<OnOpenedCallback>()
@@ -73,14 +73,6 @@ open class Socket(
         }
     }
 
-    private val onSyncFromServerCallbackList = mutableListOf<OnSyncFromServerCallback>()
-    fun onSyncFromServer(cb: OnSyncFromServerCallback): () -> Unit {
-        onSyncFromServerCallbackList.add(cb)
-        return {
-            onSyncFromServerCallbackList.remove(cb)
-        }
-    }
-
     private val onCloseCallbackList = mutableListOf<OnCloseCallback>()
     fun onClose(cb: OnCloseCallback): () -> Unit{
         onCloseCallbackList.add(cb)
@@ -96,7 +88,6 @@ open class Socket(
 
     fun syncToServer(value: String){
         scope.launch {
-            whenSyncDataStateDone.await()
             console.log("发送给了 服务端", value)
             socket.send(value)
         }
