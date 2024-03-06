@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser
+package info.bagen.dweb_browser
 
 import electron.BrowserWindow
 import electron.BrowserWindowConstructorOptions

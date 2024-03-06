@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser
+package info.bagen.dweb_browser
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
