@@ -21,7 +21,7 @@ class ViewModelDataState(
     val whenSyncDataStateStart = CompletableDeferred<Unit>()
     val whenSyncDataStateDone = CompletableDeferred<Unit>()
 
-    fun add(composeFlow: ComposeFlow<*, *, *>): () -> Unit{
+    fun composeFlowListAdd(composeFlow: ComposeFlow<*, *, *>): () -> Unit{
         when(composeFlow){
             is ComposeFlow.StateComposeFlow<*, *, *> -> composeFlow.autoSyncToServerStart(socket)
             is ComposeFlow.ListComposeFlow<*, *, *> -> composeFlow.autoSyncToServerStart(socket)

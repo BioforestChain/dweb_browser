@@ -34,8 +34,8 @@ suspend fun main() {
     ElectronBrowserWindowModule(
         VMId = "demo.compose.app"
     ).apply {
-        viewModelDataState.add(count)
-        viewModelDataState.add(persons)
+        viewModelDataState.composeFlowListAdd(count)
+        viewModelDataState.composeFlowListAdd(persons)
     }
 
     onWasmReady {
