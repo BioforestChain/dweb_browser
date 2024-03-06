@@ -2,9 +2,12 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.dweb_browser.js_common.state_compose.ComposeFlow
 import org.dweb_browser.js_common.state_compose.state.EmitType
+import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -53,7 +56,7 @@ class TestStateComposeFlow(){
     }
 
     @Test
-    fun testEmitByServerWithAny(){
+    fun testEmitByServerWithAny() = runCommonTest{
         val flow = ComposeFlow.createStateComposeFlowInstance<Int, Int, String>("id")
         val map = mapOf<String,ComposeFlow.StateComposeFlow<*, *, *>>(
             "flow" to flow
@@ -67,12 +70,11 @@ class TestStateComposeFlow(){
                 job?.cancel()
             }
             job?.join()
-            assertEquals(deferred.await(), targetValue)
-            console.log("deferred.await(): ", deferred.await())
         }
 
         CoroutineScope(Dispatchers.Default).launch {
             map["flow"]?.emitByServer(targetValue, emitType = EmitType.REPLACE)
         }
+        assertEquals(deferred.await(), targetValue)
     }
 }

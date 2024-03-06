@@ -32,6 +32,8 @@ kotlin {
         dependencies{
           implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-js:1.6.2")
           implementation(kotlin("test"))
+          implementation(kotlin("test-js"))
+          implementation(project(":platformTest"))
         }
       }
     }
