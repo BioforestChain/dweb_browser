@@ -8,7 +8,7 @@ import org.dweb_browser.js_common.network.socket.SyncState
 import org.w3c.dom.WebSocket
 import org.w3c.dom.events.Event
 
-typealias OnMessageCallback = (str: String) -> Boolean
+typealias OnMessageCallback = (str: String) -> Unit
 typealias OnOpenedCallback = (e: Event) -> Unit
 typealias OnErrorCallback = (e: Event) -> Unit
 typealias OnCloseCallback = (e: Event) -> Unit
@@ -37,8 +37,10 @@ open class Socket(
         socket.onmessage = {
             val data = it.data
             require(data is String)
-            for(cb in onMessageCallbackList){
-                if(cb(data)) break
+            onMessageCallbackList.forEach {
+                CoroutineScope(Dispatchers.Default).launch {
+                    it(data)
+                }
             }
         }
 

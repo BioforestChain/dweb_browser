@@ -32,17 +32,13 @@ class ViewModelDataState(
 
     init {
         socket.onMessage {
-
             when(it){
                 SyncState.SERVER_TO_CLIENT_START.value -> {
                     whenSyncDataStateStart.complete(Unit)
-                    true
                 }
                 SyncState.SERVER_TO_CLIENT_DONE.value -> {
                     whenSyncDataStateDone.complete(Unit)
-                    true
                 }
-                else -> false
             }
         }
         socket.start()

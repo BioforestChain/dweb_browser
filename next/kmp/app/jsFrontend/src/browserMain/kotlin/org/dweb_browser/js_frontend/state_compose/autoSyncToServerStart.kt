@@ -36,16 +36,12 @@ fun ComposeFlow.StateComposeFlow<*, *, *>.autoSyncToServerStart(
      */
     socket.onMessage {
         val socketData = Json.decodeFromString<SocketData>(it)
-        val b = if(socketData.composeFlowId == id){
+        if(socketData.composeFlowId == id){
             val operationValueContainer = decodeFromString(socketData.data)
             CoroutineScope(Dispatchers.Default).launch {
                 emitByServer(operationValueContainer.value, operationValueContainer.emitType)
             }
-            true
-        }else{
-            false
         }
-        b
     }
 }
 
@@ -72,16 +68,12 @@ fun ComposeFlow.ListComposeFlow<*, *, *>.autoSyncToServerStart(
      */
     socket.onMessage {
         val socketData = Json.decodeFromString<SocketData>(it)
-        val b = if(socketData.composeFlowId == id) {
+        if(socketData.composeFlowId == id) {
             val operationValueContainer = decodeFromString(socketData.data)
             CoroutineScope(Dispatchers.Default).launch {
                 emitByServer(operationValueContainer.value, operationValueContainer.emitType)
             }
-            true
-        } else {
-            false
         }
-        b
     }
 }
 
