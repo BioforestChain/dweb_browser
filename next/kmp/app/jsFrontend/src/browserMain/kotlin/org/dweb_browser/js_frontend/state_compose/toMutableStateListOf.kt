@@ -58,7 +58,6 @@ class MutableStateList<ItemType: Any, ValueType: List<ItemType>, CloseReason: An
     fun subList(fromIndex: Int, toIndex: Int) = mutableStateList.subList(fromIndex, toIndex)
 
     suspend fun add(el: ItemType): Boolean{
-        console.log("执行了add", el)
         return mutableStateList.add(el).also {
             if(it){
                 stateCompose.emitByClient(listOf(el), EmitType.ADD)
@@ -136,7 +135,6 @@ class MutableStateList<ItemType: Any, ValueType: List<ItemType>, CloseReason: An
     init{
         CoroutineScope(Dispatchers.Default).launch {
             stateCompose.collectOperationServer{
-                console.log("toMutableListOf 内部监听 stateRoleFlowCore collectClient 的数据变化", it.toString())
                 when(it.emitType){
                     EmitType.REPLACE -> {
                         mutableStateList.clear()

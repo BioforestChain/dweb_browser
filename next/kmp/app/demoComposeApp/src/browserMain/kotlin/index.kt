@@ -57,7 +57,6 @@ suspend fun main() {
                     var insideCount by count.toMutableStateOf(1)
                     Button(onClick = {
                         insideCount++
-                        console.log("insideCount: ", insideCount)
                     }) {
                         Text("increment count:$insideCount")
                     }

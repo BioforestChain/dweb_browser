@@ -24,13 +24,11 @@ open class Socket(
 
 
     fun start(){
-        console.log("发起了 upgrade 请求")
         socket = WebSocket(url)
         socket.onopen = {
             whenOpened.complete(Unit)
             readyState = WebSocket.OPEN
             onOpenedCallbackList.forEach { cb -> cb(it)}
-            console.log("socket onopen")
         }
         socket.onerror = {
             console.error("onError", it)
@@ -88,7 +86,6 @@ open class Socket(
 
     fun syncToServer(value: String){
         scope.launch {
-            console.log("发送给了 服务端", value)
             socket.send(value)
         }
     }
