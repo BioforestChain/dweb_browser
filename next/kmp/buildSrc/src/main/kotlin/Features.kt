@@ -1,6 +1,6 @@
 object Features {
   private val properties = java.util.Properties().also { properties ->
-    java.io.File("local.properties").apply {
+    java.io.File(System.getProperty("dweb-browser.root.dir"), "local.properties").apply {
       if (exists()) {
         inputStream().use { properties.load(it) }
       }

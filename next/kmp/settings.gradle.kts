@@ -64,6 +64,7 @@ object Features {
 
 
 rootProject.name = "dweb-browser-kmp"
+System.setProperty("dweb-browser.root.dir", rootDir.path)
 
 // https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:type-safe-project-accessors
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -121,6 +122,10 @@ if (Features.electronApp.enabled) {
   includeApp("jsFrontend")
 //  includeApp("demoReactApp")
   includeApp("demoComposeApp")
+}
+
+if(Features.desktopApp.enabled) {
+  includeApp("desktopApp")
 }
 
 if (Features.libs.enabled) {
