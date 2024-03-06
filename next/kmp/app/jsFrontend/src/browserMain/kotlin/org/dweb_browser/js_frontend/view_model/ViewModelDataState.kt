@@ -15,8 +15,9 @@ class ViewModelDataState(
 ) {
 
     val composeFlowList = mutableListOf<ComposeFlow<*, *, *>>()
-
-    val socket = Socket("ws://${window.location.host}")
+    // path == /sync_data
+    // 表示这socket的连接使用来做同步状态的
+    val socket = Socket("ws://${window.location.host}/sync_data")
     val whenSyncDataStateStart = CompletableDeferred<Unit>()
     val whenSyncDataStateDone = CompletableDeferred<Unit>()
 

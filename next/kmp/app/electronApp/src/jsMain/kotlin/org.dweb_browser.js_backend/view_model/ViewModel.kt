@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import node.buffer.Buffer
 import node.http.IncomingMessage
 import node.net.Socket
+import node.url.parse
 import org.dweb_browser.js_backend.state_compose.autoSyncOperationFromClient
 import org.dweb_browser.js_backend.state_compose.autoSyncOperationToClient
 import org.dweb_browser.js_backend.state_compose.syncCurrentDataToClient
@@ -58,11 +59,7 @@ open class ViewModel(
         }
     }
 
-    // 通过在执行 getViewModelSocket 解决一对多的问题
-
     init {
-
-        console.log("BaseViewModel init")
         var remove = WS.onUpgrade { req: IncomingMessage, socket: Socket, head: Buffer ->
             val currentSubDomain = req.headers.host?.split(".localhost")?.get(0)?: console.error(
                 """
@@ -72,10 +69,8 @@ open class ViewModel(
                     at Ws.kt
                 """.trimIndent()
             )
-
             console.log("currentSubDomain: ", currentSubDomain)
-
-            if(currentSubDomain == subDomain){
+            if(currentSubDomain == subDomain && req.url == "/sync_data"){
                 console.log("给 $subDomain 模块创建了socket")
                 ViewModelSocket(
                     socket,
