@@ -71,7 +71,7 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
         val isPermission = requestSystemPermission()
         debugLocation("location/get", "isPermission=>$isPermission")
         if (isPermission) {
-          locationManage.getCurrentLocation(ipc.remote.mmid, precise).toJsonElement()
+          locationManage.getCurrentLocation(precise).toJsonElement()
         } else {
           throwException(HttpStatusCode.Unauthorized, LocationI18nResource.permission_denied.text)
         }
