@@ -12,7 +12,11 @@ kotlin {
     }
   }
 
-  kmpDesktopTarget(project)
+  kmpDesktopTarget(project) {
+    dependencies {
+      implementation(projects.platformDesktop)
+    }
+  }
 }
 
 compose.desktop {
