@@ -1,83 +1,59 @@
 package org.dweb_browser.js_frontend.network.socket
 
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import org.dweb_browser.js_common.network.socket.SyncState
 import org.w3c.dom.WebSocket
 import org.w3c.dom.events.Event
-
-typealias OnMessageCallback = (str: String) -> Unit
-typealias OnOpenedCallback = (e: Event) -> Unit
-typealias OnErrorCallback = (e: Event) -> Unit
-typealias OnCloseCallback = (e: Event) -> Unit
 
 open class Socket(
     val url: String
 ){
     val scope = CoroutineScope(Dispatchers.Default)
-    val whenOpened = CompletableDeferred<Unit>()
-    val whenColose = CompletableDeferred<Unit>()
     lateinit var socket: WebSocket;
-    var readyState = WebSocket.CLOSED
+    var readyState: dynamic = WebSocket.CLOSED
+    val messageFlow = MutableSharedFlow<String>(
+        replay = 1, extraBufferCapacity =  0, onBufferOverflow = BufferOverflow.DROP_LATEST
+    )
+    val openFlow = MutableSharedFlow<Event>(
+        replay = 1, extraBufferCapacity =  0, onBufferOverflow = BufferOverflow.DROP_LATEST
+    )
 
+    val errorFlow = MutableSharedFlow<Event>(
+        replay = 1, extraBufferCapacity =  0, onBufferOverflow = BufferOverflow.DROP_LATEST
+    )
+    val closeFlow = MutableSharedFlow<Event>(
+        replay = 1, extraBufferCapacity =  0, onBufferOverflow = BufferOverflow.DROP_LATEST
+    )
+
+    val syncToServerFlow = MutableSharedFlow<String>(
+        replay = 1, extraBufferCapacity =  0, onBufferOverflow = BufferOverflow.DROP_LATEST
+    )
+
+    val closeJob = Job()
 
     fun start(){
         socket = WebSocket(url)
         socket.onopen = {
-            whenOpened.complete(Unit)
-            readyState = WebSocket.OPEN
-            onOpenedCallbackList.forEach { cb -> cb(it)}
+            readyState = WebSocket.OPEN;
+            scope.launch {openFlow.emit(it) }
         }
         socket.onerror = {
-            console.error("onError", it)
-            onErrorCallbackList.forEach { cb -> cb(it) }
+            scope.launch { errorFlow.emit(it) }
         }
         socket.onmessage = {
             val data = it.data
             require(data is String)
-            onMessageCallbackList.forEach {
-                CoroutineScope(Dispatchers.Default).launch {
-                    it(data)
-                }
-            }
+            scope.launch { messageFlow.emit(data) }
         }
 
         socket.onclose = {
-            whenColose.complete(Unit)
+            closeJob.cancel()
             readyState = WebSocket.CLOSED
-            onCloseCallbackList.forEach{ cb -> cb(it) }
-        }
-    }
-
-    private val onMessageCallbackList = mutableListOf<OnMessageCallback>()
-    fun onMessage(cb: OnMessageCallback): () -> Unit{
-        onMessageCallbackList.add(cb)
-        return {onMessageCallbackList.remove(cb)}
-    }
-
-    private val onOpenedCallbackList = mutableListOf<OnOpenedCallback>()
-    fun onOpened(cb: OnOpenedCallback): () -> Unit{
-        onOpenedCallbackList.add(cb)
-        return {
-            onOpenedCallbackList.remove(cb)
-        }
-    }
-
-    private val onErrorCallbackList = mutableListOf<OnErrorCallback>()
-    fun onError(cb: OnErrorCallback): () -> Unit{
-        onErrorCallbackList.add(cb)
-        return {
-            onErrorCallbackList.remove(cb)
-        }
-    }
-
-    private val onCloseCallbackList = mutableListOf<OnCloseCallback>()
-    fun onClose(cb: OnCloseCallback): () -> Unit{
-        onCloseCallbackList.add(cb)
-        return {
-            onCloseCallbackList.remove(cb)
+            scope.launch { closeFlow.emit(it) }
         }
     }
 
@@ -85,10 +61,18 @@ open class Socket(
         socket.close()
     }
 
-
     fun syncToServer(value: String){
         scope.launch {
             socket.send(value)
+        }
+    }
+
+    init{
+        val job = Job(closeJob)
+        CoroutineScope(Dispatchers.Default + job).launch {
+            syncToServerFlow.collect{
+                socket.send(it)
+            }
         }
     }
 }

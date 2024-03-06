@@ -34,8 +34,11 @@ suspend fun main() {
     ElectronBrowserWindowModule(
         VMId = "demo.compose.app"
     ).apply {
-        viewModelDataState.composeFlowListAdd(count)
-        viewModelDataState.composeFlowListAdd(persons)
+        viewModelDataState.run{
+            composeFlowListAdd(count)
+            composeFlowListAdd(persons)
+            socketStart()
+        }
     }
 
     onWasmReady {
@@ -50,7 +53,6 @@ suspend fun main() {
                     }){
                         Text("reload before and after refreshing must same ")
                     }
-
                 }
 
                 Row(modifier = Modifier.fillMaxWidth().height(50.dp)){

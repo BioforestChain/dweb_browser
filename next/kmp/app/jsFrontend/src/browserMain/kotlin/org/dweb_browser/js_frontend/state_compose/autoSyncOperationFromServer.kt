@@ -2,6 +2,7 @@ package org.dweb_browser.js_frontend.state_compose
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.js_common.network.socket.SocketData
@@ -13,16 +14,20 @@ import org.dweb_browser.js_frontend.network.socket.Socket
  */
 fun ComposeFlow.StateComposeFlow<*,*,*>.autoSyncOperationFromServer(
     socket: Socket
-){
-    socket.onMessage {
-        val socketData = Json.decodeFromString<SocketData>(it)
-        if(socketData.composeFlowId == id){
-            val operationValueContainer = decodeFromString(socketData.data)
-            CoroutineScope(Dispatchers.Default).launch {
-                emitByServer(operationValueContainer.value, operationValueContainer.emitType)
+): Job{
+    val job = Job()
+    CoroutineScope(Dispatchers.Default + job).launch {
+        socket.messageFlow.collect{
+            val socketData = Json.decodeFromString<SocketData>(it)
+            if(socketData.composeFlowId == id){
+                val operationValueContainer = decodeFromString(socketData.data)
+                CoroutineScope(Dispatchers.Default).launch {
+                    emitByServer(operationValueContainer.value, operationValueContainer.emitType)
+                }
             }
         }
     }
+    return job
 }
 
 /**
@@ -30,14 +35,18 @@ fun ComposeFlow.StateComposeFlow<*,*,*>.autoSyncOperationFromServer(
  */
 fun ComposeFlow.ListComposeFlow<*,*,*>.autoSyncOperationFromServer(
     socket: Socket
-){
-    socket.onMessage {
-        val socketData = Json.decodeFromString<SocketData>(it)
-        if(socketData.composeFlowId == id){
-            val operationValueContainer = decodeFromString(socketData.data)
-            CoroutineScope(Dispatchers.Default).launch {
-                emitByServer(operationValueContainer.value, operationValueContainer.emitType)
+): Job{
+    val job = Job()
+    CoroutineScope(Dispatchers.Default + job).launch {
+        socket.messageFlow.collect{
+            val socketData = Json.decodeFromString<SocketData>(it)
+            if(socketData.composeFlowId == id){
+                val operationValueContainer = decodeFromString(socketData.data)
+                CoroutineScope(Dispatchers.Default).launch {
+                    emitByServer(operationValueContainer.value, operationValueContainer.emitType)
+                }
             }
         }
     }
+    return job
 }
