@@ -17,16 +17,20 @@ import org.dweb_browser.js_common.state_compose.ComposeFlow
 suspend fun ComposeFlow.StateComposeFlow<*, *, *>.autoSyncOperationToClient(
     viewModelSocket: ViewModelSocket
 ): Job {
-
+    var count =  if(stateRoleFlowCore.hasReplay) 1 else 0
     val deferred = CompletableDeferred<Job>()
     CoroutineScope(Dispatchers.Default).launch {
         val job = operationFlowCore.collectServerString {
-            val socketData = SocketData(
-                composeFlowId = id, data = it
-            )
-            val jsonStr = Json.encodeToString(socketData)
-            console.log("同步给Client的操作", jsonStr)
-            viewModelSocket.write(jsonStr)
+            if(count == 1){
+                count--
+            }else{
+                val socketData = SocketData(
+                    composeFlowId = id, data = it
+                )
+                val jsonStr = Json.encodeToString(socketData)
+                console.log("同步给Client的操作", jsonStr)
+                viewModelSocket.write(jsonStr)
+            }
         }
         deferred.complete(job)
     }
@@ -39,15 +43,20 @@ suspend fun ComposeFlow.StateComposeFlow<*, *, *>.autoSyncOperationToClient(
 suspend fun ComposeFlow.ListComposeFlow<*, *, *>.autoSyncOperationToClient(
     viewModelSocket: ViewModelSocket
 ): Job {
+    var count =  if(stateRoleFlowCore.hasReplay) 1 else 0
     val deferred = CompletableDeferred<Job>()
     CoroutineScope(Dispatchers.Default).launch {
         val job = operationFlowCore.collectServerString {
-            val socketData = SocketData(
-                composeFlowId = id, data = it
-            )
-            val jsonStr = Json.encodeToString(socketData)
-            console.log("同步给Client的操作", jsonStr)
-            viewModelSocket.write(jsonStr)
+            if(count == 1){
+                count--
+            }else{
+                val socketData = SocketData(
+                    composeFlowId = id, data = it
+                )
+                val jsonStr = Json.encodeToString(socketData)
+                console.log("同步给Client的操作", jsonStr)
+                viewModelSocket.write(jsonStr)
+            }
         }
         deferred.complete(job)
     }

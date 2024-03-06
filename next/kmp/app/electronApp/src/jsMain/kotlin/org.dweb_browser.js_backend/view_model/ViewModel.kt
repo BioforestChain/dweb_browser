@@ -32,7 +32,7 @@ open class ViewModel(
     private val composeFlowList = mutableListOf<ComposeFlow<*,*,*>>()
     private val viewModelSockets = mutableListOf<ViewModelSocket>()
 
-    private fun MutableList<ViewModelSocket>.addWithComposeFlow(viewModelSocket: ViewModelSocket){
+    private fun MutableList<ViewModelSocket>.ViewModelSocketsAdd(viewModelSocket: ViewModelSocket){
         composeFlowList.forEach {
             when(it){
                 is ComposeFlow.StateComposeFlow<*,*,*> -> {
@@ -76,7 +76,7 @@ open class ViewModel(
                     socket,
                     req.headers["sec-websocket-key"].toString(),
                 ).apply {
-                    viewModelSockets.addWithComposeFlow(this)
+                    viewModelSockets.ViewModelSocketsAdd(this)
                 }
             }
         }
