@@ -2,6 +2,9 @@ package org.dweb_browser.js_frontend.view_model
 
 import kotlinx.browser.window
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.js_common.network.socket.SocketData
@@ -23,8 +26,20 @@ class ViewModelDataState(
 
     fun composeFlowListAdd(composeFlow: ComposeFlow<*, *, *>): () -> Unit{
         when(composeFlow){
-            is ComposeFlow.StateComposeFlow<*, *, *> -> composeFlow.autoSyncToServerStart(socket)
-            is ComposeFlow.ListComposeFlow<*, *, *> -> composeFlow.autoSyncToServerStart(socket)
+            is ComposeFlow.StateComposeFlow<*, *, *> -> {
+                CoroutineScope(Dispatchers.Default).launch {
+                    val job = composeFlow.autoSyncOperationToServer(socket)
+                    socket.onClose { job.cancel() }
+                }
+                composeFlow.autoSyncOperationFromServer(socket)
+            }
+            is ComposeFlow.ListComposeFlow<*, *, *> -> {
+                CoroutineScope(Dispatchers.Default).launch {
+                    val job = composeFlow.autoSyncOperationToServer(socket)
+                    socket.onClose { job.cancel() }
+                }
+                composeFlow.autoSyncOperationFromServer(socket)
+            }
         }
         composeFlowList.add(composeFlow)
         return {composeFlowList.remove(composeFlow)}
