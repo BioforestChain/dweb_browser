@@ -14,6 +14,7 @@ import org.dweb_browser.browser.web.data.KEY_NO_TRACE
 import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.browser.web.data.WebLinkStore
 import org.dweb_browser.browser.web.data.WebSiteInfo
+import org.dweb_browser.browser.web.model.BrowserDownloadModel
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.view.BrowserDownloadView
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -143,7 +144,7 @@ class BrowserController(
     }
   }
 
-  var viewModel = BrowserViewModel(this, browserNMM)
+  val viewModel = BrowserViewModel(this, browserNMM)
 
   suspend fun openBrowserView(search: String? = null, url: String? = null, target: String? = null) =
     winLock.withLock {
@@ -182,10 +183,11 @@ class BrowserController(
   suspend fun saveStringToStore(key: String, data: String) = browserStore.saveString(key, data)
   suspend fun getStringFromStore(key: String) = browserStore.getString(key)
 
+  private val downloadModel = BrowserDownloadModel(browserNMM)
   /**
    * 打开BottomSheetModal
    */
   suspend fun openDownloadView(args: WebDownloadArgs) {
-    browserNMM.createBottomSheets { BrowserDownloadView(args) }.open()
+    downloadModel.openDownloadView(args)
   }
 }

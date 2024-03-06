@@ -253,14 +253,11 @@ enum class MotionEventAction {
   ACTION_DOWN, ACTION_UP, ACTION_MOVE
 }
 
-class WebDownloadArgs(
-  val url: String,
+@Serializable
+data class WebDownloadArgs(
   val userAgent: String,
   val contentDisposition: String,
   val mimetype: String,
-  val contentLength: Long
-) {
-  override fun toString(): String {
-    return "WebDownloadArgs(url=$url, userAgent=$userAgent, contentDisposition=$contentDisposition, mimetype=$mimetype, contentLength=$contentLength"
-  }
-}
+  val contentLength: Long,
+  val url: String,
+)

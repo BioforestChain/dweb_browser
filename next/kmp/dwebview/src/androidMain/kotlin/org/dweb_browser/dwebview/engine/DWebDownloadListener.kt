@@ -34,11 +34,11 @@ class DWebDownloadListener(val engine: DWebViewEngine) : DownloadListener {
   ) {
     scope.launch {
       downloadSignal.emit(
-        WebDownloadArgs(url, userAgent, contentDisposition, mimetype, contentLength)
+        WebDownloadArgs(userAgent, contentDisposition, mimetype, contentLength, url)
       )
     }
-    /*inners("onDownloadStart").one {
+    inners("onDownloadStart").one {
       it.onDownloadStart(url, userAgent, contentDisposition, mimetype, contentLength)
-    }*/
+    }
   }
 }

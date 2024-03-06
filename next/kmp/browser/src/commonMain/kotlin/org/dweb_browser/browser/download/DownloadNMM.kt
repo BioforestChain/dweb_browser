@@ -12,6 +12,7 @@ import org.dweb_browser.core.std.file.ext.pickFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.fromBase64
 import org.dweb_browser.helper.valueNotIn
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
@@ -47,7 +48,9 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     val start: Boolean = false,
     /** 用于接收json中文件大小 */
     val total: Long = 1L,
-  )
+  ) {
+    val decodeUrl by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { url.fromBase64().decodeToString() }
+  }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val controller = DownloadController(this)
@@ -65,8 +68,9 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val mmid = ipc.remote.mmid
         val params = request.queryAs<DownloadTaskParams>()
         val externalDownload = request.queryAsOrNull<Boolean>("external") ?: false
+        debugDownload("/create", "mmid=$mmid, params=$params, external=$externalDownload")
         val downloadTask = controller.createTaskFactory(params, mmid, externalDownload)
-        debugDownload("/create", "mmid=$mmid, taskId=$downloadTask, params=$params")
+        debugDownload("/create", "task=$downloadTask")
         if (params.start) {
           controller.downloadFactory(downloadTask)
         }

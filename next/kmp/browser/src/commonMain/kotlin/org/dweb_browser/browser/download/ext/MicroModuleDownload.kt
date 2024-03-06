@@ -1,7 +1,9 @@
 package org.dweb_browser.browser.download.ext
 
+import io.ktor.util.encodeBase64
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.download.DownloadTask
+import org.dweb_browser.browser.download.debugDownload
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.createChannel
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -12,9 +14,14 @@ import org.dweb_browser.pure.http.PureTextFrame
 
 suspend fun NativeMicroModule.createDownloadTask(
   url: String, total: Long = 1L, external: Boolean = false
-) = nativeFetch(
-  url = "file://download.browser.dweb/create?url=$url&total=$total&external=$external"
-).text()
+): String {
+  // 将 url 转码，避免 url 内容被解析为 parameter，引起下载地址错误
+  val encodeUrl = url.encodeToByteArray().encodeBase64()
+  val response = nativeFetch(
+    url = "file://download.browser.dweb/create?url=$encodeUrl&total=$total&external=$external"
+  )
+  return response.text()
+}
 
 suspend fun NativeMicroModule.startDownload(taskId: String) =
   nativeFetch("file://download.browser.dweb/start?taskId=$taskId").boolean()

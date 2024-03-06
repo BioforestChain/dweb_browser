@@ -240,4 +240,33 @@ object BrowserI18nResource {
   val dialog_upgrade_button_setting = SimpleI18nResource(
     Language.ZH to "设置", Language.EN to "Setting"
   )
+
+  val sheet_download = SimpleI18nResource(
+    Language.ZH to "下载文件", Language.EN to "Download File"
+  )
+  val sheet_download_state_init = SimpleI18nResource(
+    Language.ZH to "下载", Language.EN to "Download"
+  )
+  val sheet_download_state_pause = SimpleI18nResource(
+    Language.ZH to "继续", Language.EN to "Pause"
+  )
+  val sheet_download_state_install = SimpleI18nResource(
+    Language.ZH to "安装", Language.EN to "Install"
+  )
+  val sheet_download_state_open = SimpleI18nResource(
+    Language.ZH to "打开", Language.EN to "Open"
+  )
+
+  val sheet_download_tip_exist = SimpleI18nResource(
+    Language.ZH to "此文件已在下载列表中", Language.EN to "This file is already in the download list"
+  )
+  val sheet_download_tip_cancel = SimpleI18nResource(
+    Language.ZH to "取消", Language.EN to "Cancel"
+  )
+  val sheet_download_tip_continue = SimpleI18nResource(
+    Language.ZH to "继续下载", Language.EN to "Continue"
+  )
+  val sheet_download_tip_reload = SimpleI18nResource(
+    Language.ZH to "重新下载", Language.EN to "Re-Download"
+  )
 }

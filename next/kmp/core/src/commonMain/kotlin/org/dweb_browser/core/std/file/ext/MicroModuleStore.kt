@@ -1,6 +1,5 @@
 package org.dweb_browser.core.std.file.ext
 
-import io.ktor.http.URLBuilder
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
@@ -15,17 +14,13 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.debugMicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.WeakHashMap
-import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.pure.crypto.cipher.cipher_aes_256_gcm
 import org.dweb_browser.pure.crypto.decipher.decipher_aes_256_gcm
 import org.dweb_browser.pure.crypto.hash.sha256
 import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureMethod
 
 fun MicroModule.createStore(storeName: String, encrypt: Boolean) =
   MicroModuleStore(this, storeName, encrypt)
@@ -45,7 +40,7 @@ class MicroModuleStore(
   private val storeName: String,
   private val cipherChunkKey: ByteArray?,
   private val encrypt: Boolean,
-  ) {
+) {
   constructor(
     mm: MicroModule, storeName: String, encrypt: Boolean
   ) : this(mm, storeName, null, encrypt)
@@ -147,7 +142,6 @@ class MicroModuleStore(
       }
     }
   }
-
 
   suspend inline fun <reified T> get(key: String) = getOrPut<T>(key) {
     throw Exception("no found data for key: $key")

@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import io.ktor.http.ContentRange
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.RangeUnits
 import io.ktor.http.Url
 import io.ktor.http.fromFilePath
@@ -35,6 +36,7 @@ import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.decodeURI
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
@@ -200,30 +202,18 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     // 查看是否创建过相同的task,并且相同的task已经下载完成
     val task = DownloadTask(
       id = randomUUID(),
-      url = params.url,
+      url = params.decodeUrl,
       originMmid = originMmid,
       originUrl = params.originUrl,
       openDappUri = params.openDappUri,
       mime = "application/octet-stream",
-      filepath = fileCreateByPath(params.url, externalDownload),
+      filepath = fileCreateByPath(params.decodeUrl, externalDownload),
       status = DownloadStateEvent(total = params.total)
     )
     downloadTaskMaps.put(task.id, task)
     downloadStore.set(task.id, task) // 保存下载状态
     debugDownload("createTaskFactory", "${task.id} -> $task")
     return task
-  }
-
-  private suspend fun initMimeAndFilePathByHeaders(headers: PureHeaders, task: DownloadTask) {
-    /*val contentType = headers.get("Content-Type")
-    val fileName = headers.get("Content-Disposition")?.substringAfter("filename=")?.trim('"')
-    val lastPath = Url(task.url).encodedPath.lastPath()
-
-    if (contentType.isNullOrEmpty()) {
-      val extension = ContentType.fromFilePath(fileName)
-    } else {
-      task.mime = contentType
-    }*/
   }
 
   /**
@@ -237,13 +227,18 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     debugDownload("recoverDownload", "start=$start => $task")
     task.status.state = DownloadState.Downloading // 这边开始请求http了，属于开始下载
     task.emitChanged()
-    val response = downloadNMM.nativeFetch(PureClientRequest(
+    var response = downloadNMM.nativeFetch(PureClientRequest(
       href = task.url,
       method = PureMethod.GET,
       headers = PureHeaders().apply {
         init(HttpHeaders.Range, "${RangeUnits.Bytes}=${ContentRange.TailFrom(start)}")
       }
     ))
+    // 目前发现测试的时候，如果不存在range的上面会报错。直接使用下面这个来请求
+    if (response.status == HttpStatusCode.RequestedRangeNotSatisfiable) {
+      task.status.current = 0L
+      response = downloadNMM.nativeFetch(PureClientRequest(href = task.url, method = PureMethod.GET))
+    }
 
     if (!response.isOk) {
       task.status.state = DownloadState.Failed
@@ -252,8 +247,6 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       downloadNMM.showToast(response.status.toString())
       return false
     }
-
-    initMimeAndFilePathByHeaders(response.headers, task)
 
     task.mime = mimeFactory(response.headers, task.url)
     task.filepath = fileCreateByHeadersAndPath(response.headers, task.url, task.mime, task.external)
@@ -330,7 +323,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     if (!contentType.isNullOrEmpty()) {
       return contentType
     }
-    //再从文件判断
+    // 再从文件判断
     val extension = ContentType.fromFilePath(filePath)
     if (extension.isNotEmpty()) {
       return extension.first().toString()
@@ -367,7 +360,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
    */
   private suspend fun fileCreateByPath(url: String, externalDownload: Boolean): String {
     var index = 0
-    val fileName = Url(url).encodedPath.lastPath()
+    val fileName = Url(url).encodedPath.lastPath().decodeURI()
     while (true) {
       val path = if (externalDownload) {
         "/download/${index++}_${fileName}"
