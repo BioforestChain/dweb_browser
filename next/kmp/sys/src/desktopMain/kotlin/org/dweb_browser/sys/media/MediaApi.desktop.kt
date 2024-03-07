@@ -1,10 +1,12 @@
 package org.dweb_browser.sys.media
 
 import io.ktor.http.ContentType
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultiPartFileEncode
 import org.dweb_browser.helper.platform.MultipartFieldDescription
-import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.platform.desktop.os.OsType
 import org.dweb_browser.platform.desktop.os.OsType.MacOS
 import org.dweb_browser.platform.desktop.os.OsType.Windows
@@ -42,7 +44,7 @@ class MediaPictureImpl(saveLocation: String, desc: MultipartFieldDescription) :
     desc.fileName
       ?: (
           // 文件名
-          randomUUID()
+          Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).toString()
               // 文件后缀
               + (desc.contentType?.let { ".${ContentType.parse(it).contentSubtype}" } ?: "")
               // 临时文件后缀
