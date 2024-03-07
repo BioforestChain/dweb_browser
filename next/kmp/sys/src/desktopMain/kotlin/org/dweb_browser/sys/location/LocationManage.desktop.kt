@@ -1,19 +1,51 @@
 package org.dweb_browser.sys.location
 
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.take
+import com.teamdev.jxbrowser.js.JsFunctionCallback
+import com.teamdev.jxbrowser.js.JsObject
+import kotlinx.coroutines.CompletableDeferred
+import org.dweb_browser.helper.runIf
 
 actual class LocationManage {
   /**
    * 获取当前的位置信息
    */
   actual suspend fun getCurrentLocation(precise: Boolean): GeolocationPosition {
-    // 请求单次更新
-    val observer = createLocationObserver(false)
-    observer.start(precise = precise)
-    return observer.flow.take(1).first().also {
-      observer.destroy()
+    val result = CompletableDeferred<GeolocationPosition>()
+    runCatching {
+      DesktopLocationObserver.getWebGeolocation()
+        .call<Unit>("getCurrentPosition", JsFunctionCallback {
+          result.complete(jsGeolocationPositionToNative(it[0] as JsObject))
+        }, JsFunctionCallback { arguments ->
+          val error = arguments[0] as JsObject
+          val errorState = if (error.hasProperty("code") && error.hasProperty("message")) {
+            error.property<Double>("code").runIf {
+              when (val code = it.toInt()) {
+                1 -> GeolocationPositionState.PERMISSION_DENIED
+                2 -> GeolocationPositionState.POSITION_UNAVAILABLE
+                3 -> GeolocationPositionState.TIMEOUT
+                else -> error.property<String>("message").runIf { message ->
+                  GeolocationPositionState(code, message)
+                }
+              }
+            }
+          } else null
+          result.complete(
+            GeolocationPosition.createErrorObj(
+              errorState ?: GeolocationPositionState.POSITION_UNAVAILABLE
+            )
+          )
+        }, object {
+          @Suppress("unused")
+          val enableHighAccuracy = precise
+        })
+    }.getOrElse {
+      result.complete(
+        GeolocationPosition.createErrorObj(
+          GeolocationPositionState.POSITION_UNAVAILABLE
+        )
+      )
     }
+    return result.await()
   }
 
   /**
@@ -28,6 +60,4 @@ actual class LocationManage {
     }
     return observer
   }
-
 }
-

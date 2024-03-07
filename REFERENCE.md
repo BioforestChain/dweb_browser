@@ -1,3 +1,4 @@
 - [kotlinCompilerExtensionVersion](https://androidx.dev/storage/compose-compiler/repository)
 - [compose-bom](https://developer.android.com/jetpack/compose/bom/bom-mapping)
-- [kotlin-wrappers](https://mvnrepository.com/artifact/org.jetbrains.kotlin-wrappers/kotlin-wrappers-bom/) 
+- [kotlin-wrappers](https://mvnrepository.com/artifact/org.jetbrains.kotlin-wrappers/kotlin-wrappers-bom/)
+- [kotlin-jvm-desktop](https://github.com/JetBrains/compose-multiplatform/blob/master/tutorials/Native_distributions_and_local_execution/README.md)

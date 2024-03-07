@@ -10,6 +10,8 @@ import org.dweb_browser.helper.datetimeNow
 data class GeolocationPositionState(val code: Int, val message: String?) {
   companion object {
     val Success = GeolocationPositionState(0, "success")
+    /// https://developer.mozilla.org/en-US/docs/Web/API/GeolocationPositionError
+
     val PERMISSION_DENIED = GeolocationPositionState(1, "permission denied")
     val POSITION_UNAVAILABLE = GeolocationPositionState(2, "position unavailable")
     val TIMEOUT = GeolocationPositionState(3, "timeout")
@@ -55,8 +57,13 @@ abstract class LocationObserver {
    * @param minTimeMs 位置更新之间的最小时间间隔（以毫秒为单位）
    * @param minDistance 位置更新之间的最小距离（以米为单位）
    */
-  abstract fun start(precise: Boolean = true, minTimeMs: Long = 0, minDistance: Double = 0.0)
-  abstract fun stop()
+  abstract suspend fun start(
+    precise: Boolean = true,
+    minTimeMs: Long = 0,
+    minDistance: Double = 0.0
+  )
+
+  abstract suspend fun stop()
 
   private val destroySignal = SimpleSignal()
   val onDestroy = destroySignal.toListener()
