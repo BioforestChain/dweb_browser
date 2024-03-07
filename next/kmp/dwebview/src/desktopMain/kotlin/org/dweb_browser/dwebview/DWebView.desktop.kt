@@ -5,7 +5,6 @@ import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
@@ -22,7 +21,10 @@ import org.dweb_browser.helper.withMainContext
 actual suspend fun IDWebView.Companion.create(
   mm: MicroModule,
   options: DWebViewOptions
-): IDWebView = DWebView(DWebViewEngine(mm, options))
+): IDWebView {
+  DWebView.prepare()
+  return DWebView(DWebViewEngine(mm, options))
+}
 
 class DWebView(
   val viewEngine: DWebViewEngine,
@@ -53,7 +55,8 @@ class DWebView(
   override suspend fun resolveUrl(url: String): String = viewEngine.resolveUrl(url)
 
   override suspend fun getOriginalUrl(): String = withMainContext {
-    viewEngine.evaluateSyncJavascriptCode("javascript:window.location.href;") ?: viewEngine.getOriginalUrl()
+    viewEngine.evaluateSyncJavascriptCode("javascript:window.location.href;")
+      ?: viewEngine.getOriginalUrl()
   }
 
   override suspend fun getTitle(): String {
@@ -138,7 +141,7 @@ class DWebView(
 
   override suspend fun createMessageChannel(): IWebMessageChannel {
     val channel = viewEngine.mainFrame.executeJavaScript<JsObject>("new MessageChannel()")
-    if(channel != null) {
+    if (channel != null) {
       val port1 = DWebMessagePort(channel.property<JsObject>("port1").get(), this)
       val port2 = DWebMessagePort(channel.property<JsObject>("port2").get(), this)
 
