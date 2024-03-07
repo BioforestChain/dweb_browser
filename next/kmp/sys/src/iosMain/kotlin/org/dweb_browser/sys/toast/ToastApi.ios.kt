@@ -17,7 +17,10 @@ import platform.UIKit.bottomLayoutGuide
 import platform.UIKit.topLayoutGuide
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun showToast(text: String, durationType: DurationType, positionType: PositionType) {
+actual suspend fun showToast(
+  microModule: MicroModule,
+  text: String, durationType: DurationType, positionType: PositionType
+) {
   withMainContext {
     val toastLabel = UILabel()
     toastLabel.setText(text)

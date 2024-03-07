@@ -3,10 +3,14 @@ package org.dweb_browser.sys.toast
 import android.view.Gravity
 import android.view.View
 import android.widget.Toast
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.withMainContext
 
-actual suspend fun showToast(text: String, durationType: DurationType, positionType: PositionType) =
+actual suspend fun showToast(
+  microModule: MicroModule,
+  text: String, durationType: DurationType, positionType: PositionType
+) =
   ToastController.showToast(text, durationType, positionType)
 
 object ToastController {
