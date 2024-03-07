@@ -96,6 +96,7 @@
 		487D7FCA2B6A24DC00DA8162 /* DwebLifeStatusCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebLifeStatusCenter.swift; sourceTree = "<group>"; };
 		48C4F2DD2B85940B00671A91 /* LinkSort.order */ = {isa = PBXFileReference; lastKnownFileType = text; path = LinkSort.order; sourceTree = "<group>"; };
 		48CC08302B634943007B0ADB /* DwebDeskAlertTips.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskAlertTips.swift; sourceTree = "<group>"; };
+		48E35C952B99504B0008AB39 /* UTBuildConfig.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = UTBuildConfig.sh; sourceTree = "<group>"; };
 		48F54EDA2B17233E003A64AC /* DwebDeskVCStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskVCStore.swift; sourceTree = "<group>"; };
 		7555FF7B242A565900829871 /* DwebBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DwebBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -198,6 +199,7 @@
 				4818B8202B91A9F800596B9D /* UpdateBuildConfig.sh */,
 				481488642B96C186005D7D00 /* OrderBuildConfig.sh */,
 				48001BBD2B8F26BF00F47669 /* LinkOrder_README.md */,
+				48E35C952B99504B0008AB39 /* UTBuildConfig.sh */,
 			);
 			path = Config;
 			sourceTree = "<group>";

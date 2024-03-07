@@ -5,6 +5,15 @@
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Run Script"
+               scriptText = "# Type a script or drag a script file from your workspace to insert its path.&#10;root_dict=$WORKSPACE_PATH&#10;echo &quot;$root_dict&quot;&#10;root_dict=&quot;$root_dict/..&quot;&#10;&#10;echo $root_dict&#10;&#10;cd &quot;$root_dict/DwebBrowser/DwebBrowser/Config&quot;&#10;&#10;chmod +x UTBuildConfig.sh&#10;&#10;pwd&#10;&#10;source &quot;UTBuildConfig.sh&quot;&#10;&#10;testingBuild &quot;ui&quot;&#10;">
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
    </BuildAction>
    <TestAction
       buildConfiguration = "Debug"
@@ -12,6 +21,15 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Run Script"
+               scriptText = "# Type a script or drag a script file from your workspace to insert its path.&#10;# Type a script or drag a script file from your workspace to insert its path.&#10;root_dict=$WORKSPACE_PATH&#10;echo &quot;$root_dict&quot;&#10;root_dict=&quot;$root_dict/..&quot;&#10;&#10;echo $root_dict&#10;&#10;cd &quot;$root_dict/DwebBrowser/DwebBrowser/Config&quot;&#10;&#10;chmod +x UTBuildConfig.sh&#10;&#10;pwd&#10;&#10;source &quot;UTBuildConfig.sh&quot;&#10;&#10;testingRecover&#10;">
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
       <Testables>
          <TestableReference
             skipped = "NO"

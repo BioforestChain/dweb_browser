@@ -30,7 +30,6 @@ import Foundation
     private static let testingModeFlag = "DwebTesting"
     private static let uiTestingModeFlag = "DwebUITesting"
     private static let orderDumpModeFlag = "DwebOrderDumping"
-    private static let gitFlag = "DwebOrderDumping"
 
     public static var isTesting: Bool {
         guard let flag = getValue(testModeEnvKey) else {
