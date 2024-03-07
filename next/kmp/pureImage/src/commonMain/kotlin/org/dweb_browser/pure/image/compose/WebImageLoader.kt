@@ -19,13 +19,17 @@ import org.dweb_browser.pure.image.offscreenwebcanvas.waitReady
 import org.dweb_browser.pure.image.setHook
 
 
-val LocalWebImageLoader = compositionChainOf("ImageLoader") { WebImageLoader() }
+val LocalWebImageLoader = compositionChainOf("ImageLoader") { WebImageLoader.defaultInstance }
 
 @Composable
 internal expect fun rememberOffscreenWebCanvas(): OffscreenWebCanvas
 
 
 class WebImageLoader : PureImageLoader {
+  companion object {
+    val defaultInstance by lazy { WebImageLoader() }
+  }
+
   private val scope = CoroutineScope(ioAsyncExceptionHandler)
 
   @Composable

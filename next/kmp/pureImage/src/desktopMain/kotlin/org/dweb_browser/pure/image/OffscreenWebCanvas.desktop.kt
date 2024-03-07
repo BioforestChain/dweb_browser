@@ -7,6 +7,10 @@ import org.dweb_browser.platform.desktop.webview.WebviewEngine
 import org.dweb_browser.pure.image.offscreenwebcanvas.OffscreenWebCanvasCore
 
 actual class OffscreenWebCanvas private actual constructor(width: Int, height: Int) {
+  companion object {
+    val defaultInstance by lazy { OffscreenWebCanvas() }
+  }
+
   internal actual val core = OffscreenWebCanvasCore()
   private val webview = WebviewEngine.offScreen.newBrowser()
 

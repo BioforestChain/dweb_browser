@@ -11,11 +11,12 @@ import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.sys.R
 
 actual class NotificationManager {
-  actual fun createNotification(message: NotificationMsgItem) {
+  actual suspend fun createNotification(microModule: MicroModule, message: NotificationMsgItem) {
     val channelType = when (message.msg_src) {
       "app_message" -> ChannelType.DEFAULT
       "push_message" -> ChannelType.IMPORTANT
@@ -29,13 +30,6 @@ actual class NotificationManager {
     )
   }
 
-  actual fun updateNotification() {
-
-  }
-
-  actual fun cancelNotification() {
-
-  }
 
   enum class ChannelType(
     val typeName: String, val channelID: String, val property: Int, val importance: Int

@@ -15,6 +15,10 @@ import platform.WebKit.WKWebViewConfiguration
 import platform.WebKit.javaScriptEnabled
 
 actual class OffscreenWebCanvas private actual constructor(width: Int, height: Int) {
+  companion object {
+    val defaultInstance by lazy { OffscreenWebCanvas() }
+  }
+
   internal actual val core = OffscreenWebCanvasCore()
   private lateinit var webview: WKWebView
 

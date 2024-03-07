@@ -58,3 +58,4 @@
    1. 想要获得 gradlew 的所有 tasks，到 kmp/next 目录下，执行: `./gradlew -q :tasks --all > .gradle/all.md`
    1. 想要获得 gradlew 的指定 project 的 tasks，到 kmp/next 目录下，执行: `./gradlew -q helper:tasks --all > .gradle/helper.md`
 1. 不要使用 Fleet 打开项目，因为它会往 DwebBrowser.xcworkspace 文件夹里头加入一些文件导致 xcodebuild 脚本失效，如果你不幸使用 Fleet 打开过项目，请手动删除 DwebBrowser.xcworkspace 文件夹里头`[Fleet]`打头的文件
+1. 使用 [composeResources](https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-images-resources.html#resource-usage) 文件夹存储资源文件时，需要运行 ./gradlaw generateComposeResClass 来自动生成代码

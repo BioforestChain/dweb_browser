@@ -49,7 +49,7 @@ import kotlin.time.measureTimedValue
 
 val debugCoilImageLoader = Debugger("coilImageLoader")
 
-val LocalCoilImageLoader = compositionLocalOf { CoilImageLoader(null) }
+val LocalCoilImageLoader = compositionLocalOf { CoilImageLoader.defaultInstance }
 
 class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoader {
   private val hooks = mutableSetOf<FetchHook>()
@@ -128,6 +128,7 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
   }
 
   companion object {
+    val defaultInstance by lazy { CoilImageLoader(null) }
 
     private val defaultHttpClient = @Suppress("USELESS_IS_CHECK")
     when (val pureClient = defaultHttpPureClient) {

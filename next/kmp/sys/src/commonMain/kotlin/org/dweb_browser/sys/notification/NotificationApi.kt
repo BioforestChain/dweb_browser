@@ -1,6 +1,7 @@
 package org.dweb_browser.sys.notification
 
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.module.MicroModule
 
 @Serializable
 data class NotificationMsgItem(
@@ -16,7 +17,7 @@ data class NotificationMsgItem(
 
 
 expect class NotificationManager() {
-  fun createNotification(message: NotificationMsgItem)
-  fun updateNotification()
-  fun cancelNotification()
+  suspend fun createNotification(microModule: MicroModule, message: NotificationMsgItem)
+//  fun updateNotification()
+//  fun cancelNotification()
 }

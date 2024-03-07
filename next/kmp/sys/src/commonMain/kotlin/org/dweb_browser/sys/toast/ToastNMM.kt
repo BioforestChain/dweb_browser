@@ -28,14 +28,14 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
           EToast.Long.type -> DurationType.LONG
           else -> DurationType.SHORT
         }
-        debugToast("/show","message=$message,duration=${duration},position=${position}")
+        debugToast("/show", "message=$message,duration=${duration},position=${position}")
         val positionType = when (position) {
           PositionType.BOTTOM.position -> PositionType.BOTTOM
           PositionType.CENTER.position -> PositionType.CENTER
           else -> PositionType.TOP
         }
         val fromMM = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@ToastNMM
-        showToast(message, durationType, positionType)
+        showToast(fromMM, message, durationType, positionType)
         return@defineBooleanResponse true
       },
     ).cors()
