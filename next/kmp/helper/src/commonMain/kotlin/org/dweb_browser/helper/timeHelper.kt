@@ -33,12 +33,18 @@ fun Long.compareNowDayByMilliseconds(): Long {
   return lastInstant.minus(nowInstant, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
 }
 
+/**
+ * 转化为时间格式
+ */
 fun Long.formatTimestampByMilliseconds(): String {
   val instant = Instant.fromEpochMilliseconds(this)
   val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
   return "${localDateTime.date} ${localDateTime.time}"
 }
 
+/**
+ * 转化为日期格式
+ */
 fun Long.formatDatestampByMilliseconds(): String {
   val instant = Instant.fromEpochMilliseconds(this)
   val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())

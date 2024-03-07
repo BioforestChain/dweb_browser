@@ -6,21 +6,15 @@ import org.dweb_browser.browser.web.model.WebLinkMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
-import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
-import org.dweb_browser.core.std.http.DwebHttpServerOptions
-import org.dweb_browser.core.std.http.HttpDwebServer
-import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.sys.window.ext.onRenderer
 import org.dweb_browser.sys.window.ext.openMainWindow
 
@@ -49,14 +43,11 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     }
   }
 
-  private lateinit var browserServer: HttpDwebServer
-
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val webLinkStore = WebLinkStore(this)
-    browserServer = this.createBrowserWebServer()
     val browserController = // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
       withMainContext {
-        BrowserController(this@BrowserNMM, browserServer, webLinkStore)
+        BrowserController(this@BrowserNMM, webLinkStore)
       }
     loadWebLinkApps(browserController, webLinkStore)
 
@@ -85,27 +76,13 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     )
   }
 
-  private val API_PREFIX = "/api/"
-  private suspend fun createBrowserWebServer(): HttpDwebServer {
-    val browserServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = ""))
-    browserServer.listen().onRequest { (request, ipc) ->
-      val pathName = request.uri.encodedPath
-      debugBrowser("createBrowserWebServer", pathName)
-      if (!pathName.startsWith(API_PREFIX)) {
-        val response = nativeFetch("file:///sys/browser/web${pathName}?mode=stream")
-        ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
-      }
-    }
-    return browserServer
-  }
-
   /**
    * 用来加载WebLink数据的，并且监听是否添加到桌面操作
    */
   private suspend fun loadWebLinkApps(
     browserController: BrowserController, webLinkStore: WebLinkStore
   ) {
-    webLinkStore.getAll().map { (key, webLinkManifest) ->
+    webLinkStore.getAll().map { (_, webLinkManifest) ->
       bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
     }
     browserController.onWebLinkAdded { webLinkManifest -> // 监听是否添加到桌面操作
@@ -120,6 +97,5 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
   }
 
   override suspend fun _shutdown() {
-    browserServer.close()
   }
 }

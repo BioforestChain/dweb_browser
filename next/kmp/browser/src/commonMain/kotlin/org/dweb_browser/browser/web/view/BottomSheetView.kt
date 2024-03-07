@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.BottomSheetDefaults
@@ -647,6 +648,18 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel/*, openEngineManage
 //          text = BrowserI18nResource.browser_options_search_engine(),
 //          trailingIcon = Icons.Default.Settings
 //        ) { openEngineManage() }
+
+        // 下载管理界面
+        Spacer(modifier = Modifier.height(12.dp))
+        RowItemMenuView(
+          text = BrowserI18nResource.browser_options_download(),
+          trailingIcon = Icons.Default.FileDownload
+        ) {
+          scope.launch {
+            viewModel.showDownloadManage.value = true
+            bottomSheetModel.hide()
+          }
+        }
       }
     }
   }

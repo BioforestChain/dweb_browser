@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.model
+package org.dweb_browser.browser.web.download
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -15,23 +15,23 @@ import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.startDownload
 import org.dweb_browser.browser.download.ui.lastPath
 import org.dweb_browser.browser.web.BrowserNMM
-import org.dweb_browser.browser.web.data.BrowserDownloadItem
-import org.dweb_browser.browser.web.data.BrowserDownloadStore
-import org.dweb_browser.browser.web.data.BrowserDownloadType
-import org.dweb_browser.browser.web.data.FileSuffix
 import org.dweb_browser.browser.web.debugBrowser
-import org.dweb_browser.browser.web.view.BrowserDownloadSheet
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.helper.decodeURI
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
 
+enum class BrowserDownloadManagePage {
+  Manage, DeleteAll, MoreCompleted, DeleteCompleted
+}
+
 class BrowserDownloadModel(private val browserNMM: BrowserNMM) {
   val store = BrowserDownloadStore(browserNMM)
-  private val saveDownloadMaps: MutableMap<String, MutableList<BrowserDownloadItem>> =
+  val saveDownloadMaps: MutableMap<String, MutableList<BrowserDownloadItem>> =
     mutableStateMapOf()
   private val newDownloadMaps: HashMap<String, BrowserDownloadItem> = hashMapOf()
   val alreadyExist = mutableStateOf(false)
+  val managePage = mutableStateOf(BrowserDownloadManagePage.Manage)
 
   init {
     browserNMM.ioAsyncScope.launch {
@@ -80,7 +80,7 @@ class BrowserDownloadModel(private val browserNMM: BrowserNMM) {
         item.downloadArgs.url, item.downloadArgs.contentLength, external = true
       )
       item.alreadyWatch = false
-      saveDownloadMaps.getOrPut(item.key) { mutableStateListOf() }.add(item)
+      saveDownloadMaps.getOrPut(item.urlKey) { mutableStateListOf() }.add(item)
     }
     if (!item.alreadyWatch) {
       watchProcess(browserDownloadItem = item)
@@ -104,7 +104,7 @@ class BrowserDownloadModel(private val browserNMM: BrowserNMM) {
           state = downloadTask.status.state
         )
         if (lastState != downloadTask.status.state) {
-          saveDownloadMaps[browserDownloadItem.key]?.let { store.save(browserDownloadItem.key, it) }
+          saveDownloadMaps[browserDownloadItem.urlKey]?.let { store.save(browserDownloadItem.urlKey, it) }
         }
         when (downloadTask.status.state) {
           DownloadState.Completed -> {

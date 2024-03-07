@@ -73,6 +73,7 @@ import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.data.BrowserContentItem
 import org.dweb_browser.browser.web.data.ConstUrl
+import org.dweb_browser.browser.web.download.BrowserDownloadManage
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserModel
 import org.dweb_browser.browser.web.model.LocalBrowserPageState
@@ -183,6 +184,11 @@ fun BrowserViewForWindow(
           windowRenderScope = windowRenderScope
         )
         BrowserBottomSheet(viewModel)
+        if(viewModel.showDownloadManage.value) {
+          viewModel.getDownloadModel().BrowserDownloadManage {
+            viewModel.showDownloadManage.value = false
+          }
+        }
         QRCodeScanView(
           onSuccess = {
             openDeepLink(it)

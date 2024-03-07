@@ -99,6 +99,7 @@ class BrowserViewModel(
   val isNoTrace by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     mutableStateOf(browserController.isNoTrace)
   }
+  val showDownloadManage = mutableStateOf(false)
 
   val searchInjectList = mutableStateListOf<SearchInject>()
   val searchEngineList = mutableStateListOf<SearchEngine>()
@@ -483,6 +484,8 @@ class BrowserViewModel(
   fun showToastMessage(message: String) {
     browserController.ioAsyncScope.launch { browserNMM.showToast(message) }
   }
+
+  fun getDownloadModel() = browserController.downloadModel
 }
 
 /**

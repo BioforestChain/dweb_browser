@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.data
+package org.dweb_browser.browser.web.download
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -47,7 +47,7 @@ enum class FileSuffix(val suffix: String, val type: BrowserDownloadType, val ico
 
 @Serializable
 data class BrowserDownloadItem(
-  val key: String,
+  val urlKey: String,
   val downloadArgs: WebDownloadArgs,
   var taskId: TaskId? = null,
   @SerialName("state")
@@ -60,7 +60,6 @@ data class BrowserDownloadItem(
 
   @Transient
   var alreadyWatch: Boolean = false
-
 }
 
 class BrowserDownloadStore(mm: MicroModule) {
