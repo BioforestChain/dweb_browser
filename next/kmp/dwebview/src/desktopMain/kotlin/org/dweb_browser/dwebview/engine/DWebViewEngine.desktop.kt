@@ -54,6 +54,8 @@ class DWebViewEngine internal constructor(
 
         Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
       }
+
+      addSwitch("--enable-experimental-web-platform-features")
     }
   }
 
