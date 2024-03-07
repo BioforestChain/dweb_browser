@@ -7,7 +7,7 @@ import com.teamdev.jxbrowser.browser.event.BrowserClosed
 import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
-import com.teamdev.jxbrowser.navigation.event.LoadStarted
+import com.teamdev.jxbrowser.navigation.event.NavigationStarted
 import com.teamdev.jxbrowser.net.HttpHeader
 import com.teamdev.jxbrowser.net.HttpStatus
 import com.teamdev.jxbrowser.net.Scheme
@@ -90,7 +90,7 @@ class DWebViewEngine internal constructor(
 
   private fun addListenerEvent() {
     // 开始加载时，设置userAgent
-    browser.navigation().on(LoadStarted::class.java) {
+    browser.navigation().on(NavigationStarted::class.java) {
       setUA()
     }
 
@@ -194,7 +194,7 @@ class DWebViewEngine internal constructor(
     browser.close(CloseOptions.newBuilder().build())
   }
 
-  fun setUA() {
+  private fun setUA() {
     val brandList = mutableListOf<IDWebView.UserAgentBrandData>()
     IDWebView.brands.forEach {
       brandList.add(
