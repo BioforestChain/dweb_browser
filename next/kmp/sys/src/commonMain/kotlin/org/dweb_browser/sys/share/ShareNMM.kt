@@ -27,7 +27,6 @@ import org.dweb_browser.helper.platform.MultipartFieldEnd
 import org.dweb_browser.helper.platform.MultipartFilePackage
 import org.dweb_browser.helper.platform.MultipartFileType
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
@@ -67,58 +66,60 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
         )
         debugShare("share", "contentType=$contentType, shareOption=$shareOptions")
         val result = when {
-          contentType.match(ContentType.MultiPart.FormData) ->
-            try {
-              val response = nativeFetch(
-                PureClientRequest(
-                  "file://multipart.http.std.dweb/parser",
-                  PureMethod.POST,
-                  request.headers,
-                  request.body,
-                )
+          contentType.match(ContentType.MultiPart.FormData) -> try {
+            val response = nativeFetch(
+              PureClientRequest(
+                "file://multipart.http.std.dweb/parser",
+                PureMethod.POST,
+                request.headers,
+                request.body,
               )
-              val fieldWritePathMap = mutableMapOf</* field_index */Int, /* writePath */String>()
-              val fileList = mutableListOf<String>()
-              val channel = Channel<ShareChunkWriteTask>(capacity = Channel.RENDEZVOUS)
-              val deferred = CompletableDeferred<Boolean>()
-              ioAsyncScope.launch {
-                for (task in channel) {
-                  multipartFileDataAppendToTempFile(task.writePath, task.chunk)
-                }
-                deferred.complete(true)
+            )
+            val fieldWritePathMap = mutableMapOf</* field_index */Int, /* writePath */String>()
+            val fileList = mutableListOf<String>()
+            val channel = Channel<ShareChunkWriteTask>(capacity = Channel.RENDEZVOUS)
+            val deferred = CompletableDeferred<Boolean>()
+            ioAsyncScope.launch {
+              for (task in channel) {
+                multipartFileDataAppendToTempFile(task.writePath, task.chunk)
               }
-              response.body.toPureStream().getReader("share/form-data")
-                .consumeEachCborPacket<MultipartFilePackage> { multipartFilePackage ->
-                  when (multipartFilePackage.type) {
-                    MultipartFileType.Desc -> {
-                      val packet = Cbor.decodeFromByteArray<MultipartFieldDescription>(multipartFilePackage.chunk)
-                      fieldWritePathMap[packet.fieldIndex] =
-                        "/cache/${randomUUID()}${packet.fileName?.let { "/$it" }}"
-                    }
+              deferred.complete(true)
+            }
+            response.body.toPureStream().getReader("share/form-data")
+              .consumeEachCborPacket<MultipartFilePackage> { multipartFilePackage ->
+                when (multipartFilePackage.type) {
+                  MultipartFileType.Desc -> {
+                    val packet =
+                      Cbor.decodeFromByteArray<MultipartFieldDescription>(multipartFilePackage.chunk)
+                    fieldWritePathMap[packet.fieldIndex] =
+                      "/cache/${randomUUID()}${packet.fileName?.let { "/$it" }}"
+                  }
 
-                    MultipartFileType.Data -> {
-                      val packet = Cbor.decodeFromByteArray<MultipartFieldData>(multipartFilePackage.chunk)
-                      fieldWritePathMap[packet.fieldIndex]?.also { writePath ->
-                        channel.send(ShareChunkWriteTask(writePath, packet.chunk))
-                      }
+                  MultipartFileType.Data -> {
+                    val packet =
+                      Cbor.decodeFromByteArray<MultipartFieldData>(multipartFilePackage.chunk)
+                    fieldWritePathMap[packet.fieldIndex]?.also { writePath ->
+                      channel.send(ShareChunkWriteTask(writePath, packet.chunk))
                     }
+                  }
 
-                    MultipartFileType.End -> {
-                      val packet = Cbor.decodeFromByteArray<MultipartFieldEnd>(multipartFilePackage.chunk)
-                      fieldWritePathMap[packet.fieldIndex]?.also { writePath ->
-                        val realPath = this@ShareNMM.realFile(writePath)
-                        fileList.add("file://$realPath")
-                        channel.close()
-                      }
+                  MultipartFileType.End -> {
+                    val packet =
+                      Cbor.decodeFromByteArray<MultipartFieldEnd>(multipartFilePackage.chunk)
+                    fieldWritePathMap[packet.fieldIndex]?.also { writePath ->
+                      val realPath = this@ShareNMM.realFile(writePath)
+                      fileList.add("file://$realPath")
+                      channel.close()
                     }
                   }
                 }
-              deferred.await()
-              share(shareOptions, fileList, this@ShareNMM)
-            } catch (e: Exception) {
-              debugShare("ContentType/Form", "receiveMultipart error -> ${e.message}")
-              share(shareOptions, null, this@ShareNMM)
-            }
+              }
+            deferred.await()
+            share(shareOptions, fileList, this@ShareNMM)
+          } catch (e: Exception) {
+            debugShare("ContentType/Form", "receiveMultipart error -> ${e.message}")
+            share(shareOptions, null, this@ShareNMM)
+          }
 
           contentType.match(ContentType.Application.Json) -> {
             val files = Json.decodeFromString<List<MultiPartFile>>(request.body.toPureString())
@@ -146,8 +147,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
           }
 
           else -> {
-            debugShare("share", "Unable to process $contentType")
-            /*return@defineJsonResponse ShareResult(
+            debugShare("share", "Unable to process $contentType")/*return@defineJsonResponse ShareResult(
               false,
               "Unable to process $contentType"
             ).toJsonElement()*/
@@ -164,14 +164,15 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
   private suspend fun multipartFileDataWriteToTempFile(
     multiPartFile: MultiPartFile
   ): String {
-    val data = when (multiPartFile.encoding) {
-      MultiPartFileEncode.UTF8 -> multiPartFile.data.encodeToByteArray()
-      MultiPartFileEncode.BASE64 -> multiPartFile.data.toBase64ByteArray()
-      MultiPartFileEncode.BINARY -> multiPartFile.data.encodeToByteArray()
-    }
-
     val writePath = "/cache/${randomUUID()}/${multiPartFile.name}"
-    this@ShareNMM.writeFile(writePath, body = IPureBody.from(data))
+    this@ShareNMM.writeFile(
+      writePath, body = IPureBody.from(
+        multiPartFile.data, encoding = when (multiPartFile.encoding) {
+          MultiPartFileEncode.UTF8 -> IPureBody.Companion.PureStringEncoding.Utf8
+          MultiPartFileEncode.BASE64 -> IPureBody.Companion.PureStringEncoding.Base64
+        }
+      )
+    )
 
     val realPath = this@ShareNMM.realFile(writePath)
     return "file://$realPath"

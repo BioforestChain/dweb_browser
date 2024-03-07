@@ -509,6 +509,7 @@ fun KotlinMultiplatformExtension.kmpDesktopTarget(
   project: Project,
   configure: KmpDesktopTargetDsl.() -> Unit = {},
 ) {
+  println("Features.desktopApp.disabled=${Features.desktopApp.disabled}")
   if (Features.desktopApp.disabled) {
     return
   }

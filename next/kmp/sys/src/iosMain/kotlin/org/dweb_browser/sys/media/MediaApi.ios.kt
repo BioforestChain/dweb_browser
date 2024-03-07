@@ -2,9 +2,7 @@ package org.dweb_browser.sys.media
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import org.dweb_browser.helper.platform.MultiPartFile
-import org.dweb_browser.helper.platform.MultiPartFileEncode
 import org.dweb_browser.helper.platform.MultipartFieldDescription
-import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.sys.scan.toNSData
 import platform.Foundation.NSMutableData
 import platform.Foundation.appendData
@@ -17,14 +15,8 @@ actual suspend fun savePictures(saveLocation: String, files: List<MultiPartFile>
   }
 }
 
-private fun savePicture(files: MultiPartFile) {
-  val data = when (files.encoding) {
-    MultiPartFileEncode.UTF8 -> files.data.encodeToByteArray()
-    MultiPartFileEncode.BASE64 -> files.data.toBase64ByteArray()
-    MultiPartFileEncode.BINARY -> files.data.encodeToByteArray()
-  }
-
-  val uiImage = UIImage(data = data.toNSData())
+private fun savePicture(file: MultiPartFile) {
+  val uiImage = UIImage(data = file.binary.toNSData())
   //图片对象、目标对象、一个完成时调用的选择器（selector）以及一个上下文信息对象
   saveImageToPhotosAlbum(uiImage)
 }

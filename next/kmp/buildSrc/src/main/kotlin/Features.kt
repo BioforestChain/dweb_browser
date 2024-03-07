@@ -1,4 +1,5 @@
 object Features {
+
   private val properties = java.util.Properties().also { properties ->
     java.io.File(System.getProperty("dweb-browser.root.dir"), "local.properties").apply {
       if (exists()) {
@@ -7,11 +8,11 @@ object Features {
     }
   }
 
-  private val disabled = (properties.getOrDefault("app.disable", "") as String)
+  private val disabled = properties.getProperty("app.disable", "")
     .split(",")
     .map { it.trim().lowercase() };
 
-  private val enabled = (properties.getOrDefault("app.experimental.enabled", "") as String)
+  private val enabled = properties.getProperty("app.experimental.enabled", "")
     .split(",")
     .map { it.trim().lowercase() };
 

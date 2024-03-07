@@ -34,20 +34,20 @@ dependencyResolutionManagement {
  * 好像无法与buildSrc共享代码，但是gradle官方却有相关的例子，只不过这种共享好像达不到我们的需求
  * https://github.com/gradle/gradle/blob/master/settings.gradle.kts#L38C1-L38C13
  */
-object Features {
-  private val properties = java.util.Properties().also { properties ->
-    java.io.File("local.properties").apply {
+class FeaturesFactory {
+  private val props = java.util.Properties().also { properties ->
+    rootDir.resolve("local.properties").apply {
       if (exists()) {
         inputStream().use { properties.load(it) }
       }
     }
   }
 
-  private val disabled = (properties.getOrDefault("app.disable", "") as String)
+  private val disabled = props.getProperty("app.disable", "")
     .split(",")
     .map { it.trim().lowercase() };
 
-  private val enabled = (properties.getOrDefault("app.experimental.enabled", "") as String)
+  private val enabled = props.getProperty("app.experimental.enabled", "")
     .split(",")
     .map { it.trim().lowercase() };
 
@@ -60,11 +60,20 @@ object Features {
   val desktopApp = Bool(enabled.contains("desktop"));
   val electronApp = Bool(enabled.contains("electron"));
   val libs = Bool(androidApp.enabled || iosApp.enabled || desktopApp.enabled)
+
+  init {
+    println("androidApp.enabled=${androidApp.enabled}")
+    println("iosApp.enabled=${iosApp.enabled}")
+    println("desktopApp.enabled=${desktopApp.enabled}")
+    println("electronApp.enabled=${electronApp.enabled}")
+    println("libs.enabled=${libs.enabled}")
+  }
 }
 
+val features = FeaturesFactory()
 
 rootProject.name = "dweb-browser-kmp"
-System.setProperty("dweb-browser.root.dir", rootDir.path)
+System.setProperty("dweb-browser.root.dir", rootDir.absolutePath)
 
 // https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:type-safe-project-accessors
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -82,18 +91,18 @@ fun includeUI(dirName: String) {
 }
 
 include(":platformTest")
-if (Features.iosApp.enabled) {
+if (features.iosApp.enabled) {
   include(":platformIos")
 }
-if (Features.electronApp.enabled) {
+if (features.electronApp.enabled) {
   include(":platformNode")
   include(":platformBrowser")
 }
-if (Features.desktopApp.enabled) {
+if (features.desktopApp.enabled) {
   include(":platformDesktop")
 }
 
-if (Features.libs.enabled) {
+if (features.libs.enabled) {
   include(":helper")
   include(":helperCompose")
   include(":helperPlatform")
@@ -112,11 +121,11 @@ if (Features.libs.enabled) {
 }
 //includeUI("pureCrypto")
 //includeUI("helper")
-if (Features.androidApp.enabled) {
+if (features.androidApp.enabled) {
   includeApp("androidApp")
   includeApp("androidBenchmark")
 }
-if (Features.electronApp.enabled) {
+if (features.electronApp.enabled) {
   includeApp("jsCommon")
   includeApp("electronApp")
   includeApp("jsFrontend")
@@ -124,11 +133,11 @@ if (Features.electronApp.enabled) {
   includeApp("demoComposeApp")
 }
 
-if(Features.desktopApp.enabled) {
+if (features.desktopApp.enabled) {
   includeApp("desktopApp")
 }
 
-if (Features.libs.enabled) {
+if (features.libs.enabled) {
   File(
     rootDir,
     "../../toolkit/dweb_browser_libs/rust_library"
