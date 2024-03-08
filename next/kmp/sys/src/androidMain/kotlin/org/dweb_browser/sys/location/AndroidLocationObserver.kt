@@ -12,7 +12,6 @@ import android.os.Looper
 import kotlinx.coroutines.flow.MutableSharedFlow
 import org.dweb_browser.core.module.getAppContext
 
-
 // 转换为web标准需要的结构
 private fun toGeolocationPosition(lastLocation: Location): GeolocationPosition {
   val geolocationCoordinates = GeolocationCoordinates(
@@ -96,11 +95,7 @@ class AndroidLocationObserver : LocationObserver() {
   }
 
   @SuppressLint("MissingPermission")
-  override fun start(
-    precise: Boolean,
-    minTimeMs: Long,
-    minDistance: Double,
-  ) {
+  override suspend fun start(precise: Boolean, minTimeMs: Long, minDistance: Double) {
     val context = getAppContext()
 
     // 请求多次更新，这会通过回调触发到onLocationChanged
@@ -115,7 +110,7 @@ class AndroidLocationObserver : LocationObserver() {
     }
   }
 
-  override fun stop() {
+  override suspend fun stop() {
     manager.removeUpdates(listener)
   }
 }
