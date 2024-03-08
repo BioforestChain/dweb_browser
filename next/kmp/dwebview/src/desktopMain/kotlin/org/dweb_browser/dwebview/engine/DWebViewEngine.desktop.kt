@@ -116,7 +116,7 @@ class DWebViewEngine internal constructor(
 
     runCatching {
       mainFrame.executeJavaScript(
-        "(async()=>{return ($script)})().then(r=>JSON.stringify(r),e=>String(e))",
+        "(async()=>{return ($script)})().then(r=>JSON.stringify(r),e=>{throw String(e)})",
         Consumer<JsPromise> { promise ->
           promise
             .then {
@@ -140,7 +140,11 @@ class DWebViewEngine internal constructor(
     }
   }
 
-  fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>, postData: String? = null) {
+  fun loadUrl(
+    url: String,
+    additionalHttpHeaders: MutableMap<String, String>,
+    postData: String? = null
+  ) {
     val safeUrl = resolveUrl(url)
     loadedUrlCache.checkLoadedUrl(safeUrl, additionalHttpHeaders) {
       val loadUrlParams = LoadUrlParams.newBuilder(url)
@@ -148,7 +152,7 @@ class DWebViewEngine internal constructor(
         loadUrlParams.addExtraHeader(HttpHeader.of(key, value))
       }
 
-      if(postData != null) {
+      if (postData != null) {
         loadUrlParams.postData(postData)
       }
 
@@ -180,7 +184,7 @@ class DWebViewEngine internal constructor(
   fun canGoForward() = browser.navigation().canGoForward()
 
   suspend fun goForward() = withMainContext {
-    if(canGoForward()) {
+    if (canGoForward()) {
       browser.navigation().goForward()
       true
     } else {

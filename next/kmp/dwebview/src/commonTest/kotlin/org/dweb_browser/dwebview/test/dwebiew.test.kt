@@ -19,10 +19,12 @@ class DWebViewTest {
     assertEquals("2", dwebview.evaluateAsyncJavascriptCode("1+1"))
     assertEquals("3", dwebview.evaluateAsyncJavascriptCode("await Promise.resolve(1)+2"))
     assertEquals("catch", runCatching {
-      dwebview.evaluateAsyncJavascriptCode("await Promise.reject(2)")
+      dwebview.evaluateAsyncJavascriptCode("await Promise.reject('no-catch')")
     }.getOrElse {
-      assertEquals("2", it.message)
+      assertEquals("no-catch", it.message)
       "catch"
     })
+
+    dwebview.destroy()
   }
 }
