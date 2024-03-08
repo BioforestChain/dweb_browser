@@ -39,7 +39,6 @@ cryptography-version = "0.3.0"
 
 accompanist = "0.34.0"
 google-material = "1.11.0"
-google-location = "21.1.0"
 data-gson = "2.10.1"
 coil-version = "3.0.0-alpha06"
 camera-version = "1.4.0-alpha04"
@@ -161,7 +160,6 @@ accompanist-permissions = { group = "com.google.accompanist", name = "accompanis
 accompanist-insets-ui = { group = "com.google.accompanist", name = "accompanist-insets-ui", version.ref = "accompanist" }
 
 google-material = { group = "com.google.android.material", name = "material", version.ref = "google-material" }
-google-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "google-location" }
 # 数据 json
 data-gson = { group = "com.google.code.gson", name = "gson", version.ref = "data-gson" }
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
