@@ -28,6 +28,6 @@ actual object DeviceManage {
   }
 
   actual fun deviceAppVersion(): String {
-    return DeviceManage::class.java.`package`?.implementationVersion ?: ""
+    return DeviceManage::class.java.`package`?.implementationVersion ?: "0.0.0-dev.0"
   }
 }

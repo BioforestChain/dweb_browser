@@ -19,16 +19,14 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(
-  mm: MicroModule,
-  options: DWebViewOptions
+  mm: MicroModule, options: DWebViewOptions
 ): IDWebView {
   DWebView.prepare()
   return DWebView(DWebViewEngine(mm, options))
 }
 
 class DWebView(
-  val viewEngine: DWebViewEngine,
-  initUrl: String? = null
+  val viewEngine: DWebViewEngine, initUrl: String? = null
 ) : IDWebView(initUrl ?: viewEngine.options.url) {
   companion object {
     val prepare = SuspendOnce {
@@ -47,16 +45,15 @@ class DWebView(
   override val ioScope: CoroutineScope
     get() = viewEngine.ioScope
 
-  override suspend fun startLoadUrl(url: String): String = withMainContext {
+  override suspend fun startLoadUrl(url: String): String {
     viewEngine.loadUrl(url)
-    url
+    return viewEngine.getOriginalUrl()
   }
 
   override suspend fun resolveUrl(url: String): String = viewEngine.resolveUrl(url)
 
-  override suspend fun getOriginalUrl(): String = withMainContext {
-    viewEngine.evaluateSyncJavascriptCode("javascript:window.location.href;")
-      ?: viewEngine.getOriginalUrl()
+  override suspend fun getOriginalUrl(): String {
+    return viewEngine.getOriginalUrl()
   }
 
   override suspend fun getTitle(): String {
@@ -152,6 +149,7 @@ class DWebView(
   }
 
   override suspend fun postMessage(data: String, ports: List<IWebMessagePort>) {
+    viewEngine.mainFrame
     ports.first().onMessage.signal.emit(DWebMessage.DWebMessageString(data, ports))
   }
 
@@ -176,8 +174,7 @@ class DWebView(
   }
 
   override suspend fun evaluateAsyncJavascriptCode(
-    script: String,
-    afterEval: suspend () -> Unit
+    script: String, afterEval: suspend () -> Unit
   ): String {
     return viewEngine.evaluateAsyncJavascriptCode(script, afterEval)
   }
@@ -186,10 +183,12 @@ class DWebView(
     TODO("Not yet implemented")
   }
 
+  private val _engineLazy = RememberLazy(viewEngine) { viewEngine }
+
   override val onDestroy: Signal.Listener<Unit>
     get() = TODO("Not yet implemented")
   override val onLoadStateChange: Signal.Listener<WebLoadState>
-    get() = TODO("Not yet implemented")
+      by _engineLazy.then { viewEngine.loadStateChangeSignal.toListener() }
   override val onReady: Signal.Listener<String>
     get() = TODO("Not yet implemented")
   override val onBeforeUnload: Signal.Listener<WebBeforeUnloadArgs>

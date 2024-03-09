@@ -9,13 +9,18 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class DWebViewTest {
-  @Test
-  fun evalJavascript() = runCommonTest {
+
+  private suspend inline fun getWebview(): IDWebView {
     val mm = object : NativeMicroModule("mm.test.dweb", "MM") {
       override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {}
       override suspend fun _shutdown() {}
     }
-    val dwebview = IDWebView.create(mm)
+    return IDWebView.create(mm)
+  }
+
+  @Test
+  fun evalJavascript() = runCommonTest {
+    val dwebview = getWebview()
     assertEquals("2", dwebview.evaluateAsyncJavascriptCode("1+1"))
     assertEquals("3", dwebview.evaluateAsyncJavascriptCode("await Promise.resolve(1)+2"))
     assertEquals("catch", runCatching {
@@ -26,5 +31,16 @@ class DWebViewTest {
     })
 
     dwebview.destroy()
+  }
+
+  @Test
+  fun getUA() = runCommonTest {
+    val dwebview = getWebview()
+    dwebview.loadUrl("https://baidu.com")
+    println(dwebview.evaluateAsyncJavascriptCode("JSON.stringify(navigator.userAgentData.brands)"))
+    assertEquals(
+      "true",
+      dwebview.evaluateAsyncJavascriptCode("navigator.userAgentData.brands.filter((item)=>item.brand=='DwebBrowser').length>0")
+    )
   }
 }

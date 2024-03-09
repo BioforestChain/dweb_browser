@@ -185,7 +185,7 @@ class DWebViewEngine internal constructor(
       addDocumentStartJavaScript(
         """
         ${UserAgentData.polyfillScript}
-        let userAgentData = ""
+        let userAgentData;
         if (!navigator.userAgentData) {
          userAgentData  = new NavigatorUAData(navigator, ${
           JsonLoose.encodeToJsonElement(

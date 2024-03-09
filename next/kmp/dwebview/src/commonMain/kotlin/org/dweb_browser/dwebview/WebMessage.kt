@@ -31,6 +31,7 @@ sealed interface DWebMessage {
   class DWebMessageBytes(
     val data: ByteArray,
     override val ports: List<IWebMessagePort> = emptyList(),
+    // TODO 这个编码要转移到应用层通讯协商那边
     val encode: DWebMessageBytesEncode = DWebMessageBytesEncode.Normal
   ) : DWebMessage
 }

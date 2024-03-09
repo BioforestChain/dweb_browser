@@ -4,9 +4,13 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.teamdev.jxbrowser.browser.Browser
 import com.teamdev.jxbrowser.browser.CloseOptions
 import com.teamdev.jxbrowser.browser.event.BrowserClosed
+import com.teamdev.jxbrowser.browser.internal.rpc.ConsoleMessageReceived
 import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
+import com.teamdev.jxbrowser.navigation.event.FrameDocumentLoadFinished
+import com.teamdev.jxbrowser.navigation.event.FrameLoadFailed
+import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished
 import com.teamdev.jxbrowser.navigation.event.NavigationStarted
 import com.teamdev.jxbrowser.net.HttpHeader
 import com.teamdev.jxbrowser.net.HttpStatus
@@ -18,16 +22,22 @@ import com.teamdev.jxbrowser.view.swing.BrowserView
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.encodeToJsonElement
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.dwebview.WebLoadErrorState
+import org.dweb_browser.dwebview.WebLoadStartState
+import org.dweb_browser.dwebview.WebLoadState
+import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.base.LoadedUrlCache
-import org.dweb_browser.dwebview.polyfill.UserAgentData
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toImageBitmap
@@ -40,71 +50,46 @@ class DWebViewEngine internal constructor(
   internal val remoteMM: MicroModule,
   val options: DWebViewOptions
 ) {
-  private val dwebviewEngine by lazy {
-    WebviewEngine.hardwareAccelerated {
-      addScheme(Scheme.of("dweb")) { params ->
-        val pureResponse = runBlocking(ioAsyncExceptionHandler) {
-          remoteMM.nativeFetch(params.urlRequest().url())
-        }
 
-        val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
-        pureResponse.headers.forEach { (key, value) ->
-          jobBuilder.addHttpHeader(HttpHeader.of(key, value))
-        }
 
-        Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
+  internal val browser: Browser = WebviewEngine.hardwareAccelerated {
+    addScheme(Scheme.of("dweb")) { params ->
+      val pureResponse = runBlocking(ioAsyncExceptionHandler) {
+        remoteMM.nativeFetch(params.urlRequest().url())
       }
 
-      addSwitch("--enable-experimental-web-platform-features")
-    }
-  }
+      val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
+      pureResponse.headers.forEach { (key, value) ->
+        jobBuilder.addHttpHeader(HttpHeader.of(key, value))
+      }
 
-  private val browser: Browser = dwebviewEngine.newBrowser()
+      Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
+    }
+
+    addSwitch("--enable-experimental-web-platform-features")
+  }.let { engine ->
+    // 设置https代理
+    val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
+    engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
+    val browser = engine.newBrowser()
+    // 同步销毁
+    browser.on(BrowserClosed::class.java) {
+      engine.close()
+    }
+    browser
+  }
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
   val mainFrame get() = browser.mainFrame().get()
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
   internal val loadedUrlCache = LoadedUrlCache(ioScope)
 
-  init {
-    // 设置https代理
-    val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
-    dwebviewEngine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
-
-    // 添加监听事件
-    addListenerEvent()
-
-    // 设置
-    browser.settings().apply {
-      enableJavaScript()
-      enableLocalStorage()
-      enableImages()
-      enableTransparentBackground()
-      enableOverscrollHistoryNavigation()
-      allowRunningInsecureContent()
-      allowJavaScriptAccessClipboard()
-      allowScriptsToCloseWindows()
-      allowLoadingImagesAutomatically()
-    }
-  }
-
-  private fun addListenerEvent() {
-    // 开始加载时，设置userAgent
-    browser.navigation().on(NavigationStarted::class.java) {
-      setUA()
-    }
-
-    // browser关闭，销毁dwebviewEngine
-    browser.on(BrowserClosed::class.java) {
-      dwebviewEngine.close()
-    }
-  }
 
   /**
    * 执行同步JS代码
    */
   fun evaluateSyncJavascriptCode(script: String) =
-    mainFrame.executeJavaScript<String>(script)
+    mainFrame.executeJavaScript<String>("(()=>{return String($script)})()")
 
   /**
    * 执行异步JS代码，需要传入一个表达式
@@ -132,15 +117,17 @@ class DWebViewEngine internal constructor(
     return deferred.await()
   }
 
-  fun loadUrl(url: String) {
+  suspend fun loadUrl(url: String) {
     val safeUrl = resolveUrl(url)
     loadedUrlCache.checkLoadedUrl(safeUrl) {
-      browser.navigation().loadUrl(url)
+      ioScope.launch {
+        browser.navigation().loadUrl(url)
+      }.join()
       true
     }
   }
 
-  fun loadUrl(
+  suspend fun loadUrl(
     url: String,
     additionalHttpHeaders: MutableMap<String, String>,
     postData: String? = null
@@ -156,7 +143,9 @@ class DWebViewEngine internal constructor(
         loadUrlParams.postData(postData)
       }
 
-      browser.navigation().loadUrl(loadUrlParams.build())
+      ioScope.launch {
+        browser.navigation().loadUrl(loadUrlParams.build())
+      }.join()
       true
     }
   }
@@ -165,9 +154,9 @@ class DWebViewEngine internal constructor(
     return url
   }
 
-  fun getTitle() = browser.title()
+  fun getTitle(): String = browser.title()
 
-  fun getOriginalUrl() = browser.url()
+  fun getOriginalUrl(): String = browser.url()
 
   fun canGoBack() = browser.navigation().canGoBack()
 
@@ -198,6 +187,22 @@ class DWebViewEngine internal constructor(
     browser.close(CloseOptions.newBuilder().build())
   }
 
+
+  private val documentStartJsList by lazy {
+    mutableListOf<String>().also { scriptList ->
+      // 开始加载时，设置userAgent
+      browser.navigation().on(FrameDocumentLoadFinished::class.java) {
+        for (script in scriptList) {
+          evaluateSyncJavascriptCode(script)
+        }
+      }
+    }
+  }
+
+  fun addDocumentStartJavaScript(script: String) {
+    documentStartJsList += script
+  }
+
   private fun setUA() {
     val brandList = mutableListOf<IDWebView.UserAgentBrandData>()
     IDWebView.brands.forEach {
@@ -212,40 +217,67 @@ class DWebViewEngine internal constructor(
     val versionName = DeviceManage.deviceAppVersion()
     brandList.add(IDWebView.UserAgentBrandData("DwebBrowser", versionName.split(".").first()))
 
-    evaluateSyncJavascriptCode(
-      """
-        ${UserAgentData.polyfillScript}
-        let userAgentData = ""
-        if (!navigator.userAgentData) {
-         userAgentData  = new NavigatorUAData(navigator, ${
-        JsonLoose.encodeToJsonElement(
-          brandList
-        )
-      });
-        } else {
-          userAgentData =
-           new NavigatorUAData(navigator, 
-           navigator.userAgentData.brands.concat(
-           ${
-        JsonLoose.encodeToJsonElement(
-          brandList
-        )
-      }));
-        }
-        Object.defineProperty(Navigator.prototype, 'userAgentData', {
-          enumerable: true,
-          configurable: true,
-          get: function getUseAgentData() {
-            return userAgentData;
-          }
-        });
-        Object.defineProperty(window, 'NavigatorUAData', {
-          enumerable: false,
-          configurable: true,
-          writable: true,
-          value: NavigatorUAData
-        });
-      """.trimIndent()
+    // 新版的chrome可以delete brands 然后重新赋值
+    addDocumentStartJavaScript(
+      """(()=>{
+        const uaBrands = navigator.userAgentData.brands
+        delete NavigatorUAData.prototype.brands;
+        Object.defineProperty(NavigatorUAData.prototype,'brands',{value:uaBrands.concat(${
+        JsonLoose.encodeToJsonElement(brandList)
+      })})
+      })()""".trimIndent()
     )
+  }
+
+  val loadStateChangeSignal = Signal<WebLoadState>().also { signal ->
+    fun emitSignal(state: WebLoadState) {
+      ioScope.launch {
+        signal.emit(state)
+      }
+    }
+    browser.navigation().apply {
+      on(NavigationStarted::class.java) {
+        if (it.isInMainFrame) {
+          emitSignal(WebLoadStartState(it.url()))
+        }
+      }
+      on(FrameLoadFinished::class.java) {
+        if (it.frame() == mainFrame) {
+          emitSignal(WebLoadSuccessState(it.url()))
+        }
+      }
+      on(FrameLoadFailed::class.java) {
+        if (it.frame() == mainFrame) {
+          emitSignal(WebLoadErrorState(it.url(), it.error().name))
+        }
+      }
+    }
+  }
+
+  init {
+
+    setUA()
+
+    // 设置
+    browser.settings().apply {
+      enableJavaScript()
+      enableLocalStorage()
+      enableImages()
+      enableTransparentBackground()
+      enableOverscrollHistoryNavigation()
+      allowRunningInsecureContent()
+      allowJavaScriptAccessClipboard()
+      allowScriptsToCloseWindows()
+      allowLoadingImagesAutomatically()
+    }
+
+    if (debugDWebView.isEnable) {
+      browser.on(ConsoleMessageReceived::class.java) { event ->
+        val consoleMessage = event.consoleMessage()
+        val level = consoleMessage.level()
+        val message = consoleMessage.message()
+        debugDWebView("JsConsole/$level", message)
+      }
+    }
   }
 }
