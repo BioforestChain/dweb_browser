@@ -8,9 +8,9 @@ import com.teamdev.jxbrowser.browser.internal.rpc.ConsoleMessageReceived
 import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
-import com.teamdev.jxbrowser.navigation.event.FrameDocumentLoadFinished
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFailed
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished
+import com.teamdev.jxbrowser.navigation.event.NavigationFinished
 import com.teamdev.jxbrowser.navigation.event.NavigationStarted
 import com.teamdev.jxbrowser.net.HttpHeader
 import com.teamdev.jxbrowser.net.HttpStatus
@@ -88,8 +88,8 @@ class DWebViewEngine internal constructor(
   /**
    * 执行同步JS代码
    */
-  fun evaluateSyncJavascriptCode(script: String) =
-    mainFrame.executeJavaScript<String>("(()=>{return String($script)})()")
+  fun evaluateSyncJavascriptFunctionBody(jsFunctionBody: String) =
+    mainFrame.executeJavaScript<String>("String((()=>{$jsFunctionBody})())")
 
   /**
    * 执行异步JS代码，需要传入一个表达式
@@ -190,10 +190,10 @@ class DWebViewEngine internal constructor(
 
   private val documentStartJsList by lazy {
     mutableListOf<String>().also { scriptList ->
-      // 开始加载时，设置userAgent
-      browser.navigation().on(FrameDocumentLoadFinished::class.java) {
+      // url导航结束，也就是dom开始加载时，执行 startScript
+      browser.navigation().on(NavigationFinished::class.java) {
         for (script in scriptList) {
-          evaluateSyncJavascriptCode(script)
+          evaluateSyncJavascriptFunctionBody(script)
         }
       }
     }

@@ -61,7 +61,7 @@ class DWebView(
   }
 
   override suspend fun getIcon() = withMainContext {
-    viewEngine.evaluateSyncJavascriptCode(
+    viewEngine.evaluateSyncJavascriptFunctionBody(
       """
 (function getAndroidIcon(preference_size = 64) {
   const iconLinks = [

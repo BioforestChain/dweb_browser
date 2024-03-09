@@ -9,13 +9,16 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class DWebViewTest {
+  companion object {
 
-  private suspend inline fun getWebview(): IDWebView {
-    val mm = object : NativeMicroModule("mm.test.dweb", "MM") {
-      override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {}
-      override suspend fun _shutdown() {}
+    suspend inline fun getWebview(): IDWebView {
+      val mm = object : NativeMicroModule("mm.test.dweb", "MM") {
+        override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {}
+        override suspend fun _shutdown() {}
+      }
+      return IDWebView.create(mm)
     }
-    return IDWebView.create(mm)
+
   }
 
   @Test
@@ -36,7 +39,7 @@ class DWebViewTest {
   @Test
   fun getUA() = runCommonTest {
     val dwebview = getWebview()
-    dwebview.loadUrl("https://baidu.com")
+    dwebview.loadUrl("https://www.baidu.com")
     println(dwebview.evaluateAsyncJavascriptCode("JSON.stringify(navigator.userAgentData.brands)"))
     assertEquals(
       "true",
