@@ -160,6 +160,14 @@ class Debugger(val scope: String) {
     }
   }
 
+  fun forceEnable(enable: Boolean = true) {
+    if (enable) {
+      debugTags.add(scope)
+    } else {
+      debugTags.remove(scope)
+    }
+  }
+
   val isEnable
     get() = debugTags.contains(scope) || debugTagsRegex.firstOrNull { regex ->
       regex.matches(

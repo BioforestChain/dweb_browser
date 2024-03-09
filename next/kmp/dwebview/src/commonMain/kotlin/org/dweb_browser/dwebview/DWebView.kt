@@ -128,6 +128,11 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun setHorizontalScrollBarVisible(visible: Boolean)
 //  abstract suspend fun setSafeArea(top: Float, left: Float, bottom: Float, right: Float)
 
+  /**
+   * 执行一段表达式，表达式中允许 await 关键字
+   *
+   * 注意，它是表达式。如果需要多汗函数体，请手动包裹在一个匿名函数中
+   */
   abstract suspend fun evaluateAsyncJavascriptCode(
     script: String, afterEval: suspend () -> Unit = {}
   ): String
@@ -159,13 +164,15 @@ abstract class IDWebView(initUrl: String?) {
    * @param Int oldScrollX
    * @param Int oldScrollY
    */
-  abstract fun setOnScrollChangeListener(onScrollChange: (IDWebView, Int, Int, Int, Int) -> Unit)
+  abstract fun setOnScrollChangeListener(onScrollChange: ScrollChangeEvent.() -> Unit)
 
   /**
    * 获取webview返回到favorite icon
    */
   abstract suspend fun getFavoriteIcon(): ImageBitmap?
 }
+
+class ScrollChangeEvent(val target: IDWebView, val scrollX: Int, val scrollY: Int)
 
 class WebBeforeUnloadArgs(
   val message: String,

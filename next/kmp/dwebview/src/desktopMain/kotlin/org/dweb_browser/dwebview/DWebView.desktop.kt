@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.dwebview.engine.window
 import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
 import org.dweb_browser.dwebview.messagePort.DWebMessagePort
 import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
@@ -148,8 +149,18 @@ class DWebView(
     TODO("Not yet implemented")
   }
 
-  override fun setOnScrollChangeListener(onScrollChange: (IDWebView, Int, Int, Int, Int) -> Unit) {
-    TODO("Not yet implemented")
+  override fun setOnScrollChangeListener(onScrollChange: ScrollChangeEvent.() -> Unit) {
+    viewEngine.injectJsAction {
+      println("QAQ addEventListener scroll")
+      window().addEventListener("scroll") {
+        println("QAQ dispatchEvent scroll")
+        ScrollChangeEvent(
+          this@DWebView,
+          executeJavaScript<Double>("(document.scrollingElement?.scrollLeft||0)*devicePixelRatio")!!.toInt(),
+          executeJavaScript<Double>("(document.scrollingElement?.scrollTop||0)*devicePixelRatio")!!.toInt()
+        ).onScrollChange()
+      }
+    }
   }
 
   override suspend fun getFavoriteIcon() = viewEngine.getFavoriteIcon()

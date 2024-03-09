@@ -7,7 +7,6 @@ import com.teamdev.jxbrowser.browser.event.BrowserClosed
 import com.teamdev.jxbrowser.browser.internal.rpc.ConsoleMessageReceived
 import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.JsException
-import com.teamdev.jxbrowser.js.JsObject
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFailed
@@ -49,8 +48,7 @@ import org.dweb_browser.sys.device.DeviceManage
 import java.util.function.Consumer
 
 class DWebViewEngine internal constructor(
-  internal val remoteMM: MicroModule,
-  val options: DWebViewOptions
+  internal val remoteMM: MicroModule, val options: DWebViewOptions
 ) {
 
 
@@ -102,16 +100,13 @@ class DWebViewEngine internal constructor(
     val deferred = CompletableDeferred<String>()
 
     runCatching {
-      mainFrame.executeJavaScript(
-        "(async()=>{return ($script)})().then(r=>JSON.stringify(r),e=>{throw String(e)})",
+      mainFrame.executeJavaScript("(async()=>{return ($script)})().then(r=>JSON.stringify(r)??'undefined',e=>{throw String(e)})",
         Consumer<JsPromise> { promise ->
-          promise
-            .then {
-              deferred.complete(it[0] as String)
-            }
-            .catchError {
-              deferred.completeExceptionally(JsException(it[0] as String))
-            }
+          promise.then {
+            deferred.complete(it[0] as String)
+          }.catchError {
+            deferred.completeExceptionally(JsException(it[0] as String))
+          }
         })
     }.getOrElse { deferred.completeExceptionally(it) }
     afterEval?.invoke()
@@ -130,9 +125,7 @@ class DWebViewEngine internal constructor(
   }
 
   suspend fun loadUrl(
-    url: String,
-    additionalHttpHeaders: MutableMap<String, String>,
-    postData: String? = null
+    url: String, additionalHttpHeaders: MutableMap<String, String>, postData: String? = null
   ) {
     val safeUrl = resolveUrl(url)
     loadedUrlCache.checkLoadedUrl(safeUrl, additionalHttpHeaders) {
@@ -192,30 +185,42 @@ class DWebViewEngine internal constructor(
     browser.close(CloseOptions.newBuilder().build())
   }
 
+  private var whenInjectFrame: Frame? = null
 
-  private val injectJsActionList by lazy {
-    mutableListOf<Frame.() -> Unit>().also { actionList ->
-      browser.set(InjectJsCallback::class.java, InjectJsCallback {
-        val frame = it.frame()
-        for (action in actionList) {
+  private val injectJsActionList = mutableListOf<Frame.() -> Unit>().also { actionList ->
+    browser.set(InjectJsCallback::class.java, InjectJsCallback { event ->
+      debugDWebView("InjectJsCallback start")
+      val frame = event.frame()
+      val safeList = actionList.toList()/// 拷贝一份静态的
+      whenInjectFrame = frame
+      for (action in safeList) {
+        runCatching {
           frame.action()
-        }
-        InjectJsCallback.Response.proceed()
-      })
+        }.getOrElse { debugDWebView("InjectJsCallback error", frame, it) }
+      }
+      debugDWebView("InjectJsCallback end")
+      InjectJsCallback.Response.proceed()
+    })
+  }
+
+  fun injectJsAction(action: Frame.() -> Unit) {
+    injectJsActionList.add(action)
+    /// 如果frame合适，那么就直接执行
+    when (val frame = mainFrame) {
+      whenInjectFrame -> frame.action()
     }
   }
 
-
   fun addDocumentStartJavaScript(script: String) {
-    injectJsActionList.add {
+    injectJsAction {
       evaluateSyncJavascriptFunctionBody(script)
     }
   }
 
   private val jsInterfaces by lazy {
     mutableMapOf<String, Any>().also { injectInterfaces ->
-      injectJsActionList.add {
-        val window = executeJavaScript<JsObject>("window")!!
+      injectJsAction {
+        val window = window()
         for ((name, obj) in injectInterfaces) {
           window.putProperty(name, obj)
         }
@@ -232,8 +237,7 @@ class DWebViewEngine internal constructor(
     IDWebView.brands.forEach {
       brandList.add(
         IDWebView.UserAgentBrandData(
-          it.brand,
-          if (it.version.contains(".")) it.version.split(".").first() else it.version
+          it.brand, if (it.version.contains(".")) it.version.split(".").first() else it.version
         )
       )
     }

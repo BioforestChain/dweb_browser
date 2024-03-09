@@ -82,7 +82,7 @@ internal fun BrowserWebView(
         modifier = Modifier.fillMaxSize(),
         onCreate = {
           val webView = contentViewItem.viewItem.webView
-          webView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+          webView.setOnScrollChangeListener {
             contentViewItem.webViewY = scrollY // 用于截图的时候进行定位截图
           }
         }

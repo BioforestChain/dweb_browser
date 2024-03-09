@@ -12,6 +12,7 @@ import com.teamdev.jxbrowser.navigation.event.NavigationRedirected
 import com.teamdev.jxbrowser.navigation.event.NavigationStarted
 import com.teamdev.jxbrowser.navigation.event.NavigationStopped
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,6 +22,7 @@ class DWebViewDesktopTest {
   companion object {
 
     suspend fun getWebview(): DWebView {
+      debugDWebView.forceEnable()
       val dwebview = DWebViewTest.getWebview()
       require(dwebview is DWebView)
       dwebview.viewEngine.browser.on(ConsoleMessageReceived::class.java) { event ->
@@ -41,7 +43,7 @@ class DWebViewDesktopTest {
     println("mainFrame1=$mainFrame1")
     println(dwebview.viewEngine.mainFrame.executeJavaScript<String>("location.href"))
 
-    dwebview.viewEngine.loadUrl("data:image/png;base64,")
+    dwebview.loadUrl("data:image/png;base64,")
     val mainFrame2 = dwebview.viewEngine.mainFrame
     println("mainFrame2=$mainFrame2")
     println(dwebview.viewEngine.mainFrame.executeJavaScript<String>("location.href"))
@@ -109,6 +111,5 @@ class DWebViewDesktopTest {
       dwebview.loadUrl("https://baidu.com")
 
     }
-    /// ----
   }
 }

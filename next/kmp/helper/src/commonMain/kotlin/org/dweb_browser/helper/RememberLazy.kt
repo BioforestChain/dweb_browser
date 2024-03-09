@@ -15,7 +15,6 @@ class RememberLazy<T : Any?>(key: Any?, private val initializer: () -> T) : Memo
   fun <T : Any?> then(key: Any? = null, initializer: () -> T) =
     RememberLazy(key, initializer).also { it.follow(this) }
 
-
   val lazy: Lazy<T>
     get() = _lazy
   override val value: T

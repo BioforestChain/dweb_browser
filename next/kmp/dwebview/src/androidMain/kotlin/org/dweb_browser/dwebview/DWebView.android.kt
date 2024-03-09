@@ -241,9 +241,9 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     }
   }
 
-  override fun setOnScrollChangeListener(onScrollChange: (IDWebView, Int, Int, Int, Int) -> Unit) {
-    engine.setOnScrollChangeListener { _, scrollX, scrollY, oldScrollX, oldScrollY ->
-      onScrollChange(this, scrollX, scrollY, oldScrollX, oldScrollY)
+  override fun setOnScrollChangeListener(onScrollChange: ScrollChangeEvent.() -> Unit) {
+    engine.setOnScrollChangeListener { _, scrollX, scrollY, _, _ ->
+      ScrollChangeEvent(this, scrollX, scrollY).onScrollChange()
     }
   }
 

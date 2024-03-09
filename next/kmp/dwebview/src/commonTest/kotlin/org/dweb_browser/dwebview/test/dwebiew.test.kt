@@ -1,17 +1,26 @@
 package org.dweb_browser.dwebview.test
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.selects.onTimeout
+import kotlinx.coroutines.selects.select
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
+@ExperimentalCoroutinesApi
 class DWebViewTest {
   companion object {
 
     suspend inline fun getWebview(): IDWebView {
+      debugDWebView.forceEnable()
       val mm = object : NativeMicroModule("mm.test.dweb", "MM") {
         override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {}
         override suspend fun _shutdown() {}
@@ -54,5 +63,27 @@ class DWebViewTest {
     dwebview.loadUrl("https://www.baidu.com")
     assertEquals("https://www.baidu.com/favicon.ico", dwebview.getIcon())
     println("icon.image=${dwebview.getFavoriteIcon()}")
+  }
+
+  @Test
+  fun setOnScrollChangeListener() = runCommonTest {
+
+    val dwebview = getWebview()
+    dwebview.loadUrl("https://www.baidu.com")
+    delay(1000)
+    dwebview.evaluateAsyncJavascriptCode("document.body.style.height='10000px'")
+    val isScrolled = CompletableDeferred<Int>()
+    dwebview.setOnScrollChangeListener {
+      debugDWebView("scrollY", scrollY)
+      isScrolled.complete(scrollY)
+    }
+
+    dwebview.evaluateAsyncJavascriptCode("scrollTo(0,100),console.log('scrollTo 100')")
+    dwebview.evaluateAsyncJavascriptCode("scrollTo(0,200),console.log('scrollTo 200')")
+
+    assertNotEquals(0, select {
+      isScrolled.onAwait { it }
+      onTimeout(1000) { 0 }
+    })
   }
 }
