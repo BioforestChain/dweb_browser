@@ -46,4 +46,13 @@ class DWebViewTest {
       dwebview.evaluateAsyncJavascriptCode("navigator.userAgentData.brands.filter((item)=>item.brand=='DwebBrowser').length>0")
     )
   }
+
+  @Test
+  fun getIcon() = runCommonTest {
+
+    val dwebview = getWebview()
+    dwebview.loadUrl("https://www.baidu.com")
+    assertEquals("https://www.baidu.com/favicon.ico", dwebview.getIcon())
+    println("icon.image=${dwebview.getFavoriteIcon()}")
+  }
 }

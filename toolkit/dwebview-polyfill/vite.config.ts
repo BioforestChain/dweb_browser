@@ -8,12 +8,13 @@ export default defineConfig(() => {
           "keyboard.android": "./src/keyboard.android.ts",
           "websocket.ios": "./src/websocket.ios.ts",
           "favicon.ios": "./src/favicon.ios.ts",
+          "favicon.common": "./src/favicon.common.ts",
         },
         formats: ["cjs"],
       },
       minify: false,
       emptyOutDir: true,
-      outDir: "../../next/kmp/shared/src/commonMain/resources/dwebview-polyfill",
+      outDir: "../../next/kmp/dwebview/src/commonMain/composeResources/files/dwebview-polyfill",
     },
   };
 });

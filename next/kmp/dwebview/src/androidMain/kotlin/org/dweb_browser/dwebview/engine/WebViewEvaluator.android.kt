@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.AsyncChannel
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.launchWithMain
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -78,7 +78,7 @@ class WebViewEvaluator(
     val channel: AsyncChannel = Channel()
     val id = idAcc.getAndAdd(1)
     channelMap[id] = channel
-    scope.launch(mainAsyncExceptionHandler) {
+    scope.launchWithMain {
       webView.evaluateJavascript(
         """
             void (async()=>{return ($script)})()

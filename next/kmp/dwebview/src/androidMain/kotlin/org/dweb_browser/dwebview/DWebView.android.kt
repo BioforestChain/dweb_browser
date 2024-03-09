@@ -24,7 +24,6 @@ import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
-import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.proxy.DwebViewProxyOverride
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
@@ -103,68 +102,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     engine.title ?: ""
   }
 
-  override suspend fun getIcon() = withMainContext {
-    engine.evaluateSyncJavascriptCode(
-      """
-(function getAndroidIcon(preference_size = 64) {
-  const iconLinks = [
-    ...document.head.querySelectorAll(`link[rel*="icon"]`).values(),
-  ]
-    .map((ele) => {
-      return {
-        ele,
-        rel: ele.getAttribute("rel"),
-      };
-    })
-    .filter((link) => {
-      return (
-        link.rel === "icon" ||
-        link.rel === "shortcut icon" ||
-        link.rel === "apple-touch-icon" ||
-        link.rel === "apple-touch-icon-precomposed"
-      );
-    })
-    .map((link, index) => {
-      const sizes = parseInt(link.ele.getAttribute("sizes")) || 32;
-      return {
-        ...link,
-        // 上古时代的图标默认大小是32
-        sizes,
-        weight: sizes * 100 + index,
-      };
-    })
-    .sort((a, b) => {
-      const a_diff = Math.abs(a.sizes - preference_size);
-      const b_diff = Math.abs(b.sizes - preference_size);
-      /// 和预期大小接近的排前面
-      if (a_diff !== b_diff) {
-        return a_diff - b_diff;
-      }
-      /// 权重大的排前面
-      return b.weight - a.weight;
-    });
-
-  const href =
-    (
-      iconLinks
-        /// 优先不获取 ios 的指定图标
-        .filter((link) => {
-          return (
-            link.rel !== "apple-touch-icon" &&
-            link.rel !== "apple-touch-icon-precomposed"
-          );
-        })[0] ??
-      /// 获取标准网页图标
-      iconLinks[0]
-    )?.ele.href ?? "favicon.ico";
-
-  const iconUrl = new URL(href, document.baseURI);
-  return iconUrl.href;
-})()
-"""
-    )
-  }
-
+  override suspend fun getIcon() = engine.dwebFavicon.href
   override suspend fun destroy() = withMainContext {
     engine.destroy()
   }

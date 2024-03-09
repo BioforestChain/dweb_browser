@@ -11,8 +11,8 @@ object DwebViewPolyfill {
   internal val prepare = SuspendOnce {
     coroutineScope {
       launch {
-        WebSocket = readResourceBytes("dwebview-polyfill/websocket.ios.js").decodeToString()
-        Favicon = readResourceBytes("dwebview-polyfill/favicon.ios.js").decodeToString()
+        WebSocket = readResourceBytes("files/dwebview-polyfill/websocket.ios.js").decodeToString()
+        Favicon = readResourceBytes("files/dwebview-polyfill/favicon.ios.js").decodeToString()
       }
     }
   }

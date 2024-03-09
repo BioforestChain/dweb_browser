@@ -11,14 +11,11 @@ object DwebViewPolyfill {
   internal val prepare = SuspendOnce {
     coroutineScope {
       launch {
-        KeyBoard = readResourceBytes("files/dwebview-polyfill/keyboard.android.js").decodeToString()
         Favicon = readResourceBytes("files/dwebview-polyfill/favicon.common.js").decodeToString()
       }
     }
   }
 
-  lateinit var KeyBoard: String
-    private set
   lateinit var Favicon: String
     private set
 }

@@ -1,6 +1,5 @@
 package org.dweb_browser.dwebview
 
-import androidx.compose.ui.graphics.ImageBitmap
 import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
@@ -10,13 +9,13 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
 import org.dweb_browser.dwebview.messagePort.DWebMessagePort
+import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(
   mm: MicroModule, options: DWebViewOptions
@@ -31,6 +30,9 @@ class DWebView(
   companion object {
     val prepare = SuspendOnce {
       coroutineScope {
+        launch(ioAsyncExceptionHandler) {
+          DwebViewPolyfill.prepare();
+        }
         DwebViewProxy.prepare()
       }
     }
@@ -60,67 +62,7 @@ class DWebView(
     return viewEngine.mainFrame.executeJavaScript<String>("document.title") ?: viewEngine.getTitle()
   }
 
-  override suspend fun getIcon() = withMainContext {
-    viewEngine.evaluateSyncJavascriptFunctionBody(
-      """
-(function getAndroidIcon(preference_size = 64) {
-  const iconLinks = [
-    ...document.head.querySelectorAll(`link[rel*="icon"]`).values(),
-  ]
-    .map((ele) => {
-      return {
-        ele,
-        rel: ele.getAttribute("rel"),
-      };
-    })
-    .filter((link) => {
-      return (
-        link.rel === "icon" ||
-        link.rel === "shortcut icon" ||
-        link.rel === "apple-touch-icon" ||
-        link.rel === "apple-touch-icon-precomposed"
-      );
-    })
-    .map((link, index) => {
-      const sizes = parseInt(link.ele.getAttribute("sizes")) || 32;
-      return {
-        ...link,
-        // 上古时代的图标默认大小是32
-        sizes,
-        weight: sizes * 100 + index,
-      };
-    })
-    .sort((a, b) => {
-      const a_diff = Math.abs(a.sizes - preference_size);
-      const b_diff = Math.abs(b.sizes - preference_size);
-      /// 和预期大小接近的排前面
-      if (a_diff !== b_diff) {
-        return a_diff - b_diff;
-      }
-      /// 权重大的排前面
-      return b.weight - a.weight;
-    });
-
-  const href =
-    (
-      iconLinks
-        /// 优先不获取 ios 的指定图标
-        .filter((link) => {
-          return (
-            link.rel !== "apple-touch-icon" &&
-            link.rel !== "apple-touch-icon-precomposed"
-          );
-        })[0] ??
-      /// 获取标准网页图标
-      iconLinks[0]
-    )?.ele.href ?? "favicon.ico";
-
-  const iconUrl = new URL(href, document.baseURI);
-  return iconUrl.href;
-})()
-"""
-    ) ?: ""
-  }
+  override suspend fun getIcon() = viewEngine.dwebFavicon.href
 
   override suspend fun destroy() {
     viewEngine.destroy()
@@ -210,5 +152,5 @@ class DWebView(
     TODO("Not yet implemented")
   }
 
-  override suspend fun getFavoriteIcon(): ImageBitmap? = viewEngine.getFavoriteIcon()
+  override suspend fun getFavoriteIcon() = viewEngine.getFavoriteIcon()
 }

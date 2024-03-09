@@ -1,16 +1,17 @@
 package org.dweb_browser.dwebview.engine
 
-import androidx.compose.ui.graphics.ImageBitmap
 import com.teamdev.jxbrowser.browser.Browser
 import com.teamdev.jxbrowser.browser.CloseOptions
+import com.teamdev.jxbrowser.browser.callback.InjectJsCallback
 import com.teamdev.jxbrowser.browser.event.BrowserClosed
 import com.teamdev.jxbrowser.browser.internal.rpc.ConsoleMessageReceived
+import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.JsException
+import com.teamdev.jxbrowser.js.JsObject
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFailed
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished
-import com.teamdev.jxbrowser.navigation.event.NavigationFinished
 import com.teamdev.jxbrowser.navigation.event.NavigationStarted
 import com.teamdev.jxbrowser.net.HttpHeader
 import com.teamdev.jxbrowser.net.HttpStatus
@@ -35,6 +36,7 @@ import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
@@ -181,26 +183,48 @@ class DWebViewEngine internal constructor(
     }
   }
 
-  suspend fun getFavoriteIcon(): ImageBitmap = browser.favicon().pixels().toImageBitmap()
+  fun getFavoriteIcon() = runCatching {
+    /// toImageBitmap 可能会解析异常，所以需要放在 runCatching 里头
+    browser.favicon().pixels().toImageBitmap()
+  }.getOrNull()
 
   fun destroy() {
     browser.close(CloseOptions.newBuilder().build())
   }
 
 
-  private val documentStartJsList by lazy {
-    mutableListOf<String>().also { scriptList ->
-      // url导航结束，也就是dom开始加载时，执行 startScript
-      browser.navigation().on(NavigationFinished::class.java) {
-        for (script in scriptList) {
-          evaluateSyncJavascriptFunctionBody(script)
+  private val injectJsActionList by lazy {
+    mutableListOf<Frame.() -> Unit>().also { actionList ->
+      browser.set(InjectJsCallback::class.java, InjectJsCallback {
+        val frame = it.frame()
+        for (action in actionList) {
+          frame.action()
+        }
+        InjectJsCallback.Response.proceed()
+      })
+    }
+  }
+
+
+  fun addDocumentStartJavaScript(script: String) {
+    injectJsActionList.add {
+      evaluateSyncJavascriptFunctionBody(script)
+    }
+  }
+
+  private val jsInterfaces by lazy {
+    mutableMapOf<String, Any>().also { injectInterfaces ->
+      injectJsActionList.add {
+        val window = executeJavaScript<JsObject>("window")!!
+        for ((name, obj) in injectInterfaces) {
+          window.putProperty(name, obj)
         }
       }
     }
   }
 
-  fun addDocumentStartJavaScript(script: String) {
-    documentStartJsList += script
+  fun addJavascriptInterface(obj: Any, name: String) {
+    jsInterfaces[name] = obj
   }
 
   private fun setUA() {
@@ -253,6 +277,7 @@ class DWebViewEngine internal constructor(
       }
     }
   }
+  val dwebFavicon = FaviconPolyfill(this)
 
   init {
 

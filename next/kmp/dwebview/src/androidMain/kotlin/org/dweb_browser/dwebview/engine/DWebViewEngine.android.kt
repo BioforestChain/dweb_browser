@@ -32,6 +32,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.polyfill.UserAgentData
 import org.dweb_browser.dwebview.polyfill.setupKeyboardPolyfill
 import org.dweb_browser.helper.Bounds
@@ -392,6 +393,7 @@ class DWebViewEngine internal constructor(
 
   val attachedStateFlow = MutableStateFlow<Boolean>(false);
   val closeWatcher = CloseWatcher(this)
+  val dwebFavicon = FaviconPolyfill(this)
 
   internal class BeforeCreateWindow(
     val dwebView: DWebViewEngine,
