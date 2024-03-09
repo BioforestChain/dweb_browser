@@ -54,6 +54,7 @@ material3Android = "1.2.1"
 kotlinx-serialization = "1.6.3"
 
 jxbrowser = "7.26"
+jcef-version = "122.1.10"
 
 # jna
 java-jna-version = "5.13.0"
@@ -205,6 +206,8 @@ benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro
 # JVM+Desktop
 jxbrowser-cross-platform = { group = "com.teamdev.jxbrowser", name = "jxbrowser-cross-platform", version.ref = "jxbrowser" }
 jxbrowser-swing = { group = "com.teamdev.jxbrowser", name = "jxbrowser-swing", version.ref = "jxbrowser" }
+jcef-maven = { group = "me.friwi", name = "jcefmaven", version.ref = "jcef-version" }
+
 
 # jna
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "java-jna-version" }
