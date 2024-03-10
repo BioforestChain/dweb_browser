@@ -148,16 +148,7 @@ abstract class IDWebView(initUrl: String?) {
   val closeWatcher get() = closeWatcherLazy.value
   abstract val onCreateWindow: Signal.Listener<IDWebView>
   abstract val onDownloadListener: Signal.Listener<WebDownloadArgs>
-
-  /**
-   * onScrollChange表示滚动的信息
-   * @param IDWebView
-   * @param Int scrollX
-   * @param Int scrollY
-   * @param Int oldScrollX
-   * @param Int oldScrollY
-   */
-  abstract fun setOnScrollChangeListener(onScrollChange: ScrollChangeEvent.() -> Unit)
+  abstract val onScroll: Signal.Listener<ScrollChangeEvent>
 
   /**
    * 获取webview返回到favorite icon
@@ -165,7 +156,7 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun getFavoriteIcon(): ImageBitmap?
 }
 
-class ScrollChangeEvent(val target: IDWebView, val scrollX: Int, val scrollY: Int)
+class ScrollChangeEvent(val scrollX: Int, val scrollY: Int)
 
 class WebBeforeUnloadArgs(
   val message: String,

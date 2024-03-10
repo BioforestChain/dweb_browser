@@ -4,7 +4,9 @@ import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.JsFunctionCallback
 import com.teamdev.jxbrowser.js.JsObject
 import org.dweb_browser.helper.RememberLazy
+import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrNull
+import org.dweb_browser.helper.getOrPut
 import kotlin.reflect.KProperty
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -35,17 +37,27 @@ open class JsJObject(val originJsObject: JsObject) : JsObject by originJsObject 
 }
 
 class JsWindow(js: JsObject) : JsJObject(js) {
-  fun addEventListener(eventName: String, listener: (JsEvent) -> Unit) {
-    originJsObject.call<Any>("addEventListener", eventName, JsFunctionCallback {
-      listener(JsEvent(it[0] as JsObject))
+  private val jsjWM = WeakHashMap<JsEventHandler, JsFunctionCallback>()
+  fun addEventListener(eventName: String, listener: JsEventHandler) {
+    originJsObject.call<Any>("addEventListener", eventName, jsjWM.getOrPut(listener) {
+      JsFunctionCallback {
+        listener(JsEvent(it[0] as JsObject))
+      }
     })
+  }
 
+  fun removeEventListener(eventName: String, listener: JsEventHandler) {
+    jsjWM[listener]?.also { jsFunctionCallback ->
+      originJsObject.call<Any>("removeEventListener", eventName, jsFunctionCallback)
+    }
   }
 
   val scrollX by prop<Double>("scrollX")
   val scrollY by prop<Double>("scrollY")
   val devicePixelRatio by staticProp<Double>("devicePixelRatio")
 }
+
+typealias JsEventHandler = (JsEvent) -> Unit
 
 class JsEvent(js: JsObject) : JsJObject(js) {
   val type by staticProp<String>("type")

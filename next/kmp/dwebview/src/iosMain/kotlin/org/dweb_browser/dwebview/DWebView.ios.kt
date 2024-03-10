@@ -18,6 +18,7 @@ import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
@@ -275,12 +276,13 @@ class DWebView(
     }
   }
 
-  override fun setOnScrollChangeListener(onScrollChange: ScrollChangeEvent.() -> Unit) {
-    WARNING("Not yet implemented setOnScrollChangeListener")
+  override val onScroll by _engineLazy.then {
+    WARNING("Not yet implemented dwebview onScroll")
+    Signal<ScrollChangeEvent>().toListener()
   }
 
   override suspend fun getFavoriteIcon(): ImageBitmap? = withMainContext {
-    WARNING("Not yet implemented")
+    WARNING("Not yet implemented getFavoriteIcon")
     null
   }
 

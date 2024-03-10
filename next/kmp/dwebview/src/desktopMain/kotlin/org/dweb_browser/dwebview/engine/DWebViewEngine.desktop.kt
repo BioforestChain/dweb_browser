@@ -9,9 +9,6 @@ import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
-import com.teamdev.jxbrowser.navigation.event.FrameLoadFailed
-import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished
-import com.teamdev.jxbrowser.navigation.event.NavigationStarted
 import com.teamdev.jxbrowser.net.HttpHeader
 import com.teamdev.jxbrowser.net.HttpStatus
 import com.teamdev.jxbrowser.net.Scheme
@@ -29,16 +26,11 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.dwebview.WebLoadErrorState
-import org.dweb_browser.dwebview.WebLoadStartState
-import org.dweb_browser.dwebview.WebLoadState
-import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.JsonLoose
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toImageBitmap
@@ -257,30 +249,8 @@ class DWebViewEngine internal constructor(
     )
   }
 
-  val loadStateChangeSignal = Signal<WebLoadState>().also { signal ->
-    fun emitSignal(state: WebLoadState) {
-      ioScope.launch {
-        signal.emit(state)
-      }
-    }
-    browser.navigation().apply {
-      on(NavigationStarted::class.java) {
-        if (it.isInMainFrame) {
-          emitSignal(WebLoadStartState(it.url()))
-        }
-      }
-      on(FrameLoadFinished::class.java) {
-        if (it.frame() == mainFrame) {
-          emitSignal(WebLoadSuccessState(it.url()))
-        }
-      }
-      on(FrameLoadFailed::class.java) {
-        if (it.frame() == mainFrame) {
-          emitSignal(WebLoadErrorState(it.url(), it.error().name))
-        }
-      }
-    }
-  }
+  val loadStateChangeSignal = setupLoadStateChangeSignal(this)
+  val scrollSignal = setupScrollSignal(this)
   val dwebFavicon = FaviconPolyfill(this)
 
   init {

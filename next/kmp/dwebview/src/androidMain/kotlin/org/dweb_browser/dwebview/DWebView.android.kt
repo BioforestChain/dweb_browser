@@ -227,12 +227,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   }
   override val onCreateWindow by lazy { engine.createWindowSignal.toListener() }
   override val onDownloadListener by lazy { engine.dWebDownloadListener.downloadSignal.toListener() }
-
-  override fun setOnScrollChangeListener(onScrollChange: ScrollChangeEvent.() -> Unit) {
-    engine.setOnScrollChangeListener { _, scrollX, scrollY, _, _ ->
-      ScrollChangeEvent(this, scrollX, scrollY).onScrollChange()
-    }
-  }
+  override val onScroll by lazy { engine.scrollSignal.toListener() }
 
   override suspend fun getFavoriteIcon(): ImageBitmap? {
     return this.asAndroidWebView().favicon?.asImageBitmap()

@@ -6,7 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.launch
@@ -18,6 +22,8 @@ import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.toWebSiteInfo
 import org.dweb_browser.dwebview.Render
+import org.dweb_browser.dwebview.ScrollChangeEvent
+import org.dweb_browser.helper.OffListener
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedState
@@ -78,15 +84,25 @@ internal fun BrowserWebView(
         )
       }
 
-      contentViewItem.viewItem.webView.Render(
-        modifier = Modifier.fillMaxSize(),
-        onCreate = {
-          val webView = contentViewItem.viewItem.webView
-          webView.setOnScrollChangeListener {
-            contentViewItem.webViewY = scrollY // 用于截图的时候进行定位截图
+      key(contentViewItem.viewItem) {
+        var off by remember { mutableStateOf<OffListener<ScrollChangeEvent>?>(null) }
+
+        contentViewItem.viewItem.webView.Render(
+          modifier = Modifier.fillMaxSize(),
+          onCreate = {
+            val webView = contentViewItem.viewItem.webView
+            off = webView.onScroll {
+              contentViewItem.webViewY = it.scrollY // 用于截图的时候进行定位截图
+            }
+          },
+          onDispose = {
+            off?.also {
+              it()
+              off = null
+            }
           }
-        }
-      )
+        )
+      }
     }
   }
   LoadingView(contentViewItem.loadState) // 先不显示加载框。

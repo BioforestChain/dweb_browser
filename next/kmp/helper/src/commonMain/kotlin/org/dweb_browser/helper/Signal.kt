@@ -59,7 +59,7 @@ fun Remover.removeWhen(lifecycleScope: CoroutineScope) = lifecycleScope.launch {
 
 @Suppress("UNCHECKED_CAST")
 open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
-  protected val listenerSet = mutableSetOf<Callback<Args>>();
+  protected val listenerSet = ChangeableSet<Callback<Args>>();
   private var emitCached: MutableList<Args>? = null
 
   init {
@@ -91,6 +91,29 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
     listenerSet.add(cb)
     consumeEmitCache()
     return OffListener(this, cb)
+  }
+
+  private val whenNoEmptyCallbacks = lazy { mutableSetOf<() -> Unit>() }
+  fun whenListenerSizeChange(cb: suspend () -> Unit) = listenerSet.onChange {
+    cb()
+  }
+
+  fun whenNoEmpty(cb: () -> Unit) = ({
+    if (listenerSet.isNotEmpty()) {
+      cb()
+    }
+  }).let { wrappedCb ->
+    wrappedCb()
+    whenListenerSizeChange(wrappedCb)
+  }
+
+  fun whenEmpty(cb: () -> Unit) = ({
+    if (listenerSet.isEmpty()) {
+      cb()
+    }
+  }).let { wrappedCb ->
+    wrappedCb()
+    whenListenerSizeChange(wrappedCb)
   }
 
   internal fun off(cb: Callback<Args>) = synchronized(this) { listenerSet.remove(cb) }
@@ -130,8 +153,15 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
       }
     } else {
       // 这里拷贝一份，避免中通对其读写的时候出问题
-      val cbs = synchronized(this) { listenerSet.toSet() }
-      _emit(args, cbs)
+      val cbs = synchronized(this) {
+        when {
+          listenerSet.isEmpty() -> null
+          else -> listenerSet.toSet()
+        }
+      }
+      if (cbs != null) {
+        _emit(args, cbs)
+      }
     }
   }
 

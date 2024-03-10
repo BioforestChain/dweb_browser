@@ -462,4 +462,6 @@ class DWebViewEngine internal constructor(
       }
     }
   }
+
+  val scrollSignal = setupScrollSignal(this)
 }

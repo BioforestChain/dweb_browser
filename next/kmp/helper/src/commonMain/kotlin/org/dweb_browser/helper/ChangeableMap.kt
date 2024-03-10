@@ -19,7 +19,7 @@ class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
     changeable.context = context
   }
 
-  val onChange = changeable.onChange
+  val onChange get() = changeable.onChange
   suspend fun emitChange() = changeable.emitChange()
   fun emitChangeBackground(
     adds: Set<K> = setOf(),
@@ -74,7 +74,7 @@ class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
    * 注意，这里不会触发任何事件，如果有需要，请使用 clear ，然后再 reset
    */
   fun reset() {
-    changeable.signal.clear()
+    changeable.clear()
     this.clear()
   }
 }

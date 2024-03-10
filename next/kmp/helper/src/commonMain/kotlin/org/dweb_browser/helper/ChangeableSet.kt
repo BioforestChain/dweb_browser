@@ -11,7 +11,7 @@ class ChangeableSet<E>(context: CoroutineContext = ioAsyncExceptionHandler) :
     changeable.context = context
   }
 
-  val onChange = changeable.onChange
+  val onChange get() = changeable.onChange
 
   suspend fun emitChange() = changeable.emitChange()
 
@@ -33,7 +33,7 @@ class ChangeableSet<E>(context: CoroutineContext = ioAsyncExceptionHandler) :
 
   /** 重置 清空所有的事件监听，清空所有的数据  */
   fun reset() {
-    changeable.signal.clear()
+    changeable.clear()
     this.clear()
   }
 }
