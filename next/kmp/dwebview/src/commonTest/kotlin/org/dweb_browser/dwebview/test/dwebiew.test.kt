@@ -2,7 +2,6 @@ package org.dweb_browser.dwebview.test
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 import org.dweb_browser.core.module.BootstrapContext
@@ -66,11 +65,10 @@ class DWebViewTest {
   }
 
   @Test
-  fun setOnScrollChangeListener() = runCommonTest {
-
+  fun onScroll() = runCommonTest {
     val dwebview = getWebview()
     dwebview.loadUrl("https://www.baidu.com")
-    delay(1000)
+
     dwebview.evaluateAsyncJavascriptCode("document.body.style.height='10000px'")
     val isScrolled = CompletableDeferred<Int>()
     dwebview.onScroll {
@@ -84,6 +82,23 @@ class DWebViewTest {
     assertNotEquals(0, select {
       isScrolled.onAwait { it }
       onTimeout(1000) { 0 }
+    })
+  }
+
+  @Test
+  fun onCreateWindow() = runCommonTest {
+    val dwebview = getWebview()
+    dwebview.loadUrl("https://www.baidu.com")
+    val isCreated = CompletableDeferred<IDWebView>()
+    dwebview.onCreateWindow {
+      debugDWebView("onCreateWindow", it)
+      isCreated.complete(it)
+    }
+    val openUrl = "https://image.baidu.com/"
+    dwebview.evaluateAsyncJavascriptCode("open('$openUrl')")
+    assertNotEquals(openUrl, select {
+      isCreated.onAwait { it.getUrl() }
+      onTimeout(2000) { "<no-browser-open>" }
     })
   }
 }

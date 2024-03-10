@@ -24,6 +24,10 @@ actual suspend fun IDWebView.Companion.create(
   return DWebView(DWebViewEngine(mm, options))
 }
 
+
+internal fun IDWebView.Companion.create(engine: DWebViewEngine, initUrl: String?) =
+  DWebView(engine, initUrl)
+
 class DWebView(
   val viewEngine: DWebViewEngine, initUrl: String? = null
 ) : IDWebView(initUrl ?: viewEngine.options.url) {
@@ -129,8 +133,7 @@ class DWebView(
 
   override val onDestroy: Signal.Listener<Unit>
     get() = TODO("Not yet implemented")
-  override val onLoadStateChange: Signal.Listener<WebLoadState>
-      by _engineLazy.then { viewEngine.loadStateChangeSignal.toListener() }
+  override val onLoadStateChange: Signal.Listener<WebLoadState> by _engineLazy.then { viewEngine.loadStateChangeSignal.toListener() }
   override val onReady: Signal.Listener<String>
     get() = TODO("Not yet implemented")
   override val onBeforeUnload: Signal.Listener<WebBeforeUnloadArgs>
@@ -139,8 +142,7 @@ class DWebView(
     get() = TODO("Not yet implemented")
   override val closeWatcherLazy: RememberLazy<ICloseWatcher>
     get() = TODO("Not yet implemented")
-  override val onCreateWindow: Signal.Listener<IDWebView>
-    get() = TODO("Not yet implemented")
+  override val onCreateWindow by _engineLazy.then { viewEngine.createWindowSignal.toListener() }
   override val onDownloadListener: Signal.Listener<WebDownloadArgs>
     get() = TODO("Not yet implemented")
 

@@ -40,36 +40,42 @@ import org.dweb_browser.sys.device.DeviceManage
 import java.util.function.Consumer
 
 class DWebViewEngine internal constructor(
-  internal val remoteMM: MicroModule, val options: DWebViewOptions
+  internal val remoteMM: MicroModule,
+  val options: DWebViewOptions,
+  internal val browser: Browser = createMainBrowser(remoteMM)
 ) {
+  companion object {
+    /**
+     * 构建一个 main-browser，当 main-browser 销毁， 对应的 WebviewEngine 也会被销毁
+     */
+    internal fun createMainBrowser(remoteMM: MicroModule) = WebviewEngine.hardwareAccelerated {
+      addScheme(Scheme.of("dweb")) { params ->
+        val pureResponse = runBlocking(ioAsyncExceptionHandler) {
+          remoteMM.nativeFetch(params.urlRequest().url())
+        }
 
+        val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
+        pureResponse.headers.forEach { (key, value) ->
+          jobBuilder.addHttpHeader(HttpHeader.of(key, value))
+        }
 
-  internal val browser: Browser = WebviewEngine.hardwareAccelerated {
-    addScheme(Scheme.of("dweb")) { params ->
-      val pureResponse = runBlocking(ioAsyncExceptionHandler) {
-        remoteMM.nativeFetch(params.urlRequest().url())
+        Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
       }
 
-      val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
-      pureResponse.headers.forEach { (key, value) ->
-        jobBuilder.addHttpHeader(HttpHeader.of(key, value))
+      addSwitch("--enable-experimental-web-platform-features")
+    }.let { engine ->
+      // 设置https代理
+      val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
+      engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
+      val browser = engine.newBrowser()
+      // 同步销毁
+      browser.on(BrowserClosed::class.java) {
+        engine.close()
       }
-
-      Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
+      browser
     }
-
-    addSwitch("--enable-experimental-web-platform-features")
-  }.let { engine ->
-    // 设置https代理
-    val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
-    engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
-    val browser = engine.newBrowser()
-    // 同步销毁
-    browser.on(BrowserClosed::class.java) {
-      engine.close()
-    }
-    browser
   }
+
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
   val mainFrame get() = browser.mainFrame().get()
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
@@ -252,6 +258,9 @@ class DWebViewEngine internal constructor(
   val loadStateChangeSignal = setupLoadStateChangeSignal(this)
   val scrollSignal = setupScrollSignal(this)
   val dwebFavicon = FaviconPolyfill(this)
+  private val _setupCreateWindowSignals = setupCreateWindowSignals(this)
+  val beforeCreateWindowSignal = _setupCreateWindowSignals.beforeCreateWindowSignal
+  val createWindowSignal = _setupCreateWindowSignals.createWindowSignal
 
   init {
 
