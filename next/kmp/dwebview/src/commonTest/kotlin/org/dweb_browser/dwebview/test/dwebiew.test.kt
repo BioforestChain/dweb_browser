@@ -73,9 +73,9 @@ class DWebViewTest {
     delay(1000)
     dwebview.evaluateAsyncJavascriptCode("document.body.style.height='10000px'")
     val isScrolled = CompletableDeferred<Int>()
-    dwebview.setOnScrollChangeListener {
-      debugDWebView("scrollY", scrollY)
-      isScrolled.complete(scrollY)
+    dwebview.onScroll {
+      debugDWebView("scrollY", it.scrollY)
+      isScrolled.complete(it.scrollY)
     }
 
     dwebview.evaluateAsyncJavascriptCode("scrollTo(0,100),console.log('scrollTo 100')")
