@@ -1,7 +1,6 @@
-package org.dweb_browser.dwebview.closeWatcher
+package org.dweb_browser.dwebview
 
-import android.annotation.SuppressLint
-import android.webkit.JavascriptInterface
+import com.teamdev.jxbrowser.js.JsAccessible
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
@@ -10,13 +9,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.dwebview.ICloseWatcher
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.*
+import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.trueAlso
 
-@SuppressLint("JavascriptInterface")
 class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
-
   companion object {
     var acc_id by SafeInt(1)
     const val JS_POLYFILL_KIT = "__native_close_watcher_kit__"
@@ -26,15 +24,12 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   private val mainScope = MainScope()
 
   private val install = SuspendOnce {
-    engine.beforeCreateWindow.listen { event ->
-      if (engine.closeWatcher.consuming.remove(event.url)) {
-        event.consume()
-        val consumeToken = event.url
-        engine.closeWatcher.applyWatcher(event.isUserGesture).also {
-          withMainContext {
-            event.dwebView.destroy()
-            engine.closeWatcher.resolveToken(consumeToken, it)
-          }
+    engine.beforeCreateWindowSignal.listen { event ->
+      val consumeToken = event.url
+      engine.closeWatcher.apply {
+        if (consuming.remove(consumeToken)) {
+          event.consume()
+          resolveToken(consumeToken, applyWatcher(event.isUserGesture))
         }
       }
     }
@@ -48,7 +43,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
         /**
          * js 创建 CloseWatcher
          */
-        @JavascriptInterface
+        @JsAccessible
         fun registryToken(consumeToken: String?) {// 这里用 String? 是为了避免 js 传输错误参数，理论上应该用 Any?
           if (consumeToken.isNullOrBlank()) {
             throw Exception("CloseWatcher.registryToken invalid arguments");
@@ -57,7 +52,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
           mainScope.launch {
             openLock.withLock {
               install()
-              engine.evaluateJavascript("open('$consumeToken')", null)
+              engine.evaluateAsyncJavascriptCode("open('$consumeToken')")
               delay(60) // 经过测试，两次open至少需要50ms才能正确执行，所以这里用一个稍微大一点的数字来确保正确性
             }
           }
@@ -66,13 +61,12 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
         /**
          * js主动关闭 CloseWatcher
          */
-        @JavascriptInterface
+        @JsAccessible
         fun tryClose(id: String?) = // 这里用 String? 是为了避免 js 传输错误参数，理论上应该用 Any?
           watchers.find { watcher -> watcher.id == id }?.also {
             mainScope.launch { close(it) }
           }
-      },
-      JS_POLYFILL_KIT
+      }, JS_POLYFILL_KIT
     )
   }
 
@@ -87,33 +81,8 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
         return false
       }
       val defaultPrevented = false;
-      /// 目前，不实现cancel，因为没有合适的API来实现，虽然能模拟，但暂时没必要。等官方接口出来，我们自己的实现尽可能保持接口的简单性
-//           viewItem.webView.evaluateAsyncJavascriptCode(
-//                """
-//                new Promise((resolve,reject)=>{
-//                    try{
-//                        const watchers = ${JS_POLYFILL_KIT}._watchers;
-//                        const watcher = watchers?.get("$id");
-//                        if (watcher) {
-//                            const event = new CustomEvent('cancel',{cancelable:true})
-//                            watcher.dispatchEvent(event);
-//                            resolve(event.defaultPrevented)
-//                            watchers.delete("$id");
-//                        }
-//                        resolve(false)
-//                    }catch(err){resolve(false)}
-//                })
-//                """.trimIndent()
-//            ) {}.toBoolean();
-
       /// 尝试去触发客户端的监听，如果客户端有监听的话
-      withMainContext {
-        engine.evaluateJavascript(
-          """
-                    $JS_POLYFILL_KIT._watchers?.get("$id")?.dispatchEvent(new CloseEvent('close'));
-                    """.trimIndent()
-        ) {}
-      }
+      engine.mainFrame.executeJavaScript("$JS_POLYFILL_KIT._watchers?.get('$id')?.dispatchEvent(new CloseEvent('close'));") {}
 
       if (!defaultPrevented) {
         return destroy()
@@ -137,10 +106,8 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   }
 
   fun resolveToken(consumeToken: String, watcher: ICloseWatcher.IWatcher) {
-    engine.evaluateJavascript(
-      """
-            $JS_POLYFILL_KIT._tasks?.get("$consumeToken")("${watcher.id}");
-            """.trimIndent()
+    engine.mainFrame.executeJavaScript(
+      "$JS_POLYFILL_KIT._tasks?.get('$consumeToken')('${watcher.id}');"
     ) {};
   }
 

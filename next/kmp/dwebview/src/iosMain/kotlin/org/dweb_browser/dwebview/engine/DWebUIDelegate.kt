@@ -83,7 +83,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
     return if (url != null && engine.closeWatcher.consuming.remove(url)) {
       val isUserGesture =
         forNavigationAction.targetFrame == null || !forNavigationAction.targetFrame!!.mainFrame
-      val watcher = engine.closeWatcher.apply(isUserGesture)
+      val watcher = engine.closeWatcher.applyWatcher(isUserGesture)
 
       engine.mainScope.launchWithMain {
         engine.closeWatcher.resolveToken(url, watcher)

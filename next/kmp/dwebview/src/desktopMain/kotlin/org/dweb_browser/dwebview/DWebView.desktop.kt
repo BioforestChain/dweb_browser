@@ -140,8 +140,9 @@ class DWebView(
     get() = TODO("Not yet implemented")
   override val loadingProgressFlow: SharedFlow<Float>
     get() = TODO("Not yet implemented")
-  override val closeWatcherLazy: RememberLazy<ICloseWatcher>
-    get() = TODO("Not yet implemented")
+  override val closeWatcherLazy: RememberLazy<ICloseWatcher> = _engineLazy.then {
+    viewEngine.closeWatcher
+  }
   override val onCreateWindow by _engineLazy.then { viewEngine.createWindowSignal.toListener() }
   override val onDownloadListener: Signal.Listener<WebDownloadArgs>
     get() = TODO("Not yet implemented")

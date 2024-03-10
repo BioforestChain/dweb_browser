@@ -1,14 +1,13 @@
 package org.dweb_browser.dwebview
 
 import androidx.compose.ui.graphics.ImageBitmap
-import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
-import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -19,7 +18,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.base.LoadedUrlCache
@@ -50,26 +48,17 @@ abstract class IDWebView(initUrl: String?) {
    */
   internal abstract suspend fun startLoadUrl(url: String): String
 
-  private val loadUrlTask =
-    atomic(LoadUrlTask(if (initUrl.isNullOrEmpty()) "about:blank" else initUrl).apply {
-      deferred.complete(url)
-    })
+  private val urlState by lazy {
+    UrlState(this@IDWebView, if (initUrl.isNullOrEmpty()) "about:blank" else initUrl).apply {
+      endLoadUrl.complete(startUrl)
+    }
+  }
 
   suspend fun loadUrl(url: String, force: Boolean = false): String {
-    val newTask = LoadUrlTask(url)
-
-    val curTask = loadUrlTask.updateAndGet { preTask ->
-      if (!force && preTask.url == url) {
-        preTask
-      } else {
-        preTask.deferred.cancel(CancellationException("load new url: $url"));
-        newTask
-      }
+    if (!urlState.isUrlEqual(url) || force) {
+      urlState.forceLoadUrl(url)
     }
-    if (curTask == newTask) {
-      newTask.startTask(this)
-    }
-    return curTask.deferred.await()
+    return urlState.endLoadUrl.await()
   }
 
   suspend fun canGoBack() = closeWatcher.canClose || historyCanGoBack()
@@ -92,8 +81,8 @@ abstract class IDWebView(initUrl: String?) {
 
   abstract suspend fun resolveUrl(url: String): String
 
-  fun getUrl() = loadUrlTask.value.url
-  fun hasUrl() = loadUrlTask.value.url.isBlank()
+  fun getUrl() = urlState.startUrl
+  fun hasUrl() = urlState.startUrl.isBlank()
   abstract suspend fun getOriginalUrl(): String
 
   abstract suspend fun getTitle(): String
@@ -205,31 +194,62 @@ class WebLoadErrorState(val url: String, val errorMessage: String) : WebLoadStat
 fun Signal<WebLoadState>.toReadyListener() =
   createChild({ if (it is WebLoadSuccessState) it else null }, { it.url }).toListener()
 
-internal data class LoadUrlTask(val url: String) {
-  val deferred = CompletableDeferred<String>()
-  fun startTask(dwebView: IDWebView) {
-    dwebView.ioScope.launch {
-      val loadingUrl = dwebView.startLoadUrl(url)
-      dwebView.onLoadStateChange {
-        when (it) {
-          is WebLoadErrorState -> {
-            deferred.completeExceptionally(Exception(it.errorMessage))
-            offListener()
-          }
+@OptIn(ExperimentalCoroutinesApi::class)
+internal class UrlState(val dwebView: IDWebView, var startUrl: String) {
+  var endLoadUrl = CompletableDeferred<String>()
 
-          is WebLoadStartState -> {
-            if (it.url != loadingUrl) {
-              deferred.cancel(CancellationException("start load url: ${it.url}"))
-            }
-          }
+  fun isUrlEqual(newUrl: String): Boolean {
+    if (newUrl == startUrl) {
+      return true
+    }
+    if (endLoadUrl.isCompleted && endLoadUrl.getCompleted() == newUrl) {
+      return true
+    }
+    return false
+  }
 
-          is WebLoadSuccessState -> {
-            deferred.complete(it.url)
-            offListener()
-          }
-        }
+  private fun effectWebLoadErrorState(state: WebLoadErrorState) {
+    debugDWebView("onLoadStateChange") {
+      "WebLoadErrorState url=${state.url} error=${state.errorMessage}"
+    }
+    if (endLoadUrl.isActive) {
+      endLoadUrl.completeExceptionally(Exception(state.errorMessage))
+    }
+  }
+
+  private fun effectWebLoadStartState(state: WebLoadStartState) {
+    debugDWebView("WebLoadStartState") { "WebLoadStartState url=${state.url}" }
+    if (state.url != startUrl) {
+      if (endLoadUrl.isActive) {
+        endLoadUrl.cancel(CancellationException("start load url: ${state.url}"))
+      }
+      startUrl = state.url
+      endLoadUrl = CompletableDeferred()
+    }
+  }
+
+  fun effectWebLoadSuccessState(state: WebLoadSuccessState) {
+    debugDWebView("WebLoadStartState") { "WebLoadSuccessState url=${state.url}" }
+    if (endLoadUrl.isActive) {
+      endLoadUrl.complete(state.url)
+    } else if (endLoadUrl.getCompleted() != state.url) {
+      endLoadUrl = CompletableDeferred(state.url)
+    }
+  }
+
+  init {
+    dwebView.onLoadStateChange {
+      when (it) {
+        is WebLoadErrorState -> effectWebLoadErrorState(it)
+        is WebLoadStartState -> effectWebLoadStartState(it)
+        is WebLoadSuccessState -> effectWebLoadSuccessState(it)
       }
     }
+  }
+
+  suspend fun forceLoadUrl(url: String) {
+    effectWebLoadStartState(WebLoadStartState(url))
+    dwebView.startLoadUrl(url)
   }
 }
 

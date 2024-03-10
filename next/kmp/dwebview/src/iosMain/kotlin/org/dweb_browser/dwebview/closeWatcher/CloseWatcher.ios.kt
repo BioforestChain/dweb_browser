@@ -71,7 +71,7 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   /**
    * 申请一个 CloseWatcher
    */
-  fun apply(isUserGesture: Boolean): ICloseWatcher.IWatcher {
+  fun applyWatcher(isUserGesture: Boolean): ICloseWatcher.IWatcher {
     if (isUserGesture || watchers.size == 0) {
       watchers.add(Watcher()).trueAlso {
         tryEmitCanCloseMutableFlow()

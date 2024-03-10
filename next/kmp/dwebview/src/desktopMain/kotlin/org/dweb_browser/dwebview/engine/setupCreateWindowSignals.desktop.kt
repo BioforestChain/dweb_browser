@@ -39,6 +39,7 @@ data class CreateWindowSignals(
 
 class BeforeCreateWindow(val browser: Browser) {
   val url get() = browser.url()
+  val isUserGesture = true
   var isConsumed = false
     private set
 

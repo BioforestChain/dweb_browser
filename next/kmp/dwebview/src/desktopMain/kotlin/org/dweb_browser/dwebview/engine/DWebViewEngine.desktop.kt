@@ -24,6 +24,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.encodeToJsonElement
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.base.LoadedUrlCache
@@ -34,7 +35,7 @@ import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toImageBitmap
-import org.dweb_browser.helper.withMainContext
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
 import org.dweb_browser.sys.device.DeviceManage
 import java.util.function.Consumer
@@ -153,25 +154,15 @@ class DWebViewEngine internal constructor(
 
   fun canGoBack() = browser.navigation().canGoBack()
 
-  suspend fun goBack(): Boolean = withMainContext {
-    if (canGoBack()) {
-      browser.navigation().goBack()
-      true
-    } else {
-      false
-    }
+  fun goBack() = canGoBack().trueAlso {
+    browser.navigation().goBack()
   }
 
 
   fun canGoForward() = browser.navigation().canGoForward()
 
-  suspend fun goForward() = withMainContext {
-    if (canGoForward()) {
-      browser.navigation().goForward()
-      true
-    } else {
-      false
-    }
+  fun goForward() = canGoForward().trueAlso {
+    browser.navigation().goForward()
   }
 
   fun getFavoriteIcon() = runCatching {
@@ -261,6 +252,7 @@ class DWebViewEngine internal constructor(
   private val _setupCreateWindowSignals = setupCreateWindowSignals(this)
   val beforeCreateWindowSignal = _setupCreateWindowSignals.beforeCreateWindowSignal
   val createWindowSignal = _setupCreateWindowSignals.createWindowSignal
+  val closeWatcher = CloseWatcher(this)
 
   init {
 
