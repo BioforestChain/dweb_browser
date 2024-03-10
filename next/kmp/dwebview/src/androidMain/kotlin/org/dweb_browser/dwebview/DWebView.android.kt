@@ -228,19 +228,6 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   override val onCreateWindow by lazy { engine.createWindowSignal.toListener() }
   override val onDownloadListener by lazy { engine.dWebDownloadListener.downloadSignal.toListener() }
 
-  @SuppressLint("ClickableViewAccessibility")
-  override fun setOnTouchListener(onTouch: (IDWebView, MotionEventAction) -> Boolean) {
-    engine.setOnTouchListener { _, event ->
-      val motionEvent = when (event.action) {
-        android.view.MotionEvent.ACTION_DOWN -> MotionEventAction.ACTION_DOWN
-        android.view.MotionEvent.ACTION_UP -> MotionEventAction.ACTION_UP
-        android.view.MotionEvent.ACTION_MOVE -> MotionEventAction.ACTION_MOVE
-        else -> return@setOnTouchListener false
-      }
-      onTouch(this, motionEvent)
-    }
-  }
-
   override fun setOnScrollChangeListener(onScrollChange: ScrollChangeEvent.() -> Unit) {
     engine.setOnScrollChangeListener { _, scrollX, scrollY, _, _ ->
       ScrollChangeEvent(this, scrollX, scrollY).onScrollChange()

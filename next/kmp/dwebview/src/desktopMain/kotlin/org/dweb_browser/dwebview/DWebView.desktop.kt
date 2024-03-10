@@ -145,10 +145,6 @@ class DWebView(
   override val onDownloadListener: Signal.Listener<WebDownloadArgs>
     get() = TODO("Not yet implemented")
 
-  override fun setOnTouchListener(onTouch: (IDWebView, MotionEventAction) -> Boolean) {
-    TODO("Not yet implemented")
-  }
-
   override fun setOnScrollChangeListener(onScrollChange: ScrollChangeEvent.() -> Unit) {
     viewEngine.injectJsAction {
       println("QAQ addEventListener scroll")

@@ -15,7 +15,7 @@ import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.sys.window.render.NativeBackHandler
 
-@SuppressLint("ClickableViewAccessibility")
+@SuppressLint("ClickableViewAccessibility", "UseCompatLoadingForDrawables")
 class TaskbarActivity : PureViewController() {
 
   private val blurHelper = ActivityBlurHelper(this)

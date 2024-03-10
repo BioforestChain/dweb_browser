@@ -275,10 +275,6 @@ class DWebView(
     }
   }
 
-  override fun setOnTouchListener(onTouch: (IDWebView, MotionEventAction) -> Boolean) {
-    WARNING("Not yet implemented setOnTouchListener")
-  }
-
   override fun setOnScrollChangeListener(onScrollChange: ScrollChangeEvent.() -> Unit) {
     WARNING("Not yet implemented setOnScrollChangeListener")
   }

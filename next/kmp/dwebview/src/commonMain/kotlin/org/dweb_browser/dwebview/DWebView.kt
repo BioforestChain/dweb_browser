@@ -150,13 +150,6 @@ abstract class IDWebView(initUrl: String?) {
   abstract val onDownloadListener: Signal.Listener<WebDownloadArgs>
 
   /**
-   * 响应webview的事件
-   * @param IDWebView
-   * @param MotionEventAction 手势移动，按下，抬起等动作
-   */
-  abstract fun setOnTouchListener(onTouch: (IDWebView, MotionEventAction) -> Boolean)
-
-  /**
    * onScrollChange表示滚动的信息
    * @param IDWebView
    * @param Int scrollX
