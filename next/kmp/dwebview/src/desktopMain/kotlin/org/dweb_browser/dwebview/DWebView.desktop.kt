@@ -9,7 +9,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
 import org.dweb_browser.dwebview.messagePort.DWebMessagePort
-import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
+import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
@@ -35,7 +35,7 @@ class DWebView(
     val prepare = SuspendOnce {
       coroutineScope {
         launch(ioAsyncExceptionHandler) {
-          DwebViewPolyfill.prepare();
+          DwebViewDesktopPolyfill.prepare();
         }
         DwebViewProxy.prepare()
       }
@@ -79,8 +79,6 @@ class DWebView(
   override suspend fun historyCanGoForward(): Boolean = viewEngine.canGoForward()
 
   override suspend fun historyGoForward(): Boolean = viewEngine.goForward()
-
-  override val urlStateFlow by lazy { generateOnUrlChangeFromLoadedUrlCache(viewEngine.loadedUrlCache) }
 
   override suspend fun createMessageChannel(): IWebMessageChannel {
     val channel = viewEngine.mainFrame.executeJavaScript<JsObject>("new MessageChannel()")

@@ -22,13 +22,12 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.WebLoadState
-import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcherScriptMessageHandler
 import org.dweb_browser.dwebview.messagePort.DWebViewWebMessage
 import org.dweb_browser.dwebview.polyfill.DWebViewFaviconMessageHandler
 import org.dweb_browser.dwebview.polyfill.DWebViewWebSocketMessageHandler
-import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
+import org.dweb_browser.dwebview.polyfill.DwebViewIosPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.polyfill.UserAgentData
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
@@ -114,16 +113,11 @@ class DWebViewEngine(
 
   }
 
-  internal val loadedUrlCache = LoadedUrlCache(ioScope)
-
   suspend fun loadUrl(url: String): String {
     val safeUrl = resolveUrl(url)
 
-    loadedUrlCache.checkLoadedUrl(url) {
-      val nsUrl = NSURL(string = safeUrl)
-      val nav = loadRequest(NSURLRequest(uRL = nsUrl))
-      true
-    }
+    val nsUrl = NSURL(string = safeUrl)
+    val nav = loadRequest(NSURLRequest(uRL = nsUrl))
     return safeUrl
   }
 
@@ -187,6 +181,13 @@ class DWebViewEngine(
 //      removeAllScriptMessageHandlers()
 //      removeAllScriptMessageHandlersFromContentWorld(DWebViewWebMessage.webMessagePortContentWorld)
 //      removeAllUserScripts()
+      addUserScript(
+        WKUserScript(
+          DwebViewIosPolyfill.CloseWatcher,
+          WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
+          false,
+        )
+      )
       addScriptMessageHandler(CloseWatcherScriptMessageHandler(this@DWebViewEngine), "closeWatcher")
       addScriptMessageHandler(
         DWebViewWebMessage.WebMessagePortMessageHandler(),
@@ -208,7 +209,7 @@ class DWebViewEngine(
       )
       addUserScript(
         WKUserScript(
-          DwebViewPolyfill.Favicon,
+          DwebViewIosPolyfill.Favicon,
           WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
           true,
           FaviconPolyfill.faviconContentWorld,
@@ -217,7 +218,7 @@ class DWebViewEngine(
 
       addUserScript(
         WKUserScript(
-          DwebViewPolyfill.WebSocket,
+          DwebViewIosPolyfill.WebSocket,
           WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
           false,
         )

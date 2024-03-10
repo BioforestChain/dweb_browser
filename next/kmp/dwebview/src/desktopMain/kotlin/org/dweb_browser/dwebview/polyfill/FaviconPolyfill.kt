@@ -19,7 +19,7 @@ class FaviconPolyfill(val engine: DWebViewEngine) {
 
   init {
 
-    engine.addDocumentStartJavaScript(DwebViewPolyfill.Favicon)
+    engine.addDocumentStartJavaScript(DwebViewDesktopPolyfill.Favicon)
     engine.addJavascriptInterface(object {
       @JsAccessible
       fun emitChange(faviconHref: String) {

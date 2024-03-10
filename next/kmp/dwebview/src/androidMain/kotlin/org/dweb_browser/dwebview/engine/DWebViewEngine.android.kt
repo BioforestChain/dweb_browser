@@ -29,7 +29,6 @@ import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Default
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Ignore
 import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
@@ -251,7 +250,6 @@ class DWebViewEngine internal constructor(
   }
 
   val onCloseWindow = dWebChromeClient.closeSignal.toListener()
-  internal val loadedUrlCache = LoadedUrlCache(ioScope)
 
   override fun setWebChromeClient(client: WebChromeClient?) {
     if (client == null) {
@@ -316,18 +314,13 @@ class DWebViewEngine internal constructor(
    */
   override fun loadUrl(url: String) {
     val safeUrl = resolveUrl(url)
-    loadedUrlCache.checkLoadedUrl(safeUrl) {
-      super.loadUrl(url)
-      true
-    }
+    super.loadUrl(url)
   }
 
   override fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
     val safeUrl = resolveUrl(url)
-    loadedUrlCache.checkLoadedUrl(safeUrl, additionalHttpHeaders) {
-      super.loadUrl(safeUrl, additionalHttpHeaders)
-      true
-    }
+    super.loadUrl(safeUrl, additionalHttpHeaders)
+    true
   }
 
   fun resolveUrl(url: String): String {

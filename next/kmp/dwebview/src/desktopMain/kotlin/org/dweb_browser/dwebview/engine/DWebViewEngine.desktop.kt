@@ -19,7 +19,6 @@ import com.teamdev.jxbrowser.view.swing.BrowserView
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.encodeToJsonElement
 import org.dweb_browser.core.module.MicroModule
@@ -27,7 +26,6 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
-import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
@@ -81,7 +79,6 @@ class DWebViewEngine internal constructor(
   val mainFrame get() = browser.mainFrame().get()
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
-  internal val loadedUrlCache = LoadedUrlCache(ioScope)
 
 
   /**
@@ -115,33 +112,23 @@ class DWebViewEngine internal constructor(
 
   suspend fun loadUrl(url: String) {
     val safeUrl = resolveUrl(url)
-    loadedUrlCache.checkLoadedUrl(safeUrl) {
-      ioScope.launch {
-        browser.navigation().loadUrl(url)
-      }.join()
-      true
-    }
+    browser.navigation().loadUrl(safeUrl)
   }
 
   suspend fun loadUrl(
     url: String, additionalHttpHeaders: MutableMap<String, String>, postData: String? = null
   ) {
     val safeUrl = resolveUrl(url)
-    loadedUrlCache.checkLoadedUrl(safeUrl, additionalHttpHeaders) {
-      val loadUrlParams = LoadUrlParams.newBuilder(url)
-      additionalHttpHeaders.forEach { (key, value) ->
-        loadUrlParams.addExtraHeader(HttpHeader.of(key, value))
-      }
-
-      if (postData != null) {
-        loadUrlParams.postData(postData)
-      }
-
-      ioScope.launch {
-        browser.navigation().loadUrl(loadUrlParams.build())
-      }.join()
-      true
+    val loadUrlParams = LoadUrlParams.newBuilder(safeUrl)
+    additionalHttpHeaders.forEach { (key, value) ->
+      loadUrlParams.addExtraHeader(HttpHeader.of(key, value))
     }
+
+    if (postData != null) {
+      loadUrlParams.postData(postData)
+    }
+
+    browser.navigation().loadUrl(loadUrlParams.build())
   }
 
   fun resolveUrl(url: String): String {

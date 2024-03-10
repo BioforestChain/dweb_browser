@@ -1,4 +1,5 @@
 //
+import type {} from "../../../../toolkit/dwebview-polyfill/src/close-watcher/index.ts";
 import "./global.type.ts";
 
 //
@@ -8,7 +9,6 @@ export * from "./biometrics/index.ts";
 // export * from "./bluetooth/index.ts";
 export * from "./base/base.plugin.ts";
 export * from "./clipboard/index.ts";
-export * from "./close-watcher/index.ts";
 export * from "./config/index.ts";
 export * from "./device/index.ts";
 export * from "./dweb-service-worker/index.ts";
@@ -28,4 +28,3 @@ export * from "./shortcut/index.ts";
 export * from "./splash-screen/index.ts";
 export * from "./toast/index.ts";
 export * from "./window/index.ts";
-

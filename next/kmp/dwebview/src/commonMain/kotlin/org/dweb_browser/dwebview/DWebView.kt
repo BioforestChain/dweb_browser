@@ -12,15 +12,12 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.dwebview.base.LoadedUrlCache
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.RememberLazy
@@ -58,7 +55,13 @@ abstract class IDWebView(initUrl: String?) {
     if (!urlState.isUrlEqual(url) || force) {
       urlState.forceLoadUrl(url)
     }
-    return urlState.endLoadUrl.await()
+    while (true) {
+      try {
+        return urlState.endLoadUrl.await()
+      } catch (e: CancellationException) {
+        continue
+      }
+    }
   }
 
   suspend fun canGoBack() = closeWatcher.canClose || historyCanGoBack()
@@ -92,20 +95,8 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun historyGoBack(): Boolean
   abstract suspend fun historyCanGoForward(): Boolean
   abstract suspend fun historyGoForward(): Boolean
-  abstract val urlStateFlow: StateFlow<String>
+  val urlStateFlow get() = urlState.stateFlow
 
-  internal fun generateOnUrlChangeFromLoadedUrlCache(loadedUrlCache: LoadedUrlCache): StateFlow<String> {
-    val urlChangeState = MutableStateFlow("")
-    var url = ""
-    loadedUrlCache.onChange {
-      val newUrl = getUrl()
-      if (url != newUrl) {
-        url = newUrl
-        urlChangeState.emit(url)
-      }
-    }
-    return urlChangeState.asStateFlow()
-  }
 
   abstract suspend fun createMessageChannel(): IWebMessageChannel
   abstract suspend fun postMessage(data: String, ports: List<IWebMessagePort>)
@@ -219,12 +210,14 @@ internal class UrlState(val dwebView: IDWebView, var startUrl: String) {
 
   private fun effectWebLoadStartState(state: WebLoadStartState) {
     debugDWebView("WebLoadStartState") { "WebLoadStartState url=${state.url}" }
-    if (state.url != startUrl) {
+    if (state.url != startUrl || endLoadUrl.isCompleted) {
       if (endLoadUrl.isActive) {
         endLoadUrl.cancel(CancellationException("start load url: ${state.url}"))
       }
       startUrl = state.url
       endLoadUrl = CompletableDeferred()
+
+      stateFlow.tryEmit(state.url)
     }
   }
 
@@ -235,6 +228,7 @@ internal class UrlState(val dwebView: IDWebView, var startUrl: String) {
     } else if (endLoadUrl.getCompleted() != state.url) {
       endLoadUrl = CompletableDeferred(state.url)
     }
+    stateFlow.tryEmit(state.url)
   }
 
   init {
@@ -248,9 +242,10 @@ internal class UrlState(val dwebView: IDWebView, var startUrl: String) {
   }
 
   suspend fun forceLoadUrl(url: String) {
-    effectWebLoadStartState(WebLoadStartState(url))
-    dwebView.startLoadUrl(url)
+    effectWebLoadStartState(WebLoadStartState(dwebView.startLoadUrl(url)))
   }
+
+  val stateFlow = MutableStateFlow(startUrl)
 }
 
 enum class WebColorScheme {

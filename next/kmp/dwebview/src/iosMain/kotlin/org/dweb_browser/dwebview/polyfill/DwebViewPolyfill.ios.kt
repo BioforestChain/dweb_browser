@@ -4,15 +4,15 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SuspendOnce
 import org.jetbrains.compose.resources.InternalResourceApi
-import org.jetbrains.compose.resources.readResourceBytes
 
-object DwebViewPolyfill {
+object DwebViewIosPolyfill : DwebViewCommonPolyfill() {
   @OptIn(InternalResourceApi::class)
   internal val prepare = SuspendOnce {
     coroutineScope {
       launch {
-        WebSocket = readResourceBytes("files/dwebview-polyfill/websocket.ios.js").decodeToString()
-        Favicon = readResourceBytes("files/dwebview-polyfill/favicon.ios.js").decodeToString()
+        WebSocket = readDwebviewPolyfill("websocket.ios.js")
+        Favicon = readDwebviewPolyfill("favicon.ios.js")
+        CloseWatcher = readDwebviewPolyfill("close-watcher.common.js")
       }
     }
   }
@@ -20,5 +20,7 @@ object DwebViewPolyfill {
   lateinit var WebSocket: String
     private set
   lateinit var Favicon: String
+    private set
+  lateinit var CloseWatcher: String
     private set
 }

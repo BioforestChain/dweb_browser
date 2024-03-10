@@ -3,16 +3,14 @@ package org.dweb_browser.dwebview.polyfill
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SuspendOnce
-import org.jetbrains.compose.resources.InternalResourceApi
-import org.jetbrains.compose.resources.readResourceBytes
 
-object DwebViewPolyfill {
-  @OptIn(InternalResourceApi::class)
+object DwebViewAndroidPolyfill : DwebViewCommonPolyfill() {
   internal val prepare = SuspendOnce {
     coroutineScope {
       launch {
-        KeyBoard = readResourceBytes("files/dwebview-polyfill/keyboard.android.js").decodeToString()
-        Favicon = readResourceBytes("files/dwebview-polyfill/favicon.common.js").decodeToString()
+        KeyBoard = readDwebviewPolyfill("keyboard.android.js")
+        Favicon = readDwebviewPolyfill("favicon.common.js")
+        CloseWatcher = readDwebviewPolyfill("close-watcher.common.js")
       }
     }
   }
@@ -20,5 +18,7 @@ object DwebViewPolyfill {
   lateinit var KeyBoard: String
     private set
   lateinit var Favicon: String
+    private set
+  lateinit var CloseWatcher: String
     private set
 }

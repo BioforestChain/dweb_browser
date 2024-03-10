@@ -23,7 +23,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.dwebview.polyfill.DwebViewPolyfill
+import org.dweb_browser.dwebview.polyfill.DwebViewAndroidPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxyOverride
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
@@ -65,7 +65,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     val prepare = SuspendOnce {
       coroutineScope {
         launch(ioAsyncExceptionHandler) {
-          DwebViewPolyfill.prepare();
+          DwebViewAndroidPolyfill.prepare();
         }
         launch {
           DwebViewProxyOverride.prepare()
@@ -127,10 +127,6 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     } else {
       false
     }
-  }
-
-  override val urlStateFlow by lazy {
-    generateOnUrlChangeFromLoadedUrlCache(engine.loadedUrlCache)
   }
 
   @SuppressLint("RequiresFeature")

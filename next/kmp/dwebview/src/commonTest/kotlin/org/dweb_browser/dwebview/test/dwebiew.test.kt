@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview.test
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 import org.dweb_browser.core.module.BootstrapContext
@@ -100,5 +101,29 @@ class DWebViewTest {
       isCreated.onAwait { it.getUrl() }
       onTimeout(2000) { "<no-browser-open>" }
     })
+  }
+
+  @Test
+  fun closeWatcher() = runCommonTest {
+    val dwebview = getWebview()
+    /// 以下是一般情况
+    dwebview.loadUrl("https://www.baidu.com")
+    assertEquals(true, dwebview.canGoBack())
+    println("TEST doGoBack")
+    dwebview.goBack()
+    assertEquals(false, dwebview.canGoBack())
+    delay(100)
+    assertEquals("about:blank", dwebview.getOriginalUrl())
+
+    /// 以下是CloseWatcher改变goBack的情况
+    dwebview.loadUrl("https://www.baidu.com")
+    println("TEST ${dwebview.evaluateAsyncJavascriptCode("typeof CloseWatcher")}")
+    println("TEST ${dwebview.evaluateAsyncJavascriptCode("String(self.CloseWatcher)")}")
+    assertEquals(true, dwebview.canGoBack())
+    println("TEST doGoBack")
+    dwebview.goBack()
+    assertEquals(true, dwebview.canGoBack())
+    delay(100)
+    assertEquals("https://www.baidu.com", dwebview.getOriginalUrl())
   }
 }

@@ -12,10 +12,17 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.dwebview.ICloseWatcher
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.*
+import org.dweb_browser.dwebview.polyfill.DwebViewAndroidPolyfill
+import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.helper.withMainContext
 
 @SuppressLint("JavascriptInterface")
 class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
+  init {
+    engine.addDocumentStartJavaScript(DwebViewAndroidPolyfill.CloseWatcher)
+  }
 
   companion object {
     var acc_id by SafeInt(1)
@@ -71,6 +78,16 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
           watchers.find { watcher -> watcher.id == id }?.also {
             mainScope.launch { close(it) }
           }
+
+        /**
+         * 销毁
+         */
+        @JavascriptInterface
+        fun tryDestroy(id: String?) = watchers.removeIf { watcher ->
+          (watcher.id == id).trueAlso {
+            watcher.destroy()
+          }
+        }
       },
       JS_POLYFILL_KIT
     )

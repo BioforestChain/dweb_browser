@@ -222,16 +222,11 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
 
   val loadingProgressSharedFlow = MutableSharedFlow<Float>(1)
 
-  private var preCheckUrl: String? = null
   override fun onProgressChanged(view: WebView, newProgress: Int) {
     if (loadingProgressSharedFlow.subscriptionCount.value > 0) {
       scope.launch {
         loadingProgressSharedFlow.emit(newProgress / 100f)
       }
-    }
-    if (preCheckUrl != view.url) {
-      preCheckUrl = view.url
-      engine.loadedUrlCache.checkLoadedUrl(preCheckUrl) { true }
     }
     inners("onProgressChanged").forEach { it.onProgressChanged(view, newProgress) }
     super.onProgressChanged(view, newProgress)
