@@ -3,17 +3,17 @@ export const isDweb = () => {
   // @ts-ignore
   const isPlaoc = self.__native_close_watcher_kit__ !== void 0;
 
-  if(isDweb || isPlaoc) {
+  if (isDweb || isPlaoc) {
     return true;
   }
 
   const userAgentData = self.navigator.userAgentData;
 
-  if(!userAgentData) {
+  if (!userAgentData) {
     return false;
   }
 
-  const brands = userAgentData.brands.filter(value => {
+  const brands = userAgentData.brands.filter((value) => {
     return value.brand === "DwebBrowser";
   });
 
@@ -41,8 +41,13 @@ export const dwebTarget = () => {
 
 declare global {
   interface Navigator {
-    userAgentData: {
-      brands: { brand: string; version: string }[];
-    } | null;
+    userAgentData?: NavigatorUAData;
   }
+  interface NavigatorUAData {
+    brands: { brand: string; version: string }[];
+  }
+  const NavigatorUAData: {
+    new (): NavigatorUAData;
+    property: NavigatorUAData;
+  };
 }

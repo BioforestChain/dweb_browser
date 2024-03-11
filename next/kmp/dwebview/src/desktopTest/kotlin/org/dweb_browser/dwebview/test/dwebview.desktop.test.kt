@@ -1,6 +1,5 @@
 package org.dweb_browser.dwebview.test
 
-import com.teamdev.jxbrowser.browser.event.ConsoleMessageReceived
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.test.runCommonTest
@@ -15,12 +14,6 @@ class DWebViewDesktopTest {
       debugDWebView.forceEnable()
       val dwebview = DWebViewTest.getWebview()
       require(dwebview is DWebView)
-      dwebview.viewEngine.browser.on(ConsoleMessageReceived::class.java) { event ->
-        val consoleMessage = event.consoleMessage()
-        val level = consoleMessage.level()
-        val message = consoleMessage.message()
-        println("TEST-JsConsole/$level | $message")
-      }
       return dwebview
     }
   }

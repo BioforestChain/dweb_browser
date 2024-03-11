@@ -13,6 +13,7 @@ object DwebViewIosPolyfill : DwebViewCommonPolyfill() {
         WebSocket = readDwebviewPolyfill("websocket.ios.js")
         Favicon = readDwebviewPolyfill("favicon.ios.js")
         CloseWatcher = readDwebviewPolyfill("close-watcher.common.js")
+        UserAgentData = readDwebviewPolyfill("user-agent-data.common.js")
       }
     }
   }
@@ -22,5 +23,7 @@ object DwebViewIosPolyfill : DwebViewCommonPolyfill() {
   lateinit var Favicon: String
     private set
   lateinit var CloseWatcher: String
+    private set
+  lateinit var UserAgentData: String
     private set
 }

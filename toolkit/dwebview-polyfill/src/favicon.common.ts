@@ -45,9 +45,12 @@
         /// 获取标准网页图标
         iconLinks[0]
       )?.ele.href ?? "favicon.ico";
-
-    const iconUrl = new URL(href, document.baseURI);
-    return iconUrl.href;
+    try {
+      const iconUrl = new URL(href, document.baseURI);
+      return iconUrl.href;
+    } catch {
+      return "";
+    }
   }
   function watchCommonIcon(preference_size = 64) {
     console.log("start watchCommonIcon");
@@ -78,3 +81,11 @@
     watchCommonIcon();
   }
 })();
+
+declare global {
+  const __native_favicon_kit__:
+    | undefined
+    | {
+        emitChange(href: string): void;
+      };
+}

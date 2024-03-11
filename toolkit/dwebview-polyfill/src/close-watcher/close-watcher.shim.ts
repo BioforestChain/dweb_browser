@@ -1,142 +1,54 @@
 /// <reference lib="dom"/>
 import "./close-watcher.type.ts";
 const __close_watcher__ = (() => {
+  /// android 与 desktop 平台，可以注入 __native_close_watcher_kit__
   let native_close_watcher_kit = self.__native_close_watcher_kit__;
+  // desktop 平台不能污染原对象，所以这里统一使用另外的对象来存储
+  const native_close_watcher_exports = {
+    watchers: new Map<string, CloseWatcher>(),
+    tasks: new Map<string, (id: string) => void>(),
+  };
+  // 确保 __native_close_watcher_exports__ 在全局，使得 native 侧可以调到
+  Object.assign(self, { __native_close_watcher_exports__: native_close_watcher_exports });
 
-  if (native_close_watcher_kit) {
-    native_close_watcher_kit._watchers ??= new Map();
-    native_close_watcher_kit._tasks ??= new Map();
-  } else if ("webkit" in globalThis) {
-    // 仅适用于iOS平台
-    Object.assign(globalThis, {
-      __native_close_watcher_kit__: {
-        registryToken(token: string) {
-          try {
-            // deno-lint-ignore no-explicit-any
-            (globalThis as any).webkit.messageHandlers.closeWatcher.postMessage({
-              token,
-            });
-          } catch {
-            // 非iOS平台才有可能会触发
-          }
-        },
-
-        tryClose(id: string) {
-          try {
-            // deno-lint-ignore no-explicit-any
-            (globalThis as any).webkit.messageHandlers.closeWatcher.postMessage({
-              id,
-            });
-          } catch {
-            // 非iOS平台才有可能会触发
-          }
-        },
-
-        tryDestroy(id: string) {
-          try {
-            // deno-lint-ignore no-explicit-any
-            (globalThis as any).webkit.messageHandlers.closeWatcher.postMessage({
-              destroy: id,
-            });
-          } catch {
-            // 非iOS平台才有可能会触发
-          }
-        },
-        _watchers: new Map(),
-        _tasks: new Map(),
-      } satisfies CloseWatcherKit,
-    });
-    native_close_watcher_kit = self.__native_close_watcher_kit__;
-  } else {
-    /// 桌面 平台使用 esc 按钮作为返回键
-    const consuming = new Set<string>();
-    const watchers = new Array<Watcher>();
-    class Watcher {
-      static #acc_id = 0;
-      private _destoryed = false;
-      readonly id = `#cw-${Watcher.#acc_id++}`;
-      tryClose() {
-        if (this._destoryed) {
-          return false;
-        }
-        native_close_watcher_kit._watchers.get(this.id)?.dispatchEvent(new CloseEvent("close"));
-        this._destoryed = true;
-        return true;
-      }
-    }
-    const closeWatcherController = new (class CloseWatcherController {
-      /**
-       * 申请一个 CloseWatcher
-       */
-      apply(isUserGesture: boolean) {
-        if (isUserGesture || watchers.length === 0) {
-          const watcher = new Watcher();
-          watchers.push(watcher);
-        }
-        return watchers.at(-1)!;
-      }
-      resolveToken(consumeToken: string, watcher: Watcher) {
-        native_close_watcher_kit._tasks.get(consumeToken)?.(watcher.id);
-      }
-      get canClose() {
-        return watchers.length > 0;
-      }
-      close(watcher = watchers.at(-1)) {
-        if (watcher?.tryClose()) {
-          const index = watchers.indexOf(watcher);
-          if (index !== -1) {
-            watchers.splice(index, 1);
-            return true;
-          }
-        }
-        return false;
-      }
-    })();
-    // @ts-ignore
-    if (typeof navigation === "object") {
-      // @ts-ignore
-      navigation.addEventListener("navigate", (event) => {
-        if (closeWatcherController.canClose) {
-          event.intercept({
-            async hanlder() {
-              closeWatcherController.close();
-            },
-          });
-        }
-      });
-    }
-    if (typeof document === "object")
-      document.addEventListener("keypress", (event) => {
-        if (event.key === "Escape") {
-          console.log("Esc键被按下");
-          closeWatcherController.close();
-        }
-      });
-
-    Object.assign(globalThis, {
-      __native_close_watcher_kit__: {
-        async registryToken(token: string) {
-          consuming.add(token);
-          /// 模拟移动端的 open(token)
-          if ((await (await fetch(token)).text()) === "create-close-watcher") {
-            const watcher = closeWatcherController.apply(navigator.userActivation.isActive);
-            closeWatcherController.resolveToken(token, watcher);
-          }
-        },
-
-        tryClose(id: string) {
-          for (const w of watchers.slice()) {
-            if (w.id === id) {
-              closeWatcherController.close(w);
-            }
-          }
-        },
-        _watchers: new Map(),
-        _tasks: new Map(),
+  /// iOS平台 使用消息通讯
+  if (!native_close_watcher_kit && typeof webkit !== "undefined" && webkit.messageHandlers) {
+    const closeWatcherChannel = webkit.messageHandlers.closeWatcher;
+    native_close_watcher_kit = {
+      registryToken(token: string) {
+        closeWatcherChannel.postMessage({ token });
       },
-    });
-    native_close_watcher_kit = self.__native_close_watcher_kit__;
+      tryClose(id: string) {
+        closeWatcherChannel.postMessage({ id });
+      },
+      tryDestroy(id: string) {
+        closeWatcherChannel.postMessage({ destroy: id });
+      },
+    };
   }
+
+  /// 假如导航的支持
+  // @ts-ignore
+  if (typeof navigation === "object") {
+    // @ts-ignore
+    navigation.addEventListener("navigate", (event) => {
+      if (native_close_watcher_exports.watchers.size > 0) {
+        event.intercept({
+          async hanlder() {
+            await [...native_close_watcher_exports.watchers.values()].pop()?.requestClose();
+          },
+        });
+      }
+    });
+  }
+  /// 假如键盘的支持
+  if (typeof document === "object")
+    document.addEventListener("keypress", (event) => {
+      if (event.key === "Escape") {
+        [...native_close_watcher_exports.watchers.values()].pop()?.requestClose();
+      }
+    });
+
   class CloseWatcher extends EventTarget {
     #signal?: AbortSignal;
     constructor(options?: { signal?: AbortSignal }) {
@@ -155,8 +67,7 @@ const __close_watcher__ = (() => {
     async #init() {
       const token = URL.createObjectURL(new Blob(["create-close-watcher"], { type: "text/html" }));
 
-      const native_close_watcher_kit = self.__native_close_watcher_kit__;
-      const tasks = native_close_watcher_kit._tasks;
+      const tasks = native_close_watcher_exports.tasks;
       // 注册回调
       tasks.set(token, this.#id_resolver);
       // 注册指令，如果在移动端，会发起 self.open(token) ，从而获得
@@ -167,7 +78,7 @@ const __close_watcher__ = (() => {
       // 等到响应，删除注册的回掉
       tasks.delete(token);
       // 注册实例
-      native_close_watcher_kit._watchers.set(id, this);
+      native_close_watcher_exports.watchers.set(id, this);
       console.log("close watcher created");
 
       this.addEventListener(
@@ -175,7 +86,7 @@ const __close_watcher__ = (() => {
         (event) => {
           console.log("close watcher closed");
           this.#onclose?.(event);
-          native_close_watcher_kit._watchers.delete(id);
+          native_close_watcher_exports.watchers.delete(id);
           this.#_closed = true;
         },
         { once: true }
@@ -183,7 +94,7 @@ const __close_watcher__ = (() => {
       this.addEventListener("close", (event) => {
         console.log("close watcher cancel");
         this.#oncancel?.(event);
-        native_close_watcher_kit._watchers.delete(id);
+        native_close_watcher_exports.watchers.delete(id);
         this.#_closed = true;
       });
     }
@@ -193,16 +104,15 @@ const __close_watcher__ = (() => {
         return;
       }
       const id = await this.#id;
-      const native_close_watcher_kit = self.__native_close_watcher_kit__;
       native_close_watcher_kit.tryClose(id);
     }
-    requestClose() {
+    async requestClose() {
       let canDoClose = !navigator.userActivation.isActive;
       if (!canDoClose && this.dispatchEvent(new Event("cancel", { cancelable: true }))) {
         canDoClose = true;
       }
       if (canDoClose) {
-        this.close();
+        await this.close();
       }
     }
     async destroy() {
@@ -210,7 +120,6 @@ const __close_watcher__ = (() => {
         return;
       }
       const id = await this.#id;
-      const native_close_watcher_kit = self.__native_close_watcher_kit__;
       native_close_watcher_kit.tryDestroy(id);
     }
     #onclose?: (event: CloseEvent) => void;
@@ -269,9 +178,10 @@ const __close_watcher__ = (() => {
 
   // 强制移除 CloseWatcher，使用我们提供的版本
   Reflect.deleteProperty(self, "CloseWatcher");
-  if (typeof Reflect.get(self, "CloseWatcher") === "undefined") {
+  if (native_close_watcher_kit && typeof Reflect.get(self, "CloseWatcher") === "undefined") {
     Object.assign(self, { CloseWatcher: CloseWatcher });
   }
   return CloseWatcher;
 })();
+// 这里使用 export default，编译出来的时候不会有 exports 这些cjs对象
 export default __close_watcher__;

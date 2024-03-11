@@ -29,7 +29,6 @@ import org.dweb_browser.dwebview.polyfill.DWebViewFaviconMessageHandler
 import org.dweb_browser.dwebview.polyfill.DWebViewWebSocketMessageHandler
 import org.dweb_browser.dwebview.polyfill.DwebViewIosPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
-import org.dweb_browser.dwebview.polyfill.UserAgentData
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.Bounds
@@ -264,8 +263,7 @@ class DWebViewEngine(
   //#region favicon
   suspend fun getFavicon() = withMainContext {
     awaitAsyncJavaScript<String>(
-      "getIosIcon()",
-      inContentWorld = FaviconPolyfill.faviconContentWorld
+      "getIosIcon()", inContentWorld = FaviconPolyfill.faviconContentWorld
     )
   }
 
@@ -278,8 +276,7 @@ class DWebViewEngine(
   override fun setFrame(frame: CValue<CGRect>) {
     super.setFrame(frame)
     scrollView.contentInset = cValue { UIEdgeInsetsZero };
-    if (!UIEdgeInsetsEqualToEdgeInsets(
-        scrollView.adjustedContentInset,
+    if (!UIEdgeInsetsEqualToEdgeInsets(scrollView.adjustedContentInset,
         cValue { UIEdgeInsetsZero })
     ) {
       val insetToAdjust = scrollView.adjustedContentInset;
@@ -347,41 +344,22 @@ class DWebViewEngine(
     IDWebView.brands.forEach {
       brandList.add(
         IDWebView.UserAgentBrandData(
-          it.brand,
-          if (it.version.contains(".")) it.version.split(".").first() else it.version
+          it.brand, if (it.version.contains(".")) it.version.split(".").first() else it.version
         )
       )
     }
     brandList.add(IDWebView.UserAgentBrandData("DwebBrowser", versionName.split(".").first()))
     addDocumentStartJavaScript(
-      """
-        ${UserAgentData.polyfillScript}
-        if (!navigator.userAgentData) {
-          let userAgentData = new NavigatorUAData(navigator, ${JsonLoose.encodeToString(brandList)});
-          Object.defineProperty(Navigator.prototype, 'userAgentData', {
-            enumerable: true,
-            configurable: true,
-            get: function getUseAgentData() {
-              return userAgentData;
-            }
-          });
-          Object.defineProperty(globalThis, 'NavigatorUAData', {
-            enumerable: false,
-            configurable: true,
-            writable: true,
-            value: NavigatorUAData
-          });
-        }
-      """.trimIndent()
+      DwebViewIosPolyfill.UserAgentData +
+          // 执行脚本
+          ";NavigatorUAData.__upsetBrands__(${JsonLoose.encodeToString(brandList)});"
     )
   }
 
   private fun addDocumentStartJavaScript(script: String) {
     configuration.userContentController.addUserScript(
       WKUserScript(
-        script,
-        WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
-        false
+        script, WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart, false
       )
     )
   }
@@ -406,8 +384,7 @@ class DWebViewEngine(
           when (value) {
             null -> dwebHelper.disableSafeAreaInsetsWithWebView(this)
             else -> dwebHelper.enableSafeAreaInsetsWithWebView(
-              this,
-              value.toIosUIEdgeInsets()
+              this, value.toIosUIEdgeInsets()
             )
           }
         }

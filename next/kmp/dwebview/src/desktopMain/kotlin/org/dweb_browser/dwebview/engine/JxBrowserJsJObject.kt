@@ -36,17 +36,42 @@ open class JsJObject(val originJsObject: JsObject) : JsObject by originJsObject 
 
 }
 
-class JsWindow(js: JsObject) : JsJObject(js) {
-  private val jsjWM = WeakHashMap<JsEventHandler, JsFunctionCallback>()
-  fun addEventListener(eventName: String, listener: JsEventHandler) {
+open class JsJEventTarget(js: JsObject) : JsJObject(js) {
+  private val jsjWM = WeakHashMap<JsJEventHandler, JsFunctionCallback>()
+  fun addEventListener(eventName: String, listener: JsJEventHandler) {
     originJsObject.call<Any>("addEventListener", eventName, jsjWM.getOrPut(listener) {
       JsFunctionCallback {
-        listener(JsEvent(it[0] as JsObject))
+        listener(JsJEvent(it[0] as JsObject))
       }
     })
   }
 
-  fun removeEventListener(eventName: String, listener: JsEventHandler) {
+  fun removeEventListener(eventName: String, listener: JsJEventHandler) {
+    jsjWM[listener]?.also { jsFunctionCallback ->
+      originJsObject.call<Any>("removeEventListener", eventName, jsFunctionCallback)
+    }
+  }
+
+  fun dispatchEvent(event: JsJEvent) {
+    dispatchEvent(event.originJsObject)
+  }
+
+  fun dispatchEvent(event: JsObject) {
+    originJsObject.call<Any>("dispatchEvent", event)
+  }
+}
+
+class JsJWindow(js: JsObject) : JsJObject(js) {
+  private val jsjWM = WeakHashMap<JsJEventHandler, JsFunctionCallback>()
+  fun addEventListener(eventName: String, listener: JsJEventHandler) {
+    originJsObject.call<Any>("addEventListener", eventName, jsjWM.getOrPut(listener) {
+      JsFunctionCallback {
+        listener(JsJEvent(it[0] as JsObject))
+      }
+    })
+  }
+
+  fun removeEventListener(eventName: String, listener: JsJEventHandler) {
     jsjWM[listener]?.also { jsFunctionCallback ->
       originJsObject.call<Any>("removeEventListener", eventName, jsFunctionCallback)
     }
@@ -57,9 +82,9 @@ class JsWindow(js: JsObject) : JsJObject(js) {
   val devicePixelRatio by staticProp<Double>("devicePixelRatio")
 }
 
-typealias JsEventHandler = (JsEvent) -> Unit
+typealias JsJEventHandler = (JsJEvent) -> Unit
 
-class JsEvent(js: JsObject) : JsJObject(js) {
+class JsJEvent(js: JsObject) : JsJObject(js) {
   val type by staticProp<String>("type")
   val isTrusted by staticProp<Boolean>("isTrusted")
   val bubbles by staticProp<Boolean>("bubbles")
@@ -69,4 +94,4 @@ class JsEvent(js: JsObject) : JsJObject(js) {
   val timeStamp by staticProp<Double>("timeStamp")
 }
 
-fun Frame.window() = JsWindow(executeJavaScript<JsObject>("window")!!)
+fun Frame.window() = JsJWindow(executeJavaScript<JsObject>("window")!!)

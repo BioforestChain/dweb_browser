@@ -16,6 +16,7 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   companion object {
     private var acc_id by SafeInt(1)
     const val JS_POLYFILL_KIT = "__native_close_watcher_kit__"
+    const val JS_EXPORTS_KEY = "__native_close_watcher_exports__"
   }
 
   val consuming = mutableSetOf<String>()
@@ -54,7 +55,7 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
       withMainContext {
         engine.evaluateJavascriptSync(
           """
-                    $JS_POLYFILL_KIT._watchers?.get("$id")?.dispatchEvent(new CloseEvent('close'));
+                    $JS_EXPORTS_KEY.watchers?.get("$id")?.dispatchEvent(new CloseEvent('close'));
                     """.trimIndent()
         )
       }
@@ -83,7 +84,7 @@ internal class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   fun resolveToken(consumeToken: String, watcher: ICloseWatcher.IWatcher) {
     engine.evaluateJavascriptSync(
       """
-            $JS_POLYFILL_KIT._tasks?.get("$consumeToken")("${watcher.id}");
+            $JS_EXPORTS_KEY.tasks?.get("$consumeToken")("${watcher.id}");
             """.trimIndent()
     )
   }

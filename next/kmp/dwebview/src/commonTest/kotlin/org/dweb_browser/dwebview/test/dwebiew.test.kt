@@ -96,8 +96,8 @@ class DWebViewTest {
       isCreated.complete(it)
     }
     val openUrl = "https://image.baidu.com/"
-    dwebview.evaluateAsyncJavascriptCode("open('$openUrl')")
-    assertNotEquals(openUrl, select {
+    dwebview.evaluateAsyncJavascriptCode("void open('$openUrl')")
+    assertEquals(openUrl, select {
       isCreated.onAwait { it.getUrl() }
       onTimeout(2000) { "<no-browser-open>" }
     })
@@ -107,7 +107,7 @@ class DWebViewTest {
   fun closeWatcher() = runCommonTest {
     val dwebview = getWebview()
     /// 以下是一般情况
-    dwebview.loadUrl("https://www.baidu.com")
+    dwebview.loadUrl("https://example.com/")
     assertEquals(true, dwebview.canGoBack())
     println("TEST doGoBack")
     dwebview.goBack()
@@ -116,14 +116,15 @@ class DWebViewTest {
     assertEquals("about:blank", dwebview.getOriginalUrl())
 
     /// 以下是CloseWatcher改变goBack的情况
-    dwebview.loadUrl("https://www.baidu.com")
-    println("TEST ${dwebview.evaluateAsyncJavascriptCode("typeof CloseWatcher")}")
-    println("TEST ${dwebview.evaluateAsyncJavascriptCode("String(self.CloseWatcher)")}")
+    dwebview.loadUrl("https://example.com/")
     assertEquals(true, dwebview.canGoBack())
+    println("TEST create CloseWatcher")
+    dwebview.evaluateAsyncJavascriptCode("new CloseWatcher()")
+    delay(200)
     println("TEST doGoBack")
     dwebview.goBack()
     assertEquals(true, dwebview.canGoBack())
     delay(100)
-    assertEquals("https://www.baidu.com", dwebview.getOriginalUrl())
+    assertEquals("https://example.com/", dwebview.getOriginalUrl())
   }
 }

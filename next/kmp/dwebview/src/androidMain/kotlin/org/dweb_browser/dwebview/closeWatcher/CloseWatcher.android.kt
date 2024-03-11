@@ -20,13 +20,10 @@ import org.dweb_browser.helper.withMainContext
 
 @SuppressLint("JavascriptInterface")
 class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
-  init {
-    engine.addDocumentStartJavaScript(DwebViewAndroidPolyfill.CloseWatcher)
-  }
-
   companion object {
     var acc_id by SafeInt(1)
     const val JS_POLYFILL_KIT = "__native_close_watcher_kit__"
+    const val JS_EXPORTS_KEY = "__native_close_watcher_exports__"
   }
 
   val consuming = mutableSetOf<String>()
@@ -91,6 +88,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
       },
       JS_POLYFILL_KIT
     )
+    engine.addDocumentStartJavaScript(DwebViewAndroidPolyfill.CloseWatcher)
   }
 
   private val watchers = mutableListOf<ICloseWatcher.IWatcher>()
@@ -127,7 +125,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
       withMainContext {
         engine.evaluateJavascript(
           """
-                    $JS_POLYFILL_KIT._watchers?.get("$id")?.dispatchEvent(new CloseEvent('close'));
+                    $JS_EXPORTS_KEY.watchers?.get("$id")?.dispatchEvent(new CloseEvent('close'));
                     """.trimIndent()
         ) {}
       }
@@ -156,7 +154,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   fun resolveToken(consumeToken: String, watcher: ICloseWatcher.IWatcher) {
     engine.evaluateJavascript(
       """
-            $JS_POLYFILL_KIT._tasks?.get("$consumeToken")("${watcher.id}");
+            $JS_EXPORTS_KEY.tasks?.get("$consumeToken")("${watcher.id}");
             """.trimIndent()
     ) {};
   }

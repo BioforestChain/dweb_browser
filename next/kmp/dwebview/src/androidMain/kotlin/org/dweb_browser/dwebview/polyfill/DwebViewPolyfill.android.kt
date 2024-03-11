@@ -11,6 +11,7 @@ object DwebViewAndroidPolyfill : DwebViewCommonPolyfill() {
         KeyBoard = readDwebviewPolyfill("keyboard.android.js")
         Favicon = readDwebviewPolyfill("favicon.common.js")
         CloseWatcher = readDwebviewPolyfill("close-watcher.common.js")
+        UserAgentData = readDwebviewPolyfill("user-agent-data.common.js")
       }
     }
   }
@@ -20,5 +21,7 @@ object DwebViewAndroidPolyfill : DwebViewCommonPolyfill() {
   lateinit var Favicon: String
     private set
   lateinit var CloseWatcher: String
+    private set
+  lateinit var UserAgentData: String
     private set
 }

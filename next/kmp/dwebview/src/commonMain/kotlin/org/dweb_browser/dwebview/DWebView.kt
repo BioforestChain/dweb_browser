@@ -12,6 +12,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
@@ -95,7 +96,7 @@ abstract class IDWebView(initUrl: String?) {
   abstract suspend fun historyGoBack(): Boolean
   abstract suspend fun historyCanGoForward(): Boolean
   abstract suspend fun historyGoForward(): Boolean
-  val urlStateFlow get() = urlState.stateFlow
+  val urlStateFlow: StateFlow<String> get() = urlState.stateFlow
 
 
   abstract suspend fun createMessageChannel(): IWebMessageChannel

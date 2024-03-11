@@ -10,7 +10,9 @@ export default defineConfig(() => {
           "favicon.ios": "./src/favicon.ios.ts",
           "favicon.common": "./src/favicon.common.ts",
           "close-watcher.common": "./src/close-watcher/index.ts",
+          "user-agent-data.common": "./src/user-agent-data.common.ts",
         },
+        // 多入口不支持 iife
         formats: ["cjs"],
       },
       minify: false,

@@ -56,7 +56,7 @@ function watchIosIcon(preference_size = 64) {
     if (curIcon && preIcon !== curIcon) {
       preIcon = curIcon;
       if (typeof webkit !== "undefined") {
-        webkit.messageHandlers.favicons.postMessage(curIcon);
+        webkit.messageHandlers!.favicons.postMessage(curIcon);
       } else {
         console.log("favicon:", curIcon);
       }

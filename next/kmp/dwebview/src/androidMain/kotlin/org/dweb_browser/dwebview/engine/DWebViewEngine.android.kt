@@ -23,7 +23,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Default
@@ -31,8 +31,8 @@ import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Ignore
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.dwebview.polyfill.DwebViewAndroidPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
-import org.dweb_browser.dwebview.polyfill.UserAgentData
 import org.dweb_browser.dwebview.polyfill.setupKeyboardPolyfill
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
@@ -175,47 +175,16 @@ class DWebViewEngine internal constructor(
       IDWebView.brands.forEach {
         brandList.add(
           IDWebView.UserAgentBrandData(
-            it.brand,
-            if (it.version.contains(".")) it.version.split(".").first() else it.version
+            it.brand, if (it.version.contains(".")) it.version.split(".").first() else it.version
           )
         )
       }
       brandList.add(IDWebView.UserAgentBrandData("DwebBrowser", versionName.split(".").first()))
 
       addDocumentStartJavaScript(
-        """
-        ${UserAgentData.polyfillScript}
-        let userAgentData;
-        if (!navigator.userAgentData) {
-         userAgentData  = new NavigatorUAData(navigator, ${
-          JsonLoose.encodeToJsonElement(
-            brandList
-          )
-        });
-        } else {
-          userAgentData =
-           new NavigatorUAData(navigator, 
-           navigator.userAgentData.brands.concat(
-           ${
-          JsonLoose.encodeToJsonElement(
-            brandList
-          )
-        }));
-        }
-        Object.defineProperty(Navigator.prototype, 'userAgentData', {
-          enumerable: true,
-          configurable: true,
-          get: function getUseAgentData() {
-            return userAgentData;
-          }
-        });
-        Object.defineProperty(window, 'NavigatorUAData', {
-          enumerable: false,
-          configurable: true,
-          writable: true,
-          value: NavigatorUAData
-        });
-      """.trimIndent()
+        DwebViewAndroidPolyfill.UserAgentData +
+            // 执行脚本
+            ";NavigatorUAData.__upsetBrands__(${JsonLoose.encodeToString(brandList)});"
       )
     }
   }
@@ -418,8 +387,7 @@ class DWebViewEngine internal constructor(
           if (field2.type.toString() == "interface org.chromium.content_public.browser.WebContents") {
             val webContents = field2.get(awContents)
             for (method3 in webContents.javaClass.methods.iterator()) {
-              val meta =
-                "(${method3.parameterTypes.joinToString(", ")})->${method3.returnType}"
+              val meta = "(${method3.parameterTypes.joinToString(", ")})->${method3.returnType}"
               if (meta == "(class android.graphics.Rect)->void") {
                 println("SafeArea found setDisplayCutoutSafeArea=${method3}")
                 method3.isAccessible = true

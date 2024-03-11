@@ -21,7 +21,6 @@ async function doUninstall() {
     emit("close", true);
   }
 }
-
 let dialogCloser: CloseWatcher | null = null;
 watchEffect(() => {
   if (props.show) {

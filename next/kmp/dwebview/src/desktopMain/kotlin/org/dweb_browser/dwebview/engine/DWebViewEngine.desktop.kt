@@ -6,6 +6,7 @@ import com.teamdev.jxbrowser.browser.callback.InjectJsCallback
 import com.teamdev.jxbrowser.browser.event.BrowserClosed
 import com.teamdev.jxbrowser.browser.internal.rpc.ConsoleMessageReceived
 import com.teamdev.jxbrowser.frame.Frame
+import com.teamdev.jxbrowser.js.ConsoleMessageLevel
 import com.teamdev.jxbrowser.js.JsException
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
@@ -20,13 +21,14 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.JsonLoose
@@ -223,13 +225,9 @@ class DWebViewEngine internal constructor(
 
     // 新版的chrome可以delete brands 然后重新赋值
     addDocumentStartJavaScript(
-      """(()=>{
-        const uaBrands = navigator.userAgentData.brands
-        delete NavigatorUAData.prototype.brands;
-        Object.defineProperty(NavigatorUAData.prototype,'brands',{value:uaBrands.concat(${
-        JsonLoose.encodeToJsonElement(brandList)
-      })})
-      })()""".trimIndent()
+      DwebViewDesktopPolyfill.UserAgentData +
+          // 执行脚本
+          ";NavigatorUAData.__upsetBrands__(${JsonLoose.encodeToString(brandList)});"
     )
   }
 
@@ -263,7 +261,17 @@ class DWebViewEngine internal constructor(
         val consoleMessage = event.consoleMessage()
         val level = consoleMessage.level()
         val message = consoleMessage.message()
-        debugDWebView("JsConsole/$level", message)
+        val lineNumber = consoleMessage.lineNumber()
+        val source = consoleMessage.source()
+        when (level) {
+          ConsoleMessageLevel.LEVEL_ERROR -> debugDWebView(
+            "JsConsole/$level",
+            message,
+            "<$source:$lineNumber>",
+          )
+
+          else -> debugDWebView("JsConsole/$level", message)
+        }
       }
     }
   }

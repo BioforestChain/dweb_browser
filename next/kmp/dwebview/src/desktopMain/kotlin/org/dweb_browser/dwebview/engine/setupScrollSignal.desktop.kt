@@ -9,9 +9,9 @@ import java.util.function.Consumer
 
 fun setupScrollSignal(engine: DWebViewEngine) = Signal<ScrollChangeEvent>().also { signal ->
   engine.injectJsAction {
-    val jsEventHandler = atomic<JsEventHandler?>(null)
+    val jsEventHandler = atomic<JsJEventHandler?>(null)
     signal.whenNoEmpty {
-      val handler: JsEventHandler = {
+      val handler: JsJEventHandler = {
         executeJavaScript("((document.scrollingElement?.scrollLeft||0)*devicePixelRatio)+','+((document.scrollingElement?.scrollTop||0)*devicePixelRatio)",
           Consumer<String> { result ->
             val (scrollX, scrollY) = result.split(',').map { it.toInt() }

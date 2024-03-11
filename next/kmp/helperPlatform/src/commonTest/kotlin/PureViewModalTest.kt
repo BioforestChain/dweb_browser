@@ -14,7 +14,7 @@ import kotlin.test.Test
 class TestStateContext : StateContext {
   override fun <I : Any> emitChange(iKClass: KClass<I>, input: I) {
     Json.encodeToString(iKClass.serializer(), input).also {
-      println("QAQ emitChange $it")
+      println("TEST emitChange $it")
     }
   }
 }

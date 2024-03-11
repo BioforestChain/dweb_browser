@@ -27,7 +27,7 @@ declare global {
     /**
      * 该对象由 web 侧负责写入，由 native 侧去触发事件
      */
-    _watchers: Map<string, EventTarget>;
+    _watchers: Map<string, CloseWatcherShim>;
     /**
      * 该对象由 web 侧负责写入，由 native 侧去调用
      */
@@ -43,6 +43,7 @@ declare global {
     __native_close_watcher_kit__: CloseWatcherKit;
     open(url: string): Window;
   }
+  // deno-lint-ignore no-empty-interface
   interface CloseWatcher extends InstanceType<typeof CloseWatcherShim> {}
   const CloseWatcher: {
     prototype: InstanceType<typeof CloseWatcherShim>;

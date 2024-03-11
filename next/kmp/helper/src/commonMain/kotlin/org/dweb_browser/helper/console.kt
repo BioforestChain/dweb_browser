@@ -15,9 +15,16 @@ import kotlin.coroutines.coroutineContext
 fun now() = datetimeNow().formatTimestampByMilliseconds()
   .padEndAndSub(23) // kmp中LocalDateTime跟android不一样 // LocalDateTime.toString().padEndAndSub(23)
 
-fun printError(tag: String, msg: Any?, err: Throwable? = null) {
-  println("${tag.padEnd(60, ' ')} $msg")
-  err?.printStackTrace()
+fun printError(tag: String, msg: Any?, err: Any? = null) {
+  when (err) {
+    null -> println("${tag.padEnd(60, ' ')} $msg")
+    is Throwable -> {
+      eprintln("${tag.padEnd(60, ' ')} $msg")
+      err.printStackTrace()
+    }
+
+    else -> eprintln("${tag.padEnd(60, ' ')} $msg $err")
+  }
 }
 
 fun debugger(@Suppress("UNUSED_PARAMETER") vararg params: Any?) {
@@ -108,7 +115,7 @@ fun addDebugTags(tags: Iterable<String>) {
 fun isScopeEnableDebug(scope: String) =
   debugTags.contains(scope) || debugTagsRegex.firstOrNull { regex -> regex.matches(scope) } != null
 
-fun printDebug(scope: String, tag: String, message: Any?, error: Throwable? = null) {
+fun printDebug(scope: String, tag: String, message: Any?, error: Any? = null) {
   if (error == null && !isScopeEnableDebug(scope)) {
     return
   }
@@ -132,11 +139,11 @@ fun String.padEndAndSub(length: Int): String {
 }
 
 class Debugger(val scope: String) {
-  operator fun invoke(tag: String, msg: Any? = "", err: Throwable? = null) {
+  operator fun invoke(tag: String, msg: Any? = "", err: Any? = null) {
     printDebug(scope, tag, msg, err)
   }
 
-  inline operator fun invoke(tag: String, err: Throwable?, msgGetter: () -> Any?) {
+  inline operator fun invoke(tag: String, err: Throwable, msgGetter: () -> Any?) {
     if (isScopeEnableDebug(scope)) {
       val msg = try {
         msgGetter()
@@ -149,14 +156,14 @@ class Debugger(val scope: String) {
 
   inline operator fun invoke(tag: String, msgGetter: () -> Any?) {
     if (isScopeEnableDebug(scope)) {
-      var error: Throwable? = null
+      var err: Throwable? = null
       val msg = try {
         msgGetter()
       } catch (e: Throwable) {
-        error = e
+        err = e
         null
       }
-      printDebug(scope, tag, msg, error)
+      printDebug(scope, tag, msg, err)
     }
   }
 

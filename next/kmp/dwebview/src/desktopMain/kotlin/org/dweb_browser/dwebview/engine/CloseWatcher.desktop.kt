@@ -2,7 +2,6 @@ package org.dweb_browser.dwebview
 
 import com.teamdev.jxbrowser.js.JsAccessible
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,24 +10,20 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
+import org.dweb_browser.helper.Once
 import org.dweb_browser.helper.SafeInt
-import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.trueAlso
 
 class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
-  init {
-    engine.addDocumentStartJavaScript(DwebViewDesktopPolyfill.CloseWatcher)
-  }
-
   companion object {
     var acc_id by SafeInt(1)
     const val JS_POLYFILL_KIT = "__native_close_watcher_kit__"
+    const val JS_EXPORTS_KEY = "__native_close_watcher_exports__"
   }
 
   val consuming = mutableSetOf<String>()
-  private val mainScope = MainScope()
 
-  private val install = SuspendOnce {
+  private val install = Once {
     engine.beforeCreateWindowSignal.listen { event ->
       val consumeToken = event.url
       engine.closeWatcher.apply {
@@ -54,10 +49,10 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
             throw Exception("CloseWatcher.registryToken invalid arguments");
           }
           consuming.add(consumeToken)
-          mainScope.launch {
+          install()
+          engine.ioScope.launch {
             openLock.withLock {
-              install()
-              engine.evaluateAsyncJavascriptCode("open('$consumeToken')")
+              engine.evaluateAsyncJavascriptCode("void open('$consumeToken')")
               delay(60) // 经过测试，两次open至少需要50ms才能正确执行，所以这里用一个稍微大一点的数字来确保正确性
             }
           }
@@ -69,7 +64,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
         @JsAccessible
         fun tryClose(id: String?) = // 这里用 String? 是为了避免 js 传输错误参数，理论上应该用 Any?
           watchers.find { watcher -> watcher.id == id }?.also {
-            mainScope.launch { close(it) }
+            engine.ioScope.launch { close(it) }
           }
 
         /**
@@ -83,6 +78,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
         }
       }, JS_POLYFILL_KIT
     )
+    engine.addDocumentStartJavaScript(DwebViewDesktopPolyfill.CloseWatcher)
   }
 
   private val watchers = mutableListOf<ICloseWatcher.IWatcher>()
@@ -97,7 +93,7 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
       }
       val defaultPrevented = false;
       /// 尝试去触发客户端的监听，如果客户端有监听的话
-      engine.mainFrame.executeJavaScript("$JS_POLYFILL_KIT._watchers?.get('$id')?.dispatchEvent(new CloseEvent('close'));") {}
+      engine.mainFrame.executeJavaScript("$JS_EXPORTS_KEY.watchers?.get('$id')?.dispatchEvent(new CloseEvent('close'));") {}
 
       if (!defaultPrevented) {
         return destroy()
@@ -121,8 +117,9 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
   }
 
   fun resolveToken(consumeToken: String, watcher: ICloseWatcher.IWatcher) {
+    debugDWebView("resolveToken", consumeToken)
     engine.mainFrame.executeJavaScript(
-      "$JS_POLYFILL_KIT._tasks?.get('$consumeToken')('${watcher.id}');"
+      "$JS_EXPORTS_KEY.tasks?.get('$consumeToken')('${watcher.id}');"
     ) {};
   }
 

@@ -10,6 +10,7 @@ object DwebViewDesktopPolyfill : DwebViewCommonPolyfill() {
       launch {
         Favicon = readDwebviewPolyfill("favicon.common.js")
         CloseWatcher = readDwebviewPolyfill("close-watcher.common.js")
+        UserAgentData = readDwebviewPolyfill("user-agent-data.common.js")
       }
     }
   }
@@ -17,5 +18,7 @@ object DwebViewDesktopPolyfill : DwebViewCommonPolyfill() {
   lateinit var Favicon: String
     private set
   lateinit var CloseWatcher: String
+    private set
+  lateinit var UserAgentData: String
     private set
 }
