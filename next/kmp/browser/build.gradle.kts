@@ -6,11 +6,13 @@ kotlin {
   kmpCommonTarget(project) {
     @Suppress("OPT_IN_USAGE")
     applyHierarchy {
-      group("jvm") {
-        withDesktopTarget()
-        withAndroidTarget()
+      common {
+        group("jvm") {
+          withDesktopTarget()
+          withAndroidTarget()
+        }
+        withIosTarget()
       }
-      withIosTarget()
     }
   }
   kmpComposeTarget(project) {

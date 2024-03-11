@@ -1,5 +1,6 @@
 package org.dweb_browser.platform.desktop.webview
 
+import com.teamdev.jxbrowser.VersionInfo
 import com.teamdev.jxbrowser.engine.Engine
 import com.teamdev.jxbrowser.engine.EngineOptions
 import com.teamdev.jxbrowser.engine.RenderingMode.HARDWARE_ACCELERATED
@@ -29,4 +30,6 @@ object WebviewEngine {
       })
 
   val offScreen by lazy { offScreen() }
+
+  val chromiumVersion by lazy { VersionInfo.chromiumVersion() }
 }
