@@ -14,7 +14,6 @@ import org.dweb_browser.core.module.getAppContext
 actual class MotionSensorsManage actual constructor(mm: NativeMicroModule) {
   private val sensorManager =
     getAppContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
-  private val sensorsRegisterSet = mutableSetOf<Int>()
 
   actual val isSupportAccelerometer get() = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null
 
@@ -39,9 +38,7 @@ actual class MotionSensorsManage actual constructor(mm: NativeMicroModule) {
         sensorEventListener,
         accelerometer,
         if (fps != null && fps != 0.0) (1_000000 / fps).toInt() else SensorManager.SENSOR_DELAY_NORMAL
-      ).also {
-        sensorsRegisterSet.add(Sensor.TYPE_ACCELEROMETER)
-      }
+      )
 
       awaitClose {
         sensorManager.unregisterListener(sensorEventListener)
