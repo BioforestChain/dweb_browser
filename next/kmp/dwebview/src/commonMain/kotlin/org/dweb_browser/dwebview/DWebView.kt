@@ -135,12 +135,26 @@ abstract class IDWebView(initUrl: String?) {
    * 获取webview返回到favorite icon
    */
   abstract suspend fun getFavoriteIcon(): ImageBitmap?
+
+  /**
+   * 申请关闭webview，会尝试触发 beforeUnload
+   */
+  abstract suspend fun requestClose(): Unit
+//
+//  /**
+//   * 让页面进入激活态，从而可以做一些需要 激活状 才能执行的事务
+//   */
+//  abstract suspend fun requestUserActivation(): Unit
 }
 
 class ScrollChangeEvent(val scrollX: Int, val scrollY: Int)
 
 class WebBeforeUnloadArgs(
   val message: String,
+  val title: String? = null,
+  val leaveActionText: String? = null,
+  val stayActionText: String? = null,
+  val isReload: Boolean = false
 ) : SynchronizedObject() {
   private val hookReasons = mutableMapOf<Any, WebBeforeUnloadHook>()
   internal fun hook(reason: Any) = synchronized(this) {

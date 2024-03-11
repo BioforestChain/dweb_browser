@@ -49,6 +49,7 @@
       const iconUrl = new URL(href, document.baseURI);
       return iconUrl.href;
     } catch {
+      /// document.baseURI 可能不是标准url，比如 about:blank
       return "";
     }
   }

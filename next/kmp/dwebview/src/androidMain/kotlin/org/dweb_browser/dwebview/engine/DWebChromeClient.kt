@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
+import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.Signal
@@ -38,12 +39,11 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   fun removeWebChromeClient(client: WebChromeClient) = extends.remove(client)
 
   private fun inners(methodName: String, noise: Boolean = true) =
-    extends.hasMethod(methodName)
-      .also {
-        if (it.isNotEmpty() && noise) {
-          debugDWebView("WebChromeClient") { "calling method: $methodName" }
-        }
+    extends.hasMethod(methodName).also {
+      if (it.isNotEmpty() && noise) {
+        debugDWebView("WebChromeClient") { "calling method: $methodName" }
       }
+    }
 
 
   override fun getDefaultVideoPoster(): Bitmap? {
@@ -57,8 +57,9 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   }
 
   override fun getVisitedHistory(callback: ValueCallback<Array<String>>?) {
-    inners("getVisitedHistory").one { it.getVisitedHistory(callback) }
-      ?: super.getVisitedHistory(callback)
+    inners("getVisitedHistory").one { it.getVisitedHistory(callback) } ?: super.getVisitedHistory(
+      callback
+    )
   }
 
   internal val closeSignal = SimpleSignal()
@@ -151,20 +152,20 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   val beforeUnloadSignal = Signal<WebBeforeUnloadArgs>()
 
   override fun onJsBeforeUnload(
-    view: WebView?,
-    url: String?,
-    message: String?,
-    result: JsResult?
+    view: WebView?, url: String?, message: String?, result: JsResult?
   ): Boolean {
     if (message.isNullOrEmpty() && beforeUnloadSignal.isNotEmpty() && result != null) {
       val args = WebBeforeUnloadArgs(message!!)
       scope.launch {
         beforeUnloadSignal.emit(args)
-        val confirm = args.waitHookResults()
-        if (confirm) {
+        val leave = args.waitHookResults()
+        if (leave) {
           result.confirm()
         } else {
           result.cancel()
+          engine.dWebViewClient.loadStateChangeSignal.emit(
+            WebLoadSuccessState(engine.url ?: "about:blank")
+          )
         }
       }
 
@@ -173,13 +174,9 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
     }
     return inners("onJsBeforeUnload").someOrNull {
       it.onJsBeforeUnload(
-        view,
-        url,
-        message,
-        result
+        view, url, message, result
       )
-    }
-      ?: super.onJsBeforeUnload(view, url, message, result)
+    } ?: super.onJsBeforeUnload(view, url, message, result)
   }
 
   override fun onJsConfirm(
@@ -192,22 +189,13 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   }
 
   override fun onJsPrompt(
-    view: WebView?,
-    url: String?,
-    message: String?,
-    defaultValue: String?,
-    result: JsPromptResult?
+    view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?
   ): Boolean {
     return inners("onJsPrompt").mapFindNoNull {
       it.onJsPrompt(
-        view,
-        url,
-        message,
-        defaultValue,
-        result
+        view, url, message, defaultValue, result
       )
-    }
-      ?: super.onJsPrompt(view, url, message, defaultValue, result)
+    } ?: super.onJsPrompt(view, url, message, defaultValue, result)
   }
 
   override fun onPermissionRequest(request: PermissionRequest?) {
@@ -275,12 +263,9 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
   override fun onConsoleMessage(message: String?, lineNumber: Int, sourceID: String?) {
     inners("onConsoleMessage", false).one {
       it.onConsoleMessage(
-        message,
-        lineNumber,
-        sourceID
+        message, lineNumber, sourceID
       )
-    }
-      ?: super.onConsoleMessage(message, lineNumber, sourceID)
+    } ?: super.onConsoleMessage(message, lineNumber, sourceID)
   }
 
   @Deprecated("Deprecated in Java")

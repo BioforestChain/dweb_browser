@@ -85,7 +85,16 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
       engine.ioScope.launch {
         val args = WebBeforeUnloadArgs(message)
         engine.beforeUnloadSignal.emit(args)
-        confirmReferred.complete(if (args.waitHookResults()) WKNavigationActionPolicy.WKNavigationActionPolicyAllow else WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
+        confirmReferred.complete(
+          if (args.waitHookResults()) WKNavigationActionPolicy.WKNavigationActionPolicyAllow else {
+            engine.loadStateChangeSignal.emit(
+              WebLoadSuccessState(
+                engine.evalAsyncJavascript("location.href").await()
+              )
+            )
+            WKNavigationActionPolicy.WKNavigationActionPolicyCancel
+          }
+        )
       }
     }
     /// decisionHandler

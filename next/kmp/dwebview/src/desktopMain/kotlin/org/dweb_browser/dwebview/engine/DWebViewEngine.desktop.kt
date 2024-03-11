@@ -5,6 +5,11 @@ import com.teamdev.jxbrowser.browser.CloseOptions
 import com.teamdev.jxbrowser.browser.callback.InjectJsCallback
 import com.teamdev.jxbrowser.browser.event.BrowserClosed
 import com.teamdev.jxbrowser.browser.internal.rpc.ConsoleMessageReceived
+import com.teamdev.jxbrowser.dom.event.EventParams
+import com.teamdev.jxbrowser.dom.event.EventType
+import com.teamdev.jxbrowser.dom.event.MouseEvent
+import com.teamdev.jxbrowser.dom.event.MouseEventParams
+import com.teamdev.jxbrowser.dom.event.UiEventModifierParams
 import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.ConsoleMessageLevel
 import com.teamdev.jxbrowser.js.JsException
@@ -16,6 +21,7 @@ import com.teamdev.jxbrowser.net.Scheme
 import com.teamdev.jxbrowser.net.UrlRequestJob
 import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
+import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -80,6 +86,7 @@ class DWebViewEngine internal constructor(
 
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
   val mainFrame get() = browser.mainFrame().get()
+  val document get() = mainFrame.document().get()
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
 
@@ -160,8 +167,47 @@ class DWebViewEngine internal constructor(
     browser.favicon().pixels().toImageBitmap()
   }.getOrNull()
 
+  fun requestClose() {
+    browser.close(CloseOptions.newBuilder().fireBeforeUnload().build())
+  }
+
   fun destroy() {
-    browser.close(CloseOptions.newBuilder().build())
+    browser.close()
+  }
+
+  fun requestUserActivation() {
+    val location = Point.of(10, 10)
+// Create MouseEvent with the required options.
+    val mouseClickEvent = document.createMouseEvent(
+      EventType.CLICK,
+      MouseEventParams.newBuilder()
+        // The main button pressed.
+        .button(MouseEvent.Button.MAIN)
+        .clientLocation(location)
+        .screenLocation(location)
+        .uiEventModifierParams(
+          UiEventModifierParams.newBuilder()
+            .eventParams(
+              EventParams.newBuilder()
+                .bubbles(true)
+                .cancelable(true)
+                .build()
+            )
+            .build()
+        )
+        .build()
+    )
+
+    val event2 = document.createEvent(
+      EventType.FOCUS,
+      EventParams.newBuilder()
+        .bubbles(true)
+        .cancelable(true)
+        .build()
+    )
+
+    document.dispatch(mouseClickEvent)
+//    browser.dispatch(MousePressed.newBuilder(Point.of(1, 1)).build())
   }
 
   private var whenInjectFrame: Frame? = null
@@ -240,6 +286,7 @@ class DWebViewEngine internal constructor(
   val beforeCreateWindowSignal = _setupCreateWindowSignals.beforeCreateWindowSignal
   val createWindowSignal = _setupCreateWindowSignals.createWindowSignal
   val closeWatcher = CloseWatcher(this)
+  val beforeUnloadSignal = setupBeforeUnloadSignal(this)
 
   init {
 

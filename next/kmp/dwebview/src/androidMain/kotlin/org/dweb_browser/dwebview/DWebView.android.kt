@@ -29,6 +29,7 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(
@@ -231,6 +232,13 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   override suspend fun setSafeAreaInset(bounds: Bounds) = withMainContext {
     engine.safeArea = bounds
+  }
+
+  override suspend fun requestClose() {
+    val destroyUrl = "about:blank#${randomUUID()}"
+    if (loadUrl(destroyUrl) == destroyUrl) {
+      destroy()
+    }
   }
 }
 

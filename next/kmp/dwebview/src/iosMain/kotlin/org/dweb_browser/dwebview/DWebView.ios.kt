@@ -24,6 +24,7 @@ import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.setScale
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
 import platform.CoreGraphics.CGRect
@@ -158,12 +159,16 @@ class DWebView(
 
   @OptIn(NativeRuntimeApi::class)
   override suspend fun destroy() {
+    doDestroy { getUrl() }
+  }
+
+  private suspend inline fun doDestroy(getOriginUrl: () -> String) {
     if (_destroyed) {
       return
     }
     _destroyed = true
     debugDWebView("DESTROY")
-    loadUrl("about:blank?from=${getUrl()}", true)
+    loadUrl("about:blank?from=${getOriginUrl()}", true)
 
     _destroySignal.emitAndClear(Unit)
     withMainContext {
@@ -284,6 +289,14 @@ class DWebView(
 
   override suspend fun setSafeAreaInset(bounds: Bounds) {
     engine.safeArea = bounds
+  }
+
+  override suspend fun requestClose() {
+    val originUrl = getOriginalUrl()
+    val destroyUrl = "about:blank#${randomUUID()}"
+    if (loadUrl(destroyUrl) == destroyUrl) {
+      doDestroy { originUrl }
+    }
   }
 }
 

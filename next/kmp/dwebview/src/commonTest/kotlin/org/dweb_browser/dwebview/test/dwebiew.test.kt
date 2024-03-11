@@ -15,6 +15,7 @@ import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 @ExperimentalCoroutinesApi
 class DWebViewTest {
@@ -138,5 +139,35 @@ class DWebViewTest {
     }
     dwebview.onReady.awaitOnce()
     assertEquals("https://example.com/", dwebview.getOriginalUrl())
+  }
+
+
+  @Test
+  fun onBeforeUnload() = runCommonTest {
+    val dwebview = getWebview()
+    dwebview.loadUrl("https://example.com")
+    delay(1000)
+    dwebview.evaluateAsyncJavascriptCode(
+      "void addEventListener('beforeunload', event=>{event.preventDefault();  event.returnValue = true;})"
+    )
+    val isEmitted = CompletableDeferred<Boolean>()
+    dwebview.onBeforeUnload {
+      it.hook("cancel close").keepDocument()
+      isEmitted.complete(true)
+    }
+    launch {
+      debugDWebView("TEST doClose")
+      delay(200)
+      dwebview.requestClose()
+    }
+
+    delay(1000)
+
+    assertTrue {
+      select {
+        isEmitted.onAwait { it }
+        onTimeout(1000) { false }
+      }
+    }
   }
 }
