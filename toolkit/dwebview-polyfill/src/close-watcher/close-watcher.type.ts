@@ -34,6 +34,11 @@ declare global {
     _tasks: Map<string, (id: string) => void>;
   }
 
+  interface CloseWatcherEventMap {
+    close: CloseEvent;
+    cancel: Event;
+  }
+
   interface Window {
     __native_close_watcher_kit__: CloseWatcherKit;
     open(url: string): Window;

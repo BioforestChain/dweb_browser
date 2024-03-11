@@ -176,7 +176,7 @@ const __close_watcher__ = (() => {
           console.log("close watcher closed");
           this.#onclose?.(event);
           native_close_watcher_kit._watchers.delete(id);
-          this._closed = true;
+          this.#_closed = true;
         },
         { once: true }
       );
@@ -184,12 +184,12 @@ const __close_watcher__ = (() => {
         console.log("close watcher cancel");
         this.#oncancel?.(event);
         native_close_watcher_kit._watchers.delete(id);
-        this._closed = true;
+        this.#_closed = true;
       });
     }
-    private _closed = false;
+    #_closed = false;
     async close() {
-      if (this._closed) {
+      if (this.#_closed) {
         return;
       }
       const id = await this.#id;
@@ -206,7 +206,7 @@ const __close_watcher__ = (() => {
       }
     }
     async destroy() {
-      if (this._closed) {
+      if (this.#_closed) {
         return;
       }
       const id = await this.#id;
@@ -265,10 +265,6 @@ const __close_watcher__ = (() => {
       // deno-lint-ignore no-explicit-any
       return (super.addEventListener as any)(...arguments);
     }
-  }
-  interface CloseWatcherEventMap {
-    close: CloseEvent;
-    cancel: Event;
   }
 
   // 强制移除 CloseWatcher，使用我们提供的版本

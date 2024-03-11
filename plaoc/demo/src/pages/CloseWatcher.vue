@@ -2,7 +2,6 @@
 import dialogPolyfill from "dialog-polyfill";
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
-import { CloseWatcher } from "../plugin";
 
 const title = "Close Watcher";
 const $logPanel = ref<typeof LogPanel>();
