@@ -3,6 +3,7 @@ package org.dweb_browser.dwebview.test
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 import org.dweb_browser.core.module.BootstrapContext
@@ -125,6 +126,17 @@ class DWebViewTest {
     dwebview.goBack()
     assertEquals(true, dwebview.canGoBack())
     delay(100)
+    assertEquals("https://example.com/", dwebview.getOriginalUrl())
+  }
+
+  @Test
+  fun onReady() = runCommonTest {
+    val dwebview = getWebview()
+    /// 以下是一般情况
+    launch {
+      dwebview.loadUrl("https://example.com")
+    }
+    dwebview.onReady.awaitOnce()
     assertEquals("https://example.com/", dwebview.getOriginalUrl())
   }
 }

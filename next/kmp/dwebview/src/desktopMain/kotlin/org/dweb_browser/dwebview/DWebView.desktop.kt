@@ -132,8 +132,7 @@ class DWebView(
   override val onDestroy: Signal.Listener<Unit>
     get() = TODO("Not yet implemented")
   override val onLoadStateChange: Signal.Listener<WebLoadState> by _engineLazy.then { viewEngine.loadStateChangeSignal.toListener() }
-  override val onReady: Signal.Listener<String>
-    get() = TODO("Not yet implemented")
+  override val onReady get() = viewEngine.onReady
   override val onBeforeUnload: Signal.Listener<WebBeforeUnloadArgs>
     get() = TODO("Not yet implemented")
   override val loadingProgressFlow: SharedFlow<Float>

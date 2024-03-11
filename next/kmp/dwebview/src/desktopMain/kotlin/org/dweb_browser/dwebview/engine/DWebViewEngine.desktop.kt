@@ -31,6 +31,7 @@ import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
 import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
+import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
@@ -232,6 +233,7 @@ class DWebViewEngine internal constructor(
   }
 
   val loadStateChangeSignal = setupLoadStateChangeSignal(this)
+  val onReady by lazy { loadStateChangeSignal.toReadyListener() }
   val scrollSignal = setupScrollSignal(this)
   val dwebFavicon = FaviconPolyfill(this)
   private val _setupCreateWindowSignals = setupCreateWindowSignals(this)
