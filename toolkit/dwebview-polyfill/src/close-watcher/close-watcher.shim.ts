@@ -269,7 +269,7 @@ const __close_watcher__ = (() => {
 
   // 强制移除 CloseWatcher，使用我们提供的版本
   Reflect.deleteProperty(self, "CloseWatcher");
-  if (typeof self.CloseWatcher === "undefined") {
+  if (typeof Reflect.get(self, "CloseWatcher") === "undefined") {
     Object.assign(self, { CloseWatcher: CloseWatcher });
   }
   return CloseWatcher;

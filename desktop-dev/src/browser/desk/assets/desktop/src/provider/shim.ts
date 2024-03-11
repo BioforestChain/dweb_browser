@@ -1,6 +1,4 @@
-import CloseWatcher from "../../../../../../../../toolkit/dwebview-polyfill/src/close-watcher/close-watcher.shim.ts";
-export { CloseWatcher };
-export type $CloseWatcher = InstanceType<typeof CloseWatcher>;
+import type {} from "../../../../../../../../toolkit/dwebview-polyfill/src/close-watcher/close-watcher.shim.ts";
 
 const mock_symbole = Symbol("moke-context-menu");
 /// 原生的 contextmenu 和 dispatchContextMenuEvent 可能会同时执行，所以第一次需要有一个延迟检查机制，避免过早读取到 support 值

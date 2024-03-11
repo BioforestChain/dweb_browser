@@ -8,12 +8,12 @@ import AppName from "src/components/app-name/app-name.vue";
 import MenuBox from "src/components/menu-box/menu-box.vue";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import { closeBrowser, detailApp, openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
-import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
+import "src/provider/shim.ts";
 import type { $WidgetAppData } from "src/types/app.type.ts";
 import { computed, reactive, ref, shallowRef, watch } from "vue";
 import AppUnInstallDialog from "../app-uninstall-dialog/app-uninstall-dialog.vue";
+import { widgetInputBlur } from "../widget-custom/widget-custom.vue";
 import { ownReason, showOverlay } from "../widget-menu-overlay/widget-menu-overlay.vue";
-import { widgetInputBlur } from "../widget-custom/widget-custom.vue"
 import delete_svg from "./delete.svg";
 import details_svg from "./details.svg";
 import quit_svg from "./quit.svg";
@@ -65,7 +65,7 @@ watch(animationiteration, () => {
 
 const emit = defineEmits(["uninstall"]);
 
-let menuCloser: $CloseWatcher | null = null;
+let menuCloser: CloseWatcher | null = null;
 //长按事件的回调
 const $menu = {
   show: () => {

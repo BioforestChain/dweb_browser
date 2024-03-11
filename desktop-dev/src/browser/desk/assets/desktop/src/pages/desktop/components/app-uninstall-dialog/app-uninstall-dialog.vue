@@ -2,7 +2,7 @@
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import { deleteApp } from "src/provider/api.ts";
-import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
+import "src/provider/shim.ts";
 import { watchEffect } from "vue";
 
 const props = defineProps({
@@ -21,7 +21,8 @@ async function doUninstall() {
     emit("close", true);
   }
 }
-let dialogCloser: $CloseWatcher | null = null;
+
+let dialogCloser: CloseWatcher | null = null;
 watchEffect(() => {
   if (props.show) {
     dialogCloser = new CloseWatcher();

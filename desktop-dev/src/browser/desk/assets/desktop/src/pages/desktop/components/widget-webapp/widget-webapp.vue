@@ -7,14 +7,14 @@ import AppName from "src/components/app-name/app-name.vue";
 import MenuBox from "src/components/menu-box/menu-box.vue";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import { openBrowser, vibrateHeavyClick } from "src/provider/api.ts";
-import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
+import "src/provider/shim.ts";
 import { $WidgetAppData } from "src/types/app.type";
 import { computed, onMounted, reactive, ref, shallowRef, watch, watchEffect } from "vue";
 import WebAppUnInstallDialog from "../webapp-uninstall-dialog/webapp-uninstall-dialog.vue";
 import delete_svg from "../widget-app/delete.svg";
 import share_svg from "../widget-app/share.svg";
-import { ownReason, showOverlay } from "../widget-menu-overlay/widget-menu-overlay.vue";
 import { widgetInputBlur } from "../widget-custom/widget-custom.vue";
+import { ownReason, showOverlay } from "../widget-menu-overlay/widget-menu-overlay.vue";
 
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 
@@ -66,7 +66,7 @@ const emit = defineEmits<{
 }>();
 
 onMounted(() => {});
-let menuCloser: $CloseWatcher | null = null;
+let menuCloser: CloseWatcher | null = null;
 //长按事件的回调
 const $menu = {
   show: () => {

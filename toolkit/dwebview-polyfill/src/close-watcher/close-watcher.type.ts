@@ -42,9 +42,12 @@ declare global {
   interface Window {
     __native_close_watcher_kit__: CloseWatcherKit;
     open(url: string): Window;
-
-    CloseWatcher: typeof CloseWatcherShim;
   }
-  const CloseWatcher: typeof CloseWatcherShim;
+  interface CloseWatcher extends InstanceType<typeof CloseWatcherShim> {}
+  const CloseWatcher: {
+    prototype: InstanceType<typeof CloseWatcherShim>;
+    new (...args: ConstructorParameters<typeof CloseWatcherShim>): InstanceType<typeof CloseWatcherShim>;
+    new (): InstanceType<typeof CloseWatcherShim>;
+  };
 }
 import type { default as CloseWatcherShim } from "./close-watcher.shim.ts";
