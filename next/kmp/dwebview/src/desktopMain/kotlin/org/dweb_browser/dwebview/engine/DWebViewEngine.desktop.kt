@@ -281,6 +281,35 @@ class DWebViewEngine internal constructor(
     )
   }
 
+  private var verticalScrollBarVisible = true
+  private var horizontalScrollBarVisible = true
+  private val scrollBarsVisible get() = verticalScrollBarVisible || horizontalScrollBarVisible
+
+  fun setVerticalScrollBarVisible(visible: Boolean) {
+    verticalScrollBarVisible = visible
+    effectScrollBarsVisible()
+  }
+
+  fun setHorizontalScrollBarVisible(visible: Boolean) {
+    horizontalScrollBarVisible = visible
+    effectScrollBarsVisible()
+  }
+
+  private fun effectScrollBarsVisible() {
+    browser.settings().apply {
+      when {
+        scrollBarsVisible -> if (scrollbarsHidden()) {
+          showScrollbars()
+        }
+
+        else -> if (!scrollbarsHidden()) {
+          hideScrollbars()
+        }
+      }
+    }
+  }
+
+
   val loadStateChangeSignal = setupLoadStateChangeSignal(this)
   val onReady by lazy { loadStateChangeSignal.toReadyListener() }
   val scrollSignal = setupScrollSignal(this)

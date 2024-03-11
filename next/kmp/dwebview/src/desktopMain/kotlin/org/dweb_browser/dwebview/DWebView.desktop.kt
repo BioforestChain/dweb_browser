@@ -110,11 +110,11 @@ class DWebView(
   }
 
   override suspend fun setVerticalScrollBarVisible(visible: Boolean) {
-    TODO("Not yet implemented")
+    viewEngine.setVerticalScrollBarVisible(visible);
   }
 
   override suspend fun setHorizontalScrollBarVisible(visible: Boolean) {
-    TODO("Not yet implemented")
+    viewEngine.setHorizontalScrollBarVisible(visible);
   }
 
   override suspend fun evaluateAsyncJavascriptCode(
