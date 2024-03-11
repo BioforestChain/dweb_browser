@@ -189,4 +189,20 @@ class DWebViewTest {
     println("TEST progressList=${progressList.joinToString { "$it" }}")
     assertTrue(progressList.isNotEmpty())
   }
+
+  @Test
+  fun onDestroy() = runCommonTest {
+    val dwebview = getWebview()
+    val isDestroyed = CompletableDeferred<Boolean>()
+    dwebview.onDestroy {
+      isDestroyed.complete(true)
+    }
+    dwebview.requestClose()
+    assertTrue {
+      select {
+        isDestroyed.onAwait { it }
+        onTimeout(1000) { false }
+      }
+    }
+  }
 }

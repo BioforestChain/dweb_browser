@@ -171,8 +171,11 @@ class DWebViewEngine internal constructor(
     browser.close(CloseOptions.newBuilder().fireBeforeUnload().build())
   }
 
+  val destroyStateSignal = setupDestroyStateSignal(this)
   fun destroy() {
-    browser.close()
+    if (destroyStateSignal.doDestroy()) {
+      browser.close()
+    }
   }
 
   fun requestUserActivation() {

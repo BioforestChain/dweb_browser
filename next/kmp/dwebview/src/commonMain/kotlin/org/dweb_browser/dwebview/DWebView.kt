@@ -8,7 +8,9 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,12 +19,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.SimpleSignal
 
 val debugDWebView = Debugger("dwebview")
 
@@ -282,3 +286,24 @@ data class WebDownloadArgs(
   val contentLength: Long,
   val url: String,
 )
+
+
+class DestroyStateSignal(val scope: CoroutineScope) {
+  var isDestroyed = false
+    private set
+  private var _destroySignal = SimpleSignal();
+  val onDestroy = _destroySignal.toListener()
+  fun doDestroy(): Boolean {
+    if (isDestroyed) {
+      return false
+    }
+    debugDWebView("DESTROY")
+    isDestroyed = true
+    scope.launch {
+      _destroySignal.emitAndClear()
+      delay(2000)
+      coroutineContext.cancel(CancellationException("destroy"))
+    }
+    return true
+  }
+}

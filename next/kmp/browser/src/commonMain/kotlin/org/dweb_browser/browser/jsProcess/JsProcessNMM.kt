@@ -94,7 +94,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     this.onAfterShutdown {
       apis.destroy()
     }
-    apis.onDestory {
+    apis.onDestroy {
       shutdown()
     }
 

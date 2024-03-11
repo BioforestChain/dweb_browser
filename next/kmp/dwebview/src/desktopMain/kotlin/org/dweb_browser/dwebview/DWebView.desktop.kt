@@ -129,8 +129,7 @@ class DWebView(
 
   private val _engineLazy = RememberLazy(viewEngine) { viewEngine }
 
-  override val onDestroy: Signal.Listener<Unit>
-    get() = TODO("Not yet implemented")
+  override val onDestroy by _engineLazy.then { viewEngine.destroyStateSignal.onDestroy }
   override val onLoadStateChange by _engineLazy.then { viewEngine.loadStateChangeSignal.toListener() }
   override val onReady get() = viewEngine.onReady
   override val onBeforeUnload by _engineLazy.then { viewEngine.beforeUnloadSignal.toListener() }

@@ -19,7 +19,6 @@ import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
 import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
 import org.dweb_browser.helper.SafeInt
-import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
 
@@ -128,7 +127,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     dWebView.destroy()
   }
 
-  suspend fun onDestory(cb: SimpleCallback) = dWebView.onDestroy(cb)
+  val onDestroy = dWebView.onDestroy
 }
 
 

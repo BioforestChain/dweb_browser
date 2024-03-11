@@ -19,7 +19,6 @@ import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -133,12 +132,9 @@ class DWebView(
 
   override suspend fun getIcon() = engine.getFavicon()
 
+  private val destroyStateSignal = DestroyStateSignal(ioScope)
 
-  private var _destroyed = false
-  private var _destroySignal = SimpleSignal();
-
-
-  override val onDestroy by lazy { _destroySignal.toListener() }
+  override val onDestroy = destroyStateSignal.onDestroy
   override val onLoadStateChange by _engineLazy.then {
     engine.loadStateChangeSignal.toListener()
   }
@@ -163,21 +159,16 @@ class DWebView(
   }
 
   private suspend inline fun doDestroy(getOriginUrl: () -> String) {
-    if (_destroyed) {
-      return
-    }
-    _destroyed = true
-    debugDWebView("DESTROY")
-    loadUrl("about:blank?from=${getOriginUrl()}", true)
-
-    _destroySignal.emitAndClear(Unit)
-    withMainContext {
-      engine.destroy()
-      _engine = null
-      /// 开始释放lazy属性绑定
-      _engineLazy.setKey(null)
-      delay(1000)
-      kotlin.native.runtime.GC.collect()
+    if (destroyStateSignal.doDestroy()) {
+      loadUrl("about:blank?from=${getOriginUrl()}", true)
+      withMainContext {
+        engine.destroy()
+        _engine = null
+        /// 开始释放lazy属性绑定
+        _engineLazy.setKey(null)
+        delay(1000)
+        kotlin.native.runtime.GC.collect()
+      }
     }
   }
 

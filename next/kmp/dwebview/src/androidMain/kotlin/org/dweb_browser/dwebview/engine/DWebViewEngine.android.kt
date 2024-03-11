@@ -20,7 +20,6 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -28,6 +27,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Default
 import org.dweb_browser.dwebview.DWebViewOptions.DisplayCutoutStrategy.Ignore
+import org.dweb_browser.dwebview.DestroyStateSignal
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.dwebview.debugDWebView
@@ -37,7 +37,6 @@ import org.dweb_browser.dwebview.polyfill.setupKeyboardPolyfill
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toAndroidRect
 import org.dweb_browser.helper.withMainContext
@@ -317,22 +316,13 @@ class DWebViewEngine internal constructor(
       )
     }
 
-  var isDestroyed = false
-  private var _destroySignal = SimpleSignal();
-  val onDestroy = _destroySignal.toListener()
+  val destroyStateSignal = DestroyStateSignal(ioScope)
   override fun destroy() {
-    if (isDestroyed) {
-      return
-    }
-    isDestroyed = true
-    debugDWebView("DESTROY")
-    if (!isAttachedToWindow) {
-      super.onDetachedFromWindow()
-    }
-    super.destroy()
-    ioScope.launch {
-      _destroySignal.emitAndClear(Unit)
-      ioScope.cancel()
+    if (destroyStateSignal.doDestroy()) {
+      if (!isAttachedToWindow) {
+        super.onDetachedFromWindow()
+      }
+      super.destroy()
     }
   }
 

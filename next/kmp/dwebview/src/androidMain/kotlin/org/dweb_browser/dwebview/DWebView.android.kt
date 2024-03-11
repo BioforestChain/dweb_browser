@@ -212,7 +212,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     script: String, afterEval: suspend () -> Unit
   ): String = engine.evaluateAsyncJavascriptCode(script, afterEval)
 
-  override val onDestroy = engine.onDestroy
+  override val onDestroy by lazy { engine.destroyStateSignal.onDestroy }
   override val onLoadStateChange by lazy { engine.dWebViewClient.loadStateChangeSignal.toListener() }
   override val onReady get() = engine.dWebViewClient.onReady
 

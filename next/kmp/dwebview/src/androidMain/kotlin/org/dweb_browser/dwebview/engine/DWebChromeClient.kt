@@ -95,7 +95,7 @@ class DWebChromeClient(val engine: DWebViewEngine) : WebChromeClient() {
         var mainUrl = dwebView.url
         try {
           while (mainUrl == null) {
-            if (dwebView.isDestroyed) {
+            if (dwebView.destroyStateSignal.isDestroyed) {
               return@launch
             }
             delay(5)
