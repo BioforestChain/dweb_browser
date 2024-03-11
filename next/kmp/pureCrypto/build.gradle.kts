@@ -8,23 +8,29 @@ kotlin {
       implementation(libs.whyoleg.cryptography.core)
 //      implementation(projects.helper)
     }
-  }
 
-  kmpAndroidTarget(project) {
-    dependencies {
-      implementation(libs.whyoleg.cryptography.provider.jdk)
+    @Suppress("OPT_IN_USAGE")
+    applyHierarchy {
+      common {
+        group("jvm") {
+          dependencies {
+            implementation(libs.whyoleg.cryptography.provider.jdk)
+          }
+          withDesktopTarget()
+          withAndroidTarget()
+        }
+        withIosTarget()
+      }
     }
   }
+
+  kmpAndroidTarget(project)
   kmpIosTarget(project) {
     dependencies {
       implementation(libs.whyoleg.cryptography.provider.openssl3.prebuilt)
     }
   }
-  kmpDesktopTarget(project) {
-    dependencies {
-      implementation(libs.whyoleg.cryptography.provider.jdk)
-    }
-  }
+  kmpDesktopTarget(project)
 }
 
 
