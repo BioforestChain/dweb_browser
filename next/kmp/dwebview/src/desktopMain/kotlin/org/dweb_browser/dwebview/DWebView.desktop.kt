@@ -3,7 +3,7 @@ package org.dweb_browser.dwebview
 import com.teamdev.jxbrowser.js.JsObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
@@ -134,8 +134,7 @@ class DWebView(
   override val onLoadStateChange by _engineLazy.then { viewEngine.loadStateChangeSignal.toListener() }
   override val onReady get() = viewEngine.onReady
   override val onBeforeUnload by _engineLazy.then { viewEngine.beforeUnloadSignal.toListener() }
-  override val loadingProgressFlow: SharedFlow<Float>
-    get() = TODO("Not yet implemented")
+  override val loadingProgressFlow by _engineLazy.then { viewEngine.loadingProgressSharedFlow.asSharedFlow() }
   override val closeWatcherLazy: RememberLazy<ICloseWatcher> = _engineLazy.then {
     viewEngine.closeWatcher
   }

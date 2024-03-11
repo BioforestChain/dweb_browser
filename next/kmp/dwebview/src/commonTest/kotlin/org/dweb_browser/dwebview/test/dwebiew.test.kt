@@ -170,4 +170,23 @@ class DWebViewTest {
       }
     }
   }
+
+  @Test
+  fun loadingProgressFlow() = runCommonTest {
+    val dwebview = getWebview()
+    val progressList = mutableListOf<Float>()
+    launch {
+      dwebview.loadingProgressFlow.collect {
+        progressList.add(it)
+      }
+    }
+    dwebview.loadUrl("https://example.com")
+    val ready = CompletableDeferred<Boolean>()
+    dwebview.onReady {
+      ready.complete(true)
+    }
+
+    println("TEST progressList=${progressList.joinToString { "$it" }}")
+    assertTrue(progressList.isNotEmpty())
+  }
 }
