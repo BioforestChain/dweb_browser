@@ -25,3 +25,11 @@ internal fun String.fromFormEncoded() = this.encodeURI()
 internal fun String.toFormEncoded() = this.decodeURI()
 
 internal typealias Parameter = Pair<String, String?>
+
+fun String.format(vararg args: Any): String {
+  var format = this
+  args.forEach { arg ->
+    format = format.replaceFirst("%s", arg.toString())
+  }
+  return format
+}

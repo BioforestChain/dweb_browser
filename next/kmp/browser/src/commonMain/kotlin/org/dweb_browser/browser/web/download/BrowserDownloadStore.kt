@@ -63,13 +63,31 @@ data class BrowserDownloadItem(
 }
 
 class BrowserDownloadStore(mm: MicroModule) {
-  private val storeDownload = mm.createStore("browser_download", false)
+  private val store = mm.createStore("browser_download", false)
+  private val keyOfDownload = "downloading"
+  private val keyOfComplete = "completed"
 
   suspend fun getAll(): MutableMap<String, MutableList<BrowserDownloadItem>> {
-    return storeDownload.getAll()
+    return store.getAll()
   }
 
   suspend fun save(key: String, items: MutableList<BrowserDownloadItem>) {
-    storeDownload.set(key, items)
+    store.set(key, items)
+  }
+
+  suspend fun getDownloadAll(): MutableList<BrowserDownloadItem> {
+    return store.getOrPut(keyOfDownload) { mutableListOf() }
+  }
+
+  suspend fun saveDownloadList(list: MutableList<BrowserDownloadItem>) {
+    store.set(keyOfDownload, list)
+  }
+
+  suspend fun getCompleteAll(): MutableList<BrowserDownloadItem> {
+    return store.getOrPut(keyOfComplete) { mutableListOf() }
+  }
+
+  suspend fun saveCompleteList(list: MutableList<BrowserDownloadItem>) {
+    store.set(keyOfComplete, list)
   }
 }

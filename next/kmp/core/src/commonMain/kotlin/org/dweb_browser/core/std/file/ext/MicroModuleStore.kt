@@ -110,7 +110,11 @@ class MicroModuleStore(
   suspend inline fun <reified T> getAll(): MutableMap<String, T> {
     val data = mutableMapOf<String, T>()
     for (item in getStore()) {
-      data[item.key] = Cbor.decodeFromByteArray<T>(item.value)
+      try { // 使用try的目的是为了保证后面对象字段变更后，存储了新的内容。但由于存在旧数据解析失败导致的所有数据无法获取问题
+        data[item.key] = Cbor.decodeFromByteArray<T>(item.value)
+      } catch (e: Throwable) {
+        debugMicroModule("store/getAll", "${item.key}->${e.message}")
+      }
     }
     return data
   }
