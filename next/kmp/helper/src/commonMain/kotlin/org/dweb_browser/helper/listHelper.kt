@@ -8,16 +8,6 @@ fun <E> List<E>.one(function: (it: E) -> Unit): E? {
   return null
 }
 
-fun <E> List<E>.all(function: (it: E) -> Unit): List<E>? {
-  if (isEmpty()) {
-    return null
-  }
-  for (item in this) {
-    function(item)
-  }
-  return this
-}
-
 fun <E, R> List<E>.mapFindNoNull(function: (it: E) -> R): R? {
   for (item in this) {
     val res = function(item)

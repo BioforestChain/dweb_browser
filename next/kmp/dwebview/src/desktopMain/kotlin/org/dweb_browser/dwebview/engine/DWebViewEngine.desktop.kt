@@ -313,6 +313,7 @@ class DWebViewEngine internal constructor(
   val closeWatcher = CloseWatcher(this)
   val beforeUnloadSignal = setupBeforeUnloadSignal(this)
   val loadingProgressSharedFlow = setupLoadingProgressSharedFlow(this)
+  val downloadSignal = setupDownloadSignal(this)
 
   init {
 

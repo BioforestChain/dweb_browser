@@ -273,17 +273,12 @@ enum class WebColorScheme {
 
 typealias AsyncChannel = Channel<Result<String>>
 
-// 触发按键的事件
-enum class MotionEventAction {
-  ACTION_DOWN, ACTION_UP, ACTION_MOVE
-}
-
 @Serializable
 data class WebDownloadArgs(
   val userAgent: String,
-  val contentDisposition: String,
+  val suggestedFilename: String,
   val mimetype: String,
-  val contentLength: Long,
+  val contentLength: Long?,
   val url: String,
 )
 

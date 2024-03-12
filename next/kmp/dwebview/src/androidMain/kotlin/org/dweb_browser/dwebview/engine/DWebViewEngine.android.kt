@@ -36,6 +36,7 @@ import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.polyfill.setupKeyboardPolyfill
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.Remover
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toAndroidRect
@@ -228,17 +229,17 @@ class DWebViewEngine internal constructor(
 
   internal val dWebDownloadListener = DWebDownloadListener(this)
 
-  fun addDownloadListener(listener: DownloadListener): () -> Unit {
+  fun addDownloadListener(listener: DownloadListener): () -> Boolean {
     dWebDownloadListener.addDownloadListener(listener)
     return {
       dWebDownloadListener.removeDownloadListener(listener)
     }
   }
 
+  private var defaultDownloadListenerRemover: Remover? = null
   override fun setDownloadListener(listener: DownloadListener?) {
-    listener?.let {
-      dWebDownloadListener.addDownloadListener(listener)
-    }
+    defaultDownloadListenerRemover?.invoke()
+    defaultDownloadListenerRemover = listener?.let { addDownloadListener(it) }
   }
 
   init {

@@ -13,7 +13,6 @@ import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -139,9 +138,7 @@ class DWebView(
     viewEngine.closeWatcher
   }
   override val onCreateWindow by _engineLazy.then { viewEngine.createWindowSignal.toListener() }
-  override val onDownloadListener: Signal.Listener<WebDownloadArgs>
-    get() = TODO("Not yet implemented")
-
+  override val onDownloadListener by _engineLazy.then { viewEngine.downloadSignal.toListener() }
   override val onScroll by _engineLazy.then { viewEngine.scrollSignal.toListener() }
 
   override suspend fun getFavoriteIcon() = viewEngine.getFavoriteIcon()

@@ -4,7 +4,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import io.ktor.http.URLBuilder
-import io.ktor.http.Url
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.ext.createChannelOfDownload
@@ -13,11 +12,9 @@ import org.dweb_browser.browser.download.ext.currentDownload
 import org.dweb_browser.browser.download.ext.existsDownload
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.startDownload
-import org.dweb_browser.browser.download.ui.lastPath
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.dwebview.WebDownloadArgs
-import org.dweb_browser.helper.decodeURI
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
 
@@ -27,8 +24,7 @@ enum class BrowserDownloadManagePage {
 
 class BrowserDownloadModel(private val browserNMM: BrowserNMM) {
   val store = BrowserDownloadStore(browserNMM)
-  val saveDownloadMaps: MutableMap<String, MutableList<BrowserDownloadItem>> =
-    mutableStateMapOf()
+  val saveDownloadMaps: MutableMap<String, MutableList<BrowserDownloadItem>> = mutableStateMapOf()
   private val newDownloadMaps: HashMap<String, BrowserDownloadItem> = hashMapOf()
   val alreadyExist = mutableStateOf(false)
   val managePage = mutableStateOf(BrowserDownloadManagePage.Manage)
@@ -104,7 +100,11 @@ class BrowserDownloadModel(private val browserNMM: BrowserNMM) {
           state = downloadTask.status.state
         )
         if (lastState != downloadTask.status.state) {
-          saveDownloadMaps[browserDownloadItem.urlKey]?.let { store.save(browserDownloadItem.urlKey, it) }
+          saveDownloadMaps[browserDownloadItem.urlKey]?.let {
+            store.save(
+              browserDownloadItem.urlKey, it
+            )
+          }
         }
         when (downloadTask.status.state) {
           DownloadState.Completed -> {
@@ -127,9 +127,9 @@ class BrowserDownloadModel(private val browserNMM: BrowserNMM) {
     val item = newDownloadMaps.getOrPut(urlKey) {
       alreadyExist.value = false
       BrowserDownloadItem(urlKey, downloadArgs = webDownloadArgs).apply {
-        val name = webDownloadArgs.contentDisposition.substringAfter("filename=").ifEmpty {
-          Url(downloadArgs.url).encodedPath.lastPath().decodeURI()
-        }
+        val name = webDownloadArgs.suggestedFilename
+
+
         val suffix = name.split(".").last()
         fileSuffix = FileSuffix.entries.find { it.suffix == suffix } ?: FileSuffix.Other
         // 判断当前的名称是否在历史中已存在，如果已存在就进行名称去重
