@@ -205,4 +205,27 @@ class DWebViewTest {
       }
     }
   }
+
+  @Test
+  fun setScrollBarVisible() = runCommonTest {
+    val dwebview = getWebview()
+    assertEquals(
+      "true",
+      dwebview.evaluateAsyncJavascriptCode("document.body.clientWidth==window.innerWidth"),
+      "default body-width equals window-width"
+    )
+    dwebview.evaluateAsyncJavascriptCode("document.body.style.height='10000px'")
+    assertEquals(
+      "false",
+      dwebview.evaluateAsyncJavascriptCode("document.body.clientWidth==window.innerWidth"),
+      "body-width with scrollbar no equals window-width"
+    )
+    dwebview.setHorizontalScrollBarVisible(false)
+    dwebview.setVerticalScrollBarVisible(false)
+    assertEquals(
+      "true",
+      dwebview.evaluateAsyncJavascriptCode("document.body.clientWidth==window.innerWidth"),
+      "body-width with hidden-scrollbar equals window-width"
+    )
+  }
 }
