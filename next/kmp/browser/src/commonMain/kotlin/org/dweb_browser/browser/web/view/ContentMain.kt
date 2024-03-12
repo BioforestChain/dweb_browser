@@ -17,9 +17,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import org.dweb_browser.browser.BrowserIconResource
+import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.common.CaptureView
-import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.web.data.BrowserContentItem
 import org.dweb_browser.browser.web.model.BrowserViewModel
 
@@ -48,7 +47,7 @@ fun HomePage() {
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
       Image(
-        getIconResource(BrowserIconResource.BrowserLauncher)!!,
+        BrowserDrawResource.BrowserLauncher.painter(),
         contentDescription = null,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
         contentScale = ContentScale.FillWidth

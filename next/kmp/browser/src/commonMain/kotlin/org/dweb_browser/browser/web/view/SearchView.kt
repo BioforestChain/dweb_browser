@@ -385,7 +385,7 @@ private fun SearchItemLocals(text: String, openApp: (SearchInject) -> Unit) {
             Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
           },
           leadingContent = {
-            Image(searchInject.iconRes!!, contentDescription = searchInject.name)
+            Image(searchInject.iconPainter(), contentDescription = searchInject.name)
           }
         )
       }

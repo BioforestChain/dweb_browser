@@ -49,6 +49,7 @@ import platform.UIKit.UIEdgeInsetsEqualToEdgeInsets
 import platform.UIKit.UIEdgeInsetsMake
 import platform.UIKit.UIEdgeInsetsZero
 import platform.UIKit.UIScrollViewContentInsetAdjustmentBehavior
+import platform.WebKit.WKAudiovisualMediaTypeNone
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKFrameInfo
 import platform.WebKit.WKPreferences
@@ -176,6 +177,10 @@ class DWebViewEngine(
     preferences.javaScriptEnabled = true
     preferences.javaScriptCanOpenWindowsAutomatically = false
     configuration.preferences = preferences
+    configuration.allowsInlineMediaPlayback = true
+    configuration.allowsAirPlayForMediaPlayback = true
+    configuration.allowsPictureInPictureMediaPlayback = true
+    configuration.mediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypeNone
     configuration.userContentController.apply {
 //      removeAllScriptMessageHandlers()
 //      removeAllScriptMessageHandlersFromContentWorld(DWebViewWebMessage.webMessagePortContentWorld)

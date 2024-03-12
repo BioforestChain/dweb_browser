@@ -1,6 +1,8 @@
 package org.dweb_browser.pure.image.compose
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 
 class ImageLoadResult(
   val success: ImageBitmap? = null,
@@ -31,4 +33,7 @@ class ImageLoadResult(
       onBusy(busy)
     }
   }
+
+  @Composable
+  fun painter() = success?.let { BitmapPainter(it) }
 }

@@ -38,9 +38,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.BrowserIconResource
-import org.dweb_browser.browser.getIconResource
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.data.BrowserContentItem
 import org.dweb_browser.browser.web.model.BrowserViewModel
@@ -79,12 +78,13 @@ fun MultiItemView(
           .clickable { scope.launch { viewModel.updateMultiViewState(false, index) } }
           .align(Alignment.CenterHorizontally),
         contentScale = ContentScale.FillWidth, //ContentScale.FillBounds,
-        alignment = browserContentItem.contentWebItem.value?.let { Alignment.TopStart } ?: Alignment.Center
+        alignment = browserContentItem.contentWebItem.value?.let { Alignment.TopStart }
+          ?: Alignment.Center
       )
       val homePageTitle = BrowserI18nResource.browser_multi_startup()
-      val homePageIcon = getIconResource(BrowserIconResource.BrowserStar)
+      val homePageIcon = BrowserDrawResource.BrowserStar.image()
       var contentTitle by remember { mutableStateOf(homePageTitle) }
-      var contentIcon: ImageBitmap? by remember { mutableStateOf(homePageIcon) }
+      var contentIcon by remember { mutableStateOf<ImageBitmap?>(homePageIcon) }
 
       LaunchedEffect(browserContentItem) {
         browserContentItem.contentWebItem.value?.viewItem?.let { viewItem ->

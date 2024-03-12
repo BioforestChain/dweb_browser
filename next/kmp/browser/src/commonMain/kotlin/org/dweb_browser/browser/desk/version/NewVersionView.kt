@@ -33,10 +33,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.BrowserIconResource
+import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.desk.debugDesk
 import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.getIconResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,9 +120,11 @@ private fun NewVersionController.DialogNewVersion() {
           fontSize = 12.sp,
           color = MaterialTheme.colorScheme.outline
         )
-        getIconResource(BrowserIconResource.BrowserLauncher)?.let { bitmap ->
-          Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(64.dp))
-        }
+        Image(
+          painter = BrowserDrawResource.BrowserLauncher.painter(),
+          contentDescription = null,
+          modifier = Modifier.size(64.dp)
+        )
       }
     },
     text = { Text(text = BrowserI18nResource.dialog_upgrade_description()) },
@@ -165,9 +166,11 @@ private fun NewVersionController.DialogDownloadView() {
         )
 
         Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
-          getIconResource(BrowserIconResource.BrowserLauncher)?.let { bitmap ->
-            Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(64.dp))
-          }
+          Image(
+            painter = BrowserDrawResource.BrowserLauncher.painter(),
+            contentDescription = null,
+            modifier = Modifier.size(64.dp)
+          )
           val backgroundColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
           Canvas(modifier = Modifier.size(64.dp)) {
             drawCircle(color = backgroundColor, style = Stroke(2f))

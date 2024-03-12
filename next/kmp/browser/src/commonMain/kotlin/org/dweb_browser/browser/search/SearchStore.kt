@@ -1,15 +1,14 @@
 package org.dweb_browser.browser.search
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import io.ktor.http.Url
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
-import org.dweb_browser.browser.BrowserIconResource
-import org.dweb_browser.browser.getIconResource
+import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
-import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.platform.toImageBitmap
 
 @Serializable
@@ -103,9 +102,9 @@ data class SearchInject(
   val icon: ByteArray? = null, // 表示应用的图标
   val url: String, // ipc 链接、https 链接
 ) {
-  @Transient
-  val iconRes: ImageBitmap?
-    get() = icon?.toImageBitmap() ?: getIconResource(BrowserIconResource.WebEngineDefault)
+  @Composable
+  fun iconPainter() = key(icon) { icon?.toImageBitmap()?.let { BitmapPainter(it) } }
+    ?: BrowserDrawResource.WebEngineDefault.painter()
 }
 
 class SearchStore(mm: MicroModule) {
