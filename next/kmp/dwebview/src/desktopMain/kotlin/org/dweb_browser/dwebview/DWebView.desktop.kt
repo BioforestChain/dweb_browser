@@ -15,6 +15,7 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 actual suspend fun IDWebView.Companion.create(
@@ -102,11 +103,11 @@ class DWebView(
   }
 
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) {
-    TODO("Not yet implemented")
+    viewEngine.setContentScale(scale.toDouble())
   }
 
   override suspend fun setPrefersColorScheme(colorScheme: WebColorScheme) {
-    TODO("Not yet implemented")
+    WARNING("Not yet implemented setPrefersColorScheme. request [jxBrowser 8.0](https://teamdev.com/jxbrowser/zh/roadmap/#jxbrowser-8-0-0)")
   }
 
   override suspend fun setVerticalScrollBarVisible(visible: Boolean) {

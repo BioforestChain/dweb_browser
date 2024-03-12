@@ -16,7 +16,6 @@ const val NoDialogNoUserGesture =
   "Blocked attempt to show a 'beforeunload' confirmation panel for a frame that never had a user gesture since its load. https://www.chromestatus.com/feature/5082396709879808"
 
 fun setupBeforeUnloadSignal(engine: DWebViewEngine) = Signal<WebBeforeUnloadArgs>().also { signal ->
-  println("QAQ setupBeforeUnloadSignal")
   val consoleObserver = Observer<ConsoleMessageReceived> { event ->
     val consoleMessage = event.consoleMessage()
     // 需要用户手势参与才能触发 beforeunload， https://www.chromestatus.com/feature/5082396709879808
@@ -47,7 +46,6 @@ fun setupBeforeUnloadSignal(engine: DWebViewEngine) = Signal<WebBeforeUnloadArgs
     }
   }
   engine.browser.set(BeforeUnloadCallback::class.java, BeforeUnloadCallback { params, tell ->
-    println("QAQ BeforeUnloadCallback message=${params.message()} title=${params.title()} leaveActionText=${params.leaveActionText()} stayActionText=${params.stayActionText()} isReload=${params.isReload}")
     engine.ioScope.launch {
       var isKeep = false
       if (signal.isNotEmpty()) {

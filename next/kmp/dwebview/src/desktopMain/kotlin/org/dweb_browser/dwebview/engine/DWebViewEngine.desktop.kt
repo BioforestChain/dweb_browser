@@ -23,6 +23,7 @@ import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
 import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
+import com.teamdev.jxbrowser.zoom.ZoomLevel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -182,31 +183,18 @@ class DWebViewEngine internal constructor(
     val location = Point.of(10, 10)
 // Create MouseEvent with the required options.
     val mouseClickEvent = document.createMouseEvent(
-      EventType.CLICK,
-      MouseEventParams.newBuilder()
+      EventType.CLICK, MouseEventParams.newBuilder()
         // The main button pressed.
-        .button(MouseEvent.Button.MAIN)
-        .clientLocation(location)
-        .screenLocation(location)
+        .button(MouseEvent.Button.MAIN).clientLocation(location).screenLocation(location)
         .uiEventModifierParams(
-          UiEventModifierParams.newBuilder()
-            .eventParams(
-              EventParams.newBuilder()
-                .bubbles(true)
-                .cancelable(true)
-                .build()
-            )
-            .build()
-        )
-        .build()
+          UiEventModifierParams.newBuilder().eventParams(
+            EventParams.newBuilder().bubbles(true).cancelable(true).build()
+          ).build()
+        ).build()
     )
 
     val event2 = document.createEvent(
-      EventType.FOCUS,
-      EventParams.newBuilder()
-        .bubbles(true)
-        .cancelable(true)
-        .build()
+      EventType.FOCUS, EventParams.newBuilder().bubbles(true).cancelable(true).build()
     )
 
     document.dispatch(mouseClickEvent)
@@ -299,16 +287,21 @@ class DWebViewEngine internal constructor(
     browser.settings().apply {
       when {
         scrollBarsVisible -> if (scrollbarsHidden()) {
+          debugDWebView("effectScrollBarsVisible", "show")
           showScrollbars()
         }
 
         else -> if (!scrollbarsHidden()) {
+          debugDWebView("effectScrollBarsVisible", "hide")
           hideScrollbars()
         }
       }
     }
   }
 
+  fun setContentScale(scale: Double) {
+    browser.zoom().apply { enable(); level(ZoomLevel.of(scale)) }
+  }
 
   val loadStateChangeSignal = setupLoadStateChangeSignal(this)
   val onReady by lazy { loadStateChangeSignal.toReadyListener() }

@@ -84,7 +84,7 @@ class IosLocationObserver : LocationObserver() {
     clLocationManager.delegate = locationDelegate
   }
 
-  override fun start(
+  override suspend fun start(
     precise: Boolean,
     minTimeMs: Long,
     minDistance: Double,
@@ -99,8 +99,7 @@ class IosLocationObserver : LocationObserver() {
     clLocationManager.startUpdatingLocation()
   }
 
-
-  override fun stop() {
+  override suspend fun stop() {
     clLocationManager.stopUpdatingLocation()
     locationDelegate.clLocationListeners.clear()
   }
