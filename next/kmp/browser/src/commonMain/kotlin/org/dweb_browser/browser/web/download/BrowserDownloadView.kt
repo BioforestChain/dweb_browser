@@ -40,7 +40,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +50,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.button_delete
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_complete
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_delete
@@ -169,7 +167,7 @@ fun BrowserDownloadModel.BrowserDownloadView(downloadItem: BrowserDownloadItem) 
             color = MaterialTheme.colorScheme.onBackground
           )
           Text(
-            text = downloadItem.downloadArgs.contentLength.toSpaceSize(),
+            text = downloadItem.downloadArgs.contentLength?.toSpaceSize() ?: "",
             maxLines = 1,
             style = MaterialTheme.typography.labelMedium,
           )
