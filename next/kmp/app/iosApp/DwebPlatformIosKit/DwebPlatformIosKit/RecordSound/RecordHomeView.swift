@@ -11,13 +11,13 @@ import CoreData
 struct RecordHomeView: View {
     
     @StateObject private var dataController = SoundDataController.shared
+    var multiple: Bool
+    var limit: Int
+    
     var body: some View {
-        RecordMainView()
+        RecordMainView(multiple: multiple, limit: limit)
             .background(Color(uiColor: bkColor))
             .environment(\.managedObjectContext, dataController.container.viewContext)
     }
 }
 
-#Preview {
-    RecordHomeView()
-}

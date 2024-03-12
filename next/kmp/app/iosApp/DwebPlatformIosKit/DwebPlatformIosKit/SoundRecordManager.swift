@@ -11,8 +11,8 @@ import SwiftUI
 
 @objc public class SoundRecordManager: NSObject {
     
-    @objc public func create() -> UIViewController {
-        let soundController = UIHostingController(rootView: RecordHomeView())
+    @objc public func create(multiple: Bool, limit: Int) -> UIViewController {
+        let soundController = UIHostingController(rootView: RecordHomeView(multiple: multiple, limit: limit))
         return soundController
     }
     

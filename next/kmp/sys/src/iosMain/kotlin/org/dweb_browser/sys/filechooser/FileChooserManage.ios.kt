@@ -48,42 +48,83 @@ actual class FileChooserManage {
     microModule: MicroModule, accept: String, multiple: Boolean, limit: Int
   ): List<String> {
 //    WARNING("Not yet implemented openFileChooser")
-    if (accept.startsWith("image/")) {
-      val path = imagePath()
-      return listOf(path)
-    } else if (accept.startsWith("video/")) {
-      val path = videoPath()
-      return listOf(path)
-    } else if (accept.startsWith("audio/")){
-      val path = audioPath()
-      return listOf(path)
+    if (isImage(accept)) {
+      return imagePath(multiple, limit)
+    } else if (isVideo(accept)) {
+      return videoPath(multiple, limit)
+    } else if (isAudio(accept)){
+      val path = audioPath(multiple, limit)
+      return path.split(",")
     }
     return emptyList()
   }
 
-  private suspend fun imagePath(): String {
-    val result = CompletableDeferred<String>()
-    MediaCaptureHandler().launchPhotoString {
+  private fun isImage(accept: String): Boolean {
+
+    val imageTypes = arrayOf(".jpg",".png",".jpeg",".webp",".svg",".gif",".bmp")
+    if (accept.startsWith("image/")) {
+      return true
+    }
+    if (imageTypes.contains(accept)) {
+      return true
+    }
+    return false
+  }
+
+  private fun isVideo(accept: String): Boolean {
+
+    val videoTypes = arrayOf(".mp4",".avi",".mov",".webm",".mpeg")
+    if (accept.startsWith("video/")) {
+      return true
+    }
+    if (videoTypes.contains(accept)) {
+      return true
+    }
+    return false
+  }
+
+  private fun isAudio(accept: String): Boolean {
+
+    val videoTypes = arrayOf(".mp3",".wav",".ogg",".aac",".flac",".midi")
+    if (accept.startsWith("audio/")) {
+      return true
+    }
+    if (videoTypes.contains(accept)) {
+      return true
+    }
+    return false
+  }
+
+  private suspend fun imagePath(multiple: Boolean, limit: Int): List<String> {
+    val result = CompletableDeferred<List<String>>()
+    FilePickerManager().chooseImages(multiple,limit) {
       result.complete(it)
     }
+//    MediaCaptureHandler().launchPhotoString {
+//      result.complete(it)
+//    }
     return result.await()
   }
 
-  private suspend fun videoPath(): String {
-    val result = CompletableDeferred<String>()
-    MediaCaptureHandler().launchVideoPath {
+  private suspend fun videoPath(multiple: Boolean, limit: Int): List<String> {
+    val result = CompletableDeferred<List<String>>()
+    FilePickerManager().chooseVideos(multiple, limit) {
       result.complete(it)
     }
+//    MediaCaptureHandler().launchVideoPath {
+//      result.complete(it)
+//    }
     return result.await()
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  private suspend fun audioPath(): String {
+  private suspend fun audioPath(multiple: Boolean, limit: Int): String {
     val result = CompletableDeferred<String>()
+//    return ""
     val manager = SoundRecordManager()
     withMainContext {
       val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
-      val recordController = manager.create()
+      val recordController = manager.createWithMultiple(multiple, limit.toLong())
       manager.completeRecordWithCallback { path ->
         recordController.dismissViewControllerAnimated(true, null)
         if (path != null) {

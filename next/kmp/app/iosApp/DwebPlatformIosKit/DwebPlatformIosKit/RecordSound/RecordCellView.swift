@@ -23,7 +23,10 @@ struct RecordCellView: View {
     @Binding var selectedIndex: Int?
     @Binding var choosedIndex: Int?
     let index: Int
-    
+    @Binding var choosedList: [String]
+    let multiple: Bool
+    let limitCount: Int
+    @Binding var showingModal: Bool
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -33,11 +36,43 @@ struct RecordCellView: View {
                         .font(Font.system(size: 16.0, weight: .bold))
                         .padding(.top,8)
                     Spacer()
-                    Image(systemName: choosedIndex == index ? "checkmark.circle.fill" : "checkmark.circle")
-                        .foregroundColor(choosedIndex == index ? .blue : .black)
+                    Image(systemName: chooseStatus() ? "checkmark.circle.fill" : "checkmark.circle")
+                        .foregroundColor(chooseStatus() ? .blue : .black)
                         .padding(.top, 8)
                         .onTapGesture {
-                            choosedIndex = index == choosedIndex ? nil : index
+                            
+                            if multiple {
+                                if choosedList.count >= limitCount {
+                                    if model.isSelected {
+                                        model.isSelected.toggle()
+                                        choosedList.removeAll { oldPath in
+                                            return oldPath == model.path
+                                        }
+                                    } else {
+                                        withAnimation {
+                                            showingModal = true
+                                        }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                            showingModal = false
+                                        }
+                                    }
+                                } else {
+                                    model.isSelected.toggle()
+                                    if model.isSelected, model.path != nil {
+                                        choosedList.append(model.path!)
+                                    } else {
+                                        choosedList.removeAll { oldPath in
+                                            return oldPath == model.path
+                                        }
+                                    }
+                                }
+                            } else {
+                                choosedIndex = index == choosedIndex ? nil : index
+                                choosedList.removeAll()
+                                if choosedIndex != nil, model.path != nil {
+                                    choosedList.append(model.path!)
+                                }
+                            }
                         }
                 }
                 
@@ -176,6 +211,14 @@ struct RecordCellView: View {
             
         }
         .padding(.horizontal,16)
+    }
+    
+    private func chooseStatus() -> Bool {
+        if multiple {
+            return model.isSelected
+        } else {
+            return index == choosedIndex
+        }
     }
     
     private func updatePlayingTime(value: Int) {
