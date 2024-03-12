@@ -2,13 +2,13 @@
 import { getWidgetInfo, watchDesktopAppInfo } from "src/provider/api.ts";
 import { type $TileSizeType, type $WidgetAppData, type $WidgetCustomData } from "src/types/app.type.ts";
 import { onMounted, onUnmounted, Ref, ref } from "vue";
+import { MICRO_MODULE_CATEGORY } from "../../../../../../../core";
 import TileItem from "../components/tile-item/tile-item.vue";
 import TilePanel from "../components/tile-panel/tile-panel.vue";
 import WidgetApp from "../components/widget-app/widget-app.vue";
 import WidgetCustom from "../components/widget-custom/widget-custom.vue";
 import WidgetAppOverlay from "../components/widget-menu-overlay/widget-menu-overlay.vue";
 import WidgetWebApp from "../components/widget-webapp/widget-webapp.vue";
-import { MICRO_MODULE_CATEGORY } from "../../../../../../../core";
 
 type $LayoutInfo = (
   | {
@@ -57,7 +57,7 @@ const updateApps = async () => {
       appInfoWatcher.return();
     });
     for await (const list of appInfoWatcher) {
-      console.log("desktop app=>", list);
+      // console.log("desktop app=>", list);
       appList = list;
       updateLayoutInfoList(widgetList, appList);
     }

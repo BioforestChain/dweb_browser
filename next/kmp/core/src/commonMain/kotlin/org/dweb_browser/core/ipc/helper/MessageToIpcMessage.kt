@@ -9,7 +9,6 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.CborLoose
 import org.dweb_browser.helper.JsonLoose
-import org.dweb_browser.helper.printError
 import org.dweb_browser.pure.http.PureHeaders
 
 object IpcMessageConst {
@@ -34,7 +33,7 @@ fun bytesToIpcMessage(data: ByteArray, ipc: Ipc): Any {
 //    return data
 //  }
   val pack = jsonToIpcPack(data.decodeToString())
-  return IpcPoolPack(pack.pid, jsonToIpcPoolPack(pack.ipcMessageString, ipc))
+  return IpcPoolPack(pack.pid, jsonToIpcPoolPack(pack.ipcMessage, ipc))
 }
 
 /***
@@ -74,7 +73,7 @@ fun cborToIpcMessage(data: ByteArray, ipc: Ipc): IpcMessage {
 
       IPC_MESSAGE_TYPE.RESPONSE -> Cbor.decodeFromByteArray<IpcResMessage>(data).let {
         IpcResponse(
-          it.req_id,
+          it.reqId,
           it.statusCode,
           PureHeaders(it.headers),
           IpcBodyReceiver.from(it.metaBody, ipc),
@@ -121,13 +120,6 @@ fun ipcMessageToCbor(data: IpcMessage) = when (data) {
   is IpcError -> Cbor.encodeToByteArray<IpcError>(data)
 }
 
-fun unStringSpecial(data: String): String? {
-  if (data == "close" || data == "ping" || data == "pong") {
-    return data
-  }
-  return null
-}
-
 fun jsonToIpcPack(data: String): IpcPoolPackString {
   return Json.decodeFromString<IpcPoolPackString>(data)
 }
@@ -153,7 +145,7 @@ fun jsonToIpcPoolPack(data: String, ipc: Ipc): IpcMessage {
       IPC_MESSAGE_TYPE.RESPONSE -> Json.decodeFromString<IpcResMessage>(data)
         .let {
           IpcResponse(
-            it.req_id,
+            it.reqId,
             it.statusCode,
             PureHeaders(it.headers),
             IpcBodyReceiver.from(it.metaBody, ipc),
@@ -177,21 +169,24 @@ fun jsonToIpcPoolPack(data: String, ipc: Ipc): IpcMessage {
 }
 
 fun ipcPoolPackToJson(pack: IpcPoolPack): String {
-  val ipcMessageString = when (pack.ipcMessage) {
-    is IpcRequest -> Json.encodeToString(pack.ipcMessage.ipcReqMessage)
-    is IpcResponse -> Json.encodeToString(pack.ipcMessage.ipcResMessage)
-    is IpcStreamData -> Json.encodeToString(pack.ipcMessage.jsonAble)
-    is IpcEvent -> Json.encodeToString(pack.ipcMessage.jsonAble)
-    is IpcEventJsonAble -> Json.encodeToString(pack.ipcMessage)
-    is IpcReqMessage -> Json.encodeToString(pack.ipcMessage)
-    is IpcResMessage -> Json.encodeToString(pack.ipcMessage)
-    is IpcStreamAbort -> Json.encodeToString(pack.ipcMessage)
-    is IpcStreamDataJsonAble -> Json.encodeToString(pack.ipcMessage)
-    is IpcStreamEnd -> Json.encodeToString(pack.ipcMessage)
-    is IpcStreamPaused -> Json.encodeToString(pack.ipcMessage)
-    is IpcStreamPulling -> Json.encodeToString(pack.ipcMessage)
-    is IpcLifeCycle -> Json.encodeToString(pack.ipcMessage)
-    is IpcError -> Json.encodeToString(pack.ipcMessage)
-  }
+  val ipcMessageString = ipcMessageToJson(pack.ipcMessage)
   return Json.encodeToString(IpcPoolPackString(pack.pid, ipcMessageString))
 }
+
+fun ipcMessageToJson(data: IpcMessage) = when (data) {
+  is IpcRequest -> Json.encodeToString(data.ipcReqMessage)
+  is IpcResponse -> Json.encodeToString(data.ipcResMessage)
+  is IpcStreamData -> Json.encodeToString(data.jsonAble)
+  is IpcEvent -> Json.encodeToString(data.jsonAble)
+  is IpcEventJsonAble -> Json.encodeToString(data)
+  is IpcReqMessage -> Json.encodeToString(data)
+  is IpcResMessage -> Json.encodeToString(data)
+  is IpcStreamAbort -> Json.encodeToString(data)
+  is IpcStreamDataJsonAble -> Json.encodeToString(data)
+  is IpcStreamEnd -> Json.encodeToString(data)
+  is IpcStreamPaused -> Json.encodeToString(data)
+  is IpcStreamPulling -> Json.encodeToString(data)
+  is IpcLifeCycle -> Json.encodeToString(data)
+  is IpcError -> Json.encodeToString(data)
+}
+

@@ -1,8 +1,9 @@
-import { ReadableStreamIpc } from "dweb/core/index.ts";
+import type { ReadableStreamIpc } from "dweb/core/index.ts";
 import type { $MicroModuleManifest } from "dweb/core/types.ts";
 import { PromiseOut } from "dweb/helper/PromiseOut.ts";
 import { simpleEncoder } from "dweb/helper/encoding.ts";
 import { ReadableStreamOut, streamReadAll } from "dweb/helper/stream/readableStreamHelper.ts";
+import { webIpcPool } from "../index.ts";
 
 // 回复信息给后端
 export const createMockModuleServerIpc: (wsUrl: URL, remote: $MicroModuleManifest) => Promise<ReadableStreamIpc> = (
@@ -22,11 +23,9 @@ export const createMockModuleServerIpc: (wsUrl: URL, remote: $MicroModuleManifes
     /**
      * 构建服务器响应器
      */
-    const serverIpc = new ReadableStreamIpc(
-      remote,
-      //@ts-ignore
-      "client"
-    );
+    const serverIpc = webIpcPool.create<ReadableStreamIpc>(`client-${wsUrl}`,{
+      remote:remote
+    })
     waitOpenPo.resolve(serverIpc);
     /**
      * 这是来自代理服务器的流对象

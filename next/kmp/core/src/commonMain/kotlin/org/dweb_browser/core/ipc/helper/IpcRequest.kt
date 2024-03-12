@@ -316,31 +316,30 @@ sealed class IpcRequest(
       val off = ipc.onEvent { (ipcEvent) ->
         when (ipcEvent.name) {
           eventData -> {
-//            debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent $pureChannel" }
             if (!channelByIpcEmit.isClosedForSend)
               channelByIpcEmit.send(ipcEvent.toPureFrame())
           }
 
           eventStart -> {
-            debugIpc(_debugTag) { "$ipc onIpcEventStart:$ipcEvent $pureChannel" }
+            debugIpc(_debugTag) { "$ipc onIpcEventStart:$ipcEvent ${ipc.channelId}" }
             started.complete(ipcEvent)
           }
 
           eventClose -> {
-            debugIpc(_debugTag) { "$ipc onIpcEventClose:$ipcEvent $pureChannel" }
+            debugIpc(_debugTag) { "$ipc onIpcEventClose:$ipcEvent ${ipc.channelId}" }
             pureChannel.close()
           }
         }
       }
-      debugIpc(_debugTag) { "waitLocaleStart:$eventNameBase $pureChannel" }
+      debugIpc(_debugTag) { "waitLocaleStart:$eventNameBase ${ipc.channelId}" }
       // 提供回调函数，等待外部调用者执行开始指令
       waitReadyToStart()
-      debugIpc(_debugTag) { "waitRemoteStart:$eventNameBase $pureChannel" }
+      debugIpc(_debugTag) { "waitRemoteStart:$eventNameBase ${ipc.channelId}" }
       // 首先自己发送start，告知对方自己已经准备好数据接收了
       ipc.postMessage(IpcEvent.fromUtf8(eventStart, "", orderBy))
       // 同时也要等待对方发送 start 信号过来，那么也将 start 回传，避免对方遗漏前面的 start 消息
       val ipcStartEvent = started.await()
-      debugIpc(_debugTag) { "$ipc postIpcEventStart:$ipcStartEvent $pureChannel" }
+      debugIpc(_debugTag) { "$ipc postIpcEventStart:$ipcStartEvent ${ipc.channelId}" }
       ipc.postMessage(ipcStartEvent)
       /// 将PureFrame转成IpcEvent，然后一同发给对面
       for (pureFrame in channelForIpcPost) {
@@ -348,14 +347,13 @@ sealed class IpcRequest(
           PureCloseFrame -> break;
           else -> {
             val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame, orderBy)
-//            debugIpc(_debugTag) { "$ipc postIpcEventData:$ipcDataEvent $pureChannel" }
             ipc.postMessage(ipcDataEvent)
           }
         }
       }
       // 关闭的时候，发一个信号给对面
       val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "", orderBy)
-      debugIpc(_debugTag) { "$ipc postIpcEventClose:$ipcCloseEvent $pureChannel" }
+      debugIpc(_debugTag) { "$ipc postIpcEventClose:$ipcCloseEvent ${ipc.channelId}" }
       ipc.postMessage(ipcCloseEvent)
       off() // 移除事件监听
     }

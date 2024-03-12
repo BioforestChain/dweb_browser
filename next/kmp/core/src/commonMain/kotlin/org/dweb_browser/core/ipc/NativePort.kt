@@ -2,14 +2,18 @@ package org.dweb_browser.core.ipc
 
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 class NativeMessageChannel<T1, T2>(fromId: MMID, toId: MMID) {
   /**
@@ -52,6 +56,8 @@ class NativePort<I, O>(
 ) {
   companion object {
     private var uid_acc by SafeInt(1);
+    private val nativeScope =
+      CoroutineScope(CoroutineName("native-port") + ioAsyncExceptionHandler)
   }
 
   private val uid = uid_acc++
@@ -71,13 +77,13 @@ class NativePort<I, O>(
       }
     }
 
-    debugNativeIpc("port-message-start", "$this")
+//    debugNativeIpc("port-message-start", "$this")
     for (message in channelIn) {
 //      debugNativeIpc("port-message-in", "$this << $message")
       _messageSignal.emit(message)
-      debugNativeIpc("port-message-waiting", "$this")
+//      debugNativeIpc("port-message-waiting", "$this")
     }
-    debugNativeIpc("port-message-end", "$this")
+//    debugNativeIpc("port-message-end", "$this")
   }
 
   private val _closeSignal = SimpleSignal()
@@ -101,10 +107,12 @@ class NativePort<I, O>(
    * 发送消息，这个默认会阻塞
    */
   @OptIn(DelicateCoroutinesApi::class)
-  suspend fun postMessage(msg: O) {
-//    debugNativeIpc("message-out", "$this >> $msg >> ${!channelOut.isClosedForSend}")
+  fun postMessage(msg: O) {
+    debugNativeIpc("message-out") { "$this >> $msg >> ${!channelOut.isClosedForSend}" }
     if (!channelOut.isClosedForSend) {
-      channelOut.send(msg)
+      nativeScope.launch {
+        channelOut.send(msg)
+      }
     } else {
       debugNativeIpc("postMessage", " handle the closed channel case!")
     }

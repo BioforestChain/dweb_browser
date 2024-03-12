@@ -26,7 +26,7 @@ declare global {
  */
 export class Server_external extends HttpServer {
   constructor(private handlers: $OnFetch[] = []) {
-    super();
+    super("external");
     jsProcess.onFetch(async (event) => {
       if (event.pathname == ExternalState.WAIT_EXTERNAL_READY) {
         await this.ipcPo.waitOpen();
@@ -128,7 +128,7 @@ export class Server_external extends HttpServer {
       const response = (await ipc.request(event.request.url, event.request)).toResponse();
       // ipc.postMessage(response)
       // 构造返回值给对方
-      return IpcResponse.fromResponse(event.ipcRequest.req_id, response, event.ipc);
+      return IpcResponse.fromResponse(event.ipcRequest.reqId, response, event.ipc);
     }
   }
 }

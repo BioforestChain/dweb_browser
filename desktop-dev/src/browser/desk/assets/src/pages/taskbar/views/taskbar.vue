@@ -46,7 +46,7 @@ const updateApps = async () => {
     appInfoWatcher.return();
   });
   for await (const appList of appInfoWatcher) {
-    console.log("taskbar AppList=>", appList);
+    // console.log("taskbar AppList=>", appList);
     updateLayoutInfoList(appList);
   }
 };
@@ -217,15 +217,15 @@ const iconSize = "45px";
       </button>
     </div>
     <hr v-if="appRefList.length !== 0" class="my-divider" />
-      <button class="desktop-button app-icon-wrapper z-grid" @click="toggleDesktopButton">
-        <AppIcon
-          class="z-view"
-          :icon="icons.layout_panel_top"
-          :size="iconSize"
-          bg-image="linear-gradient(to bottom, #f64f59, #c471ed, #12c2e9)"
-          bg-disable-translucent
-        ></AppIcon>
-      </button>
+    <button class="desktop-button app-icon-wrapper z-grid" @click="toggleDesktopButton">
+      <AppIcon
+        class="z-view"
+        :icon="icons.layout_panel_top"
+        :size="iconSize"
+        bg-image="linear-gradient(to bottom, #f64f59, #c471ed, #12c2e9)"
+        bg-disable-translucent
+      ></AppIcon>
+    </button>
   </div>
 </template>
 <style scoped lang="scss">

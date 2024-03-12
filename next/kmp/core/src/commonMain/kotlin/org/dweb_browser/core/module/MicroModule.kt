@@ -158,11 +158,12 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   suspend fun addToIpcSet(ipc: Ipc): Boolean {
     debugMicroModule(
       "addToIpcSet",
-      "$mmid => ${ipc.remote.mmid}, ${runningStateLock.isResolved}:${runningStateLock.value}"
+      "「${ipc.channelId}」 $mmid => ${ipc.remote.mmid} , ${runningStateLock.isResolved}:${runningStateLock.value}"
     )
-//    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
-//      ipc.awaitStart()
-//    }
+    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
+      ipc.awaitStart()
+      debugMicroModule("addToIpcSet", "✅ ${ipc.channelId} end")
+    }
     return if (this._ipcSet.add(ipc)) {
       ipc.onClose {
         _ipcSet.remove(ipc)

@@ -160,14 +160,14 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
           res = result;
         } else if (result instanceof Response) {
           /// TODO 需要加入对 Response.error() 的支持，这需要新增 IpcError { message:string, reqId?:number } 的消息
-          res = await IpcResponse.fromResponse(request.req_id, result, ipc);
+          res = await IpcResponse.fromResponse(request.reqId, result, ipc);
         } else if (typeof result === "object") {
           /// 尝试构建出 IpcResponse
-          const req_id = request.req_id;
+          const reqId = request.reqId;
           const status = result.status ?? 200;
           const headers = new IpcHeaders(result.headers);
           if (result.body instanceof IpcBody) {
-            res = new IpcResponse(req_id, status, headers, result.body, ipc);
+            res = new IpcResponse(reqId, status, headers, result.body, ipc);
           } else {
             const body = await $bodyInitToIpcBodyArgs(result.body, (bodyInit) => {
               /// 尝试使用 JSON 解码
@@ -182,17 +182,17 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
               return String(bodyInit);
             });
             if (typeof body === "string") {
-              res = IpcResponse.fromText(req_id, status, headers, body, ipc);
+              res = IpcResponse.fromText(reqId, status, headers, body, ipc);
             } else if (isBinary(body)) {
-              res = IpcResponse.fromBinary(req_id, status, headers, body, ipc);
+              res = IpcResponse.fromBinary(reqId, status, headers, body, ipc);
             } else if (body instanceof ReadableStream) {
-              res = IpcResponse.fromStream(req_id, status, headers, body, ipc);
+              res = IpcResponse.fromStream(reqId, status, headers, body, ipc);
             }
           }
         }
       } catch (err) {
         if (err instanceof Response) {
-          res = await IpcResponse.fromResponse(request.req_id, err, ipc);
+          res = await IpcResponse.fromResponse(request.reqId, err, ipc);
         } else {
           /// 处理异常，尝试返回
           let err_code = 500;
@@ -210,7 +210,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
           /// 根据对方的接收需求，尝试返回 JSON
           if (request.headers.get("Accept") === "application/json") {
             res = IpcResponse.fromJson(
-              request.req_id,
+              request.reqId,
               err_code,
               new IpcHeaders().init("Content-Type", "text/html;charset=utf8"),
               { message: err_message, detail: err_detail },
@@ -218,7 +218,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
             );
           } else {
             res = IpcResponse.fromText(
-              request.req_id,
+              request.reqId,
               err_code,
               new IpcHeaders().init("Content-Type", "text/html;charset=utf8"),
               err instanceof Error ? `<h1>${err.message}</h1><hr/><pre>${err.stack}</pre>` : String(err),
@@ -321,8 +321,8 @@ export class FetchEvent {
   get href() {
     return this.url.href;
   }
-  get req_id() {
-    return this.ipcRequest.req_id;
+  get reqId() {
+    return this.ipcRequest.reqId;
   }
 }
 

@@ -17,7 +17,7 @@ interface IpcStream {
 data class IpcPoolPack(val pid: Int, val ipcMessage: IpcMessage)
 
 @Serializable
-data class IpcPoolPackString(val pid: Int, val ipcMessageString: String)
+data class IpcPoolPackString(val pid: Int, val ipcMessage: String)
 
 /**消息传递时包裹pool消息📦*/
 @Serializable

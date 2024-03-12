@@ -14,7 +14,7 @@ export const devTasks = new ConTasks(
       cmd: "deno",
       args: "task build:watch:demo",
       cwd: "./plaoc",
-      startDeps: [{ name: "plaoc:client", whenLog: "Complete!", logType: "stdout" }],
+      startDeps: [{ name: "plaoc:demo", whenLog: "Complete!", logType: "stdout" }],
     },
     "plaoc:client": {
       cmd: "deno",

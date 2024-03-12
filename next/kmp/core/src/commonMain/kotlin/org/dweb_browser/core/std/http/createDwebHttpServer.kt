@@ -58,19 +58,19 @@ suspend fun MicroModule.listenHttpDwebServer(
       "http-server/${startResult.urlInfo.host}",
       IpcOptions(httpIpc.remote)
     ).also {
-        it.bindIncomeStream(
-          this.nativeFetch(
-            PureClientRequest(
-              URLBuilder("file://http.std.dweb/listen").apply {
-                parameters["token"] = startResult.token
-                parameters["routes"] = Json.encodeToString(routes)
-              }.buildUnsafeString(),
-              PureMethod.POST,
-              body = PureStreamBody(it.input.stream)
-            )
-          ).stream()
-        )
-      }
+      it.bindIncomeStream(
+        this.nativeFetch(
+          PureClientRequest(
+            URLBuilder("file://http.std.dweb/listen").apply {
+              parameters["token"] = startResult.token
+              parameters["routes"] = Json.encodeToString(routes)
+            }.buildUnsafeString(),
+            PureMethod.POST,
+            body = PureStreamBody(it.input.stream)
+          )
+        ).stream()
+      )
+    }
   this.addToIpcSet(streamIpc)
   return streamIpc
 }

@@ -36,6 +36,9 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
    */
   private var hidAcc by SafeInt(1);
 
+  /**
+   * 创建一个jsWorker线程
+   */
   suspend fun createProcess(
     env_script_url: String,
     metadata_json: String,
@@ -74,7 +77,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     debugJsProcess("processInfo", processInfo_json)
     val info = Json.decodeFromString<ProcessInfo>(processInfo_json)
     val ipc = kotlinIpcPool.create<MessagePortIpc>(
-      "create-process",
+      "create-process-${remoteModule.mmid}",
       IpcOptions(port = MessagePort.from(port2), remote = remoteModule)
     )
     return ProcessHandler(info, ipc)
@@ -117,7 +120,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     })
     jsIpcPortId
   }
-
+  // 桥接两个worker
   suspend fun bridgeIpc(process_id: Int, fromMMid: MMID, toMMid: MMID) =
     withContext(Dispatchers.Main) {
       val channel = dWebView.createMessageChannel()

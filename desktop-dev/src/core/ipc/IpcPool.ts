@@ -1,65 +1,68 @@
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
-import { $IpcMessage, $OnIpcPool, Ipc, IpcPoolPack } from "../index.ts";
+import { mapHelper } from "../../helper/mapHelper.ts";
+import { $IpcOptions, $OnIpcPool, Ipc, IpcPoolPack, MessagePortIpc, ReadableStreamIpc } from "../index.ts";
+import { NativeIpc } from "./NativeIpc.ts";
 
 let ipc_pool_uid_acc = 0;
 
 /**每一个worker 都会创建单独的IpcPool */
 export class IpcPool {
-  constructor() {
-    this.distribute();
+  constructor(readonly poolName: string) {
+    this.poolId = this.poolName + this.poolId;
+    this.initOnMessage();
   }
 
-  readonly poolId = `worker-${ipc_pool_uid_acc++}`;
+  readonly poolId = `-worker-${ipc_pool_uid_acc++}`;
+
+  private ipcPool = new Map<string, Ipc>();
 
   // close start
   protected _closeSignal = createSignal<() => unknown>(false);
   onClose = this._closeSignal.listen;
   // close end
+  // deno-lint-ignore no-explicit-any
   private _createSignal<T extends $Callback<any[]>>(autoStart?: boolean) {
     const signal = createSignal<T>(autoStart);
     this.onClose(() => signal.clear());
     return signal;
   }
-  private ipcChannelMap = new Map<string, number>();
-  private ipcHashMap = new Map<number, Ipc>();
 
   /**
    * fork出一个已经创建好通信的ipc
    * @options IpcOptions
    */
-  // create(
-  //   /**ipc的业务线标识*/
-  //   channelId: string,
-  //   options: $IpcOptions
-  // ) {
-  //   const mm = options.remote;
-  //   // 创建不同的Ipc
-  //   let ipc: Ipc;
-  //   if (options.port != null) {
-  //     ipc = new MessagePortIpc(options.port, mm, channelId, this);
-  //   } else if (options.channel != null) {
-  //     ipc = new NativeIpc(options.channel, mm, channelId, this);
-  //   } else {
-  //     ipc = new ReadableStreamIpc(mm, channelId, this);
-  //   }
-  //   if (ipc instanceof ReadableStreamIpc && options.stream != null) {
-  //     ipc.bindIncomeStream(options.stream);
-  //   }
-  //   //  有新的ipc激活了
-  //   const pid = this.generatePid(channelId);
-  //   this.ipcHashMap.set(pid, ipc);
-  //   ipc.lifeCycleHook();
-  //   // 如果还没启动，自我启动一下
-  //   if (!ipc.startDeferred.is_resolved) {
-  //     if (!(ipc instanceof ReadableStreamIpc && !ipc.isBinding)) {
-  //       ipc.start();
-  //     }
-  //   }
-  //   ipc;
-  // }
+  create<T extends Ipc>(
+    /**ipc的业务线标识*/
+    channelId: string,
+    options: $IpcOptions
+  ) {
+    return mapHelper.getOrPut(this.ipcPool, channelId, () => {
+      const mm = options.remote;
+      // 创建不同的Ipc
+      let ipc: Ipc;
+      if (options.port != null) {
+        ipc = new MessagePortIpc(options.port, mm, channelId, this);
+      } else if (options.channel != null) {
+        ipc = new NativeIpc(options.channel, mm, channelId, this);
+      } else {
+        ipc = new ReadableStreamIpc(mm, channelId, this);
+      }
+      ipc.start();
+      return ipc;
+    }) as T;
+  }
 
   // 发送消息   这里是road寻址的前身
-  doPostMessage(channelId: String, data: $IpcMessage) {}
+  // doPostMessage(channelId: string, data: $IpcMessage) {
+  //   // TODO waterbang 这里不想每次获取两个map
+  //   const pid = this.ipcChannelMap.get(channelId);
+  //   if (pid) {
+  //     const ipc = this.ipcHashMap.get(pid);
+  //     if (ipc) ipc._doPostMessage(pid, data);
+  //   } else {
+  //     throw new Error("this channelId $poolId not found!");
+  //   }
+  // }
 
   // 收集消息并且转发到各个通道
   private _messageSignal = this._createSignal<$OnIpcPool>(false);
@@ -69,20 +72,18 @@ export class IpcPool {
   onMessage = this._messageSignal.listen;
 
   // 分发消息
-  distribute() {
-    this.onMessage((message, ipc) => {});
+  initOnMessage() {
+    this.onMessage((message, ipc) => {
+      ipc.emitMessage(message.ipcMessage);
+    });
   }
 
   /**
    * 根据传进来的业务描述，注册一个Pid
    */
   generatePid(channelId: string): number {
-    const pid = this.ipcChannelMap.get(channelId);
-    if (pid != null) {
-      return pid;
-    }
-    const hashPid = hashString(`${channelId}${pid}`);
-    this.ipcChannelMap.set(channelId, hashPid);
+    const time = new Date().getTime();
+    const hashPid = hashString(`${channelId}${time}`);
     return hashPid;
   }
 }
@@ -101,4 +102,4 @@ export function hashString(s: string): number {
   return hash;
 }
 
-export const workerIpcPool = new IpcPool();
+export const workerIpcPool = new IpcPool("desktop");

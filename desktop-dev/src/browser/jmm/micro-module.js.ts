@@ -1,6 +1,6 @@
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
-import { ReadableStreamIpc } from "../../core/ipc/ReadableStreamIpc.ts";
+import { ReadableStreamIpc, workerIpcPool } from "../../core/index.ts";
 import { Ipc, IpcError, IpcResponse } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
 import { connectAdapterManager } from "../../core/nativeConnect.ts";
@@ -147,16 +147,18 @@ export class JsMicroModule extends MicroModule {
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
     // 这个 streamIpc 专门服务于 file://js.browser.dweb/create-process
-    const streamIpc = new ReadableStreamIpc(this);
+    const streamIpc = workerIpcPool.create<ReadableStreamIpc>(`worker-create-process-${this.mmid}`, {
+      remote: this,
+    });
     // 用来提供 JsMicroModule 匹配的 worker.js 代码
     streamIpc.onRequest(async (request) => {
       if (request.parsed_url.pathname.endsWith("/")) {
-        streamIpc.postMessage(IpcResponse.fromText(request.req_id, 403, undefined, "Forbidden", streamIpc));
+        streamIpc.postMessage(IpcResponse.fromText(request.reqId, 403, undefined, "Forbidden", streamIpc));
       } else {
         // 获取 worker.js 代码
         const main_code = await this.nativeFetch(this.metadata.config.server.root + request.parsed_url.pathname).text();
 
-        streamIpc.postMessage(IpcResponse.fromText(request.req_id, 200, undefined, main_code, streamIpc));
+        streamIpc.postMessage(IpcResponse.fromText(request.reqId, 200, undefined, main_code, streamIpc));
       }
     });
     // 创建一个 streamIpc
@@ -193,7 +195,7 @@ export class JsMicroModule extends MicroModule {
       } else {
         const request = ipcRequest.toRequest();
         const response = await this.nativeFetch(request);
-        const newResponse = await IpcResponse.fromResponse(ipcRequest.req_id, response, jsIpc);
+        const newResponse = await IpcResponse.fromResponse(ipcRequest.reqId, response, jsIpc);
         jsIpc.postMessage(newResponse);
       }
     });

@@ -46,7 +46,7 @@ export class OnFetchAdapter {
    */
   private _onFetchError = async (event: FetchEvent, statusCode: number, errorMessage: string): Promise<IpcResponse> => {
     return IpcResponse.fromJson(
-      event.ipcRequest.req_id,
+      event.ipcRequest.reqId,
       statusCode,
       new IpcHeaders().init("Content-Type", "application/json"),
       JSON.stringify({

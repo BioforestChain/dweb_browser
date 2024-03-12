@@ -12,5 +12,13 @@ class IpcLifeCycle(
 ) : IpcMessage(IPC_MESSAGE_TYPE.LIFE_CYCLE) {
   override fun toString() = "IpcLifeCycle(state=$state)"
 
+  companion object {
+    fun opening() = IpcLifeCycle(IPC_STATE.OPENING)
+    fun open() = IpcLifeCycle(IPC_STATE.OPEN)
+
+    fun closing() = IpcLifeCycle(IPC_STATE.OPENING)
+    fun close() = IpcLifeCycle(IPC_STATE.CLOSED)
+  }
+
 }
 

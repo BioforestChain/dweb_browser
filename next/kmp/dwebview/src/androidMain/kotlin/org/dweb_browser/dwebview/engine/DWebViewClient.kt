@@ -39,7 +39,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
     extends.remove(client)
 
   private fun inners(methodName: String) = extends.hasMethod(methodName)
-        .also { debugDWebView("WebViewClient", "calling method: $methodName") }
+    .also { debugDWebView("WebViewClient", "calling method: $methodName") }
 
 
   override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
@@ -117,6 +117,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
   override fun onReceivedHttpError(
     view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?
   ) {
+    debugDWebView("onReceivedHttpError", "${request?.url} error:${errorResponse}")
     inners("onReceivedHttpError").one { it.onReceivedHttpError(view, request, errorResponse) }
       ?: super.onReceivedHttpError(view, request, errorResponse)
   }

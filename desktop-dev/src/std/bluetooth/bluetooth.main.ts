@@ -189,7 +189,7 @@ export class BluetoothNMM extends NativeMicroModule {
     })();
 
     return IpcResponse.fromStream(
-      event.ipcRequest.req_id,
+      event.ipcRequest.reqId,
       200,
       new IpcHeaders().init("Content-Type", "application/octet-stream"),
       readableStream,
@@ -425,7 +425,7 @@ export class BluetoothNMM extends NativeMicroModule {
     // 无法通过cli 直接 查询设备
     // this._requestDevice(resolveId);
     const result = await new Promise((resolve) => this._operationResolveMap.set(resolveId, resolve));
-    return IpcResponse.fromJson(event.ipcRequest.req_id, 200, this._responseHeader, JSON.stringify(result), event.ipc);
+    return IpcResponse.fromJson(event.ipcRequest.reqId, 200, this._responseHeader, JSON.stringify(result), event.ipc);
   };
 
   /**
@@ -518,7 +518,7 @@ export class BluetoothNMM extends NativeMicroModule {
 
   private _createResponseError = (event: FetchEvent, statusCode: number, errStr: string) => {
     return IpcResponse.fromJson(
-      event.ipcRequest.req_id,
+      event.ipcRequest.reqId,
       statusCode,
       this._responseHeader,
       {
@@ -531,7 +531,7 @@ export class BluetoothNMM extends NativeMicroModule {
   };
 
   private _createResponseSucess = (event: FetchEvent, res: unknown) => {
-    return IpcResponse.fromJson(event.ipcRequest.req_id, 200, this._responseHeader, res, event.ipc);
+    return IpcResponse.fromJson(event.ipcRequest.reqId, 200, this._responseHeader, res, event.ipc);
   };
 
   protected override _shutdown = async () => {

@@ -5,9 +5,9 @@ export * from "./IpcPool.ts";
 export * from "./IpcRequest.ts";
 export * from "./IpcResponse.ts";
 export * from "./MessagePortIpc.ts";
+export * from "./NativeIpc.ts";
 export * from "./PureChannel.ts";
 export * from "./ReadableStreamIpc.ts";
-export * from "./helper/$messagePackToIpcMessage.ts";
 export * from "./helper/$messageToIpcMessage.ts";
 export * from "./helper/IpcHeaders.ts";
 export * from "./helper/IpcMessage.ts";
@@ -20,4 +20,3 @@ export * from "./stream/IpcStreamData.ts";
 export * from "./stream/IpcStreamEnd.ts";
 export * from "./stream/IpcStreamPaused.ts";
 export * from "./stream/IpcStreamPulling.ts";
-

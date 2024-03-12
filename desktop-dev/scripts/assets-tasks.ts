@@ -31,18 +31,18 @@ export const assetsTasks = new ConTasks(
       viteConfig: "scripts/electron-vite.config.ts",
       baseDir,
     }),
-    "bluetooth.html": viteTaskFactory({
-      inDir: "src/std/bluetooth/assets",
-      outDir: "electron/assets/bluetooth",
-      viteConfig: "scripts/electron-vite.config.ts",
-      baseDir,
-    }),
-    "barcode-scanning.html": viteTaskFactory({
-      inDir: "src/sys/barcode-scanning/assets",
-      outDir: "electron/assets/barcode-scanning",
-      viteConfig: "scripts/electron-vite.config.ts",
-      baseDir,
-    }),
+    // "bluetooth.html": viteTaskFactory({
+    //   inDir: "src/std/bluetooth/assets",
+    //   outDir: "electron/assets/bluetooth",
+    //   viteConfig: "scripts/electron-vite.config.ts",
+    //   baseDir,
+    // }),
+    // "barcode-scanning.html": viteTaskFactory({
+    //   inDir: "src/sys/barcode-scanning/assets",
+    //   outDir: "electron/assets/barcode-scanning",
+    //   viteConfig: "scripts/electron-vite.config.ts",
+    //   baseDir,
+    // }),
   },
   /// base
   baseDir

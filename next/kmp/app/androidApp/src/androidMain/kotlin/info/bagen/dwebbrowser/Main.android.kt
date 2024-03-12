@@ -145,11 +145,12 @@ suspend fun startDwebBrowser(): DnsNMM {
       downloadNMM.mmid, // 为了让jmmNMM判断是，download已具备
       jmmNMM.mmid,// 为了使得桌面能够显示模块管理，以及安装的相应应用图标
       browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
-      deskNMM.mmid,//
+      deskNMM.mmid,// 桌面程序
       shortcutNMM.mmid, // 为了启动时，注入快捷内容
     )
   ).setup()
 
+  // 在调试环境下运行
   if (BuildConfig.DEBUG) {
     PermissionProviderTNN().setup()
     PermissionApplicantTMM().setup()

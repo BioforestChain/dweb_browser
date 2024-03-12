@@ -1,12 +1,12 @@
 import { encode } from "cbor-x";
+import { once } from "../../helper/$once.ts";
 import { u8aConcat } from "../../helper/binaryHelper.ts";
 import { simpleDecoder, simpleEncoder } from "../../helper/encoding.ts";
 import { ReadableStreamOut, binaryStreamRead } from "../../helper/stream/readableStreamHelper.ts";
 import { $PromiseMaybe } from "../helper/types.ts";
+import { IpcPool, IpcPoolPackString } from "../index.ts";
 import type { $IpcSupportProtocols, $MicroModuleManifest } from "../types.ts";
-import { $messagePackToIpcMessage } from "./helper/$messagePackToIpcMessage.ts";
-import { $jsonToIpcMessage } from "./helper/$messageToIpcMessage.ts";
-import type { IpcMessage } from "./helper/IpcMessage.ts";
+import { $cborToIpcMessage, $jsonToIpcMessage } from "./helper/$messageToIpcMessage.ts";
 import type { $IpcMessage } from "./helper/const.ts";
 import { IPC_MESSAGE_TYPE } from "./helper/const.ts";
 import { Ipc } from "./ipc.ts";
@@ -20,13 +20,15 @@ import { Ipc } from "./ipc.ts";
 export class ReadableStreamIpc extends Ipc {
   constructor(
     readonly remote: $MicroModuleManifest,
+    override channelId: string,
+    override endpoint: IpcPool,
     readonly self_support_protocols: $IpcSupportProtocols = {
       raw: false,
       cbor: true,
       protobuf: false,
     }
   ) {
-    super();
+    super(channelId, endpoint);
     /** JS 环境里支持 cbor 协议 */
     this._support_cbor = self_support_protocols.cbor && remote.ipc_support_protocols.cbor;
   }
@@ -39,15 +41,10 @@ export class ReadableStreamIpc extends Ipc {
     return this.#rso.controller;
   }
 
-  // private PONG_DATA = once(() => {
-  //   const pong = this.support_cbor ? encode("pong") : simpleEncoder("pong", "utf8");
-  //   return ReadableStreamIpc.concatLen(pong);
-  // });
-
-  // private CLOSE_DATA = once(() => {
-  //   const close = this.support_cbor ? encode("close") : simpleEncoder("close", "utf8");
-  //   return ReadableStreamIpc.concatLen(close);
-  // });
+  private CLOSE_DATA = once(() => {
+    const close = this.support_cbor ? encode("close") : simpleEncoder("close", "utf8");
+    return ReadableStreamIpc.concatLen(close);
+  });
 
   private _incomne_stream?: ReadableStream<Uint8Array>;
 
@@ -59,7 +56,7 @@ export class ReadableStreamIpc extends Ipc {
    */
   async bindIncomeStream(stream: $PromiseMaybe<ReadableStream<Uint8Array>>, options: { signal?: AbortSignal } = {}) {
     if (this._incomne_stream !== undefined) {
-      throw new Error("in come stream alreay binded.");
+      throw new Error(`${this.channelId}[${this.remote.mmid}] in come stream alreay binded.`);
     }
     this._incomne_stream = await stream;
     const { signal } = options;
@@ -70,29 +67,19 @@ export class ReadableStreamIpc extends Ipc {
     while ((await reader.available()) > 0) {
       const size = await reader.readInt();
       const data = await reader.readBinary(size);
-
+      if (simpleDecoder(data, "utf8") === "close") {
+        this.close();
+        return;
+      }
       /// 开始处理数据并做响应
       const message = this.support_cbor
-        ? $messagePackToIpcMessage(data, this)
+        ? $cborToIpcMessage(data, this)
         : $jsonToIpcMessage(simpleDecoder(data, "utf8"), this);
       if (message === undefined) {
         console.error("unkonwn message", data);
         return;
       }
-
-      // if (message === "pong") {
-      //   return;
-      // }
-
-      // if (message === "close") {
-      //   this.close();
-      //   return;
-      // }
-      // if (message === "ping") {
-      //   this.controller.enqueue(this.PONG_DATA());
-      //   return;
-      // }
-      this._messageSignal.emit(message, this);
+      this.endpoint.emitMessage(message, this);
     }
     /// 输入流结束，输出流也要一并关闭
     this.close();
@@ -104,9 +91,9 @@ export class ReadableStreamIpc extends Ipc {
     this._len[0] = data.length;
     return u8aConcat([this._len_u8a, data]);
   };
-  _doPostMessage(message: $IpcMessage): void {
+  _doPostMessage(pid: number, message: $IpcMessage): void {
     // deno-lint-ignore no-explicit-any
-    let message_raw: IpcMessage<any>;
+    let message_raw: any;
     // 使用 type 判断
     if (message.type === IPC_MESSAGE_TYPE.REQUEST) {
       message_raw = message.ipcReqMessage();
@@ -115,14 +102,14 @@ export class ReadableStreamIpc extends Ipc {
     } else {
       message_raw = message;
     }
-
-    const message_data = this.support_cbor ? encode(message_raw) : simpleEncoder(JSON.stringify(message_raw), "utf8");
+    const pack = new IpcPoolPackString(pid, JSON.stringify(message_raw));
+    const message_data = this.support_cbor ? encode(pack) : simpleEncoder(JSON.stringify(pack), "utf8");
     const chunk = ReadableStreamIpc.concatLen(message_data);
     this.controller.enqueue(chunk);
   }
 
   _doClose() {
-    // this.controller.enqueue(this.CLOSE_DATA());
+    this.controller.enqueue(this.CLOSE_DATA());
     this.controller.close();
   }
 }

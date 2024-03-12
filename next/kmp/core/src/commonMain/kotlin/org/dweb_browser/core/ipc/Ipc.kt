@@ -53,13 +53,12 @@ import org.dweb_browser.pure.http.PureResponse
 val debugIpc = Debugger("ipc")
 
 /**
- * 1. 两个 pool之间得能握手
- * 2. 数据格式协商，在opening和open的状态之间，两个jsMM之间建立连接之前也是在这个状态之间（提供真正的桥接）
+ * 抽象工厂模式
  */
 abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   companion object {
     private var uid_acc by SafeInt(1)
-    private var req_id_acc by SafeInt(0)
+    private var reqId_acc by SafeInt(0)
     var order_by_acc by SafeInt(0)
     private val ipcMessageCoroutineScope =
       CoroutineScope(CoroutineName("ipc-message") + ioAsyncExceptionHandler)
@@ -70,6 +69,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
 
 
   val uid = uid_acc++
+  private val pid = endpoint.generatePid(channelId)
 
   private var ipcLifeCycleState: IPC_STATE = IPC_STATE.OPENING
 
@@ -111,8 +111,8 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     if (isActivity && data !is IpcLifeCycle) {
       awaitStart()
     }
-    // 发到pool进行分发消息
-    this.endpoint.doPostMessage(channelId, data)
+    // 分发消息
+    this.doPostMessage(this.pid, data)
   }
 
   private val _messageSignal = Signal<IpcMessageArgs>()
@@ -332,7 +332,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     SafeHashMap<Int, CompletableDeferred<IpcResponse>>().also { reqResMap ->
       onResponse { (response) ->
         val result = reqResMap.remove(response.reqId)
-          ?: throw Exception("no found response by req_id: ${response.reqId}")
+          ?: throw Exception("no found response by reqId: ${response.reqId}")
         result.complete(response)
       }
     }
@@ -363,7 +363,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   }
 
   private val reqIdSyncObj = SynchronizedObject()
-  private fun allocReqId() = synchronized(reqIdSyncObj) { ++req_id_acc }
+  private fun allocReqId() = synchronized(reqIdSyncObj) { ++reqId_acc }
 
   /**----- 发送请求 end */
 
@@ -411,20 +411,81 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   /**----- close end*/
   // 标记是否启动完成
   val startDeferred = CompletableDeferred<IpcLifeCycle>()
-  val isActivity = startDeferred.isCompleted
+  val isActivity get() = startDeferred.isCompleted
+
   suspend fun awaitStart() = startDeferred.await()
 
   // 告知对方我启动了
-  internal val start = SuspendOnce {
+  suspend fun start() {
     ipcLifeCycleState = IPC_STATE.OPEN
-    this.postMessage(IpcLifeCycle(IPC_STATE.OPENING))
+    // 连接成功不管先后发送请求
+    this.postMessage(IpcLifeCycle.opening())
+
+//    ipcMessageCoroutineScope.launch {
+//      val ipc = this@Ipc
+//      val pingDelay = 300L
+//      var fuse = endpoint.consumptionLife[channelId] ?: return@launch
+//      while (endpoint.consumptionLife[channelId] != null && !ipc.isClosed && fuse > 0) {
+//        ipc.postMessage(IpcLifeCycle.opening())
+//        delay(pingDelay)
+//        fuse -= 1
+//      }
+//      // 连接失败报错
+//      if (fuse <= 0) {
+//        debugIpc("fuse boom ⚠️😅", "$channelId 连接无响应")
+//        // 连接不上主动关闭
+//        if (!ipc.startDeferred.isCompleted) {
+//          ipc.startDeferred.complete(IpcLifeCycle.close())
+//        }
+//        ipc.emitMessage(
+//          IpcMessageArgs(
+//            IpcError(
+//              400,
+//              "[${channelId},${remote.mmid}] ipc connection failed, no response！"
+//            ), ipc
+//          )
+//        )
+//        ipc.close()
+//      }
+//    }
   }
 
-  internal val closing = SuspendOnce {
+  val closing = SuspendOnce {
     if (ipcLifeCycleState !== IPC_STATE.CLOSING) {
       ipcLifeCycleState = IPC_STATE.CLOSING
       // TODO 这里是缓存消息处理的最后时间区间
       this.close()
+    }
+  }
+
+
+  /**生命周期初始化，协商数据格式*/
+  init {
+    // TODO 跟对方通信 协商数据格式
+    println(" xxlife listen=>🥑  ${this.channelId}")
+    this.onLifeCycle { (lifeCycle, ipc) ->
+      when (lifeCycle.state) {
+        // 收到对方完成开始建立连接
+        IPC_STATE.OPENING -> {
+          ipc.postMessage(IpcLifeCycle.open()) // 解锁对方的
+          ipc.startDeferred.complete(lifeCycle) // 解锁自己的
+        }
+
+        IPC_STATE.OPEN -> {
+          println("xxlife open=>🍟 ${ipc.remote.mmid} ${ipc.channelId}")
+          if (!ipc.startDeferred.isCompleted) {
+            ipc.startDeferred.complete(lifeCycle)
+          }
+        }
+        // 消息通道开始关闭
+        IPC_STATE.CLOSING -> {
+          ipc.closing()
+        }
+        // 对方关了，代表没有消息发过来了，我也关闭
+        IPC_STATE.CLOSED -> {
+          ipc.close()
+        }
+      }
     }
   }
 

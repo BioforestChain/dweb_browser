@@ -196,9 +196,9 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     val streamIpc =
       kotlinIpcPool.create<ReadableStreamIpc>(
         "code-proxy-server",
-        IpcOptions(ipc.remote, stream = requestMessage.body.toPureStream())
+        IpcOptions(ipc.remote)
       )
-
+    streamIpc.bindIncomeStream(requestMessage.body.toPureStream())
     this.addToIpcSet(streamIpc)
 
     /**
@@ -275,7 +275,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
        */
       ipc.postMessage(workerIpcMessage)
     }
-    // TODO
     ipc.onMessage { (remoteIpcMessage) ->
       processHandler.ipc.postMessage(remoteIpcMessage)
     }

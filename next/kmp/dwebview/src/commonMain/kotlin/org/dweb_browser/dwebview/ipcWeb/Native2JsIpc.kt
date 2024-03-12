@@ -1,7 +1,6 @@
 package org.dweb_browser.dwebview.ipcWeb
 
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.IpcPool
 import org.dweb_browser.core.ipc.MessagePort
 import org.dweb_browser.core.ipc.MessagePortIpc
@@ -28,7 +27,7 @@ suspend fun saveNative2JsIpcPort(port: IWebMessagePort) =
  *
  */
 open class Native2JsIpc(
-  val portId: Int,
+  private val portId: Int,
   remote: IMicroModuleManifest,
   channelId: String,
   endpoint: IpcPool
@@ -40,7 +39,7 @@ open class Native2JsIpc(
 ) {
   init {
     onClose {
-      ALL_MESSAGE_PORT_CACHE.remove(portId)
+      ALL_MESSAGE_PORT_CACHE.remove(this@Native2JsIpc.portId)
     }
   }
 }

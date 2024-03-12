@@ -9,13 +9,13 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IpcMessage
-import org.dweb_browser.core.ipc.helper.IpcMessageConst.closeCborByteArray
-import org.dweb_browser.core.ipc.helper.IpcMessageConst.pingCborByteArray
 import org.dweb_browser.core.ipc.helper.IpcMessageConst.pongCborByteArray
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolPack
+import org.dweb_browser.core.ipc.helper.IpcPoolPackString
 import org.dweb_browser.core.ipc.helper.PackIpcMessage
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.core.ipc.helper.cborToIpcMessage
@@ -25,8 +25,6 @@ import org.dweb_browser.core.ipc.helper.ipcPoolPackToCbor
 import org.dweb_browser.core.ipc.helper.ipcPoolPackToJson
 import org.dweb_browser.core.ipc.helper.jsonToIpcPack
 import org.dweb_browser.core.ipc.helper.jsonToIpcPoolPack
-import org.dweb_browser.core.ipc.helper.unByteSpecial
-import org.dweb_browser.core.ipc.helper.unStringSpecial
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.canRead
@@ -70,16 +68,6 @@ class ReadableStreamIpc(
   private suspend fun enqueue(vararg dataArray: ByteArray) = controller.enqueue(*dataArray)
 
   private var _incomeStream: PureStream? = null
-
-  private val PONG_DATA by lazy {
-    val pong = "pong".toByteArray()
-    pong.size.toLittleEndianByteArray() + pong
-  }
-
-  private val CBOR_PONG_DATA by lazy {
-    pongCborByteArray.size.toLittleEndianByteArray() + pongCborByteArray
-  }
-
   class AbortAble {
     val signal = SimpleSignal()
   }
@@ -95,7 +83,7 @@ class ReadableStreamIpc(
    */
   fun bindIncomeStream(stream: PureStream, signal: AbortAble = AbortAble()) = synchronized(_lock) {
     if (this._incomeStream != null) {
-      throw Exception("in come stream already binding.");
+      throw Exception("${this.channelId}[${this.remote.mmid}] in come stream already binding.");
     }
     this._incomeStream = stream
     if (isClosed) {
@@ -114,13 +102,13 @@ class ReadableStreamIpc(
           if (size <= 0) {
             continue
           }
-          debugStreamIpc("bindIncomeStream", "size=$size => $stream")
+//          debugStreamIpc("bindIncomeStream", "size=$size => $stream")
           // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
           val chunk = reader.readPacket(size)
-          debugStreamIpc(
-            "bindIncomeStream",
-            "supportCbor=$supportCbor,chunk=${chunk.remaining} => $stream"
-          )
+//          debugStreamIpc(
+//            "bindIncomeStream",
+//            "supportCbor=$supportCbor,chunk=${chunk.remaining} => $stream"
+//          )
           // 判断特殊的字节
           val byteArray = chunk.readByteArray()
           if (supportCbor) {
@@ -136,14 +124,10 @@ class ReadableStreamIpc(
       // 流是双向的，对方关闭的时候，自己也要关闭掉
       this.close()
     }
-
     /// 后台执行数据拉取
     incomeStreamCoroutineScope.launch {
       readStream()
       offAbort()
-    }
-    incomeStreamCoroutineScope.launch {
-      this@ReadableStreamIpc.start()
     }
     this
   }
@@ -151,15 +135,7 @@ class ReadableStreamIpc(
   // 处理二进制消息
   private suspend fun byteFactory(byteArray: ByteArray) {
     val pack = cborToIpcPoolPack(byteArray)
-//    unByteSpecial(pack.messageByteArray)?.let {
-//      when (it) {
-//        closeCborByteArray -> close()
-//        pingCborByteArray -> enqueue(ipcPoolPackToCbor(PackIpcMessage(pack.pid, CBOR_PONG_DATA)))
-//        pongCborByteArray -> debugStreamIpc("PONG", "$pack")
-//        else -> throw Exception("unknown message: $pack")
-//      }
-//      return
-//    }
+    //  closeCborByteArray -> close()
     val message = cborToIpcMessage(pack.messageByteArray, this@ReadableStreamIpc)
     val logMessage = message.toString().trim()
     debugStreamIpc("bindIncomeStream", "message=$logMessage => pid: ${pack.pid}")
@@ -173,17 +149,12 @@ class ReadableStreamIpc(
   }
 
   private suspend fun stringFactory(byteArray: ByteArray) {
-    val pack = jsonToIpcPack(byteArray.decodeToString())
-//    unStringSpecial(pack.ipcMessageString)?.let {
-//      when (it) {
-//        "close" -> close()
-//        "ping" -> enqueue(ipcPoolPackToCbor(PackIpcMessage(pack.pid, PONG_DATA)))
-//        "pong" -> debugStreamIpc("PONG", "pack=$pack")
-//        else -> throw Exception("unknown message: ${pack}")
-//      }
-//      return
-//    }
-    val message = jsonToIpcPoolPack(pack.ipcMessageString, this@ReadableStreamIpc)
+    val data = byteArray.decodeToString()
+    if (data == "close") {
+      return close()
+    }
+    val pack = Json.decodeFromString<IpcPoolPackString>(data)
+    val message = jsonToIpcPoolPack(pack.ipcMessage, this@ReadableStreamIpc)
     val logMessage = message.toString().trim()
     debugStreamIpc("bindIncomeStream", "message=$logMessage => $pack")
     // 收消息 分发出去

@@ -399,7 +399,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
         return@definePureResponse corsResponse
       }
-    );
+    )
   }
 
   private val simpleRequestHeaderKeys = setOf(

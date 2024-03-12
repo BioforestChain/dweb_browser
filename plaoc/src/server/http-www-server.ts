@@ -10,7 +10,7 @@ const CONFIG_PREFIX = "/config.sys.dweb/";
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
   constructor(readonly plaocConfig: PlaocConfig, private handlers: $OnFetch[] = []) {
-    super();
+    super("wwww");
   }
   get jsonPlaoc() {
     return this.plaocConfig.config;
@@ -56,7 +56,7 @@ export class Server_www extends HttpServer {
         });
         const rawText = await remoteIpcResponse.toResponse().text();
         remoteIpcResponse = IpcResponse.fromText(
-          remoteIpcResponse.req_id,
+          remoteIpcResponse.reqId,
           remoteIpcResponse.statusCode,
           remoteIpcResponse.headers,
           `;(${setupFetch.toString()})();${rawText}`,
@@ -77,7 +77,7 @@ export class Server_www extends HttpServer {
           remoteIpcResponse.headers.set("Content-Length", binary.length + "");
           // fromBinary 会自动添加正确的 ContentLength, 否则在Safari上会异常
           remoteIpcResponse = IpcResponse.fromBinary(
-            remoteIpcResponse.req_id,
+            remoteIpcResponse.reqId,
             remoteIpcResponse.statusCode,
             remoteIpcResponse.headers,
             binary,
@@ -95,7 +95,7 @@ export class Server_www extends HttpServer {
      * 如此数据就不会发给我，节省大量传输成本
      */
     const ipcResponse = new IpcResponse(
-      request.req_id,
+      request.reqId,
       remoteIpcResponse.statusCode,
       remoteIpcResponse.headers,
       remoteIpcResponse.body,

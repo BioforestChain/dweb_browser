@@ -1,11 +1,12 @@
 import {
-    $DwebHttpServerOptions,
-    $ReadableStreamIpc,
-    HttpDwebServer,
-    IpcHeaders,
-    ServerStartResult,
-    http,
-    jsProcess,
+  $DwebHttpServerOptions,
+  $ReadableStreamIpc,
+  HttpDwebServer,
+  IpcHeaders,
+  PromiseOut,
+  ServerStartResult,
+  http,
+  jsProcess,
 } from "../deps.ts";
 
 export type $IpcHeaders = InstanceType<typeof IpcHeaders>;
@@ -19,17 +20,37 @@ export const cors: (headers: $IpcHeaders) => $IpcHeaders = (headers: $IpcHeaders
   // headers.init("Transfer-Encoding", "chunked");
   return headers;
 };
+
+// const serverMap = new Map<string, PromiseOut<HttpDwebServer>>();
+
 export abstract class HttpServer {
+  private _serverP = new PromiseOut<HttpDwebServer>();
+  constructor(readonly channelId: string) {
+    const target = `http-server-${channelId}`;
+    this._serverP.resolve(http.createHttpDwebServer(target, jsProcess, this._getOptions(), jsProcess.ipcPool));
+    // this._serverP = mapHelper.getOrPut(serverMap, target, () => {
+    //   const server = new PromiseOut<HttpDwebServer>();
+    //   (async () => {
+    //     server.resolve(await http.createHttpDwebServer(target, jsProcess, this._getOptions(), jsProcess.ipcPool));
+    //   })();
+    //   return server;
+    // });
+  }
+
   protected abstract _getOptions(): $DwebHttpServerOptions;
-  protected _serverP: Promise<HttpDwebServer> = http.createHttpDwebServer(jsProcess, this._getOptions());
+
   getServer() {
-    return this._serverP;
+    return this._serverP.promise;
   }
   async getStartResult(): Promise<InstanceType<typeof ServerStartResult>> {
-    return this._serverP.then((server) => server.startResult);
+    return this._serverP.promise
+      .then((server) => server.startResult)
+      .catch((error) => {
+        throw error;
+      });
   }
   async stop() {
-    const server = await this._serverP;
+    const server = await this._serverP.promise;
     return await server.close();
   }
 
