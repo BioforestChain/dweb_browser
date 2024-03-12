@@ -4,12 +4,12 @@ import {
   $MMID,
   $OnFetch,
   $OnFetchReturn,
+  $ReadableStreamIpc,
   FetchEvent,
   IpcHeaders,
   IpcRequest,
   IpcResponse,
   PromiseOut,
-  ReadableStreamIpc,
   jsProcess,
   mapHelper,
 } from "./deps.ts";
@@ -22,7 +22,7 @@ const INTERNAL_PREFIX = "/internal/";
 /**给前端的api服务 */
 export class Server_api extends HttpServer {
   constructor(public getWid: () => Promise<string>, private handlers: $OnFetch[] = []) {
-    super();
+    super("api");
   }
   protected _getOptions(): $DwebHttpServerOptions {
     return {
@@ -90,9 +90,9 @@ export class Server_api extends HttpServer {
     if (pathname === "callback") {
       const id = event.searchParams.get("id");
       if (!id) {
-        return IpcResponse.fromText(event.req_id, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
+        return IpcResponse.fromText(event.reqId, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
       }
-      const ipc = await mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut()).promise;
+      const ipc = await mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut<$Ipc>()).promise;
       const response = await ipc.request(event.url.href, event.ipcRequest.toRequest());
       return response.toResponse();
     }
@@ -100,24 +100,25 @@ export class Server_api extends HttpServer {
     if (pathname === "registry-callback") {
       const id = event.searchParams.get("id");
       if (!id) {
-        return IpcResponse.fromText(event.req_id, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
+        return IpcResponse.fromText(event.reqId, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
       }
-      const readableStreamIpc = new ReadableStreamIpc(
-        {
+      const readableStreamIpc = jsProcess.ipcPool.create<$ReadableStreamIpc>(`${jsProcess.mmid}-api-server`, {
+        remote: {
           mmid: "localhost.dweb",
           ipc_support_protocols: { cbor: false, protobuf: false, raw: false },
           dweb_deeplinks: [],
           categories: [],
           name: "",
-        }
-      );
+        },
+      });
+
       readableStreamIpc.bindIncomeStream(event.request.body!);
       mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut()).resolve(readableStreamIpc);
-      return IpcResponse.fromStream(event.req_id, 200, undefined, readableStreamIpc.stream, event.ipc);
+      return IpcResponse.fromStream(event.reqId, 200, undefined, readableStreamIpc.stream, event.ipc);
     }
     if (pathname.startsWith("/usr")) {
       const response = await jsProcess.nativeRequest(`file://${pathname}`);
-      return new IpcResponse(event.req_id, response.statusCode, response.headers, response.body, event.ipc);
+      return new IpcResponse(event.reqId, response.statusCode, response.headers, response.body, event.ipc);
     }
   }
 
@@ -140,7 +141,7 @@ export class Server_api extends HttpServer {
       targetIpc
     );
     targetIpc.postMessage(ipcProxyRequest);
-    let ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.req_id).promise;
+    let ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.reqId).promise;
 
     /// 尝试申请授权
     if (ipcProxyResponse.statusCode === 401) {
@@ -154,7 +155,7 @@ export class Server_api extends HttpServer {
           ipcRequest.body,
           targetIpc
         );
-        ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.req_id).promise;
+        ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.reqId).promise;
       }
     }
 

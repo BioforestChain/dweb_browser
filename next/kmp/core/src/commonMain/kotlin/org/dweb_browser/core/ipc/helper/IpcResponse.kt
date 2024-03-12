@@ -24,13 +24,13 @@ class IpcResponse(
   }
   companion object {
     fun fromText(
-      req_id: Int,
+      reqId: Int,
       statusCode: Int = 200,
       headers: PureHeaders = PureHeaders(),
       text: String,
       ipc: Ipc
     ) = IpcResponse(
-      req_id,
+      reqId,
       statusCode,
       headers.also { headers.init("Content-Type", "text/plain") },
       IpcBodySender.fromText(text, ipc),
@@ -38,13 +38,13 @@ class IpcResponse(
     )
 
     fun fromBinary(
-      req_id: Int,
+      reqId: Int,
       statusCode: Int = 200,
       headers: PureHeaders,
       binary: ByteArray,
       ipc: Ipc
     ) = IpcResponse(
-      req_id,
+      reqId,
       statusCode,
       headers.also {
         headers.init("Content-Type", "application/octet-stream");
@@ -56,13 +56,13 @@ class IpcResponse(
 
 
     suspend fun fromStream(
-      req_id: Int,
+      reqId: Int,
       statusCode: Int = 200,
       headers: PureHeaders = PureHeaders(),
       stream: PureStream,
       ipc: Ipc
     ) = IpcResponse(
-      req_id,
+      reqId,
       statusCode,
       headers.also {
         headers.init("Content-Type", "application/octet-stream");
@@ -76,12 +76,12 @@ class IpcResponse(
     }
 
     suspend fun fromResponse(
-      req_id: Int,
+      reqId: Int,
       response: PureResponse,
       ipc: Ipc,
       bodyStrategy: BodyStrategy = BodyStrategy.AUTO
     ) = IpcResponse(
-      req_id,
+      reqId,
       response.status.value,
       response.headers,
       when (val len = response.body.contentLength) {
@@ -112,7 +112,7 @@ class IpcResponse(
 
 @Serializable
 data class IpcResMessage(
-  val req_id: Int,
+  val reqId: Int,
   val statusCode: Int,
   val headers: MutableMap<String, String>,
   val metaBody: MetaBody,

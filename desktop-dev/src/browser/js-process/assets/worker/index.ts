@@ -17,13 +17,14 @@ import * as http from "./std-dweb-http.ts";
 
 import { $RunMainConfig } from "../main/index.ts";
 import {
-  $messageToIpcMessage,
+  $objectToIpcMessage,
   $OnFetch,
   $OnIpcEventMessage,
   $OnIpcRequestMessage,
   createFetchHandler,
   Ipc,
   IPC_HANDLE_EVENT,
+  IpcError,
   IpcEvent,
   IpcRequest,
   MessagePortIpc,
@@ -50,11 +51,6 @@ declare global {
   }
 }
 const workerGlobal = self as DedicatedWorkerGlobalScope;
-
-// import * as helper_createSignal from "../../helper/createSignal.ts";
-// import * as helper_JsonlinesStream from "../../helper/stream/JsonlinesStream.ts";
-// import * as helper_PromiseOut from "../../helper/PromiseOut.ts";
-// import * as helper_readableStreamHelper from "../../helper/stream/readableStreamHelper.ts";
 
 export class Metadata<T extends $Metadata = $Metadata> {
   constructor(readonly data: T, readonly env: Record<string, string>) {}
@@ -92,8 +88,6 @@ type $Metadata = {
   mmid: $MMID;
 };
 
-// const js_process_ipc_support_protocols =
-
 /// 这个文件是给所有的 js-worker 用的，所以会重写全局的 fetch 函数，思路与 dns 模块一致
 /// 如果是在原生的系统中，不需要重写fetch函数，因为底层那边可以直接捕捉 fetch
 /// 虽然 nwjs 可以通过 chrome.webRequest 来捕捉请求，但没法自定义相应内容
@@ -117,8 +111,10 @@ export class JsProcessMicroModule implements $MicroModule {
   readonly host: string;
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
   readonly categories: $MicroModule["categories"] = [];
+  readonly ipcPool: core.IpcPool;
 
   constructor(readonly meta: Metadata, private nativeFetchPort: MessagePort) {
+    this.ipcPool = new core.IpcPool(meta.data.mmid);
     const _beConnect = (event: MessageEvent) => {
       const data = event.data;
       if (Array.isArray(data) === false) {
@@ -143,12 +139,16 @@ export class JsProcessMicroModule implements $MicroModule {
           });
           return ipc_po;
         });
-        const ipc = new MessagePortIpc(port, {
-          mmid,
-          ipc_support_protocols,
-          dweb_deeplinks: [],
-          categories: [],
-          name: this.name,
+        // 这里创建的是netive的代理ipc（Native2JsIpc） (tip: 这里的通信并不是马上建立的，因为对方只是发送过来一个port1,native端端port2有可能还在一个map里)
+        const ipc = this.ipcPool.create<MessagePortIpc>(`worker-createIpc-${mmid}`, {
+          remote: {
+            mmid,
+            ipc_support_protocols,
+            dweb_deeplinks: [],
+            categories: [],
+            name: this.name,
+          },
+          port: port,
         });
         port_po.resolve(ipc);
         if (typeof navigator === "object" && navigator.locks) {
@@ -207,7 +207,7 @@ export class JsProcessMicroModule implements $MicroModule {
           }
         });
         ipc.onError((error) => {
-          console.log("js-process onError=>", error);
+          console.log("js-process onError=>", ipc.channelId, error.message, error.errorCode);
           this._ipcConnectsMap.get(mmid)?.reject(error);
         });
       }
@@ -217,7 +217,11 @@ export class JsProcessMicroModule implements $MicroModule {
     this.mmid = meta.data.mmid;
     this.name = `js process of ${this.mmid}`;
     this.host = this.meta.envString("host");
-    this.fetchIpc = new MessagePortIpc(this.nativeFetchPort, this);
+    // 这里真正的跟native端的create-process 建立通信
+    this.fetchIpc = this.ipcPool.create(`create-process(fetchIpc)-${this.mmid}`, {
+      remote: this,
+      port: this.nativeFetchPort,
+    });
     this.fetchIpc.onEvent(async (ipcEvent) => {
       if (ipcEvent.name === "dns/connect/done" && typeof ipcEvent.data === "string") {
         const { connect, result } = JSON.parse(ipcEvent.data);
@@ -230,12 +234,15 @@ export class JsProcessMicroModule implements $MicroModule {
           }
         }
       } else if (ipcEvent.name.startsWith("forward/")) {
+        // 这里负责代理native端的请求
         const [_, action, mmid] = ipcEvent.name.split("/");
         const ipc = await this.connect(mmid as $MMID);
-        if (action === "request") {
-          const response = await ipc.request(
-            $messageToIpcMessage(JSON.parse(ipcEvent.data as string), ipc) as IpcRequest
-          );
+        console.log("workerForward=>", action, ipcEvent.text);
+        if (action === "lifeCycle") {
+          ipc.postMessage($objectToIpcMessage(JSON.parse(ipcEvent.text), ipc));
+          this.fetchIpc.postMessage($objectToIpcMessage(JSON.parse(ipcEvent.text), ipc));
+        } else if (action === "request") {
+          const response = await ipc.request($objectToIpcMessage(JSON.parse(ipcEvent.text), ipc) as IpcRequest);
           this.fetchIpc.postMessage(
             IpcEvent.fromText(`forward/response/${mmid}`, JSON.stringify(response.ipcResMessage()))
           );
@@ -380,9 +387,9 @@ export class JsProcessMicroModule implements $MicroModule {
   }
 
   private _appReady = new PromiseOut<void>();
-  private async afterIpcReady(_ipc: Ipc) {
+  private async afterIpcReady(ipc: Ipc) {
     await this._appReady.promise;
-    // await ipc.ready();
+    await ipc.ready();
   }
 
   ready() {
@@ -402,7 +409,7 @@ export class JsProcessMicroModule implements $MicroModule {
   close(reson?: any) {
     this._ipcConnectsMap.forEach(async (ipc) => {
       ipc.promise.then((res) => {
-        res.postMessage(IpcEvent.fromText("close", reson));
+        res.postMessage(new IpcError(500, `worker error=>${reson}`));
         res.close();
       });
     });

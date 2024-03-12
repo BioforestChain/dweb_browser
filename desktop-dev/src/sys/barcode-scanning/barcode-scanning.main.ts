@@ -77,7 +77,7 @@ export class BarcodeScanningNMM extends NativeMicroModule {
     const resPromise = new Promise((resolve) => this._operationResolveMap.set(resolveId, resolve));
     this._apis?.process(uint8Array, resolveId);
     const res = await resPromise;
-    return IpcResponse.fromJson(event.ipcRequest.req_id, 200, this._responseHeader, res, event.ipc);
+    return IpcResponse.fromJson(event.ipcRequest.reqId, 200, this._responseHeader, res, event.ipc);
   };
 
   private _stopHandler: $OnFetch = async (event: FetchEvent) => {
@@ -88,7 +88,7 @@ export class BarcodeScanningNMM extends NativeMicroModule {
     const resPromise = new Promise((resolve) => this._operationResolveMap.set(resolveId, resolve));
     this._apis?.stop(resolveId);
     const res = await resPromise;
-    return IpcResponse.fromJson(event.ipcRequest.req_id, 200, this._responseHeader, res, event.ipc);
+    return IpcResponse.fromJson(event.ipcRequest.reqId, 200, this._responseHeader, res, event.ipc);
   };
   private _getSupportedFormats: $OnFetch = async (event: FetchEvent) => {
     if (this._browserWindow === undefined) {
@@ -98,7 +98,7 @@ export class BarcodeScanningNMM extends NativeMicroModule {
     const resPromise = new Promise((resolve) => this._operationResolveMap.set(resolveId, resolve));
     this._apis?.getSupportedFormats(resolveId);
     const res = await resPromise;
-    return IpcResponse.fromJson(event.ipcRequest.req_id, 200, this._responseHeader, res, event.ipc);
+    return IpcResponse.fromJson(event.ipcRequest.reqId, 200, this._responseHeader, res, event.ipc);
   };
 
   protected _initUI = async () => {

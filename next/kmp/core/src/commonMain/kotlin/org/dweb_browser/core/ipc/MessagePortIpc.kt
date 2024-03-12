@@ -4,14 +4,12 @@ import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.DWebMessageBytesEncode
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.ipc.helper.IpcMessage
-import org.dweb_browser.core.ipc.helper.IpcMessageConst
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.core.ipc.helper.PackIpcMessage
@@ -23,8 +21,6 @@ import org.dweb_browser.core.ipc.helper.ipcPoolPackToCbor
 import org.dweb_browser.core.ipc.helper.ipcPoolPackToJson
 import org.dweb_browser.core.ipc.helper.jsonToIpcPack
 import org.dweb_browser.core.ipc.helper.jsonToIpcPoolPack
-import org.dweb_browser.core.ipc.helper.unByteSpecial
-import org.dweb_browser.core.ipc.helper.unStringSpecial
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
@@ -46,9 +42,7 @@ class MessagePort(private val port: IWebMessagePort) {
 
   private suspend fun installMessageSignal() {
     port.onMessage {
-      messageChannel.trySend(it).getOrElse { err ->
-        err?.printStackTrace()
-      }
+      messageChannel.send(it)
     }
 
   }
@@ -103,8 +97,6 @@ open class MessagePortIpc(
     ) = MessagePortIpc(MessagePort.from(port), remote, channelId, endpoint)
 
     private val closeByteArray = "close".toByteArray()
-    private val pingByteArray = "ping".toByteArray()
-    private val pongByteArray = "pong".toByteArray()
   }
 
   override fun toString(): String {
@@ -124,7 +116,7 @@ open class MessagePortIpc(
 //            pingByteArray -> port.postMessage(pongByteArray)
 //            pongByteArray -> debugMessagePortIpc("PONG", endpoint)
             is IpcPoolPack -> {
-              debugMessagePortIpc("ON-MESSAGE", "Normal.IpcPoolPack=> $endpoint => $message")
+              debugMessagePortIpc("ON-MESSAGE", "Normal.IpcPoolPack=> $channelId => $message")
               // 分发消息
               endpoint.emitMessage(IpcPoolMessageArgs(message, ipc))
             }
@@ -143,18 +135,11 @@ open class MessagePortIpc(
   }
 
   private suspend fun stringFactory(event: DWebMessage.DWebMessageString) {
-//    unStringSpecial(event.data)?.let {
-//      when (it) {
-//        "close" -> close()
-//        "ping" -> port.postMessage("pong")
-//        "pong" -> debugMessagePortIpc("PONG", "${this@MessagePortIpc}")
-//        else -> throw Exception("unknown message: $it")
-//      }
-//      return
-//    }
+    // 接受关闭信号
+    if (event.data == "close") return this.close()
     val pack = jsonToIpcPack(event.data)
-    val message = jsonToIpcPoolPack(pack.ipcMessageString, this@MessagePortIpc)
-    debugMessagePortIpc("ON-MESSAGE", "${pack.pid} => $message")
+    val message = jsonToIpcPoolPack(pack.ipcMessage, this@MessagePortIpc)
+    debugMessagePortIpc("ON-MESSAGE", "$channelId => $message")
     // 分发消息
     endpoint.emitMessage(
       IpcPoolMessageArgs(
@@ -165,18 +150,6 @@ open class MessagePortIpc(
   }
 
   private suspend fun cborFactory(event: DWebMessage.DWebMessageBytes) {
-//    unByteSpecial(event.data)?.let {
-//      when (it) {
-//        IpcMessageConst.closeCborByteArray -> close()
-//        IpcMessageConst.pingCborByteArray -> port.postMessage(
-//          IpcMessageConst.pongCborByteArray
-//        )
-//
-//        IpcMessageConst.pongCborByteArray -> debugMessagePortIpc("PONG", endpoint)
-//        else -> throw Exception("unknown message: $it")
-//      }
-//      return
-//    }
     val pack = cborToIpcPoolPack(event.data)
     val message = cborToIpcMessage(pack.messageByteArray, this@MessagePortIpc)
     debugMessagePortIpc("ON-MESSAGE", "$endpoint => $message")
@@ -202,6 +175,7 @@ open class MessagePortIpc(
   }
 
   override suspend fun doClose() {
+    this.port.postMessage("close")
     this.port.close()
     closeSignal.emit()
   }

@@ -18,7 +18,7 @@ const X_IPC_UPGRADE_KEY = "X-Dweb-Ipc-Upgrade-Key";
 
 export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   constructor(
-    readonly req_id: number,
+    readonly reqId: number,
     readonly url: string,
     readonly method: IPC_METHOD,
     readonly headers: IpcHeaders,
@@ -37,7 +37,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   }
 
   static fromText(
-    req_id: number,
+    reqId: number,
     url: string,
     method: IPC_METHOD = IPC_METHOD.GET,
     headers = new IpcHeaders(),
@@ -45,10 +45,10 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     ipc: Ipc
   ) {
     // 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
-    return new IpcRequest(req_id, url, method, headers, IpcBodySender.fromText(text, ipc), ipc);
+    return new IpcRequest(reqId, url, method, headers, IpcBodySender.fromText(text, ipc), ipc);
   }
   static fromBinary(
-    req_id: number,
+    reqId: number,
     url: string,
     method: IPC_METHOD = IPC_METHOD.GET,
     headers = new IpcHeaders(),
@@ -58,11 +58,11 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     headers.init("Content-Type", "application/octet-stream");
     headers.init("Content-Length", binary.byteLength + "");
 
-    return new IpcRequest(req_id, url, method, headers, IpcBodySender.fromBinary(binaryToU8a(binary), ipc), ipc);
+    return new IpcRequest(reqId, url, method, headers, IpcBodySender.fromBinary(binaryToU8a(binary), ipc), ipc);
   }
   // 如果需要发送stream数据 一定要使用这个方法才可以传递数据否则数据无法传递
   static fromStream(
-    req_id: number,
+    reqId: number,
     url: string,
     method: IPC_METHOD = IPC_METHOD.GET,
     headers = new IpcHeaders(),
@@ -71,11 +71,11 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   ) {
     headers.init("Content-Type", "application/octet-stream");
 
-    return new IpcRequest(req_id, url, method, headers, IpcBodySender.fromStream(stream, ipc), ipc);
+    return new IpcRequest(reqId, url, method, headers, IpcBodySender.fromStream(stream, ipc), ipc);
   }
 
   static fromRequest(
-    req_id: number,
+    reqId: number,
     ipc: Ipc,
     url: string,
     init: {
@@ -105,7 +105,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
       ipcBody = IpcBodySender.fromText(init.body ?? "", ipc);
     }
 
-    return new IpcRequest(req_id, url, method, headers, ipcBody, ipc);
+    return new IpcRequest(reqId, url, method, headers, ipcBody, ipc);
   }
 
   /**
@@ -145,7 +145,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   }
 
   readonly ipcReqMessage = once(
-    () => new IpcReqMessage(this.req_id, this.method, this.url, this.headers.toJSON(), this.body.metaBody)
+    () => new IpcReqMessage(this.reqId, this.method, this.url, this.headers.toJSON(), this.body.metaBody)
   );
 
   toJSON() {
@@ -153,7 +153,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     // let body: undefined | $BodyData;
     if ((method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) === false) {
       // body = this.body.raw;
-      return new IpcReqMessage(this.req_id, this.method, this.url, this.headers.toJSON(), this.body.metaBody);
+      return new IpcReqMessage(this.reqId, this.method, this.url, this.headers.toJSON(), this.body.metaBody);
     }
     return this.ipcReqMessage();
   }
@@ -161,7 +161,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
 
 export class IpcReqMessage extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   constructor(
-    readonly req_id: number,
+    readonly reqId: number,
     readonly method: IPC_METHOD,
     readonly url: string,
     readonly headers: Record<string, string>,

@@ -18,11 +18,12 @@ import {
   type $OnIpcMessage,
 } from "./helper/const.ts";
 
+import { once } from "../../helper/helper.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { $OnFetch, createFetchHandler } from "../helper/ipcFetchHelper.ts";
 import { IpcLifeCycle } from "./IpcLifeCycle.ts";
-import { PureChannel, pureChannelToIpcEvent } from "./PureChannel.ts";
 import { IpcPool } from "./IpcPool.ts";
+import { PureChannel, pureChannelToIpcEvent } from "./PureChannel.ts";
 export {
   FetchError,
   FetchEvent,
@@ -34,14 +35,18 @@ export {
 let ipc_uid_acc = 0;
 let _order_by_acc = 0;
 export abstract class Ipc {
+  private pid = 0;
+  constructor(readonly channelId: string, readonly endpoint: IpcPool) {
+    this.pid = endpoint.generatePid(channelId);
+    console.log(`收到激活消息worker xxlife listen=>🥑 ${channelId} ${this.pid}`);
+    this.initlifeCycleHook();
+  }
 
-  readonly uid = ipc_uid_acc++;
+  readonly uid = (ipc_uid_acc++).toString();
   static order_by_acc = _order_by_acc++;
+
   /**
-   * 是否支持使用 MessagePack 直接传输二进制
-   * 在一些特殊的场景下支持字符串传输，比如与webview的通讯
-   * 二进制传输在网络相关的服务里被支持，里效率会更高，但前提是对方有 MessagePack 的编解码能力
-   * 否则 JSON 是通用的传输协议
+   * 是否支持使用 cbor 直接传输二进制
    */
   get support_cbor() {
     return this._support_cbor;
@@ -91,20 +96,24 @@ export abstract class Ipc {
     return signal;
   }
 
-  protected _messageSignal = this._createSignal<$OnIpcMessage>(false);
-  postMessage(message: $IpcMessage): void {
+  private _messageSignal = this._createSignal<$OnIpcMessage>(false);
+
+  async postMessage(message: $IpcMessage) {
     if (this._closed) {
       return;
     }
-    this._doPostMessage(message);
+    // 等待通信建立完成
+    if (!this.isActivity && !(message instanceof IpcLifeCycle)) {
+      await this.awaitStart;
+    }
+    // 发到pool进行分发消息
+    this._doPostMessage(this.pid, message);
   }
-  abstract _doPostMessage(data: $IpcMessage): void;
+  abstract _doPostMessage(pid: number, data: $IpcMessage): void;
   onMessage = this._messageSignal.listen;
 
-  /**
-   * 强制触发消息传入，而不是依赖远端的 postMessage
-   */
-  emitMessage = (args: IpcRequest) => this._messageSignal.emit(args, this);
+  /**分发各类消息到本地*/
+  emitMessage = (args: $IpcMessage) => this._messageSignal.emit(args, this);
 
   private __onRequestSignal = new CacheGetter(() => {
     const signal = this._createSignal<$OnIpcRequestMessage>(false);
@@ -170,37 +179,6 @@ export abstract class Ipc {
   onLifeCycle(cb: $OnIpcLifeCycleMessage) {
     return this._lifeCycleSignal.value.listen(cb);
   }
-
-  lifeCycleHook() {
-    // TODO 跟对方通信 协商数据格式
-    this.onLifeCycle((lifeCycle, ipc) => {
-      console.log("lifeCycleHook=>", lifeCycle.state);
-      switch (lifeCycle.state) {
-        // 收到打开中的消息，也告知自己已经准备好了
-        case IPC_STATE.OPENING: {
-          ipc.postMessage(new IpcLifeCycle(IPC_STATE.OPEN));
-          break;
-        }
-        // 收到对方完成开始建立连接
-        case IPC_STATE.OPEN: {
-          if (!ipc.startDeferred.is_resolved) {
-            ipc.startDeferred.resolve(lifeCycle);
-          }
-          break;
-        }
-        // 消息通道开始关闭
-        case IPC_STATE.CLOSING: {
-          ipc.closing();
-          break;
-        }
-        // 对方关了，代表没有消息发过来了，我也关闭
-        case IPC_STATE.CLOSED: {
-          ipc.close();
-        }
-      }
-    });
-  }
-
   // lifecycle end
 
   private _errorSignal = new CacheGetter(() => {
@@ -217,20 +195,20 @@ export abstract class Ipc {
     return this._errorSignal.value.listen(cb);
   }
 
-  private _req_id_acc = 0;
+  private _reqId_acc = 0;
   allocReqId(_url?: string) {
-    return this._req_id_acc++;
+    return this._reqId_acc++;
   }
   private __reqresMap = new CacheGetter(() => {
     const reqresMap = new Map<number, PromiseOut<IpcResponse>>();
     this.onMessage((message) => {
       if (message.type === IPC_MESSAGE_TYPE.RESPONSE) {
-        const response_po = reqresMap.get(message.req_id);
+        const response_po = reqresMap.get(message.reqId);
         if (response_po) {
-          reqresMap.delete(message.req_id);
+          reqresMap.delete(message.reqId);
           response_po.resolve(message);
         } else {
-          throw new Error(`no found response by req_id: ${message.req_id}`);
+          throw new Error(`no found response by reqId: ${message.reqId}`);
         }
       }
     });
@@ -241,8 +219,8 @@ export abstract class Ipc {
   }
 
   private _buildIpcRequest(url: string, init?: $IpcRequestInit) {
-    const req_id = this.allocReqId();
-    const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
+    const reqId = this.allocReqId();
+    const ipcRequest = IpcRequest.fromRequest(reqId, this, url, init);
     return ipcRequest;
   }
 
@@ -251,13 +229,13 @@ export abstract class Ipc {
   request(url: string, init?: $IpcRequestInit): Promise<IpcResponse>;
   request(input: string | IpcRequest, init?: $IpcRequestInit) {
     const ipcRequest = input instanceof IpcRequest ? input : this._buildIpcRequest(input, init);
-    const result = this.registerReqId(ipcRequest.req_id);
+    const result = this.registerReqId(ipcRequest.reqId);
     this.postMessage(ipcRequest);
     return result.promise;
   }
   /** 自定义注册 请求与响应 的id */
-  registerReqId(req_id = this.allocReqId()) {
-    return mapHelper.getOrPut(this._reqresMap, req_id, () => new PromiseOut());
+  registerReqId(reqId = this.allocReqId()) {
+    return mapHelper.getOrPut(this._reqresMap, reqId, () => new PromiseOut());
   }
 
   /**
@@ -298,18 +276,21 @@ export abstract class Ipc {
   //   })();
   //   return await ready.promise;
   // });
-  // ready() {
-  //   return this.readyListener();
-  // }
+  ready() {
+    return once(async () => {
+      return await this.awaitStart;
+    })();
+  }
 
   // 标记是否启动完成
   startDeferred = new PromiseOut<IpcLifeCycle>();
-  isActivity = this.startDeferred.is_resolved;
+  isActivity = this.startDeferred.is_finished;
   awaitStart = this.startDeferred.promise;
   // 告知对方我启动了
   start() {
     this.ipcLifeCycleState = IPC_STATE.OPEN;
-    this.postMessage(new IpcLifeCycle(IPC_STATE.OPENING));
+    // 如果是后连接的也需要发个连接消息  这里唯一可能出现消息的丢失就是通道中消息丢失
+    this.postMessage(IpcLifeCycle.opening());
   }
 
   closing() {
@@ -318,6 +299,38 @@ export abstract class Ipc {
       // TODO 这里是缓存消息处理的最后时间区间
       this.close();
     }
+  }
+
+  /**ipc激活回调 */
+  initlifeCycleHook() {
+    // TODO 跟对方通信 协商数据格式
+    this.onLifeCycle((lifeCycle, ipc) => {
+      switch (lifeCycle.state) {
+        // 收到打开中的消息，也告知自己已经准备好了
+        case IPC_STATE.OPENING: {
+          ipc.postMessage(IpcLifeCycle.open());
+          ipc.startDeferred.resolve(lifeCycle);
+          break;
+        }
+        // 收到对方完成开始建立连接
+        case IPC_STATE.OPEN: {
+          console.log(`worker xxlife start=>🍟 ${ipc.remote.mmid} ${ipc.channelId}`);
+          if (!ipc.startDeferred.is_resolved) {
+            ipc.startDeferred.resolve(lifeCycle);
+          }
+          break;
+        }
+        // 消息通道开始关闭
+        case IPC_STATE.CLOSING: {
+          ipc.closing();
+          break;
+        }
+        // 对方关了，代表没有消息发过来了，我也关闭
+        case IPC_STATE.CLOSED: {
+          ipc.close();
+        }
+      }
+    });
   }
 
   /**----- close start*/

@@ -12,26 +12,23 @@ export class IpcBodyReceiver extends IpcBody {
    * 基于 metaBody 还原 IpcBodyReceiver
    */
   static from(metaBody: MetaBody, ipc: Ipc) {
-    return IpcBodyReceiver.CACHE.metaId_ipcBodySender_Map.get(metaBody.metaId) ?? new IpcBodyReceiver(metaBody, ipc);
+    return IpcBodyReceiver.CACHE.streamId_ipcBodySender_Map.get(metaBody.streamId) ?? new IpcBodyReceiver(metaBody, ipc);
   }
 
   constructor(readonly metaBody: MetaBody, ipc: Ipc) {
     super();
     if (metaBody.type_isStream) {
       const streamId = metaBody.streamId!;
-      const senderIpcUid = metaBody.senderUid;
-      const metaId = `${senderIpcUid}/${streamId}`;
-      /// 将第一次得到这个metaBody的 ipc 保存起来，这个ipc将用于接收
-      if (IpcBodyReceiver.CACHE.metaId_receiverIpc_Map.has(metaId) === false) {
+      if (IpcBodyReceiver.CACHE.streamId_receiverIpc_Map.has(streamId) === false) {
         ipc.onClose(() => {
-          IpcBodyReceiver.CACHE.metaId_receiverIpc_Map.delete(metaId);
+          IpcBodyReceiver.CACHE.streamId_receiverIpc_Map.delete(streamId);
         });
-        IpcBodyReceiver.CACHE.metaId_receiverIpc_Map.set(metaId, ipc);
+        IpcBodyReceiver.CACHE.streamId_receiverIpc_Map.set(streamId, ipc);
         metaBody.receiverUid = ipc.uid;
       }
-      const receiver = IpcBodyReceiver.CACHE.metaId_receiverIpc_Map.get(metaId);
+      const receiver = IpcBodyReceiver.CACHE.streamId_receiverIpc_Map.get(streamId);
       if (receiver === undefined) {
-        throw new Error(`no found ipc by metaId:${metaId}`);
+        throw new Error(`no found ipc by streamId:${streamId}`);
       }
       ipc = receiver;
       this._bodyHub = new BodyHub($metaToStream(this.metaBody, ipc));

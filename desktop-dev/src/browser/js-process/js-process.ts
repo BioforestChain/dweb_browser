@@ -1,6 +1,6 @@
 import { transfer, type Remote } from "comlink";
-import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
 import { $ReqMatcher, $isMatchReq } from "../../core/helper/$ReqMatcher.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/helper/category.const.ts";
 import type { $PromiseMaybe } from "../../core/helper/types.ts";
 import { MessagePortIpc, ReadableStreamIpc } from "../../core/index.ts";
 import { IpcHeaders } from "../../core/ipc/helper/IpcHeaders.ts";
@@ -47,7 +47,7 @@ interface $Code {
 /** 响应错误信息 */
 const _ipcErrorResponse = (requestMessage: IpcRequest, ipc: Ipc, statusCode: number, errorMessage: string) => {
   const headers = new IpcHeaders(CORS_HEADERS);
-  ipc.postMessage(IpcResponse.fromText(requestMessage.req_id, statusCode, headers, errorMessage, ipc));
+  ipc.postMessage(IpcResponse.fromText(requestMessage.reqId, statusCode, headers, errorMessage, ipc));
 };
 
 /** 响应实体内容 */
@@ -56,8 +56,8 @@ const _ipcSuccessResponse = (requestMessage: IpcRequest, ipc: Ipc, code: $Code) 
   headers.set("Content-Type", code.mime);
   ipc.postMessage(
     typeof code.data === "string"
-      ? IpcResponse.fromText(requestMessage.req_id, 200, headers, code.data, ipc)
-      : IpcResponse.fromBinary(requestMessage.req_id, 200, headers, code.data, ipc)
+      ? IpcResponse.fromText(requestMessage.reqId, 200, headers, code.data, ipc)
+      : IpcResponse.fromBinary(requestMessage.reqId, 200, headers, code.data, ipc)
   );
 };
 

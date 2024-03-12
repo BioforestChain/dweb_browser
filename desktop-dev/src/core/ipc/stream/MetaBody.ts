@@ -8,11 +8,10 @@ import type { Ipc } from "../ipc.ts";
 export class MetaBody {
   constructor(
     readonly type: IPC_META_BODY_TYPE,
-    readonly senderUid: number,
+    readonly senderUid: string,
     readonly data: string | Uint8Array,
-    readonly streamId?: string,
-    public receiverUid?: number,
-    readonly metaId = simpleDecoder(crypto.getRandomValues(new Uint8Array(8)), "base64")
+    readonly streamId: string = simpleDecoder(crypto.getRandomValues(new Uint8Array(8)), "base64"),
+    public receiverUid?: string,
   ) {}
   static fromJSON(metaBody: MetaBody | $JSON<MetaBody>) {
     if (metaBody instanceof MetaBody === false) {
@@ -22,13 +21,12 @@ export class MetaBody {
         metaBody.data,
         metaBody.streamId,
         metaBody.receiverUid,
-        metaBody.metaId
       );
     }
     return metaBody as MetaBody;
   }
 
-  static fromText(senderUid: number, data: string, streamId?: string, receiverUid?: number) {
+  static fromText(senderUid: string, data: string, streamId?: string, receiverUid?: string) {
     return new MetaBody(
       streamId == null ? IPC_META_BODY_TYPE.INLINE_TEXT : IPC_META_BODY_TYPE.STREAM_WITH_TEXT,
       senderUid,
@@ -37,7 +35,7 @@ export class MetaBody {
       receiverUid
     );
   }
-  static fromBase64(senderUid: number, data: string, streamId?: string, receiverUid?: number) {
+  static fromBase64(senderUid: string, data: string, streamId?: string, receiverUid?: string) {
     return new MetaBody(
       streamId == null ? IPC_META_BODY_TYPE.INLINE_BASE64 : IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
       senderUid,
@@ -46,8 +44,8 @@ export class MetaBody {
       receiverUid
     );
   }
-  static fromBinary(sender: Ipc | number, data: Uint8Array, streamId?: string, receiverUid?: number): MetaBody {
-    if (typeof sender === "number") {
+  static fromBinary(sender: Ipc | string, data: Uint8Array, streamId?: string, receiverUid?: string): MetaBody {
+    if (typeof sender === "string") {
       return new MetaBody(
         streamId == null ? IPC_META_BODY_TYPE.INLINE_BINARY : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
         sender,

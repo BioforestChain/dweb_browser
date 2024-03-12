@@ -1,4 +1,5 @@
 import type { $ReqMatcher } from "../../../core/helper/$ReqMatcher.ts";
+import type { IpcPool } from "../../../core/index.ts";
 import type { $MicroModule } from "../../../core/types.ts";
 import type { $DwebHttpServerOptions } from "../net/createNetServer.ts";
 
@@ -10,7 +11,12 @@ import { buildUrl } from "../../../helper/urlHelper.ts";
 import { ServerStartResult, ServerUrlInfo } from "../const.ts";
 
 /** 创建一个网络服务 */
-export const createHttpDwebServer = async (microModule: $MicroModule, options: $DwebHttpServerOptions) => {
+export const createHttpDwebServer = async (
+  channelId: string,
+  microModule: $MicroModule,
+  options: $DwebHttpServerOptions,
+  workerIpcPool: IpcPool
+) => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const startResult = await startHttpDwebServer(microModule, options);
   console.log(
@@ -19,14 +25,16 @@ export const createHttpDwebServer = async (microModule: $MicroModule, options: $
     startResult.urlInfo.internal_origin,
     startResult.urlInfo.public_origin
   );
-  return new HttpDwebServer(microModule, options, startResult);
+  return new HttpDwebServer(channelId, microModule, options, startResult, workerIpcPool);
 };
 
 export class HttpDwebServer {
   constructor(
+    private readonly channelId: string,
     private readonly nmm: $MicroModule,
     private readonly options: $DwebHttpServerOptions,
-    readonly startResult: ServerStartResult
+    readonly startResult: ServerStartResult,
+    private readonly workerIpcPool: IpcPool
   ) {}
   private _listenIpcPo = new PromiseOut<ReadableStreamIpc>();
   private _listenIpcP?: Promise<ReadableStreamIpc>;
@@ -39,8 +47,7 @@ export class HttpDwebServer {
     if (this._listenIpcP) {
       throw new Error("Listen method has been called more than once without closing.");
     }
-
-    this._listenIpcPo.resolve((this._listenIpcP = listenHttpDwebServer(this.nmm, this.startResult)));
+    this._listenIpcPo.resolve(listenHttpDwebServer(this.channelId, this.workerIpcPool, this.nmm, this.startResult));
   }
   /** 关闭监听 */
   close = once(async () => {
@@ -55,6 +62,8 @@ export class HttpDwebServer {
 }
 /** 开始处理请求 */
 export const listenHttpDwebServer = async (
+  channelId: string,
+  workerIpcPool: IpcPool,
   microModule: $MicroModule,
   startResult: ServerStartResult,
   routes: $ReqMatcher[] = [
@@ -72,7 +81,9 @@ export const listenHttpDwebServer = async (
 ) => {
   const httpModule = await microModule.connect("http.std.dweb");
   /// 创建一个基于 二进制流的 ipc 信道
-  const httpServerIpc = new ReadableStreamIpc(httpModule?.remote || microModule);
+  const httpServerIpc = workerIpcPool.create<ReadableStreamIpc>(channelId, {
+    remote: httpModule?.remote || microModule,
+  });
   const url = new URL(`file://http.std.dweb`);
   const ext = {
     pathname: "/listen",
@@ -105,6 +116,10 @@ export const startHttpDwebServer = async (microModule: $MicroModule, options: $D
       const { urlInfo, token } = obj;
       const serverUrlInfo = new ServerUrlInfo(urlInfo.host, urlInfo.internal_origin, urlInfo.public_origin);
       return new ServerStartResult(token, serverUrlInfo);
+    })
+    .catch((e) => {
+      console.log("startHttpDwebServer error=>", e);
+      throw e;
     });
 };
 

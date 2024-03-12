@@ -45,7 +45,7 @@ interface MainServer {
 
 export class IpcRequest {
   constructor(
-    readonly req_id: string,
+    readonly reqId: string,
     readonly url: string,
     readonly method: IPC_METHOD,
     readonly headers: Headers,

@@ -88,10 +88,10 @@ export const enum IPC_MESSAGE_TYPE {
   STREAM_ABORT,
   /** 类型：事件 */
   EVENT,
-  /**错误响应 */
-  ERROR,
   /**生命周期 */
   LIFE_CYCLE,
+  /**错误响应 */
+  ERROR,
 }
 
 /**
@@ -112,6 +112,7 @@ export const enum IPC_STATE {
   CLOSING = 3,
   CLOSED = 4,
 }
+
 /** 接收到的消息，可传输的数据 */
 export type $IpcTransferableMessage =
   | IpcReqMessage
@@ -133,8 +134,6 @@ export type $IpcOptions = {
   port?: MessagePort;
   /**当endpoint为Kotlin的时候需要传递*/
   channel?: MessagePort;
-  /**当endpoint为FrontEnd的时候需要传递*/
-  stream?: ReadableStream;
 };
 
 /**IpcPool*/

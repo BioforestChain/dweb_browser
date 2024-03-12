@@ -282,10 +282,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
   private val fromMMIDOriginIpcWM = mutableMapOf<MMID, PromiseOut<JmmIpc>>();
 
 
-  interface BridgeAbleIpc {
-    val bridgeOriginIpc: JmmIpc
-  }
-
   /**
    * 桥接ipc到js内部：
    * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
@@ -300,20 +296,16 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         parameters["mmid"] = fromMMID
       }.buildUnsafeString()
     ).int()
-
-    // 跟NativeMicroModule连接的才是需要转发桥接
+    // 跟自己代理的js-worker 建立 ipc
     val toJmmIpc = JmmIpc(
       portId,
       this@JsMicroModule,
       fromMMID,
       fetchIpc ?: throw CancellationException("ipcBridge abort"),
-      "native-ipcBridge",
-      kotlinIpcPool
+      "native-createIpc-${fromMMID}"
     )
-//    kotlinIpcPool.create(
-//      "native-ipcBridge",
-//      IpcOptions(this@JsMicroModule, port = ALL_MESSAGE_PORT_CACHE[portId])
-//    )
+    // 这里比较特殊因为是分发两个port 因此这里需要发送start
+    toJmmIpc.start()
     toJmmIpc.onClose {
       fromMMIDOriginIpcWM.remove(fromMMID)
     }

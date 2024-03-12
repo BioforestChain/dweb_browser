@@ -276,10 +276,10 @@ export class IpcBodySender extends IpcBody {
 
     const metaBody = new MetaBody(streamType, ipc.uid, streamFirstData, stream_id);
     // 流对象，写入缓存
-    IpcBodySender.CACHE.metaId_ipcBodySender_Map.set(metaBody.metaId, this);
+    IpcBodySender.CACHE.streamId_ipcBodySender_Map.set(metaBody.streamId, this);
     this.streamCtorSignal.listen((signal) => {
       if (signal == STREAM_CTOR_SIGNAL.ABORTED) {
-        IpcBodySender.CACHE.metaId_ipcBodySender_Map.delete(metaBody.metaId);
+        IpcBodySender.CACHE.streamId_ipcBodySender_Map.delete(metaBody.streamId);
       }
     });
     return metaBody;

@@ -38,7 +38,7 @@ export abstract class MicroModule implements $MicroModule {
 
   public addToIpcSet(ipc: Ipc) {
     if (this._running_state_lock.value === true) {
-      // void ipc.ready();
+      void ipc.ready();
     }
     this._ipcSet.add(ipc);
     ipc.onClose(() => {
@@ -69,10 +69,10 @@ export abstract class MicroModule implements $MicroModule {
     this._running_state_lock.resolve(true);
     /// 默认承认ready协议的存在，并在模块启动完成后，通知对方ready了
     this.onConnect((ipc) => {
-      // void ipc.ready();
+      void ipc.ready();
     });
     for (const ipc of this._ipcSet) {
-      // void ipc.ready();
+      void ipc.ready();
     }
   }
 
@@ -144,7 +144,7 @@ export abstract class MicroModule implements $MicroModule {
         this._activitySignal.emit(event, ipc);
       }
       if (event.name == IPC_HANDLE_EVENT.Renderer) {
-        this._activitySignal.emit(event, ipc)
+        this._activitySignal.emit(event, ipc);
       }
     });
     this._connectSignal.emit(ipc, reason);
@@ -158,10 +158,12 @@ export abstract class MicroModule implements $MicroModule {
     const args = normalizeFetchArgs(url, init);
     for (const adapter of nativeFetchAdaptersManager.adapters) {
       const response = await adapter(this, args.parsed_url, args.request_init);
+      console.log("start=> adapter", response);
       if (response !== undefined) {
         return response;
       }
     }
+    console.log("start=> adapter", args.parsed_url.href, args.request_init);
     return fetch(args.parsed_url, args.request_init);
   }
 
@@ -169,6 +171,7 @@ export abstract class MicroModule implements $MicroModule {
     if (init?.body instanceof ReadableStream) {
       Reflect.set(init, "duplex", "half");
     }
+    console.log("start=>", this.mmid, url, init);
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 
