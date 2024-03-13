@@ -44,7 +44,6 @@ import kotlinx.coroutines.launch
  *
  * @param controller A [CaptureController] which gives control to capture the Composable content.
  */
-@ExperimentalComposeUiApi
 fun Modifier.capturable(controller: CaptureController): Modifier {
   return this then CapturableModifierNodeElement(controller)
 }

@@ -1,7 +1,6 @@
 package org.dweb_browser.helper.capturable
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.coroutines.CompletableDeferred
@@ -33,9 +32,7 @@ class CaptureController {
    *
    * @param config ImageBitmap config
    */
-  @ExperimentalComposeApi
   fun captureAsync(config: CaptureConfig = CaptureConfig.default): Deferred<ImageBitmap> {
-
     val deferredImageBitmap = CompletableDeferred<ImageBitmap>()
     return deferredImageBitmap.also {
       _captureRequests.tryEmit(CaptureRequest(imageBitmapDeferred = it, config = config))

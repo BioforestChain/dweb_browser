@@ -18,9 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.dweb_browser.browser.BrowserDrawResource
-import org.dweb_browser.browser.common.CaptureView
 import org.dweb_browser.browser.web.data.BrowserContentItem
 import org.dweb_browser.browser.web.model.BrowserViewModel
+import org.dweb_browser.helper.capturable.capturable
 
 @Composable
 internal fun BrowserMainView(viewModel: BrowserViewModel, browserContentItem: BrowserContentItem) {
@@ -29,19 +29,12 @@ internal fun BrowserMainView(viewModel: BrowserViewModel, browserContentItem: Br
     browserContentItem.captureView()
   }
 
-  CaptureView(
-    controller = browserContentItem.controller,
-    onCaptured = { imageBitmap, _ ->
-      imageBitmap?.let { bitmap ->
-        browserContentItem.bitmap = bitmap
-      }
-    }
-  ) { HomePage() }
+  HomePage(Modifier.capturable(browserContentItem.controller))
 }
 
 @Composable
-fun HomePage() {
-  Box(modifier = Modifier.fillMaxSize()) {
+fun HomePage(modifier: Modifier = Modifier) {
+  Box(modifier = modifier.fillMaxSize()) {
     Column(
       modifier = Modifier.align(Alignment.Center),
       horizontalAlignment = Alignment.CenterHorizontally

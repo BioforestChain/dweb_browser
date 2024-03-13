@@ -120,8 +120,7 @@ class BrowserViewModel(
   val browserOnVisible = browserController.onWindowVisiable
   val browserOnClose = browserController.onCloseWindow
 
-  fun getBrowserViewOrNull(currentPage: Int) =
-    if (currentPage in 0..listSize) browserContentItems[currentPage] else null
+  fun getBrowserViewOrNull(currentPage: Int) = browserContentItems.getOrNull(currentPage)
 
   private suspend fun focusBrowserView(view: BrowserContentItem) {
     val index = browserContentItems.indexOf(view)

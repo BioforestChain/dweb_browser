@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,9 +30,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
@@ -82,15 +84,15 @@ fun MultiItemView(
           ?: Alignment.Center
       )
       val homePageTitle = BrowserI18nResource.browser_multi_startup()
-      val homePageIcon = BrowserDrawResource.BrowserStar.image()
+      val homePageIcon = BrowserDrawResource.BrowserStar.painter()
       var contentTitle by remember { mutableStateOf(homePageTitle) }
-      var contentIcon by remember { mutableStateOf<ImageBitmap?>(homePageIcon) }
+      var contentIcon by remember { mutableStateOf<Painter?>(homePageIcon) }
 
       LaunchedEffect(browserContentItem) {
         browserContentItem.contentWebItem.value?.viewItem?.let { viewItem ->
           if (!viewItem.webView.getUrl().isSystemUrl()) {
             contentTitle = viewItem.webView.getTitle()
-            contentIcon = viewItem.webView.getFavoriteIcon()
+            contentIcon = viewItem.webView.getFavoriteIcon()?.let { BitmapPainter(it) }
           }
         }
       }
@@ -102,8 +104,13 @@ fun MultiItemView(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
       ) {
-        contentIcon?.let { imageBitmap ->
-          Image(bitmap = imageBitmap, contentDescription = null, modifier = Modifier.size(12.dp))
+        contentIcon?.let { iconPainter ->
+          Image(
+            painter = iconPainter,
+            contentDescription = null,
+            modifier = Modifier.size(12.dp),
+            colorFilter = ColorFilter.tint(LocalContentColor.current)
+          )
           Spacer(modifier = Modifier.width(2.dp))
         }
         Text(text = contentTitle, maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 12.sp)

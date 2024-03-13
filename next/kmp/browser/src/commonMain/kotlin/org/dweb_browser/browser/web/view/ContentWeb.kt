@@ -14,7 +14,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.common.CaptureView
 import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.browser.web.data.BrowserContentItem
@@ -24,6 +23,7 @@ import org.dweb_browser.browser.web.model.toWebSiteInfo
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.ScrollChangeEvent
 import org.dweb_browser.helper.OffListener
+import org.dweb_browser.helper.capturable.capturable
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedState
@@ -59,50 +59,42 @@ internal fun BrowserWebView(
     }
   }
 
-  CaptureView(
-    modifier = Modifier.fillMaxSize(),
-    controller = browserContentItem.controller,
-    onCaptured = { imageBitmap, exception ->
-      imageBitmap?.let { browserContentItem.bitmap = imageBitmap }
+  BoxWithConstraints(Modifier.capturable(browserContentItem.controller).fillMaxSize()) {
+    val win = LocalWindowController.current
+    val colorScheme by win.watchedState { colorScheme }
+    LaunchedEffect(colorScheme) {
+      contentViewItem.viewItem.webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
     }
-  ) {
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-      val win = LocalWindowController.current
-      val colorScheme by win.watchedState { colorScheme }
-      LaunchedEffect(colorScheme) {
-        contentViewItem.viewItem.webView.setPrefersColorScheme(colorScheme.toWebColorScheme())
-      }
 
-      val density = LocalDensity.current.density
+    val density = LocalDensity.current.density
 
-      LaunchedEffect(windowRenderScope.scale, maxWidth, maxHeight) {
-        contentViewItem.viewItem.webView.setContentScale(
-          windowRenderScope.scale,
-          maxWidth.value,
-          maxHeight.value,
-          density,
-        )
-      }
+    LaunchedEffect(windowRenderScope.scale, maxWidth, maxHeight) {
+      contentViewItem.viewItem.webView.setContentScale(
+        windowRenderScope.scale,
+        maxWidth.value,
+        maxHeight.value,
+        density,
+      )
+    }
 
-      key(contentViewItem.viewItem) {
-        var off by remember { mutableStateOf<OffListener<ScrollChangeEvent>?>(null) }
+    key(contentViewItem.viewItem) {
+      var off by remember { mutableStateOf<OffListener<ScrollChangeEvent>?>(null) }
 
-        contentViewItem.viewItem.webView.Render(
-          modifier = Modifier.fillMaxSize(),
-          onCreate = {
-            val webView = contentViewItem.viewItem.webView
-            off = webView.onScroll {
-              contentViewItem.webViewY = it.scrollY // 用于截图的时候进行定位截图
-            }
-          },
-          onDispose = {
-            off?.also {
-              it()
-              off = null
-            }
+      contentViewItem.viewItem.webView.Render(
+        modifier = Modifier.fillMaxSize(),
+        onCreate = {
+          val webView = contentViewItem.viewItem.webView
+          off = webView.onScroll {
+            contentViewItem.webViewY = it.scrollY // 用于截图的时候进行定位截图
           }
-        )
-      }
+        },
+        onDispose = {
+          off?.also {
+            it()
+            off = null
+          }
+        }
+      )
     }
   }
   LoadingView(contentViewItem.loadState) // 先不显示加载框。

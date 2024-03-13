@@ -11,7 +11,6 @@ import dweb_browser_kmp.browser.generated.resources.ic_main_star
 import dweb_browser_kmp.browser.generated.resources.ic_web
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
 
 
@@ -49,8 +48,5 @@ enum class BrowserDrawResource(val urls: List<String>, val res: DrawableResource
 
   @Composable
   fun painter() = painterResource(res)
-
-  @Composable
-  fun image() = imageResource(res)
 }
 

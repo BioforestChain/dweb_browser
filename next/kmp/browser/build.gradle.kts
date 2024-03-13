@@ -19,6 +19,7 @@ kotlin {
     dependencies {
       implementation(projects.helper)
       implementation(projects.helperCompose)
+      implementation(projects.helperCapturable)
       implementation(projects.helperPlatform)
       implementation(projects.pureIO)
       implementation(projects.pureCrypto)
