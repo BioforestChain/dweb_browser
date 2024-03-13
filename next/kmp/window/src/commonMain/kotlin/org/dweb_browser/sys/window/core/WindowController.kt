@@ -2,6 +2,7 @@ package org.dweb_browser.sys.window.core
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.focus.FocusRequester
 import kotlinx.coroutines.CoroutineScope
@@ -14,6 +15,8 @@ import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.Rect
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
@@ -123,7 +126,8 @@ abstract class WindowController(
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
-  val onMaximize = createStateListener(WindowPropertyKeys.Mode,
+  val onMaximize = createStateListener(
+    WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", id) }
 
   internal open suspend fun simpleMaximize() {
@@ -196,7 +200,8 @@ abstract class WindowController(
   suspend fun show() = toggleVisible(true)
   suspend fun hide() = toggleVisible(false)
 
-  val onClose = createStateListener(WindowPropertyKeys.Mode,
+  val onClose = createStateListener(
+    WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSE }) { debugWindow("emit onClose", id) }
 
   fun isClosed() = state.mode == WindowMode.CLOSE
@@ -286,17 +291,37 @@ abstract class WindowController(
   private val goBackSignal = SimpleSignal()
   val onGoBack = goBackSignal.toListener()
 
+  private class GoBackRecord internal constructor(
+    var enabled: Boolean,
+    val onBack: suspend () -> Unit
+  ) {
+    companion object {
+      private val WM = WeakHashMap<suspend () -> Unit, GoBackRecord>()
+      fun from(onBack: suspend () -> Unit, enabled: Boolean) =
+        WM.getOrPut(onBack) { GoBackRecord(enabled, onBack) }.also { it.enabled = enabled }
+    }
+  }
+
+  private val onBackRecords by lazy {
+    mutableStateListOf<GoBackRecord>().also { records ->
+      onGoBack {
+        records.lastOrNull { it.enabled }?.onBack?.invoke()
+      }
+    }
+  }
+
   @Composable
   fun GoBackHandler(
-    enabled: Boolean = true, closeTip: String? = state.closeTip, onBack: suspend () -> Unit
+    enabled: Boolean = true, onBack: suspend () -> Unit
   ) {
-    state.closeTip = closeTip
-    DisposableEffect(this, enabled) {
-      state.canGoBack = enabled
-      val off = onGoBack { if (enabled) onBack() }
+    DisposableEffect(this, enabled, onBack) {
+      val record = GoBackRecord.from(onBack, enabled)
+      onBackRecords.add(record)
+      state.canGoBack = onBackRecords.size > 0
       onDispose {
-        state.canGoBack = null
-        off()
+        onBackRecords.remove(record)
+        state.canGoBack =
+          if (onBackRecords.isEmpty()) null else onBackRecords.any { it.enabled }
       }
     }
   }

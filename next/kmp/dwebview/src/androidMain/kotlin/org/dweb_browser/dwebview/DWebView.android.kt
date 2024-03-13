@@ -227,7 +227,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   override val onScroll by lazy { engine.scrollSignal.toListener() }
 
   override suspend fun getFavoriteIcon(): ImageBitmap? {
-    return this.asAndroidWebView().favicon?.asImageBitmap()
+    return engine.favicon?.asImageBitmap()
   }
 
   override suspend fun setSafeAreaInset(bounds: Bounds) = withMainContext {
