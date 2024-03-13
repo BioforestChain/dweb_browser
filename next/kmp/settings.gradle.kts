@@ -105,6 +105,7 @@ if (features.desktopApp.enabled) {
 if (features.libs.enabled) {
   include(":helper")
   include(":helperCompose")
+  include(":helperCapturable")
   include(":helperPlatform")
 
   include(":pureHttp")
