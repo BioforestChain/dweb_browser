@@ -118,8 +118,8 @@ object BrowserI18nResource {
   val browser_search_hint =
     SimpleI18nResource(Language.ZH to "搜索或输入网址", Language.EN to "Search or Input Website")
   val browser_empty_list = SimpleI18nResource(Language.ZH to "暂无数据", Language.EN to "No Data")
-  val browser_options_editBook =
-    SimpleI18nResource(Language.ZH to "编辑书签", Language.EN to "Edit Book")
+  val browser_bookmark_edit_dialog_title =
+    SimpleI18nResource(Language.ZH to "编辑书签", Language.EN to "Edit Bookmark")
   val browser_options_engine_list =
     SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engine")
   val browser_options_engine_update =
@@ -144,9 +144,18 @@ object BrowserI18nResource {
     Language.ZH to "关键字搜索，需要通过搜索引擎，请先正确配置搜索引擎！",
     Language.EN to "Keyword search requires the use of search engines. Please configure the search engine correctly first!"
   )
-  val browser_options_store = SimpleI18nResource(Language.ZH to "存储", Language.EN to "Store")
+  val browser_options_store = SimpleI18nResource(Language.ZH to "保存", Language.EN to "Save")
   val browser_options_delete = SimpleI18nResource(Language.ZH to "删除", Language.EN to "Delete")
-  val browser_bookmark_title = SimpleI18nResource(Language.ZH to "书签", Language.EN to "Bookmark")
+  val browser_bookmark_page_title =
+    SimpleI18nResource(Language.ZH to "书签", Language.EN to "Bookmark")
+  val browser_bookmark_edit_tip = SimpleI18nResource(
+    Language.ZH to "点击书签可以进行修改",
+    Language.EN to "You can edit in dialog by tap bookmark"
+  )
+  val browser_bookmark_title =
+    SimpleI18nResource(Language.ZH to "书签标题", Language.EN to "Bookmark Title")
+  val browser_bookmark_url =
+    SimpleI18nResource(Language.ZH to "链接地址", Language.EN to "Bookmark Url")
   val browser_options_addToBook =
     SimpleI18nResource(Language.ZH to "添加到书签", Language.EN to "Add To Book")
   val browser_options_share = SimpleI18nResource(Language.ZH to "分享", Language.EN to "Share")

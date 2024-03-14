@@ -81,7 +81,7 @@ internal fun BrowserMenu() {
       }
     }
     SettingListItem(
-      BrowserI18nResource.browser_bookmark_title(), Icons.Default.Bookmark, {
+      BrowserI18nResource.browser_bookmark_page_title(), Icons.Default.Bookmark, {
         hide()
         scope.launch { viewModel.tryOpenUrl("about:bookmarks") }
       }, Icons.AutoMirrored.Filled.ArrowForwardIos

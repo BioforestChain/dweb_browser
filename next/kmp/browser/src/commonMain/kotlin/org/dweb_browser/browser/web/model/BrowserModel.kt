@@ -23,6 +23,11 @@ import org.dweb_browser.browser.util.isDeepLink
 import org.dweb_browser.browser.util.isOnlyHost
 import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.BrowserController
+import org.dweb_browser.browser.web.data.ConstUrl
+import org.dweb_browser.browser.web.data.KEY_LAST_SEARCH_KEY
+import org.dweb_browser.browser.web.data.KEY_NO_TRACE
+import org.dweb_browser.browser.web.data.WebSiteInfo
+import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.data.page.BrowserBookmarkPage
 import org.dweb_browser.browser.web.data.page.BrowserDownloadPage
 import org.dweb_browser.browser.web.data.page.BrowserHistoryPage
@@ -30,11 +35,6 @@ import org.dweb_browser.browser.web.data.page.BrowserHomePage
 import org.dweb_browser.browser.web.data.page.BrowserPage
 import org.dweb_browser.browser.web.data.page.BrowserSettingPage
 import org.dweb_browser.browser.web.data.page.BrowserWebPage
-import org.dweb_browser.browser.web.data.ConstUrl
-import org.dweb_browser.browser.web.data.KEY_LAST_SEARCH_KEY
-import org.dweb_browser.browser.web.data.KEY_NO_TRACE
-import org.dweb_browser.browser.web.data.WebSiteInfo
-import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.debugBrowser
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -51,12 +51,11 @@ import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermission
 import org.dweb_browser.sys.share.ext.postSystemShare
+import org.dweb_browser.sys.toast.PositionType
 import org.dweb_browser.sys.toast.ext.showToast
 
 val LocalBrowserViewModel = compositionChainOf<BrowserViewModel>("BrowserModel")
 
-@Composable
-fun rememberBrowserViewModal() = LocalBrowserViewModel.current
 
 /**
  * 用于显示搜索的界面，也就是点击搜索框后界面
@@ -408,27 +407,46 @@ class BrowserViewModel(
     it.url == url
   }.map { removeBookmark(it).join() }
 
+
   /**
    * 操作书签数据
    * 新增：需要新增数据
    * 修改：该对象已经变更，可直接保存，所以不需要传
    * 删除：需要删除数据
    */
-  fun addBookmark(item: WebSiteInfo) = browserController.ioAsyncScope.launch {
+  fun addBookmark(vararg items: WebSiteInfo) = browserController.ioAsyncScope.launch {
     showToastMessage(BrowserI18nResource.toast_message_add_book.text)
-    browserController.bookmarks.value += item
+    val oldBookmarkMap = browserController.bookmarks.value.associateBy { it.url }
+    // 在老列表中，寻找没有交集的部分
+    val newItems = items.filter { newItem -> !oldBookmarkMap.containsKey(newItem.url) }
+    // 追加到前面
+    browserController.bookmarks.value = (newItems + browserController.bookmarks.value)
     browserController.saveBookLinks()
   }
 
-  fun removeBookmark(item: WebSiteInfo) = browserController.ioAsyncScope.launch {
+  fun removeBookmark(vararg items: WebSiteInfo) = browserController.ioAsyncScope.launch {
     showToastMessage(BrowserI18nResource.toast_message_remove_book.text)
-    browserController.bookmarks.value -= item
+    browserController.bookmarks.value -= items
     browserController.saveBookLinks()
   }
 
-  fun updateBookLink(item: WebSiteInfo) = browserController.ioAsyncScope.launch {
+  /**
+   * 修改书签
+   *
+   * 返回Boolean：是否修改成功
+   */
+  suspend fun updateBookmark(oldBookmark: WebSiteInfo, newBookmark: WebSiteInfo): Boolean {
+    val bookmarks = browserController.bookmarks.value
+    val index = bookmarks.indexOf(oldBookmark)
+    if (index == -1) {
+      return false
+    }
+    val newBookmarks = bookmarks.toMutableList()
+    newBookmarks[index] = newBookmark
+    browserController.bookmarks.value = newBookmarks.toList()
     showToastMessage(BrowserI18nResource.toast_message_update_book.text)
     browserController.saveBookLinks()
+    return true
   }
 
   /**
@@ -484,8 +502,8 @@ class BrowserViewModel(
     browserController.loadMoreHistory(off)
   }
 
-  fun showToastMessage(message: String) {
-    browserController.ioAsyncScope.launch { browserNMM.showToast(message) }
+  fun showToastMessage(message: String, position: PositionType? = null) {
+    browserController.ioAsyncScope.launch { browserNMM.showToast(message, position = position) }
   }
 
   fun getDownloadModel() = browserController.downloadModel
