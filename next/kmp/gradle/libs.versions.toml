@@ -5,12 +5,12 @@ minSdkVersion = "28" # Int
 targetSdkVersion = "34" # Int
 versionCode = "80" # Int
 versionName = "2.240130.0"
-kotlinCompilerExtensionVersion = "1.5.10"
+kotlinCompilerExtensionVersion = "1.5.10.1"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
 agp = "8.3.0"
-kotlin-version = "1.9.22"
+kotlin-version = "1.9.23"
 androidx-test = "1.5.2"
 androidx-compose-ui-test = "1.6.3"
 androidx-lifecycle = "2.7.0"
@@ -44,7 +44,7 @@ coil-version = "3.0.0-alpha06"
 camera-version = "1.4.0-alpha04"
 camera-barcode = "17.2.0"
 commons-compress = "1.24.0"
-jetbrains-compose-version = "1.6.0"
+jetbrains-compose-version = "1.6.1"
 
 # 测试
 test-junit-bom = "5.10.1"
