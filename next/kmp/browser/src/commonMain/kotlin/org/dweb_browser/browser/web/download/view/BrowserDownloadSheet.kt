@@ -72,11 +72,11 @@ fun BrowserDownloadModel.BrowserDownloadSheet(downloadItem: BrowserDownloadItem)
   ) {
     when (it) {
       true -> {
-        BrowserDownloadTip(downloadItem)
+        DownloadTip(downloadItem)
       }
 
       false -> {
-        BrowserDownloadView(downloadItem)
+        DownloadSheet(downloadItem)
       }
     }
   }
@@ -86,7 +86,7 @@ fun BrowserDownloadModel.BrowserDownloadSheet(downloadItem: BrowserDownloadItem)
  * 用于提示当前下载链接已存在，是否重新下载
  */
 @Composable
-private fun BrowserDownloadModel.BrowserDownloadTip(downloadItem: BrowserDownloadItem) {
+private fun BrowserDownloadModel.DownloadTip(downloadItem: BrowserDownloadItem) {
   Card(elevation = CardDefaults.cardElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp, 0.dp)) {
     Column(
       Modifier.padding(horizontal = 16.dp, vertical = 32.dp),
@@ -109,7 +109,7 @@ private fun BrowserDownloadModel.BrowserDownloadTip(downloadItem: BrowserDownloa
           Text(text = sheet_download_tip_cancel())
         }
 
-        Button(onClick = { alreadyExist.value = false }) {
+        Button(onClick = { clickRetryButton(downloadItem) }) {
           val text =
             if (downloadItem.state.valueIn(DownloadState.Downloading, DownloadState.Paused)) {
               sheet_download_tip_continue()
@@ -125,7 +125,7 @@ private fun BrowserDownloadModel.BrowserDownloadTip(downloadItem: BrowserDownloa
  * 下载的显示界面
  */
 @Composable
-private fun BrowserDownloadModel.BrowserDownloadView(downloadItem: BrowserDownloadItem) {
+private fun BrowserDownloadModel.DownloadSheet(downloadItem: BrowserDownloadItem) {
   val state = LocalWindowController.current.state
   val microModule by state.constants.microModule
 

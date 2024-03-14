@@ -66,7 +66,7 @@ import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tip_emp
 import org.dweb_browser.browser.web.download.BrowserDownloadItem
 import org.dweb_browser.browser.web.download.BrowserDownloadManagePage
 import org.dweb_browser.browser.web.download.BrowserDownloadModel
-import org.dweb_browser.helper.compose.VerticalDivider
+import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.formatDatestampByMilliseconds
@@ -81,6 +81,7 @@ import org.dweb_browser.sys.window.render.imageFetchHook
 fun BrowserDownloadModel.BrowserDownloadManage(onClose: () -> Unit) {
   AnimatedContent(
     targetState = managePage.value,
+    modifier = Modifier.fillMaxSize().clickableWithNoEffect { }, // 避免点击被背后响应了
     transitionSpec = {
       if (targetState.ordinal > initialState.ordinal) {
         (slideInHorizontally { fullWidth -> fullWidth } + fadeIn()).togetherWith(
@@ -93,22 +94,22 @@ fun BrowserDownloadModel.BrowserDownloadManage(onClose: () -> Unit) {
   ) { page ->
     when (page) {
       // 跳转下载管理界面，包含了“下载中”和“已下载”两个列表，“已下载”列表当前只展示最新的五条记录
-      BrowserDownloadManagePage.Manage -> BrowserDownloadManageView(
+      BrowserDownloadManagePage.Manage -> BrowserDownloadHomePage(
         onClose = onClose,
         openMore = { managePage.value = BrowserDownloadManagePage.MoreCompleted },
         openDelete = { managePage.value = BrowserDownloadManagePage.DeleteAll }
       )
       // 跳转删除下载数据界面，列表内容包含了所有的下载数据
-      BrowserDownloadManagePage.DeleteAll -> BrowserDownloadDeleteView(onlyComplete = false) {
+      BrowserDownloadManagePage.DeleteAll -> BrowserDownloadDeletePage(onlyComplete = false) {
         managePage.value = BrowserDownloadManagePage.Manage
       }
       // 跳转已下载数据界面，列表内容包含了所有的“已下载”数据
-      BrowserDownloadManagePage.MoreCompleted -> BrowserDownloadMoreView(
+      BrowserDownloadManagePage.MoreCompleted -> BrowserDownloadMorePage(
         onBack = { managePage.value = BrowserDownloadManagePage.Manage },
         openDelete = { managePage.value = BrowserDownloadManagePage.DeleteCompleted }
       )
       // 跳转删除下载数据界面，列表内容包含了所有的“已下载”数据
-      BrowserDownloadManagePage.DeleteCompleted -> BrowserDownloadDeleteView {
+      BrowserDownloadManagePage.DeleteCompleted -> BrowserDownloadDeletePage {
         managePage.value = BrowserDownloadManagePage.MoreCompleted
       }
     }
@@ -119,7 +120,7 @@ fun BrowserDownloadModel.BrowserDownloadManage(onClose: () -> Unit) {
  * 下载管理界面
  */
 @Composable
-private fun BrowserDownloadModel.BrowserDownloadManageView(
+private fun BrowserDownloadModel.BrowserDownloadHomePage(
   onClose: () -> Unit, openMore: () -> Unit, openDelete: () -> Unit
 ) {
   NativeBackHandler { onClose() }
@@ -204,9 +205,10 @@ private fun BrowserDownloadModel.BrowserDownloadManageView(
  * 显示所有的“已下载”数据列表
  */
 @Composable
-private fun BrowserDownloadModel.BrowserDownloadMoreView(
+private fun BrowserDownloadModel.BrowserDownloadMorePage(
   onBack: () -> Unit, openDelete: () -> Unit
 ) {
+  NativeBackHandler { onBack() }
   Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
     DownloadTopBar(title = download_page_complete(), onBack = onBack) {
       Image(
@@ -227,7 +229,7 @@ private fun BrowserDownloadModel.BrowserDownloadMoreView(
 }
 
 /**
- * 每行显示的下载信息
+ * 下载信息行
  */
 @Composable
 private fun BrowserDownloadItem.RowDownloadItem(onClick: () -> Unit) {
@@ -275,9 +277,10 @@ private fun BrowserDownloadItem.RowDownloadItem(onClick: () -> Unit) {
  * 删除下载数据界面
  */
 @Composable
-private fun BrowserDownloadModel.BrowserDownloadDeleteView(
+private fun BrowserDownloadModel.BrowserDownloadDeletePage(
   onlyComplete: Boolean = true, onBack: () -> Unit
 ) {
+  NativeBackHandler { onBack() }
   val selected = remember { mutableStateOf(false) }
   val list = remember(saveDownloadList, saveCompleteList) { // 只有列表变化的时候，这个才会被重组
     if (onlyComplete) saveCompleteList else saveDownloadList + saveCompleteList
@@ -289,10 +292,11 @@ private fun BrowserDownloadModel.BrowserDownloadDeleteView(
   Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
     Box(modifier = Modifier.fillMaxWidth()) {
       DownloadTopBar(
-        title = if (size == 0)
+        title = if (size == 0) {
           download_page_delete()
-        else
-          download_page_delete_checked().replace("X", "$size"),
+        } else {
+          download_page_delete_checked().format(size)
+        },
         imageVector = Icons.Default.Close,
         onBack = onBack
       ) {
@@ -321,7 +325,7 @@ private fun BrowserDownloadModel.BrowserDownloadDeleteView(
         DownloadEmptyTask()
       }
 
-      BottomDeleteConfirmView(count = size, modifier = Modifier.align(Alignment.BottomCenter)) {
+      BottomDeleteButton(count = size, modifier = Modifier.align(Alignment.BottomCenter)) {
         val deleteList = mutableListOf<BrowserDownloadItem>()
         selectStateMap.forEach { (item, value) ->
           if (value.value) deleteList.add(item)
@@ -390,13 +394,15 @@ private fun BrowserDownloadItem.RowDownloadItemDelete(
  * 删除界面下面的删除按钮以及确认窗口界面
  */
 @Composable
-private fun BottomDeleteConfirmView(
+private fun BottomDeleteButton(
   count: Int, modifier: Modifier = Modifier, onDelete: () -> Unit
 ) {
   val showDialog = remember { mutableStateOf(false) }
   Column(
     modifier = modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)
-      .padding(vertical = 8.dp).height(38.dp).clickableWithNoEffect { showDialog.value = true },
+      .padding(vertical = 8.dp).height(38.dp).clickableWithNoEffect {
+        if (count > 0) showDialog.value = true
+      },
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     Image(
@@ -421,7 +427,7 @@ private fun BottomDeleteConfirmView(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().clickable { onDelete() }
           )
-          VerticalDivider(modifier = Modifier.padding(vertical = 8.dp))
+          HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
           Text(
             text = BrowserDownloadI18nResource.button_cancel(),
             color = MaterialTheme.colorScheme.outline,

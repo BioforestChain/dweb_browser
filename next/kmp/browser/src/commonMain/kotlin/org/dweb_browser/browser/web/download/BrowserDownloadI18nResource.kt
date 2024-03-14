@@ -9,7 +9,7 @@ object BrowserDownloadI18nResource {
   val download_page_delete =
     SimpleI18nResource(Language.ZH to "选择项目", Language.EN to "Select Items")
   val download_page_delete_checked =
-    SimpleI18nResource(Language.ZH to "已选择 X 项", Language.EN to "X selected")
+    SimpleI18nResource(Language.ZH to "已选择 %s 项", Language.EN to "%s selected")
   val download_page_complete =
     SimpleI18nResource(Language.ZH to "已下载", Language.EN to "Downloaded")
 

@@ -83,6 +83,25 @@ class BrowserDownloadModel(private val browserNMM: BrowserNMM) {
   }
 
   /**
+   * 用于响应重新下载操作，主要就是网页点击下载后，如果判断列表中已经存在下载数据时调用
+   */
+  fun clickRetryButton(downloadItem: BrowserDownloadItem) = browserNMM.ioAsyncScope.launch {
+    // 将状态进行修改下，然后启动下载
+
+    if (downloadItem.state.state != DownloadState.Init) {
+      downloadItem.taskId?.let { taskId ->
+        browserNMM.removeDownload(taskId)
+        downloadItem.taskId = null
+      }
+      downloadItem.state = downloadItem.state.copy(state = DownloadState.Init, current = 0L)
+      clickDownloadButton(downloadItem)
+    }
+
+    alreadyExist.value = false
+  }
+
+
+  /**
    * 创建任务，如果存在则恢复
    */
   private suspend fun startDownload(item: BrowserDownloadItem) {
@@ -173,16 +192,6 @@ class BrowserDownloadModel(private val browserNMM: BrowserNMM) {
       }
     }
     downloadModal = browserNMM.createBottomSheets { BrowserDownloadSheet(item) }.apply { open() }
-
-    // 如果当前 item 的状态不是 DownloadState.Init 的话，直接删除，重建下载
-    if (item.state.state != DownloadState.Init) {
-      item.taskId?.let { taskId ->
-        browserNMM.removeDownload(taskId)
-        item.taskId = null
-      }
-      item.state = item.state.copy(state = DownloadState.Init, current = 0L)
-      clickDownloadButton(item)
-    }
   }
 
   private fun saveListToStore(download: Boolean = true, complete: Boolean = false) =
