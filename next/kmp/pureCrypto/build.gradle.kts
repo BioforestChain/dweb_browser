@@ -13,9 +13,6 @@ kotlin {
     applyHierarchy {
       common {
         group("jvm") {
-          dependencies {
-            implementation(libs.whyoleg.cryptography.provider.jdk)
-          }
           withDesktopTarget()
           withAndroidTarget()
         }
@@ -24,13 +21,21 @@ kotlin {
     }
   }
 
-  kmpAndroidTarget(project)
+  kmpAndroidTarget(project) {
+    dependencies {
+      implementation(libs.whyoleg.cryptography.provider.jdk)
+    }
+  }
   kmpIosTarget(project) {
     dependencies {
       implementation(libs.whyoleg.cryptography.provider.openssl3.prebuilt)
     }
   }
-  kmpDesktopTarget(project)
+  kmpDesktopTarget(project) {
+    dependencies {
+      implementation(libs.whyoleg.cryptography.provider.jdk)
+    }
+  }
 }
 
 
