@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.view
+package org.dweb_browser.browser.web.ui
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
@@ -64,7 +64,7 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.search.SearchEngine
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.util.toRequestUrl
-import org.dweb_browser.browser.web.model.LocalBrowserModel
+import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowSearchView
 import org.dweb_browser.browser.web.model.parseInputText
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -88,7 +88,7 @@ internal fun BoxScope.SearchView(
   val focusManager = LocalFocusManager.current
   val inputText = remember(text) { mutableStateOf(parseInputText(text, false)) }
   val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
-  val searchEngine = LocalBrowserModel.current.filterFitUrlEngines(text)
+  val searchEngine = LocalBrowserViewModel.current.filterFitUrlEngines(text)
 
   Box(modifier = modifier) {
     homePreview?.let {
@@ -148,7 +148,7 @@ internal fun BoxScope.BrowserTextField(
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
   var inputText by remember { mutableStateOf(text.value) }
-  val browserViewModel = LocalBrowserModel.current
+  val browserViewModel = LocalBrowserViewModel.current
 
   CustomTextField(
     value = inputText,
@@ -344,7 +344,7 @@ internal fun SearchPreview(
 
 @Composable
 private fun SearchItemLocals(text: String, openApp: (SearchInject) -> Unit) {
-  val viewModel = LocalBrowserModel.current
+  val viewModel = LocalBrowserViewModel.current
   val injectList = viewModel.searchInjectList
   if (injectList.isEmpty() && viewModel.filterShowEngines.isNotEmpty()) return // 如果本地资源为空，但是搜索引擎不为空，不需要显示这个内容
   Column(modifier = Modifier.fillMaxWidth()) {
@@ -395,7 +395,7 @@ private fun SearchItemLocals(text: String, openApp: (SearchInject) -> Unit) {
 
 @Composable
 private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
-  val list = LocalBrowserModel.current.filterShowEngines
+  val list = LocalBrowserViewModel.current.filterShowEngines
   if (list.isEmpty()) return // 如果空的直接不显示
   val state = LocalWindowController.current.state
   val microModule by state.constants.microModule

@@ -18,10 +18,3 @@ interface ViewItem {
   val coroutineScope: CoroutineScope
   var hidden: Boolean
 }
-
-data class DWebViewItem(
-  override val webviewId: String,
-  override val webView: IDWebView,
-  override val coroutineScope: CoroutineScope,
-  override var hidden: Boolean = false,
-) : ViewItem

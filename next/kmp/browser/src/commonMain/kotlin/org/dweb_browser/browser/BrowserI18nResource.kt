@@ -49,7 +49,8 @@ object BrowserI18nResource {
   val install_button_installing =
     SimpleI18nResource(Language.ZH to "安装中", Language.EN to "Installing")
   val install_button_open = SimpleI18nResource(Language.ZH to "打开", Language.EN to "Open")
-  val install_button_lower = SimpleI18nResource(Language.ZH to "已安装新版本", Language.EN to "Version Low")
+  val install_button_lower =
+    SimpleI18nResource(Language.ZH to "已安装新版本", Language.EN to "Version Low")
   val install_button_retry =
     SimpleI18nResource(Language.ZH to "重载失效资源", Language.EN to "Retry")
   val install_button_retry2 = SimpleI18nResource(Language.ZH to "重试", Language.EN to "Retry")
@@ -145,6 +146,7 @@ object BrowserI18nResource {
   )
   val browser_options_store = SimpleI18nResource(Language.ZH to "存储", Language.EN to "Store")
   val browser_options_delete = SimpleI18nResource(Language.ZH to "删除", Language.EN to "Delete")
+  val browser_bookmark_title = SimpleI18nResource(Language.ZH to "书签", Language.EN to "Bookmark")
   val browser_options_addToBook =
     SimpleI18nResource(Language.ZH to "添加到书签", Language.EN to "Add To Book")
   val browser_options_share = SimpleI18nResource(Language.ZH to "分享", Language.EN to "Share")
@@ -228,7 +230,8 @@ object BrowserI18nResource {
     Language.ZH to "发现新版本，请及时更新！", Language.EN to "Find a new version, please update!"
   )
   val dialog_install_description = SimpleI18nResource(
-    Language.ZH to "安装应用需要授权，请移步授权，再尝试！", Language.EN to "Authorization is required to install the application, please move to authorization and try again!"
+    Language.ZH to "安装应用需要授权，请移步授权，再尝试！",
+    Language.EN to "Authorization is required to install the application, please move to authorization and try again!"
   )
   val dialog_upgrade_button_upgrade = SimpleI18nResource(
     Language.ZH to "升级", Language.EN to "Upgrade"

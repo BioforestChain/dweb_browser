@@ -68,7 +68,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.compositionChainOf
-import org.dweb_browser.sys.window.render.NativeBackHandler
+import org.dweb_browser.sys.window.render.LocalWindowController
 
 val LocalQRCodeModel = compositionChainOf<QRCodeScanModel>("LocalQRCodeModel")
 
@@ -81,6 +81,7 @@ fun QRCodeScanView(
   onCancel: (String) -> Unit, // 失败返回失败原因
 ) {
   val qrCodeScanModel = LocalQRCodeModel.current
+  val scope = rememberCoroutineScope()
   DisposableEffect(qrCodeScanModel) {
     val off = qrCodeScanModel.onStateChange {
       if (it != QRCodeState.Scanning || qrCodeScanModel.requestPermission()) {
@@ -90,14 +91,11 @@ fun QRCodeScanView(
     onDispose { off() }
   }
   if (qrCodeScanModel.state.value == QRCodeState.Hide) return // 隐藏状态不显示
-  val scope = rememberCoroutineScope()
-  NativeBackHandler {
-    scope.launch {
-      when (qrCodeScanModel.state.value) {
-        QRCodeState.MultiSelect -> qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
-        else -> {
-          qrCodeScanModel.stateChange.emit(QRCodeState.Hide); onCancel("")
-        }
+  LocalWindowController.current.GoBackHandler {
+    when (qrCodeScanModel.state.value) {
+      QRCodeState.MultiSelect -> qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
+      else -> {
+        qrCodeScanModel.stateChange.emit(QRCodeState.Hide); onCancel("")
       }
     }
   }

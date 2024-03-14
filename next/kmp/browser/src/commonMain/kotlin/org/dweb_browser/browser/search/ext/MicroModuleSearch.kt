@@ -10,7 +10,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureTextFrame
 
-suspend fun MicroModule.checkEngineAndGetHomeLink(key: String) =
+suspend fun MicroModule.isEngineAndGetHomeLink(key: String) =
   nativeFetch("file://search.browser.dweb/check?key=$key").text()
 
 suspend fun MicroModule.getSearchInjectList(key: String) =

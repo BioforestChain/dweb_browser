@@ -14,6 +14,7 @@ import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.web.debugBrowser
+import org.dweb_browser.browser.web.download.view.BrowserDownloadSheet
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets

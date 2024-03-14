@@ -28,9 +28,14 @@ import kotlin.math.sin
 
 @Composable
 fun LoadingView(show: MutableState<Boolean>) {
-  if (show.value) {
+  LoadingView(show.value) { show.value = false }
+}
+
+@Composable
+fun LoadingView(isShow: Boolean, requestDismiss: () -> Unit) {
+  if (isShow) {
     val whiteBackground = !isSystemInDarkTheme()
-    LaunchedEffect(show) {
+    LaunchedEffect(Unit) {
       LoadingViewModel.setBackground(whiteBackground)
       LoadingViewModel.startTimer()
     }
@@ -41,7 +46,7 @@ fun LoadingView(show: MutableState<Boolean>) {
       }
     }
     NativeBackHandler {
-      if (show.value) show.value = false
+      requestDismiss()
     }
     val width = rememberScreenSize().screenWidth
     val count = 8

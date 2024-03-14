@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.view
+package org.dweb_browser.browser.web.ui.page
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -74,7 +74,6 @@ fun BrowserListOfHistory(
         org.dweb_browser.helper.compose.ListSwipeItem(
           onRemove = {
             scope.launch {
-              webSiteInfoList.remove(webSiteInfo)
               viewModel.removeHistoryLink(webSiteInfo)
             }
           }

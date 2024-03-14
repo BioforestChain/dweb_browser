@@ -1,30 +1,35 @@
 package org.dweb_browser.browser.web.model
 
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import io.ktor.http.Url
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.search.SearchEngine
 import org.dweb_browser.browser.search.SearchInject
-import org.dweb_browser.browser.search.ext.checkEngineAndGetHomeLink
 import org.dweb_browser.browser.search.ext.createChannelOfEngines
+import org.dweb_browser.browser.search.ext.isEngineAndGetHomeLink
 import org.dweb_browser.browser.util.isDeepLink
+import org.dweb_browser.browser.util.isOnlyHost
 import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.browser.web.BrowserController
-import org.dweb_browser.browser.web.data.BrowserContentItem
+import org.dweb_browser.browser.web.data.page.BrowserBookmarkPage
+import org.dweb_browser.browser.web.data.page.BrowserDownloadPage
+import org.dweb_browser.browser.web.data.page.BrowserHistoryPage
+import org.dweb_browser.browser.web.data.page.BrowserHomePage
+import org.dweb_browser.browser.web.data.page.BrowserPage
+import org.dweb_browser.browser.web.data.page.BrowserSettingPage
+import org.dweb_browser.browser.web.data.page.BrowserWebPage
 import org.dweb_browser.browser.web.data.ConstUrl
 import org.dweb_browser.browser.web.data.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browser.web.data.KEY_NO_TRACE
@@ -36,13 +41,11 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebDownloadArgs
-import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.compose.compositionChainOf
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toByteArray
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
@@ -50,7 +53,10 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermission
 import org.dweb_browser.sys.share.ext.postSystemShare
 import org.dweb_browser.sys.toast.ext.showToast
 
-val LocalBrowserModel = compositionChainOf<BrowserViewModel>("BrowserModel")
+val LocalBrowserViewModel = compositionChainOf<BrowserViewModel>("BrowserModel")
+
+@Composable
+fun rememberBrowserViewModal() = LocalBrowserViewModel.current
 
 /**
  * 用于显示搜索的界面，也就是点击搜索框后界面
@@ -87,15 +93,16 @@ val LocalBrowserPageState = compositionChainOf<BrowserPagerState>("LocalBrowserP
 class BrowserViewModel(
   private val browserController: BrowserController, internal val browserNMM: NativeMicroModule,
 ) {
-  private var webviewIdAcc by SafeInt(1)
-  private val currentBrowserContentItem: MutableState<BrowserContentItem?> = mutableStateOf(null)
-  private val browserContentItems: MutableList<BrowserContentItem> = mutableStateListOf() // 多浏览器列表
-  val currentTab get() = currentBrowserContentItem.value
-  val listSize get() = browserContentItems.size
-  val dwebLinkSearch: MutableState<DwebLinkSearchItem> =
-    mutableStateOf(DwebLinkSearchItem.Empty) // 为了获取desk传过来的地址信息
-  val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false)
-  val showMultiView: MutableTransitionState<Boolean> = MutableTransitionState(false)
+  private val pages: MutableList<BrowserPage> = mutableStateListOf() // 多浏览器列表
+  var showMore by mutableStateOf(false)
+  var showPreview by mutableStateOf(false)
+  var scale by mutableStateOf(1f)
+
+  var focusPage by mutableStateOf<BrowserPage?>(null)
+    private set
+  val listSize get() = pages.size
+  val dwebLinkSearch = mutableStateOf(DwebLinkSearchItem.Empty) // 为了获取desk传过来的地址信息
+  var showSearchEngine by mutableStateOf(false)
   val isNoTrace by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     mutableStateOf(browserController.isNoTrace)
   }
@@ -107,34 +114,34 @@ class BrowserViewModel(
   fun filterFitUrlEngines(url: String) = searchEngineList.firstOrNull { it.fit(url) }
 
   fun checkAndSearch(key: String, hide: () -> Unit) = browserNMM.ioAsyncScope.launch {
-    val homeLink = browserNMM.checkEngineAndGetHomeLink(key) // 将关键字对应的搜索引擎置为有效
+    val homeLink = browserNMM.isEngineAndGetHomeLink(key) // 将关键字对应的搜索引擎置为有效
     debugBrowser("checkAndSearch", "homeLink=$homeLink")
     if (homeLink.isNotEmpty()) { // 使用首页地址直接打开网页
       hide()
-      searchWebView(homeLink)
+      doSearch(homeLink)
     }
   }
 
-  fun getBookLinks() = browserController.bookLinks
-  fun getHistoryLinks() = browserController.historyLinks
-  val browserOnVisible = browserController.onWindowVisiable
+  fun getBookmarks() = browserController.bookmarks.value
+  fun getHistoryLinks() = browserController.historys.value
+  val browserOnVisible = browserController.onWindowVisible
   val browserOnClose = browserController.onCloseWindow
 
-  fun getBrowserViewOrNull(currentPage: Int) = browserContentItems.getOrNull(currentPage)
+  fun getBrowserViewOrNull(currentPage: Int) = pages.getOrNull(currentPage)
 
-  private suspend fun focusBrowserView(view: BrowserContentItem) {
-    val index = browserContentItems.indexOf(view)
-    focusBrowserView(index)
-  }
 
   private val pagerChangeSignal: Signal<Int> = Signal()
   private val onPagerChange = pagerChangeSignal.toListener()
+  private suspend fun focusPage(view: BrowserPage) {
+    val index = pages.indexOf(view)
+    focusPage(index)
+  }
 
-  private suspend fun focusBrowserView(index: Int) = browserController.ioAsyncScope.launch {
-    if (index in 0 until listSize) {
-      currentBrowserContentItem.value = browserContentItems[index]
-      showMultiView.targetState = false
-      showSearchEngine.targetState = false
+  private suspend fun focusPage(index: Int) {
+    pages.getOrNull(index)?.also {
+      focusPage?.captureViewInBackground()
+      focusPage = it
+      showPreview = false
       debugBrowser("focusBrowserView", "index=$index, size=${listSize}")
       pagerChangeSignal.emit(index)
     }
@@ -144,15 +151,11 @@ class BrowserViewModel(
    * 请求系统权限
    */
   suspend fun requestSystemPermission(
-    title: String = "",
-    description: String = "",
-    permissionName: SystemPermissionName
+    title: String = "", description: String = "", permissionName: SystemPermissionName
   ): Boolean {
     return browserNMM.requestSystemPermission(
       SystemPermissionTask(
-        permissionName,
-        title = title,
-        description = description
+        permissionName, title = title, description = description
       )
     )
   }
@@ -170,8 +173,8 @@ class BrowserViewModel(
 
   init {
     browserController.onCloseWindow {
-      browserContentItems.forEach { browserContentItem -> closeWebView(browserContentItem) }
-      browserContentItems.clear()
+      pages.forEach { browserContentItem -> closePage(browserContentItem) }
+      pages.clear()
     }
     onPagerChange { pagerIndex ->
       delay(100) // 避免执行的时候界面还未加载导致滑动没起作用
@@ -189,10 +192,10 @@ class BrowserViewModel(
     }
   }
 
-  suspend fun updateMultiViewState(show: Boolean, index: Int? = null) {
-    showMultiView.targetState = show
+  suspend fun updatePreviewState(show: Boolean, index: Int? = null) {
+    showPreview = show
     if (!show) {
-      index?.let { focusBrowserView(index) }
+      index?.let { focusPage(index) }
     }
   }
 
@@ -204,39 +207,23 @@ class BrowserViewModel(
     )
   ).also { it.setVerticalScrollBarVisible(false) }
 
-  private suspend fun createContentWebView(dWebView: IDWebView): BrowserContentItem.ContentWebItem =
-    withMainContext {
-      val webviewId = "#w${webviewIdAcc++}"
-      val coroutineScope = CoroutineScope(CoroutineName(webviewId))
-      val viewItem = DWebViewItem(
-        webviewId = webviewId,
-        webView = dWebView,
-        coroutineScope = coroutineScope,
-      ).also { it.webView.setVerticalScrollBarVisible(false) }
-      dWebView.onCreateWindow { itemDwebView ->
-        val browserContentItem = BrowserContentItem().apply {
-          contentWebItem.value = createContentWebView(itemDwebView)
-        }
-        if (browserContentItems.add(browserContentItem)) {
-          focusBrowserView(browserContentItem)
-        }
-      }
-      dWebView.onDownloadListener { args: WebDownloadArgs ->
-        debugBrowser("download", args)
-        browserController.openDownloadView(args)
-      }
-      BrowserContentItem.ContentWebItem(viewItem)
+  private suspend fun createWebPage(dWebView: IDWebView) = withMainContext {
+    dWebView.onCreateWindow { itemDwebView ->
+      val newWebPage = BrowserWebPage(itemDwebView, browserController)
+      addNewPage(newWebPage)
     }
+    dWebView.onDownloadListener { args: WebDownloadArgs ->
+      debugBrowser("download", args)
+      browserController.openDownloadView(args)
+    }
+    BrowserWebPage(dWebView, browserController)
+  }
 
-  private suspend fun createContentWebView(url: String) = createContentWebView(createDwebView(url))
+  private suspend fun createWebPage(url: String) = createWebPage(createDwebView(url))
 
-  private suspend fun createBrowserContentItem(url: String? = null) =
-    BrowserContentItem().apply { contentWebItem.value = url?.let { createContentWebView(url) } }
 
   internal suspend fun openBrowserView(
-    search: String? = null,
-    url: String? = null,
-    target: String? = null
+    search: String? = null, url: String? = null, target: String? = null
   ) {
     // 先判断search是否不为空，然后在判断search是否是地址，
     debugBrowser("openBrowserView", "search=$search, url=$url, target=$target")
@@ -245,27 +232,32 @@ class BrowserViewModel(
   }
 
   /**
-   * 为了适应 ios，从而将 webview 的处理独立开
+   * 如果找到同样url的页面，那么聚焦那个页面
+   * 如果没有找到，同时它又是合法的url，那么创建新页面打开
+   * 否则，走 unknownUrl 回调
+   *
+   * > 为了适应 ios，从而将 webview 的处理独立开
    */
-  private suspend fun parseDwebLinkSearch(url: String): Boolean {
-    if (url == ConstUrl.BLANK.url && browserContentItems.isNotEmpty()) return false
-    return if ((url.isEmpty() || url == ConstUrl.BLANK.url) && browserContentItems.isEmpty()) {
-      addNewMainView()
-      false
-    } else if (url.isUrlOrHost()) {
-      // 判断如果已存在，直接focus，不新增界面
-      browserContentItems.find { browserContentItem ->
-        browserContentItem.contentWebItem.value?.let { contentWebItem ->
-          contentWebItem.viewItem.webView.getUrl() == url
-        } ?: false
-      }?.let { browserWebView ->
-        focusBrowserView(browserWebView)
-      } ?: run {
-        addNewMainView(url)
+  suspend fun tryOpenUrl(
+    url: String, unknownUrl: (suspend (String) -> Unit)? = null
+  ) {
+    // 判断如果已存在，直接focus，不新增界面
+    when (val samePage = pages.find { page ->
+      page.isUrlMatch(url)
+    }) {
+      null -> {
+        // 尝试添加新页面
+        val newPage = addNewPage(url)
+        // 否则走未知模式
+        if (newPage == null) {
+          url.isNotEmpty().trueAlso { unknownUrl?.invoke(url) }
+        }
       }
-      false
-    } else {
-      url.isNotEmpty()
+
+      else -> {
+        focusPage(samePage)
+        samePage.updateUrl(url)
+      }
     }
   }
 
@@ -275,7 +267,7 @@ class BrowserViewModel(
     val showSearchView = LocalShowSearchView.current
     LaunchedEffect(dwebLinkSearch) {
       snapshotFlow { dwebLinkSearch.value }.collect { searchItem ->
-        if (parseDwebLinkSearch(searchItem.link)) {
+        tryOpenUrl(searchItem.link) {
           showSearchView.value = true
         }
       }
@@ -289,95 +281,102 @@ class BrowserViewModel(
     }
   }
 
-  suspend fun closeWebView(browserContentItem: BrowserContentItem) {
-    browserContentItem.contentWebItem.value?.let { contentWebItem ->
-      withMainContext {
-        contentWebItem.viewItem.webView.destroy()
-        browserContentItem.contentWebItem.value = null
+  suspend fun closePage(page: BrowserPage): Boolean {
+    val index = pages.indexOf(page)
+    if (index == -1) {
+      return false
+    }
+    if (focusPage == page) {
+      val newFocusIndex = maxOf(index + 1, pages.size - 1)
+      if (newFocusIndex != index) {
+        focusPage(newFocusIndex)
       }
     }
-  }
-
-  suspend fun closeBrowserContentItem(browserContentItem: BrowserContentItem) {
-    browserContentItems.remove(browserContentItem) // 需要释放掉
-    closeWebView(browserContentItem)
+    pages.removeAt(index)
+    page.destroy()
     // 如果移除后，发现列表空了，手动补充一个
-    if (browserContentItems.isEmpty()) {
-      withMainContext {
-        BrowserContentItem().also {
-          browserContentItems.add(it)
-          currentBrowserContentItem.value = it
-          updateMultiViewState(false, 0)
-        }
-      }
+    if (pages.isEmpty()) {
+      addNewPage(BrowserHomePage(browserController), true)
     }
+    return true
   }
 
   fun updateCurrentBrowserView(currentPage: Int) {
-    if (currentPage in 0..<listSize) {
-      currentBrowserContentItem.value = browserContentItems[currentPage]
+    pages.getOrNull(currentPage)?.also {
+      this.focusPage = it
     }
   }
 
   /**
    * 滑动搜索栏时，需要做一次截屏
    */
-  suspend fun captureBrowserWebView(currentPage: Int) {
-    browserContentItems.getOrNull(currentPage)?.captureView()
+  suspend fun capturePage(pageIndex: Int) {
+    debugBrowser("capturePage") { "pageIndex=$pageIndex" }
+    pages.getOrNull(pageIndex)?.captureView()
   }
 
-  // TODO 使用 withContext(ioAsyncExceptionHandler) 发现，如果当前协程没执行完成，挂起不会返回
-  fun searchWebView(url: String) = browserNMM.ioAsyncScope.launch(ioAsyncExceptionHandler) {
-    showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
-    currentTab?.let { browserContentItem ->
-      if (url.isDeepLink()) { // 负责拦截browser的dweb_deeplink
-        browserNMM.nativeFetch(url)
-      } else {
-        if (browserContentItem.contentWebItem.value == null) {
-          browserContentItem.contentWebItem.value = createContentWebView(url)
-        }
-        browserContentItem.contentWebItem.value?.apply {
-          loadState.value = true
-          viewItem.webView.loadUrl(url, true/* 强制加载 */)
-          loadState.value = false
-        }
+  fun doSearch(url: String) = browserNMM.ioAsyncScope.launch {
+    // 到搜索功能了，搜索引擎必须关闭
+    showSearchEngine = false
+    // 存储最后的搜索内容
+    browserController.saveStringToStore(KEY_LAST_SEARCH_KEY, url)
+
+    // 如果是 dweb_deeplink，直接代理访问。否则就是打开新页面
+    if (url.isDeepLink()) browserNMM.nativeFetch(url) else addNewPage(url)
+  }
+
+  suspend fun addNewPage(url: String? = null, focus: Boolean = true): BrowserPage? {
+    val newPage = if (url == null || BrowserHomePage.isNewTabUrl(url)) {
+      if (focusPage is BrowserHomePage) {
+        return focusPage
+      }
+      BrowserHomePage(browserController)
+    } else if (BrowserWebPage.isWebUrl(url)) {
+      createWebPage(url)
+    } else if (BrowserBookmarkPage.isBookmarkUrl(url)) {
+      BrowserBookmarkPage(browserController)
+    } else if (BrowserHistoryPage.isHistoryUrl(url)) {
+      BrowserHistoryPage(browserController)
+    } else if (BrowserDownloadPage.isDownloadUrl(url)) {
+      BrowserDownloadPage(browserController)
+    } else if (BrowserSettingPage.isSettingUrl(url)) {
+      BrowserSettingPage(browserController)
+    } else null
+    if (newPage != null) {
+      val preFocusPage = focusPage
+      addNewPage(newPage, focus)
+      if (preFocusPage != focusPage && preFocusPage is BrowserHomePage) {
+        closePage(preFocusPage)
       }
     }
+    return newPage
   }
 
-  suspend fun addNewMainView(url: String? = null) = withMainContext {
-    createBrowserContentItem(url).also { browserContentItem ->
-      browserContentItems.add(browserContentItem)
-      focusBrowserView(browserContentItem)
+  suspend fun addNewPage(page: BrowserPage, focus: Boolean = true) {
+    pages.add(page)
+    focusPage(page)
+  }
+
+  suspend fun shareWebSiteInfo(page: BrowserWebPage) {
+    browserNMM.postSystemShare(title = page.title, url = page.url).let { result ->
+      if (!result.success) {
+        showToastMessage(result.message)
+      }
     }
-  }
-
-  suspend fun shareWebSiteInfo() {
-    currentTab?.contentWebItem?.value?.let { contentWebItem ->
-      val url = contentWebItem.viewItem.webView.getUrl()
-      if (url.isSystemUrl()) {
-        showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
-        return@let
-      }
-      val title = contentWebItem.viewItem.webView.getTitle()
-      browserNMM.postSystemShare(title = title, url = url).let { result ->
-        if (!result.success) {
-          showToastMessage(result.message)
-        }
-      }
-    } ?: showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
   }
 
   /**
    * 添加到桌面功能
    */
   suspend fun addUrlToDesktop(): Boolean {
-    return currentTab?.contentWebItem?.value?.let { contentWebItem ->
-      val webView = contentWebItem.viewItem.webView
-      val url = webView.getOriginalUrl()
-      addUrlToDesktop(
-        title = webView.getTitle().ifEmpty { url }, link = url, iconString = webView.getIcon()
-      )
+    return this.focusPage?.let { page ->
+      if (page is BrowserWebPage) {
+        val webView = page.webView
+        val url = webView.getOriginalUrl()
+        addUrlToDesktop(
+          title = webView.getTitle().ifEmpty { url }, link = url, iconString = webView.getIcon()
+        )
+      } else false
     } ?: false
   }
 
@@ -400,13 +399,14 @@ class BrowserViewModel(
     browserController.saveStringToStore(KEY_NO_TRACE, if (noTrace) "true" else "")
   }
 
-  /**
-   * 存储最后的搜索内容
-   */
-  fun saveLastKeyword(url: String) = browserNMM.ioAsyncScope.launch {
-    browserController.saveStringToStore(KEY_LAST_SEARCH_KEY, url)
-    searchWebView(url)
-  }
+  suspend fun addBookmark(webPage: BrowserWebPage) =
+    webPage.webView.toWebSiteInfo(WebSiteType.Bookmark)?.also {
+      addBookmark(it)
+    } ?: showToastMessage(BrowserI18nResource.toast_message_add_book_invalid.text)
+
+  suspend fun removeBookmark(url: String) = browserController.bookmarks.value.filter {
+    it.url == url
+  }.map { removeBookmark(it).join() }
 
   /**
    * 操作书签数据
@@ -414,15 +414,15 @@ class BrowserViewModel(
    * 修改：该对象已经变更，可直接保存，所以不需要传
    * 删除：需要删除数据
    */
-  fun addBookLink(item: WebSiteInfo) = browserController.ioAsyncScope.launch {
+  fun addBookmark(item: WebSiteInfo) = browserController.ioAsyncScope.launch {
     showToastMessage(BrowserI18nResource.toast_message_add_book.text)
-    browserController.bookLinks.add(item)
+    browserController.bookmarks.value += item
     browserController.saveBookLinks()
   }
 
-  fun removeBookLink(item: WebSiteInfo) = browserController.ioAsyncScope.launch {
+  fun removeBookmark(item: WebSiteInfo) = browserController.ioAsyncScope.launch {
     showToastMessage(BrowserI18nResource.toast_message_remove_book.text)
-    browserController.bookLinks.remove(item)
+    browserController.bookmarks.value -= item
     browserController.saveBookLinks()
   }
 
@@ -439,23 +439,27 @@ class BrowserViewModel(
    */
   suspend fun addHistoryLink(item: WebSiteInfo) {
     if (isNoTrace.value) return // 如果是无痕模式，则不能进行存储历史操作
-    val key = item.timeMillis.toString()
+    val dayKey = item.day.toString()
     val addUrl = item.url
-    browserController.historyLinks.getOrPut(key) {
-      mutableStateListOf()
-    }.apply {
-      removeAll { it.url == addUrl } // 删除同一天的重复数据
-      add(0, item)
-      browserController.saveHistoryLinks(key, this)
+    browserController.historys.update { historyMap ->
+      val dayList = historyMap[dayKey]?.apply {
+        toMutableList().apply {
+          removeAll { item -> item.url == addUrl } // 删除同一天的重复数据
+          add(0, item)
+        }.toList()
+      } ?: listOf(item)
+      browserController.saveHistoryLinks(dayKey, dayList)
+
+      historyMap + Pair(dayKey, dayList)
     }
   }
 
   suspend fun removeHistoryLink(item: WebSiteInfo) {
-    val key = item.timeMillis.toString()
-    browserController.historyLinks[key]?.apply {
-      showToastMessage(BrowserI18nResource.toast_message_remove_history.text)
-      remove(item)
-      browserController.saveHistoryLinks(key, this)
+    val dayKey = item.day.toString()
+    browserController.historys.update { historyMap ->
+      val dayList = historyMap[dayKey]?.filter { it.url != item.url } ?: return@update historyMap
+      browserController.saveHistoryLinks(dayKey, dayList)
+      historyMap + Pair(dayKey, dayList)
     }
   }
 
@@ -491,22 +495,28 @@ class BrowserViewModel(
  * 根据内容解析成需要显示的内容
  */
 internal fun parseInputText(text: String, needHost: Boolean = true): String {
-  val url = Url(text)
-  for (item in DefaultAllWebEngine) {
-    if (item.host == url.host) return url.parameters[item.queryName()] ?: url.host
-  }
-  if (text.startsWith("dweb:") || text.startsWith("about:") ||
-    (text.isUrlOrHost() && !text.startsWith("http") /*表示域名*/)
+  if (
+  // deeplink
+    text.startsWith("dweb:")
+    // 内部页面
+    || text.startsWith("about:") || text.startsWith("chrome:")
+    // 域名
+    || (text.isOnlyHost())
   ) {
     return text
   }
+  // 尝试当成网址来解析
+  val url = runCatching { Url(text) }.getOrElse { return text }
+  // 判断是不是搜索引擎，如果是提取它的关键字
+  for (item in DefaultAllWebEngine) {
+    if (item.host == url.host) {
+      return url.parameters[item.queryName()] ?: url.host
+    }
+  }
+
   return if (needHost && url.host.isNotEmpty()) {
     url.host
-  } else if (url.parameters["text"]?.isNotEmpty() == true) {
-    url.parameters["text"]!!
-  } else {
-    text
-  }
+  } else text
 }
 
 /**

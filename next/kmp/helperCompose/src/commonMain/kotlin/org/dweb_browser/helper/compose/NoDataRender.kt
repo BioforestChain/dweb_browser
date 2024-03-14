@@ -15,12 +15,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun NoDataRender(text: String, icon: ImageVector = Icons.Rounded.Info) {
-  Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+fun NoDataRender(
+  text: String,
+  icon: ImageVector = Icons.Rounded.Info,
+  modifier: Modifier = Modifier
+) {
+  Box(modifier.fillMaxSize().alpha(0.5f), contentAlignment = Alignment.Center) {
     Column(
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -28,7 +33,7 @@ fun NoDataRender(text: String, icon: ImageVector = Icons.Rounded.Info) {
         imageVector = icon,
         "no data",
         modifier = Modifier.size(42.dp),
-        tint = LocalContentColor.current.copy(alpha = 0.5f)
+        tint = LocalContentColor.current
       )
       Spacer(Modifier.height(24.dp))
       Text(

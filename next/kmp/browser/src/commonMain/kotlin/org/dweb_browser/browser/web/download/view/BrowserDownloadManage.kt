@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.download
+package org.dweb_browser.browser.web.download.view
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -53,6 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.button_delete
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_complete
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_delete
@@ -62,6 +63,9 @@ import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_dow
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloaded_more
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloading
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tip_empty
+import org.dweb_browser.browser.web.download.BrowserDownloadItem
+import org.dweb_browser.browser.web.download.BrowserDownloadManagePage
+import org.dweb_browser.browser.web.download.BrowserDownloadModel
 import org.dweb_browser.helper.compose.VerticalDivider
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.format

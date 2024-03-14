@@ -1,9 +1,12 @@
 package org.dweb_browser.browser.web
 
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
@@ -27,14 +30,17 @@ import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getWindow
 
-class BrowserController(private val browserNMM: BrowserNMM, private val webLinkStore: WebLinkStore) {
+class BrowserController(
+  private val browserNMM: BrowserNMM,
+  private val webLinkStore: WebLinkStore
+) {
   private val browserStore = BrowserStore(browserNMM)
 
   private val closeWindowSignal = SimpleSignal()
   val onCloseWindow = closeWindowSignal.toListener()
 
   private val windowVisibleSignal = Signal<Boolean>()
-  val onWindowVisiable = windowVisibleSignal.toListener()
+  val onWindowVisible = windowVisibleSignal.toListener()
 
   private val addWebLinkSignal = Signal<WebLinkManifest>()
   val onWebLinkAdded = addWebLinkSignal.toListener()
@@ -44,21 +50,16 @@ class BrowserController(private val browserNMM: BrowserNMM, private val webLinkS
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   //  val searchEngines: MutableList<WebEngine> = mutableStateListOf()
-  val bookLinks: MutableList<WebSiteInfo> = mutableStateListOf()
+  val bookmarks = MutableStateFlow<List<WebSiteInfo>>(listOf())
   val historyLinks: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf()
-  var isNoTrace: Boolean = false
+  val historys = MutableStateFlow<Map<String, List<WebSiteInfo>>>(mapOf())
+  var isNoTrace by mutableStateOf(false)
 
   init {
     ioAsyncScope.launch {
       isNoTrace = getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false
-      browserStore.getBookLinks().forEach { webSiteInfo ->
-        bookLinks.add(webSiteInfo)
-      }
-      browserStore.getHistoryLinks().forEach { (key, webSiteInfoList) ->
-        historyLinks[key] = mutableStateListOf<WebSiteInfo>().also {
-          it.addAll(webSiteInfoList)
-        }
-      }
+      bookmarks.value = browserStore.getBookLinks()
+      historys.value = browserStore.getHistoryLinks()
 //      val engines = browserStore.getSearchEngines()
 //      if (engines.isNotEmpty()) {
 //        // 下面判断是否在 DefaultSearchWebEngine 有新增，有新增内置，需要补充进去
@@ -82,23 +83,14 @@ class BrowserController(private val browserNMM: BrowserNMM, private val webLinkS
     }
   }
 
-  suspend fun loadMoreHistory(off: Int) {
-    browserStore.getDaysHistoryLinks(off).forEach { (key, webSiteInfoList) ->
-      if (historyLinks.keys.contains(key)) {
-        val data = historyLinks.getOrPut(key) {
-          mutableStateListOf()
-        }.also {
-          it.addAll(webSiteInfoList)
-        }
-        historyLinks[key] = data
-      }
-    }
+  suspend fun loadMoreHistory(offset: Int) {
+    historys.value += browserStore.getDaysHistoryLinks(offset)
   }
 
-  suspend fun saveBookLinks() = browserStore.setBookLinks(bookLinks)
+  suspend fun saveBookLinks() = browserStore.setBookLinks(bookmarks.value)
 
-  suspend fun saveHistoryLinks(key: String, historyLinks: MutableList<WebSiteInfo>) =
-    browserStore.setHistoryLinks(key, historyLinks)
+  suspend fun saveHistoryLinks(key: String, dayList: List<WebSiteInfo>) =
+    browserStore.setHistoryLinks(key, dayList)
 
 //  suspend fun saveSearchEngines() = browserStore.setSearchEngines(searchEngines)
 
@@ -175,6 +167,7 @@ class BrowserController(private val browserNMM: BrowserNMM, private val webLinkS
   suspend fun getStringFromStore(key: String) = browserStore.getString(key)
 
   val downloadModel = BrowserDownloadModel(browserNMM)
+
   /**
    * 打开BottomSheetModal
    */

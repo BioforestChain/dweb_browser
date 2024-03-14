@@ -23,9 +23,9 @@ data class SearchEngine(
 ) {
   fun fit(url: String): Boolean {
     val current = Url("${searchLink}test")
-    val query = current.parameters.names().first()
-    val uri = Url(url)
-    return uri.host == current.host && uri.parameters[query] != null /*&& uri.fullPath == current.fullPath*/
+    val queryName = current.parameters.names().last()
+    val uri = runCatching { Url(url) }.getOrElse { return false }
+    return uri.host == current.host && uri.parameters[queryName] != null /*&& uri.fullPath == current.fullPath*/
   }
 }
 

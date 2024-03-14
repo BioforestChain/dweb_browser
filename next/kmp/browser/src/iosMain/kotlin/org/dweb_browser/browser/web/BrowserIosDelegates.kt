@@ -144,21 +144,21 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
   //#region bookmark
 
   override fun loadBookmarks(): List<*>? =
-    browserViewModel.getBookLinks().map {
+    browserViewModel.getBookmarks().map {
       return@map WebBrowserViewSiteData(it.id, it.title, it.url, it::iconUIImage)
     }
 
   override fun addBookmarkWithTitle(title: String, url: String, icon: NSData?) {
     val webSiteInfo =
-      WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type = WebSiteType.Book)
-    browserViewModel.addBookLink(webSiteInfo)
+      WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type = WebSiteType.Bookmark)
+    browserViewModel.addBookmark(webSiteInfo)
   }
 
   override fun removeBookmarkWithBookmark(bookmark: int64_t) {
-    val del = browserViewModel.getBookLinks().first {
+    val del = browserViewModel.getBookmarks().first {
       it.id == bookmark
     }
-    browserViewModel.removeBookLink(del)
+    browserViewModel.removeBookmark(del)
   }
 
   //#endregion

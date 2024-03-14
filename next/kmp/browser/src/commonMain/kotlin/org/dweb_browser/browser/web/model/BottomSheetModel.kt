@@ -1,31 +1,23 @@
 package org.dweb_browser.browser.web.model
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.ktor.http.Url
 import io.ktor.http.fullPath
-import kotlinx.coroutines.delay
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.BrowserDrawResource
-import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.helper.compose.ObservableMutableState
-import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.pure.image.compose.PureImageLoader
-
-val LocalModalBottomSheet = compositionChainOf<ModalBottomModel>("LocalModalBottomSheet")
 
 enum class SheetState {
   Hidden, Expanded, PartiallyExpanded;
@@ -37,54 +29,20 @@ enum class SheetState {
   }
 }
 
-enum class PageType {
-  Home, BookManager; //, EngineList, EngineManger;
-}
-
-enum class PopupViewState(
-  private val height: Dp = 0.dp,
-  private val percentage: Float? = null,
+enum class BrowserPage(
   val title: String,
   val imageVector: ImageVector,
   val index: Int,
 ) {
-  Options(height = 120.dp, title = "选项", imageVector = Icons.Default.Menu, index = 0), BookList(
-    percentage = 0.9f, title = "书签列表", imageVector = Icons.Default.Book, index = 1
-  ),
-  HistoryList(
-    percentage = 0.9f, title = "历史记录", imageVector = Icons.Default.History, index = 2
-  ),
-  // Share(percentage = 0.5f, title = "分享"),
+  //
+  Options(title = "选项", imageVector = Icons.Default.Menu, index = 0),
+
+  //
+  BookList(title = "书签列表", imageVector = Icons.Default.Bookmark, index = 1),
+
+  //
+  HistoryList(title = "历史记录", imageVector = Icons.Default.History, index = 2),
   ;
-
-  fun getLocalHeight(screenHeight: Dp? = null): Dp {
-    return screenHeight?.let {
-      percentage?.let { percentage ->
-        screenHeight * percentage
-      }
-    } ?: height
-  }
-}
-
-class ModalBottomModel {
-  val state: MutableState<SheetState> = mutableStateOf(SheetState.PartiallyExpanded)
-  val showBottomSheet = mutableStateOf(false)
-  val tabIndex = mutableStateOf(PopupViewState.Options)
-  val pageType = mutableStateOf(PageType.Home)
-  val webSiteInfo: MutableState<WebSiteInfo?> = mutableStateOf(null)
-
-  suspend fun hide() {
-    state.value = SheetState.Hidden
-    pageType.value = PageType.Home
-    delay(50)
-    showBottomSheet.value = false
-  }
-
-  suspend fun show() {
-    showBottomSheet.value = true
-    delay(50)
-    state.value = SheetState.PartiallyExpanded
-  }
 }
 
 /**
@@ -121,7 +79,7 @@ data class WebEngine(
 
   fun queryName(): String {
     val current = Url("${start}test")
-    return current.parameters.names().first()
+    return current.parameters.names().last()
   }
 
   override fun toString(): String {

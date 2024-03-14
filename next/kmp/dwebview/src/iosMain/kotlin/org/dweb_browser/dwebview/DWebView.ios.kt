@@ -127,7 +127,7 @@ class DWebView(
 
 
   override suspend fun getOriginalUrl() = withMainContext {
-    evaluateAsyncJavascriptCode("javascript:window.location.href;")
+    evaluateAsyncJavascriptCode("window.location.href")
   }
 
   override suspend fun getIcon() = engine.getFavicon()

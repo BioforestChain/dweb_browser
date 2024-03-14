@@ -6,14 +6,9 @@ import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.sys.window.core.WindowRenderScope
 
 @Composable
-fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowRenderScope) {
-  CommonBrowserView(viewModel, modifier, windowRenderScope)
-}
-
-@Composable
-expect fun CommonBrowserView(
+actual fun CommonBrowserView(
   viewModel: BrowserViewModel,
   modifier: Modifier,
   windowRenderScope: WindowRenderScope
-)
-
+) {
+}

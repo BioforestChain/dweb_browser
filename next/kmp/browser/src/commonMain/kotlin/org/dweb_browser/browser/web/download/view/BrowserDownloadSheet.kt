@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.download
+package org.dweb_browser.browser.web.download.view
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -43,6 +42,9 @@ import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_d
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_tip_continue
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_tip_exist
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_tip_reload
+import org.dweb_browser.browser.web.download.BrowserDownloadItem
+import org.dweb_browser.browser.web.download.BrowserDownloadModel
+import org.dweb_browser.browser.web.download.BrowserDownloadType
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.toSpaceSize

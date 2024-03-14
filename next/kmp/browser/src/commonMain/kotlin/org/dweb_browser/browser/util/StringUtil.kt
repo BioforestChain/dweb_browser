@@ -2,6 +2,7 @@ package org.dweb_browser.browser.util
 
 /**
  * 判断输入内容是否是域名或者有效的网址
+ * TODO FIX THIS
  */
 fun String.isUrl(): Boolean {
   // 以 http 或者 https 或者 ftp 打头，可以没有
@@ -15,6 +16,9 @@ fun String.isUrl(): Boolean {
   return regex1.matches(this) || regex2.matches(this)
 }
 
+/**
+ * TODO FIX THIS
+ */
 fun String.isOnlyHost(): Boolean {
   val regex1 =
     "^([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()

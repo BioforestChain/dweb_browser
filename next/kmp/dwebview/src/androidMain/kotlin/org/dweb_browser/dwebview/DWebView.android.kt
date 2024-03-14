@@ -95,7 +95,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   override suspend fun resolveUrl(url: String) = engine.resolveUrl(url)
   override suspend fun getOriginalUrl() = withMainContext {
-    engine.evaluateSyncJavascriptCode("javascript:window.location.href;")
+    engine.url ?: "about:blank"
   }
 
 
@@ -226,8 +226,8 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   override val onDownloadListener by lazy { engine.dWebDownloadListener.downloadSignal.toListener() }
   override val onScroll by lazy { engine.scrollSignal.toListener() }
 
-  override suspend fun getFavoriteIcon(): ImageBitmap? {
-    return engine.favicon?.asImageBitmap()
+  override suspend fun getFavoriteIcon(): ImageBitmap? = withMainContext {
+    engine.favicon?.asImageBitmap()
   }
 
   override suspend fun setSafeAreaInset(bounds: Bounds) = withMainContext {

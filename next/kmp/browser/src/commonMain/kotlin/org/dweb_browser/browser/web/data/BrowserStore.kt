@@ -19,7 +19,7 @@ data class WebSiteInfo(
   var title: String,
   var url: String = "",
   val type: WebSiteType,
-  val timeMillis: Long = id.toEpochDay(),
+  val day: Long = id.toEpochDay(),
   var icon: ByteArray? = null,
 ) {
   @Transient
@@ -37,7 +37,7 @@ fun Long.formatToStickyName(): String {
 }
 
 enum class WebSiteType(val id: Int) {
-  History(0), Book(1), Multi(2)
+  History(0), Bookmark(1)
   ;
 }
 
@@ -55,11 +55,9 @@ class BrowserStore(mm: MicroModule) {
   /**
    * 书签部分，不需要特殊处理，直接保存即可
    */
-  suspend fun getBookLinks() = storeBook.getOrPut(storeBookKey) {
-    return@getOrPut mutableListOf<WebSiteInfo>()
-  }
+  suspend fun getBookLinks() = storeBook.getOrPut(storeBookKey) { listOf<WebSiteInfo>() }
 
-  suspend fun setBookLinks(data: MutableList<WebSiteInfo>) =
+  suspend fun setBookLinks(data: List<WebSiteInfo>) =
     storeBook.set(storeBookKey, data)
 
   /**
@@ -67,7 +65,7 @@ class BrowserStore(mm: MicroModule) {
    * 保存的时候：按照每天保存一份文件
    * 获取的时候：按照每天的map来获取最近7天的数据
    */
-  suspend fun getHistoryLinks(): MutableMap<String, MutableList<WebSiteInfo>> {
+  suspend fun getHistoryLinks(): Map<String, List<WebSiteInfo>> {
     val current = datetimeNowToEpochDay()
     val maps = mutableMapOf<String, MutableList<WebSiteInfo>>()
     for (day in current downTo current - 6) { // 获取最近一周的数据
@@ -83,11 +81,11 @@ class BrowserStore(mm: MicroModule) {
    * 取下一个7天的历史数据
    * off: 到今天的偏移天数
    */
-  suspend fun getDaysHistoryLinks(off: Int): MutableMap<String, MutableList<WebSiteInfo>> {
+  suspend fun getDaysHistoryLinks(off: Int): Map<String, List<WebSiteInfo>> {
     val current = datetimeNowToEpochDay() + off
-    val maps = mutableMapOf<String, MutableList<WebSiteInfo>>()
+    val maps = mutableMapOf<String, List<WebSiteInfo>>()
     for (day in current downTo current - 6) { // 获取最近一周的数据
-      val webSiteInfoList = storeHistory.getOrNull<MutableList<WebSiteInfo>>(day.toString())
+      val webSiteInfoList = storeHistory.getOrNull<List<WebSiteInfo>>(day.toString())
       if (webSiteInfoList?.isNotEmpty() == true) {
         maps[day.toString()] = webSiteInfoList
       }
@@ -95,7 +93,7 @@ class BrowserStore(mm: MicroModule) {
     return maps
   }
 
-  suspend fun setHistoryLinks(key: String, data: MutableList<WebSiteInfo>) {
+  suspend fun setHistoryLinks(key: String, data: List<WebSiteInfo>) {
     storeHistory.set(key, data)
   }
 
