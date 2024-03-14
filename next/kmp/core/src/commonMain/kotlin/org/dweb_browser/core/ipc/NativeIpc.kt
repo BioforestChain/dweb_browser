@@ -26,7 +26,7 @@ class NativeIpc(
 
   init {
     port.onMessage { pack ->
-      debugNativeIpc("onMessage", "$channelId $pack")
+//      debugNativeIpc("onMessage", "$channelId $pack")
       endpoint.emitMessage(
         IpcPoolMessageArgs(
           IpcPoolPack(pack.pid, pack.ipcMessage),
@@ -42,7 +42,7 @@ class NativeIpc(
 
 
   override suspend fun doPostMessage(pid: Int, data: IpcMessage) {
-    debugNativeIpc("postMessage send", "$channelId $data")
+//    debugNativeIpc("postMessage send", "$channelId $data")
     port.postMessage(IpcPoolPack(pid, data))
   }
 

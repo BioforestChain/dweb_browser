@@ -164,7 +164,7 @@ class IpcBodySender private constructor(
   private fun onPulling(streamId: String) {
     // 接收流的控制信号,才能跟接收者(IpcBodyReceiver)互相配合 onStream = pull + pause + abort
     ipc.onPulling(streamId) { message, close ->
-      debugIpcBodySender("onPulling", "sender INIT => $streamId => $message")
+//      debugIpcBodySender("onPulling", "sender INIT => $streamId => $message")
       when (message) {
         is IpcStreamPulling -> emitStreamPull(message)
         is IpcStreamPaused -> emitStreamPaused(message)
@@ -184,7 +184,7 @@ class IpcBodySender private constructor(
     val streamId = getStreamId(stream)
     // 注册数据拉取
     onPulling(streamId)
-    debugIpcBodySender("streamAsMeta", "sender INIT => $streamId => $stream")
+//    debugIpcBodySender("streamAsMeta", "sender INIT => $streamId => $stream")
     val streamAsMetaScope =
       CoroutineScope(CoroutineName("sender/$stream/$streamId") + ioAsyncExceptionHandler)
     val reader by lazy { stream.getReader("ipcBodySender StreamAsMeta") }
@@ -228,22 +228,22 @@ class IpcBodySender private constructor(
           pullingLock.await()
         }
 
-        debugIpcBodySender("sender/PULLING/$stream", streamId)
-
-        debugIpcBodySender(
-          "sender/READ/$stream", "${byteArray.size} >> $streamId"
-        )
+//        debugIpcBodySender("sender/PULLING/$stream", streamId)
+//
+//        debugIpcBodySender(
+//          "sender/READ/$stream", "${byteArray.size} >> $streamId"
+//        )
         //发送流数据
         val message = IpcStreamData.fromBinary(streamId, byteArray)
         ipc.postMessage(message)
         // 发送完成，并将 sendingLock 解锁
-        debugIpcBodySender("sender/PULL-END/$stream", streamId)
+//        debugIpcBodySender("sender/PULL-END/$stream", streamId)
       }
 
       /// END
-      debugIpcBodySender(
-        "sender/END/$stream", streamId
-      )
+//      debugIpcBodySender(
+//        "sender/END/$stream", streamId
+//      )
       /// 不论是不是被 aborted，都发送结束信号
       val message = IpcStreamEnd(streamId)
       ipc.postMessage(message)

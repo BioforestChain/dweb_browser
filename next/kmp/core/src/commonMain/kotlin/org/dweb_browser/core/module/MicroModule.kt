@@ -202,9 +202,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     }
   }
 
-//  /** 激活NMM入口*/
-//  protected fun emitActivity(args)
-
   override fun toString(): String {
     return "MicroModule($mmid)"
   }
@@ -215,7 +212,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 }
 
 typealias IpcConnectArgs = Pair<Ipc, PureRequest>
-typealias IpcActivityArgs = Pair<IpcEvent, Ipc>
 
 class StatePromiseOut<T>(val state: T) : PromiseOut<T>() {
   companion object {

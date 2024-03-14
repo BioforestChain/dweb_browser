@@ -65,7 +65,7 @@ export interface $MicroModule extends $MicroModuleManifest {
    * 添加双工连接到自己的池子中，但自己销毁，这些双工连接都会被断掉
    * @param ipc
    */
-  addToIpcSet(ipc: import("./ipc/ipc.ts").Ipc): void;
+  addToIpcSet(ipc: import("./ipc/ipc.ts").Ipc): Promise<void>;
 }
 
 export const enum IPC_HANDLE_EVENT {
@@ -407,3 +407,14 @@ export interface WebAppManifest {
    */
   shortcuts?: ShortcutItem[] | undefined;
 }
+
+import { AdaptersManager } from "../helper/AdaptersManager.ts";
+import type { MicroModule } from "./micro-module.ts";
+
+export type $FetchAdapter = (
+  remote: MicroModule,
+  parsedUrl: URL,
+  requestInit: RequestInit
+) => Promise<Response | void> | Response | void;
+
+export const nativeFetchAdaptersManager = new AdaptersManager<$FetchAdapter>();

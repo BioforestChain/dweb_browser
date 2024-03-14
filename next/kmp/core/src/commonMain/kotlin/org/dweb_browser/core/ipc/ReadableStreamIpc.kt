@@ -138,7 +138,7 @@ class ReadableStreamIpc(
     //  closeCborByteArray -> close()
     val message = cborToIpcMessage(pack.messageByteArray, this@ReadableStreamIpc)
     val logMessage = message.toString().trim()
-    debugStreamIpc("bindIncomeStream", "message=$logMessage => pid: ${pack.pid}")
+//    debugStreamIpc("bindIncomeStream", "message=$logMessage => pid: ${pack.pid}")
     // 收消息 分发出去
     endpoint.emitMessage(
       IpcPoolMessageArgs(
@@ -155,8 +155,8 @@ class ReadableStreamIpc(
     }
     val pack = Json.decodeFromString<IpcPoolPackString>(data)
     val message = jsonToIpcPoolPack(pack.ipcMessage, this@ReadableStreamIpc)
-    val logMessage = message.toString().trim()
-    debugStreamIpc("bindIncomeStream", "message=$logMessage => $pack")
+//    val logMessage = message.toString().trim()
+//    debugStreamIpc("bindIncomeStream", "message=$logMessage => $pack")
     // 收消息 分发出去
     endpoint.emitMessage(
       IpcPoolMessageArgs(
@@ -171,7 +171,7 @@ class ReadableStreamIpc(
     if (supportCbor) {
       val message = ipcMessageToCbor(data)
       val pack = ipcPoolPackToCbor(PackIpcMessage(pid, message))
-      debugStreamIpc("post supportCbor", "${message.size} => $input => $data")
+//      debugStreamIpc("post supportCbor", "${message.size} => $input => $data")
       enqueue(
         pack.size.toLittleEndianByteArray(),
         pack
@@ -180,7 +180,7 @@ class ReadableStreamIpc(
     }
 
     val message = ipcPoolPackToJson(IpcPoolPack(pid, data)).encodeToByteArray()
-    debugStreamIpc("post", "${message.size} => $input => $data")
+//    debugStreamIpc("post", "${message.size} => $input => $data")
     enqueue(message.size.toLittleEndianByteArray(), message)// 必须合并起来发送，否则中间可能插入其他写入
   }
 

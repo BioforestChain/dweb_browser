@@ -116,7 +116,7 @@ open class MessagePortIpc(
 //            pingByteArray -> port.postMessage(pongByteArray)
 //            pongByteArray -> debugMessagePortIpc("PONG", endpoint)
             is IpcPoolPack -> {
-              debugMessagePortIpc("ON-MESSAGE", "Normal.IpcPoolPack=> $channelId => $message")
+//              debugMessagePortIpc("ON-MESSAGE", "Normal.IpcPoolPack=> $channelId => $message")
               // 分发消息
               endpoint.emitMessage(IpcPoolMessageArgs(message, ipc))
             }
@@ -139,7 +139,7 @@ open class MessagePortIpc(
     if (event.data == "close") return this.close()
     val pack = jsonToIpcPack(event.data)
     val message = jsonToIpcPoolPack(pack.ipcMessage, this@MessagePortIpc)
-    debugMessagePortIpc("ON-MESSAGE", "$channelId => $message")
+//    debugMessagePortIpc("ON-MESSAGE", "$channelId => $message")
     // 分发消息
     endpoint.emitMessage(
       IpcPoolMessageArgs(

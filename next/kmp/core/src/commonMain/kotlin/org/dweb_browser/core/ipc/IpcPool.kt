@@ -70,7 +70,7 @@ open class IpcPool {
   suspend fun <T : Ipc> create(
     channelId: String, options: IpcOptions
   ): T {
-    return ipcPool.getOrPut(channelId) {
+    val ipc = ipcPool.getOrPut(channelId) {
       val mm = options.remote
       // 创建不同的Ipc
       val ipc = if (options.port != null) {
@@ -83,6 +83,11 @@ open class IpcPool {
       ipc.start()
       return ipc as T
     } as T
+    ipc.onClose {
+      debugIpcPool("🏀 closeIpc=>${channelId}")
+      ipcPool.remove(channelId)
+    }
+    return ipc
   }
 
   /**

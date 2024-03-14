@@ -107,10 +107,11 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
       debugIpcPool("fail to post message, already closed")
       return
     }
-    // 等待通信建立完成
-    if (isActivity && data !is IpcLifeCycle) {
+    // 等待通信建立完成（如果通道没有建立完成，并且不是生命周期消息）
+    if (!isActivity && data !is IpcLifeCycle) {
       awaitStart()
     }
+    println("$channelId sendMessage $data")
     // 分发消息
     this.doPostMessage(this.pid, data)
   }
@@ -424,8 +425,8 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
 //    ipcMessageCoroutineScope.launch {
 //      val ipc = this@Ipc
 //      val pingDelay = 300L
-//      var fuse = endpoint.consumptionLife[channelId] ?: return@launch
-//      while (endpoint.consumptionLife[channelId] != null && !ipc.isClosed && fuse > 0) {
+//      var fuse = 3
+//      while (!this@Ipc.isActivity && !ipc.isClosed && fuse > 0) {
 //        ipc.postMessage(IpcLifeCycle.opening())
 //        delay(pingDelay)
 //        fuse -= 1
@@ -436,6 +437,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
 //        // 连接不上主动关闭
 //        if (!ipc.startDeferred.isCompleted) {
 //          ipc.startDeferred.complete(IpcLifeCycle.close())
+//          ipc.close()
 //        }
 //        ipc.emitMessage(
 //          IpcMessageArgs(

@@ -36,7 +36,7 @@ export class IpcPool {
     channelId: string,
     options: $IpcOptions
   ) {
-    return mapHelper.getOrPut(this.ipcPool, channelId, () => {
+    const ipc = mapHelper.getOrPut(this.ipcPool, channelId, () => {
       const mm = options.remote;
       // 创建不同的Ipc
       let ipc: Ipc;
@@ -50,19 +50,12 @@ export class IpcPool {
       ipc.start();
       return ipc;
     }) as T;
+    ipc.onClose(() => {
+      console.log(`🏀 worker closeIpc=>${channelId}`);
+      this.ipcPool.delete(channelId);
+    });
+    return ipc;
   }
-
-  // 发送消息   这里是road寻址的前身
-  // doPostMessage(channelId: string, data: $IpcMessage) {
-  //   // TODO waterbang 这里不想每次获取两个map
-  //   const pid = this.ipcChannelMap.get(channelId);
-  //   if (pid) {
-  //     const ipc = this.ipcHashMap.get(pid);
-  //     if (ipc) ipc._doPostMessage(pid, data);
-  //   } else {
-  //     throw new Error("this channelId $poolId not found!");
-  //   }
-  // }
 
   // 收集消息并且转发到各个通道
   private _messageSignal = this._createSignal<$OnIpcPool>(false);

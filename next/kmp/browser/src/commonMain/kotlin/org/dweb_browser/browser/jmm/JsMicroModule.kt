@@ -69,7 +69,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       val nativeToWhiteList = listOf<MMID>("js.browser.dweb")
 
       data class MmDirection(val endJmm: JsMicroModule, val startMm: MicroModule)
-
+      // jsMM对外创建ipc的适配器，给DnsNMM的connectMicroModules使用
       connectAdapterManager.append(1) { fromMM, toMM, reason ->
 
         val jsMM = if (nativeToWhiteList.contains(toMM.mmid)) null
@@ -90,10 +90,11 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
            * 也就是说。如果是 jsMM 内部自己去执行一个 connect，那么这里返回的 ipcForFromMM，其实还是通往 js-context 的， 而不是通往 toMM的。
            * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
            */
-          val toJmmIpc = jsMM.endJmm.ipcBridge(jsMM.startMm.mmid)
+          val toJmmIpc = jsMM.endJmm.ipcBridge(jsMM.startMm.mmid) //(tip:创建到worker内部的桥接)
           fromMM.beConnect(toJmmIpc, reason)
           toMM.beConnect(toJmmIpc, reason)
           val forwardIpc = toJmmIpc.toForwardIpc()
+          println("sendMessage===> 🥎 ${toJmmIpc.isActivity} ${forwardIpc.isActivity} ${forwardIpc.channelId} toJmmIpc:${toJmmIpc.channelId}[${toJmmIpc.remote.mmid}] fromMM:${fromMM.mmid}")
           return@append if (jsMM.startMm.mmid == fromMM.mmid) {
             ConnectResult(
               ipcForFromMM = toJmmIpc,
@@ -244,7 +245,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
            *
            * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
            */
-          val (targetIpc) = bootstrapContext.dns.connect(event.mmid)
+          val (targetIpc) = bootstrapContext.dns.connect(event.mmid) // 由上面的适配器产生
           /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
           if (targetIpc is BridgeAbleIpc) {
             ipcBridge(targetIpc.remote.mmid, targetIpc.bridgeOriginIpc)
@@ -296,7 +297,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         parameters["mmid"] = fromMMID
       }.buildUnsafeString()
     ).int()
-    // 跟自己代理的js-worker 建立 ipc
+    // 跟自己代理的js-worker 建立 ipc，也就是说，对这个ipc做通信能发到worker内部
     val toJmmIpc = JmmIpc(
       portId,
       this@JsMicroModule,
@@ -304,8 +305,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       fetchIpc ?: throw CancellationException("ipcBridge abort"),
       "native-createIpc-${fromMMID}"
     )
-    // 这里比较特殊因为是分发两个port 因此这里需要发送start
-    toJmmIpc.start()
     toJmmIpc.onClose {
       fromMMIDOriginIpcWM.remove(fromMMID)
     }
@@ -339,9 +338,11 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
            * 将两个消息通道间接互联，这里targetIpc明确为NativeModule
            */
           toJmmIpc.onMessage { (ipcMessage) ->
+            println("xxxxx=> toJmmIpc $ipcMessage")
             targetIpc.postMessage(ipcMessage)
           }
           targetIpc.onMessage { (ipcMessage) ->
+            println("xxxxx=> targetIpc $ipcMessage")
             toJmmIpc.postMessage(ipcMessage)
           }
           /**
@@ -355,6 +356,10 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
             fromMMIDOriginIpcWM.remove(toJmmIpc.remote.mmid)
             toJmmIpc.close()
           }
+        }
+        // 这里比较特殊因为是分发两个port 因此这里需要发送start
+        if (!toJmmIpc.isActivity) {
+          toJmmIpc.start() // 代表桥接ipc已经可以通信
         }
         toJmmIpc
       }

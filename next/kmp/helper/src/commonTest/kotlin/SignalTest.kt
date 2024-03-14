@@ -12,15 +12,15 @@ class SignalTest {
   fun testOnMessage() = runCommonTest {
     val onClose = signal.toListener().also {
       it.invoke {
-        println("xxxxxx=> ${signal.size}")
+        println("it=> ${signal.size}")
       }
     }
     onClose {
-      println("xxxxxx onClose1")
+      println("it onClose1")
     }
     signal.emit()
     onClose {
-      println("xxxxxx onClose2")
+      println("it onClose2")
     }
   }
 }

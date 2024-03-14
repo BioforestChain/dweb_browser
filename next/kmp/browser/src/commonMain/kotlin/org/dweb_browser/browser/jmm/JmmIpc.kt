@@ -1,5 +1,8 @@
 package org.dweb_browser.browser.jmm
 
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.ipc.Ipc
@@ -7,6 +10,7 @@ import org.dweb_browser.core.ipc.IpcPool
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcLifeCycle
 import org.dweb_browser.core.ipc.helper.IpcMessage
+import org.dweb_browser.core.ipc.helper.IpcMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.core.ipc.helper.IpcReqMessage
@@ -17,6 +21,7 @@ import org.dweb_browser.core.ipc.helper.jsonToIpcPoolPack
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.Once
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 
 class JmmIpc(
@@ -27,10 +32,12 @@ class JmmIpc(
   channelId: String, // 本次转发的名称
 ) : Native2JsIpc(portId, remote, channelId, kotlinIpcPool), BridgeAbleIpc {
   override val bridgeOriginIpc = this
+  private val scope = CoroutineScope(CoroutineName(channelId) + ioAsyncExceptionHandler)
   val toForwardIpc = Once {
-    JmmForwardIpc(this, object : IMicroModuleManifest by remote {
+    val forwardIpc = JmmForwardIpc(this, object : IMicroModuleManifest by remote {
       override var mmid = fromMMID
     }, fetchIpc, "${channelId}-forward", endpoint)
+    forwardIpc
   }
 }
 
@@ -53,6 +60,7 @@ class JmmForwardIpc(
     // 收到代理的消息回复
     fetchIpc.onEvent { (ipcEvent) ->
       if (ipcEvent.name == responseEventName) {
+
         val pack = jsonToIpcPack(ipcEvent.text)
         val message = jsonToIpcPoolPack(pack.ipcMessage, jmmIpc)
         endpoint.emitMessage(
@@ -67,6 +75,8 @@ class JmmForwardIpc(
 
   // 发送代理消息到js-worker 中
   override suspend fun doPostMessage(pid: Int, data: IpcMessage) {
+    println("sendMessage JmmForwardIpc ${fetchIpc.isActivity}")
+    // 把激活信号发送到worker
     if (data is IpcLifeCycle) {
       fetchIpc.postMessage(
         IpcEvent.fromUtf8(lifeCycleEventName, ipcMessageToJson(data))
