@@ -47,6 +47,7 @@ fun Project.configureYarn() {
     println("KotlinNpmInstallTask: ${this@configureYarn.name}:$name args=$args")
     args += "install"
     doFirst {
+      val yarnLock = additionalFiles.files.first { it.name == "yarn.lock" }
       val yarnEnvFile = yarnLock.parentFile.resolve(".env.yarn")
       if (!yarnEnvFile.exists()) {
         /// 设置版本号4+
