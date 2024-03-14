@@ -9,7 +9,9 @@ import org.dweb_browser.core.help.types.MMID
  * TODO MacOS和IOS 共享基于 LocalAuthentication 的实现
  */
 actual object BiometricsManage {
-  actual suspend fun checkSupportBiometrics() = BiometricCheckResult.BIOMETRIC_STATUS_UNKNOWN
+  actual suspend fun checkSupportBiometrics() =
+    BiometricCheckResult.fromValue(biometrics.checkSupportBiometrics().toInt())
+      ?: BiometricCheckResult.BIOMETRIC_STATUS_UNKNOWN
 
   actual suspend fun biometricsResultContent(
     biometricsNMM: BiometricsNMM,
@@ -19,6 +21,14 @@ actual object BiometricsManage {
     input: ByteArray?,
     mode: InputMode
   ): BiometricsResult {
-    return BiometricsResult(false, "no implement yet")
+    val result = biometrics.biometricsResultContent(
+      title ?: subtitle ?: BiometricsI18nResource.default_subtitle.text
+    )
+
+    if(!result.success && result.message.isBlank()) {
+      return BiometricsResult(result.success, BiometricsI18nResource.authentication_failed.text)
+    }
+
+    return BiometricsResult(result.success, result.message)
   }
 }

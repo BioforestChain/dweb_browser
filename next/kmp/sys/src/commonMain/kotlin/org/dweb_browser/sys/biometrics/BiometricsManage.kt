@@ -44,6 +44,8 @@ enum class BiometricCheckResult(val value: Int) {
 
   companion object {
     val ALL_VALUES = entries.associateBy { it.value }
+
+    fun fromValue(value: Int) : BiometricCheckResult? = entries.firstOrNull { it.value == value }
   }
 }
 

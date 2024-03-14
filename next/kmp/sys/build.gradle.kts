@@ -46,5 +46,9 @@ kotlin {
 //    }
 //  }
   kmpIosTarget(project)
-  kmpDesktopTarget(project)
+  kmpDesktopTarget(project) {
+    dependencies {
+      implementation(projects.libBiometrics)
+    }
+  }
 }
