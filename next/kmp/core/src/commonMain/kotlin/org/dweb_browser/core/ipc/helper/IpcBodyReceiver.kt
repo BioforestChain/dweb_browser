@@ -81,9 +81,9 @@ class IpcBodyReceiver(
         ipc.onPulling(streamId) { message, close ->
           when (message) {
             is IpcStreamData -> {
-              debugIpcBodyReceiver(
-                "receiver/StreamData/$ipc/${controller.stream}", message
-              )
+//              debugIpcBodyReceiver(
+//                "receiver/StreamData/$ipc/${controller.stream}", message
+//              )
               controller.enqueue(message.binary)
             }
 

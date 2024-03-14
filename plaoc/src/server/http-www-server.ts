@@ -35,7 +35,12 @@ export class Server_www extends HttpServer {
     }
 
     const serverIpc = await this._listener;
-    return serverIpc.onFetch(...this.handlers, this._provider.bind(this)).noFound();
+    const res = serverIpc
+      .onFetch(...this.handlers, this._provider.bind(this))
+      .internalServerError()
+      .cors();
+    console.log("startxxx=>", res, serverIpc.channelId);
+    return res;
   }
   protected async _provider(request: FetchEvent, root = "www"): Promise<$OnFetchReturn> {
     let { pathname } = request;

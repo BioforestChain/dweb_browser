@@ -3,12 +3,11 @@ import { CacheGetter } from "../helper/cacheGetter.ts";
 import { createSignal } from "../helper/createSignal.ts";
 import { fetchExtends } from "../helper/fetchExtends/index.ts";
 import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.ts";
-import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.ts";
 import type { $BootstrapContext } from "./bootstrapContext.ts";
 import type { MICRO_MODULE_CATEGORY } from "./helper/category.const.ts";
 import type { Ipc, IpcEvent } from "./ipc/index.ts";
 import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID, $MicroModule, $MicroModuleManifest } from "./types.ts";
-import { IPC_HANDLE_EVENT } from "./types.ts";
+import { IPC_HANDLE_EVENT, nativeFetchAdaptersManager } from "./types.ts";
 
 export abstract class MicroModule implements $MicroModule {
   abstract mmid: $MMID;
@@ -36,9 +35,9 @@ export abstract class MicroModule implements $MicroModule {
   readonly onAfterShutdown = this._after_shutdown_signal.listen;
   protected _ipcSet = new Set<Ipc>();
 
-  public addToIpcSet(ipc: Ipc) {
+  public async addToIpcSet(ipc: Ipc) {
     if (this._running_state_lock.value === true) {
-      void ipc.ready();
+      await ipc.ready();
     }
     this._ipcSet.add(ipc);
     ipc.onClose(() => {
@@ -137,8 +136,8 @@ export abstract class MicroModule implements $MicroModule {
   /**
    * 收到一个连接，触发相关事件
    */
-  beConnect(ipc: Ipc, reason: Request) {
-    this.addToIpcSet(ipc);
+  async beConnect(ipc: Ipc, reason: Request) {
+    await this.addToIpcSet(ipc);
     ipc.onEvent((event, ipc) => {
       if (event.name == IPC_HANDLE_EVENT.Activity) {
         this._activitySignal.emit(event, ipc);
@@ -158,12 +157,10 @@ export abstract class MicroModule implements $MicroModule {
     const args = normalizeFetchArgs(url, init);
     for (const adapter of nativeFetchAdaptersManager.adapters) {
       const response = await adapter(this, args.parsed_url, args.request_init);
-      console.log("start=> adapter", response);
       if (response !== undefined) {
         return response;
       }
     }
-    console.log("start=> adapter", args.parsed_url.href, args.request_init);
     return fetch(args.parsed_url, args.request_init);
   }
 
@@ -171,7 +168,6 @@ export abstract class MicroModule implements $MicroModule {
     if (init?.body instanceof ReadableStream) {
       Reflect.set(init, "duplex", "half");
     }
-    console.log("start=>", this.mmid, url, init);
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
   }
 

@@ -51,7 +51,10 @@ export class Server_external extends HttpServer {
       .cors();
   }
 
-  ipcPo: PromiseToggle<$ReadableStreamIpc, void> = new PromiseToggle<$ReadableStreamIpc, void>({ type: "close", value: undefined });
+  ipcPo: PromiseToggle<$ReadableStreamIpc, void> = new PromiseToggle<$ReadableStreamIpc, void>({
+    type: "close",
+    value: undefined,
+  });
 
   //窗口关闭的时候需要重新等待连接
   closeRegisterIpc() {

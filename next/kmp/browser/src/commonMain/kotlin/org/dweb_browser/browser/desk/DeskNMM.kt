@@ -250,10 +250,10 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       // 监听所有app数据
       "/desktop/observe/apps" byChannel { ctx ->
         val off = desktopController.onUpdate {
-          debugDesk("/desktop/observe/apps", "onUpdate")
+//          debugDesk("/desktop/observe/apps", "onUpdate")
           try {
             val apps = desktopController.getDesktopApps()
-            debugDesk("/desktop/observe/apps") { "apps:$apps" }
+//            debugDesk("/desktop/observe/apps") { "apps:$apps" }
             ctx.sendJsonLine(desktopController.getDesktopApps())
           } catch (e: Throwable) {
             close(cause = e)
@@ -276,9 +276,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         val pureChannel = ctx.getChannel()
         taskBarController.onUpdate {
           try {
-            debugDesk("/taskbar/observe/apps") { "onUpdate $pureChannel=>${request.body.toPureString()}" }
+//            debugDesk("/taskbar/observe/apps") { "onUpdate $pureChannel=>${request.body.toPureString()}" }
             val apps = taskBarController.getTaskbarAppList(limit)
-            debugDesk("/taskbar/observe/apps") { "apps:$apps" }
+//            debugDesk("/taskbar/observe/apps") { "apps:$apps" }
             ctx.sendJsonLine(apps)
           } catch (e: Exception) {
             close(cause = e)

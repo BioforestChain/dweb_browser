@@ -18,7 +18,6 @@ import {
   type $OnIpcMessage,
 } from "./helper/const.ts";
 
-import { once } from "../../helper/helper.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { $OnFetch, createFetchHandler } from "../helper/ipcFetchHelper.ts";
 import { IpcLifeCycle } from "./IpcLifeCycle.ts";
@@ -106,6 +105,7 @@ export abstract class Ipc {
     if (!this.isActivity && !(message instanceof IpcLifeCycle)) {
       await this.awaitStart;
     }
+    // console.log(`${this.channelId} sendMessage ${JSON.stringify(message)} worker`);
     // 发到pool进行分发消息
     this._doPostMessage(this.pid, message);
   }
@@ -276,10 +276,8 @@ export abstract class Ipc {
   //   })();
   //   return await ready.promise;
   // });
-  ready() {
-    return once(async () => {
-      return await this.awaitStart;
-    })();
+  async ready() {
+    return await this.awaitStart;
   }
 
   // 标记是否启动完成
@@ -291,6 +289,18 @@ export abstract class Ipc {
     this.ipcLifeCycleState = IPC_STATE.OPEN;
     // 如果是后连接的也需要发个连接消息  这里唯一可能出现消息的丢失就是通道中消息丢失
     this.postMessage(IpcLifeCycle.opening());
+    // (async () => {
+    //   let timeDelay = 50;
+    //   while (!this.isActivity && !this.isClosed && timeDelay < 5000) {
+    //     this.postMessage(IpcLifeCycle.opening());
+    //     await PromiseOut.sleep(timeDelay).promise;
+    //     timeDelay *= 3;
+    //   }
+    //   if (!this.isActivity) {
+    //     this.startDeferred.reject(`fuse boom worker ${this.channelId} open Error`)
+    //     this.close()
+    //   }
+    // })();
   }
 
   closing() {
@@ -315,7 +325,7 @@ export abstract class Ipc {
         // 收到对方完成开始建立连接
         case IPC_STATE.OPEN: {
           console.log(`worker xxlife start=>🍟 ${ipc.remote.mmid} ${ipc.channelId}`);
-          if (!ipc.startDeferred.is_resolved) {
+          if (!ipc.startDeferred.is_finished) {
             ipc.startDeferred.resolve(lifeCycle);
           }
           break;

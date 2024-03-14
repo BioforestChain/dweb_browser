@@ -1,5 +1,0 @@
-export enum DOWNLOAD_STATUS {
-  DOWNLOAD,
-  PAUSE,
-  CANCEL,
-}

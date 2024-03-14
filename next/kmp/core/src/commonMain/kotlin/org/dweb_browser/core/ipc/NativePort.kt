@@ -108,7 +108,7 @@ class NativePort<I, O>(
    */
   @OptIn(DelicateCoroutinesApi::class)
   fun postMessage(msg: O) {
-    debugNativeIpc("message-out", "$this >> $msg >> ${!channelOut.isClosedForSend}")
+//    debugNativeIpc("message-out", "$this >> $msg >> ${!channelOut.isClosedForSend}")
     if (!channelOut.isClosedForSend) {
       nativeScope.launch {
         channelOut.send(msg)
