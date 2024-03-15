@@ -37,8 +37,6 @@ export abstract class Ipc {
   private pid = 0;
   constructor(readonly channelId: string, readonly endpoint: IpcPool) {
     this.pid = endpoint.generatePid(channelId);
-    console.log(`收到激活消息worker xxlife listen=>🥑 ${channelId} ${this.pid}`);
-    this.initlifeCycleHook();
   }
 
   readonly uid = (ipc_uid_acc++).toString();
@@ -105,7 +103,7 @@ export abstract class Ipc {
     if (!this.isActivity && !(message instanceof IpcLifeCycle)) {
       await this.awaitStart;
     }
-    // console.log(`${this.channelId} sendMessage ${JSON.stringify(message)} worker`);
+    // console.log(`workersendMessage ${this.channelId} ${JSON.stringify(message)}`);
     // 发到pool进行分发消息
     this._doPostMessage(this.pid, message);
   }
@@ -257,62 +255,34 @@ export abstract class Ipc {
     );
   }
 
-  // private readyListener = once(async () => {
-  //   const ready = new PromiseOut<IpcEvent>();
-  //   this.onEvent((event, ipc) => {
-  //     if (event.name === "ping") {
-  //       ipc.postMessage(new IpcEvent("pong", event.data, event.encoding));
-  //     } else if (event.name === "pong") {
-  //       ready.resolve(event);
-  //     }
-  //   });
-  //   (async () => {
-  //     let timeDelay = 50;
-  //     while (!ready.is_resolved && !this.isClosed && timeDelay < 5000) {
-  //       this.postMessage(IpcEvent.fromText("ping", ""));
-  //       await PromiseOut.sleep(timeDelay).promise;
-  //       timeDelay *= 3;
-  //     }
-  //   })();
-  //   return await ready.promise;
-  // });
-  async ready() {
-    return await this.awaitStart;
+  ready() {
+    return this.awaitStart;
   }
 
   // 标记是否启动完成
   startDeferred = new PromiseOut<IpcLifeCycle>();
-  isActivity = this.startDeferred.is_finished;
+  get isActivity() {
+    return this.startDeferred.is_finished;
+  }
   awaitStart = this.startDeferred.promise;
   // 告知对方我启动了
   start() {
     this.ipcLifeCycleState = IPC_STATE.OPEN;
     // 如果是后连接的也需要发个连接消息  这里唯一可能出现消息的丢失就是通道中消息丢失
     this.postMessage(IpcLifeCycle.opening());
-    // (async () => {
-    //   let timeDelay = 50;
-    //   while (!this.isActivity && !this.isClosed && timeDelay < 5000) {
-    //     this.postMessage(IpcLifeCycle.opening());
-    //     await PromiseOut.sleep(timeDelay).promise;
-    //     timeDelay *= 3;
-    //   }
-    //   if (!this.isActivity) {
-    //     this.startDeferred.reject(`fuse boom worker ${this.channelId} open Error`)
-    //     this.close()
-    //   }
-    // })();
   }
 
   closing() {
     if (this.ipcLifeCycleState !== IPC_STATE.CLOSING) {
       this.ipcLifeCycleState = IPC_STATE.CLOSING;
       // TODO 这里是缓存消息处理的最后时间区间
-      this.close();
+      this.postMessage(IpcLifeCycle.close());
     }
   }
 
   /**ipc激活回调 */
   initlifeCycleHook() {
+    // console.log(`收到激活消息worker xxlife listen=>🥑 ${this.channelId} ${this.pid}`);
     // TODO 跟对方通信 协商数据格式
     this.onLifeCycle((lifeCycle, ipc) => {
       switch (lifeCycle.state) {
@@ -324,7 +294,7 @@ export abstract class Ipc {
         }
         // 收到对方完成开始建立连接
         case IPC_STATE.OPEN: {
-          console.log(`worker xxlife start=>🍟 ${ipc.remote.mmid} ${ipc.channelId}`);
+          // console.log(`worker xxlife start=>🍟 ${ipc.remote.mmid} ${ipc.channelId}`);
           if (!ipc.startDeferred.is_finished) {
             ipc.startDeferred.resolve(lifeCycle);
           }
@@ -332,6 +302,7 @@ export abstract class Ipc {
         }
         // 消息通道开始关闭
         case IPC_STATE.CLOSING: {
+          //这里可以接受最后一些消息
           ipc.closing();
           break;
         }
@@ -352,6 +323,7 @@ export abstract class Ipc {
       return;
     }
     this.ipcLifeCycleState = IPC_STATE.CLOSED;
+    this.postMessage(IpcLifeCycle.close());
     this._closed = true;
     this._doClose();
     this._closeSignal.emitAndClear();

@@ -19,6 +19,12 @@ export class IpcPool {
   // close start
   protected _closeSignal = createSignal<() => unknown>(false);
   onClose = this._closeSignal.listen;
+  close() {
+    this.ipcPool.forEach((ipc) => {
+      ipc.close();
+    });
+    this.ipcPool.clear();
+  }
   // close end
   // deno-lint-ignore no-explicit-any
   private _createSignal<T extends $Callback<any[]>>(autoStart?: boolean) {
@@ -47,7 +53,10 @@ export class IpcPool {
       } else {
         ipc = new ReadableStreamIpc(mm, channelId, this);
       }
-      ipc.start();
+      if (options.autoStart == undefined) {
+        ipc.start();
+      }
+      ipc.initlifeCycleHook();
       return ipc;
     }) as T;
     ipc.onClose(() => {

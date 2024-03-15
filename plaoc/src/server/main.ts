@@ -106,9 +106,11 @@ const main = async () => {
   });
   console.log("open in browser:", indexUrl.href);
   await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
-  console.log(wwwListenerTask,externalListenerTask,apiListenerTask)
+  console.log(wwwListenerTask, externalListenerTask, apiListenerTask);
   indexUrlPo.resolve(indexUrl.href);
+  console.log("indexUrl.href", indexUrl.href);
   open_main_window();
+
   //#endregion
 };
 

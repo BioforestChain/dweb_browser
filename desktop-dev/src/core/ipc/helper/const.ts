@@ -128,6 +128,8 @@ export type $IpcMessage = IpcRequest | IpcResponse | IpcEvent | $IpcStreamMessag
 export type $IpcStreamMessage = IpcStreamData | IpcStreamPulling | IpcStreamPaused | IpcStreamEnd | IpcStreamAbort;
 
 export type $IpcOptions = {
+  /**是否自动启动，可以在这个启动之前做一些动作默认不传递为自动启动 */
+  autoStart?: false;
   /**远程的模块是谁*/
   remote: $MicroModuleManifest;
   /**当endpoint为Worker的时候需要传递*/

@@ -75,6 +75,7 @@ export class ReadableStreamIpc extends Ipc {
       const message = this.support_cbor
         ? $cborToIpcMessage(data, this)
         : $jsonToIpcMessage(simpleDecoder(data, "utf8"), this);
+
       if (message === undefined) {
         console.error("unkonwn message", data);
         return;

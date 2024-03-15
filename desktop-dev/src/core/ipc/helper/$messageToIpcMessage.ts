@@ -75,10 +75,6 @@ export const $objectToIpcMessage = (data: $JSON<$IpcTransferableMessage>, ipc: I
  * @returns
  */
 export const $messageToIpcMessage = (data: $JSON<IpcPoolPack>, ipc: Ipc) => {
-  // | $IpcSignalMessage
-  // if ($isIpcSignalMessage(data)) {
-  //   return data;
-  // }
   const ipcMessage = $objectToIpcMessage(data.ipcMessage as $JSON<$IpcTransferableMessage>, ipc);
   return new IpcPoolPack(data.pid, ipcMessage);
 };
@@ -90,9 +86,6 @@ export const $messageToIpcMessage = (data: $JSON<IpcPoolPack>, ipc: Ipc) => {
  * @returns IpcPoolPack
  */
 export const $jsonToIpcMessage = (data: string, ipc: Ipc) => {
-  // if ($isIpcSignalMessage(data)) {
-  //   return data;
-  // }
   const pack = JSON.parse(data) as $JSON<IpcPoolPackString>;
   const ipcMessage = $objectToIpcMessage(JSON.parse(pack.ipcMessage), ipc);
   return new IpcPoolPack(pack.pid, ipcMessage);

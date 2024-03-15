@@ -202,8 +202,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     routes(
       // 开启一个服务
       "/start" bind PureMethod.GET by defineJsonResponse {
+        val subdomain = request.query("subdomain")
         start(
-          ipc, DwebHttpServerOptions(request.query("subdomain"))
+          ipc, DwebHttpServerOptions(subdomain)
         ).toJsonElement()
       },
       // 监听一个服务
