@@ -40,6 +40,8 @@ struct SheetSegmentView: View {
                 }
             }
             .pickerStyle(.segmented)
+            .accessibilityElement()
+            .accessibilityIdentifier("morePicker")
             .padding(.horizontal, 16)
             .frame(height: dragScale.properValue(max: 30))
 
@@ -57,6 +59,8 @@ struct SheetSegmentView: View {
         .background(Color.bk)
         .cornerRadius(gridcellCornerR)
         .modelContainer(for: Bookmark.self)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("SheetSegmentView")
     }
 }
 

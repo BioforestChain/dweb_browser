@@ -66,6 +66,8 @@ struct PagingScrollView: View {
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("PagingScrollView")
     }
 
     func loadingFinished(webCache: WebCache) {

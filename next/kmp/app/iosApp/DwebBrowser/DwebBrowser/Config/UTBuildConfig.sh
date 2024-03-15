@@ -15,7 +15,7 @@ function testingBuild() {
     mode="DwebTesting"
     if [ "$1" == "ui" ]; then
         mode="DwebUITesting"
-            echo " UI Testing "
+            echo "UI Testing "
         else
             echo "Unit Testing"
     fi
@@ -32,8 +32,16 @@ function testingBuild() {
     echo "update info.plist start"
 
     update_dweb_mode "$root_dict/DwebBrowser/DwebBrowser/Info.plist" $mode
-        
+    
     echo "update info.plist end"
+    
+    keybordStatus=`defaults read com.apple.iphonesimulator ConnectHardwareKeyboard`
+    if [ "$keybordStatus" != "0" ]; then
+        echo "update hardware keyboard connect"
+        `defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool NO`
+        `xcrun simctl shutdown`
+        `xcrun simctl boot`
+    fi
 }
 
 function testingRecover() {

@@ -18,6 +18,8 @@ struct HistoryView: View {
         VStack {
             if historyStore.sections.count <= 0 {
                 NoResultView(empty: .history)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("HistoryView_Empty")
             } else {
                 List {
                     ForEach(historyStore.sections.indices, id: \.self) { (index: Int) in
@@ -59,11 +61,19 @@ struct HistoryView: View {
                         }
                     }
                 }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("HistoryView_List")
                 .task {
                     historyStore.loadHistory()
                 }
             }
         }
+        .background(content: {
+            Color.clear
+                .accessibilityElement()// UITest占位用，不要删掉。
+        })
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("HistoryView")
     }
 }
 

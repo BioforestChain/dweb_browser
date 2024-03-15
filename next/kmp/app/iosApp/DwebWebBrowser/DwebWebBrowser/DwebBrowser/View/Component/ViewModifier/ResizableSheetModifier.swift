@@ -55,7 +55,10 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                                                     }
                                                     curDragOffsetY = 0
                                                 }
-                                            })
+                                            }
+                                    )
+                                    .accessibilityElement()
+                                    .accessibilityIdentifier("moreHandle")
                             }
                             .cornerRadius(10)
                             .padding(.horizontal, 4)
@@ -77,6 +80,8 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                     }
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("PickerContainer")
     }
 }
 

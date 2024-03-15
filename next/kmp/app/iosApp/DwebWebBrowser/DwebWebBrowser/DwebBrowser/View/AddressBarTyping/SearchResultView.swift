@@ -33,6 +33,7 @@ struct SearchResultView: View {
                             Text(searcher.name)
                                 .foregroundColor(.primary)
                                 .font(dragScale.scaledFont_18)
+                                .accessibilityIdentifier(searcher.name)
                             Text(addressBar.inputText.trim)
                                 .foregroundColor(Color(.systemGray2))
                                 .font(dragScale.scaledFont_12)
@@ -75,6 +76,8 @@ struct SearchResultView: View {
         }
         .scrollContentBackground(.hidden)
         .background(.bk)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("SearchResultView")
     }
 }
 

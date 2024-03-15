@@ -18,6 +18,8 @@ struct BookmarkView: View {
     var body: some View {
 
         ZStack {
+            Color.clear
+                .accessibilityElement()// UITest占位用，不要删掉。
             if bookmarks.count > 0 {
                 List {
                     ForEach(bookmarks, id: \.self) { bookmark in
@@ -41,10 +43,16 @@ struct BookmarkView: View {
                     }
                     .onDelete(perform: deleteBookmarkData)
                 }
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("BookmarkView_List")
             } else {
                 NoResultView(empty: .bookmark)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("BookmarkView_Empty")
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("BookmarkView")
     }
 
     func deleteBookmarkData(_ indexSet: IndexSet) {

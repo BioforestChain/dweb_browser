@@ -32,6 +32,7 @@
 		4876C7182AFDD94E00CDF8BF /* DwebBrowserAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4876C7172AFDD94E00CDF8BF /* DwebBrowserAppDelegate.swift */; };
 		487D7FCB2B6A24DC00DA8162 /* DwebLifeStatusCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487D7FCA2B6A24DC00DA8162 /* DwebLifeStatusCenter.swift */; };
 		48CC08312B634943007B0ADB /* DwebDeskAlertTips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CC08302B634943007B0ADB /* DwebDeskAlertTips.swift */; };
+		48DAB2612B9EE6B100DA1EF2 /* DwebConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48DAB2602B9EE6B100DA1EF2 /* DwebConsoleView.swift */; };
 		48F54EDB2B17233E003A64AC /* DwebDeskVCStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48F54EDA2B17233E003A64AC /* DwebDeskVCStore.swift */; };
 		F0A0E3692B4D27950024D8DE /* AppVersionMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A0E3682B4D27950024D8DE /* AppVersionMgr.swift */; };
 /* End PBXBuildFile section */
@@ -100,6 +101,7 @@
 		487D7FCA2B6A24DC00DA8162 /* DwebLifeStatusCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebLifeStatusCenter.swift; sourceTree = "<group>"; };
 		48C4F2DD2B85940B00671A91 /* LinkSort.order */ = {isa = PBXFileReference; lastKnownFileType = text; path = LinkSort.order; sourceTree = "<group>"; };
 		48CC08302B634943007B0ADB /* DwebDeskAlertTips.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskAlertTips.swift; sourceTree = "<group>"; };
+		48DAB2602B9EE6B100DA1EF2 /* DwebConsoleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebConsoleView.swift; sourceTree = "<group>"; };
 		48E35C952B99504B0008AB39 /* UTBuildConfig.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = UTBuildConfig.sh; sourceTree = "<group>"; };
 		48F54EDA2B17233E003A64AC /* DwebDeskVCStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebDeskVCStore.swift; sourceTree = "<group>"; };
 		7555FF7B242A565900829871 /* DwebBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DwebBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -138,9 +140,9 @@
 		48001B9D2B8ED4CB00F47669 /* DwebBrowserUITests */ = {
 			isa = PBXGroup;
 			children = (
+				48001BA92B8F1ADE00F47669 /* DwebUITestCase.swift */,
 				48001B9E2B8ED4CB00F47669 /* DwebBrowserUITests.swift */,
 				48001BA02B8ED4CB00F47669 /* DwebBrowserUITestsLaunchTests.swift */,
-				48001BA92B8F1ADE00F47669 /* DwebUITestCase.swift */,
 			);
 			path = DwebBrowserUITests;
 			sourceTree = "<group>";
@@ -210,6 +212,14 @@
 			path = Config;
 			sourceTree = "<group>";
 		};
+		48DAB25F2B9EE57A00DA1EF2 /* Console */ = {
+			isa = PBXGroup;
+			children = (
+				48DAB2602B9EE6B100DA1EF2 /* DwebConsoleView.swift */,
+			);
+			path = Console;
+			sourceTree = "<group>";
+		};
 		7555FF72242A565900829871 = {
 			isa = PBXGroup;
 			children = (
@@ -239,6 +249,7 @@
 				4876C7172AFDD94E00CDF8BF /* DwebBrowserAppDelegate.swift */,
 				4803C00B2B4FF541006B2F79 /* DependencyHeaders.swift */,
 				4803C0142B4FF846006B2F79 /* DwebDeepLink.swift */,
+				48DAB25F2B9EE57A00DA1EF2 /* Console */,
 				48C4F2DC2B8593D900671A91 /* Config */,
 				487D7FC72B69E3BA00DA8162 /* ViewModifiers */,
 				4803C0172B4FF897006B2F79 /* Fix */,
@@ -437,6 +448,7 @@
 			files = (
 				487D7FCB2B6A24DC00DA8162 /* DwebLifeStatusCenter.swift in Sources */,
 				481E15652B6750AE003870F6 /* ShortcutTools.swift in Sources */,
+				48DAB2612B9EE6B100DA1EF2 /* DwebConsoleView.swift in Sources */,
 				48334DC72B50CF7100399FFF /* TouchThroughView.swift in Sources */,
 				486CBD942B9AB64000AA5577 /* DwebScreenEdgePanGestureRecognizer.swift in Sources */,
 				4803C0152B4FF846006B2F79 /* DwebDeepLink.swift in Sources */,
@@ -487,6 +499,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = DwebBrowser;
@@ -510,6 +523,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.Identifier.iosApp2.toolsdemo.DwebBrowserUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = DwebBrowser;
@@ -536,6 +550,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DwebBrowser.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DwebBrowser";
@@ -560,6 +575,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.Identifier.iosApp2.toolsdemo.DwebBrowserTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DwebBrowser.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DwebBrowser";
@@ -725,6 +741,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -769,6 +786,7 @@
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OBJC_INTEROP_MODE = objcxx;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};

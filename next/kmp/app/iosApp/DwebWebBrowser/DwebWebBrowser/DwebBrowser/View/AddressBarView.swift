@@ -41,6 +41,8 @@ struct AddressBar: View {
             textField
             accessoryButtons
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("AddressBar")
         .onChange(of: webMonitor.loadingProgress) { _, newValue in
             showProgress = newValue
         }
@@ -91,6 +93,7 @@ struct AddressBar: View {
             .keyboardType(.webSearch)
             .focused($isAdressBarFocused)
             .font(dragScale.scaledFont_18)
+            .accessibilityIdentifier("Address")
             .onChange(of: isAdressBarFocused) { _, focused in
                 if focused {
                     addressBar.isFocused = true

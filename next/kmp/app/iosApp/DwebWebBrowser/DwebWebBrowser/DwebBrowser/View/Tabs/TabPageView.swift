@@ -78,6 +78,8 @@ struct TabPageView: View {
                     }
                 }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("TabPageView")
     }
 
     var content: some View {

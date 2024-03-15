@@ -155,6 +155,8 @@ struct TabGridView: View {
                 }
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("TabGridView")
     }
 
     func isSelected(webCache: WebCache) -> Bool {

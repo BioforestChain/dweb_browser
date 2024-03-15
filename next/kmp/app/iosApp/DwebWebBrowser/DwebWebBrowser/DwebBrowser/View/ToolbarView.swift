@@ -35,6 +35,8 @@ struct ToolbarView: View {
             }
         }
         .frame(height: addressBar.isFocused ? 0 : dragScale.properValue(max: maxToolBarH))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("ToolbarView")
         .opacity(addressBar.isFocused ? 0 : 1)
         .onChange(of: webMonitor.isLoadingDone) { _, isDone in
             loadingDone = isDone
@@ -53,6 +55,8 @@ struct ToolbarView: View {
             BiColorButton(imageName: "add") {
                 toolbarState.shouldCreateTab = true
             }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityIdentifier("add")
             .padding(.leading, screen_width * dragScale.onWidth / 15)
                         
             Spacer()
@@ -71,6 +75,8 @@ struct ToolbarView: View {
                     .font(dragScale.scaledFont_18)
                     .fontWeight(.semibold)
             }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityIdentifier("done")
             .padding(.trailing, screen_width * dragScale.onWidth / 15)
         }
     }
@@ -84,6 +90,7 @@ struct ToolbarView: View {
             }) {
                 plusImage
             }
+            .accessibilityIdentifier("shortcut")
             .disabled(!canCreateDesktopLink)
                 
             Spacer()
@@ -91,21 +98,29 @@ struct ToolbarView: View {
                 BiColorButton(imageName: "add") {
                     toolbarState.shouldCreateTab = true
                 }
+                .accessibilityAddTraits(.isButton)
+                .accessibilityIdentifier("add")
             } else {
                 BiColorButton(imageName: "scan") {
                     doScan()
                 }
+                .accessibilityAddTraits(.isButton)
+                .accessibilityIdentifier("scan")
             }
             Spacer()
             BiColorButton(imageName: "shift") {
                 toolbarState.tabsState = .shouldShrink
             }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityIdentifier("shift")
             Spacer()
             BiColorButton(imageName: "more") {
                 withAnimation {
                     toolbarState.showMoreMenu = true
                 }
             }
+            .accessibilityAddTraits(.isButton)
+            .accessibilityIdentifier("more")
             Spacer()
         }
         

@@ -28,6 +28,7 @@ var browserViewDataSource: WebBrowserViewDataSource {
         DwebWebView.dataSource = dataSource
         super.init(frame: frame)
         setupView()
+        accessibilityIdentifier = "Web browser"
     }
         
     public required init?(coder: NSCoder) {

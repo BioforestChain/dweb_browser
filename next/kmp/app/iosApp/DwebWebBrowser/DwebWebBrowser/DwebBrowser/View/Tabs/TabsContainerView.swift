@@ -69,6 +69,8 @@ struct TabsContainerView: View {
                 }
             }
             .background(.bk)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("TabsContainer")
             .onAppear {
                 geoRect = geo.frame(in: .global)
                 Log("tabs contianer rect: \(geoRect)")

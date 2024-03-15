@@ -32,6 +32,8 @@ struct MenuView: View {
                 .frame(maxWidth: .infinity)
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("MenuView")
     }
 
     var tracelessView: some View {
@@ -43,6 +45,7 @@ struct MenuView: View {
 
             Toggle("", isOn: $viewmodel.isTraceless)
                 .scaleEffect(dragScale.onWidth)
+                .accessibilityIdentifier("MenuView_TackToggle")
         }
         .frame(height: 50 * dragScale.onWidth)
         .background(Color.menubk)
