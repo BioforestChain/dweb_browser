@@ -7,11 +7,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -51,9 +49,7 @@ abstract class IDWebView(initUrl: String?) {
   internal abstract suspend fun startLoadUrl(url: String): String
 
   private val urlState by lazy {
-    UrlState(this@IDWebView, if (initUrl.isNullOrEmpty()) "about:blank" else initUrl).apply {
-      endLoadUrl.complete(startUrl)
-    }
+    UrlState(this@IDWebView, if (initUrl.isNullOrEmpty()) "about:blank" else initUrl, true)
   }
 
   suspend fun loadUrl(url: String, force: Boolean = false): String {
@@ -62,7 +58,7 @@ abstract class IDWebView(initUrl: String?) {
     }
     while (true) {
       try {
-        return urlState.endLoadUrl.await()
+        return urlState.awaitUrl()
       } catch (e: CancellationException) {
         continue
       }
@@ -89,8 +85,8 @@ abstract class IDWebView(initUrl: String?) {
 
   abstract suspend fun resolveUrl(url: String): String
 
-  fun getUrl() = urlState.startUrl
-  fun hasUrl() = urlState.startUrl.isBlank()
+  fun getUrl() = urlState.currentUrl
+  fun hasUrl() = urlState.currentUrl.isBlank()
   abstract suspend fun getOriginalUrl(): String
 
   abstract suspend fun getTitle(): String
@@ -203,69 +199,6 @@ class WebLoadErrorState(val url: String, val errorMessage: String) : WebLoadStat
 
 fun Signal<WebLoadState>.toReadyListener() =
   createChild({ if (it is WebLoadSuccessState) it else null }, { it.url }).toListener()
-
-@OptIn(ExperimentalCoroutinesApi::class)
-internal class UrlState(val dwebView: IDWebView, var startUrl: String) {
-  var endLoadUrl = CompletableDeferred<String>()
-
-  fun isUrlEqual(newUrl: String): Boolean {
-    if (newUrl == startUrl) {
-      return true
-    }
-    if (endLoadUrl.isCompleted && endLoadUrl.getCompleted() == newUrl) {
-      return true
-    }
-    return false
-  }
-
-  private fun effectWebLoadErrorState(state: WebLoadErrorState) {
-    debugDWebView("onLoadStateChange") {
-      "WebLoadErrorState url=${state.url} error=${state.errorMessage}"
-    }
-    if (endLoadUrl.isActive) {
-      endLoadUrl.completeExceptionally(Exception(state.errorMessage))
-    }
-  }
-
-  private fun effectWebLoadStartState(state: WebLoadStartState) {
-    debugDWebView("WebLoadStartState") { "WebLoadStartState url=${state.url}" }
-    if (state.url != startUrl || endLoadUrl.isCompleted) {
-      if (endLoadUrl.isActive) {
-        endLoadUrl.cancel(CancellationException("start load url: ${state.url}"))
-      }
-      startUrl = state.url
-      endLoadUrl = CompletableDeferred()
-
-      stateFlow.tryEmit(state.url)
-    }
-  }
-
-  fun effectWebLoadSuccessState(state: WebLoadSuccessState) {
-    debugDWebView("WebLoadStartState") { "WebLoadSuccessState url=${state.url}" }
-    if (endLoadUrl.isActive) {
-      endLoadUrl.complete(state.url)
-    } else if (endLoadUrl.getCompleted() != state.url) {
-      endLoadUrl = CompletableDeferred(state.url)
-    }
-    stateFlow.tryEmit(state.url)
-  }
-
-  init {
-    dwebView.onLoadStateChange {
-      when (it) {
-        is WebLoadErrorState -> effectWebLoadErrorState(it)
-        is WebLoadStartState -> effectWebLoadStartState(it)
-        is WebLoadSuccessState -> effectWebLoadSuccessState(it)
-      }
-    }
-  }
-
-  suspend fun forceLoadUrl(url: String) {
-    effectWebLoadStartState(WebLoadStartState(dwebView.startLoadUrl(url)))
-  }
-
-  val stateFlow = MutableStateFlow(startUrl)
-}
 
 enum class WebColorScheme {
   Normal, Dark, Light,

@@ -54,6 +54,11 @@ suspend inline fun <T> withMainContext(crossinline block: suspend () -> T): T {
   }
 }
 
+suspend fun <T> withScope(
+  scope: CoroutineScope,
+  block: suspend CoroutineScope.() -> T
+) = withContext(scope.coroutineContext, block)
+
 inline fun CoroutineScope.launchWithMain(
   crossinline block: suspend () -> Unit
 ) = launch { withMainContext(block) }

@@ -19,6 +19,7 @@ import android.webkit.WebViewClient
 import io.ktor.http.Url
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.WebLoadErrorState
+import org.dweb_browser.dwebview.WebLoadStartState
 import org.dweb_browser.dwebview.WebLoadState
 import org.dweb_browser.dwebview.WebLoadSuccessState
 import org.dweb_browser.dwebview.debugDWebView
@@ -77,7 +78,7 @@ class DWebViewClient(val engine: DWebViewEngine) : WebViewClient() {
 
   override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
     scope.launch {
-      loadStateChangeSignal.emit(WebLoadSuccessState(url ?: "about:blank"))
+      loadStateChangeSignal.emit(WebLoadStartState(url ?: "about:blank"))
     }
     inners("onPageStarted").forEach { it.onPageStarted(view, url, favicon) };
     super.onPageStarted(view, url, favicon)
