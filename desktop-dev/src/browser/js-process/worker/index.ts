@@ -211,9 +211,6 @@ export class JsProcessMicroModule implements $MicroModule {
           console.log("js-process onError=>", ipc.channelId, error.message, error.errorCode);
           this._ipcConnectsMap.get(mmid)?.reject(error);
         });
-        if (!ipc.isActivity) {
-          ipc.start();
-        }
       }
     };
     workerGlobal.addEventListener("message", _beConnect);
@@ -226,22 +223,29 @@ export class JsProcessMicroModule implements $MicroModule {
       remote: this,
       port: this.nativeFetchPort,
     });
+    // 整个worker关闭
+    this.fetchIpc.onClose(() => {
+      console.log("worker-close=>", this.fetchIpc.channelId, this.mmid);
+      this.ipcPool.close();
+    });
     this.fetchIpc.onEvent(async (ipcEvent) => {
       if (ipcEvent.name === "dns/connect/done" && typeof ipcEvent.data === "string") {
         const { connect, result } = JSON.parse(ipcEvent.data);
-        /// 这里之所以 connect 和 result 存在不一致的情况，是因为 subprotocol 的存在
         const task = this._ipcConnectsMap.get(connect);
+        // console.log("dns/connect/done===>", connect, task, task?.is_resolved);
         if (task) {
-          const ipc = await task.promise;
-          // console.log("桥接建立完成=>", connect, ipc.channelId, result);
-          // 手动启动
-          ipc.start();
+          /// 这里之所以 connect 和 result 存在不一致的情况，是因为 subprotocol 的存在
           if (task.is_resolved === false) {
             const resultTask = this._ipcConnectsMap.get(result);
             if (resultTask && resultTask !== task) {
               task.resolve(await resultTask.promise);
             }
           }
+          const ipc = await task.promise;
+          // console.log("桥接建立完成=>", connect, ipc.channelId, result);
+          // 手动启动
+          ipc.start();
+          // console.log("桥接建立完成=>", ipc.channelId, ipc.isActivity);
         }
       } else if (ipcEvent.name.startsWith("forward/")) {
         // 这里负责代理native端的请求
@@ -271,7 +275,8 @@ export class JsProcessMicroModule implements $MicroModule {
       const ipc_response = await this._nativeRequest(args.parsed_url, args.request_init);
       return ipc_response.toResponse(args.parsed_url.href);
     }
-    // console.log("🧊 connect=> ", hostName);
+    // const tmp = this._ipcConnectsMap.get(hostName as $MMID);
+    // console.log("🧊 connect=> ", hostName, tmp?.is_finished, tmp);
     const ipc = await this.connect(hostName as $MMID);
     const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(args.request_init);
     // console.log("🧊 connect request=> ", ipc.isActivity, ipc.channelId, args.parsed_url.href);
@@ -384,7 +389,9 @@ export class JsProcessMicroModule implements $MicroModule {
       return ipc_po;
     }).promise;
     /// 等待对方响应ready协议
+    // console.log("ready==>", mmid, ipc.channelId, ipc.isActivity, mmid, ipc.remote.mmid);
     await this.afterIpcReady(ipc);
+    // console.log("ready afterIpcReady===>", mmid, ipc.remote.mmid);
     return ipc;
   }
 

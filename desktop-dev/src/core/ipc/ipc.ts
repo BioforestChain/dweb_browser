@@ -285,6 +285,7 @@ export abstract class Ipc {
     // console.log(`收到激活消息worker xxlife listen=>🥑 ${this.channelId} ${this.pid}`);
     // TODO 跟对方通信 协商数据格式
     this.onLifeCycle((lifeCycle, ipc) => {
+      // console.log(`worker xxlife start=>🍟 ${ipc.remote.mmid} ${ipc.channelId} ${lifeCycle.state}`);
       switch (lifeCycle.state) {
         // 收到打开中的消息，也告知自己已经准备好了
         case IPC_STATE.OPENING: {
@@ -294,7 +295,6 @@ export abstract class Ipc {
         }
         // 收到对方完成开始建立连接
         case IPC_STATE.OPEN: {
-          // console.log(`worker xxlife start=>🍟 ${ipc.remote.mmid} ${ipc.channelId}`);
           if (!ipc.startDeferred.is_finished) {
             ipc.startDeferred.resolve(lifeCycle);
           }

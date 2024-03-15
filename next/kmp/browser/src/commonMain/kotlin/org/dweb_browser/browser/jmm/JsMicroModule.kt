@@ -246,7 +246,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
            * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
            */
           val (targetIpc) = bootstrapContext.dns.connect(event.mmid) // 由上面的适配器产生
-          println("jmm链接=> ${targetIpc.channelId} ${targetIpc.remote.mmid}")
           /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
           if (targetIpc is BridgeAbleIpc) {
             ipcBridge(targetIpc.remote.mmid, targetIpc.bridgeOriginIpc)
@@ -368,9 +367,13 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
 
   override suspend fun _shutdown() {
-    debugJsMM("closeJsProcessSignal emit", "$mmid/$metadata")
+    debugJsMM(
+      "jsMM_shutdown",
+      "$mmid/${this.fetchIpc?.channelId} ipcNumber=>${fromMMIDOriginIpcWM.size}"
+    )
     fromMMIDOriginIpcWM.forEach { map ->
       val ipc = map.value.waitPromise()
+      debugJsMM("jsMM_shutdown=>", ipc.channelId)
       ipc.close()
     }
     fetchIpc?.close()

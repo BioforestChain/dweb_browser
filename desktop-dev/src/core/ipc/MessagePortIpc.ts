@@ -48,15 +48,6 @@ export class MessagePortIpc extends Ipc {
         console.error("MessagePortIpc.cts unkonwn message", event.data);
         return;
       }
-      // if (message === "pong") {
-      //   return;
-      // }
-
-      // if (message === "ping") {
-      //   this.port.postMessage("pong");
-      //   return;
-      // }
-
       this.endpoint.emitMessage(message, this);
     });
     port.start();

@@ -356,7 +356,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     }
     ipcLifeCycleState = IPC_STATE.CLOSED
     // 告知对方，我这条业务线已经准备关闭了
-    this.postMessage(IpcLifeCycle(IPC_STATE.CLOSING))
+    this.postMessage(IpcLifeCycle(IPC_STATE.CLOSED))
     this.closeSignal.emitAndClear()
 
     /// 关闭的时候会自动触发销毁
@@ -454,11 +454,13 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
         }
         // 消息通道开始关闭
         IPC_STATE.CLOSING -> {
+          println("ipccloseing $channelId")
           ipc.closing()
           ipc.postMessage(IpcLifeCycle.close())
         }
         // 对方关了，代表没有消息发过来了，我也关闭
         IPC_STATE.CLOSED -> {
+          println("ipcclose $channelId")
           ipc.close()
         }
       }

@@ -5,6 +5,7 @@ import io.ktor.http.fullPath
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonNull
@@ -440,7 +441,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     return runningApps(mmid).let { apps ->
       var count = 0;
       apps.filter { it.key == mmid }.forEach {
-        it.value.ready().shutdown();
+        it.value.ready().shutdown()
         count += 1
       }
       count
