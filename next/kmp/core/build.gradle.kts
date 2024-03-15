@@ -22,21 +22,10 @@ kotlin {
       implementation(projects.pureIO)
       implementation(projects.pureCrypto)
       implementation(projects.pureHttp)
-    }
-  }
-  kmpAndroidTarget(project) {
-    dependencies {
       implementation(projects.libMultipart)
     }
   }
-  kmpIosTarget(project) {
-    dependencies {
-      implementation(projects.libMultipart)
-    }
-  }
-  kmpDesktopTarget(project) {
-    dependencies {
-      implementation(projects.libMultipart)
-    }
-  }
+  kmpAndroidTarget(project)
+  kmpIosTarget(project)
+  kmpDesktopTarget(project)
 }

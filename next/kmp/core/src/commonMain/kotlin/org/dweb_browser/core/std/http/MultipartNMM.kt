@@ -97,12 +97,12 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
         val id = deferred.await()
 
         ioAsyncScope.launch {
-        request.body.toPureStream().getReader("multipart/form-data")
-          .consumeEachArrayRange { byteArray, last ->
-            if (!(last && byteArray.isEmpty())) {
-              processMultipartWrite(id, byteArray)
+          request.body.toPureStream().getReader("multipart/form-data")
+            .consumeEachArrayRange { byteArray, last ->
+              if (!(last && byteArray.isEmpty())) {
+                processMultipartWrite(id, byteArray)
+              }
             }
-          }
         }
       }
     )

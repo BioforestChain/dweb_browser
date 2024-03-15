@@ -13,6 +13,7 @@ kotlin {
       implementation(projects.pureImage)
       implementation(projects.core)
       implementation(projects.sys)
+      implementation(projects.libReverseProxy)
     }
   }
   kmpAndroidTarget(project) {
@@ -21,8 +22,6 @@ kotlin {
       implementation(libs.google.material)
       implementation(libs.accompanist.webview)
       implementation(libs.compose.ui)
-
-      implementation(projects.libReverseProxy)
     }
 //    instrumentedTestDependsOn(commonMain.get())
 //    instrumentedTestDependsOn(androidMain.get())
@@ -36,15 +35,7 @@ kotlin {
       implementation(libs.androidx.compose.ui.test.manifest)
     }
   }
-  kmpIosTarget(project) {
-    dependencies {
-      implementation(projects.libReverseProxy)
-    }
-  }
-  kmpDesktopTarget(project) {
-    dependencies {
-      implementation(projects.libReverseProxy)
-    }
-  }
+  kmpIosTarget(project)
+  kmpDesktopTarget(project)
 }
 
