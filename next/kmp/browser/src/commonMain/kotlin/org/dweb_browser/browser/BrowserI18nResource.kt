@@ -156,8 +156,10 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "书签标题", Language.EN to "Bookmark Title")
   val browser_bookmark_url =
     SimpleI18nResource(Language.ZH to "链接地址", Language.EN to "Bookmark Url")
-  val browser_options_addToBook =
-    SimpleI18nResource(Language.ZH to "添加到书签", Language.EN to "Add To Book")
+  val browser_add_bookmark =
+    SimpleI18nResource(Language.ZH to "添加书签", Language.EN to "Add Bookmark")
+  val browser_remove_bookmark =
+    SimpleI18nResource(Language.ZH to "移除书签", Language.EN to "Remove Bookmark")
   val browser_options_share = SimpleI18nResource(Language.ZH to "分享", Language.EN to "Share")
   val browser_options_noTrace =
     SimpleI18nResource(Language.ZH to "无痕浏览", Language.EN to "NoTrace")
@@ -169,19 +171,19 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "下载列表", Language.EN to "Download Manage")
   val browser_multi_count = SimpleI18nResource(Language.ZH to "个标签页", Language.EN to "tabs")
   val browser_multi_done = SimpleI18nResource(Language.ZH to "完成", Language.EN to "Done")
-  val browser_multi_startup = SimpleI18nResource(Language.ZH to "起始页", Language.EN to "Start")
+  val browser_home_page_title = SimpleI18nResource(Language.ZH to "起始页", Language.EN to "Start")
   val browser_multi_no_title =
     SimpleI18nResource(Language.ZH to "无标题", Language.EN to "No Title")
   val search_short_name = SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search")
 
-  val toast_message_add_book =
-    SimpleI18nResource(Language.ZH to "添加书签成功", Language.EN to "Add Book Success")
+  val toast_message_add_bookmark =
+    SimpleI18nResource(Language.ZH to "添加书签成功", Language.EN to "Add Bookmark Success")
   val toast_message_add_book_invalid =
     SimpleI18nResource(Language.ZH to "无效链接", Language.EN to "Not Invalid Link")
-  val toast_message_remove_book =
-    SimpleI18nResource(Language.ZH to "移除书签成功", Language.EN to "Remove Book Success")
-  val toast_message_update_book =
-    SimpleI18nResource(Language.ZH to "修改书签成功", Language.EN to "Change Book Success")
+  val toast_message_remove_bookmark =
+    SimpleI18nResource(Language.ZH to "移除书签成功", Language.EN to "Remove Bookmark Success")
+  val toast_message_update_bookmark =
+    SimpleI18nResource(Language.ZH to "修改书签成功", Language.EN to "Change Bookmark Success")
   val toast_message_remove_history =
     SimpleI18nResource(Language.ZH to "移除历史记录成功", Language.EN to "Remove History Success")
   val toast_message_add_desk_success =

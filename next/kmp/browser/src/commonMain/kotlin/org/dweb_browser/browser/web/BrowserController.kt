@@ -5,10 +5,8 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.web.data.BrowserStore
@@ -24,15 +22,13 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getWindow
 
 class BrowserController(
-  private val browserNMM: BrowserNMM,
-  private val webLinkStore: WebLinkStore
+  private val browserNMM: BrowserNMM, private val webLinkStore: WebLinkStore
 ) {
   private val browserStore = BrowserStore(browserNMM)
 
@@ -47,7 +43,7 @@ class BrowserController(
 
   private var winLock = Mutex(false)
 
-  val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+  val ioScope get() = browserNMM.ioAsyncScope
 
   //  val searchEngines: MutableList<WebEngine> = mutableStateListOf()
   val bookmarks = MutableStateFlow<List<WebSiteInfo>>(listOf())
@@ -56,7 +52,7 @@ class BrowserController(
   var isNoTrace by mutableStateOf(false)
 
   init {
-    ioAsyncScope.launch {
+    ioScope.launch {
       isNoTrace = getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false
       bookmarks.value = browserStore.getBookLinks()
       historys.value = browserStore.getHistoryLinks()
@@ -130,9 +126,7 @@ class BrowserController(
   val viewModel = BrowserViewModel(this, browserNMM)
 
   suspend fun openBrowserView(search: String? = null, url: String? = null, target: String? = null) =
-    winLock.withLock {
-      viewModel.openBrowserView(search, url, target)
-    }
+    viewModel.openSearchPanelUI(search, url, target)
 
   /**
    * 浏览器添加webLink到桌面

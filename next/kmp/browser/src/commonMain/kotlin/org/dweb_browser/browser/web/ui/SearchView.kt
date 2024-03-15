@@ -149,6 +149,7 @@ internal fun BoxScope.BrowserTextField(
   val keyboardController = LocalSoftwareKeyboardController.current
   var inputText by remember { mutableStateOf(text.value) }
   val browserViewModel = LocalBrowserViewModel.current
+  val uiScope = rememberCoroutineScope()
 
   CustomTextField(
     value = inputText,
@@ -206,15 +207,18 @@ internal fun BoxScope.BrowserTextField(
       // onDone = { focusManager.clearFocus(); keyboardController?.hide() },
       onSearch = {
         // 如果内容符合地址，直接进行搜索，其他情况就按照如果有搜索引擎就按照搜索引擎来，没有的就隐藏键盘
-        inputText.toRequestUrl()?.let { url ->
-          onSearch(url)
-        } ?: searchEngine?.let { searchEngine ->
-          onSearch("${searchEngine.searchLink}$inputText")
-        } ?: run {
-          focusManager.clearFocus()
-          keyboardController?.hide()
-          // 如果引擎列表为空，这边不提示，而是直接判断当前的的内容是否符合搜索引擎的，如果符合，直接跳转到引擎首页
-          browserViewModel.checkAndSearch(inputText) { showSearchView.value = false }
+        uiScope.launch {
+
+          inputText.toRequestUrl()?.let { url ->
+            onSearch(url)
+          } ?: searchEngine?.let { searchEngine ->
+            onSearch("${searchEngine.searchLink}$inputText")
+          } ?: run {
+            focusManager.clearFocus()
+            keyboardController?.hide()
+            // 如果引擎列表为空，这边不提示，而是直接判断当前的的内容是否符合搜索引擎的，如果符合，直接跳转到引擎首页
+            browserViewModel.checkAndSearchUI(inputText) { showSearchView.value = false }
+          }
         }
       }
     )

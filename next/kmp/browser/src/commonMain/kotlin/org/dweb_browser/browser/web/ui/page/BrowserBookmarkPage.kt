@@ -59,9 +59,10 @@ fun BrowserBookmarkPageRender(
     page.isInEditMode = false
   }
   val viewModal = LocalBrowserViewModel.current
+  val uiScope = rememberCoroutineScope()
   Scaffold(
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-
+    contentWindowInsets = WindowInsets(0),
     topBar = {
       CenterAlignedTopAppBar(
         windowInsets = WindowInsets(0, 0, 0, 0), // 顶部
@@ -89,8 +90,8 @@ fun BrowserBookmarkPageRender(
         actions = {
           if (isInEditMode) {
             IconButton(enabled = page.selectedBookmarks.isNotEmpty(), onClick = {
-              viewModal.browserNMM.ioAsyncScope.launch {
-                viewModal.removeBookmark(items = page.selectedBookmarks.toTypedArray()).join()
+              uiScope.launch {
+                viewModal.removeBookmarkUI(items = page.selectedBookmarks.toTypedArray())
                 page.isInEditMode = false
               }
             }) {
@@ -135,7 +136,7 @@ fun BrowserBookmarkListPage(page: BrowserBookmarkPage, modifier: Modifier) {
       items(bookmarks) { bookmark ->
         val openInNewPage = remember(viewModel, bookmark) {
           {
-            uiScope.launch { viewModel.tryOpenUrl(bookmark.url) }
+            uiScope.launch { viewModel.tryOpenUrlUI(bookmark.url) }
             Unit
           }
         }
@@ -197,6 +198,7 @@ fun BrowserBookmarkItemEditDialog(page: BrowserBookmarkPage, modifier: Modifier 
   val editingBookmark = page.editingBookmark ?: return
   var editedBookmark by remember(editingBookmark) { mutableStateOf(editingBookmark.copy()) }
   val viewModel = LocalBrowserViewModel.current
+  val uiScope = rememberCoroutineScope()
 
   AlertDialog(icon = {
     Icon(
@@ -218,8 +220,8 @@ fun BrowserBookmarkItemEditDialog(page: BrowserBookmarkPage, modifier: Modifier 
     page.editingBookmark = null
   }, confirmButton = {
     TextButton(enabled = editingBookmark != editedBookmark, onClick = {
-      viewModel.browserNMM.ioAsyncScope.launch {
-        viewModel.updateBookmark(editingBookmark, editedBookmark)
+      uiScope.launch {
+        viewModel.updateBookmarkUI(editingBookmark, editedBookmark)
       }
     }) {
       Text(BrowserI18nResource.button_name_confirm())

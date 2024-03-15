@@ -27,9 +27,10 @@ sealed class BrowserPage(browserController: BrowserController) {
 
   var url by mutableStateOf("")
     private set
-  var title by mutableStateOf("")
-  var icon by mutableStateOf<Painter?>(null)
-  var iconColorFilter by mutableStateOf<ColorFilter?>(null)
+  open var title by mutableStateOf("")
+    internal set
+  open val icon: Painter? @Composable get() = null //by mutableStateOf<Painter?>(null)
+  open val iconColorFilter: ColorFilter? @Composable get() = null //by mutableStateOf<ColorFilter?>(null)
 
   var scale by mutableFloatStateOf(1f)
 
@@ -76,7 +77,7 @@ sealed class BrowserPage(browserController: BrowserController) {
    * 是否在书签中
    */
   val isInBookmark by mutableStateOf(false).also { state ->
-    val job = browserController.ioAsyncScope.launch {
+    val job = browserController.ioScope.launch {
       browserController.bookmarks.collect { bookmarks ->
         state.value = bookmarks.any { it.url == url }
       }

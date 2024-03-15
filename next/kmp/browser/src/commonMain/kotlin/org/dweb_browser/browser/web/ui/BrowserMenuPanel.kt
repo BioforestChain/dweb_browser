@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkAdd
+import androidx.compose.material.icons.filled.BookmarkRemove
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.PrivateConnectivity
@@ -43,7 +44,7 @@ import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.helper.PrivacyUrl
 
 @Composable
-internal fun BrowserMenu() {
+internal fun BrowserMenuPanel() {
   val uiScope = rememberCoroutineScope()
   val viewModel = LocalBrowserViewModel.current
   val scope = LocalBrowserViewModel.current.browserNMM.ioAsyncScope
@@ -57,33 +58,28 @@ internal fun BrowserMenu() {
   DropdownMenu(viewModel.showMore, {
     hide()
   }) {
-    val page = viewModel.focusPage
+    val page = viewModel.focusedPage
     // 添加书签
     if (page is BrowserWebPage) {
       val added = page.isInBookmark
       if (added) {
-        SettingListItem(
-          BrowserI18nResource.browser_options_addToBook(),
-          Icons.Default.BookmarkAdd,
+        SettingListItem(BrowserI18nResource.browser_remove_bookmark(),
+          Icons.Default.BookmarkRemove,
           {
             hide()
-            scope.launch {
-              viewModel.removeBookmark(page.url)
-            }
+            uiScope.launch { viewModel.removeBookmarkUI(page.url) }
           })
       } else {
-        SettingListItem(BrowserI18nResource.browser_options_addToBook(), Icons.Default.Bookmark, {
+        SettingListItem(BrowserI18nResource.browser_add_bookmark(), Icons.Default.BookmarkAdd, {
           hide()
-          scope.launch {
-            viewModel.addBookmark(page)
-          }
+          uiScope.launch { viewModel.addBookmarkUI(page) }
         })
       }
     }
     SettingListItem(
       BrowserI18nResource.browser_bookmark_page_title(), Icons.Default.Bookmark, {
         hide()
-        scope.launch { viewModel.tryOpenUrl("about:bookmarks") }
+        uiScope.launch { viewModel.tryOpenUrlUI("about:bookmarks") }
       }, Icons.AutoMirrored.Filled.ArrowForwardIos
     )
     // 分享
@@ -102,7 +98,7 @@ internal fun BrowserMenu() {
       Icons.Default.PrivateConnectivity,
     ) {
       Switch(checked = viewModel.isNoTrace.value, onCheckedChange = {
-        uiScope.launch { viewModel.saveBrowserMode(it) }
+        uiScope.launch { viewModel.updateIsNoTraceUI(it) }
       }, thumbContent = if (viewModel.isNoTrace.value) {
         {
           Icon(
@@ -119,8 +115,8 @@ internal fun BrowserMenu() {
       BrowserI18nResource.browser_options_privacy(), // stringResource(id = R.string.browser_options_privacy),
       Icons.Default.Policy, {
         hide()
-        scope.launch {
-          viewModel.tryOpenUrl(PrivacyUrl)
+        uiScope.launch {
+          viewModel.tryOpenUrlUI(PrivacyUrl)
         }
       }, Icons.AutoMirrored.Filled.ArrowForwardIos
     )
@@ -137,8 +133,8 @@ internal fun BrowserMenu() {
     SettingListItem(
       BrowserI18nResource.browser_options_download(), Icons.Default.FileDownload, {
         hide()
-        scope.launch {
-          viewModel.tryOpenUrl("about:downloads")
+        uiScope.launch {
+          viewModel.tryOpenUrlUI("about:downloads")
         }
       }, Icons.AutoMirrored.Filled.ArrowForwardIos
     )
@@ -153,8 +149,7 @@ private fun SettingListItem(
   onClick: () -> Unit = {},
   trailingContent: (@Composable (() -> Unit))? = null
 ) {
-  DropdownMenuItem(
-    text = { Text(title) },
+  DropdownMenuItem(text = { Text(title) },
     onClick = onClick,
     leadingIcon = { Icon(icon, contentDescription = title) },
     trailingIcon = trailingContent

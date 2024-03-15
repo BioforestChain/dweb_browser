@@ -63,7 +63,7 @@ class BrowserIosDelegate(private var browserViewModel: BrowserViewModel) : NSObj
 class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSObject(),
   WebBrowserViewDataSourceProtocol {
 
-  private val scope = CoroutineScope(ioAsyncExceptionHandler)
+  private val scope = browserViewModel.ioScope
 
   override fun getDatasFor(for_: String, params: Map<Any?, *>?): Map<Any?, *>? {
     // kmp与iOS快速调试代码调用点。
@@ -78,7 +78,7 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
 
   private fun saveTrackModel(trackModel: Boolean) {
     scope.launch {
-      browserViewModel.saveBrowserMode(trackModel)
+      browserViewModel.updateIsNoTraceUI(trackModel)
     }
   }
 
@@ -117,7 +117,7 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
         icon = icon?.toByteArray(),
         type = WebSiteType.History
       )
-      browserViewModel.addHistoryLink(webSiteInfo)
+      browserViewModel.addHistoryLinkUI(webSiteInfo)
       completionHandler(null)
     }
   }
@@ -151,14 +151,18 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
   override fun addBookmarkWithTitle(title: String, url: String, icon: NSData?) {
     val webSiteInfo =
       WebSiteInfo(title = title, url = url, icon = icon?.toByteArray(), type = WebSiteType.Bookmark)
-    browserViewModel.addBookmark(webSiteInfo)
+    scope.launch {
+      browserViewModel.addBookmarkUI(webSiteInfo)
+    }
   }
 
   override fun removeBookmarkWithBookmark(bookmark: int64_t) {
     val del = browserViewModel.getBookmarks().first {
       it.id == bookmark
     }
-    browserViewModel.removeBookmark(del)
+    scope.launch {
+      browserViewModel.removeBookmarkUI(del)
+    }
   }
 
   //#endregion

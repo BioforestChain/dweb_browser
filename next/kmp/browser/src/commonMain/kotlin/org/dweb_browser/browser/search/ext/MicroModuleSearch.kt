@@ -18,7 +18,7 @@ suspend fun MicroModule.getSearchInjectList(key: String) =
 
 class WatchSearchEngineContext(val engineList: List<SearchEngine>, val channel: PureChannelContext)
 
-suspend fun NativeMicroModule.createChannelOfEngines(resolve: WatchSearchEngineContext.() -> Unit) =
+suspend fun NativeMicroModule.collectChannelOfEngines(collector: suspend WatchSearchEngineContext.() -> Unit) =
   createChannel("file://search.browser.dweb/observe/engines") {
     for (pureFrame in income) {
       when (pureFrame) {
@@ -26,7 +26,7 @@ suspend fun NativeMicroModule.createChannelOfEngines(resolve: WatchSearchEngineC
           WatchSearchEngineContext(
             Json.decodeFromString<List<SearchEngine>>(pureFrame.data),
             this
-          ).resolve()
+          )
         }
 
         else -> {}

@@ -30,7 +30,7 @@ internal fun BrowserWebPageRender(
   /// 返回按钮拦截
   key(viewModel) {
     val canGoBack by webPage.webView.canGoBackStateFlow.collectAsState()
-    LocalWindowController.current.GoBackHandler(viewModel.focusPage == webPage && canGoBack) {
+    LocalWindowController.current.GoBackHandler(viewModel.focusedPage == webPage && canGoBack) {
       webPage.webView.goBack()
     }
   }
