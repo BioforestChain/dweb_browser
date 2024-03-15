@@ -118,34 +118,31 @@ fun BrowserViewForWindow(
 //      }
 //    }
 
-    Box(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
-      Box(
-        modifier = Modifier.fillMaxSize()
-          .padding(bottom = dimenBottomHeight * windowRenderScope.scale)
-      ) {
-        BrowserPageBox(viewModel, windowRenderScope)   // 中间主体部分
+    val calculateModifier = with(windowRenderScope) {
+      if (win.isMaximized()) {
+        modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+      } else {
+        modifier.requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
+          .scale(scale).background(MaterialTheme.colorScheme.background)
       }
-      Box(modifier = with(windowRenderScope) {
-        if (win.isMaximized()) {
-          Modifier.fillMaxSize()
-        } else {
-          Modifier.requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
-            .scale(scale)
-        }
-      }) {
-        BrowserToolbarBar(viewModel) // 工具栏，包括搜索框和导航栏
-        BrowserPreviewPanel(viewModel)// 用于显示多界面
-        // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
-        BrowserSearchView(
-          viewModel = viewModel,
-          modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-          windowRenderScope = windowRenderScope
-        )
-        QRCodeScanView(onSuccess = {
-          openDeepLink(it)
-          scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) }
-        }, onCancel = { scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) } })
+    }
+
+    Box(modifier = calculateModifier) {
+      Box(modifier = Modifier.padding(bottom = dimenBottomHeight * windowRenderScope.scale)) {
+        BrowserPageBox(viewModel, windowRenderScope)   // 中间网页主体
       }
+      BrowserBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
+      BrowserPreviewPanel(viewModel)// 用于显示多界面
+      // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
+      BrowserSearchView(
+        viewModel = viewModel,
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        windowRenderScope = windowRenderScope
+      )
+      QRCodeScanView(onSuccess = {
+        openDeepLink(it)
+        scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) }
+      }, onCancel = { scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) } })
     }
   }
 }
@@ -169,11 +166,11 @@ fun BrowserPageBox(viewModel: BrowserViewModel, windowRenderScope: WindowRenderS
       contentPadding = PaddingValues(0.dp),
       beyondBoundsPageCount = 1,
       pageContent = { currentPage ->
-        viewModel.getBrowserViewOrNull(currentPage)?.also {
-          it.scale = windowRenderScope.scale
-          it.Render(Modifier.capturable(it.captureController))
+        viewModel.getBrowserViewOrNull(currentPage)?.also { browserPage ->
+          browserPage.scale = windowRenderScope.scale
+          browserPage.Render(Modifier.capturable(browserPage.captureController))
           LocalWindowController.current.GoBackHandler {
-            viewModel.closePage(it)
+            viewModel.closePage(browserPage)
           }
         }
       })
@@ -213,7 +210,7 @@ private fun UpdateHorizontalPager(viewModel: BrowserViewModel) {
 }
 
 @Composable
-fun BoxScope.BrowserToolbarBar(viewModel: BrowserViewModel) {
+fun BoxScope.BrowserBottomBar(viewModel: BrowserViewModel) {
   Column(
     modifier = Modifier.fillMaxWidth()
       .background(MaterialTheme.colorScheme.background)

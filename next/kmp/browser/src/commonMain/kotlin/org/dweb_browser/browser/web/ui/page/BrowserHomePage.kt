@@ -17,7 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserDrawResource
 
-
 @Composable
 fun BrowserHomePageRender(modifier: Modifier = Modifier) {
   Box(modifier = modifier.fillMaxSize()) {

@@ -3,6 +3,7 @@ package org.dweb_browser.browser.web.ui.page
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -63,6 +64,7 @@ fun BrowserBookmarkPageRender(
 
     topBar = {
       CenterAlignedTopAppBar(
+        windowInsets = WindowInsets(0, 0, 0, 0), // 顶部
         colors = TopAppBarDefaults.topAppBarColors(
           containerColor = MaterialTheme.colorScheme.primaryContainer,
           titleContentColor = MaterialTheme.colorScheme.primary,

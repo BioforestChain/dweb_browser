@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,19 +25,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.AlertDialog
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material3.Card
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -48,9 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,7 +62,6 @@ import org.dweb_browser.browser.web.data.BrowserDownloadType
 import org.dweb_browser.browser.web.data.page.BrowserDownloadPage
 import org.dweb_browser.browser.web.data.page.DownloadPage
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.button_delete
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_complete
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_delete
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_delete_checked
@@ -70,7 +71,6 @@ import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_dow
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloading
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tip_empty
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
-import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.formatDatestampByMilliseconds
@@ -111,7 +111,7 @@ fun BrowserDownloadPage.BrowserDownloadPageRender(modifier: Modifier) {
         openDelete = { downloadPage = DownloadPage.DeleteCompleted }
       )
       // 跳转删除下载数据界面，列表内容包含了所有的“已下载”数据
-      DownloadPage.DeleteCompleted -> BrowserDownloadDeletePage {
+      DownloadPage.DeleteCompleted -> BrowserDownloadDeletePage(onlyComplete = true) {
         downloadPage = DownloadPage.MoreCompleted
       }
     }
@@ -126,7 +126,7 @@ private fun BrowserDownloadPage.BrowserDownloadHomePage(
   openMore: () -> Unit, openDelete: () -> Unit
 ) {
   Column(modifier = Modifier.fillMaxSize()) {
-    DownloadTopBar(title = download_page_manage(), onBack = { }, enableBack = false) {
+    DownloadTopBar(title = download_page_manage(), enableNavigation = false) {
       Image(
         Icons.Default.EditNote,
         contentDescription = "Delete Manage",
@@ -209,7 +209,7 @@ private fun BrowserDownloadPage.BrowserDownloadMorePage(
 ) {
   LocalWindowController.current.GoBackHandler { onBack() }
   Column(modifier = Modifier.fillMaxSize()) {
-    DownloadTopBar(title = download_page_complete(), onBack = onBack) {
+    DownloadTopBar(title = download_page_complete(), onNavigationBack = onBack) {
       Image(
         imageVector = Icons.Default.EditNote,
         contentDescription = "Delete Manage",
@@ -305,8 +305,7 @@ private fun BrowserDownloadPage.BrowserDownloadDeletePage(
         } else {
           download_page_delete_checked().format(size)
         },
-        imageVector = Icons.Default.Close,
-        onBack = onBack
+        onNavigationBack = onBack
       ) {
         Checkbox(
           checked = selected.value,
@@ -315,6 +314,13 @@ private fun BrowserDownloadPage.BrowserDownloadDeletePage(
             selectStateMap.forEach { it.value.value = check }
           }
         )
+        IconButton(enabled = size > 0, onClick = {
+          val deleteList = mutableListOf<BrowserDownloadItem>()
+          selectStateMap.forEach { (item, value) -> if (value.value) deleteList.add(item) }
+          deleteDownloadItems(deleteList)
+        }) {
+          Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete Selects")
+        }
       }
     }
 
@@ -338,14 +344,6 @@ private fun BrowserDownloadPage.BrowserDownloadDeletePage(
         }
       } else {
         DownloadEmptyTask()
-      }
-
-      BottomDeleteButton(count = size, modifier = Modifier.align(Alignment.BottomCenter)) {
-        val deleteList = mutableListOf<BrowserDownloadItem>()
-        selectStateMap.forEach { (item, value) ->
-          if (value.value) deleteList.add(item)
-        }
-        deleteDownloadItems(deleteList)
       }
     }
   }
@@ -406,87 +404,35 @@ private fun BrowserDownloadItem.RowDownloadItemDelete(
 }
 
 /**
- * 删除界面下面的删除按钮以及确认窗口界面
- */
-@Composable
-private fun BottomDeleteButton(
-  count: Int, modifier: Modifier = Modifier, onDelete: () -> Unit
-) {
-  val showDialog = remember { mutableStateOf(false) }
-  Column(
-    modifier = modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)
-      .padding(vertical = 8.dp).height(38.dp).clickableWithNoEffect {
-        if (count > 0) showDialog.value = true
-      },
-    horizontalAlignment = Alignment.CenterHorizontally,
-  ) {
-    Image(
-      imageVector = Icons.Default.Delete,
-      contentDescription = "Delete",
-      modifier = Modifier.size(20.dp)
-    )
-    Text(text = button_delete(), fontSize = 12.sp)
-  }
-
-  if (showDialog.value) {
-    AlertDialog(
-      onDismissRequest = { showDialog.value = false },
-      buttons = {
-        Column(
-          modifier = Modifier.fillMaxWidth().padding(8.dp).clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.background)
-        ) {
-          Text(
-            text = BrowserDownloadI18nResource.button_delete_confirm().format(count),
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth().clickable { onDelete() }
-          )
-          HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-          Text(
-            text = BrowserDownloadI18nResource.button_cancel(),
-            color = MaterialTheme.colorScheme.outline,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth().clickable { showDialog.value = false }
-          )
-        }
-      }
-    )
-  }
-}
-
-/**
  * 统一规划顶部工具栏的显示
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DownloadTopBar(
   title: String,
-  onBack: () -> Unit,
-  enableBack: Boolean = true,
-  imageVector: ImageVector = Icons.Default.ArrowBackIosNew,
-  action: (@Composable RowScope.() -> Unit)? = null
+  enableNavigation: Boolean = true,
+  onNavigationBack: () -> Unit = {},
+  actions: (@Composable RowScope.() -> Unit) = {}
 ) {
-  Row(
-    modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)
-      .padding(horizontal = 8.dp, vertical = 8.dp),
-    verticalAlignment = Alignment.CenterVertically
-  ) {
-    Box(modifier = Modifier.size(40.dp)) {
-      if (enableBack) {
-        Image(
-          imageVector = imageVector,
-          contentDescription = "Back",
-          modifier = Modifier.clip(CircleShape).clickable { onBack() }.size(32.dp).padding(4.dp)
-        )
+  CenterAlignedTopAppBar(
+    windowInsets = WindowInsets(0, 0, 0, 0), // 顶部
+    colors = TopAppBarDefaults.topAppBarColors(
+      containerColor = MaterialTheme.colorScheme.primaryContainer,
+      titleContentColor = MaterialTheme.colorScheme.primary,
+    ),
+    title = { Text(text = title, overflow = TextOverflow.Ellipsis) },
+    navigationIcon = {
+      if (enableNavigation) {
+        IconButton(onClick = onNavigationBack) {
+          androidx.compose.material3.Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
+            contentDescription = "Back to list"
+          )
+        }
       }
-    }
-    Text(
-      text = title,
-      modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
-      textAlign = TextAlign.Center
-    )
-    Row (modifier = Modifier.size(40.dp)) { action?.let { action() } }
-  }
+    },
+    actions = actions
+  )
 }
 
 @Composable
