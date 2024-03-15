@@ -149,6 +149,7 @@ export class JsProcessMicroModule implements $MicroModule {
             name: this.name,
           },
           port: port,
+          autoStart: false, // 等建立完成再手动启动
         });
         port_po.resolve(ipc);
         if (typeof navigator === "object" && navigator.locks) {
@@ -230,21 +231,22 @@ export class JsProcessMicroModule implements $MicroModule {
         const { connect, result } = JSON.parse(ipcEvent.data);
         /// 这里之所以 connect 和 result 存在不一致的情况，是因为 subprotocol 的存在
         const task = this._ipcConnectsMap.get(connect);
-        if (task && task.is_resolved === false) {
-          const resultTask = this._ipcConnectsMap.get(result);
-          if (resultTask && resultTask !== task) {
-            // const ipc = await resultTask.promise;
-            // if (!ipc.isActivity) {
-            //   ipc.start();
-            // }
-            task.resolve(resultTask.promise);
+        if (task) {
+          const ipc = await task.promise;
+          // console.log("桥接建立完成=>", connect, ipc.channelId, result);
+          // 手动启动
+          ipc.start();
+          if (task.is_resolved === false) {
+            const resultTask = this._ipcConnectsMap.get(result);
+            if (resultTask && resultTask !== task) {
+              task.resolve(await resultTask.promise);
+            }
           }
         }
       } else if (ipcEvent.name.startsWith("forward/")) {
         // 这里负责代理native端的请求
         const [_, action, mmid] = ipcEvent.name.split("/");
         const ipc = await this.connect(mmid as $MMID);
-        console.log("workerForward=>", action, ipcEvent.text);
         if (action === "lifeCycle") {
           ipc.postMessage($objectToIpcMessage(JSON.parse(ipcEvent.text), ipc));
         } else if (action === "request") {
@@ -269,9 +271,12 @@ export class JsProcessMicroModule implements $MicroModule {
       const ipc_response = await this._nativeRequest(args.parsed_url, args.request_init);
       return ipc_response.toResponse(args.parsed_url.href);
     }
+    // console.log("🧊 connect=> ", hostName);
     const ipc = await this.connect(hostName as $MMID);
     const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(args.request_init);
+    // console.log("🧊 connect request=> ", ipc.isActivity, ipc.channelId, args.parsed_url.href);
     let ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
+    // console.log("🧊 connect response => ", ipc_response.statusCode, ipc.isActivity, args.parsed_url.href);
     if (ipc_response.statusCode === 401) {
       /// 尝试进行授权请求
       try {
@@ -355,7 +360,7 @@ export class JsProcessMicroModule implements $MicroModule {
   onClose(cb: $OnIpcEventMessage) {
     return this._onCloseSignal.listen(cb);
   }
-
+  // 存储worker connect的Ipc,也即在netive端createIpc方法中创建,并桥接的Ipc
   private _ipcConnectsMap = new Map<$MMID, PromiseOut<MessagePortIpc>>();
   async connect(mmid: $MMID) {
     const ipc = await mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
@@ -413,6 +418,7 @@ export class JsProcessMicroModule implements $MicroModule {
   // 提供一个关闭通信的功能
   // deno-lint-ignore no-explicit-any
   close(reson?: any) {
+    this.ipcPool.close();
     this._ipcConnectsMap.forEach(async (ipc) => {
       ipc.promise.then((res) => {
         res.postMessage(new IpcError(500, `worker error=>${reson}`));

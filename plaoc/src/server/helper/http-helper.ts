@@ -29,7 +29,7 @@ export abstract class HttpServer {
   }
   private _serverP = new PromiseOut<HttpDwebServer>();
 
-  init(channelId: string) {
+  async init(channelId: string) {
     const target = `http-server-${channelId}`;
     this._serverP.resolve(http.createHttpDwebServer(target, jsProcess, this._getOptions(), jsProcess.ipcPool));
   }
@@ -42,11 +42,11 @@ export abstract class HttpServer {
   async getStartResult(): Promise<InstanceType<typeof ServerStartResult>> {
     return this.getServer()
       .then((server) => {
-        console.log("getStartResult success=>", server.startResult.urlInfo.public_origin);
+        // console.log("getStartResult success=>", server.startResult.urlInfo.public_origin);
         return server.startResult;
       })
       .catch((error) => {
-        console.log("getStartResult error=>", error);
+        // console.log("getStartResult error=>", error);
         throw error;
       });
   }
@@ -55,9 +55,13 @@ export abstract class HttpServer {
     return await server.close();
   }
 
-  protected _listener: Promise<$ReadableStreamIpc> = this.getServer().then(async (server) => {
-    const ipc = await server.listen();
-    console.log("创建服务=>", ipc.channelId);
-    return ipc;
-  });
+  protected _listener: Promise<$ReadableStreamIpc> = this.getServer()
+    .then(async (server) => {
+      const ipc = await server.listen();
+      // console.log("创建服务=>", ipc.channelId);
+      return ipc;
+    })
+    .catch((err) => {
+      throw err;
+    });
 }

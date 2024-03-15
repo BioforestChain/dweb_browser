@@ -98,29 +98,6 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   /**-----protocol support end*/
   override fun toString() = "Ipc#state=$ipcLifeCycleState,channelId=$channelId"
 
-  // 发消息
-  abstract suspend fun doPostMessage(pid: Int, data: IpcMessage)
-
-  /**发送各类消息到remote*/
-  suspend fun postMessage(data: IpcMessage) {
-    if (isClosed) {
-      debugIpcPool("fail to post message, already closed")
-      return
-    }
-    // 等待通信建立完成（如果通道没有建立完成，并且不是生命周期消息）
-    if (!isActivity && data !is IpcLifeCycle) {
-      awaitStart()
-    }
-    println("$channelId sendMessage $data")
-    // 分发消息
-    this.doPostMessage(this.pid, data)
-  }
-
-  private val _messageSignal = Signal<IpcMessageArgs>()
-  fun onMessage(cb: OnIpcMessage) = _messageSignal.listen(cb)
-
-  /**分发各类消息到本地*/
-  suspend fun emitMessage(args: IpcMessageArgs) = _messageSignal.emit(args)
 
   /**-----onMessage start*/
   private fun <T : Any> createSignal(): Signal<T> {
@@ -410,6 +387,31 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   }
 
   /**----- close end*/
+
+  // 发消息
+  abstract suspend fun doPostMessage(pid: Int, data: IpcMessage)
+
+  /**发送各类消息到remote*/
+  suspend fun postMessage(data: IpcMessage) {
+    if (isClosed) {
+      debugIpcPool("fail to post message, already closed")
+      return
+    }
+    // 等待通信建立完成（如果通道没有建立完成，并且不是生命周期消息）
+    if (!isActivity && data !is IpcLifeCycle) {
+      awaitStart()
+    }
+    println("$channelId sendMessage $data")
+    // 分发消息
+    this.doPostMessage(this.pid, data)
+  }
+
+  private val _messageSignal = Signal<IpcMessageArgs>()
+  fun onMessage(cb: OnIpcMessage) = _messageSignal.listen(cb)
+
+  /**分发各类消息到本地*/
+  suspend fun emitMessage(args: IpcMessageArgs) = _messageSignal.emit(args)
+
   // 标记是否启动完成
   val startDeferred = CompletableDeferred<IpcLifeCycle>()
   val isActivity get() = startDeferred.isCompleted
@@ -421,50 +423,21 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     ipcLifeCycleState = IPC_STATE.OPEN
     // 连接成功不管先后发送请求
     this.postMessage(IpcLifeCycle.opening())
-
-//    ipcMessageCoroutineScope.launch {
-//      val ipc = this@Ipc
-//      val pingDelay = 300L
-//      var fuse = 3
-//      while (!this@Ipc.isActivity && !ipc.isClosed && fuse > 0) {
-//        ipc.postMessage(IpcLifeCycle.opening())
-//        delay(pingDelay)
-//        fuse -= 1
-//      }
-//      // 连接失败报错
-//      if (fuse <= 0) {
-//        debugIpc("fuse boom ⚠️😅", "$channelId 连接无响应")
-//        // 连接不上主动关闭
-//        if (!ipc.startDeferred.isCompleted) {
-//          ipc.startDeferred.complete(IpcLifeCycle.close())
-//          ipc.close()
-//        }
-//        ipc.emitMessage(
-//          IpcMessageArgs(
-//            IpcError(
-//              400,
-//              "[${channelId},${remote.mmid}] ipc connection failed, no response！"
-//            ), ipc
-//          )
-//        )
-//        ipc.close()
-//      }
-//    }
   }
 
   val closing = SuspendOnce {
     if (ipcLifeCycleState !== IPC_STATE.CLOSING) {
       ipcLifeCycleState = IPC_STATE.CLOSING
       // TODO 这里是缓存消息处理的最后时间区间
-      this.close()
+      this.postMessage(IpcLifeCycle.close());
     }
   }
 
 
   /**生命周期初始化，协商数据格式*/
-  init {
+  fun initLifeCycleHook() {
     // TODO 跟对方通信 协商数据格式
-    println(" xxlife listen=>🥑  ${this.channelId}")
+//    println(" xxlife listen=>🥑  ${this.channelId}")
     this.onLifeCycle { (lifeCycle, ipc) ->
       when (lifeCycle.state) {
         // 收到对方完成开始建立连接
@@ -474,7 +447,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
         }
 
         IPC_STATE.OPEN -> {
-          println("xxlife open=>🍟 ${ipc.remote.mmid} ${ipc.channelId}")
+//          println("xxlife open=>🍟 ${ipc.remote.mmid} ${ipc.channelId}")
           if (!ipc.startDeferred.isCompleted) {
             ipc.startDeferred.complete(lifeCycle)
           }
@@ -482,6 +455,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
         // 消息通道开始关闭
         IPC_STATE.CLOSING -> {
           ipc.closing()
+          ipc.postMessage(IpcLifeCycle.close())
         }
         // 对方关了，代表没有消息发过来了，我也关闭
         IPC_STATE.CLOSED -> {
@@ -490,36 +464,6 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
       }
     }
   }
-
-//   private val readyDeferred = CompletableDeferred<IpcEvent>()
-//   suspend fun afterReady() = readyDeferred.await()
-//
-//   // 取消等待了，再等下去没有意义
-//   fun stopReady() = readyDeferred.cancel()
-
-  /// 应用级别的 Ready协议，使用ping-pong方式来等待对方准备完毕，这不是必要的，确保双方都准寻这个协议才有必要去使用
-  /// 目前使用这个协议的主要是Web端（它同时还使用了 Activity协议）
-//   internal val readyPingPong = SuspendOnce1 { mm: MicroModule ->
-//     this.onEvent { (event, ipc) ->
-//       if (event.name == "ping") {
-//         ipc.postMessage(IpcEvent("pong", event.data, event.encoding))
-//       } else if (event.name == "pong") {
-//         readyDeferred.complete(event)
-//       }
-//     }
-//     mm.ioAsyncScope.launch {
-//       val ipc = this@Ipc
-//       val pingDelay = 200L
-//       var timeout = 30000L
-//       while (!readyDeferred.isCompleted && !ipc.isClosed && timeout > 0L) {
-//         ipc.postMessage(IpcEvent.fromUtf8("ping", ""))
-//         delay(pingDelay)
-//         timeout -= pingDelay
-//       }
-//     }
-//     readyDeferred.await()
-//   }
-
 }
 
 data class IpcRequestInit(

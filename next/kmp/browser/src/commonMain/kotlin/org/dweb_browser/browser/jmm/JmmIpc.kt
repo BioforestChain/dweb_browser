@@ -2,7 +2,7 @@ package org.dweb_browser.browser.jmm
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.ipc.Ipc
@@ -10,7 +10,6 @@ import org.dweb_browser.core.ipc.IpcPool
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcLifeCycle
 import org.dweb_browser.core.ipc.helper.IpcMessage
-import org.dweb_browser.core.ipc.helper.IpcMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.core.ipc.helper.IpcReqMessage
@@ -32,7 +31,14 @@ class JmmIpc(
   channelId: String, // 本次转发的名称
 ) : Native2JsIpc(portId, remote, channelId, kotlinIpcPool), BridgeAbleIpc {
   override val bridgeOriginIpc = this
-  private val scope = CoroutineScope(CoroutineName(channelId) + ioAsyncExceptionHandler)
+
+  init {
+    // 监听启动回调
+    this.initLifeCycleHook()
+    // 这里负责桥接消息，因此需要直接放行自己这边，真正的完成在worker那边的 dns/connect/done
+    this.startDeferred.complete(IpcLifeCycle.open())
+  }
+
   val toForwardIpc = Once {
     val forwardIpc = JmmForwardIpc(this, object : IMicroModuleManifest by remote {
       override var mmid = fromMMID
@@ -56,11 +62,23 @@ class JmmForwardIpc(
   private val requestEventName = "forward/request/${jmmIpc.fromMMID}"
   private val responseEventName = "forward/response/${jmmIpc.fromMMID}"
 
+  private val scope = CoroutineScope(CoroutineName(channelId) + ioAsyncExceptionHandler)
+
+  init {
+    // 这里脱离于ipcPool 需要单独启动,放行jsMicroModule路由适配器中的beConnect
+    scope.launch {
+      this@JmmForwardIpc.start()
+    }
+    fetchIpc.onClose {
+      println("JmmForwardIpc close")
+      this@JmmForwardIpc.close()
+    }
+  }
+
   init {
     // 收到代理的消息回复
     fetchIpc.onEvent { (ipcEvent) ->
       if (ipcEvent.name == responseEventName) {
-
         val pack = jsonToIpcPack(ipcEvent.text)
         val message = jsonToIpcPoolPack(pack.ipcMessage, jmmIpc)
         endpoint.emitMessage(
@@ -91,6 +109,7 @@ class JmmForwardIpc(
   }
 
   override suspend fun doClose() {
+    debugJsMM("JmmForwardIpc close", channelId)
     fetchIpc.postMessage(IpcEvent.fromUtf8("forward/close/${jmmIpc.fromMMID}", ""))
   }
 }

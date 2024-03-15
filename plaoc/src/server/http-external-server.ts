@@ -76,9 +76,15 @@ export class Server_external extends HttpServer {
         this.ipcPo.toggleClose();
       }
       // 跟自己建立双工通信
-      const streamIpc = createDuplexIpc(this._getOptions().subdomain, jsProcess.mmid, event.ipcRequest, () => {
-        this.ipcPo.toggleClose();
-      });
+      const streamIpc = createDuplexIpc(
+        jsProcess.ipcPool,
+        this._getOptions().subdomain,
+        jsProcess.mmid,
+        event.ipcRequest,
+        () => {
+          this.ipcPo.toggleClose();
+        }
+      );
       this.ipcPo.toggleOpen(streamIpc);
 
       // 接收前端的externalFetch函数发送的跟外部通信的消息

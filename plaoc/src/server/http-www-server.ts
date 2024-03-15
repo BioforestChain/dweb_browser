@@ -33,13 +33,8 @@ export class Server_www extends HttpServer {
     } else if (this.jsonPlaoc) {
       this.lang = this.jsonPlaoc.defaultConfig.lang;
     }
-
     const serverIpc = await this._listener;
-    const res = serverIpc
-      .onFetch(...this.handlers, this._provider.bind(this))
-      .internalServerError()
-      .cors();
-    console.log("startxxx=>", res, serverIpc.channelId);
+    const res = serverIpc.onFetch(...this.handlers, this._provider.bind(this)).noFound();
     return res;
   }
   protected async _provider(request: FetchEvent, root = "www"): Promise<$OnFetchReturn> {

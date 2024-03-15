@@ -11,15 +11,15 @@ import { webIpcPool } from "../index.ts";
 import { WindowAlertController } from "./WindowAlertController.ts";
 import { WindowBottomSheetsController } from "./WindowBottomSheetsController.ts";
 import type {
-    $AlertModal,
-    $AlertOptions,
-    $BottomSheetsModal,
-    $BottomSheetsOptions,
-    $DisplayState,
-    $Modal,
-    $ModalCallback,
-    $WindowRawState,
-    $WindowState,
+  $AlertModal,
+  $AlertOptions,
+  $BottomSheetsModal,
+  $BottomSheetsOptions,
+  $DisplayState,
+  $Modal,
+  $ModalCallback,
+  $WindowRawState,
+  $WindowState,
 } from "./window.type.ts";
 /**
  * 访问 window 能力的插件
@@ -120,14 +120,14 @@ export class WindowPlugin extends BasePlugin {
   /** */
   private async wsToIpc(url: string) {
     const afterOpen = new PromiseOut<void>();
-    const ipc = webIpcPool.create<ReadableStreamIpc>("",{
-      remote :   {
+    const ipc = webIpcPool.create<ReadableStreamIpc>("plaoc-window", {
+      remote: {
         mmid: "localhost.dweb",
         ipc_support_protocols: { cbor: false, protobuf: false, raw: false },
         dweb_deeplinks: [],
         categories: [],
         name: "",
-      }
+      },
     });
     const ws = new WebSocket(url);
     ws.binaryType = "arraybuffer";

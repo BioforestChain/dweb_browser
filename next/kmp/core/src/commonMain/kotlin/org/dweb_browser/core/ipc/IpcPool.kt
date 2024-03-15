@@ -80,6 +80,8 @@ open class IpcPool {
       } else {
         ReadableStreamIpc(channelId, mm, this)
       }
+      // 监听启动回调
+      ipc.initLifeCycleHook()
       ipc.start()
       return ipc as T
     } as T
@@ -127,6 +129,10 @@ open class IpcPool {
       return
     }
     this._closed = true
+    this.ipcPool.forEach { ipc ->
+      ipc.value.close()
+    }
+    this.ipcPool.clear()
     this.closeSignal.emitAndClear()
   }
 

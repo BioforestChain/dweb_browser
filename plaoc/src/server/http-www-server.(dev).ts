@@ -11,12 +11,12 @@ export class Server_www extends _Server_www {
   private xPlaocProxy: string | null = null;
   override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
     // 请求申请
-    // if (
-    //   request.pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`) ||
-    //   request.pathname.startsWith("/config.sys.dweb")
-    // ) {
-    //   return super._provider(request);
-    // }
+    if (
+      request.pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`) ||
+      request.pathname.startsWith("/config.sys.dweb")
+    ) {
+      return super._provider(request);
+    }
 
     let xPlaocProxy = request.searchParams.get(X_PLAOC_QUERY.PROXY) ?? this.xPlaocProxy;
     if (xPlaocProxy === null) {
