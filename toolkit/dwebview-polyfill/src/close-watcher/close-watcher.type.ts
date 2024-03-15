@@ -24,14 +24,17 @@ declare global {
      * 尝试销毁 CloseWatcher，不会触发任何事件
      */
     tryDestroy(id: string): void;
+  }
+
+  interface CloseWatcherExports {
     /**
      * 该对象由 web 侧负责写入，由 native 侧去触发事件
      */
-    _watchers: Map<string, CloseWatcherShim>;
+    watchers: Map<string, CloseWatcher>;
     /**
      * 该对象由 web 侧负责写入，由 native 侧去调用
      */
-    _tasks: Map<string, (id: string) => void>;
+    tasks: Map<string, (id: string) => void>;
   }
 
   interface CloseWatcherEventMap {
@@ -41,6 +44,7 @@ declare global {
 
   interface Window {
     __native_close_watcher_kit__: CloseWatcherKit;
+    __native_close_watcher_exports__: CloseWatcherExports;
     open(url: string): Window;
   }
   // deno-lint-ignore no-empty-interface

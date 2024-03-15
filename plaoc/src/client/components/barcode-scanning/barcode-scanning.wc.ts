@@ -1,4 +1,3 @@
-import type {} from "../../../../../toolkit/dwebview-polyfill/src/close-watcher/index.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";

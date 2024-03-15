@@ -3,7 +3,6 @@ import { $BuildRequestInit } from "../../helper/request.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
 import type { ImpactOptions, NotificationOptions, VibrateOptions } from "./haptics.type.ts";
 
-self.navigator
 export class HapticsPlugin extends BasePlugin {
   private static isIOSDWebBrowser: boolean = typeof self?.webkit?.messageHandlers?.haptics?.postMessage === "function";
 

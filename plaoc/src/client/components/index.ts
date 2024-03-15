@@ -1,6 +1,5 @@
 //
-import type {} from "../../../../toolkit/dwebview-polyfill/src/close-watcher/index.ts";
-import "./global.type.ts";
+import type {} from "../../../../toolkit/dwebview-polyfill/src/global.type.ts";
 
 //
 export { createMockModuleServerIpc } from "../common/websocketIpc.ts";
