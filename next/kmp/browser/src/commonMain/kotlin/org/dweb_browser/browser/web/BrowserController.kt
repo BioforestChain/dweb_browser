@@ -166,12 +166,9 @@ class BrowserController(
   suspend fun saveStringToStore(key: String, data: String) = browserStore.saveString(key, data)
   suspend fun getStringFromStore(key: String) = browserStore.getString(key)
 
-  val downloadModel = BrowserDownloadModel(browserNMM)
-
+  val downloadController = BrowserDownloadController(browserNMM, this)
   /**
    * 打开BottomSheetModal
    */
-  suspend fun openDownloadView(args: WebDownloadArgs) {
-    downloadModel.openDownloadView(args)
-  }
+  suspend fun openDownloadView(args: WebDownloadArgs) = downloadController.openDownloadView(args)
 }

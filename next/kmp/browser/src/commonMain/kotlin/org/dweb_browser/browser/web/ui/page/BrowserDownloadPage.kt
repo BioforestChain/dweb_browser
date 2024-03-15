@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.download.view
+package org.dweb_browser.browser.web.ui.page
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -20,8 +20,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
@@ -47,12 +47,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.web.data.BrowserDownloadItem
+import org.dweb_browser.browser.web.data.BrowserDownloadType
+import org.dweb_browser.browser.web.data.page.BrowserDownloadPage
+import org.dweb_browser.browser.web.data.page.DownloadPage
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.button_delete
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_complete
@@ -63,9 +69,7 @@ import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_dow
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloaded_more
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloading
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tip_empty
-import org.dweb_browser.browser.web.download.BrowserDownloadItem
-import org.dweb_browser.browser.web.download.BrowserDownloadManagePage
-import org.dweb_browser.browser.web.download.BrowserDownloadModel
+import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.HorizontalDivider
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.format
@@ -74,14 +78,13 @@ import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.helper.valueIn
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.NativeBackHandler
 import org.dweb_browser.sys.window.render.imageFetchHook
 
 @Composable
-fun BrowserDownloadModel.BrowserDownloadManage(onClose: () -> Unit) {
+fun BrowserDownloadPage.BrowserDownloadPageRender(modifier: Modifier) {
   AnimatedContent(
-    targetState = managePage.value,
-    modifier = Modifier.fillMaxSize().clickableWithNoEffect { }, // 避免点击被背后响应了
+    targetState = downloadPage,
+    modifier = modifier,
     transitionSpec = {
       if (targetState.ordinal > initialState.ordinal) {
         (slideInHorizontally { fullWidth -> fullWidth } + fadeIn()).togetherWith(
@@ -94,23 +97,22 @@ fun BrowserDownloadModel.BrowserDownloadManage(onClose: () -> Unit) {
   ) { page ->
     when (page) {
       // 跳转下载管理界面，包含了“下载中”和“已下载”两个列表，“已下载”列表当前只展示最新的五条记录
-      BrowserDownloadManagePage.Manage -> BrowserDownloadHomePage(
-        onClose = onClose,
-        openMore = { managePage.value = BrowserDownloadManagePage.MoreCompleted },
-        openDelete = { managePage.value = BrowserDownloadManagePage.DeleteAll }
+      DownloadPage.Manage -> BrowserDownloadHomePage(
+        openMore = { downloadPage = DownloadPage.MoreCompleted },
+        openDelete = { downloadPage = DownloadPage.DeleteAll }
       )
       // 跳转删除下载数据界面，列表内容包含了所有的下载数据
-      BrowserDownloadManagePage.DeleteAll -> BrowserDownloadDeletePage(onlyComplete = false) {
-        managePage.value = BrowserDownloadManagePage.Manage
+      DownloadPage.DeleteAll -> BrowserDownloadDeletePage(onlyComplete = false) {
+        downloadPage = DownloadPage.Manage
       }
       // 跳转已下载数据界面，列表内容包含了所有的“已下载”数据
-      BrowserDownloadManagePage.MoreCompleted -> BrowserDownloadMorePage(
-        onBack = { managePage.value = BrowserDownloadManagePage.Manage },
-        openDelete = { managePage.value = BrowserDownloadManagePage.DeleteCompleted }
+      DownloadPage.MoreCompleted -> BrowserDownloadMorePage(
+        onBack = { downloadPage = DownloadPage.Manage },
+        openDelete = { downloadPage = DownloadPage.DeleteCompleted }
       )
       // 跳转删除下载数据界面，列表内容包含了所有的“已下载”数据
-      BrowserDownloadManagePage.DeleteCompleted -> BrowserDownloadDeletePage {
-        managePage.value = BrowserDownloadManagePage.MoreCompleted
+      DownloadPage.DeleteCompleted -> BrowserDownloadDeletePage {
+        downloadPage = DownloadPage.MoreCompleted
       }
     }
   }
@@ -120,12 +122,11 @@ fun BrowserDownloadModel.BrowserDownloadManage(onClose: () -> Unit) {
  * 下载管理界面
  */
 @Composable
-private fun BrowserDownloadModel.BrowserDownloadHomePage(
-  onClose: () -> Unit, openMore: () -> Unit, openDelete: () -> Unit
+private fun BrowserDownloadPage.BrowserDownloadHomePage(
+  openMore: () -> Unit, openDelete: () -> Unit
 ) {
-  NativeBackHandler { onClose() }
-  Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
-    DownloadTopBar(title = download_page_manage(), onBack = onClose) {
+  Column(modifier = Modifier.fillMaxSize()) {
+    DownloadTopBar(title = download_page_manage(), onBack = { }, enableBack = false) {
       Image(
         Icons.Default.EditNote,
         contentDescription = "Delete Manage",
@@ -138,9 +139,7 @@ private fun BrowserDownloadModel.BrowserDownloadHomePage(
       return
     }
 
-    LazyColumn(
-      modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.outlineVariant)
-    ) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
       if (saveDownloadList.isNotEmpty()) {
         item {
           Card(
@@ -205,11 +204,11 @@ private fun BrowserDownloadModel.BrowserDownloadHomePage(
  * 显示所有的“已下载”数据列表
  */
 @Composable
-private fun BrowserDownloadModel.BrowserDownloadMorePage(
+private fun BrowserDownloadPage.BrowserDownloadMorePage(
   onBack: () -> Unit, openDelete: () -> Unit
 ) {
-  NativeBackHandler { onBack() }
-  Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
+  LocalWindowController.current.GoBackHandler { onBack() }
+  Column(modifier = Modifier.fillMaxSize()) {
     DownloadTopBar(title = download_page_complete(), onBack = onBack) {
       Image(
         imageVector = Icons.Default.EditNote,
@@ -223,7 +222,16 @@ private fun BrowserDownloadModel.BrowserDownloadMorePage(
       return
     }
     LazyColumn {
-      items(saveCompleteList) { item -> item.RowDownloadItem { clickCompleteButton(item) } }
+      item {
+        Card(
+          shape = RoundedCornerShape(8.dp),
+          modifier = Modifier.fillMaxWidth().padding(8.dp)
+        ) {
+          saveCompleteList.forEach { item ->
+            item.RowDownloadItem { clickCompleteButton(item) }
+          }
+        }
+      }
     }
   }
 }
@@ -277,10 +285,10 @@ private fun BrowserDownloadItem.RowDownloadItem(onClick: () -> Unit) {
  * 删除下载数据界面
  */
 @Composable
-private fun BrowserDownloadModel.BrowserDownloadDeletePage(
+private fun BrowserDownloadPage.BrowserDownloadDeletePage(
   onlyComplete: Boolean = true, onBack: () -> Unit
 ) {
-  NativeBackHandler { onBack() }
+  LocalWindowController.current.GoBackHandler { onBack() }
   val selected = remember { mutableStateOf(false) }
   val list = remember(saveDownloadList, saveCompleteList) { // 只有列表变化的时候，这个才会被重组
     if (onlyComplete) saveCompleteList else saveDownloadList + saveCompleteList
@@ -289,7 +297,7 @@ private fun BrowserDownloadModel.BrowserDownloadDeletePage(
     list.associateWith { mutableStateOf(false) }
   }
   val size = selectStateMap.values.filter { it.value }.size
-  Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
+  Column(modifier = Modifier.fillMaxSize()) {
     Box(modifier = Modifier.fillMaxWidth()) {
       DownloadTopBar(
         title = if (size == 0) {
@@ -313,10 +321,17 @@ private fun BrowserDownloadModel.BrowserDownloadDeletePage(
     Box(modifier = Modifier.fillMaxSize()) {
       if (selectStateMap.isNotEmpty()) {
         LazyColumn(modifier = Modifier.fillMaxSize().padding(bottom = 54.dp)) {
-          items(list) { item ->
-            key(item, selected) {
-              item.RowDownloadItemDelete(selectStateMap[item]!!) {
-                selected.value = selectStateMap.values.find { !it.value } == null
+          item {
+            Card(
+              shape = RoundedCornerShape(8.dp),
+              modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
+              list.forEach { item ->
+                key(item, selected) {
+                  item.RowDownloadItemDelete(selectStateMap[item]!!) {
+                    selected.value = selectStateMap.values.find { !it.value } == null
+                  }
+                }
               }
             }
           }
@@ -447,26 +462,30 @@ private fun BottomDeleteButton(
 private fun DownloadTopBar(
   title: String,
   onBack: () -> Unit,
+  enableBack: Boolean = true,
   imageVector: ImageVector = Icons.Default.ArrowBackIosNew,
   action: (@Composable RowScope.() -> Unit)? = null
 ) {
   Row(
     modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)
       .padding(horizontal = 8.dp, vertical = 8.dp),
-    horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically
   ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      Image(
-        imageVector = imageVector,
-        contentDescription = "Back",
-        modifier = Modifier.clip(CircleShape).clickable { onBack() }.size(32.dp).padding(4.dp)
-      )
-
-      Text(text = title, modifier = Modifier.padding(horizontal = 16.dp))
+    Box(modifier = Modifier.size(40.dp)) {
+      if (enableBack) {
+        Image(
+          imageVector = imageVector,
+          contentDescription = "Back",
+          modifier = Modifier.clip(CircleShape).clickable { onBack() }.size(32.dp).padding(4.dp)
+        )
+      }
     }
-
-    action?.let { action() }
+    Text(
+      text = title,
+      modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
+      textAlign = TextAlign.Center
+    )
+    Row (modifier = Modifier.size(40.dp)) { action?.let { action() } }
   }
 }
 
@@ -484,6 +503,73 @@ private fun DownloadEmptyTask() {
       Image(imageVector = Icons.Default.Download, contentDescription = "Empty Download")
       Spacer(modifier = Modifier.height(16.dp))
       Text(text = tip_empty())
+    }
+  }
+}
+
+/**
+ * 按钮显示内容
+ * 根据showProgress来确认按钮是否要显示进度
+ */
+@Composable
+fun DownloadButton(
+  downloadItem: BrowserDownloadItem,
+  showProgress: Boolean = true,
+  onClick: () -> Unit
+) {
+  val showText = when (downloadItem.state.state) {
+    DownloadState.Init, DownloadState.Canceled, DownloadState.Failed -> {
+      BrowserDownloadI18nResource.sheet_download_state_init()
+    }
+    // 显示百分比
+    DownloadState.Downloading -> {
+      if (showProgress) {
+        val progress = (downloadItem.state.current * 1000 / downloadItem.state.total) / 10.0f
+        "$progress %"
+      } else {
+        BrowserDownloadI18nResource.sheet_download_state_pause()
+      }
+    }
+
+    DownloadState.Paused -> BrowserDownloadI18nResource.sheet_download_state_resume()
+    DownloadState.Completed -> {
+      if (downloadItem.fileSuffix.type == BrowserDownloadType.Application)
+        BrowserDownloadI18nResource.sheet_download_state_install()
+      else
+        BrowserDownloadI18nResource.sheet_download_state_open()
+    }
+  }
+
+  val progress = if (showProgress &&
+    downloadItem.state.state.valueIn(DownloadState.Downloading, DownloadState.Paused)
+  ) {
+    downloadItem.state.current * 1.0f / downloadItem.state.total
+  } else {
+    1.0f
+  }
+  Box(
+    modifier = Modifier.padding(8.dp).clip(RoundedCornerShape(32.dp)).width(90.dp)
+      .background(
+        brush = Brush.horizontalGradient(
+          0.0f to MaterialTheme.colorScheme.primary,
+          progress to MaterialTheme.colorScheme.primary,
+          progress to MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+          1.0f to MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+        )
+      )
+      .padding(vertical = 8.dp)
+      .clickableWithNoEffect { onClick() },
+    contentAlignment = Alignment.Center
+  ) {
+    AutoResizeTextContainer(modifier = Modifier.fillMaxWidth()) {
+      Text(
+        text = showText,
+        softWrap = false,
+        color = MaterialTheme.colorScheme.background,
+        maxLines = 1,
+        overflow = TextOverflow.Clip,
+        modifier = Modifier.align(Alignment.Center)
+      )
     }
   }
 }

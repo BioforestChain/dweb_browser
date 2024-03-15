@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.search.SearchEngine
+import org.dweb_browser.browser.search.SearchEngineList
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.search.ext.createChannelOfEngines
 import org.dweb_browser.browser.search.ext.isEngineAndGetHomeLink
@@ -105,7 +106,6 @@ class BrowserViewModel(
   val isNoTrace by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     mutableStateOf(browserController.isNoTrace)
   }
-  val showDownloadManage = mutableStateOf(false)
 
   val searchInjectList = mutableStateListOf<SearchInject>()
   val searchEngineList = mutableStateListOf<SearchEngine>()
@@ -481,23 +481,6 @@ class BrowserViewModel(
     }
   }
 
-  /**
-   * 搜索引擎
-   */
-//  fun addSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
-//    browserController.searchEngines.add(item)
-//    browserController.saveSearchEngines()
-//  }
-//
-//  fun removeSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
-//    browserController.searchEngines.remove(item)
-//    browserController.saveSearchEngines()
-//  }
-//
-//  fun updateSearchEngine(item: WebEngine) = browserController.ioAsyncScope.launch {
-//    browserController.saveSearchEngines()
-//  }
-
   suspend fun loadMoreHistory(off: Int) {
     browserController.loadMoreHistory(off)
   }
@@ -505,8 +488,6 @@ class BrowserViewModel(
   fun showToastMessage(message: String, position: PositionType? = null) {
     browserController.ioAsyncScope.launch { browserNMM.showToast(message, position = position) }
   }
-
-  fun getDownloadModel() = browserController.downloadModel
 }
 
 /**
@@ -526,12 +507,11 @@ internal fun parseInputText(text: String, needHost: Boolean = true): String {
   // 尝试当成网址来解析
   val url = runCatching { Url(text) }.getOrElse { return text }
   // 判断是不是搜索引擎，如果是提取它的关键字
-  for (item in DefaultAllWebEngine) {
-    if (item.host == url.host) {
+  for (item in SearchEngineList) {
+    if (item.homeLink.contains(url.host)) {
       return url.parameters[item.queryName()] ?: url.host
     }
   }
-
   return if (needHost && url.host.isNotEmpty()) {
     url.host
   } else text

@@ -42,9 +42,9 @@ import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_d
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_tip_continue
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_tip_exist
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_tip_reload
-import org.dweb_browser.browser.web.download.BrowserDownloadItem
+import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.download.BrowserDownloadModel
-import org.dweb_browser.browser.web.download.BrowserDownloadType
+import org.dweb_browser.browser.web.data.BrowserDownloadType
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.toSpaceSize

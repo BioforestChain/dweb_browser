@@ -50,7 +50,6 @@ import org.dweb_browser.browser.util.isSystemUrl
 import org.dweb_browser.browser.web.data.ConstUrl
 import org.dweb_browser.browser.web.data.page.BrowserPage
 import org.dweb_browser.browser.web.data.page.BrowserWebPage
-import org.dweb_browser.browser.web.download.view.BrowserDownloadManage
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserPageState
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
@@ -142,11 +141,6 @@ fun BrowserViewForWindow(
           modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
           windowRenderScope = windowRenderScope
         )
-        if (viewModel.showDownloadManage.value) {
-          viewModel.getDownloadModel().BrowserDownloadManage {
-            viewModel.showDownloadManage.value = false
-          }
-        }
         QRCodeScanView(onSuccess = {
           openDeepLink(it)
           scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) }

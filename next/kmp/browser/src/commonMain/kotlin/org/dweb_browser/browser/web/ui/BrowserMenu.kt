@@ -138,7 +138,7 @@ internal fun BrowserMenu() {
       BrowserI18nResource.browser_options_download(), Icons.Default.FileDownload, {
         hide()
         scope.launch {
-          viewModel.showDownloadManage.value = true
+          viewModel.tryOpenUrl("about:downloads")
         }
       }, Icons.AutoMirrored.Filled.ArrowForwardIos
     )

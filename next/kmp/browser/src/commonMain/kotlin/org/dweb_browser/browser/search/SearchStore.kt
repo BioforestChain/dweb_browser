@@ -27,9 +27,14 @@ data class SearchEngine(
     val uri = runCatching { Url(url) }.getOrElse { return false }
     return uri.host == current.host && uri.parameters[queryName] != null /*&& uri.fullPath == current.fullPath*/
   }
+
+  fun queryName(): String {
+    val current = Url("${searchLink}test")
+    return current.parameters.names().last()
+  }
 }
 
-private val SearchEngineList = mutableStateListOf(
+val SearchEngineList = mutableStateListOf(
   SearchEngine(
     host = "baidu.com",
     keys = "baidu,百度",

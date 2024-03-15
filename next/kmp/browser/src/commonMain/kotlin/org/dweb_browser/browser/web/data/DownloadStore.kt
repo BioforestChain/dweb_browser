@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.download
+package org.dweb_browser.browser.web.data
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
