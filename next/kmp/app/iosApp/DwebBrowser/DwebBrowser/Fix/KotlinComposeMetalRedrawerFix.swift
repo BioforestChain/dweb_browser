@@ -66,7 +66,7 @@ class KotlinComposeRedrawerFix {
 
     private func addObserver(mode: CFRunLoopMode) {
         let observerRef = CFRunLoopObserverCreateWithHandler(kCFAllocatorDefault, CFRunLoopActivity.allActivities.rawValue, true, 0) { [unowned self] bserver, activity in
-            self.logRunloop(tag: "\(mode)", activity: activity)
+            self.logRunloop(tag: "\(mode)", activity: CFRunLoopActivity(rawValue: activity))
         }
         CFRunLoopAddObserver(CFRunLoopGetMain(), observerRef, mode)
         
