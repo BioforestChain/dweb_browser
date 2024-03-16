@@ -12,29 +12,22 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
 import org.dweb_browser.browser.common.barcode.QRCodeScanModel
 import org.dweb_browser.browser.common.barcode.QRCodeScanView
 import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
-import org.dweb_browser.browser.util.isSystemUrl
-import org.dweb_browser.browser.web.data.ConstUrl
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
-import org.dweb_browser.browser.web.model.LocalInputText
 import org.dweb_browser.browser.web.model.LocalShowSearchView
-import org.dweb_browser.browser.web.ui.page.BrowserHomePageRender
 import org.dweb_browser.helper.capturable.capturable
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -113,11 +106,7 @@ fun BrowserViewModalRender(
 
       BrowserPreviewPanel(viewModel)
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
-      BrowserSearchView(
-        viewModel = viewModel,
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-        windowRenderScope = windowRenderScope
-      )
+      BrowserSearchPanel(Modifier.fillMaxSize())
       QRCodeScanView(onSuccess = {
         openDeepLink(it)
         scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) }
@@ -148,12 +137,10 @@ fun BrowserPageBox(viewModel: BrowserViewModel, windowRenderScope: WindowRenderS
       contentPadding = PaddingValues(0.dp),
       beyondBoundsPageCount = 1,
       pageContent = { currentPage ->
-        viewModel.getPageOrNull(currentPage)?.also { browserPage ->
-          browserPage.Render(
-            Modifier.capturable(browserPage.captureController),
-            windowRenderScope.scale
-          )
-        }
+        val browserPage = viewModel.getPage(currentPage)
+        browserPage.Render(
+          Modifier.capturable(browserPage.captureController), windowRenderScope.scale
+        )
       })
   }
 }
@@ -165,48 +152,5 @@ fun BrowserBottomBar(viewModel: BrowserViewModel, modifier: Modifier) {
   ) {
     BrowserSearchBar(viewModel)
     BrowserNavigatorBar(viewModel)
-  }
-}
-
-
-/**
- * 提供给外部调用的  搜索界面，可以含有BrowserViewModel
- */
-@Composable
-fun BrowserSearchView(
-  viewModel: BrowserViewModel, modifier: Modifier = Modifier, windowRenderScope: WindowRenderScope
-) {
-  var showSearchView by LocalShowSearchView.current
-  val searchHint = BrowserI18nResource.browser_search_hint()
-  val focusManager = LocalFocusManager.current
-  val uiScope = rememberCoroutineScope()
-  if (showSearchView) {
-    val dwebLink = viewModel.dwebLinkSearch.value.link
-    val inputText = if (dwebLink.trim().isEmpty() || dwebLink == ConstUrl.BLANK.url) {
-      viewModel.focusedPage?.url ?: ""
-    } else dwebLink
-    val showText = if (inputText.isSystemUrl() || inputText == searchHint) "" else inputText
-
-    val inputTextState = LocalInputText.current
-
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-      .clickableWithNoEffect {
-        focusManager.clearFocus()
-        showSearchView = false
-      }) {
-      SearchView(text = showText,
-        modifier = modifier,
-        homePreview = { BrowserHomePageRender() },
-        onClose = {
-          showSearchView = false
-        },
-        onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
-          uiScope.launch {
-            viewModel.doSearchUI(url)
-          }
-          inputTextState.value = url
-          showSearchView = false
-        })
-    }
   }
 }

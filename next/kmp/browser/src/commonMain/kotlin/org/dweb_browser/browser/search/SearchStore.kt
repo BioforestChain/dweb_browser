@@ -109,7 +109,7 @@ data class SearchInject(
 ) {
   @Composable
   fun iconPainter() = key(icon) { icon?.toImageBitmap()?.let { BitmapPainter(it) } }
-    ?: BrowserDrawResource.WebEngineDefault.painter()
+    ?: BrowserDrawResource.Web.painter()
 }
 
 class SearchStore(mm: MicroModule) {

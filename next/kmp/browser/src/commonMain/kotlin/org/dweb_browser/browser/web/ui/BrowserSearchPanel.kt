@@ -1,14 +1,11 @@
 package org.dweb_browser.browser.web.ui
 
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -27,8 +26,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -64,84 +65,173 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.search.SearchEngine
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.util.toRequestUrl
+import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
+import org.dweb_browser.browser.web.model.LocalInputText
 import org.dweb_browser.browser.web.model.LocalShowSearchView
-import org.dweb_browser.browser.web.model.parseInputText
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.render.AppIcon
-import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 import org.dweb_browser.sys.window.render.imageFetchHook
 
+
 /**
- * 组件： 搜索组件
+ * 搜索界面
  */
 @Composable
-internal fun BoxScope.SearchView(
-  text: String,
+fun BrowserSearchPanel(
   modifier: Modifier = Modifier,
-  homePreview: (@Composable (onMove: (Boolean) -> Unit) -> Unit)? = null,
-  searchPreview: (@Composable () -> Unit)? = null,
-  onClose: () -> Unit,
-  onSearch: (String) -> Unit,
 ) {
-  val focusManager = LocalFocusManager.current
-  val inputText = remember(text) { mutableStateOf(parseInputText(text, false)) }
-  val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
-  val searchEngine = LocalBrowserViewModel.current.filterFitUrlEngines(text)
+  val viewModel = LocalBrowserViewModel.current
+  val searchPage = viewModel.showSearch
+  if (searchPage != null) {
+    val focusManager = LocalFocusManager.current
+    val hide = {
+      focusManager.clearFocus()
+      viewModel.showSearch = null
+    }
+    val uiScope = rememberCoroutineScope()
+    val inputText = remember(searchPage) { mutableStateOf(searchPage.url) }
 
-  Box(modifier = modifier) {
-    homePreview?.let {
-      it { moved ->
-        focusManager.clearFocus()
-        if (!moved) onClose()
+    val dwebLink = viewModel.dwebLinkSearch.value.link
+
+
+    val inputTextState = LocalInputText.current
+
+    Box(modifier = modifier.background(MaterialTheme.colorScheme.background).clickableWithNoEffect {
+      focusManager.clearFocus()
+      hide()
+    }) {
+//      BrowserSearchPanel(text = showText,
+//        modifier = modifier,
+//        homePreview = { BrowserHomePageRender() },
+//        onClose = {
+//          hide()
+//        },
+//        onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
+//          uiScope.launch {
+//            viewModel.doSearchUI(url)
+//          }
+//          inputTextState.value = url
+//          hide()
+//        })
+
+
+      Box(modifier = modifier) {
+
+        TextButton(hide, modifier = Modifier.align(Alignment.TopEnd)) {
+          Text(
+            BrowserI18nResource.button_name_cancel(),
+//            color = MaterialTheme.colorScheme.primary
+          )
+        }
+
+        if (inputText.value.isNotEmpty()) {
+
+
+          SearchSuggestion(searchText = inputText, onClose = hide, onOpenApp = {
+            // TODO 暂未实现
+          }, onSubmit = { url ->
+            inputTextState.value = url
+            uiScope.launch {
+              viewModel.doSearchUI(url)
+            }
+            hide()
+          })
+        }
+      }
+
+
+      key(inputText) {
+        val searchEngine = viewModel.filterFitUrlEngines(inputText.value)
+        BrowserTextField(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
+          text = inputText,
+          searchEngine = searchEngine,
+          onSubmit = { url ->
+            uiScope.launch {
+              viewModel.doSearchUI(url)
+            }
+            hide()
+          },
+          onValueChanged = {
+            inputText.value = it;
+          })
       }
     }
-
-    Text(
-      text = BrowserI18nResource.button_name_cancel(),
-      modifier = Modifier
-        .align(Alignment.TopEnd)
-        .clip(RoundedCornerShape(16.dp))
-        .clickableWithNoEffect { onClose() }
-        .padding(20.dp),
-      fontSize = 16.sp,
-      color = MaterialTheme.colorScheme.primary
-    )
-
-    searchPreview?.let { it() } ?: SearchPreview(
-      show = searchPreviewState,
-      text = inputText,
-      onClose = {
-        focusManager.clearFocus()
-        onClose()
-      },
-      onOpenApp = {
-        // TODO 暂未实现
-      },
-      onSearch = {
-        focusManager.clearFocus()
-        onSearch(it)
-      }
-    )
-  }
-
-  key(inputText) {
-    BrowserTextField(
-      text = inputText,
-      searchEngine = searchEngine,
-      onSearch = { onSearch(it) },
-      onValueChanged = { inputText.value = it; searchPreviewState.targetState = it.isNotEmpty() }
-    )
   }
 }
 
+///**
+// * 组件： 搜索组件
+// */
+//@Composable
+//internal fun BrowserSearchPanel(
+//  text: String,
+//  modifier: Modifier = Modifier,
+//  homePreview: (@Composable (onMove: (Boolean) -> Unit) -> Unit)? = null,
+//  searchPreview: (@Composable () -> Unit)? = null,
+//  onClose: () -> Unit,
+//  onSearch: (String) -> Unit,
+//) {
+//  val focusManager = LocalFocusManager.current
+//  val inputText = remember(text) { mutableStateOf(searchBarTextTransformer(text, false)) }
+//  val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
+//
+//  Box(modifier = modifier) {
+//    homePreview?.let {
+//      it { moved ->
+//        focusManager.clearFocus()
+//        if (!moved) onClose()
+//      }
+//    }
+//
+//    Text(
+//      text = BrowserI18nResource.button_name_cancel(),
+//      modifier = Modifier
+//        .align(Alignment.TopEnd)
+//        .clip(RoundedCornerShape(16.dp))
+//        .clickableWithNoEffect { onClose() }
+//        .padding(20.dp),
+//      fontSize = 16.sp,
+//      color = MaterialTheme.colorScheme.primary
+//    )
+//
+//    searchPreview?.let { it() } ?: SearchPreview(
+//      show = searchPreviewState,
+//      text = inputText,
+//      onClose = {
+//        focusManager.clearFocus()
+//        onClose()
+//      },
+//      onOpenApp = {
+//        // TODO 暂未实现
+//      },
+//      onSearch = {
+//        focusManager.clearFocus()
+//        onSearch(it)
+//      }
+//    )
+//  }
+//
+//  key(inputText) {
+//    val searchEngine = LocalBrowserViewModel.current.filterFitUrlEngines(text)
+//    BrowserTextField(
+//      modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
+//      text = inputText,
+//      searchEngine = searchEngine,
+//      onSearch = { onSearch(it) },
+//      onValueChanged = { inputText.value = it; searchPreviewState.targetState = it.isNotEmpty() }
+//    )
+//  }
+//}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal fun BoxScope.BrowserTextField(
+internal fun BrowserTextField(
+  modifier: Modifier,
   text: MutableState<String>,
   searchEngine: SearchEngine?,
-  onSearch: (String) -> Unit,
+  onSubmit: (String) -> Unit,
   onValueChanged: (String) -> Unit
 ) {
   val showSearchView = LocalShowSearchView.current
@@ -154,26 +244,19 @@ internal fun BoxScope.BrowserTextField(
   CustomTextField(
     value = inputText,
     onValueChange = { inputText = it.trim(); onValueChanged(inputText) },
-    modifier = Modifier
-      .fillMaxWidth()
-      .background(MaterialTheme.colorScheme.background)
-      .align(Alignment.BottomCenter)
-      .padding(
-        start = 25.dp,
-        end = 25.dp,
-        top = 10.dp,
-        bottom = 10.dp, // if (localShowIme.value) 0.dp else 50.dp // 为了贴合当前的界面底部工具栏
-      )
-      .height(dimenSearchHeight)
+    modifier = modifier.background(MaterialTheme.colorScheme.background).padding(
+      start = 25.dp,
+      end = 25.dp,
+      top = 10.dp,
+      bottom = 10.dp, // if (localShowIme.value) 0.dp else 50.dp // 为了贴合当前的界面底部工具栏
+    ).height(dimenSearchHeight)
       .border(width = 1.dp, color = MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-      .clip(RoundedCornerShape(8.dp))
-      .background(MaterialTheme.colorScheme.background)
-      .onKeyEvent {
+      .clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.background).onKeyEvent {
         if (it.key == Key.Enter) {
           inputText.toRequestUrl()?.let { url ->
-            onSearch(url)
+            onSubmit(url)
           } ?: searchEngine?.let { searchEngine ->
-            onSearch("${searchEngine.searchLink}$inputText")
+            onSubmit("${searchEngine.searchLink}$inputText")
           } ?: focusManager.clearFocus(); keyboardController?.hide()
           true
         } else {
@@ -192,9 +275,7 @@ internal fun BoxScope.BrowserTextField(
       Image(
         imageVector = Icons.Default.Close,
         contentDescription = "Close",
-        modifier = Modifier
-          .clickable { inputText = ""; onValueChanged(inputText) }
-          .size(28.dp)
+        modifier = Modifier.clickable { inputText = ""; onValueChanged(inputText) }.size(28.dp)
           .padding(4.dp)
       )
     },
@@ -210,9 +291,9 @@ internal fun BoxScope.BrowserTextField(
         uiScope.launch {
 
           inputText.toRequestUrl()?.let { url ->
-            onSearch(url)
+            onSubmit(url)
           } ?: searchEngine?.let { searchEngine ->
-            onSearch("${searchEngine.searchLink}$inputText")
+            onSubmit("${searchEngine.searchLink}$inputText")
           } ?: run {
             focusManager.clearFocus()
             keyboardController?.hide()
@@ -220,8 +301,7 @@ internal fun BoxScope.BrowserTextField(
             browserViewModel.checkAndSearchUI(inputText) { showSearchView.value = false }
           }
         }
-      }
-    )
+      })
   )
 }
 
@@ -254,8 +334,7 @@ fun CustomTextField(
     maxLines = 1,
     singleLine = true,
     textStyle = TextStyle.Default.copy(
-      fontSize = dimenTextFieldFontSize,
-      color = MaterialTheme.colorScheme.onSecondaryContainer
+      fontSize = dimenTextFieldFontSize, color = MaterialTheme.colorScheme.onSecondaryContainer
     ),
     keyboardOptions = keyboardOptions,
     keyboardActions = keyboardActions,
@@ -271,8 +350,7 @@ fun CustomTextField(
             }
           }
         }
-      },
-      contentAlignment = Alignment.CenterStart
+      }, contentAlignment = Alignment.CenterStart
     ) {
       Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Spacer(modifier = Modifier.width(spacerWidth))
@@ -281,8 +359,7 @@ fun CustomTextField(
           Spacer(modifier = Modifier.width(spacerWidth))
         }
         Box(
-          modifier = Modifier.weight(1f),
-          contentAlignment = Alignment.CenterStart
+          modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart
         ) {
           innerTextField()
           if (label != null && value.isEmpty()) label() // 如果内容是空的才显示
@@ -297,145 +374,134 @@ fun CustomTextField(
   }
 }
 
+/**
+ * 输入搜索内容后，显示的搜索建议
+ */
 @Composable
-internal fun SearchPreview(
-  // 输入搜索内容后，显示的搜索信息
-  show: MutableTransitionState<Boolean>,
-  text: MutableState<String>,
+private fun SearchSuggestion(
+  searchText: String,
   onClose: () -> Unit,
   onOpenApp: (SearchInject) -> Unit,
-  onSearch: (String) -> Unit,
+  onSubmit: (String) -> Unit,
 ) {
-  if (show.targetState) {
-    LazyColumn(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.surfaceVariant)
-        .padding(horizontal = 20.dp)
-        .clickableWithNoEffect { }
-    ) {
-      item {
-        Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 20.dp)
-        ) {
-          Text(
-            text = BrowserI18nResource.browser_search_title(),
-            modifier = Modifier.align(Alignment.Center),
-            fontSize = 20.sp
-          )
+  val viewModel = LocalBrowserViewModel.current
+  LazyColumn(modifier = Modifier.fillMaxSize()
+    .background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 20.dp)
+    .clickableWithNoEffect { }) {
+    item {
+      Box(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp)
+      ) {
+        Text(
+          text = BrowserI18nResource.browser_search_title(),
+          modifier = Modifier.align(Alignment.Center),
+          fontSize = 20.sp
+        )
 
+        TextButton(onClose, modifier = Modifier.align(Alignment.TopEnd)) {
           Text(
-            text = BrowserI18nResource.browser_search_cancel(),
-            modifier = Modifier
-              .align(Alignment.TopEnd)
-              .clickable { onClose() },
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.primary
+            BrowserI18nResource.browser_search_cancel(),
+//          color = MaterialTheme.colorScheme.primary
           )
         }
       }
-      item { // 本地资源
-        SearchItemLocals(text.value) { onOpenApp(it) }
-      }
-      item { // 搜索引擎
-        SearchItemEngines(text.value) { onSearch(it) }
-      }
     }
+    searchLocalItems(viewModel, searchText, openApp = onOpenApp)
+    searchEngineItems(viewModel, searchText, onSearch = onSubmit)
   }
 }
 
-@Composable
-private fun SearchItemLocals(text: String, openApp: (SearchInject) -> Unit) {
-  val viewModel = LocalBrowserViewModel.current
+/**
+ * 本地资源
+ */
+private fun LazyListScope.searchLocalItems(
+  viewModel: BrowserViewModel,
+  searchText: String,
+  openApp: (SearchInject) -> Unit
+) {
   val injectList = viewModel.searchInjectList
   if (injectList.isEmpty() && viewModel.filterShowEngines.isNotEmpty()) return // 如果本地资源为空，但是搜索引擎不为空，不需要显示这个内容
-  Column(modifier = Modifier.fillMaxWidth()) {
+  /// 标题
+  item {
     Text(
       text = BrowserI18nResource.browser_search_local(),
       color = MaterialTheme.colorScheme.outline,
-      modifier = Modifier.padding(vertical = 10.dp)
+      modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+      textAlign = TextAlign.Center
     )
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .clip(RoundedCornerShape(8.dp))
-        .background(MaterialTheme.colorScheme.background)
-    ) {
-      if (injectList.isEmpty()) {
-        androidx.compose.material3.ListItem(
-          headlineContent = {
-            Text(text = BrowserI18nResource.browser_search_noFound())
-          },
-          leadingContent = {
-            Icon(
-              imageVector = Icons.Default.Error,
-              contentDescription = null,
-              modifier = Modifier.size(40.dp)
-            )
-          },
-        )
-        return
-      }
-      injectList.forEachIndexed { index, searchInject ->
-        if (index > 0) HorizontalDivider()
-        androidx.compose.material3.ListItem(
-          headlineContent = {
-            Text(text = searchInject.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-          },
-          modifier = Modifier.clickable { openApp(searchInject) },
-          supportingContent = {
-            Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-          },
-          leadingContent = {
-            Image(searchInject.iconPainter(), contentDescription = searchInject.name)
-          }
-        )
-      }
+  }
+
+  if (injectList.isEmpty()) {
+    item {
+      ListItem(
+        modifier = Modifier.fillMaxWidth(),
+        headlineContent = {
+          Text(text = BrowserI18nResource.browser_search_noFound())
+        },
+        leadingContent = {
+          Icon(
+            imageVector = Icons.Default.Error,
+            contentDescription = null,
+            modifier = Modifier.size(40.dp)
+          )
+        },
+      )
     }
+    return
+  }
+  itemsIndexed(injectList) { index, searchInject ->
+    if (index > 0) HorizontalDivider()
+    ListItem(headlineContent = {
+      Text(text = searchInject.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }, modifier = Modifier.clickable { openApp(searchInject) }, supportingContent = {
+      Text(text = searchText, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }, leadingContent = {
+      Image(searchInject.iconPainter(), contentDescription = searchInject.name)
+    })
   }
 }
 
-@Composable
-private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
-  val list = LocalBrowserViewModel.current.filterShowEngines
+private fun LazyListScope.searchEngineItems(
+  viewModel: BrowserViewModel,
+  searchText: String,
+  onSearch: (String) -> Unit
+) {
+  val list = viewModel.filterShowEngines
   if (list.isEmpty()) return // 如果空的直接不显示
-  val state = LocalWindowController.current.state
-  val microModule by state.constants.microModule
-  Column(modifier = Modifier.fillMaxWidth()) {
+  // 标题
+  item {
     Text(
       text = BrowserI18nResource.browser_search_engine(),
       color = MaterialTheme.colorScheme.outline,
-      modifier = Modifier.padding(vertical = 10.dp)
+      modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+      textAlign = TextAlign.Center
     )
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .clip(RoundedCornerShape(8.dp))
+  }
+  item {
+    LazyColumn(
+      Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
         .background(MaterialTheme.colorScheme.background)
     ) {
-      list.forEachIndexed { index, searchEngine ->
+      itemsIndexed(list) { index, searchEngine ->
         key(searchEngine.host) {
           if (index > 0) HorizontalDivider()
-          androidx.compose.material3.ListItem(
-            headlineContent = {
-              Text(text = searchEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            },
-            modifier = Modifier.clickable { onSearch("${searchEngine.searchLink}$text") },
+          ListItem(headlineContent = {
+            Text(text = searchEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+          },
+            modifier = Modifier.clickable { onSearch("${searchEngine.searchLink}$searchText") },
             supportingContent = {
-              Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+              Text(text = searchText, maxLines = 1, overflow = TextOverflow.Ellipsis)
             },
             leadingContent = {
               AppIcon(
                 icon = searchEngine.iconLink,
                 modifier = Modifier.size(56.dp),
-                iconFetchHook = microModule?.imageFetchHook
+                iconFetchHook = viewModel.browserNMM.imageFetchHook
               )
-            }
-          )
+            })
         }
       }
     }
   }
+
 }

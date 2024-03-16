@@ -22,9 +22,9 @@ enum class BrowserDrawResource(
   val res: DrawableResource,
   val monochrome: Boolean = false
 ) {
-  WebEngineDefault("content://drawable/web", Res.drawable.ic_web, true),//
-  BrowserStar("content://drawable/star", Res.drawable.ic_main_star, true),//
-  BrowserLauncher("content://drawable/dweb-browser", Res.drawable.ic_launcher_foreground),//
+  Web("content://drawable/web", Res.drawable.ic_web, true),//
+  Star("content://drawable/star", Res.drawable.ic_main_star, true),//
+  Logo("content://drawable/dweb-browser", Res.drawable.ic_launcher_foreground),//
 
   WebEngineBaidu("https://www.baidu.com/favicon.ico", Res.drawable.ic_engine_baidu),//
   WebEngineBing(

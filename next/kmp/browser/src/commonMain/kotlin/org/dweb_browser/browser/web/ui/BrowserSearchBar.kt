@@ -1,9 +1,13 @@
 package org.dweb_browser.browser.web.ui
 
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,9 +20,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,19 +33,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import kotlinx.coroutines.launch
+import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.util.isSystemUrl
+import org.dweb_browser.browser.util.isDeepLink
+import org.dweb_browser.browser.web.data.page.BrowserHomePage
 import org.dweb_browser.browser.web.data.page.BrowserPage
 import org.dweb_browser.browser.web.data.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.BrowserViewModel
+import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
 import org.dweb_browser.browser.web.model.LocalShowSearchView
-import org.dweb_browser.browser.web.model.parseInputText
+import org.dweb_browser.browser.web.model.searchBarTextTransformer
 import org.dweb_browser.dwebview.rememberLoadingProgress
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -69,7 +80,7 @@ fun BrowserSearchBar(viewModel: BrowserViewModel) {
     contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
     beyondBoundsPageCount = 5,
     pageContent = { currentPage ->
-      SearchBox(viewModel.getPageOrNull(currentPage)!!)
+      SearchBox(viewModel.getPage(currentPage))
     },
   )
 }
@@ -78,44 +89,61 @@ fun BrowserSearchBar(viewModel: BrowserViewModel) {
 @Composable
 private fun SearchBox(page: BrowserPage) {
   var showSearchView by LocalShowSearchView.current
-  val searchHint = BrowserI18nResource.browser_search_hint()
+  val viewModel = LocalBrowserViewModel.current
+  val scope = viewModel.ioScope
 
   Box(modifier = Modifier.padding(
     horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign
-  ).fillMaxWidth()
-    .shadow(
-      elevation = dimenShadowElevation,
-      shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
-    )
-    .height(dimenSearchHeight)
-    .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
-    .background(MaterialTheme.colorScheme.surface)
-    .clickable { showSearchView = true }) {
+  ).fillMaxWidth().shadow(
+    elevation = dimenShadowElevation, shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
+  ).height(dimenSearchHeight).clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
+    .background(MaterialTheme.colorScheme.surface).clickable { showSearchView = true }) {
     if (page is BrowserWebPage) {
       ShowLinearProgressIndicator(page)
     }
-    val inputText = page.url
-    val (title, align, icon) = if (inputText.isEmpty() || inputText.isSystemUrl()) {
-      Triple(searchHint, TextAlign.Start, Icons.Default.Search)
-    } else {
-      Triple(parseInputText(inputText), TextAlign.Center, Icons.Default.FormatSize)
-    }
+
     Row(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp).align(Alignment.Center),
-      verticalAlignment = Alignment.CenterVertically
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-      if (page.icon != null) {
-
+      if (page is BrowserHomePage) {
+        Icon(Icons.Default.Search, contentDescription = "Search", modifier = Modifier.alpha(0.5f))
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+          text = BrowserI18nResource.browser_search_hint(),
+          textAlign = TextAlign.Start,
+          maxLines = 1,
+          modifier = Modifier.weight(1f).alpha(0.5f)
+        )
+      } else {
+        val pageTitle = page.title
+        val pageIcon = page.icon
+        val pageUrl = page.url
+        Icon(
+          painter = if (pageUrl.isDeepLink()) BrowserDrawResource.Logo.painter()
+          else (pageIcon ?: BrowserDrawResource.Web.painter()),
+          contentDescription = pageTitle,
+        )
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+          text = searchBarTextTransformer(pageUrl),
+          textAlign = TextAlign.Center,
+          maxLines = 1,
+          modifier = Modifier.weight(1f)
+        )
       }
-      Icon(icon, contentDescription = "Search")
-      Spacer(modifier = Modifier.width(5.dp))
-      Text(
-        text = title,
-        textAlign = align,
-        fontSize = dimenTextFieldFontSize,
-        maxLines = 1,
-        modifier = Modifier.weight(1f)
-      )
+
+      if (page is BrowserWebPage) {
+        Spacer(modifier = Modifier.width(5.dp))
+        IconButton({
+          scope.launch {
+            page.webView.reload()
+          }
+        }) {
+          Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+        }
+      }
     }
   }
 }
@@ -125,14 +153,17 @@ private fun SearchBox(page: BrowserPage) {
  */
 @Composable
 private fun BoxScope.ShowLinearProgressIndicator(page: BrowserWebPage) {
-  when (val loadingProgress = page.webView.rememberLoadingProgress()) {
-    0f, 1f -> {}
-    else -> {
-      LinearProgressIndicator(
-        progress = { loadingProgress },
-        modifier = Modifier.fillMaxWidth().height(2.dp).align(Alignment.BottomCenter),
-        color = MaterialTheme.colorScheme.primary,
-      )
-    }
+  val loadingProgress = page.webView.rememberLoadingProgress()
+  AnimatedVisibility(
+    loadingProgress > 0 && loadingProgress < 1,
+    enter = fadeIn(),
+    exit = fadeOut(),
+    modifier = Modifier.zIndex(2f)
+  ) {
+    LinearProgressIndicator(
+      progress = { loadingProgress },
+      modifier = Modifier.fillMaxWidth().height(2.dp).align(Alignment.BottomCenter),
+      color = MaterialTheme.colorScheme.primary,
+    )
   }
 }

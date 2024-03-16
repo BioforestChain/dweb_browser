@@ -65,6 +65,8 @@ abstract class IDWebView(initUrl: String?) {
     }
   }
 
+  suspend fun reload() = loadUrl(getUrl(), true)
+
   suspend fun canGoBack() = closeWatcher.canClose || historyCanGoBack()
   suspend fun goBack() {
     if (closeWatcher.canClose) {

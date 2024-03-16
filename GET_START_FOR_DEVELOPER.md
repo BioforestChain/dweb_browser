@@ -59,3 +59,6 @@
    1. 想要获得 gradlew 的指定 project 的 tasks，到 kmp/next 目录下，执行: `./gradlew -q helper:tasks --all > .gradle/helper.md`
 1. 不要使用 Fleet 打开项目，因为它会往 DwebBrowser.xcworkspace 文件夹里头加入一些文件导致 xcodebuild 脚本失效，如果你不幸使用 Fleet 打开过项目，请手动删除 DwebBrowser.xcworkspace 文件夹里头`[Fleet]`打头的文件
 1. 使用 [composeResources](https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-images-resources.html#resource-usage) 文件夹存储资源文件时，需要运行 `./gradlew generateComposeResClass` 来自动生成代码
+1. 我们的 BrwoserViewModel 不是 Android 的 ViewModel
+   1. ViewModel 中的函数，如果是 UI 结尾的，说明是给 Compose 用的，不能给其它地方使用。如果要使用，请在 Compose 中获取 uiScope 后，配合 Effect 来调用。否则同时在多个线程中使用这些函数，可能会造成线程安全问题
+   1. 未来应该会使用 `MutableStateFlow<T>` 替代 `MutableStateOf<T>`，因为它是线程安全的。比方说 bookmarks 的数据已经是使用 MutableStateFlow 来实现，它是存储的是只读 map 与 list，修改起来更加可靠安全

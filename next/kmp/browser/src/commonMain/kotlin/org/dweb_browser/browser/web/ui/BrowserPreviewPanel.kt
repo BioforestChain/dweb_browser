@@ -114,7 +114,7 @@ internal fun BrowserPreviewPanel(
         horizontalArrangement = Arrangement.spacedBy(20.dp)
       ) {
         items(pageSize) { pageIndex ->
-          val page = viewModel.getPageOrNull(pageIndex)!!
+          val page = viewModel.getPage(pageIndex)
           PagePreviewCell(
             page,
             Modifier.requiredSize(cellWidth, cellHeight + 16.dp).padding(bottom = 16.dp),

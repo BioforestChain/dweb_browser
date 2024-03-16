@@ -167,6 +167,18 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "隐私政策", Language.EN to "Privacy Policy")
   val browser_options_search_engine =
     SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engines")
+
+  val web = Web()
+
+  class Web {
+    class Download {
+      val page_title = SimpleI18nResource(Language.ZH to "我的下载", Language.EN to "My Downloads")
+    }
+
+    val download = Download()
+
+  }
+
   val browser_options_download =
     SimpleI18nResource(Language.ZH to "下载列表", Language.EN to "Download Manage")
   val browser_multi_count = SimpleI18nResource(Language.ZH to "个标签页", Language.EN to "tabs")

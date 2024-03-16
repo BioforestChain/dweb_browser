@@ -38,7 +38,7 @@ data class WebEngine(
       // 使用网络记载
       PureImageLoader.SmartLoad(url = it, 64.dp, 64.dp).painter()
     }
-  } ?: BrowserDrawResource.WebEngineDefault.painter()
+  } ?: BrowserDrawResource.Web.painter()
 
   fun fit(url: String): Boolean {
     val current = Url("${start}test")

@@ -14,9 +14,9 @@ class BrowserHomePage(browserController: BrowserController) : BrowserPage(browse
   }
 
   override val icon
-    @Composable get() = BrowserDrawResource.BrowserStar.painter()
+    @Composable get() = BrowserDrawResource.Star.painter()
   override val iconColorFilter
-    @Composable get() = BrowserDrawResource.BrowserStar.getContentColorFilter()
+    @Composable get() = BrowserDrawResource.Star.getContentColorFilter()
 
   override fun isUrlMatch(url: String) = isNewTabUrl(url)
 

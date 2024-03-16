@@ -25,7 +25,7 @@ fun BrowserHomePageRender(modifier: Modifier = Modifier) {
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
       Image(
-        BrowserDrawResource.BrowserLauncher.painter(),
+        BrowserDrawResource.Logo.painter(),
         contentDescription = null,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
         contentScale = ContentScale.FillWidth

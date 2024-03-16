@@ -90,6 +90,7 @@ class BrowserViewModel(
 
   var showMore by mutableStateOf(false)
   var showPreview by mutableStateOf(false)
+  var showSearch by mutableStateOf<BrowserPage?>(null)
   var scale by mutableStateOf(1f)
 
   val dwebLinkSearch = mutableStateOf(DwebLinkSearchItem.Empty) // 为了获取desk传过来的地址信息
@@ -118,6 +119,7 @@ class BrowserViewModel(
   val browserOnClose = browserController.onCloseWindow
 
   fun getPageOrNull(currentPage: Int) = pages.getOrNull(currentPage)
+  fun getPage(currentPage: Int) = pages[currentPage]
 
   var focusedPage by mutableStateOf<BrowserPage?>(null)
     private set
@@ -507,7 +509,7 @@ class BrowserViewModel(
 /**
  * 根据内容解析成需要显示的内容
  */
-internal fun parseInputText(text: String, needHost: Boolean = true): String {
+internal fun searchBarTextTransformer(text: String, needHost: Boolean = true): String {
   if (
   // deeplink
     text.startsWith("dweb:")

@@ -121,7 +121,7 @@ private fun NewVersionController.DialogNewVersion() {
           color = MaterialTheme.colorScheme.outline
         )
         Image(
-          painter = BrowserDrawResource.BrowserLauncher.painter(),
+          painter = BrowserDrawResource.Logo.painter(),
           contentDescription = null,
           modifier = Modifier.size(64.dp)
         )
@@ -167,7 +167,7 @@ private fun NewVersionController.DialogDownloadView() {
 
         Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
           Image(
-            painter = BrowserDrawResource.BrowserLauncher.painter(),
+            painter = BrowserDrawResource.Logo.painter(),
             contentDescription = null,
             modifier = Modifier.size(64.dp)
           )
