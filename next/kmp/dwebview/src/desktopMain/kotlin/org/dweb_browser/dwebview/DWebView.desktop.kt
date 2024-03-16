@@ -146,4 +146,8 @@ class DWebView(
   override suspend fun requestClose() {
     viewEngine.requestClose()
   }
+
+  override fun requestRefresh() {
+    WARNING("Not yet implemented requestRefresh")
+  }
 }

@@ -9,7 +9,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import org.dweb_browser.browser.BrowserI18nResource
@@ -36,7 +35,7 @@ class BrowserBookmarkPage(browserController: BrowserController) : BrowserPage(br
   @Composable
   override fun Render(modifier: Modifier) {
     title = BrowserI18nResource.browser_bookmark_page_title()
-    BrowserBookmarkPageRender(this, modifier.scale(scale))
+    BrowserBookmarkPageRender(this, modifier)
   }
 
   override suspend fun destroy() {

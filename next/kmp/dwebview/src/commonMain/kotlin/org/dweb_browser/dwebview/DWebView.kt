@@ -140,6 +140,11 @@ abstract class IDWebView(initUrl: String?) {
    * 申请关闭webview，会尝试触发 beforeUnload
    */
   abstract suspend fun requestClose(): Unit
+
+  /**
+   * 申请刷新webview
+   */
+  abstract fun requestRefresh(): Unit
 //
 //  /**
 //   * 让页面进入激活态，从而可以做一些需要 激活状 才能执行的事务

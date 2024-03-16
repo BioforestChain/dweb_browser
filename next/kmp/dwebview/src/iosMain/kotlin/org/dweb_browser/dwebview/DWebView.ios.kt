@@ -289,6 +289,10 @@ class DWebView(
       doDestroy { originUrl }
     }
   }
+
+  override fun requestRefresh() {
+    WARNING("Not yet implemented requestRefresh")
+  }
 }
 
 /**

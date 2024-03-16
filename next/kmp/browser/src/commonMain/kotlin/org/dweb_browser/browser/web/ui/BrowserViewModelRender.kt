@@ -149,8 +149,10 @@ fun BrowserPageBox(viewModel: BrowserViewModel, windowRenderScope: WindowRenderS
       beyondBoundsPageCount = 1,
       pageContent = { currentPage ->
         viewModel.getPageOrNull(currentPage)?.also { browserPage ->
-          browserPage.scale = windowRenderScope.scale
-          browserPage.Render(Modifier.capturable(browserPage.captureController))
+          browserPage.Render(
+            Modifier.capturable(browserPage.captureController),
+            windowRenderScope.scale
+          )
         }
       })
   }

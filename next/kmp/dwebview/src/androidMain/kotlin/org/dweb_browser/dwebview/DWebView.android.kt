@@ -240,6 +240,10 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
       destroy()
     }
   }
+
+  override fun requestRefresh() {
+    engine.invalidate()
+  }
 }
 
 //#region 一些针对平台的接口

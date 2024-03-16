@@ -243,7 +243,7 @@ class BrowserViewModel(
     }) {
       null -> {
         // 尝试添加新页面
-        val newPage = addNewPageUI(url, replaceLastHome = true)
+        val newPage = addNewPageUI(url) { replaceOldHomePage = true }
         // 否则走未知模式
         if (newPage == null) {
           url.isNotEmpty().trueAlso { unknownUrl?.invoke(url) }
@@ -292,7 +292,10 @@ class BrowserViewModel(
     /// 如果移除后，发现列表空了，手动补充一个。这个代码必须连着执行，否则会出问题
     pages.removeAt(index)
     if (pages.isEmpty()) {
-      addNewPageUI(BrowserHomePage(browserController), true, replaceLastHome = false)
+      addNewPageUI(BrowserHomePage(browserController)) {
+        focusPage = true
+        replaceOldHomePage = false
+      }
     }
 
     // 最后，将移除的页面进行销毁
@@ -311,10 +314,16 @@ class BrowserViewModel(
     else addNewPageUI(url)
   }
 
+  class AddPageOptions(
+    var focusPage: Boolean = true,
+    var addIndex: Int? = null,
+    var replaceOldHomePage: Boolean = false,
+  )
+
   suspend fun addNewPageUI(
     url: String? = null,
-    focusPage: Boolean = true,
-    replaceLastHome: Boolean = false
+    options: AddPageOptions = AddPageOptions(),
+    optionsModifier: (AddPageOptions.() -> Unit)? = null
   ): BrowserPage? {
     val newPage = if (url == null || BrowserHomePage.isNewTabUrl(url)) {
       BrowserHomePage(browserController)
@@ -330,22 +339,28 @@ class BrowserViewModel(
       BrowserSettingPage(browserController)
     } else null
     if (newPage != null) {
-      addNewPageUI(newPage, focusPage, replaceLastHome)
+      addNewPageUI(newPage, options, optionsModifier)
     }
     return newPage
   }
 
   suspend fun addNewPageUI(
     newPage: BrowserPage,
-    focusPage: Boolean = true,
-    replaceLastHome: Boolean = false
+    options: AddPageOptions = AddPageOptions(),
+    optionsModifier: (AddPageOptions.() -> Unit)? = null
   ) {
-    val preFocusPage = focusedPage
-    pages.add(newPage)
-    if (replaceLastHome && preFocusPage != focusedPage && preFocusPage is BrowserHomePage) {
-      closePageUI(preFocusPage)
+    optionsModifier?.invoke(options)
+
+    val oldPage = options.addIndex?.let { index ->
+      pages.getOrNull(index)?.also {
+        pages.add(index, newPage)
+      }
+    } ?: focusedPage.also { pages.add(newPage) }
+
+    if (options.replaceOldHomePage && oldPage != focusedPage && oldPage is BrowserHomePage) {
+      closePageUI(oldPage)
     }
-    if (focusPage) {
+    if (options.focusPage) {
       focusPageUI(newPage)
     }
   }

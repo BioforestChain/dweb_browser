@@ -77,7 +77,7 @@ fun BrowserNavigatorBar(viewModel: BrowserViewModel) {
       }
       BrowserNavigatorButton(
         imageVector = getMultiImageVector(viewModel.pageSize), // resId = R.drawable.ic_main_multi,
-        name = "MultiView", enabled = true
+        name = "Open Preview Panel", enabled = true
       ) {
         viewModel.focusedPage?.captureViewInBackground()
         viewModel.showPreview = true

@@ -1,5 +1,11 @@
 package org.dweb_browser.browser.web.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,6 +34,7 @@ import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,9 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
-import androidx.compose.ui.Alignment.Companion.TopStart
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
@@ -55,39 +60,38 @@ import org.dweb_browser.browser.web.data.page.BrowserHomePage
 import org.dweb_browser.browser.web.data.page.BrowserPage
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
+import org.dweb_browser.helper.compose.IosFastOutSlowInEasing
 import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
 import org.dweb_browser.sys.window.render.LocalWindowController
 
+
+fun <T> enterAnimationSpec() = tween<T>(250, easing = IosFastOutSlowInEasing)
+fun <T> exitAnimationSpec() = tween<T>(300, easing = IosFastOutSlowInEasing)
 
 /**
  * 显示多视图窗口
  */
 @Composable
-internal fun BrowserPreviewPanel(viewModel: BrowserViewModel) {
-  if (!viewModel.showPreview) {
-    return
-  }
+internal fun BrowserPreviewPanel(
+  viewModel: BrowserViewModel, modifier: Modifier = Modifier,
+) = AnimatedVisibility(
+  viewModel.showPreview,
+  modifier = modifier,
+  enter = scaleIn(enterAnimationSpec(), 1.6f) + fadeIn(enterAnimationSpec()),
+  exit = scaleOut(exitAnimationSpec(), 1.6f) + fadeOut(exitAnimationSpec())
+) {
+  // 使用动画替代
+  //  if (!viewModel.showPreview) {
+  //    return
+  //  }
   val uiScope = rememberCoroutineScope()
   LocalWindowController.current.GoBackHandler {
     viewModel.showPreview = false
   }
-  // 高斯模糊做背景
-  Box(
-    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-  ) {
-    viewModel.focusedPage?.thumbnail?.let { bitmap ->
-      Image(
-        bitmap = bitmap,
-        contentDescription = "BackGround",
-        alignment = TopStart,
-        contentScale = ContentScale.FillWidth,
-        modifier = Modifier.fillMaxSize().blur(radius = 16.dp)
-      )
-    }
-  }
 
-  Column(modifier = Modifier.fillMaxSize()) {
-    val lazyGridState = rememberLazyGridState()
+  Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
+    val focusedPageIndex = viewModel.focusedPageIndex
+    val lazyGridState = rememberLazyGridState(focusedPageIndex)
     BoxWithConstraints(
       modifier = Modifier.weight(1f),
     ) {
@@ -109,12 +113,13 @@ internal fun BrowserPreviewPanel(viewModel: BrowserViewModel) {
         contentPadding = PaddingValues(vertical = 20.dp, horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(20.dp)
       ) {
-        items(pageSize) {
-          val page = viewModel.getPageOrNull(it)!!
+        items(pageSize) { pageIndex ->
+          val page = viewModel.getPageOrNull(pageIndex)!!
           PagePreviewCell(
             page,
             Modifier.requiredSize(cellWidth, cellHeight + 16.dp).padding(bottom = 16.dp),
-            closable = !(pageSize == 1 && page is BrowserHomePage)
+            closable = !(pageSize == 1 && page is BrowserHomePage),
+            focusedPageIndex == pageIndex
           )
         }
       }
@@ -123,7 +128,15 @@ internal fun BrowserPreviewPanel(viewModel: BrowserViewModel) {
       modifier = Modifier.fillMaxWidth().height(DimenBottomBarHeight)
         .background(MaterialTheme.colorScheme.surface), verticalAlignment = CenterVertically
     ) {
-      IconButton({ uiScope.launch { viewModel.addNewPageUI(focusPage = false) } }) {
+      IconButton({
+        uiScope.launch {
+          viewModel.addNewPageUI {
+            addIndex = focusedPageIndex
+            focusPage = false
+          }
+        }
+        viewModel.showPreview = false
+      }) {
         Icon(
           imageVector = Icons.Default.Add, // ImageVector.vectorResource(id = R.drawable.ic_main_add),
           contentDescription = "Add New Page",
@@ -147,9 +160,10 @@ internal fun BrowserPreviewPanel(viewModel: BrowserViewModel) {
   }
 }
 
+
 @Composable
 private fun PagePreviewCell(
-  page: BrowserPage, modifier: Modifier, closable: Boolean
+  page: BrowserPage, modifier: Modifier, closable: Boolean, focus: Boolean
 ) {
   val viewModel = LocalBrowserViewModel.current
   val scope = viewModel.browserNMM.ioAsyncScope
@@ -161,7 +175,9 @@ private fun PagePreviewCell(
         {
           scope.launch { viewModel.closePageUI(page) }
         },
-        modifier = Modifier.align(Alignment.TopEnd).zIndex(2f)
+        modifier = Modifier.align(Alignment.TopEnd).zIndex(2f),
+        colors = IconButtonDefaults.iconButtonColors()
+          .copy(containerColor = MaterialTheme.colorScheme.primaryContainer)
       ) {
         Icon(
           Icons.Default.Close,
@@ -175,9 +191,10 @@ private fun PagePreviewCell(
       val pageTitle = page.title
       val pageIcon = page.icon
       val pageIconColorFilter = page.iconColorFilter
-      val pageThumbnail = page.thumbnail
+      val pagePreview = page.previewContent
       BoxWithConstraints(
-        Modifier.weight(1f, false).shadow(elevation = 4.dp, shape = RoundedCornerShape(16.dp))
+        Modifier.weight(1f, true).fillMaxWidth()
+          .shadow(elevation = if (focus) 4.dp else 1.dp, shape = RoundedCornerShape(16.dp))
           .clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surface).clickable {
             uiScope.launch {
               viewModel.focusPageUI(page)
@@ -186,17 +203,19 @@ private fun PagePreviewCell(
           }.align(Alignment.CenterHorizontally),
         contentAlignment = Alignment.Center,
       ) {
-        if (pageThumbnail != null) {
+        if (pagePreview != null) {
           Image(
-            bitmap = pageThumbnail,
+            painter = pagePreview,
             contentDescription = pageTitle,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillWidth,
+            alignment = Alignment.Center
           )
         } else if (pageIcon != null) {
           Image(
             painter = pageIcon,
             contentDescription = pageTitle,
+            colorFilter = pageIconColorFilter,
             modifier = Modifier.size(maxWidth / 3),
           )
         } else {

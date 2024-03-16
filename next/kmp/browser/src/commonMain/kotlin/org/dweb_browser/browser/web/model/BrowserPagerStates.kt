@@ -63,10 +63,10 @@ class BrowserPagerStates(
        * 所以在这边强制限制值必须在 -0.5f~0.5f 之间
        */
       while (true) {
-        if (currentPageOffsetFraction >= 0.5f) {
+        if (currentPageOffsetFraction > 0.5f) {
           currentPage += 1
           currentPageOffsetFraction = 1 - currentPageOffsetFraction
-        } else if (currentPageOffsetFraction <= -0.5f) {
+        } else if (currentPageOffsetFraction < -0.5f) {
           currentPage -= 1
           currentPageOffsetFraction = -1 - currentPageOffsetFraction
         } else {
@@ -85,8 +85,7 @@ class BrowserPagerStates(
     DisposableEffect(this) {
       val remover = viewModel.onFocusedPageChangeUI {
         val pageIndex = viewModel.focusedPageIndex
-//        delay(100) // 避免执行的时候界面还未加载导致滑动没起作用
-        if (pageIndex != -1) {
+        if (!searchBar.isScrollInProgress) {
           contentPagePager.scrollToPage(pageIndex)
           searchBarPager.scrollToPage(pageIndex)
         }
