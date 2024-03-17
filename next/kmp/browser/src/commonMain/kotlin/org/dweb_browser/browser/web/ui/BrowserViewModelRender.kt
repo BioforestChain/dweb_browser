@@ -27,7 +27,6 @@ import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
-import org.dweb_browser.browser.web.model.LocalShowSearchView
 import org.dweb_browser.helper.capturable.capturable
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -50,7 +49,6 @@ fun BrowserViewModalRender(
 ) {
   val scope = rememberCoroutineScope()
   val qrCodeScanModel = remember { QRCodeScanModel() }
-  val showSearchView = LocalShowSearchView.current
 
   viewModel.BrowserSearchConfig() // 用于控制是否显示搜索框
 

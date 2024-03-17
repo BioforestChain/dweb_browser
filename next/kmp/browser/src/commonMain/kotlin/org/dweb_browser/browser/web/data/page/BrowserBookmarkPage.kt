@@ -26,6 +26,10 @@ class BrowserBookmarkPage(browserController: BrowserController) : BrowserPage(br
   override val iconColorFilter
     @Composable get() = ColorFilter.tint(LocalContentColor.current)
 
+  init {
+    url = "about:bookmarks"
+  }
+
   var isInEditMode by mutableStateOf(false)
   var editingBookmark by mutableStateOf<WebSiteInfo?>(null)
   val selectedBookmarks = mutableStateListOf<WebSiteInfo>()

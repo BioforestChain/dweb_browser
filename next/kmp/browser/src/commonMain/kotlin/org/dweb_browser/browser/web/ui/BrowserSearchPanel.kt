@@ -68,7 +68,6 @@ import org.dweb_browser.browser.util.toRequestUrl
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalInputText
-import org.dweb_browser.browser.web.model.LocalShowSearchView
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
@@ -118,7 +117,6 @@ fun BrowserSearchPanel(
 
 
       Box(modifier = modifier) {
-
         TextButton(hide, modifier = Modifier.align(Alignment.TopEnd)) {
           Text(
             BrowserI18nResource.button_name_cancel(),
@@ -127,9 +125,7 @@ fun BrowserSearchPanel(
         }
 
         if (inputText.value.isNotEmpty()) {
-
-
-          SearchSuggestion(searchText = inputText, onClose = hide, onOpenApp = {
+          SearchSuggestion(searchText = inputText.value, onClose = hide, onOpenApp = {
             // TODO 暂未实现
           }, onSubmit = { url ->
             inputTextState.value = url
@@ -141,13 +137,13 @@ fun BrowserSearchPanel(
         }
       }
 
-
       key(inputText) {
         val searchEngine = viewModel.filterFitUrlEngines(inputText.value)
         BrowserTextField(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
           text = inputText,
           searchEngine = searchEngine,
-          onSubmit = { url ->
+          onBlur = hide,
+          onSubmitSearch = { url ->
             uiScope.launch {
               viewModel.doSearchUI(url)
             }
@@ -231,14 +227,14 @@ internal fun BrowserTextField(
   modifier: Modifier,
   text: MutableState<String>,
   searchEngine: SearchEngine?,
-  onSubmit: (String) -> Unit,
+  onBlur: () -> Unit,
+  onSubmitSearch: (String) -> Unit,
   onValueChanged: (String) -> Unit
 ) {
-  val showSearchView = LocalShowSearchView.current
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
   var inputText by remember { mutableStateOf(text.value) }
-  val browserViewModel = LocalBrowserViewModel.current
+  val viewModel = LocalBrowserViewModel.current
   val uiScope = rememberCoroutineScope()
 
   CustomTextField(
@@ -254,9 +250,9 @@ internal fun BrowserTextField(
       .clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.background).onKeyEvent {
         if (it.key == Key.Enter) {
           inputText.toRequestUrl()?.let { url ->
-            onSubmit(url)
+            onSubmitSearch(url)
           } ?: searchEngine?.let { searchEngine ->
-            onSubmit("${searchEngine.searchLink}$inputText")
+            onSubmitSearch("${searchEngine.searchLink}$inputText")
           } ?: focusManager.clearFocus(); keyboardController?.hide()
           true
         } else {
@@ -291,14 +287,16 @@ internal fun BrowserTextField(
         uiScope.launch {
 
           inputText.toRequestUrl()?.let { url ->
-            onSubmit(url)
+            onSubmitSearch(url)
           } ?: searchEngine?.let { searchEngine ->
-            onSubmit("${searchEngine.searchLink}$inputText")
+            onSubmitSearch("${searchEngine.searchLink}$inputText")
           } ?: run {
             focusManager.clearFocus()
             keyboardController?.hide()
             // 如果引擎列表为空，这边不提示，而是直接判断当前的的内容是否符合搜索引擎的，如果符合，直接跳转到引擎首页
-            browserViewModel.checkAndSearchUI(inputText) { showSearchView.value = false }
+            viewModel.checkAndSearchUI(inputText) {
+              onBlur()
+            }
           }
         }
       })

@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +17,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,8 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -50,7 +52,6 @@ import org.dweb_browser.browser.web.data.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
-import org.dweb_browser.browser.web.model.LocalShowSearchView
 import org.dweb_browser.browser.web.model.searchBarTextTransformer
 import org.dweb_browser.dwebview.rememberLoadingProgress
 
@@ -88,7 +89,6 @@ fun BrowserSearchBar(viewModel: BrowserViewModel) {
 
 @Composable
 private fun SearchBox(page: BrowserPage) {
-  var showSearchView by LocalShowSearchView.current
   val viewModel = LocalBrowserViewModel.current
   val scope = viewModel.ioScope
 
@@ -97,7 +97,7 @@ private fun SearchBox(page: BrowserPage) {
   ).fillMaxWidth().shadow(
     elevation = dimenShadowElevation, shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
   ).height(dimenSearchHeight).clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
-    .background(MaterialTheme.colorScheme.surface).clickable { showSearchView = true }) {
+    .background(MaterialTheme.colorScheme.surface).clickable { viewModel.showSearch = page }) {
     if (page is BrowserWebPage) {
       ShowLinearProgressIndicator(page)
     }
@@ -108,7 +108,11 @@ private fun SearchBox(page: BrowserPage) {
       horizontalArrangement = Arrangement.SpaceBetween,
     ) {
       if (page is BrowserHomePage) {
-        Icon(Icons.Default.Search, contentDescription = "Search", modifier = Modifier.alpha(0.5f))
+        Icon(
+          Icons.Default.Search,
+          contentDescription = "Search",
+          modifier = Modifier.alpha(0.5f).wrapContentWidth()
+        )
         Spacer(modifier = Modifier.width(5.dp))
         Text(
           text = BrowserI18nResource.browser_search_hint(),
@@ -120,14 +124,17 @@ private fun SearchBox(page: BrowserPage) {
         val pageTitle = page.title
         val pageIcon = page.icon
         val pageUrl = page.url
-        Icon(
+
+        Image(
           painter = if (pageUrl.isDeepLink()) BrowserDrawResource.Logo.painter()
           else (pageIcon ?: BrowserDrawResource.Web.painter()),
           contentDescription = pageTitle,
+          modifier = Modifier.size(24.dp)
         )
+
         Spacer(modifier = Modifier.width(5.dp))
         Text(
-          text = searchBarTextTransformer(pageUrl),
+          text = remember(pageUrl) { searchBarTextTransformer(pageUrl) },
           textAlign = TextAlign.Center,
           maxLines = 1,
           modifier = Modifier.weight(1f)
@@ -140,9 +147,11 @@ private fun SearchBox(page: BrowserPage) {
           scope.launch {
             page.webView.reload()
           }
-        }) {
+        }, modifier = Modifier.wrapContentWidth()) {
           Icon(Icons.Default.Refresh, contentDescription = "Refresh")
         }
+      } else {
+        Spacer(modifier = Modifier.width(30.dp).wrapContentWidth())
       }
     }
   }

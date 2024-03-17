@@ -28,7 +28,7 @@ sealed class BrowserPage(browserController: BrowserController) {
   }
 
   var url by mutableStateOf("")
-    private set
+    internal set
   open var title by mutableStateOf("")
     internal set
   open val icon: Painter? @Composable get() = null
@@ -92,7 +92,9 @@ sealed class BrowserPage(browserController: BrowserController) {
 
   private val destroySignal = SimpleSignal()
   val onDestroy = destroySignal.toListener()
-  abstract suspend fun destroy()
+  open suspend fun destroy() {
+    destroySignal.emitAndClear()
+  }
 
   /**
    * 是否在书签中

@@ -29,6 +29,10 @@ class BrowserDownloadPage(browserController: BrowserController) : BrowserPage(br
   override val iconColorFilter
     @Composable get() = ColorFilter.tint(LocalContentColor.current)
 
+  init {
+    url = "about:downloads"
+  }
+
   var downloadPage by mutableStateOf(DownloadPage.Manage)
   private val downloadController = browserController.downloadController
   val saveDownloadList = downloadController.saveDownloadList
