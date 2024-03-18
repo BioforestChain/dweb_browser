@@ -4,7 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -15,7 +14,6 @@ import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.browser.web.data.WebLinkStore
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.model.BrowserViewModel
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Signal
@@ -132,23 +130,9 @@ class BrowserController(
    * 浏览器添加webLink到桌面
    */
   suspend fun addUrlToDesktop(title: String, url: String, icon: String): Boolean {
-    // 处理weblink icon
-    val trimmedIcon = if ((icon.first() == '\"' && icon.last() == '\"')) {
-      icon.substring(1, icon.length - 1)
-    } else icon
-    val responseIcon = browserNMM.nativeFetch(trimmedIcon)
-    //判断能否访问到不行 就用默认的
-    val icons = if (responseIcon.status != HttpStatusCode.OK) {
-      listOf()
-    } else {
-      listOf(ImageResource(trimmedIcon))
-    }
-    val trimmedUrl = if ((url.first() == '\"' && url.last() == '\"')) {
-      url.substring(1, url.length - 1)
-    } else url
-    val linkId = WebLinkManifest.createLinkId(trimmedUrl)
+    val linkId = WebLinkManifest.createLinkId(url)
     val webLinkManifest =
-      WebLinkManifest(id = linkId, title = title, url = trimmedUrl, icons = icons)
+      WebLinkManifest(id = linkId, title = title, url = url, icons = listOf(ImageResource(icon)))
     // 先判断是否存在，如果存在就不重复执行
     if (webLinkStore.get(linkId) == null) {
       addWebLinkSignal.emit(webLinkManifest)

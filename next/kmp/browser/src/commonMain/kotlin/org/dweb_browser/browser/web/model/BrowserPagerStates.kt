@@ -3,8 +3,8 @@ package org.dweb_browser.browser.web.model
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import org.dweb_browser.browser.web.ui.enterAnimationSpec
 
 @OptIn(ExperimentalFoundationApi::class)
 class BrowserPagerStates(
@@ -76,22 +76,18 @@ class BrowserPagerStates(
       // 执行滚动
       contentPagePager.scrollToPage(currentPage, currentPageOffsetFraction)
     }
+
     /// contentPagePager => focusedPage
-    LaunchedEffect(contentPagePager.currentPage) {
-      viewModel.focusPageUI(contentPagePager.currentPage)
+    LaunchedEffect(searchBarPager.currentPage, searchBarPager.isScrollInProgress) {
+      if (!searchBarPager.isScrollInProgress) {
+        viewModel.focusPageUI(searchBarPager.currentPage)
+      }
     }
 
-    // focusedPage => contentPagePager/searchBarPager
-    DisposableEffect(this) {
-      val remover = viewModel.onFocusedPageChangeUI {
-        val pageIndex = viewModel.focusedPageIndex
-        if (!searchBar.isScrollInProgress) {
-          contentPagePager.scrollToPage(pageIndex)
-          searchBarPager.scrollToPage(pageIndex)
-        }
-      }
-      onDispose {
-        remover()
+    LaunchedEffect(viewModel.focusedPageIndex) {
+      val pageIndex = viewModel.focusedPageIndex
+      if (!searchBar.isScrollInProgress) {
+        searchBarPager.animateScrollToPage(pageIndex, animationSpec = enterAnimationSpec())
       }
     }
   }

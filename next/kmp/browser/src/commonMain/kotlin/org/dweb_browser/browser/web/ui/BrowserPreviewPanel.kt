@@ -181,11 +181,11 @@ internal fun BrowserPreviewPanel(
       IconButton({
         uiScope.launch {
           viewModel.addNewPageUI {
-            addIndex = focusedPageIndex
-            focusPage = false
+            addIndex = focusedPageIndex + 1
+            focusPage = true
           }
+          viewModel.toggleShowPreviewUI(false)
         }
-        viewModel.toggleShowPreviewUI(false)
       }) {
         Icon(
           imageVector = Icons.Default.Add, // ImageVector.vectorResource(id = R.drawable.ic_main_add),

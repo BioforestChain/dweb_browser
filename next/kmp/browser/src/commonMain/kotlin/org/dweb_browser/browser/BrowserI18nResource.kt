@@ -158,6 +158,10 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "无痕浏览", Language.EN to "NoTrace")
   val browser_options_privacy =
     SimpleI18nResource(Language.ZH to "隐私政策", Language.EN to "Privacy Policy")
+  val browser_menu_scanner =
+    SimpleI18nResource(Language.ZH to "扫一扫", Language.EN to "Scan")
+  val browser_menu_add_to_desktop =
+    SimpleI18nResource(Language.ZH to "添加到桌面", Language.EN to "Add To Desktop")
   val browser_options_search_engine =
     SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engines")
 
@@ -269,7 +273,8 @@ object BrowserI18nResource {
   }
 
   object Download {
-    val page_title = SimpleI18nResource(Language.ZH to "下载内容", Language.EN to "Download Content")
+    val page_title =
+      SimpleI18nResource(Language.ZH to "下载内容", Language.EN to "Download Content")
   }
 
   object Setting {

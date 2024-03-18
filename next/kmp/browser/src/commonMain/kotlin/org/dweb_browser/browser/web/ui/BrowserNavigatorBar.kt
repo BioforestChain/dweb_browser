@@ -54,7 +54,7 @@ fun BrowserNavigatorBar(viewModel: BrowserViewModel) {
         name = "AddHome",
         enabled = isWebPage
       ) {
-        scope.launch { viewModel.addUrlToDesktop() }
+        scope.launch { viewModel.addUrlToDesktopUI() }
       }
       if (isWebPage) {
         BrowserNavigatorButton(
@@ -94,7 +94,7 @@ fun BrowserNavigatorBar(viewModel: BrowserViewModel) {
   }
 }
 
-private fun getMultiImageVector(size: Int) = when (size) {
+internal fun getMultiImageVector(size: Int) = when (size) {
   1 -> Icons.Rounded.Filter1
   2 -> Icons.Rounded.Filter2
   3 -> Icons.Rounded.Filter3

@@ -10,6 +10,7 @@ import dweb_browser_kmp.browser.generated.resources.ic_engine_bing_fluent
 import dweb_browser_kmp.browser.generated.resources.ic_engine_sogou
 import dweb_browser_kmp.browser.generated.resources.ic_launcher_foreground
 import dweb_browser_kmp.browser.generated.resources.ic_main_star
+import dweb_browser_kmp.browser.generated.resources.ic_scanner
 import dweb_browser_kmp.browser.generated.resources.ic_web
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -25,6 +26,7 @@ enum class BrowserDrawResource(
   Web("content://drawable/web", Res.drawable.ic_web, true),//
   Star("content://drawable/star", Res.drawable.ic_main_star, true),//
   Logo("content://drawable/dweb-browser", Res.drawable.ic_launcher_foreground),//
+  Scanner("content://drawable/scanner", Res.drawable.ic_scanner),//
 
   WebEngineBaidu("https://www.baidu.com/favicon.ico", Res.drawable.ic_engine_baidu),//
   WebEngineBing(

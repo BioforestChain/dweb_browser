@@ -39,7 +39,7 @@ class BrowserIosDelegate(private var browserViewModel: BrowserViewModel) : NSObj
     completionHandler: (NSError?) -> Unit
   ) {
     scope.launch {
-      browserViewModel.addUrlToDesktop(title, link, iconString)
+      browserViewModel.addUrlToDesktopUI(title, link, iconString)
       completionHandler(null)
     }
   }

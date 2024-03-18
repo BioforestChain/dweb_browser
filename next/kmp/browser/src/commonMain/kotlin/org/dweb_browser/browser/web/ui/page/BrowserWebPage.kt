@@ -11,11 +11,12 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import kotlinx.coroutines.delay
 import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.browser.web.data.WebSiteType
-import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
+import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.toWebSiteInfo
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.withScope
@@ -30,6 +31,25 @@ internal fun BrowserWebPage.BrowserWebPageRender(
   val uiScope = rememberCoroutineScope()
   val webPage = this
   val webView = webView
+
+  /// 有的网址会改变网页到图标和标题，这里使用定时器轮训更新
+  LaunchedEffect(tick) {
+    while (true) {
+      delay(1000)
+      tick++
+    }
+  }
+  /// 绑定title
+  LaunchedEffect(tick) {
+    title = webView.getTitle()
+  }
+  /// 每一次页面加载完成的时候，触发一次脏检查
+  DisposableEffect(webView, tick) {
+    val off = webView.onReady {
+      tick++
+    }
+    onDispose { off() }
+  }
   /// 绑定URL
   LaunchedEffect(webPage) {
     webView.urlStateFlow.collect { url ->

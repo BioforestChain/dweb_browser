@@ -1,21 +1,16 @@
 package org.dweb_browser.browser.web.model.page
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.ui.page.BrowserWebPageRender
 import org.dweb_browser.dwebview.IDWebView
@@ -28,30 +23,17 @@ class BrowserWebPage(val webView: IDWebView, private val browserController: Brow
     fun isWebUrl(url: String) = url.isWebUrlOrWithoutProtocol()
   }
 
+  internal var tick by mutableStateOf(1)
+
   override val icon: Painter?
-    @Composable get() {
-      var tick by remember { mutableStateOf(1) }
-      /// 有的网址会改变图标更新，这里使用定时器轮训更新
-      LaunchedEffect(tick) {
-        while (true) {
-          delay(1000)
-          tick++
-        }
+    @Composable get() = produceState<WebIcon?>(null, tick) {
+      val icon = webView.getFavoriteIcon()
+      if (value?.icon != icon) {
+        value = icon?.let { WebIcon(it) }
       }
-      /// 每一次页面加载完成的时候，触发一次图标获取
-      DisposableEffect(webView, tick) {
-        val off = webView.onReady {
-          tick++
-        }
-        onDispose { off() }
-      }
-      return produceState<WebIcon?>(null, tick) {
-        val icon = webView.getFavoriteIcon()
-        if (value?.icon != icon) {
-          value = icon?.let { WebIcon(it) }
-        }
-      }.value?.painter
-    }
+      // 这里顺便把 title 也拿了
+      title = webView.getTitle()
+    }.value?.painter
 
   private class WebIcon(val icon: ImageBitmap) {
     val painter = BitmapPainter(icon)
@@ -90,7 +72,6 @@ class BrowserWebPage(val webView: IDWebView, private val browserController: Brow
 
   @Composable
   override fun Render(modifier: Modifier) {
-    title = BrowserI18nResource.Web.page_title()
     BrowserWebPageRender(modifier)
   }
 

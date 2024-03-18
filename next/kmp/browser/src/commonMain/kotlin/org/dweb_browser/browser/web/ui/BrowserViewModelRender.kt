@@ -3,7 +3,6 @@ package org.dweb_browser.browser.web.ui
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalFocusManager
@@ -39,13 +39,13 @@ import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 internal val dimenTextFieldFontSize = 16.sp
-internal val dimenSearchHorizontalAlign = 10.dp
-internal val dimenSearchVerticalAlign = 8.dp
+internal val dimenSearchInnerHorizontal = 10.dp
+internal val dimenSearchInnerVertical = 8.dp
 internal val dimenSearchRoundedCornerShape = 8.dp
 internal val dimenShadowElevation = 4.dp
 internal val dimenHorizontalPagerHorizontal = 20.dp
 internal val dimenPageHorizontal = 20.dp
-internal val dimenBottomHeight = 100.dp
+internal val dimenBottomHeight = 60.dp
 internal val dimenSearchHeight = 40.dp
 internal val dimenNavigationHeight = 40.dp
 
@@ -154,11 +154,13 @@ fun BrowserPageBox(viewModel: BrowserViewModel, windowRenderScope: WindowRenderS
 
 @Composable
 fun BrowserBottomBar(viewModel: BrowserViewModel, modifier: Modifier) {
-  Column(
-    modifier = modifier.background(MaterialTheme.colorScheme.background).height(dimenBottomHeight),
-    verticalArrangement = Arrangement.SpaceAround
-  ) {
-    BrowserSearchBar(viewModel)
-    BrowserNavigatorBar(viewModel)
+  Box(modifier.height(dimenBottomHeight), contentAlignment = Alignment.Center) {
+    BrowserSearchBar(viewModel, Modifier.fillMaxWidth())
   }
+//  Column(
+//    modifier = modifier.background(MaterialTheme.colorScheme.background).height(dimenBottomHeight),
+//    verticalArrangement = Arrangement.SpaceAround
+//  ) {
+//    BrowserNavigatorBar(viewModel)
+//  }
 }

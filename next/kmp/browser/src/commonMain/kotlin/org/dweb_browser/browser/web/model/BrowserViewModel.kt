@@ -395,19 +395,19 @@ class BrowserViewModel(
   /**
    * 添加到桌面功能
    */
-  suspend fun addUrlToDesktop(): Boolean {
+  suspend fun addUrlToDesktopUI(): Boolean {
     return this.focusedPage?.let { page ->
       if (page is BrowserWebPage) {
-        val webView = page.webView
-        val url = webView.getOriginalUrl()
-        addUrlToDesktop(
-          title = webView.getTitle().ifEmpty { url }, link = url, iconString = webView.getIcon()
-        )
+        addUrlToDesktopUI(page)
       } else false
     } ?: false
   }
 
-  suspend fun addUrlToDesktop(title: String, link: String, iconString: String): Boolean {
+  suspend fun addUrlToDesktopUI(page: BrowserWebPage) = addUrlToDesktopUI(
+    title = page.title, link = page.url, iconString = page.webView.getIcon()
+  )
+
+  suspend fun addUrlToDesktopUI(title: String, link: String, iconString: String): Boolean {
     return browserController.addUrlToDesktop(
       title = title, url = link, icon = iconString
     ).also { result ->

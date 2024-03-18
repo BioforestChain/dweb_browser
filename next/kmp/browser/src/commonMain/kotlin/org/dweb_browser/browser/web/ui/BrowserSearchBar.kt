@@ -14,19 +14,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
@@ -52,6 +53,8 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
+import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
@@ -64,7 +67,8 @@ import org.dweb_browser.helper.isDwebDeepLink
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun BrowserSearchBar(viewModel: BrowserViewModel) {
+fun BrowserSearchBar(viewModel: BrowserViewModel, modifier: Modifier) {
+  val uiScope = rememberCoroutineScope()
   val localShowIme = LocalShowIme.current
 
   /*LaunchedEffect(pagerStateNavigator.settledPage) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
@@ -78,21 +82,52 @@ fun BrowserSearchBar(viewModel: BrowserViewModel) {
       localFocus.clearFocus()
     }
   }
-
-  HorizontalPager(
-    modifier = Modifier,
-    state = viewModel.pagerStates.searchBar,
-    pageSpacing = 0.dp,
-    userScrollEnabled = true,
-    reverseLayout = false,
-    contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
-    beyondBoundsPageCount = 5,
-    pageContent = { currentPage ->
-      Box(Modifier.padding(horizontal = dimenHorizontalPagerHorizontal / 2)) {
-        SearchBox(viewModel.getPage(currentPage))
+  Row(
+    modifier,
+    horizontalArrangement = Arrangement.SpaceAround,
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    // 新增页面
+    IconButton({
+      uiScope.launch {
+        // 添加新页面到当前页面到后面
+        viewModel.addNewPageUI {
+          addIndex = viewModel.focusedPageIndex + 1
+        }
       }
-    },
-  )
+    }) {
+      Icon(Icons.Rounded.Add, "Add")
+    }
+//    Spacer(Modifier.width(5.dp))
+    HorizontalPager(
+      modifier = Modifier.weight(1f),
+      state = viewModel.pagerStates.searchBar,
+      pageSpacing = 0.dp,
+      userScrollEnabled = true,
+      reverseLayout = false,
+      contentPadding = PaddingValues(horizontal = 10.dp),
+      beyondBoundsPageCount = 5,
+      pageContent = { currentPage ->
+        Box(Modifier.padding(horizontal = 5.dp)) {
+          SearchBox(viewModel.getPage(currentPage))
+        }
+      },
+    )
+//    Spacer(Modifier.width(5.dp))
+    IconButton({
+      viewModel.focusedPage?.captureViewInBackground()
+      viewModel.toggleShowPreviewUI(true)
+    }) {
+      Icon(getMultiImageVector(viewModel.pageSize), "Open Preview Panel")
+    }
+//    Spacer(Modifier.width(5.dp))
+    IconButton({
+      viewModel.showMore = true
+    }) {
+      BrowserMenuPanel()
+      Icon(Icons.Rounded.MoreVert, "Open Menu Panel")
+    }
+  }
 }
 
 
@@ -123,10 +158,10 @@ internal fun Modifier.searchBoxStyle(boxTheme: SearchBoxTheme) = composed {
 
 /// 用于搜索框内部的基础样式，提供了基本的边距控制
 internal fun Modifier.searchInnerStyle(start: Boolean = true, end: Boolean = true) = padding(
-  start = if (start) dimenSearchHorizontalAlign else 0.dp,
-  end = if (end) dimenSearchHorizontalAlign else 0.dp,
-  top = dimenSearchVerticalAlign,
-  bottom = dimenSearchVerticalAlign,
+  start = if (start) dimenSearchInnerHorizontal else 0.dp,
+  end = if (end) dimenSearchInnerHorizontal else 0.dp,
+  top = dimenSearchInnerVertical,
+  bottom = dimenSearchInnerVertical,
 )
 
 @Composable
@@ -184,7 +219,7 @@ private fun SearchBox(page: BrowserPage) {
             painter = painter,
             colorFilter = colorFilter,
             contentDescription = pageTitle,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(24.dp),
           )
         }
       }
@@ -220,8 +255,18 @@ private fun SearchBox(page: BrowserPage) {
         }, modifier = Modifier.wrapContentWidth()) {
           Icon(Icons.Default.Refresh, contentDescription = "Refresh")
         }
-      } else {
-        Spacer(modifier = Modifier.width(dimenSearchHeight))
+      } else if (emptyTheme) {
+        val qrCodeScanModel = LocalQRCodeModel.current
+        IconButton({
+          scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Scanning) }
+        }) {
+          Icon(
+            BrowserDrawResource.Scanner.painter(),
+            contentDescription = "Open Camera To Scan",
+            tint = LocalContentColor.current,
+            modifier = Modifier.size(24.dp),
+          )
+        }
       }
     }
   }
