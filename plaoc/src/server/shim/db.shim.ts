@@ -1,10 +1,15 @@
 /// <reference lib="dom"/>
+
 export const setupDB = async (sessionId: string) => {
   document.currentScript?.parentElement?.removeChild(document.currentScript);
   const KEY = "--plaoc-session-id--";
-  if (localStorage.getItem(KEY) !== sessionId) {
+  // deno-lint-ignore no-explicit-any
+  const APP_VERSION = (globalThis as any)?.APP_VERSION;
+
+  if (APP_VERSION !== undefined && localStorage.getItem(KEY) == undefined) {
+    console.log("触发清空", APP_VERSION, sessionId);
+    localStorage.setItem(KEY, APP_VERSION);
     localStorage.clear();
-    localStorage.setItem(KEY, sessionId);
     sessionStorage.clear();
     const tasks = [];
     const t1 = indexedDB.databases().then((dbs) => {

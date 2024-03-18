@@ -47,7 +47,9 @@ export const doServe = async (flags: $ServeOptions) => {
 
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
   // 获取manifest.json文件路径，用于监听变化时重启服务
-  const menifestFilePath = metadataFlagHelper.metadataFilepaths.filter((item) => item.endsWith("manifest.json") && fs.existsSync(item))?.[0];
+  const menifestFilePath = metadataFlagHelper.metadataFilepaths.filter(
+    (item) => item.endsWith("manifest.json") && fs.existsSync(item)
+  )?.[0];
   // 注入plaoc.json
   const plaocHelper = new PlaocJsonGenerator(flags);
   // 尝试注入可编程后端
@@ -136,14 +138,14 @@ const startServe = async (flags: $ServeOptions) => {
     });
     server.close();
   });
-
-  fs.watch(menifestFilePath, (eventname, filename) => {
-    if (eventname === "change" && filename.endsWith("manifest.json")) {
-      // \x1b[3J 清除所有内容
-      // \x1b[H 把光标移动到行首
-      // \x1b[2J 清除所有内容
-      console.log('\x1b[3J\x1b[H\x1b[2J');
-      server.emit("restart", []);
-    }
-  });
+  if (menifestFilePath)
+    fs.watch(menifestFilePath, (eventname, filename) => {
+      if (eventname === "change" && filename?.endsWith("manifest.json")) {
+        // \x1b[3J 清除所有内容
+        // \x1b[H 把光标移动到行首
+        // \x1b[2J 清除所有内容
+        console.log("\x1b[3J\x1b[H\x1b[2J");
+        server.emit("restart", []);
+      }
+    });
 };
