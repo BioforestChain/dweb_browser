@@ -59,8 +59,8 @@ import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadType
-import org.dweb_browser.browser.web.data.page.BrowserDownloadPage
-import org.dweb_browser.browser.web.data.page.DownloadPage
+import org.dweb_browser.browser.web.model.page.BrowserDownloadPage
+import org.dweb_browser.browser.web.model.page.DownloadPage
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_complete
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_delete

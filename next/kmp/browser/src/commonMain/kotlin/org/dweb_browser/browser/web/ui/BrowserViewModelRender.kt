@@ -2,11 +2,13 @@ package org.dweb_browser.browser.web.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
@@ -34,11 +36,12 @@ import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 internal val dimenTextFieldFontSize = 16.sp
-internal val dimenSearchHorizontalAlign = 5.dp
-internal val dimenSearchVerticalAlign = 10.dp
+internal val dimenSearchHorizontalAlign = 10.dp
+internal val dimenSearchVerticalAlign = 8.dp
 internal val dimenSearchRoundedCornerShape = 8.dp
 internal val dimenShadowElevation = 4.dp
 internal val dimenHorizontalPagerHorizontal = 20.dp
+internal val dimenPageHorizontal = 20.dp
 internal val dimenBottomHeight = 100.dp
 internal val dimenSearchHeight = 40.dp
 internal val dimenNavigationHeight = 40.dp
@@ -146,7 +149,8 @@ fun BrowserPageBox(viewModel: BrowserViewModel, windowRenderScope: WindowRenderS
 @Composable
 fun BrowserBottomBar(viewModel: BrowserViewModel, modifier: Modifier) {
   Column(
-    modifier = modifier.background(MaterialTheme.colorScheme.background)
+    modifier = modifier.background(MaterialTheme.colorScheme.background).height(dimenBottomHeight),
+    verticalArrangement = Arrangement.SpaceAround
   ) {
     BrowserSearchBar(viewModel)
     BrowserNavigatorBar(viewModel)

@@ -81,11 +81,6 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     }
   }
 
-  init {
-    engine.remoteMM.onAfterShutdown {
-      destroy()
-    }
-  }
 
   override val ioScope get() = engine.ioScope
   override suspend fun startLoadUrl(url: String) = withMainContext {
@@ -243,6 +238,16 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   override fun requestRefresh() {
     engine.invalidate()
+  }
+
+  // TODO 这段代码是否应该迁移到 common？如何迁移
+  init {
+    val off = engine.remoteMM.onAfterShutdown {
+      destroy()
+    }
+    onDestroy {
+      off()
+    }
   }
 }
 

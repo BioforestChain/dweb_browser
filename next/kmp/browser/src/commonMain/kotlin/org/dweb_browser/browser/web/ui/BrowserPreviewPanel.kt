@@ -56,8 +56,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.web.data.page.BrowserHomePage
-import org.dweb_browser.browser.web.data.page.BrowserPage
+import org.dweb_browser.browser.web.model.page.BrowserHomePage
+import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.helper.compose.IosFastOutSlowInEasing

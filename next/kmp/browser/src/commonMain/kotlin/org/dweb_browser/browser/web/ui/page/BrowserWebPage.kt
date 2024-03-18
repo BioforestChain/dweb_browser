@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalDensity
 import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.browser.web.data.WebSiteType
-import org.dweb_browser.browser.web.data.page.BrowserWebPage
+import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.toWebSiteInfo
 import org.dweb_browser.dwebview.Render

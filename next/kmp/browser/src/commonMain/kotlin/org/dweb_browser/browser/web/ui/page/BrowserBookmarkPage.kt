@@ -41,7 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.web.data.page.BrowserBookmarkPage
+import org.dweb_browser.browser.web.model.page.BrowserBookmarkPage
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.helper.compose.NoDataRender
 import org.dweb_browser.sys.toast.PositionType

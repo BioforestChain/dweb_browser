@@ -1,6 +1,7 @@
 package org.dweb_browser.dwebview.proxy
 
 import android.annotation.SuppressLint
+import android.os.Looper
 import androidx.webkit.ProxyConfig
 import androidx.webkit.ProxyController
 import androidx.webkit.WebViewFeature

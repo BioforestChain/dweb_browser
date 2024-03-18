@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,25 +37,27 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.util.isDeepLink
-import org.dweb_browser.browser.web.data.page.BrowserHomePage
-import org.dweb_browser.browser.web.data.page.BrowserPage
-import org.dweb_browser.browser.web.data.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
-import org.dweb_browser.browser.web.model.searchBarTextTransformer
+import org.dweb_browser.browser.web.model.page.BrowserHomePage
+import org.dweb_browser.browser.web.model.page.BrowserPage
+import org.dweb_browser.browser.web.model.page.BrowserWebPage
+import org.dweb_browser.browser.web.model.pageUrlTransformer
 import org.dweb_browser.dwebview.rememberLoadingProgress
+import org.dweb_browser.helper.isDwebDeepLink
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -81,68 +85,108 @@ fun BrowserSearchBar(viewModel: BrowserViewModel) {
     contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
     beyondBoundsPageCount = 5,
     pageContent = { currentPage ->
-      SearchBox(viewModel.getPage(currentPage))
+      Box(Modifier.padding(horizontal = dimenHorizontalPagerHorizontal / 2)) {
+        SearchBox(viewModel.getPage(currentPage))
+      }
     },
   )
 }
 
+
+enum class SearchBoxTheme {
+  Shadow, Border, ;
+}
+
+/// 用于搜索框的外部风格化，提供了阴影风格和边框风格
+internal fun Modifier.searchBoxStyle(boxTheme: SearchBoxTheme) = composed {
+  height(dimenSearchHeight).then(
+    when (boxTheme) {
+      SearchBoxTheme.Shadow -> Modifier.shadow(
+        elevation = dimenShadowElevation, shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
+      )
+
+      SearchBoxTheme.Border -> Modifier.border(
+        width = 1.dp,
+        color = MaterialTheme.colorScheme.outline,
+        RoundedCornerShape(dimenSearchRoundedCornerShape)
+      )
+    }
+  ).background(MaterialTheme.colorScheme.surface)
+    .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
+}
+
+/// 用于搜索框内部的基础样式，提供了基本的边距控制
+internal fun Modifier.searchInnerStyle(start: Boolean = true, end: Boolean = true) = padding(
+  start = if (start) dimenSearchHorizontalAlign else 0.dp,
+  end = if (end) dimenSearchHorizontalAlign else 0.dp,
+  top = dimenSearchVerticalAlign,
+  bottom = dimenSearchVerticalAlign,
+)
 
 @Composable
 private fun SearchBox(page: BrowserPage) {
   val viewModel = LocalBrowserViewModel.current
   val scope = viewModel.ioScope
 
-  Box(modifier = Modifier.padding(
-    horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign
-  ).fillMaxWidth().shadow(
-    elevation = dimenShadowElevation, shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
-  ).height(dimenSearchHeight).clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
-    .background(MaterialTheme.colorScheme.surface).clickable { viewModel.showSearch = page }) {
+  Box(modifier = Modifier.fillMaxWidth().searchBoxStyle(SearchBoxTheme.Shadow).clickable {
+    viewModel.showSearch = page
+  }) {
     if (page is BrowserWebPage) {
       ShowLinearProgressIndicator(page)
     }
 
     Row(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp).align(Alignment.Center),
+      modifier = Modifier.fillMaxSize(),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-      if (page is BrowserHomePage) {
-        Icon(
-          Icons.Default.Search,
-          contentDescription = "Search",
-          modifier = Modifier.alpha(0.5f).wrapContentWidth()
-        )
-        Spacer(modifier = Modifier.width(5.dp))
+      val emptyTheme = page is BrowserHomePage
+      /// 左边的图标，正方形大小，图标剧中
+      Box(Modifier.size(dimenSearchHeight), contentAlignment = Alignment.Center) {
+        if (emptyTheme) {
+          Icon(
+            Icons.Default.Search,
+            contentDescription = "Search",
+            modifier = Modifier.alpha(0.5f).wrapContentWidth()
+          )
+        } else {
+          val pageTitle = page.title
+          val pageIcon = page.icon
+          val pageUrl = page.url
+          val isDwebDeeplink = remember(pageUrl) { pageUrl.isDwebDeepLink() }
+          Image(
+            painter = if (isDwebDeeplink) BrowserDrawResource.Logo.painter()
+            else (pageIcon ?: BrowserDrawResource.Web.painter()),
+            contentDescription = pageTitle,
+            modifier = Modifier.size(24.dp)
+          )
+        }
+      }
+
+      val textModifier = Modifier.weight(1f).searchInnerStyle(start = false, end = false)
+      if (emptyTheme) {
         Text(
           text = BrowserI18nResource.browser_search_hint(),
           textAlign = TextAlign.Start,
-          maxLines = 1,
-          modifier = Modifier.weight(1f).alpha(0.5f)
+          maxLines = 2,
+          modifier = textModifier.alpha(0.5f),
+          fontSize = dimenTextFieldFontSize,
+          overflow = TextOverflow.Ellipsis,
         )
       } else {
-        val pageTitle = page.title
-        val pageIcon = page.icon
         val pageUrl = page.url
-
-        Image(
-          painter = if (pageUrl.isDeepLink()) BrowserDrawResource.Logo.painter()
-          else (pageIcon ?: BrowserDrawResource.Web.painter()),
-          contentDescription = pageTitle,
-          modifier = Modifier.size(24.dp)
-        )
-
-        Spacer(modifier = Modifier.width(5.dp))
         Text(
-          text = remember(pageUrl) { searchBarTextTransformer(pageUrl) },
+          text = remember(pageUrl) { pageUrlTransformer(pageUrl) },
           textAlign = TextAlign.Center,
-          maxLines = 1,
-          modifier = Modifier.weight(1f)
+          maxLines = 2,
+          modifier = textModifier,
+          fontSize = dimenTextFieldFontSize,
+          overflow = TextOverflow.Ellipsis,
         )
       }
 
+      /// 右边的图标，正方形大小，图标剧中
       if (page is BrowserWebPage) {
-        Spacer(modifier = Modifier.width(5.dp))
         IconButton({
           scope.launch {
             page.webView.reload()
@@ -151,7 +195,7 @@ private fun SearchBox(page: BrowserPage) {
           Icon(Icons.Default.Refresh, contentDescription = "Refresh")
         }
       } else {
-        Spacer(modifier = Modifier.width(30.dp).wrapContentWidth())
+        Spacer(modifier = Modifier.width(dimenSearchHeight))
       }
     }
   }

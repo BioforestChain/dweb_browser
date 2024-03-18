@@ -31,7 +31,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
 import org.dweb_browser.browser.common.barcode.QRCodeState
-import org.dweb_browser.browser.web.data.page.BrowserWebPage
+import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.BrowserViewModel
 
 @Composable

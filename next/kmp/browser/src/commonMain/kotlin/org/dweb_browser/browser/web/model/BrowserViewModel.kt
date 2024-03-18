@@ -9,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import io.ktor.http.Url
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
@@ -18,22 +17,20 @@ import org.dweb_browser.browser.search.SearchEngineList
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.search.ext.collectChannelOfEngines
 import org.dweb_browser.browser.search.ext.isEngineAndGetHomeLink
-import org.dweb_browser.browser.util.isDeepLink
-import org.dweb_browser.browser.util.isOnlyHost
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.data.ConstUrl
 import org.dweb_browser.browser.web.data.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browser.web.data.KEY_NO_TRACE
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType
-import org.dweb_browser.browser.web.data.page.BrowserBookmarkPage
-import org.dweb_browser.browser.web.data.page.BrowserDownloadPage
-import org.dweb_browser.browser.web.data.page.BrowserHistoryPage
-import org.dweb_browser.browser.web.data.page.BrowserHomePage
-import org.dweb_browser.browser.web.data.page.BrowserPage
-import org.dweb_browser.browser.web.data.page.BrowserSettingPage
-import org.dweb_browser.browser.web.data.page.BrowserWebPage
 import org.dweb_browser.browser.web.debugBrowser
+import org.dweb_browser.browser.web.model.page.BrowserBookmarkPage
+import org.dweb_browser.browser.web.model.page.BrowserDownloadPage
+import org.dweb_browser.browser.web.model.page.BrowserHistoryPage
+import org.dweb_browser.browser.web.model.page.BrowserHomePage
+import org.dweb_browser.browser.web.model.page.BrowserPage
+import org.dweb_browser.browser.web.model.page.BrowserSettingPage
+import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -42,7 +39,9 @@ import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.compose.compositionChainOf
+import org.dweb_browser.helper.isDwebDeepLink
 import org.dweb_browser.helper.platform.toByteArray
+import org.dweb_browser.helper.toWebUrl
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.sys.permission.SystemPermissionName
@@ -65,13 +64,6 @@ val LocalShowIme = compositionChainOf("ShowIme") {
   mutableStateOf(false)
 }
 
-/**
- * 用于指定输入的内容
- */
-val LocalInputText = compositionChainOf("InputText") {
-  mutableStateOf("")
-}
-
 data class DwebLinkSearchItem(val link: String, val target: String) {
   companion object {
     val Empty = DwebLinkSearchItem("", "_self")
@@ -85,7 +77,7 @@ class BrowserViewModel(
   private val browserController: BrowserController, internal val browserNMM: NativeMicroModule,
 ) {
   val ioScope get() = browserNMM.ioAsyncScope
-  private val pages: MutableList<BrowserPage> = mutableStateListOf() // 多浏览器列表
+  private val pages = mutableStateListOf<BrowserPage>() // 多浏览器列表
   val pageSize get() = pages.size
 
   var showMore by mutableStateOf(false)
@@ -93,6 +85,7 @@ class BrowserViewModel(
   var showSearch by mutableStateOf<BrowserPage?>(null)
   var scale by mutableStateOf(1f)
 
+  // TODO 优化这个字段
   val dwebLinkSearch = mutableStateOf(DwebLinkSearchItem.Empty) // 为了获取desk传过来的地址信息
   var showSearchEngine by mutableStateOf(false)
   val isNoTrace by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -102,7 +95,7 @@ class BrowserViewModel(
   val searchInjectList = mutableStateListOf<SearchInject>()
   val searchEngineList = mutableStateListOf<SearchEngine>()
   val filterShowEngines get() = searchEngineList.filter { it.enable }
-  fun filterFitUrlEngines(url: String) = searchEngineList.firstOrNull { it.fit(url) }
+  fun findSearchEngine(url: String) = searchEngineList.firstOrNull { it.fit(url) }
 
   suspend fun checkAndSearchUI(key: String, hide: () -> Unit) {
     val homeLink = withScope(ioScope) { browserNMM.isEngineAndGetHomeLink(key) } // 将关键字对应的搜索引擎置为有效
@@ -188,22 +181,13 @@ class BrowserViewModel(
     pagerStates.BindingEffect()
   }
 
-  init {
-    browserNMM.ioAsyncScope.launch {
-      browserNMM.collectChannelOfEngines {
-        searchEngineList.clear()
-        searchEngineList.addAll(engineList)
-      }
-    }
-  }
-
   private suspend fun createDwebView(url: String) = IDWebView.create(
     browserNMM, DWebViewOptions(
       url = url,
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     )
-  ).also { it.setVerticalScrollBarVisible(false) }
+  )
 
   private suspend fun createWebPage(dWebView: IDWebView) =
     BrowserWebPage(dWebView, browserController).also {
@@ -237,24 +221,37 @@ class BrowserViewModel(
    * > 为了适应 ios，从而将 webview 的处理独立开
    */
   suspend fun tryOpenUrlUI(
-    url: String, unknownUrl: (suspend (String) -> Unit)? = null
+    url: String, replacePage: BrowserPage? = null, unknownUrl: (suspend (String) -> Unit)? = null
   ) {
     // 判断如果已存在，直接focus，不新增界面
-    when (val samePage = pages.find { page ->
-      page.isUrlMatch(url)
-    }) {
-      null -> {
-        // 尝试添加新页面
-        val newPage = addNewPageUI(url) { replaceOldHomePage = true }
-        // 否则走未知模式
-        if (newPage == null) {
-          url.isNotEmpty().trueAlso { unknownUrl?.invoke(url) }
+    if (replacePage == null) {
+      when (val samePage = pages.find { page ->
+        page.isUrlMatch(url)
+      }) {
+        null -> {
+          // 尝试添加新页面
+          val newPage = addNewPageUI(url) { replaceOldHomePage = true }
+          // 否则走未知模式
+          if (newPage == null) {
+            url.isNotEmpty().trueAlso { unknownUrl?.invoke(url) }
+          }
+        }
+
+        else -> {
+          focusPageUI(samePage)
+          samePage.updateUrl(url)
         }
       }
-
-      else -> {
-        focusPageUI(samePage)
-        samePage.updateUrl(url)
+    } else {
+      if (replacePage is BrowserWebPage) {
+        replacePage.updateUrl(url)
+      } else if (replacePage.isUrlMatch(url)) {
+        replacePage.updateUrl(url)
+      } else {
+        addNewPageUI(url) {
+          addIndex = pages.indexOf(replacePage)
+          replaceOldPage = true
+        }
       }
     }
   }
@@ -312,7 +309,7 @@ class BrowserViewModel(
     browserController.saveStringToStore(KEY_LAST_SEARCH_KEY, url)
 
     // 如果是 dweb_deeplink，直接代理访问。否则就是打开新页面
-    if (url.isDeepLink()) withScope(ioScope) { browserNMM.nativeFetch(url) }
+    if (url.isDwebDeepLink()) withScope(ioScope) { browserNMM.nativeFetch(url) }
     else addNewPageUI(url)
   }
 
@@ -320,6 +317,7 @@ class BrowserViewModel(
     var focusPage: Boolean = true,
     var addIndex: Int? = null,
     var replaceOldHomePage: Boolean = false,
+    var replaceOldPage: Boolean = false,
   )
 
   suspend fun addNewPageUI(
@@ -359,7 +357,7 @@ class BrowserViewModel(
       }
     } ?: focusedPage.also { pages.add(newPage) }
 
-    if (options.replaceOldHomePage && oldPage != focusedPage && oldPage is BrowserHomePage) {
+    if ((options.replaceOldPage && oldPage != null) || (options.replaceOldHomePage && oldPage != focusedPage && oldPage is BrowserHomePage)) {
       closePageUI(oldPage)
     }
     if (options.focusPage) {
@@ -507,39 +505,48 @@ class BrowserViewModel(
 }
 
 /**
- * 根据内容解析成需要显示的内容
+ * 将合法的url，解析成需要显示的简要内容
  */
-internal fun searchBarTextTransformer(text: String, needHost: Boolean = true): String {
+internal fun pageUrlTransformer(pageUrl: String, needHost: Boolean = true): String {
   if (
   // deeplink
-    text.startsWith("dweb:")
+    pageUrl.startsWith("dweb:")
     // 内部页面
-    || text.startsWith("about:") || text.startsWith("chrome:")
-    // 域名
-    || (text.isOnlyHost())
+    || pageUrl.startsWith("about:") || pageUrl.startsWith("chrome:")
+    // android 特定的链接，理论上不应该给予支持
+    || pageUrl.startsWith("file:///android_asset/")
   ) {
-    return text
+    return pageUrl
   }
   // 尝试当成网址来解析
-  val url = runCatching { Url(text) }.getOrElse { return text }
+  val url = pageUrl.toWebUrl() ?: return pageUrl
+
   // 判断是不是搜索引擎，如果是提取它的关键字
   for (item in SearchEngineList) {
     if (item.homeLink.contains(url.host)) {
-      return url.parameters[item.queryName()] ?: url.host
+      url.parameters[item.queryName()]?.also { searchText ->
+        return searchText
+      }
     }
   }
   return if (needHost && url.host.isNotEmpty()) {
-    url.host
-  } else text
+    url.host.domainSimplify()
+  } else pageUrl
 }
+
+/**
+ * 尝试剔除 www.
+ */
+private fun String.domainSimplify() = if (startsWith("www.") && split('.').size == 3) {
+  substring(4)
+} else this
 
 /**
  * 将WebViewState转为WebSiteInfo
  */
-suspend fun IDWebView.toWebSiteInfo(type: WebSiteType, url: String = getUrl()) =
-  WebSiteInfo(
-    title = getTitle().ifEmpty { url },
-    url = url,
-    type = type,
-    icon = getFavoriteIcon()?.toByteArray() // 这也有一个
-  )
+suspend fun IDWebView.toWebSiteInfo(type: WebSiteType, url: String = getUrl()) = WebSiteInfo(
+  title = getTitle().ifEmpty { url },
+  url = url,
+  type = type,
+  icon = getFavoriteIcon()?.toByteArray() // 这也有一个
+)

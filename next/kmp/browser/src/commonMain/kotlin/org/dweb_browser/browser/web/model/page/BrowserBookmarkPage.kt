@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.data.page
+package org.dweb_browser.browser.web.model.page
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Bookmarks

@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.data.page
+package org.dweb_browser.browser.web.model.page
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -15,15 +15,16 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.ui.page.BrowserWebPageRender
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.helper.isWebUrlOrWithoutProtocol
+import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
 
 class BrowserWebPage(val webView: IDWebView, private val browserController: BrowserController) :
   BrowserPage(browserController) {
   companion object {
-    fun isWebUrl(url: String) = url.isUrlOrHost()
+    fun isWebUrl(url: String) = url.isWebUrlOrWithoutProtocol()
   }
 
   override val icon: Painter?
@@ -58,9 +59,12 @@ class BrowserWebPage(val webView: IDWebView, private val browserController: Brow
   override fun isUrlMatch(url: String) = this.url == url
 
   override fun updateUrl(url: String) {
-    superUpdateUrl(url)
+    // 自动补充协议头
+    val safeUrl = (url.toWebUrlOrWithoutProtocol() ?: return).toString()
+
+    superUpdateUrl(safeUrl)
     webView.ioScope.launch {
-      superUpdateUrl(webView.loadUrl(url))
+      superUpdateUrl(webView.loadUrl(safeUrl))
     }
   }
 

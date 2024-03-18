@@ -41,11 +41,10 @@ fun String.toIpcUrl(builder: (URLBuilder.() -> Unit)? = null) =
     build()
   }
 
-fun buildUrlString(url: String, builder: URLBuilder.() -> Unit) =
-  URLBuilder(url).run {
-    builder();
-    buildUnsafeString()
-  }
+fun buildUrlString(url: String, builder: URLBuilder.() -> Unit) = URLBuilder(url).run {
+  builder();
+  buildUnsafeString()
+}
 
 
 ///**
@@ -132,4 +131,31 @@ fun URLBuilder.resolvePath(path: String) {
     }
   }
   pathSegments = basePathSegments + basePathSegments
+}
+
+
+fun String.toWebUrl() = try {
+  val url = Url(this)
+  if (url.toString().startsWith(this)) url else null
+} catch (_: Throwable) {
+  null
+}
+
+fun String.toNoProtocolWebUrl() = "https://$this".toWebUrl()
+
+fun String.toWebUrlOrWithoutProtocol() = toWebUrl() ?: toNoProtocolWebUrl()
+
+/**
+ * 判断输入内容是否是域名或者有效的网址
+ * 基于ktor的UrlBuilder函数，支持 http https ws wss socks 这几种协议( ftp/sftp 也许支持)
+ */
+fun String.isWebUrl() = toWebUrl() != null
+fun String.isNoProtocolWebUrl() = toNoProtocolWebUrl() != null
+fun String.isWebUrlOrWithoutProtocol() = toWebUrlOrWithoutProtocol() != null
+
+fun String.isDwebDeepLink() = try {
+  URLBuilder(this).buildUnsafeString().startsWith("dweb://")
+  true
+} catch (_: Throwable) {
+  false
 }

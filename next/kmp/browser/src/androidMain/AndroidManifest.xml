@@ -9,7 +9,10 @@
 
   <uses-feature android:name="android.hardware.camera.any" />
 
-  <application android:resizeableActivity="true">
+  <application
+    android:resizeableActivity="true"
+    android:enableOnBackInvokedCallback="true"
+    tools:targetApi="tiramisu">
     <meta-data
       android:name="android.max_aspect"
       android:value="3" />

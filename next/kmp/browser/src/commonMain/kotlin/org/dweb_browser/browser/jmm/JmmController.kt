@@ -20,7 +20,6 @@ import org.dweb_browser.browser.download.ext.existsDownload
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
-import org.dweb_browser.browser.util.isUrlOrHost
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -35,6 +34,7 @@ import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.isGreaterThan
+import org.dweb_browser.helper.isWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.valueIn
@@ -117,7 +117,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       return@let
     }
     val installManifest = openHistoryMetadata.metadata
-    val baseURI = when (installManifest.baseURI?.isUrlOrHost()) {
+    val baseURI = when (installManifest.baseURI?.isWebUrlOrWithoutProtocol()) {
       true -> installManifest.baseURI!!
       else -> when (val baseUri = installManifest.baseURI) {
         null -> originUrl
@@ -127,7 +127,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       }
     }
     // 如果bundle_url没有host
-    if (!installManifest.bundle_url.isUrlOrHost()) {
+    if (!installManifest.bundle_url.isWebUrlOrWithoutProtocol()) {
       installManifest.bundle_url =
         baseURI.replace("metadata.json", installManifest.bundle_url.substring(2))
     }
