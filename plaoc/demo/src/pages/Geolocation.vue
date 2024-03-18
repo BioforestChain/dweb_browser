@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
-import type { $GeolocationContoller, HTMLGeolocationElement } from "../plugin";
+import type { $GeolocationController, HTMLGeolocationElement } from "../plugin";
 import { geolocationPlugin } from "../plugin";
 
 const $geolocationElement = ref<HTMLGeolocationElement>();
@@ -19,17 +19,17 @@ async function getLocation() {
   const res = await geolocation.getLocation();
   console.log("Location", res);
 }
-let contoller: $GeolocationContoller;
+let controller: $GeolocationController;
 // 创建控制器
 async function createLocation() {
-  contoller = await geolocationPlugin.createLocation();
+  controller = await geolocationPlugin.createLocation();
   onLocation();
 }
 function stop() {
-  contoller.stop();
+  controller.stop();
 }
 function onLocation() {
-  contoller.listen((res) => {
+  controller.listen((res) => {
     console.log("location", res.state.message);
     const coords = res.coords;
     console.log(`经度：${coords.longitude}纬度：${coords.latitude}海拔：${coords.altitude}`);

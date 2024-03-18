@@ -1,6 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import { $GeolocationContoller, $GeolocationPosition, $LocationOptions } from "./geolocation.type.ts";
+import { $GeolocationController, $GeolocationPosition, $LocationOptions } from "./geolocation.type.ts";
 
 export class GeolocationPlugin extends BasePlugin {
   constructor() {
@@ -22,9 +22,9 @@ export class GeolocationPlugin extends BasePlugin {
    * (会自动跟用户申请权限)
    * @param fps 位置更新之间的最小时间间隔（以毫秒为单位） default 3000
    * @param precise 是否使用精确位置 default false
-   * @returns Promise<$GeolocationContoller>
+   * @returns Promise<$GeolocationController>
    */
-  async createLocation(option?: $LocationOptions): Promise<$GeolocationContoller> {
+  async createLocation(option?: $LocationOptions): Promise<$GeolocationController> {
     const ws = await this.buildChannel("/location", {
       search: {
         precise: option?.precise,

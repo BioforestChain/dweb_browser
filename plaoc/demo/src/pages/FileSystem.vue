@@ -15,7 +15,6 @@ const fileChange = ($event: Event) => {
 };
 </script>
 <template>
-  <dweb-mwebview ref="$mwebviewPlugin"></dweb-mwebview>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/toast.svg" :alt="title" />

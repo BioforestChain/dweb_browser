@@ -14,11 +14,11 @@ onMounted(() => {
   motionSensors = $motionSensorsPlugin.value!;
 });
 
-let contollerAccelerometer: $MotionSensorsController | null = null;
+let controllerAccelerometer: $MotionSensorsController | null = null;
 
 const startAccelerometer = defineLogAction(
   async () => {
-    contollerAccelerometer = await motionSensors.startAccelerometer(0.5);
+    controllerAccelerometer = await motionSensors.startAccelerometer(0.5);
     console.info("启动加速计传感器");
     motionSensors.addEventListener("readAccelerometer", (event: Event) => {
       const e = event as CustomEvent<$Axis>;
@@ -31,16 +31,16 @@ const startAccelerometer = defineLogAction(
 const stopAccelerometer = defineLogAction(
   async () => {
     console.info("关闭加速计传感器");
-    contollerAccelerometer?.stop();
+    controllerAccelerometer?.stop();
   },
   { name: "stopAccelerometer", args: [], logPanel: $logPanel }
 );
 
-let contollerGyroscope: $MotionSensorsController | null = null;
+let controllerGyroscope: $MotionSensorsController | null = null;
 
 const startGyroscope = defineLogAction(
   async () => {
-    contollerGyroscope = await motionSensors.startGyroscope(1);
+    controllerGyroscope = await motionSensors.startGyroscope(1);
     console.info("启动陀螺仪传感器");
     motionSensors.addEventListener("readGyroscope", (event: Event) => {
       const e = event as CustomEvent<$Axis>;
@@ -52,7 +52,7 @@ const startGyroscope = defineLogAction(
 const stopGyroscope = defineLogAction(
   async () => {
     console.info("关闭螺仪传感器");
-    contollerGyroscope?.stop();
+    controllerGyroscope?.stop();
   },
   { name: "stopGyroscope", args: [], logPanel: $logPanel }
 );

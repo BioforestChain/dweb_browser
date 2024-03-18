@@ -26,7 +26,7 @@ export class MotionSensorsPlugin extends BasePlugin {
       },
     });
     const controller = {
-      listen(callback: (position: $Axis) => void) {
+      listen(callback: (axis: $Axis) => void) {
         ws.onmessage = async (ev) => {
           const data = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();
           const res = JSON.parse(data);
@@ -45,14 +45,14 @@ export class MotionSensorsPlugin extends BasePlugin {
    * @param fps 每秒帧率
    */
   @bindThis
-  async startGyroscope(fps?: number) {
+  async startGyroscope(fps?: number): Promise<$MotionSensorsController> {
     const ws = await this.buildChannel("/observe/gyroscope", {
       search: {
         fps: fps,
       },
     });
     const controller = {
-      listen(callback: (position: $Axis) => void) {
+      listen(callback: (axis: $Axis) => void) {
         ws.onmessage = async (ev) => {
           const data = typeof ev.data === "string" ? ev.data : await (ev.data as Blob).text();
           const res = JSON.parse(data);

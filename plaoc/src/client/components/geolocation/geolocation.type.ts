@@ -19,13 +19,12 @@ export enum $GeolocationCode {
 }
 
 export interface $LocationOptions {
-  fps?: number;
   precise?: boolean;
   /**最小更新距离(米)(android only) */
   minDistance?: number;
 }
 
-export interface $GeolocationContoller {
+export interface $GeolocationController {
   /**不断的监听位置 */
   listen(callback: (position: $GeolocationPosition) => void): void;
   /**关闭位置监听 */
