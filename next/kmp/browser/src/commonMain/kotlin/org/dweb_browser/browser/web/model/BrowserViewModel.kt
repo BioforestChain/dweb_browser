@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.web.model
 
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -81,7 +82,24 @@ class BrowserViewModel(
   val pageSize get() = pages.size
 
   var showMore by mutableStateOf(false)
-  var showPreview by mutableStateOf(false)
+
+
+  val previewPanelVisibleState = MutableTransitionState(PreviewPanelVisibleState.Close)
+
+  enum class PreviewPanelVisibleState(val isVisible: Boolean) {
+    DisplayGrid(true), Close(false), ;
+  }
+
+  /**
+   * previewPanel 是否完成了布局计算，可以开始动画渲染
+   */
+  var previewPanelAnimationReady = mutableStateListOf<Int>()
+  val showPreview get() = previewPanelVisibleState.targetState != PreviewPanelVisibleState.Close
+  fun toggleShowPreviewUI(show: Boolean) {
+    previewPanelVisibleState.targetState =
+      if (show) PreviewPanelVisibleState.DisplayGrid else PreviewPanelVisibleState.Close
+  }
+
   var showSearch by mutableStateOf<BrowserPage?>(null)
   var scale by mutableStateOf(1f)
 
@@ -113,6 +131,7 @@ class BrowserViewModel(
 
   fun getPageOrNull(currentPage: Int) = pages.getOrNull(currentPage)
   fun getPage(currentPage: Int) = pages[currentPage]
+  fun getPageIndex(page: BrowserPage) = pages.indexOf(page)
 
   var focusedPage by mutableStateOf<BrowserPage?>(null)
     private set

@@ -31,8 +31,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
 import org.dweb_browser.browser.common.barcode.QRCodeState
-import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.BrowserViewModel
+import org.dweb_browser.browser.web.model.page.BrowserWebPage
 
 @Composable
 fun BrowserNavigatorBar(viewModel: BrowserViewModel) {
@@ -80,7 +80,7 @@ fun BrowserNavigatorBar(viewModel: BrowserViewModel) {
         name = "Open Preview Panel", enabled = true
       ) {
         viewModel.focusedPage?.captureViewInBackground()
-        viewModel.showPreview = true
+        viewModel.toggleShowPreviewUI(true)
       }
       Box {
         BrowserMenuPanel()

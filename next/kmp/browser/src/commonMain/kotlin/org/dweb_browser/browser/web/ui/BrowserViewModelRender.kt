@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
 import org.dweb_browser.browser.common.barcode.QRCodeScanModel
@@ -105,7 +106,7 @@ fun BrowserViewModalRender(
         BrowserBottomBar(viewModel, Modifier.fillMaxWidth().wrapContentHeight())
       }
 
-      BrowserPreviewPanel(viewModel)
+      BrowserPreviewPanel(viewModel, Modifier.zIndex(2f))
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
       BrowserSearchPanel(Modifier.fillMaxSize())
       QRCodeScanView(onSuccess = {
@@ -130,7 +131,7 @@ fun BrowserPageBox(viewModel: BrowserViewModel, windowRenderScope: WindowRenderS
   Box(modifier = Modifier.fillMaxSize().clickableWithNoEffect {
     localFocusManager.clearFocus()
   }) {
-    HorizontalPager(modifier = Modifier,
+    HorizontalPager(modifier = Modifier.fillMaxWidth(),
       state = viewModel.pagerStates.contentPage,
       pageSpacing = 0.dp,
       userScrollEnabled = false,
@@ -140,7 +141,7 @@ fun BrowserPageBox(viewModel: BrowserViewModel, windowRenderScope: WindowRenderS
       pageContent = { currentPage ->
         val browserPage = viewModel.getPage(currentPage)
         browserPage.Render(
-          Modifier.capturable(browserPage.captureController), windowRenderScope.scale
+          Modifier.fillMaxWidth().capturable(browserPage.captureController), windowRenderScope.scale
         )
       })
   }
