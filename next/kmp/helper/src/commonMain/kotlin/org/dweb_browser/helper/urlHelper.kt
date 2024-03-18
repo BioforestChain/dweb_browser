@@ -155,7 +155,6 @@ fun String.isWebUrlOrWithoutProtocol() = toWebUrlOrWithoutProtocol() != null
 
 fun String.isDwebDeepLink() = try {
   URLBuilder(this).buildUnsafeString().startsWith("dweb://")
-  true
 } catch (_: Throwable) {
   false
 }
