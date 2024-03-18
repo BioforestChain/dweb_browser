@@ -39,8 +39,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.web.model.page.BrowserBookmarkPage
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
+import org.dweb_browser.browser.web.model.page.BrowserBookmarkPage
 import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.compose.NoDataRender
 import org.dweb_browser.sys.toast.PositionType
@@ -64,7 +64,7 @@ fun BrowserBookmarkPageRender(
     contentWindowInsets = WindowInsets(0),
     topBar = {
       BrowserTopBar(
-        title = BrowserI18nResource.browser_bookmark_page_title(),
+        title = BrowserI18nResource.Bookmark.page_title(),
         enableNavigation = isInEditMode,
         onNavigationBack = { page.isInEditMode = false },
         actions = { /// 右上角功能按钮
@@ -84,7 +84,7 @@ fun BrowserBookmarkPageRender(
               page.isInEditMode = true
               page.selectedBookmarks.clear()
               viewModal.showToastMessage(
-                BrowserI18nResource.browser_bookmark_edit_tip.text,
+                BrowserI18nResource.Bookmark.tip_edit.text,
                 position = PositionType.TOP
               )
             }) {

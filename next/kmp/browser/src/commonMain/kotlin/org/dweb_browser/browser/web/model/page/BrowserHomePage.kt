@@ -21,11 +21,12 @@ class BrowserHomePage(browserController: BrowserController) : BrowserPage(browse
   init {
     url = "about:newtab"
   }
+
   override fun isUrlMatch(url: String) = isNewTabUrl(url)
 
   @Composable
   override fun Render(modifier: Modifier) {
-    title = BrowserI18nResource.browser_home_page_title()
+    title = BrowserI18nResource.Home.page_title()
     BrowserHomePageRender(modifier.scale(scale))
   }
 

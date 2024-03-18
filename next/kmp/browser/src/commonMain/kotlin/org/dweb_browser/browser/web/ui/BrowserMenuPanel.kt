@@ -28,8 +28,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
+import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.helper.PrivacyUrl
 
 @Composable
@@ -66,7 +66,7 @@ internal fun BrowserMenuPanel() {
       }
     }
     SettingListItem(
-      title = BrowserI18nResource.browser_bookmark_page_title(),
+      title = BrowserI18nResource.Bookmark.page_title(),
       icon = Icons.Default.Bookmark,
       onClick = {
         hide()
@@ -127,7 +127,7 @@ internal fun BrowserMenuPanel() {
     // 下载管理界面
     Spacer(modifier = Modifier.height(12.dp))
     SettingListItem(
-      title = BrowserI18nResource.browser_options_download(),
+      title = BrowserI18nResource.Download.page_title(),
       icon = Icons.Default.FileDownload,
       onClick = {
         hide()
@@ -137,7 +137,7 @@ internal fun BrowserMenuPanel() {
     )
     // 历史列表
     SettingListItem(
-      title = BrowserI18nResource.browser_options_history(),
+      title = BrowserI18nResource.History.page_title(),
       icon = Icons.Default.History,
       onClick = {
         hide()

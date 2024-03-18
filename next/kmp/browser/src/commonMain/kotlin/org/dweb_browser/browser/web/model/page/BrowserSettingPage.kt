@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.BrowserController
 
 class BrowserSettingPage(browserController: BrowserController) : BrowserPage(browserController) {
@@ -27,7 +28,7 @@ class BrowserSettingPage(browserController: BrowserController) : BrowserPage(bro
 
   @Composable
   override fun Render(modifier: Modifier) {
-
+    title = BrowserI18nResource.Setting.page_title()
   }
 
   override suspend fun destroy() {

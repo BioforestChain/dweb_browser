@@ -42,7 +42,7 @@ class BrowserDownloadPage(browserController: BrowserController) : BrowserPage(br
 
   @Composable
   override fun Render(modifier: Modifier) {
-    title = BrowserI18nResource.web.download.page_title()
+    title = BrowserI18nResource.Download.page_title()
     BrowserDownloadPageRender(modifier)
   }
 

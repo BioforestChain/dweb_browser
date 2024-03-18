@@ -40,6 +40,7 @@ class BrowserHistoryPage(
 
   @Composable
   override fun Render(modifier: Modifier) {
+    title = BrowserI18nResource.History.page_title()
     BrowserHistoryPageRender(this, modifier)
   }
 

@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,7 +26,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,8 +51,6 @@ import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadType
-import org.dweb_browser.browser.web.model.page.BrowserDownloadPage
-import org.dweb_browser.browser.web.model.page.DownloadPage
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_complete
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_delete
@@ -65,8 +60,11 @@ import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_dow
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloaded_more
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloading
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tip_empty
+import org.dweb_browser.browser.web.model.page.BrowserDownloadPage
+import org.dweb_browser.browser.web.model.page.DownloadPage
 import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
+import org.dweb_browser.helper.compose.NoDataRender
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.formatDatestampByMilliseconds
@@ -136,7 +134,7 @@ private fun BrowserDownloadPage.BrowserDownloadHomePage(
     )
 
     if (saveDownloadList.isEmpty() && saveCompleteList.isEmpty()) {
-      DownloadEmptyTask()
+      NoDataRender(tip_empty())
       return
     }
 
@@ -224,7 +222,7 @@ private fun BrowserDownloadPage.BrowserDownloadMorePage(
     )
 
     if (saveCompleteList.isEmpty()) {
-      DownloadEmptyTask()
+      NoDataRender(tip_empty())
       return
     }
     LazyColumn {
@@ -333,25 +331,25 @@ private fun BrowserDownloadPage.BrowserDownloadDeletePage(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-      if (selectStateMap.isNotEmpty()) {
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(bottom = 54.dp)) {
-          item {
-            Card(
-              shape = RoundedCornerShape(8.dp),
-              modifier = Modifier.fillMaxWidth().padding(8.dp)
-            ) {
-              list.forEach { item ->
-                key(item, selected) {
-                  item.RowDownloadItemDelete(selectStateMap[item]!!) {
-                    selected.value = selectStateMap.values.find { !it.value } == null
-                  }
+      if (selectStateMap.isEmpty()) {
+        NoDataRender(tip_empty())
+        return
+      }
+      LazyColumn(modifier = Modifier.fillMaxSize().padding(bottom = 54.dp)) {
+        item {
+          Card(
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
+          ) {
+            list.forEach { item ->
+              key(item, selected) {
+                item.RowDownloadItemDelete(selectStateMap[item]!!) {
+                  selected.value = selectStateMap.values.find { !it.value } == null
                 }
               }
             }
           }
         }
-      } else {
-        DownloadEmptyTask()
       }
     }
   }
@@ -408,24 +406,6 @@ private fun BrowserDownloadItem.RowDownloadItemDelete(
         onClick(check)
       }
     )
-  }
-}
-
-@Composable
-private fun DownloadEmptyTask() {
-  Card(
-    shape = RoundedCornerShape(8.dp),
-    modifier = Modifier.fillMaxWidth().padding(8.dp)
-  ) {
-    Column(
-      modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)
-        .padding(vertical = 16.dp),
-      horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-      Image(imageVector = Icons.Default.Download, contentDescription = "Empty Download")
-      Spacer(modifier = Modifier.height(16.dp))
-      Text(text = tip_empty())
-    }
   }
 }
 

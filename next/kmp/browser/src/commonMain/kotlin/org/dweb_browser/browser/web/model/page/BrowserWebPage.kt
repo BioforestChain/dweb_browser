@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.ui.page.BrowserWebPageRender
 import org.dweb_browser.dwebview.IDWebView
@@ -89,6 +90,7 @@ class BrowserWebPage(val webView: IDWebView, private val browserController: Brow
 
   @Composable
   override fun Render(modifier: Modifier) {
+    title = BrowserI18nResource.Web.page_title()
     BrowserWebPageRender(modifier)
   }
 

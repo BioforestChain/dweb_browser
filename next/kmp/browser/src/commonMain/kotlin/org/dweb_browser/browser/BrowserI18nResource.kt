@@ -144,14 +144,7 @@ object BrowserI18nResource {
     Language.ZH to "关键字搜索，需要通过搜索引擎，请先正确配置搜索引擎！",
     Language.EN to "Keyword search requires the use of search engines. Please configure the search engine correctly first!"
   )
-  val browser_options_store = SimpleI18nResource(Language.ZH to "保存", Language.EN to "Save")
-  val browser_options_delete = SimpleI18nResource(Language.ZH to "删除", Language.EN to "Delete")
-  val browser_bookmark_page_title =
-    SimpleI18nResource(Language.ZH to "书签", Language.EN to "Bookmark")
-  val browser_bookmark_edit_tip = SimpleI18nResource(
-    Language.ZH to "点击书签可以进行修改",
-    Language.EN to "You can edit in dialog by tap bookmark"
-  )
+
   val browser_bookmark_title =
     SimpleI18nResource(Language.ZH to "书签标题", Language.EN to "Bookmark Title")
   val browser_bookmark_url =
@@ -168,24 +161,8 @@ object BrowserI18nResource {
   val browser_options_search_engine =
     SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engines")
 
-  val web = Web()
-
-  class Web {
-    class Download {
-      val page_title = SimpleI18nResource(Language.ZH to "我的下载", Language.EN to "My Downloads")
-    }
-
-    val download = Download()
-
-  }
-
-  val browser_options_download =
-    SimpleI18nResource(Language.ZH to "下载列表", Language.EN to "Download Manage")
-  val browser_options_history =
-    SimpleI18nResource(Language.ZH to "历史记录", Language.EN to "History Record")
   val browser_multi_count = SimpleI18nResource(Language.ZH to "个标签页", Language.EN to "tabs")
   val browser_multi_done = SimpleI18nResource(Language.ZH to "完成", Language.EN to "Done")
-  val browser_home_page_title = SimpleI18nResource(Language.ZH to "起始页", Language.EN to "Start")
   val browser_multi_no_title =
     SimpleI18nResource(Language.ZH to "无标题", Language.EN to "No Title")
   val search_short_name = SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search")
@@ -270,4 +247,32 @@ object BrowserI18nResource {
   val dialog_upgrade_button_setting = SimpleI18nResource(
     Language.ZH to "设置", Language.EN to "Setting"
   )
+
+  object Home {
+    val page_title = SimpleI18nResource(Language.ZH to "起始页", Language.EN to "Home Page")
+  }
+
+  object Web {
+    val page_title = SimpleI18nResource(Language.ZH to "网页", Language.EN to "Web")
+  }
+
+  object Bookmark {
+    val page_title = SimpleI18nResource(Language.ZH to "书签", Language.EN to "Bookmark")
+    val tip_edit = SimpleI18nResource(
+      Language.ZH to "点击书签可以进行修改",
+      Language.EN to "You can edit in dialog by tap bookmark"
+    )
+  }
+
+  object History {
+    val page_title = SimpleI18nResource(Language.ZH to "历史记录", Language.EN to "History Record")
+  }
+
+  object Download {
+    val page_title = SimpleI18nResource(Language.ZH to "下载内容", Language.EN to "Download Content")
+  }
+
+  object Setting {
+    val page_title = SimpleI18nResource(Language.ZH to "设置", Language.EN to "Setting")
+  }
 }

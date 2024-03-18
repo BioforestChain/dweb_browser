@@ -38,7 +38,7 @@ class BrowserBookmarkPage(browserController: BrowserController) : BrowserPage(br
 
   @Composable
   override fun Render(modifier: Modifier) {
-    title = BrowserI18nResource.browser_bookmark_page_title()
+    title = BrowserI18nResource.Bookmark.page_title()
     BrowserBookmarkPageRender(this, modifier)
   }
 
