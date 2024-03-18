@@ -5,7 +5,6 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.rememberTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -72,15 +71,11 @@ import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
 import org.dweb_browser.browser.web.model.page.BrowserPage
-import org.dweb_browser.helper.compose.IosFastOutSlowInEasing
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
 import org.dweb_browser.sys.window.render.LocalWindowController
 import kotlin.math.max
 
-
-fun <T> enterAnimationSpec() = tween<T>(1250, easing = IosFastOutSlowInEasing)
-fun <T> exitAnimationSpec() = tween<T>(1300, easing = IosFastOutSlowInEasing)
 
 /**
  * 显示多视图窗口

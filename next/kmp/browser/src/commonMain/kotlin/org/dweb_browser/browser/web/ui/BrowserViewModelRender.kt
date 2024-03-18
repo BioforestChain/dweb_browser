@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.web.ui
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +32,7 @@ import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.helper.capturable.capturable
+import org.dweb_browser.helper.compose.IosFastOutSlowInEasing
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.sys.window.core.WindowRenderScope
@@ -46,6 +48,9 @@ internal val dimenPageHorizontal = 20.dp
 internal val dimenBottomHeight = 100.dp
 internal val dimenSearchHeight = 40.dp
 internal val dimenNavigationHeight = 40.dp
+
+internal fun <T> enterAnimationSpec() = tween<T>(250, easing = IosFastOutSlowInEasing)
+internal fun <T> exitAnimationSpec() = tween<T>(300, easing = IosFastOutSlowInEasing)
 
 @Composable
 fun BrowserViewModalRender(
