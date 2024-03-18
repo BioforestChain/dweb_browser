@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.location.LocationManager
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.take
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.sys.permission.AndroidPermissionTask
@@ -52,7 +51,7 @@ actual class LocationManage {
     // 请求单次更新
     val observer = createLocationObserver(false)
     observer.start(precise = precise)
-    return observer.flow.take(1).first().also {
+    return observer.flow.first().also {
       observer.destroy()
     }
   }

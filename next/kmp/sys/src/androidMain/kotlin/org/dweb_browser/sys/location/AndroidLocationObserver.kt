@@ -48,7 +48,7 @@ private fun selectPrecise(precise: Boolean): String {
 }
 
 class AndroidLocationObserver : LocationObserver() {
-  private val sharedFlow = MutableSharedFlow<GeolocationPosition>()
+  private val sharedFlow = MutableSharedFlow<GeolocationPosition>(replay = 1)
   override val flow get() = sharedFlow
 
   inner class AndroidLocationListener : LocationListener {

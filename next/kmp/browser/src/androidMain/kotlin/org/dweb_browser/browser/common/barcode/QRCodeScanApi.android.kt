@@ -37,7 +37,6 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import org.dweb_browser.browser.R
-import org.dweb_browser.browser.util.isWebUrl
 import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.isWebUrl

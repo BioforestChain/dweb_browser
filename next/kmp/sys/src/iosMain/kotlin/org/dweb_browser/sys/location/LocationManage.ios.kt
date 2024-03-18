@@ -2,8 +2,8 @@ package org.dweb_browser.sys.location
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.take
 import org.dweb_browser.core.std.permission.AuthorizationStatus
+import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.CoreLocation.CLAuthorizationStatus
@@ -68,7 +68,7 @@ actual class LocationManage {
     // 请求单次更新
     val observer = createLocationObserver(false)
     observer.start(precise = precise)
-    return observer.flow.take(1).first().also {
+    return observer.flow.first().also {
       observer.destroy()
     }
   }
@@ -77,7 +77,7 @@ actual class LocationManage {
    * 监听地址
    */
   actual suspend fun createLocationObserver(autoStart: Boolean): LocationObserver {
-    val observer = IosLocationObserver()
+    val observer = withMainContext { IosLocationObserver() }
     if (autoStart) {
       observer.start()
     }

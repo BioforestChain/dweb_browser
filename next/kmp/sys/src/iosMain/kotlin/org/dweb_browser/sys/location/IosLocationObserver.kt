@@ -73,7 +73,7 @@ private fun toGeolocationPosition(
 }
 
 class IosLocationObserver : LocationObserver() {
-  private val sharedFlow = MutableSharedFlow<GeolocationPosition>()
+  private val sharedFlow = MutableSharedFlow<GeolocationPosition>(replay = 1)
   override val flow get() = sharedFlow
 
   // 每个模块对应申请的控制器
