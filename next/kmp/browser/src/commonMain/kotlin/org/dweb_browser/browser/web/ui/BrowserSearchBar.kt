@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +42,8 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -102,7 +105,10 @@ internal fun Modifier.searchBoxStyle(boxTheme: SearchBoxTheme) = composed {
   height(dimenSearchHeight).then(
     when (boxTheme) {
       SearchBoxTheme.Shadow -> Modifier.shadow(
-        elevation = dimenShadowElevation, shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
+        elevation = dimenShadowElevation,
+        shape = RoundedCornerShape(dimenSearchRoundedCornerShape),
+        ambientColor = LocalContentColor.current,
+        spotColor = LocalContentColor.current,
       )
 
       SearchBoxTheme.Border -> Modifier.border(
@@ -111,7 +117,7 @@ internal fun Modifier.searchBoxStyle(boxTheme: SearchBoxTheme) = composed {
         RoundedCornerShape(dimenSearchRoundedCornerShape)
       )
     }
-  ).background(MaterialTheme.colorScheme.surface)
+  ).background(MaterialTheme.colorScheme.background)
     .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
 }
 
@@ -147,16 +153,36 @@ private fun SearchBox(page: BrowserPage) {
           Icon(
             Icons.Default.Search,
             contentDescription = "Search",
-            modifier = Modifier.alpha(0.5f).wrapContentWidth()
+            modifier = Modifier.alpha(0.5f).wrapContentWidth(),
+            tint = LocalContentColor.current,
           )
         } else {
           val pageTitle = page.title
           val pageIcon = page.icon
           val pageUrl = page.url
-          val isDwebDeeplink = remember(pageUrl) { pageUrl.isDwebDeepLink() }
+          lateinit var painter: Painter
+          var colorFilter: ColorFilter? = null
+          when (remember(pageUrl) { pageUrl.isDwebDeepLink() }) {
+            true -> {
+              painter = BrowserDrawResource.Logo.painter()
+              colorFilter = BrowserDrawResource.Logo.getContentColorFilter()
+            }
+
+            else -> when (pageIcon) {
+              null -> {
+                painter = BrowserDrawResource.Web.painter()
+                colorFilter = BrowserDrawResource.Web.getContentColorFilter()
+              }
+
+              else -> {
+                painter = pageIcon
+                colorFilter = page.iconColorFilter
+              }
+            }
+          }
           Image(
-            painter = if (isDwebDeeplink) BrowserDrawResource.Logo.painter()
-            else (pageIcon ?: BrowserDrawResource.Web.painter()),
+            painter = painter,
+            colorFilter = colorFilter,
             contentDescription = pageTitle,
             modifier = Modifier.size(24.dp)
           )

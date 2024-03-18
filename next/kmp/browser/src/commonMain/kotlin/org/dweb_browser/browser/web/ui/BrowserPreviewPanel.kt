@@ -335,8 +335,11 @@ private fun PagePreviewCellWithAnimation(
       transformOrigin = aniOrigin,
       alpha = if (ready) 1f else 0f
     ).requiredSize(contentWidth, aniHeight.dp).shadow(
-      elevation = aniElevation.dp, shape = RoundedCornerShape(aniShape.dp)
-    ).clip(RoundedCornerShape(aniShape.dp))
+      elevation = aniElevation.dp,
+      shape = RoundedCornerShape(aniShape.dp),
+      ambientColor = LocalContentColor.current,
+      spotColor = LocalContentColor.current,
+    ).clip(RoundedCornerShape(aniShape.dp)).background(MaterialTheme.colorScheme.onSurface)
   )
 }
 
@@ -347,8 +350,10 @@ private fun PagePreviewCell(
   closable: Boolean,
   focus: Boolean,
   previewModifier: Modifier = Modifier.fillMaxSize().shadow(
-    elevation = if (focus) 4.dp else 1.dp, shape = RoundedCornerShape(16.dp)
-  ).clip(RoundedCornerShape(16.dp))
+    elevation = if (focus) 4.dp else 1.dp, shape = RoundedCornerShape(16.dp),
+    ambientColor = LocalContentColor.current,
+    spotColor = LocalContentColor.current,
+  ).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.onSurface)
 ) {
   val viewModel = LocalBrowserViewModel.current
   val scope = viewModel.browserNMM.ioAsyncScope
