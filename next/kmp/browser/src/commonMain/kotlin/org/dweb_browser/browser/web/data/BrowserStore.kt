@@ -63,7 +63,7 @@ class BrowserStore(mm: MicroModule) {
    * 保存的时候：按照每天保存一份文件
    * 获取的时候：按照每天的map来获取最近7天的数据
    */
-  suspend fun getHistoryLinks(): Map<String, List<WebSiteInfo>> {
+  suspend fun getHistoryLinks(): Map<String, MutableList<WebSiteInfo>> {
     val current = datetimeNowToEpochDay()
     val maps = mutableMapOf<String, MutableList<WebSiteInfo>>()
     for (day in current downTo current - 6) { // 获取最近一周的数据
@@ -79,11 +79,11 @@ class BrowserStore(mm: MicroModule) {
    * 取下一个7天的历史数据
    * off: 到今天的偏移天数
    */
-  suspend fun getDaysHistoryLinks(off: Int): Map<String, List<WebSiteInfo>> {
+  suspend fun getDaysHistoryLinks(off: Int): Map<String, MutableList<WebSiteInfo>> {
     val current = datetimeNowToEpochDay() + off
-    val maps = mutableMapOf<String, List<WebSiteInfo>>()
+    val maps = mutableMapOf<String, MutableList<WebSiteInfo>>()
     for (day in current downTo current - 6) { // 获取最近一周的数据
-      val webSiteInfoList = storeHistory.getOrNull<List<WebSiteInfo>>(day.toString())
+      val webSiteInfoList = storeHistory.getOrNull<MutableList<WebSiteInfo>>(day.toString())
       if (webSiteInfoList?.isNotEmpty() == true) {
         maps[day.toString()] = webSiteInfoList
       }
@@ -91,7 +91,7 @@ class BrowserStore(mm: MicroModule) {
     return maps
   }
 
-  suspend fun setHistoryLinks(key: String, data: List<WebSiteInfo>) {
+  suspend fun setHistoryLinks(key: String, data: MutableList<WebSiteInfo>) {
     storeHistory.set(key, data)
   }
 

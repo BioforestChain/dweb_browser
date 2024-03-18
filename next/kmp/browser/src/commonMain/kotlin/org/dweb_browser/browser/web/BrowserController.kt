@@ -14,7 +14,6 @@ import org.dweb_browser.browser.web.data.KEY_NO_TRACE
 import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.browser.web.data.WebLinkStore
 import org.dweb_browser.browser.web.data.WebSiteInfo
-import org.dweb_browser.browser.web.download.BrowserDownloadModel
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.WebDownloadArgs
@@ -22,6 +21,8 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
+import org.dweb_browser.sys.toast.PositionType
+import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.core.windowAdapterManager
@@ -30,6 +31,7 @@ import org.dweb_browser.sys.window.ext.getWindow
 class BrowserController(
   private val browserNMM: BrowserNMM, private val webLinkStore: WebLinkStore
 ) {
+  val viewModel = BrowserViewModel(this, browserNMM)
   private val browserStore = BrowserStore(browserNMM)
 
   private val closeWindowSignal = SimpleSignal()
@@ -48,7 +50,7 @@ class BrowserController(
   //  val searchEngines: MutableList<WebEngine> = mutableStateListOf()
   val bookmarks = MutableStateFlow<List<WebSiteInfo>>(listOf())
   val historyLinks: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf()
-  val historys = MutableStateFlow<Map<String, List<WebSiteInfo>>>(mapOf())
+  val historys = MutableStateFlow<Map<String, MutableList<WebSiteInfo>>>(mapOf())
   var isNoTrace by mutableStateOf(false)
 
   init {
@@ -85,7 +87,7 @@ class BrowserController(
 
   suspend fun saveBookLinks() = browserStore.setBookLinks(bookmarks.value)
 
-  suspend fun saveHistoryLinks(key: String, dayList: List<WebSiteInfo>) =
+  suspend fun saveHistoryLinks(key: String, dayList: MutableList<WebSiteInfo>) =
     browserStore.setHistoryLinks(key, dayList)
 
 //  suspend fun saveSearchEngines() = browserStore.setSearchEngines(searchEngines)
@@ -123,8 +125,6 @@ class BrowserController(
     }
   }
 
-  val viewModel = BrowserViewModel(this, browserNMM)
-
   suspend fun openBrowserView(search: String? = null, url: String? = null, target: String? = null) =
     viewModel.openSearchPanelUI(search, url, target)
 
@@ -161,8 +161,13 @@ class BrowserController(
   suspend fun getStringFromStore(key: String) = browserStore.getString(key)
 
   val downloadController = BrowserDownloadController(browserNMM, this)
+
   /**
    * 打开BottomSheetModal
    */
   suspend fun openDownloadView(args: WebDownloadArgs) = downloadController.openDownloadView(args)
+
+  fun showToastMessage(message: String, position: PositionType? = null) = ioScope.launch {
+    browserNMM.showToast(message = message, position = position)
+  }
 }

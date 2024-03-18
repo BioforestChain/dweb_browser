@@ -10,13 +10,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,6 +41,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.page.BrowserBookmarkPage
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
+import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.compose.NoDataRender
 import org.dweb_browser.sys.toast.PositionType
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -64,30 +63,11 @@ fun BrowserBookmarkPageRender(
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     contentWindowInsets = WindowInsets(0),
     topBar = {
-      CenterAlignedTopAppBar(
-        windowInsets = WindowInsets(0, 0, 0, 0), // 顶部
-        colors = TopAppBarDefaults.topAppBarColors(
-          containerColor = MaterialTheme.colorScheme.primaryContainer,
-          titleContentColor = MaterialTheme.colorScheme.primary,
-        ),
-        title = {
-          Text(
-            BrowserI18nResource.browser_bookmark_page_title(), overflow = TextOverflow.Ellipsis
-          )
-        },
-        /// 左上角导航按钮
-        navigationIcon = {
-          if (isInEditMode) {
-            IconButton(onClick = { page.isInEditMode = false }) {
-              Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
-                contentDescription = "Back to list"
-              )
-            }
-          }
-        },
-        /// 右上角功能按钮
-        actions = {
+      BrowserTopBar(
+        title = BrowserI18nResource.browser_bookmark_page_title(),
+        enableNavigation = isInEditMode,
+        onNavigationBack = { page.isInEditMode = false },
+        actions = { /// 右上角功能按钮
           if (isInEditMode) {
             IconButton(enabled = page.selectedBookmarks.isNotEmpty(), onClick = {
               uiScope.launch {

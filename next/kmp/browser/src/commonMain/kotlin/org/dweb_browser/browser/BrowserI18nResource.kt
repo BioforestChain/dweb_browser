@@ -181,6 +181,8 @@ object BrowserI18nResource {
 
   val browser_options_download =
     SimpleI18nResource(Language.ZH to "下载列表", Language.EN to "Download Manage")
+  val browser_options_history =
+    SimpleI18nResource(Language.ZH to "历史记录", Language.EN to "History Record")
   val browser_multi_count = SimpleI18nResource(Language.ZH to "个标签页", Language.EN to "tabs")
   val browser_multi_done = SimpleI18nResource(Language.ZH to "完成", Language.EN to "Done")
   val browser_home_page_title = SimpleI18nResource(Language.ZH to "起始页", Language.EN to "Start")

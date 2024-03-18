@@ -13,9 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,19 +26,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material3.Card
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -70,6 +65,7 @@ import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_dow
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloaded_more
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloading
 import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tip_empty
+import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.format
@@ -121,18 +117,23 @@ fun BrowserDownloadPage.BrowserDownloadPageRender(modifier: Modifier) {
 /**
  * 下载管理界面
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BrowserDownloadPage.BrowserDownloadHomePage(
   openMore: () -> Unit, openDelete: () -> Unit
 ) {
   Column(modifier = Modifier.fillMaxSize()) {
-    DownloadTopBar(title = download_page_manage(), enableNavigation = false) {
-      Image(
-        Icons.Default.EditNote,
-        contentDescription = "Delete Manage",
-        modifier = Modifier.clip(CircleShape).clickable { openDelete() }.size(32.dp).padding(4.dp)
-      )
-    }
+    BrowserTopBar(
+      title = download_page_manage(),
+      enableNavigation = false,
+      actions = {
+        Image(
+          Icons.Default.EditNote,
+          contentDescription = "Delete Manage",
+          modifier = Modifier.clip(CircleShape).clickable { openDelete() }.size(32.dp).padding(4.dp)
+        )
+      }
+    )
 
     if (saveDownloadList.isEmpty() && saveCompleteList.isEmpty()) {
       DownloadEmptyTask()
@@ -203,19 +204,24 @@ private fun BrowserDownloadPage.BrowserDownloadHomePage(
 /**
  * 显示所有的“已下载”数据列表
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BrowserDownloadPage.BrowserDownloadMorePage(
   onBack: () -> Unit, openDelete: () -> Unit
 ) {
   LocalWindowController.current.GoBackHandler { onBack() }
   Column(modifier = Modifier.fillMaxSize()) {
-    DownloadTopBar(title = download_page_complete(), onNavigationBack = onBack) {
-      Image(
-        imageVector = Icons.Default.EditNote,
-        contentDescription = "Delete Manage",
-        modifier = Modifier.clip(CircleShape).clickable { openDelete() }.size(32.dp).padding(4.dp)
-      )
-    }
+    BrowserTopBar(
+      title = download_page_complete(),
+      onNavigationBack = onBack,
+      actions = {
+        Image(
+          imageVector = Icons.Default.EditNote,
+          contentDescription = "Delete Manage",
+          modifier = Modifier.clip(CircleShape).clickable { openDelete() }.size(32.dp).padding(4.dp)
+        )
+      }
+    )
 
     if (saveCompleteList.isEmpty()) {
       DownloadEmptyTask()
@@ -284,6 +290,7 @@ private fun BrowserDownloadItem.RowDownloadItem(onClick: () -> Unit) {
 /**
  * 删除下载数据界面
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BrowserDownloadPage.BrowserDownloadDeletePage(
   onlyComplete: Boolean = true, onBack: () -> Unit
@@ -299,29 +306,30 @@ private fun BrowserDownloadPage.BrowserDownloadDeletePage(
   val size = selectStateMap.values.filter { it.value }.size
   Column(modifier = Modifier.fillMaxSize()) {
     Box(modifier = Modifier.fillMaxWidth()) {
-      DownloadTopBar(
+      BrowserTopBar(
         title = if (size == 0) {
           download_page_delete()
         } else {
           download_page_delete_checked().format(size)
         },
-        onNavigationBack = onBack
-      ) {
-        Checkbox(
-          checked = selected.value,
-          onCheckedChange = { check ->
-            selected.value = check
-            selectStateMap.forEach { it.value.value = check }
+        onNavigationBack = onBack,
+        actions = {
+          Checkbox(
+            checked = selected.value,
+            onCheckedChange = { check ->
+              selected.value = check
+              selectStateMap.forEach { it.value.value = check }
+            }
+          )
+          IconButton(enabled = size > 0, onClick = {
+            val deleteList = mutableListOf<BrowserDownloadItem>()
+            selectStateMap.forEach { (item, value) -> if (value.value) deleteList.add(item) }
+            deleteDownloadItems(deleteList)
+          }) {
+            Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete Selects")
           }
-        )
-        IconButton(enabled = size > 0, onClick = {
-          val deleteList = mutableListOf<BrowserDownloadItem>()
-          selectStateMap.forEach { (item, value) -> if (value.value) deleteList.add(item) }
-          deleteDownloadItems(deleteList)
-        }) {
-          Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete Selects")
         }
-      }
+      )
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -401,38 +409,6 @@ private fun BrowserDownloadItem.RowDownloadItemDelete(
       }
     )
   }
-}
-
-/**
- * 统一规划顶部工具栏的显示
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DownloadTopBar(
-  title: String,
-  enableNavigation: Boolean = true,
-  onNavigationBack: () -> Unit = {},
-  actions: (@Composable RowScope.() -> Unit) = {}
-) {
-  CenterAlignedTopAppBar(
-    windowInsets = WindowInsets(0, 0, 0, 0), // 顶部
-    colors = TopAppBarDefaults.topAppBarColors(
-      containerColor = MaterialTheme.colorScheme.primaryContainer,
-      titleContentColor = MaterialTheme.colorScheme.primary,
-    ),
-    title = { Text(text = title, overflow = TextOverflow.Ellipsis) },
-    navigationIcon = {
-      if (enableNavigation) {
-        IconButton(onClick = onNavigationBack) {
-          androidx.compose.material3.Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
-            contentDescription = "Back to list"
-          )
-        }
-      }
-    },
-    actions = actions
-  )
 }
 
 @Composable

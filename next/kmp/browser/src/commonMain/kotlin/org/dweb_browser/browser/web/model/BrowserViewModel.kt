@@ -475,11 +475,9 @@ class BrowserViewModel(
     val addUrl = item.url
     browserController.historys.update { historyMap ->
       val dayList = historyMap[dayKey]?.apply {
-        toMutableList().apply {
-          removeAll { item -> item.url == addUrl } // 删除同一天的重复数据
-          add(0, item)
-        }.toList()
-      } ?: listOf(item)
+        removeAll { item -> item.url == addUrl } // 删除同一天的重复数据
+        add(0, item)
+      } ?: mutableListOf(item)
       browserController.saveHistoryLinks(dayKey, dayList)
 
       historyMap + Pair(dayKey, dayList)
@@ -489,7 +487,8 @@ class BrowserViewModel(
   suspend fun removeHistoryLink(item: WebSiteInfo) {
     val dayKey = item.day.toString()
     browserController.historys.update { historyMap ->
-      val dayList = historyMap[dayKey]?.filter { it.url != item.url } ?: return@update historyMap
+      val dayList = historyMap[dayKey]?.filter { it.url != item.url }?.toMutableList()
+        ?: return@update historyMap
       browserController.saveHistoryLinks(dayKey, dayList)
       historyMap + Pair(dayKey, dayList)
     }
