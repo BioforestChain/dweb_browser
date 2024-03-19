@@ -71,13 +71,8 @@ fun BrowserSearchBar(viewModel: BrowserViewModel, modifier: Modifier) {
   val uiScope = rememberCoroutineScope()
   val localShowIme = LocalShowIme.current
 
-  /*LaunchedEffect(pagerStateNavigator.settledPage) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
-    delay(100)
-    pagerStateNavigator.scrollToPage(pagerStateNavigator.settledPage)
-  }*/
   val localFocus = LocalFocusManager.current
   LaunchedEffect(Unit) {
-    viewModel.showMore
     if (!localShowIme.value && !viewModel.showSearchEngine) {
       localFocus.clearFocus()
     }

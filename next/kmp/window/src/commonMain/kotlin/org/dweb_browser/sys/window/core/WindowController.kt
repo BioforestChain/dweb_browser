@@ -4,11 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.focus.FocusRequester
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Transient
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Observable
@@ -126,8 +128,7 @@ abstract class WindowController(
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
-  val onMaximize = createStateListener(
-    WindowPropertyKeys.Mode,
+  val onMaximize = createStateListener(WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", id) }
 
   internal open suspend fun simpleMaximize() {
@@ -200,8 +201,7 @@ abstract class WindowController(
   suspend fun show() = toggleVisible(true)
   suspend fun hide() = toggleVisible(false)
 
-  val onClose = createStateListener(
-    WindowPropertyKeys.Mode,
+  val onClose = createStateListener(WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSE }) { debugWindow("emit onClose", id) }
 
   fun isClosed() = state.mode == WindowMode.CLOSE
@@ -291,21 +291,29 @@ abstract class WindowController(
   private val goBackSignal = SimpleSignal()
   val onGoBack = goBackSignal.toListener()
 
-  private class GoBackRecord internal constructor(
+  private class GoBackRecord private constructor(
+    val onBack: suspend () -> Unit,
     var enabled: Boolean,
-    val onBack: suspend () -> Unit
+    var uiScope: CoroutineScope,
   ) {
     companion object {
       private val WM = WeakHashMap<suspend () -> Unit, GoBackRecord>()
-      fun from(onBack: suspend () -> Unit, enabled: Boolean) =
-        WM.getOrPut(onBack) { GoBackRecord(enabled, onBack) }.also { it.enabled = enabled }
+      fun from(onBack: suspend () -> Unit, enabled: Boolean, uiScope: CoroutineScope) =
+        WM.getOrPut(onBack) { GoBackRecord(onBack, enabled, uiScope) }.also {
+          it.enabled = enabled
+          it.uiScope = uiScope
+        }
     }
   }
 
   private val onBackRecords by lazy {
     mutableStateListOf<GoBackRecord>().also { records ->
       onGoBack {
-        records.lastOrNull { it.enabled }?.onBack?.invoke()
+        records.lastOrNull { it.enabled }?.apply {
+          uiScope.launch {
+            onBack()
+          }
+        }
       }
     }
   }
@@ -314,14 +322,14 @@ abstract class WindowController(
   fun GoBackHandler(
     enabled: Boolean = true, onBack: suspend () -> Unit
   ) {
+    val uiScope = rememberCoroutineScope()
     DisposableEffect(this, enabled, onBack) {
-      val record = GoBackRecord.from(onBack, enabled)
+      val record = GoBackRecord.from(onBack, enabled, uiScope)
       onBackRecords.add(record)
       state.canGoBack = onBackRecords.size > 0
       onDispose {
         onBackRecords.remove(record)
-        state.canGoBack =
-          if (onBackRecords.isEmpty()) null else onBackRecords.any { it.enabled }
+        state.canGoBack = if (onBackRecords.isEmpty()) null else onBackRecords.any { it.enabled }
       }
     }
   }

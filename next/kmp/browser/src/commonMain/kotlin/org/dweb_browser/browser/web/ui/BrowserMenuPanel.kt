@@ -97,9 +97,9 @@ internal fun BrowserMenuPanel() {
       title = BrowserI18nResource.browser_options_noTrace(),
       icon = Icons.Default.PrivateConnectivity,
     ) {
-      Switch(checked = viewModel.isNoTrace.value,
-        onCheckedChange = { uiScope.launch { viewModel.updateIsNoTraceUI(it) } },
-        thumbContent = if (viewModel.isNoTrace.value) {
+      Switch(checked = viewModel.isIncognitoOn,
+        onCheckedChange = { uiScope.launch { viewModel.updateIncognitoModeUI(it) } },
+        thumbContent = if (viewModel.isIncognitoOn) {
           {
             Icon(
               imageVector = Icons.Filled.PrivateConnectivity,

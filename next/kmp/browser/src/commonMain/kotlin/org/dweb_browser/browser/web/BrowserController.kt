@@ -1,15 +1,10 @@
 package org.dweb_browser.browser.web
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.web.data.BrowserStore
-import org.dweb_browser.browser.web.data.KEY_NO_TRACE
 import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.browser.web.data.WebLinkStore
 import org.dweb_browser.browser.web.data.WebSiteInfo
@@ -46,16 +41,13 @@ class BrowserController(
   val ioScope get() = browserNMM.ioAsyncScope
 
   //  val searchEngines: MutableList<WebEngine> = mutableStateListOf()
-  val bookmarks = MutableStateFlow<List<WebSiteInfo>>(listOf())
-  val historyLinks: MutableMap<String, MutableList<WebSiteInfo>> = mutableStateMapOf()
-  val historys = MutableStateFlow<Map<String, MutableList<WebSiteInfo>>>(mapOf())
-  var isNoTrace by mutableStateOf(false)
+  val bookmarksStateFlow = MutableStateFlow<List<WebSiteInfo>>(listOf())
+  val historyStateFlow = MutableStateFlow<Map<String, List<WebSiteInfo>>>(mapOf())
 
   init {
     ioScope.launch {
-      isNoTrace = getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false
-      bookmarks.value = browserStore.getBookLinks()
-      historys.value = browserStore.getHistoryLinks()
+      bookmarksStateFlow.value = browserStore.getBookLinks()
+      historyStateFlow.value = browserStore.getHistoryLinks()
 //      val engines = browserStore.getSearchEngines()
 //      if (engines.isNotEmpty()) {
 //        // 下面判断是否在 DefaultSearchWebEngine 有新增，有新增内置，需要补充进去
@@ -80,12 +72,12 @@ class BrowserController(
   }
 
   suspend fun loadMoreHistory(offset: Int) {
-    historys.value += browserStore.getDaysHistoryLinks(offset)
+    historyStateFlow.value += browserStore.getDaysHistoryLinks(offset)
   }
 
-  suspend fun saveBookLinks() = browserStore.setBookLinks(bookmarks.value)
+  suspend fun saveBookLinks() = browserStore.setBookLinks(bookmarksStateFlow.value)
 
-  suspend fun saveHistoryLinks(key: String, dayList: MutableList<WebSiteInfo>) =
+  suspend fun saveHistoryLinks(key: String, dayList: List<WebSiteInfo>) =
     browserStore.setHistoryLinks(key, dayList)
 
 //  suspend fun saveSearchEngines() = browserStore.setSearchEngines(searchEngines)

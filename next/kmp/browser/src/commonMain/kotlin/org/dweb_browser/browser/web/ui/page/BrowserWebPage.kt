@@ -58,9 +58,6 @@ internal fun BrowserWebPage.BrowserWebPageRender(
         viewModel.addHistoryLinkUI(webView.toWebSiteInfo(WebSiteType.History, url))
         // 更新当前url
         superUpdateUrl(url)
-        // 默认重置 scroll
-        scrollY = 0
-        scrollX = 0
       }
     }
   }
@@ -82,16 +79,6 @@ internal fun BrowserWebPage.BrowserWebPageRender(
       }
     }
   }
-  /// 绑定滚动
-  DisposableEffect(webPage) {
-    val off = webView.onScroll {
-      // 用于截图的时候进行定位截图
-      scrollY = it.scrollY
-      scrollX = it.scrollX
-    }
-    onDispose { off() }
-  }
-
 
   /// 返回按钮拦截
   key(viewModel) {

@@ -59,8 +59,6 @@ fun BrowserViewModalRender(
   val scope = rememberCoroutineScope()
   val qrCodeScanModel = remember { QRCodeScanModel() }
 
-  viewModel.BrowserSearchConfig() // 用于控制是否显示搜索框
-
   LocalCompositionChain.current.Provider(
     LocalBrowserViewModel provides viewModel,
     LocalQRCodeModel provides qrCodeScanModel,
@@ -92,16 +90,12 @@ fun BrowserViewModalRender(
 //      }
 //    }
 
-    val calculateModifier = with(windowRenderScope) {
-      if (win.isMaximized()) {
-        modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
-      } else {
+    Box(modifier = remember(windowRenderScope) {
+      with(windowRenderScope) {
         modifier.requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
-          .scale(scale).background(MaterialTheme.colorScheme.background)
+          .scale(scale)
       }
-    }
-
-    Box(modifier = calculateModifier) {
+    }.background(MaterialTheme.colorScheme.background)) {
       Column(Modifier.fillMaxSize()) {
         // 网页主体
         Box(modifier = Modifier.weight(1f)) {
@@ -111,7 +105,7 @@ fun BrowserViewModalRender(
         BrowserBottomBar(viewModel, Modifier.fillMaxWidth().wrapContentHeight())
       }
 
-      BrowserPreviewPanel(viewModel, Modifier.zIndex(2f))
+      BrowserPreviewPanel(Modifier.zIndex(2f))
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
       BrowserSearchPanel(Modifier.fillMaxSize())
       QRCodeScanView(onSuccess = {

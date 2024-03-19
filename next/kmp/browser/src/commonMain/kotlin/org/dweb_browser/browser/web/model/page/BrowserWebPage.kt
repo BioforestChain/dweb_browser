@@ -31,8 +31,6 @@ class BrowserWebPage(val webView: IDWebView, private val browserController: Brow
       if (value?.icon != icon) {
         value = icon?.let { WebIcon(it) }
       }
-      // 这里顺便把 title 也拿了
-      title = webView.getTitle()
     }.value?.painter
 
   private class WebIcon(val icon: ImageBitmap) {
@@ -51,22 +49,13 @@ class BrowserWebPage(val webView: IDWebView, private val browserController: Brow
     }
   }
 
-  override fun requestRefresh() {
+  override fun onRequestCapture() {
     webView.requestRefresh()
   }
 
   internal inline fun superUpdateUrl(url: String) {
     super.updateUrl(url)
   }
-
-  internal var scrollY by mutableIntStateOf(0)
-  internal var scrollX by mutableIntStateOf(0)
-//  override val previewContent: Painter?
-//    @Composable get() = remember(scrollX, scrollY, thumbnail) {
-//      thumbnail?.let {
-//        BitmapPainter(it, IntOffset(scrollX, scrollY))
-//      }
-//    }
 
   var isLoading by mutableStateOf(false)
 

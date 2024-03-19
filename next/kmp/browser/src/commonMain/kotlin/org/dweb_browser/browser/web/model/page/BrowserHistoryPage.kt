@@ -16,9 +16,7 @@ import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.ui.page.BrowserHistoryPageRender
 
-class BrowserHistoryPage(
-  private val browserController: BrowserController
-) : BrowserPage(browserController) {
+class BrowserHistoryPage(browserController: BrowserController) : BrowserPage(browserController) {
   companion object {
     fun isHistoryUrl(url: String) = isAboutPage(url, "history")
   }
@@ -36,7 +34,6 @@ class BrowserHistoryPage(
 
   var isInEditMode by mutableStateOf(false)
   val selectedHistories = mutableStateListOf<WebSiteInfo>()
-  val historyMap get() = browserController.historys.value
 
   @Composable
   override fun Render(modifier: Modifier) {
@@ -45,15 +42,5 @@ class BrowserHistoryPage(
   }
 
   override suspend fun destroy() {
-  }
-
-  suspend fun tryOpenUrlUI(url: String) = browserController.viewModel.tryOpenUrlUI(url)
-
-  suspend fun removeHistoryLink() {
-    if (selectedHistories.isEmpty()) return
-    selectedHistories.forEach { item ->
-      historyMap[item.day.toString()]?.remove(item)
-    }
-    // TODO 存储修改后的数据
   }
 }

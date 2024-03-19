@@ -82,9 +82,8 @@ import kotlin.math.max
  */
 @OptIn(ExperimentalTransitionApi::class)
 @Composable
-internal fun BrowserPreviewPanel(
-  viewModel: BrowserViewModel, modifier: Modifier = Modifier,
-) {
+internal fun BrowserPreviewPanel(modifier: Modifier = Modifier) {
+  val viewModel = LocalBrowserViewModel.current
   val visibleState = viewModel.previewPanelVisibleState
   // 使用动画替代
   if (!viewModel.showPreview && visibleState.isIdle) {
@@ -97,7 +96,7 @@ internal fun BrowserPreviewPanel(
     viewModel.toggleShowPreviewUI(false)
   }
 
-  Column(modifier = Modifier.fillMaxSize()
+  Column(modifier = modifier.fillMaxSize()
     .let { if (viewModel.previewPanelAnimationReady.isNotEmpty()) it else it.alpha(0f) }
     .background(MaterialTheme.colorScheme.surface)) {
     val focusedPageIndex = viewModel.focusedPageIndex

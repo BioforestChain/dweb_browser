@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.graphics.ImageBitmap
@@ -221,8 +222,16 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   override val onDownloadListener by lazy { engine.dWebDownloadListener.downloadSignal.toListener() }
   override val onScroll by lazy { engine.scrollSignal.toListener() }
 
+  private class FaviconIcon(val favicon:Bitmap){
+    val imageBitmap = favicon.asImageBitmap()
+  }
+  private var faviconIcon:FaviconIcon?=null
   override suspend fun getFavoriteIcon(): ImageBitmap? = withMainContext {
-    engine.favicon?.asImageBitmap()
+    val favicon = engine.favicon
+    if(faviconIcon?.favicon != favicon){
+      faviconIcon = favicon?.let { FaviconIcon(it) }
+    }
+    faviconIcon?.imageBitmap
   }
 
   override suspend fun setSafeAreaInset(bounds: Bounds) = withMainContext {

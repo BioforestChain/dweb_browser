@@ -54,13 +54,6 @@ import org.dweb_browser.sys.toast.ext.showToast
 
 val LocalBrowserViewModel = compositionChainOf<BrowserViewModel>("BrowserModel")
 
-/**
- * 用于显示搜索的界面，也就是点击搜索框后界面
- */
-val LocalShowSearchView = compositionChainOf("ShowSearchView") {
-  mutableStateOf(false)
-}
-
 val LocalShowIme = compositionChainOf("ShowIme") {
   mutableStateOf(false)
 }
@@ -83,7 +76,6 @@ class BrowserViewModel(
 
   var showMore by mutableStateOf(false)
 
-
   val previewPanelVisibleState = MutableTransitionState(PreviewPanelVisibleState.Close)
 
   enum class PreviewPanelVisibleState(val isVisible: Boolean) {
@@ -104,10 +96,19 @@ class BrowserViewModel(
   var scale by mutableStateOf(1f)
 
   // TODO 优化这个字段
-  val dwebLinkSearch = mutableStateOf(DwebLinkSearchItem.Empty) // 为了获取desk传过来的地址信息
+  var dwebLinkSearch by mutableStateOf(DwebLinkSearchItem.Empty) // 为了获取desk传过来的地址信息
+    private set
   var showSearchEngine by mutableStateOf(false)
-  val isNoTrace by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    mutableStateOf(browserController.isNoTrace)
+
+  // 无痕模式状态
+  var isIncognitoOn by mutableStateOf(false)
+    private set;
+
+  suspend fun updateIncognitoModeUI(noTrace: Boolean) {
+    isIncognitoOn = noTrace
+    withScope(ioScope) {
+      browserController.saveStringToStore(KEY_NO_TRACE, if (noTrace) "true" else "")
+    }
   }
 
   val searchInjectList = mutableStateListOf<SearchInject>()
@@ -124,8 +125,8 @@ class BrowserViewModel(
     }
   }
 
-  fun getBookmarks() = browserController.bookmarks.value
-  fun getHistoryLinks() = browserController.historys.value
+  fun getBookmarks() = browserController.bookmarksStateFlow.value
+  fun getHistoryLinks() = browserController.historyStateFlow.value
   val browserOnVisible = browserController.onWindowVisible
   val browserOnClose = browserController.onCloseWindow
 
@@ -170,10 +171,16 @@ class BrowserViewModel(
 
   val pagerStates = BrowserPagerStates(this)
 
-
   @Composable
   fun ViewModelEffect() {
     val uiScope = rememberCoroutineScope()
+    /// 初始化 isNoTrace
+    LaunchedEffect(Unit) {
+      withScope(uiScope) {
+        isIncognitoOn = browserController.getStringFromStore(KEY_NO_TRACE)?.isNotEmpty() ?: false
+      }
+    }
+
     /// 监听窗口关闭，进行资源释放
     DisposableEffect(Unit) {
       val off = browserController.onCloseWindow {
@@ -193,6 +200,15 @@ class BrowserViewModel(
             searchEngineList.clear()
             searchEngineList.addAll(engineList)
           }
+        }
+      }
+    }
+
+    // 监听 dwebLinkSearch 来进行显示
+    LaunchedEffect(dwebLinkSearch) {
+      snapshotFlow { dwebLinkSearch }.collect { searchItem ->
+        tryOpenUrlUI(searchItem.link) {
+          showSearch = focusedPage
         }
       }
     }
@@ -228,8 +244,9 @@ class BrowserViewModel(
   ) {
     // 先判断search是否不为空，然后在判断search是否是地址，
     debugBrowser("openBrowserView", "search=$search, url=$url, target=$target")
-    dwebLinkSearch.value =
-      DwebLinkSearchItem(search ?: url ?: ConstUrl.BLANK.url, target ?: "_self")
+    dwebLinkSearch = DwebLinkSearchItem(
+      search ?: url ?: ConstUrl.BLANK.url, target ?: "_self"
+    )
   }
 
   /**
@@ -270,26 +287,6 @@ class BrowserViewModel(
         addNewPageUI(url) {
           addIndex = pages.indexOf(replacePage)
           replaceOldPage = true
-        }
-      }
-    }
-  }
-
-  @Composable
-  fun BrowserSearchConfig() {
-    // 增加判断是否有传入需要检索的内容，如果有，就进行显示搜索界面
-    val showSearchView = LocalShowSearchView.current
-    LaunchedEffect(dwebLinkSearch) {
-      snapshotFlow { dwebLinkSearch.value }.collect { searchItem ->
-        tryOpenUrlUI(searchItem.link) {
-          showSearchView.value = true
-        }
-      }
-    }
-    LaunchedEffect(showSearchView) {
-      snapshotFlow { showSearchView.value }.collect { show ->
-        if (!show) {
-          dwebLinkSearch.value = DwebLinkSearchItem.Empty
         }
       }
     }
@@ -363,7 +360,7 @@ class BrowserViewModel(
     return newPage
   }
 
-  suspend fun addNewPageUI(
+  private suspend fun addNewPageUI(
     newPage: BrowserPage,
     options: AddPageOptions = AddPageOptions(),
     optionsModifier: (AddPageOptions.() -> Unit)? = null
@@ -421,14 +418,6 @@ class BrowserViewModel(
     }
   }
 
-  suspend fun updateIsNoTraceUI(noTrace: Boolean) {
-    isNoTrace.value = noTrace
-    ioScope.launch {
-      browserController.saveStringToStore(KEY_NO_TRACE, if (noTrace) "true" else "")
-    }.join()
-  }
-
-
   /**
    * 操作书签数据
    * 新增：需要新增数据
@@ -437,11 +426,11 @@ class BrowserViewModel(
    */
   suspend fun addBookmarkUI(vararg items: WebSiteInfo) {
     showToastMessage(BrowserI18nResource.toast_message_add_bookmark.text)
-    val oldBookmarkMap = browserController.bookmarks.value.associateBy { it.url }
+    val oldBookmarkMap = browserController.bookmarksStateFlow.value.associateBy { it.url }
     // 在老列表中，寻找没有交集的部分
     val newItems = items.filter { newItem -> !oldBookmarkMap.containsKey(newItem.url) }
     // 追加到前面
-    browserController.bookmarks.value = (newItems + browserController.bookmarks.value)
+    browserController.bookmarksStateFlow.value = (newItems + browserController.bookmarksStateFlow.value)
     ioScope.launch {
       browserController.saveBookLinks()
     }.join()
@@ -453,13 +442,13 @@ class BrowserViewModel(
 
   suspend fun removeBookmarkUI(vararg items: WebSiteInfo) {
     showToastMessage(BrowserI18nResource.toast_message_remove_bookmark.text)
-    browserController.bookmarks.value -= items
+    browserController.bookmarksStateFlow.value -= items
     ioScope.launch {
       browserController.saveBookLinks()
     }.join()
   }
 
-  suspend fun removeBookmarkUI(url: String) = browserController.bookmarks.value.filter {
+  suspend fun removeBookmarkUI(url: String) = browserController.bookmarksStateFlow.value.filter {
     it.url == url
   }.map { removeBookmarkUI(it) }
 
@@ -469,14 +458,14 @@ class BrowserViewModel(
    * 返回Boolean：是否修改成功
    */
   suspend fun updateBookmarkUI(oldBookmark: WebSiteInfo, newBookmark: WebSiteInfo): Boolean {
-    val bookmarks = browserController.bookmarks.value
+    val bookmarks = browserController.bookmarksStateFlow.value
     val index = bookmarks.indexOf(oldBookmark)
     if (index == -1) {
       return false
     }
     val newBookmarks = bookmarks.toMutableList()
     newBookmarks[index] = newBookmark
-    browserController.bookmarks.value = newBookmarks.toList()
+    browserController.bookmarksStateFlow.value = newBookmarks.toList()
     showToastMessage(BrowserI18nResource.toast_message_update_bookmark.text)
     ioScope.launch { browserController.saveBookLinks() }.join()
     return true
@@ -489,14 +478,16 @@ class BrowserViewModel(
    * 删除：需要删除数据
    */
   suspend fun addHistoryLinkUI(item: WebSiteInfo) {
-    if (isNoTrace.value) return // 如果是无痕模式，则不能进行存储历史操作
+    if (isIncognitoOn) return // 如果是无痕模式，则不能进行存储历史操作
     val dayKey = item.day.toString()
     val addUrl = item.url
-    browserController.historys.update { historyMap ->
+    browserController.historyStateFlow.update { historyMap ->
       val dayList = historyMap[dayKey]?.apply {
-        removeAll { item -> item.url == addUrl } // 删除同一天的重复数据
-        add(0, item)
-      } ?: mutableListOf(item)
+        toMutableList().apply {
+          removeAll { item -> item.url == addUrl } // 删除同一天的重复数据
+          add(0, item)
+        }.toList()
+      } ?: listOf(item)
       browserController.saveHistoryLinks(dayKey, dayList)
 
       historyMap + Pair(dayKey, dayList)
@@ -505,11 +496,22 @@ class BrowserViewModel(
 
   suspend fun removeHistoryLink(item: WebSiteInfo) {
     val dayKey = item.day.toString()
-    browserController.historys.update { historyMap ->
-      val dayList = historyMap[dayKey]?.filter { it.url != item.url }?.toMutableList()
-        ?: return@update historyMap
+    browserController.historyStateFlow.update { historyMap ->
+      val dayList = historyMap[dayKey]?.filter { it.url != item.url } ?: return@update historyMap
       browserController.saveHistoryLinks(dayKey, dayList)
       historyMap + Pair(dayKey, dayList)
+    }
+  }
+
+  suspend fun removeHistoryLink(items: List<WebSiteInfo>) {
+    browserController.historyStateFlow.update { historyMap ->
+      for (item in items) {
+        val dayKey = item.day.toString()
+        val dayList = historyMap[dayKey]?.filter { it.url != item.url } ?: continue
+        browserController.saveHistoryLinks(dayKey, dayList)
+        historyMap + Pair(dayKey, dayList)
+      }
+      historyMap
     }
   }
 

@@ -33,12 +33,9 @@ sealed class BrowserPage(browserController: BrowserController) {
     internal set
   open val icon: Painter? @Composable get() = null
   open val iconColorFilter: ColorFilter? @Composable get() = null
-  open val previewContent: Painter?
-    @Composable get() = remember(thumbnail) {
-      thumbnail?.let { BitmapPainter(it) }
-    }
 
   var scale by mutableFloatStateOf(1f)
+    private set
 
   /**
    * 截图器
@@ -49,6 +46,10 @@ sealed class BrowserPage(browserController: BrowserController) {
    * 缩略图
    */
   protected var thumbnail by mutableStateOf<ImageBitmap?>(null)
+  open val previewContent: Painter?
+    @Composable get() = remember(thumbnail) {
+      thumbnail?.let { BitmapPainter(it) }
+    }
 
   private var captureJob = atomic<Job?>(null)
 
@@ -63,12 +64,12 @@ sealed class BrowserPage(browserController: BrowserController) {
    * 比方说，IOS与Desktop是混合视图，因此可以重写这个函数，让webview进行截图，然后在 placeholderNode 背后绘制截图内容
    * Android 这是调用 view.invalidate() 从而实现onDraw的触发，从而能够被 captureController 所捕捉到这一帧发生的变化
    */
-  open fun requestRefresh() {}
+  open fun onRequestCapture() {}
 
   @OptIn(ExperimentalCoroutinesApi::class)
   fun captureViewInBackground() = captureJob.updateAndGet { busyJob ->
     busyJob ?: captureController.captureAsync().apply {
-      requestRefresh()
+      onRequestCapture()
       invokeOnCompletion { error ->
         if (error == null) {
           thumbnail = getCompleted()
@@ -96,19 +97,23 @@ sealed class BrowserPage(browserController: BrowserController) {
     destroySignal.emitAndClear()
   }
 
+  private val _isInBookmark by lazy {
+    mutableStateOf(false).also { state ->
+      val job = browserController.ioScope.launch {
+        /// 只在这里修改，所以不用担心线程冲突，不需要走Effect
+        browserController.bookmarksStateFlow.collect { bookmarks ->
+          state.value = bookmarks.any { it.url == url }
+        }
+      }
+      onDestroy {
+        job.cancel()
+      }
+    }
+  }
   /**
    * 是否在书签中
    */
-  val isInBookmark by mutableStateOf(false).also { state ->
-    val job = browserController.ioScope.launch {
-      browserController.bookmarks.collect { bookmarks ->
-        state.value = bookmarks.any { it.url == url }
-      }
-    }
-    onDestroy {
-      job.cancel()
-    }
-  }
+  val isInBookmark get() = _isInBookmark.value
 }
 
 internal fun isMatchBaseUri(url: String, baseUri: String) = if (url == baseUri) true

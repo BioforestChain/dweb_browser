@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.data.formatToStickyName
+import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserHistoryPage
 import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.compose.NoDataRender
@@ -43,6 +44,7 @@ fun BrowserHistoryPageRender(historyPage: BrowserHistoryPage, modifier: Modifier
     historyPage.isInEditMode = false
   }
   val uiScope = rememberCoroutineScope()
+  val viewModel = LocalBrowserViewModel.current
   Column(modifier = modifier) {
     BrowserTopBar(
       title = BrowserI18nResource.Bookmark.page_title(),
@@ -54,7 +56,7 @@ fun BrowserHistoryPageRender(historyPage: BrowserHistoryPage, modifier: Modifier
             enabled = historyPage.selectedHistories.isNotEmpty(),
             onClick = {
               uiScope.launch {
-                historyPage.removeHistoryLink()
+                viewModel.removeHistoryLink(historyPage.selectedHistories.toList())
                 historyPage.isInEditMode = false
               }
             }
@@ -83,7 +85,8 @@ fun BrowserHistoryPageRender(historyPage: BrowserHistoryPage, modifier: Modifier
 @Composable
 fun BrowserHistoryListPage(modifier: Modifier = Modifier, historyPage: BrowserHistoryPage) {
   val uiScope = rememberCoroutineScope()
-  val historyMap = historyPage.historyMap
+  val viewModel = LocalBrowserViewModel.current
+  val historyMap = viewModel.getHistoryLinks()
   if (historyMap.isEmpty()) {
     NoDataRender(BrowserI18nResource.browser_empty_list(), modifier = modifier)
     return
@@ -106,9 +109,9 @@ fun BrowserHistoryListPage(modifier: Modifier = Modifier, historyPage: BrowserHi
       }
 
       items(historyList) { historyItem ->
-        val openInNewPage = remember(historyPage, historyItem) {
+        val openInNewPage = remember(viewModel, historyItem) {
           {
-            uiScope.launch { historyPage.tryOpenUrlUI(historyItem.url) }
+            uiScope.launch { viewModel.tryOpenUrlUI(historyItem.url) }
             Unit
           }
         }

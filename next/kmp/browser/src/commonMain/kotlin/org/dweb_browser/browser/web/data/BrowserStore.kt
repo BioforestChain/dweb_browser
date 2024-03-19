@@ -91,7 +91,7 @@ class BrowserStore(mm: MicroModule) {
     return maps
   }
 
-  suspend fun setHistoryLinks(key: String, data: MutableList<WebSiteInfo>) {
+  suspend fun setHistoryLinks(key: String, data: List<WebSiteInfo>) {
     storeHistory.set(key, data)
   }
 

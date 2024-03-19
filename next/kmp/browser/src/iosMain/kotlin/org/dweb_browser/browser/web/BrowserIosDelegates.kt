@@ -78,11 +78,11 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
 
   private fun saveTrackModel(trackModel: Boolean) {
     scope.launch {
-      browserViewModel.updateIsNoTraceUI(trackModel)
+      browserViewModel.updateIncognitoModeUI(trackModel)
     }
   }
 
-  override fun trackModel(): Boolean = browserViewModel.isNoTrace.value
+  override fun trackModel(): Boolean = browserViewModel.isIncognitoOn
 
   //#endregion
 
