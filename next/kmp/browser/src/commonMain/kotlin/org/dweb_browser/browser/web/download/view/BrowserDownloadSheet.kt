@@ -31,17 +31,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_state_init
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_state_install
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_state_open
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_state_pause
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_state_resume
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_tip_cancel
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_tip_continue
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_tip_exist
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.sheet_download_tip_reload
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.download.BrowserDownloadModel
 import org.dweb_browser.browser.web.data.BrowserDownloadType
@@ -93,7 +84,7 @@ private fun BrowserDownloadModel.DownloadTip(downloadItem: BrowserDownloadItem) 
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       Text(
-        text = sheet_download_tip_exist(),
+        text = BrowserI18nResource.Download.sheet_exist(),
         textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth(),
         style = MaterialTheme.typography.titleMedium,
@@ -106,14 +97,14 @@ private fun BrowserDownloadModel.DownloadTip(downloadItem: BrowserDownloadItem) 
         horizontalArrangement = Arrangement.SpaceBetween
       ) {
         Button(onClick = { close() }) {
-          Text(text = sheet_download_tip_cancel())
+          Text(text = BrowserI18nResource.Download.sheet_download_tip_cancel())
         }
 
         Button(onClick = { clickRetryButton(downloadItem) }) {
           val text =
             if (downloadItem.state.valueIn(DownloadState.Downloading, DownloadState.Paused)) {
-              sheet_download_tip_continue()
-            } else sheet_download_tip_reload()
+              BrowserI18nResource.Download.sheet_download_tip_continue()
+            } else BrowserI18nResource.Download.sheet_download_tip_reload()
           Text(text = text)
         }
       }
@@ -135,7 +126,7 @@ private fun BrowserDownloadModel.DownloadSheet(downloadItem: BrowserDownloadItem
       verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       Text(
-        text = sheet_download(),
+        text = BrowserI18nResource.Download.sheet_download(),
         textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth(),
         style = MaterialTheme.typography.titleMedium,
@@ -188,7 +179,7 @@ fun DownloadButton(
 ) {
   val showText = when (downloadItem.state.state) {
     DownloadState.Init, DownloadState.Canceled, DownloadState.Failed -> {
-      sheet_download_state_init()
+      BrowserI18nResource.Download.button_title_init()
     }
     // 显示百分比
     DownloadState.Downloading -> {
@@ -196,16 +187,16 @@ fun DownloadButton(
         val progress = (downloadItem.state.current * 1000 / downloadItem.state.total) / 10.0f
         "$progress %"
       } else {
-        sheet_download_state_pause()
+        BrowserI18nResource.Download.button_title_pause()
       }
     }
 
-    DownloadState.Paused -> sheet_download_state_resume()
+    DownloadState.Paused -> BrowserI18nResource.Download.button_title_resume()
     DownloadState.Completed -> {
       if (downloadItem.fileSuffix.type == BrowserDownloadType.Application)
-        sheet_download_state_install()
+        BrowserI18nResource.Download.button_title_install()
       else
-        sheet_download_state_open()
+        BrowserI18nResource.Download.button_title_open()
     }
   }
 

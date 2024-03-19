@@ -275,6 +275,62 @@ object BrowserI18nResource {
   object Download {
     val page_title =
       SimpleI18nResource(Language.ZH to "下载内容", Language.EN to "Download Content")
+
+    val page_title_manage =
+      SimpleI18nResource(Language.ZH to "下载管理", Language.EN to "Download Manager")
+    val page_title_delete =
+      SimpleI18nResource(Language.ZH to "选择项目", Language.EN to "Select Items")
+    val page_title_delete_count =
+      SimpleI18nResource(Language.ZH to "已选择 %s 项", Language.EN to "%s selected")
+    val page_title_complete =
+      SimpleI18nResource(Language.ZH to "已下载", Language.EN to "Downloaded")
+
+    val sheet_download = SimpleI18nResource(
+      Language.ZH to "下载文件", Language.EN to "Download File"
+    )
+    val sheet_exist = SimpleI18nResource(
+      Language.ZH to "此文件已在下载列表中",
+      Language.EN to "This file is already in the download list"
+    )
+
+    val button_title_init = SimpleI18nResource(
+      Language.ZH to "下载", Language.EN to "Download"
+    )
+    val button_title_resume = SimpleI18nResource(
+      Language.ZH to "继续", Language.EN to "Resume"
+    )
+    val button_title_pause = SimpleI18nResource(
+      Language.ZH to "暂停", Language.EN to "Pause"
+    )
+    val button_title_install = SimpleI18nResource(
+      Language.ZH to "安装", Language.EN to "Install"
+    )
+    val button_title_open = SimpleI18nResource(
+      Language.ZH to "打开", Language.EN to "Open"
+    )
+    val sheet_download_tip_cancel = SimpleI18nResource(
+      Language.ZH to "取消", Language.EN to "Cancel"
+    )
+    val sheet_download_tip_continue = SimpleI18nResource(
+      Language.ZH to "继续下载", Language.EN to "Continue"
+    )
+    val sheet_download_tip_reload = SimpleI18nResource(
+      Language.ZH to "重新下载", Language.EN to "Re-Download"
+    )
+
+    val tab_downloading = SimpleI18nResource(
+      Language.ZH to "下载中", Language.EN to "Downloading"
+    )
+    val tab_downloaded = SimpleI18nResource(
+      Language.ZH to "已下载", Language.EN to "Downloaded"
+    )
+    val tab_downloaded_more = SimpleI18nResource(
+      Language.ZH to "更多", Language.EN to "More"
+    )
+
+    val tip_empty = SimpleI18nResource(
+      Language.ZH to "暂无下载任务和记录", Language.EN to "No Download Tasks And Records"
+    )
   }
 
   object Setting {

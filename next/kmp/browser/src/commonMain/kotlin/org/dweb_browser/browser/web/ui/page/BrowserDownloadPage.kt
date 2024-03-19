@@ -48,18 +48,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadType
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_complete
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_delete
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_delete_checked
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.download_page_manage
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloaded
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloaded_more
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tab_downloading
-import org.dweb_browser.browser.web.download.BrowserDownloadI18nResource.tip_empty
 import org.dweb_browser.browser.web.model.page.BrowserDownloadPage
 import org.dweb_browser.browser.web.model.page.DownloadPage
 import org.dweb_browser.browser.web.ui.common.BrowserTopBar
@@ -122,7 +114,7 @@ private fun BrowserDownloadPage.BrowserDownloadHomePage(
 ) {
   Column(modifier = Modifier.fillMaxSize()) {
     BrowserTopBar(
-      title = download_page_manage(),
+      title = BrowserI18nResource.Download.page_title_manage(),
       enableNavigation = false,
       actions = {
         Image(
@@ -134,7 +126,7 @@ private fun BrowserDownloadPage.BrowserDownloadHomePage(
     )
 
     if (saveDownloadList.isEmpty() && saveCompleteList.isEmpty()) {
-      NoDataRender(tip_empty())
+      NoDataRender(BrowserI18nResource.Download.tip_empty())
       return
     }
 
@@ -146,7 +138,7 @@ private fun BrowserDownloadPage.BrowserDownloadHomePage(
             modifier = Modifier.fillMaxWidth().padding(8.dp)
           ) {
             Text(
-              text = tab_downloading(),
+              text = BrowserI18nResource.Download.tab_downloading(),
               modifier = Modifier.padding(8.dp),
               fontWeight = FontWeight.Bold
             )
@@ -169,7 +161,7 @@ private fun BrowserDownloadPage.BrowserDownloadHomePage(
               verticalAlignment = Alignment.CenterVertically
             ) {
               Text(
-                text = tab_downloaded(),
+                text = BrowserI18nResource.Download.tab_downloaded(),
                 modifier = Modifier.padding(8.dp),
                 fontWeight = FontWeight.Bold
               )
@@ -178,7 +170,7 @@ private fun BrowserDownloadPage.BrowserDownloadHomePage(
                 modifier = Modifier.clickableWithNoEffect { openMore() },
                 verticalAlignment = Alignment.CenterVertically
               ) {
-                Text(text = tab_downloaded_more())
+                Text(text = BrowserI18nResource.Download.tab_downloaded_more())
                 Icon(
                   imageVector = Icons.Default.ArrowBackIosNew,
                   contentDescription = "More",
@@ -210,7 +202,7 @@ private fun BrowserDownloadPage.BrowserDownloadMorePage(
   LocalWindowController.current.GoBackHandler { onBack() }
   Column(modifier = Modifier.fillMaxSize()) {
     BrowserTopBar(
-      title = download_page_complete(),
+      title = BrowserI18nResource.Download.page_title_complete(),
       onNavigationBack = onBack,
       actions = {
         Image(
@@ -222,7 +214,7 @@ private fun BrowserDownloadPage.BrowserDownloadMorePage(
     )
 
     if (saveCompleteList.isEmpty()) {
-      NoDataRender(tip_empty())
+      NoDataRender(BrowserI18nResource.Download.tip_empty())
       return
     }
     LazyColumn {
@@ -306,9 +298,9 @@ private fun BrowserDownloadPage.BrowserDownloadDeletePage(
     Box(modifier = Modifier.fillMaxWidth()) {
       BrowserTopBar(
         title = if (size == 0) {
-          download_page_delete()
+          BrowserI18nResource.Download.page_title_delete()
         } else {
-          download_page_delete_checked().format(size)
+          BrowserI18nResource.Download.page_title_delete_count().format(size)
         },
         onNavigationBack = onBack,
         actions = {
@@ -332,7 +324,7 @@ private fun BrowserDownloadPage.BrowserDownloadDeletePage(
 
     Box(modifier = Modifier.fillMaxSize()) {
       if (selectStateMap.isEmpty()) {
-        NoDataRender(tip_empty())
+        NoDataRender(BrowserI18nResource.Download.tip_empty())
         return
       }
       LazyColumn(modifier = Modifier.fillMaxSize().padding(bottom = 54.dp)) {
@@ -421,7 +413,7 @@ fun DownloadButton(
 ) {
   val showText = when (downloadItem.state.state) {
     DownloadState.Init, DownloadState.Canceled, DownloadState.Failed -> {
-      BrowserDownloadI18nResource.sheet_download_state_init()
+      BrowserI18nResource.Download.button_title_init()
     }
     // 显示百分比
     DownloadState.Downloading -> {
@@ -429,16 +421,16 @@ fun DownloadButton(
         val progress = (downloadItem.state.current * 1000 / downloadItem.state.total) / 10.0f
         "$progress %"
       } else {
-        BrowserDownloadI18nResource.sheet_download_state_pause()
+        BrowserI18nResource.Download.button_title_pause()
       }
     }
 
-    DownloadState.Paused -> BrowserDownloadI18nResource.sheet_download_state_resume()
+    DownloadState.Paused -> BrowserI18nResource.Download.button_title_pause()
     DownloadState.Completed -> {
       if (downloadItem.fileSuffix.type == BrowserDownloadType.Application)
-        BrowserDownloadI18nResource.sheet_download_state_install()
+        BrowserI18nResource.Download.button_title_install()
       else
-        BrowserDownloadI18nResource.sheet_download_state_open()
+        BrowserI18nResource.Download.button_title_open()
     }
   }
 
