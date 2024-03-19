@@ -24,9 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.common.barcode.BrowserQRCodeScanRender
 import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
 import org.dweb_browser.browser.common.barcode.QRCodeScanModel
-import org.dweb_browser.browser.common.barcode.QRCodeScanView
 import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.web.model.BrowserViewModel
@@ -56,7 +56,6 @@ internal fun <T> exitAnimationSpec() = tween<T>(300, easing = IosFastOutSlowInEa
 fun BrowserViewModalRender(
   viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope
 ) {
-  val scope = rememberCoroutineScope()
   val qrCodeScanModel = remember { QRCodeScanModel() }
 
   LocalCompositionChain.current.Provider(
@@ -65,7 +64,6 @@ fun BrowserViewModalRender(
   ) {
     viewModel.ViewModelEffect()
     // 窗口 BottomSheet 的按钮
-    val win = LocalWindowController.current
 
 //    // 窗口级返回操作
 //    win.GoBackHandler {
@@ -108,10 +106,10 @@ fun BrowserViewModalRender(
       BrowserPreviewPanel(Modifier.zIndex(2f))
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
       BrowserSearchPanel(Modifier.fillMaxSize())
-      QRCodeScanView(onSuccess = {
+      BrowserQRCodeScanRender(onSuccess = {
         openDeepLink(it)
-        scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) }
-      }, onCancel = { scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Hide) } })
+        qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Hide)
+      }, onCancel = { qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Hide) })
     }
   }
 }

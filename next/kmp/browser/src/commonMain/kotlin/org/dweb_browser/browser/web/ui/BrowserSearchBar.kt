@@ -252,8 +252,8 @@ private fun SearchBox(page: BrowserPage) {
         }
       } else if (emptyTheme) {
         val qrCodeScanModel = LocalQRCodeModel.current
-        IconButton({
-          scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Scanning) }
+        IconButton(onClick = {
+          qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
         }) {
           Icon(
             BrowserDrawResource.Scanner.painter(),

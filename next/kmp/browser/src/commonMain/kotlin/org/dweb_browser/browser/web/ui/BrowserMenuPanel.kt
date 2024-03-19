@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
+import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.helper.PrivacyUrl
@@ -113,13 +115,15 @@ internal fun BrowserMenuPanel() {
     // 隐私政策
     SettingListItem(
       title = BrowserI18nResource.browser_options_privacy(), // stringResource(id = R.string.browser_options_privacy),
-      icon = Icons.Default.Policy, {
+      icon = Icons.Default.Policy,
+      onClick = {
         hide()
         uiScope.launch { viewModel.tryOpenUrlUI(PrivacyUrl) }
       }, trailingIcon = Icons.AutoMirrored.Filled.ArrowForwardIos
     )
 
     /// 扫一扫
+    val qrCodeScanModel = LocalQRCodeModel.current
     SettingListItem(
       title = BrowserI18nResource.browser_menu_scanner(), // stringResource(id = R.string.browser_options_privacy),
       leadingIcon = {
@@ -129,9 +133,10 @@ internal fun BrowserMenuPanel() {
           tint = LocalContentColor.current,
           modifier = Modifier.size(24.dp),
         )
-      }, {
+      },
+      onClick = {
         hide()
-        uiScope.launch { viewModel.tryOpenUrlUI(PrivacyUrl) }
+        uiScope.launch { qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning) }
       }
     )
 

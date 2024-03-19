@@ -34,7 +34,7 @@ class QRCodeScanController {
       )
     )?.falseAlso {
       qrCodeScanNMM?.showToast(QRCodeI18nResource.permission_denied.text)
-    } != false
+    } == true
   }
 
   /**

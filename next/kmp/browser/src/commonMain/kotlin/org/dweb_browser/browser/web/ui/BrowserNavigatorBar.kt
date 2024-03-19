@@ -38,7 +38,7 @@ import org.dweb_browser.browser.web.model.page.BrowserWebPage
 fun BrowserNavigatorBar(viewModel: BrowserViewModel) {
   val uiScope = rememberCoroutineScope()
   val scope = viewModel.ioScope
-  val qrCodeScanState = LocalQRCodeModel.current
+  val qrCodeScanModel = LocalQRCodeModel.current
   val focusPage = viewModel.focusedPage ?: return
   key(focusPage) {
     Row(
@@ -70,9 +70,7 @@ fun BrowserNavigatorBar(viewModel: BrowserViewModel) {
           imageVector = Icons.Rounded.QrCodeScanner,
           name = "Scan",
         ) {
-          uiScope.launch {
-            qrCodeScanState.stateChange.emit(QRCodeState.Scanning)
-          }
+          qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
         }
       }
       BrowserNavigatorButton(

@@ -28,6 +28,10 @@ data class QRCodeDecoderResult(
 
 class QRCodeScanModel {
   val state = mutableStateOf(QRCodeState.Hide)
+  fun updateQRCodeStateUI(qrCodeState: QRCodeState) {
+    state.value = qrCodeState
+  }
+
   var imageBitmap: ImageBitmap? = null
   var qrCodeDecoderResult: QRCodeDecoderResult? = null
 

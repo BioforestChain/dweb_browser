@@ -65,40 +65,69 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.render.NativeBackHandler
 
 val LocalQRCodeModel = compositionChainOf<QRCodeScanModel>("LocalQRCodeModel")
 
+/**
+ * web browser 专门调用的地方，毕竟 LocalWindowController 目前必须是打开窗口后才会初始化
+ */
 @Composable
-fun QRCodeScanView(
-  modifier: Modifier = Modifier,
+fun BrowserQRCodeScanRender(
   enableBeep: Boolean = true, // 扫码成功后是否打开提示音
-  //flashLight: Boolean = false, // 闪关灯默认状态
   onSuccess: (String) -> Unit, // 成功返回扫码结果
   onCancel: (String) -> Unit, // 失败返回失败原因
 ) {
   val qrCodeScanModel = LocalQRCodeModel.current
-  val scope = rememberCoroutineScope()
-  DisposableEffect(qrCodeScanModel) {
-    val off = qrCodeScanModel.onStateChange {
-      if (it != QRCodeState.Scanning || qrCodeScanModel.requestPermission()) {
-        qrCodeScanModel.state.value = it
-      }
-    }
-    onDispose { off() }
-  }
   if (qrCodeScanModel.state.value == QRCodeState.Hide) return // 隐藏状态不显示
+  LaunchedEffect(qrCodeScanModel) {
+    qrCodeScanModel.requestPermission() // 请求权限
+  }
   LocalWindowController.current.GoBackHandler {
     when (qrCodeScanModel.state.value) {
-      QRCodeState.MultiSelect -> qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
+      QRCodeState.MultiSelect -> qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
       else -> {
-        qrCodeScanModel.stateChange.emit(QRCodeState.Hide); onCancel("")
+        qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Hide)
+        onCancel("")
       }
     }
   }
+  QRCodeScan(enableBeep, onSuccess, onCancel)
+}
+
+/**
+ * 这个是直接通过快捷方式打开的，直接使用 NativeBackHandler 即可
+ */
+@Composable
+fun ShortcutQRCodeScanRender(
+  enableBeep: Boolean = true, // 扫码成功后是否打开提示音
+  onSuccess: (String) -> Unit, // 成功返回扫码结果
+  onCancel: (String) -> Unit, // 失败返回失败原因
+) {
+  val qrCodeScanModel = LocalQRCodeModel.current
+  if (qrCodeScanModel.state.value == QRCodeState.Hide) return // 隐藏状态不显示
+  NativeBackHandler {
+    when (qrCodeScanModel.state.value) {
+      QRCodeState.MultiSelect -> qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
+      else -> {
+        qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Hide)
+        onCancel("")
+      }
+    }
+  }
+  QRCodeScan(enableBeep, onSuccess, onCancel)
+}
+
+@Composable
+private fun QRCodeScan(
+  enableBeep: Boolean = true, // 扫码成功后是否打开提示音
+  onSuccess: (String) -> Unit, // 成功返回扫码结果
+  onCancel: (String) -> Unit, // 失败返回失败原因
+) {
+  val qrCodeScanModel = LocalQRCodeModel.current
   AnimatedContent(
     targetState = qrCodeScanModel.state.value.type, label = "",
     transitionSpec = {
@@ -116,15 +145,13 @@ fun QRCodeScanView(
       QRCodeState.Scanning.type -> {
         CameraPreviewView(
           openAlarmResult = { imageBitmap ->
-            scope.launch {
-              qrCodeScanModel.imageBitmap = imageBitmap
-              qrCodeScanModel.stateChange.emit(QRCodeState.AnalyzePhoto)
-            }
+            qrCodeScanModel.imageBitmap = imageBitmap
+            qrCodeScanModel.updateQRCodeStateUI(QRCodeState.AnalyzePhoto)
           },
           onBarcodeDetected = { qrCodeDecoderResult ->
             if (enableBeep) beepAudio()
             qrCodeScanModel.qrCodeDecoderResult = qrCodeDecoderResult
-            scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.MultiSelect) }
+            qrCodeScanModel.updateQRCodeStateUI(QRCodeState.MultiSelect)
           },
           maskView = { flashLightSwitch, openAlbum ->
             DefaultScanningView(flashLightSwitch = flashLightSwitch, openAlbum = openAlbum) {
@@ -137,19 +164,19 @@ fun QRCodeScanView(
       QRCodeState.AnalyzePhoto.type -> {
         AnalyzeImageView(
           onBackHandler = {
-            scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Scanning) }
+            qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
           },
           onBarcodeDetected = { qrCodeDecoderResult ->
             if (enableBeep) beepAudio()
             qrCodeScanModel.qrCodeDecoderResult = qrCodeDecoderResult
-            scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.MultiSelect) }
+            qrCodeScanModel.updateQRCodeStateUI(QRCodeState.MultiSelect)
           }
         )
       }
 
       QRCodeState.MultiSelect.type -> {
         DefaultScanResultView(
-          onClose = { scope.launch { qrCodeScanModel.stateChange.emit(QRCodeState.Scanning) } },
+          onClose = { qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning) },
           onDataCallback = { onSuccess(it) }
         )
       }
@@ -283,12 +310,9 @@ private fun BoxScope.CloseIcon(onClick: () -> Unit) {
 fun AnalyzeImageView(
   onBackHandler: () -> Unit, onBarcodeDetected: (QRCodeDecoderResult) -> Unit
 ) {
-  val scope = rememberCoroutineScope()
   val qrCodeScanModel = LocalQRCodeModel.current
   val imageBitmap = qrCodeScanModel.imageBitmap ?: run {  // 如果为空，直接返回
-    scope.launch {
-      qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
-    }
+    qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
     return
   }
   var showAlert by remember { mutableStateOf(true) }
@@ -396,9 +420,7 @@ private fun DefaultScanResultView(onClose: () -> Unit, onDataCallback: (String) 
         alignment = Alignment.Center
       )
     } ?: run {// 没有图片信息，不要显示选择
-      scope.launch {
-        qrCodeScanModel.stateChange.emit(QRCodeState.Scanning)
-      }
+      qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
       return
     }
 
