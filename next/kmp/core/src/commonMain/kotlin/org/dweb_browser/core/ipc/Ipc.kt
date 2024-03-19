@@ -357,6 +357,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     ipcLifeCycleState = IPC_STATE.CLOSED
     // 告知对方，我这条业务线已经准备关闭了
     this.postMessage(IpcLifeCycle(IPC_STATE.CLOSED))
+    this.doClose()
     this.closeSignal.emitAndClear()
 
     /// 关闭的时候会自动触发销毁
@@ -401,7 +402,6 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     if (!isActivity && data !is IpcLifeCycle) {
       awaitStart()
     }
-    println("$channelId sendMessage $data")
     // 分发消息
     this.doPostMessage(this.pid, data)
   }
@@ -437,8 +437,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   /**生命周期初始化，协商数据格式*/
   fun initLifeCycleHook() {
     // TODO 跟对方通信 协商数据格式
-//    println(" xxlife listen=>🥑  ${this.channelId}")
-    this.onLifeCycle { (lifeCycle, ipc) ->
+    val off = this.onLifeCycle { (lifeCycle, ipc) ->
       when (lifeCycle.state) {
         // 收到对方完成开始建立连接
         IPC_STATE.OPENING -> {
@@ -454,16 +453,17 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
         }
         // 消息通道开始关闭
         IPC_STATE.CLOSING -> {
-          println("ipccloseing $channelId")
           ipc.closing()
           ipc.postMessage(IpcLifeCycle.close())
         }
         // 对方关了，代表没有消息发过来了，我也关闭
         IPC_STATE.CLOSED -> {
-          println("ipcclose $channelId")
           ipc.close()
         }
       }
+    }
+    onClose {
+      off()
     }
   }
 }

@@ -94,7 +94,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           fromMM.beConnect(toJmmIpc, reason)
           toMM.beConnect(toJmmIpc, reason)
           val forwardIpc = toJmmIpc.toForwardIpc()
-          println("sendMessage===> 🥎 ${toJmmIpc.isActivity} ${forwardIpc.isActivity} ${forwardIpc.channelId} toJmmIpc:${toJmmIpc.channelId}[${toJmmIpc.remote.mmid}] fromMM:${fromMM.mmid}")
           return@append if (jsMM.startMm.mmid == fromMM.mmid) {
             ConnectResult(
               ipcForFromMM = toJmmIpc,
@@ -324,7 +323,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
   private fun ipcBridgeFactory(fromMMID: MMID, targetIpc: Ipc?) =
     fromMMIDOriginIpcWM.getOrPut(fromMMID) {
-      PromiseOut<JmmIpc>().alsoLaunchIn(ioAsyncScope) {
+      return@getOrPut PromiseOut<JmmIpc>().alsoLaunchIn(ioAsyncScope) {
         debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
 
         val toJmmIpc = ipcBridgeSelf(fromMMID)
@@ -371,16 +370,15 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       "jsMM_shutdown",
       "$mmid/${this.fetchIpc?.channelId} ipcNumber=>${fromMMIDOriginIpcWM.size}"
     )
-    fromMMIDOriginIpcWM.forEach { map ->
-      val ipc = map.value.waitPromise()
-      debugJsMM("jsMM_shutdown=>", ipc.channelId)
-      ipc.close()
-    }
+    //主动关闭线程
+    closeProcess()
     fetchIpc?.close()
-    fromMMIDOriginIpcWM.clear()
     processId = null
     fetchIpc = null
   }
+
+  private suspend fun closeProcess() =
+    nativeFetch("file://js.browser.dweb/close-all-process").boolean()
 
   override fun toManifest(): CommonAppManifest {
     return this.metadata.toCommonAppManifest()

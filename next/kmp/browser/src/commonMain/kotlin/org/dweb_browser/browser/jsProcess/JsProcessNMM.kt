@@ -114,10 +114,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           if (processIdMap.contains(processId)) {
             throw Exception("ipc:${ipc.remote.mmid}/processId:$processId has already using")
           }
-          // 创建成功了，注册销毁函数
-          ipc.onClose {
-            closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.remote.mmid)
-          }
           PromiseOut<Int>().also { processIdMap[processId] = it }
         }
         val result = createProcessAndRun(
@@ -161,15 +157,13 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         // 返回 port_id
         bridgeIpc(apis, ipcProcessID, fromMMid, toMMid)
       },
-      /// 关闭process
+      /// 让模块自己关闭process
       "/close-all-process" bind PureMethod.GET by defineBooleanResponse {
         return@defineBooleanResponse closeAllProcessByIpc(
           apis, ipcProcessIdMap, ipc.remote.mmid
-        ).also {
-          /// 强制关闭Ipc
-          ipc.close()
-        }
-      })
+        )
+      }
+    )
   }
 
   override suspend fun _shutdown() {
@@ -232,6 +226,10 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           val response = it;
           for ((key, value) in JS_CORS_HEADERS) {
             response.headers.apply { set(key, value) }
+          }
+          // 避免文件跨域问题导致无法启动
+          if (response.headers.has("Access-Control-Allow-Origin")) {
+            response.headers.set("Access-Control-Allow-Origin", "*")
           }
           response
         },
@@ -332,10 +330,8 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       val processId = po.waitPromise()
       apis.destroyProcess(processId)
     }
-
     // 关闭代码通道
-    closeHttpDwebServer(DwebHttpServerOptions(mmid))
-    return true;
+    return closeHttpDwebServer(DwebHttpServerOptions(mmid))
   }
 }
 

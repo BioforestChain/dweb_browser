@@ -1,7 +1,5 @@
 package org.dweb_browser.core.ipc
 
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
@@ -12,17 +10,12 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.datetimeNow
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureStream
 
 val debugIpcPool = Debugger("ipc")
 
 val kotlinIpcPool = IpcPool()
-
-//enum class Endpoint {
-//  Kotlin, Worker, FrontEnd
-//}
 
 data class IpcOptions(
   /**远程的模块是谁*/
@@ -44,8 +37,8 @@ data class IpcOptions(
 open class IpcPool {
   companion object {
     private fun randomPoolId() = "kotlin-${randomUUID()}"
-    private val ipcPoolScope =
-      CoroutineScope(CoroutineName("ipc-pool-kotlin") + ioAsyncExceptionHandler)
+//    private val ipcPoolScope =
+//      CoroutineScope(CoroutineName("ipc-pool-kotlin") + ioAsyncExceptionHandler)
   }
 
   /**每一个ipcPool都会绑定一个body流池,只有当不在同一个IpcPool的时候才需要互相拉取*/
@@ -57,12 +50,6 @@ open class IpcPool {
 
   // 用来路由和自动切换
   private val ipcPool = mutableMapOf<String, Ipc>()
-
-//  // 一个消耗通信的机制，确保消息
-//  internal val consumptionLife = mutableMapOf<String, Int>()
-//
-//  // 重试保险丝次数
-//  internal val reFuse = 3
 
   /**
    * fork出一个已经创建好通信的ipc, 这里会等待
