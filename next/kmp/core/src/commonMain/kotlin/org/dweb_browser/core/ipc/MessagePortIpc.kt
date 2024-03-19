@@ -137,7 +137,7 @@ open class MessagePortIpc(
     if (event.data == "close") return this.close()
     val pack = jsonToIpcPack(event.data)
     val message = jsonToIpcPoolPack(pack.ipcMessage, this@MessagePortIpc)
-    debugMessagePortIpc("ON-MESSAGE", "$channelId => $message")
+    debugMessagePortIpc("ON-MESSAGE string", "$channelId => $message")
     // 分发消息
     endpoint.emitMessage(
       IpcPoolMessageArgs(

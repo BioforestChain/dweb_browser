@@ -2,7 +2,6 @@
 import AppIcon from "@/components/app-icon/app-icon.vue";
 import { $AppIconInfo } from "@/components/app-icon/types";
 import { deleteApp } from "@/provider/api.ts";
-import { CloseWatcher } from "@/provider/shim.ts";
 import { watchEffect } from "vue";
 
 const props = defineProps({

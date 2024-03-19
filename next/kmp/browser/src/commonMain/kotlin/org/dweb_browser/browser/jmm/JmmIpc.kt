@@ -61,6 +61,7 @@ class JmmForwardIpc(
   private val lifeCycleEventName = "forward/lifeCycle/${jmmIpc.fromMMID}"
   private val requestEventName = "forward/request/${jmmIpc.fromMMID}"
   private val responseEventName = "forward/response/${jmmIpc.fromMMID}"
+  private val closeEventName = "forward/close/${jmmIpc.fromMMID}"
 
   private val scope = CoroutineScope(CoroutineName(channelId) + ioAsyncExceptionHandler)
 
@@ -70,7 +71,6 @@ class JmmForwardIpc(
       this@JmmForwardIpc.start()
     }
     fetchIpc.onClose {
-      println("JmmForwardIpc close")
       this@JmmForwardIpc.close()
     }
   }
@@ -110,7 +110,9 @@ class JmmForwardIpc(
 
   override suspend fun doClose() {
     debugJsMM("JmmForwardIpc close", channelId)
-    fetchIpc.postMessage(IpcEvent.fromUtf8("forward/close/${jmmIpc.fromMMID}", ""))
+    if (!fetchIpc.isClosed) {
+      fetchIpc.postMessage(IpcEvent.fromUtf8(closeEventName, ""))
+    }
   }
 }
 

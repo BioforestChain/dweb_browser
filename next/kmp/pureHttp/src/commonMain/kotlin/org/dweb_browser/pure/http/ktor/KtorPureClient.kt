@@ -51,7 +51,7 @@ open class KtorPureClient(engine: HttpClientEngineFactory<*>) {
       CoroutineScope(ioAsyncExceptionHandler).launch {
         try {
           ktorClient.prepareRequest(request.toHttpRequestBuilder()).execute {
-//            debugHttpPureClient("httpFetch execute", request.href)
+            debugHttpPureClient("httpFetch execute", request.href)
             val byteChannel = it.bodyAsChannel()
             val pureStream = PureStream(byteChannel)
             val onClosePo = CompletableDeferred<Unit>()
@@ -59,7 +59,7 @@ open class KtorPureClient(engine: HttpClientEngineFactory<*>) {
               onClosePo.complete(Unit)
             }
             val response = it.toPureResponse(body = PureStreamBody(pureStream))
-//            debugHttpPureClient("httpFetch response", request.href)
+            debugHttpPureClient("httpFetch response", request.href)
             responsePo.complete(response)
             onClosePo.await()
           }

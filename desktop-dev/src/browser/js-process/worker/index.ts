@@ -156,9 +156,9 @@ export class JsProcessMicroModule implements $MicroModule {
           ipc.onEvent((event) => {
             try {
               if (event.name === "web-message-port-live") {
-                // console.warn(self.name, ipc.remote.mmid, "web-message-port living", event.text);
+                console.warn(self.name, ipc.remote.mmid, "web-message-port living", event.text);
                 void navigator.locks.request(event.text, () => {
-                  // console.warn(self.name, ipc.remote.mmid, "web-message-port ipc closed");
+                  console.warn(self.name, ipc.remote.mmid, "web-message-port ipc closed");
                   ipc.close();
                 });
               }
@@ -170,7 +170,7 @@ export class JsProcessMicroModule implements $MicroModule {
             const liveId = "live-" + Date.now() + Math.random() + "-for-" + ipc.remote.mmid;
             try {
               void navigator.locks.request(liveId, () => {
-                // console.warn(self.name, "web-message-port live start", liveId);
+                console.warn(self.name, "web-message-port live start", liveId);
                 return new Promise(() => {}); /// 永远不释放
               });
               ipc.postMessage(IpcEvent.fromText("web-message-port-live", liveId));
@@ -201,11 +201,6 @@ export class JsProcessMicroModule implements $MicroModule {
           if (ipcEvent.name === IPC_HANDLE_EVENT.Shortcut) {
             return this._shortcutSignal.emit(ipcEvent, ipc);
           }
-
-          // 关闭
-          if (ipcEvent.name === IPC_HANDLE_EVENT.Close) {
-            return this._onCloseSignal.emit(ipcEvent, ipc);
-          }
         });
         ipc.onError((error) => {
           console.log("js-process onError=>", ipc.channelId, error.message, error.errorCode);
@@ -226,13 +221,14 @@ export class JsProcessMicroModule implements $MicroModule {
     // 整个worker关闭
     this.fetchIpc.onClose(() => {
       console.log("worker-close=>", this.fetchIpc.channelId, this.mmid);
-      this.ipcPool.close();
+      // 当worker关闭的时候，触发关闭，让用户可以基于这个事件释放资源
+      this._onCloseSignal.emit(IpcEvent.fromText("close", this.mmid), this.fetchIpc);
+      workerGlobal.close();
     });
     this.fetchIpc.onEvent(async (ipcEvent) => {
       if (ipcEvent.name === "dns/connect/done" && typeof ipcEvent.data === "string") {
         const { connect, result } = JSON.parse(ipcEvent.data);
         const task = this._ipcConnectsMap.get(connect);
-        // console.log("dns/connect/done===>", connect, task, task?.is_resolved);
         if (task) {
           /// 这里之所以 connect 和 result 存在不一致的情况，是因为 subprotocol 的存在
           if (task.is_resolved === false) {
@@ -242,9 +238,9 @@ export class JsProcessMicroModule implements $MicroModule {
             }
           }
           const ipc = await task.promise;
-          // console.log("桥接建立完成=>", connect, ipc.channelId, result);
-          // 手动启动
+          // 手动启动,这里才是真正的建立完成通信
           ipc.start();
+          await ipc.ready();
           // console.log("桥接建立完成=>", ipc.channelId, ipc.isActivity);
         }
       } else if (ipcEvent.name.startsWith("forward/")) {
@@ -335,6 +331,8 @@ export class JsProcessMicroModule implements $MicroModule {
   // 应用激活信号
   private _activitySignal = createSignal<$OnIpcEventMessage>(false);
   private _shortcutSignal = createSignal<$OnIpcEventMessage>(false);
+  // app关闭信号
+  private _onCloseSignal = createSignal<$OnIpcEventMessage>(false);
   onShortcut(cb: $OnIpcEventMessage) {
     return this._shortcutSignal.listen(cb);
   }
@@ -359,9 +357,6 @@ export class JsProcessMicroModule implements $MicroModule {
     const onRequest = createFetchHandler(handlers);
     return onRequest.extendsTo(this.onRequest(onRequest));
   }
-
-  // app关闭信号
-  private _onCloseSignal = createSignal<$OnIpcEventMessage>(false);
   onClose(cb: $OnIpcEventMessage) {
     return this._onCloseSignal.listen(cb);
   }
@@ -389,9 +384,7 @@ export class JsProcessMicroModule implements $MicroModule {
       return ipc_po;
     }).promise;
     /// 等待对方响应ready协议
-    // console.log("ready==>", mmid, ipc.channelId, ipc.isActivity, mmid, ipc.remote.mmid);
     await this.afterIpcReady(ipc);
-    // console.log("ready afterIpcReady===>", mmid, ipc.remote.mmid);
     return ipc;
   }
 
@@ -405,9 +398,8 @@ export class JsProcessMicroModule implements $MicroModule {
   }
 
   private _appReady = new PromiseOut<void>();
-  private async afterIpcReady(ipc: Ipc) {
+  private async afterIpcReady(_ipc: Ipc) {
     await this._appReady.promise;
-    await ipc.ready();
   }
 
   ready() {

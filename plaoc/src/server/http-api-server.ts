@@ -58,7 +58,8 @@ export class Server_api extends HttpServer {
         setTimeout(async () => {
           const winId = await this.getWid();
           console.log("关闭窗口", winId);
-          close_window(winId);
+          await close_window(winId);
+          console.log("关闭窗口成功", winId);
           jsProcess.restart();
         }, 200);
         return Response.json({ success: true, message: "restart ok" });

@@ -71,7 +71,6 @@ export interface $MicroModule extends $MicroModuleManifest {
 export const enum IPC_HANDLE_EVENT {
   // State = "state", // 获取窗口状态
   Activity = "activity", // 激活应用程序时发出。各种操作都可以触发此事件，例如首次启动应用程序、在应用程序已运行时尝试重新启动该应用程序，或者单击应用程序的停靠栏或任务栏图标。
-  Close = "close", // 关闭app
   Renderer = "renderer", // 窗口激活时发出，这里可以拿到应用的窗口句柄（wid）
   RendererDestroy = "renderer-destroy", // 窗口激活时发出，这里可以拿到应用的窗口句柄（wid）
   Shortcut = "shortcut",// dinamic quick action

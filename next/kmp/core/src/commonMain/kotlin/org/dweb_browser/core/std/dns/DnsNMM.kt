@@ -5,7 +5,6 @@ import io.ktor.http.fullPath
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonNull
@@ -162,8 +161,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       mmConnectsMap[aKey] = aPromiseOut
       mmConnectsMap[bKey] = bPromiseOut
       aPromiseOut.alsoLaunchIn(ioAsyncScope) {
-        debugDNS("connect", "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid}")
+//        debugDNS("connectxx", "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid}")
         toRunningApp.ready()
+//        debugDNS("connectxx end", "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid} ${toRunningApp.module.mmid}")
         val aConnectResult = connectMicroModules(fromMM, toMicroModule, reason)
         val bConnectResult = ConnectResult(aConnectResult.ipcForToMM, aConnectResult.ipcForFromMM)
         bPromiseOut.resolve(bConnectResult)
