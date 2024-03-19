@@ -1,27 +1,23 @@
 package org.dweb_browser.browser.download.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.CommonSimpleTopBar
-import org.dweb_browser.browser.common.SegmentedButton
-import org.dweb_browser.browser.common.SingleChoiceSegmentedButtonRow
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.model.DownloadTab
 import org.dweb_browser.browser.download.model.LocalDownloadModel
@@ -33,6 +29,7 @@ fun DownloadView() {
   DecompressView()
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadHistory() {
   val viewModel = LocalDownloadModel.current

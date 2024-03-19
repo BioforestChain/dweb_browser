@@ -3,6 +3,7 @@
 
 import com.android.build.gradle.internal.lint.AndroidLintAnalysisTask
 import com.android.build.gradle.internal.lint.LintModelWriterTask
+import gradle.kotlin.dsl.accessors._55139628d4347f3c5d2203565c61e17d.compose
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectProvider
@@ -438,10 +439,13 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
     implementation(libs.jetbrains.compose.material3)
     implementation(libs.jetbrains.compose.materialIcons)
   }
+  sourceSets.commonTest.dependencies {
+    implementation(compose.components.uiToolingPreview)
+  }
 
   dsl.whenProvides { sourceSet ->
-    if (sourceSet.name == "androidMain") {
-      sourceSet.dependencies {
+    when (sourceSet.name) {
+      "androidMain" -> sourceSet.dependencies {
         // AndroidX
         implementation(libs.androidx.activity)
         implementation(libs.androidx.activity.ktx)
@@ -449,6 +453,10 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
         implementation(libs.androidx.animation.core.android)
         implementation(libs.androidx.lifecycle.runtime.ktx)
         implementation(libs.androidx.activity.compose)
+      }
+
+      "androidTest" -> sourceSet.dependencies {
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
   }

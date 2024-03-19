@@ -76,16 +76,19 @@ class TaskbarView private constructor(
     val density = LocalDensity.current.density
 
     val wkWebView = taskbarDWebView.asIosWebView()
-    val dragGesture = remember {
+    val dragGesture = remember(wkWebView) {
       UIDragGesture(
         view = wkWebView,
         draggableHelper = draggableHelper,
+        density = density,
       )
     }
+    dragGesture.draggableHelper = draggableHelper
+    dragGesture.density = density
+
     val dragGestureRecognizer = remember {
       UIPanGestureRecognizer(target = dragGesture, action = NSSelectorFromString("dragView:"))
     }
-    dragGesture.draggableHelper = draggableHelper
     val foregroundBgColor = remember { UIColor.blackColor.colorWithAlphaComponent(alpha = 0.2) }
     val visualEffectView = remember {
       UIVisualEffectView(effect = UIBlurEffect.effectWithStyle(style = UIBlurEffectStyle.UIBlurEffectStyleLight))
@@ -206,12 +209,13 @@ class UIBackgroundViewTapGesture(val onTap: () -> Unit) : NSObject() {
 class UIDragGesture(
   private val view: UIView,
   var draggableHelper: ITaskbarView.DraggableHelper,
+  var density: Float,
 ) : NSObject() {
   @OptIn(ExperimentalForeignApi::class)
   fun getPoint(gesture: UIPanGestureRecognizer): Offset {
     val point = gesture.translationInView(view = view)
     val offset = point.useContents {
-      Offset(x.toFloat(), y.toFloat())
+      Offset(x.toFloat() * density, y.toFloat() * density)
     }
     return offset
   }

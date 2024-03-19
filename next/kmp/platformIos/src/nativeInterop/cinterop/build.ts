@@ -80,5 +80,15 @@ const calcHash = (fw: string): (() => void) | undefined => {
 };
 
 if (import.meta.main) {
-  Deno.exit(await doBuildTask());
+  const code = await doBuildTask();
+  if (
+    // 配置了环境变量
+    Deno.env.get("IGNORE_XCODE_BUILD") == "true" ||
+    // 70 代表开发者环境问题，强制跳过
+    code === 70
+  ) {
+    Deno.exit(0);
+  } else {
+    Deno.exit(code);
+  }
 }

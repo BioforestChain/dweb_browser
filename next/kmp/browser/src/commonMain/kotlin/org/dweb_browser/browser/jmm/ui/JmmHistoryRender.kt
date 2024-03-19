@@ -17,9 +17,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,13 +45,10 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.CommonSimpleTopBar
-import org.dweb_browser.browser.common.SegmentedButton
-import org.dweb_browser.browser.common.SingleChoiceSegmentedButtonRow
 import org.dweb_browser.browser.jmm.JmmHistoryController
 import org.dweb_browser.browser.jmm.JmmHistoryMetadata
 import org.dweb_browser.browser.jmm.JmmStatus
 import org.dweb_browser.browser.jmm.JmmTabs
-import org.dweb_browser.browser.jmm.debugJMM
 import org.dweb_browser.helper.compose.LazySwipeColumn
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.compose.produceEvent
@@ -58,6 +58,7 @@ import org.dweb_browser.pure.image.compose.CoilAsyncImage
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JmmHistoryController.ManagerViewRender(
   modifier: Modifier, windowRenderScope: WindowRenderScope
