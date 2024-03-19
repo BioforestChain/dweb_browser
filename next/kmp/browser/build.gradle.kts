@@ -15,6 +15,7 @@ kotlin {
       }
     }
   }
+
   kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
@@ -66,4 +67,10 @@ kotlin {
     }
   }
   kmpDesktopTarget(project)
+  sourceSets.jvmMain {
+    dependencies {
+      //解压缩
+      implementation(libs.apache.common.compress)
+    }
+  }
 }

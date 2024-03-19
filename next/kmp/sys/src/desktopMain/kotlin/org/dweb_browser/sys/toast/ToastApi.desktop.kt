@@ -1,7 +1,7 @@
 package org.dweb_browser.sys.toast
 
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.sys.ext.currentJComponent
+import org.dweb_browser.sys.ext.getComposeWindowOrNull
 import java.awt.Point
 import javax.swing.JOptionPane
 import javax.swing.Timer
@@ -12,11 +12,11 @@ actual suspend fun showToast(
   durationType: DurationType,
   positionType: PositionType
 ) {
-  val jParent = microModule.currentJComponent ?: return
+  val composeWindow = microModule.getComposeWindowOrNull() ?: return
 //  val frame = JFrame();
 //  frame.setSize(300, 200);
   val optionPane = JOptionPane("Toast", JOptionPane.INFORMATION_MESSAGE);
-  val dialog = optionPane.createDialog(jParent, text);
+  val dialog = optionPane.createDialog(composeWindow, text);
   dialog.isModal = false;
   dialog.isVisible = true;
   dialog.location = Point()

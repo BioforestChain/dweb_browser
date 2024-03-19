@@ -1,17 +1,26 @@
 package org.dweb_browser.helper.platform
 
-import androidx.compose.runtime.Applier
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MonotonicFrameClock
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.awt.ComposePanel
+import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.FrameWindowScope
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
+import androidx.compose.ui.window.WindowPosition
+import androidx.compose.ui.window.awaitApplication
+import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.yield
-import org.dweb_browser.helper.Once
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
@@ -28,6 +37,76 @@ class PureViewController(
 
   var isAdded = false
     private set
+
+  companion object {
+    class PureWindowRender(
+      private val pvc: PureViewController,
+      val onCloseRequest: () -> Unit,
+      val placement: WindowPlacement = WindowPlacement.Floating,
+      val isMinimized: Boolean = false,
+      val position: WindowPosition = WindowPosition.PlatformDefault,
+      val size: DpSize = DpSize(800.dp, 600.dp),
+      val visible: Boolean = true,
+      val title: String = "Untitled",
+      val icon: Painter? = null,
+      val undecorated: Boolean = false,
+      val transparent: Boolean = false,
+      val resizable: Boolean = true,
+      val enabled: Boolean = true,
+      val focusable: Boolean = true,
+      val alwaysOnTop: Boolean = false,
+      val onPreviewKeyEvent: (KeyEvent) -> Boolean = { false },
+      val onKeyEvent: (KeyEvent) -> Boolean = { false },
+      val content: @Composable FrameWindowScope.() -> Unit
+    ) {
+      suspend fun openWindow() {
+        pvc.lifecycleScope.launch {
+          pvc.createSignal.emit(pvc.createParams)
+        }
+        windowRenders.add(this)
+      }
+
+      fun closeWindow() {
+        pvc.lifecycleScope.launch {
+          pvc.destroySignal.emitAndClear()
+        }
+        windowRenders.remove(this)
+      }
+    }
+
+    val windowRenders = mutableStateListOf<PureWindowRender>()
+
+    var density = 1f
+      private set
+
+    suspend fun startApplication() = awaitApplication {
+      density = LocalDensity.current.density
+      for (winRender in windowRenders) {
+        println("QAQ winRender=$winRender")
+        Window(
+          onCloseRequest = winRender.onCloseRequest,
+          state = rememberWindowState(
+            placement = winRender.placement,
+            isMinimized = winRender.isMinimized,
+            position = winRender.position,
+            size = winRender.size
+          ),
+          visible = winRender.visible,
+          title = winRender.title,
+          icon = winRender.icon,
+          undecorated = winRender.undecorated,
+          transparent = winRender.transparent,
+          resizable = winRender.resizable,
+          enabled = winRender.enabled,
+          focusable = winRender.focusable,
+          alwaysOnTop = winRender.alwaysOnTop,
+          onPreviewKeyEvent = winRender.onPreviewKeyEvent,
+          onKeyEvent = winRender.onKeyEvent,
+          content = winRender.content,
+        )
+      }
+    }
+  }
 
   init {
 //    nativeViewController.onInitSignal.listen {
@@ -80,33 +159,6 @@ class PureViewController(
   override val onTouch = touchSignal.toListener()
 
 
-  class ApplicationApplier : Applier<Unit> {
-    override val current: Unit = Unit
-    override fun down(node: Unit) = Unit
-    override fun up() = Unit
-    override fun insertTopDown(index: Int, instance: Unit) = Unit
-    override fun insertBottomUp(index: Int, instance: Unit) = Unit
-    override fun remove(index: Int, count: Int) = Unit
-    override fun move(from: Int, to: Int, count: Int) = Unit
-    override fun clear() = Unit
-    override fun onEndChanges() = Unit
-  }
-
-  val applier = ApplicationApplier()
-
-  object YieldFrameClock : MonotonicFrameClock {
-    override suspend fun <R> withFrameNanos(
-      onFrame: (frameTimeNanos: Long) -> R
-    ): R {
-      // We call `yield` to avoid blocking UI thread. If we don't call this then application
-      // can be frozen for the user in some cases as it will not receive any input events.
-      //
-      // Swing dispatcher will process all pending events and resume after `yield`.
-      yield()
-      return onFrame(System.nanoTime())
-    }
-  }
-
   private val composePanel by lazy {
     ComposePanel()
   }
@@ -114,24 +166,26 @@ class PureViewController(
     PureViewBox(composePanel, this)
   }
 
-  private var _density = 1f
-  val density get() = _density
+  private val composeWindowStateFlow = MutableSharedFlow<ComposeWindow>(1)
+  suspend fun awaitComposeWindow() = composeWindowStateFlow.first()
 
-  @OptIn(ExperimentalComposeUiApi::class)
-  val getJPanel = Once {
-    composePanel.also { panel ->
-      panel.setContent {
-        _density = LocalDensity.current.density
-        LocalCompositionChain.current.Provider(
-          LocalPureViewController provides this,
-          LocalPureViewBox provides pureViewBox,
-        ) {
-          for (content in contents) {
-            content()
-          }
+  fun getComposeWindowOrNull() = composeWindowStateFlow.replayCache.firstOrNull()
+
+  val windowRender by lazy {
+    var onCloseRequest = {}
+    PureWindowRender(pvc = this, onCloseRequest = {
+      onCloseRequest()
+    }) {
+      composeWindowStateFlow.tryEmit(window)
+      LocalCompositionChain.current.Provider(
+        LocalPureViewController provides this@PureViewController,
+        LocalPureViewBox provides pureViewBox,
+      ) {
+        for (content in contents) {
+          content()
         }
       }
-    }
+    }.also { onCloseRequest = { it.closeWindow() } }
   }
 
   private val contents = mutableStateListOf<@Composable () -> Unit>();

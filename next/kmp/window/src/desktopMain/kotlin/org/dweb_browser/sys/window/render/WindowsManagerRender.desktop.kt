@@ -12,12 +12,10 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.platform.PureViewController
-import org.dweb_browser.platform.desktop.window.EmptyWindowListener
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
 import org.dweb_browser.sys.window.core.constant.debugWindow
-import javax.swing.JFrame
 
 @Composable
 actual fun <T : WindowController> WindowsManager<T>.Render() {
@@ -46,16 +44,9 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
   }
 }
 
-fun WindowController.openPvcInNativeWindow(pvc: PureViewController) =
-  JFrame(this.state.title).also { frame ->
-    frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE; // 设置关闭按钮的动作
-    frame.isVisible = true; // 设置窗口可见
-
-    frame.setLocation(state.bounds.x.toInt(), state.bounds.y.toInt()); // 设置窗口位置
-    frame.setSize(state.bounds.width.toInt(), state.bounds.height.toInt()); // 设置窗口大小
-    frame.isAlwaysOnTop = state.alwaysOnTop
-    frame.add(pvc.getJPanel())
-  }
+fun WindowController.openPvcInNativeWindow(pvc: PureViewController) {
+  pvc.windowRender.openWindow()
+}
 
 @Composable
 fun RenderWindowInNative(
@@ -73,12 +64,9 @@ fun RenderWindowInNative(
 
   /// 启动
   DisposableEffect(pvc) {
-    val panel = win.openPvcInNativeWindow(pvc)
-    panel.addWindowListener(object : EmptyWindowListener() {
-
-    })
+    win.openPvcInNativeWindow(pvc)
     val off = win.onClose {
-      panel.dispose()
+      pvc.windowRender.closeWindow()
     }
     onDispose {
       off()

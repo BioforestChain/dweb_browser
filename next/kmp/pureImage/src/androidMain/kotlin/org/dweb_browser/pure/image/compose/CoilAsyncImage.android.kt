@@ -25,7 +25,6 @@ actual fun CoilAsyncImage(
   colorFilter: ColorFilter?,
   filterQuality: FilterQuality,
   clipToBounds: Boolean,
-  modelEqualityDelegate: EqualityDelegate,
 ) {
   if (model is String && model.startsWith("data:image")) {
     BoxWithConstraints(modifier) {
@@ -46,7 +45,6 @@ actual fun CoilAsyncImage(
       colorFilter,
       filterQuality,
       clipToBounds,
-      modelEqualityDelegate
     )
   }
 }

@@ -1,7 +1,7 @@
 package org.dweb_browser.sys.filechooser
 
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.sys.ext.currentJComponent
+import org.dweb_browser.sys.ext.awaitComposeWindow
 import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileFilter
@@ -13,7 +13,7 @@ actual class FileChooserManage actual constructor() {
     multiple: Boolean,
     limit: Int
   ): List<String> {
-    return when (val jParent = microModule.currentJComponent) {
+    return when (val composeWindow = microModule.awaitComposeWindow()) {
       null -> emptyList()
       else -> {
         val fc = JFileChooser();
@@ -28,7 +28,7 @@ actual class FileChooserManage actual constructor() {
             return accept
           }
         })
-        when (fc.showOpenDialog(jParent)) {
+        when (fc.showOpenDialog(composeWindow)) {
           JFileChooser.APPROVE_OPTION -> {
             fc.selectedFiles.map { it.absolutePath }
           }

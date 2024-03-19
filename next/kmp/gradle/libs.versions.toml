@@ -47,7 +47,7 @@ commons-compress = "1.24.0"
 jetbrains-compose-version = "1.6.1"
 
 # 测试
-test-junit-bom = "5.10.1"
+test-junit = "5.10.1"
 animation-core-android = "1.6.3"
 material3Android = "1.2.1"
 
@@ -81,6 +81,9 @@ compose-material = { group = "androidx.compose.material", name = "material" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Android" }
 compose-material3-window = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3Android" }
 
+# Apache
+apache-common-compress = { module = "org.apache.commons:commons-compress", version = "1.26.1" }
+
 # Jetbrains Compose
 jetbrains-compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "jetbrains-compose-version" }
 jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "jetbrains-compose-version" }
@@ -89,6 +92,8 @@ jetbrains-compose-preview = { module = "org.jetbrains.compose.ui:ui-tooling-prev
 jetbrains-compose-material = { module = "org.jetbrains.compose.material:material", version.ref = "jetbrains-compose-version" }
 jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "jetbrains-compose-version" }
 jetbrains-compose-materialIcons = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "jetbrains-compose-version" }
+jetbrains-compose-ui-tooling-preview-desktop = { module = "org.jetbrains.compose.ui:ui-tooling-preview-desktop", version.ref = "jetbrains-compose-version" }
+jetbrains-compose-ui-test-junit4 = { module = "org.jetbrains.compose.ui:ui-test-junit4", version.ref = "jetbrains-compose-version" }
 
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-common-java8 = { group = "androidx.lifecycle", name = "lifecycle-common-java8", version.ref = "androidx-lifecycle" }
@@ -109,6 +114,7 @@ androidx-animation-core-android = { group = "androidx.compose.animation", name =
 
 kotlinx-coroutines-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-bom", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime-version" }
 kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "kotlinx-atomicfu-version" }
 kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io-version" }
@@ -189,11 +195,8 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "androidx-compose-ui-test" }
 test-kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 test-kotlin-coroutines-debug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinx-coroutines" }
-test-junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "test-junit-bom" }
-test-junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 test-junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
 test-junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine" }
-test-junit-vintage-engine = { group = "org.junit.vintage", name = "junit-vintage-engine" }
 androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test" }
 androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidx-test" }

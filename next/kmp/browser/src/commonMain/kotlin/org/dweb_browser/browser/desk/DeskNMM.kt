@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.desk
 
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -86,13 +87,14 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   private suspend fun listenApps() = ioAsyncScope.launch {
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
       val response = createChannel(urlPath) {
-        for (frame in income){
+        for (frame in income) {
           when (frame) {
             is PureTextFrame -> {
               Json.decodeFromString<ChangeState<MMID>>(frame.data).also {
                 it.cb()
               }
             }
+
             else -> {}
           }
         }
@@ -314,7 +316,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     desktopController.onActivity {
       startDesktopView(deskSessionId)
     }
-    startDesktopView(deskSessionId)
+    coroutineScope {
+      startDesktopView(deskSessionId)
+    }
     /// 等待主视图启动完成
     deskControllers.activityPo.waitPromise()
   }

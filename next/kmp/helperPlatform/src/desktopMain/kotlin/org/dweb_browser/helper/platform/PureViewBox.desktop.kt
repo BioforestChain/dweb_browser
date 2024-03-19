@@ -26,7 +26,7 @@ class PureViewBox(
 
   override suspend fun getViewHeightPx() = panel.height
 
-  override suspend fun getDisplayDensity() = pureViewController.density
+  override suspend fun getDisplayDensity() = PureViewController.density
 
   override val lifecycleScope: CoroutineScope =
     CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())

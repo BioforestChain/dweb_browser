@@ -26,7 +26,6 @@ fun SkikoCoilAsyncImage(
   colorFilter: ColorFilter?,
   filterQuality: FilterQuality,
   clipToBounds: Boolean,
-  modelEqualityDelegate: EqualityDelegate,
 ) {
   if (model is String && (model.endsWith(".svg") || model.endsWith(".webp") || model.startsWith("data:"))) {
     BoxWithConstraints(modifier) {
@@ -47,7 +46,6 @@ fun SkikoCoilAsyncImage(
       colorFilter,
       filterQuality,
       clipToBounds,
-      modelEqualityDelegate
     )
   }
 }

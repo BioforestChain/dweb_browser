@@ -23,7 +23,6 @@ actual fun CoilAsyncImage(
   colorFilter: ColorFilter?,
   filterQuality: FilterQuality,
   clipToBounds: Boolean,
-  modelEqualityDelegate: EqualityDelegate,
 ) {
   SkikoCoilAsyncImage(
     model,
@@ -37,6 +36,5 @@ actual fun CoilAsyncImage(
     colorFilter,
     filterQuality,
     clipToBounds,
-    modelEqualityDelegate
   )
 }

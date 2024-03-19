@@ -2,10 +2,8 @@ package org.dweb_browser.browser.zip
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
-import org.apache.commons.compress.utils.IOUtils
 import java.io.*
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -16,33 +14,6 @@ object ZipUtil {
   private val TAG = ZipUtil::class.simpleName!!
 
   private val BUFFER_SIZE = 1024 * 100
-
-  /**
-   * 私有函数将文件集合压缩成tar包后返回
-   *
-   * @param files  要压缩的文件集合
-   * @param target tar 输出流的目标文件
-   * @return File  指定返回的目标文件
-   */
-  @Throws(IOException::class)
-  private fun pack(files: List<File>, target: File): File? {
-    FileOutputStream(target).use { fos ->
-      BufferedOutputStream(fos, BUFFER_SIZE).use { bos ->
-        TarArchiveOutputStream(bos).use { taos ->
-          //解决文件名过长问题
-          taos.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU)
-          for (file in files) {
-            taos.putArchiveEntry(TarArchiveEntry(file))
-            FileInputStream(file).use { fis ->
-              IOUtils.copy(fis, taos)
-              taos.closeArchiveEntry()
-            }
-          }
-        }
-      }
-    }
-    return target
-  }
 
 
   fun ergodicDecompress(

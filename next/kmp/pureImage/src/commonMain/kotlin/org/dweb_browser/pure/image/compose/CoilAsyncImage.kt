@@ -33,7 +33,6 @@ fun CoilAsyncImage(
   colorFilter: ColorFilter? = null,
   filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
   clipToBounds: Boolean = true,
-  modelEqualityDelegate: EqualityDelegate = DefaultModelEqualityDelegate,
 ) = AsyncImage(
   model,
   contentDescription,
@@ -51,7 +50,6 @@ fun CoilAsyncImage(
   colorFilter,
   filterQuality,
   clipToBounds,
-  modelEqualityDelegate
 )
 
 @Composable
@@ -67,5 +65,4 @@ expect fun CoilAsyncImage(
   colorFilter: ColorFilter? = null,
   filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
   clipToBounds: Boolean = true,
-  modelEqualityDelegate: EqualityDelegate = DefaultModelEqualityDelegate,
 )

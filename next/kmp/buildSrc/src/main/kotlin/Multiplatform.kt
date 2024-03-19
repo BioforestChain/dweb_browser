@@ -438,9 +438,13 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
     implementation(libs.jetbrains.compose.material)
     implementation(libs.jetbrains.compose.material3)
     implementation(libs.jetbrains.compose.materialIcons)
+
+    implementation(compose.components.uiToolingPreview)
   }
   sourceSets.commonTest.dependencies {
-    implementation(compose.components.uiToolingPreview)
+//    implementation(compose.desktop.uiTestJUnit4)
+//    implementation(libs.test.junit.jupiter)
+//    implementation(libs.test.junit.jupiter.engine)
   }
 
   dsl.whenProvides { sourceSet ->
@@ -453,10 +457,23 @@ fun KotlinMultiplatformExtension.kmpComposeTarget(
         implementation(libs.androidx.animation.core.android)
         implementation(libs.androidx.lifecycle.runtime.ktx)
         implementation(libs.androidx.activity.compose)
+
+        implementation(libs.compose.ui.tooling.preview)
       }
 
       "androidTest" -> sourceSet.dependencies {
-        implementation(libs.compose.ui.tooling.preview)
+      }
+
+      "androidInstrumentedTest" -> sourceSet.dependencies {
+        implementation(compose.desktop.uiTestJUnit4)
+      }
+
+      "desktopMain" -> sourceSet.dependencies {
+        implementation(libs.jetbrains.compose.ui.tooling.preview.desktop)
+      }
+
+      "desktopTest" -> sourceSet.dependencies {
+        implementation(compose.desktop.uiTestJUnit4)
       }
     }
   }
@@ -536,6 +553,8 @@ fun KotlinMultiplatformExtension.kmpDesktopTarget(
   desktopMain.dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.annotation)
+    // 一定要加 https://github.com/JetBrains/compose-multiplatform/releases/tag/v1.1.1
+    implementation(libs.kotlinx.coroutines.swing)
 
     implementationPlatform("Desktop")
   }
