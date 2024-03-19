@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -47,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -64,20 +61,18 @@ import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
+import org.dweb_browser.helper.format
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
 import org.dweb_browser.sys.window.render.imageFetchHook
-
 
 /**
  * 搜索界面
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BrowserSearchPanel(
-  modifier: Modifier = Modifier,
-) {
+fun BrowserSearchPanel(modifier: Modifier = Modifier) {
   val viewModel = LocalBrowserViewModel.current
   val searchPage = viewModel.showSearch
   AnimatedVisibility(
@@ -141,21 +136,6 @@ fun BrowserSearchPanel(
       Column(
         modifier = Modifier.fillMaxSize().padding(innerPadding)
       ) {
-//      BrowserSearchPanel(text = showText,
-//        modifier = modifier,
-//        homePreview = { BrowserHomePageRender() },
-//        onClose = {
-//          hide()
-//        },
-//        onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
-//          uiScope.launch {
-//            viewModel.doSearchUI(url)
-//          }
-//          inputTextState.value = url
-//          hide()
-//        })
-
-
         /// 面板内容
         Box(Modifier.fillMaxWidth().weight(1f)) {
           if (searchTextField.text.isNotEmpty()) {
@@ -168,32 +148,13 @@ fun BrowserSearchPanel(
               },
               // 输入框输入提交
               onSubmit = { url ->
-                // searchTextField = TextFieldValue(url)
                 uiScope.launch {
                   viewModel.doSearchUI(url)
+                  hide() // 该操作需要在上面执行完成后执行，否则会导致uiScope被销毁，而不执行doSearchUI
                 }
-                hide()
               })
           }
         }
-
-//      key(searchTextField) {
-//        val searchEngine = viewModel.filterFitUrlEngines(searchTextField.text)
-//        BrowserTextField(modifier = Modifier.fillMaxWidth().align(Alignment.BottomCenter),
-//          inputField = searchTextField,
-//          searchEngine = searchEngine,
-//          onBlur = hide,
-//          onSubmitSearch = { url ->
-//            uiScope.launch {
-//              viewModel.doSearchUI(url)
-//            }
-//            hide()
-//          },
-//          onValueChanged = {
-//            searchTextField.value = it;
-//          })
-//      }
-
 
         /// 底部的输入框
         Box(
@@ -516,31 +477,24 @@ private fun LazyListScope.searchEngineItems(
       style = MaterialTheme.typography.titleMedium,
     )
   }
-  item {
-    LazyColumn(
-      Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
-        .background(MaterialTheme.colorScheme.background)
-    ) {
-      itemsIndexed(list) { index, searchEngine ->
-        key(searchEngine.host) {
-          if (index > 0) HorizontalDivider()
-          ListItem(headlineContent = {
-            Text(text = searchEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-          },
-            modifier = Modifier.clickable { onSearch("${searchEngine.searchLink}$searchText") },
-            supportingContent = {
-              Text(text = searchText, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            },
-            leadingContent = {
-              AppIcon(
-                icon = searchEngine.iconLink,
-                modifier = Modifier.size(56.dp),
-                iconFetchHook = viewModel.browserNMM.imageFetchHook
-              )
-            })
-        }
-      }
+
+  itemsIndexed(list) { index, searchEngine ->
+    key(searchEngine.host) {
+      if (index > 0) HorizontalDivider()
+      ListItem(headlineContent = {
+        Text(text = searchEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+      },
+        modifier = Modifier.clickable { onSearch(searchEngine.searchLink.format(searchText)) },
+        supportingContent = {
+          Text(text = searchText, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        },
+        leadingContent = {
+          AppIcon(
+            icon = searchEngine.iconLink,
+            modifier = Modifier.size(56.dp),
+            iconFetchHook = viewModel.browserNMM.imageFetchHook
+          )
+        })
     }
   }
-
 }

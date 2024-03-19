@@ -238,7 +238,6 @@ class BrowserViewModel(
 
   private suspend fun createWebPage(url: String) = createWebPage(createDwebView(url))
 
-
   internal fun openSearchPanelUI(
     search: String? = null, url: String? = null, target: String? = null
   ) {
@@ -430,7 +429,8 @@ class BrowserViewModel(
     // 在老列表中，寻找没有交集的部分
     val newItems = items.filter { newItem -> !oldBookmarkMap.containsKey(newItem.url) }
     // 追加到前面
-    browserController.bookmarksStateFlow.value = (newItems + browserController.bookmarksStateFlow.value)
+    browserController.bookmarksStateFlow.value =
+      (newItems + browserController.bookmarksStateFlow.value)
     ioScope.launch {
       browserController.saveBookLinks()
     }.join()

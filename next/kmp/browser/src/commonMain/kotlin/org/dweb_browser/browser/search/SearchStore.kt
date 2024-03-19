@@ -29,7 +29,7 @@ data class SearchEngine(
   }
 
   fun queryName(): String {
-    val current = Url("${searchLink}test")
+    val current = Url(searchLink.format("test"))
     return current.parameters.names().last()
   }
 }
@@ -39,7 +39,7 @@ val SearchEngineList = mutableStateListOf(
     host = "baidu.com",
     keys = "baidu,百度",
     name = "百度",
-    searchLink = "https://www.baidu.com/s?wd=",
+    searchLink = "https://www.baidu.com/s?wd=%s",
     homeLink = "https://www.baidu.com",
     iconLink = "file:///sys/engines/baidu.svg",
   ),
@@ -47,7 +47,7 @@ val SearchEngineList = mutableStateListOf(
     host = "bing.com",
     keys = "bing,必应",
     name = "Bing",
-    searchLink = "https://www.bing.com/search?q=",
+    searchLink = "https://www.bing.com/search?q=%s",
     homeLink = "https://www.bing.com",
     iconLink = "file:///sys/engines/bing.svg",
   ),
@@ -55,7 +55,7 @@ val SearchEngineList = mutableStateListOf(
     host = "sogou.com",
     keys = "sogou,搜狗",
     name = "搜狗",
-    searchLink = "https://www.sogou.com/web?query=",
+    searchLink = "https://www.sogou.com/web?query=%s",
     homeLink = "https://www.sogou.com",
     iconLink = "file:///sys/engines/sogou.svg",
   ),
@@ -63,7 +63,7 @@ val SearchEngineList = mutableStateListOf(
     host = "so.com",
     keys = "360",
     name = "360",
-    searchLink = "https://www.so.com/s?q=",
+    searchLink = "https://www.so.com/s?q=%s",
     homeLink = "https://www.so.com/",
     iconLink = "file:///sys/engines/360.svg",
   ),
@@ -71,7 +71,7 @@ val SearchEngineList = mutableStateListOf(
     host = "google.com",
     keys = "Google,谷歌",
     name = "Google",
-    searchLink = "https://www.google.com/search?q=",
+    searchLink = "https://www.google.com/search?q=%s",
     homeLink = "https://www.google.com",
     iconLink = "file:///sys/engines/google.svg",
   ),
@@ -79,7 +79,7 @@ val SearchEngineList = mutableStateListOf(
     host = "duckduckgo.com",
     keys = "DuckDuckGo",
     name = "DuckDuckGo",
-    searchLink = "https://duckduckgo.com/?q=",
+    searchLink = "https://duckduckgo.com/?q=%s",
     homeLink = "https://duckduckgo.com",
     iconLink = "file:///sys/engines/duckgo.svg",
   ),
@@ -87,7 +87,7 @@ val SearchEngineList = mutableStateListOf(
     host = "yahoo.com",
     keys = "yahoo,雅虎",
     name = "雅虎",
-    searchLink = "https://sg.search.yahoo.com/search;?p=",
+    searchLink = "https://sg.search.yahoo.com/search;?p=%s",
     homeLink = "https://sg.search.yahoo.com/",
     iconLink = "file:///sys/engines/yahoo.svg",
   ),
@@ -95,7 +95,7 @@ val SearchEngineList = mutableStateListOf(
     host = "m.sm.cn",
     keys = "神马",
     name = "神马",
-    searchLink = "https://so.m.sm.cn/s?q=",
+    searchLink = "https://so.m.sm.cn/s?q=%s",
     homeLink = "https://so.m.sm.cn",
     iconLink = "file:///sys/engines/sm.svg",
   ),

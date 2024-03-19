@@ -26,7 +26,7 @@ suspend fun NativeMicroModule.collectChannelOfEngines(collector: suspend WatchSe
           WatchSearchEngineContext(
             Json.decodeFromString<List<SearchEngine>>(pureFrame.data),
             this
-          )
+          ).collector()
         }
 
         else -> {}
