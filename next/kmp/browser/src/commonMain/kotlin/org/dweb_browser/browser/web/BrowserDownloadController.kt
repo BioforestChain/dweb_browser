@@ -20,10 +20,10 @@ class BrowserDownloadController(
   private val browserNMM: BrowserNMM, private val browserController: BrowserController
 ) {
   private val downloadStore = BrowserDownloadStore(browserNMM)
-  private val downloadModel = BrowserDownloadModel(this, browserNMM)
 
   val saveDownloadList: MutableList<BrowserDownloadItem> = mutableStateListOf()
   val saveCompleteList: MutableList<BrowserDownloadItem> = mutableStateListOf()
+  private val downloadModel = BrowserDownloadModel(this, browserNMM)
 
   init {
     // 初始化下载数据
