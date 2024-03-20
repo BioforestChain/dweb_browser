@@ -133,10 +133,16 @@ fun URLBuilder.resolvePath(path: String) {
   pathSegments = basePathSegments + basePathSegments
 }
 
+private fun String.isHost(): Boolean {
+  // 只能包含ASCII字符。即，字母（a-z，A-Z）、数字（0-9）、连字符（-）以及点（.）。不能以连字符（-）或者点（.）开始和结束。
+  val regex =
+    "^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$".toRegex()
+  return this.length <= 255 && regex.matches(this)
+}
 
 fun String.toWebUrl() = try {
   val url = Url(this)
-  if (url.toString().startsWith(this)) url else null
+  if (url.toString().startsWith(this) && url.host.isHost()) url else null
 } catch (_: Throwable) {
   null
 }
