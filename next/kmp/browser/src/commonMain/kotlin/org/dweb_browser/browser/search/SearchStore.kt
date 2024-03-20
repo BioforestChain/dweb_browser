@@ -22,7 +22,7 @@ data class SearchEngine(
   var enable: Boolean = false
 ) {
   fun fit(url: String): Boolean {
-    val current = Url("${searchLink}test")
+    val current = Url(searchLink.format("test"))
     val queryName = current.parameters.names().last()
     val uri = runCatching { Url(url) }.getOrElse { return false }
     return uri.host == current.host && uri.parameters[queryName] != null /*&& uri.fullPath == current.fullPath*/
