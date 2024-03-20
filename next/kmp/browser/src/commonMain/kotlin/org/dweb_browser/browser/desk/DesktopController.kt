@@ -195,7 +195,6 @@ open class DesktopController private constructor(
     var windowsManager by remember { mutableStateOf<DesktopWindowsManager?>(null) }
     LaunchedEffect(Unit) {
       windowsManager = getDesktopWindowsManager()
-      println("QAQ windowsManager = $windowsManager")
     }
     windowsManager?.content()
   }

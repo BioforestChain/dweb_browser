@@ -45,7 +45,7 @@ sealed class BrowserPage(browserController: BrowserController) {
   /**
    * 缩略图
    */
-  protected var thumbnail by mutableStateOf<ImageBitmap?>(null)
+  internal var thumbnail by mutableStateOf<ImageBitmap?>(null)
   open val previewContent: Painter?
     @Composable get() = remember(thumbnail) {
       thumbnail?.let { BitmapPainter(it) }

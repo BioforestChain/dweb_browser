@@ -49,7 +49,7 @@ class BrowserWebPage(val webView: IDWebView, private val browserController: Brow
   }
 
   override fun onRequestCapture() {
-    webView.requestRefresh()
+    requestCaptureInCompose()
   }
 
   internal inline fun superUpdateUrl(url: String) {
@@ -67,3 +67,5 @@ class BrowserWebPage(val webView: IDWebView, private val browserController: Brow
     webView.destroy()
   }
 }
+
+expect fun BrowserWebPage.requestCaptureInCompose(): Unit

@@ -53,7 +53,6 @@ fun WindowController.Render(
     topBarBaseHeight = 36f,
     bottomBarBaseHeight = 24f,
   )
-  println("QAQ limits=$limits")
 
   /**
    * 窗口大小
