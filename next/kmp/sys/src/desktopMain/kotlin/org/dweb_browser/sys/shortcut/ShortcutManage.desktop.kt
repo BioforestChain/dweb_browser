@@ -2,6 +2,7 @@ package org.dweb_browser.sys.shortcut
 
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.WARNING
 
 actual class ShortcutManage actual constructor() {
   /**
@@ -14,7 +15,9 @@ actual class ShortcutManage actual constructor() {
    * 动态注册的快捷列表
    */
   actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>): Boolean {
-    TODO("Not yet implemented registryShortcut")
+    // TODO Not yet implemented registryShortcut
+    WARNING("Not yet implemented registryShortcut")
+    return false
   }
 
   /**
@@ -26,7 +29,9 @@ actual class ShortcutManage actual constructor() {
     microModule: MicroModule,
     resource: ImageResource
   ): ByteArray? {
-    TODO("Not yet implemented getValidIcon")
+    // TODO Not yet implemented getValidIcon
+    WARNING("Not yet implemented getValidIcon")
+    return null
   }
 
 }

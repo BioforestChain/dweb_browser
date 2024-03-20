@@ -20,6 +20,7 @@ import com.teamdev.jxbrowser.net.HttpStatus
 import com.teamdev.jxbrowser.net.Scheme
 import com.teamdev.jxbrowser.net.UrlRequestJob
 import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
+import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
 import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
@@ -27,6 +28,7 @@ import com.teamdev.jxbrowser.zoom.ZoomLevel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.module.MicroModule
@@ -76,6 +78,18 @@ class DWebViewEngine internal constructor(
       // 设置https代理
       val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
       engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
+      engine.network()
+        .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
+          // SSL Certificate to verify.
+          val certificate = params.certificate()
+          // FIXME 这里应该有更加严谨的证书内容判断
+          if (certificate.derEncodedValue().toString().contains("localhost.dweb")) {
+            VerifyCertificateCallback.Response.valid()
+          } else {
+            VerifyCertificateCallback.Response.defaultAction()
+          }
+        });
+
       val browser = engine.newBrowser()
       // 同步销毁
       browser.on(BrowserClosed::class.java) {
@@ -348,6 +362,12 @@ class DWebViewEngine internal constructor(
 
           else -> debugDWebView("JsConsole/$level", message)
         }
+      }
+    }
+    println("QAQ options.url=${options.url}}")
+    if (options.url.isNotEmpty()) {
+      ioScope.launch {
+        loadUrl(options.url)
       }
     }
   }

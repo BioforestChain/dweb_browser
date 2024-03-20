@@ -1,16 +1,15 @@
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.platform.PureViewController
 
 
 fun main(): Unit = runBlocking {
-//  application {
-//    Window(onCloseRequest = ::exitApplication) {
-//      Text("qaq")
-//    }
-//  }
-  coroutineScope {
+  launch {
+    // 等待“应用”准备完毕
+    PureViewController.awaitPrepared()
+    // 启动内核
     startDwebBrowser()
   }
+  // 启动“应用”
   PureViewController.startApplication()
 }

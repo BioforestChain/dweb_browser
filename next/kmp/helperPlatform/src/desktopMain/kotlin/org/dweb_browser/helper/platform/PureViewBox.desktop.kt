@@ -1,6 +1,5 @@
 package org.dweb_browser.helper.platform
 
-import androidx.compose.ui.awt.ComposePanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.dweb_browser.helper.WeakHashMap
@@ -15,16 +14,15 @@ actual suspend fun IPureViewBox.Companion.from(viewController: IPureViewControll
 }
 
 class PureViewBox(
-  val panel: ComposePanel,
   val pureViewController: PureViewController
 ) : IPureViewBox {
   companion object {
     internal val instances = WeakHashMap<IPureViewController, IPureViewBox>()
   }
 
-  override suspend fun getViewWidthPx() = panel.width
+  override suspend fun getViewWidthPx() = pureViewController.awaitComposeWindow().width
 
-  override suspend fun getViewHeightPx() = panel.height
+  override suspend fun getViewHeightPx() = pureViewController.awaitComposeWindow().height
 
   override suspend fun getDisplayDensity() = PureViewController.density
 

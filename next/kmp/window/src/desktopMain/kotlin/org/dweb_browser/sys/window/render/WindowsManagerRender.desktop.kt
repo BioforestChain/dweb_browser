@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.LocalCompositionChain
@@ -45,7 +46,9 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
 }
 
 fun WindowController.openPvcInNativeWindow(pvc: PureViewController) {
-  pvc.windowRender.openWindow()
+  pvc.lifecycleScope.launch {
+    pvc.composeWindow.openWindow()
+  }
 }
 
 @Composable
@@ -66,7 +69,7 @@ fun RenderWindowInNative(
   DisposableEffect(pvc) {
     win.openPvcInNativeWindow(pvc)
     val off = win.onClose {
-      pvc.windowRender.closeWindow()
+      pvc.composeWindow.closeWindow()
     }
     onDispose {
       off()

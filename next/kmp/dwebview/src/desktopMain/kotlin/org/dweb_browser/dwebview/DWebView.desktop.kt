@@ -124,7 +124,7 @@ class DWebView(
   }
 
   override suspend fun setSafeAreaInset(bounds: Bounds) {
-    TODO("Not yet implemented")
+    // 不需要实现该功能，chromium还没放出桌面端的safeArea，只有Safari的WKWebView需要设置这个
   }
 
   private val _engineLazy = RememberLazy(viewEngine) { viewEngine }

@@ -77,6 +77,7 @@ open class DesktopController private constructor(
     val webView = activity.createDwebView(deskNMM, options)
     // 隐藏滚动条
     webView.setVerticalScrollBarVisible(false)
+    webView.setHorizontalScrollBarVisible(false)
     return webView
   }
 
@@ -194,6 +195,7 @@ open class DesktopController private constructor(
     var windowsManager by remember { mutableStateOf<DesktopWindowsManager?>(null) }
     LaunchedEffect(Unit) {
       windowsManager = getDesktopWindowsManager()
+      println("QAQ windowsManager = $windowsManager")
     }
     windowsManager?.content()
   }
