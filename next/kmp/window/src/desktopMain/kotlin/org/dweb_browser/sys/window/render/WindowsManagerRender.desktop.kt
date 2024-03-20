@@ -32,14 +32,14 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
     debugWindow("WindowsManager.Render", "winList: ${winList.size}")
     for (win in winList) {
       key(win.id) {
-        RenderWindowInNative(windowsManager, win, maxWidth.value, maxHeight.value)
+        RenderWindowInNative(windowsManager, win)
       }
     }
     /// 置顶层级的窗口
     debugWindow("WindowsManager.Render", "winListTop: ${winListTop.size}")
     for (win in winListTop) {
       key(win.id) {
-        RenderWindowInNative(windowsManager, win, maxWidth.value, maxHeight.value)
+        RenderWindowInNative(windowsManager, win)
       }
     }
   }
@@ -55,15 +55,10 @@ fun WindowController.openPvcInNativeWindow(pvc: PureViewController) {
 fun RenderWindowInNative(
   windowsManager: WindowsManager<*>,
   win: WindowController,
-  currentMaxWidth: Float,
-  currentMaxHeight: Float,
 ) {
-
-  val maxWidth = rememberUpdatedState(currentMaxWidth)
-  val maxHeight = rememberUpdatedState(currentMaxHeight)
   val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
   val pvc =
-    win.getDesktopWindowNativeView(windowsManager, maxWidth, maxHeight, compositionChain).pvc
+    win.getDesktopWindowNativeView(windowsManager, compositionChain).pvc
 
   /// 启动
   DisposableEffect(pvc) {
@@ -79,14 +74,10 @@ fun RenderWindowInNative(
 
 private fun WindowController.getDesktopWindowNativeView(
   windowsManager: WindowsManager<*>,
-  maxWidth: State<Float>,
-  maxHeight: State<Float>,
   compositionChain: State<CompositionChain>
 ) = DesktopWindowNativeView.INSTANCES.getOrPut(this) {
   DesktopWindowNativeView(
     mutableMapOf(
-      "maxWidth" to maxWidth,
-      "maxHeight" to maxHeight,
       "compositionChain" to compositionChain,
     ), this, windowsManager
   )
@@ -100,18 +91,18 @@ private class DesktopWindowNativeView(
   val pvc = PureViewController(params).also { pvc ->
     pvc.onCreate { params ->
       @Suppress("UNCHECKED_CAST") pvc.addContent {
-        val maxWidth by params["maxWidth"] as State<Float>
-        val maxHeight by params["maxHeight"] as State<Float>
-        val compositionChain by params["compositionChain"] as State<CompositionChain>
-        compositionChain.Provider(LocalCompositionChain.current)
-          .Provider(LocalWindowsManager provides windowsManager) {
-            /// 渲染窗口
-            win.Render(
-              modifier = Modifier.windowImeOutsetBounds(),
-              maxWinWidth = maxWidth,
-              maxWinHeight = maxHeight
-            )
-          }
+        BoxWithConstraints {
+          val compositionChain by params["compositionChain"] as State<CompositionChain>
+          compositionChain.Provider(LocalCompositionChain.current)
+            .Provider(LocalWindowsManager provides windowsManager) {
+              /// 渲染窗口
+              win.Render(
+                modifier = Modifier.windowImeOutsetBounds(),
+                maxWinWidth = maxWidth.value,
+                maxWinHeight = maxHeight.value
+              )
+            }
+        }
       }
     }
   }

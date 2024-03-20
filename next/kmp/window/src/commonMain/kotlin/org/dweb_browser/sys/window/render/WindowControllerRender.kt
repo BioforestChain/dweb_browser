@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -54,6 +53,7 @@ fun WindowController.Render(
     topBarBaseHeight = 36f,
     bottomBarBaseHeight = 24f,
   )
+  println("QAQ limits=$limits")
 
   /**
    * 窗口大小

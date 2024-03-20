@@ -13,6 +13,8 @@ object WebviewEngine {
       //
       "1BNDIEOFAZ1Z8R8VNNG4W07HLC9173JJW3RT0P2G9Y28L9YFFIWDBRFNFLFDQBKXAHO9ZE" // Only For JxBrowser 7.26
     );
+    // https://github.com/JetBrains/compose-multiplatform-core/pull/915
+    System.setProperty("compose.interop.blending", "true")
   }
 
   fun hardwareAccelerated(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine =
