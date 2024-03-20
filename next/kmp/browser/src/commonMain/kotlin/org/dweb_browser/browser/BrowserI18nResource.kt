@@ -336,4 +336,11 @@ object BrowserI18nResource {
   object Setting {
     val page_title = SimpleI18nResource(Language.ZH to "设置", Language.EN to "Setting")
   }
+
+  object QRCode {
+    val toast_mismatching = SimpleI18nResource(
+      Language.ZH to "无法解析的数据 -> %s",
+      Language.EN to "no support data -> %s"
+    )
+  }
 }

@@ -199,16 +199,13 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
             keyboardActions = KeyboardActions(
               // onDone = { focusManager.clearFocus(); keyboardController?.hide() },
               onSearch = {
-                hide()
                 // 如果内容符合地址，直接进行搜索，其他情况就按照如果有搜索引擎就按照搜索引擎来，没有的就隐藏键盘
                 uiScope.launch {
                   val searchText = searchTextField.text.trim()
-                  val searchEngine = viewModel.findSearchEngine(searchText)
-                  if (searchEngine != null) {
+                  viewModel.findSearchEngine(searchText)?.let { searchEngine ->
                     viewModel.tryOpenUrlUI(searchEngine.homeLink, searchPage)
-                  } else {
-                    viewModel.tryOpenUrlUI(searchText, searchPage)
-                  }
+                  } ?: viewModel.tryOpenUrlUI(searchText, searchPage)
+                  hide()
                 }
               }),
           ) { innerTextField ->

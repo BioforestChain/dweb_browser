@@ -342,9 +342,7 @@ class BrowserViewModel(
   ): BrowserPage? {
     val newPage = if (url == null || BrowserHomePage.isNewTabUrl(url)) {
       BrowserHomePage(browserController)
-    } else if (BrowserWebPage.isWebUrl(url)) {
-      createWebPage(url)
-    } else if (BrowserBookmarkPage.isBookmarkUrl(url)) {
+    }else if (BrowserBookmarkPage.isBookmarkUrl(url)) {
       BrowserBookmarkPage(browserController)
     } else if (BrowserHistoryPage.isHistoryUrl(url)) {
       BrowserHistoryPage(browserController)
@@ -352,7 +350,9 @@ class BrowserViewModel(
       BrowserDownloadPage(browserController)
     } else if (BrowserSettingPage.isSettingUrl(url)) {
       BrowserSettingPage(browserController)
-    } else null
+    } else if (BrowserWebPage.isWebUrl(url)) { // 判断是否网页应该放在最下面
+      createWebPage(url)
+    }  else null
     if (newPage != null) {
       addNewPageUI(newPage, options, optionsModifier)
     }

@@ -10,6 +10,7 @@ import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.platform.toImageBitmap
+import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
 
 @Serializable
 data class SearchEngine(
@@ -21,11 +22,14 @@ data class SearchEngine(
   val iconLink: String,
   var enable: Boolean = false
 ) {
-  fun fit(url: String): Boolean {
+  fun fit(keyWord: String): Boolean {
     val current = Url(searchLink.format("test"))
     val queryName = current.parameters.names().last()
-    val uri = runCatching { Url(url) }.getOrElse { return false }
-    return uri.host == current.host && uri.parameters[queryName] != null /*&& uri.fullPath == current.fullPath*/
+    return keyWord.toWebUrlOrWithoutProtocol()?.let { uri ->
+      uri.host == current.host && uri.parameters[queryName] != null
+    } ?: run {
+      keys.split(",").find { it == keyWord } != null
+    }
   }
 
   fun queryName(): String {
@@ -37,7 +41,7 @@ data class SearchEngine(
 val SearchEngineList = mutableStateListOf(
   SearchEngine(
     host = "baidu.com",
-    keys = "baidu,百度",
+    keys = "baidu,百度,www.baidu.com",
     name = "百度",
     searchLink = "https://www.baidu.com/s?wd=%s",
     homeLink = "https://www.baidu.com",
@@ -45,7 +49,7 @@ val SearchEngineList = mutableStateListOf(
   ),
   SearchEngine(
     host = "bing.com",
-    keys = "bing,必应",
+    keys = "bing,必应,www.bing.com",
     name = "Bing",
     searchLink = "https://www.bing.com/search?q=%s",
     homeLink = "https://www.bing.com",
@@ -53,7 +57,7 @@ val SearchEngineList = mutableStateListOf(
   ),
   SearchEngine(
     host = "sogou.com",
-    keys = "sogou,搜狗",
+    keys = "sogou,搜狗,www.sogou.com",
     name = "搜狗",
     searchLink = "https://www.sogou.com/web?query=%s",
     homeLink = "https://www.sogou.com",
@@ -61,7 +65,7 @@ val SearchEngineList = mutableStateListOf(
   ),
   SearchEngine(
     host = "so.com",
-    keys = "360",
+    keys = "360,www.so.com",
     name = "360",
     searchLink = "https://www.so.com/s?q=%s",
     homeLink = "https://www.so.com/",
@@ -69,7 +73,7 @@ val SearchEngineList = mutableStateListOf(
   ),
   SearchEngine(
     host = "google.com",
-    keys = "Google,谷歌",
+    keys = "Google,谷歌,www.google.com",
     name = "Google",
     searchLink = "https://www.google.com/search?q=%s",
     homeLink = "https://www.google.com",
@@ -77,7 +81,7 @@ val SearchEngineList = mutableStateListOf(
   ),
   SearchEngine(
     host = "duckduckgo.com",
-    keys = "DuckDuckGo",
+    keys = "DuckDuckGo,duckduckgo.com",
     name = "DuckDuckGo",
     searchLink = "https://duckduckgo.com/?q=%s",
     homeLink = "https://duckduckgo.com",
@@ -85,7 +89,7 @@ val SearchEngineList = mutableStateListOf(
   ),
   SearchEngine(
     host = "yahoo.com",
-    keys = "yahoo,雅虎",
+    keys = "yahoo,雅虎,sg.search.yahoo.com,search.yahoo.com",
     name = "雅虎",
     searchLink = "https://sg.search.yahoo.com/search;?p=%s",
     homeLink = "https://sg.search.yahoo.com/",
@@ -93,7 +97,7 @@ val SearchEngineList = mutableStateListOf(
   ),
   SearchEngine(
     host = "m.sm.cn",
-    keys = "神马",
+    keys = "神马,so.m.sm.cn,m.sm.cn",
     name = "神马",
     searchLink = "https://so.m.sm.cn/s?q=%s",
     homeLink = "https://so.m.sm.cn",

@@ -36,7 +36,7 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import org.dweb_browser.browser.R
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.isWebUrl
@@ -156,8 +156,8 @@ actual fun decoderImage(
           )
         )
       }
-      val imageBitmap = inputImage.bitmapInternal?.asImageBitmap()
-      val qrCodeDecoderResult = QRCodeDecoderResult(imageBitmap, imageBitmap, listRect)
+      val lastImage = inputImage.bitmapInternal?.asImageBitmap()
+      val qrCodeDecoderResult = QRCodeDecoderResult(imageBitmap, lastImage, listRect)
       onSuccess(qrCodeDecoderResult)
     }
   }.addOnFailureListener { e -> onFailure(e) }
@@ -197,8 +197,6 @@ actual fun openDeepLink(data: String) {
       it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     })
   } ?: Toast.makeText(
-    context,
-    context.getString(R.string.shortcut_toast) + data,
-    Toast.LENGTH_SHORT
+    context, BrowserI18nResource.QRCode.toast_mismatching.text.format(data), Toast.LENGTH_SHORT
   ).show()
 }
