@@ -71,7 +71,7 @@ class DWebViewEngine internal constructor(
     internal fun createMainBrowser(remoteMM: MicroModule) = WebviewEngine.hardwareAccelerated {
       addScheme(Scheme.of("dweb")) { params ->
         val pureResponse = runBlocking(ioAsyncExceptionHandler) {
-          remoteMM.nativeFetch(params.urlRequest().url())
+          remoteMM.nativeFetch(params.urlRequest().url().replaceFirst("/?", "?"))
         }
 
         val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
