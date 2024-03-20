@@ -179,9 +179,16 @@ class PureViewController(
 
   val composeWindow by lazy {
     var onCloseRequest = {}
-    ComposeWindowParams(pvc = this, onCloseRequest = {
-      onCloseRequest()
-    }) {
+    ComposeWindowParams(
+      //
+      pvc = this,
+      onCloseRequest = {
+        onCloseRequest()
+      },
+//      transparent = true,
+//      undecorated = true,
+//      placement = WindowPlacement.Maximized,
+    ) {
       composeWindowStateFlow.tryEmit(window)
       LocalCompositionChain.current.Provider(
         LocalPureViewController provides this@PureViewController,

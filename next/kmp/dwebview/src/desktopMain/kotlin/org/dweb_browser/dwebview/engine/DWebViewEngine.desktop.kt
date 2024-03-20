@@ -83,7 +83,7 @@ class DWebViewEngine internal constructor(
           // SSL Certificate to verify.
           val certificate = params.certificate()
           // FIXME 这里应该有更加严谨的证书内容判断
-          if (certificate.derEncodedValue().toString().contains("localhost.dweb")) {
+          if (certificate.derEncodedValue().decodeToString().contains("localhost.dweb")) {
             VerifyCertificateCallback.Response.valid()
           } else {
             VerifyCertificateCallback.Response.defaultAction()
