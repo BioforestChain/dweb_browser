@@ -3,6 +3,7 @@ package org.dweb_browser.dwebview.engine
 import com.teamdev.jxbrowser.browser.Browser
 import com.teamdev.jxbrowser.browser.CloseOptions
 import com.teamdev.jxbrowser.browser.callback.InjectJsCallback
+import com.teamdev.jxbrowser.browser.callback.ShowContextMenuCallback
 import com.teamdev.jxbrowser.browser.event.BrowserClosed
 import com.teamdev.jxbrowser.browser.internal.rpc.ConsoleMessageReceived
 import com.teamdev.jxbrowser.dom.event.EventParams
@@ -49,6 +50,11 @@ import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
 import org.dweb_browser.sys.device.DeviceManage
 import java.util.function.Consumer
+import javax.swing.JMenuItem
+import javax.swing.JPopupMenu
+import javax.swing.SwingUtilities
+import javax.swing.event.PopupMenuEvent
+import javax.swing.event.PopupMenuListener
 
 class DWebViewEngine internal constructor(
   internal val remoteMM: MicroModule,
@@ -364,7 +370,70 @@ class DWebViewEngine internal constructor(
         }
       }
     }
-    println("QAQ options.url=${options.url}}")
+    browser.set(ShowContextMenuCallback::class.java, ShowContextMenuCallback { params, tell ->
+      SwingUtilities.invokeLater {
+        val popupMenu = JPopupMenu()
+        popupMenu.addPopupMenuListener(object : PopupMenuListener {
+          override fun popupMenuWillBecomeVisible(p0: PopupMenuEvent?) {
+            println("QAQ popupMenuWillBecomeVisible")
+          }
+
+          override fun popupMenuWillBecomeInvisible(p0: PopupMenuEvent?) {
+            println("QAQ popupMenuWillBecomeInvisible")
+          }
+
+          override fun popupMenuCanceled(e: PopupMenuEvent) {
+            println("QAQ popupMenuCanceled")
+            tell.close()
+          }
+        })
+
+        // Add the suggestions menu items.
+        val spellCheckMenu = params.spellCheckMenu()
+        val suggestions = spellCheckMenu.dictionarySuggestions()
+        suggestions.forEach { suggestion ->
+          val menuItem = JMenuItem(suggestion)
+          menuItem.addActionListener {
+            browser.replaceMisspelledWord(suggestion)
+            tell.close()
+          }
+          popupMenu.add(menuItem)
+        }
+
+        // Add menu separator if necessary.
+        if (suggestions.isNotEmpty()) {
+          popupMenu.addSeparator()
+        }
+
+        // Add the "Add to Dictionary" menu item.
+        val addToDictionary = JMenuItem(spellCheckMenu.addToDictionaryMenuItemText())
+        addToDictionary.addActionListener {
+          val dictionary = browser.engine().spellChecker().customDictionary()
+          dictionary.add(spellCheckMenu.misspelledWord())
+          tell.close()
+        }
+        popupMenu.add(addToDictionary)
+
+        if (debugDWebView.isEnable) {
+          popupMenu.addSeparator()
+          val toggleDevtool = JMenuItem("toggle devtool")
+          var isShowed = false
+          toggleDevtool.addActionListener {
+            when {
+              isShowed -> browser.devTools().hide()
+              else -> browser.devTools().show()
+            }
+            isShowed = !isShowed
+          }
+          popupMenu.add(toggleDevtool)
+        }
+
+        // Display context menu at specified location.
+        val location = params.location()
+        popupMenu.show(wrapperView, location.x(), location.y())
+      }
+    })
+
     if (options.url.isNotEmpty()) {
       ioScope.launch {
         loadUrl(options.url)

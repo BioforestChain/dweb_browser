@@ -17,25 +17,25 @@ fun Rect.toModifier(
   modifier: Modifier = Modifier,
 ) = modifier.offset(x.dp, y.dp).size(width.dp, height.dp)
 
-class DesktopViewControllerCore(val controller: IPureViewController) {
+class DesktopViewControllerCore(val viewController: IPureViewController) {
   private var desktopController: DesktopController? = null
   private suspend fun bindController(sessionId: String?): DeskNMM.Companion.DeskControllers {
     /// 解除上一个 controller的activity绑定
     desktopController?.activity = null
 
     return DeskNMM.controllersMap[sessionId]?.also { controllers ->
-      controllers.desktopController.activity = controller
+      controllers.desktopController.activity = viewController
       this.desktopController = controllers.desktopController
-      controllers.activityPo.resolve(IPureViewBox.from(controller))
+      controllers.activityPo.resolve(IPureViewBox.from(viewController))
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 
   private val resumeState = mutableStateOf(false) // 增加字段，为了恢复 taskbarFloatView
 
   init {
-    controller.onCreate { params ->
+    viewController.onCreate { params ->
       val (desktopController, taskbarController, microModule) = bindController(params.getString("deskSessionId"))
-      controller.addContent {
+      viewController.addContent {
         DwebBrowserAppTheme {
           LaunchedEffect(resumeState) {
             snapshotFlow { resumeState.value }.collect {
@@ -48,15 +48,15 @@ class DesktopViewControllerCore(val controller: IPureViewController) {
       }
     }
 
-    controller.onResume {
+    viewController.onResume {
       resumeState.value = true
     }
 
-    controller.onPause {
+    viewController.onPause {
       resumeState.value = false
     }
 
-    controller.onDestroy {
+    viewController.onDestroy {
       desktopController?.activity = null
     }
   }

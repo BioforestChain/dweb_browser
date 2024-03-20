@@ -49,6 +49,9 @@ class ComposeWindowParams(
   val content: @Composable FrameWindowScope.() -> Unit
 ) {
   suspend fun openWindow() {
+    if (PureViewController.windowRenders.contains(this)) {
+      return
+    }
     withScope(pvc.lifecycleScope) {
       pvc.createSignal.emit(pvc.createParams)
     }
@@ -58,6 +61,9 @@ class ComposeWindowParams(
   }
 
   suspend fun closeWindow() {
+    if (!PureViewController.windowRenders.contains(this)) {
+      return
+    }
     withScope(pvc.lifecycleScope) {
       pvc.destroySignal.emitAndClear()
     }
@@ -68,7 +74,7 @@ class ComposeWindowParams(
 }
 
 class PureViewController(
-  val createParams: PureViewCreateParams = PureViewCreateParams(mapOf())
+  var createParams: PureViewCreateParams = PureViewCreateParams(mapOf())
 ) : IPureViewController {
   constructor(params: Map<String, Any?>) : this(PureViewCreateParams(params))
 
@@ -218,3 +224,9 @@ class PureViewCreateParams(private val params: Map<String, Any?>) : Map<String, 
   override fun getFloat(key: String): Float? = get(key).let { require(it is Float?);it }
   override fun getBoolean(key: String): Boolean? = get(key).let { require(it is Boolean?);it }
 };
+
+
+fun IPureViewController.asDesktop(): PureViewController {
+  require(this is PureViewController)
+  return this
+}

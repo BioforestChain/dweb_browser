@@ -14,8 +14,12 @@ class TaskbarView private constructor(
 ) : ITaskbarView(taskbarController) {
   companion object {
     suspend fun from(taskbarController: TaskbarController) =
-      TaskbarView(taskbarController, IDWebView.create(taskbarController.deskNMM))
-
+      TaskbarView(
+        taskbarController, IDWebView.create(
+          taskbarController.deskNMM,
+          taskbarController.getTaskbarDWebViewOptions(),
+        )
+      )
   }
 
   @Composable

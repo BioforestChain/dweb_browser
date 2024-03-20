@@ -1,9 +1,17 @@
 package org.dweb_browser.browser.desk
 
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.PureViewCreateParams
+import org.dweb_browser.helper.platform.asDesktop
+
+private val DeskNMM.vcCore by lazy {
+  val pvc = PureViewController()
+  DesktopViewControllerCore(pvc)
+}
 
 actual suspend fun DeskNMM.startDesktopView(deskSessionId: String) {
-  val pvc = PureViewController(mapOf("deskSessionId" to deskSessionId))
-  DesktopViewControllerCore(pvc)
-  pvc.composeWindow.openWindow()
+  vcCore.viewController.asDesktop().apply {
+    createParams = PureViewCreateParams(mapOf("deskSessionId" to deskSessionId))
+    composeWindow.openWindow()
+  }
 }

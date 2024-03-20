@@ -13,7 +13,6 @@ actual fun IDWebView.Render(
   require(this is DWebView)
 
   SwingPanel(modifier = modifier, factory = {
-    viewEngine.browser.devTools().show()
     viewEngine.wrapperView
   })
 }
