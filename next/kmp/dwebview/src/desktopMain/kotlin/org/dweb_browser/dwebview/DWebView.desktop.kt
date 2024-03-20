@@ -63,7 +63,7 @@ class DWebView(
   }
 
   override suspend fun getTitle(): String {
-    return viewEngine.mainFrame.executeJavaScript<String>("document.title") ?: viewEngine.getTitle()
+    return viewEngine.getTitle()
   }
 
   override suspend fun getIcon() = viewEngine.dwebFavicon.href

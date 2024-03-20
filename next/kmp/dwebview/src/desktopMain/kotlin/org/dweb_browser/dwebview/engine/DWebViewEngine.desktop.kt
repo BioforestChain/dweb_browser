@@ -1,5 +1,6 @@
 package org.dweb_browser.dwebview.engine
 
+import androidx.compose.ui.graphics.ImageBitmap
 import com.teamdev.jxbrowser.browser.Browser
 import com.teamdev.jxbrowser.browser.CloseOptions
 import com.teamdev.jxbrowser.browser.callback.InjectJsCallback
@@ -23,6 +24,7 @@ import com.teamdev.jxbrowser.net.UrlRequestJob
 import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
 import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
+import com.teamdev.jxbrowser.ui.Bitmap
 import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
 import com.teamdev.jxbrowser.zoom.ZoomLevel
@@ -82,7 +84,7 @@ class DWebViewEngine internal constructor(
       addSwitch("--enable-experimental-web-platform-features")
     }.let { engine ->
       // 设置https代理
-      val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
+      val proxyRules = "https=${DwebViewProxy.ProxyUrl},http://127.0.0.1:17890"
       engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
       engine.network()
         .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
@@ -183,10 +185,20 @@ class DWebViewEngine internal constructor(
     browser.navigation().goForward()
   }
 
-  fun getFavoriteIcon() = runCatching {
-    /// toImageBitmap 可能会解析异常，所以需要放在 runCatching 里头
-    browser.favicon().pixels().toImageBitmap()
-  }.getOrNull()
+  private var faviconIcon: FaviconIcon? = null
+
+  private class FaviconIcon(val favicon: Bitmap) {
+    val imageBitmap = favicon.toImageBitmap()
+  }
+
+  fun getFavoriteIcon(): ImageBitmap? {
+    val favicon = browser.favicon()
+    if (faviconIcon?.favicon != favicon) {
+      faviconIcon = favicon?.let { FaviconIcon(it) }
+      println("QAQ new faviconIcon favicon=${faviconIcon?.favicon} bitmap=${faviconIcon?.imageBitmap}")
+    }
+    return faviconIcon?.imageBitmap
+  }
 
   fun requestClose() {
     browser.close(CloseOptions.newBuilder().fireBeforeUnload().build())

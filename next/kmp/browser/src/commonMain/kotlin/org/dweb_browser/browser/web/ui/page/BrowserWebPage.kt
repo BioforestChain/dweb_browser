@@ -24,16 +24,12 @@ import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.watchedState
 
 @Composable
-internal fun BrowserWebPage.BrowserWebPageRender(
-  modifier: Modifier
-) {
+internal fun BrowserWebPage.Effect() {
+  val webPage = this
   val viewModel = LocalBrowserViewModel.current
   val uiScope = rememberCoroutineScope()
-  val webPage = this
-  val webView = webView
-
   /// 有的网址会改变网页到图标和标题，这里使用定时器轮训更新
-  LaunchedEffect(tick) {
+  LaunchedEffect(Unit) {
     while (true) {
       delay(1000)
       tick++
@@ -87,7 +83,18 @@ internal fun BrowserWebPage.BrowserWebPageRender(
       webView.goBack()
     }
   }
+}
 
+
+@Composable
+internal fun BrowserWebPage.BrowserWebPageRender(
+  modifier: Modifier
+) {
+  val viewModel = LocalBrowserViewModel.current
+  val uiScope = rememberCoroutineScope()
+  val webPage = this
+  webPage.Effect()
+  ///
   BoxWithConstraints(modifier.fillMaxSize()) {
     val win = LocalWindowController.current
     val colorScheme by win.watchedState { colorScheme }

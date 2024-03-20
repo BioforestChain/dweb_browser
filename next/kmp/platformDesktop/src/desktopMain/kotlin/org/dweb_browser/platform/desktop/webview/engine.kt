@@ -15,6 +15,7 @@ object WebviewEngine {
     );
     // https://github.com/JetBrains/compose-multiplatform-core/pull/915
     System.setProperty("compose.interop.blending", "true")
+    System.setProperty("compose.swing.render.on.graphics", "true")
   }
 
   fun hardwareAccelerated(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine =
