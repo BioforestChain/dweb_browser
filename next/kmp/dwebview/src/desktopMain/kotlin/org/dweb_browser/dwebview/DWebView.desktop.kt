@@ -151,3 +151,8 @@ class DWebView(
     WARNING("Not yet implemented requestRefresh")
   }
 }
+
+fun IDWebView.asDesktop(): DWebView {
+  require(this is DWebView)
+  return this
+}

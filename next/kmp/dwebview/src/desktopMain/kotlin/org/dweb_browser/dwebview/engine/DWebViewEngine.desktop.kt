@@ -45,6 +45,7 @@ import org.dweb_browser.dwebview.polyfill.FaviconPolyfill
 import org.dweb_browser.dwebview.proxy.DwebViewProxy
 import org.dweb_browser.dwebview.toReadyListener
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.getOrNull
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.toImageBitmap
@@ -109,6 +110,7 @@ class DWebViewEngine internal constructor(
 
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
   val mainFrame get() = browser.mainFrame().get()
+  val mainFrameOrNull get() = browser.mainFrame().getOrNull()
   val document get() = mainFrame.document().get()
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
   internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
@@ -188,17 +190,18 @@ class DWebViewEngine internal constructor(
   private var faviconIcon: FaviconIcon? = null
 
   private class FaviconIcon(val favicon: Bitmap) {
-    val imageBitmap = favicon.toImageBitmap()
+    val imageBitmap = if (favicon.size().isEmpty) null else favicon.toImageBitmap()
   }
 
   fun getFavoriteIcon(): ImageBitmap? {
     val favicon = browser.favicon()
     if (faviconIcon?.favicon != favicon) {
       faviconIcon = favicon?.let { FaviconIcon(it) }
-      println("QAQ new faviconIcon favicon=${faviconIcon?.favicon} bitmap=${faviconIcon?.imageBitmap}")
     }
     return faviconIcon?.imageBitmap
   }
+
+  fun getCaptureImage() = browser.bitmap().toImageBitmap()
 
   fun requestClose() {
     browser.close(CloseOptions.newBuilder().fireBeforeUnload().build())
@@ -254,8 +257,8 @@ class DWebViewEngine internal constructor(
   fun injectJsAction(action: Frame.() -> Unit) {
     injectJsActionList.add(action)
     /// 如果frame合适，那么就直接执行
-    when (val frame = mainFrame) {
-      whenInjectFrame -> frame.action()
+    when (val frame = mainFrameOrNull) {
+      whenInjectFrame -> frame?.action()
     }
   }
 
@@ -387,15 +390,15 @@ class DWebViewEngine internal constructor(
         val popupMenu = JPopupMenu()
         popupMenu.addPopupMenuListener(object : PopupMenuListener {
           override fun popupMenuWillBecomeVisible(p0: PopupMenuEvent?) {
-            println("QAQ popupMenuWillBecomeVisible")
+            println("QWQ popupMenuWillBecomeVisible")
           }
 
           override fun popupMenuWillBecomeInvisible(p0: PopupMenuEvent?) {
-            println("QAQ popupMenuWillBecomeInvisible")
+            println("QWQ popupMenuWillBecomeInvisible")
           }
 
           override fun popupMenuCanceled(e: PopupMenuEvent) {
-            println("QAQ popupMenuCanceled")
+            println("QWQ popupMenuCanceled")
             tell.close()
           }
         })
