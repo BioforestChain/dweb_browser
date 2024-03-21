@@ -84,9 +84,8 @@ import kotlin.math.max
 @Composable
 internal fun BrowserPreviewPanel(modifier: Modifier = Modifier) {
   val viewModel = LocalBrowserViewModel.current
-  val visibleState = viewModel.previewPanelVisibleState
   // 使用动画替代
-  if (!viewModel.showPreview && visibleState.isIdle) {
+  if (viewModel.isPreviewInvisible) {
     // 停止渲染后，销毁 RenderReady  这个状态值
     viewModel.previewPanelAnimationReady.clear()
     return

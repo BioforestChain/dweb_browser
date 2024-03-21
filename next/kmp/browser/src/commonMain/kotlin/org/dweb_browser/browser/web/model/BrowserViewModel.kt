@@ -87,6 +87,7 @@ class BrowserViewModel(
    */
   var previewPanelAnimationReady = mutableStateListOf<Int>()
   val showPreview get() = previewPanelVisibleState.targetState != PreviewPanelVisibleState.Close
+  val isPreviewInvisible get() = !showPreview && previewPanelVisibleState.isIdle
   fun toggleShowPreviewUI(show: Boolean) {
     previewPanelVisibleState.targetState =
       if (show) PreviewPanelVisibleState.DisplayGrid else PreviewPanelVisibleState.Close
@@ -341,7 +342,7 @@ class BrowserViewModel(
   ): BrowserPage? {
     val newPage = if (url == null || BrowserHomePage.isNewTabUrl(url)) {
       BrowserHomePage(browserController)
-    }else if (BrowserBookmarkPage.isBookmarkUrl(url)) {
+    } else if (BrowserBookmarkPage.isBookmarkUrl(url)) {
       BrowserBookmarkPage(browserController)
     } else if (BrowserHistoryPage.isHistoryUrl(url)) {
       BrowserHistoryPage(browserController)
@@ -351,7 +352,7 @@ class BrowserViewModel(
       BrowserSettingPage(browserController)
     } else if (BrowserWebPage.isWebUrl(url)) { // 判断是否网页应该放在最下面
       createWebPage(url)
-    }  else null
+    } else null
     if (newPage != null) {
       addNewPageUI(newPage, options, optionsModifier)
     }

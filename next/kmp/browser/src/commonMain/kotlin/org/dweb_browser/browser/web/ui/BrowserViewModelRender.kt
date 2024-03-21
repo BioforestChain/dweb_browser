@@ -92,14 +92,18 @@ fun BrowserViewModalRender(
           .scale(scale)
       }
     }.background(MaterialTheme.colorScheme.background)) {
-      Column(Modifier.fillMaxSize()) {
-        // 网页主体
-        Box(modifier = Modifier.weight(1f)) {
-          BrowserPageBox(viewModel, windowRenderScope)   // 中间网页主体
+
+      if (viewModel.isPreviewInvisible) {
+        Column(Modifier.fillMaxSize()) {
+          // 网页主体
+          Box(modifier = Modifier.weight(1f)) {
+            BrowserPageBox(viewModel, windowRenderScope)   // 中间网页主体
+          }
+          // 工具栏，包括搜索框和导航栏
+          BrowserBottomBar(viewModel, Modifier.fillMaxWidth().wrapContentHeight())
         }
-        // 工具栏，包括搜索框和导航栏
-        BrowserBottomBar(viewModel, Modifier.fillMaxWidth().wrapContentHeight())
       }
+
 
       BrowserPreviewPanel(Modifier.zIndex(2f))
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
