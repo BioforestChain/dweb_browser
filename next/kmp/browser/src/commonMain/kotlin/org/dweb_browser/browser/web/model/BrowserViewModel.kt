@@ -97,7 +97,6 @@ class BrowserViewModel(
 
   // TODO 优化这个字段
   var dwebLinkSearch by mutableStateOf(DwebLinkSearchItem.Empty) // 为了获取desk传过来的地址信息
-    private set
   var showSearchEngine by mutableStateOf(false)
 
   // 无痕模式状态

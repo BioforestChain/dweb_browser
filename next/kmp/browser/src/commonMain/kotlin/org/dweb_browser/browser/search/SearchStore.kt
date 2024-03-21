@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
+import org.dweb_browser.helper.format
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
 

@@ -51,8 +51,6 @@ kotlin {
       implementation(libs.camera.camera2)
       implementation(libs.camera.lifecycle)
       implementation(libs.camera.barcode)
-      //解压缩
-      implementation(libs.commons.compress)
       // 图像
       implementation(libs.coil.core)
       implementation(libs.coil.compose)

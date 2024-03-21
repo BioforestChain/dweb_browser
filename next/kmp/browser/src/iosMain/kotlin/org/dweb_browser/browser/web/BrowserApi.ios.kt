@@ -100,20 +100,20 @@ actual fun CommonBrowserView(
 
   browserObserver.browserViewModel = viewModel
 
-  key(viewModel.dwebLinkSearch.value) {
-    if (viewModel.dwebLinkSearch.value.link.isNotEmpty()) {
-      when (viewModel.dwebLinkSearch.value.target) {
+  key(viewModel.dwebLinkSearch) {
+    if (viewModel.dwebLinkSearch.link.isNotEmpty()) {
+      when (viewModel.dwebLinkSearch.target) {
         AppBrowserTarget.BLANK.type, AppBrowserTarget.SYSTEM.type -> iOSView.doNewTabUrlWithUrl(
-          viewModel.dwebLinkSearch.value.link,
-          viewModel.dwebLinkSearch.value.target
+          viewModel.dwebLinkSearch.link,
+          viewModel.dwebLinkSearch.target
         )
 
         AppBrowserTarget.SELF.type -> {
-          iOSView.doSearchWithKey(viewModel.dwebLinkSearch.value.link)
+          iOSView.doSearchWithKey(viewModel.dwebLinkSearch.link)
         }
       }
 
-      viewModel.dwebLinkSearch.value = DwebLinkSearchItem.Empty
+      viewModel.dwebLinkSearch = DwebLinkSearchItem.Empty
     }
   }
 

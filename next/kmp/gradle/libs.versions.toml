@@ -5,7 +5,7 @@ minSdkVersion = "28" # Int
 targetSdkVersion = "34" # Int
 versionCode = "80" # Int
 versionName = "2.240130.0"
-kotlinCompilerExtensionVersion = "1.5.10.1"
+kotlinCompilerExtensionVersion = "1.5.11"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
@@ -32,9 +32,9 @@ ktor-wasm-version = "3.0.0-wasm2"
 kotlinx-coroutines = "1.8.0"
 kotlinx-datetime-version = "0.5.0"
 kotlinx-atomicfu-version = "0.23.2"
-kotlinx-io-version = "0.3.1"
+kotlinx-io-version = "0.3.2"
 kotlinx-html-version = "0.11.0"
-okio-version = "3.8.0"
+okio-version = "3.9.0"
 cryptography-version = "0.3.0"
 
 accompanist = "0.34.0"
@@ -43,7 +43,7 @@ data-gson = "2.10.1"
 coil-version = "3.0.0-alpha06"
 camera-version = "1.4.0-alpha04"
 camera-barcode = "17.2.0"
-commons-compress = "1.24.0"
+commons-compress = "1.26.1"
 jetbrains-compose-version = "1.6.1"
 
 # 测试
@@ -80,9 +80,6 @@ compose-material_icons = { group = "androidx.compose.material", name = "material
 compose-material = { group = "androidx.compose.material", name = "material" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Android" }
 compose-material3-window = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3Android" }
-
-# Apache
-apache-common-compress = { module = "org.apache.commons:commons-compress", version = "1.26.1" }
 
 # Jetbrains Compose
 jetbrains-compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "jetbrains-compose-version" }
@@ -184,7 +181,7 @@ camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "
 camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camera-version" }
 camera-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "camera-barcode" }
 # 解压文件
-commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress" }
+apache-common-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress" }
 # 生物识别
 androidx-biometric-ktx = { group = "androidx.biometric", name = "biometric-ktx", version.ref = "androidx-biometric" }
 
