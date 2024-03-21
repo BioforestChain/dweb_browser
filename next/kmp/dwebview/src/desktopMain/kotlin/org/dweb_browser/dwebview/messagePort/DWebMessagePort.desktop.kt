@@ -38,7 +38,7 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
           }
         }
       })
-      // port.call<Unit>("start")
+      port.call<Unit>("start")
     }
     onMessageSignal
   }
@@ -54,20 +54,24 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
   }
 
   override suspend fun postMessage(event: DWebMessage) {
-    if (event is DWebMessage.DWebMessageBytes) {
-      val ports = event.ports.map {
-        require(it is DWebMessagePort)
-        it.port
+    when (event) {
+      is DWebMessage.DWebMessageBytes -> {
+        val ports = event.ports.map {
+          require(it is DWebMessagePort)
+          it.port
+        }
+
+        port.call<Unit>("postMessage", event.data, ports)
       }
 
-      port.call<Unit>("postMessage", event.data, ports)
-    } else if (event is DWebMessage.DWebMessageString) {
-      val ports = event.ports.map {
-        require(it is DWebMessagePort)
-        it.port
-      }
+      is DWebMessage.DWebMessageString -> {
+        val ports = event.ports.map {
+          require(it is DWebMessagePort)
+          it.port
+        }
 
-      port.call<Unit>("postMessage", event.data, ports)
+        port.call<Unit>("postMessage", event.data, ports)
+      }
     }
   }
 
