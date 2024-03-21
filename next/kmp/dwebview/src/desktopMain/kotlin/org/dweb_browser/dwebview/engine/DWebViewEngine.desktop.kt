@@ -359,7 +359,8 @@ class DWebViewEngine internal constructor(
       enableJavaScript()
       enableLocalStorage()
       enableImages()
-      enableTransparentBackground()
+      // 关闭此选项，否则会导致 windows 平台RenderMode异常 https://github.com/flutter/flutter-intellij/pull/4804
+//      enableTransparentBackground()
       enableOverscrollHistoryNavigation()
       allowRunningInsecureContent()
       allowJavaScriptAccessClipboard()
