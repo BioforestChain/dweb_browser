@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.dwebview.engine.window
 import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
 import org.dweb_browser.dwebview.messagePort.DWebMessagePort
 import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
@@ -53,6 +54,9 @@ class DWebView(
 
   override suspend fun startLoadUrl(url: String): String {
     viewEngine.loadUrl(url)
+    if (url == "https://js.browser.dweb/index.html") {
+      viewEngine.browser.devTools().show()
+    }
     return viewEngine.getOriginalUrl()
   }
 
@@ -93,12 +97,11 @@ class DWebView(
   }
 
   override suspend fun postMessage(data: String, ports: List<IWebMessagePort>) {
-    viewEngine.mainFrame
-    ports.first().onMessage.signal.emit(DWebMessage.DWebMessageString(data, ports))
+    viewEngine.mainFrame.window().postMessage(data, ports.filterIsInstance<DWebMessagePort>())
   }
 
   override suspend fun postMessage(data: ByteArray, ports: List<IWebMessagePort>) {
-    ports.first().onMessage.signal.emit(DWebMessage.DWebMessageBytes(data, ports))
+    viewEngine.mainFrame.window().postMessage(data, ports.filterIsInstance<DWebMessagePort>())
   }
 
   override suspend fun setContentScale(scale: Float, width: Float, height: Float, density: Float) {

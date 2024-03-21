@@ -83,6 +83,7 @@ class RunningApp(
       ipc.afterReady()
       job.cancel()
     } catch (e: Exception) {
+      debugDesk("createWindow", "app代码异常，无法连接,请反馈后重新下载", e)
       throw Exception("app代码异常，无法连接,请反馈后重新下载")
     }
 

@@ -3,43 +3,35 @@ package org.dweb_browser.dwebview.engine
 import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.JsFunctionCallback
 import com.teamdev.jxbrowser.js.JsObject
+import org.dweb_browser.dwebview.messagePort.DWebMessagePort
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrNull
 import org.dweb_browser.helper.getOrPut
 import kotlin.reflect.KProperty
 
+
 @Suppress("MemberVisibilityCanBePrivate")
-open class JsJObject(val originJsObject: JsObject) : JsObject by originJsObject {
-  private val _jso = RememberLazy(originJsObject) { originJsObject }
+open class JsJObject(val origin: JsObject) : JsObject by origin {
+  private val _jso = RememberLazy(origin) { origin }
 
   @Suppress("SameParameterValue")
   protected fun <T> staticProp(propName: String) =
-    _jso.then { originJsObject.property<T>(propName).get() }
+    _jso.then { origin.property<T>(propName).get() }
 
   protected fun <T, R> getProp(p: String, transfer: (T) -> R) =
-    transfer(originJsObject.property<T>(p).get())
+    transfer(origin.property<T>(p).get())
 
-  protected fun <T : Any?> getProp(p: String) = originJsObject.property<T>(p).getOrNull() as T
-  protected fun setProp(p: String, value: Any?) = originJsObject.putProperty(p, value)
+  protected fun <T : Any?> getProp(p: String) = origin.getProp<T>(p)
+  protected fun setProp(p: String, value: Any?) = origin.setProp(p, value)
   protected fun <T : Any?> prop(p: String) = JsJProperty<T>(p)
-
-  class JsJProperty<T : Any?>(val propName: String) {
-    operator fun getValue(target: JsJObject, property: KProperty<*>): T {
-      return target.getProp(propName)
-    }
-
-    operator fun setValue(target: JsJObject, property: KProperty<*>, t: T) {
-      target.setProp(propName, t)
-    }
-  }
 
 }
 
 open class JsJEventTarget(js: JsObject) : JsJObject(js) {
   private val jsjWM = WeakHashMap<JsJEventHandler, JsFunctionCallback>()
   fun addEventListener(eventName: String, listener: JsJEventHandler) {
-    originJsObject.call<Any>("addEventListener", eventName, jsjWM.getOrPut(listener) {
+    origin.call<Any>("addEventListener", eventName, jsjWM.getOrPut(listener) {
       JsFunctionCallback {
         listener(JsJEvent(it[0] as JsObject))
       }
@@ -48,23 +40,23 @@ open class JsJEventTarget(js: JsObject) : JsJObject(js) {
 
   fun removeEventListener(eventName: String, listener: JsJEventHandler) {
     jsjWM[listener]?.also { jsFunctionCallback ->
-      originJsObject.call<Any>("removeEventListener", eventName, jsFunctionCallback)
+      origin.call<Any>("removeEventListener", eventName, jsFunctionCallback)
     }
   }
 
   fun dispatchEvent(event: JsJEvent) {
-    dispatchEvent(event.originJsObject)
+    dispatchEvent(event.origin)
   }
 
   fun dispatchEvent(event: JsObject) {
-    originJsObject.call<Any>("dispatchEvent", event)
+    origin.call<Any>("dispatchEvent", event)
   }
 }
 
 class JsJWindow(js: JsObject) : JsJObject(js) {
   private val jsjWM = WeakHashMap<JsJEventHandler, JsFunctionCallback>()
   fun addEventListener(eventName: String, listener: JsJEventHandler) {
-    originJsObject.call<Any>("addEventListener", eventName, jsjWM.getOrPut(listener) {
+    origin.call<Any>("addEventListener", eventName, jsjWM.getOrPut(listener) {
       JsFunctionCallback {
         listener(JsJEvent(it[0] as JsObject))
       }
@@ -73,13 +65,24 @@ class JsJWindow(js: JsObject) : JsJObject(js) {
 
   fun removeEventListener(eventName: String, listener: JsJEventHandler) {
     jsjWM[listener]?.also { jsFunctionCallback ->
-      originJsObject.call<Any>("removeEventListener", eventName, jsFunctionCallback)
+      origin.call<Any>("removeEventListener", eventName, jsFunctionCallback)
     }
+  }
+
+  fun postMessage(data: Any, ports: List<DWebMessagePort>) {
+    origin.call<Unit>(
+      "dispatchEvent",
+      MessageEvent.new<JsObject>("message", origin.frame().jsObject().apply {
+        putProperty("data", data)
+        putProperty("ports", ports.map { it.port })
+      })
+    )
   }
 
   val scrollX by prop<Double>("scrollX")
   val scrollY by prop<Double>("scrollY")
   val devicePixelRatio by staticProp<Double>("devicePixelRatio")
+  val MessageEvent by staticProp<JsObject>("MessageEvent")
 }
 
 typealias JsJEventHandler = (JsJEvent) -> Unit
@@ -94,4 +97,25 @@ class JsJEvent(js: JsObject) : JsJObject(js) {
   val timeStamp by staticProp<Double>("timeStamp")
 }
 
-fun Frame.window() = JsJWindow(executeJavaScript<JsObject>("window")!!)
+fun Frame.window() = JsJWindow(jsWindow())
+fun Frame.jsWindow() = executeJavaScript<JsObject>("window")!!
+fun Frame.jsReflect() = executeJavaScript<JsObject>("Reflect")!!
+fun Frame.jsObject() = executeJavaScript<JsObject>("({})")!!
+
+fun <T : Any?> JsObject.getProp(p: String) = property<T>(p).getOrNull() as T
+fun JsObject.setProp(p: String, value: Any?) = putProperty(p, value)
+fun <T : Any?> JsObject.construct(target: JsObject, argArray: List<Any?>) =
+  frame().jsReflect().call<T>("construct", target, argArray)
+
+fun <T : JsObject> JsObject.new(vararg argArray: Any?) =
+  construct<JsObject>(this, argArray.toList())
+
+class JsJProperty<T : Any?>(val propName: String) {
+  operator fun getValue(target: JsJObject, property: KProperty<*>): T {
+    return target.origin.getProp(propName)
+  }
+
+  operator fun setValue(target: JsJObject, property: KProperty<*>, t: T) {
+    target.origin.setProp(propName, t)
+  }
+}

@@ -18,7 +18,7 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
     val onMessageSignal = Signal<DWebMessage>()
     webview.ioScope.launch {
       port.call<Unit>("start")
-      port.call<Unit>("addEventListener", JsFunctionCallback {
+      port.call<Unit>("addEventListener", "message", JsFunctionCallback {
         (it[0] as JsObject).apply {
           val ports = property<JsObject>("ports").runIf { jsPorts ->
             jsPorts.property<Number>("size").runIf { size ->

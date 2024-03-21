@@ -273,7 +273,7 @@ class DWebViewEngine internal constructor(
       injectJsAction {
         val window = window()
         for ((name, obj) in injectInterfaces) {
-          window.putProperty(name, obj)
+          window.setProp(name, obj)
         }
       }
     }
