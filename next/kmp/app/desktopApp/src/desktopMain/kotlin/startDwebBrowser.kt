@@ -35,9 +35,7 @@ import org.dweb_browser.sys.share.ShareNMM
 import org.dweb_browser.sys.shortcut.ShortcutNMM
 import org.dweb_browser.sys.toast.ToastNMM
 
-val isDEBUG get() = System.getProperty("debug") == "true"
-
-suspend fun startDwebBrowser(): DnsNMM {
+suspend fun startDwebBrowser(isDebugMode: Boolean = System.getProperty("debug") == "true"): DnsNMM {
   /**
   "message-port-ipc",
   "stream-ipc",
@@ -68,7 +66,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     DEVELOPER.HLOppo -> addDebugTags(listOf("/.+/"))
     else -> addDebugTags(listOf())
   }*/
-  if (isDEBUG) addDebugTags(listOf("/.+/"))
+  if (isDebugMode) addDebugTags(listOf("/.+/"))
 
   /// 初始化DNS服务
   val dnsNMM = DnsNMM()
@@ -147,7 +145,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
   ).setup()
 
-  if (isDEBUG) {
+  if (isDebugMode) {
     PermissionProviderTNN().setup()
     PermissionApplicantTMM().setup()
   }
