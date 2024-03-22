@@ -37,8 +37,25 @@ compose.desktop {
 
     nativeDistributions {
       targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
-      packageName = "info.bagen.dwebbrowser"
+      packageName = "DwebBrowser"
       packageVersion = "1.0.0"
+
+      val iconsRoot = project.file("${rootProject.rootDir}/app/desktopApp/src/desktopMain/res/icons")
+      windows {
+        iconFile.set(iconsRoot.resolve("win/icon.ico"))
+        menuGroup = "Developer"
+        dirChooser = true
+        shortcut = true
+
+        // see https://wixtoolset.org/documentation/manual/v3/howtos/general/generate_guids.html
+        upgradeUuid = "2f6b36ed-8691-4c5e-a645-6aaf8e9ec32d"
+      }
+
+      macOS {
+        iconFile.set(iconsRoot.resolve("mac/icon.icns"))
+        bundleID = "info.bagen.dwebbrowser"
+        setDockNameSameAsPackageName = true
+      }
     }
   }
 }
