@@ -1,10 +1,7 @@
 package org.dweb_browser.core.ipc
 
-import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.DWebMessageBytesEncode
@@ -22,7 +19,7 @@ import org.dweb_browser.core.ipc.helper.ipcPoolPackToJson
 import org.dweb_browser.core.ipc.helper.jsonToIpcPack
 import org.dweb_browser.core.ipc.helper.jsonToIpcPoolPack
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.EventFlow
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -34,34 +31,36 @@ class MessagePort(private val port: IWebMessagePort) {
     private val wm = WeakHashMap<IWebMessagePort, MessagePort>()
     suspend fun from(port: IWebMessagePort): MessagePort =
       wm.getOrPut(port) { MessagePort(port).also { it.installMessageSignal() } }
-
-    val messageScope = CoroutineScope(CoroutineName("webMessage") + ioAsyncExceptionHandler)
   }
 
-  private val messageChannel = Channel<DWebMessage>(capacity = Channel.UNLIMITED)
+  private val messageScope = CoroutineScope(CoroutineName("webMessage") + ioAsyncExceptionHandler)
+  private val _messageSignal = EventFlow<DWebMessage>(messageScope)
+  val onWebMessage = _messageSignal.toListener()
+
+//  private val messageChannel = Channel<DWebMessage>(capacity = Channel.UNLIMITED)
 
   private suspend fun installMessageSignal() {
     port.onMessage {
-      messageChannel.send(it)
+      _messageSignal.emit(it)
+//      messageChannel.trySend(it).getOrElse { err ->
+//        err?.printStackTrace()
+//      }
     }
-
   }
+//  private val _messageSignal by lazy {
+//    val signal = EventFlow<DWebMessage>(messageScope)
+//    messageScope.launch {
+//      /// 这里为了确保消息的顺序正确性，比如使用channel来一帧一帧地读取数据，不可以直接用 launch 去异步执行 event，这会导致下层解析数据的顺序问题
+//      /// 并发性需要到消息被解码出来后才能去执行并发。也就是非 IpcStream 类型的数据才可以走并发
+//      for (event in messageChannel) {
+//        signal.emit(event)
+//      }
+//      signal.clear()
+//    }
+//
+//    signal
+//  }
 
-  private val _messageSignal by lazy {
-    val signal = Signal<DWebMessage>()
-    messageScope.launch {
-      /// 这里为了确保消息的顺序正确性，比如使用channel来一帧一帧地读取数据，不可以直接用 launch 去异步执行 event，这会导致下层解析数据的顺序问题
-      /// 并发性需要到消息被解码出来后才能去执行并发。也就是非 IpcStream 类型的数据才可以走并发
-      for (event in messageChannel) {
-        signal.emit(event)
-      }
-      signal.clear()
-    }
-
-    signal
-  }
-
-  val onWebMessage = _messageSignal.toListener()
   suspend fun postMessage(data: String) {
     port.postMessage(DWebMessage.DWebMessageString(data))
   }
@@ -76,7 +75,8 @@ class MessagePort(private val port: IWebMessagePort) {
       return
     }
     _isClosed = true
-    messageChannel.close()
+//    messageChannel.close()
+    _messageSignal.clear()
     port.close()
   }
 }
@@ -96,7 +96,6 @@ open class MessagePortIpc(
       endpoint: IpcPool
     ) = MessagePortIpc(MessagePort.from(port), remote, channelId, endpoint)
 
-    private val closeByteArray = "close".toByteArray()
   }
 
   override fun toString(): String {
@@ -112,7 +111,6 @@ open class MessagePortIpc(
         when (event.encode) {
           DWebMessageBytesEncode.Normal -> when (val message =
             bytesToIpcMessage(event.data, ipc)) {
-            closeByteArray -> close()
             is IpcPoolPack -> {
 //              debugMessagePortIpc("ON-MESSAGE", "Normal.IpcPoolPack=> $channelId => $message")
               // 分发消息
@@ -129,12 +127,10 @@ open class MessagePortIpc(
           else -> {}
         }
       }
-    }.removeWhen(onDestroy)
+    }.removeWhen(onClose)
   }
 
   private suspend fun stringFactory(event: DWebMessage.DWebMessageString) {
-    // 接受关闭信号
-    if (event.data == "close") return this.close()
     val pack = jsonToIpcPack(event.data)
     val message = jsonToIpcPoolPack(pack.ipcMessage, this@MessagePortIpc)
     debugMessagePortIpc("ON-MESSAGE string", "$channelId => $message")
@@ -172,10 +168,9 @@ open class MessagePortIpc(
     this.port.postMessage(message)
   }
 
-  override suspend fun doClose() {
-    this.port.postMessage("close")
+  override suspend fun _doClose() {
+    closeSignal.emitAndClear()
     this.port.close()
-    closeSignal.emit()
   }
 
 }

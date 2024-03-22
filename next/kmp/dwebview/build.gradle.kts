@@ -1,6 +1,9 @@
 plugins {
   id("kmp-compose")
 }
+dependencies {
+  implementation(project(":core"))
+}
 
 kotlin {
   kmpCommonTarget(project) {

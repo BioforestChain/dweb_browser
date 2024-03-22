@@ -288,7 +288,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       },
       // 监听所有taskbar状态
       "/taskbar/observe/status" byChannel { ctx ->
-        debugDesk("/taskbar/observe/status")
+        debugDesk("deskNMM", "/taskbar/observe/status")
         taskBarController.onStatus { status ->
           ctx.sendJsonLine(status)
         }.removeWhen(onClose)

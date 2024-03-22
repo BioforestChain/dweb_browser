@@ -117,44 +117,40 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
    * 和 dweb 的 port 一样，pid 是我们自己定义的，它跟我们的 mmid 关联在一起
    * 所以不会和其它程序所使用的 pid 冲突
    */
-  private var processId: String? = null
+  private var processId = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url() + mmid
   private var fetchIpc: Ipc? = null
 
-  private val pid = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
-
   /**创建js文件流*/
-  private suspend fun createNativeStream(): ReadableStreamIpc =
-    withContext(ioAsyncScope.coroutineContext) {
-      debugJsMM("createNativeStream", "pid=$pid, root=${metadata.server}")
-      processId = pid
-      val streamIpc = kotlinIpcPool.create<ReadableStreamIpc>(
-        "code-server",
-        IpcOptions(this@JsMicroModule)
-      )
+  private suspend fun createNativeStream(): ReadableStreamIpc {
+    debugJsMM("createNativeStream", "processId=$processId, root=${metadata.server}")
+    val streamIpc = kotlinIpcPool.create<ReadableStreamIpc>(
+      "code-server-${mmid}",
+      IpcOptions(this@JsMicroModule)
+    )
 
-      streamIpc.onRequest { (request, ipc) ->
-        debugJsMM("streamIpc.onRequest", "path=${request.uri.fullPath}")
-        val response = if (request.uri.fullPath.endsWith("/")) {
-          PureResponse(HttpStatusCode.Forbidden)
-        } else {
-          // 正则含义是将两个或以上的 / 斜杆直接转为单斜杆
-          nativeFetch(
-            "file://" + (metadata.server.root + request.uri.fullPath).replace(Regex("/{2,}"), "/")
-          )
-        }
-        ipc.postMessage(IpcResponse.fromResponse(request.reqId, response, ipc))
-      }
-      streamIpc.bindIncomeStream(
+    streamIpc.onRequest { (request, ipc) ->
+      debugJsMM("streamIpc.onRequest", "path=${request.uri.fullPath}")
+      val response = if (request.uri.fullPath.endsWith("/")) {
+        PureResponse(HttpStatusCode.Forbidden)
+      } else {
+        // 正则含义是将两个或以上的 / 斜杆直接转为单斜杆
         nativeFetch(
-          PureClientRequest(buildUrlString("file://js.browser.dweb/create-process") {
-            parameters["entry"] = metadata.server.entry
-            parameters["process_id"] = pid
-          }, PureMethod.POST, body = PureStreamBody(streamIpc.input.stream))
-        ).stream()
-      )
-      this@JsMicroModule.addToIpcSet(streamIpc)
-      streamIpc
+          "file://" + (metadata.server.root + request.uri.fullPath).replace(Regex("/{2,}"), "/")
+        )
+      }
+      ipc.postMessage(IpcResponse.fromResponse(request.reqId, response, ipc))
     }
+    streamIpc.bindIncomeStream(
+      nativeFetch(
+        PureClientRequest(buildUrlString("file://js.browser.dweb/create-process") {
+          parameters["entry"] = metadata.server.entry
+          parameters["process_id"] = processId
+        }, PureMethod.POST, body = PureStreamBody(streamIpc.input.stream))
+      ).stream()
+    )
+    this@JsMicroModule.addToIpcSet(streamIpc)
+    return streamIpc
+  }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     debugJsMM(
@@ -171,7 +167,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         Exception("$short_name 无法启动"),
       )
     })
-
+    // 创建worker线程环境
     createNativeStream()
     /**
      * 拿到与js.browser.dweb模块的直连通道，它会将 Worker 中的数据带出来
@@ -292,7 +288,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
      */
     val portId = nativeFetch(
       URLBuilder("file://js.browser.dweb/create-ipc").apply {
-        parameters["process_id"] = pid
+        parameters["process_id"] = processId
         parameters["mmid"] = fromMMID
       }.buildUnsafeString()
     ).int()
@@ -314,7 +310,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
   private suspend fun ipcBridgeJsMM(fromMMID: MMID, toMMID: MMID): Boolean {
     return nativeFetch(
       URLBuilder("file://js.browser.dweb/create-ipc").apply {
-        parameters["process_id"] = pid
+        parameters["process_id"] = processId
         parameters["from_mmid"] = fromMMID
         parameters["to_mmid"] = toMMID
       }.buildUnsafeString()
@@ -370,15 +366,14 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       "jsMM_shutdown",
       "$mmid/${this.fetchIpc?.channelId} ipcNumber=>${fromMMIDOriginIpcWM.size}"
     )
-    //主动关闭线程
-    closeProcess()
+    fromMMIDOriginIpcWM.forEach { map ->
+      val ipc = map.value.waitPromise()
+      ipc.close()
+    }
+    fromMMIDOriginIpcWM.clear()
     fetchIpc?.close()
-    processId = null
     fetchIpc = null
   }
-
-  private suspend fun closeProcess() =
-    nativeFetch("file://js.browser.dweb/close-all-process").boolean()
 
   override fun toManifest(): CommonAppManifest {
     return this.metadata.toCommonAppManifest()

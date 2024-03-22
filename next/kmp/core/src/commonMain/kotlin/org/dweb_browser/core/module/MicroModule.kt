@@ -12,12 +12,11 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.SimpleEventFlow
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.pure.http.PureRequest
 
@@ -49,7 +48,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
   protected open suspend fun beforeBootstrap(bootstrapContext: BootstrapContext): Boolean {
     if (this.runningStateLock.state == MMState.BOOTSTRAP) {
-      debugMicroModule("module ${this.mmid} already running");
+      debugMicroModule("beforeBootstrap", "${this.mmid} already running")
       return false
     }
     this.runningStateLock.waitPromise() // 确保已经完成上一个状态
@@ -100,7 +99,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
   protected open suspend fun beforeShutdown(): Boolean {
     if (this.runningStateLock.state == MMState.SHUTDOWN) {
-      debugMicroModule("module $mmid already shutdown");
+      debugMicroModule("beforeShutdown", "module $mmid already shutdown")
       return false
     }
     readyLock.lock()
@@ -122,12 +121,16 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
   protected abstract suspend fun _shutdown()
   protected open suspend fun afterShutdown() {
+    println("xxxxonafterShutdown=> 111 ${mmid}")
     _afterShutdownSignal.emitAndClear()
+    println("xxxxonAfterShutdown=> 222 ${mmid}")
     _connectSignal.clear()
+    println("xxxxonAfterShutdown=> 333 ${mmid}")
     runningStateLock.resolve()
     this._bootstrapContext = null
     // 取消所有的工作
     this.ioAsyncScope.cancel()
+    println("xxxxonAfterShutdown=> ${mmid}")
   }
 
   suspend fun shutdown() = lifecycleLock.withLock {
@@ -147,7 +150,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   protected open suspend fun _dispose() {
   }
 
-  private val _afterShutdownSignal = SimpleSignal();
+  private val _afterShutdownSignal = SimpleEventFlow(_scope,"$mmid-_afterShutdown")
   val onAfterShutdown = _afterShutdownSignal.toListener()
 
   /**

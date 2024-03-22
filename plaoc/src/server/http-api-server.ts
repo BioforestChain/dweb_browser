@@ -57,9 +57,8 @@ export class Server_api extends HttpServer {
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
         setTimeout(async () => {
           const winId = await this.getWid();
-          console.log("关闭窗口", winId);
-          await close_window(winId);
-          console.log("关闭窗口成功", winId);
+          // 这里面在窗口关闭的时候，会触发dns.close 因此不能等待close_window返回再去关闭
+          close_window(winId);
           jsProcess.restart();
         }, 200);
         return Response.json({ success: true, message: "restart ok" });

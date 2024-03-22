@@ -89,7 +89,7 @@ class HttpDwebServer(
   val startResult: HttpNMM.ServerStartResult
 ) {
   private val listenPo = PromiseOut<ReadableStreamIpc>()
-  val listen = SuspendOnce {
+  val listen = SuspendOnce<ReadableStreamIpc> {
     if (listenPo.isFinished) {
       throw Exception("Listen method has been called more than once without closing.");
     }

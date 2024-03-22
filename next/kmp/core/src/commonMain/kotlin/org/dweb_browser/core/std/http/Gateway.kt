@@ -1,10 +1,11 @@
 package org.dweb_browser.core.std.http
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.util.collections.ConcurrentSet
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.helper.SimpleCallback
-import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.SimpleEventFlow
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
@@ -17,7 +18,7 @@ class Gateway(
   class PortListener(
     val mainIpc: Ipc, val host: String
   ) {
-    private val _routerSet = mutableSetOf<StreamIpcRouter>();
+    private val _routerSet = ConcurrentSet<StreamIpcRouter>()
 
     fun addRouter(config: CommonRoute, ipc: Ipc): () -> Boolean {
       val route = StreamIpcRouter(config, ipc);
@@ -42,7 +43,7 @@ class Gateway(
     }
 
     /// 销毁
-    private val destroySignal = SimpleSignal()
+    private val destroySignal = SimpleEventFlow(mainIpc.ipcScope)
     fun onDestroy(cb: SimpleCallback) = destroySignal.listen(cb)
 
     suspend fun destroy() {

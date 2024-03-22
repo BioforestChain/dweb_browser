@@ -3,8 +3,8 @@ package org.dweb_browser.core.ipc.helper
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.ByteEnumSerializer
-import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.IntEnumSerializer
+import org.dweb_browser.helper.SignalCallback
 import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.toBase64ByteArray
 
@@ -12,30 +12,30 @@ import org.dweb_browser.helper.toBase64ByteArray
 const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
 
 /**IpcPool*/
-data class IpcPoolMessageArgs(val message: IpcPoolPack, val ipc:Ipc)
-typealias OnIpcPoolMessage = Callback<IpcPoolMessageArgs>
+data class IpcPoolMessageArgs(val message: IpcPoolPack, val ipc: Ipc)
+typealias OnIpcPoolMessage = SignalCallback<IpcPoolMessageArgs>
 
 /**Ipc*/
 data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc)
-typealias OnIpcMessage = Callback<IpcMessageArgs>
+typealias OnIpcMessage = SignalCallback<IpcMessageArgs>
 
 data class IpcRequestMessageArgs(val request: IpcServerRequest, val ipc: Ipc)
-typealias OnIpcRequestMessage = Callback<IpcRequestMessageArgs>
+typealias OnIpcRequestMessage = SignalCallback<IpcRequestMessageArgs>
 
 data class IpcResponseMessageArgs(val response: IpcResponse, val ipc: Ipc)
-typealias OnIpcResponseMessage = Callback<IpcResponseMessageArgs>
+typealias OnIpcResponseMessage = SignalCallback<IpcResponseMessageArgs>
 
 data class IpcStreamMessageArgs(val response: IpcStream, val ipc: Ipc)
-typealias OnIpcStreamMessage = Callback<IpcStreamMessageArgs>
+typealias OnIpcStreamMessage = SignalCallback<IpcStreamMessageArgs>
 
 data class IpcEventMessageArgs(val event: IpcEvent, val ipc: Ipc)
-typealias OnIpcEventMessage = Callback<IpcEventMessageArgs>
+typealias OnIpcEventMessage = SignalCallback<IpcEventMessageArgs>
 
 data class IpcLifeCycleMessageArgs(val event: IpcLifeCycle, val ipc: Ipc)
-typealias OnIpcLifeCycleMessage = Callback<IpcLifeCycleMessageArgs>
+typealias OnIpcLifeCycleMessage = SignalCallback<IpcLifeCycleMessageArgs>
 
 data class IpcErrorMessageArgs(val event: IpcError, val ipc: Ipc)
-typealias OnIpcErrorMessage = Callback<IpcErrorMessageArgs>
+typealias OnIpcErrorMessage = SignalCallback<IpcErrorMessageArgs>
 
 @Serializable(IPC_MESSAGE_TYPE_Serializer::class)
 enum class IPC_MESSAGE_TYPE(val type: Byte) {

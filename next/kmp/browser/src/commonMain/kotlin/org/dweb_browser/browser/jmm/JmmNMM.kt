@@ -71,6 +71,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
               }
             }
           }.await()
+          debugJMM("respondLocalFile", root)
           returnFile(root, filePath)
         } else returnNext()
       }

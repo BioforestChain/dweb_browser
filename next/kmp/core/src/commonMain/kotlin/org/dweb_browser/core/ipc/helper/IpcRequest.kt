@@ -136,7 +136,7 @@ class IpcClientRequest(
         debugIpc("ipcClient/hasChannel") { "create ipcEventBaseName:$eventNameBase => request:$pureRequest" }
         CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
           val pureChannel = pureRequest.getChannel()
-          debugIpc("ipcClient/channelToIpc") { "channelId:$eventNameBase => pureChannel:$pureChannel start!!" }
+//          debugIpc("ipcClient/channelToIpc") { "channelId:$eventNameBase => pureChannel:$pureChannel start!!" }
           /// 不论是请求者还是响应者
           /// 那么意味着数据需要通过ipc来进行发送。所以我需要将 pureChannel 中要发送的数据读取出来进行发送
           /// 反之，ipc收到的数据也要作为 pureChannel 的
@@ -219,10 +219,10 @@ class IpcServerRequest(
       /// 如果存在双工通道，那么这个 pureRequest 用不了，需要重新构建一个新的 PureServerRequest
       if (hasDuplex) {
         val eventNameBase = duplexEventBaseName!!
-        debugIpc(
-          "PureServer/ipcToChannel",
-          "channelId:$eventNameBase => request:$this start!!"
-        )
+//        debugIpc(
+//          "PureServer/ipcToChannel",
+//          "channelId:$eventNameBase => request:$this start!!"
+//        )
 
         val pureChannelDeferred = CompletableDeferred<PureChannel>()
         CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
