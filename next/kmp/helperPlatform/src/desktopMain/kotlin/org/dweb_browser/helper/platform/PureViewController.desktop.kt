@@ -1,8 +1,13 @@
 package org.dweb_browser.helper.platform
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.key.KeyEvent
@@ -13,14 +18,18 @@ import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
+import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.awaitApplication
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.LocalCompositionChain
@@ -29,28 +38,60 @@ import org.dweb_browser.helper.withScope
 
 
 class ComposeWindowParams(
-  private val pvc: PureViewController,
-  val onCloseRequest: () -> Unit,
-  val placement: WindowPlacement = WindowPlacement.Floating,
-  val isMinimized: Boolean = false,
-  val position: WindowPosition = WindowPosition.PlatformDefault,
-  val size: DpSize = DpSize(800.dp, 600.dp),
-  val visible: Boolean = true,
-  val title: String = "Untitled",
-  val icon: Painter? = null,
-  val undecorated: Boolean = false,
-  val transparent: Boolean = false,
-  val resizable: Boolean = true,
-  val enabled: Boolean = true,
-  val focusable: Boolean = true,
-  val alwaysOnTop: Boolean = false,
-  val onPreviewKeyEvent: (KeyEvent) -> Boolean = { false },
-  val onKeyEvent: (KeyEvent) -> Boolean = { false },
-  val content: @Composable FrameWindowScope.() -> Unit
+  private val pvc: PureViewController, val content: @Composable FrameWindowScope.() -> Unit
 ) {
-  suspend fun openWindow() {
-    if (PureViewController.windowRenders.contains(this)) {
-      return
+  class CacheWindowState(
+    override var isMinimized: Boolean,
+    override var placement: WindowPlacement,
+    override var position: WindowPosition,
+    override var size: DpSize
+  ) : WindowState
+
+  internal var state: WindowState = CacheWindowState(
+    isMinimized = false, placement = WindowPlacement.Floating,
+    position = WindowPosition.PlatformDefault,
+    size = DpSize(800.dp, 600.dp),
+  )
+  var isMinimized
+    get() = state.isMinimized
+    set(value) {
+      state.isMinimized = value
+    }
+  var placement
+    get() = state.placement
+    set(value) {
+      state.placement = value
+    }
+  var position
+    get() = state.position
+    set(value) {
+      state.position = value
+    }
+  var size
+    get() = state.size
+    set(value) {
+      state.size = value
+    }
+
+  var onCloseRequest by mutableStateOf<() -> Unit>({})
+  var visible by mutableStateOf<Boolean>(true)
+  var title by mutableStateOf<String>("Untitled")
+  var icon by mutableStateOf<Painter?>(null)
+  var undecorated by mutableStateOf<Boolean>(false)
+  var transparent by mutableStateOf<Boolean>(false)
+  var resizable by mutableStateOf<Boolean>(true)
+  var enabled by mutableStateOf<Boolean>(true)
+  var focusable by mutableStateOf<Boolean>(true)
+  var alwaysOnTop by mutableStateOf<Boolean>(false)
+  var onPreviewKeyEvent by mutableStateOf<(KeyEvent) -> Boolean>({ false })
+  var onKeyEvent by mutableStateOf<(KeyEvent) -> Boolean>({ false })
+
+  val isOpened get() = PureViewController.windowRenders.contains(this)
+  private val openCloseLock = Mutex()
+
+  suspend fun openWindow() = openCloseLock.withLock {
+    if (isOpened) {
+      return@withLock
     }
     withScope(pvc.lifecycleScope) {
       pvc.createSignal.emit(pvc.createParams)
@@ -60,10 +101,12 @@ class ComposeWindowParams(
     }
   }
 
-  suspend fun closeWindow() {
-    if (!PureViewController.windowRenders.contains(this)) {
-      return
+  @OptIn(ExperimentalCoroutinesApi::class)
+  suspend fun closeWindow() = openCloseLock.withLock {
+    if (!isOpened) {
+      return@withLock
     }
+    pvc.composeWindowStateFlow.resetReplayCache()
     withScope(pvc.lifecycleScope) {
       pvc.destroySignal.emitAndClear()
     }
@@ -105,14 +148,21 @@ class PureViewController(
       uiScope = rememberCoroutineScope()
       prepared.complete(Unit)
       for (winRender in windowRenders) {
+        val state = rememberWindowState()
+        // state要独立存储，否则 position、size 会导致这里重复重组
+        if (winRender.state != state) {
+          val oldState = winRender.state
+          state.apply {
+            placement = oldState.placement
+            isMinimized = oldState.isMinimized
+            position = oldState.position
+            size = oldState.size
+          }
+          winRender.state = state
+        }
         Window(
           onCloseRequest = winRender.onCloseRequest,
-          state = rememberWindowState(
-            placement = winRender.placement,
-            isMinimized = winRender.isMinimized,
-            position = winRender.position,
-            size = winRender.size
-          ),
+          state = state,
           visible = winRender.visible,
           title = winRender.title,
           icon = winRender.icon,
@@ -184,23 +234,16 @@ class PureViewController(
     PureViewBox(this)
   }
 
-  private val composeWindowStateFlow = MutableSharedFlow<ComposeWindow>(1)
+  internal val composeWindowStateFlow = MutableSharedFlow<ComposeWindow>(1)
   suspend fun awaitComposeWindow() = composeWindowStateFlow.first()
+  @Suppress("UNCHECKED_CAST")
+  @Composable fun composeWindowAsState() = composeWindowStateFlow.collectAsState(getComposeWindowOrNull()) as State<ComposeWindow>
 
   fun getComposeWindowOrNull() = composeWindowStateFlow.replayCache.firstOrNull()
 
-  val composeWindow by lazy {
-    var onCloseRequest = {}
-    ComposeWindowParams(
-      //
-      pvc = this,
-      onCloseRequest = {
-        onCloseRequest()
-      },
-//      transparent = true,
-//      undecorated = true,
-//      placement = WindowPlacement.Maximized,
-    ) {
+  @OptIn(ExperimentalCoroutinesApi::class)
+  val composeWindowParams by lazy {
+    ComposeWindowParams(this) {
       composeWindowStateFlow.tryEmit(window)
       LocalCompositionChain.current.Provider(
         LocalPureViewController provides this@PureViewController,
@@ -210,10 +253,13 @@ class PureViewController(
           content()
         }
       }
-    }.also {
+    }.apply {
       onCloseRequest = {
-        lifecycleScope.launch { it.closeWindow() }
+        lifecycleScope.launch { closeWindow() }
       }
+//      transparent = true,
+//      undecorated = true,
+//      placement = WindowPlacement.Maximized,
     }
   }
 

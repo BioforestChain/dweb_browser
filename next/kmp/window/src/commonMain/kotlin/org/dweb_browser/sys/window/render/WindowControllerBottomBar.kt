@@ -57,22 +57,19 @@ import kotlin.math.min
 internal fun WindowBottomBar(
   win: WindowController, modifier: Modifier = Modifier
 ) {
-  val windowEdge = LocalWindowPadding.current
   val contentColor = LocalWindowControllerTheme.current.bottomContentColor
   CompositionLocalProvider(
     LocalContentColor provides contentColor,
   ) {
     Box(
-      modifier = modifier
-        .height(windowEdge.bottom.dp)
-        .background(
-          Brush.verticalGradient(
-            colors = listOf(
-              Color.Transparent,
-              contentColor.copy(alpha = 0.2f),
-            )
+      modifier = modifier.background(
+        Brush.verticalGradient(
+          colors = listOf(
+            Color.Transparent,
+            contentColor.copy(alpha = 0.2f),
           )
         )
+      )
     ) {
       val maximize by win.watchedIsMaximized()
       if (maximize) {
@@ -100,53 +97,43 @@ internal fun WindowBottomResizeBar(
   val windowEdge = LocalWindowPadding.current
   val resizable by win.watchedState { resizable }
   Row(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(
-        start = if (resizable) 0.dp else windowEdge.left.dp,
-        end = if (resizable) 0.dp else windowEdge.right.dp
-      )
+    modifier = Modifier.fillMaxSize().padding(
+      start = if (resizable) 0.dp else windowEdge.start.dp,
+      end = if (resizable) 0.dp else windowEdge.end.dp
+    )
   ) {
+    // 如果使用 原生窗口，那么不显示这两个角标
+    val showResizeIcon = resizable && !win.state.renderConfig.useSystemFrame
     /// 左下角 视窗 Resize
-    if (resizable) {
+    if (showResizeIcon) {
       Box(
-        modifier = Modifier
-          .fillMaxHeight()
-          .width(windowEdge.bottom.dp)
+        modifier = Modifier.fillMaxHeight().width(windowEdge.bottom.dp)
           .windowResizeByLeftBottom(win)
       ) {
         Icon(
           Icons.Rounded.ChevronLeft, contentDescription = "Resize by Left Bottom Corner",
-          modifier = Modifier
-            .rotate(-45f)
-            .align(Alignment.BottomStart),
+          modifier = Modifier.rotate(-45f).align(Alignment.BottomStart),
           tint = contentColor,
         )
       }
     }
     /// 下方 视窗 Resize
     Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .weight(1f, true)
+      modifier = Modifier.fillMaxSize().weight(1f, true)
     ) {
       content()
     }
     /// 右下角
     /// 视窗 Resize
-    if (resizable) {
+    if (showResizeIcon) {
       Box(
-        modifier = Modifier
-          .fillMaxHeight()
-          .width(windowEdge.bottom.dp)
+        modifier = Modifier.fillMaxHeight().width(windowEdge.bottom.dp)
           .windowResizeByRightBottom(win)
       ) {
         Icon(
           Icons.Rounded.ChevronRight,
           contentDescription = "Resize by Right Bottom Corner",
-          modifier = Modifier
-            .rotate(45f)
-            .align(Alignment.BottomEnd),
+          modifier = Modifier.rotate(45f).align(Alignment.BottomEnd),
           tint = contentColor,
         )
       }
@@ -161,9 +148,7 @@ internal fun WindowBottomMaximizedBar(
 ) {
   val windowEdge = LocalWindowPadding.current
   Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(start = windowEdge.start.dp, end = windowEdge.end.dp),
+    modifier = Modifier.fillMaxSize().padding(start = windowEdge.start.dp, end = windowEdge.end.dp),
   ) {
     content()
   }
@@ -193,15 +178,13 @@ internal fun WindowBottomImmersionThemeBar(
   modifier: Modifier = Modifier,
 ) {
   val coroutineScope = rememberCoroutineScope()
-  Row(modifier = modifier
-    .fillMaxSize()
-    .pointerInput(Unit) {
-      detectTapGestures(onDoubleTap = {
-        coroutineScope.launch {
-          win.unMaximize()
-        }
-      })
-    }) {
+  Row(modifier = modifier.fillMaxSize().pointerInput(Unit) {
+    detectTapGestures(onDoubleTap = {
+      coroutineScope.launch {
+        win.unMaximize()
+      }
+    })
+  }) {
     /// 应用标题
     WindowBottomBarInfoText(
       win,
@@ -225,39 +208,35 @@ internal fun WindowBottomNavigationThemeBar(
   val contentDisableColor = winTheme.bottomContentDisableColor
   val winPadding = LocalWindowPadding.current
   val bottomBarHeight = winPadding.bottom
-  val safeAreaInsets = winPadding.safeAreaInsets
+  val boxSafeAreaInsets = winPadding.boxSafeAreaInsets
   val infoHeight = min(bottomBarHeight * 0.25f, LocalWindowLimits.current.bottomBarBaseHeight)
   val isMaximized by win.watchedIsMaximized()
   val buttonRoundedSize = infoHeight * 2
-  val infoTextHeight = if(safeAreaInsets.bottom > 0 && isMaximized) safeAreaInsets.bottom else infoHeight
+  val infoTextHeight =
+    if (boxSafeAreaInsets.bottom > 0 && isMaximized) boxSafeAreaInsets.bottom else infoHeight
   Box(modifier = Modifier.fillMaxSize()) {
     var paddingTop = infoHeight / 3
     var paddingBottom = infoHeight / 2
-    if (safeAreaInsets.bottom != 0f) {
+    if (boxSafeAreaInsets.bottom != 0f) {
       val totalPadding = paddingTop + paddingBottom
-      paddingTop = max(0f, totalPadding - safeAreaInsets.bottom)
+      paddingTop = max(0f, totalPadding - boxSafeAreaInsets.bottom)
       paddingBottom = totalPadding - paddingTop
     }
     /// 按钮
-    Row(modifier = Modifier
-      .zIndex(1f)
-      .pointerInput(Unit) {
+    Row(
+      modifier = Modifier.zIndex(1f).pointerInput(Unit) {
         detectTapGestures(onDoubleTap = {
           scope.launch {
             win.unMaximize()
           }
         })
-      }
-      .fillMaxSize()
-      .padding(top = paddingTop.dp, bottom = paddingBottom.dp)
+      }.fillMaxSize().padding(top = paddingTop.dp, bottom = paddingBottom.dp)
       //
     ) {
       val canGoBack by win.watchedState(watchKey = WindowPropertyKeys.CanGoBack) { canGoBack }
       /// 后退或关闭按钮
       BoxWithConstraints(
-        modifier = Modifier
-          .weight(1f)
-          .fillMaxHeight()
+        modifier = Modifier.weight(1f).fillMaxHeight()
       ) {
         /// 在最大化的情况下，如果不能后退，那么显示关闭
         val isShowCloseBtn = isMaximized && canGoBack != true
@@ -268,9 +247,7 @@ internal fun WindowBottomNavigationThemeBar(
             onClick = { scope.launch { win.tryCloseOrHide() } },
             contentPadding = PaddingValues(0.dp),
             shape = RoundedCornerShape(buttonRoundedSize),
-            modifier = Modifier
-              .align(Alignment.CenterEnd)
-              .fillMaxWidth(),
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxWidth(),
           ) {
             Icon(
               Icons.Rounded.Close,
@@ -306,9 +283,7 @@ internal fun WindowBottomNavigationThemeBar(
               enabled = btnCanGoBack,
               contentPadding = PaddingValues(0.dp),
               shape = RoundedCornerShape(buttonRoundedSize),
-              modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .fillMaxWidth(),
+              modifier = Modifier.align(Alignment.CenterEnd).fillMaxWidth(),
             ) {
               Icon(
                 Icons.Rounded.ArrowBack,
@@ -323,9 +298,7 @@ internal fun WindowBottomNavigationThemeBar(
       val canGoForward by win.watchedState { canGoForward }
       /// 前进按钮
       BoxWithConstraints(
-        modifier = Modifier
-          .weight(1f)
-          .fillMaxHeight()
+        modifier = Modifier.weight(1f).fillMaxHeight()
       ) {
         when (val enabled = canGoForward) {
           null -> {}
@@ -339,9 +312,7 @@ internal fun WindowBottomNavigationThemeBar(
               enabled = enabled,
               contentPadding = PaddingValues(0.dp),
               shape = RoundedCornerShape(buttonRoundedSize),
-              modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .fillMaxWidth(),
+              modifier = Modifier.align(Alignment.CenterEnd).fillMaxWidth(),
             ) {
               Icon(
                 Icons.Rounded.ArrowForward,
@@ -358,9 +329,7 @@ internal fun WindowBottomNavigationThemeBar(
       /// 菜单按钮
       if (isMaximized) {
         Box(
-          modifier = Modifier
-            .weight(1f)
-            .fillMaxHeight()
+          modifier = Modifier.weight(1f).fillMaxHeight()
         ) {
 
           /// 渲染菜单面板
@@ -372,9 +341,7 @@ internal fun WindowBottomNavigationThemeBar(
             },
             contentPadding = PaddingValues(0.dp),
             shape = RoundedCornerShape(buttonRoundedSize),
-            modifier = Modifier
-              .align(Alignment.CenterEnd)
-              .fillMaxWidth(),
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxWidth(),
           ) {
             /// 菜单按钮动画
             BoxWithConstraints(
@@ -390,16 +357,14 @@ internal fun WindowBottomNavigationThemeBar(
               Icon(
                 Icons.Rounded.KeyboardDoubleArrowUp,
                 contentDescription = "Close menu panel",
-                modifier = Modifier
-                  .alpha(closeIconOpacity)
+                modifier = Modifier.alpha(closeIconOpacity)
                   .offset(y = ((closeIconOpacity - 1) * size / 2).dp),
                 tint = contentColor,
               )
               Icon(
                 Icons.Rounded.Menu,
                 contentDescription = "Open menu panel",
-                modifier = Modifier
-                  .alpha(1 - closeIconOpacity)
+                modifier = Modifier.alpha(1 - closeIconOpacity)
                   .offset(y = (closeIconOpacity * size / 2).dp),
                 tint = contentColor,
               )
@@ -412,9 +377,7 @@ internal fun WindowBottomNavigationThemeBar(
       /// 退出全屏
       if (isMaximized) {
         BoxWithConstraints(
-          modifier = Modifier
-            .weight(1f)
-            .fillMaxHeight()
+          modifier = Modifier.weight(1f).fillMaxHeight()
         ) {
           TextButton(
             onClick = {
@@ -422,9 +385,7 @@ internal fun WindowBottomNavigationThemeBar(
             },
             contentPadding = PaddingValues(0.dp),
             shape = RoundedCornerShape(buttonRoundedSize),
-            modifier = Modifier
-              .align(Alignment.CenterEnd)
-              .fillMaxWidth(),
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxWidth(),
           ) {
 
             Icon(
@@ -441,10 +402,7 @@ internal fun WindowBottomNavigationThemeBar(
     /// 底部文本
     WindowBottomBarInfoText(
       win,
-      Modifier
-        .height(infoTextHeight.dp)
-        .fillMaxWidth(0.618f)
-        .zIndex(2f)
+      Modifier.height(infoTextHeight.dp).fillMaxWidth(0.618f).zIndex(2f)
         .align(Alignment.BottomCenter)
 //        .pointerInteropFilter { false },
     )

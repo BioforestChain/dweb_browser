@@ -37,8 +37,8 @@ private class IosWindowNativeView(
             /// 渲染窗口
             win.Render(
               modifier = Modifier.windowImeOutsetBounds(),
-              maxWinWidth = maxWidth,
-              maxWinHeight = maxHeight
+              winMaxWidth = maxWidth,
+              winMaxHeight = maxHeight
             )
           }
       }
@@ -102,12 +102,7 @@ private fun RenderWindowInNewLayer(
 actual fun <T : WindowController> WindowsManager<T>.Render() {
   val windowsManager = this
   BoxWithConstraints {
-    /// 键盘的互操作性
-    EffectKeyboard()
-    /// 底部导航栏的互操作
-    EffectNavigationBar()
-    /// 窗口截屏安全限制
-    EffectSafeModel()
+    WindowsManagerEffect()
     /// 普通层级的窗口
     debugWindow("WindowsManager.Render", "winList: ${winList.size}")
     for (win in winList) {

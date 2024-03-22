@@ -153,8 +153,8 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
                 /// 显示内容
                 BoxWithConstraints(
                   Modifier.padding(
-                    start = winPadding.left.dp,
-                    end = winPadding.right.dp,
+                    start = winPadding.start.dp,
+                    end = winPadding.end.dp,
                     bottom = winPadding.bottom.dp
                   )
                 ) {

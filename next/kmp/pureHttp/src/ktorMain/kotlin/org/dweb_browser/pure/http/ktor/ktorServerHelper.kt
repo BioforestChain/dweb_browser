@@ -42,6 +42,7 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
 
       "Content-Length" -> {
         contentLength = value.toLong()
+        continue
       }
     }
     header(key, value)

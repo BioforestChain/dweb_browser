@@ -1,6 +1,9 @@
 package org.dweb_browser.sys.window.core
 
 //import kotlinx.serialization.internal.NoOpEncoder.encodeSerializableElement
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -99,12 +102,74 @@ class WindowState(
    * 终止,窗口最终会被绘制在用户可见可控的区域中
    */
   var bounds by WindowPropertyField.WindowBounds.toObserve(observable)
+    private set
 
-  inline fun updateBounds(updater: Rect.() -> Rect) =
-    updater.invoke(bounds).also { bounds = it }
 
-  inline fun updateMutableBounds(updater: Rect.Mutable.() -> Unit) =
-    bounds.toMutable().also(updater).also { bounds = it.toImmutable() }
+  /**
+   * 更新 窗口位置和大小 的因缘
+   * 有两种因缘：
+   * 一种是 通过 内部进行触发
+   * 一种是 通过 外部进行触发
+   *
+   * 在原生窗口模式下，我们需要将标准窗口与原生窗口进行双向绑定。
+   * 为了避免双向绑定带来的抖动为题，这里需要标记绑定方向
+   */
+  var updateBoundsReason = UpdateBoundsReason.Inner
+    private set
+
+  /**
+   * 更新 窗口位置和大小 的因缘
+   * 有两种因缘：
+   * 一种是 通过 内部进行触发
+   * 一种是 通过 外部进行触发
+   *
+   * 在原生窗口模式下，我们需要将标准窗口与原生窗口进行双向绑定。
+   * 为了避免双向绑定带来的抖动为题，这里需要标记绑定方向
+   *
+   * 因此如果在
+   */
+  enum class UpdateBoundsReason {
+    Inner, Outer,
+  }
+
+  /**
+   * 如果 reason 是 Outer，那么不会同步给 原生窗口
+   */
+  fun updateBounds(bounds: Rect, reason: UpdateBoundsReason) {
+    if (this.bounds != bounds) {
+      this.bounds = bounds
+      this.updateBoundsReason = reason
+    }
+  }
+
+  inline fun updateBounds(
+    reason: UpdateBoundsReason = UpdateBoundsReason.Inner, updater: Rect.() -> Rect
+  ) = updater.invoke(bounds).also { updateBounds(it, reason) }
+
+  inline fun updateMutableBounds(
+    reason: UpdateBoundsReason = UpdateBoundsReason.Inner, updater: Rect.Mutable.() -> Unit
+  ) = bounds.toMutable().also(updater).toImmutable().also { updateBounds(it, reason) }
+
+  internal class WindowRenderConfig {
+    class FrameDragListener(
+      val frameDragStart: (() -> Unit),
+      val frameDragMove: (() -> Unit),
+      val frameDragEnd: (() -> Unit),
+    )
+
+    var useCustomFrameDrag by mutableStateOf<FrameDragListener?>(null)
+
+    /**
+     * 使用 系统窗口 的 位置与大小
+     */
+    var useSystemFrame by mutableStateOf(false)
+
+  }
+
+  /**
+   * 是否
+   */
+  internal val renderConfig = WindowRenderConfig()
 
   /**
    * 键盘插入到内容底部的高度

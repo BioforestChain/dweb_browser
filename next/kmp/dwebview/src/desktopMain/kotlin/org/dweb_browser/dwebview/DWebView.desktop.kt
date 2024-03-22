@@ -54,9 +54,6 @@ class DWebView(
 
   override suspend fun startLoadUrl(url: String): String {
     viewEngine.loadUrl(url)
-    if (url == "https://js.browser.dweb/index.html") {
-      viewEngine.browser.devTools().show()
-    }
     return viewEngine.getOriginalUrl()
   }
 

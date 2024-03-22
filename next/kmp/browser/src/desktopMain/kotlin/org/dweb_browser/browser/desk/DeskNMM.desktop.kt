@@ -12,6 +12,6 @@ private val DeskNMM.vcCore by lazy {
 actual suspend fun DeskNMM.startDesktopView(deskSessionId: String) {
   vcCore.viewController.asDesktop().apply {
     createParams = PureViewCreateParams(mapOf("deskSessionId" to deskSessionId))
-    composeWindow.openWindow()
+    composeWindowParams.openWindow()
   }
 }

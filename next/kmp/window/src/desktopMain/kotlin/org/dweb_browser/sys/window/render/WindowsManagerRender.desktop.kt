@@ -6,6 +6,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
@@ -22,12 +23,7 @@ import org.dweb_browser.sys.window.core.constant.debugWindow
 actual fun <T : WindowController> WindowsManager<T>.Render() {
   val windowsManager = this
   BoxWithConstraints {
-    /// 键盘的互操作性
-    EffectKeyboard()
-    /// 底部导航栏的互操作
-    EffectNavigationBar()
-    /// 窗口截屏安全限制
-    EffectSafeModel()
+    WindowsManagerEffect()
     /// 普通层级的窗口
     debugWindow("WindowsManager.Render", "winList: ${winList.size}")
     for (win in winList) {
@@ -45,36 +41,44 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
   }
 }
 
-fun WindowController.openPvcInNativeWindow(pvc: PureViewController) {
-  pvc.lifecycleScope.launch {
-    pvc.composeWindow.openWindow()
-  }
-}
-
 @Composable
 fun RenderWindowInNative(
   windowsManager: WindowsManager<*>,
   win: WindowController,
 ) {
   val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
-  val pvc =
-    win.getDesktopWindowNativeView(windowsManager, compositionChain).pvc
+  val pvc = win.getDesktopWindowNativeView(windowsManager, compositionChain).pvc
 
+  val uiScope = rememberCoroutineScope()
   /// 启动
   DisposableEffect(pvc) {
-    win.openPvcInNativeWindow(pvc)
+    val job = uiScope.launch {
+      if (!pvc.composeWindowParams.isOpened) {
+        // 使用系统原生的窗口进行渲染
+        win.state.renderConfig.useSystemFrame = true
+
+        pvc.composeWindowParams.apply {
+          // 关闭边框
+          undecorated = true
+          // 背景透明，为了调试，展示不透明
+          transparent = true
+          // 打开窗口
+          openWindow()
+        }
+      }
+    }
     val off = win.onClose {
-      pvc.composeWindow.closeWindow()
+      pvc.composeWindowParams.closeWindow()
     }
     onDispose {
+      job.cancel()
       off()
     }
   }
 }
 
 private fun WindowController.getDesktopWindowNativeView(
-  windowsManager: WindowsManager<*>,
-  compositionChain: State<CompositionChain>
+  windowsManager: WindowsManager<*>, compositionChain: State<CompositionChain>
 ) = DesktopWindowNativeView.INSTANCES.getOrPut(this) {
   DesktopWindowNativeView(
     mutableMapOf(
@@ -91,18 +95,21 @@ private class DesktopWindowNativeView(
   val pvc = PureViewController(params).also { pvc ->
     pvc.onCreate { params ->
       @Suppress("UNCHECKED_CAST") pvc.addContent {
-        BoxWithConstraints {
-          val compositionChain by params["compositionChain"] as State<CompositionChain>
-          compositionChain.Provider(LocalCompositionChain.current)
-            .Provider(LocalWindowsManager provides windowsManager) {
-              /// 渲染窗口
-              win.Render(
-                modifier = Modifier.windowImeOutsetBounds(),
-                maxWinWidth = maxWidth.value,
-                maxWinHeight = maxHeight.value
-              )
-            }
-        }
+        val composeWindow by pvc.composeWindowAsState()
+        val screenSize = composeWindow.toolkit.screenSize
+        val compositionChain by params["compositionChain"] as State<CompositionChain>
+        compositionChain.Provider(LocalCompositionChain.current)
+          .Provider(LocalWindowsManager provides windowsManager) {
+            /// 注册副作用
+            win.WindowControllerEffect()
+            /// 渲染窗口
+            win.Render(
+              modifier = Modifier.windowImeOutsetBounds(),
+              winMaxWidth = screenSize.width.toFloat(),
+              winMaxHeight = screenSize.height.toFloat(),
+              minScale = 1.0
+            )
+          }
       }
     }
   }

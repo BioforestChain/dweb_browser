@@ -5,8 +5,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,7 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.LocalFocusRequester
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -33,7 +35,12 @@ import org.dweb_browser.sys.window.core.windowAdapterManager
 
 @Composable
 fun WindowController.Render(
-  modifier: Modifier = Modifier, maxWinWidth: Float, maxWinHeight: Float
+  modifier: Modifier = Modifier,
+  winMaxWidth: Float,
+  winMaxHeight: Float,
+  winMinWidth: Float = winMaxWidth * 0.2f,
+  winMinHeight: Float = winMaxHeight * 0.2f,
+  minScale: Double = 0.3,
 ) {
   val win = this;
   win._pureViewControllerState.value = LocalPureViewController.current
@@ -44,25 +51,20 @@ fun WindowController.Render(
   val inMove by win.inMove
 
   val limits = WindowLimits(
-    minWidth = maxWinWidth * 0.2f,
-    minHeight = maxWinHeight * 0.2f,
-    maxWidth = maxWinWidth,
-    maxHeight = maxWinHeight,
+    minWidth = winMinWidth,
+    minHeight = winMinHeight,
+    maxWidth = winMaxWidth,
+    maxHeight = winMaxHeight,
     // TODO 这里未来可以开放接口配置
-    minScale = 0.3,
+    minScale = minScale,
     topBarBaseHeight = 36f,
     bottomBarBaseHeight = 24f,
   )
 
   /**
-   * 窗口大小
-   */
-  val winBounds = win.calcWindowBoundsByLimits(limits);
-
-  /**
    * 窗口边距
    */
-  val winPadding = win.calcWindowPaddingByLimits(limits)
+  val winPadding = win.calcWindowByLimits(limits)
 
   /**
    * 窗口层级
@@ -125,55 +127,71 @@ fun WindowController.Render(
         LocalWindowFrameStyle provides windowFrameStyle,
         LocalFocusRequester provides win.focusRequester,
       ) {
-        win.state.safePadding = winPadding.safeAreaInsets
         /// 开始绘制窗口
+        win.state.safePadding = winPadding.boxSafeAreaInsets
+        val renderConfig = win.state.renderConfig
         Box(
-          modifier = with(winBounds) {
-            modifier
-              .offset(x.dp, y.dp)
-              .size(width.dp, height.dp)
-          }
-            .graphicsLayer {
+          modifier = when {
+            // 如果使用 原生窗口的边框，那么只需要填充满画布即可
+            renderConfig.useSystemFrame -> modifier.fillMaxSize()
+            // 否则使用 模拟窗口的边框，需要自定义坐标、阴影、缩放
+            else -> with(watchedBounds().value) {
+              modifier.offset(x.dp, y.dp).size(width.dp, height.dp)
+            }.graphicsLayer {
               alpha = opacity
               scaleX = scale
               scaleY = scale
-            }
-            .shadow(
+            }.shadow(
               elevation = elevation.dp, shape = winPadding.boxRounded.toRoundedCornerShape()
-            ).focusable(),
+            ).focusable()
+          },
         ) {
           //#region 窗口内容
-          Column(
-            Modifier
-              .background(theme.winFrameBrush)
-              .clip(winPadding.boxRounded.toRoundedCornerShape())
-              .clickableWithNoEffect {
-                win.emitFocusOrBlur(true)
-              }) {
+          Column(Modifier.clip(winPadding.boxRounded.toRoundedCornerShape())
+            .background(theme.winFrameBrush).clickableWithNoEffect {
+              win.emitFocusOrBlur(true)
+            }) {
             /// 标题栏
-            WindowTopBar(win)
-            /// 显示内容
-            Box(
-              Modifier
-                .weight(1f)
-                .zIndex(2f)
-                .padding(start = winPadding.left.dp, end = winPadding.right.dp)// TODO 这里要注意布局方向
+            WindowTopBar(win, Modifier.height(winPadding.top.dp).fillMaxWidth())
+            /// 内容区域
+            BoxWithConstraints(
+              Modifier.weight(1f).padding(
+                start = winPadding.start.dp,
+                end = winPadding.end.dp,
+              ).clip(winPadding.contentRounded.toRoundedCornerShape())
             ) {
-              val windowRenderScope = remember(limits, winPadding) {
-                WindowRenderScope(
-                  winPadding.contentBounds.width,
-                  winPadding.contentBounds.height,
-                  win.calcContentScale(limits, winPadding)
-                )
+              val contentBoxWidth = maxWidth
+              val contentBoxHeight = maxHeight
+              Column {
+                BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                  val windowRenderScope =
+                    remember(limits, contentBoxWidth, contentBoxHeight, maxWidth, maxHeight) {
+                      WindowRenderScope(
+                        maxWidth.value,
+                        maxHeight.value,
+                        win.calcContentScale(limits, contentBoxWidth.value, contentBoxHeight.value),
+                        maxWidth,
+                        maxHeight
+                      )
+                    }
+                  /// 显示内容
+                  windowAdapterManager.Renderer(
+                    win.state.constants.wid,
+                    windowRenderScope,
+                    Modifier.fillMaxSize()
+                  )
+                }
+
+                /// 底部安全区域
+                val keyboardInsetBottom by watchedState { keyboardInsetBottom }
+                val keyboardOverlaysContent by watchedState { keyboardOverlaysContent }
+                if (!keyboardOverlaysContent) {
+                  Box(Modifier.height(keyboardInsetBottom.dp))
+                }
               }
-              windowAdapterManager.Renderer(
-                win.state.constants.wid,
-                windowRenderScope,
-                Modifier.clip(winPadding.contentRounded.toRoundedCornerShape())
-              )
             }
             /// 显示底部控制条
-            WindowBottomBar(win, Modifier.zIndex(1f))
+            WindowBottomBar(win, Modifier.height(winPadding.bottom.dp).fillMaxWidth())
           }
           //#endregion
 
@@ -185,8 +203,7 @@ fun WindowController.Render(
           /// 失去焦点的时候，提供 movable 的遮罩（在移动中需要确保遮罩存在）
           if (inMove or !isFocus) {
             Box(
-              modifier = Modifier
-                .fillMaxSize()
+              modifier = Modifier.fillMaxSize()
                 .background(MaterialTheme.colorScheme.onSurface.copy(alpha = if (isFocus) 0f else 0.2f))
                 .windowMoveAble(win)
             )

@@ -6,7 +6,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.widthIn
@@ -26,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
@@ -35,6 +35,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
@@ -124,46 +125,58 @@ val WindowController.inMove
 /**
  * 移动窗口的控制器
  */
-fun Modifier.windowMoveAble(win: WindowController) = this
-  .pointerInput(win) {
+fun Modifier.windowMoveAble(win: WindowController) = composed {
+  val useCustomFrameDrag = win.state.renderConfig.useCustomFrameDrag
+  pointerInput(win, useCustomFrameDrag) {
     /// 触摸窗口的时候，聚焦，并且提示可以移动
     detectTapGestures(
       // touchStart 的时候，聚焦移动
       onPress = {
         win.inMove.value = true
+        useCustomFrameDrag?.frameDragStart?.invoke()
         win.emitFocusOrBlur(true)
       },
       /// touchEnd 的时候，取消移动
       onTap = {
         win.inMove.value = false
+        useCustomFrameDrag?.frameDragEnd?.invoke()
       },
       onLongPress = {
         win.inMove.value = false
+        useCustomFrameDrag?.frameDragEnd?.invoke()
       },
     )
-  }
-  .pointerInput(win) {
+  }.pointerInput(win, useCustomFrameDrag) {
     /// 拖动窗口
     detectDragGestures(
       onDragStart = {
         win.inMove.value = true
+        useCustomFrameDrag?.frameDragStart?.invoke()
         /// 开始移动的时候，同时进行聚焦
         win.emitFocusOrBlur(true)
       },
       onDragEnd = {
         win.inMove.value = false
+        useCustomFrameDrag?.frameDragEnd?.invoke()
       },
       onDragCancel = {
         win.inMove.value = false
+        useCustomFrameDrag?.frameDragEnd?.invoke()
       },
-    ) { change, dragAmount ->
-      change.consume()
-      win.state.updateMutableBounds {
-        x += dragAmount.x / density
-        y += dragAmount.y / density
+    ) { pointer, dragAmount ->
+      pointer.consume()
+      /// 如果使用自定义窗口拖拽，这里不执行 updateBounds，只是通知
+      if (useCustomFrameDrag != null) {
+        useCustomFrameDrag.frameDragMove()
+      } else {
+        win.state.updateMutableBounds {
+          x += dragAmount.x / density
+          y += dragAmount.y / density
+        }
       }
     }
   }
+}
 
 val inResizeStore = WeakHashMap<WindowController, MutableState<Boolean>>()
 
@@ -209,13 +222,16 @@ fun Modifier.windowResizeByRightBottom(win: WindowController) = this.pointerInpu
 
 
 val LocalWindowLimits = compositionChainOf<WindowLimits>("WindowLimits")
-val LocalWindowController =
-  compositionChainOf<WindowController>("WindowController")
-val LocalWindowsManager =
-  compositionChainOf<WindowsManager<*>>("WindowsManager")
+val LocalWindowController = compositionChainOf<WindowController>("WindowController")
+val LocalWindowsManager = compositionChainOf<WindowsManager<*>>("WindowsManager")
 val LocalWindowsImeVisible =
   compositionChainOf("WindowsImeVisible") { mutableStateOf(false) } // 由于小米手机键盘收起会有异常，所以自行维护键盘的显示和隐藏
 
+/**
+ * 存储窗口样式：
+ * 窗口透明度与窗口缩放比例
+ * 这些值不在 窗口属性中，属于窗口渲染器直接提供
+ */
 val LocalWindowFrameStyle = compositionChainOf("WindowFrameStyle") { WindowFrameStyle(1f, 1f) }
 
 data class WindowFrameStyle(val scale: Float, val opacity: Float)
@@ -248,15 +264,31 @@ fun WindowController.watchedIsMaximized() =
 @Composable
 fun WindowController.watchedBounds() = watchedState(watchKey = WindowPropertyKeys.Bounds) { bounds }
 
+
+@Composable
+fun WindowController.calcWindowByLimits(
+  limits: WindowLimits
+): WindowPadding {
+
+  /**
+   * 窗口大小
+   */
+  val winBounds = calcWindowBoundsByLimits(limits)
+
+  /**
+   * 窗口边距
+   */
+  return calcWindowPaddingByLimits(limits, winBounds)
+}
+
 /**
  * 根据约束配置，计算出最终的窗口大小与坐标
  */
 @Composable
-fun WindowController.calcWindowBoundsByLimits(
+private fun WindowController.calcWindowBoundsByLimits(
   limits: WindowLimits
 ): Rect {
-  val maximize by watchedIsMaximized()
-  return if (maximize) {
+  return if (watchedIsMaximized().value) {
     inMove.value = false
     state.updateBounds {
       copy(
@@ -268,7 +300,8 @@ fun WindowController.calcWindowBoundsByLimits(
     }
   } else {
     val layoutDirection = LocalLayoutDirection.current
-    val bounds by watchedBounds()
+    // 这里不要用 watchedBounds，会导致冗余的计算循环
+    val bounds = state.bounds
 
     /**
      * 获取可触摸的空间
@@ -302,12 +335,12 @@ expect val WindowController.canOverlayNavigationBar: Boolean
  * 根据约束配置，计算出最终的窗口边距布局
  */
 @Composable
-fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadding {
+private fun WindowController.calcWindowPaddingByLimits(
+  limits: WindowLimits,
+  bounds: Rect,// 这里这个不要通过 watchBounds 获得，这会有延迟，应该是直接通过传递参数获得
+): WindowPadding {
   val maximize by watchedIsMaximized()
-  val bounds by watchedBounds()
   val bottomBarTheme by watchedState(watchKey = WindowPropertyKeys.BottomBarTheme) { bottomBarTheme }
-  val keyboardInsetBottom by watchedState { keyboardInsetBottom }
-  val keyboardOverlaysContent by watchedState { keyboardOverlaysContent }
 
   val topHeight: Float
   val bottomHeight: Float
@@ -315,8 +348,8 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
   val rightWidth: Float
   val borderRounded: WindowPadding.CornerRadius
   val contentRounded: WindowPadding.CornerRadius
-  val contentSize: WindowPadding.ContentSize
-  val safeAreaInsets: Bounds
+  val boxSafeAreaInsets: Bounds
+  val contentSafeAreaInsets: Bounds
 
   /// 一些共有的计算
   val windowFrameSize = if (maximize) 3f else 5f
@@ -329,32 +362,37 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
     WindowBottomBarTheme.Navigation -> max(limits.bottomBarBaseHeight, 32f) // 要有足够的高度放按钮和基本信息
   }
 
-  fun max(val1: Float, val2: Float, val3: Float) = max(max(val1, val2), val3)
-
   if (maximize) {
     val layoutDirection = LocalLayoutDirection.current
     val density = LocalDensity.current.density
-    // 绘制内容的安全区域
+
+    /**
+     * safeGestures = systemGestures + mandatorySystemGestures + waterfall + tappableElement.
+     */
+    val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
+
+    /**
+     * safeDrawing = systemBars + displayCutout + ime
+     */
     val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
-    val safeContentPadding = WindowInsets.safeContent.asPaddingValues()
-    val safeAreaInsetTop = safeDrawingPadding.calculateTopPadding().value
-    // 构造出底部会被使用的范围，渲染内容会避开这些范围。
-    val safeAreaInsetBottom = max(
-      safeContentPadding.calculateBottomPadding().value,
-      safeDrawingPadding.calculateBottomPadding().value
-    )
+
+//    /**
+//     *  safeContent = safeDrawing + safeGestures
+//     */
+//    val safeContentPadding = WindowInsets.safeContent.asPaddingValues()
+//    val safeContentPaddingBottom = safeContentPadding.calculateBottomPadding().value
+    val safeDrawingPaddingTop = safeDrawingPadding.calculateTopPadding().value
+    val safeGesturesPaddingBottom = safeGesturesPadding.calculateBottomPadding().value
+
     // 顶部的高度，可以理解为状态栏的高度
-    topHeight = max(safeAreaInsetTop, windowFrameSize)
+    topHeight = max(safeDrawingPaddingTop, windowFrameSize)
 
     /**
      * 底部是系统导航栏，这里我们使用触摸安全的区域来控制底部高度，这样可以避免底部抖动
      * 不该使用 safeDrawing，它会包含 ime 的高度
      */
-    bottomHeight = if (keyboardOverlaysContent) max(
-      // 这里默认使用 safeGestures ，因为它只包含底部导航栏的高度，是稳定的
-      bottomThemeHeight + safeAreaInsetBottom,
-      windowFrameSize,
-    ) else max(bottomThemeHeight + safeAreaInsetBottom, windowFrameSize)
+    bottomHeight = max(bottomThemeHeight + safeGesturesPaddingBottom, windowFrameSize)
+
     /**
      * 即便是最大化模式下，我们仍然需要有一个强调边框。
      * 这个边框存在的意义有：
@@ -371,15 +409,8 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
       getCornerRadiusTop(platformViewController, density, 16f),
       getCornerRadiusBottom(platformViewController, density, 16f)
     )
-    contentSize = WindowPadding.ContentSize(
-      bounds.width - leftWidth - rightWidth,
-      bounds.height - topHeight - when {
-        keyboardOverlaysContent -> 0f
-        else -> keyboardInsetBottom
-      } - bottomHeight,
-    )
 
-    safeAreaInsets = Bounds.Zero.copy(bottom = safeAreaInsetBottom)
+    boxSafeAreaInsets = Bounds.Zero.copy(bottom = max(safeGesturesPaddingBottom - bottomHeight, 0f))
   } else {
     // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的物理圆角
     borderRounded = WindowPadding.CornerRadius.from(16)
@@ -388,21 +419,17 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
     bottomHeight = max(bottomThemeHeight, windowFrameSize)
     leftWidth = windowFrameSize
     rightWidth = windowFrameSize
-    contentSize = WindowPadding.ContentSize(
-      bounds.width - leftWidth - rightWidth,
-      bounds.height - topHeight - keyboardInsetBottom - bottomHeight,
-    )
-    safeAreaInsets = Bounds.Zero
+
+    boxSafeAreaInsets = Bounds.Zero
   }
   return WindowPadding(
-    topHeight,
-    bottomHeight,
-    leftWidth,
-    rightWidth,
-    borderRounded,
-    contentRounded,
-    contentSize,
-    safeAreaInsets
+    top = topHeight,
+    bottom = bottomHeight,
+    start = leftWidth,
+    end = rightWidth,
+    boxRounded = borderRounded,
+    contentRounded = contentRounded,
+    boxSafeAreaInsets = boxSafeAreaInsets,
   )
 }
 
@@ -413,7 +440,7 @@ val LocalWindowPadding = compositionChainOf<WindowPadding>("WindowPadding")
  * 窗口边距布局配置
  */
 data class WindowPadding(
-  val top: Float, val bottom: Float, val left: Float, val right: Float,
+  val top: Float, val bottom: Float, val start: Float, val end: Float,
   /**
    * 外部圆角
    */
@@ -422,11 +449,26 @@ data class WindowPadding(
    * 内容圆角
    */
   val contentRounded: CornerRadius,
-  val contentBounds: ContentSize,
-  val safeAreaInsets: Bounds,
+
+//  /**
+//   * 内容的安全绘制区域
+//   */
+//  val contentSafeAreaInsets: Bounds,
+  /**
+   * 边框的安全绘制区域
+   */
+  val boxSafeAreaInsets: Bounds,
 ) {
-  val start get() = left
-  val end get() = right
+  val left
+    @Composable get() = when {
+      LocalLayoutDirection.current == LayoutDirection.Ltr -> start
+      else -> end
+    }
+  val right
+    @Composable get() = when {
+      LocalLayoutDirection.current == LayoutDirection.Ltr -> end
+      else -> start
+    }
 
   data class CornerRadius(
     val topStart: Float, val topEnd: Float, val bottomStart: Float, val bottomEnd: Float
@@ -458,7 +500,12 @@ data class WindowPadding(
  *
  * 这个行为在桌面端也将会适用
  */
-fun WindowController.calcContentScale(limits: WindowLimits, winEdge: WindowPadding): Float {
+fun WindowController.calcContentScale(
+  limits: WindowLimits, contentWidth: Float, contentHeight: Float
+): Float {
+  if (limits.minScale == 1.0) {
+    return 1f
+  }
   /**
    * 计算进度
    */
@@ -471,14 +518,13 @@ fun WindowController.calcContentScale(limits: WindowLimits, winEdge: WindowPaddi
     ((maxScale - minScale) * this) + minScale
 
   val scaleProgress = max(
-    calcProgress(limits.minWidth, winEdge.contentBounds.width, limits.maxWidth),
-    calcProgress(limits.minHeight, winEdge.contentBounds.height, limits.maxHeight),
+    calcProgress(limits.minWidth, contentWidth, limits.maxWidth),
+    calcProgress(limits.minHeight, contentHeight, limits.maxHeight),
   )
   return scaleProgress.toScale(limits.minScale).let { if (it.isNaN()) 1f else it.toFloat() }
 }
 
-val LocalWindowControllerTheme =
-  compositionChainOf<WindowControllerTheme>("WindowControllerTheme")
+val LocalWindowControllerTheme = compositionChainOf<WindowControllerTheme>("WindowControllerTheme")
 
 class WindowControllerTheme(
   val topContentColor: Color,
@@ -520,18 +566,12 @@ class WindowControllerTheme(
 
   @Composable
   fun ThemeButtonColors() = ButtonDefaults.buttonColors(
-    themeContentColor,
-    themeColor,
-    themeContentDisableColor,
-    themeDisableColor
+    themeContentColor, themeColor, themeContentDisableColor, themeDisableColor
   )
 
   @Composable
   fun ThemeContentButtonColors() = ButtonDefaults.buttonColors(
-    onThemeContentColor,
-    themeContentColor,
-    onThemeContentDisableColor,
-    themeContentDisableColor
+    onThemeContentColor, themeContentColor, onThemeContentDisableColor, themeContentDisableColor
   )
 
   class AlertDialogColors(
@@ -717,9 +757,7 @@ fun WindowController.IdRender(
 ) {
   val minWidth = LocalWindowLimits.current.minWidth
   AutoResizeTextContainer(
-    modifier
-      .fillMaxHeight()
-      .widthIn(min = minWidth.dp)
+    modifier.fillMaxHeight().widthIn(min = minWidth.dp)
   ) {
     val textStyle = MaterialTheme.typography.bodySmall
     AutoSizeText(text = incForRender,

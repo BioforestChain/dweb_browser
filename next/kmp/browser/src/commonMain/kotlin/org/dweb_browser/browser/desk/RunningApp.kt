@@ -51,7 +51,7 @@ class RunningApp(
           alwaysOnTop = referenceState.alwaysOnTop
           keepBackground = referenceState.keepBackground
           mode = referenceState.mode
-          bounds = referenceState.bounds
+          updateBounds(referenceState.bounds, WindowState.UpdateBoundsReason.Inner)
         }
       }
     )

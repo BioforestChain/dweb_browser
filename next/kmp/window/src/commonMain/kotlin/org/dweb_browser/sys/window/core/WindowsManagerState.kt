@@ -81,24 +81,27 @@ class WindowsManagerState(
           } else {
             val winBounds by win.watchedBounds()
             val imeBounds by wsm.watchedImeBounds()
-            val winOuterY = winBounds.y + winBounds.height //
+            val winBoundsBottom = winBounds.y + winBounds.height //
 
-            if (winOuterY <= imeBounds.y) {
+            if (winBoundsBottom <= imeBounds.y) {
               // 两个矩形没有交集 或者是全屏状态下
               modifierOffsetY = 0f
               keyboardInsetBottom = 0f
             } else { /// 尝试进行偏移修饰
-              val offsetY = winOuterY - imeBounds.y
+              // 计算出需要偏移的量
+              val requestOffsetY = winBoundsBottom - imeBounds.y
               // 窗口可以通过向上偏移来确保键盘与窗口同时显示
-              if (offsetY <= winBounds.y) {
-                modifierOffsetY = -offsetY
+              if (requestOffsetY <= winBounds.y) {
+                modifierOffsetY = -requestOffsetY
                 keyboardInsetBottom = 0f
               } else {
+                // 将顶部全部用作修正的量
                 modifierOffsetY = -winBounds.y
                 val winPadding = LocalWindowPadding.current
-                val offsetY2 = offsetY - winPadding.bottom
-                // 窗口可以牺牲底部区域的显示，多出来的就是键盘的插入高度
-                keyboardInsetBottom = max(offsetY2 - winBounds.y, 0f)
+                // 窗口可以牺牲底部区域的显示，剩余的就是内容需要偏移的量
+                val contentOffsetY = requestOffsetY - winPadding.bottom
+                // 内容偏移量 加上 修正量，就是键盘的插入高度
+                keyboardInsetBottom = max(contentOffsetY + modifierOffsetY, 0f)
               }
             }
           }

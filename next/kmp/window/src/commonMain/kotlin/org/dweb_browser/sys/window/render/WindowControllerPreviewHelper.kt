@@ -27,7 +27,7 @@ fun WindowPreviewer(
   config: WindowController.() -> Unit = {},
   modifier: Modifier = Modifier,
   winRender: @Composable @UiComposable() (BoxWithConstraintsScope.(win: WindowController) -> Unit) = { win ->
-    win.Render(maxWinWidth = maxWidth.value, maxWinHeight = maxHeight.value)
+    win.Render(winMaxWidth = maxWidth.value, winMaxHeight = maxHeight.value)
   },
   content: WindowRenderProvider = @Composable { _ -> },
 ) {

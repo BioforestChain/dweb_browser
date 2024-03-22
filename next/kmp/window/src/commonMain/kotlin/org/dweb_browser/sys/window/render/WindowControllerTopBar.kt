@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,15 +36,12 @@ import org.dweb_browser.sys.window.core.WindowController
 
 @Composable
 internal fun WindowTopBar(
-  win: WindowController,
+  win: WindowController, modifier: Modifier
 ) {
-  val winPadding = LocalWindowPadding.current;
   val contentColor = LocalWindowControllerTheme.current.topContentColor
   Box(
-    modifier = Modifier
+    modifier = modifier
       .windowMoveAble(win)
-      .fillMaxWidth()
-      .height(winPadding.top.dp)
       .background(
         Brush.verticalGradient(
           colors = listOf(

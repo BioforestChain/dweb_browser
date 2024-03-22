@@ -214,8 +214,8 @@ private fun SearchBox(page: BrowserPage) {
           val pageTitle = page.title
           val pageIcon = page.icon
           val pageUrl = page.url
-          lateinit var painter: Painter
-          var colorFilter: ColorFilter? = null
+          val painter: Painter
+          val colorFilter: ColorFilter?
           when (remember(pageUrl) { pageUrl.isDwebDeepLink() }) {
             true -> {
               painter = BrowserDrawResource.Logo.painter()

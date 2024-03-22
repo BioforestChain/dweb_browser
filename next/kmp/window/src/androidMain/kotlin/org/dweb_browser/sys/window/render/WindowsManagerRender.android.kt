@@ -17,12 +17,7 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
     LocalWindowsManager provides this,
   ) {
     BoxWithConstraints {
-      /// 键盘的互操作性
-      EffectKeyboard()
-      /// 底部导航栏的互操作
-      EffectNavigationBar()
-      /// 窗口截屏安全限制
-      EffectSafeModel()
+      WindowsManagerEffect()
 
       /// 普通层级的窗口
       debugWindow("WindowsManager.Render", "winList: ${winList.size}")
@@ -33,8 +28,8 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
             modifier = Modifier
               .zIndex(win.state.zIndex.toFloat())
               .windowImeOutsetBounds(),
-            maxWinWidth = maxWidth.value,
-            maxWinHeight = maxHeight.value
+            winMaxWidth = maxWidth.value,
+            winMaxHeight = maxHeight.value
           )
         }
       }
@@ -47,8 +42,8 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
             modifier = Modifier
               .zIndex(winList.size + win.state.zIndex.toFloat())
               .windowImeOutsetBounds(),
-            maxWinWidth = maxWidth.value,
-            maxWinHeight = maxHeight.value
+            winMaxWidth = maxWidth.value,
+            winMaxHeight = maxHeight.value
           )
         }
       }

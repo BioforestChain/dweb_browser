@@ -169,7 +169,7 @@ abstract class WindowController(
         }
 
         else -> {
-          state.bounds = value
+          state.updateBounds(value, WindowState.UpdateBoundsReason.Inner)
           _beforeMaximizeBounds = null
         }
       }
