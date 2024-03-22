@@ -2,14 +2,12 @@ package org.dweb_browser.sys.window.render
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import kotlinx.coroutines.launch
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.LocalCompositionChain
@@ -49,30 +47,22 @@ fun RenderWindowInNative(
   val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
   val pvc = win.getDesktopWindowNativeView(windowsManager, compositionChain).pvc
 
-  val uiScope = rememberCoroutineScope()
   /// 启动
-  DisposableEffect(pvc) {
-    val job = uiScope.launch {
-      if (!pvc.composeWindowParams.isOpened) {
-        // 使用系统原生的窗口进行渲染
-        win.state.renderConfig.useSystemFrame = true
+  LaunchedEffect(pvc) {
+    if (!pvc.composeWindowParams.isOpened) {
+      // 使用系统原生的窗口进行渲染
+      win.state.renderConfig.useSystemFrame = true
 
-        pvc.composeWindowParams.apply {
-          // 关闭边框
-          undecorated = true
-          // 背景透明，为了调试，展示不透明
+      pvc.composeWindowParams.apply {
+        // 关闭边框
+        undecorated = true
+        if (PureViewController.isMacOS) {
+          // 背景透明
           transparent = true
-          // 打开窗口
-          openWindow()
         }
+        // 打开窗口
+        openWindow()
       }
-    }
-    val off = win.onClose {
-      pvc.composeWindowParams.closeWindow()
-    }
-    onDispose {
-      job.cancel()
-      off()
     }
   }
 }

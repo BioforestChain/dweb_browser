@@ -2,41 +2,51 @@ package org.dweb_browser.sys.window.render
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.WindowPosition
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.window.WindowPlacement
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.platform.ComposeWindowParams
 import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
+import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import java.awt.Point
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionListener
+import java.awt.event.WindowEvent
+import java.awt.event.WindowListener
 
 @Composable
 fun WindowController.WindowControllerEffect() {
   val viewController = LocalPureViewController.current.asDesktop()
-//  val composeWindowParams = remember(viewController) { viewController.composeWindowParams }
   val renderConfig = state.renderConfig
-  val scope = rememberCoroutineScope()
-  LaunchedEffect(renderConfig, viewController) {
-    /**
-     * composeWindow.mousePosition 是指鼠标相对于窗口左上角的位置，会有负数
-     */
-    val composeWindow = viewController.awaitComposeWindow()
 
+  val composeWindow by viewController.composeWindowAsState()
+  val composeWindowParams = viewController.composeWindowParams
+
+
+  /**
+   * 坐标的双向绑定
+   * 为了实时性，这里不使用 composeWindowParams
+   */
+  LaunchedEffect(composeWindow, renderConfig, viewController) {
     /**
      * 拖动窗口的起点 输入位置（相对窗口的位置）
      */
     var dragStartPoint: Point? = null
     renderConfig.useCustomFrameDrag = WindowState.WindowRenderConfig.FrameDragListener(
       frameDragStart = {
+        /**
+         * composeWindow.mousePosition 是指鼠标相对于窗口左上角的位置，会有负数
+         */
         dragStartPoint = composeWindow.mousePosition
       },
       frameDragMove = {},
@@ -120,26 +130,106 @@ fun WindowController.WindowControllerEffect() {
       }
     }
   }
-//
-//  /// 绑定 bounds 到 原生窗口
-//  DisposableEffect(composeWindowParams) {
-//    composeWindowParams.bindBounds(state.bounds);
-//    val off = state.observable.onChange {
-//      if (it.key == WindowPropertyKeys.Bounds) {
-//        composeWindowParams.bindBounds(it.newValue as Rect);
-//      }
-//    }
-//    onDispose {
-//      off()
-//    }
-//  }
-//  val title by watchedState { title }
-//  LaunchedEffect(composeWindowParams, title) {
-//    composeWindowParams.title = title ?: ""
-//  }
+
+  TitleEffect(composeWindow)
+  VisibleEffect(composeWindowParams)
+  ModeEffect(composeWindow, composeWindowParams)
 }
 
-private fun ComposeWindowParams.bindBounds(winBounds: Rect) {
-  position = WindowPosition.Absolute(winBounds.x.dp, winBounds.y.dp)
-  size = DpSize(winBounds.width.dp, winBounds.height.dp)
+/**
+ * title 的单向绑定
+ */
+@Composable
+private fun WindowController.TitleEffect(composeWindow: ComposeWindow) {
+  val title by watchedState { title }
+  LaunchedEffect(composeWindow, title) {
+    composeWindow.title = title
+  }
+}
+
+/**
+ * visible 双向绑定
+ */
+@Composable
+private fun WindowController.VisibleEffect(
+  composeWindowParams: ComposeWindowParams,
+) {
+  /// 因为原生的窗口隐藏会导致compose停止渲染，所以这里不能用 LaunchedEffect 的 remember 特性来做绑定
+  SideEffect {
+    state.observable.onChange {
+      if (it.key == WindowPropertyKeys.Visible) {
+        composeWindowParams.visible = it.newValue as Boolean
+      }
+    }
+  }
+  watchedIsMaximized()
+  /// 反向绑定原生的窗口状态到state中
+  LaunchedEffect(composeWindowParams.visible) {
+    println("QAQ composeWindowParams.visible=>state.visible | ${composeWindowParams.visible}")
+    state.visible = composeWindowParams.visible
+  }
+}
+
+/**
+ * mode 双向绑定
+ * 包括窗口关闭的双向绑定
+ */
+@Composable
+private fun WindowController.ModeEffect(
+  composeWindow: ComposeWindow,
+  composeWindowParams: ComposeWindowParams,
+) {
+  /// 因为原生的窗口隐藏会导致compose停止渲染，所以这里不能用 LaunchedEffect 的 remember 特性来做绑定
+  SideEffect {
+    state.observable.onChange {
+      if (it.key == WindowPropertyKeys.Mode) {
+        when (it.newValue as WindowMode) {
+          WindowMode.FLOAT -> composeWindowParams.placement = WindowPlacement.Floating
+          WindowMode.MAXIMIZE -> composeWindowParams.placement = WindowPlacement.Maximized
+          WindowMode.FULLSCREEN -> composeWindowParams.placement = WindowPlacement.Fullscreen
+          WindowMode.PIP -> WARNING("ComposeWindow No Support PIP")
+          WindowMode.CLOSE -> composeWindowParams.closeWindow()
+        }
+      }
+    }
+  }
+  watchedIsMaximized()
+
+  /// 反向绑定原生的窗口的 placement 到state中
+  LaunchedEffect(composeWindowParams.placement) {
+    state.mode = when (composeWindowParams.placement) {
+      WindowPlacement.Floating -> WindowMode.FLOAT
+      WindowPlacement.Maximized -> WindowMode.MAXIMIZE
+      WindowPlacement.Fullscreen -> WindowMode.FULLSCREEN
+    }
+  }
+
+  /// 反向绑定原生的窗口的 close 到state中
+  SideEffect {
+    composeWindow.addWindowListener(object : WindowListener {
+      override fun windowOpened(p0: WindowEvent) {
+      }
+
+      override fun windowClosing(p0: WindowEvent) {
+      }
+
+      override fun windowClosed(p0: WindowEvent) {
+        lifecycleScope.launch {
+          closeRoot(true)
+        }
+      }
+
+      override fun windowIconified(p0: WindowEvent) {
+      }
+
+      override fun windowDeiconified(p0: WindowEvent) {
+      }
+
+      override fun windowActivated(p0: WindowEvent) {
+      }
+
+      override fun windowDeactivated(p0: WindowEvent) {
+      }
+    })
+  }
 }

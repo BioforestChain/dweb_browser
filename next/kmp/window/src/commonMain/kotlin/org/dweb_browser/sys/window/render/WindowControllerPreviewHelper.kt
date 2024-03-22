@@ -38,7 +38,7 @@ fun WindowPreviewer(
     state: WindowState,
     override val viewBox: IPureViewBox
   ) : WindowController(state) {
-    override val coroutineScope: CoroutineScope
+    override val lifecycleScope: CoroutineScope
       get() = scope
   }
 

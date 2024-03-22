@@ -48,6 +48,7 @@ import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.getOrNull
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
@@ -360,7 +361,9 @@ class DWebViewEngine internal constructor(
       enableLocalStorage()
       enableImages()
       // 关闭此选项，否则会导致 windows 平台RenderMode异常 https://github.com/flutter/flutter-intellij/pull/4804
-//      enableTransparentBackground()
+      if (PureViewController.isMacOS) {
+        enableTransparentBackground()
+      }
       enableOverscrollHistoryNavigation()
       allowRunningInsecureContent()
       allowJavaScriptAccessClipboard()

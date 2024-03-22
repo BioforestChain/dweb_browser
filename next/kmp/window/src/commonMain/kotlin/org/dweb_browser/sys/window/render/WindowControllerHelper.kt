@@ -105,7 +105,7 @@ fun <T> WindowController.watchedState(
  * 触发 window 聚焦状态的更新事件监听
  */
 fun WindowController.emitFocusOrBlur(focused: Boolean) {
-  coroutineScope.launch {
+  lifecycleScope.launch {
     if (focused) {
       focus()
     } else {
@@ -403,7 +403,7 @@ private fun WindowController.calcWindowPaddingByLimits(
     leftWidth = max(safeDrawingPadding.calculateLeftPadding(layoutDirection).value, windowFrameSize)
     rightWidth =
       max(safeDrawingPadding.calculateRightPadding(layoutDirection).value, windowFrameSize)
-    borderRounded = WindowPadding.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
+    borderRounded = getWindowControllerBorderRounded(true) // 全屏模式下，外部不需要圆角
     val platformViewController = rememberPureViewBox()
     contentRounded = WindowPadding.CornerRadius.from(
       getCornerRadiusTop(platformViewController, density, 16f),
@@ -412,8 +412,7 @@ private fun WindowController.calcWindowPaddingByLimits(
 
     boxSafeAreaInsets = Bounds.Zero.copy(bottom = max(safeGesturesPaddingBottom - bottomHeight, 0f))
   } else {
-    // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的物理圆角
-    borderRounded = WindowPadding.CornerRadius.from(16)
+    borderRounded = getWindowControllerBorderRounded(false)
     contentRounded = borderRounded / sqrt(2f)
     topHeight = max(limits.topBarBaseHeight, windowFrameSize)
     bottomHeight = max(bottomThemeHeight, windowFrameSize)
@@ -432,6 +431,9 @@ private fun WindowController.calcWindowPaddingByLimits(
     boxSafeAreaInsets = boxSafeAreaInsets,
   )
 }
+
+// TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的物理圆角
+expect fun getWindowControllerBorderRounded(isMaximize: Boolean): WindowPadding.CornerRadius
 
 val LocalWindowPadding = compositionChainOf<WindowPadding>("WindowPadding")
 
@@ -487,6 +489,10 @@ data class WindowPadding(
 
       fun from(topRadius: Int, bottomRadius: Int) =
         from(topRadius.toFloat(), bottomRadius.toFloat())
+
+      val Zero = from(0)
+      val Default = from(16)
+
     }
   }
 

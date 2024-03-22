@@ -75,7 +75,7 @@ abstract class WindowController(
   /**
    * 需要提供一个生命周期对象
    */
-  abstract val coroutineScope: CoroutineScope
+  abstract val lifecycleScope: CoroutineScope
   val id = state.constants.wid;
 
   //#region WindowMode相关的控制函数
