@@ -10,9 +10,12 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.search.SearchEngine
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.ui.page.BrowserWebPageRender
 import org.dweb_browser.dwebview.IDWebView
+import org.dweb_browser.helper.format
+import org.dweb_browser.helper.isWebUrl
 import org.dweb_browser.helper.isWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
 
@@ -65,6 +68,17 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
 
   override suspend fun destroy() {
     webView.destroy()
+  }
+
+  private val searchEngine: SearchEngine? = null
+  // 根据url来搜索
+  fun loadUrl(url: String) {
+    // 判断 url 是否是 webUrl，如果是，直接loadUrl；如果不是，判断之前使用的搜索引擎将关键字替换了，进行搜索
+    if (url.isWebUrl()) {
+      updateUrl(url)
+    } else {
+      searchEngine?.let { updateUrl(searchEngine.searchLinks.first().format(url)) }
+    }
   }
 }
 

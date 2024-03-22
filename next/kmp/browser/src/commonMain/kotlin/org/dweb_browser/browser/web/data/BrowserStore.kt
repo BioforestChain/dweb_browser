@@ -39,7 +39,6 @@ enum class WebSiteType(val id: Int) {
   ;
 }
 
-const val KEY_LAST_SEARCH_KEY = "browser.last.keyword"
 const val KEY_NO_TRACE = "browser.no.trace" // 无痕浏览
 
 class BrowserStore(mm: MicroModule) {

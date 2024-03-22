@@ -73,7 +73,7 @@ fun BrowserSearchBar(modifier: Modifier) {
 
   val localFocus = LocalFocusManager.current
   LaunchedEffect(Unit) {
-    if (!localShowIme.value && !viewModel.showSearchEngine) {
+    if (!localShowIme.value) {
       localFocus.clearFocus()
     }
   }
