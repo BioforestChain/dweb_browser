@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.web
 
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.data.WebLinkStore
 import org.dweb_browser.browser.web.model.WebLinkMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -56,15 +57,24 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     }
     val openBrowser = defineBooleanResponse {
       debugBrowser("do openinbrowser", request.href)
-      browserController.openBrowserView(url = request.query("url"), target = request.queryOrNull("target"))
-      openMainWindow().let { true }
+      request.queryOrNull("url")?.let { url ->
+        openMainWindow()
+        browserController.tryOpenBrowserPage(url = url,
+          target = request.queryOrNull("target")?.let { AppBrowserTarget.valueOf(it) }
+            ?: AppBrowserTarget.BLANK
+        )
+        true
+      } ?: false
     }
 
     routes(
-      "search" bindDwebDeeplink defineEmptyResponse {
+      "search" bindDwebDeeplink defineBooleanResponse {
         debugBrowser("do search", request.href)
-        browserController.openBrowserView(search = request.query("q"))
-        openMainWindow()
+        request.queryOrNull("q")?.let { url ->
+          openMainWindow()
+          browserController.tryOpenBrowserPage(url = url, target = AppBrowserTarget.SELF)
+          true
+        } ?: false
       },
       "openinbrowser" bindDwebDeeplink openBrowser,
       "/openinbrowser" bind PureMethod.GET by openBrowser,

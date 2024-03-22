@@ -3,7 +3,6 @@ package org.dweb_browser.browser.web
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -25,7 +24,6 @@ import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
 import platform.CoreGraphics.CGRectMake
-import platform.Foundation.validateValue
 import kotlin.experimental.ExperimentalNativeApi
 
 actual fun getImageResourceRootPath(): String = ""
@@ -55,6 +53,23 @@ private fun winClose(): Unit {
 private fun winVisibleChange(isVisible: Boolean): Unit {
   iOSViewHolder?.let {
     it.browserActiveOn(isVisible)
+  }
+}
+
+actual suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem) {
+  iOSViewHolder?.let { iOSView ->
+    if (dwebLinkSearchItem.link.isNotEmpty()) {
+      when (dwebLinkSearchItem.target) {
+        AppBrowserTarget.BLANK, AppBrowserTarget.SYSTEM -> iOSView.doNewTabUrlWithUrl(
+          dwebLinkSearchItem.link,
+          dwebLinkSearchItem.target.type
+        )
+
+        AppBrowserTarget.SELF -> {
+          iOSView.doSearchWithKey(dwebLinkSearchItem.link)
+        }
+      }
+    }
   }
 }
 
@@ -99,23 +114,6 @@ actual fun CommonBrowserView(
   }
 
   browserObserver.browserViewModel = viewModel
-
-  key(viewModel.dwebLinkSearch) {
-    if (viewModel.dwebLinkSearch.link.isNotEmpty()) {
-      when (viewModel.dwebLinkSearch.target) {
-        AppBrowserTarget.BLANK.type, AppBrowserTarget.SYSTEM.type -> iOSView.doNewTabUrlWithUrl(
-          viewModel.dwebLinkSearch.link,
-          viewModel.dwebLinkSearch.target
-        )
-
-        AppBrowserTarget.SELF.type -> {
-          iOSView.doSearchWithKey(viewModel.dwebLinkSearch.link)
-        }
-      }
-
-      viewModel.dwebLinkSearch = DwebLinkSearchItem.Empty
-    }
-  }
 
   val win = LocalWindowController.current
   val scope = rememberCoroutineScope()

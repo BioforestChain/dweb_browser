@@ -16,7 +16,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.isWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
 
-class BrowserWebPage(val webView: IDWebView, private val browserController: BrowserController) :
+class BrowserWebPage(val webView: IDWebView, browserController: BrowserController) :
   BrowserPage(browserController) {
   companion object {
     fun isWebUrl(url: String) = url.isWebUrlOrWithoutProtocol()

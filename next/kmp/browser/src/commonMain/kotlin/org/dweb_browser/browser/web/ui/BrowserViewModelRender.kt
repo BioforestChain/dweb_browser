@@ -88,22 +88,19 @@ fun BrowserViewModalRender(
 
     Box(modifier = remember(windowRenderScope) {
       with(windowRenderScope) {
-        modifier.requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
-          .scale(scale)
+        modifier.requiredSize((width / scale).dp, (height / scale).dp).scale(scale)
       }
     }.background(MaterialTheme.colorScheme.background)) {
-
       if (viewModel.isPreviewInvisible) {
         Column(Modifier.fillMaxSize()) {
           // 网页主体
           Box(modifier = Modifier.weight(1f)) {
-            BrowserPageBox(viewModel, windowRenderScope)   // 中间网页主体
+            BrowserPageBox(windowRenderScope)   // 中间网页主体
           }
           // 工具栏，包括搜索框和导航栏
-          BrowserBottomBar(viewModel, Modifier.fillMaxWidth().wrapContentHeight())
+          BrowserBottomBar(Modifier.fillMaxWidth().wrapContentHeight())
         }
       }
-
 
       BrowserPreviewPanel(Modifier.zIndex(2f))
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
@@ -118,7 +115,8 @@ fun BrowserViewModalRender(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun BrowserPageBox(viewModel: BrowserViewModel, windowRenderScope: WindowRenderScope) {
+fun BrowserPageBox(windowRenderScope: WindowRenderScope) {
+  val viewModel = LocalBrowserViewModel.current
   val localFocusManager = LocalFocusManager.current
 
   viewModel.focusedPage?.also { focusPage ->
@@ -147,14 +145,8 @@ fun BrowserPageBox(viewModel: BrowserViewModel, windowRenderScope: WindowRenderS
 }
 
 @Composable
-fun BrowserBottomBar(viewModel: BrowserViewModel, modifier: Modifier) {
-  Box(modifier.height(dimenBottomHeight), contentAlignment = Alignment.Center) {
-    BrowserSearchBar(viewModel, Modifier.fillMaxWidth())
+fun BrowserBottomBar(modifier: Modifier) {
+  Box(modifier.fillMaxWidth().height(dimenBottomHeight), contentAlignment = Alignment.Center) {
+    BrowserSearchBar(Modifier.fillMaxSize())
   }
-//  Column(
-//    modifier = modifier.background(MaterialTheme.colorScheme.background).height(dimenBottomHeight),
-//    verticalArrangement = Arrangement.SpaceAround
-//  ) {
-//    BrowserNavigatorBar(viewModel)
-//  }
 }

@@ -41,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,7 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -76,7 +76,6 @@ import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
 import org.dweb_browser.sys.window.render.LocalWindowController
 import kotlin.math.max
 
-
 /**
  * 显示多视图窗口
  */
@@ -95,15 +94,17 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier) {
     viewModel.toggleShowPreviewUI(false)
   }
 
-  Column(modifier = modifier.fillMaxSize()
-    .let { if (viewModel.previewPanelAnimationReady.isNotEmpty()) it else it.alpha(0f) }
-    .background(MaterialTheme.colorScheme.surface)) {
+  Column(
+    modifier = modifier.fillMaxSize().background(
+      MaterialTheme.colorScheme.surface.copy(
+        alpha = if (viewModel.previewPanelAnimationReady.isNotEmpty()) 1f else 0f
+      )
+    )
+  ) {
     val focusedPageIndex = viewModel.focusedPageIndex
     val lazyGridState = rememberLazyGridState(max(focusedPageIndex, 0))
     val panelTransition = rememberTransition(viewModel.previewPanelVisibleState)
-    BoxWithConstraints(
-      modifier = Modifier.weight(1f),
-    ) {
+    BoxWithConstraints(modifier = Modifier.weight(1f)) {
       val pageSize = viewModel.pageSize
       val onlyOne = pageSize <= 1
       val cellWidth = remember(onlyOne, maxWidth) {
@@ -166,7 +167,7 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier) {
               page = page,
               modifier = cellModifier,
               closable = cellClosable,
-              focus = isFocusedPage,
+              focus = false,
             )
           }
         }
@@ -176,7 +177,7 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier) {
       modifier = Modifier.fillMaxWidth().height(DimenBottomBarHeight)
         .background(MaterialTheme.colorScheme.surface), verticalAlignment = CenterVertically
     ) {
-      IconButton({
+      IconButton(onClick = {
         uiScope.launch {
           viewModel.addNewPageUI {
             addIndex = focusedPageIndex + 1
@@ -197,7 +198,7 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier) {
         modifier = Modifier.weight(1f),
         textAlign = TextAlign.Center
       )
-      TextButton({ viewModel.toggleShowPreviewUI(false) }) {
+      TextButton(onClick = { viewModel.toggleShowPreviewUI(false) }) {
         Text(
           text = BrowserI18nResource.browser_multi_done(),
           color = MaterialTheme.colorScheme.primary,
@@ -252,8 +253,8 @@ private fun PagePreviewCellWithAnimation(
   var parentCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
   // 左上角的动画起点
-  var fromX by remember { mutableStateOf(0f) }
-  var fromY by remember { mutableStateOf(0f) }
+  var fromX by remember { mutableFloatStateOf(0f) }
+  var fromY by remember { mutableFloatStateOf(0f) }
   val toX = 0f
   val toY = 0f
 
@@ -261,13 +262,12 @@ private fun PagePreviewCellWithAnimation(
   val fromHeight = remember(parentWidth, parentHeight, contentWidth) {
     (parentHeight.value / parentWidth.value) * contentWidth.value
   }
-  var toHeight by remember { mutableStateOf(contentHeight.value) }
+  var toHeight by remember { mutableFloatStateOf(contentHeight.value) }
   // 元素缩放，用于同时改变宽高
   val fromScale = remember(parentWidth, contentWidth) {
     parentWidth.value / contentWidth.value
   }
   val toScale = 1f
-
 
   /**
    * 配置动画
@@ -278,34 +278,38 @@ private fun PagePreviewCellWithAnimation(
     else exitAnimationSpec<Float>()
   }
   // 将动画强制赋值给 panelTransition，这样可以使得 panel 也能假装有动画，isIdle==false，确保动画完成播放。但是这里没有考虑时间，也不需要考虑时间
-  key(aniSpec) { panelTransition.animateFloat(transitionSpec = { aniSpec }) { if (it.isVisible) 1f else 0f } }
+  key(aniSpec) {
+    panelTransition.animateFloat(
+      transitionSpec = { aniSpec }, label = ""
+    ) { if (it.isVisible) 1f else 0f }
+  }
 
   val aniX by key(fromX, aniSpec) {
-    pageTransition.animateFloat(transitionSpec = { aniSpec }) {
+    pageTransition.animateFloat(transitionSpec = { aniSpec }, label = "") {
       if (it.isMinimal) toX else fromX
     }
   }
   val aniY by key(fromY, aniSpec) {
-    pageTransition.animateFloat(transitionSpec = { aniSpec }) {
+    pageTransition.animateFloat(transitionSpec = { aniSpec }, label = "") {
       if (it.isMinimal) toY else fromY
     }
   }
   val aniHeight by key(toHeight, aniSpec) {
-    pageTransition.animateFloat(transitionSpec = { aniSpec }) {
+    pageTransition.animateFloat(transitionSpec = { aniSpec }, label = "") {
       if (it.isMinimal) toHeight else fromHeight
     }
   }
   val aniScale by key(aniSpec) {
-    pageTransition.animateFloat(transitionSpec = { aniSpec }) {
+    pageTransition.animateFloat(transitionSpec = { aniSpec }, label = "") {
       if (it.isMinimal) toScale else fromScale
     }
   }
   val aniElevation by key(focus) {
-    pageTransition.animateFloat(transitionSpec = { aniSpec }) {
+    pageTransition.animateFloat(transitionSpec = { aniSpec }, label = "") {
       if (it.isMinimal) (if (focus) 4f else 1f) else 0f
     }
   }
-  val aniShape by pageTransition.animateFloat(transitionSpec = { aniSpec }) {
+  val aniShape by pageTransition.animateFloat(transitionSpec = { aniSpec }, label = "") {
     if (it.isMinimal) 16f else 0f
   }
 
@@ -360,7 +364,7 @@ private fun PagePreviewCell(
   Box(modifier) {
     if (closable && viewModel.showPreview) {
       IconButton(
-        {
+        onClick = {
           scope.launch { viewModel.closePageUI(page) }
         },
         modifier = Modifier.align(Alignment.TopEnd).zIndex(3f),
@@ -373,9 +377,7 @@ private fun PagePreviewCell(
         )
       }
     }
-    Column(
-      modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
       val pageTitle = page.title
       val pageIcon = page.icon
       val pageIconColorFilter = page.iconColorFilter
@@ -421,7 +423,7 @@ private fun PagePreviewCell(
         modifier = Modifier.wrapContentHeight().fillMaxWidth().padding(top = 4.dp)
           .align(Alignment.CenterHorizontally),
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = CenterVertically
       ) {
         pageIcon?.let { iconPainter ->
           Image(

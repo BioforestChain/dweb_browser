@@ -9,7 +9,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
@@ -19,12 +18,13 @@ import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.search.ext.collectChannelOfEngines
 import org.dweb_browser.browser.search.ext.isEngineAndGetHomeLink
 import org.dweb_browser.browser.web.BrowserController
-import org.dweb_browser.browser.web.data.ConstUrl
+import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.data.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browser.web.data.KEY_NO_TRACE
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.debugBrowser
+import org.dweb_browser.browser.web.deepLinkDoSearch
 import org.dweb_browser.browser.web.model.page.BrowserBookmarkPage
 import org.dweb_browser.browser.web.model.page.BrowserDownloadPage
 import org.dweb_browser.browser.web.model.page.BrowserHistoryPage
@@ -58,9 +58,9 @@ val LocalShowIme = compositionChainOf("ShowIme") {
   mutableStateOf(false)
 }
 
-data class DwebLinkSearchItem(val link: String, val target: String) {
+data class DwebLinkSearchItem(val link: String, val target: AppBrowserTarget) {
   companion object {
-    val Empty = DwebLinkSearchItem("", "_self")
+    val Empty = DwebLinkSearchItem("", AppBrowserTarget.SELF)
   }
 }
 
@@ -96,13 +96,11 @@ class BrowserViewModel(
   var showSearch by mutableStateOf<BrowserPage?>(null)
   var scale by mutableStateOf(1f)
 
-  // TODO 优化这个字段
-  var dwebLinkSearch by mutableStateOf(DwebLinkSearchItem.Empty) // 为了获取desk传过来的地址信息
   var showSearchEngine by mutableStateOf(false)
 
   // 无痕模式状态
   var isIncognitoOn by mutableStateOf(false)
-    private set;
+    private set
 
   suspend fun updateIncognitoModeUI(noTrace: Boolean) {
     isIncognitoOn = noTrace
@@ -114,7 +112,7 @@ class BrowserViewModel(
   val searchInjectList = mutableStateListOf<SearchInject>()
   val searchEngineList = mutableStateListOf<SearchEngine>()
   val filterShowEngines get() = searchEngineList.filter { it.enable }
-  fun findSearchEngine(url: String) = searchEngineList.firstOrNull { it.fit(url) }
+  fun findSearchEngine(url: String) = searchEngineList.firstOrNull { it.matchKeyWord(url) }
 
   suspend fun checkAndSearchUI(key: String, hide: () -> Unit) {
     val homeLink = withScope(ioScope) { browserNMM.isEngineAndGetHomeLink(key) } // 将关键字对应的搜索引擎置为有效
@@ -204,15 +202,6 @@ class BrowserViewModel(
       }
     }
 
-    // 监听 dwebLinkSearch 来进行显示
-    LaunchedEffect(dwebLinkSearch) {
-      snapshotFlow { dwebLinkSearch }.collect { searchItem ->
-        tryOpenUrlUI(searchItem.link) {
-          showSearch = focusedPage
-        }
-      }
-    }
-
     pagerStates.BindingEffect()
   }
 
@@ -238,14 +227,50 @@ class BrowserViewModel(
 
   private suspend fun createWebPage(url: String) = createWebPage(createDwebView(url))
 
-  internal fun openSearchPanelUI(
-    search: String? = null, url: String? = null, target: String? = null
-  ) {
+  /**
+   * 接收到deeplink的搜索或者打开网页请求操作
+   */
+  suspend fun openSearchPanelUI(url: String, target: AppBrowserTarget) {
     // 先判断search是否不为空，然后在判断search是否是地址，
-    debugBrowser("openBrowserView", "search=$search, url=$url, target=$target")
-    dwebLinkSearch = DwebLinkSearchItem(
-      search ?: url ?: ConstUrl.BLANK.url, target ?: "_self"
-    )
+    debugBrowser("openSearchPanelUI", "url=$url, target=$target")
+    deepLinkDoSearch(DwebLinkSearchItem(link = url, target = target)) // 调用Ios 接口，实现功能
+    // android 实现仍然在 commonMain这边
+    when(target) {
+      AppBrowserTarget.SELF -> {
+        // 如果是搜索的话，直接在当前页显示搜索界面，并且显示待搜索的内容
+//        if (url.isNotEmpty()) {
+//          showSearch = focusedPage?.apply { searchKeyWord = url } // 显示当前界面
+//        }
+        tryOpenUrlUI(url) {
+          debugBrowser("openSearchPanelUI", "tryOpenUrlUI fail, focusedPage=$focusedPage")
+          val page = focusedPage?.let { tempPage ->
+            if (tempPage is BrowserHomePage) tempPage.apply { searchKeyWord = url } else null
+          } ?: run {
+            BrowserHomePage(browserController).apply {
+              searchKeyWord = url
+              addNewPageUI(this) { addIndex = pageSize } // 直接移动到最后
+            }
+          }
+          showSearch = page
+        }
+      }
+      else -> {
+        // 打开新tab，并聚焦到新page，如果打开地址失败，说明不是标准网址，新增tab，并且打开搜索界面
+        tryOpenUrlUI(url) {
+          debugBrowser("openSearchPanelUI", "tryOpenUrlUI fail, focusedPage=$focusedPage")
+          val page = focusedPage?.let { tempPage -> // 如果当前界面就是homepage，就不需要再创建新的
+            if (tempPage is BrowserHomePage) tempPage.apply { searchKeyWord = url } else null
+          } ?: run {
+            BrowserHomePage(browserController).apply {
+              searchKeyWord = url
+              addNewPageUI(this) { addIndex = pageSize } // 直接移动到最后
+              focusPageUI(this)
+            }
+          }
+          showSearch = page
+        }
+      }
+    }
   }
 
   /**
@@ -269,6 +294,8 @@ class BrowserViewModel(
           // 否则走未知模式
           if (newPage == null) {
             url.isNotEmpty().trueAlso { unknownUrl?.invoke(url) }
+          } else {
+            focusPageUI(newPage) // 发现通过 deeplink 请求时地址时，一直在首页，没有聚焦
           }
         }
 
@@ -543,10 +570,8 @@ internal fun pageUrlTransformer(pageUrl: String, needHost: Boolean = true): Stri
 
   // 判断是不是搜索引擎，如果是提取它的关键字
   for (item in SearchEngineList) {
-    if (item.homeLink.contains(url.host)) {
-      url.parameters[item.queryName()]?.also { searchText ->
-        return searchText
-      }
+    item.queryKeyWordValue(url)?.let { searchText ->
+      return searchText
     }
   }
   return if (needHost && url.host.isNotEmpty()) {

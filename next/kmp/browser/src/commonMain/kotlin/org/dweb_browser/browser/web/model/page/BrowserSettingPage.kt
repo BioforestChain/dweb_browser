@@ -21,7 +21,7 @@ class BrowserSettingPage(browserController: BrowserController) : BrowserPage(bro
     @Composable get() = ColorFilter.tint(LocalContentColor.current)
 
   init {
-    url = "about:downloads"
+    url = "about:settings"
   }
 
   override fun isUrlMatch(url: String) = isSettingUrl(url)

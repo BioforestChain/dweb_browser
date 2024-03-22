@@ -37,6 +37,10 @@ sealed class BrowserPage(browserController: BrowserController) {
   var scale by mutableFloatStateOf(1f)
     private set
 
+  // 该字段是用来存储通过 deeplink 调用的 search 和 openinbrowser 关键字，关闭搜索界面需要直接置空
+  var searchKeyWord by mutableStateOf<String?>(null)
+    internal set
+
   /**
    * 截图器
    */
@@ -110,6 +114,7 @@ sealed class BrowserPage(browserController: BrowserController) {
       }
     }
   }
+
   /**
    * 是否在书签中
    */

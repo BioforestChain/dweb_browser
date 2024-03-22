@@ -86,6 +86,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
     val focusManager = LocalFocusManager.current
     val hide = {
       focusManager.clearFocus()
+      viewModel.showSearch?.searchKeyWord = null // 关闭之前，先把这个字段内容情况，避免下次显示关键字仍然为之前的
       viewModel.showSearch = null
     }
     /// 返回关闭搜索
@@ -93,11 +94,10 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
       hide()
     }
     val uiScope = rememberCoroutineScope()
-    var searchTextField by remember(searchPage) {
+    var searchTextField by remember(searchPage.searchKeyWord, searchPage.url) {
+      val text = searchPage.searchKeyWord ?: searchPage.url
       mutableStateOf(
-        TextFieldValue(
-          searchPage.url, selection = TextRange(0, searchPage.url.length)
-        )
+        TextFieldValue(text = text, selection = TextRange(0, text.length))
       )
     }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -481,7 +481,9 @@ private fun LazyListScope.searchEngineItems(
       ListItem(headlineContent = {
         Text(text = searchEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
       },
-        modifier = Modifier.clickable { onSearch(searchEngine.searchLink.format(searchText)) },
+        modifier = Modifier.clickable {
+          onSearch(searchEngine.searchLinks.first().format(searchText))
+        },
         supportingContent = {
           Text(text = searchText, maxLines = 1, overflow = TextOverflow.Ellipsis)
         },

@@ -25,8 +25,7 @@ class SearchController(searchNMM: SearchNMM) {
    * 判断当前的关键字是否是引擎，如果是，可以打开搜索界面，并且返回引擎的主页地址
    */
   suspend fun checkAndEnableEngine(key: String): String? {
-    val current = searchEngineList.firstOrNull { it.keys.split(",").contains(key) }
-    return current?.let {
+    return searchEngineList.firstOrNull { it.matchKeyWord(key) }?.let { current ->
       current.enable = true
       searchStore.saveEngineState(current)
       engineUpdateSignal.emit()

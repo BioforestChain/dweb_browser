@@ -55,7 +55,6 @@ import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
 import org.dweb_browser.browser.common.barcode.QRCodeState
-import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
@@ -67,7 +66,8 @@ import org.dweb_browser.helper.isDwebDeepLink
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun BrowserSearchBar(viewModel: BrowserViewModel, modifier: Modifier) {
+fun BrowserSearchBar(modifier: Modifier) {
+  val viewModel = LocalBrowserViewModel.current
   val uiScope = rememberCoroutineScope()
   val localShowIme = LocalShowIme.current
 

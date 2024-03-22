@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.data.BrowserStore
 import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.browser.web.data.WebLinkStore
@@ -91,6 +92,7 @@ class BrowserController(
       if (win == newWin) {
         return@withLock
       }
+      viewModel.addNewPageUI() // 第一次渲染需要添加一个HomePage
       win = newWin
       newWin.setStateFromManifest(browserNMM)
 
@@ -115,8 +117,12 @@ class BrowserController(
     }
   }
 
-  suspend fun openBrowserView(search: String? = null, url: String? = null, target: String? = null) =
-    viewModel.openSearchPanelUI(search, url, target)
+  /**
+   * 通过 deeplink 来打开 web browser界面后，需要考虑是否加载
+   */
+  suspend fun tryOpenBrowserPage(url: String, target: AppBrowserTarget = AppBrowserTarget.SELF) {
+    viewModel.openSearchPanelUI(url, target)
+  }
 
   /**
    * 浏览器添加webLink到桌面
