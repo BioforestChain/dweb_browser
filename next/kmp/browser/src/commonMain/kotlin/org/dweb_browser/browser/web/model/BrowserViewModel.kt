@@ -228,16 +228,16 @@ class BrowserViewModel(
   /**
    * 接收到 deeplink 的搜索或者打开网页请求操作
    */
-  suspend fun openSearchPanelUI(url: String, target: AppBrowserTarget) {
+  suspend fun openSearchPanelUI(searchText: String, target: AppBrowserTarget) {
     // 先判断search是否不为空，然后在判断search是否是地址，
-    debugBrowser("openSearchPanelUI", "url=$url, target=$target")
-    deepLinkDoSearch(DwebLinkSearchItem(link = url, target = target)) // 调用Ios 接口，实现功能
+    debugBrowser("openSearchPanelUI", "searchText=$searchText, target=$target")
+    deepLinkDoSearch(DwebLinkSearchItem(link = searchText, target = target)) // 调用Ios 接口，实现功能
     // android 实现仍然在 commonMain这边
     when (target) {
       AppBrowserTarget.SELF -> {
         // 如果是搜索的话，直接在当前页显示搜索界面，并且显示待搜索的内容
-        if (url.isNotEmpty()) {
-          showSearch = focusedPage?.apply { searchKeyWord = url } // 显示当前界面
+        if (searchText.isNotEmpty()) {
+          showSearch = focusedPage?.apply { searchKeyWord = searchText } // 显示当前界面
         }
       }
 
@@ -246,13 +246,13 @@ class BrowserViewModel(
         val replacePage = if (focusedPage != null && focusedPage is BrowserHomePage) {
           focusedPage!!
         } else null
-        tryOpenUrlUI(url, replacePage) {
+        tryOpenUrlUI(searchText, replacePage) {
           debugBrowser("openSearchPanelUI", "tryOpenUrlUI fail, focusedPage=$focusedPage")
           val page = replacePage?.let { // 如果当前界面就是homepage，就不需要再创建新的
-            replacePage.apply { searchKeyWord = url }
+            replacePage.apply { searchKeyWord = searchText }
           } ?: run {
             BrowserHomePage(browserController).apply {
-              searchKeyWord = url
+              searchKeyWord = searchText
               addNewPageUI(this) { addIndex = focusedPageIndex + 1 } // 直接移动到最后
             }
           }
