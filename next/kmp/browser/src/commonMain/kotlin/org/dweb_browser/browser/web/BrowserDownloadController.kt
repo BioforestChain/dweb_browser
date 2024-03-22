@@ -13,7 +13,7 @@ import org.dweb_browser.browser.download.ext.startDownload
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadStore
 import org.dweb_browser.browser.web.data.BrowserDownloadType
-import org.dweb_browser.browser.web.download.BrowserDownloadModel
+import org.dweb_browser.browser.web.model.BrowserDownloadModel
 import org.dweb_browser.dwebview.WebDownloadArgs
 
 class BrowserDownloadController(

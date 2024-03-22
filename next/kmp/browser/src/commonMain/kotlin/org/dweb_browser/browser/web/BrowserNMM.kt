@@ -3,7 +3,6 @@ package org.dweb_browser.browser.web
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.data.WebLinkStore
-import org.dweb_browser.browser.web.model.WebLinkMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink

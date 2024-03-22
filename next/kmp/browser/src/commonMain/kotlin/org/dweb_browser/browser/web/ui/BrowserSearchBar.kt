@@ -26,6 +26,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Filter1
+import androidx.compose.material.icons.rounded.Filter2
+import androidx.compose.material.icons.rounded.Filter3
+import androidx.compose.material.icons.rounded.Filter4
+import androidx.compose.material.icons.rounded.Filter5
+import androidx.compose.material.icons.rounded.Filter6
+import androidx.compose.material.icons.rounded.Filter7
+import androidx.compose.material.icons.rounded.Filter8
+import androidx.compose.material.icons.rounded.Filter9
+import androidx.compose.material.icons.rounded.Filter9Plus
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -93,7 +103,7 @@ fun BrowserSearchBar(modifier: Modifier) {
     }) {
       Icon(Icons.Rounded.Add, "Add")
     }
-//    Spacer(Modifier.width(5.dp))
+
     HorizontalPager(
       modifier = Modifier.weight(1f),
       state = viewModel.pagerStates.searchBar,
@@ -108,14 +118,16 @@ fun BrowserSearchBar(modifier: Modifier) {
         }
       },
     )
-//    Spacer(Modifier.width(5.dp))
+
+    // 多窗口预览界面
     IconButton({
       viewModel.focusedPage?.captureViewInBackground()
       viewModel.toggleShowPreviewUI(true)
     }) {
       Icon(getMultiImageVector(viewModel.pageSize), "Open Preview Panel")
     }
-//    Spacer(Modifier.width(5.dp))
+
+    // 功能列表
     IconButton({
       viewModel.showMore = true
     }) {
@@ -125,6 +137,18 @@ fun BrowserSearchBar(modifier: Modifier) {
   }
 }
 
+internal fun getMultiImageVector(size: Int) = when (size) {
+  1 -> Icons.Rounded.Filter1
+  2 -> Icons.Rounded.Filter2
+  3 -> Icons.Rounded.Filter3
+  4 -> Icons.Rounded.Filter4
+  5 -> Icons.Rounded.Filter5
+  6 -> Icons.Rounded.Filter6
+  7 -> Icons.Rounded.Filter7
+  8 -> Icons.Rounded.Filter8
+  9 -> Icons.Rounded.Filter9
+  else -> Icons.Rounded.Filter9Plus
+}
 
 enum class SearchBoxTheme {
   Shadow, Border, ;

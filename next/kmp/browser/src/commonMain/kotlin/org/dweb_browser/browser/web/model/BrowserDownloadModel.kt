@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.download
+package org.dweb_browser.browser.web.model
 
 import androidx.compose.runtime.mutableStateOf
 import io.ktor.http.URLBuilder
@@ -9,7 +9,7 @@ import org.dweb_browser.browser.web.BrowserDownloadController
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.FileSuffix
-import org.dweb_browser.browser.web.download.view.BrowserDownloadSheet
+import org.dweb_browser.browser.web.ui.BrowserDownloadSheet
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets

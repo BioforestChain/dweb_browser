@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.web.download.view
+package org.dweb_browser.browser.web.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
-import org.dweb_browser.browser.web.download.BrowserDownloadModel
+import org.dweb_browser.browser.web.model.BrowserDownloadModel
 import org.dweb_browser.browser.web.data.BrowserDownloadType
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.clickableWithNoEffect

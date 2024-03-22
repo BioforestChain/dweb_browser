@@ -1,13 +1,13 @@
-package org.dweb_browser.browser.web.model
+package org.dweb_browser.browser.web
 
 import org.dweb_browser.browser.web.data.WebLinkManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.helper.Debugger
 
-val debugWebLink = Debugger("link")
-
+/**
+ * 仅用于添加到桌面后，能够点击打开 web
+ */
 class WebLinkMicroModule(webLink: WebLinkManifest) : NativeMicroModule(webLink.id, webLink.url) {
   init {
     short_name = webLink.title.substring(0, minOf(5, webLink.title.length))
