@@ -161,9 +161,12 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       mmConnectsMap[aKey] = aPromiseOut
       mmConnectsMap[bKey] = bPromiseOut
       aPromiseOut.alsoLaunchIn(ioAsyncScope) {
-//        debugDNS("connectxx", "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid}")
+        debugDNS("connect", "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid}")
         toRunningApp.ready()
-//        debugDNS("connectxx end", "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid} ${toRunningApp.module.mmid}")
+        debugDNS(
+          "connect end",
+          "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid} ${toRunningApp.module.mmid}"
+        )
         val aConnectResult = connectMicroModules(fromMM, toMicroModule, reason)
         val bConnectResult = ConnectResult(aConnectResult.ipcForToMM, aConnectResult.ipcForFromMM)
         bPromiseOut.resolve(bConnectResult)
@@ -418,11 +421,11 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       // 在此基础上，it.key == fromMM.mmid 意味着它循环引用到自己的protocol了，这没必要，所以返回null
       if (it.key != mpid && it.key == fromMM.mmid) null else it.value
     } ?: run {
-      debugDNS("open start", "$mpid(by ${fromMM.mmid})")
+      debugDNS("dns_open start", "$mpid(by ${fromMM.mmid})")
       val app = query(mpid, fromMM) ?: throw Exception("no found app: $mpid")
       val afterBootstrap = PromiseOut<Unit>().alsoLaunchIn(ioAsyncScope) {
         bootstrapMicroModule(app)
-        debugDNS("open end", "$mpid(by ${fromMM.mmid})")
+        debugDNS("dns_open end", "$mpid(by ${fromMM.mmid})")
       }
       RunningApp(app, afterBootstrap).also { running ->
         addRunningApp(running)

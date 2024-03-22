@@ -152,33 +152,33 @@ export class JsProcessMicroModule implements $MicroModule {
           autoStart: false, // 等建立完成再手动启动
         });
         port_po.resolve(ipc);
-        if (typeof navigator === "object" && navigator.locks) {
-          ipc.onEvent((event) => {
-            try {
-              if (event.name === "web-message-port-live") {
-                console.warn(self.name, ipc.remote.mmid, "web-message-port living", event.text);
-                void navigator.locks.request(event.text, () => {
-                  console.warn(self.name, ipc.remote.mmid, "web-message-port ipc closed");
-                  ipc.close();
-                });
-              }
-            } catch (e) {
-              console.error("locks-2", e);
-            }
-          });
-          this.afterIpcReady(ipc).then(() => {
-            const liveId = "live-" + Date.now() + Math.random() + "-for-" + ipc.remote.mmid;
-            try {
-              void navigator.locks.request(liveId, () => {
-                console.warn(self.name, "web-message-port live start", liveId);
-                return new Promise(() => {}); /// 永远不释放
-              });
-              ipc.postMessage(IpcEvent.fromText("web-message-port-live", liveId));
-            } catch (e) {
-              console.error("locks-1", e);
-            }
-          });
-        }
+        // if (typeof navigator === "object" && navigator.locks) {
+        //   ipc.onEvent((event) => {
+        //     try {
+        //       if (event.name === "web-message-port-live") {
+        //         console.warn(self.name, ipc.remote.mmid, "web-message-port living", event.text);
+        //         void navigator.locks.request(event.text, () => {
+        //           console.warn(self.name, ipc.remote.mmid, "web-message-port ipc closed");
+        //           ipc.close();
+        //         });
+        //       }
+        //     } catch (e) {
+        //       console.error("locks-2", e);
+        //     }
+        //   });
+        //   this.afterIpcReady(ipc).then(() => {
+        //     const liveId = "live-" + Date.now() + Math.random() + "-for-" + ipc.remote.mmid;
+        //     try {
+        //       void navigator.locks.request(liveId, () => {
+        //         console.warn(self.name, "web-message-port live start", liveId);
+        //         return new Promise(() => {}); /// 永远不释放
+        //       });
+        //       ipc.postMessage(IpcEvent.fromText("web-message-port-live", liveId));
+        //     } catch (e) {
+        //       console.error("locks-1", e);
+        //     }
+        //   });
+        // }
 
         workerGlobal.postMessage(["ipc-connect-ready", mmid]);
         /// 不论是连接方，还是被连接方，都需要触发事件

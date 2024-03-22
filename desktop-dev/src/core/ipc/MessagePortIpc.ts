@@ -33,10 +33,6 @@ export class MessagePortIpc extends Ipc {
     this._support_cbor = self_support_protocols.cbor && this.remote.ipc_support_protocols.cbor;
 
     port.addEventListener("message", (event) => {
-      if (event.data === "close") {
-        this.close();
-        return;
-      }
       const message = this.support_raw
         ? $messageToIpcMessage(event.data, this)
         : event.data instanceof Uint8Array
@@ -78,7 +74,6 @@ export class MessagePortIpc extends Ipc {
   }
 
   _doClose() {
-    this.port.postMessage("close");
     this.port.close();
   }
 }

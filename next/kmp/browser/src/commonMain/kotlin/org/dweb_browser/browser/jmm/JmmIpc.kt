@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.jmm
 
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
@@ -20,7 +19,6 @@ import org.dweb_browser.core.ipc.helper.jsonToIpcPoolPack
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.Once
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 
 class JmmIpc(
@@ -34,7 +32,9 @@ class JmmIpc(
 
   init {
     // 监听启动回调
-    this.initLifeCycleHook()
+    ipcScope.launch {
+      this@JmmIpc.initLifeCycleHook()
+    }
     // 这里负责桥接消息，因此需要直接放行自己这边，真正的完成在worker那边的 dns/connect/done
     this.startDeferred.complete(IpcLifeCycle.open())
   }
@@ -63,19 +63,14 @@ class JmmForwardIpc(
   private val responseEventName = "forward/response/${jmmIpc.fromMMID}"
   private val closeEventName = "forward/close/${jmmIpc.fromMMID}"
 
-  private val scope = CoroutineScope(CoroutineName(channelId) + ioAsyncExceptionHandler)
-
   init {
     // 这里脱离于ipcPool 需要单独启动,放行jsMicroModule路由适配器中的beConnect
-    scope.launch {
+    ipcScope.launch {
       this@JmmForwardIpc.start()
     }
     fetchIpc.onClose {
       this@JmmForwardIpc.close()
     }
-  }
-
-  init {
     // 收到代理的消息回复
     fetchIpc.onEvent { (ipcEvent) ->
       if (ipcEvent.name == responseEventName) {
@@ -88,7 +83,7 @@ class JmmForwardIpc(
           )
         )
       }
-    }.removeWhen(this.onClose)
+    }
   }
 
   // 发送代理消息到js-worker 中
@@ -108,8 +103,9 @@ class JmmForwardIpc(
     }
   }
 
-  override suspend fun doClose() {
+  override suspend fun _doClose() {
     debugJsMM("JmmForwardIpc close", channelId)
+    ipcScope.cancel()
     if (!fetchIpc.isClosed) {
       fetchIpc.postMessage(IpcEvent.fromUtf8(closeEventName, ""))
     }

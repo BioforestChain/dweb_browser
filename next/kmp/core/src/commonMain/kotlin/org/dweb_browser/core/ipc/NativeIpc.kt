@@ -22,11 +22,12 @@ class NativeIpc(
   override fun toString() = "NativeIpc@($port,channelId=$channelId,remote:${remote.mmid})"
 
   // 这里放在协程
-  private val ioAsyncScope = CoroutineScope(CoroutineName("native-ipc") + ioAsyncExceptionHandler)
+  private val ioAsyncScope =
+    CoroutineScope(CoroutineName("native-ipc-$channelId") + ioAsyncExceptionHandler)
 
   init {
     port.onMessage { pack ->
-//      debugNativeIpc("onMessage", "$channelId $pack")
+      debugNativeIpc("onMessage", "$channelId $pack")
       endpoint.emitMessage(
         IpcPoolMessageArgs(
           IpcPoolPack(pack.pid, pack.ipcMessage),
@@ -47,7 +48,8 @@ class NativeIpc(
   }
 
 
-  override suspend fun doClose() {
+  override suspend fun _doClose() {
+    debugNativeIpc("native_doClose", "$channelId ")
     port.close()
     ioAsyncScope.cancel()
   }

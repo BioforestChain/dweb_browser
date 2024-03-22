@@ -1,5 +1,7 @@
 package org.dweb_browser.core.ipc
 
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
@@ -10,6 +12,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureStream
 
@@ -37,8 +40,8 @@ data class IpcOptions(
 open class IpcPool {
   companion object {
     private fun randomPoolId() = "kotlin-${randomUUID()}"
-//    private val ipcPoolScope =
-//      CoroutineScope(CoroutineName("ipc-pool-kotlin") + ioAsyncExceptionHandler)
+    private val ipcPoolScope =
+      CoroutineScope(CoroutineName("ipc-pool-kotlin") + ioAsyncExceptionHandler)
   }
 
   /**每一个ipcPool都会绑定一个body流池,只有当不在同一个IpcPool的时候才需要互相拉取*/

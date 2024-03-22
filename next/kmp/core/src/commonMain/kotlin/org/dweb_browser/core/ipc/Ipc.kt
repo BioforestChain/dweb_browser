@@ -41,8 +41,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.SimpleEventFlow
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
@@ -60,9 +59,9 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     private var uid_acc by SafeInt(1)
     private var reqId_acc by SafeInt(0)
     var order_by_acc by SafeInt(0)
-    private val ipcMessageCoroutineScope =
-      CoroutineScope(CoroutineName("ipc-message") + ioAsyncExceptionHandler)
   }
+
+  val ipcScope = CoroutineScope(CoroutineName("ipc-$channelId") + ioAsyncExceptionHandler)
 
   abstract val remote: IMicroModuleManifest
   fun remoteAsInstance() = if (remote is MicroModule) remote as MicroModule else null
@@ -117,7 +116,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
               is IpcClientRequest -> ipcReq.toServer(args.ipc)
               is IpcServerRequest -> ipcReq
             }
-            ipcMessageCoroutineScope.launch {
+            ipcScope.launch {
               signal.emit(
                 IpcRequestMessageArgs(ipcServerRequest, args.ipc)
               )
@@ -126,6 +125,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
 
           else -> {}
         }
+
       }
     }
   }
@@ -136,7 +136,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     createSignal<IpcResponseMessageArgs>().also { signal ->
       _messageSignal.listen { args ->
         if (args.message is IpcResponse) {
-          ipcMessageCoroutineScope.launch {
+          ipcScope.launch {
             signal.emit(
               IpcResponseMessageArgs(
                 args.message, args.ipc
@@ -155,7 +155,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
     /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
     val streamChannel = Channel<IpcStreamMessageArgs>(capacity = Channel.UNLIMITED)
-    ipcMessageCoroutineScope.launch {
+    ipcScope.launch {
       for (message in streamChannel) {
         signal.emit(message)
       }
@@ -203,7 +203,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
           )
           when (val orderBy = args.message.orderBy) {
             /// 无序模式
-            null -> ipcMessageCoroutineScope.launch {
+            null -> ipcScope.launch {
               signal.emit(eventArgs)
             }
             /// 有序模式
@@ -212,7 +212,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
                 Channel<IpcEventMessageArgs>(capacity = Channel.UNLIMITED).also { events ->
                   var lastEmitTime = 0;
                   /// 进行有序地发送
-                  val sendJob = ipcMessageCoroutineScope.launch {
+                  val sendJob = ipcScope.launch {
                     for (it in events) {
                       signal.emit(it)
                       lastEmitTime = 10
@@ -225,7 +225,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
                     events.close()
                   }
                   /// 定时器释放内存
-                  val gcJob = ipcMessageCoroutineScope.launch {
+                  val gcJob = ipcScope.launch {
                     while (true) {
                       delay(100)
                       lastEmitTime--
@@ -250,14 +250,13 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     }
   }
 
-
   fun onEvent(cb: OnIpcEventMessage) = _eventSignal.listen(cb)
 
   private val _lifeCycleSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     createSignal<IpcLifeCycleMessageArgs>().also { signal ->
       _messageSignal.listen { args ->
         if (args.message is IpcLifeCycle) {
-          ipcMessageCoroutineScope.launch {
+          ipcScope.launch {
             signal.emit(
               IpcLifeCycleMessageArgs(
                 args.message, args.ipc
@@ -275,7 +274,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     createSignal<IpcErrorMessageArgs>().also { signal ->
       _messageSignal.listen { args ->
         if (args.message is IpcError) {
-          ipcMessageCoroutineScope.launch {
+          ipcScope.launch {
             signal.emit(
               IpcErrorMessageArgs(
                 args.message, args.ipc
@@ -345,57 +344,13 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
 
   /**----- 发送请求 end */
 
-  /**----- close start*/
-
-  val isClosed = ipcLifeCycleState == IPC_STATE.CLOSED
-
-  abstract suspend fun doClose()
-  suspend fun close() {
-    if (isClosed) {
-      return
-    }
-    ipcLifeCycleState = IPC_STATE.CLOSED
-    // 告知对方，我这条业务线已经准备关闭了
-    this.postMessage(IpcLifeCycle(IPC_STATE.CLOSED))
-    this.doClose()
-    this.closeSignal.emitAndClear()
-
-    /// 关闭的时候会自动触发销毁
-    this.destroy(false)
-  }
-
-  val closeSignal = SimpleSignal()
-  val onClose = this.closeSignal.toListener()
-
-
-  private val _destroySignal = SimpleSignal()
-  val onDestroy = this._destroySignal.toListener()
-
-  private var _destroyed = false
-
-  /**
-   * 销毁实例
-   */
-  suspend fun destroy(close: Boolean = true) {
-    if (_destroyed) {
-      return
-    }
-    _destroyed = true
-    if (close) {
-      this.close()
-    }
-    this._destroySignal.emitAndClear()
-  }
-
-  /**----- close end*/
-
   // 发消息
   abstract suspend fun doPostMessage(pid: Int, data: IpcMessage)
 
   /**发送各类消息到remote*/
   suspend fun postMessage(data: IpcMessage) {
     if (isClosed) {
-      debugIpcPool("fail to post message, already closed")
+      debugIpcPool("ipc postMessage", "[$channelId] already closed:discard $data")
       return
     }
     // 等待通信建立完成（如果通道没有建立完成，并且不是生命周期消息）
@@ -414,6 +369,8 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
 
   // 标记是否启动完成
   val startDeferred = CompletableDeferred<IpcLifeCycle>()
+
+  // 标记ipc通道是否激活
   val isActivity get() = startDeferred.isCompleted
 
   suspend fun awaitStart() = startDeferred.await()
@@ -425,19 +382,11 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     this.postMessage(IpcLifeCycle.opening())
   }
 
-  val closing = SuspendOnce {
-    if (ipcLifeCycleState !== IPC_STATE.CLOSING) {
-      ipcLifeCycleState = IPC_STATE.CLOSING
-      // TODO 这里是缓存消息处理的最后时间区间
-      this.postMessage(IpcLifeCycle.close());
-    }
-  }
-
-
   /**生命周期初始化，协商数据格式*/
   fun initLifeCycleHook() {
     // TODO 跟对方通信 协商数据格式
     val off = this.onLifeCycle { (lifeCycle, ipc) ->
+//      println("xxlife onLifeCycle=>🍟  ${ipc.channelId} ${lifeCycle.state}")
       when (lifeCycle.state) {
         // 收到对方完成开始建立连接
         IPC_STATE.OPENING -> {
@@ -446,19 +395,21 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
         }
 
         IPC_STATE.OPEN -> {
-//          println("xxlife open=>🍟 ${ipc.remote.mmid} ${ipc.channelId}")
           if (!ipc.startDeferred.isCompleted) {
             ipc.startDeferred.complete(lifeCycle)
           }
         }
         // 消息通道开始关闭
         IPC_STATE.CLOSING -> {
-          ipc.closing()
+          debugIpc("🌼IPC close", "$channelId ${ipc.remote.mmid}")
+          // 接收方接收到对方请求关闭了
+          ipcLifeCycleState = IPC_STATE.CLOSING
           ipc.postMessage(IpcLifeCycle.close())
         }
         // 对方关了，代表没有消息发过来了，我也关闭
         IPC_STATE.CLOSED -> {
-          ipc.close()
+          debugIpc("🌼IPC destroy", "$channelId ${ipc.remote.mmid} $isClosed")
+          ipc.destroy()
         }
       }
     }
@@ -466,6 +417,57 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
       off()
     }
   }
+
+  /**----- close start*/
+
+  val isClosed get() = ipcLifeCycleState == IPC_STATE.CLOSED
+
+  abstract suspend fun _doClose()
+
+  // 告知对方，我这条业务线已经准备关闭了
+  private suspend fun tryClose() {
+    ipcLifeCycleState = IPC_STATE.CLOSING
+    this.postMessage(IpcLifeCycle(IPC_STATE.CLOSING))
+  }
+
+  var _isClose = false
+
+  // 开始触发关闭事件
+  suspend fun close() {
+    if (_isClose) {
+      return
+    }
+    _isClose = true
+    if (!isClosed) {
+      this.tryClose()
+    }
+    this.destroy()
+  }
+
+  val closeSignal = SimpleEventFlow(ipcScope)
+  val onClose = this.closeSignal.toListener()
+  private var isDestroy = false
+
+  init {
+    println("ipc_init $channelId")
+  }
+
+  //彻底销毁
+  private suspend fun destroy() {
+    if (isDestroy) {
+      return
+    }
+    isDestroy = true
+    // 我彻底关闭了
+    this.postMessage(IpcLifeCycle.close())
+    // 开始触发各类跟ipc绑定的关闭事件
+    this.closeSignal.emitAndClear()
+    debugIpc("ipcDestroy=>", " $channelId 触发完成")
+    this._doClose()
+    // 做完全部工作了，关闭
+    ipcLifeCycleState = IPC_STATE.CLOSED
+  }
+  /**----- close end*/
 }
 
 data class IpcRequestInit(

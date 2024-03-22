@@ -29,7 +29,3 @@ kotlin {
   kmpIosTarget(project)
   kmpDesktopTarget(project)
 }
-
-dependencies {
-  testImplementation(project(":dwebview"))
-}

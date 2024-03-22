@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 
-typealias Callback<Args> = suspend SignalController<Args>.(args: Args) -> Unit
-typealias SimpleCallback = suspend SignalController<Unit>.(Unit) -> Unit
+typealias SignalCallback<Args> = suspend SignalController<Args>.(args: Args) -> Unit
+typealias SignalSimpleCallback = suspend SignalController<Unit>.(Unit) -> Unit
 
 /** 控制器 */
 class SignalController<Args>(val args: Args, val offListener: () -> Unit, val breakEmit: () -> Unit)
@@ -27,7 +27,7 @@ private enum class SIGNAL_CTOR {
   BREAK, ;
 }
 
-class OffListener<Args>(val origin: Signal<Args>, val cb: Callback<Args>) {
+class OffListener<Args>(val origin: Signal<Args>, val cb: SignalCallback<Args>) {
   operator fun invoke() = synchronized(origin) { origin.off(cb) }
 
   /**
@@ -45,21 +45,9 @@ class OffListener<Args>(val origin: Signal<Args>, val cb: Callback<Args>) {
   }
 }
 
-typealias Remover = () -> Boolean
-
-fun <T> Remover.removeWhen(listener: Signal.Listener<T>) = listener {
-  this@removeWhen()
-}
-
-fun Remover.removeWhen(lifecycleScope: CoroutineScope) = lifecycleScope.launch {
-  CompletableDeferred<Unit>().await()
-}.invokeOnCompletion {
-  this@removeWhen()
-}
-
 @Suppress("UNCHECKED_CAST")
 open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
-  protected val listenerSet = ChangeableSet<Callback<Args>>();
+  protected val listenerSet = ChangeableSet<SignalCallback<Args>>();
   private var emitCached: MutableList<Args>? = null
 
   init {
@@ -86,7 +74,7 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
   val size get() = listenerSet.size
   fun isNotEmpty() = listenerSet.isNotEmpty()
 
-  open fun listen(cb: Callback<Args>): OffListener<Args> = synchronized(this) {
+  open fun listen(cb: SignalCallback<Args>): OffListener<Args> = synchronized(this) {
     // TODO emit 时的cbs 应该要同步进行修改？
     listenerSet.add(cb)
     consumeEmitCache()
@@ -116,7 +104,7 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
     whenListenerSizeChange(wrappedCb)
   }
 
-  internal fun off(cb: Callback<Args>) = synchronized(this) { listenerSet.remove(cb) }
+  internal fun off(cb: SignalCallback<Args>) = synchronized(this) { listenerSet.remove(cb) }
 
 
   /**
@@ -165,7 +153,7 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
     }
   }
 
-  internal suspend fun _emit(args: Args, cbs: Set<Callback<Args>>) {
+  internal suspend fun _emit(args: Args, cbs: Set<SignalCallback<Args>>) {
     var signal: SIGNAL_CTOR? = null
     val ctx = SignalController(args, { signal = SIGNAL_CTOR.OFF }, { signal = SIGNAL_CTOR.BREAK })
     for (cb in cbs) {
@@ -230,7 +218,7 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
   }
 
   class Listener<Args>(val signal: Signal<Args>) {
-    operator fun invoke(cb: Callback<Args>) = signal.listen(cb)
+    operator fun invoke(cb: SignalCallback<Args>) = signal.listen(cb)
     fun <F : Any, R> createChild(
       filter: (Args) -> F?, map: (F) -> R
     ) = signal.createChild(filter, map).toListener()

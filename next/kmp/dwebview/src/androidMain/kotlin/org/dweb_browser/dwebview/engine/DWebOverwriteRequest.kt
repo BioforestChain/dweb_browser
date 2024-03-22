@@ -64,7 +64,7 @@ class DWebOverwriteRequest(val engine: DWebViewEngine) : WebViewClient() {
         ?.let { ContentType.parse(it) } // (response.headers.get("Content-Type") ?: "").split(';', limit = 2)
 
       val statusCode = response.status.value
-      debugDWebView("dwebProxy end", "[$statusCode]${request.url}")
+      debugDWebView("dwebProxy end", "[$statusCode]${request.url}  contentType=>$contentType")
       if (statusCode in 301..399) {
         return super.shouldInterceptRequest(view, request)
       }

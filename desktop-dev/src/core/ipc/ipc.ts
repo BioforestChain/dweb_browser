@@ -95,18 +95,6 @@ export abstract class Ipc {
 
   private _messageSignal = this._createSignal<$OnIpcMessage>(false);
 
-  async postMessage(message: $IpcMessage) {
-    if (this._closed) {
-      return;
-    }
-    // 等待通信建立完成
-    if (!this.isActivity && !(message instanceof IpcLifeCycle)) {
-      await this.awaitStart;
-    }
-    // console.log(`workersendMessage ${this.channelId} ${JSON.stringify(message)}`);
-    // 发到pool进行分发消息
-    this._doPostMessage(this.pid, message);
-  }
   abstract _doPostMessage(pid: number, data: $IpcMessage): void;
   onMessage = this._messageSignal.listen;
 
@@ -255,6 +243,20 @@ export abstract class Ipc {
     );
   }
 
+  async postMessage(message: $IpcMessage) {
+    if (this.isClosed) {
+      console.error(`ipc postMessage [${this.channelId}] already closed:discard ${message}`);
+      return;
+    }
+    // 等待通信建立完成
+    if (!this.isActivity && !(message instanceof IpcLifeCycle)) {
+      await this.awaitStart;
+    }
+    // console.log(`workersendMessage ${this.channelId} ${JSON.stringify(message)}`);
+    // 发到pool进行分发消息
+    this._doPostMessage(this.pid, message);
+  }
+
   ready() {
     return this.awaitStart;
   }
@@ -272,17 +274,8 @@ export abstract class Ipc {
     this.postMessage(IpcLifeCycle.opening());
   }
 
-  closing() {
-    if (this.ipcLifeCycleState !== IPC_STATE.CLOSING) {
-      this.ipcLifeCycleState = IPC_STATE.CLOSING;
-      // TODO 这里是缓存消息处理的最后时间区间
-      this.postMessage(IpcLifeCycle.close());
-    }
-  }
-
   /**ipc激活回调 */
   initlifeCycleHook() {
-    // console.log(`收到激活消息worker xxlife listen=>🥑 ${this.channelId} ${this.pid}`);
     // TODO 跟对方通信 协商数据格式
     this.onLifeCycle((lifeCycle, ipc) => {
       // console.log(`worker xxlife start=>🍟 ${ipc.remote.mmid} ${ipc.channelId} ${lifeCycle.state}`);
@@ -303,12 +296,14 @@ export abstract class Ipc {
         // 消息通道开始关闭
         case IPC_STATE.CLOSING: {
           //这里可以接受最后一些消息
-          ipc.closing();
+          this.ipcLifeCycleState = IPC_STATE.CLOSING;
+          this.postMessage(IpcLifeCycle.close());
           break;
         }
         // 对方关了，代表没有消息发过来了，我也关闭
         case IPC_STATE.CLOSED: {
-          ipc.close();
+          console.log("🌼ipc destroy worker", this.channelId);
+          this.destroy();
         }
       }
     });
@@ -317,20 +312,40 @@ export abstract class Ipc {
   /**----- close start*/
   abstract _doClose(): void;
 
-  private _closed = this.ipcLifeCycleState == IPC_STATE.CLOSED;
+  private get isClosed() {
+    return this.ipcLifeCycleState == IPC_STATE.CLOSED;
+  }
+
+  // 告知对面我要关闭了
+  tryClose = () => {
+    // 开始关闭
+    this.ipcLifeCycleState = IPC_STATE.CLOSING;
+    this.postMessage(IpcLifeCycle.closing());
+  };
+
+  private _isClose = false;
   close() {
-    if (this._closed) {
+    if (this._isClose) {
       return;
     }
-    this.ipcLifeCycleState = IPC_STATE.CLOSED;
+    this._isClose = true;
+    if (!this.isClosed) {
+      this.tryClose();
+    }
+    this.destroy();
+  }
+
+  destroy() {
+    if (this.isClosed) {
+      return;
+    }
+    // 我彻底关闭了
     this.postMessage(IpcLifeCycle.close());
-    this._closed = true;
-    this._doClose();
     this._closeSignal.emitAndClear();
+    this._doClose();
+    this.ipcLifeCycleState = IPC_STATE.CLOSED;
   }
-  get isClosed() {
-    return this._closed;
-  }
+
   /**----- close end*/
 }
 export type $IpcRequestInit = {
