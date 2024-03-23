@@ -142,12 +142,12 @@ fun WindowController.Render(
               scaleX = scale
               scaleY = scale
             }.shadow(
-              elevation = elevation.dp, shape = winPadding.boxRounded.toRoundedCornerShape()
+              elevation = elevation.dp, shape = winPadding.boxRounded.roundedCornerShape
             ).focusable()
           },
         ) {
           //#region 窗口内容
-          Column(Modifier.clip(winPadding.boxRounded.toRoundedCornerShape())
+          Column(Modifier.clip(winPadding.boxRounded.roundedCornerShape)
             .background(theme.winFrameBrush).clickableWithNoEffect {
               win.emitFocusOrBlur(true)
             }) {
@@ -158,7 +158,7 @@ fun WindowController.Render(
               Modifier.weight(1f).padding(
                 start = winPadding.start.dp,
                 end = winPadding.end.dp,
-              ).clip(winPadding.contentRounded.toRoundedCornerShape())
+              ).clip(winPadding.contentRounded.roundedCornerShape)
             ) {
               val contentBoxWidth = maxWidth
               val contentBoxHeight = maxHeight
@@ -204,6 +204,7 @@ fun WindowController.Render(
           if (inMove or !isFocus) {
             Box(
               modifier = Modifier.fillMaxSize()
+                .clip(winPadding.boxRounded.roundedCornerShape)
                 .background(MaterialTheme.colorScheme.onSurface.copy(alpha = if (isFocus) 0f else 0.2f))
                 .windowMoveAble(win)
             )

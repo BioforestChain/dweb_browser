@@ -64,8 +64,8 @@ internal fun WindowMenuPanelByRichTooltip(
   }
   val isMaximized by win.watchedIsMaximized()
   val shape = remember(winPadding, isMaximized) {
-    if (isMaximized) winPadding.contentRounded.toRoundedCornerShape()
-    else winPadding.boxRounded.toRoundedCornerShape()
+    if (isMaximized) winPadding.contentRounded.roundedCornerShape
+    else winPadding.boxRounded.roundedCornerShape
   }
   val colors = remember(winTheme) {
     RichTooltipColors(

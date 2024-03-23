@@ -13,9 +13,23 @@ import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.withScope
+import java.awt.event.ComponentEvent
+import java.awt.event.ComponentListener
+import java.awt.event.MouseEvent
+import java.awt.event.MouseMotionListener
+import java.awt.event.WindowEvent
+import java.awt.event.WindowFocusListener
+import java.awt.event.WindowListener
 
 class ComposeWindowParams(
   private val pvc: PureViewController, val content: @Composable FrameWindowScope.() -> Unit
@@ -94,4 +108,204 @@ class ComposeWindowParams(
       PureViewController.windowRenders.remove(this@ComposeWindowParams)
     }
   }
+
+  private fun <T> MutableSharedFlow<T>.launchEmit(value: T) {
+    pvc.lifecycleScope.launch { emit(value) }
+  }
+
+  val windowEvents = WindowEvents()
+
+  inner class WindowEvents {
+    private val _windowOpened = MutableSharedFlow<WindowEvent>()
+    val windowOpened = _windowOpened.asSharedFlow()
+    private val _windowClosing = MutableSharedFlow<WindowEvent>()
+    val windowClosing = _windowClosing.asSharedFlow()
+    private val _windowClosed = MutableSharedFlow<WindowEvent>()
+    val windowClosed = _windowClosed.asSharedFlow()
+    private val _windowIconified = MutableSharedFlow<WindowEvent>()
+    val windowIconified = _windowIconified.asSharedFlow()
+    private val _windowDeiconified = MutableSharedFlow<WindowEvent>()
+    val windowDeiconified = _windowDeiconified.asSharedFlow()
+    private val _windowActivated = MutableSharedFlow<WindowEvent>()
+    val windowActivated = _windowActivated.asSharedFlow()
+    private val _windowDeactivated = MutableSharedFlow<WindowEvent>()
+    val windowDeactivated = _windowDeactivated.asSharedFlow()
+
+    init {
+      pvc.lifecycleScope.launch {
+        pvc.composeWindowStateFlow.collect { composeWindow ->
+          composeWindow.addWindowListener(object : WindowListener {
+            override fun windowOpened(event: WindowEvent) {
+              _windowOpened.launchEmit(event)
+            }
+
+            override fun windowClosing(event: WindowEvent) {
+              _windowClosing.launchEmit(event)
+            }
+
+            override fun windowClosed(event: WindowEvent) {
+              _windowClosed.launchEmit(event)
+            }
+
+            override fun windowIconified(event: WindowEvent) {
+              _windowIconified.launchEmit(event)
+            }
+
+            override fun windowDeiconified(event: WindowEvent) {
+              _windowDeiconified.launchEmit(event)
+            }
+
+            override fun windowActivated(event: WindowEvent) {
+              _windowActivated.launchEmit(event)
+            }
+
+            override fun windowDeactivated(event: WindowEvent) {
+              _windowDeactivated.launchEmit(event)
+            }
+          })
+        }
+      }
+    }
+  }
+
+  val componentEvents = ComponentEvents()
+
+  inner class ComponentEvents {
+    private val _componentResized = MutableSharedFlow<ComponentEvent>()
+    val componentResized = _componentResized.asSharedFlow()
+    private val _componentMoved = MutableSharedFlow<ComponentEvent>()
+    val componentMoved = _componentMoved.asSharedFlow()
+    private val _componentShown = MutableSharedFlow<ComponentEvent>()
+    val componentShown = _componentShown.asSharedFlow()
+    private val _componentHidden = MutableSharedFlow<ComponentEvent>()
+    val componentHidden = _componentHidden.asSharedFlow()
+
+    init {
+      pvc.lifecycleScope.launch {
+        pvc.composeWindowStateFlow.collect { composeWindow ->
+          composeWindow.addComponentListener(object : ComponentListener {
+            override fun componentResized(event: ComponentEvent) {
+              _componentResized.launchEmit(event)
+            }
+
+            override fun componentMoved(event: ComponentEvent) {
+              _componentMoved.launchEmit(event)
+            }
+
+            override fun componentShown(event: ComponentEvent) {
+              _componentShown.launchEmit(event)
+            }
+
+            override fun componentHidden(event: ComponentEvent) {
+              _componentHidden.launchEmit(event)
+            }
+          })
+        }
+      }
+    }
+  }
+
+  val windowFocusStateFlow = WindowFocusStateFlow()
+
+  inner class WindowFocusStateFlow(
+    private val sharedFlow: MutableStateFlow<AwtWindowFocusState> = MutableStateFlow(AwtWindowFocusState.Lost)
+  ) : StateFlow<AwtWindowFocusState> by sharedFlow.asStateFlow() {
+    init {
+      pvc.lifecycleScope.launch {
+        pvc.composeWindowStateFlow.collect { composeWindow ->
+          composeWindow.addWindowFocusListener(object : WindowFocusListener {
+            override fun windowGainedFocus(event: WindowEvent) {
+              sharedFlow.launchEmit(AwtWindowFocusState.Gained)
+            }
+
+            override fun windowLostFocus(event: WindowEvent) {
+              sharedFlow.launchEmit(AwtWindowFocusState.Lost)
+            }
+          })
+        }
+      }
+    }
+  }
+
+  enum class AwtWindowFocusState {
+    Gained, Lost,
+  }
+
+  val mouseMotionEvents = MouseMotionEvents()
+
+  inner class MouseMotionEvents {
+    private val _mouseDragged = MutableSharedFlow<MouseEvent>()
+    val mouseDragged = _mouseDragged.asSharedFlow()
+    private val _mouseMoved = MutableSharedFlow<MouseEvent>()
+    val mouseMoved = _mouseMoved.asSharedFlow()
+
+    init {
+      pvc.lifecycleScope.launch {
+        pvc.composeWindowStateFlow.collect { composeWindow ->
+          composeWindow.addMouseMotionListener(object : MouseMotionListener {
+            override fun mouseDragged(event: MouseEvent) {
+              _mouseDragged.launchEmit(event)
+            }
+
+            override fun mouseMoved(event: MouseEvent) {
+              _mouseMoved.launchEmit(event)
+            }
+          })
+        }
+      }
+    }
+  }
+
+  val windowFrameSharedFlow = WindowStateSharedFlow()
+
+  inner class WindowStateSharedFlow(
+    private val sharedFlow: MutableSharedFlow<AwtWindowFrameState> = MutableSharedFlow(replay = 1)
+  ) : SharedFlow<AwtWindowFrameState> by sharedFlow.asSharedFlow() {
+    init {
+      pvc.lifecycleScope.launch {
+        pvc.composeWindowStateFlow.collect { composeWindow ->
+          composeWindow.addWindowStateListener { event ->
+            sharedFlow.launchEmit(AwtWindowFrameState.ALL_VALUES[event.newState]!!)
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * 参考 java.awt.Frame;
+   */
+  enum class AwtWindowFrameState(val value: Int) {
+    /**
+     * Frame.NORMAL：值为0，表示窗口处于正常状态（没有最大化或最小化）。
+     */
+    NORMAL(0),
+
+    /**
+     * Frame.ICONIFIED：值为1，表示窗口当前被最小化了。
+     */
+    ICONIFIED(1),
+
+    /**
+     * Frame.MAXIMIZED_HORIZ：值为2，表示窗口在水平方向上最大化了。
+     */
+    MAXIMIZED_HORIZ(2),
+
+    /**
+     * Frame.MAXIMIZED_VERT：值为4，表示窗口在垂直方向上最大化了。
+     */
+    MAXIMIZED_VERT(4),
+
+    /**
+     * Frame.MAXIMIZED_BOTH：值为6，表示窗口在水平方向和垂直方向都最大化了。
+     */
+    MAXIMIZED_BOTH(6),
+    ;
+
+    companion object {
+      val ALL_VALUES = entries.associateBy { it.value }
+    }
+  }
+//  val addWindowStateListener
 }
+

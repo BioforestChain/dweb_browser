@@ -17,12 +17,6 @@ import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import java.awt.Point
-import java.awt.event.ComponentEvent
-import java.awt.event.ComponentListener
-import java.awt.event.MouseEvent
-import java.awt.event.MouseMotionListener
-import java.awt.event.WindowEvent
-import java.awt.event.WindowListener
 
 @Composable
 fun WindowController.WindowControllerEffect() {
@@ -36,6 +30,8 @@ fun WindowController.WindowControllerEffect() {
   /**
    * 坐标的双向绑定
    * 为了实时性，这里不使用 composeWindowParams
+   *
+   * TODO 设置窗口 composeWindow.minimumSize 的最小值，避免resize过小导致布局计算异常
    */
   LaunchedEffect(composeWindow, renderConfig, viewController) {
     /**
@@ -52,29 +48,16 @@ fun WindowController.WindowControllerEffect() {
       frameDragMove = {},
       frameDragEnd = { dragStartPoint = null },
     )
-//    renderConfig.frameDragStart = { x, y ->
-//      dragStartRelativeX = (state.bounds.x - x).toInt()
-//      dragStartRelativeY = (state.bounds.y - y).toInt()
-//    }
 
-    /// TODO 设置窗口的最小值，避免resize过小导致布局计算异常
-//    composeWindow.minimumSize
-
-    composeWindow.addWindowStateListener {
-//      println("QAQ addWindowStateListener")
-    }
-    composeWindow.addComponentListener(object : ComponentListener {
-      /**
-       *  虽然compose自己有自动resize的行为，但是这里需要去updateBounds，并提供 Outer 的 reason。
-       *  这样这个在重新绘制阶段，calcWindowBoundsByLimits 就不会更新 bounds，就不会导致 inner=>outer 的同步
-       */
-      override fun componentResized(event: ComponentEvent) {
+    launch {
+      composeWindowParams.componentEvents.componentResized.collect {
         state.updateBounds(WindowState.UpdateBoundsReason.Outer) {
           copy(width = composeWindow.width.toFloat(), height = composeWindow.height.toFloat())
         }
       }
-
-      override fun componentMoved(event: ComponentEvent) {
+    }
+    launch {
+      composeWindowParams.componentEvents.componentMoved.collect {
         /// 如果正在拖动中，那么这里不进行同步
         if (dragStartPoint == null) {
           /// 这里会在 left、top 在 resize 的时候同时触发 move
@@ -83,23 +66,9 @@ fun WindowController.WindowControllerEffect() {
           }
         }
       }
-
-      override fun componentShown(event: ComponentEvent) {
-//        println("QAQ componentShown")
-      }
-
-      override fun componentHidden(event: ComponentEvent) {
-//        println("QAQ componentHidden")
-      }
-    })
-    composeWindow.addPropertyChangeListener {
-//      println("QAQ addPropertyChangeListener ${it.propertyName}=${it.oldValue}=>${it.oldValue}")
     }
-    composeWindow.addHierarchyListener {
-//      println("QAQ addHierarchyListener")
-    }
-    composeWindow.addMouseMotionListener(object : MouseMotionListener {
-      override fun mouseDragged(event: MouseEvent) {
+    launch {
+      composeWindowParams.mouseMotionEvents.mouseDragged.collect { event ->
         val startPoint = dragStartPoint
         if (startPoint != null) {
           val windowX = event.xOnScreen - startPoint.x
@@ -112,10 +81,8 @@ fun WindowController.WindowControllerEffect() {
           composeWindow.setLocation(windowX, windowY)
         }
       }
+    }
 
-      override fun mouseMoved(p0: MouseEvent?) {
-      }
-    })
     state.observable.onChange {
       if (it.key == WindowPropertyKeys.Bounds) {
         if (state.updateBoundsReason == WindowState.UpdateBoundsReason.Inner) {
@@ -131,19 +98,20 @@ fun WindowController.WindowControllerEffect() {
     }
   }
 
-  TitleEffect(composeWindow)
+  TitleEffect(composeWindowParams)
   VisibleEffect(composeWindowParams)
-  ModeEffect(composeWindow, composeWindowParams)
+  ModeEffect(composeWindowParams)
+  FocusEffect(composeWindow, composeWindowParams)
 }
 
 /**
  * title 的单向绑定
  */
 @Composable
-private fun WindowController.TitleEffect(composeWindow: ComposeWindow) {
+private fun WindowController.TitleEffect(composeWindowParams: ComposeWindowParams) {
   val title by watchedState { title }
-  LaunchedEffect(composeWindow, title) {
-    composeWindow.title = title
+  LaunchedEffect(composeWindowParams, title) {
+    composeWindowParams.title = title ?: ""
   }
 }
 
@@ -175,10 +143,7 @@ private fun WindowController.VisibleEffect(
  * 包括窗口关闭的双向绑定
  */
 @Composable
-private fun WindowController.ModeEffect(
-  composeWindow: ComposeWindow,
-  composeWindowParams: ComposeWindowParams,
-) {
+private fun WindowController.ModeEffect(composeWindowParams: ComposeWindowParams) {
   /// 因为原生的窗口隐藏会导致compose停止渲染，所以这里不能用 LaunchedEffect 的 remember 特性来做绑定
   SideEffect {
     state.observable.onChange {
@@ -193,7 +158,6 @@ private fun WindowController.ModeEffect(
       }
     }
   }
-  watchedIsMaximized()
 
   /// 反向绑定原生的窗口的 placement 到state中
   LaunchedEffect(composeWindowParams.placement) {
@@ -204,32 +168,44 @@ private fun WindowController.ModeEffect(
     }
   }
 
-  /// 反向绑定原生的窗口的 close 到state中
+  /// 反向绑定原生的窗口的 close 到 state中
+  LaunchedEffect(composeWindowParams) {
+    composeWindowParams.windowEvents.windowClosed.collect {
+      closeRoot(true)
+    }
+  }
+}
+
+/**
+ * focus 单向绑定
+ * 包括窗口关闭的双向绑定
+ */
+@Composable
+private fun WindowController.FocusEffect(
+  composeWindow: ComposeWindow,
+  composeWindowParams: ComposeWindowParams
+) {
   SideEffect {
-    composeWindow.addWindowListener(object : WindowListener {
-      override fun windowOpened(p0: WindowEvent) {
-      }
-
-      override fun windowClosing(p0: WindowEvent) {
-      }
-
-      override fun windowClosed(p0: WindowEvent) {
-        lifecycleScope.launch {
-          closeRoot(true)
+    state.observable.onChange {
+      if (it.key == WindowPropertyKeys.Focus) {
+        when (it.newValue as Boolean) {
+          true -> if(!composeWindow.isFocused) {
+            composeWindow.requestFocusInWindow()
+          }
+          false -> if(composeWindow.isFocused) {
+            WARNING("ComposeWindow No Support Blur")
+          }
         }
       }
+    }
+  }
 
-      override fun windowIconified(p0: WindowEvent) {
+  LaunchedEffect(composeWindowParams) {
+    composeWindowParams.windowFocusStateFlow.collect {
+      when (it) {
+        ComposeWindowParams.AwtWindowFocusState.Gained -> focus()
+        ComposeWindowParams.AwtWindowFocusState.Lost -> blur()
       }
-
-      override fun windowDeiconified(p0: WindowEvent) {
-      }
-
-      override fun windowActivated(p0: WindowEvent) {
-      }
-
-      override fun windowDeactivated(p0: WindowEvent) {
-      }
-    })
+    }
   }
 }

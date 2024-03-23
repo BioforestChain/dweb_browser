@@ -74,7 +74,7 @@ fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
     LazyVerticalGrid(
       columns = GridCells.Adaptive(68.dp),
       modifier = modifier.clip(
-        winPadding.boxRounded.toRoundedCornerShape()
+        winPadding.boxRounded.roundedCornerShape
       ).background(winTheme.onThemeColor)
 //      .verticalScroll(rememberScrollState()),
         .then(if (isMaximized) Modifier else Modifier.height(maxHeight - 120.dp)), // 由于窗口模式时，LazyVerticalGrid适配整个窗口，导致action显示不全。

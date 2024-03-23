@@ -480,8 +480,9 @@ data class WindowPadding(
     operator fun div(value: Float) =
       CornerRadius(topStart / value, topEnd / value, bottomStart / value, bottomEnd / value)
 
-    fun toRoundedCornerShape() =
+    val roundedCornerShape by lazy {
       RoundedCornerShape(topStart.dp, topEnd.dp, bottomStart.dp, bottomEnd.dp)
+    }
 
     companion object {
       fun from(radius: Float) = CornerRadius(radius, radius, radius, radius)

@@ -119,7 +119,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
       windowAdapterManager.Renderer(
         renderId,
         windowRenderScope,
-        Modifier.clip(winPadding.contentRounded.toRoundedCornerShape())
+        Modifier.clip(winPadding.contentRounded.roundedCornerShape)
       )
     }
   }
