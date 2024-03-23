@@ -34,7 +34,7 @@ class PureViewController(
 
   companion object {
 
-    private val osName by lazy { System.getProperty("os.name") }
+    private val osName by lazy { System.getProperty("os.name").lowercase() }
     val isWindows by lazy { osName.contains("win") }
     val isMacOS by lazy { osName.contains("mac") }
     val isLinux by lazy { osName.contains("nix") || osName.contains("nux") }
