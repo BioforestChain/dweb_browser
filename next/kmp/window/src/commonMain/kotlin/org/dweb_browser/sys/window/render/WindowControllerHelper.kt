@@ -51,6 +51,7 @@ import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.getCornerRadiusBottom
 import org.dweb_browser.helper.platform.getCornerRadiusTop
 import org.dweb_browser.helper.platform.rememberPureViewBox
+import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.platform.theme.md_theme_dark_inverseOnSurface
 import org.dweb_browser.helper.platform.theme.md_theme_dark_onSurface
 import org.dweb_browser.helper.platform.theme.md_theme_dark_surface
@@ -63,6 +64,7 @@ import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
+import org.dweb_browser.sys.window.core.constant.WindowPropertyField
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.helper.asWindowStateColorOr
 import kotlin.math.max
@@ -780,3 +782,18 @@ fun WindowController.IdRender(
  * 用来窗口渲染的唯一标识
  */
 val WindowController.incForRender get() = state.constants.owner
+
+
+/**
+ * 提供一个计算函数，来获得一个在Compose中使用的 state
+ */
+@Composable
+fun WindowController.MaterialTheme(content: @Composable () -> Unit) {
+  DwebBrowserAppTheme(isDarkTheme = watchedState(WindowPropertyField.ColorScheme) {
+    when (colorScheme) {
+      WindowColorScheme.Normal -> null
+      WindowColorScheme.Light -> false
+      WindowColorScheme.Dark -> true
+    }
+  }.value, content = content)
+}

@@ -8,13 +8,15 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun DwebBrowserAppTheme(
-  useDarkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit
+  isDarkTheme: Boolean? = null, content: @Composable () -> Unit
 ) {
-
-  val colors = if (!useDarkTheme) {
-    LightColors
-  } else {
-    DarkColors
+  val colors = when (isDarkTheme) {
+    true -> DarkColors
+    false -> LightColors
+    else -> when (isSystemInDarkTheme()) {
+      true -> DarkColors
+      false -> LightColors
+    }
   }
 
   MaterialTheme(

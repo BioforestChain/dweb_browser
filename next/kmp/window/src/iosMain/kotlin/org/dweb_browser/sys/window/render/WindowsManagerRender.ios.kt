@@ -35,11 +35,13 @@ private class IosWindowNativeView(
         compositionChain.Provider(LocalCompositionChain.current)
           .Provider(LocalWindowsManager provides windowsManager) {
             /// 渲染窗口
-            win.Render(
-              modifier = Modifier.windowImeOutsetBounds(),
-              winMaxWidth = maxWidth,
-              winMaxHeight = maxHeight
-            )
+            win.MaterialTheme {
+              win.Render(
+                modifier = Modifier.windowImeOutsetBounds(),
+                winMaxWidth = maxWidth,
+                winMaxHeight = maxHeight
+              )
+            }
           }
       }
     }

@@ -38,13 +38,15 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
       for (win in winListTop) {
         key(win.id) {
           /// 渲染窗口
-          win.Render(
-            modifier = Modifier
-              .zIndex(winList.size + win.state.zIndex.toFloat())
-              .windowImeOutsetBounds(),
-            winMaxWidth = maxWidth.value,
-            winMaxHeight = maxHeight.value
-          )
+          win.MaterialTheme {
+            win.Render(
+              modifier = Modifier
+                .zIndex(winList.size + win.state.zIndex.toFloat())
+                .windowImeOutsetBounds(),
+              winMaxWidth = maxWidth.value,
+              winMaxHeight = maxHeight.value
+            )
+          }
         }
       }
     }

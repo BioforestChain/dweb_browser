@@ -93,12 +93,14 @@ private class DesktopWindowNativeView(
             /// 注册副作用
             win.WindowControllerEffect()
             /// 渲染窗口
-            win.Render(
-              modifier = Modifier.windowImeOutsetBounds(),
-              winMaxWidth = screenSize.width.toFloat(),
-              winMaxHeight = screenSize.height.toFloat(),
-              minScale = 1.0
-            )
+            win.MaterialTheme {
+              win.Render(
+                modifier = Modifier.windowImeOutsetBounds(),
+                winMaxWidth = screenSize.width.toFloat(),
+                winMaxHeight = screenSize.height.toFloat(),
+                minScale = 1.0
+              )
+            }
           }
       }
     }
