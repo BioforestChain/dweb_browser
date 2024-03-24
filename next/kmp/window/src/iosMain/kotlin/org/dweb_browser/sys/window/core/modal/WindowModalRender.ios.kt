@@ -20,6 +20,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.awaitResult
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.toUIColor
@@ -98,7 +99,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
   val uiViewController = LocalUIViewController.current
   val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
   val win = parent
-  val scope = rememberCoroutineScope()
+  val uiScope = rememberCoroutineScope()
   val sheetUiDelegate by remember {
     lazy {
       object : NSObject(),
@@ -112,7 +113,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
         override fun sheetPresentationControllerDidChangeSelectedDetentIdentifier(
           sheetPresentationController: UISheetPresentationController
         ) {
-          scope.launch {
+          uiScope.launch {
             onResize.emit()
           }
           when (sheetPresentationController.selectedDetentIdentifier) {
@@ -177,7 +178,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
   val winTheme = LocalWindowControllerTheme.current
   /// 关闭按钮
   // 关闭按钮的事件
-  val gestureRecognizer = remember {
+  val gestureRecognizer = remember(emitModalVisibilityChange) {
     UIAction.actionWithHandler {
       if (emitModalVisibilityChange(EmitModalVisibilityState.TryClose)) {
         sheetUiDelegate.afterDismiss.complete(Unit)
@@ -189,7 +190,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
     UIImage.systemImageNamed(name = "xmark.circle.fill")
   }
   // 菜单关闭按钮的样式
-  val closeBottom = remember {
+  val closeBottom = remember(gestureRecognizer) {
     UIBarButtonItem(
       primaryAction = gestureRecognizer,
       menu = null
@@ -200,7 +201,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
       it.tintColor = winTheme.topContentColor.toUIColor()
     }
   }
-  LaunchedEffect(closeBottom) {
+  LaunchedEffect(closeBottom, emitModalVisibilityChange) {
     val vc = pureViewController.getUiViewController()
     val nav = UINavigationController(rootViewController = vc)
     // 始终保持展开，只能通过点击按钮关闭
@@ -222,7 +223,8 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
       // 添加窗口标识
       sheet.sourceView?.addMmid(win.incForRender)
       sheet.delegate = sheetUiDelegate
-      sheetUiDelegate.afterDismiss.invokeOnCompletion {
+      launch {
+        sheetUiDelegate.afterDismiss.awaitResult()
         emitModalVisibilityChange(EmitModalVisibilityState.ForceClose)
       }
     }
@@ -241,11 +243,10 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
     // 至少显示200毫秒
     delay(200)
     // 等待Compose级别的关闭指令
-    sheetUiDelegate.afterDismiss.invokeOnCompletion {
+    launch {
+      sheetUiDelegate.afterDismiss.awaitResult()
       // 关闭
-      scope.launch {
-        nav.dismissViewControllerAnimated(flag = true, null)
-      }
+      nav.dismissViewControllerAnimated(flag = true, null)
     }
   }
   // 返回按钮按下的时候

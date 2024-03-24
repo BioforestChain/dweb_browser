@@ -3,9 +3,9 @@ package org.dweb_browser.sys.scan
 import android.graphics.BitmapFactory
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
-import org.dweb_browser.helper.Point
+import org.dweb_browser.helper.PurePoint
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.toPoint
 import org.dweb_browser.helper.toRect
 
@@ -29,11 +29,11 @@ actual class ScanningManager actual constructor() {
           val cornerPoints = it.cornerPoints;
           BarcodeResult(
             it.rawBytes?.decodeToString() ?: "",
-            it.boundingBox?.toRect() ?: Rect.Zero,
-            topLeft = cornerPoints?.get(0)?.toPoint() ?: Point.Zero,
-            topRight = cornerPoints?.get(0)?.toPoint() ?: Point.Zero,
-            bottomLeft = cornerPoints?.get(0)?.toPoint() ?: Point.Zero,
-            bottomRight = cornerPoints?.get(0)?.toPoint() ?: Point.Zero,
+            it.boundingBox?.toRect() ?: PureRect.Zero,
+            topLeft = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,
+            topRight = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,
+            bottomLeft = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,
+            bottomRight = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,
           )
         })
       }

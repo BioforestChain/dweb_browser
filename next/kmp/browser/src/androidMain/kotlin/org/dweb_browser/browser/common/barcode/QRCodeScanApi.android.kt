@@ -84,7 +84,7 @@ actual fun CameraPreviewView(
           barcodes.forEach { barcode ->
             listRect.add(
               QRCodeDecoderResult.QRCode(
-                org.dweb_browser.helper.Rect(
+                org.dweb_browser.helper.PureRect(
                   x = barcode.boundingBox?.centerX()?.toFloat() ?: 0f,
                   y = barcode.boundingBox?.centerY()?.toFloat() ?: 0f
                 ), barcode.displayValue
@@ -149,7 +149,7 @@ actual fun decoderImage(
       result.forEach { barcode ->
         listRect.add(
           QRCodeDecoderResult.QRCode(
-            org.dweb_browser.helper.Rect(
+            org.dweb_browser.helper.PureRect(
               x = barcode.boundingBox?.centerX()?.toFloat() ?: 0f,
               y = barcode.boundingBox?.centerY()?.toFloat() ?: 0f
             ), null

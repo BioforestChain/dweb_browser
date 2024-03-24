@@ -11,7 +11,9 @@ import androidx.compose.ui.Modifier
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.LocalCompositionChain
+import org.dweb_browser.helper.platform.LocalPureViewBox
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
@@ -85,8 +87,7 @@ private class DesktopWindowNativeView(
   val pvc = PureViewController(params).also { pvc ->
     pvc.onCreate { params ->
       @Suppress("UNCHECKED_CAST") pvc.addContent {
-        val composeWindow by pvc.composeWindowAsState()
-        val screenSize = composeWindow.toolkit.screenSize
+        val maxBounds = LocalPureViewBox.current.asDesktop().currentViewControllerMaxBounds()
         val compositionChain by params["compositionChain"] as State<CompositionChain>
         compositionChain.Provider(LocalCompositionChain.current)
           .Provider(LocalWindowsManager provides windowsManager) {
@@ -96,8 +97,8 @@ private class DesktopWindowNativeView(
             win.MaterialTheme {
               win.Render(
                 modifier = Modifier.windowImeOutsetBounds(),
-                winMaxWidth = screenSize.width.toFloat(),
-                winMaxHeight = screenSize.height.toFloat(),
+                winMaxWidth = maxBounds.width,
+                winMaxHeight = maxBounds.height,
                 minScale = 1.0
               )
             }

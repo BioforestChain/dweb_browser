@@ -5,9 +5,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.WindowPlacement
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.platform.ComposeWindowParams
 import org.dweb_browser.helper.platform.LocalPureViewController
@@ -26,14 +27,14 @@ fun WindowController.WindowControllerEffect() {
   val composeWindow by viewController.composeWindowAsState()
   val composeWindowParams = viewController.composeWindowParams
 
-
+  val density = LocalDensity.current.density
   /**
    * 坐标的双向绑定
    * 为了实时性，这里不使用 composeWindowParams
    *
    * TODO 设置窗口 composeWindow.minimumSize 的最小值，避免resize过小导致布局计算异常
    */
-  LaunchedEffect(composeWindow, renderConfig, viewController) {
+  LaunchedEffect(composeWindow, renderConfig, viewController, density) {
     /**
      * 拖动窗口的起点 输入位置（相对窗口的位置）
      */
@@ -52,7 +53,7 @@ fun WindowController.WindowControllerEffect() {
     launch {
       composeWindowParams.componentEvents.componentResized.collect {
         state.updateBounds(WindowState.UpdateBoundsReason.Outer) {
-          copy(width = composeWindow.width.toFloat(), height = composeWindow.height.toFloat())
+          copy(width = composeWindow.width / density, height = composeWindow.height / density)
         }
       }
     }
@@ -62,7 +63,7 @@ fun WindowController.WindowControllerEffect() {
         if (dragStartPoint == null) {
           /// 这里会在 left、top 在 resize 的时候同时触发 move
           state.updateBounds(WindowState.UpdateBoundsReason.Outer) {
-            copy(x = composeWindow.x.toFloat(), y = composeWindow.y.toFloat())
+            copy(x = composeWindow.x / density, y = composeWindow.y / density)
           }
         }
       }
@@ -75,7 +76,7 @@ fun WindowController.WindowControllerEffect() {
           val windowY = event.yOnScreen - startPoint.y
           // 更新内部状态
           state.updateBounds(WindowState.UpdateBoundsReason.Outer) {
-            copy(x = windowX.toFloat(), y = windowY.toFloat())
+            copy(x = windowX / density, y = windowY / density)
           }
           // 更新原生窗口
           composeWindow.setLocation(windowX, windowY)
@@ -86,12 +87,12 @@ fun WindowController.WindowControllerEffect() {
     state.observable.onChange {
       if (it.key == WindowPropertyKeys.Bounds) {
         if (state.updateBoundsReason == WindowState.UpdateBoundsReason.Inner) {
-          val newBounds = it.newValue as Rect
+          val newBoundsPx = (it.newValue as PureRect).timesToInt(density)
           composeWindow.setBounds(
-            newBounds.x.toInt(),
-            newBounds.y.toInt(),
-            newBounds.width.toInt(),
-            newBounds.height.toInt(),
+            newBoundsPx.x,
+            newBoundsPx.y,
+            newBoundsPx.width,
+            newBoundsPx.height,
           )
         }
       }
@@ -189,10 +190,11 @@ private fun WindowController.FocusEffect(
     state.observable.onChange {
       if (it.key == WindowPropertyKeys.Focus) {
         when (it.newValue as Boolean) {
-          true -> if(!composeWindow.isFocused) {
+          true -> if (!composeWindow.isFocused) {
             composeWindow.requestFocusInWindow()
           }
-          false -> if(composeWindow.isFocused) {
+
+          false -> if (composeWindow.isFocused) {
             WARNING("ComposeWindow No Support Blur")
           }
         }

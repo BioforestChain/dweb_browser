@@ -15,7 +15,7 @@ import kotlinx.serialization.Transient
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.ReasonLock
-import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
@@ -140,7 +140,7 @@ abstract class WindowController(
 
   suspend fun maximize() = managerRunOr({ it.maximizeWindow(this) }, { simpleMaximize() })
 
-  private var _beforeMaximizeBounds: Rect? = null
+  private var _beforeMaximizeBounds: PureRect? = null
 
   /**
    * 记忆窗口最大化之前的记忆

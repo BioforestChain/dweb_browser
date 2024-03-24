@@ -1,10 +1,13 @@
 package org.dweb_browser.helper.platform
 
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.compose.timesToInt
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.withMainContext
@@ -20,6 +23,7 @@ actual suspend fun IPureViewBox.Companion.from(viewController: IPureViewControll
   }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 class PureViewBox(
   val uiViewController: UIViewController,
   private val uiScreen: UIScreen = UIScreen.mainScreen
@@ -32,15 +36,33 @@ class PureViewBox(
   private var defaultViewHeight = 0
   private var defaultDisplayDensity = 1f
 
-  @OptIn(ExperimentalForeignApi::class)
-  override suspend fun getViewWidthPx() = runCatching {
-    (withMainContext { uiViewController.view.frame.useContents { size.width } } * getDisplayDensity()).toInt()
-  }.getOrDefault(defaultViewWidth)
+  override suspend fun getViewSizePx() = getViewSize().timesToInt(getDisplayDensity())
 
-  @OptIn(ExperimentalForeignApi::class)
-  override suspend fun getViewHeightPx() = runCatching {
-    (withMainContext { uiViewController.view.frame.useContents { size.height } } * getDisplayDensity()).toInt()
-  }.getOrDefault(defaultViewHeight)
+  override suspend fun getViewSize() = withMainContext {
+    uiViewController.view.frame.useContents {
+      Size(
+        size.width.toFloat(),
+        size.height.toFloat()
+      )
+    }
+  }
+
+  override suspend fun getDisplaySizePx() = getDisplaySize().timesToInt(getDisplayDensity())
+  override suspend fun getDisplaySize() = withMainContext {
+    uiScreen.bounds.useContents {
+      Size(size.width.toFloat(), size.height.toFloat())
+    }
+  }
+
+  override suspend fun getViewControllerMaxBoundsPx() =
+    getViewControllerMaxBounds().timesToInt(getDisplayDensity())
+
+  override suspend fun getViewControllerMaxBounds() = withMainContext {
+    uiScreen.applicationFrame().useContents {
+      // 这里不使用 origin 获取x、y。因为对于虚拟环境来说，它都是相对于这个 application 进行绘制的
+      Rect(0f, 0f, size.width.toFloat(), size.height.toFloat())
+    }
+  }
 
   override suspend fun getDisplayDensity() =
     runCatching { withMainContext { uiScreen.scale.toFloat() } }.getOrDefault(

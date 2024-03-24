@@ -8,14 +8,14 @@ import kotlinx.serialization.Serializable
  * 默认值是NaN，这种情况下，窗口构建者需要自己对其进行赋值
  */
 @Serializable
-data class Rect(
+data class PureRect(
   val x: Float = Float.NaN,
   val y: Float = Float.NaN,
   val width: Float = Float.NaN,
   val height: Float = Float.NaN,
 ) {
   companion object {
-    val Zero = Rect(0f, 0f, 0f, 0f)
+    val Zero = PureRect(0f, 0f, 0f, 0f)
   }
 
   fun toMutable() = Mutable(x, y, width, height)
@@ -25,8 +25,23 @@ data class Rect(
     var width: Float,
     var height: Float,
   ) {
-    fun toImmutable() = Rect(x, y, width, height)
+    fun toImmutable() = PureRect(x, y, width, height)
   }
 
   fun toBounds() = Bounds(top = y, left = x, bottom = y + height, right = x + width)
+
+  fun timesToInt(value: Float) = PureIntRect(
+    (x * value).toInt(),
+    (y * value).toInt(),
+    (width * value).toInt(),
+    (height * value).toInt()
+  )
 }
+
+@Serializable
+data class PureIntRect(
+  val x: Int,
+  val y: Int,
+  val width: Int,
+  val height: Int,
+)

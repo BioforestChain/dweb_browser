@@ -15,7 +15,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.decodeStructure
 import kotlinx.serialization.encoding.encodeStructure
 import org.dweb_browser.helper.Observable
-import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.sys.window.core.constant.WindowConstants
 import org.dweb_browser.sys.window.core.constant.WindowPropertyField
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
@@ -135,7 +135,7 @@ class WindowState(
   /**
    * 如果 reason 是 Outer，那么不会同步给 原生窗口
    */
-  fun updateBounds(bounds: Rect, reason: UpdateBoundsReason) {
+  fun updateBounds(bounds: PureRect, reason: UpdateBoundsReason) {
     if (this.bounds != bounds) {
       this.bounds = bounds
       this.updateBoundsReason = reason
@@ -143,11 +143,11 @@ class WindowState(
   }
 
   inline fun updateBounds(
-    reason: UpdateBoundsReason = UpdateBoundsReason.Inner, updater: Rect.() -> Rect
+    reason: UpdateBoundsReason = UpdateBoundsReason.Inner, updater: PureRect.() -> PureRect
   ) = updater.invoke(bounds).also { updateBounds(it, reason) }
 
   inline fun updateMutableBounds(
-    reason: UpdateBoundsReason = UpdateBoundsReason.Inner, updater: Rect.Mutable.() -> Unit
+    reason: UpdateBoundsReason = UpdateBoundsReason.Inner, updater: PureRect.Mutable.() -> Unit
   ) = bounds.toMutable().also(updater).toImmutable().also { updateBounds(it, reason) }
 
   internal class WindowRenderConfig {

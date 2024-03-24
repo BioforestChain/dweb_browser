@@ -28,10 +28,6 @@ class PureViewController(
 ) : IPureViewController {
   constructor(params: Map<String, Any?>) : this(PureViewCreateParams(params))
 
-  val isWindows get() = PureViewController.isWindows
-  val isMacOS get() = PureViewController.isMacOS
-  val isLinux get() = PureViewController.isLinux
-
   companion object {
 
     private val osName by lazy { System.getProperty("os.name").lowercase() }
@@ -114,7 +110,6 @@ class PureViewController(
 
   override var lifecycleScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
     private set
-
 
   private val initDeferred = CompletableDeferred<Unit>()
   suspend fun waitInit() = initDeferred.await()

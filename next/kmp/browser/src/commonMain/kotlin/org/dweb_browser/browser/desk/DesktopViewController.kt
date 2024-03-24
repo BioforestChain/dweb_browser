@@ -7,13 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.platform.IPureViewController
 import org.dweb_browser.helper.platform.from
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 
-fun Rect.toModifier(
+fun PureRect.toModifier(
   modifier: Modifier = Modifier,
 ) = modifier.offset(x.dp, y.dp).size(width.dp, height.dp)
 

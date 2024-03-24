@@ -10,7 +10,6 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.helper.setDefaultFloatWindowBounds
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import kotlin.math.sqrt
 
 expect fun DesktopWindowsManager.Companion.getOrPutInstance(
   platformViewController: IPureViewController,
@@ -35,37 +34,10 @@ class DesktopWindowsManager internal constructor(
       /// 新窗口的bounds可能都是没有配置的，所以这时候默认给它们设置一个有效的值
 
       with(viewBox) {
-        val displayWidth = getViewWidthPx() / getDisplayDensity()
-        val displayHeight = getViewHeightPx() / getDisplayDensity()
+        val maxWindowSize = getViewControllerMaxBounds()
         newWindowState.setDefaultFloatWindowBounds(
-          displayWidth, displayHeight, allWindows.size.toFloat()
+          maxWindowSize.width, maxWindowSize.height, allWindows.size.toFloat()
         )
-      }
-      newWindowState.updateMutableBounds {
-        with(viewBox) {
-          val displayWidth = getViewWidthPx() / getDisplayDensity()
-          val displayHeight = getViewHeightPx() / getDisplayDensity()
-          if (width.isNaN()) {
-            width = displayWidth / sqrt(3f)
-          }
-          if (height.isNaN()) {
-            height = displayHeight / sqrt(5f)
-          }
-          /// 在 top 和 left 上，为窗口动态配置坐标，避免层叠在一起
-          if (x.isNaN()) {
-            val maxLeft = displayWidth - width
-            val gapSize = 47f; // 质数
-            val gapCount = (maxLeft / gapSize).toInt();
-
-            x = gapSize + (allWindows.size % gapCount) * gapSize
-          }
-          if (y.isNaN()) {
-            val maxTop = displayHeight - height
-            val gapSize = 71f; // 质数
-            val gapCount = (maxTop / gapSize).toInt();
-            y = gapSize + (allWindows.size % gapCount) * gapSize
-          }
-        }
       }
 
       /// 添加窗口到列表中

@@ -3,7 +3,7 @@ package org.dweb_browser.browser.common.barcode
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.serialization.Serializable
-import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.Signal
 
 enum class QRCodeState(val type: Int) {
@@ -23,7 +23,7 @@ data class QRCodeDecoderResult(
   data class Point(val x: Float, val y: Float)
 
   @Serializable
-  data class QRCode(val rect: Rect, val displayName: String?)
+  data class QRCode(val rect: PureRect, val displayName: String?)
 }
 
 class QRCodeScanModel {

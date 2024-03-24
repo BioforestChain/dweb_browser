@@ -1,8 +1,17 @@
 package org.dweb_browser.helper.platform
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.compose.div
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 
@@ -20,9 +29,47 @@ class PureViewBox(
     internal val instances = WeakHashMap<IPureViewController, IPureViewBox>()
   }
 
-  override suspend fun getViewWidthPx() = pureViewController.awaitComposeWindow().width
+  override suspend fun getViewSizePx() =
+    with(pureViewController.awaitComposeWindow()) { IntSize(width, height) }
 
-  override suspend fun getViewHeightPx() = pureViewController.awaitComposeWindow().height
+  override suspend fun getDisplaySizePx() =
+    with(pureViewController.awaitComposeWindow().toolkit.screenSize) { IntSize(width, height) }
+
+  override suspend fun getViewControllerMaxBoundsPx() =
+    getViewControllerMaxBoundsPxSync(pureViewController.awaitComposeWindow())
+
+  /**
+   * 参考算法：
+   * GraphicsEnvironment.getLocalGraphicsEnvironment().maximumWindowBounds.bounds
+   * = SunGraphicsEnvironment.getUsableBounds(screenDevice)
+   * = public static Rectangle getUsableBounds(GraphicsDevice var0) {
+   *     GraphicsConfiguration var1 = var0.getDefaultConfiguration();
+   *     Insets var2 = Toolkit.getDefaultToolkit().getScreenInsets(var1);
+   *     Rectangle var3 = var1.getBounds();
+   *     var3.x += var2.left;
+   *     var3.y += var2.top;
+   *     var3.width -= var2.left + var2.right;
+   *     var3.height -= var2.top + var2.bottom;
+   *     return var3;
+   *   }
+   */
+  private fun getViewControllerMaxBoundsPxSync(composeWindow: ComposeWindow) =
+    /// 获取安全区域
+    with(composeWindow.toolkit.getScreenInsets(composeWindow.graphicsConfiguration)) {
+      /// 获取屏幕大小
+      with(composeWindow.graphicsConfiguration.bounds) {
+        IntRect(left = left, top = top, right = width - right, bottom = height - bottom)
+      }
+    }
+
+  @Composable
+  fun currentViewControllerMaxBounds(): Rect {
+    val composeWindow by pureViewController.composeWindowAsState()
+    val density = LocalDensity.current.density
+    return remember(composeWindow, density) {
+      getViewControllerMaxBoundsPxSync(composeWindow) / density
+    }
+  }
 
   override suspend fun getDisplayDensity() = PureViewController.density
 

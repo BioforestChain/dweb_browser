@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.Observable
-import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.sys.window.core.constant.WindowManagerPropertyKeys
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -23,14 +23,12 @@ import org.dweb_browser.sys.window.render.watchedBounds
 import kotlin.math.max
 
 class WindowsManagerState(
-  val viewController: IPureViewBox,
+  val viewBox: IPureViewBox,
 ) {
-//  val viewHeight get() = activity.window.decorView.height
+  //  val viewHeight get() = activity.window.decorView.height
 //  val viewWidth get() = activity.window.decorView.width
 //  val displayDensity get() = activity.resources.displayMetrics.density
-
-  suspend fun viewHeightDp() = with(viewController) { getViewHeightPx() / getDisplayDensity() }
-  suspend fun viewWidthDp() = with(viewController) { getViewWidthPx() / getDisplayDensity() }
+  suspend fun viewSize() = viewBox.getViewSize()
 
   companion object {
     /// 一些提供给 WindowsManager 的扩展函数
@@ -121,7 +119,7 @@ class WindowsManagerState(
    * IME(input method editor 输入法) 的位置和大小
    */
   var imeBoundingRect by observable.observe(
-    WindowManagerPropertyKeys.ImeBoundingRect, Rect(0f, 0f, 0f, 0f)
+    WindowManagerPropertyKeys.ImeBoundingRect, PureRect(0f, 0f, 0f, 0f)
   )
 
   var imeVisible by observable.observe(WindowManagerPropertyKeys.ImeVisible, false)

@@ -17,12 +17,16 @@ import org.dweb_browser.helper.SafeHashMap
  * [https://youtrack.jetbrains.com/issue/KT-63869/androidx.compose.runtime.ComposeRuntimeError-Compose-Runtime-internal-error.-Unexpected-or-incorrect-use-of-the-Compose-internal]()
  */
 class CompositionChain(val providerMap: Map<CompositionChainKey<out Any?>, ProvidedChainValue<*>> = mapOf()) {
-  constructor(providers: Array<ProvidedChainValue<*>>) : this(providers.associateBy { it.key })
+  constructor(providers: Array<out ProvidedChainValue<*>>) : this(providers.associateBy { it.key })
 
   @Composable
   fun Provider(
     vararg values: ProvidedChainValue<*>
-  ): CompositionChain = if (values.isNotEmpty()) {
+  ): CompositionChain = remember(keys = values) {
+    merge(values = values)
+  }
+
+  fun merge(vararg values: ProvidedChainValue<*>) = if (values.isNotEmpty()) {
     CompositionChain(providerMap + values.associateBy { it.key })
   } else {
     this
@@ -30,15 +34,17 @@ class CompositionChain(val providerMap: Map<CompositionChainKey<out Any?>, Provi
 
   @Composable
   fun Provider(otherChain: CompositionChain): CompositionChain = remember(otherChain) {
-    if (otherChain.providerMap.isEmpty()) {
-      this
-    } else if (providerMap.isEmpty()) {
-      otherChain
-    } else {
-      CompositionChain(
-        providerMap + otherChain.providerMap
-      )
-    }
+    merge(otherChain)
+  }
+
+  fun merge(otherChain: CompositionChain) = if (otherChain.providerMap.isEmpty()) {
+    this
+  } else if (providerMap.isEmpty()) {
+    otherChain
+  } else {
+    CompositionChain(
+      providerMap + otherChain.providerMap
+    )
   }
 
   @Composable
@@ -102,7 +108,7 @@ class CompositionChainKey<T> private constructor(
   infix fun provides(value: T) = ProvidedChainValue(this, value)
 }
 
-class ProvidedChainValue<T> internal constructor(
+data class ProvidedChainValue<T> internal constructor(
   val key: CompositionChainKey<T>,
   val value: T,
 )

@@ -1,6 +1,8 @@
 package org.dweb_browser.helper.platform
 
 import android.content.Context
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.WeakHashMap
@@ -18,9 +20,14 @@ class PureViewBox(val activity: BaseActivity) : IPureViewBox {
 
   private val context: Context = activity
 
-  override suspend fun getViewWidthPx() = activity.window.decorView.width
+  override suspend fun getViewSizePx() = with(activity.window.decorView) { IntSize(width, height) }
 
-  override suspend fun getViewHeightPx() = activity.window.decorView.height
+  override suspend fun getDisplaySizePx() =
+    with(activity.resources.displayMetrics) { IntSize(widthPixels, heightPixels) }
+
+  override suspend fun getViewControllerMaxBoundsPx() =
+    with(activity.window.decorView) { IntRect(0,0,width, height) }
+
 
   override suspend fun getDisplayDensity() = activity.resources.displayMetrics.density
 

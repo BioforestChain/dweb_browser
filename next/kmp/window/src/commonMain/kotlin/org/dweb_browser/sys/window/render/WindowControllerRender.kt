@@ -176,9 +176,7 @@ fun WindowController.Render(
                     }
                   /// 显示内容
                   windowAdapterManager.Renderer(
-                    win.state.constants.wid,
-                    windowRenderScope,
-                    Modifier.fillMaxSize()
+                    win.state.constants.wid, windowRenderScope, Modifier.fillMaxSize()
                   )
                 }
 
@@ -203,10 +201,15 @@ fun WindowController.Render(
           /// 失去焦点的时候，提供 movable 的遮罩（在移动中需要确保遮罩存在）
           if (inMove or !isFocus) {
             Box(
-              modifier = Modifier.fillMaxSize()
-                .clip(winPadding.boxRounded.roundedCornerShape)
+              modifier = Modifier.fillMaxSize().clip(winPadding.boxRounded.roundedCornerShape)
                 .background(MaterialTheme.colorScheme.onSurface.copy(alpha = if (isFocus) 0f else 0.2f))
-                .windowMoveAble(win)
+                .run {
+                  val isMaximized by win.watchedIsMaximized()
+                  /// 如果最大化，那么不允许移动
+                  if (isMaximized) {
+                    this
+                  } else windowMoveAble(win)
+                }
             )
           }
         }

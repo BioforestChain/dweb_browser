@@ -9,7 +9,7 @@ import platform.CoreGraphics.CGRectMake
 
 @OptIn(ExperimentalForeignApi::class)
 fun CValue<CGRect>.toRect() = useContents {
-  Rect(
+  PureRect(
     origin.x.toFloat(),
     origin.y.toFloat(),
     size.width.toFloat(),
@@ -18,4 +18,4 @@ fun CValue<CGRect>.toRect() = useContents {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-fun Rect.toIosRect() = CGRectMake(x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble())
+fun PureRect.toIosRect() = CGRectMake(x.toDouble(), y.toDouble(), width.toDouble(), height.toDouble())

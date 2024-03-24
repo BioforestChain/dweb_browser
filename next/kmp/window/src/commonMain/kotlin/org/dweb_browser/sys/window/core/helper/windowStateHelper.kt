@@ -73,28 +73,28 @@ fun List<StrictImageResource>.pickMinimal() =
 
 
 fun WindowState.setDefaultFloatWindowBounds(
-  displayWidth: Float,
-  displayHeight: Float,
+  maxWindowWidth: Float,
+  maxWindowHeight: Float,
   seed: Float,
   force: Boolean = false,
 ) {
   updateMutableBounds {
     if (force || width.isNaN()) {
-      width = displayWidth / sqrt(3f)
+      width = maxWindowWidth / sqrt(3f)
     }
     if (force || height.isNaN()) {
-      height = displayHeight / sqrt(5f)
+      height = maxWindowHeight / sqrt(5f)
     }
     /// 在 top 和 left 上，为窗口动态配置坐标，避免层叠在一起
     if (force || x.isNaN()) {
-      val maxLeft = displayWidth - width
+      val maxLeft = maxWindowWidth - width
       val gapSize = 47f; // 质数
       val gapCount = (maxLeft / gapSize).toInt();
 
       x = gapSize + (seed % gapCount) * gapSize
     }
     if (force || y.isNaN()) {
-      val maxTop = displayHeight - height
+      val maxTop = maxWindowHeight - height
       val gapSize = 71f; // 质数
       val gapCount = (maxTop / gapSize).toInt();
       y = gapSize + (seed % gapCount) * gapSize

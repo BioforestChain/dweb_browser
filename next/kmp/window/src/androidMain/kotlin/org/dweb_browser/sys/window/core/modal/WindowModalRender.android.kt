@@ -61,12 +61,14 @@ internal actual fun ModalState.RenderCloseTipImpl(onConfirmToClose: () -> Unit) 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean) {
-  val sheetState = rememberModalBottomSheetState(confirmValueChange = {
-    debugModal("confirmValueChange", " $it")
-    when (it) {
-      SheetValue.Hidden -> isClose
-      SheetValue.Expanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
-      SheetValue.PartiallyExpanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
+  val sheetState = rememberModalBottomSheetState(confirmValueChange = remember(emitModalVisibilityChange) {
+    {
+      debugModal("confirmValueChange", " $it")
+      when (it) {
+        SheetValue.Hidden -> isClose
+        SheetValue.Expanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
+        SheetValue.PartiallyExpanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
+      }
     }
   });
   val scope = rememberCoroutineScope()

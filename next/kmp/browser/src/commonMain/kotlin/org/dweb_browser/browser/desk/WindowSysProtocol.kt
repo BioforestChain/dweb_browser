@@ -1,13 +1,13 @@
 package org.dweb_browser.browser.desk
 
 import kotlinx.serialization.Serializable
-import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.byChannel
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.helper.Observable
-import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.constant.WindowStyle
 import org.dweb_browser.sys.window.core.constant.debugWindow
@@ -81,9 +81,11 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
 
         @Serializable
         data class Display(
-          val height: Float, val width: Float, val imeBoundingRect: Rect
+          val height: Float, val width: Float, val imeBoundingRect: PureRect
         )
-        Display(state.viewHeightDp(), state.viewWidthDp(), state.imeBoundingRect).toJsonElement()
+
+        val displaySize = state.viewBox.getDisplaySize()
+        Display(displaySize.height, displaySize.width, state.imeBoundingRect).toJsonElement()
       })
   }
 }

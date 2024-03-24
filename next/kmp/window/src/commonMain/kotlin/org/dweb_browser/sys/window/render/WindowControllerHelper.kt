@@ -42,7 +42,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.Observable
-import org.dweb_browser.helper.Rect
+import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
@@ -261,7 +261,7 @@ data class WindowLimits(
 
 @Composable
 fun WindowController.watchedIsMaximized() =
-  watchedState(watchKey = WindowPropertyKeys.Mode) { mode == org.dweb_browser.sys.window.core.constant.WindowMode.MAXIMIZE || mode == org.dweb_browser.sys.window.core.constant.WindowMode.FULLSCREEN }
+  watchedState(watchKey = WindowPropertyKeys.Mode) { isMaximized(mode) }
 
 @Composable
 fun WindowController.watchedBounds() = watchedState(watchKey = WindowPropertyKeys.Bounds) { bounds }
@@ -289,7 +289,7 @@ fun WindowController.calcWindowByLimits(
 @Composable
 private fun WindowController.calcWindowBoundsByLimits(
   limits: WindowLimits
-): Rect {
+): PureRect {
   return if (watchedIsMaximized().value) {
     inMove.value = false
     state.updateBounds {
@@ -339,7 +339,7 @@ expect val WindowController.canOverlayNavigationBar: Boolean
 @Composable
 private fun WindowController.calcWindowPaddingByLimits(
   limits: WindowLimits,
-  bounds: Rect,// 这里这个不要通过 watchBounds 获得，这会有延迟，应该是直接通过传递参数获得
+  bounds: PureRect,// 这里这个不要通过 watchBounds 获得，这会有延迟，应该是直接通过传递参数获得
 ): WindowPadding {
   val maximize by watchedIsMaximized()
   val bottomBarTheme by watchedState(watchKey = WindowPropertyKeys.BottomBarTheme) { bottomBarTheme }
