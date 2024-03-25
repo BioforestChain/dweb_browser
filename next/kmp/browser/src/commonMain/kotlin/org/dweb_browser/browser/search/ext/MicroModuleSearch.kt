@@ -10,11 +10,13 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureTextFrame
 
-suspend fun MicroModule.isEngineAndGetHomeLink(key: String) =
-  nativeFetch("file://search.browser.dweb/check?key=$key").text()
+suspend fun MicroModule.getEngineHomeLink(key: String) =
+  nativeFetch("file://search.browser.dweb/homeLink?key=$key").text()
 
-suspend fun MicroModule.getSearchInjectList(key: String) =
-  Json.decodeFromString<MutableList<SearchInject>>(nativeFetch("file://search.browser.dweb/injects?key=$key").text())
+suspend fun MicroModule.getInjectList(key: String) =
+  Json.decodeFromString<MutableList<SearchInject>>(
+    nativeFetch("file://search.browser.dweb/injectList?key=$key").text()
+  )
 
 class WatchSearchEngineContext(val engineList: List<SearchEngine>, val channel: PureChannelContext)
 
@@ -25,6 +27,24 @@ suspend fun NativeMicroModule.collectChannelOfEngines(collector: suspend WatchSe
         is PureTextFrame -> {
           WatchSearchEngineContext(
             Json.decodeFromString<List<SearchEngine>>(pureFrame.data),
+            this
+          ).collector()
+        }
+
+        else -> {}
+      }
+    }
+  }
+
+class WatchSearchInjectContext(val injectList: List<SearchInject>, val channel: PureChannelContext)
+
+suspend fun NativeMicroModule.collectChannelOfInjects(collector: suspend WatchSearchInjectContext.() -> Unit) =
+  createChannel("file://search.browser.dweb/observe/engines") {
+    for (pureFrame in income) {
+      when (pureFrame) {
+        is PureTextFrame -> {
+          WatchSearchInjectContext(
+            Json.decodeFromString<List<SearchInject>>(pureFrame.data),
             this
           ).collector()
         }

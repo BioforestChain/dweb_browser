@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -17,7 +18,9 @@ import org.dweb_browser.browser.search.SearchEngine
 import org.dweb_browser.browser.search.SearchEngineList
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.search.ext.collectChannelOfEngines
-import org.dweb_browser.browser.search.ext.isEngineAndGetHomeLink
+import org.dweb_browser.browser.search.ext.collectChannelOfInjects
+import org.dweb_browser.browser.search.ext.getEngineHomeLink
+import org.dweb_browser.browser.search.ext.getInjectList
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.data.KEY_NO_TRACE
@@ -40,6 +43,7 @@ import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.compose.compositionChainOf
+import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.isDwebDeepLink
 import org.dweb_browser.helper.platform.toByteArray
@@ -65,10 +69,10 @@ data class DwebLinkSearchItem(val link: String, val target: AppBrowserTarget) {
 }
 
 /**
- * 这里作为ViewModel
+ * 这里作为 ViewModel
  */
 class BrowserViewModel(
-  private val browserController: BrowserController, internal val browserNMM: NativeMicroModule,
+  private val browserController: BrowserController, internal val browserNMM: NativeMicroModule
 ) {
   val ioScope get() = browserNMM.ioAsyncScope
   private val pages = mutableStateListOf<BrowserPage>() // 多浏览器列表
@@ -94,7 +98,7 @@ class BrowserViewModel(
   }
 
   var showSearch by mutableStateOf<BrowserPage?>(null)
-  var scale by mutableStateOf(1f)
+  var scale by mutableFloatStateOf(1f)
 
   // 无痕模式状态
   var isIncognitoOn by mutableStateOf(false)
@@ -107,17 +111,31 @@ class BrowserViewModel(
     }
   }
 
-  val searchInjectList = mutableStateListOf<SearchInject>()
-  val searchEngineList = mutableStateListOf<SearchEngine>()
+  private val searchEngineList = mutableStateListOf<SearchEngine>()
   val filterShowEngines get() = searchEngineList.filter { it.enable }
-  fun findSearchEngine(url: String) = searchEngineList.firstOrNull { it.matchKeyWord(url) }
 
-  suspend fun checkAndSearchUI(key: String, hide: () -> Unit) {
-    val homeLink = withScope(ioScope) { browserNMM.isEngineAndGetHomeLink(key) } // 将关键字对应的搜索引擎置为有效
-    debugBrowser("checkAndSearch", "homeLink=$homeLink")
-    if (homeLink.isNotEmpty()) { // 使用首页地址直接打开网页
-      hide()
-      doSearchUI(homeLink)
+  private suspend fun checkAndEnableSearchEngine(key: String): String? {
+    val homeLink = withScope(ioScope) {
+      browserNMM.getEngineHomeLink(key.encodeURIComponent())
+    } // 将关键字对应的搜索引擎置为有效
+    return homeLink.ifEmpty { null }
+  }
+
+
+  val searchInjectList = mutableStateListOf<SearchInject>()
+  suspend fun getInjectList(searchText: String) {
+    val list = browserNMM.getInjectList(searchText)
+    searchInjectList.clear()
+    searchInjectList.addAll(list)
+  }
+
+  init {
+    ioScope.launch {
+      // 同步搜索引擎列表
+      browserNMM.collectChannelOfEngines {
+        searchEngineList.clear()
+        searchEngineList.addAll(engineList)
+      }
     }
   }
 
@@ -188,18 +206,6 @@ class BrowserViewModel(
         }
       }
       onDispose { off() }
-    }
-
-    /// 同步搜索引擎配置
-    LaunchedEffect(Unit) {
-      withScope(ioScope) {
-        browserNMM.collectChannelOfEngines {
-          withScope(uiScope) {
-            searchEngineList.clear()
-            searchEngineList.addAll(engineList)
-          }
-        }
-      }
     }
   }
 
@@ -347,7 +353,7 @@ class BrowserViewModel(
       browserNMM.nativeFetch(url)
     } else {
       val searchUrl = if (BrowserWebPage.isWebUrl(url)) url
-      else findSearchEngine(url)?.homeLink // 根据关键词查找是否有符合条件的搜索引擎，打开首页
+      else checkAndEnableSearchEngine(url) // 根据关键词查找是否有符合条件的搜索引擎，打开首页
         ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url) // 查找搜索引擎列表第一个
       debugBrowser("doSearchUI", "url=$url, searchUrl=$searchUrl")
       searchUrl?.let {

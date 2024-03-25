@@ -12,6 +12,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
 
@@ -32,13 +33,15 @@ class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
       /**
        * 判断当前是否属于引擎关键字,如果是，返回首页地址
        */
-      "/check" bind PureMethod.GET by defineStringResponse {
-        val key = request.queryOrNull("key")
+      "/homeLink" bind PureMethod.GET by defineStringResponse {
+        val key = request.queryOrNull("key")?.decodeURIComponent()
+          ?: throwException(HttpStatusCode.BadRequest, "not found key param")
         debugSearch("browser/enable", "key=$key")
-        key?.let { controller.checkAndEnableEngine(key) ?: "" } ?: ""
+        controller.enableAndGetEngineHomeLink(key)
+          ?: throwException(HttpStatusCode.NoContent, "not found HomeLink")
       },
       /**
-       * 搜索所有可用引擎
+       * 监听所有可用引擎
        */
       "/observe/engines" byChannel { ctx ->
         controller.onEngineUpdate {
@@ -50,17 +53,11 @@ class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
       /**
        * 搜索都有注入的搜索列表
        */
-      "/injects" bind PureMethod.GET by defineStringResponse {
-        val key = request.queryOrNull("key")
+      "/injectList" bind PureMethod.GET by defineStringResponse {
+        val key = request.queryOrNull("key") ?:
+        throwException(HttpStatusCode.BadRequest, "not found key param")
         debugSearch("browser", "/injects key=$key")
-        key?.let {
-          val list = controller.containsInject(key)
-          if (list.isNotEmpty()) {
-            Json.encodeToString(list)
-          } else {
-            throwException(HttpStatusCode.BadRequest, "not found key param")
-          }
-        } ?: throwException(HttpStatusCode.BadRequest, "not found key param")
+        Json.encodeToString(controller.containsInject(key))
       },
     )
 

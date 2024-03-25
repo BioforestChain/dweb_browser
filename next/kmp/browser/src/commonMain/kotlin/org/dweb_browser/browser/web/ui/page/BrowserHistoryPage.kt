@@ -47,7 +47,7 @@ fun BrowserHistoryPageRender(historyPage: BrowserHistoryPage, modifier: Modifier
   val viewModel = LocalBrowserViewModel.current
   Column(modifier = modifier) {
     BrowserTopBar(
-      title = BrowserI18nResource.Bookmark.page_title(),
+      title = BrowserI18nResource.History.page_title(),
       enableNavigation = historyPage.isInEditMode,
       onNavigationBack = { historyPage.isInEditMode = false },
       actions = {
