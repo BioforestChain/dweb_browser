@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import io.ktor.http.Url
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -113,11 +114,11 @@ class BrowserViewModel(
   private val searchEngineList = mutableStateListOf<SearchEngine>()
   val filterShowEngines get() = searchEngineList.filter { it.enable }
 
-  private suspend fun checkAndEnableSearchEngine(key: String): String? {
+  private suspend fun checkAndEnableSearchEngine(key: String): Url? {
     val homeLink = withScope(ioScope) {
       browserNMM.getEngineHomeLink(key.encodeURIComponent())
     } // 将关键字对应的搜索引擎置为有效
-    return homeLink.ifEmpty { null }
+    return homeLink.toWebUrl()
   }
 
   val searchInjectList = mutableStateListOf<SearchInject>()
@@ -350,14 +351,10 @@ class BrowserViewModel(
     if (url.isDwebDeepLink()) withScope(ioScope) {
       browserNMM.nativeFetch(url)
     } else {
-      val searchUrl = if (BrowserWebPage.isWebUrl(url)) {
-        url
-      } else {
-        checkAndEnableSearchEngine(url) // 根据关键词查找是否有符合条件的搜索引擎，打开首页
-          ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url) // 查找搜索引擎列表第一个
-      }
-      debugBrowser("doSearchUI", "url=$url, searchUrl=$searchUrl")
-      searchUrl?.let {
+      val webUrl = url.toWebUrl() ?: checkAndEnableSearchEngine(url)
+      ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl()
+      debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl")
+      webUrl?.toString()?.let { searchUrl ->
         if (focusedPage != null && focusedPage is BrowserWebPage) {
           (focusedPage as BrowserWebPage).loadUrl(searchUrl)
         } else {

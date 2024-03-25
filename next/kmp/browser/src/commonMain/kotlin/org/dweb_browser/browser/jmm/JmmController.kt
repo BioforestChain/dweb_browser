@@ -34,7 +34,7 @@ import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.isGreaterThan
-import org.dweb_browser.helper.isWebUrlOrWithoutProtocol
+import org.dweb_browser.helper.isWebUrl
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.valueIn
@@ -117,7 +117,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       return@let
     }
     val installManifest = openHistoryMetadata.metadata
-    val baseURI = when (installManifest.baseURI?.isWebUrlOrWithoutProtocol()) {
+    val baseURI = when (installManifest.baseURI?.isWebUrl()) {
       true -> installManifest.baseURI!!
       else -> when (val baseUri = installManifest.baseURI) {
         null -> originUrl
@@ -127,7 +127,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       }
     }
     // 如果bundle_url没有host
-    if (!installManifest.bundle_url.isWebUrlOrWithoutProtocol()) {
+    if (!installManifest.bundle_url.isWebUrl()) {
       installManifest.bundle_url =
         baseURI.replace("metadata.json", installManifest.bundle_url.substring(2))
     }
@@ -272,7 +272,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     val targetPath = jmmNMM.pickFile("/data/apps/$jmm")
 
     // 用于校验jmmApp下载文件是不是完整
-    if(!jmmAppHashVerify(jmmNMM, jmmHistoryMetadata, sourcePath)) {
+    if (!jmmAppHashVerify(jmmNMM, jmmHistoryMetadata, sourcePath)) {
       return false
     }
 
