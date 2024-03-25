@@ -22,11 +22,11 @@ import org.dweb_browser.browser.jmm.render.app.Render
 import org.dweb_browser.browser.jmm.render.measureCenterOffset
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.rememberScreenSize
-import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
-fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowRenderScope) {
+fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowContentRenderScope) {
   val lazyListState = rememberLazyListState()
   val screenSize = rememberScreenSize()
   val density = LocalDensity.current.density

@@ -20,7 +20,7 @@ import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.platform.SetSystemBarsColor
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
-import org.dweb_browser.sys.window.render.Render
+import org.dweb_browser.sys.window.render.SceneRender
 
 @Composable
 fun DesktopController.Render(
@@ -38,7 +38,7 @@ fun DesktopController.Render(
       }
       /// 窗口视图
       DesktopWindowsManager {
-        Render()
+        SceneRender()
       }
     }
     /// 悬浮框

@@ -13,7 +13,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -27,7 +26,7 @@ import org.dweb_browser.helper.platform.LocalPureViewController
 import org.dweb_browser.helper.platform.ModalDialog
 import org.dweb_browser.helper.platform.asDesktop
 import org.dweb_browser.sys.window.WindowI18nResource
-import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowLimits
@@ -54,7 +53,7 @@ internal actual fun ModalState.RenderCloseTipImpl(
   }
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal actual fun BottomSheetsModal.RenderImpl(
   emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean
@@ -95,9 +94,7 @@ private class BottomSheetsModalViewController(modal: BottomSheetsModal) :
           when (it) {
             SheetValue.Hidden -> modal.isClose
             SheetValue.Expanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
-            SheetValue.PartiallyExpanded -> emitModalVisibilityChange(
-              EmitModalVisibilityState.Open
-            )
+            SheetValue.PartiallyExpanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
           }
         }
       });
@@ -141,7 +138,7 @@ private class BottomSheetsModalViewController(modal: BottomSheetsModal) :
         )
       ) {
         val windowRenderScope = remember(winPadding, maxWidth, maxHeight) {
-          WindowRenderScope.fromDp(maxWidth, maxHeight, 1f)
+          WindowContentRenderScope.fromDp(maxWidth, maxHeight, 1f)
         }
         windowAdapterManager.Renderer(
           renderId, windowRenderScope, Modifier.clip(winPadding.contentRounded.roundedCornerShape)

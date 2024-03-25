@@ -12,7 +12,7 @@ import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeO
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
 @Composable
-actual fun <T : WindowController> WindowsManager<T>.Render() {
+actual fun <T : WindowController> WindowsManager<T>.SceneRender() {
   LocalCompositionChain.current.Provider(
     LocalWindowsManager provides this,
   ) {
@@ -24,13 +24,16 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
       for (win in winList) {
         key(win.id) {
           /// 渲染窗口
-          win.Render(
-            modifier = Modifier
-              .zIndex(win.state.zIndex.toFloat())
-              .windowImeOutsetBounds(),
+          win.Prepare(
             winMaxWidth = maxWidth.value,
             winMaxHeight = maxHeight.value
-          )
+          ) {
+            win.WindowRender(
+              modifier = Modifier
+                .zIndex(win.watchedState { zIndex.toFloat() }.value)
+                .windowImeOutsetBounds()
+            )
+          }
         }
       }
       /// 置顶层级的窗口
@@ -39,13 +42,16 @@ actual fun <T : WindowController> WindowsManager<T>.Render() {
         key(win.id) {
           /// 渲染窗口
           win.MaterialTheme {
-            win.Render(
-              modifier = Modifier
-                .zIndex(winList.size + win.state.zIndex.toFloat())
-                .windowImeOutsetBounds(),
+            win.Prepare(
               winMaxWidth = maxWidth.value,
               winMaxHeight = maxHeight.value
-            )
+            ) {
+              win.WindowRender(
+                modifier = Modifier
+                  .zIndex(win.watchedState { (winList.size + zIndex).toFloat() }.value)
+                  .windowImeOutsetBounds()
+              )
+            }
           }
         }
       }

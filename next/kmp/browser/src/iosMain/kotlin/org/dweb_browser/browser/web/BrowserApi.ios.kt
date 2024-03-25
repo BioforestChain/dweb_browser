@@ -20,7 +20,7 @@ import org.dweb_browser.platform.ios_browser.doNewTabUrlWithUrl
 import org.dweb_browser.platform.ios_browser.doSearchWithKey
 import org.dweb_browser.platform.ios_browser.gobackIfCanDo
 import org.dweb_browser.platform.ios_browser.prepareToKmp
-import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.WindowFrameStyleEffect
 import platform.CoreGraphics.CGRectMake
@@ -79,7 +79,7 @@ actual suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem) {
 actual fun CommonBrowserView(
   viewModel: BrowserViewModel,
   modifier: Modifier,
-  windowRenderScope: WindowRenderScope
+  windowRenderScope: WindowContentRenderScope
 ) {
 
   val iOSDelegate = remember {

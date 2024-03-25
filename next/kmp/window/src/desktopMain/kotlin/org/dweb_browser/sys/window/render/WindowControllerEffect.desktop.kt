@@ -134,7 +134,6 @@ private fun WindowController.VisibleEffect(
   watchedIsMaximized()
   /// 反向绑定原生的窗口状态到state中
   LaunchedEffect(composeWindowParams.visible) {
-    println("QAQ composeWindowParams.visible=>state.visible | ${composeWindowParams.visible}")
     state.visible = composeWindowParams.visible
   }
 }

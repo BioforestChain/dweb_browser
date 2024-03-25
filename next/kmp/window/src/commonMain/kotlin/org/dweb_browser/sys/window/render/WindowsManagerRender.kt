@@ -5,4 +5,4 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 
 @Composable
-expect fun <T : WindowController> WindowsManager<T>.Render()
+expect fun <T : WindowController> WindowsManager<T>.SceneRender()

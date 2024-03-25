@@ -10,10 +10,10 @@ import org.dweb_browser.browser.download.model.LocalDownloadModel
 import org.dweb_browser.browser.download.ui.DownloadView
 import org.dweb_browser.browser.download.ui.LocalDecompressModel
 import org.dweb_browser.helper.compose.LocalCompositionChain
-import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 
 @Composable
-fun DownloadController.Render(modifier: Modifier, windowRenderScope: WindowRenderScope) {
+fun DownloadController.Render(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
   LocalCompositionChain.current.Provider(
     LocalDownloadModel provides this.downloadModel,
     LocalDecompressModel provides this.decompressModel,

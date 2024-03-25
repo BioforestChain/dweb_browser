@@ -29,18 +29,12 @@ private class IosWindowNativeView(
   val pvc = PureViewController(params).also { pvc ->
     pvc.onCreate { params ->
       @Suppress("UNCHECKED_CAST") pvc.addContent {
-        val maxWidth by params["maxWidth"] as State<Float>
-        val maxHeight by params["maxHeight"] as State<Float>
         val compositionChain by params["compositionChain"] as State<CompositionChain>
         compositionChain.Provider(LocalCompositionChain.current)
           .Provider(LocalWindowsManager provides windowsManager) {
             /// 渲染窗口
             win.MaterialTheme {
-              win.Render(
-                modifier = Modifier.windowImeOutsetBounds(),
-                winMaxWidth = maxWidth,
-                winMaxHeight = maxHeight
-              )
+              win.WindowRender(Modifier.windowImeOutsetBounds())
             }
           }
       }
@@ -48,60 +42,62 @@ private class IosWindowNativeView(
   }
 
   companion object {
-    val INSTANCES = WeakHashMap<WindowController, IosWindowNativeView>()
+    private val INSTANCES = WeakHashMap<WindowController, IosWindowNativeView>()
+    fun from(
+      win: WindowController,
+      windowsManager: WindowsManager<*>,
+      compositionChain: State<CompositionChain>
+    ) = IosWindowNativeView.INSTANCES.getOrPut(win) {
+      IosWindowNativeView(
+        mutableMapOf(
+          "compositionChain" to compositionChain,
+        ), win, windowsManager
+      )
+    }
   }
-}
-
-private fun WindowController.getIosWindowNativeView(
-  windowsManager: WindowsManager<*>,
-  maxWidth: State<Float>,
-  maxHeight: State<Float>,
-  compositionChain: State<CompositionChain>
-) = IosWindowNativeView.INSTANCES.getOrPut(this) {
-  IosWindowNativeView(
-    mutableMapOf(
-      "maxWidth" to maxWidth,
-      "maxHeight" to maxHeight,
-      "compositionChain" to compositionChain,
-    ), this, windowsManager
-  )
 }
 
 @Composable
 private fun RenderWindowInNewLayer(
   windowsManager: WindowsManager<*>,
   win: WindowController,
-  currentMaxWidth: Float,
-  currentMaxHeight: Float,
+  sceneMaxWidth: Float,
+  sceneMaxHeight: Float,
   zIndexBase: Int
 ) {
-  val maxWidth = rememberUpdatedState(currentMaxWidth)
-  val maxHeight = rememberUpdatedState(currentMaxHeight)
-  val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
-  val pvc = win.getIosWindowNativeView(windowsManager, maxWidth, maxHeight, compositionChain).pvc
+  win.Prepare(
+    winMaxWidth = sceneMaxWidth,
+    winMaxHeight = sceneMaxHeight,
+  ) {
+    val pvc = IosWindowNativeView.from(
+      win = win,
+      windowsManager = windowsManager,
+      compositionChain = rememberUpdatedState(LocalCompositionChain.current)
+    ).pvc
 
-  val zIndex by win.watchedState(zIndexBase) { zIndex + zIndexBase }
-  // 防止Composable生命周期溢出
-  LaunchedEffect(pvc) {
-    nativeViewController.addOrUpdate(pvc, zIndex)
-  }
-  /// 启动
-  DisposableEffect(pvc) {
-    val off = win.onClose {
-      nativeViewController.remove(pvc)
+    val zIndex by win.watchedState(zIndexBase) { zIndex + zIndexBase }
+    // 防止Composable生命周期溢出
+    LaunchedEffect(pvc) {
+      nativeViewController.addOrUpdate(pvc, zIndex)
     }
-    onDispose {
-      off()
+    /// 启动
+    DisposableEffect(pvc) {
+      val off = win.onClose {
+        nativeViewController.remove(pvc)
+      }
+      onDispose {
+        off()
+      }
     }
-  }
-  /// 切换zIndex
-  LaunchedEffect(zIndex) {
-    nativeViewController.addOrUpdate(pvc, zIndex)
+    /// 切换zIndex
+    LaunchedEffect(zIndex) {
+      nativeViewController.addOrUpdate(pvc, zIndex)
+    }
   }
 }
 
 @Composable
-actual fun <T : WindowController> WindowsManager<T>.Render() {
+actual fun <T : WindowController> WindowsManager<T>.SceneRender() {
   val windowsManager = this
   BoxWithConstraints {
     WindowsManagerEffect()

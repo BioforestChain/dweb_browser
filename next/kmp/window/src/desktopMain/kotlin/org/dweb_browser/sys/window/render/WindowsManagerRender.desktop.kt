@@ -20,7 +20,7 @@ import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeO
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
 @Composable
-actual fun <T : WindowController> WindowsManager<T>.Render() {
+actual fun <T : WindowController> WindowsManager<T>.SceneRender() {
   val windowsManager = this
   BoxWithConstraints {
     WindowsManagerEffect()
@@ -46,24 +46,31 @@ fun RenderWindowInNative(
   windowsManager: WindowsManager<*>,
   win: WindowController,
 ) {
-  val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
-  val pvc = win.getDesktopWindowNativeView(windowsManager, compositionChain).pvc
+  val maxBounds = LocalPureViewBox.current.asDesktop().currentViewControllerMaxBounds()
+  win.Prepare(
+    winMaxWidth = maxBounds.width,
+    winMaxHeight = maxBounds.height,
+    minScale = 1.0
+  ) {
+    val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
+    val pvc = win.getDesktopWindowNativeView(windowsManager, compositionChain).pvc
 
-  /// 启动
-  LaunchedEffect(pvc) {
-    if (!pvc.composeWindowParams.isOpened) {
-      // 使用系统原生的窗口进行渲染
-      win.state.renderConfig.useSystemFrame = true
+    /// 启动
+    LaunchedEffect(pvc) {
+      if (!pvc.composeWindowParams.isOpened) {
+        // 使用系统原生的窗口进行渲染
+        win.state.renderConfig.useSystemFrame = true
 
-      pvc.composeWindowParams.apply {
-        // 关闭边框
-        undecorated = true
-        if (PureViewController.isMacOS) {
-          // 背景透明
-          transparent = true
+        pvc.composeWindowParams.apply {
+          // 关闭边框
+          undecorated = true
+          if (PureViewController.isMacOS) {
+            // 背景透明
+            transparent = true
+          }
+          // 打开窗口
+          openWindow()
         }
-        // 打开窗口
-        openWindow()
       }
     }
   }
@@ -87,7 +94,6 @@ private class DesktopWindowNativeView(
   val pvc = PureViewController(params).also { pvc ->
     pvc.onCreate { params ->
       @Suppress("UNCHECKED_CAST") pvc.addContent {
-        val maxBounds = LocalPureViewBox.current.asDesktop().currentViewControllerMaxBounds()
         val compositionChain by params["compositionChain"] as State<CompositionChain>
         compositionChain.Provider(LocalCompositionChain.current)
           .Provider(LocalWindowsManager provides windowsManager) {
@@ -95,11 +101,8 @@ private class DesktopWindowNativeView(
             win.WindowControllerEffect()
             /// 渲染窗口
             win.MaterialTheme {
-              win.Render(
+              win.WindowRender(
                 modifier = Modifier.windowImeOutsetBounds(),
-                winMaxWidth = maxBounds.width,
-                winMaxHeight = maxBounds.height,
-                minScale = 1.0
               )
             }
           }

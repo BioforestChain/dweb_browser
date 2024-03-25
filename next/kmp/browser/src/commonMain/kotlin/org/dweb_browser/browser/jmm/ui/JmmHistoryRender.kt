@@ -55,13 +55,13 @@ import org.dweb_browser.helper.compose.produceEvent
 import org.dweb_browser.helper.formatDatestampByMilliseconds
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.pure.image.compose.CoilAsyncImage
-import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JmmHistoryController.ManagerViewRender(
-  modifier: Modifier, windowRenderScope: WindowRenderScope
+  modifier: Modifier, windowRenderScope: WindowContentRenderScope
 ) {
   val scope = rememberCoroutineScope()
   var curTab by remember { mutableStateOf(JmmTabs.NoInstall) }

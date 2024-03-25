@@ -14,8 +14,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Transient
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Observable
-import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.PureRect
+import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
@@ -451,6 +451,13 @@ abstract class WindowController(
 
   @Transient
   val openingModal = mutableStateOf<ModalState?>(null)
+
+  //  @Transient
+//  val openingModalStateFlow = MutableStateFlow<ModalState?>(null)
+  internal suspend fun updateOpeningModal() {
+    openingModal.value = getOpenModal()
+//    openingModalStateFlow.emit(getOpenModal())
+  }
 
   /**
    * 尝试显示指定 modal

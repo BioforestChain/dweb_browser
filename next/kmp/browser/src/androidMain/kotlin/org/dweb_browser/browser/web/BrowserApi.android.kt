@@ -6,7 +6,7 @@ import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.DwebLinkSearchItem
 import org.dweb_browser.browser.web.ui.BrowserViewModalRender
 import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 
 actual fun getImageResourceRootPath(): String {
   return getAppContext().filesDir.absolutePath + "/icons"
@@ -14,7 +14,7 @@ actual fun getImageResourceRootPath(): String {
 
 @Composable
 actual fun CommonBrowserView(
-  viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope
+  viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope
 ) {
   BrowserViewModalRender(viewModel, modifier, windowRenderScope)
 }

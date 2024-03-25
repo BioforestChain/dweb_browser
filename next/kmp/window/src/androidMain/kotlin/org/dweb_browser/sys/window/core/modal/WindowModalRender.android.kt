@@ -22,7 +22,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.sys.window.WindowI18nResource
-import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.render.LocalWindowPadding
 
@@ -116,7 +116,7 @@ internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (sta
       )
     ) {
       val windowRenderScope = remember(winPadding, maxWidth, maxHeight) {
-        WindowRenderScope.fromDp(maxWidth, maxHeight, 1f)
+        WindowContentRenderScope.fromDp(maxWidth, maxHeight, 1f)
       }
       windowAdapterManager.Renderer(
         renderId,

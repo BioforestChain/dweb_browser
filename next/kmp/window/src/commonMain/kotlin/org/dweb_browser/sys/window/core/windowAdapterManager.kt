@@ -32,7 +32,7 @@ import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 
 typealias CreateWindowAdapter = suspend (winState: WindowState) -> WindowController?
 
-data class WindowRenderScope internal constructor(
+data class WindowContentRenderScope internal constructor(
   val width: Float,
   val height: Float,
   val scale: Float,
@@ -44,7 +44,7 @@ data class WindowRenderScope internal constructor(
       widthDp: Dp,
       heightDp: Dp,
       scale: Float,
-    ) = WindowRenderScope(widthDp.value, heightDp.value, scale, widthDp, heightDp)
+    ) = WindowContentRenderScope(widthDp.value, heightDp.value, scale, widthDp, heightDp)
   }
 
   constructor(
@@ -53,7 +53,7 @@ data class WindowRenderScope internal constructor(
     scale: Float,
   ) : this(width, height, scale, width.dp, height.dp)
 }
-typealias WindowRenderProvider = @Composable WindowRenderScope.(modifier: Modifier) -> Unit
+typealias WindowRenderProvider = @Composable WindowContentRenderScope.(modifier: Modifier) -> Unit
 
 /**
  * 窗口的适配器管理
@@ -94,7 +94,7 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
 
   @Composable
   fun Renderer(
-    rid: String, windowRenderScope: WindowRenderScope, contentModifier: Modifier = Modifier
+    rid: String, windowRenderScope: WindowContentRenderScope, contentModifier: Modifier = Modifier
   ) {
     when (val render = windowAdapterManager.rememberRender(rid)) {
       null -> {

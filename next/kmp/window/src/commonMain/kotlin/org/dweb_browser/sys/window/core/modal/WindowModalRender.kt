@@ -115,7 +115,7 @@ sealed class ModalState() {
       return false
     }
     open()
-    parent.openingModal.value = parent.getOpenModal()
+    parent.updateOpeningModal()
     return true
   }
 
@@ -130,7 +130,7 @@ sealed class ModalState() {
   suspend fun safeClose(mm: MicroModule) = this._isOpen.trueAlso {
     close();
     /// 更新渲染中的modal
-    parent.openingModal.value = parent.getOpenModal()
+    parent.updateOpeningModal()
     // 发送 close 的信号
     sendCallback(mm, CloseModalCallback(sessionId))
     // 如果是一次性显示的，那么直接关闭它
@@ -156,7 +156,7 @@ sealed class ModalState() {
     /// 从parent中移除
     parent.state.modals -= modalId
     /// 更新渲染中的modal
-    parent.openingModal.value = parent.getOpenModal()
+    parent.updateOpeningModal()
     /// 移除渲染器
     windowAdapterManager.renderProviders.remove(renderId)
     /// 触发回调

@@ -54,7 +54,6 @@ fun PureViewController.ModalDialog(
       space = displayIntSize,
       layoutDirection = layoutDirection
     )
-    println("QAQ (density=$density state.width=${state.width} state.height=${state.height} dialogWidth=$dialogWidth dialogHeight=$dialogHeight) in displayIntSize=$displayIntSize => offset=$offset")
     dialog.setBounds(offset.x, offset.y, dialogWidth, dialogHeight)
     boundsReady.complete(Unit)
   }
@@ -73,8 +72,8 @@ fun PureViewController.ModalDialog(
       }
     }
     boundsReady.await()
-    println("QAQ isVisible=true")
     dialog.isVisible = true
+    println("QAQ isVisible=true")
   }
 }
 

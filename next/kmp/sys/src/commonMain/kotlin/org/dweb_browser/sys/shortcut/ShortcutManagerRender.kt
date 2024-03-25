@@ -20,12 +20,12 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.compose.LazySwipeAndReorderList
 import org.dweb_browser.helper.compose.reorder.ItemPosition
-import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 
 @Composable
 fun ShortcutManagerRender(
   modifier: Modifier = Modifier,
-  windowRenderScope: WindowRenderScope,
+  windowRenderScope: WindowContentRenderScope,
   shortcutList: MutableList<SystemShortcut>,
   onDragMove: (ItemPosition, ItemPosition) -> Unit,
   onDragEnd: (startIndex: Int, endIndex: Int) -> Unit,

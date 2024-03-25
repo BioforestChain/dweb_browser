@@ -33,13 +33,13 @@ import org.dweb_browser.core.std.permission.AuthorizationRecord
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.PermissionTable
 import org.dweb_browser.helper.compose.NoDataRender
-import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
 fun PermissionManagerRender(
   modifier: Modifier,
-  windowRenderScope: WindowRenderScope,
+  windowRenderScope: WindowContentRenderScope,
   table: PermissionTable
 ) {
   val win = LocalWindowController.current

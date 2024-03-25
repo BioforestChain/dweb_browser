@@ -33,7 +33,7 @@ import org.dweb_browser.helper.capturable.capturable
 import org.dweb_browser.helper.compose.IosFastOutSlowInEasing
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 internal val dimenTextFieldFontSize = 16.sp
@@ -52,7 +52,7 @@ internal fun <T> exitAnimationSpec() = tween<T>(300, easing = IosFastOutSlowInEa
 
 @Composable
 fun BrowserViewModalRender(
-  viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope
+  viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope
 ) {
   val qrCodeScanModel = remember { QRCodeScanModel() }
 
@@ -115,7 +115,7 @@ fun BrowserViewModalRender(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun BrowserPageBox(windowRenderScope: WindowRenderScope) {
+fun BrowserPageBox(windowRenderScope: WindowContentRenderScope) {
   val viewModel = LocalBrowserViewModel.current
   val localFocusManager = LocalFocusManager.current
 
