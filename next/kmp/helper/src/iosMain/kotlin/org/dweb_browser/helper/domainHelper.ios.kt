@@ -20,3 +20,13 @@ actual fun String.isRealDomain() = memScoped {
   val err = getaddrinfo(this@isRealDomain, null, hints.ptr, res.ptr)
   err == 0
 }
+
+/**
+ * 参考资料
+ * https://forums.swift.org/t/idn-punycode-in-url/35358/10
+ * https://github.com/karwa/base/blob/url/Sources/URL/StringUtils%2BURL.swift
+ */
+actual fun String.toPunyCode(): String {
+  WARNING("IOS not yet support PunyCode(url26) transform")
+  return this
+}
