@@ -1,9 +1,21 @@
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.getAndUpdate
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.platform.PureViewController
 
-
+/**
+ * 程序执行锁
+ */
+private val running = atomic(false)
 fun main(): Unit = runBlocking {
+  /// 只允许执行一次
+  running.getAndUpdate {
+    if (it) {
+      return@runBlocking
+    }
+    true
+  }
   launch {
     // 等待“应用”准备完毕
     PureViewController.awaitPrepared()
