@@ -29,12 +29,15 @@ class SearchController(private val searchNMM: SearchNMM) {
    * 判断当前的关键字是否是引擎，如果是，可以打开搜索界面，并且返回引擎的主页地址
    */
   suspend fun enableAndGetEngineHomeLink(key: String): String? {
-    return searchEngineList.firstOrNull { it.matchKeyWord(key) }?.let { current ->
-      current.enable = true
-      searchStore.saveEngineState(current)
-      engineUpdateSignal.emit()
-      current.homeLink
+    for (item in searchEngineList) {
+      if (item.matchKeyWord(key)) {
+        item.enable = true
+        engineUpdateSignal.emit()
+        searchNMM.ioAsyncScope.launch { searchStore.saveEngineState(item) }
+        return item.homeLink
+      }
     }
+    return null
   }
 
   /**
@@ -42,8 +45,8 @@ class SearchController(private val searchNMM: SearchNMM) {
    */
   suspend fun inject(searchInject: SearchInject): Boolean {
     searchInjectList.add(searchInject) // TODO 暂时没做去重等操作。
-    searchStore.saveInject(searchInjectList)
-    searchNMM.ioAsyncScope.launch { injectUpdateSignal.emit() } // 通知监听
+    injectUpdateSignal.emit()
+    searchNMM.ioAsyncScope.launch { searchStore.saveInject(searchInjectList) } // 通知监听
     return true
   }
 

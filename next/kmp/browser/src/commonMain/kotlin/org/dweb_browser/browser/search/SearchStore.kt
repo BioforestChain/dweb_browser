@@ -11,7 +11,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.platform.toImageBitmap
-import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
+import org.dweb_browser.helper.toWebUrl
 
 @Serializable
 data class SearchEngine(
@@ -25,11 +25,13 @@ data class SearchEngine(
 ) {
   fun matchKeyWord(keyWord: String): Boolean {
     val searchUrls = searchLinks.map { link -> Url(link.format("test")) }
-    return keyWord.toWebUrlOrWithoutProtocol()?.let { keyWordUrl ->
-      searchUrls.firstOrNull { it.host == keyWordUrl.host } != null &&
-          searchUrls.firstOrNull {
-            keyWordUrl.parameters[it.parameters.names().first()] != null
-          } != null
+    return keyWord.toWebUrl()?.let { keyWordUrl ->
+      val searchUrl1 = searchUrls.firstOrNull { it.host == keyWordUrl.host }
+      if (searchUrl1 != null) {
+        searchUrls.firstOrNull { searchUrl ->
+          keyWordUrl.parameters[searchUrl.parameters.names().first()] != null
+        } != null
+      } else false
     } ?: run {
       keys.split(",").find { it == keyWord } != null
     }
@@ -138,7 +140,7 @@ class SearchStore(mm: MicroModule) {
   private val storeEngine = mm.createStore("engines_state", false)
   private val storeInject = mm.createStore("inject_engine", false)
 
-  suspend fun getAllEnginesState(): MutableList<SearchEngine> {
+  suspend fun getAllEnginesState(): List<SearchEngine> {
     val save = storeEngine.getAll<Boolean>()
     return SearchEngineList.onEach { item ->
       item.enable = save[item.host] ?: false

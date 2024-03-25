@@ -241,11 +241,12 @@ private fun SearchSuggestion(
   onSubmit: (String) -> Unit,
 ) {
   val viewModel = LocalBrowserViewModel.current
+  LaunchedEffect(searchText) { viewModel.getInjectList(searchText) }
   LazyColumn(
     modifier = modifier.fillMaxSize().padding(horizontal = dimenPageHorizontal)
   ) {
-    searchLocalItems(viewModel, searchText, openApp = onOpenApp)
-    searchEngineItems(viewModel, searchText, onSearch = onSubmit)
+    searchLocalItems(viewModel, searchText, openApp = { onOpenApp(it); onClose() })
+    searchEngineItems(viewModel, searchText, onSearch = { onSubmit(it); onClose() })
   }
 }
 

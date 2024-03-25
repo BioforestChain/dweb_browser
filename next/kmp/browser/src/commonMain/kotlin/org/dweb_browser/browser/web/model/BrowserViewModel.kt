@@ -18,7 +18,6 @@ import org.dweb_browser.browser.search.SearchEngine
 import org.dweb_browser.browser.search.SearchEngineList
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.search.ext.collectChannelOfEngines
-import org.dweb_browser.browser.search.ext.collectChannelOfInjects
 import org.dweb_browser.browser.search.ext.getEngineHomeLink
 import org.dweb_browser.browser.search.ext.getInjectList
 import org.dweb_browser.browser.web.BrowserController
@@ -120,7 +119,6 @@ class BrowserViewModel(
     } // 将关键字对应的搜索引擎置为有效
     return homeLink.ifEmpty { null }
   }
-
 
   val searchInjectList = mutableStateListOf<SearchInject>()
   suspend fun getInjectList(searchText: String) {
@@ -352,9 +350,12 @@ class BrowserViewModel(
     if (url.isDwebDeepLink()) withScope(ioScope) {
       browserNMM.nativeFetch(url)
     } else {
-      val searchUrl = if (BrowserWebPage.isWebUrl(url)) url
-      else checkAndEnableSearchEngine(url) // 根据关键词查找是否有符合条件的搜索引擎，打开首页
-        ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url) // 查找搜索引擎列表第一个
+      val searchUrl = if (BrowserWebPage.isWebUrl(url)) {
+        url
+      } else {
+        checkAndEnableSearchEngine(url) // 根据关键词查找是否有符合条件的搜索引擎，打开首页
+          ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url) // 查找搜索引擎列表第一个
+      }
       debugBrowser("doSearchUI", "url=$url, searchUrl=$searchUrl")
       searchUrl?.let {
         if (focusedPage != null && focusedPage is BrowserWebPage) {

@@ -35,21 +35,3 @@ suspend fun NativeMicroModule.collectChannelOfEngines(collector: suspend WatchSe
       }
     }
   }
-
-class WatchSearchInjectContext(val injectList: List<SearchInject>, val channel: PureChannelContext)
-
-suspend fun NativeMicroModule.collectChannelOfInjects(collector: suspend WatchSearchInjectContext.() -> Unit) =
-  createChannel("file://search.browser.dweb/observe/engines") {
-    for (pureFrame in income) {
-      when (pureFrame) {
-        is PureTextFrame -> {
-          WatchSearchInjectContext(
-            Json.decodeFromString<List<SearchInject>>(pureFrame.data),
-            this
-          ).collector()
-        }
-
-        else -> {}
-      }
-    }
-  }

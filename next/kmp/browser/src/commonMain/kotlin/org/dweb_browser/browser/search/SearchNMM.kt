@@ -37,8 +37,7 @@ class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
         val key = request.queryOrNull("key")?.decodeURIComponent()
           ?: throwException(HttpStatusCode.BadRequest, "not found key param")
         debugSearch("browser/enable", "key=$key")
-        controller.enableAndGetEngineHomeLink(key)
-          ?: throwException(HttpStatusCode.NoContent, "not found HomeLink")
+        controller.enableAndGetEngineHomeLink(key) ?: ""
       },
       /**
        * 监听所有可用引擎
@@ -54,8 +53,8 @@ class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
        * 搜索都有注入的搜索列表
        */
       "/injectList" bind PureMethod.GET by defineStringResponse {
-        val key = request.queryOrNull("key") ?:
-        throwException(HttpStatusCode.BadRequest, "not found key param")
+        val key = request.queryOrNull("key")
+          ?: throwException(HttpStatusCode.BadRequest, "not found key param")
         debugSearch("browser", "/injects key=$key")
         Json.encodeToString(controller.containsInject(key))
       },
