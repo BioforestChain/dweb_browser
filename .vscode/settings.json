@@ -1,10 +1,6 @@
 {
   "deno.enable": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "[csharp]": {
-    "editor.defaultFormatter": "ms-dotnettools.csharp"
-  },
-  "dotnet.defaultSolution": "next/dweb-browser/DwebBrowser.sln",
   "[svg]": {
     "editor.defaultFormatter": "jock.svg"
   },

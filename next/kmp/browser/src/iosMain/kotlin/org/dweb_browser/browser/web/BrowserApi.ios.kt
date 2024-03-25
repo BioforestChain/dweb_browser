@@ -56,6 +56,7 @@ private fun winVisibleChange(isVisible: Boolean): Unit {
   }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem) {
   iOSViewHolder?.let { iOSView ->
     if (dwebLinkSearchItem.link.isNotEmpty()) {
