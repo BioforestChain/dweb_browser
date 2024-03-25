@@ -40,7 +40,21 @@ compose.desktop {
       packageName = "DwebBrowser"
       packageVersion = "1.0.0"
 
-      val iconsRoot = project.file("${rootProject.rootDir}/app/desktopApp/src/desktopMain/res/icons")
+      val iconsRoot =
+        project.file("${rootProject.rootDir}/app/desktopApp/src/desktopMain/res/icons")
+      val macExtraPlistKeys = """
+        <key>CFBundleURLTypes</key>
+        <array>
+          <dict>
+            <key>CFBundleURLName</key>
+            <string>info.bagen.dwebbrowser</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+              <string>dweb</string>
+            </array>
+          </dict>
+        </array>
+      """
       windows {
         iconFile.set(iconsRoot.resolve("win/icon.ico"))
         menuGroup = "Developer"
@@ -55,6 +69,10 @@ compose.desktop {
         iconFile.set(iconsRoot.resolve("mac/icon.icns"))
         bundleID = "info.bagen.dwebbrowser"
         setDockNameSameAsPackageName = true
+
+        infoPlist {
+          extraKeysRawXml = macExtraPlistKeys
+        }
       }
     }
   }

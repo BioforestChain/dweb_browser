@@ -1,3 +1,4 @@
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.common.barcode.QRCodeScanNMM
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
@@ -10,6 +11,7 @@ import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.DnsNMM
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
@@ -34,6 +36,7 @@ import org.dweb_browser.sys.scan.ScanningNMM
 import org.dweb_browser.sys.share.ShareNMM
 import org.dweb_browser.sys.shortcut.ShortcutNMM
 import org.dweb_browser.sys.toast.ToastNMM
+import java.awt.Desktop
 
 suspend fun startDwebBrowser(isDebugMode: Boolean = System.getProperty("debug") == "true"): DnsNMM {
   /**
@@ -72,6 +75,19 @@ suspend fun startDwebBrowser(isDebugMode: Boolean = System.getProperty("debug") 
   val dnsNMM = DnsNMM()
   suspend fun MicroModule.setup() = this.also {
     dnsNMM.install(this)
+  }
+
+  // 添加dweb deeplinks处理
+  try {
+    Desktop.getDesktop().setOpenURIHandler { event ->
+      if(event.uri.scheme == "dweb") {
+        dnsNMM.ioAsyncScope.launch {
+          dnsNMM.nativeFetch(event.uri.toString())
+        }
+      }
+    }
+  } catch (e: UnsupportedOperationException) {
+    println("setOpenURIHandler is unsupported")
   }
 
   val permissionNMM = PermissionNMM().setup()
