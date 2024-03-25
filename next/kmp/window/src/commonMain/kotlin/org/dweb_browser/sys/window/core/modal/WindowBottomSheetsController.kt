@@ -5,7 +5,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 
 class WindowBottomSheetsController(
   mm: NativeMicroModule,
-  modal: BottomSheetsModal,
+  modal: BottomSheetsModalState,
   wid: String,
   onCallback: SharedFlow<ModalCallback>,
 ) : WindowModalController(mm, modal, wid, onCallback) {

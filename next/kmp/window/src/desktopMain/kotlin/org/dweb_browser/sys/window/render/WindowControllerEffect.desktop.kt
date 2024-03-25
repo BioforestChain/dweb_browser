@@ -149,9 +149,21 @@ private fun WindowController.ModeEffect(composeWindowParams: ComposeWindowParams
     state.observable.onChange {
       if (it.key == WindowPropertyKeys.Mode) {
         when (it.newValue as WindowMode) {
-          WindowMode.FLOAT -> composeWindowParams.placement = WindowPlacement.Floating
-          WindowMode.MAXIMIZE -> composeWindowParams.placement = WindowPlacement.Maximized
-          WindowMode.FULLSCREEN -> composeWindowParams.placement = WindowPlacement.Fullscreen
+          WindowMode.FLOAT -> {
+            composeWindowParams.placement = WindowPlacement.Floating
+            composeWindowParams.resizable = true
+          }
+
+          WindowMode.MAXIMIZE -> {
+            composeWindowParams.placement = WindowPlacement.Maximized
+            composeWindowParams.resizable = false
+          }
+
+          WindowMode.FULLSCREEN -> {
+            composeWindowParams.placement = WindowPlacement.Fullscreen
+            composeWindowParams.resizable = false
+          }
+
           WindowMode.PIP -> WARNING("ComposeWindow No Support PIP")
           WindowMode.CLOSE -> composeWindowParams.closeWindow()
         }

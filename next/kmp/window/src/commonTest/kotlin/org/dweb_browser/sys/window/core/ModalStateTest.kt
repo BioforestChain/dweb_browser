@@ -10,9 +10,9 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.sys.window.core.constant.WindowConstants
-import org.dweb_browser.sys.window.core.modal.AlertModal
-import org.dweb_browser.sys.window.core.modal.BottomSheetsModal
-import org.dweb_browser.sys.window.core.modal.BottomSheetsModal.Companion.createBottomSheetsModal
+import org.dweb_browser.sys.window.core.modal.AlertModalState
+import org.dweb_browser.sys.window.core.modal.BottomSheetsModalState
+import org.dweb_browser.sys.window.core.modal.BottomSheetsModalState.Companion.createBottomSheetsModal
 import org.dweb_browser.sys.window.core.modal.ModalState
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -33,13 +33,13 @@ class ModalStateTest {
     val j1 = Json.encodeToString<ModalState>(m1)
     assertContains(j1, "bottom-sheet")
     val m11 = Json.decodeFromString<ModalState>(j1)
-    assertIs<BottomSheetsModal>(m11)
+    assertIs<BottomSheetsModalState>(m11)
 
-    val m2 = AlertModal(title = "hi", message = "xxx")
+    val m2 = AlertModalState(title = "hi", message = "xxx")
     val j2 = Json.encodeToString<ModalState>(m2)
     assertContains(j2, "alert")
     val m22 = Json.decodeFromString<ModalState>(j2)
-    assertIs<AlertModal>(m22)
+    assertIs<AlertModalState>(m22)
   }
 
   @OptIn(ExperimentalSerializationApi::class)
@@ -50,12 +50,12 @@ class ModalStateTest {
     val j1 = Cbor.encodeToByteArray<ModalState>(m1)
     assertContains(j1.decodeToString(), "bottom-sheet")
     val m11 = Cbor.decodeFromByteArray<ModalState>(j1)
-    assertIs<BottomSheetsModal>(m11)
+    assertIs<BottomSheetsModalState>(m11)
 
-    val m2 = AlertModal(title = "hi", message = "xxx")
+    val m2 = AlertModalState(title = "hi", message = "xxx")
     val j2 = Cbor.encodeToByteArray<ModalState>(m2)
     assertContains(j2.decodeToString(), "alert")
     val m22 = Cbor.decodeFromByteArray<ModalState>(j2)
-    assertIs<AlertModal>(m22)
+    assertIs<AlertModalState>(m22)
   }
 }

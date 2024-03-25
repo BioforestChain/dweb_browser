@@ -59,8 +59,8 @@ internal actual fun ModalState.RenderCloseTipImpl(onConfirmToClose: () -> Unit) 
   val alertController = remember {
     UIAlertController.alertControllerWithTitle(
       when (this) {
-        is AlertModal -> WindowI18nResource.modal_close_alert_tip.text
-        is BottomSheetsModal -> WindowI18nResource.modal_close_bottom_sheet_tip.text
+        is AlertModalState -> WindowI18nResource.modal_close_alert_tip.text
+        is BottomSheetsModalState -> WindowI18nResource.modal_close_bottom_sheet_tip.text
       },
       showCloseTip.value,
       UIAlertControllerStyleAlert
@@ -95,7 +95,7 @@ internal actual fun ModalState.RenderCloseTipImpl(onConfirmToClose: () -> Unit) 
 
 
 @Composable
-internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean) {
+internal actual fun BottomSheetsModalState.RenderImpl(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean) {
   val uiViewController = LocalUIViewController.current
   val compositionChain = rememberUpdatedState(LocalCompositionChain.current)
   val win = parent

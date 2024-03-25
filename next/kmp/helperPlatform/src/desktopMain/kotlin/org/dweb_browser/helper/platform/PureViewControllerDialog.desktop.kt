@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.awt.ComposePanel
@@ -13,9 +14,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.toIntSize
 import javax.swing.JDialog
+import javax.swing.SwingUtilities
 
 
 @Composable
@@ -38,7 +41,9 @@ fun PureViewController.ModalDialog(
   }
   // 绑定title
   LaunchedEffect(state.title) {
-    dialog.title = state.title
+    SwingUtilities.invokeLater {
+      dialog.title = state.title
+    }
   }
   // 绑定宽高
   val density = LocalDensity.current.density
@@ -54,26 +59,32 @@ fun PureViewController.ModalDialog(
       space = displayIntSize,
       layoutDirection = layoutDirection
     )
-    dialog.setBounds(offset.x, offset.y, dialogWidth, dialogHeight)
-    boundsReady.complete(Unit)
-  }
-  DisposableEffect(dialog) {
-    onDispose {
-      println("QAQ isVisible=false")
-      dialog.removeAll()
-      dialog.isVisible = false
-      requestClose()
+    SwingUtilities.invokeLater {
+      dialog.setBounds(offset.x, offset.y, dialogWidth, dialogHeight)
+      boundsReady.complete(Unit)
     }
   }
-  LaunchedEffect(content, state) {
+  val uiScope = rememberCoroutineScope()
+  DisposableEffect(dialog) {
     panel.setContent {
       state.chain.Provider {
         content(dialog)
       }
     }
-    boundsReady.await()
-    dialog.isVisible = true
-    println("QAQ isVisible=true")
+    val job = uiScope.launch {
+      boundsReady.await()
+      SwingUtilities.invokeLater {
+        dialog.isVisible = true
+      }
+    }
+    onDispose {
+      job.cancel()
+      SwingUtilities.invokeLater {
+        dialog.removeAll()
+        dialog.isVisible = false
+      }
+      requestClose()
+    }
   }
 }
 

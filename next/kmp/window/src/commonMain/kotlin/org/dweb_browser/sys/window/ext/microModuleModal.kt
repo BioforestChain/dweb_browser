@@ -16,8 +16,8 @@ import org.dweb_browser.helper.decodeTo
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.core.WindowRenderProvider
-import org.dweb_browser.sys.window.core.modal.AlertModal.Companion.createAlertModal
-import org.dweb_browser.sys.window.core.modal.BottomSheetsModal.Companion.createBottomSheetsModal
+import org.dweb_browser.sys.window.core.modal.AlertModalState.Companion.createAlertModal
+import org.dweb_browser.sys.window.core.modal.BottomSheetsModalState.Companion.createBottomSheetsModal
 import org.dweb_browser.sys.window.core.modal.ModalCallback
 import org.dweb_browser.sys.window.core.modal.WindowAlertController
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController

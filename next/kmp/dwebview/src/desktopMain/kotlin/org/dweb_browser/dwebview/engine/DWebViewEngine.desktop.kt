@@ -425,13 +425,16 @@ class DWebViewEngine internal constructor(
         }
 
         // Add the "Add to Dictionary" menu item.
-        val addToDictionary = JMenuItem(spellCheckMenu.addToDictionaryMenuItemText())
-        addToDictionary.addActionListener {
-          val dictionary = browser.engine().spellChecker().customDictionary()
-          dictionary.add(spellCheckMenu.misspelledWord())
-          tell.close()
+        val misspelledWord = spellCheckMenu.misspelledWord()
+        if (misspelledWord.isNotEmpty() && misspelledWord.isNotBlank()) {
+          val addToDictionary = JMenuItem(spellCheckMenu.addToDictionaryMenuItemText())
+          addToDictionary.addActionListener {
+            val dictionary = browser.engine().spellChecker().customDictionary()
+            dictionary.add(misspelledWord)
+            tell.close()
+          }
+          popupMenu.add(addToDictionary)
         }
-        popupMenu.add(addToDictionary)
 
         if (debugDWebView.isEnable) {
           popupMenu.addSeparator()

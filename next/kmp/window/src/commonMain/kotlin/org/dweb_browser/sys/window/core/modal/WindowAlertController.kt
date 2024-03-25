@@ -7,7 +7,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 
 class WindowAlertController(
   mm: NativeMicroModule,
-  modal: AlertModal,
+  modal: AlertModalState,
   wid: String,
   onCallback: SharedFlow<ModalCallback>,
 ) : WindowModalController(mm, modal, wid, onCallback) {

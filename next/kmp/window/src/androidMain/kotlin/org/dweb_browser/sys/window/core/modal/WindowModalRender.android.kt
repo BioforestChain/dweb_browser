@@ -3,14 +3,10 @@ package org.dweb_browser.sys.window.core.modal
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -21,56 +17,29 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import org.dweb_browser.sys.window.WindowI18nResource
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.render.LocalWindowPadding
 
 @Composable
 internal actual fun ModalState.RenderCloseTipImpl(onConfirmToClose: () -> Unit) {
-  AlertDialog(
-    onDismissRequest = {
-      showCloseTip.value = ""
-    },
-    title = {
-      Text(
-        text = when (this) {
-          is AlertModal -> WindowI18nResource.modal_close_alert_tip()
-          is BottomSheetsModal -> WindowI18nResource.modal_close_bottom_sheet_tip()
-        }
-      )
-    },
-    text = { Text(text = showCloseTip.value) },
-    confirmButton = {
-      ElevatedButton(onClick = { showCloseTip.value = "" }) {
-        Text(WindowI18nResource.modal_close_tip_keep())
-      }
-    },
-    dismissButton = {
-      Button(onClick = {
-        onConfirmToClose()
-        // showCloseTip.value = "";
-      }) {
-        Text(WindowI18nResource.modal_close_tip_close())
-      }
-    },
-  )
+  CommonRenderCloseTip(onConfirmToClose)
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal actual fun BottomSheetsModal.RenderImpl(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean) {
-  val sheetState = rememberModalBottomSheetState(confirmValueChange = remember(emitModalVisibilityChange) {
-    {
-      debugModal("confirmValueChange", " $it")
-      when (it) {
-        SheetValue.Hidden -> isClose
-        SheetValue.Expanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
-        SheetValue.PartiallyExpanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
+internal actual fun BottomSheetsModalState.RenderImpl(emitModalVisibilityChange: (state: EmitModalVisibilityState) -> Boolean) {
+  val sheetState =
+    rememberModalBottomSheetState(confirmValueChange = remember(emitModalVisibilityChange) {
+      {
+        debugModal("confirmValueChange", " $it")
+        when (it) {
+          SheetValue.Hidden -> isClose
+          SheetValue.Expanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
+          SheetValue.PartiallyExpanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
+        }
       }
-    }
-  });
+    });
   val scope = rememberCoroutineScope()
 
   val density = LocalDensity.current
