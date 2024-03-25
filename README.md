@@ -63,7 +63,7 @@ plaoc 是基于 dweb-browser 平台的一个对标 Cordova、Capacitor、Tauri �
 
 [@plaoc/plugins](https://www.npmjs.com/package/@plaoc/plugins) 能赋予 web 开发者,直接调用各个平台系统 API 的能力。
 
-具体文档查看：[plugins 文档](https://docs.dweb-browser.org/plaoc/)
+具体文档查看：[plugins 文档](https://docs.dweb-browser.org/plugins/web-components.html)
 
 ### Q&A
 

@@ -63,4 +63,4 @@ plaoc is a "cross-platform web application" development toolkit based on the dwe
 
 [@plaoc/plugins](https://www.npmjs.com/package/@plaoc/plugins) provides web developers with the ability to directly call system APIs of various platforms.
 
-For detailed documentation, please refer to: [plugins documentation](https://docs.dweb-browser.org/plaoc/)
+For detailed documentation, please refer to: [plugins documentation](https://docs.dweb-browser.org/plugins/web-components.html)
