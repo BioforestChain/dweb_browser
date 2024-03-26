@@ -8,9 +8,7 @@ expect fun String.toPunyCode(): String
  *
  * https://www.sojson.com/blog/312.html
  */
-fun String.parseAsDomain() = DomainParser(this.toPunyCode()).also {
-  it.parse()
-}
+fun String.parseAsDomain() = DomainParser(this.toPunyCode()).apply { parse() }
 
 fun String.isMaybeDomain() = parseAsDomain().hasError.not()
 
@@ -114,7 +112,8 @@ class DomainParser(domainName: String) {
       val ch = input[offset]
       val invalid = when {
         startOffset == offset && !isLetterOrDigit(ch) -> true
-        offset + 1 == input.length || input[offset + 1] == '.' && !isLetterOrDigit(ch) -> true
+        // offset + 1 == input.length || input[offset + 1] == '.' && !isLetterOrDigit(ch) -> true // TODO 这个判断没明白意思
+        offset + 1 == input.length && !isLetterOrDigit(ch) -> true // 最后一位，必须是字母、数字，不能是其他符号，不然也是无效的
         !isLabelChar(ch) -> true
         else -> false
       }

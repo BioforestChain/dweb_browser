@@ -140,8 +140,9 @@ fun String.toWebUrl() = try {
   null
 }
 
+// 由于 isRealDomain() 走 DNS 校验，耗时较长，这边改为 isMaybeDomain()
 fun String.toNoProtocolWebUrl() =
-  if (this.split("/").first().isRealDomain()) "https://$this".toWebUrl() else null
+  if (this.split("/").first().isMaybeDomain()) "https://$this".toWebUrl() else null
 
 fun String.toWebUrlOrWithoutProtocol() = toWebUrl() ?: toNoProtocolWebUrl()
 

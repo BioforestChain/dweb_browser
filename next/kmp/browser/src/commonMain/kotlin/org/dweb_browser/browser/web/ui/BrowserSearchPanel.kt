@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -105,8 +106,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
       modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
       contentWindowInsets = WindowInsets(0),
       topBar = {
-        BrowserTopBar(
-          title = BrowserI18nResource.browser_search_title(),
+        BrowserTopBar(title = BrowserI18nResource.browser_search_title(),
           navigationIcon = { /// 左上角导航按钮
             IconButton(onClick = hide) {
               Icon(
@@ -122,9 +122,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
         )
       },
     ) { innerPadding ->
-      Column(
-        modifier = Modifier.fillMaxSize().padding(innerPadding)
-      ) {
+      Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
         /// 面板内容
         Box(Modifier.fillMaxWidth().weight(1f)) {
           if (searchTextField.text.isNotEmpty()) {
@@ -146,9 +144,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
         }
 
         /// 底部的输入框
-        Box(
-          Modifier.fillMaxWidth().padding(dimenPageHorizontal)
-        ) {
+        Box(Modifier.fillMaxWidth().wrapContentHeight().padding(horizontal = dimenPageHorizontal)) {
           val focusRequester = remember { FocusRequester() }
           LaunchedEffect(focusRequester) {
             delay(100)
@@ -318,20 +314,17 @@ private fun LazyListScope.searchEngineItems(
       if (index > 0) HorizontalDivider()
       ListItem(headlineContent = {
         Text(text = searchEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-      },
-        modifier = Modifier.clickable {
-          onSearch(searchEngine.searchLinks.first().format(searchText))
-        },
-        supportingContent = {
-          Text(text = searchText, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        },
-        leadingContent = {
-          AppIcon(
-            icon = searchEngine.iconLink,
-            modifier = Modifier.size(56.dp),
-            iconFetchHook = viewModel.browserNMM.imageFetchHook
-          )
-        })
+      }, modifier = Modifier.clickable {
+        onSearch(searchEngine.searchLinks.first().format(searchText))
+      }, supportingContent = {
+        Text(text = searchText, maxLines = 1, overflow = TextOverflow.Ellipsis)
+      }, leadingContent = {
+        AppIcon(
+          icon = searchEngine.iconLink,
+          modifier = Modifier.size(56.dp),
+          iconFetchHook = viewModel.browserNMM.imageFetchHook
+        )
+      })
     }
   }
 }

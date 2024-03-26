@@ -2,6 +2,7 @@ package org.dweb_browser.browser.web.model.page
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
@@ -25,7 +26,7 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
     fun isWebUrl(url: String) = url.isWebUrlOrWithoutProtocol()
   }
 
-  internal var tick by mutableStateOf(1)
+  internal var tick by mutableIntStateOf(1)
 
   override val icon: Painter?
     @Composable get() = produceState<WebIcon?>(null, tick) {
@@ -55,7 +56,7 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
     requestCaptureInCompose()
   }
 
-  internal inline fun superUpdateUrl(url: String) {
+  internal fun superUpdateUrl(url: String) {
     super.updateUrl(url)
   }
 

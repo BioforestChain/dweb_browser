@@ -152,7 +152,7 @@ class BrowserViewModel(
   val focusedPageIndex get() = pages.indexOf(focusedPage)
 
   private val focusPageChangeSignal: Signal<Pair<BrowserPage?, BrowserPage?>> = Signal()
-  val onFocusedPageChangeUI = focusPageChangeSignal.toListener()
+  private val onFocusedPageChangeUI = focusPageChangeSignal.toListener()
   suspend fun focusPageUI(page: BrowserPage?) {
     val prePage = focusedPage
     if (prePage == page) {
@@ -161,7 +161,7 @@ class BrowserViewModel(
     debugBrowser("focusBrowserView", page)
     // 前一个页面要失去焦点了，所以进行截图
     prePage?.captureViewInBackground()
-    delay(100) // focusedPage 赋值更新后，会触发 HorizontalPager 变化，但是如果界面没显示，会导致出发失败，这边做下延迟
+    // delay(100) // focusedPage 赋值更新后，会触发 HorizontalPager 变化，但是如果界面没显示，会导致出发失败，这边做下延迟
     focusedPage = page
     focusPageChangeSignal.emit(Pair(page, prePage))
   }
@@ -189,6 +189,7 @@ class BrowserViewModel(
   fun ViewModelEffect() {
     val uiScope = rememberCoroutineScope()
     pagerStates.BindingEffect()
+
     /// 初始化 isNoTrace
     LaunchedEffect(Unit) {
       withScope(uiScope) {
@@ -353,7 +354,7 @@ class BrowserViewModel(
     } else {
       val webUrl = url.toWebUrl() ?: checkAndEnableSearchEngine(url)
       ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl()
-      debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl")
+      debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
       webUrl?.toString()?.let { searchUrl ->
         if (focusedPage != null && focusedPage is BrowserWebPage) {
           (focusedPage as BrowserWebPage).loadUrl(searchUrl)
@@ -403,7 +404,7 @@ class BrowserViewModel(
     optionsModifier?.invoke(options)
 
     val oldPage = options.addIndex?.let { index ->
-      pages.getOrNull(index)?.also {
+      pages.getOrNull(index)?.also { _ ->
         pages.add(index, newPage)
       }
     } ?: focusedPage.also { pages.add(newPage) }

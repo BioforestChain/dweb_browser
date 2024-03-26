@@ -59,7 +59,7 @@ fun BrowserDownloadModel.BrowserDownloadSheet(downloadItem: BrowserDownloadItem)
         (slideInHorizontally { fullWidth -> fullWidth } + fadeIn()).togetherWith(
           slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut())
       }
-    }
+    }, label = ""
   ) {
     when (it) {
       true -> {
