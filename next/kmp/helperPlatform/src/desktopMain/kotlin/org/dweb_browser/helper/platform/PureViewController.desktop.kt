@@ -21,6 +21,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.platform.desktop.os.WindowsRegistry
 
 
 class PureViewController(
@@ -53,6 +54,11 @@ class PureViewController(
       // https://github.com/JetBrains/compose-multiplatform-core/pull/915
       System.setProperty("compose.interop.blending", "true")
       System.setProperty("compose.swing.render.on.graphics", "true")
+
+      // windows dweb deeplink写入注册表
+      if(isWindows) {
+        WindowsRegistry.ensureWindowsRegistry("dweb")
+      }
 
       density = LocalDensity.current.density
       uiScope = rememberCoroutineScope()
