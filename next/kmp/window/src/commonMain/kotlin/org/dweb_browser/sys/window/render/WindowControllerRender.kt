@@ -200,7 +200,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
     //#region 窗口内容
     Column(Modifier.clip(winPadding.boxRounded.roundedCornerShape)
       .background(theme.winFrameBrush).clickableWithNoEffect {
-        win.emitFocusOrBlur(true)
+        win.focusInBackground()
       }) {
       /// 标题栏
       WindowTopBar(win, Modifier.height(winPadding.top.dp).fillMaxWidth())

@@ -114,11 +114,11 @@ class WindowState(
    * 在原生窗口模式下，我们需要将标准窗口与原生窗口进行双向绑定。
    * 为了避免双向绑定带来的抖动为题，这里需要标记绑定方向
    */
-  var updateBoundsReason = UpdateBoundsReason.Inner
+  var updateBoundsReason = UpdateReason.Inner
     private set
 
   /**
-   * 更新 窗口位置和大小 的因缘
+   * 更新的因缘
    * 有两种因缘：
    * 一种是 通过 内部进行触发
    * 一种是 通过 外部进行触发
@@ -126,16 +126,15 @@ class WindowState(
    * 在原生窗口模式下，我们需要将标准窗口与原生窗口进行双向绑定。
    * 为了避免双向绑定带来的抖动为题，这里需要标记绑定方向
    *
-   * 因此如果在
    */
-  enum class UpdateBoundsReason {
+  enum class UpdateReason {
     Inner, Outer,
   }
 
   /**
    * 如果 reason 是 Outer，那么不会同步给 原生窗口
    */
-  fun updateBounds(bounds: PureRect, reason: UpdateBoundsReason) {
+  fun updateBounds(bounds: PureRect, reason: UpdateReason) {
     if (this.bounds != bounds) {
       this.bounds = bounds
       this.updateBoundsReason = reason
@@ -143,11 +142,11 @@ class WindowState(
   }
 
   inline fun updateBounds(
-    reason: UpdateBoundsReason = UpdateBoundsReason.Inner, updater: PureRect.() -> PureRect
+    reason: UpdateReason = UpdateReason.Inner, updater: PureRect.() -> PureRect
   ) = updater.invoke(bounds).also { updateBounds(it, reason) }
 
   inline fun updateMutableBounds(
-    reason: UpdateBoundsReason = UpdateBoundsReason.Inner, updater: PureRect.Mutable.() -> Unit
+    reason: UpdateReason = UpdateReason.Inner, updater: PureRect.Mutable.() -> Unit
   ) = bounds.toMutable().also(updater).toImmutable().also { updateBounds(it, reason) }
 
   internal class WindowRenderConfig {

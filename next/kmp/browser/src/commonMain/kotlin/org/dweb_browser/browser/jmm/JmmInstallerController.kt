@@ -27,7 +27,7 @@ internal val LocalJmmInstallerController =
  * JS 模块安装 的 控制器
  */
 class JmmInstallerController(
-  private val jmmNMM: JmmNMM,
+  internal val jmmNMM: JmmNMM,
   private val jmmHistoryMetadata: JmmHistoryMetadata,
   private val jmmController: JmmController,
   private val openFromHistory: Boolean,
@@ -72,8 +72,8 @@ class JmmInstallerController(
   }
 
   suspend fun openApp() {
+    closeSelf() // 打开应用之前，需要关闭当前安装界面，否则在原生窗口的层级切换会出现问题
     jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${installMetadata.metadata.id}")
-    closeSelf() // 打开应用后，需要关闭当前安装界面
   }
 
   // 关闭原来的app

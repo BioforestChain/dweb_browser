@@ -102,6 +102,7 @@ abstract class WindowController(
   }
 
   suspend fun focus() = managerRunOr({ it.focusWindow(this) }, { simpleFocus() })
+  fun focusInBackground() = lifecycleScope.launch { focus() }
 
   val focusRequester = FocusRequester().also { focusRequester ->
     onFocus {
@@ -169,7 +170,7 @@ abstract class WindowController(
         }
 
         else -> {
-          state.updateBounds(value, WindowState.UpdateBoundsReason.Inner)
+          state.updateBounds(value, WindowState.UpdateReason.Inner)
           _beforeMaximizeBounds = null
         }
       }

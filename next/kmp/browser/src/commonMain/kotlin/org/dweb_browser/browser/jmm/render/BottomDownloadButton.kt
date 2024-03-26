@@ -27,7 +27,6 @@ import org.dweb_browser.browser.jmm.JmmStatusEvent
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jmm.LocalJmmInstallerController
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
-import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.produceEvent
 import org.dweb_browser.helper.toSpaceSize
 
@@ -74,7 +73,7 @@ internal fun BoxScope.BottomDownloadButton() {
     }
 
     ElevatedButton(
-      onClick = produceEvent(jmmState) {
+      onClick = produceEvent(jmmState, scope = jmmInstallerController.jmmNMM.ioAsyncScope) {
         when (jmmState.state) {
           JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled -> {
             jmmInstallerController.createAndStartDownload()

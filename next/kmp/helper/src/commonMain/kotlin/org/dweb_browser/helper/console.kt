@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
@@ -58,7 +59,7 @@ suspend inline fun <T> withMainContextCommon(crossinline block: suspend () -> T)
 suspend fun <T> withScope(
   scope: CoroutineScope,
   block: suspend CoroutineScope.() -> T
-) = withContext(scope.coroutineContext, block)
+) = scope.async(block=block).await() // withContext(scope.coroutineContext, block)
 
 inline fun CoroutineScope.launchWithMain(
   crossinline block: suspend () -> Unit

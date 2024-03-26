@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Bounds
@@ -103,19 +102,6 @@ fun <T> WindowController.watchedState(
   rememberState
 }
 
-/**
- * 触发 window 聚焦状态的更新事件监听
- */
-fun WindowController.emitFocusOrBlur(focused: Boolean) {
-  lifecycleScope.launch {
-    if (focused) {
-      focus()
-    } else {
-      blur()
-    }
-  }
-}
-
 val inMoveStore = WeakHashMap<WindowController, MutableState<Boolean>>()
 
 /**
@@ -136,7 +122,7 @@ fun Modifier.windowMoveAble(win: WindowController) = composed {
       onPress = {
         win.inMove.value = true
         useCustomFrameDrag?.frameDragStart?.invoke()
-        win.emitFocusOrBlur(true)
+        win.focusInBackground()
       },
       /// touchEnd 的时候，取消移动
       onTap = {
@@ -155,7 +141,7 @@ fun Modifier.windowMoveAble(win: WindowController) = composed {
         win.inMove.value = true
         useCustomFrameDrag?.frameDragStart?.invoke()
         /// 开始移动的时候，同时进行聚焦
-        win.emitFocusOrBlur(true)
+        win.focusInBackground()
       },
       onDragEnd = {
         win.inMove.value = false

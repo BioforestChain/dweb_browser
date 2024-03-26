@@ -2,7 +2,6 @@ package org.dweb_browser.sys.window.render
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.platform.LocalDensity
@@ -52,7 +51,7 @@ fun WindowController.WindowControllerEffect() {
 
     launch {
       composeWindowParams.componentEvents.componentResized.collect {
-        state.updateBounds(WindowState.UpdateBoundsReason.Outer) {
+        state.updateBounds(WindowState.UpdateReason.Outer) {
           copy(width = composeWindow.width / density, height = composeWindow.height / density)
         }
       }
@@ -62,7 +61,7 @@ fun WindowController.WindowControllerEffect() {
         /// 如果正在拖动中，那么这里不进行同步
         if (dragStartPoint == null) {
           /// 这里会在 left、top 在 resize 的时候同时触发 move
-          state.updateBounds(WindowState.UpdateBoundsReason.Outer) {
+          state.updateBounds(WindowState.UpdateReason.Outer) {
             copy(x = composeWindow.x / density, y = composeWindow.y / density)
           }
         }
@@ -75,7 +74,7 @@ fun WindowController.WindowControllerEffect() {
           val windowX = event.xOnScreen - startPoint.x
           val windowY = event.yOnScreen - startPoint.y
           // 更新内部状态
-          state.updateBounds(WindowState.UpdateBoundsReason.Outer) {
+          state.updateBounds(WindowState.UpdateReason.Outer) {
             copy(x = windowX / density, y = windowY / density)
           }
           // 更新原生窗口
@@ -86,7 +85,7 @@ fun WindowController.WindowControllerEffect() {
 
     state.observable.onChange {
       if (it.key == WindowPropertyKeys.Bounds) {
-        if (state.updateBoundsReason == WindowState.UpdateBoundsReason.Inner) {
+        if (state.updateBoundsReason == WindowState.UpdateReason.Inner) {
           val newBoundsPx = (it.newValue as PureRect).timesToInt(density)
           composeWindow.setBounds(
             newBoundsPx.x,
@@ -116,6 +115,18 @@ private fun WindowController.TitleEffect(composeWindowParams: ComposeWindowParam
   }
 }
 
+
+/**
+ * 因为原生的窗口隐藏会导致compose停止渲染，如果用 LaunchedEffect，它允许异步，在窗口隐藏的时候，这个异步会跟随着暂停渲染。
+ * 所以这里提供了 RememberEffect，禁止了 LaunchedEffect 的异步特性，只是为了用它的 remember 特性来做绑定
+ */
+@Composable
+private fun RememberEffect(key1: Any?, block: () -> Unit) {
+  LaunchedEffect(key1 = key1) {
+    block()
+  }
+}
+
 /**
  * visible 双向绑定
  */
@@ -123,8 +134,7 @@ private fun WindowController.TitleEffect(composeWindowParams: ComposeWindowParam
 private fun WindowController.VisibleEffect(
   composeWindowParams: ComposeWindowParams,
 ) {
-  /// 因为原生的窗口隐藏会导致compose停止渲染，所以这里不能用 LaunchedEffect 的 remember 特性来做绑定
-  SideEffect {
+  RememberEffect(composeWindowParams) {
     state.observable.onChange {
       if (it.key == WindowPropertyKeys.Visible) {
         composeWindowParams.visible = it.newValue as Boolean
@@ -144,8 +154,7 @@ private fun WindowController.VisibleEffect(
  */
 @Composable
 private fun WindowController.ModeEffect(composeWindowParams: ComposeWindowParams) {
-  /// 因为原生的窗口隐藏会导致compose停止渲染，所以这里不能用 LaunchedEffect 的 remember 特性来做绑定
-  SideEffect {
+  RememberEffect(composeWindowParams) {
     state.observable.onChange {
       if (it.key == WindowPropertyKeys.Mode) {
         when (it.newValue as WindowMode) {
@@ -190,19 +199,18 @@ private fun WindowController.ModeEffect(composeWindowParams: ComposeWindowParams
 
 /**
  * focus 单向绑定
- * 包括窗口关闭的双向绑定
  */
 @Composable
 private fun WindowController.FocusEffect(
   composeWindow: ComposeWindow,
   composeWindowParams: ComposeWindowParams
 ) {
-  SideEffect {
+  LaunchedEffect(composeWindow) {
     state.observable.onChange {
       if (it.key == WindowPropertyKeys.Focus) {
         when (it.newValue as Boolean) {
           true -> if (!composeWindow.isFocused) {
-            composeWindow.requestFocusInWindow()
+            composeWindow.toFront()
           }
 
           false -> if (composeWindow.isFocused) {

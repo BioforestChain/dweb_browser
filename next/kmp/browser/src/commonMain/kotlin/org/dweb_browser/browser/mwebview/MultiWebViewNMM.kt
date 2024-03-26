@@ -15,7 +15,6 @@ import org.dweb_browser.helper.UUID
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getWindow
-import org.dweb_browser.sys.window.render.emitFocusOrBlur
 
 val debugMultiWebView = Debugger("mwebview")
 
@@ -67,11 +66,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
         val remoteMmid = ipc.remote.mmid
         val controller = controllerMap[remoteMmid] ?: return@defineBooleanResponse false
         debugMultiWebView("/activate", "激活 ${controller.ipc.remote.mmid}")
-        controller.win.state.apply {
-          focus = true
-          visible = true
-        }
-        controller.win.emitFocusOrBlur(true)
+        controller.win.focus()
 
         return@defineBooleanResponse true
       },
