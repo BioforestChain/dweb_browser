@@ -182,12 +182,9 @@ fun WindowController.WindowRender(modifier: Modifier) {
           scaleX = scale
           scaleY = scale
         }.shadow(
-
-
           /**
            * 窗口海拔阴影
            */
-
           elevation = animateFloatAsState(
             targetValue = (if (inMove) 20f else 1f) + zIndex,
             animationSpec = tween(durationMillis = if (inMove) 250 else 500),
@@ -195,65 +192,64 @@ fun WindowController.WindowRender(modifier: Modifier) {
           ).value.dp, shape = winPadding.boxRounded.roundedCornerShape
         ).focusable()
       },
-    )
-    val theme = LocalWindowControllerTheme.current
-    //#region 窗口内容
-    Column(Modifier.clip(winPadding.boxRounded.roundedCornerShape)
-      .background(theme.winFrameBrush).clickableWithNoEffect {
-        win.focusInBackground()
-      }) {
-      /// 标题栏
-      WindowTopBar(win, Modifier.height(winPadding.top.dp).fillMaxWidth())
-      /// 内容区域
-      BoxWithConstraints(
-        Modifier.weight(1f).padding(
-          start = winPadding.start.dp,
-          end = winPadding.end.dp,
-        ).clip(winPadding.contentRounded.roundedCornerShape)
-      ) {
-        val contentBoxWidth = maxWidth
-        val contentBoxHeight = maxHeight
-        Column {
-          BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-            val limits = LocalWindowLimits.current
-            val windowRenderScope =
-              remember(limits, contentBoxWidth, contentBoxHeight, maxWidth, maxHeight) {
-                WindowContentRenderScope(
-                  maxWidth.value,
-                  maxHeight.value,
-                  win.calcContentScale(limits, contentBoxWidth.value, contentBoxHeight.value),
-                  maxWidth,
-                  maxHeight
-                )
-              }
-            /// 显示内容
-            windowAdapterManager.Renderer(
-              win.state.constants.wid, windowRenderScope, Modifier.fillMaxSize()
-            )
-          }
+    ) {
+      val theme = LocalWindowControllerTheme.current
+      //#region 窗口内容
+      Column(Modifier.clip(winPadding.boxRounded.roundedCornerShape).background(theme.winFrameBrush)
+        .clickableWithNoEffect {
+          win.focusInBackground()
+        }) {
+        /// 标题栏
+        WindowTopBar(win, Modifier.height(winPadding.top.dp).fillMaxWidth())
+        /// 内容区域
+        BoxWithConstraints(
+          Modifier.weight(1f).padding(
+            start = winPadding.start.dp,
+            end = winPadding.end.dp,
+          ).clip(winPadding.contentRounded.roundedCornerShape)
+        ) {
+          val contentBoxWidth = maxWidth
+          val contentBoxHeight = maxHeight
+          Column {
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+              val limits = LocalWindowLimits.current
+              val windowRenderScope =
+                remember(limits, contentBoxWidth, contentBoxHeight, maxWidth, maxHeight) {
+                  WindowContentRenderScope(
+                    maxWidth.value,
+                    maxHeight.value,
+                    win.calcContentScale(limits, contentBoxWidth.value, contentBoxHeight.value),
+                    maxWidth,
+                    maxHeight
+                  )
+                }
+              /// 显示内容
+              windowAdapterManager.Renderer(
+                win.state.constants.wid, windowRenderScope, Modifier.fillMaxSize()
+              )
+            }
 
-          /// 底部安全区域
-          val keyboardInsetBottom by win.watchedState { keyboardInsetBottom }
-          val keyboardOverlaysContent by win.watchedState { keyboardOverlaysContent }
-          if (!keyboardOverlaysContent) {
-            Box(Modifier.height(keyboardInsetBottom.dp))
+            /// 底部安全区域
+            val keyboardInsetBottom by win.watchedState { keyboardInsetBottom }
+            val keyboardOverlaysContent by win.watchedState { keyboardOverlaysContent }
+            if (!keyboardOverlaysContent) {
+              Box(Modifier.height(keyboardInsetBottom.dp))
+            }
           }
         }
+        /// 显示底部控制条
+        WindowBottomBar(win, Modifier.height(winPadding.bottom.dp).fillMaxWidth())
       }
-      /// 显示底部控制条
-      WindowBottomBar(win, Modifier.height(winPadding.bottom.dp).fillMaxWidth())
-    }
-    //#endregion
+      //#endregion
 
-    /**
-     * 窗口是否聚焦
-     */
-    val isFocus by win.watchedState { focus }
+      /**
+       * 窗口是否聚焦
+       */
+      val isFocus by win.watchedState { focus }
 
-    /// 失去焦点的时候，提供 movable 的遮罩（在移动中需要确保遮罩存在）
-    if (inMove or !isFocus) {
-      Box(
-        modifier = Modifier.fillMaxSize().clip(winPadding.boxRounded.roundedCornerShape)
+      /// 失去焦点的时候，提供 movable 的遮罩（在移动中需要确保遮罩存在）
+      if (inMove or !isFocus) {
+        Box(modifier = Modifier.fillMaxSize().clip(winPadding.boxRounded.roundedCornerShape)
           .background(MaterialTheme.colorScheme.onSurface.copy(alpha = if (isFocus) 0f else 0.2f))
           .run {
             val isMaximized by win.watchedIsMaximized()
@@ -261,8 +257,8 @@ fun WindowController.WindowRender(modifier: Modifier) {
             if (isMaximized) {
               this
             } else windowMoveAble(win)
-          }
-      )
+          })
+      }
     }
   }
 }
