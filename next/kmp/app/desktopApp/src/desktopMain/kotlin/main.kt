@@ -20,7 +20,7 @@ fun main(): Unit = runBlocking {
     // 等待“应用”准备完毕
     PureViewController.awaitPrepared()
     // 启动内核
-    startDwebBrowser(true)
+    startDwebBrowser(System.getProperty("debug") ?: System.getenv("debug"))
   }
   // 启动“应用”
   PureViewController.startApplication()

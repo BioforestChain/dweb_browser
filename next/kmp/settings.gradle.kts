@@ -26,6 +26,10 @@ dependencyResolutionManagement {
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     maven("https://maven.pkg.jetbrains.space/kotlin/p/wasm/experimental")
     maven("https://androidx.dev/storage/compose-compiler/repository")
+    /**
+     * 北美 的仓库地址
+     * https://github.com/TeamDev-IP/JxBrowser-Gradle-Plugin/blob/main/src/main/kotlin/com/teamdev/jxbrowser/gradle/Repository.kt
+     */
     maven("https://us-maven.pkg.dev/jxbrowser/releases")
   }
 }

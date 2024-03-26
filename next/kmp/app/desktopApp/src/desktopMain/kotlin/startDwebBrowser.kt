@@ -15,6 +15,7 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
+import org.dweb_browser.core.std.permission.debugPermission
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
@@ -38,7 +39,7 @@ import org.dweb_browser.sys.shortcut.ShortcutNMM
 import org.dweb_browser.sys.toast.ToastNMM
 import java.awt.Desktop
 
-suspend fun startDwebBrowser(isDebugMode: Boolean = System.getProperty("debug") == "true"): DnsNMM {
+suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   /**
   "message-port-ipc",
   "stream-ipc",
@@ -69,7 +70,11 @@ suspend fun startDwebBrowser(isDebugMode: Boolean = System.getProperty("debug") 
     DEVELOPER.HLOppo -> addDebugTags(listOf("/.+/"))
     else -> addDebugTags(listOf())
   }*/
-  if (isDebugMode) addDebugTags(listOf("/.+/"))
+  if (debugTags == "*" || debugTags == "true") {
+    addDebugTags(listOf("/.+/"))
+  } else if (debugTags != null) {
+    addDebugTags(debugTags.split(Regex("[,\\s]")))
+  }
 
   /// 初始化DNS服务
   val dnsNMM = DnsNMM()
@@ -80,7 +85,7 @@ suspend fun startDwebBrowser(isDebugMode: Boolean = System.getProperty("debug") 
   // 添加dweb deeplinks处理
   try {
     Desktop.getDesktop().setOpenURIHandler { event ->
-      if(event.uri.scheme == "dweb") {
+      if (event.uri.scheme == "dweb") {
         dnsNMM.ioAsyncScope.launch {
           dnsNMM.nativeFetch(event.uri.toString())
         }
@@ -161,7 +166,7 @@ suspend fun startDwebBrowser(isDebugMode: Boolean = System.getProperty("debug") 
     )
   ).setup()
 
-  if (isDebugMode) {
+  if (debugPermission.isEnable) {
     PermissionProviderTNN().setup()
     PermissionApplicantTMM().setup()
   }

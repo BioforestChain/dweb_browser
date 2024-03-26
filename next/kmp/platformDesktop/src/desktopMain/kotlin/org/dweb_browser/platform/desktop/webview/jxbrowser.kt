@@ -6,30 +6,33 @@ import com.teamdev.jxbrowser.engine.EngineOptions
 import com.teamdev.jxbrowser.engine.RenderingMode.HARDWARE_ACCELERATED
 import com.teamdev.jxbrowser.engine.RenderingMode.OFF_SCREEN
 
+private const val KEY = "jxbrowser.license.key"
+private const val LICENSE = ""
+
 object WebviewEngine {
-  init {
-    System.setProperty(
-      "jxbrowser.license.key",
-      //
-      "1BNDIEOFAZ1Z8R8VNNG4W07HLC9173JJW3RT0P2G9Y28L9YFFIWDBRFNFLFDQBKXAHO9ZE" // Only For JxBrowser 7.26
-    );
-  }
+  val licenseKey = (System.getProperty(KEY) ?: System.getenv(KEY) ?: LICENSE)
+
 
   fun hardwareAccelerated(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine =
-    Engine.newInstance(
-      EngineOptions.newBuilder(HARDWARE_ACCELERATED).run {
-        optionsBuilder?.invoke(this)
-        build()
-      })
+    Engine.newInstance(EngineOptions.newBuilder(HARDWARE_ACCELERATED).run {
+      optionsBuilder?.invoke(this)
+      this.licenseKey(licenseKey)
+      build()
+    })
 
   fun offScreen(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine =
-    Engine.newInstance(
-      EngineOptions.newBuilder(OFF_SCREEN).run {
-        optionsBuilder?.invoke(this)
-        build()
-      })
+    Engine.newInstance(EngineOptions.newBuilder(OFF_SCREEN).run {
+      optionsBuilder?.invoke(this)
+      this.licenseKey(licenseKey)
+      build()
+    })
 
   val offScreen by lazy { offScreen() }
 
   val chromiumVersion by lazy { VersionInfo.chromiumVersion() }
+
+
+  init {
+    println("QWQ chromiumVersion=$chromiumVersion")
+  }
 }

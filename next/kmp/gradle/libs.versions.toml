@@ -53,7 +53,7 @@ material3Android = "1.2.1"
 
 kotlinx-serialization = "1.6.3"
 
-jxbrowser = "7.26"
+jxbrowser = "7.38.0"
 
 # jna
 java-jna-version = "5.13.0"
@@ -204,7 +204,15 @@ benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro
 
 # JVM+Desktop
 jxbrowser-cross-platform = { group = "com.teamdev.jxbrowser", name = "jxbrowser-cross-platform", version.ref = "jxbrowser" }
+jxbrowser-linux64 = { group = "com.teamdev.jxbrowser", name = "jxbrowser-linux64", version.ref = "jxbrowser" }
+jxbrowser-linux64-arm = { group = "com.teamdev.jxbrowser", name = "jxbrowser-linux64-arm", version.ref = "jxbrowser" }
+jxbrowser-mac = { group = "com.teamdev.jxbrowser", name = "jxbrowser-mac", version.ref = "jxbrowser" }
+jxbrowser-mac-arm = { group = "com.teamdev.jxbrowser", name = "jxbrowser-mac-arm", version.ref = "jxbrowser" }
+jxbrowser-win32 = { group = "com.teamdev.jxbrowser", name = "jxbrowser-win32", version.ref = "jxbrowser" }
+jxbrowser-win64 = { group = "com.teamdev.jxbrowser", name = "jxbrowser-win64", version.ref = "jxbrowser" }
+jxbrowser = { group = "com.teamdev.jxbrowser", name = "jxbrowser", version.ref = "jxbrowser" }
 jxbrowser-swing = { group = "com.teamdev.jxbrowser", name = "jxbrowser-swing", version.ref = "jxbrowser" }
+jxbrowser-compose = { group = "com.teamdev.jxbrowser", name = "jxbrowser-compose", version.ref = "jxbrowser" }
 
 
 # jna

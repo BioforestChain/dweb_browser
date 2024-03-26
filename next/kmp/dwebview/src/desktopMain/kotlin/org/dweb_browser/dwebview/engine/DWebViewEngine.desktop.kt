@@ -151,17 +151,11 @@ class DWebViewEngine internal constructor(
     browser.navigation().loadUrl(safeUrl)
   }
 
-  suspend fun loadUrl(
-    url: String, additionalHttpHeaders: MutableMap<String, String>, postData: String? = null
-  ) {
+  suspend fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
     val safeUrl = resolveUrl(url)
     val loadUrlParams = LoadUrlParams.newBuilder(safeUrl)
     additionalHttpHeaders.forEach { (key, value) ->
       loadUrlParams.addExtraHeader(HttpHeader.of(key, value))
-    }
-
-    if (postData != null) {
-      loadUrlParams.postData(postData)
     }
 
     browser.navigation().loadUrl(loadUrlParams.build())
