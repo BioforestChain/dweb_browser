@@ -61,7 +61,7 @@ class FeaturesFactory {
 
   val androidApp = Bool(!disabled.contains("android"));
   val iosApp = Bool(!disabled.contains("ios"));
-  val desktopApp = Bool(enabled.contains("desktop"));
+  val desktopApp = Bool(!disabled.contains("desktop"));
   val electronApp = Bool(enabled.contains("electron"));
   val libs = Bool(androidApp.enabled || iosApp.enabled || desktopApp.enabled)
 
@@ -149,6 +149,9 @@ if (features.libs.enabled) {
   ).listFiles { file -> file.isDirectory }
     ?.forEach { dir ->
       if (File(dir, "build.gradle.kts").exists()) {
+        if (dir.name == "biometrics" && features.desktopApp.disabled) {
+          return@forEach
+        }
         include(dir.name)
         project(":${dir.name}").apply {
           name = "lib_${dir.name}"
