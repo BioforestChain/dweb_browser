@@ -1,6 +1,8 @@
 package info.bagen.dwebbrowser
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.IpcRequestInit
@@ -45,18 +47,18 @@ class IpcRequestTest {
     }
     launch {
       println("🧨=>  开始监听消息")
-      receiverIpc.onRequest { (request, ipc) ->
+      receiverIpc.requestFlow.onEach { (request, ipc) ->
         val data = request.body.toString()
         println("receiverIpc结果🧨=> $data ${ipc.remote.mmid}")
         assertEquals("senderIpc 除夕快乐", data)
         ipc.postMessage(IpcResponse.fromText(request.reqId, text = "receiverIpc 除夕快乐", ipc = ipc))
-      }
-      senderIpc.onRequest { (request, ipc) ->
+      }.launchIn(this)
+      senderIpc.requestFlow.onEach { (request, ipc) ->
         val data = request.body.text()
         println("senderIpc结果🧨=> $data ${ipc.remote.mmid}")
         assertEquals("senderIpc", data)
         ipc.postMessage(IpcResponse.fromText(request.reqId, text = "senderIpc 除夕快乐", ipc = ipc))
-      }
+      }.launchIn(this)
     }
   }
 

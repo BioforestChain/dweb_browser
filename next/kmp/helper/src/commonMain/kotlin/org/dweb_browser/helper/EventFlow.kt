@@ -44,28 +44,29 @@ open class EventFlow<T>(
   private var eventCollect = SafeInt(0)
 
   // 等待listen全部触发完成
-  private val awaitEmit = CompletableDeferred<Unit>()
+  private var awaitEmit = CompletableDeferred<Unit>()
 
   suspend fun emitAndClear(event: T) {
     this.emit(event)
     this.clear()
   }
 
-  open suspend fun emit(event: T) {
-//    println("🍄 emit start $tip ${eventCollect.value}")
+  suspend fun emit(event: T) {
     eventEmitter.emit(event)
-//    println("🍄 emit end  $tip ${eventCollect.value}")
     if (eventCollect.value > 0) {
+//      println("🍄 emit-start $tip ${eventCollect.value}")
       awaitEmit.await()
+//      println("🍄 emit-end  $tip ${eventCollect.value}")
     }
   }
 
   // 监听数据
-  open fun listen(collector: Callback<T>): EOffListener<T> {
+  fun listen(collector: Callback<T>): EOffListener<T> = synchronized(this) {
     eventCollect++
-//    println("🍄 emit start $tip ${eventCollect.value}")
     var job: Job? = null
-    job = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+    job = scope.launch(
+      start = CoroutineStart.UNDISPATCHED
+    ) {
       eventEmitter.collect {
         val ctx = EventFlowController(it) { job?.cancel() }
         collector.invoke(ctx, it)
@@ -77,8 +78,24 @@ open class EventFlow<T>(
         }
       }
     }
+    if (!job.isActive) {
+      println("🍄 listen $tip $this isActive:${job.isActive} isCompleted:${job.isCompleted}")
+    }
     eventSet.add(job)
     return EOffListener(this@EventFlow, job)
+  }
+
+  fun listenOnce(collector: Callback<T>) = synchronized(this) {
+    var job: Job? = null
+    job = scope.launch(
+      start = CoroutineStart.UNDISPATCHED
+    ) {
+      eventEmitter.collect {
+        val ctx = EventFlowController(it) { job?.cancel() }
+        collector.invoke(ctx, it)
+        job?.cancel()
+      }
+    }
   }
 
   fun toListener() = Listener(this)
@@ -87,9 +104,12 @@ open class EventFlow<T>(
   internal fun off(job: Job) = synchronized(this) {
     eventSet.remove(job)
     job.cancel()
+    if (eventCollect.value > 0) {
+      eventCollect--
+    }
   }
 
-  fun clear() {
+  fun clear() = synchronized(this) {
     eventSet.forEach {
       it.cancel()
     }
@@ -135,6 +155,10 @@ class EOffListener<Args>(private val eventFlow: EventFlow<Args>, val job: Job) {
 }
 
 typealias Remover = () -> Boolean
+
+fun Remover.removeWhen(listener: Signal.Listener<*>) = listener {
+  this@removeWhen()
+}
 
 fun <T> Remover.removeWhen(listener: Listener<T>) = listener {
   this@removeWhen()

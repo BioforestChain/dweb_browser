@@ -1,6 +1,8 @@
 import io.ktor.http.fullPath
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.jsProcess.JsProcessWebApi
 import org.dweb_browser.browser.jsProcess.createJsProcessWeb
@@ -11,6 +13,7 @@ import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
@@ -20,7 +23,6 @@ import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.pure.http.PureHeaders
-import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 
@@ -58,7 +60,7 @@ class TestHttpMicroModule(mmid: String = "http.server.dweb") :
     return this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
       // 提供基本的主页服务
       val serverIpc = server.listen();
-      serverIpc.onRequest { (request, ipc) ->
+      serverIpc.requestFlow.onEach { (request, ipc) ->
         // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
         if (request.uri.encodedPath.startsWith(INTERNAL_PATH)) {
           val internalPath = request.uri.encodedPath.substring(INTERNAL_PATH.length)
@@ -85,7 +87,7 @@ class TestHttpMicroModule(mmid: String = "http.server.dweb") :
             IpcResponse.fromResponse(request.reqId, response, ipc)
           )
         }
-      }
+      }.launchIn(ioAsyncScope)
     }
   }
 
@@ -120,7 +122,7 @@ class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
 
 }
 
-class MessagePortTest {
+class MessagePortTest1 {
 
   val mm = TestHttpMicroModule()
 
@@ -142,11 +144,11 @@ class MessagePortTest {
         "create-process-server",
         IpcOptions(serverMM, port = MessagePort.from(port2))
       )
-    ipcServer.onLifeCycle {
+    ipcServer.lifeCyCleFlow.onEach {
       println("🧨 ipcServer=> ${it.event.state}")
-    }
-    ipcClient.onLifeCycle {
+    }.launchIn(this)
+    ipcClient.lifeCyCleFlow.onEach {
       println("🧨 ipcClient=> ${it.event.state}")
-    }
+    }.launchIn(this)
   }
 }

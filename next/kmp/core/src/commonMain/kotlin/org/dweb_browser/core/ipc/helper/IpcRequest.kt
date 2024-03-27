@@ -6,6 +6,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
@@ -313,25 +315,25 @@ sealed class IpcRequest(
       val started = CompletableDeferred<IpcEvent>()
       val orderBy = Ipc.order_by_acc++
       /// 将收到的IpcEvent转成PureFrame
-      val off = ipc.onEvent { (ipcEvent) ->
+      ipc.eventFlow.onEach { (ipcEvent) ->
         when (ipcEvent.name) {
           eventData -> {
-            debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent ${ipc.channelId}" }
+//            debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent" }
             if (!channelByIpcEmit.isClosedForSend)
               channelByIpcEmit.send(ipcEvent.toPureFrame())
           }
 
           eventStart -> {
-            debugIpc(_debugTag) { "$ipc onIpcEventStart:$ipcEvent ${ipc.channelId}" }
+            debugIpc(_debugTag) { "$ipc onIpcEventStart:$ipcEvent" }
             started.complete(ipcEvent)
           }
 
           eventClose -> {
-            debugIpc(_debugTag) { "$ipc onIpcEventClose:$ipcEvent ${ipc.channelId}" }
+            debugIpc(_debugTag) { "$ipc onIpcEventClose:$ipcEvent " }
             pureChannel.close()
           }
         }
-      }
+      }.launchIn(ipc.ipcScope)
       debugIpc(_debugTag) { "waitLocaleStart:$eventNameBase ${ipc.channelId}" }
       // 提供回调函数，等待外部调用者执行开始指令
       waitReadyToStart()
@@ -342,13 +344,6 @@ sealed class IpcRequest(
       val ipcStartEvent = started.await()
       debugIpc(_debugTag) { "$ipc postIpcEventStart:$ipcStartEvent ${ipc.channelId}" }
       ipc.postMessage(ipcStartEvent)
-//      CoroutineScope(ioAsyncExceptionHandler).launch {
-//        select {
-//          channelForIpcPost.onReceiveCatching {
-//
-//          }
-//        }
-//      }
       /// 将PureFrame转成IpcEvent，然后一同发给对面
       for (pureFrame in channelForIpcPost) {
         when (pureFrame) {
@@ -364,7 +359,6 @@ sealed class IpcRequest(
       val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "", orderBy)
       debugIpc(_debugTag) { "$ipc postIpcEventClose:$ipcCloseEvent ${ipc.channelId}" }
       ipc.postMessage(ipcCloseEvent)
-      off() // 移除事件监听
     }
   }
 

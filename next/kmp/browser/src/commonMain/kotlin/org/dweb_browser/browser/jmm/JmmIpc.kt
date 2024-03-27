@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jmm
 
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
@@ -68,11 +69,8 @@ class JmmForwardIpc(
     ipcScope.launch {
       this@JmmForwardIpc.start()
     }
-    fetchIpc.onClose {
-      this@JmmForwardIpc.close()
-    }
     // 收到代理的消息回复
-    fetchIpc.onEvent { (ipcEvent) ->
+    fetchIpc.eventFlow.onEach { (ipcEvent) ->
       if (ipcEvent.name == responseEventName) {
         val pack = jsonToIpcPack(ipcEvent.text)
         val message = jsonToIpcPoolPack(pack.ipcMessage, jmmIpc)
@@ -83,12 +81,12 @@ class JmmForwardIpc(
           )
         )
       }
-    }
+    }.launchIn(ipcScope)
   }
 
   // 发送代理消息到js-worker 中
   override suspend fun doPostMessage(pid: Int, data: IpcMessage) {
-    println("sendMessage JmmForwardIpc ${fetchIpc.isActivity}")
+    println("sendMessage JmmForwardIpc ${fetchIpc.isActivity} $data")
     // 把激活信号发送到worker
     if (data is IpcLifeCycle) {
       fetchIpc.postMessage(
@@ -105,7 +103,6 @@ class JmmForwardIpc(
 
   override suspend fun _doClose() {
     debugJsMM("JmmForwardIpc close", channelId)
-    ipcScope.cancel()
     if (!fetchIpc.isClosed) {
       fetchIpc.postMessage(IpcEvent.fromUtf8(closeEventName, ""))
     }

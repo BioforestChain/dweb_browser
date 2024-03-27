@@ -245,14 +245,13 @@ export abstract class Ipc {
 
   async postMessage(message: $IpcMessage) {
     if (this.isClosed) {
-      console.error(`ipc postMessage [${this.channelId}] already closed:discard ${message}`);
+      console.log(`ipc postMessage [${this.channelId}] already closed:discard ${JSON.stringify(message)}`);
       return;
     }
     // 等待通信建立完成
     if (!this.isActivity && !(message instanceof IpcLifeCycle)) {
       await this.awaitStart;
     }
-    // console.log(`workersendMessage ${this.channelId} ${JSON.stringify(message)}`);
     // 发到pool进行分发消息
     this._doPostMessage(this.pid, message);
   }
@@ -277,8 +276,8 @@ export abstract class Ipc {
   /**ipc激活回调 */
   initlifeCycleHook() {
     // TODO 跟对方通信 协商数据格式
+    // console.log(`🌸 xxlife start=>🍃 ${this.remote.mmid} ${this.channelId}`);
     this.onLifeCycle((lifeCycle, ipc) => {
-      // console.log(`worker xxlife start=>🍟 ${ipc.remote.mmid} ${ipc.channelId} ${lifeCycle.state}`);
       switch (lifeCycle.state) {
         // 收到打开中的消息，也告知自己已经准备好了
         case IPC_STATE.OPENING: {
@@ -288,6 +287,7 @@ export abstract class Ipc {
         }
         // 收到对方完成开始建立连接
         case IPC_STATE.OPEN: {
+          // console.log(`🌸 xxlife start=>🍟 ${ipc.remote.mmid} ${ipc.channelId} ${lifeCycle.state}`);
           if (!ipc.startDeferred.is_finished) {
             ipc.startDeferred.resolve(lifeCycle);
           }
@@ -302,7 +302,6 @@ export abstract class Ipc {
         }
         // 对方关了，代表没有消息发过来了，我也关闭
         case IPC_STATE.CLOSED: {
-          console.log("🌼ipc destroy worker", this.channelId);
           this.destroy();
         }
       }
@@ -328,19 +327,20 @@ export abstract class Ipc {
     if (this._isClose) {
       return;
     }
+    console.log("🌼ipc close worker", this.channelId);
     this._isClose = true;
     if (!this.isClosed) {
       this.tryClose();
     }
-    this.destroy();
   }
 
-  destroy() {
+  async destroy() {
     if (this.isClosed) {
       return;
     }
+    console.log("🌼ipc destroy worker", this.channelId);
     // 我彻底关闭了
-    this.postMessage(IpcLifeCycle.close());
+    await this.postMessage(IpcLifeCycle.close());
     this._closeSignal.emitAndClear();
     this._doClose();
     this.ipcLifeCycleState = IPC_STATE.CLOSED;

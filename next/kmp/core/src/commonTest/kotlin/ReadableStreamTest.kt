@@ -20,7 +20,7 @@ class ReadableStreamTestTest {
   @Test
   fun readableStreamAvailableTest() = runCommonTest {
     println("start")
-    val stream = ReadableStream(onStart = { controller ->
+    val stream = ReadableStream(this,onStart = { controller ->
       GlobalScope.launch {
         var i = 5
         while (i-- > 0) {
@@ -55,7 +55,7 @@ class ReadableStreamTestTest {
 
   @Test
   fun testCancel() = runCommonTest {
-    val readableStream = ReadableStream(onStart = { controller ->
+    val readableStream = ReadableStream(this,onStart = { controller ->
       GlobalScope.launch {
         var i = 0
         while (true)          {

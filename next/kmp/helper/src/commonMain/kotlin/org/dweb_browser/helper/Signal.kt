@@ -47,7 +47,7 @@ class OffListener<Args>(val origin: Signal<Args>, val cb: SignalCallback<Args>) 
 
 @Suppress("UNCHECKED_CAST")
 open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
-  protected val listenerSet = ChangeableSet<SignalCallback<Args>>();
+  protected val listenerSet = ChangeableSet<SignalCallback<Args>>()
   private var emitCached: MutableList<Args>? = null
 
   init {

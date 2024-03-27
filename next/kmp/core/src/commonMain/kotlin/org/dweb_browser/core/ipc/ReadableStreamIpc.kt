@@ -57,7 +57,7 @@ class ReadableStreamIpc(
 
   private lateinit var controller: ReadableStream.ReadableStreamController
 
-  val input = ReadableStream(cid = "channelId=$channelId") {
+  val input = ReadableStream(ipcScope, cid = "channelId=$channelId") {
     controller = it
   }
 
@@ -175,7 +175,7 @@ class ReadableStreamIpc(
     }
 
     val message = ipcPoolPackToJson(IpcPoolPack(pid, data)).encodeToByteArray()
-//    debugStreamIpc("post", "${message.size} => $input => $data")
+    debugStreamIpc("post", "${message.size} => $input => $data")
     enqueue(message.size.toLittleEndianByteArray(), message)// 必须合并起来发送，否则中间可能插入其他写入
   }
 

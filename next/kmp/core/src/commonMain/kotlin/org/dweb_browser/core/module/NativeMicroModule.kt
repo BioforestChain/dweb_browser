@@ -4,6 +4,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
@@ -127,7 +129,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   override suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) =
     super.beforeBootstrap(bootstrapContext).trueAlso {
       onConnect { (clientIpc) ->
-        clientIpc.onRequest { (ipcRequest) ->
+        clientIpc.requestFlow.onEach { (ipcRequest) ->
           debugNMM("NMM/Handler", ipcRequest.url)
           /// 根据host找到对应的路由模块
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
@@ -146,7 +148,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
               ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway), clientIpc
             )
           )
-        }
+        }.launchIn(ioAsyncScope)
       }
     }
 
@@ -200,7 +202,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
   class JsonLineHandlerContext constructor(context: HandlerContext) : IHandlerContext by context {
-    internal val responseReadableStream = ReadableStreamOut()
+    internal val responseReadableStream = ReadableStreamOut(context.ipc.ipcScope)
     suspend fun emit(line: JsonElement) {
       responseReadableStream.controller.enqueue((Json.encodeToString(line) + "\n").toByteArray())
     }
@@ -247,16 +249,19 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         doClose()
       }
       // 监听 ipc 关闭，这可能由程序自己控制
-      val off = ipc.onClose { doClose() }
+      val closeListen = ioAsyncScope.launch {
+        ipc.closeDeferred.await()
+        doClose()
+      }
       // 监听 job 完成，释放相关的监听
-      job.invokeOnCompletion { off() }
+      job.invokeOnCompletion { closeListen.cancel() }
       // 返回响应流
       PureResponse.build { body(responseReadableStream.stream.stream) }
     }
   }
 
   class CborPacketHandlerContext(context: HandlerContext) : IHandlerContext by context {
-    internal val responseReadableStream = ReadableStreamOut()
+    internal val responseReadableStream = ReadableStreamOut(context.ipc.ipcScope)
     suspend fun emit(data: ByteArray) {
       responseReadableStream.controller.enqueue(data.size.toLittleEndianByteArray(), data)
     }
@@ -304,9 +309,12 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         doClose()
       }
       // 监听 ipc 关闭，这可能由程序自己控制
-      val off = ipc.onClose { doClose() }
+      val closeListen = ioAsyncScope.launch {
+        ipc.closeDeferred.await()
+        doClose()
+      }
       // 监听 job 完成，释放相关的监听
-      job.invokeOnCompletion { off() }
+      job.invokeOnCompletion { closeListen.cancel() }
       // 返回响应流
       PureResponse.build { body(responseReadableStream.stream.stream) }
     }

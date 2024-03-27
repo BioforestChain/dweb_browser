@@ -1,15 +1,11 @@
 package org.dweb_browser.core.ipc
 
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 val debugNativeIpc = Debugger("native-ipc")
 
@@ -21,13 +17,9 @@ class NativeIpc(
 ) : Ipc(channelId, endpoint) {
   override fun toString() = "NativeIpc@($port,channelId=$channelId,remote:${remote.mmid})"
 
-  // 这里放在协程
-  private val ioAsyncScope =
-    CoroutineScope(CoroutineName("native-ipc-$channelId") + ioAsyncExceptionHandler)
-
   init {
     port.onMessage { pack ->
-      debugNativeIpc("onMessage", "$channelId $pack")
+      debugNativeIpc("onMessage_get", "$channelId $pack")
       endpoint.emitMessage(
         IpcPoolMessageArgs(
           IpcPoolPack(pack.pid, pack.ipcMessage),
@@ -35,7 +27,7 @@ class NativeIpc(
         )
       )
     }
-    ioAsyncScope.launch {
+    ipcScope.launch {
       port.onClose { close() }
       port.start()
     }
@@ -43,14 +35,13 @@ class NativeIpc(
 
 
   override suspend fun doPostMessage(pid: Int, data: IpcMessage) {
-//    debugNativeIpc("postMessage send", "$channelId $data")
+    debugNativeIpc("postMessage_send", "$channelId $data")
     port.postMessage(IpcPoolPack(pid, data))
   }
 
 
   override suspend fun _doClose() {
-    debugNativeIpc("native_doClose", "$channelId ")
     port.close()
-    ioAsyncScope.cancel()
+    debugNativeIpc("native_doClose", "$channelId ")
   }
 }

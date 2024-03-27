@@ -4,6 +4,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.fullPath
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -117,18 +120,20 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
    * 和 dweb 的 port 一样，pid 是我们自己定义的，它跟我们的 mmid 关联在一起
    * 所以不会和其它程序所使用的 pid 冲突
    */
-  private var processId = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url() + mmid
+  private val pid = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
+
+  // 这个会在模块关闭后释放，在模块启动后创建
   private var fetchIpc: Ipc? = null
 
   /**创建js文件流*/
   private suspend fun createNativeStream(): ReadableStreamIpc {
-    debugJsMM("createNativeStream", "processId=$processId, root=${metadata.server}")
+    debugJsMM("createNativeStream", "pid=$pid, root=${metadata.server}")
     val streamIpc = kotlinIpcPool.create<ReadableStreamIpc>(
       "code-server-${mmid}",
       IpcOptions(this@JsMicroModule)
     )
 
-    streamIpc.onRequest { (request, ipc) ->
+    streamIpc.requestFlow.onEach { (request, ipc) ->
       debugJsMM("streamIpc.onRequest", "path=${request.uri.fullPath}")
       val response = if (request.uri.fullPath.endsWith("/")) {
         PureResponse(HttpStatusCode.Forbidden)
@@ -139,12 +144,12 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         )
       }
       ipc.postMessage(IpcResponse.fromResponse(request.reqId, response, ipc))
-    }
+    }.launchIn(ioAsyncScope)
     streamIpc.bindIncomeStream(
       nativeFetch(
         PureClientRequest(buildUrlString("file://js.browser.dweb/create-process") {
           parameters["entry"] = metadata.server.entry
-          parameters["process_id"] = processId
+          parameters["process_id"] = pid
         }, PureMethod.POST, body = PureStreamBody(streamIpc.input.stream))
       ).stream()
     )
@@ -176,7 +181,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     this.fetchIpc = jsIpc
 
     // 监听关闭事件
-    jsIpc.onClose {
+    ioAsyncScope.launch {
+      jsIpc.closeDeferred.await()
       if (running) {
         shutdown()
       }
@@ -186,7 +192,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
      * 这里 jmm 的对于 request 的默认处理方式是将这些请求直接代理转发出去
      * TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["media-capture.sys.dweb"]
      */
-    jsIpc.onRequest { (ipcRequest, ipc) ->
+    jsIpc.requestFlow.onEach { (ipcRequest, ipc) ->
       /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
       val scheme = ipcRequest.uri.protocol.name
       val host = ipcRequest.uri.host
@@ -213,12 +219,12 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           )
         }
       }
-    }
+    }.launchIn(ioAsyncScope)
 
     /**
      * 收到 Worker 的事件，如果是指令，执行一些特定的操作
      */
-    jsIpc.onEvent { (ipcEvent) ->
+    jsIpc.eventFlow.onEach { (ipcEvent) ->
       /**
        * 收到要与其它模块进行ipc连接的指令
        */
@@ -270,8 +276,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         // 调用重启
         bootstrapContext.dns.restart(mmid)
       }
-      null
-    }
+    }.launchIn(ioAsyncScope)
   }
 
 
@@ -288,7 +293,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
      */
     val portId = nativeFetch(
       URLBuilder("file://js.browser.dweb/create-ipc").apply {
-        parameters["process_id"] = processId
+        parameters["process_id"] = pid
         parameters["mmid"] = fromMMID
       }.buildUnsafeString()
     ).int()
@@ -300,7 +305,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       fetchIpc ?: throw CancellationException("ipcBridge abort"),
       "native-createIpc-${fromMMID}"
     )
-    toJmmIpc.onClose {
+    ioAsyncScope.launch {
+      toJmmIpc.closeDeferred.await()
       fromMMIDOriginIpcWM.remove(fromMMID)
     }
     return toJmmIpc
@@ -310,7 +316,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
   private suspend fun ipcBridgeJsMM(fromMMID: MMID, toMMID: MMID): Boolean {
     return nativeFetch(
       URLBuilder("file://js.browser.dweb/create-ipc").apply {
-        parameters["process_id"] = processId
+        parameters["process_id"] = pid
         parameters["from_mmid"] = fromMMID
         parameters["to_mmid"] = toMMID
       }.buildUnsafeString()
@@ -332,20 +338,22 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           /**
            * 将两个消息通道间接互联，这里targetIpc明确为NativeModule
            */
-          toJmmIpc.onMessage { (ipcMessage) ->
+          toJmmIpc.messageFlow.onEach { (ipcMessage) ->
             targetIpc.postMessage(ipcMessage)
-          }
-          targetIpc.onMessage { (ipcMessage) ->
+          }.launchIn(ioAsyncScope)
+          targetIpc.messageFlow.onEach { (ipcMessage) ->
             toJmmIpc.postMessage(ipcMessage)
-          }
+          }.launchIn(ioAsyncScope)
           /**
            * 监听关闭事件
            */
-          toJmmIpc.onClose {
+          ioAsyncScope.launch {
+            toJmmIpc.closeDeferred.await()
             fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
             targetIpc.close()
           }
-          targetIpc.onClose {
+          ioAsyncScope.launch {
+            targetIpc.closeDeferred.await()
             fromMMIDOriginIpcWM.remove(toJmmIpc.remote.mmid)
             toJmmIpc.close()
           }
