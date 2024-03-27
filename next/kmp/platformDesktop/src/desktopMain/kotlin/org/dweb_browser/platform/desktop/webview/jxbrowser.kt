@@ -10,8 +10,7 @@ private const val KEY = "jxbrowser.license.key"
 private const val LICENSE = ""
 
 object WebviewEngine {
-  val licenseKey = (System.getProperty(KEY) ?: System.getenv(KEY) ?: LICENSE)
-
+  val licenseKey = (System.getenv(KEY) ?: System.getProperty(KEY) ?: LICENSE)
 
   fun hardwareAccelerated(optionsBuilder: (EngineOptions.Builder.() -> Unit)? = null): Engine =
     Engine.newInstance(EngineOptions.newBuilder(HARDWARE_ACCELERATED).run {
