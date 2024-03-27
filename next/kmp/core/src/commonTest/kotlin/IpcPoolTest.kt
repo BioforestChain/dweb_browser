@@ -1,6 +1,8 @@
 package info.bagen.dwebbrowser
 
 import io.ktor.http.URLBuilder
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.NativeIpc
@@ -38,11 +40,11 @@ class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
         )
         streamIpc.bindIncomeStream(request.body.toPureStream())
         println("xxx=> ${streamIpc.isActivity}")
-        streamIpc.onRequest { (request, ipc) ->
+        streamIpc.requestFlow.onEach { (request, ipc) ->
           val pathName = request.uri.encodedPath
           println("/test 拿到结果=> $pathName")
           ipc.postMessage(IpcResponse.fromText(request.reqId, 200, PureHeaders(), "返回结果", ipc))
-        }
+        }.launchIn(ioAsyncScope)
         streamIpc.input.stream
       })
   }
@@ -67,10 +69,10 @@ class IpcPoolTest {
       "to-native",
       IpcOptions(fromMM, channel = channel.port2)
     )
-    toNativeIpc.onEvent { (event) ->
+    toNativeIpc.eventFlow.onEach { (event) ->
       println("🌞 toNativeIpc $event")
       assertEquals(event.text, "xx")
-    }
+    }.launchIn(this)
     println("🌞📸 send")
     fromNativeIpc.postMessage(IpcEvent.fromUtf8("哈哈", "xx"))
     assertEquals(fromNativeIpc.awaitStart().state, IPC_STATE.OPEN)

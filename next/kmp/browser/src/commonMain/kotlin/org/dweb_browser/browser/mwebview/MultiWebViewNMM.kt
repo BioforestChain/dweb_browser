@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.mwebview
 
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -41,7 +42,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
         val remoteMm = ipc.remoteAsInstance()
           ?: throw Exception("mwebview.browser.dweb/open should be call by locale for now")
         debugMultiWebView("/open", "MultiWebViewNMM open!!! ${remoteMm.mmid}")
-        ipc.onClose {
+        ioAsyncScope.launch {
+          ipc.closeDeferred.await()
           debugMultiWebView("/open", "listen ipc close destroy window")
           val controller = controllerMap[ipc.remote.mmid]
           controller?.destroyWebView()

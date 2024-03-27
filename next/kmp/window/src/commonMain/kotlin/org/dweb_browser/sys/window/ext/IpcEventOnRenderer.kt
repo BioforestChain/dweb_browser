@@ -1,6 +1,9 @@
 package org.dweb_browser.sys.window.ext
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
@@ -34,18 +37,19 @@ val NativeMicroModule.hasMainWindow
   get() = getMainWindowIdWMDeferred(this).isCompleted
 
 fun NativeMicroModule.onRenderer(cb: suspend RendererContext.() -> Unit) = onConnect { (ipc) ->
-  ipc.onEvent { args ->
+  ipc.eventFlow.onEach { args ->
     if (args.event.isRenderer()) {
       val context = RendererContext.get(args, this@onRenderer)
       context.cb()
-      args.ipc.onClose {
+      ioAsyncScope.launch {
+        args.ipc.closeDeferred.await()
         context.emitDispose()
       }
     } else if (args.event.isRendererDestroy()) {
       val context = RendererContext.get(args, this@onRenderer)
       context.emitDispose()
     }
-  }
+  }.launchIn(ioAsyncScope)
 }
 
 class RendererContext(val wid: String, val ipc: Ipc, internal val mm: NativeMicroModule) {
@@ -55,7 +59,7 @@ class RendererContext(val wid: String, val ipc: Ipc, internal val mm: NativeMicr
       windowRendererContexts.getOrPut(wid) { RendererContext(wid, args.ipc, mm) }
     }
 
-    private inline fun getWid(args: IpcEventMessageArgs) = args.event.text
+    private fun getWid(args: IpcEventMessageArgs) = args.event.text
   }
 
   internal val disposeSignal = lazy { SimpleSignal() }

@@ -1,5 +1,6 @@
 package org.dweb_browser.dwebview.ipcWeb
 
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.IpcPool
 import org.dweb_browser.core.ipc.MessagePort
@@ -38,7 +39,8 @@ open class Native2JsIpc(
   endpoint
 ) {
   init {
-    onClose {
+    ipcScope.launch {
+      closeDeferred.await()
       ALL_MESSAGE_PORT_CACHE.remove(this@Native2JsIpc.portId)
     }
   }

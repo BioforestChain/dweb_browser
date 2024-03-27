@@ -1,10 +1,13 @@
 package org.dweb_browser.core.module
 
+import io.ktor.util.collections.ConcurrentSet
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.CommonAppManifest
@@ -16,7 +19,7 @@ import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleEventFlow
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.pure.http.PureRequest
 
@@ -42,7 +45,10 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     CoroutineScope(SupervisorJob() + ioAsyncExceptionHandler + CoroutineName(mmid))
 
   private var _scope: CoroutineScope = getModuleCoroutineScope()
-  val ioAsyncScope get() = _scope
+  val ioAsyncScope get() = _scope // 给外部使用
+
+  private var _afterShutdownSignal = SimpleSignal()
+  val onAfterShutdown get() = _afterShutdownSignal.toListener()
 
   val running get() = runningStateLock.value == MMState.BOOTSTRAP
 
@@ -81,6 +87,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       ipc.awaitStart()
     }
     this.runningStateLock.resolve()
+    // 当microModule全部启动完成的时候解锁
     readyLock.unlock()
   }
 
@@ -107,9 +114,19 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     this.runningStateLock = StatePromiseOut(MMState.SHUTDOWN)
 
     /// 关闭所有的通讯
-    _ipcSet.toList().forEach {
-      it.close()
+//    _ipcSet.toList().forEach {
+//      println("xxxx=> _ipcSet closeSTART ${it.channelId}")
+//      it.close()
+//      println("xxxx=> _ipcSet closeEND ${it.channelId}")
+//    }
+    val jobs = _ipcSet.map {
+      _scope.launch {
+        println("xxxx=> _ipcSet closeSTART ${it.channelId}")
+        it.close()
+        println("xxxx=> _ipcSet closeEND ${it.channelId}")
+      }
     }
+    jobs.joinAll()
     _ipcSet.clear()
     return true
   }
@@ -121,16 +138,13 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
   protected abstract suspend fun _shutdown()
   protected open suspend fun afterShutdown() {
-    println("xxxxonafterShutdown=> 111 ${mmid}")
     _afterShutdownSignal.emitAndClear()
-    println("xxxxonAfterShutdown=> 222 ${mmid}")
     _connectSignal.clear()
-    println("xxxxonAfterShutdown=> 333 ${mmid}")
     runningStateLock.resolve()
+
     this._bootstrapContext = null
     // 取消所有的工作
     this.ioAsyncScope.cancel()
-    println("xxxxonAfterShutdown=> ${mmid}")
   }
 
   suspend fun shutdown() = lifecycleLock.withLock {
@@ -143,32 +157,24 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     }
   }
 
-  suspend fun dispose() {
-    this._dispose()
-  }
-
-  protected open suspend fun _dispose() {
-  }
-
-  private val _afterShutdownSignal = SimpleEventFlow(_scope,"$mmid-_afterShutdown")
-  val onAfterShutdown = _afterShutdownSignal.toListener()
-
   /**
    * MicroModule连接池
    */
-  private val _ipcSet = mutableSetOf<Ipc>();
+  private val _ipcSet = ConcurrentSet<Ipc>()
 
   suspend fun addToIpcSet(ipc: Ipc): Boolean {
-    debugMicroModule(
-      "addToIpcSet",
-      "「${ipc.channelId}」 $mmid => ${ipc.remote.mmid} , ${runningStateLock.isResolved}:${runningStateLock.value}"
-    )
+
     if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
+      debugMicroModule(
+        "addToIpcSet",
+        "「${ipc.channelId}」 $mmid => ${ipc.remote.mmid} , ${runningStateLock.isResolved}"
+      )
       ipc.awaitStart()
       debugMicroModule("addToIpcSet", "✅ ${ipc.channelId} end")
     }
     return if (this._ipcSet.add(ipc)) {
-      ipc.onClose {
+      ioAsyncScope.launch {
+        ipc.closeDeferred.await()
         _ipcSet.remove(ipc)
       }
       true

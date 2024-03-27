@@ -5,6 +5,7 @@ import io.ktor.http.fullPath
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonNull
@@ -78,7 +79,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   private val _runningApps =
     ChangeableMap</* mmid or dweb-protocol */MPID, Map</*真正的 realMmid*/MMID, RunningApp>>() // 正在运行的应用
 
-  private class RunningApp(val module: MicroModule, private val afterBootstrap: PromiseOut<Unit>) {
+  class RunningApp(val module: MicroModule, private val afterBootstrap: PromiseOut<Unit>) {
     suspend fun ready(): MicroModule {
       afterBootstrap.waitPromise()
       return module
@@ -101,6 +102,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   private fun removeRunningApp(runningApp: RunningApp) {
     val mmid = runningApp.module.mmid
+    debugDNS("remove-running", mmid)
     fun remove(mpid: MPID) {
       val apps = runningApps(mpid)
       if (apps.containsKey(mmid)) {
@@ -143,10 +145,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   ) = mmConnectsMapLock.withLock {
     // 找到要连接的模块
     val toMicroModule = query(toMPID, fromMM) ?: throw Throwable("not found app->$toMPID")
-    debugDNS(
-      "connectTo",
-      "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid}, $reason"
-    )
 
     val toMMID = toMicroModule.mmid
     val fromMMID = fromMM.mmid
@@ -170,14 +168,20 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         val aConnectResult = connectMicroModules(fromMM, toMicroModule, reason)
         val bConnectResult = ConnectResult(aConnectResult.ipcForToMM, aConnectResult.ipcForFromMM)
         bPromiseOut.resolve(bConnectResult)
-        aConnectResult.ipcForFromMM.onClose {
+        ioAsyncScope.launch {
+          aConnectResult.ipcForFromMM.closeDeferred.await()
           mmConnectsMap.remove(aKey)
           mmConnectsMap.remove(bKey)
         }
-        aConnectResult.ipcForToMM.onClose {
+        ioAsyncScope.launch {
+          aConnectResult.ipcForToMM.closeDeferred.await()
           mmConnectsMap.remove(aKey)
           mmConnectsMap.remove(bKey)
         }
+        debugDNS(
+          "connect-success",
+          "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid} FROM:${aConnectResult.ipcForFromMM.channelId} TO:${aConnectResult.ipcForToMM.channelId}"
+        )
         aConnectResult
       }
     }
@@ -206,7 +210,8 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     // 调用重启
     override suspend fun restart(mmid: MMID) {
       // 关闭后端连接
-      dnsMM.close(mmid)
+      val num = dnsMM.close(mmid)
+      println("xxxx=> restart $num $mmid")
       dnsMM.open(mmid, fromMM)
     }
 
@@ -238,7 +243,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   class MyBootstrapContext(override val dns: MyDnsMicroModule) : BootstrapContext {}
 
-  suspend fun bootstrapMicroModule(fromMM: MicroModule) {
+  private suspend fun bootstrapMicroModule(fromMM: MicroModule) {
     fromMM.bootstrap(MyBootstrapContext(MyDnsMicroModule(this@DnsNMM, fromMM)))
   }
 
@@ -361,7 +366,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }
     allApps.clear()
     _installApps.clear()
-    ioAsyncScope.cancel()
   }
 
   /** 安装应用 */
@@ -381,8 +385,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     val mm = allApps.remove(mmid) ?: return false
     /// 首先进行关闭
     close(mmid)
-    /// 执行销毁的生命周期函数
-    mm.dispose()
     removeInstallApps(mmid, mm)
     for (protocol in mm.dweb_protocols) {
       removeInstallApps(protocol, mm)
@@ -421,15 +423,19 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       // 在此基础上，it.key == fromMM.mmid 意味着它循环引用到自己的protocol了，这没必要，所以返回null
       if (it.key != mpid && it.key == fromMM.mmid) null else it.value
     } ?: run {
+      println("xxxx=> dns_open $mpid(by ${fromMM.mmid})")
       debugDNS("dns_open start", "$mpid(by ${fromMM.mmid})")
       val app = query(mpid, fromMM) ?: throw Exception("no found app: $mpid")
       val afterBootstrap = PromiseOut<Unit>().alsoLaunchIn(ioAsyncScope) {
+        println("xxxx=> dns_open bootstrapMicroModule $mpid")
         bootstrapMicroModule(app)
+        println("xxxx=> dns_open bootstrapMicroModule end $mpid")
         debugDNS("dns_open end", "$mpid(by ${fromMM.mmid})")
       }
       RunningApp(app, afterBootstrap).also { running ->
         addRunningApp(running)
         app.onAfterShutdown {
+          println("xxxx=> onAfterShutdown XXX $mpid")
           removeRunningApp(running)
         }
       }
@@ -437,7 +443,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
 
-  suspend fun open(mmid: MMID, fromMM: MicroModule = this) = _open(mmid, fromMM).ready()
+  suspend fun open(mmid: MMID, fromMM: MicroModule = this) = _open(mmid, fromMM)
 
   /** 关闭应用 */
   suspend fun close(mmid: MMID): Int {

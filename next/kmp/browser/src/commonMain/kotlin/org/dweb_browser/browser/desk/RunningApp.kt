@@ -25,7 +25,7 @@ class RunningApp(
   val bootstrapContext: BootstrapContext,
   defaultWindowState: WindowState? = null
 ) {
-  val onClose = ipc.onClose
+  val closeDeferred = ipc.closeDeferred
 
   /**
    * 所有的窗口实例
@@ -97,7 +97,7 @@ class RunningApp(
     createWindow(latestWindowState).also { win ->
       latestWindowState = win.state
       win.onClose {
-        println("关闭窗口信号 ${ipc.channelId}")
+        println("关闭窗口信号 ${ipc.channelId} ${ipc.remote.mmid}")
         if (mainWin == win) {
           mainWin = null
         }

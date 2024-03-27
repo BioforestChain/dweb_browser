@@ -2,7 +2,6 @@ package org.dweb_browser.core.ipc.helper
 
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.ByteReadPacket
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -12,7 +11,6 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.createByteChannel
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.pure.http.PureStream
 
 val debugStream = Debugger("stream")
@@ -21,13 +19,12 @@ val debugStream = Debugger("stream")
  * 模拟Web的 ReadableStream
  */
 class ReadableStream(
+  val scope: CoroutineScope,
   cid: String? = null,
   val onOpenReader: suspend CoroutineScope.(arg: ReadableStreamController) -> Unit = {},
   val onClose: suspend CoroutineScope.() -> Unit = {},
   val onStart: CoroutineScope.(controller: ReadableStreamController) -> Unit = {},
 ) {
-  val scope = CoroutineScope(CoroutineName("readableStream") + ioAsyncExceptionHandler)
-
   /**
    * 内部的输出器
    */
@@ -127,9 +124,9 @@ class ReadableStream(
   }
 }
 
-class ReadableStreamOut {
+class ReadableStreamOut(scope: CoroutineScope) {
   private lateinit var _controller: ReadableStream.ReadableStreamController
-  val stream = ReadableStream {
+  val stream = ReadableStream(scope) {
     _controller = it
   }
   val controller get() = _controller

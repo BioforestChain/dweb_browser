@@ -1,6 +1,9 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toBase64ByteArray
@@ -19,7 +22,8 @@ class IpcBodyReceiver(
     /// 将第一次得到这个metaBody的 ipc 保存起来，这个ipc将用于接收
     if (metaBody.type.isStream && metaBody.streamId != null) {
       CACHE.streamId_receiverIpc_Map.getOrPut(metaBody.streamId) {
-        ipc.onClose {
+        ipc.ipcScope.launch {
+          ipc.closeDeferred.await()
           CACHE.streamId_receiverIpc_Map.remove(metaBody.streamId)
         }
         metaBody.receiverPoolId = ipc.endpoint.poolId
@@ -65,48 +69,51 @@ class IpcBodyReceiver(
        * 默认是暂停状态
        */
       val paused = atomic(true)
-      val readableStream = ReadableStream(cid = "receiver=${streamId}", onStart = { controller ->
-        // 注册关闭事件
-        ipc.onClose {
-          controller.closeWrite()
-        }
-        /// 如果有初始帧，直接存起来
-        when (metaBody.type.encoding) {
-          IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).encodeToByteArray()
-          IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
-          IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
-          else -> null
-        }?.let { firstData -> controller.enqueueBackground(firstData) }
-
-        ipc.onPulling(streamId) { message, close ->
-          when (message) {
-            is IpcStreamData -> {
-              controller.enqueue(message.binary)
-            }
-
-            is IpcStreamEnd -> {
-              // 关闭消息监听，关闭流监听
-              close()
-              controller.closeWrite()
-            }
-
-            else -> {
-              debugIpcBodyReceiver("receiver", "Unknown message $message")
-            }
+      val readableStream =
+        ReadableStream(ipc.ipcScope, cid = "receiver=${streamId}", onStart = { controller ->
+          // 注册关闭事件
+          this.launch {
+            ipc.closeDeferred.await()
+            controller.closeWrite()
           }
-        }
-      }, onOpenReader = { controller ->
-        debugIpcBodyReceiver(
-          "postPullMessage/$ipc/${controller.stream}", streamId
-        )
-        // 跟对面讲，我需要开始拉取数据了
-        if (paused.getAndSet(false)) {
-          ipc.postMessage(IpcStreamPulling(streamId))
-        }
-      }, onClose = {
-        // 跟对面讲，我关闭了,不再接受消息了，可以丢弃这个ByteChannel的内容了
-        ipc.postMessage(IpcStreamAbort(streamId))
-      });
+          /// 如果有初始帧，直接存起来
+          when (metaBody.type.encoding) {
+            IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).encodeToByteArray()
+            IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
+            IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
+            else -> null
+          }?.let { firstData -> controller.enqueueBackground(firstData) }
+          ipc.streamFlow.onEach { (ipcStream) ->
+            if (streamId == ipcStream.stream_id) {
+              when (ipcStream) {
+                is IpcStreamData -> {
+                  debugIpcBodyReceiver(
+                    "receiver/StreamData/$ipc/${controller.stream}", ipcStream
+                  )
+                  controller.enqueue(ipcStream.binary)
+                }
+
+                is IpcStreamEnd -> {
+                  debugIpcBodyReceiver(
+                    "receiver/StreamEnd/$ipc/${controller.stream}", ipcStream
+                  )
+                  controller.closeWrite()
+                }
+              }
+            }
+          }.launchIn(ipc.ipcScope)
+        }, onOpenReader = { controller ->
+          debugIpcBodyReceiver(
+            "postPullMessage/$ipc/${controller.stream}", streamId
+          )
+          // 跟对面讲，我需要开始拉取数据了
+          if (paused.getAndSet(false)) {
+            ipc.postMessage(IpcStreamPulling(streamId))
+          }
+        }, onClose = {
+          // 跟对面讲，我关闭了,不再接受消息了，可以丢弃这个ByteChannel的内容了
+          ipc.postMessage(IpcStreamAbort(streamId))
+        });
 
       debugIpcBodyReceiver("$ipc/$readableStream", "start by stream-id:${streamId}")
 

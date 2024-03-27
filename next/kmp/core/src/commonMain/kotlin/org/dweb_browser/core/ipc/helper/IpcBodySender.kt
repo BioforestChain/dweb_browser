@@ -9,6 +9,8 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -163,28 +165,26 @@ class IpcBodySender private constructor(
   /**开始监听控制信号拉取*/
   private fun onPulling(streamId: String) {
     // 接收流的控制信号,才能跟接收者(IpcBodyReceiver)互相配合 onStream = pull + pause + abort
-    ipc.onPulling(streamId) { message, close ->
-//      debugIpcBodySender("onPulling", "sender INIT => $streamId => $message")
-      when (message) {
-        is IpcStreamPulling -> emitStreamPull(message)
-        is IpcStreamPaused -> emitStreamPaused(message)
-        is IpcStreamAbort -> {
-          close()
-          emitStreamAborted()
-        }
-
-        else -> {
-          debugIpcBodySender("onPulling", "未知的流消息：$message")
+    ipc.streamFlow.onEach { (stream) ->
+      if (streamId == stream.stream_id) {
+        debugIpcBodySender("onPulling", "sender INIT => $streamId => $stream")
+        when (stream) {
+          is IpcStreamPulling -> emitStreamPull(stream)
+          is IpcStreamPaused -> emitStreamPaused(stream)
+          is IpcStreamAbort -> {
+            emitStreamAborted()
+            ipc.close()
+          }
         }
       }
-    }
+    }.launchIn(ipc.ipcScope)
   }
 
   private suspend fun streamAsMeta(stream: PureStream) = asMateLock.withLock {
     val streamId = getStreamId(stream)
     // 注册数据拉取
     onPulling(streamId)
-//    debugIpcBodySender("streamAsMeta", "sender INIT => $streamId => $stream")
+    debugIpcBodySender("streamAsMeta", "sender INIT => $streamId => $stream")
     val streamAsMetaScope =
       CoroutineScope(CoroutineName("sender/$stream/$streamId") + ioAsyncExceptionHandler)
     val reader by lazy { stream.getReader("ipcBodySender StreamAsMeta") }
@@ -241,9 +241,9 @@ class IpcBodySender private constructor(
       }
 
       /// END
-//      debugIpcBodySender(
-//        "sender/END/$stream", streamId
-//      )
+      debugIpcBodySender(
+        "sender/END/$stream", streamId
+      )
       /// 不论是不是被 aborted，都发送结束信号
       val message = IpcStreamEnd(streamId)
       ipc.postMessage(message)

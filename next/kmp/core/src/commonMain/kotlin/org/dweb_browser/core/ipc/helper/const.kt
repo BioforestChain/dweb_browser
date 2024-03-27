@@ -3,6 +3,7 @@ package org.dweb_browser.core.ipc.helper
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.ByteEnumSerializer
+import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.IntEnumSerializer
 import org.dweb_browser.helper.SignalCallback
 import org.dweb_browser.helper.StringEnumSerializer

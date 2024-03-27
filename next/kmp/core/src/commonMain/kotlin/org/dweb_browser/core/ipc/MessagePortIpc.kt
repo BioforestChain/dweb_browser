@@ -127,7 +127,7 @@ open class MessagePortIpc(
           else -> {}
         }
       }
-    }.removeWhen(onClose)
+    }.removeWhen(ipcScope)
   }
 
   private suspend fun stringFactory(event: DWebMessage.DWebMessageString) {
@@ -169,7 +169,6 @@ open class MessagePortIpc(
   }
 
   override suspend fun _doClose() {
-    closeSignal.emitAndClear()
     this.port.close()
   }
 

@@ -2,10 +2,10 @@ package org.dweb_browser.core.std.http
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.util.collections.ConcurrentSet
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
-import org.dweb_browser.helper.SimpleCallback
-import org.dweb_browser.helper.SimpleEventFlow
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
@@ -20,11 +20,12 @@ class Gateway(
   ) {
     private val _routerSet = ConcurrentSet<StreamIpcRouter>()
 
-    fun addRouter(config: CommonRoute, ipc: Ipc): () -> Boolean {
-      val route = StreamIpcRouter(config, ipc);
+    fun addRouter(config: CommonRoute, ipc: Ipc) {
+      val route = StreamIpcRouter(config, ipc)
       this._routerSet.add(route)
-      return {
-        this._routerSet.remove(route)
+      mainIpc.ipcScope.launch {
+        ipc.closeDeferred.await()
+        _routerSet.remove(route)
       }
     }
 
@@ -43,8 +44,7 @@ class Gateway(
     }
 
     /// 销毁
-    private val destroySignal = SimpleEventFlow(mainIpc.ipcScope)
-    fun onDestroy(cb: SimpleCallback) = destroySignal.listen(cb)
+    val destroyDeferred = CompletableDeferred<Unit>()
 
     suspend fun destroy() {
       _routerSet.map {
@@ -53,7 +53,8 @@ class Gateway(
           else -> ipc.close()
         }
       }
-      destroySignal.emit()
+      _routerSet.clear()
+      destroyDeferred.complete(Unit)
     }
   }
 

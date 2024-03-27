@@ -2,6 +2,7 @@ package org.dweb_browser.core.ipc
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
@@ -73,12 +74,14 @@ open class IpcPool {
       // 监听启动回调
       ipc.initLifeCycleHook()
       ipc.start()
+      ipcPoolScope.launch {
+        ipc.closeDeferred.await()
+        debugIpcPool("pool-closeIpc", channelId)
+        ipcPool.remove(channelId)
+      }
       return ipc as T
     } as T
-    ipc.onClose {
-      debugIpcPool("🏀 closeIpc=>${channelId}")
-      ipcPool.remove(channelId)
-    }
+
     return ipc
   }
 

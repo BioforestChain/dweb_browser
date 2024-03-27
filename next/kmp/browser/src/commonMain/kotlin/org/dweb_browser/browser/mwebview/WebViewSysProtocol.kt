@@ -30,7 +30,7 @@ suspend fun MultiWebViewNMM.webViewSysProtocol() {
             webView.setContentScale(scale, width, height, density)
           }
           webView.Render(modifier)
-        }.removeWhen(ipc.onClose)
+        }.removeWhen(ipc.ipcScope)
 
       }).cors()
   }

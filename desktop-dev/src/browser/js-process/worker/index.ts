@@ -152,33 +152,6 @@ export class JsProcessMicroModule implements $MicroModule {
           autoStart: false, // 等建立完成再手动启动
         });
         port_po.resolve(ipc);
-        // if (typeof navigator === "object" && navigator.locks) {
-        //   ipc.onEvent((event) => {
-        //     try {
-        //       if (event.name === "web-message-port-live") {
-        //         console.warn(self.name, ipc.remote.mmid, "web-message-port living", event.text);
-        //         void navigator.locks.request(event.text, () => {
-        //           console.warn(self.name, ipc.remote.mmid, "web-message-port ipc closed");
-        //           ipc.close();
-        //         });
-        //       }
-        //     } catch (e) {
-        //       console.error("locks-2", e);
-        //     }
-        //   });
-        //   this.afterIpcReady(ipc).then(() => {
-        //     const liveId = "live-" + Date.now() + Math.random() + "-for-" + ipc.remote.mmid;
-        //     try {
-        //       void navigator.locks.request(liveId, () => {
-        //         console.warn(self.name, "web-message-port live start", liveId);
-        //         return new Promise(() => {}); /// 永远不释放
-        //       });
-        //       ipc.postMessage(IpcEvent.fromText("web-message-port-live", liveId));
-        //     } catch (e) {
-        //       console.error("locks-1", e);
-        //     }
-        //   });
-        // }
 
         workerGlobal.postMessage(["ipc-connect-ready", mmid]);
         /// 不论是连接方，还是被连接方，都需要触发事件
@@ -219,10 +192,17 @@ export class JsProcessMicroModule implements $MicroModule {
       port: this.nativeFetchPort,
     });
     // 整个worker关闭
-    this.fetchIpc.onClose(() => {
+    this.fetchIpc.onClose(async () => {
       console.log("worker-close=>", this.fetchIpc.channelId, this.mmid);
       // 当worker关闭的时候，触发关闭，让用户可以基于这个事件释放资源
       this._onCloseSignal.emit(IpcEvent.fromText("close", this.mmid), this.fetchIpc);
+      // 销毁所有ipc
+      await Promise.all(
+        Array.from(this._ipcConnectsMap.values(), async (ipcPo) => {
+          const ipc = await ipcPo.promise;
+          ipc.destroy();
+        })
+      );
       workerGlobal.close();
     });
     this.fetchIpc.onEvent(async (ipcEvent) => {
@@ -241,7 +221,7 @@ export class JsProcessMicroModule implements $MicroModule {
           // 手动启动,这里才是真正的建立完成通信
           ipc.start();
           await ipc.ready();
-          // console.log("桥接建立完成=>", ipc.channelId, ipc.isActivity);
+          console.log("xxlife 桥接建立完成=>", ipc.channelId, ipc.isActivity);
         }
       } else if (ipcEvent.name.startsWith("forward/")) {
         // 这里负责代理native端的请求
@@ -255,6 +235,7 @@ export class JsProcessMicroModule implements $MicroModule {
             IpcEvent.fromText(`forward/response/${mmid}`, JSON.stringify(response.ipcResMessage()))
           );
         } else if (action === "close") {
+          console.log("worker ipc close=>", ipc.channelId);
           ipc.close();
         }
       }

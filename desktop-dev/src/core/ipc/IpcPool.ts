@@ -53,16 +53,15 @@ export class IpcPool {
       } else {
         ipc = new ReadableStreamIpc(mm, channelId, this);
       }
-      if (options.autoStart == undefined) {
-        ipc.start();
-      }
       ipc.initlifeCycleHook();
+      ipc.start();
+      ipc.onClose(() => {
+        console.log(`🏀 worker closeIpc=>${channelId}`);
+        this.ipcPool.delete(channelId);
+      });
       return ipc;
     }) as T;
-    ipc.onClose(() => {
-      console.log(`🏀 worker closeIpc=>${channelId}`);
-      this.ipcPool.delete(channelId);
-    });
+
     return ipc;
   }
 

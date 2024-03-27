@@ -157,11 +157,11 @@ class MultiWebViewController(
     state["views"] = JsonObject(views)
     return JsonObject(state)
   }
-
+  // TODO
   private suspend fun updateStateHook() {
     ipc.postMessage(IpcEvent.fromUtf8("state", Json.encodeToString(getState())))
   }
-
+  // TODO
   val webViewCloseSignal = Signal<WEBVIEW_ID>()
   val webViewOpenSignal = Signal<WEBVIEW_ID>()
 
