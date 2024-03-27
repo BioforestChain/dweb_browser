@@ -266,6 +266,7 @@ fun KotlinSourceSet.autoLink(): KotlinSourceSet {
 
 open class KmpBaseTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
   val features = Features
+  val platform = Platform
   internal val dependsOnList = mutableSetOf<KotlinSourceSet>()
   val dependsOn = dependsOnList::add
   internal val configureDependencyList = mutableSetOf<KotlinDependencyHandler.() -> Unit>()
@@ -570,7 +571,7 @@ fun KotlinMultiplatformExtension.kmpIosTarget(
   project: Project,
   configure: KmpIosTargetDsl.() -> Unit = {}
 ) {
-  if (Features.iosApp.disabled) {
+  if (Features.iosApp.disabled && !Platform.isMac) {
     return
   }
   println("kmpIosTarget: ${project.name}")

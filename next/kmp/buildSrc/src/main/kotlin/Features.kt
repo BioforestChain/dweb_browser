@@ -16,6 +16,12 @@ object Features {
     .split(",")
     .map { it.trim().lowercase() };
 
+
+  init {
+    println("features-disabled=${disabled.joinToString(",")}")
+    println("features-experimental.enabled=${enabled.joinToString(",")}")
+  }
+
   class Bool(val enabled: Boolean) {
     val disabled = !enabled
   }
