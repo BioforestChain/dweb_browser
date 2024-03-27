@@ -6,6 +6,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.StringWriter
 
+// 官方文档：https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/aa767914(v=vs.85)?redirectedfrom=MSDN
 // 参考：https://github.com/TwidereProject/TwidereX-Android/blob/da1602493091116c354602136d600783a9c648dd/common/src/desktopMain/kotlin/com/twidere/twiderex/utils/WindowsRegistry.kt
 object WindowsRegistry {
   private fun registryUrlProtocol(protocol: String) {

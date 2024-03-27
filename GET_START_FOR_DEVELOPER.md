@@ -50,6 +50,15 @@
      1. 然后就可以选择 `scheme` 为 `DwebBrowser` ； `configuration` 建议是 `Debug`
      1. 最后是 `target`，可以选模拟器，如果你的真机设备找不到，那么就卸载重装`Kotlin Multiplatform Mobile`插件，然后通常就能选择真机设备了，反正只要找不到，就重装插件就行
    - 如果是 IOS 用户也可以直接使用 xcode 打开`next/kmp/app/iosApp/DwebBrowser.xcworkspace`，直接运行 DwebBrowser 即可
+   - 如果是 Desktop 用户，要启动应用需要使用 Android Studio 启动项目，在`Edit Configurations`中，点击`+`，选择`Gradle`
+      1. 在面板中，先选择 `Run`，填上 `desktopApp:desktopRun -DmainClass=MainKt -Djxbrowser.license.key=xxxxxxxxxxxxx --quiet`
+         其中的 -Djxbrowser.license.key 后`xxxxxxxxxxxxx`需要填写上真实的授权码
+      1. 然后选择 `Gradle project`，设置为 kmp
+      1. 再然后只要 Apply 和 OK 就可以了（tips：面板中的Name可以设置一个简单的名字）
+      1. 最后，选择刚才创建的 Configuration，点击Run就可以跑起来了
+
+1. 打包应用：
+   - 如果是 Desktop 用户，和编译运行时一样，需要在 Configurations 中的打包命令中配置 -Djxbrowser.license.key
 
 ## 小提示 Tips
 
