@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Signal
@@ -48,7 +49,21 @@ class PureViewController(
       prepared.await()
     }
 
+    private val _beforeExit = MutableSharedFlow<ApplicationSignal>(replay = 1)
+    val beforeExit = _beforeExit.asSharedFlow()
+
+    enum class ApplicationSignal {
+      Exit
+    }
+
+    var exitApplication: suspend () -> Unit = {}
+      private set
+
     suspend fun startApplication() = awaitApplication {
+      exitApplication = {
+        _beforeExit.emit(ApplicationSignal.Exit)
+        this@awaitApplication.exitApplication()
+      }
       // https://github.com/JetBrains/kotlin-multiplatform-dev-docs/blob/master/topics/whats-new/whats-new-compose-1-6-0.md#desktop-experimental
       System.setProperty("compose.layers.type", "COMPONENT")
       // https://github.com/JetBrains/compose-multiplatform-core/pull/915
@@ -56,7 +71,7 @@ class PureViewController(
       System.setProperty("compose.swing.render.on.graphics", "true")
 
       // windows dweb deeplink写入注册表
-      if(isWindows) {
+      if (isWindows) {
         WindowsRegistry.ensureWindowsRegistry("dweb")
       }
 

@@ -30,7 +30,9 @@ import com.teamdev.jxbrowser.view.swing.BrowserView
 import com.teamdev.jxbrowser.zoom.ZoomLevel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
@@ -104,6 +106,11 @@ class DWebViewEngine internal constructor(
       // 同步销毁
       browser.on(BrowserClosed::class.java) {
         engine.close()
+      }
+      MainScope().launch {
+        PureViewController.beforeExit.collect{
+          engine.close()
+        }
       }
       browser
     }
