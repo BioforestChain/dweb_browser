@@ -35,10 +35,16 @@ compose.desktop {
   application {
     mainClass = "MainKt"
 
+    // 用于打包应用时注入key
+    jvmArgs += listOf(
+      "-Djxbrowser.license.key=${System.getProperty("jxbrowser.license.key")}"
+    )
+
     nativeDistributions {
       targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
       packageName = "DwebBrowser"
-      packageVersion = "1.0.0"
+      packageVersion = "2.3.2700"
+      includeAllModules = true
 
       val iconsRoot =
         project.file("${rootProject.rootDir}/app/desktopApp/src/desktopMain/res/icons")
@@ -78,12 +84,9 @@ compose.desktop {
   }
 }
 
-(tasks.findByName("desktopRun") as JavaExec?)?.apply {
-  println("QAQ classpath=$classpath")
-  println("QAQ mainClass=$mainClass")
-
-  classpath = sourceSets["main"].runtimeClasspath
-  mainClass = System.getProperty("MainKt")
-
-  jvmArgs("-Ddebug=true")
+// 用于启动桌面应用时注入key
+afterEvaluate {
+  tasks.withType<JavaExec>() {
+    systemProperties["jxbrowser.license.key"] = System.getProperty("jxbrowser.license.key")
+  }
 }
