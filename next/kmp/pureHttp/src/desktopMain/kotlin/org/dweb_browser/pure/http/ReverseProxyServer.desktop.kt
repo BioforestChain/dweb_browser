@@ -43,57 +43,55 @@ class ReverseProxyServer {
       CoroutineScope(ioAsyncExceptionHandler).launch {
         while (true) {
           val client = proxyServer.accept()
-          coroutineScope {
-            launch {
-              try {
-                val clientReader = client.openReadChannel()
-                val clientWriter = client.openWriteChannel(true)
+          launch {
+            try {
+              val clientReader = client.openReadChannel()
+              val clientWriter = client.openWriteChannel(true)
 
-                // actually Ktor's documentation is pretty shallow so I'm not sure whether it is supposed to first
-                // call awaitContent() and only then read data or not
-                // readAvailable() ensures that it is suspendable method that waits until some data is received
-                // whatever, it works without awaitContent() but let's just left it here
-                clientReader.awaitContent()
-                val buffer = ByteArray(clientReader.availableForRead)
-                val messageSize = clientReader.readAvailable(buffer)
-                println("messageSize=$messageSize")
-                val request = ConnectRequest(buffer)
-                val connectHost: String
-                val connectPort: Int
-                if (request.host.endsWith(".dweb") && request.port == 443) {
-                  connectHost = "0.0.0.0"
-                  connectPort = backendPort.toInt()
-                } else {
-                  connectHost = request.host
-                  connectPort = request.port
-                }
-                when {
-                  connectPort != -1 -> tunnelHttps(
-                    connectHost,
-                    connectPort,
-                    client,
-                    clientReader,
-                    clientWriter,
-                    tcpSocketBuilder
-                  )
-
-                  else -> {
-                    println("Failed to connect to client or receive request from ${client.remoteAddress}")
-                    // this blocks the coroutine's flow but whatever, it's the end of the coroutine now
-                    client.close()
-                    cancel()
-                  }
-
-                }
-              } catch (e: Exception) {
-                debugReverseProxy(
-                  "start",
-                  "Something went wrong during communicating with client",
-                  e
-                )
-                client.close()
-                cancel()
+              // actually Ktor's documentation is pretty shallow so I'm not sure whether it is supposed to first
+              // call awaitContent() and only then read data or not
+              // readAvailable() ensures that it is suspendable method that waits until some data is received
+              // whatever, it works without awaitContent() but let's just left it here
+              clientReader.awaitContent()
+              val buffer = ByteArray(clientReader.availableForRead)
+              val messageSize = clientReader.readAvailable(buffer)
+              println("messageSize=$messageSize")
+              val request = ConnectRequest(buffer)
+              val connectHost: String
+              val connectPort: Int
+              if (request.host.endsWith(".dweb") && request.port == 443) {
+                connectHost = "0.0.0.0"
+                connectPort = backendPort.toInt()
+              } else {
+                connectHost = request.host
+                connectPort = request.port
               }
+              when {
+                connectPort != -1 -> tunnelHttps(
+                  connectHost,
+                  connectPort,
+                  client,
+                  clientReader,
+                  clientWriter,
+                  tcpSocketBuilder
+                )
+
+                else -> {
+                  println("Failed to connect to client or receive request from ${client.remoteAddress}")
+                  // this blocks the coroutine's flow but whatever, it's the end of the coroutine now
+                  client.close()
+                  cancel()
+                }
+
+              }
+            } catch (e: Exception) {
+              debugReverseProxy(
+                "start",
+                "Something went wrong during communicating with client",
+                e
+              )
+              client.close()
+              cancel()
             }
           }
         }

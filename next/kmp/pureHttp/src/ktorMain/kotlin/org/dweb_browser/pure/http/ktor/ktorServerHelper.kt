@@ -82,6 +82,10 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
 fun ApplicationRequest.asPureRequest(): PureServerRequest {
   val pureMethod = org.dweb_browser.pure.http.PureMethod.from(httpMethod)
   val pureHeaders = PureHeaders(headers)
+  // 对http2的支持
+  if (!pureHeaders.has("Host")) {
+    pureHeaders.set("Host", local.serverHost)
+  }
   return PureServerRequest(
     uri, pureMethod, pureHeaders,
     body = if (//
