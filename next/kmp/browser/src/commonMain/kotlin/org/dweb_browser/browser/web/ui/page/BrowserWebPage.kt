@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.delay
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.common.loading.LoadingView
 import org.dweb_browser.browser.common.toWebColorScheme
 import org.dweb_browser.browser.web.data.WebSiteType
@@ -37,7 +38,7 @@ internal fun BrowserWebPage.Effect() {
   }
   /// 绑定title
   LaunchedEffect(tick) {
-    title = webView.getTitle()
+    title = webView.getTitle().ifEmpty { BrowserI18nResource.Web.page_title.text }
   }
   /// 每一次页面加载完成的时候，触发一次脏检查
   DisposableEffect(webView, tick) {

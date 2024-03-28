@@ -4,7 +4,6 @@ import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.OneParamI18nResource
 import org.dweb_browser.helper.compose.SimpleI18nResource
 
-
 object BrowserI18nResource {
   val dialog_title_webview_upgrade =
     SimpleI18nResource(Language.ZH to "更新提示", Language.EN to "Update tip")
@@ -21,28 +20,12 @@ object BrowserI18nResource {
   val dialog_dismiss_webview_upgrade =
     SimpleI18nResource(Language.ZH to "帮助文档", Language.ZH to "Help")
 
-  class InstallByteLength(var current: Long = 0, var total: Long = 0) {
-    companion object {
-      fun asI18nResource() = OneParamI18nResource({ InstallByteLength() })
-    }
-  }
-
-  //    val install_button_download = InstallByteLength.asI18nResource()
-//      .define { Language.ZH to { "下载 (${total.toSpaceSize()})" } }
-//    val install_button_update = InstallByteLength.asI18nResource()
-//      .define { Language.ZH to { "更新 (${total.toSpaceSize()})" } }
-//    val install_button_downloading = InstallByteLength.asI18nResource()
-//      .define { Language.ZH to { "下载中 ${current.toSpaceSize()} / ${total.toSpaceSize()}" } }
-//    val install_button_paused = InstallByteLength.asI18nResource()
-//      .define { Language.ZH to { "暂停  ${current.toSpaceSize()} / ${total.toSpaceSize()}" } }
   val install_tab_download =
     SimpleI18nResource(Language.ZH to "下载", Language.EN to "DownLoad")
   val install_tab_file =
     SimpleI18nResource(Language.ZH to "文件", Language.EN to "File")
   val install_button_install = SimpleI18nResource(Language.ZH to "安装", Language.EN to "Install")
-  val install_button_download =
-    SimpleI18nResource(Language.ZH to "下载", Language.EN to "DownLoad")
-  val install_button_update = SimpleI18nResource(Language.ZH to "升级", Language.EN to "Upgrade")
+val install_button_update = SimpleI18nResource(Language.ZH to "升级", Language.EN to "Upgrade")
   val install_button_downloading =
     SimpleI18nResource(Language.ZH to "下载中", Language.EN to "Downloading")
   val install_button_paused = SimpleI18nResource(Language.ZH to "暂停", Language.EN to "Pause")
@@ -64,9 +47,7 @@ object BrowserI18nResource {
   val no_apps_data = SimpleI18nResource(
     Language.ZH to "没有应用数据", Language.EN to "There are no Apps",
   )
-  val unzip_button_install = SimpleI18nResource(Language.ZH to "安装", Language.EN to "Install")
-  val unzip_button_cancel = SimpleI18nResource(Language.ZH to "取消", Language.EN to "Cancel")
-  val unzip_title_no = SimpleI18nResource(Language.ZH to "编号", Language.EN to "No")
+val unzip_title_no = SimpleI18nResource(Language.ZH to "编号", Language.EN to "No")
   val unzip_title_url =
     SimpleI18nResource(Language.ZH to "下载链接", Language.EN to "Download Link")
   val unzip_title_createTime =
@@ -76,7 +57,6 @@ object BrowserI18nResource {
   val unzip_title_originUrl =
     SimpleI18nResource(Language.ZH to "数据来源", Language.EN to "Data Source")
   val unzip_title_mime = SimpleI18nResource(Language.ZH to "文件类型", Language.EN to "Mime")
-  val button_name_open = SimpleI18nResource(Language.ZH to "打开", Language.EN to "Open")
   val button_name_confirm = SimpleI18nResource(Language.ZH to "确定", Language.EN to "Confirm")
   val button_name_cancel = SimpleI18nResource(Language.ZH to "取消", Language.EN to "Cancel")
   val top_bar_title_install =
@@ -114,35 +94,14 @@ object BrowserI18nResource {
   val browser_search_local =
     SimpleI18nResource(Language.ZH to "本地资源", Language.EN to "Local Resource")
   val browser_search_title = SimpleI18nResource(Language.ZH to "搜索", Language.EN to "Search")
-  val browser_search_cancel = SimpleI18nResource(Language.ZH to "取消", Language.EN to "Cancel")
   val browser_search_hint =
     SimpleI18nResource(Language.ZH to "搜索或输入网址", Language.EN to "Search or Input Website")
   val browser_empty_list = SimpleI18nResource(Language.ZH to "暂无数据", Language.EN to "No Data")
   val browser_bookmark_edit_dialog_title =
     SimpleI18nResource(Language.ZH to "编辑书签", Language.EN to "Edit Bookmark")
-  val browser_options_engine_list =
-    SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engine")
-  val browser_options_engine_update =
-    SimpleI18nResource(Language.ZH to "修改搜索引擎", Language.EN to "Update Search Engine")
-  val browser_engine_tag_search =
-    SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engine")
-  val browser_engine_tag_host =
-    SimpleI18nResource(Language.ZH to "搜索域名", Language.EN to "Search Host")
-  val browser_engine_tag_url = SimpleI18nResource(
-    Language.ZH to "搜索格式（用“%s”代替搜索字词）",
-    Language.EN to "Search Format(replace search terms with \"%s\")"
-  )
-  val browser_engine_tips_noFound = SimpleI18nResource(
-    Language.ZH to "未正确配置搜索引擎，请到“选项”中的“搜索引擎”中进行配置！",
-    Language.EN to "Search engine not configured correctly, please go to \"Search Engine\" in \"Options\" to configure!"
-  )
   val browser_search_noFound = SimpleI18nResource(
     Language.ZH to "未检索到符合关键字的本地资源",
     Language.EN to "No local resource matching the keyword was retrieved"
-  )
-  val browser_engine_toast_noFound = SimpleI18nResource(
-    Language.ZH to "关键字搜索，需要通过搜索引擎，请先正确配置搜索引擎！",
-    Language.EN to "Keyword search requires the use of search engines. Please configure the search engine correctly first!"
   )
 
   val browser_bookmark_title =
@@ -162,26 +121,18 @@ object BrowserI18nResource {
     SimpleI18nResource(Language.ZH to "扫一扫", Language.EN to "Scan")
   val browser_menu_add_to_desktop =
     SimpleI18nResource(Language.ZH to "添加到桌面", Language.EN to "Add To Desktop")
-  val browser_options_search_engine =
-    SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search Engines")
 
   val browser_multi_count = SimpleI18nResource(Language.ZH to "个标签页", Language.EN to "tabs")
   val browser_multi_done = SimpleI18nResource(Language.ZH to "完成", Language.EN to "Done")
-  val browser_multi_no_title =
-    SimpleI18nResource(Language.ZH to "无标题", Language.EN to "No Title")
-  val search_short_name = SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search")
+val search_short_name = SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search")
 
   val toast_message_add_bookmark =
     SimpleI18nResource(Language.ZH to "添加书签成功", Language.EN to "Add Bookmark Success")
-  val toast_message_add_book_invalid =
-    SimpleI18nResource(Language.ZH to "无效链接", Language.EN to "Not Invalid Link")
-  val toast_message_remove_bookmark =
+val toast_message_remove_bookmark =
     SimpleI18nResource(Language.ZH to "移除书签成功", Language.EN to "Remove Bookmark Success")
   val toast_message_update_bookmark =
     SimpleI18nResource(Language.ZH to "修改书签成功", Language.EN to "Change Bookmark Success")
-  val toast_message_remove_history =
-    SimpleI18nResource(Language.ZH to "移除历史记录成功", Language.EN to "Remove History Success")
-  val toast_message_add_desk_success =
+val toast_message_add_desk_success =
     SimpleI18nResource(Language.ZH to "添加到桌面成功", Language.EN to "Add to Desktop Success")
   val toast_message_add_desk_exist = SimpleI18nResource(
     Language.ZH to "桌面已存在该链接",
