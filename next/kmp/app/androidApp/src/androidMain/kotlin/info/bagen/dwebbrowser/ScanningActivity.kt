@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.common.barcode
+package info.bagen.dwebbrowser
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -15,6 +15,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.common.barcode.QRCodeScanModel
+import org.dweb_browser.browser.common.barcode.QRCodeScanRender
+import org.dweb_browser.browser.common.barcode.QRCodeState
+import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
 import org.dweb_browser.sys.permission.PermissionTipsView

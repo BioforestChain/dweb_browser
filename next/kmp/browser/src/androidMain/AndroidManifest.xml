@@ -10,8 +10,8 @@
   <uses-feature android:name="android.hardware.camera.any" />
 
   <application
-    android:resizeableActivity="true"
     android:enableOnBackInvokedCallback="true"
+    android:resizeableActivity="true"
     tools:targetApi="tiramisu">
     <meta-data
       android:name="android.max_aspect"
@@ -22,28 +22,16 @@
 
     <activity
       android:name=".desk.DesktopActivity"
-      android:theme="@style/Theme.dwebbrowser"
       android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout"
       android:exported="true"
       android:launchMode="singleTask"
       android:resizeableActivity="true"
-      tools:ignore="LockedOrientationActivity"
-      android:windowSoftInputMode="adjustResize" />
+      android:theme="@style/Theme.dwebbrowser"
+      android:windowSoftInputMode="adjustResize"
+      tools:ignore="LockedOrientationActivity" />
     <activity
       android:name=".desk.TaskbarActivity"
       android:exported="true"
-      android:screenOrientation="portrait"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
-
-    <activity
-      android:name=".common.barcode.ScanningActivity"
-      android:exported="true"
-      android:launchMode="singleTask"
-      android:theme="@style/Theme.DwebBrowser.FullScreen">
-      <intent-filter>
-        <action android:name="info.bagen.dwebbrowser.scan" />
-        <category android:name="android.intent.category.DEFAULT" />
-      </intent-filter>
-    </activity>
   </application>
 </manifest> 
