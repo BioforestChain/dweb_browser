@@ -101,7 +101,7 @@ fun BrowserPageBox(windowRenderScope: WindowContentRenderScope) {
       pageContent = { currentPage ->
         val browserPage = viewModel.getPage(currentPage)
         browserPage.Render(
-          Modifier.fillMaxWidth().capturable(browserPage.captureController), windowRenderScope.scale
+          Modifier.fillMaxSize().capturable(browserPage.captureController), windowRenderScope.scale
         )
       })
   }

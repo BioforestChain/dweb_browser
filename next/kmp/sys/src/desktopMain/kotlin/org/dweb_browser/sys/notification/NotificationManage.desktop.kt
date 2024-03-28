@@ -5,9 +5,12 @@ import dweb_browser_kmp.sys.generated.resources.Res
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.pure.image.OffscreenWebCanvas
 import org.dweb_browser.pure.image.compose.WebImageLoader
+import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
+import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.window.core.helper.pickLargest
 import org.dweb_browser.sys.window.core.helper.toStrict
 import org.dweb_browser.sys.window.render.imageFetchHook
@@ -17,11 +20,23 @@ import java.awt.TrayIcon
 import javax.imageio.ImageIO
 
 actual class NotificationManager actual constructor() {
+  init {
+    SystemPermissionAdapterManager.append {
+      when (task.name) {
+        SystemPermissionName.Notification -> {
+          AuthorizationStatus.GRANTED
+        }
+
+        else -> null
+      }
+    }
+  }
+
   val isSupport = SystemTray.isSupported()
 //  private val tray = SystemTray.getSystemTray();
 
   @OptIn(ExperimentalResourceApi::class)
-  actual suspend fun createNotification(microModule: MicroModule, message: NotificationMsgItem) {
+  actual suspend fun createNotification(microModule: MicroModule, message: NotificationWebItem) {
     if (!isSupport) {
       return
     }
@@ -39,11 +54,15 @@ actual class NotificationManager actual constructor() {
       ImageIO.read(Res.readBytes("drawable/notification_default_icon.png").inputStream())
     }
 
-    val trayIcon = TrayIcon(image, microModule.name);
+    val trayIcon = TrayIcon(image, microModule.name)
 
     // 让托盘图标自动调整到适合系统托盘的大小
-    trayIcon.isImageAutoSize = true;
-    trayIcon.displayMessage(message.title, message.msg_content, TrayIcon.MessageType.INFO)
+    trayIcon.isImageAutoSize = true
+    trayIcon.displayMessage(
+      message.actions.firstOrNull()?.title ?: microModule.mmid,
+      message.body,
+      TrayIcon.MessageType.INFO
+    )
   }
 
 }

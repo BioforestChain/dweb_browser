@@ -20,6 +20,7 @@ enum class SystemPermissionName {
   CALL,
   CLIPBOARD,
   FILE_CHOOSER,
-  InstallSystemApp, // 用于DwebApp的安装apk权限
+  InstallSystemApp, // 用于DwebApp的安装apk权限,
+  Notification, // 用于获取通知的权限
   ;
 }
