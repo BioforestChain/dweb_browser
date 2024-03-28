@@ -5,8 +5,7 @@ import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readIntLittleEndian
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.IMicroModuleManifest
@@ -23,9 +22,7 @@ import org.dweb_browser.core.ipc.helper.ipcPoolPackToCbor
 import org.dweb_browser.core.ipc.helper.ipcPoolPackToJson
 import org.dweb_browser.core.ipc.helper.jsonToIpcPoolPack
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.SimpleEventFlow
 import org.dweb_browser.helper.canRead
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.toLittleEndianByteArray
 import org.dweb_browser.pure.http.PureStream
@@ -44,10 +41,6 @@ class ReadableStreamIpc(
   override val remote: IMicroModuleManifest,
   endpoint: IpcPool
 ) : Ipc(channelId, endpoint) {
-  companion object {
-    val incomeStreamCoroutineScope =
-      CoroutineScope(CoroutineName("income-stream") + ioAsyncExceptionHandler)
-  }
 
   override fun toString(): String {
     return super.toString() + "@ReadableStreamIpc($channelId)"
@@ -66,10 +59,6 @@ class ReadableStreamIpc(
 
   private var _incomeStream: PureStream? = null
 
-  class AbortAble(scope: CoroutineScope) {
-    val signal = SimpleEventFlow(scope)
-  }
-
   private var reader: ByteReadChannel? = null
   private val _lock = SynchronizedObject()
 
@@ -79,7 +68,10 @@ class ReadableStreamIpc(
   /**
    * 输入流要额外绑定
    */
-  fun bindIncomeStream(stream: PureStream, signal: AbortAble = AbortAble(ipcScope)) =
+  fun bindIncomeStream(
+    stream: PureStream,
+    cancel: CompletableDeferred<Unit> = CompletableDeferred()
+  ) =
     synchronized(_lock) {
       if (this._incomeStream != null) {
         throw Exception("${this.channelId}[${this.remote.mmid}] in come stream already binding.");
@@ -89,7 +81,8 @@ class ReadableStreamIpc(
         throw Exception("")
       }
       val reader = stream.getReader("ReadableStreamIpc bindIncomeStream").also { this.reader = it }
-      val offAbort = signal.signal.listen {
+      ipcScope.launch {
+        cancel.await()
         debugStreamIpc("ReadableStreamIpc", "readStream close")
         reader.cancel()
       }
@@ -101,13 +94,13 @@ class ReadableStreamIpc(
             if (size <= 0) {
               continue
             }
-//          debugStreamIpc("bindIncomeStream", "size=$size => $stream")
+            debugStreamIpc("bindIncomeStream", "$channelId size=$size => $stream")
             // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
             val chunk = reader.readPacket(size)
-//          debugStreamIpc(
-//            "bindIncomeStream",
-//            "supportCbor=$supportCbor,chunk=${chunk.remaining} => $stream"
-//          )
+            debugStreamIpc(
+              "bindIncomeStream",
+              "supportCbor=$supportCbor,chunk=${chunk.remaining} => $stream"
+            )
             // 判断特殊的字节
             val byteArray = chunk.readByteArray()
             if (supportCbor) {
@@ -124,9 +117,8 @@ class ReadableStreamIpc(
         this.close()
       }
       /// 后台执行数据拉取
-      incomeStreamCoroutineScope.launch {
+      ipcScope.launch {
         readStream()
-        offAbort()
       }
       this
     }

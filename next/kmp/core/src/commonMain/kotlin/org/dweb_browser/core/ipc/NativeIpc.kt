@@ -18,30 +18,25 @@ class NativeIpc(
   override fun toString() = "NativeIpc@($port,channelId=$channelId,remote:${remote.mmid})"
 
   init {
-    port.onMessage { pack ->
-      debugNativeIpc("onMessage_get", "$channelId $pack")
-      endpoint.emitMessage(
-        IpcPoolMessageArgs(
-          IpcPoolPack(pack.pid, pack.ipcMessage),
-          this@NativeIpc
-        )
-      )
-    }
     ipcScope.launch {
-      port.onClose { close() }
-      port.start()
+      port.onMessage.collect { pack ->
+        debugNativeIpc("onMessage_get", "$channelId $pack")
+        endpoint.emitMessage(
+          IpcPoolMessageArgs(
+            IpcPoolPack(pack.pid, pack.ipcMessage),
+            this@NativeIpc
+          )
+        )
+      }
     }
   }
-
 
   override suspend fun doPostMessage(pid: Int, data: IpcMessage) {
     debugNativeIpc("postMessage_send", "$channelId $data")
     port.postMessage(IpcPoolPack(pid, data))
   }
 
-
   override suspend fun _doClose() {
-    port.close()
     debugNativeIpc("native_doClose", "$channelId ")
   }
 }

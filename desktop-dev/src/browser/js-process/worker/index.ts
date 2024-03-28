@@ -200,7 +200,7 @@ export class JsProcessMicroModule implements $MicroModule {
       await Promise.all(
         Array.from(this._ipcConnectsMap.values(), async (ipcPo) => {
           const ipc = await ipcPo.promise;
-          ipc.destroy();
+          ipc.close();
         })
       );
       workerGlobal.close();
@@ -209,6 +209,7 @@ export class JsProcessMicroModule implements $MicroModule {
       if (ipcEvent.name === "dns/connect/done" && typeof ipcEvent.data === "string") {
         const { connect, result } = JSON.parse(ipcEvent.data);
         const task = this._ipcConnectsMap.get(connect);
+        console.log("xxlife 收到桥接完成消息=>", task, ipcEvent.name, ipcEvent.data);
         if (task) {
           /// 这里之所以 connect 和 result 存在不一致的情况，是因为 subprotocol 的存在
           if (task.is_resolved === false) {
