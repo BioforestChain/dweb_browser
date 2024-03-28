@@ -132,7 +132,7 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
 
     private val defaultHttpClient = @Suppress("USELESS_IS_CHECK")
     when (val pureClient = defaultHttpPureClient) {
-      is KtorPureClient -> pureClient.ktorClient
+      is KtorPureClient<*> -> pureClient.ktorClient
       else -> HttpClient()
     }
 

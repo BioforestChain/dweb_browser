@@ -32,7 +32,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
@@ -95,7 +94,7 @@ class DWebViewEngine internal constructor(
           // SSL Certificate to verify.
           val certificate = params.certificate()
           // FIXME 这里应该有更加严谨的证书内容判断
-          if (certificate.derEncodedValue().decodeToString().contains("localhost.dweb")) {
+          if (certificate.derEncodedValue().decodeToString().contains(".dweb")) {
             VerifyCertificateCallback.Response.valid()
           } else {
             VerifyCertificateCallback.Response.defaultAction()
@@ -103,12 +102,15 @@ class DWebViewEngine internal constructor(
         });
 
       val browser = engine.newBrowser()
+      if (debugDWebView.isEnable) {
+        browser.devTools().show()
+      }
       // 同步销毁
       browser.on(BrowserClosed::class.java) {
         engine.close()
       }
       MainScope().launch {
-        PureViewController.beforeExit.collect{
+        PureViewController.beforeExit.collect {
           engine.close()
         }
       }

@@ -67,6 +67,7 @@ class PureHeaders() {
   }
 
   fun getOrDefault(key: String, default: String) = headersMap[key.asKey()] ?: default
+  fun getOrNull(key: String) = headersMap[key.asKey()]
 
   fun has(key: String): Boolean {
     return headersMap.contains(key.asKey())

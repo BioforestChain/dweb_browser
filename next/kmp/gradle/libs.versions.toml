@@ -129,15 +129,20 @@ whyoleg-cryptography-provider-openssl3-prebuilt = { group = "dev.whyoleg.cryptog
 # ktor
 ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor-version" }
 ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor-version" }
+ktor-server-host-common = { group = "io.ktor", name = "ktor-server-host-common", version.ref = "ktor-version" }
 ktor-server-cio = { group = "io.ktor", name = "ktor-server-cio", version.ref = "ktor-version" }
+ktor-server-netty = { group = "io.ktor", name = "ktor-server-netty", version.ref = "ktor-version" }
+ktor-server-jetty = { group = "io.ktor", name = "ktor-server-jetty", version.ref = "ktor-version" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor-version" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor-version" }
+ktor-client-jetty = { group = "io.ktor", name = "ktor-client-jetty", version.ref = "ktor-version" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor-version" }
 ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor-version" }
 ktor-client-js = { group = "io.ktor", name = "ktor-client-js", version.ref = "ktor-version" }
 ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding", version.ref = "ktor-version" }
 ktor-io = { group = "io.ktor", name = "ktor-io", version.ref = "ktor-version" }
 ktor-http = { group = "io.ktor", name = "ktor-http", version.ref = "ktor-version" }
+ktor-network-tls-certificates = { group = "io.ktor", name = "ktor-network-tls-certificates", version.ref = "ktor-version" }
 # ktor wasm
 ktor-server-websockets-wasm = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor-wasm-version" }
 ktor-server-core-wasm = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor-wasm-version" }

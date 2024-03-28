@@ -1,6 +1,8 @@
 package org.dweb_browser.pure.http.ktor
 
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.compression.ContentEncoding
@@ -27,13 +29,16 @@ import org.dweb_browser.pure.http.tryDoHttpPureServerResponse
 
 val debugHttpPureClient = Debugger("httpPureClient")
 
-open class KtorPureClient(engine: HttpClientEngineFactory<*>) {
+open class KtorPureClient<out T : HttpClientEngineConfig>(
+  engine: HttpClientEngineFactory<T>, config: HttpClientConfig<T>.() -> Unit = {}
+) {
   val ktorClient = HttpClient(engine) {
     install(HttpTimeout) {
       connectTimeoutMillis = 30_000L
     }
     install(ContentEncoding)
     install(WebSockets)
+    config()
   }
 
   suspend fun fetch(request: PureClientRequest): PureResponse {

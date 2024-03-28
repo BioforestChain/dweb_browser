@@ -3,6 +3,22 @@ plugins {
 }
 
 kotlin {
+  kmpCommonTarget(project) {
+    applyHierarchy {
+      common {
+        group("mobile") {
+          withAndroidTarget()
+          withIosTarget()
+        }
+      }
+    }
+  }
+  val mobileMain by sourceSets.creating {
+    dependencies {
+      // ssl代理。因为桌面端直接支持 ssl 服务，所以不需要这一层 rust 提供ssl代理转发
+      implementation(projects.libReverseProxy)
+    }
+  }
   kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)
@@ -13,7 +29,6 @@ kotlin {
       implementation(projects.pureImage)
       implementation(projects.core)
       implementation(projects.sys)
-      implementation(projects.libReverseProxy)
     }
   }
   kmpAndroidTarget(project) {
