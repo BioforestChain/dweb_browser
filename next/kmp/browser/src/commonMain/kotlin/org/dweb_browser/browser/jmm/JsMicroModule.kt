@@ -153,7 +153,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         }, PureMethod.POST, body = PureStreamBody(streamIpc.input.stream))
       ).stream()
     )
-    this@JsMicroModule.addToIpcSet(streamIpc)
+    this.addToIpcSet(streamIpc)
     return streamIpc
   }
 

@@ -134,15 +134,15 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     getDataVirtualFsDirectory().also {
       debugFile("DIR/DATA", it.getFsBasePath(this))
-      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
+      fileTypeAdapterManager.append(adapter = it).removeWhen(ioAsyncScope)
     }
     getCacheVirtualFsDirectory().also {
       debugFile("DIR/CACHE", it.getFsBasePath(this))
-      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
+      fileTypeAdapterManager.append(adapter = it).removeWhen(ioAsyncScope)
     }
     getExternalDownloadVirtualFsDirectory().also {
       debugFile("DIR/Ext Download", it.getFsBasePath(this))
-      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
+      fileTypeAdapterManager.append(adapter = it).removeWhen(ioAsyncScope)
     }
     /// nativeFetch 适配 file:///*/** 的请求
     nativeFetchAdaptersManager.append { fromMM, request ->
@@ -170,7 +170,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           }
         }
       }
-    }.removeWhen(onAfterShutdown)
+    }.removeWhen(ioAsyncScope)
 
     fun touchFile(filepath: Path) {
       if (!SystemFileSystem.exists(filepath)) {

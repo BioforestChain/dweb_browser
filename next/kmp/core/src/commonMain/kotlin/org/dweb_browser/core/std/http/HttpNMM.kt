@@ -189,7 +189,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         // 无需走网络层，直接内部处理掉
         httpHandler(request)
       } else null
-    }.removeWhen(onAfterShutdown)
+    }.removeWhen(ioAsyncScope)
 
     /// 模块 API 接口
     routes(

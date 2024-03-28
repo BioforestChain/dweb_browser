@@ -267,21 +267,21 @@ export abstract class Ipc {
   }
   awaitStart = this.startDeferred.promise;
   // 告知对方我启动了
-  start() {
+  async start() {
     this.ipcLifeCycleState = IPC_STATE.OPEN;
     // 如果是后连接的也需要发个连接消息  这里唯一可能出现消息的丢失就是通道中消息丢失
-    this.postMessage(IpcLifeCycle.opening());
+    await this.postMessage(IpcLifeCycle.opening());
   }
 
   /**ipc激活回调 */
   initlifeCycleHook() {
     // TODO 跟对方通信 协商数据格式
     // console.log(`🌸 xxlife start=>🍃 ${this.remote.mmid} ${this.channelId}`);
-    this.onLifeCycle((lifeCycle, ipc) => {
+    this.onLifeCycle(async (lifeCycle, ipc) => {
       switch (lifeCycle.state) {
         // 收到打开中的消息，也告知自己已经准备好了
         case IPC_STATE.OPENING: {
-          ipc.postMessage(IpcLifeCycle.open());
+          await ipc.postMessage(IpcLifeCycle.open());
           ipc.startDeferred.resolve(lifeCycle);
           break;
         }
@@ -297,12 +297,14 @@ export abstract class Ipc {
         case IPC_STATE.CLOSING: {
           //这里可以接受最后一些消息
           this.ipcLifeCycleState = IPC_STATE.CLOSING;
-          this.postMessage(IpcLifeCycle.close());
+          await this.postMessage(IpcLifeCycle.close());
+          await this.close();
           break;
         }
         // 对方关了，代表没有消息发过来了，我也关闭
         case IPC_STATE.CLOSED: {
-          this.destroy();
+          await this.destroy();
+          break;
         }
       }
     });
@@ -316,28 +318,33 @@ export abstract class Ipc {
   }
 
   // 告知对面我要关闭了
-  tryClose = () => {
+  async tryClose() {
     // 开始关闭
     this.ipcLifeCycleState = IPC_STATE.CLOSING;
-    this.postMessage(IpcLifeCycle.closing());
-  };
+    await this.postMessage(IpcLifeCycle.closing());
+  }
 
+  /**关闭ipc */
   private _isClose = false;
-  close() {
+  async close() {
     if (this._isClose) {
       return;
     }
-    console.log("🌼ipc close worker", this.channelId);
     this._isClose = true;
+    console.log("🌼ipc close worker", this.channelId);
     if (!this.isClosed) {
-      this.tryClose();
+      await this.tryClose();
     }
+    this.destroy();
   }
 
-  async destroy() {
-    if (this.isClosed) {
+  /**销毁ipc */
+  private _isDestroy = false;
+  private async destroy() {
+    if (this._isDestroy) {
       return;
     }
+    this._isDestroy = true;
     console.log("🌼ipc destroy worker", this.channelId);
     // 我彻底关闭了
     await this.postMessage(IpcLifeCycle.close());

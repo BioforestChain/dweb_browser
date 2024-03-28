@@ -1,6 +1,9 @@
 package info.bagen.dwebbrowser
 
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.EventFlow
 import org.dweb_browser.helper.SimpleEventFlow
 import org.dweb_browser.test.runCommonTest
@@ -29,15 +32,19 @@ class EventFlowTest {
       delay(3000)
       acc += 1
     }
-    eventFlow.emitAndClear()
+    eventFlow.emit()
     println("testSuspendEmit emit $acc")
     assertEquals(acc, 3)
+    withContext(NonCancellable) {
+      this.cancel("关闭测试")
+    }
   }
 
   @Test
   fun testMuteEmit() = runCommonTest {
     val eventFlow = EventFlow<Int>(this)
     var acc = 0
+    println("testMuteEmit init ")
     eventFlow.listen {
       println("testMuteEmit listen $it")
       acc = 1 + it
@@ -45,8 +52,9 @@ class EventFlowTest {
     println("testMuteEmit1 $acc")
     eventFlow.emit(acc)
     println("testMuteEmit2 $acc")
-    eventFlow.emitAndClear(acc)
+    eventFlow.emit(acc)
     println("testMuteEmit3 $acc")
     assertEquals(acc, 2)
+    this.cancel()
   }
 }

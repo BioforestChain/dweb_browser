@@ -277,7 +277,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           response
         } else PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
       } else null
-    }.removeWhen(this.onAfterShutdown)
+    }.removeWhen(this.ioAsyncScope)
     /** dwebDeepLink 适配器*/
     nativeFetchAdaptersManager.append { fromMM, request ->
       if (request.href.startsWith("dweb:")) {
@@ -294,7 +294,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           HttpStatusCode.BadGateway, body = PureStringBody(request.href)
         )
       } else null
-    }.removeWhen(this.onAfterShutdown)
+    }.removeWhen(this.ioAsyncScope)
 
     val queryAppId = PureUrl.query("app_id")
     val queryCategory = PureUrl.query("category")

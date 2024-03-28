@@ -19,10 +19,10 @@ export class IpcPool {
   // close start
   protected _closeSignal = createSignal<() => unknown>(false);
   onClose = this._closeSignal.listen;
-  close() {
-    this.ipcPool.forEach((ipc) => {
-      ipc.close();
-    });
+  async close() {
+    for (const _ipc of this.ipcPool.values()) {
+      await _ipc.close();
+    }
     this.ipcPool.clear();
   }
   // close end

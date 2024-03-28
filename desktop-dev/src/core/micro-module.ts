@@ -64,14 +64,14 @@ export abstract class MicroModule implements $MicroModule {
     this.context = context;
   }
 
-  protected after_bootstrap(_context: $BootstrapContext) {
+  protected async after_bootstrap(_context: $BootstrapContext) {
     this._running_state_lock.resolve(true);
     /// 默认承认ready协议的存在，并在模块启动完成后，通知对方ready了
-    this.onConnect((ipc) => {
-      void ipc.ready();
+    this.onConnect(async (ipc) => {
+      await ipc.ready();
     });
     for (const ipc of this._ipcSet) {
-      void ipc.ready();
+      await ipc.ready();
     }
   }
 
@@ -93,7 +93,7 @@ export abstract class MicroModule implements $MicroModule {
 
     /// 关闭所有的通讯
     for (const ipc of this._ipcSet) {
-      ipc.close();
+      await ipc.close();
     }
     this._ipcSet.clear();
   }

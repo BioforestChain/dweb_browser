@@ -241,15 +241,18 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     if (!isActivity && data !is IpcLifeCycle) {
       awaitStart()
     }
+//    println("分发消息=> $data")
     withScope(ipcScope) {
       // 分发消息
       doPostMessage(pid, data)
     }
   }
 
+  // Flow 对象本身并不持有任何状态，它只是一个冷数据流。真正持有状态的是 collect 的协程。所以，理论上来说，不需要特地去清空或注销 Flow。
+  // 如果你想停止数据流，你可以考虑取消消费这个 Flow 的协程。在你的协程被取消后，Flow 自然就停止了
   val messageFlow = MutableSharedFlow<IpcMessageArgs>(
-    replay = 0,//相当于粘性数据
-    extraBufferCapacity = 0,//接受的慢时候，发送的入栈
+    replay = 10,//相当于粘性数据
+    extraBufferCapacity = 10,//接受的慢时候，发送的入栈 防止有一个请求挂起的时候 app其他请求无法进行
     onBufferOverflow = BufferOverflow.SUSPEND // 缓冲区溢出的时候挂起 背压
   )
 
@@ -355,10 +358,10 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
     // 开始触发各类跟ipc绑定的关闭事件
     this.closeSignal.complete(null)
     debugIpc("ipcDestroy=>", " $channelId 触发完成")
-    // 关闭通信信道
-    this._doClose()
     // 做完全部工作了，关闭
     ipcLifeCycleState = IPC_STATE.CLOSED
+    // 关闭通信信道
+    this._doClose()
     ipcScope.cancel()
   }
   /**----- close end*/

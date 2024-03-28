@@ -71,7 +71,7 @@ class JmmForwardIpc(
     }
     // 收到代理的消息回复
     fetchIpc.eventFlow.onEach { (ipcEvent) ->
-      if (ipcEvent.name == responseEventName) {
+      if (ipcEvent.name == responseEventName || ipcEvent.name == lifeCycleEventName) {
         val pack = jsonToIpcPack(ipcEvent.text)
         val message = jsonToIpcPoolPack(pack.ipcMessage, jmmIpc)
         endpoint.emitMessage(

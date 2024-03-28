@@ -15,6 +15,7 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
@@ -140,11 +141,10 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   protected open suspend fun afterShutdown() {
     _afterShutdownSignal.emitAndClear()
     _connectSignal.clear()
-    runningStateLock.resolve()
-
     this._bootstrapContext = null
     // 取消所有的工作
     this.ioAsyncScope.cancel()
+    runningStateLock.resolve()
   }
 
   suspend fun shutdown() = lifecycleLock.withLock {
@@ -163,11 +163,11 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   private val _ipcSet = ConcurrentSet<Ipc>()
 
   suspend fun addToIpcSet(ipc: Ipc): Boolean {
-
-    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
+    // 这里的ReadableStreamIpc比较特殊，因为是通过绑定对方的流来接收对方消息，如果这里等待，第一次没等到会出现死锁
+    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP && ipc !is ReadableStreamIpc) {
       debugMicroModule(
         "addToIpcSet",
-        "「${ipc.channelId}」 $mmid => ${ipc.remote.mmid} , ${runningStateLock.isResolved}"
+        "⏸️「${ipc.channelId}」 $mmid => ${ipc.remote.mmid} , ${runningStateLock.isResolved}"
       )
       ipc.awaitStart()
       debugMicroModule("addToIpcSet", "✅ ${ipc.channelId} end")
