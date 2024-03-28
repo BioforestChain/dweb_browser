@@ -3,7 +3,6 @@ package org.dweb_browser.browser.common.barcode
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,11 +58,6 @@ class ScanningActivity : ComponentActivity() {
             onSuccess = { data ->
               if (!openDeepLink(data, showBackground = true)) {
                 qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
-                Toast.makeText(
-                  this@ScanningActivity,
-                  BrowserI18nResource.QRCode.toast_mismatching.text,
-                  Toast.LENGTH_SHORT
-                ).show()
               } else finish()
             },
             onCancel = { finish() }
