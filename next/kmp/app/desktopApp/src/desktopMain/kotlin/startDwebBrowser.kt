@@ -1,5 +1,4 @@
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.common.barcode.QRCodeScanNMM
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
@@ -115,7 +114,6 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   val searchNMM = SearchNMM().setup()
   /// 扫码
   val scannerNMM = ScanningNMM().setup()
-  val qrCodeScanNMM = QRCodeScanNMM().setup()
   ///安装剪切板
   val clipboardNMM = ClipboardNMM().setup()
   ///设备信息
@@ -162,7 +160,6 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
       browserNMM.mmid, // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
       deskNMM.mmid,//
       shortcutNMM.mmid, // 为了启动时，注入快捷内容
-      qrCodeScanNMM.mmid,
     )
   ).setup()
 

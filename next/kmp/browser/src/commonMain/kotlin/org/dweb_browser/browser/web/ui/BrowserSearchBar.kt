@@ -63,8 +63,6 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
-import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.LocalShowIme
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
@@ -275,10 +273,7 @@ private fun SearchBox(page: BrowserPage) {
           Icon(Icons.Default.Refresh, contentDescription = "Refresh")
         }
       } else if (emptyTheme) {
-        val qrCodeScanModel = LocalQRCodeModel.current
-        IconButton(onClick = {
-          qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
-        }) {
+        IconButton(onClick = { viewModel.showQRCodePanel = true }) {
           Icon(
             BrowserDrawResource.Scanner.painter(),
             contentDescription = "Open Camera To Scan",

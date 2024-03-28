@@ -3,71 +3,77 @@ package org.dweb_browser.browser.common.barcode
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
-import org.dweb_browser.helper.compose.LocalCompositionChain
+import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.platform.theme.DwebBrowserAppTheme
+import org.dweb_browser.sys.permission.PermissionTipsView
+import org.dweb_browser.sys.window.render.NativeBackHandler
 
 class ScanningActivity : ComponentActivity() {
-  companion object {
-    const val IntentFromIPC = "fromIPC"
-  }
-
-  private val showTips = mutableStateOf(false)
+  private var showTips by mutableStateOf(false)
   private val qrCodeScanModel = QRCodeScanModel()
+  private val permissionResult = PromiseOut<Boolean>()
   private val launcherRequestPermission =
     registerForActivityResult(ActivityResultContracts.RequestPermission()) { result ->
-      if (result) {
-        showTips.value = false
-        qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
-      } else {
-        finish()
-      }
+      permissionResult.resolve(result)
+      if (result) showTips = false else finish()
     }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
-    val fromIpc = intent.getBooleanExtra(IntentFromIPC, false)
     setContent {
       DwebBrowserAppTheme {
         Box(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
-          LocalCompositionChain.current.Provider(
-            LocalQRCodeModel provides qrCodeScanModel
-          ) {
-            ShortcutQRCodeScanRender(
-              onSuccess = { data ->
-                if (!fromIpc) {
-                  openDeepLink(data)
-                }
+          NativeBackHandler {
+            when (qrCodeScanModel.state) {
+              QRCodeState.MultiSelect -> qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
+              else -> {
+                qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Hide)
                 finish()
-              },
-              onCancel = { finish() }
-            )
-          }
-
-          PermissionTipsView(showTips)
-
-          LaunchedEffect(qrCodeScanModel) {
-            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-              showTips.value = true
-              launcherRequestPermission.launch(Manifest.permission.CAMERA)
-            } else {
-              qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
+              }
             }
+          }
+          QRCodeScanRender(
+            scanModel = qrCodeScanModel,
+            requestPermission = {
+              if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                showTips = true
+                launcherRequestPermission.launch(Manifest.permission.CAMERA)
+                permissionResult.waitPromise()
+              } else true
+            },
+            onSuccess = { data ->
+              if (!openDeepLink(data, showBackground = true)) {
+                qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
+                Toast.makeText(
+                  this@ScanningActivity,
+                  BrowserI18nResource.QRCode.toast_mismatching.text,
+                  Toast.LENGTH_SHORT
+                ).show()
+              } else finish()
+            },
+            onCancel = { finish() }
+          )
+
+          if (showTips) {
+            PermissionTipsView(
+              title = BrowserI18nResource.QRCode.permission_tip_camera_title(),
+              description = BrowserI18nResource.QRCode.permission_tip_camera_message()
+            )
           }
         }
       }
@@ -78,13 +84,4 @@ class ScanningActivity : ComponentActivity() {
     super.onStop()
     finish()
   }
-}
-
-@Composable
-private fun PermissionTipsView(show: MutableState<Boolean>) {
-  if (!show.value) return
-  org.dweb_browser.sys.permission.PermissionTipsView(
-    title = QRCodeI18nResource.permission_tip_camera_title(),
-    description = QRCodeI18nResource.permission_tip_camera_message()
-  )
 }

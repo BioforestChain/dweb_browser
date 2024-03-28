@@ -86,6 +86,7 @@ class BrowserViewModel(
     DisplayGrid(true), Close(false), ;
   }
 
+  var showQRCodePanel by mutableStateOf(false)
   /**
    * previewPanel 是否完成了布局计算，可以开始动画渲染
    */

@@ -4,15 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import org.dweb_browser.helper.WARNING
 
-@Composable
-actual fun CameraPreviewView(
-  openAlarmResult: (ImageBitmap) -> Unit,
-  onBarcodeDetected: (QRCodeDecoderResult) -> Unit,
-  maskView: @Composable (FlashLightSwitch, OpenAlbum) -> Unit
-) {
-  WARNING("Not yet implemented CameraPreviewView")
-}
-
 actual fun beepAudio() {
   WARNING("Not yet implemented beepAudio")
 }
@@ -30,6 +21,7 @@ actual fun transformPoint(
   TODO("Not yet implemented")
 }
 
-actual fun openDeepLink(data: String) {
+actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
   WARNING("Not yet implemented openDeepLink")
+  return false
 }

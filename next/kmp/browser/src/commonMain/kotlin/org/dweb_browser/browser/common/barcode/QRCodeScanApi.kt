@@ -17,7 +17,7 @@ typealias OpenAlbum = () -> Unit
  * 相机功能
  */
 @Composable
-expect fun CameraPreviewView(
+expect fun CameraPreviewRender(
   openAlarmResult: (ImageBitmap) -> Unit,
   onBarcodeDetected: (QRCodeDecoderResult) -> Unit,
   maskView: @Composable (FlashLightSwitch, OpenAlbum) -> Unit
@@ -51,4 +51,4 @@ expect fun transformPoint(
 /**
  * 打开扫码的结果
  */
-expect fun openDeepLink(data: String)
+expect fun openDeepLink(data: String, showBackground: Boolean = false): Boolean

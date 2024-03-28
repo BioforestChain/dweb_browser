@@ -31,8 +31,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
-import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
-import org.dweb_browser.browser.common.barcode.QRCodeState
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.helper.PrivacyUrl
@@ -122,8 +120,6 @@ internal fun BrowserMenuPanel() {
       }, trailingIcon = Icons.AutoMirrored.Filled.ArrowForwardIos
     )
 
-    /// 扫一扫
-    val qrCodeScanModel = LocalQRCodeModel.current
     SettingListItem(
       title = BrowserI18nResource.browser_menu_scanner(), // stringResource(id = R.string.browser_options_privacy),
       leadingIcon = {
@@ -135,8 +131,8 @@ internal fun BrowserMenuPanel() {
         )
       },
       onClick = {
+        viewModel.showQRCodePanel = true
         hide()
-        uiScope.launch { qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning) }
       }
     )
 

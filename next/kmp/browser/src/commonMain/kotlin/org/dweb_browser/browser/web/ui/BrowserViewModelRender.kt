@@ -22,11 +22,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import org.dweb_browser.browser.common.barcode.BrowserQRCodeScanRender
-import org.dweb_browser.browser.common.barcode.LocalQRCodeModel
-import org.dweb_browser.browser.common.barcode.QRCodeScanModel
-import org.dweb_browser.browser.common.barcode.QRCodeState
-import org.dweb_browser.browser.common.barcode.openDeepLink
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.helper.capturable.capturable
@@ -54,61 +49,29 @@ internal fun <T> exitAnimationSpec() = tween<T>(300, easing = IosFastOutSlowInEa
 fun BrowserViewModalRender(
   viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope
 ) {
-  val qrCodeScanModel = remember { QRCodeScanModel() }
 
-  LocalCompositionChain.current.Provider(
-    LocalBrowserViewModel provides viewModel,
-    LocalQRCodeModel provides qrCodeScanModel,
-  ) {
+  LocalCompositionChain.current.Provider(LocalBrowserViewModel provides viewModel) {
     viewModel.ViewModelEffect()
-    // 窗口 BottomSheet 的按钮
-
-//    // 窗口级返回操作
-//    win.GoBackHandler {
-//      val browserContentItem = viewModel.focusPage ?: return@GoBackHandler
-//      scope.launch {
-//        if (showSearchView.value) { // 如果显示搜索界面，优先关闭搜索界面
-//          focusManager.clearFocus()
-//          showSearchView.value = false
-//        } else if (viewModel.showPreview) {
-//          viewModel.updatePreviewState(false)
-//        } else if (qrCodeScanModel.state.value != QRCodeState.Hide) {
-//          qrCodeScanModel.state.value = QRCodeState.Hide
-//        } else {
-//          browserContentItem.contentWebItem.value?.let { contentWebItem ->
-//            if (contentWebItem.viewItem.webView.canGoBack()) {
-//              contentWebItem.viewItem.webView.goBack()
-//            } else {
-//              viewModel.closePage(browserContentItem)
-//            }
-//          } ?: win.hide()
-//        }
-//      }
-//    }
 
     Box(modifier = remember(windowRenderScope) {
       with(windowRenderScope) {
         modifier.requiredSize((width / scale).dp, (height / scale).dp).scale(scale)
       }
     }.background(MaterialTheme.colorScheme.background)) {
-      if (viewModel.isPreviewInvisible) {
-        Column(Modifier.fillMaxSize()) {
-          // 网页主体
-          Box(modifier = Modifier.weight(1f)) {
-            BrowserPageBox(windowRenderScope)   // 中间网页主体
-          }
-          // 工具栏，包括搜索框和导航栏
-          BrowserBottomBar(Modifier.fillMaxWidth().wrapContentHeight())
+      // 移除 viewModel.isPreviewInvisible, 避免显示的时候 WebView 重新加载。
+      Column(Modifier.fillMaxSize()) {
+        // 网页主体
+        Box(modifier = Modifier.weight(1f)) {
+          BrowserPageBox(windowRenderScope)   // 中间网页主体
         }
+        // 工具栏，包括搜索框和导航栏
+        BrowserBottomBar(Modifier.fillMaxWidth().wrapContentHeight())
       }
 
       BrowserPreviewPanel(Modifier.zIndex(2f))
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
       BrowserSearchPanel(Modifier.fillMaxSize())
-      BrowserQRCodeScanRender(onSuccess = {
-        openDeepLink(it)
-        qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Hide)
-      }, onCancel = { qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Hide) })
+      BrowserQRCodePanel(Modifier.fillMaxSize())
     }
   }
 }

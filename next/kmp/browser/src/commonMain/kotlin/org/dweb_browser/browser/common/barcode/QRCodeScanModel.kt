@@ -1,6 +1,8 @@
 package org.dweb_browser.browser.common.barcode
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PureRect
@@ -27,9 +29,9 @@ data class QRCodeDecoderResult(
 }
 
 class QRCodeScanModel {
-  val state = mutableStateOf(QRCodeState.Hide)
+  var state by mutableStateOf(QRCodeState.Hide)
   fun updateQRCodeStateUI(qrCodeState: QRCodeState) {
-    state.value = qrCodeState
+    state = qrCodeState
   }
 
   var imageBitmap: ImageBitmap? = null
@@ -40,16 +42,4 @@ class QRCodeScanModel {
    */
   internal val stateChange = Signal<QRCodeState>()
   val onStateChange = stateChange.toListener()
-
-  /**
-   * 获取权限
-   */
-  suspend fun requestPermission(): Boolean =
-    QRCodeScanController.controller.requestPermission()
-
-  /**
-   * 解析图片
-   */
-  suspend fun process(imageBitmap: ImageBitmap): List<String>? =
-    QRCodeScanController.controller.process(imageBitmap)
 }

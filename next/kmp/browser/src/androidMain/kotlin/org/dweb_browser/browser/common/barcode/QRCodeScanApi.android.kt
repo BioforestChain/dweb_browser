@@ -43,92 +43,6 @@ import org.dweb_browser.helper.isWebUrl
 import java.util.concurrent.Executors
 import kotlin.math.abs
 
-@Composable
-actual fun CameraPreviewView(
-  openAlarmResult: (ImageBitmap) -> Unit,
-  onBarcodeDetected: (QRCodeDecoderResult) -> Unit,
-  maskView: @Composable (FlashLightSwitch, OpenAlbum) -> Unit
-) {
-  var cameraProvider: ProcessCameraProvider? = null
-  val context = LocalContext.current
-  val camera: MutableState<Camera?> = remember { mutableStateOf(null) }
-  val launchPhoto = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-    // TODO 将这个Bitmap解码
-    uri?.let {
-      val bitmap = BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri))
-      openAlarmResult(bitmap.asImageBitmap())
-    }
-  }
-
-  Surface(
-    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.onBackground
-  ) {
-    AndroidView(factory = { ctx ->
-      val previewView = PreviewView(ctx).also {
-        it.scaleType = PreviewView.ScaleType.FILL_CENTER
-      }
-      val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-      cameraProviderFuture.addListener({
-        cameraProvider = cameraProviderFuture.get()
-
-        val preview = Preview.Builder().build().also {
-          it.setSurfaceProvider(previewView.surfaceProvider)
-        }
-
-        val imageAnalyzer =
-          ImageAnalysis.Builder().setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .build()
-        val qrCodeAnalyser = QRCodeAnalyzer(onFailure = {}) { bitmap, barcodes ->
-          imageAnalyzer.clearAnalyzer()
-          val listRect: MutableList<QRCodeDecoderResult.QRCode> = mutableListOf()
-          barcodes.forEach { barcode ->
-            listRect.add(
-              QRCodeDecoderResult.QRCode(
-                org.dweb_browser.helper.PureRect(
-                  x = barcode.boundingBox?.centerX()?.toFloat() ?: 0f,
-                  y = barcode.boundingBox?.centerY()?.toFloat() ?: 0f
-                ), barcode.displayValue
-              )
-            )
-          }
-          val qrCodeScanResult = QRCodeDecoderResult(
-            preBitmap = previewView.bitmap?.asImageBitmap(),
-            lastBitmap = bitmap?.asImageBitmap(),
-            listQRCode = listRect
-          )
-          onBarcodeDetected(qrCodeScanResult)
-        }
-        imageAnalyzer.setAnalyzer(Executors.newSingleThreadExecutor(), qrCodeAnalyser)
-
-        val imageCapture = ImageCapture.Builder().build()
-        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA //相机选择器
-        try {
-          cameraProvider!!.unbindAll() // Unbind use cases before rebinding
-          // Bind use cases to camera
-          camera.value = cameraProvider!!.bindToLifecycle(
-            context as ComponentActivity, cameraSelector, preview, imageCapture, imageAnalyzer
-          )
-        } catch (exc: Exception) {
-          Log.e("QRCodeScanView", "Use case binding failed", exc)
-        }
-      }, ContextCompat.getMainExecutor(context))
-      previewView
-    })
-    camera.value?.let { item ->
-      maskView(
-        { torch -> item.cameraControl.enableTorch(torch); true },
-        { launchPhoto.launch("image/*") }
-      )
-    }
-  }
-
-  DisposableEffect(cameraProvider) {
-    onDispose {
-      cameraProvider?.unbindAll()
-    }
-  }
-}
-
 actual fun beepAudio() {
   (getAppContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager)
     .playSoundEffect(AudioManager.FX_KEY_CLICK, 1.0f)
@@ -182,21 +96,26 @@ actual fun transformPoint(
   }
 }
 
-actual fun openDeepLink(data: String) {
+actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
   val context = getAppContext()
   val deepLink = if (data.isWebUrl()) {
     "dweb://openinbrowser?url=$data"
   } else data
 
   deepLink.regexDeepLink()?.let { dwebLink ->
-    context.startActivity(Intent().also {
-      it.`package` = context.packageName
-      it.action = Intent.ACTION_VIEW
-      it.data = Uri.parse(dwebLink)
-      it.addCategory("android.intent.category.BROWSABLE")
-      it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(Intent().apply {
+      `package` = context.packageName
+      action = Intent.ACTION_VIEW
+      this.data = Uri.parse(dwebLink)
+      addCategory("android.intent.category.BROWSABLE")
+      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      putExtra("showBackground", showBackground)
     })
-  } ?: Toast.makeText(
-    context, BrowserI18nResource.QRCode.toast_mismatching.text.format(data), Toast.LENGTH_SHORT
-  ).show()
+    return true
+  } ?: run {
+    Toast.makeText(
+      context, BrowserI18nResource.QRCode.toast_mismatching.text.format(data), Toast.LENGTH_SHORT
+    ).show()
+    return false
+  }
 }

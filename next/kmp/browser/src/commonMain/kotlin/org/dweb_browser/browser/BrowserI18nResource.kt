@@ -342,5 +342,32 @@ object BrowserI18nResource {
       Language.ZH to "无法解析的数据 -> %s",
       Language.EN to "no support data -> %s"
     )
+    val permission_tip_camera_title = SimpleI18nResource(
+      Language.ZH to "相机权限使用说明",
+      Language.EN to "Camera Permission Instructions"
+    )
+    val permission_tip_camera_message = SimpleI18nResource(
+      Language.ZH to "DwebBrowser正在向您获取“相机”权限，同意后，将用于为您提供扫描二维码服务",
+      Language.EN to "DwebBrowser is asking you for \"Camera\" permissions, and if you agree, it will be used to provide you with scanning QR code services"
+    )
+
+    val permission_denied = SimpleI18nResource(
+      Language.ZH to "获取“相机”权限失败，无法提供扫码服务",
+      Language.EN to "Failed to obtain the Camera permission and cannot provide the code scanning service"
+    )
+
+    val recognizing = SimpleI18nResource(
+      Language.ZH to "正在识别中...",
+      Language.EN to "Recognizing..."
+    )
+
+    val confirm = SimpleI18nResource(
+      Language.ZH to "确定",
+      Language.EN to "Confirm"
+    )
+    val photo_album = SimpleI18nResource(
+      Language.ZH to "相册",
+      Language.EN to "Album"
+    )
   }
 }
