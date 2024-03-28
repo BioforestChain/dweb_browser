@@ -9,7 +9,6 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.CborLoose
 import org.dweb_browser.helper.JsonLoose
-import org.dweb_browser.helper.printError
 import org.dweb_browser.pure.http.PureHeaders
 
 object IpcMessageConst {
@@ -27,14 +26,14 @@ object IpcMessageConst {
 }
 
 fun bytesToIpcMessage(data: ByteArray, ipc: Ipc): Any {
-  if (data.contentEquals(IpcMessageConst.closeByteArray) || data.contentEquals(IpcMessageConst.pingByteArray) || data.contentEquals(
-      IpcMessageConst.pongByteArray
-    )
-  ) {
-    return data
-  }
-
-  return jsonToIpcMessage(data.decodeToString(), ipc)
+//  if (data.contentEquals(IpcMessageConst.closeByteArray) || data.contentEquals(IpcMessageConst.pingByteArray) || data.contentEquals(
+//      IpcMessageConst.pongByteArray
+//    )
+//  ) {
+//    return data
+//  }
+  val pack = jsonToIpcPack(data.decodeToString())
+  return IpcPoolPack(pack.pid, jsonToIpcPoolPack(pack.ipcMessage, ipc))
 }
 
 /***
@@ -43,22 +42,27 @@ fun bytesToIpcMessage(data: ByteArray, ipc: Ipc): Any {
  */
 private class IpcMessageType(val type: IPC_MESSAGE_TYPE)
 
-@OptIn(ExperimentalSerializationApi::class)
-fun cborToIpcMessage(data: ByteArray, ipc: Ipc): Any {
-  if (data.contentEquals(IpcMessageConst.closeCborByteArray) || data.contentEquals(IpcMessageConst.pingCborByteArray) || data.contentEquals(
-      IpcMessageConst.pongCborByteArray
-    )
+fun unByteSpecial(data: ByteArray): ByteArray? {
+  // 判断特殊的字节
+  if (data.contentEquals(IpcMessageConst.closeCborByteArray) ||
+    data.contentEquals(IpcMessageConst.pingCborByteArray) ||
+    data.contentEquals(IpcMessageConst.pongCborByteArray)
   ) {
     return data
   }
+  return null
+}
 
+@OptIn(ExperimentalSerializationApi::class)
+fun cborToIpcMessage(data: ByteArray, ipc: Ipc): IpcMessage {
   try {
+    // 解析出对象
     val ipcMessage = CborLoose.decodeFromByteArray<IpcMessageType>(data)
     return when (ipcMessage.type) {
       IPC_MESSAGE_TYPE.REQUEST -> Cbor.decodeFromByteArray<IpcReqMessage>(data).let {
         // 这里是指接收到数据而反序列化出 IpcRequest，所以不是发起者，而是响应者，因此是 IpcServerRequest
         IpcServerRequest(
-          it.req_id,
+          it.reqId,
           it.url,
           it.method,
           PureHeaders(it.headers),
@@ -69,7 +73,7 @@ fun cborToIpcMessage(data: ByteArray, ipc: Ipc): Any {
 
       IPC_MESSAGE_TYPE.RESPONSE -> Cbor.decodeFromByteArray<IpcResMessage>(data).let {
         IpcResponse(
-          it.req_id,
+          it.reqId,
           it.statusCode,
           PureHeaders(it.headers),
           IpcBodyReceiver.from(it.metaBody, ipc),
@@ -87,9 +91,16 @@ fun cborToIpcMessage(data: ByteArray, ipc: Ipc): Any {
       IPC_MESSAGE_TYPE.ERROR -> Cbor.decodeFromByteArray<IpcError>(data)
     }
   } catch (e: Exception) {
-    return data
+    e.printStackTrace()
+    return IpcError(400, e.message)
   }
 }
+
+@OptIn(ExperimentalSerializationApi::class)
+fun cborToIpcPoolPack(pack: ByteArray) = run { Cbor.decodeFromByteArray<PackIpcMessage>(pack) }
+
+@OptIn(ExperimentalSerializationApi::class)
+fun ipcPoolPackToCbor(pack: PackIpcMessage) = run { Cbor.encodeToByteArray<PackIpcMessage>(pack) }
 
 @OptIn(ExperimentalSerializationApi::class)
 fun ipcMessageToCbor(data: IpcMessage) = when (data) {
@@ -109,35 +120,38 @@ fun ipcMessageToCbor(data: IpcMessage) = when (data) {
   is IpcError -> Cbor.encodeToByteArray<IpcError>(data)
 }
 
-fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
-  if (data == "close" || data == "ping" || data == "pong") {
-    return data
-  }
+fun jsonToIpcPack(data: String): IpcPoolPackString {
+  return Json.decodeFromString<IpcPoolPackString>(data)
+}
 
+fun jsonToIpcPoolPack(data: String, ipc: Ipc): IpcMessage {
   try {
-    val typeInfo = Regex(""""type"\s*:\s*(\d+)""").find(data) ?: return data
+    val typeInfo = Regex(""""type"\s*:\s*(\d+)""").find(data)
+      ?: throw Exception("jsonToIpcMessage: parsing failed packet=>$data")
     return when (JsonLoose.decodeFromString<IPC_MESSAGE_TYPE>(typeInfo.groupValues[1])) {
-      IPC_MESSAGE_TYPE.REQUEST -> Json.decodeFromString<IpcReqMessage>(data).let {
-        // 这里是指接收到数据而反序列化出 IpcRequest，所以不是发起者，而是响应者，因此是 IpcServerRequest
-        IpcServerRequest(
-          it.req_id,
-          it.url,
-          it.method,
-          PureHeaders(it.headers),
-          IpcBodyReceiver.from(it.metaBody, ipc),
-          ipc
-        )
-      }
+      IPC_MESSAGE_TYPE.REQUEST -> Json.decodeFromString<IpcReqMessage>(data)
+        .let {
+          // 这里是指接收到数据而反序列化出 IpcRequest，所以不是发起者，而是响应者，因此是 IpcServerRequest
+          IpcServerRequest(
+            it.reqId,
+            it.url,
+            it.method,
+            PureHeaders(it.headers),
+            IpcBodyReceiver.from(it.metaBody, ipc),
+            ipc
+          )
+        }
 
-      IPC_MESSAGE_TYPE.RESPONSE -> Json.decodeFromString<IpcResMessage>(data).let {
-        IpcResponse(
-          it.req_id,
-          it.statusCode,
-          PureHeaders(it.headers),
-          IpcBodyReceiver.from(it.metaBody, ipc),
-          ipc
-        )
-      }
+      IPC_MESSAGE_TYPE.RESPONSE -> Json.decodeFromString<IpcResMessage>(data)
+        .let {
+          IpcResponse(
+            it.reqId,
+            it.statusCode,
+            PureHeaders(it.headers),
+            IpcBodyReceiver.from(it.metaBody, ipc),
+            ipc
+          )
+        }
 
       IPC_MESSAGE_TYPE.EVENT -> Json.decodeFromString<IpcEvent>(data)
       IPC_MESSAGE_TYPE.STREAM_DATA -> Json.decodeFromString<IpcStreamData>(data)
@@ -149,9 +163,14 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
       IPC_MESSAGE_TYPE.ERROR -> Json.decodeFromString<IpcError>(data)
     }
   } catch (e: Exception) {
-    printError("jsonToIpcMessage=>",e.message)
-    return data
+    e.printStackTrace()
+    return IpcError(500, e.message)
   }
+}
+
+fun ipcPoolPackToJson(pack: IpcPoolPack): String {
+  val ipcMessageString = ipcMessageToJson(pack.ipcMessage)
+  return Json.encodeToString(IpcPoolPackString(pack.pid, ipcMessageString))
 }
 
 fun ipcMessageToJson(data: IpcMessage) = when (data) {
@@ -170,3 +189,4 @@ fun ipcMessageToJson(data: IpcMessage) = when (data) {
   is IpcLifeCycle -> Json.encodeToString(data)
   is IpcError -> Json.encodeToString(data)
 }
+

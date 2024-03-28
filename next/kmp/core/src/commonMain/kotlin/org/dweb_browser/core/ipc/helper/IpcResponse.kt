@@ -11,33 +11,26 @@ import org.dweb_browser.pure.http.PureStream
 
 
 class IpcResponse(
-  val req_id: Int,
+  val reqId: Int,
   val statusCode: Int,
   val headers: PureHeaders,
   val body: IpcBody,
   val ipc: Ipc,
 ) : IpcMessage(IPC_MESSAGE_TYPE.RESPONSE) {
-  override fun toString() = "IpcResponse@$req_id/[$statusCode]".let { str ->
+  override fun toString() = "IpcResponse@$reqId/[$statusCode]".let { str ->
     if (debugIpc.isEnable) "$str{${
       headers.toList().joinToString(", ") { it.first + ":" + it.second }
     }}" + "" else str
   }
-
-  init {
-    if (body is IpcBodySender) {
-      IpcBodySender.IPC.usableByIpc(ipc, body)
-    }
-  }
-
   companion object {
     fun fromText(
-      req_id: Int,
+      reqId: Int,
       statusCode: Int = 200,
       headers: PureHeaders = PureHeaders(),
       text: String,
       ipc: Ipc
     ) = IpcResponse(
-      req_id,
+      reqId,
       statusCode,
       headers.also { headers.init("Content-Type", "text/plain") },
       IpcBodySender.fromText(text, ipc),
@@ -45,9 +38,13 @@ class IpcResponse(
     )
 
     fun fromBinary(
-      req_id: Int, statusCode: Int = 200, headers: PureHeaders, binary: ByteArray, ipc: Ipc
+      reqId: Int,
+      statusCode: Int = 200,
+      headers: PureHeaders,
+      binary: ByteArray,
+      ipc: Ipc
     ) = IpcResponse(
-      req_id,
+      reqId,
       statusCode,
       headers.also {
         headers.init("Content-Type", "application/octet-stream");
@@ -59,13 +56,13 @@ class IpcResponse(
 
 
     suspend fun fromStream(
-      req_id: Int,
+      reqId: Int,
       statusCode: Int = 200,
       headers: PureHeaders = PureHeaders(),
       stream: PureStream,
       ipc: Ipc
     ) = IpcResponse(
-      req_id,
+      reqId,
       statusCode,
       headers.also {
         headers.init("Content-Type", "application/octet-stream");
@@ -79,9 +76,12 @@ class IpcResponse(
     }
 
     suspend fun fromResponse(
-      req_id: Int, response: PureResponse, ipc: Ipc, bodyStrategy: BodyStrategy = BodyStrategy.AUTO
+      reqId: Int,
+      response: PureResponse,
+      ipc: Ipc,
+      bodyStrategy: BodyStrategy = BodyStrategy.AUTO
     ) = IpcResponse(
-      req_id,
+      reqId,
       response.status.value,
       response.headers,
       when (val len = response.body.contentLength) {
@@ -106,13 +106,13 @@ class IpcResponse(
     PureResponse(HttpStatusCode.fromValue(statusCode), this.headers, body = body.raw)
 
   val ipcResMessage by lazy {
-    IpcResMessage(req_id, statusCode, headers.toMap(), body.metaBody)
+    IpcResMessage(reqId, statusCode, headers.toMap(), body.metaBody)
   }
 }
 
 @Serializable
 data class IpcResMessage(
-  val req_id: Int,
+  val reqId: Int,
   val statusCode: Int,
   val headers: MutableMap<String, String>,
   val metaBody: MetaBody,

@@ -5,15 +5,17 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureStreamBody
+import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.ReadableStreamIpc
-import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.buildUnsafeString
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureStreamBody
 
 /// 对外提供一套建议的操作来创建、使用、维护这个http服务
 
@@ -21,10 +23,6 @@ import org.dweb_browser.helper.buildUnsafeString
 data class DwebHttpServerOptions(
   val subdomain: String = "",
 ) {
-//  constructor(
-//    port: Int? = 80,
-//    subdomain: String? = "",
-//  ) : this(port ?: 80, subdomain ?: "")
 }
 
 suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions): HttpNMM.ServerStartResult {
@@ -53,9 +51,13 @@ suspend fun MicroModule.listenHttpDwebServer(
     CommonRoute(pathname = "", method = PureMethod.TRACE)
   )
 ): ReadableStreamIpc {
+  debugHttp("listen", microModule.mmid)
   val httpIpc = this.connect("http.std.dweb")
   val streamIpc =
-    ReadableStreamIpc(httpIpc.remote, "http-server/${startResult.urlInfo.host}").also {
+    kotlinIpcPool.create<ReadableStreamIpc>(
+      "http-server/${startResult.urlInfo.host}",
+      IpcOptions(httpIpc.remote)
+    ).also {
       it.bindIncomeStream(
         this.nativeFetch(
           PureClientRequest(
@@ -87,7 +89,7 @@ class HttpDwebServer(
   val startResult: HttpNMM.ServerStartResult
 ) {
   private val listenPo = PromiseOut<ReadableStreamIpc>()
-  val listen = SuspendOnce {
+  val listen = SuspendOnce<ReadableStreamIpc> {
     if (listenPo.isFinished) {
       throw Exception("Listen method has been called more than once without closing.");
     }

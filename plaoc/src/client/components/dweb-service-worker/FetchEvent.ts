@@ -32,6 +32,6 @@ export class ServiceWorkerFetchEvent extends Event {
   async respondWith(body?: BodyInit | null, init?: ResponseInit) {
     const response = new Response(body, init);
     const { ipc, ipcRequest } = this.fetchEvent;
-    ipc.postMessage(await IpcResponse.fromResponse(ipcRequest.req_id, response, ipc));
+    ipc.postMessage(await IpcResponse.fromResponse(ipcRequest.reqId, response, ipc));
   }
 }

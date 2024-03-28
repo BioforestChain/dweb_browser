@@ -16,7 +16,9 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.by
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.ReadableStreamIpc
+import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.debugFetch
@@ -116,18 +118,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val serverUrlInfo = getServerUrlInfo(selfIpc, options)
     val listener = Gateway.PortListener(selfIpc, serverUrlInfo.host)
 
-    listener.onDestroy {
-      close(selfIpc, options)
-    }
-    /// ipc 在关闭的时候，自动释放所有的绑定
-    selfIpc.onClose {
-      listener.destroy()
-    }
-
-    selfIpc.onRequest { (ipcRequest, ipc) ->
-      println(ipcRequest.req_id)
-    }
-
     val token = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
     val gateway = Gateway(listener, serverUrlInfo, token)
     gatewayMap[serverUrlInfo.host] = gateway
@@ -146,13 +136,18 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     )
 
     for (routeConfig in routes) {
-      gateway.listener.addRouter(routeConfig, selfIpc).removeWhen(selfIpc.onClose)
+      gateway.listener.addRouter(routeConfig, selfIpc)
     }
+    /// ipc 在关闭的时候，自动释放所有的绑定
+    selfIpc.closeDeferred.await()
+    close(selfIpc, options)
+    listener.destroy()
   }
 
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    // 初始化http监听
     ioAsyncScope.launch {
-      initHttpListener();
+      initHttpListener()
     }
     /// 启动http后端服务
     dwebServer.createServer(
@@ -194,14 +189,15 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         // 无需走网络层，直接内部处理掉
         httpHandler(request)
       } else null
-    }.removeWhen(onAfterShutdown)
+    }.removeWhen(ioAsyncScope)
 
     /// 模块 API 接口
     routes(
       // 开启一个服务
       "/start" bind PureMethod.GET by defineJsonResponse {
+        val subdomain = request.query("subdomain")
         start(
-          ipc, DwebHttpServerOptions(request.query("subdomain"))
+          ipc, DwebHttpServerOptions(subdomain)
         ).toJsonElement()
       },
       // 监听一个服务
@@ -397,7 +393,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
         return@definePureResponse corsResponse
       }
-    );
+    )
   }
 
   private val simpleRequestHeaderKeys = setOf(
@@ -523,14 +519,12 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     debugHttp("START/start", "$serverUrlInfo => $options")
     if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
     val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
-
-    listener.onDestroy {
-      close(ipc, options)
-    }
     /// ipc 在关闭的时候，自动释放所有的绑定
-    ipc.onClose {
+    ioAsyncScope.launch {
+      ipc.closeDeferred.await()
       debugHttp("start close", "onDestroy ${ipc.remote.mmid} ${serverUrlInfo.host}")
       listener.destroy()
+      close(ipc, options)
     }
     val token = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
 
@@ -544,37 +538,39 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   /**
    *  绑定流监听
    */
-  private fun listen(
+  private suspend fun listen(
     token: String, message: PureServerRequest, routes: List<CommonRoute>
   ): PureStream {
     debugHttp("LISTEN", tokenMap.keys.toList())
     val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
     debugHttp("LISTEN/start", "host: ${gateway.urlInfo.host}, token: $token")
 
-    val streamIpc = ReadableStreamIpc(
-      gateway.listener.mainIpc.remote, "http-gateway/${gateway.urlInfo.host}"
+    val streamIpc = kotlinIpcPool.create<ReadableStreamIpc>(
+      "http-gateway/${gateway.urlInfo.host}",
+      IpcOptions(gateway.listener.mainIpc.remote)
     )
-    /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
     streamIpc.bindIncomeStream(message.body.toPureStream())
+    /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
     /// 自己nmm销毁的时候，ipc也会被全部销毁
     this.addToIpcSet(streamIpc)
     /// 自己创建的，就要自己销毁：这个listener被销毁的时候，streamIpc也要进行销毁
-    gateway.listener.onDestroy {
+    ioAsyncScope.launch {
+      gateway.listener.destroyDeferred.await()
       streamIpc.close()
     }
-    for (routeConfig in routes) {
-      gateway.listener.addRouter(routeConfig, streamIpc).removeWhen(streamIpc.onClose)
-    }
 
+    for (routeConfig in routes) {
+      gateway.listener.addRouter(routeConfig, streamIpc)
+    }
     return streamIpc.input.stream
   }
 
-  private suspend fun close(ipc: Ipc, options: DwebHttpServerOptions): Boolean {
+  private fun close(ipc: Ipc, options: DwebHttpServerOptions): Boolean {
     val serverUrlInfo = getServerUrlInfo(ipc, options)
     return gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
       debugHttp("close", "mmid: ${ipc.remote.mmid} ${serverUrlInfo.host}")
       tokenMap.remove(gateway.token)
-      gateway.listener.destroy()
+      gateway.listener.destroyDeferred.complete(Unit)
       true
     } ?: false
   }

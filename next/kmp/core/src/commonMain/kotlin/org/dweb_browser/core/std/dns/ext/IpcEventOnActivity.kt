@@ -1,7 +1,9 @@
 package org.dweb_browser.core.std.dns.ext
 
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.OnIpcEventMessage
+import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
 import org.dweb_browser.core.module.MicroModule
 
 /**
@@ -12,10 +14,10 @@ import org.dweb_browser.core.module.MicroModule
 private const val ACTIVITY_EVENT_NAME = "activity"
 fun IpcEvent.Companion.createActivity(data: String) = IpcEvent.fromUtf8(ACTIVITY_EVENT_NAME, data)
 fun IpcEvent.isActivity() = name == ACTIVITY_EVENT_NAME
-fun MicroModule.onActivity(cb: OnIpcEventMessage) = onConnect { (ipc) ->
-  ipc.onEvent { args ->
+fun MicroModule.onActivity(cb: suspend (value: IpcEventMessageArgs) -> Unit) = onConnect { (ipc) ->
+  ipc.eventFlow.onEach { args ->
     if (args.event.isActivity()) {
       cb(args)
     }
-  }
+  }.launchIn(ioAsyncScope)
 }

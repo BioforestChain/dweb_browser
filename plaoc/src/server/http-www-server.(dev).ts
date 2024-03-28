@@ -8,11 +8,6 @@ import { Server_www as _Server_www } from "./http-www-server.ts";
  * 1. proxy：将外部http-url替代原有的静态文件，动态加载外部静态文件（主要是代理html，确保域名正确性，script则是用原本的http服务提供）
  */
 export class Server_www extends _Server_www {
-  override async getStartResult() {
-    const result = await super.getStartResult();
-    return result;
-  }
-
   private xPlaocProxy: string | null = null;
   override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
     // 请求申请
@@ -49,7 +44,7 @@ export class Server_www extends _Server_www {
       // 移除在iframe中渲染的限制
       headers.delete("X-Frame-Options");
     }
-    
+
     /// 内容代理转发，这里一般来说不再允许301，允许301的条件太过苛刻，需要远端服务器支持
     return {
       status: remoteIpcResponse.statusCode,

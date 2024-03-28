@@ -1,10 +1,12 @@
 package org.dweb_browser.core.module
 
+import io.ktor.util.collections.ConcurrentSet
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -13,7 +15,7 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
@@ -44,13 +46,16 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     CoroutineScope(SupervisorJob() + ioAsyncExceptionHandler + CoroutineName(mmid))
 
   private var _scope: CoroutineScope = getModuleCoroutineScope()
-  val ioAsyncScope get() = _scope
+  val ioAsyncScope get() = _scope // 给外部使用
+
+  private var _afterShutdownSignal = SimpleSignal()
+  val onAfterShutdown get() = _afterShutdownSignal.toListener()
 
   val running get() = runningStateLock.value == MMState.BOOTSTRAP
 
   protected open suspend fun beforeBootstrap(bootstrapContext: BootstrapContext): Boolean {
     if (this.runningStateLock.state == MMState.BOOTSTRAP) {
-      debugMicroModule("module ${this.mmid} already running");
+      debugMicroModule("beforeBootstrap", "${this.mmid} already running")
       return false
     }
     this.runningStateLock.waitPromise() // 确保已经完成上一个状态
@@ -76,21 +81,17 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   private suspend fun afterBootstrap(bootstrapContext: BootstrapContext) {
     debugMicroModule("afterBootstrap", "ready: $mmid, ${_ipcSet.size}")
     onConnect { (ipc) ->
-      ipc.readyInMicroModule("onConnect")
+      ipc.awaitStart()
     }
+    // 等待mm连接池中的ipc都连接完成
     for (ipc in _ipcSet) {
-      ipc.readyInMicroModule("afterBootstrap")
+      ipc.awaitStart()
     }
     this.runningStateLock.resolve()
+    // 当microModule全部启动完成的时候解锁
     readyLock.unlock()
   }
 
-  private fun Ipc.readyInMicroModule(tag: String) {
-    debugMicroModule("ready/$tag", "(self)$mmid=>${remote.mmid}(remote)")
-    ioAsyncScope.launch {
-      this@readyInMicroModule.readyPingPong(this@MicroModule)
-    }
-  }
 
   private val lifecycleLock = Mutex()
 
@@ -106,7 +107,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
   protected open suspend fun beforeShutdown(): Boolean {
     if (this.runningStateLock.state == MMState.SHUTDOWN) {
-      debugMicroModule("module $mmid already shutdown");
+      debugMicroModule("beforeShutdown", "module $mmid already shutdown")
       return false
     }
     readyLock.lock()
@@ -114,9 +115,19 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     this.runningStateLock = StatePromiseOut(MMState.SHUTDOWN)
 
     /// 关闭所有的通讯
-    _ipcSet.toList().forEach {
-      it.close()
+//    _ipcSet.toList().forEach {
+//      println("xxxx=> _ipcSet closeSTART ${it.channelId}")
+//      it.close()
+//      println("xxxx=> _ipcSet closeEND ${it.channelId}")
+//    }
+    val jobs = _ipcSet.map {
+      _scope.launch {
+        println("xxxx=> _ipcSet closeSTART ${it.channelId}")
+        it.close()
+        println("xxxx=> _ipcSet closeEND ${it.channelId}")
+      }
     }
+    jobs.joinAll()
     _ipcSet.clear()
     return true
   }
@@ -130,10 +141,10 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   protected open suspend fun afterShutdown() {
     _afterShutdownSignal.emitAndClear()
     _connectSignal.clear()
-    runningStateLock.resolve()
     this._bootstrapContext = null
     // 取消所有的工作
     this.ioAsyncScope.cancel()
+    runningStateLock.resolve()
   }
 
   suspend fun shutdown() = lifecycleLock.withLock {
@@ -146,31 +157,24 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     }
   }
 
-  suspend fun dispose() {
-    this._dispose()
-  }
-
-  protected open suspend fun _dispose() {
-  }
-
-  private val _afterShutdownSignal = SimpleSignal();
-  val onAfterShutdown = _afterShutdownSignal.toListener()
-
   /**
-   * 连接池
+   * MicroModule连接池
    */
-  private val _ipcSet = mutableSetOf<Ipc>();
+  private val _ipcSet = ConcurrentSet<Ipc>()
 
-  fun addToIpcSet(ipc: Ipc): Boolean {
-    debugMicroModule(
-      "addToIpcSet",
-      "$mmid => ${ipc.remote.mmid}, ${runningStateLock.isResolved}:${runningStateLock.value}"
-    )
-    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
-      ipc.readyInMicroModule("addToIpcSet")
+  suspend fun addToIpcSet(ipc: Ipc): Boolean {
+    // 这里的ReadableStreamIpc比较特殊，因为是通过绑定对方的流来接收对方消息，如果这里等待，第一次没等到会出现死锁
+    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP && ipc !is ReadableStreamIpc) {
+      debugMicroModule(
+        "addToIpcSet",
+        "⏸️「${ipc.channelId}」 $mmid => ${ipc.remote.mmid} , ${runningStateLock.isResolved}"
+      )
+      ipc.awaitStart()
+      debugMicroModule("addToIpcSet", "✅ ${ipc.channelId} end")
     }
     return if (this._ipcSet.add(ipc)) {
-      ipc.onClose {
+      ioAsyncScope.launch {
+        ipc.closeDeferred.await()
         _ipcSet.remove(ipc)
       }
       true
@@ -207,9 +211,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     }
   }
 
-//  /** 激活NMM入口*/
-//  protected fun emitActivity(args)
-
   override fun toString(): String {
     return "MicroModule($mmid)"
   }
@@ -220,7 +221,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 }
 
 typealias IpcConnectArgs = Pair<Ipc, PureRequest>
-typealias IpcActivityArgs = Pair<IpcEvent, Ipc>
 
 class StatePromiseOut<T>(val state: T) : PromiseOut<T>() {
   companion object {

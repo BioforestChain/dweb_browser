@@ -3,9 +3,9 @@ package org.dweb_browser.dwebview.messagePort
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.dwebview.DWebMessage
+import org.dweb_browser.core.ipc.helper.DWebMessage
+import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.IWebMessagePort
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.withMainContext

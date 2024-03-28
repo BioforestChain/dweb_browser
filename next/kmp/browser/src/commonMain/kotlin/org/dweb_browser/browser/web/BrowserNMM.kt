@@ -45,10 +45,10 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val webLinkStore = WebLinkStore(this)
-    val browserController = // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
-      withMainContext {
-        BrowserController(this@BrowserNMM, webLinkStore)
-      }
+    // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
+    val browserController = withMainContext {
+      BrowserController(this@BrowserNMM, webLinkStore)
+    }
     loadWebLinkApps(browserController, webLinkStore)
 
     onRenderer {

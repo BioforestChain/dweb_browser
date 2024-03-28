@@ -34,7 +34,6 @@ class MicroModuleManifest private constructor(
     }
   }
   override var ipc_support_protocols by P_ipc_support_protocols(p)
-
   override var id by P.getRequired<String>("id")(p) {
     p.set("mmid", value)
     afterWrite = {

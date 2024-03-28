@@ -20,6 +20,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.ipc.helper.IWebMessageChannel
+import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
@@ -222,13 +224,14 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   override val onDownloadListener by lazy { engine.dWebDownloadListener.downloadSignal.toListener() }
   override val onScroll by lazy { engine.scrollSignal.toListener() }
 
-  private class FaviconIcon(val favicon:Bitmap){
+  private class FaviconIcon(val favicon: Bitmap) {
     val imageBitmap = favicon.asImageBitmap()
   }
-  private var faviconIcon:FaviconIcon?=null
+
+  private var faviconIcon: FaviconIcon? = null
   override suspend fun getFavoriteIcon(): ImageBitmap? = withMainContext {
     val favicon = engine.favicon
-    if(faviconIcon?.favicon != favicon){
+    if (faviconIcon?.favicon != favicon) {
       faviconIcon = favicon?.let { FaviconIcon(it) }
     }
     faviconIcon?.imageBitmap
@@ -251,11 +254,8 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   // TODO 这段代码是否应该迁移到 common？如何迁移
   init {
-    val off = engine.remoteMM.onAfterShutdown {
+    engine.remoteMM.onAfterShutdown {
       destroy()
-    }
-    onDestroy {
-      off()
     }
   }
 }

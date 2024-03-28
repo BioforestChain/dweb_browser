@@ -1,12 +1,24 @@
 import { concat } from "https://deno.land/std@0.140.0/bytes/mod.ts";
-import type { $IpcRequest, $MMID, $MicroModuleManifest, $ReadableStreamIpc } from "../deps.ts";
-import { IPC_ROLE, PureBinaryFrame, ReadableStreamIpc, ReadableStreamOut, streamRead } from "../deps.ts";
+import type { $IpcRequest, $MMID, $ReadableStreamIpc, IpcPool } from "../deps.ts";
+import { PureBinaryFrame, ReadableStreamOut, streamRead } from "../deps.ts";
 
-type CreateDuplexIpcType = (subdomain: string, mmid: $MMID, ipcRequest: $IpcRequest, onClose: () => unknown) =>  $ReadableStreamIpc;
+type CreateDuplexIpcType = (
+  ipcPool: IpcPool,
+  subdomain: string,
+  mmid: $MMID,
+  ipcRequest: $IpcRequest,
+  onClose: () => unknown
+) => $ReadableStreamIpc;
 
-export const createDuplexIpc: CreateDuplexIpcType = (subdomain: string, mmid: $MMID, ipcRequest: $IpcRequest, onClose: () => unknown) => {
-  const streamIpc = new ReadableStreamIpc(
-    {
+export const createDuplexIpc: CreateDuplexIpcType = (
+  ipcPool: IpcPool,
+  subdomain: string,
+  mmid: $MMID,
+  ipcRequest: $IpcRequest,
+  onClose: () => unknown
+) => {
+  const streamIpc = ipcPool.create<$ReadableStreamIpc>(`${mmid}-plaoc-external-duplex`, {
+    remote: {
       mmid: mmid,
       name: `${subdomain}.${mmid}`,
       ipc_support_protocols: {
@@ -16,10 +28,8 @@ export const createDuplexIpc: CreateDuplexIpcType = (subdomain: string, mmid: $M
       },
       dweb_deeplinks: [],
       categories: [],
-    } satisfies $MicroModuleManifest,
-    //@ts-ignore
-    IPC_ROLE.SERVER
-  );
+    },
+  });
 
   const incomeStream = new ReadableStreamOut<Uint8Array>();
   // 拿到自己前端的channel

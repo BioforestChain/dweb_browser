@@ -166,6 +166,7 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
         }
       }
     }
+    // TODO
     CoroutineScope(defaultAsyncExceptionHandler).launch {
       delay(3000);
       waiter.complete(null)

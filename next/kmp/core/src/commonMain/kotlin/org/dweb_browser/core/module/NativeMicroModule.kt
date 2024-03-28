@@ -4,10 +4,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
@@ -25,18 +25,18 @@ import org.dweb_browser.core.http.router.MiddlewareHttpHandler
 import org.dweb_browser.core.http.router.RouteHandler
 import org.dweb_browser.core.http.router.TypedHttpHandler
 import org.dweb_browser.core.http.router.toChain
+import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.NativeIpc
 import org.dweb_browser.core.ipc.NativeMessageChannel
-import org.dweb_browser.core.ipc.helper.IPC_ROLE
-import org.dweb_browser.core.ipc.helper.IpcMessage
+import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.ReadableStreamOut
+import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.commonAsyncExceptionHandler
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.toLittleEndianByteArray
 import org.dweb_browser.helper.trueAlso
@@ -49,7 +49,6 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.PureStreamBody
-import kotlin.coroutines.coroutineContext
 
 val debugNMM = Debugger("NMM")
 
@@ -60,13 +59,22 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   })
 
   companion object {
+    private var ipc_acc by SafeInt(1)
+
     init {
       connectAdapterManager.append { fromMM, toMM, reason ->
         if (toMM is NativeMicroModule) {
           debugNMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
-          val channel = NativeMessageChannel<IpcMessage, IpcMessage>(fromMM.id, toMM.id)
-          val fromNativeIpc = NativeIpc(channel.port1, toMM, IPC_ROLE.CLIENT)
-          val toNativeIpc = NativeIpc(channel.port2, fromMM, IPC_ROLE.SERVER)
+          val channel = NativeMessageChannel<IpcPoolPack, IpcPoolPack>(fromMM.id, toMM.id)
+          val acc = ipc_acc++
+          val fromNativeIpc = kotlinIpcPool.create<NativeIpc>(
+            "from-native-${fromMM.id}-$acc",
+            IpcOptions(toMM, channel = channel.port1)
+          )
+          val toNativeIpc = kotlinIpcPool.create<NativeIpc>(
+            "to-native-${toMM.id}-$acc",
+            IpcOptions(fromMM, channel = channel.port2)
+          )
           fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
           toMM.beConnect(toNativeIpc, reason) // 通知接收者作为Server
           return@append ConnectResult(fromNativeIpc, toNativeIpc) // 返回发起者的ipc
@@ -121,7 +129,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   override suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) =
     super.beforeBootstrap(bootstrapContext).trueAlso {
       onConnect { (clientIpc) ->
-        clientIpc.onRequest { (ipcRequest) ->
+        clientIpc.requestFlow.onEach { (ipcRequest) ->
           debugNMM("NMM/Handler", ipcRequest.url)
           /// 根据host找到对应的路由模块
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
@@ -137,10 +145,10 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 
           clientIpc.postMessage(
             IpcResponse.fromResponse(
-              ipcRequest.req_id, response ?: PureResponse(HttpStatusCode.BadGateway), clientIpc
+              ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway), clientIpc
             )
           )
-        }
+        }.launchIn(ioAsyncScope)
       }
     }
 
@@ -194,7 +202,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
   class JsonLineHandlerContext constructor(context: HandlerContext) : IHandlerContext by context {
-    internal val responseReadableStream = ReadableStreamOut()
+    internal val responseReadableStream = ReadableStreamOut(context.ipc.ipcScope)
     suspend fun emit(line: JsonElement) {
       responseReadableStream.controller.enqueue((Json.encodeToString(line) + "\n").toByteArray())
     }
@@ -241,16 +249,19 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         doClose()
       }
       // 监听 ipc 关闭，这可能由程序自己控制
-      val off = ipc.onClose { doClose() }
+      val closeListen = ioAsyncScope.launch {
+        ipc.closeDeferred.await()
+        doClose()
+      }
       // 监听 job 完成，释放相关的监听
-      job.invokeOnCompletion { off() }
+      job.invokeOnCompletion { closeListen.cancel() }
       // 返回响应流
       PureResponse.build { body(responseReadableStream.stream.stream) }
     }
   }
 
   class CborPacketHandlerContext(context: HandlerContext) : IHandlerContext by context {
-    internal val responseReadableStream = ReadableStreamOut()
+    internal val responseReadableStream = ReadableStreamOut(context.ipc.ipcScope)
     suspend fun emit(data: ByteArray) {
       responseReadableStream.controller.enqueue(data.size.toLittleEndianByteArray(), data)
     }
@@ -298,9 +309,12 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         doClose()
       }
       // 监听 ipc 关闭，这可能由程序自己控制
-      val off = ipc.onClose { doClose() }
+      val closeListen = ioAsyncScope.launch {
+        ipc.closeDeferred.await()
+        doClose()
+      }
       // 监听 job 完成，释放相关的监听
-      job.invokeOnCompletion { off() }
+      job.invokeOnCompletion { closeListen.cancel() }
       // 返回响应流
       PureResponse.build { body(responseReadableStream.stream.stream) }
     }
@@ -363,6 +377,3 @@ suspend fun NativeMicroModule.createChannel(
   }
   return res
 }
-
-@Serializable
-data class DwebResult(val success: Boolean, val message: String = "")

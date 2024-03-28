@@ -46,6 +46,5 @@ class ShareActivity : ComponentActivity() {
   override fun onDestroy() {
     super.onDestroy()
     controller.shareLauncher = null
-    ioAsyncScope.cancel()
   }
 }

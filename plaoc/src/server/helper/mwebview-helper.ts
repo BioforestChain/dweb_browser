@@ -1,18 +1,18 @@
 import { createSignal, jsProcess } from "../deps.ts";
 
 //申请模块窗口
-export const  apply_window = async () => {
-  return await jsProcess.nativeFetch("file://window.sys.dweb/mainWindow").text()
-}
+export const apply_window = () => {
+  return jsProcess.nativeFetch("file://window.sys.dweb/mainWindow").text();
+};
 
-export const open_main_window =  () => {
-  jsProcess.nativeFetch("file://window.sys.dweb/openMainWindow")
-}
+export const open_main_window = () => {
+  return jsProcess.nativeFetch("file://window.sys.dweb/openMainWindow").text();
+};
 
 // 彻底删除模块窗口
-export const close_window = async (wid:string) => {
-  return await jsProcess.nativeFetch(`file://window.sys.dweb/closeWindow?wid=${wid}`)
-}
+export const close_window = (wid: string) => {
+  return jsProcess.nativeFetch(`file://window.sys.dweb/closeWindow?wid=${wid}`);
+};
 
 /**开启新页面 */
 export const mwebview_open = async (wid: string, url: string) => {
@@ -29,15 +29,15 @@ export const mwebview_open = async (wid: string, url: string) => {
  * TODO 未来，激活窗口需要消耗token，而token必须基于用户的touchend手势，一个touchend手势在只能创建一个token
  * @returns
  */
-export const mwebview_activate = async (wid: string) => {
+export const mwebview_activate = (wid: string) => {
   const activateUrl = new URL(`file://mwebview.browser.dweb/activate`);
   activateUrl.searchParams.set("wid", wid);
-  return await jsProcess.nativeFetch(activateUrl).text();
+  return jsProcess.nativeFetch(activateUrl).text();
 };
 
 /**关闭app */
-export const mwebview_close = async (webview_id: string) => {
-  return await jsProcess
+export const mwebview_close = (webview_id: string) => {
+  return jsProcess
     .nativeFetch(`file://mwebview.browser.dweb/close?webview_id=${encodeURIComponent(webview_id)}`)
     .text();
 };
@@ -46,8 +46,8 @@ export const mwebview_close = async (webview_id: string) => {
  * 关闭window
  *
  */
-export const mwebview_destroy = async () => {
-  return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/close/app`).boolean();
+export const mwebview_destroy = () => {
+  return jsProcess.nativeFetch(`file://mwebview.browser.dweb/close/app`).boolean();
 };
 
 import { DetailedDiff, detailedDiff } from "npm:deep-object-diff";

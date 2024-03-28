@@ -33,7 +33,7 @@ suspend fun pipeToPureChannel(
         is PureCloseFrame -> Frame.Close()
       }
       ws.send(wsFrame)
-      debugPureChannel("WebSocketToPureChannel") { "ws-send:$wsFrame/$url" }
+//      debugPureChannel("WebSocketToPureChannel") { "ws-send:$wsFrame/$url" }
     }
     debugPureChannel("WebSocketToPureChannel") { "outgoing-close-ws/$url" }
     ws.close()

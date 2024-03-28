@@ -2,6 +2,8 @@ package org.dweb_browser.browser.desk
 
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -53,7 +55,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   /**
    * 将ipc作为Application实例进行打开
    */
-  private fun getRunningApp(ipc: Ipc): RunningApp? {
+  private suspend fun getRunningApp(ipc: Ipc): RunningApp? {
     val mmid = ipc.remote.mmid
     /// 如果成功打开，将它“追加”到列表中
     return when (val runningApp = runningApps[mmid]) {
@@ -62,8 +64,10 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           RunningApp(ipc, bootstrapContext).also { app ->
             runningApps[mmid] = app
             /// 如果应用关闭，将它从列表中移除
-            app.onClose {
+            ioAsyncScope.launch {
+              app.closeDeferred.await()
               runningApps.remove(mmid)
+
             }
           }
         } else null
@@ -250,11 +254,11 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       // 监听所有app数据
       "/desktop/observe/apps" byChannel { ctx ->
         val off = desktopController.onUpdate {
-          debugDesk("/desktop/observe/apps", "onUpdate")
+//          debugDesk("/desktop/observe/apps", "onUpdate")
           try {
             val apps = desktopController.getDesktopApps()
-            debugDesk("/desktop/observe/apps") { "apps:$apps" }
-            ctx.sendJsonLine(desktopController.getDesktopApps())
+//            debugDesk("/desktop/observe/apps") { "apps:$apps" }
+            ctx.sendJsonLine(apps)
           } catch (e: Throwable) {
             close(cause = e)
           }
@@ -276,9 +280,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         val pureChannel = ctx.getChannel()
         taskBarController.onUpdate {
           try {
-            debugDesk("/taskbar/observe/apps") { "onUpdate $pureChannel=>${request.body.toPureString()}" }
+//            debugDesk("/taskbar/observe/apps") { "onUpdate $pureChannel=>${request.body.toPureString()}" }
             val apps = taskBarController.getTaskbarAppList(limit)
-            debugDesk("/taskbar/observe/apps") { "apps:$apps" }
+//            debugDesk("/taskbar/observe/apps") { "apps:$apps" }
             ctx.sendJsonLine(apps)
           } catch (e: Exception) {
             close(cause = e)
@@ -289,7 +293,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       },
       // 监听所有taskbar状态
       "/taskbar/observe/status" byChannel { ctx ->
-        debugDesk("/taskbar/observe/status")
+        debugDesk("deskNMM", "/taskbar/observe/status")
         taskBarController.onStatus { status ->
           ctx.sendJsonLine(status)
         }.removeWhen(onClose)
@@ -297,7 +301,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       // 负责resize taskbar大小
       "/taskbar/resize" bind PureMethod.GET by defineJsonResponse {
         val size = request.queryAs<TaskbarController.ReSize>()
-        debugDesk("get/taskbar/resize", "$size")
+//        debugDesk("get/taskbar/resize", "$size")
         taskBarController.resize(size)
         size.toJsonElement()
       },
@@ -333,7 +337,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   private suspend fun createTaskbarWebServer(): HttpDwebServer {
     val taskbarServer =
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar"))
-    taskbarServer.listen().onRequest { (ipcServerRequest, ipc) ->
+    taskbarServer.listen().requestFlow.onEach { (ipcServerRequest, ipc) ->
       val pathName = ipcServerRequest.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {
         val internalUri = pathName.substring(API_PREFIX.length)
@@ -342,15 +346,15 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         "file:///sys/browser/desk${pathName}?mode=stream"
       }
       val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
-      ipc.postMessage(IpcResponse.fromResponse(ipcServerRequest.req_id, response, ipc))
-    }
+      ipc.postMessage(IpcResponse.fromResponse(ipcServerRequest.reqId, response, ipc))
+    }.launchIn(ioAsyncScope)
     return taskbarServer
   }
 
   private suspend fun createDesktopWebServer(): HttpDwebServer {
     val desktopServer =
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop"))
-    desktopServer.listen().onRequest { (ipcServerRequest, ipc) ->
+    desktopServer.listen().requestFlow.onEach { (ipcServerRequest, ipc) ->
       val pathName = ipcServerRequest.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {
         val internalUri = pathName.substring(API_PREFIX.length)
@@ -361,10 +365,10 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
       ipc.postMessage(
         IpcResponse.fromResponse(
-          ipcServerRequest.req_id, PureResponse.build(response) { appendHeaders(CORS_HEADERS) }, ipc
+          ipcServerRequest.reqId, PureResponse.build(response) { appendHeaders(CORS_HEADERS) }, ipc
         )
       )
-    }
+    }.launchIn(ioAsyncScope)
     return desktopServer
   }
 }
