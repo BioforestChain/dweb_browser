@@ -38,6 +38,30 @@ dependencyResolutionManagement {
  * 好像无法与buildSrc共享代码，但是gradle官方却有相关的例子，只不过这种共享好像达不到我们的需求
  * https://github.com/gradle/gradle/blob/master/settings.gradle.kts#L38C1-L38C13
  */
+class PlatformFactory {
+  val osName = System.getProperty("os.name")
+  val osArch = System.getProperty("os.arch")
+
+  init {
+    println("platform-os-name=$osName")
+    println("platform-os-arch=$osArch")
+  }
+
+  val isMac = osName.startsWith("Mac")
+  val isWindows = osName.startsWith("Windows")
+  val isLinux = osName.startsWith("Linux")
+
+  /// 寄存器宽度
+  val is64 = listOf("amd64", "x86_64", "aarch64").contains(osArch)
+  val is32 = listOf("x86", "arm").contains(osArch)
+
+  /// 指令集
+  val isX86 = setOf("x86", "i386", "amd64", "x86_64").contains(osArch)
+  val isArm = listOf("aarch64", "arm").contains(osArch)
+}
+
+val platform = PlatformFactory()
+
 class FeaturesFactory {
   private val props = java.util.Properties().also { properties ->
     rootDir.resolve("local.properties").apply {
@@ -60,7 +84,7 @@ class FeaturesFactory {
   }
 
   val androidApp = Bool(!disabled.contains("android"));
-  val iosApp = Bool(!disabled.contains("ios"));
+  val iosApp = Bool(platform.isMac && !disabled.contains("ios"));
   val desktopApp = Bool(!disabled.contains("desktop"));
   val electronApp = Bool(enabled.contains("electron"));
   val libs = Bool(androidApp.enabled || iosApp.enabled || desktopApp.enabled)
@@ -75,7 +99,6 @@ class FeaturesFactory {
 }
 
 val features = FeaturesFactory()
-
 rootProject.name = "dweb-browser-kmp"
 System.setProperty("dweb-browser.root.dir", rootDir.absolutePath)
 

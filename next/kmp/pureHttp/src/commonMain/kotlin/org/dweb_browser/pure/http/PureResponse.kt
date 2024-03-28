@@ -64,11 +64,11 @@ data class PureResponse(
       }
 
       fun appendHeaders(headers: Iterable<Pair<String, String>>) {
-        cache.headers.apply {
+        cache = cache.copy(headers = cache.headers.copy().apply {
           for ((key, value) in headers) {
             set(key, value)
           }
-        }
+        })
       }
 
       fun status(value: HttpStatusCode) {
@@ -81,7 +81,9 @@ data class PureResponse(
       builder: PureResponseBuilder.() -> Unit
     ): PureResponse {
       var result = base
-      PureResponseBuilder(Delegates.observable(result) { _, _, it -> result = it }).builder();
+      PureResponseBuilder(Delegates.observable(result) { _/*property*/, _/*oldValue*/, newValue ->
+        result = newValue
+      }).builder();
       return result
     }
   }

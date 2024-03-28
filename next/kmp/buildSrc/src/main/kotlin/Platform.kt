@@ -1,8 +1,4 @@
 object Platform {
-
-  private val ARCH_X64 = setOf("amd64", "x86_64")
-  private val ARCH_X86 = setOf("x86", "i386")
-  private val ARCH_ARM = setOf("aarch64", "arm")
   val osName = System.getProperty("os.name")
   val osArch = System.getProperty("os.arch")
 

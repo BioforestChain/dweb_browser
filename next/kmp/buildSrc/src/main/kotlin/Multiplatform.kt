@@ -571,7 +571,7 @@ fun KotlinMultiplatformExtension.kmpIosTarget(
   project: Project,
   configure: KmpIosTargetDsl.() -> Unit = {}
 ) {
-  if (Features.iosApp.disabled && !Platform.isMac) {
+  if (Features.iosApp.disabled || !Platform.isMac) {
     return
   }
   println("kmpIosTarget: ${project.name}")
