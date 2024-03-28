@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import org.dweb_browser.helper.WARNING
 
 @Composable
-actual fun CameraPreviewView(
+actual fun CameraPreviewRender(
   openAlarmResult: (ImageBitmap) -> Unit,
   onBarcodeDetected: (QRCodeDecoderResult) -> Unit,
   maskView: @Composable (FlashLightSwitch, OpenAlbum) -> Unit
