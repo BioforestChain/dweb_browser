@@ -44,6 +44,7 @@
    - 所谓开发者模式，就是对一些资源文件做实时的自动化预编译，并实时复制到 iOS, Android，Desktop 等环境下。
    - 如果 deno 长时间运行，可能会出现一些文件监听失效或者子进程异常退出，那么重启再启动 `deno task dev` 即可
 1. 编译，运行：
+
    - 如果是 Android 用户，直接启动模拟器或者 USB 连接开启调试等设备后，可以直接运行
    - 如果是 IOS 用户使用 Android Studio 启动项目，确保 `Kotlin Multiplatform Mobile` 插件已经安装，在`Edit Configurations`中，点击`+`，选`IOS Application`
      1. 在面板中，先选 `xcode project file`，路径在 `next/kmp/app/iosApp/DwebBrowser.xcworkspace`
@@ -51,11 +52,11 @@
      1. 最后是 `target`，可以选模拟器，如果你的真机设备找不到，那么就卸载重装`Kotlin Multiplatform Mobile`插件，然后通常就能选择真机设备了，反正只要找不到，就重装插件就行
    - 如果是 IOS 用户也可以直接使用 xcode 打开`next/kmp/app/iosApp/DwebBrowser.xcworkspace`，直接运行 DwebBrowser 即可
    - 如果是 Desktop 用户，要启动应用需要使用 Android Studio 启动项目，在`Edit Configurations`中，点击`+`，选择`Gradle`
-      1. 在面板中，先选择 `Run`，填上 `desktopApp:desktopRun -DmainClass=MainKt -Djxbrowser.license.key=xxxxxxxxxxxxx --quiet`
-         其中的 -Djxbrowser.license.key 后`xxxxxxxxxxxxx`需要填写上真实的授权码
-      1. 然后选择 `Gradle project`，设置为 kmp
-      1. 再然后只要 Apply 和 OK 就可以了（tips：面板中的Name可以设置一个简单的名字）
-      1. 最后，选择刚才创建的 Configuration，点击Run就可以跑起来了
+     1. 在面板中，先选择 `Run`，填上 `desktopApp:desktopRun -DmainClass=MainKt -Djxbrowser.license.key=xxxxxxxxxxxxx --quiet`
+        其中的 -Djxbrowser.license.key 后`xxxxxxxxxxxxx`需要填写上真实的授权码
+     1. 然后选择 `Gradle project`，设置为 kmp
+     1. 再然后只要 Apply 和 OK 就可以了（tips：面板中的 Name 可以设置一个简单的名字）
+     1. 最后，选择刚才创建的 Configuration，点击 Run 就可以跑起来了
 
 1. 打包应用：
    - 如果是 Desktop 用户，和编译运行时一样，需要在 Configurations 中的打包命令中配置 -Djxbrowser.license.key
@@ -71,3 +72,4 @@
 1. 我们的 BrwoserViewModel 不是 Android 的 ViewModel
    1. ViewModel 中的函数，如果是 UI 结尾的，说明是给 Compose 用的，不能给其它地方使用。如果要使用，请在 Compose 中获取 uiScope 后，配合 Effect 来调用。否则同时在多个线程中使用这些函数，可能会造成线程安全问题
    1. 未来应该会使用 `MutableStateFlow<T>` 替代 `MutableStateOf<T>`，因为它是线程安全的。比方说 bookmarks 的数据已经是使用 MutableStateFlow 来实现，它是存储的是只读 map 与 list，修改起来更加可靠安全
+1. 在升级 gradle 后，记得也要顺便升级入口的脚步文件，例如： `./gradlew wrapper --gradle-version=8.6`
