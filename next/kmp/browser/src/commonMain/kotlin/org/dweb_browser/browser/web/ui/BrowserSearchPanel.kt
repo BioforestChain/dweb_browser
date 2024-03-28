@@ -186,7 +186,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
               onSearch = {
                 // 如果内容符合地址，直接进行搜索，其他情况就按照如果有搜索引擎就按照搜索引擎来，没有的就隐藏键盘
                 uiScope.launch {
-                  viewModel.doSearchUI(searchTextField.text.trim())
+                  viewModel.doSearchUI(searchTextField.text.trim().trim('\u200B').trim())
                   hide()
                 }
               }),
