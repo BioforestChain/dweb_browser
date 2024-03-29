@@ -2,11 +2,7 @@ package org.dweb_browser.sys.location
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
-import android.location.LocationManager
 import kotlinx.coroutines.flow.first
-import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.helper.UUID
 import org.dweb_browser.sys.permission.AndroidPermissionTask
 import org.dweb_browser.sys.permission.PermissionActivity
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
@@ -18,16 +14,6 @@ import org.dweb_browser.sys.permission.SystemPermissionName
  */
 @SuppressLint("MissingPermission")
 actual class LocationManage {
-  companion object {
-    private val locationObservers = mutableMapOf<UUID, AndroidLocationObserver>()
-  }
-
-  private val context = getAppContext()
-
-  //  拿到位置控制器 （国内无法使用google play服务,因此不能使用LocationServices.API/FusedLocationProviderClient）
-//  private val locationClient: FusedLocationProviderClient? = null
-  private var manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
 
   init {
     SystemPermissionAdapterManager.append {
@@ -45,9 +31,9 @@ actual class LocationManage {
     }
   }
 
-
   /**一次性获取位置*/
   actual suspend fun getCurrentLocation(precise: Boolean): GeolocationPosition {
+    debugLocation("LocationManage", "getCurrentLocation => precise=$precise")
     // 请求单次更新
     val observer = createLocationObserver(false)
     observer.start(precise = precise)
@@ -60,6 +46,7 @@ actual class LocationManage {
    * 监听地址
    */
   actual suspend fun createLocationObserver(autoStart: Boolean): LocationObserver {
+    debugLocation("LocationManage", "createLocationObserver => autoStart=$autoStart")
     val observer = AndroidLocationObserver()
     if (autoStart) {
       observer.start()

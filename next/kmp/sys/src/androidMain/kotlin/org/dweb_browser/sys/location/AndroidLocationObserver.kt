@@ -29,7 +29,7 @@ private fun toGeolocationPosition(lastLocation: Location): GeolocationPosition {
  * 询问是否设置网络权限
  */
 private fun askLocationSettings() {
-  debugLocation("getCurrentLocation=>", "askLocationSettings")
+  debugLocation("AndroidLocationObserver", "askLocationSettings")
   getAppContext().startActivity(Intent().apply {
     action = android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS
     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -43,16 +43,17 @@ private fun selectPrecise(precise: Boolean): String {
   return if (precise) {
     LocationManager.GPS_PROVIDER //GPS 定位的精准度比较高，但是非常耗电。
   } else {
-    LocationManager.NETWORK_PROVIDER //网络定位的精准度稍差，但耗电量比较少。
+    LocationManager.NETWORK_PROVIDER // 网络定位的精准度稍差，但耗电量比较少。
   }
 }
 
 class AndroidLocationObserver : LocationObserver() {
-  private val sharedFlow = MutableSharedFlow<GeolocationPosition>(replay = 1)
+  private val sharedFlow = MutableSharedFlow<GeolocationPosition>(replay = 1) // 通道中只会保留最后一条记录
   override val flow get() = sharedFlow
 
   inner class AndroidLocationListener : LocationListener {
     override fun onLocationChanged(location: Location) {
+      debugLocation("AndroidListener", "onLocationChanged=>$location")
       // 对位置进行处理
       val lastLocation = toGeolocationPosition(location)
       sharedFlow.tryEmit(lastLocation)
@@ -60,7 +61,7 @@ class AndroidLocationObserver : LocationObserver() {
 
     @Deprecated("Deprecated in Java")
     override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {
-      debugLocation("getCurrentLocation=>", "onProviderDisabled=>$provider,status=>$status")
+      debugLocation("AndroidListener", "onStatusChanged=>$provider,status=>$status")
       // 代表设备中的定位提供器不可用，例如 GPS 或网络定位被完全关闭。
       if (status == 0) { // LocationProvider.OUT_OF_SERVICE
         // 尝试询问用户是否在设置打开
@@ -75,23 +76,23 @@ class AndroidLocationObserver : LocationObserver() {
 
     // 当提供器被启用时会调用这个方法
     override fun onProviderEnabled(provider: String) {
-      debugLocation("getCurrentLocation=>", "onProviderDisabled=>$provider")
+      debugLocation("AndroidListener", "onProviderDisabled=>$provider")
     }
 
     // 当提供器被禁用时会调用这个方法
     override fun onProviderDisabled(provider: String) {
-      debugLocation("getCurrentLocation=>", "onProviderDisabled=>$provider")
+      debugLocation("AndroidListener", "onProviderDisabled=>$provider")
       sharedFlow.tryEmit(GeolocationPosition.createErrorObj(GeolocationPositionState.PERMISSION_DENIED))
     }
-
   }
 
   val listener = AndroidLocationListener()
 
   companion object {
-    private val manager =
+    //  拿到位置控制器 （国内无法使用google play服务,因此不能使用LocationServices.API/FusedLocationProviderClient）
+    //  private val locationClient: FusedLocationProviderClient? = null
+    private val locationManager =
       getAppContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
   }
 
   @SuppressLint("MissingPermission")
@@ -100,17 +101,44 @@ class AndroidLocationObserver : LocationObserver() {
 
     // 请求多次更新，这会通过回调触发到onLocationChanged
     if (Build.VERSION.SDK_INT >= 30) {
-      manager.requestLocationUpdates(
-        selectPrecise(precise), minTimeMs, minDistance.toFloat(), context.mainExecutor, listener
+      // 由于 Oppo 手机GPS定位存在问题，这边增加判断，不管是否要求精确，NETWORK_PROVIDER都注册监听
+      if (precise) {
+        locationManager.requestLocationUpdates(
+          LocationManager.GPS_PROVIDER,
+          minTimeMs,
+          minDistance.toFloat(),
+          context.mainExecutor,
+          listener
+        )
+      }
+      locationManager.requestLocationUpdates(
+        LocationManager.NETWORK_PROVIDER,
+        minTimeMs,
+        minDistance.toFloat(),
+        context.mainExecutor,
+        listener
       )
     } else {
-      manager.requestLocationUpdates(
-        selectPrecise(precise), minTimeMs, minDistance.toFloat(), listener, Looper.getMainLooper()
+      if (precise) {
+        locationManager.requestLocationUpdates(
+          LocationManager.GPS_PROVIDER,
+          minTimeMs,
+          minDistance.toFloat(),
+          listener,
+          Looper.getMainLooper()
+        )
+      }
+      locationManager.requestLocationUpdates(
+        LocationManager.NETWORK_PROVIDER,
+        minTimeMs,
+        minDistance.toFloat(),
+        listener,
+        Looper.getMainLooper()
       )
     }
   }
 
   override suspend fun stop() {
-    manager.removeUpdates(listener)
+    locationManager.removeUpdates(listener)
   }
 }
