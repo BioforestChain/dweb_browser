@@ -31,15 +31,7 @@ sealed class ModalState() {
    * 关闭提示
    * 如果非空，那么在用户尝试主动关闭模态窗口的时候，会弹出报警提示
    */
-  var closeTip
-    get() = _closeTip
-    set(value) {
-      _closeTip = value
-    }
-
-  @SerialName("closeTip")
-  private var _closeTip: String? = null
-
+  var closeTip: String? = null
 
   /**
    * 是否只展示一次，之后自动销毁
@@ -49,30 +41,25 @@ sealed class ModalState() {
   @Transient
   protected val isOpenState = mutableStateOf(false)
 
-  @SerialName("isOpen")
-  private var _isOpen = false
-
   /**
    * 是否开启
    */
-  val isOpen get() = _isOpen
-  val isClose get() = !_isOpen
+  var isOpen: Boolean = false
+    private set
+  val isClose get() = !isOpen
 
-
-  @SerialName("sessionId")
-  private var _sessionId = 1;
-
-  val sessionId get() = _sessionId
+  var sessionId: Int = 1
+    private set
 
   @LowLevelWindowAPI
   open fun open() {
-    this._sessionId += 1;
-    this._isOpen = true
+    this.sessionId += 1;
+    this.isOpen = true
     this.isOpenState.value = true
   }
 
   suspend fun safeOpen(): Boolean {
-    if (this._isDestroyed || this._isOpen) {
+    if (this._isDestroyed || this.isOpen) {
       return false
     }
     open()
@@ -82,13 +69,13 @@ sealed class ModalState() {
 
   @LowLevelWindowAPI
   open fun close() {
-    this._isOpen = false
+    this.isOpen = false
     this.isOpenState.value = false
     this.showCloseTip.value = ""
   }
 
   @OptIn(LowLevelWindowAPI::class)
-  suspend fun safeClose(mm: MicroModule) = this._isOpen.trueAlso {
+  suspend fun safeClose(mm: MicroModule) = this.isOpen.trueAlso {
     close();
     /// 更新渲染中的modal
     parent.updateOpeningModal()
@@ -134,17 +121,15 @@ sealed class ModalState() {
   @Composable
   abstract fun Render()
 
-  @SerialName("renderId")
-  private var _renderId: String = ""
-
-  val renderId get() = _renderId
+  var renderId: String = ""
+    private set
 
   @Transient
   internal lateinit var parent: WindowController
   internal fun initParent(win: WindowController) {
     parent = win
     win.state.modals += modalId to this
-    _renderId = win.id + "/" + modalId
+    renderId = win.id + "/" + modalId
 
     /// 主窗口关闭的时候，它也要跟着被销毁
     val mm =
