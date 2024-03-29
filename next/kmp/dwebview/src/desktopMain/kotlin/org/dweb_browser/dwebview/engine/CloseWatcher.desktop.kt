@@ -51,8 +51,10 @@ class CloseWatcher(val engine: DWebViewEngine) : ICloseWatcher {
           consuming.add(consumeToken)
           install()
           engine.ioScope.launch {
+            // TODO: 使用 evaluateAsyncJavascriptCode 会卡住，导致 openLock 不释放，下一次无法再 open
             openLock.withLock {
-              engine.evaluateAsyncJavascriptCode("void open('$consumeToken')")
+//              engine.evaluateAsyncJavascriptCode("void open('$consumeToken')")
+              engine.evaluateSyncJavascriptFunctionBody("void open('$consumeToken')")
               delay(60) // 经过测试，两次open至少需要50ms才能正确执行，所以这里用一个稍微大一点的数字来确保正确性
             }
           }

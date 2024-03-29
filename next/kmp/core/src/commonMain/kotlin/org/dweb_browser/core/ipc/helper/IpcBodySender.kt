@@ -9,8 +9,6 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -20,6 +18,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -84,9 +83,9 @@ class IpcBodySender private constructor(
   companion object {
     suspend fun from(raw: IPureBody, ipc: Ipc): IpcBodySender {
       val metaBody = when (raw) {
-        is PureEmptyBody -> MetaBody.fromText(raw.toPureString())
-        is PureStringBody -> MetaBody.fromText(raw.toPureString())
-        is PureBinaryBody -> MetaBody.fromBinary(raw.toPureBinary())
+        is PureEmptyBody -> MetaBody.fromText(raw.toPureString(), ipc.pool.poolId)
+        is PureStringBody -> MetaBody.fromText(raw.toPureString(), ipc.pool.poolId)
+        is PureBinaryBody -> MetaBody.fromBinary(raw.toPureBinary(), ipc.pool.poolId)
         is PureStreamBody -> null
       }
       return IpcBodySender(
@@ -99,7 +98,7 @@ class IpcBodySender private constructor(
     }
 
     fun fromText(raw: PureString, ipc: Ipc) =
-      IpcBodySender(MetaBody.fromText(raw), IPureBody.from(raw), ipc)
+      IpcBodySender(MetaBody.fromText(raw, ipc.pool.poolId), IPureBody.from(raw), ipc)
 
     fun fromBase64(raw: PureString, ipc: Ipc) = fromBinary(raw.toBase64ByteArray(), ipc)
 
@@ -108,12 +107,10 @@ class IpcBodySender private constructor(
 
       return IpcBodySender(
         when (pureBody) {
-          is PureEmptyBody -> MetaBody.fromText("")
-          is PureBinaryBody -> MetaBody.fromBinary(pureBody.data)
+          is PureEmptyBody -> MetaBody.fromText("", ipc.pool.poolId)
+          is PureBinaryBody -> MetaBody.fromBinary(pureBody.data, ipc.pool.poolId)
           else -> throw Exception("should not happen")
-        },
-        pureBody,
-        ipc
+        }, pureBody, ipc
       )
     }
 
@@ -165,7 +162,8 @@ class IpcBodySender private constructor(
   /**开始监听控制信号拉取*/
   private fun onPulling(streamId: String) {
     // 接收流的控制信号,才能跟接收者(IpcBodyReceiver)互相配合 onStream = pull + pause + abort
-    ipc.streamFlow.onEach { (stream) ->
+    ipc.onStream("onPulling").collectIn(ipc.scope) { event ->
+      val stream = event.data
       if (streamId == stream.stream_id) {
         debugIpcBodySender("onPulling", "sender INIT => $streamId => $stream")
         when (stream) {
@@ -175,9 +173,12 @@ class IpcBodySender private constructor(
             emitStreamAborted()
             ipc.close()
           }
+
+          else -> return@collectIn
         }
+        event.consume()
       }
-    }.launchIn(ipc.ipcScope)
+    }
   }
 
   private suspend fun streamAsMeta(stream: PureStream) = asMateLock.withLock {
@@ -260,7 +261,10 @@ class IpcBodySender private constructor(
     }
 
     MetaBody(
-      type = streamType, data = streamFirstData, streamId = streamId
+      type = streamType,
+      data = streamFirstData,
+      streamId = streamId,
+      senderPoolId = ipc.pool.poolId,
     ).also { metaBody ->
       metaBody.streamId?.let { streamId ->
         // 流对象，写入缓存,用于IpcReceiver快速拿到句柄

@@ -19,6 +19,11 @@ class DesktopLocationObserver() : LocationObserver() {
           ?: throw Exception("No Support navigator.geolocation")
       }
     }
+
+    fun getWebGeolocationOptions(enableHighAccuracy: Boolean) =
+      WebviewEngine.offScreen.newBrowser().run {
+        mainFrame().get().executeJavaScript<JsObject>("{'enableHighAccuracy': ${enableHighAccuracy}}")
+      }
   }
 
   private val sharedFlow = MutableSharedFlow<GeolocationPosition>()
@@ -32,10 +37,7 @@ class DesktopLocationObserver() : LocationObserver() {
         launch {
           stop()
         }
-      }, object {
-        @Suppress("unused")
-        val enableHighAccuracy = precise
-      })!!
+      }, getWebGeolocationOptions(precise))!!
     }
   }
 

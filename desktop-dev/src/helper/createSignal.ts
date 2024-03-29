@@ -7,48 +7,51 @@ export const createSignal = <CB extends $Callback<any[]> = $Callback>(autoStart?
 export class Signal<CB extends $Callback<any[]> = $Callback> {
   constructor(autoStart = true) {
     if (autoStart) {
-      this.start();
+      this._start();
     }
   }
   private _cbs = new Set<CB>();
 
   private _started = false;
-  private _cachedEmits: Array<Parameters<CB>> = [];
-  start = () => {
+  private _cachedActions: Array<() => void> = [];
+  private _start() {
     if (this._started) {
       return;
     }
     this._started = true;
-    if (this._cachedEmits.length) {
-      for (const args of this._cachedEmits) {
-        this._emit(args, this._cbs);
+    if (this._cachedActions.length) {
+      for (const action of this._cachedActions) {
+        action();
       }
-      this._cachedEmits.length = 0;
+      this._cachedActions.length = 0;
     }
-  };
+  }
+  private _startAction(action: () => void) {
+    if (this._started) {
+      action();
+    } else {
+      this._cachedActions.push(action);
+    }
+  }
   listen = (cb: CB): $OffListener => {
     this._cbs.add(cb);
-    this.start();
+    this._start();
     return () => this._cbs.delete(cb);
   };
 
   emit = (...args: Parameters<CB>) => {
-    if (this._started) {
+    this._startAction(() => {
       this._emit(args, this._cbs);
-    } else {
-      this._cachedEmits.push(args);
-    }
+    });
   };
   emitAndClear = (...args: Parameters<CB>) => {
-    if (this._started) {
+    this._startAction(() => {
       const cbs = [...this._cbs];
       this._cbs.clear();
       this._emit(args, cbs);
-    } else {
-      this._cachedEmits.push(args);
-    }
+    });
   };
-  private _emit = (args: Parameters<CB>, cbs: Iterable<CB>) => {
+  private _emit(args: Parameters<CB>, cbs: Iterable<CB>) {
     for (const cb of cbs) {
       try {
         cb.apply(null, args);
@@ -57,9 +60,12 @@ export class Signal<CB extends $Callback<any[]> = $Callback> {
         console.warn(reason);
       }
     }
-  };
+  }
+
   clear = () => {
-    this._cbs.clear();
+    this._startAction(() => {
+      this._cbs.clear();
+    });
   };
 }
 export type $Callback<ARGS extends unknown[] = [], RETURN = unknown> = (...args: ARGS) => RETURN;

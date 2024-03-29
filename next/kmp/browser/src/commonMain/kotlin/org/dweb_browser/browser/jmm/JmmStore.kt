@@ -24,7 +24,7 @@ import org.dweb_browser.helper.datetimeNow
 @Serializable
 data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String)
 
-class JmmStore(microModule: MicroModule) {
+class JmmStore(microModule: MicroModule.Runtime) {
   private val storeApp = microModule.createStore("jmm_apps", false)
   private val storeHistoryMetadata = microModule.createStore("history_metadata", false)
 
@@ -135,7 +135,15 @@ data class JmmStatusEvent(
   val current: Long = 0,
   val total: Long = 1,
   val state: JmmStatus = JmmStatus.Init,
-)
+) {
+  fun progress(): Float {
+    return if (total == 0L) {
+      .0f
+    } else {
+      (current * 1.0f / total) * 10 / 10.0f
+    }
+  }
+}
 
 fun JmmAppInstallManifest.createJmmHistoryMetadata(
   url: String, state: JmmStatus = JmmStatus.Init, installTime: Long = datetimeNow()

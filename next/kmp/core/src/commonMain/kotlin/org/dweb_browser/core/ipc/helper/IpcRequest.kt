@@ -1,259 +1,25 @@
 package org.dweb_browser.core.ipc.helper
 
 import io.ktor.http.Url
+import io.ktor.util.InternalAPI
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.IpcRequestInit
-import org.dweb_browser.core.ipc.debugIpc
 import org.dweb_browser.helper.IFrom
-import org.dweb_browser.helper.LateInit
-import org.dweb_browser.helper.SafeInt
-import org.dweb_browser.helper.commonAsyncExceptionHandler
-import org.dweb_browser.helper.eprintln
-import org.dweb_browser.helper.falseAlso
-import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.pure.http.PureChannel
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.http.PureServerRequest
-import org.dweb_browser.pure.http.PureStream
-import org.dweb_browser.pure.http.buildRequestX
-import kotlin.coroutines.coroutineContext
 
 
-const val PURE_CHANNEL_EVENT_PREFIX = "§"
 const val X_IPC_UPGRADE_KEY = "X-Dweb-Ipc-Upgrade-Key"
+const val PURE_CHANNEL_EVENT_PREFIX = "§-"
 
-class IpcClientRequest(
-  reqId: Int,
-  url: String,
-  method: PureMethod,
-  headers: PureHeaders,
-  body: IpcBody,
-  ipc: Ipc,
-  override val from: Any? = null
-) : IpcRequest(
-  reqId = reqId,
-  url = url,
-  method = method,
-  headers = headers,
-  body = body,
-  ipc = ipc
-) {
-  companion object {
-
-    fun fromText(
-      reqId: Int,
-      url: String,
-      method: PureMethod = PureMethod.GET,
-      headers: PureHeaders = PureHeaders(),
-      text: String,
-      ipc: Ipc
-    ) = IpcClientRequest(
-      reqId,
-      url,
-      method,
-      headers,// 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
-      IpcBodySender.fromText(text, ipc),
-      ipc,
-    );
-
-    fun fromBinary(
-      reqId: Int,
-      method: PureMethod,
-      url: String,
-      headers: PureHeaders = PureHeaders(),
-      binary: ByteArray,
-      ipc: Ipc
-    ) = IpcClientRequest(
-      reqId,
-      url,
-      method,
-      headers.also {
-        headers.init("Content-Type", "application/octet-stream");
-        headers.init("Content-Length", binary.size.toString());
-      },
-      IpcBodySender.fromBinary(binary, ipc),
-      ipc,
-    )
-
-    suspend fun fromStream(
-      reqId: Int,
-      method: PureMethod,
-      url: String,
-      headers: PureHeaders = PureHeaders(),
-      stream: PureStream,
-      ipc: Ipc,
-      size: Long? = null
-    ) = IpcClientRequest(
-      reqId,
-      url,
-      method,
-      headers.also {
-        headers.init("Content-Type", "application/octet-stream");
-        if (size !== null) {
-          headers.init("Content-Length", size.toString());
-        }
-      },
-      IpcBodySender.fromStream(stream, ipc),
-      ipc,
-    )
-
-    suspend fun fromRequest(
-      reqId: Int,
-      ipc: Ipc,
-      url: String,
-      init: IpcRequestInit,
-      from: Any? = null
-    ) = IpcClientRequest(
-      reqId,
-      url,
-      init.method,
-      init.headers,
-      IpcBodySender.from(init.body, ipc),
-      ipc,
-      from
-    )
-
-    suspend fun PureClientRequest.toIpc(
-      reqId: Int,
-      postIpc: Ipc,
-    ): IpcClientRequest {
-      val pureRequest = this
-      if (pureRequest.hasChannel) {
-        val eventNameBase =
-          "$PURE_CHANNEL_EVENT_PREFIX-${postIpc.channelId}/${reqId}/${duplexAcc.inc().value}"
-
-        debugIpc("ipcClient/hasChannel") { "create ipcEventBaseName:$eventNameBase => request:$pureRequest" }
-        CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
-          val pureChannel = pureRequest.getChannel()
-//          debugIpc("ipcClient/channelToIpc") { "channelId:$eventNameBase => pureChannel:$pureChannel start!!" }
-          /// 不论是请求者还是响应者
-          /// 那么意味着数据需要通过ipc来进行发送。所以我需要将 pureChannel 中要发送的数据读取出来进行发送
-          /// 反之，ipc收到的数据也要作为 pureChannel 的
-          val channelContext = pureChannel.start()
-          pureChannelToIpcEvent(
-            eventNameBase,
-            postIpc,
-            pureChannel,
-            channelByIpcEmit = channelContext.income,
-            channelForIpcPost = channelContext.outgoing,
-            _debugTag = "IpcClient/channelToIpc"
-          ) { }
-        }
-
-        val ipcRequest = fromRequest(
-          reqId, postIpc, pureRequest.href,
-          IpcRequestInit(
-            pureRequest.method,
-            IPureBody.Empty,
-            pureRequest.headers.copy().apply {
-              init(X_IPC_UPGRADE_KEY, eventNameBase).falseAlso {
-                eprintln("fromPure WARNING: SHOULD NOT HAPPENED, PURE_REQUEST CONTAINS 'X_IPC_UPGRADE_KEY' IN HEADERS")
-              }
-            }),
-          from = this
-        ).apply {
-          pure.set(pureRequest)
-        }
-
-        return ipcRequest
-      }
-      return fromRequest(
-        reqId, postIpc, pureRequest.href,
-        IpcRequestInit(pureRequest.method, pureRequest.body, pureRequest.headers)
-      )
-    }
-  }
-
-  internal val server = LateInit<IpcServerRequest>()
-  fun toServer(serverIpc: Ipc) = server.getOrInit {
-    IpcServerRequest(
-      reqId = reqId,
-      url = url,
-      method = method,
-      headers = headers,
-      body = body,
-      ipc = serverIpc,
-      from = this,
-    )
-  }
-
-  internal val pure = LateInit<PureClientRequest>()
-}
-
-
-class IpcServerRequest(
-  reqId: Int,
-  url: String,
-  method: PureMethod,
-  headers: PureHeaders,
-  body: IpcBody,
-  ipc: Ipc,
-  override val from: Any? = null
-) :
-  IpcRequest(
-    reqId = reqId,
-    url = url,
-    method = method,
-    headers = headers,
-    body = body,
-    ipc = ipc
-  ) {
-
-  fun getClient() = findFrom { if (it is IpcClientRequest) it else null }
-
-  internal val pure = LateInit<PureServerRequest>()
-
-  suspend fun toPure() = pure.getOrInit {
-    buildRequestX(url, method, headers, body.raw, from = this).let { pureRequest ->
-      /// 如果存在双工通道，那么这个 pureRequest 用不了，需要重新构建一个新的 PureServerRequest
-      if (hasDuplex) {
-        val eventNameBase = duplexEventBaseName!!
-//        debugIpc(
-//          "PureServer/ipcToChannel",
-//          "channelId:$eventNameBase => request:$this start!!"
-//        )
-
-        val pureChannelDeferred = CompletableDeferred<PureChannel>()
-        CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
-          val pureChannel = pureChannelDeferred.await();
-          val ctx = pureChannel.start()
-          pureChannelToIpcEvent(
-            eventNameBase,
-            ipc,
-            pureChannel,
-            channelByIpcEmit = ctx.income,
-            channelForIpcPost = ctx.outgoing,
-            _debugTag = "PureServer/ipcToChannel",
-          ) { }
-        }
-
-        PureServerRequest(
-          href = pureRequest.href,
-          method = pureRequest.method,
-          headers = headers.copy().apply { delete(X_IPC_UPGRADE_KEY) },
-          body = pureRequest.body,
-          channel = pureChannelDeferred,
-          from = pureRequest.from,
-        ).also { pureServerRequest ->
-          pureChannelDeferred.complete(PureChannel(pureServerRequest))
-        }
-      } else pureRequest.toServer()
-    }
-  }
-}
 
 /**
  *
@@ -277,88 +43,17 @@ sealed class IpcRequest(
   val headers: PureHeaders,
   val body: IpcBody,
   val ipc: Ipc,
-) : IpcMessage(IPC_MESSAGE_TYPE.REQUEST), IFrom {
+) : IpcMessage, IFrom, RawAble<IpcReqMessage> {
 
   val uri by lazy { Url(url) }
 
   override fun toString() = "IpcRequest@$reqId/$method/$url".let { str ->
-    if (debugIpc.isEnable) "$str{${
+    if (ipc.debugIpc.isEnable) "$str{${
       headers.toList().joinToString(", ") { it.first + ":" + it.second }
     }}" + "" else str
   }
 
-  companion object {
-
-    internal val duplexAcc by lazy { SafeInt(0) }
-
-    /**
-     * 一个将 pureChannel 与 ipc 进行关联转换的函数
-     *
-     * TODO 这里应该使用 fork():Ipc 来承载 pureChannel
-     * 目前这里使用一个 ipcEvent 来承载 pureChannel，行为上比较奇怪，性能上也不是最佳
-     */
-    @OptIn(DelicateCoroutinesApi::class)
-    internal suspend fun pureChannelToIpcEvent(
-      eventNameBase: String,
-      ipc: Ipc,
-      pureChannel: PureChannel,
-      /**收到ipcEvent时，需要对其进行接收的 channel*/
-      channelByIpcEmit: SendChannel<PureFrame>,
-      /**收到pureFrame时，需要将其转发给ipc的 channel*/
-      channelForIpcPost: ReceiveChannel<PureFrame>,
-      _debugTag: String = "pureChannelToIpcEvent",
-      waitReadyToStart: suspend () -> Unit,
-    ) {
-      val eventStart = "$eventNameBase/start"
-      val eventData = "$eventNameBase/data"
-      val eventClose = "$eventNameBase/close"
-      val started = CompletableDeferred<IpcEvent>()
-      val orderBy = Ipc.order_by_acc++
-      /// 将收到的IpcEvent转成PureFrame
-      ipc.eventFlow.onEach { (ipcEvent) ->
-        when (ipcEvent.name) {
-          eventData -> {
-            if (!channelByIpcEmit.isClosedForSend)
-              channelByIpcEmit.send(ipcEvent.toPureFrame())
-          }
-
-          eventStart -> {
-            debugIpc(_debugTag) { "$ipc onIpcEventStart:$ipcEvent" }
-            started.complete(ipcEvent)
-          }
-
-          eventClose -> {
-            debugIpc(_debugTag) { "$ipc onIpcEventClose:$ipcEvent " }
-            pureChannel.close()
-          }
-        }
-      }.launchIn(ipc.ipcScope)
-      debugIpc(_debugTag) { "waitLocaleStart:$eventNameBase ${ipc.channelId}" }
-      // 提供回调函数，等待外部调用者执行开始指令
-      waitReadyToStart()
-      debugIpc(_debugTag) { "waitRemoteStart:$eventNameBase ${ipc.channelId}" }
-      // 首先自己发送start，告知对方自己已经准备好数据接收了
-      ipc.postMessage(IpcEvent.fromUtf8(eventStart, "", orderBy))
-      // 同时也要等待对方发送 start 信号过来，那么也将 start 回传，避免对方遗漏前面的 start 消息
-      val ipcStartEvent = started.await()
-      debugIpc(_debugTag) { "$ipc postIpcEventStart:$ipcStartEvent ${ipc.channelId}" }
-      ipc.postMessage(ipcStartEvent)
-      /// 将PureFrame转成IpcEvent，然后一同发给对面
-      for (pureFrame in channelForIpcPost) {
-        when (pureFrame) {
-          PureCloseFrame -> break;
-          else -> {
-            val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame, orderBy)
-            ipc.postMessage(ipcDataEvent)
-          }
-        }
-      }
-      // 关闭的时候，发一个信号给对面
-      val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "", orderBy)
-      debugIpc(_debugTag) { "$ipc postIpcEventClose:$ipcCloseEvent ${ipc.channelId}" }
-      ipc.postMessage(ipcCloseEvent)
-    }
-  }
+  companion object {}
 
   /**
    * 判断是否是双工协议
@@ -366,28 +61,89 @@ sealed class IpcRequest(
    * 注意，这里WebSocket，但是可以由 WebSocket 来提供支持
    * WebSocket 是在头部中有 Upgrade ，我们这里是 X_IPC_PURE_CHANNEL_ID
    */
-  val hasDuplex get() = duplexEventBaseName != null
-  protected val duplexEventBaseName by lazy {
-    var eventNameBase: String? = null
+  val hasDuplex get() = duplexIpcId != null
+  protected val duplexIpcId by lazy {
+    var forkedIpcId: Int? = null
     headers.get(X_IPC_UPGRADE_KEY)?.also {
       if (it.startsWith(PURE_CHANNEL_EVENT_PREFIX)) {
-        eventNameBase = it
+        forkedIpcId = it.substring(PURE_CHANNEL_EVENT_PREFIX.length).toInt()
       }
     }
-    eventNameBase
+    forkedIpcId
   }
 
-  val ipcReqMessage by lazy {
+  override val stringAble by lazy {
     IpcReqMessage(reqId, method, url, headers.toMap(), body.metaBody)
   }
+}
 
+
+/**
+ * 一个将 pureChannel 与 ipc 进行关联转换的函数
+ *
+ * 目前这里使用一个 ipcEvent 来承载 pureChannel，二者转换几乎没有性能损失
+ *
+ * 请使用 launch(start = CoroutineStart.UNDISPATCHED) 启动这个函数，因为我们要尽量确保消息不丢失，而我们是依靠 orderBy 来消费 event，因此如果没有消费函数的阻塞，那么closing会自然而然地执行，
+ */
+@OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
+internal suspend fun pureChannelToIpcEvent(
+  channelIpc: Ipc,
+  pureChannelDeferred: Deferred<PureChannel>,
+  debugTag: String,
+) {
+  val eventData = "${PURE_CHANNEL_EVENT_PREFIX}data"
+
+  val ipcListenToChannelDeferred = CompletableDeferred<SendChannel<PureFrame>>()
+  /// 这里需要立刻开始绑定事件，否则外部可能对ipc进行start，最终导致直接 ipc 关闭。那么这些 event 就会因为 close 而被强制消费
+  val job = channelIpc.onEvent("IpcEventToPureChannel").collectIn(channelIpc.scope) { event ->
+    val ipcEvent = event.consumeFilter { it.name == eventData } ?: return@collectIn
+    channelIpc.debugIpc(debugTag) { "inChannelData=$ipcEvent" }
+    val ipcListenToChannel = ipcListenToChannelDeferred.await()
+    if (!ipcListenToChannel.isClosedForSend) ipcListenToChannel.send(ipcEvent.toPureFrame())
+  }
+  channelIpc.launchJobs += job
+  // 等待外部提供 pureChannel
+  val pureChannel = pureChannelDeferred.await()
+  /// 绑定 ipc => channel 的关闭
+  channelIpc.onClosed {
+    channelIpc.debugIpc(debugTag) { "ipc will-close outgoing-channel" }
+    // 这里只是关闭输出
+    pureChannel.closeOutgoing()
+  }
+  job.invokeOnCompletion {
+    channelIpc.debugIpc(debugTag) { "ipc will-close channel" }
+    // 这里做完全的关闭
+    pureChannel.close()
+  }
+  val ctx = pureChannel.start()
+  channelIpc.debugIpc(debugTag) { "pureChannel start" }
+  /**收到ipcEvent时，需要对其进行接收的 channel*/
+  ipcListenToChannelDeferred.complete(ctx.incomeChannel)
+  /**收到pureFrame时，需要将其转发给ipc的 channel*/
+  val channelForIpcPost = ctx.outgoingChannel
+
+  channelIpc.start(reason = debugTag)
+  /// 将PureFrame转成IpcEvent，然后一同发给对面
+  for (pureFrame in channelForIpcPost) {
+    val ipcDataEvent = IpcEvent.fromPureFrame(
+      eventData, pureFrame,
+      // 这里使用和生命周期一致的 order，以确保对面反能在数据消息接收完后再处理关闭信号
+      orderBy = IpcLifecycle.DEFAULT_ORDER,
+    )
+    channelIpc.debugIpc(debugTag) { "outChannelData=$ipcDataEvent" }
+    channelIpc.postMessage(ipcDataEvent)
+  }
+  /// 绑定 channel => ipc 的关闭
+  channelIpc.debugIpc(debugTag) { "channel will-close ipc" }
+  channelIpc.close()
 }
 
 @Serializable
+@SerialName(IPC_MESSAGE_TYPE_REQUEST)
 data class IpcReqMessage(
   val reqId: Int,
   val method: PureMethod,
   val url: String,
   val headers: MutableMap<String, String>,
   val metaBody: MetaBody,
-) : IpcMessage(IPC_MESSAGE_TYPE.REQUEST)
+) : IpcRawMessage

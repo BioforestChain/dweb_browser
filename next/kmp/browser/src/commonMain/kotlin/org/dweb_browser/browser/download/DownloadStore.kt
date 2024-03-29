@@ -5,7 +5,7 @@ import org.dweb_browser.core.std.file.ext.createStore
 
 typealias TaskId = String
 
-class DownloadStore(mm: MicroModule) {
+class DownloadStore(mm: MicroModule.Runtime) {
   private val store = mm.createStore("download_task", false)
 
   suspend fun getOrPut(key: TaskId, value: DownloadTask): DownloadTask {

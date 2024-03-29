@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.desk
 
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.ipc.Ipc
@@ -23,9 +24,9 @@ class RunningApp(
    */
   val ipc: Ipc,
   val bootstrapContext: BootstrapContext,
-  defaultWindowState: WindowState? = null
+  defaultWindowState: WindowState? = null,
 ) {
-  val closeDeferred = ipc.closeDeferred
+  val onClosed = ipc::onClosed
 
   /**
    * 所有的窗口实例
@@ -56,6 +57,12 @@ class RunningApp(
       }
     )
     windows.add(newWin)
+    // 监听app被shutdown的时候也需要移除window
+    ipc.onClosed {
+      newWin.lifecycleScope.launch {
+        newWin.closeRoot()
+      }
+    }
     /// 窗口销毁的时候
     newWin.onClose {
       /// 通知模块，销毁渲染
@@ -97,7 +104,7 @@ class RunningApp(
     createWindow(latestWindowState).also { win ->
       latestWindowState = win.state
       win.onClose {
-        println("关闭窗口信号 ${ipc.channelId} ${ipc.remote.mmid}")
+        println("关闭窗口信号 ${ipc.debugId} ${ipc.remote.mmid}")
         if (mainWin == win) {
           mainWin = null
         }

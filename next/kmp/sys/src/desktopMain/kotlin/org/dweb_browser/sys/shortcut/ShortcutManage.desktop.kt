@@ -26,7 +26,7 @@ actual class ShortcutManage actual constructor() {
    * Android: 如果icon=null, 会使用resource的生成新的icon.
    */
   actual suspend fun getValidIcon(
-    microModule: MicroModule,
+    microModule: MicroModule.Runtime,
     resource: ImageResource
   ): ByteArray? {
     // TODO Not yet implemented getValidIcon

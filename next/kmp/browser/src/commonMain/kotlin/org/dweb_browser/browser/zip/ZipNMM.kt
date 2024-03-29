@@ -8,7 +8,6 @@ import org.dweb_browser.core.std.file.ext.moveFile
 import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.WARNING
 import org.dweb_browser.pure.http.PureMethod
 
 val debugZip = Debugger("ZipManager")
@@ -22,26 +21,29 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
     icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(
-      "/decompress" bind PureMethod.GET by defineBooleanResponse {
-        val sourcePath = this@ZipNMM.realFile(request.query("sourcePath"))
-        val targetPath = request.query("targetPath")
-        // 先解压到一个临时目录
-        val tmpVfsPath = "/data/tmp/${targetPath.substring(targetPath.lastIndexOf("/") + 1)}"
-        // 获取真实目录
-        val tmpPath = this@ZipNMM.realFile(tmpVfsPath)
-        // 开始解压
-        val ok = decompress(sourcePath, tmpPath)
-        if (!ok) {
-          return@defineBooleanResponse false
+  inner class ZipRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+    override suspend fun _bootstrap() {
+      routes(
+        "/decompress" bind PureMethod.GET by defineBooleanResponse {
+          val sourcePath = realFile(request.query("sourcePath"))
+          val targetPath = request.query("targetPath")
+          // 先解压到一个临时目录
+          val tmpVfsPath = "/data/tmp/${targetPath.substring(targetPath.lastIndexOf("/") + 1)}"
+          // 获取真实目录
+          val tmpPath = realFile(tmpVfsPath)
+          // 开始解压
+          val ok = decompress(sourcePath, tmpPath)
+          if (!ok) {
+            return@defineBooleanResponse false
+          }
+          return@defineBooleanResponse moveFile(tmpVfsPath, targetPath)
         }
-        return@defineBooleanResponse this@ZipNMM.moveFile(tmpVfsPath, targetPath)
-      }
-    )
+      )
+    }
+
+    override suspend fun _shutdown() {
+    }
   }
 
-  override suspend fun _shutdown() {
-    WARNING("Not yet implemented")
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) = ZipRuntime(bootstrapContext)
 }

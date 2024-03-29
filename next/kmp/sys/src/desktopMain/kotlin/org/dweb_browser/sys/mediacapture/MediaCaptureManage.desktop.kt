@@ -27,21 +27,21 @@ actual class MediaCaptureManage actual constructor() {
   }
 
   private val fileChooser = FileChooserManage()
-  private suspend fun openFileChooserAsPureStream(microModule: MicroModule, accept: String) =
+  private suspend fun openFileChooserAsPureStream(microModule: MicroModule.Runtime, accept: String) =
     fileChooser.openFileChooser(microModule, "image/*", false, 1).firstOrNull()?.let {
       val file = File(it)
       PureStream(file.inputStream().toByteReadChannel())
     }
 
-  actual suspend fun takePicture(microModule: MicroModule): PureStream? {
+  actual suspend fun takePicture(microModule: MicroModule.Runtime): PureStream? {
     return openFileChooserAsPureStream(microModule, "image/*")
   }
 
-  actual suspend fun captureVideo(microModule: MicroModule): PureStream? {
+  actual suspend fun captureVideo(microModule: MicroModule.Runtime): PureStream? {
     return openFileChooserAsPureStream(microModule, "video/*")
   }
 
-  actual suspend fun recordSound(microModule: MicroModule): PureStream? {
+  actual suspend fun recordSound(microModule: MicroModule.Runtime): PureStream? {
     return openFileChooserAsPureStream(microModule, "audio/*")
   }
 }

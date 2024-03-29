@@ -1,10 +1,9 @@
 package org.dweb_browser.core.std.dns.ext
 
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.helper.listen
 
 /**
  * Activity的意义在于异步启动某些任务，而不是总在 bootstrap 的时候就全部启动
@@ -14,10 +13,14 @@ import org.dweb_browser.core.module.MicroModule
 private const val ACTIVITY_EVENT_NAME = "activity"
 fun IpcEvent.Companion.createActivity(data: String) = IpcEvent.fromUtf8(ACTIVITY_EVENT_NAME, data)
 fun IpcEvent.isActivity() = name == ACTIVITY_EVENT_NAME
-fun MicroModule.onActivity(cb: suspend (value: IpcEventMessageArgs) -> Unit) = onConnect { (ipc) ->
-  ipc.eventFlow.onEach { args ->
-    if (args.event.isActivity()) {
-      cb(args)
+suspend fun MicroModule.Runtime.onActivity(cb: suspend (value: Pair<IpcEvent, Ipc>) -> Unit) =
+  onConnect.listen { event ->
+    val (ipc) = event.data
+    scopeLaunch(cancelable = false) {
+      ipc.onEvent("onActivity").collect { event ->
+        if (event.data.isActivity()) {
+          cb(Pair(event.consume(), ipc))
+        }
+      }
     }
-  }.launchIn(ioAsyncScope)
-}
+  }

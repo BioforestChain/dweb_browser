@@ -1,11 +1,10 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureStream
@@ -22,11 +21,11 @@ class IpcBodyReceiver(
     /// 将第一次得到这个metaBody的 ipc 保存起来，这个ipc将用于接收
     if (metaBody.type.isStream && metaBody.streamId != null) {
       CACHE.streamId_receiverIpc_Map.getOrPut(metaBody.streamId) {
-        ipc.ipcScope.launch {
-          ipc.closeDeferred.await()
+        ipc.scope.launch {
+          ipc.awaitClosed()
           CACHE.streamId_receiverIpc_Map.remove(metaBody.streamId)
         }
-        metaBody.receiverPoolId = ipc.endpoint.poolId
+        metaBody.receiverPoolId = ipc.pool.poolId
         ipc
       }
     }
@@ -70,10 +69,10 @@ class IpcBodyReceiver(
        */
       val paused = atomic(true)
       val readableStream =
-        ReadableStream(ipc.ipcScope, cid = "receiver=${streamId}", onStart = { controller ->
+        ReadableStream(ipc.scope, cid = "receiver=${streamId}", onStart = { controller ->
           // 注册关闭事件
           this.launch {
-            ipc.closeDeferred.await()
+            ipc.awaitClosed()
             controller.closeWrite()
           }
           /// 如果有初始帧，直接存起来
@@ -83,7 +82,8 @@ class IpcBodyReceiver(
             IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
             else -> null
           }?.let { firstData -> controller.enqueueBackground(firstData) }
-          ipc.streamFlow.onEach { (ipcStream) ->
+          ipc.onStream("metaToStream").collectIn(ipc.scope) { event ->
+            val ipcStream = event.data
             if (streamId == ipcStream.stream_id) {
               when (ipcStream) {
                 is IpcStreamData -> {
@@ -99,9 +99,12 @@ class IpcBodyReceiver(
                   )
                   controller.closeWrite()
                 }
+
+                else -> return@collectIn
               }
+              event.consume()
             }
-          }.launchIn(ipc.ipcScope)
+          }
         }, onOpenReader = { controller ->
           debugIpcBodyReceiver(
             "postPullMessage/$ipc/${controller.stream}", streamId

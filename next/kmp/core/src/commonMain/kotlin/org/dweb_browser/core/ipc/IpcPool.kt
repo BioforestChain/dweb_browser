@@ -1,38 +1,23 @@
 package org.dweb_browser.core.ipc
 
-import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
-import org.dweb_browser.core.ipc.helper.IpcPoolPack
-import org.dweb_browser.core.ipc.helper.OnIpcPoolMessage
+import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureStream
 
-val debugIpcPool = Debugger("ipc")
+val debugIpcPool = Debugger("ipcPool")
 
 val kotlinIpcPool = IpcPool()
-
-data class IpcOptions(
-  /**远程的模块是谁*/
-  val remote: IMicroModuleManifest,
-  /**是否自动发送握手消息*/
-//  val autoStart: Boolean = true,
-  /**当endpoint为Worker的时候需要传递*/
-  val port: MessagePort? = null,
-  /**当endpoint为Kotlin的时候需要传递*/
-  val channel: NativePort<IpcPoolPack, IpcPoolPack>? = null,
-  /**当endpoint为FrontEnd的时候需要传递*/
-//  val stream: PureStream? = null
-)
 
 /**
  * IpcPool跟上下文对应，跟body流对应
@@ -41,9 +26,10 @@ data class IpcOptions(
 open class IpcPool {
   companion object {
     private fun randomPoolId() = "kotlin-${randomUUID()}"
-    private val ipcPoolScope =
-      CoroutineScope(CoroutineName("ipc-pool-kotlin") + ioAsyncExceptionHandler)
   }
+
+  val scope =
+    CoroutineScope(CoroutineName("ipc-pool-kotlin") + ioAsyncExceptionHandler + SupervisorJob())
 
   /**每一个ipcPool都会绑定一个body流池,只有当不在同一个IpcPool的时候才需要互相拉取*/
   val poolId: UUID = randomPoolId()
@@ -59,88 +45,58 @@ open class IpcPool {
    * 所有的委托进来的流的实例集合
    */
   private val streamPool = mutableMapOf<String, PureStream>()
-
-  fun create(channelId: String, mm: IMicroModuleManifest, port: MessagePort) = createAndSave {
-    MessagePortIpc(port, mm, channelId, this)
+  suspend fun createIpc(
+    endpoint: IpcEndpoint,
+    pid: Int,
+    locale: MicroModuleManifest,
+    remote: MicroModuleManifest,
+    autoStart: Boolean = false,
+    startReason: String? = null,
+  ) = Ipc(
+    pid = pid,
+    endpoint = endpoint,
+    locale = locale,
+    remote = remote,
+    pool = this,
+  ).also { ipc ->
+    safeCreatedIpc(ipc, autoStart, startReason)
   }
 
-  fun create(
-    channelId: String, mm: IMicroModuleManifest, channel: NativePort<IpcPoolPack, IpcPoolPack>
-  ) = createAndSave {
-    NativeIpc(channel, mm, channelId, this)
-  }
-
-  suspend fun create(
-    channelId: String,
-    mm: IMicroModuleManifest,
-    getStream: suspend (ReadableStreamIpc) -> PureStream,
-  ) = createAndSave {
-    ReadableStreamIpc(channelId, mm, this).apply { bindIncomeStream(getStream(this)) }
-  }
-
-  fun create(
-    channelId: String,
-    mm: IMicroModuleManifest,
-    stream: PureStream,
-  ) = createAndSave {
-    ReadableStreamIpc(channelId, mm, this).apply { bindIncomeStream(stream) }
-  }
-
-  /**
-   * 保存ipc，并且根据它的生命周期做自动删除
-   */
-  private inline fun <T : Ipc> createAndSave(creator: () -> T) = creator().also { ipc ->
+  internal suspend fun safeCreatedIpc(
+    ipc: Ipc,
+    autoStart: Boolean,
+    startReason: String?,
+  ) {
+    /// 保存ipc，并且根据它的生命周期做自动删除
+    debugIpcPool("createIpc", ipc)
     ipcSet.add(ipc)
-    ipcPoolScope.launch {
-      // 监听启动回调
-      ipc.initLifeCycleHook()
-      // 发送开始信号
-      ipc.start()
-
-      ipc.closeDeferred.await()
-      debugIpcPool("pool-closeIpc", ipc.channelId)
+    /// 自动启动
+    if (autoStart) {
+      scope.launch {
+        ipc.start(reason = startReason ?: "autoStart")
+      }
+    }
+    ipc.onClosed {
       ipcSet.remove(ipc)
+      debugIpcPool("removeIpc", ipc)
     }
   }
-
-  /**
-   * 根据传进来的业务描述，注册一个Pid
-   */
-  internal fun generatePid(channelId: String): Int {
-    val time = datetimeNow()
-    return "${channelId}${time}".hashCode()
-  }
-
-  // 收消息
-  private val _messageSignal = Signal<IpcPoolMessageArgs>()
-  suspend fun dispatchMessage(args: IpcPoolMessageArgs) = _messageSignal.emit(args)
-  fun onMessage(cb: OnIpcPoolMessage) = _messageSignal.listen(cb)
-
-  /**
-   * 分发到各个Ipc(endpoint)
-   * 为了防止消息丢失，得有一开始的握手和消息断开
-   */
-  init {
-    onMessage { (pack, ipc) ->
-      ipc.dispatchMessage(pack.ipcMessage)
-    }
-  }
-
-  /**-----close start*/
-
 
   /**关闭信号*/
-  val onDestroyed = CompletableDeferred<Unit>()
-  val isDestroyed get() = onDestroyed.isCompleted
+  suspend fun awaitDestroyed() = runCatching {
+    scope.coroutineContext[Job]!!.join();
+    null
+  }.getOrElse { it }
 
-  val destroy = SuspendOnce {
-    val oldSet = this.ipcSet.toSet()
-    this.ipcSet.clear()
+  val isDestroyed get() = scope.coroutineContext[Job]!!.isCancelled
+
+  val destroy = SuspendOnce1 { cause: CancellationException ->
+    val oldSet = ipcSet.toSet()
+    ipcSet.clear()
     oldSet.forEach { ipc ->
       ipc.close()
     }
-    this.onDestroyed.complete(Unit)
+    scope.cancel(cause)
   }
 
-  /**-----close end*/
 }

@@ -52,6 +52,7 @@ kotlin {
       implementation(libs.ktor.client.okhttp)
       // 异步轻量，性价比最高
       implementation(libs.ktor.server.netty)
+      implementation(libs.ktor.server.jetty)
       implementation(libs.ktor.network.tls.certificates)
     }
   }

@@ -57,14 +57,25 @@
 		4803C01B2B4FF9E1006B2F79 /* WebBrowserDefaultProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803C0192B4FF9E0006B2F79 /* WebBrowserDefaultProvider.swift */; };
 		4803C01C2B4FF9E1006B2F79 /* WebBrowserViewProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803C01A2B4FF9E1006B2F79 /* WebBrowserViewProtocol.swift */; };
 		4803C01E2B4FF9E8006B2F79 /* BrowserWebSiteInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4803C01D2B4FF9E8006B2F79 /* BrowserWebSiteInfo.swift */; };
+		4805C4AB2BCFB4AC00063760 /* DownloadAudioPCMWaveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4805C4AA2BCFB4AC00063760 /* DownloadAudioPCMWaveView.swift */; };
 		4819C2D62B4FDF88001BB45D /* DwebWebBrowser.docc in Sources */ = {isa = PBXBuildFile; fileRef = 4819C2D52B4FDF88001BB45D /* DwebWebBrowser.docc */; };
 		4819C2E42B4FEB9B001BB45D /* DwebPlatformIosKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4819C2E32B4FEB9B001BB45D /* DwebPlatformIosKit.framework */; };
+		4828BE192BD0C799005AA0CD /* DownloadAudioPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4828BE182BD0C799005AA0CD /* DownloadAudioPreviewView.swift */; };
+		4828BE1B2BD0C7C2005AA0CD /* DownloadVideoPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4828BE1A2BD0C7C2005AA0CD /* DownloadVideoPreviewView.swift */; };
+		4828BE1D2BD0C81A005AA0CD /* DownloadTextPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4828BE1C2BD0C81A005AA0CD /* DownloadTextPreviewView.swift */; };
+		482F5EAA2BC62B27008F089D /* DownloadListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 482F5EA92BC62B27008F089D /* DownloadListView.swift */; };
 		48334DE92B50D10400399FFF /* DwebBrowserCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 48334DE82B50D10400399FFF /* DwebBrowserCommon.framework */; };
 		48334DF22B50DBF700399FFF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4803BFE52B4FF2A8006B2F79 /* Assets.xcassets */; };
 		48334DF42B50DF9700399FFF /* Bundle+module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48334DF32B50DF9700399FFF /* Bundle+module.swift */; };
 		48334DF62B50E12000399FFF /* Browser.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF6C2B4FF279006B2F79 /* Browser.xcdatamodeld */; };
+		48A4AE432BC91CE8008F5860 /* DownloadListData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A4AE422BC91CE8008F5860 /* DownloadListData.swift */; };
+		48A4AE452BC91D26008F5860 /* DownloadListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A4AE442BC91D26008F5860 /* DownloadListViewModel.swift */; };
+		48A4AE472BC91D5C008F5860 /* DwebCircleProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A4AE462BC91D5C008F5860 /* DwebCircleProgressView.swift */; };
+		48EA39F02BC785DD00FC4898 /* DownloadPreviewViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EA39EF2BC785DD00FC4898 /* DownloadPreviewViews.swift */; };
+		48EC18782BD211E400877DC5 /* DownloadPlayableScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EC18772BD211E400877DC5 /* DownloadPlayableScrollView.swift */; };
 		48EEA8EE2B4FF17F006DA0F3 /* DwebWebBrowser.h in Headers */ = {isa = PBXBuildFile; fileRef = 48EEA8E12B4FF17F006DA0F3 /* DwebWebBrowser.h */; };
 		48EEA8F02B4FF17F006DA0F3 /* DwebWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EEA8E62B4FF17F006DA0F3 /* DwebWebView.swift */; };
+		48F24A312BD744FC00F3C6AE /* DownloadImagePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48F24A302BD744FC00F3C6AE /* DownloadImagePreviewView.swift */; };
 		F0DA27022B679F350005ED24 /* MenuViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0DA27012B679F350005ED24 /* MenuViewModel.swift */; };
 /* End PBXBuildFile section */
 
@@ -121,13 +132,28 @@
 		4803C0192B4FF9E0006B2F79 /* WebBrowserDefaultProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebBrowserDefaultProvider.swift; sourceTree = "<group>"; };
 		4803C01A2B4FF9E1006B2F79 /* WebBrowserViewProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebBrowserViewProtocol.swift; sourceTree = "<group>"; };
 		4803C01D2B4FF9E8006B2F79 /* BrowserWebSiteInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowserWebSiteInfo.swift; sourceTree = "<group>"; };
+		4805C4AA2BCFB4AC00063760 /* DownloadAudioPCMWaveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadAudioPCMWaveView.swift; sourceTree = "<group>"; };
 		4819C2D12B4FDF88001BB45D /* DwebWebBrowser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebWebBrowser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4819C2D52B4FDF88001BB45D /* DwebWebBrowser.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DwebWebBrowser.docc; sourceTree = "<group>"; };
 		4819C2E32B4FEB9B001BB45D /* DwebPlatformIosKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebPlatformIosKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		4828BE182BD0C799005AA0CD /* DownloadAudioPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadAudioPreviewView.swift; sourceTree = "<group>"; };
+		4828BE1A2BD0C7C2005AA0CD /* DownloadVideoPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadVideoPreviewView.swift; sourceTree = "<group>"; };
+		4828BE1C2BD0C81A005AA0CD /* DownloadTextPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadTextPreviewView.swift; sourceTree = "<group>"; };
+		482F5EA92BC62B27008F089D /* DownloadListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadListView.swift; sourceTree = "<group>"; };
 		48334DE82B50D10400399FFF /* DwebBrowserCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebBrowserCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		48334DF32B50DF9700399FFF /* Bundle+module.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+module.swift"; sourceTree = "<group>"; };
+		48A4AE422BC91CE8008F5860 /* DownloadListData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadListData.swift; sourceTree = "<group>"; };
+		48A4AE442BC91D26008F5860 /* DownloadListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadListViewModel.swift; sourceTree = "<group>"; };
+		48A4AE462BC91D5C008F5860 /* DwebCircleProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebCircleProgressView.swift; sourceTree = "<group>"; };
+		48CB59B02BC27DE1001B699A /* ViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
+		48CB59B12BC27DE1001B699A /* Models.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		48CB59B22BC27DE1001B699A /* Views.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
+		48CB59B32BC27DE1001B699A /* ContainerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContainerView.swift; sourceTree = "<group>"; };
+		48EA39EF2BC785DD00FC4898 /* DownloadPreviewViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadPreviewViews.swift; sourceTree = "<group>"; };
+		48EC18772BD211E400877DC5 /* DownloadPlayableScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadPlayableScrollView.swift; sourceTree = "<group>"; };
 		48EEA8E12B4FF17F006DA0F3 /* DwebWebBrowser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DwebWebBrowser.h; sourceTree = "<group>"; };
 		48EEA8E62B4FF17F006DA0F3 /* DwebWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebWebView.swift; sourceTree = "<group>"; };
+		48F24A302BD744FC00F3C6AE /* DownloadImagePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadImagePreviewView.swift; sourceTree = "<group>"; };
 		F0DA27012B679F350005ED24 /* MenuViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -148,6 +174,7 @@
 			isa = PBXGroup;
 			children = (
 				4803BF672B4FF279006B2F79 /* BrowserView.swift */,
+				48CB59AF2BC27DE1001B699A /* NewBrowserLayout */,
 				4803BF462B4FF279006B2F79 /* extension */,
 				4803BF4F2B4FF279006B2F79 /* Publisher */,
 				4803BF642B4FF279006B2F79 /* Utils */,
@@ -234,6 +261,7 @@
 				4803BF842B4FF279006B2F79 /* AddressBarView.swift */,
 				4803BF852B4FF279006B2F79 /* AddressBarTyping */,
 				4803BF8A2B4FF279006B2F79 /* Sheet */,
+				48A4AE462BC91D5C008F5860 /* DwebCircleProgressView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -284,7 +312,7 @@
 			isa = PBXGroup;
 			children = (
 				4803BF8E2B4FF279006B2F79 /* SheetSegmentView.swift */,
-				4803BF932B4FF279006B2F79 /* MenuView.swift */,
+				482F5EAB2BC62EAD008F089D /* Menu */,
 				4803BF8C2B4FF279006B2F79 /* BookmarkView.swift */,
 				4803BF902B4FF279006B2F79 /* HistoryView.swift */,
 				4803BF8D2B4FF279006B2F79 /* NoResultView.swift */,
@@ -353,6 +381,32 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		4821B5BF2BD79A1700B00799 /* Preview */ = {
+			isa = PBXGroup;
+			children = (
+				48EA39EF2BC785DD00FC4898 /* DownloadPreviewViews.swift */,
+				48F24A302BD744FC00F3C6AE /* DownloadImagePreviewView.swift */,
+				4828BE1C2BD0C81A005AA0CD /* DownloadTextPreviewView.swift */,
+				4828BE1A2BD0C7C2005AA0CD /* DownloadVideoPreviewView.swift */,
+				4828BE182BD0C799005AA0CD /* DownloadAudioPreviewView.swift */,
+				4805C4AA2BCFB4AC00063760 /* DownloadAudioPCMWaveView.swift */,
+				48EC18772BD211E400877DC5 /* DownloadPlayableScrollView.swift */,
+			);
+			path = Preview;
+			sourceTree = "<group>";
+		};
+		482F5EAB2BC62EAD008F089D /* Menu */ = {
+			isa = PBXGroup;
+			children = (
+				4803BF932B4FF279006B2F79 /* MenuView.swift */,
+				482F5EA92BC62B27008F089D /* DownloadListView.swift */,
+				48A4AE442BC91D26008F5860 /* DownloadListViewModel.swift */,
+				48A4AE422BC91CE8008F5860 /* DownloadListData.swift */,
+				4821B5BF2BD79A1700B00799 /* Preview */,
+			);
+			path = Menu;
+			sourceTree = "<group>";
+		};
 		48334DF12B50DBB200399FFF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -360,6 +414,17 @@
 				4803BF952B4FF279006B2F79 /* resource.bundle */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		48CB59AF2BC27DE1001B699A /* NewBrowserLayout */ = {
+			isa = PBXGroup;
+			children = (
+				48CB59B02BC27DE1001B699A /* ViewModel.swift */,
+				48CB59B12BC27DE1001B699A /* Models.swift */,
+				48CB59B22BC27DE1001B699A /* Views.swift */,
+				48CB59B32BC27DE1001B699A /* ContainerView.swift */,
+			);
+			path = NewBrowserLayout;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -448,28 +513,37 @@
 				4803BFD02B4FF279006B2F79 /* BiColorButton.swift in Sources */,
 				4803BFA52B4FF279006B2F79 /* UIApplication+Window.swift in Sources */,
 				4803BFE22B4FF279006B2F79 /* CodeScannerView.swift in Sources */,
+				482F5EAA2BC62B27008F089D /* DownloadListView.swift in Sources */,
 				48334DF42B50DF9700399FFF /* Bundle+module.swift in Sources */,
 				4803BFA72B4FF279006B2F79 /* String+Validator.swift in Sources */,
 				4803BFCE2B4FF279006B2F79 /* ResizableSheetModifier.swift in Sources */,
 				4803BFCA2B4FF279006B2F79 /* TabGridView.swift in Sources */,
+				48A4AE432BC91CE8008F5860 /* DownloadListData.swift in Sources */,
 				4803C00A2B4FF51E006B2F79 /* DependencyHeaders.swift in Sources */,
 				4803BFC42B4FF279006B2F79 /* HistoryCoreDataManager.swift in Sources */,
 				4803BFC22B4FF279006B2F79 /* DataController.swift in Sources */,
+				48EC18782BD211E400877DC5 /* DownloadPlayableScrollView.swift in Sources */,
 				4803BFDB2B4FF279006B2F79 /* MenuCell.swift in Sources */,
+				48F24A312BD744FC00F3C6AE /* DownloadImagePreviewView.swift in Sources */,
 				4803BFD22B4FF279006B2F79 /* AddressBarView.swift in Sources */,
 				4803BFB62B4FF279006B2F79 /* DwebBrowserHistoryStore.swift in Sources */,
+				4828BE192BD0C799005AA0CD /* DownloadAudioPreviewView.swift in Sources */,
 				F0DA27022B679F350005ED24 /* MenuViewModel.swift in Sources */,
 				4803C01E2B4FF9E8006B2F79 /* BrowserWebSiteInfo.swift in Sources */,
 				4803BFD82B4FF279006B2F79 /* NoResultView.swift in Sources */,
+				4828BE1B2BD0C7C2005AA0CD /* DownloadVideoPreviewView.swift in Sources */,
 				4803C01B2B4FF9E1006B2F79 /* WebBrowserDefaultProvider.swift in Sources */,
+				4805C4AB2BCFB4AC00063760 /* DownloadAudioPCMWaveView.swift in Sources */,
 				4803BFBE2B4FF279006B2F79 /* AnimationProgress.swift in Sources */,
 				4803BFD62B4FF279006B2F79 /* SearchTypingView.swift in Sources */,
 				4803BFC92B4FF279006B2F79 /* BlankTabView.swift in Sources */,
 				4803BFA82B4FF279006B2F79 /* UIImage+Trans.swift in Sources */,
 				4803BFCF2B4FF279006B2F79 /* WebWrapper.swift in Sources */,
+				48EA39F02BC785DD00FC4898 /* DownloadPreviewViews.swift in Sources */,
 				4803BFE32B4FF279006B2F79 /* ScannerViewController.swift in Sources */,
 				4803BFBC2B4FF279006B2F79 /* const.swift in Sources */,
 				4803BFE12B4FF279006B2F79 /* ScanState.swift in Sources */,
+				4828BE1D2BD0C81A005AA0CD /* DownloadTextPreviewView.swift in Sources */,
 				4803BFA42B4FF279006B2F79 /* UIImage+Resize.swift in Sources */,
 				4803BFA92B4FF279006B2F79 /* Url+Validator.swift in Sources */,
 				4803BFC62B4FF279006B2F79 /* TabsContainerView.swift in Sources */,
@@ -478,6 +552,7 @@
 				4803BFC82B4FF279006B2F79 /* TabPageView.swift in Sources */,
 				4803BFA32B4FF279006B2F79 /* Date+format.swift in Sources */,
 				4803BFCD2B4FF279006B2F79 /* WatermarkModifier.swift in Sources */,
+				48A4AE452BC91D26008F5860 /* DownloadListViewModel.swift in Sources */,
 				4803BFD42B4FF279006B2F79 /* WebSearcher.swift in Sources */,
 				4803BFCB2B4FF279006B2F79 /* GridCellView.swift in Sources */,
 				4803BFD92B4FF279006B2F79 /* SheetSegmentView.swift in Sources */,
@@ -496,6 +571,7 @@
 				4803BFD72B4FF279006B2F79 /* BookmarkView.swift in Sources */,
 				4803BFBF2B4FF279006B2F79 /* BookmarkModel.swift in Sources */,
 				4803BFAB2B4FF279006B2F79 /* Environment.swift in Sources */,
+				48A4AE472BC91D5C008F5860 /* DwebCircleProgressView.swift in Sources */,
 				4803C01C2B4FF9E1006B2F79 /* WebBrowserViewProtocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

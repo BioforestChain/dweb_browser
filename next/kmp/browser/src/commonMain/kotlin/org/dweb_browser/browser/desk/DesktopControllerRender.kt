@@ -14,7 +14,7 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import org.dweb_browser.browser.desk.version.NewVersionView
+import org.dweb_browser.browser.desk.upgrade.NewVersionView
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.compose.LocalCompositionChain
@@ -25,7 +25,7 @@ import org.dweb_browser.sys.window.render.SceneRender
 @Composable
 fun DesktopController.Render(
   taskbarController: TaskbarController,
-  microModule: NativeMicroModule,
+  microModule: NativeMicroModule.NativeRuntime,
 ) {
   // TODO 这里的颜色应该是自动适应的，特别是窗口最大化的情况下，遮盖了顶部 status-bar 的时候，需要根据 status-bar 来改变颜色
   SetSystemBarsColor(Color.Transparent, if (isSystemInDarkTheme()) Color.White else Color.Black)

@@ -1,6 +1,6 @@
 import { binaryToU8a, isBinary } from "../../helper/binaryHelper.ts";
 import { headersToRecord, httpMethodCanOwnBody } from "../../helper/httpHelper.ts";
-import { IPC_METHOD } from "../ipc/helper/const.ts";
+import { PURE_METHOD } from "../ipc/helper/PureMethod.ts";
 
 /**
  * 将 RequestInit 解构成 ipcRequest 的构造参数
@@ -54,7 +54,7 @@ export const $bodyInitToIpcBodyArgs = async (
   }
   return body;
 };
-export const isWebSocket = (method: IPC_METHOD | (string & {}), headers: Headers) => {
+export const isWebSocket = (method: PURE_METHOD | (string & {}), headers: Headers) => {
   return method === "GET" && headers.get("Upgrade")?.toLowerCase() === "websocket";
 };
 /**
@@ -62,12 +62,12 @@ export const isWebSocket = (method: IPC_METHOD | (string & {}), headers: Headers
  * @param toRequest
  */
 export const buildRequestX = (url: string | URL, init: RequestInit = {}) => {
-  let method = init.method ?? IPC_METHOD.GET;
+  let method = init.method ?? PURE_METHOD.GET;
   const headers = init.headers instanceof Headers ? init.headers : new Headers(init.headers);
   const isWs = isWebSocket(method, headers);
   let body: undefined | BodyInit | null;
   if (isWs) {
-    method = IPC_METHOD.POST; // new Request 如果要携带body，method 不可以是 GET
+    method = PURE_METHOD.POST; // new Request 如果要携带body，method 不可以是 GET
     body = init.body;
   } else if (httpMethodCanOwnBody(method)) {
     body = init.body;

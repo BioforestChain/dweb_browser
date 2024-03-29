@@ -1,12 +1,10 @@
 package org.dweb_browser.sys.window.core.modal
 
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import org.dweb_browser.core.module.NativeMicroModule
 
 class WindowAlertController(
-  mm: NativeMicroModule,
+  mm: NativeMicroModule.NativeRuntime,
   modal: AlertModalState,
   wid: String,
   onCallback: SharedFlow<ModalCallback>,
@@ -15,12 +13,14 @@ class WindowAlertController(
   val result get() = _result
 
   init {
-    onCallback.map {
-      when (it) {
-        is OpenModalCallback -> _result = false
-        is CloseAlertModalCallback -> _result = it.confirm
-        else -> {}
+    mm.scopeLaunch(cancelable = true) {
+      onCallback.collect {
+        when (it) {
+          is OpenModalCallback -> _result = false
+          is CloseAlertModalCallback -> _result = it.confirm
+          else -> {}
+        }
       }
-    }.launchIn(mm.ioAsyncScope)
+    }
   }
 }

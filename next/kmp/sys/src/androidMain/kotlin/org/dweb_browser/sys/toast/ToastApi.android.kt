@@ -8,7 +8,7 @@ import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.withMainContext
 
 actual suspend fun showToast(
-  microModule: MicroModule,
+  microModule: MicroModule.Runtime,
   text: String, durationType: DurationType, positionType: PositionType
 ) =
   ToastController.showToast(text, durationType, positionType)

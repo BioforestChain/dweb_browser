@@ -32,8 +32,14 @@ import java.awt.event.WindowFocusListener
 import java.awt.event.WindowListener
 
 class ComposeWindowParams(
-  private val pvc: PureViewController, val content: @Composable FrameWindowScope.() -> Unit
+  private val pvc: PureViewController,
+  private val innerContent: @Composable FrameWindowScope.() -> Unit
 ) {
+  val content: @Composable FrameWindowScope.() -> Unit = {
+    frameWindowScope = this
+    innerContent()
+  }
+
   class CacheWindowState(
     override var isMinimized: Boolean,
     override var placement: WindowPlacement,
@@ -46,14 +52,24 @@ class ComposeWindowParams(
     position = WindowPosition.PlatformDefault,
     size = DpSize(800.dp, 600.dp),
   )
+
+  /**是否最小化*/
   var isMinimized
     get() = state.isMinimized
     set(value) {
       state.isMinimized = value
     }
 
-  // 控制窗口状态
-  var placement
+  /**是否全屏*/
+  val isFullscreen
+    get() = placement == WindowPlacement.Fullscreen
+
+  /**是否最大化*/
+  val isMaximized
+    get() = placement == WindowPlacement.Maximized
+
+  /**控制窗口状态*/
+  var placement: WindowPlacement
     get() = state.placement
     set(value) {
       state.placement = value
@@ -71,6 +87,8 @@ class ComposeWindowParams(
       state.size = value
     }
 
+  var frameWindowScope by mutableStateOf<FrameWindowScope?>(null)
+    private set
   var onCloseRequest by mutableStateOf<() -> Unit>({})
   var visible by mutableStateOf<Boolean>(true)
   var title by mutableStateOf<String>("Untitled")
@@ -194,6 +212,7 @@ class ComposeWindowParams(
     init {
       pvc.lifecycleScope.launch {
         pvc.composeWindowStateFlow.collect { composeWindow ->
+          // 监听原生窗口一些状态，用来通过副作用给控制器同步状态
           composeWindow.addComponentListener(object : ComponentListener {
             override fun componentResized(event: ComponentEvent) {
               _componentResized.launchEmit(event)

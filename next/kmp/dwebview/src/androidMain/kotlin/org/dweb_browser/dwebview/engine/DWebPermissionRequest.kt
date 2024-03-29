@@ -15,7 +15,7 @@ import org.dweb_browser.sys.permission.SystemPermissionTask
 import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 
 class DWebPermissionRequest(
-  val remoteMM: MicroModule, val ioScope: CoroutineScope
+  val remoteMM: MicroModule.Runtime, val ioScope: CoroutineScope
 ) : WebChromeClient() {
 
   private suspend fun requestPermission(name: SystemPermissionName, title: String, desc: String) =

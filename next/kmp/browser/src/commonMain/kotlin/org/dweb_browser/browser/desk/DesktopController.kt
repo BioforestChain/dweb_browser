@@ -21,7 +21,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
-import org.dweb_browser.browser.desk.version.NewVersionController
+import org.dweb_browser.browser.desk.upgrade.NewVersionController
+import org.dweb_browser.browser.desk.upgrade.NewVersionItem
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
@@ -39,7 +40,7 @@ import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @Stable
 open class DesktopController private constructor(
-  private val deskNMM: DeskNMM,
+  private val deskNMM: DeskNMM.DeskRuntime,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
 ) {
@@ -61,7 +62,7 @@ open class DesktopController private constructor(
         _desktopView = CompletableDeferred()
       }
       if (value != null) {
-        deskNMM.ioAsyncScope.launch {
+        deskNMM.scopeLaunch(cancelable = true) {
           runCatching {
             _desktopView.complete(createDesktopView(value))
           }.onFailure {
@@ -77,6 +78,7 @@ open class DesktopController private constructor(
       privateNet = true,
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
+      openDevTools = true,
       tag = 1
     );
     val webView = activity.createDwebView(deskNMM, options)
@@ -120,7 +122,7 @@ open class DesktopController private constructor(
 
   companion object {
     suspend fun create(
-      deskNMM: DeskNMM,
+      deskNMM: DeskNMM.DeskRuntime,
       desktopServer: HttpDwebServer,
       runningApps: ChangeableMap<MMID, RunningApp>
     ) = DesktopController(deskNMM, desktopServer, runningApps)
@@ -176,7 +178,7 @@ open class DesktopController private constructor(
       }.removeWhen(dwm.viewController.lifecycleScope)
 
       preDesktopWindowsManager?.also { preDwm ->
-        deskNMM.ioAsyncScope.launch(Dispatchers.Main) {
+        deskNMM.scopeLaunch(Dispatchers.Main, cancelable = true) {
           /// 窗口迁移
           preDwm.moveWindows(dwm)
         }
@@ -213,3 +215,8 @@ open class DesktopController private constructor(
     alertMessages.add(AlertMessage(title, message))
   }
 }
+
+/**
+ * 获取当前版本，存储的版本，以及在线加载最新版本
+ */
+expect suspend fun loadApplicationNewVersion(): NewVersionItem?

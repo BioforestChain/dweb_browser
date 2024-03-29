@@ -5,6 +5,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.ipc.helper.IWebMessageChannel
+import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.engine.window
@@ -19,7 +21,7 @@ import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 actual suspend fun IDWebView.Companion.create(
-  mm: MicroModule, options: DWebViewOptions
+  mm: MicroModule.Runtime, options: DWebViewOptions
 ): IDWebView {
   DWebView.prepare()
   return DWebView(DWebViewEngine(mm, options))

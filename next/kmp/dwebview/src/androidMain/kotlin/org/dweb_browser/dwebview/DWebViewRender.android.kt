@@ -8,21 +8,18 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import com.google.accompanist.web.AccompanistWebChromeClient
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
+import com.google.accompanist.web.rememberSaveableWebViewState
 import com.google.accompanist.web.rememberWebViewNavigator
-import com.google.accompanist.web.rememberWebViewState
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.LocalFocusRequester
 
@@ -34,7 +31,8 @@ actual fun IDWebView.Render(
 ) {
   require(this is DWebView)
   val webView = engine
-  val state = rememberWebViewState(webView.url ?: "about:blank")
+  // val state = rememberWebViewState(webView.url ?: "about:blank")
+  val state = rememberSaveableWebViewState()
   val navigator = rememberWebViewNavigator(webView.ioScope)
   val client = remember { AccompanistWebViewClient() }
   val chromeClient = remember { AccompanistWebChromeClient() }

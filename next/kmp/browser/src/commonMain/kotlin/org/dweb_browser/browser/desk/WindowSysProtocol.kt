@@ -8,11 +8,12 @@ import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
+import org.dweb_browser.sys.window.core.SetWindowSize
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.constant.WindowStyle
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
-suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
+suspend fun DeskNMM.DeskRuntime.windowProtocol(desktopController: DesktopController) {
   protocol("window.sys.dweb") {
     routes(
       /// 打开主窗口，获取主窗口句柄
@@ -74,7 +75,12 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
       "/setStyle" bind PureMethod.GET by defineEmptyResponse {
         getWindow().setStyle(request.queryAs<WindowStyle>())
       },
-      "/display" bind PureMethod.GET by defineJsonResponse {
+      // 设置窗口大小
+      "/setBounds" bind PureMethod.GET by defineEmptyResponse {
+        getWindow().setBroad(request.queryAs<SetWindowSize>())
+      },
+      // 获取窗口信息
+      "/getDisplayInfo" bind PureMethod.GET by defineJsonResponse {
         val manager =
           getWindow().manager ?: return@defineJsonResponse "not found window".toJsonElement()
         val state = manager.state

@@ -70,7 +70,10 @@ class LocalViewHookJsProcess {
 
 }
 
-// 返回销毁事件回调
+/**
+ * 返回销毁事件回调
+ * TODO fuck this
+ */
 val localViewHookExit = LocalViewHookFlow.mapNotNull {
   if (it == TrayEvent.Exit) true else null
 }

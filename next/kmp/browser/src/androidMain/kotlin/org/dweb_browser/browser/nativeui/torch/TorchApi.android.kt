@@ -1,19 +1,30 @@
 package org.dweb_browser.browser.nativeui.torch
 
+import android.content.Context
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraManager
 import org.dweb_browser.core.module.getAppContext
 
 actual object TorchApi {
-  private val flashLightController by lazy { FlashLightController(getAppContext()) }
-
+  // 初始化上下文
+  private var cameraManager: CameraManager =
+    getAppContext().getSystemService(Context.CAMERA_SERVICE) as CameraManager
+  private var cameraId: String? = cameraManager.cameraIdList[0]
+  private var isTorchOn: Boolean = false
   actual fun toggleTorch() {
-    if (flashLightController.hasFlashlight()) {
-      if (flashLightController.isOn) {
-        flashLightController.lightOff()
-      } else {
-        flashLightController.lightOn()
+    cameraId?.let {
+      try {
+        cameraManager.setTorchMode(it, !isTorchOn)
+        isTorchOn = !isTorchOn
+      } catch (e: CameraAccessException) {
+        e.printStackTrace()
       }
     }
   }
 
-  actual fun torchState() = flashLightController.isOn
+  actual fun torchState(): Boolean {
+    return isTorchOn
+  }
 }
+
+

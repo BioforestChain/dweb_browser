@@ -81,7 +81,7 @@ class RecordManager: NSObject {
     
     func voiceMeters() -> Float {
         recorder?.updateMeters()
-        let averageV = recorder?.averagePower(forChannel: 0)
+        recorder?.averagePower(forChannel: 0)
         let maxV = recorder?.peakPower(forChannel: 0) ?? 0
         return pow(10.0, maxV * 0.05)
     }

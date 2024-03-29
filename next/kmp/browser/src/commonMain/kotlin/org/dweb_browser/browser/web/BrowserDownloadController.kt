@@ -1,7 +1,10 @@
 package org.dweb_browser.browser.web
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import kotlinx.coroutines.launch
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import io.ktor.http.URLBuilder
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.ext.createChannelOfDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
@@ -13,21 +16,28 @@ import org.dweb_browser.browser.download.ext.startDownload
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadStore
 import org.dweb_browser.browser.web.data.BrowserDownloadType
-import org.dweb_browser.browser.web.model.BrowserDownloadModel
+import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.dwebview.WebDownloadArgs
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.trueAlso
 
 class BrowserDownloadController(
-  private val browserNMM: BrowserNMM, private val browserController: BrowserController
+  private val browserNMM: BrowserNMM.BrowserRuntime,
+  private val browserController: BrowserController,
 ) {
   private val downloadStore = BrowserDownloadStore(browserNMM)
 
   val saveDownloadList: MutableList<BrowserDownloadItem> = mutableStateListOf()
   val saveCompleteList: MutableList<BrowserDownloadItem> = mutableStateListOf()
-  private val downloadModel = BrowserDownloadModel(this, browserNMM)
+  private val newDownloadMaps: HashMap<String, BrowserDownloadItem> = hashMapOf() // 保存当前启动后新增的临时列表
+  var curDownloadItem by mutableStateOf<BrowserDownloadItem?>(null)
+  var alreadyExists by mutableStateOf(false) // 用于判断当前的下载地址是否在 newDownloadMaps 中
 
   init {
     // 初始化下载数据
-    browserNMM.ioAsyncScope.launch {
+    browserNMM.scopeLaunch(cancelable = true) {
       saveCompleteList.addAll(downloadStore.getCompleteAll())
       saveDownloadList.addAll(downloadStore.getDownloadAll())
       var save = false
@@ -41,7 +51,6 @@ class BrowserDownloadController(
             item.state = item.state.copy(current = 0L, state = DownloadState.Init)
           }
         }
-
       }
       if (save) saveDownloadList() // 只保存下载中的内容
     }
@@ -50,8 +59,8 @@ class BrowserDownloadController(
   /**
    * 保存下载的数据
    */
-  fun saveDownloadList(download: Boolean = true, complete: Boolean = false) =
-    browserNMM.ioAsyncScope.launch {
+  private fun saveDownloadList(download: Boolean = true, complete: Boolean = false) =
+    browserNMM.scopeLaunch(cancelable = false) {
       if (download) downloadStore.saveDownloadList(saveDownloadList)
       if (complete) downloadStore.saveCompleteList(saveCompleteList)
     }
@@ -85,7 +94,7 @@ class BrowserDownloadController(
 
   private suspend fun watchProcess(browserDownloadItem: BrowserDownloadItem) {
     val taskId = browserDownloadItem.taskId ?: return
-    browserNMM.ioAsyncScope.launch {
+    browserNMM.scopeLaunch(cancelable = true) {
       browserDownloadItem.alreadyWatch = true
       val res = browserNMM.createChannelOfDownload(taskId) {
         val lastState = browserDownloadItem.state.state
@@ -99,6 +108,7 @@ class BrowserDownloadController(
           if (downloadTask.status.state == DownloadState.Completed) {
             saveDownloadList.remove(browserDownloadItem)
             saveCompleteList.add(0, browserDownloadItem)
+            browserDownloadItem.filePath = browserNMM.realFile(downloadTask.filepath) // 保存下载路径
             saveDownloadList(complete = true)
           } else {
             saveDownloadList()
@@ -118,42 +128,110 @@ class BrowserDownloadController(
     }
   }
 
-  fun deleteDownloadItems(list: MutableList<BrowserDownloadItem>) = browserNMM.ioAsyncScope.launch {
-    list.forEach { item -> item.taskId?.let { taskId -> browserNMM.removeDownload(taskId) } }
-    saveCompleteList.removeAll(list)
-    saveDownloadList.removeAll(list)
-    saveDownloadList(download = true, complete = true)
-  }
-
-  suspend fun openDownloadView(args: WebDownloadArgs) = downloadModel.openDownloadView(args)
+  fun deleteDownloadItems(list: List<BrowserDownloadItem>) =
+    browserNMM.scopeLaunch(cancelable = true) {
+      list.forEach { item -> item.taskId?.let { taskId -> browserNMM.removeDownload(taskId) } }
+      saveCompleteList.removeAll(list)
+      saveDownloadList.removeAll(list)
+      saveDownloadList(download = true, complete = true)
+    }
 
   /**
-   * 用于响应点击“下载中”列表的按钮
+   * 打开网页下载的提示框
    */
-  fun clickDownloadButton(downloadItem: BrowserDownloadItem) = browserNMM.ioAsyncScope.launch {
-    when (downloadItem.state.state) {
-      DownloadState.Completed -> {
-        if (downloadItem.fileSuffix.type == BrowserDownloadType.Application) {
-          // TODO 打开安装界面
-        } else {
-          // TODO 打开文件
-        }
-      }
+  suspend fun openDownloadDialog(webDownloadArgs: WebDownloadArgs) {
+    val urlKey = URLBuilder(webDownloadArgs.url).apply { parameters.clear() }.buildString()
+    alreadyExists = true // 获取状态前，先置为 true
+    curDownloadItem = newDownloadMaps.getOrPut(urlKey) {
+      alreadyExists = false // 如果是属于新增的，那么就是不存在的，状态为 false
+      BrowserDownloadItem(urlKey, downloadArgs = webDownloadArgs).apply {
+        val name = webDownloadArgs.suggestedFilename
+        val suffix = name.split(".").last()
+        fileType = BrowserDownloadType.entries.find { downloadType ->
+          downloadType.matchSuffix(suffix)
+        } ?: BrowserDownloadType.Other
 
-      DownloadState.Downloading -> {
-        pauseDownload(downloadItem)
-      }
-
-      else -> {
-        startDownload(downloadItem)
+        // 名称去重操作
+        var index = 1
+        var tmpName: String = name
+        do {
+          if (
+            saveDownloadList.firstOrNull { it.fileName == tmpName && it.urlKey == urlKey } == null &&
+            saveCompleteList.firstOrNull { it.fileName == tmpName && it.urlKey == urlKey } == null
+          ) {
+            fileName = tmpName
+            break
+          }
+          tmpName = name.substringBeforeLast(".") + "_${index}." + suffix
+          index++
+        } while (true)
       }
     }
   }
 
   /**
-   * 用于响应点击“已下载”列表的按钮
+   * 隐藏网页下载的提示框
    */
-  fun clickCompleteButton(downloadItem: BrowserDownloadItem) = browserNMM.ioAsyncScope.launch {
-    // TODO 比如打开文档，打开应用安装界面等
+  fun closeDownloadDialog() {
+    curDownloadItem = null
+    alreadyExists = false
   }
+
+  /**
+   * 用于响应点击“下载中”列表的按钮
+   */
+  fun clickDownloadButton(downloadItem: BrowserDownloadItem) =
+    browserNMM.scopeLaunch(cancelable = true) {
+      when (downloadItem.state.state) {
+        DownloadState.Completed -> {
+          openFileOnDownload(downloadItem) // 直接调用系统级别的打开文件操作
+        }
+
+        DownloadState.Downloading -> {
+          pauseDownload(downloadItem)
+        }
+
+        else -> {
+          startDownload(downloadItem)
+        }
+      }
+    }
+
+  /**
+   * 用于响应重新下载操作，主要就是网页点击下载后，如果判断列表中已经存在下载数据时调用
+   */
+  fun clickRetryButton(downloadItem: BrowserDownloadItem) =
+    browserNMM.scopeLaunch(cancelable = true) {
+      // 将状态进行修改下，然后启动下载
+      alreadyExists = false
+      if (downloadItem.state.state != DownloadState.Init) {
+        downloadItem.taskId?.let { taskId ->
+          browserNMM.removeDownload(taskId)
+          downloadItem.taskId = null
+        }
+        downloadItem.state = downloadItem.state.copy(state = DownloadState.Init, current = 0L)
+        clickDownloadButton(downloadItem)
+      }
+    }
+
+  /// TODO waterbang fix this
+  suspend fun shareDownloadItem(downloadItem: BrowserDownloadItem): Boolean {
+    val ipc = browserNMM.connect("share.sys.dweb")
+    ipc.postMessage(
+      IpcEvent.fromUtf8("shareLocalFile", downloadItem.filePath)
+    )
+    val sharePromiseOut = PromiseOut<String>()
+    ipc.onEvent("shareLocalFile").collectIn(browserNMM.getRuntimeScope()) { event ->
+      event.consumeFilter { ipcEvent ->
+        (ipcEvent.name == "shareLocalFile").trueAlso {
+          sharePromiseOut.resolve(ipcEvent.data as String)
+          ipc.close()
+        }
+      }
+    }
+    return sharePromiseOut.waitPromise() == "success"
+  }
+
+  suspend fun openFileOnDownload(downloadItem: BrowserDownloadItem) =
+    openFileByPath(realPath = downloadItem.filePath, justInstall = false)
 }

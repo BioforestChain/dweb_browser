@@ -65,7 +65,7 @@ private val dwebHelper = DwebHelper()
 @OptIn(ExperimentalForeignApi::class, ExperimentalResourceApi::class)
 class DWebViewEngine(
   frame: CValue<CGRect>,
-  val remoteMM: MicroModule,
+  val remoteMM: MicroModule.Runtime,
   internal val options: DWebViewOptions,
   configuration: WKWebViewConfiguration,
 ) : DwebWKWebView(frame, configuration.also {
@@ -74,7 +74,7 @@ class DWebViewEngine(
   registryDwebSchemeHandler(remoteMM, it)
 }) {
   val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-  val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
+  val ioScope = CoroutineScope(remoteMM.mmScope.coroutineContext + SupervisorJob())
 
   val loadStateChangeSignal = Signal<WebLoadState>()
   val onReady by lazy { loadStateChangeSignal.toReadyListener() }
@@ -97,7 +97,7 @@ class DWebViewEngine(
      * 所以 http(s)?:*.dweb 在 IOS上 反而是一个更加安全的、仅走内存控制的技术，通常用于内部模块使用
      */
     private fun registryDwebHttpUrlSchemeHandler(
-      microModule: MicroModule, configuration: WKWebViewConfiguration
+      microModule: MicroModule.Runtime, configuration: WKWebViewConfiguration
     ) {
       val dwebSchemeHandler = DwebHttpURLSchemeHandler(microModule)
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb+http")
@@ -105,7 +105,7 @@ class DWebViewEngine(
     }
 
     fun registryDwebSchemeHandler(
-      microModule: MicroModule, configuration: WKWebViewConfiguration
+      microModule: MicroModule.Runtime, configuration: WKWebViewConfiguration
     ) {
       val dwebSchemeHandler = DwebURLSchemeHandler(microModule)
       configuration.setURLSchemeHandler(dwebSchemeHandler, "dweb")

@@ -12,7 +12,6 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.core.ByteReadPacket
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
@@ -36,7 +35,6 @@ import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.datetimeNow
-import org.dweb_browser.helper.decodeURI
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
@@ -136,11 +134,26 @@ data class DownloadStateEvent(
   var current: Long = 0,
   var total: Long = 1,
   var state: DownloadState = DownloadState.Init,
-  var stateMessage: String = ""
+  var stateMessage: String = "",
 ) {
+  fun progress(): Float {
+    return if (total == 0L) {
+      0f
+    } else {
+      (current * 1.0f / total) * 10 / 10.0f
+    }
+  }
+
+  fun percentProgress(): String {
+    return if (total == 0L) {
+      "0 %"
+    } else {
+      "${(current * 1000 / total) / 10.0f} %"
+    }
+  }
 }
 
-class DownloadController(private val downloadNMM: DownloadNMM) {
+class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
   private val downloadStore = DownloadStore(downloadNMM)
   val downloadTaskMaps: ChangeableMutableMap<TaskId, DownloadTask> =
     ChangeableMutableMap() // 用于监听下载列表
@@ -151,29 +164,27 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
 
   init {
     // 从内存中恢复状态
-    downloadNMM.ioAsyncScope.launch {
-      // 状态改变的时候存储保存到内存
-      downloadTaskMaps.onChange { (type, _, value) ->
-        when (type) {
-          ChangeableType.Add -> {
-            downloadStore.set(value!!.id, value)
-            downloadList.add(0, value)
-          }
 
-          ChangeableType.Remove -> {
-            downloadStore.delete(value!!.id)
-            downloadList.remove(value)
-          }
+    // 状态改变的时候存储保存到内存
+    downloadTaskMaps.onChange { (type, _, value) ->
+      when (type) {
+        ChangeableType.Add -> {
+          downloadStore.set(value!!.id, value)
+          downloadList.add(0, value)
+        }
 
-          ChangeableType.PutAll -> {
-            downloadList.addAll(
-              downloadTaskMaps.toMutableList().sortedByDescending { it.createTime }
-            )
-          }
+        ChangeableType.Remove -> {
+          downloadStore.delete(value!!.id)
+          downloadList.remove(value)
+        }
 
-          ChangeableType.Clear -> {
-            downloadList.clear()
-          }
+        ChangeableType.PutAll -> {
+          downloadList.addAll(downloadTaskMaps.toMutableList()
+            .sortedByDescending { it.createTime })
+        }
+
+        ChangeableType.Clear -> {
+          downloadList.clear()
         }
       }
     }
@@ -197,7 +208,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
    * 创建新下载任务
    */
   suspend fun createTaskFactory(
-    params: DownloadNMM.DownloadTaskParams, originMmid: MMID, externalDownload: Boolean
+    params: DownloadNMM.DownloadTaskParams, originMmid: MMID, externalDownload: Boolean,
   ): DownloadTask {
     // 查看是否创建过相同的task,并且相同的task已经下载完成
     val task = DownloadTask(
@@ -210,6 +221,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       filepath = fileCreateByPath(params.decodeUrl, externalDownload),
       status = DownloadStateEvent(total = params.total)
     )
+    task.external = externalDownload // 后面有用到这个字段，这边需要在初始化的时候赋值
     downloadTaskMaps.put(task.id, task)
     downloadStore.set(task.id, task) // 保存下载状态
     debugDownload("createTaskFactory", "${task.id} -> $task")
@@ -227,17 +239,18 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     debugDownload("recoverDownload", "start=$start => $task")
     task.status.state = DownloadState.Downloading // 这边开始请求http了，属于开始下载
     task.emitChanged()
-    var response = downloadNMM.nativeFetch(PureClientRequest(
-      href = task.url,
-      method = PureMethod.GET,
-      headers = PureHeaders().apply {
-        init(HttpHeaders.Range, "${RangeUnits.Bytes}=${ContentRange.TailFrom(start)}")
-      }
-    ))
+    var response = downloadNMM.nativeFetch(
+      PureClientRequest(href = task.url,
+        method = PureMethod.GET,
+        headers = PureHeaders().apply {
+          init(HttpHeaders.Range, "${RangeUnits.Bytes}=${ContentRange.TailFrom(start)}")
+        })
+    )
     // 目前发现测试的时候，如果不存在range的上面会报错。直接使用下面这个来请求
     if (response.status == HttpStatusCode.RequestedRangeNotSatisfiable) {
       task.status.current = 0L
-      response = downloadNMM.nativeFetch(PureClientRequest(href = task.url, method = PureMethod.GET))
+      response =
+        downloadNMM.nativeFetch(PureClientRequest(href = task.url, method = PureMethod.GET))
     }
 
     if (!response.isOk) {
@@ -250,6 +263,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
 
     task.mime = mimeFactory(response.headers, task.url)
     task.filepath = fileCreateByHeadersAndPath(response.headers, task.url, task.mime, task.external)
+
     // 判断地址是否支持断点
     val supportRange =
       response.headers.getByIgnoreCase("Accept-Ranges")?.equals("bytes", true) == true
@@ -274,7 +288,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     // 重要记录点 存储到硬盘
     downloadTaskMaps.put(taskId, task)
     // 正式下载需要另外起一个协程，不影响当前的返回值
-    downloadNMM.ioAsyncScope.launch {
+    downloadNMM.scopeLaunch(cancelable = true) {
       debugDownload("middleware", "start id:$taskId current:${task.status.current}")
       task.emitChanged()
       try {
@@ -335,13 +349,12 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
    * 通过Header来创建不重复的文件
    */
   private suspend fun fileCreateByHeadersAndPath(
-    headers: PureHeaders, url: String, mime: String, externalDownload: Boolean
+    headers: PureHeaders, url: String, mime: String, externalDownload: Boolean,
   ): String {
     // 先从header判断
     var fileName = headers.get("Content-Disposition")?.substringAfter("filename=")?.trim('"')
       ?: Url(url).encodedPath.lastPath()
     if (fileName.isEmpty()) fileName = "${datetimeNow()}.${mime.substringAfter("/")}"
-
     var index = 0
     while (true) {
       val path = if (externalDownload) {
@@ -360,7 +373,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
    */
   private suspend fun fileCreateByPath(url: String, externalDownload: Boolean): String {
     var index = 0
-    val fileName = Url(url).encodedPath.lastPath().decodeURI()
+    val fileName = Url(url).encodedPath.lastPath() //.decodeURI()
     while (true) {
       val path = if (externalDownload) {
         "/download/${index++}_${fileName}"
@@ -428,31 +441,30 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     downloadTaskMaps.remove(taskId)?.let { downloadTask ->
       downloadTask.readChannel?.cancel()
       downloadTask.readChannel = null
-      downloadNMM.ioAsyncScope.launch { fileRemove(downloadTask.filepath) }
+      downloadNMM.scopeLaunch(cancelable = false) { fileRemove(downloadTask.filepath) }
     }
   }
 
   /**
    * 执行下载任务 ,可能是断点下载
    */
-  suspend fun downloadFactory(task: DownloadTask): Boolean =
-    when (task.status.state) {
-      DownloadState.Init, DownloadState.Failed, DownloadState.Canceled -> {
-        doDownload(task) // 执行下载
-      }
-
-      DownloadState.Paused -> when (task.readChannel) {
-        /// 从磁盘中恢复下载
-        null -> doDownload(task)
-        else -> {
-          task.status.state = DownloadState.Downloading // 这边开始请求http了，属于开始下载
-          task.emitChanged()
-          true
-        }
-      }
-
-      DownloadState.Downloading, DownloadState.Completed -> true
+  suspend fun downloadFactory(task: DownloadTask): Boolean = when (task.status.state) {
+    DownloadState.Init, DownloadState.Failed, DownloadState.Canceled -> {
+      doDownload(task) // 执行下载
     }
+
+    DownloadState.Paused -> when (task.readChannel) {
+      /// 从磁盘中恢复下载
+      null -> doDownload(task)
+      else -> {
+        task.status.state = DownloadState.Downloading // 这边开始请求http了，属于开始下载
+        task.emitChanged()
+        true
+      }
+    }
+
+    DownloadState.Downloading, DownloadState.Completed -> true
+  }
 
 
   /**

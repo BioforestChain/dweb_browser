@@ -1,16 +1,32 @@
 {
-    "name": "assets-projects",
-    "description": "该配置文件是声明各个 assets 文件夹的依赖",
-    "dependencies": {
-        "@lit-labs/motion": "^1.0.3",
-        "cbor-x": "^1.5.3",
-        "comlink": "^4.4.1",
-        "deep-object-diff": "^1.1.9",
-        "lit": "^2.7.6"
-    },
-    "devDependencies": {
-        "vite": "^4.4.2",
-        "vite-plugin-electron-renderer": "^0.12.1",
-        "vite-tsconfig-paths": "^4.2.0"
-    }
+  "name": "assets-projects",
+  "description": "该配置文件是声明各个 assets 文件夹的依赖",
+  "scripts": {
+    "test": "vitest",
+    "build": "bun build ./src/core/index.ts --outdir=./build",
+    "build:js-process.worker2": "bun build src/js-process/worker/index.ts --outfile=../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
+    "build:js-process.worker": "esbuild src/js-process/worker/index.ts --bundle --format=esm --outfile=../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
+    "build:js-process.main": "vite build src/js-process/main --outDir=../../../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.main/"
+  },
+  "dependencies": {
+    "@lit-labs/motion": "^1.0.3",
+    "cbor-x": "^1.5.3",
+    "comlink": "^4.4.1",
+    "deep-object-diff": "^1.1.9",
+    "lit": "^2.7.6"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.9",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^1.5.0"
+  },
+  "module": "index.ts",
+  "type": "module",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
 }

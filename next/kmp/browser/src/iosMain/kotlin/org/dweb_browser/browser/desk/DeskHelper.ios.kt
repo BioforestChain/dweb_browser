@@ -2,14 +2,16 @@ package org.dweb_browser.browser.desk
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.browser.desk.upgrade.NewVersionItem
 import org.dweb_browser.core.module.startUIViewController
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.WARNING
 
 data class StartDesktopViewParams(val deskSessionId: String)
 
 private var preParams = StartDesktopViewParams("")
 val lock = Mutex();
-actual suspend fun DeskNMM.startDesktopView(deskSessionId: String) = lock.withLock {
+actual suspend fun DeskNMM.DeskRuntime.startDesktopView(deskSessionId: String) = lock.withLock {
 //  withMainContext {
 //     println("startUIViewController:${DesktopUIViewController::class}")
 //    val rvc = getUIApplication().keyWindow?.rootViewController ?: return@withMainContext
@@ -29,4 +31,9 @@ actual suspend fun DeskNMM.startDesktopView(deskSessionId: String) = lock.withLo
     DesktopUIViewController(it)
   })
 
+}
+
+actual suspend fun loadApplicationNewVersion(): NewVersionItem? {
+  WARNING("Not yet implement loadNewVersion")
+  return null
 }

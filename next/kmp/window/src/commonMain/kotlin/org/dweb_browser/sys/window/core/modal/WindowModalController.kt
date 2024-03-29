@@ -2,9 +2,6 @@ package org.dweb_browser.sys.window.core.modal
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Signal
@@ -12,7 +9,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.encodeURIComponent
 
 sealed class WindowModalController(
-  val mm: NativeMicroModule,
+  val mm: NativeMicroModule.NativeRuntime,
   val modal: ModalState,
   val wid: String,
   onCallback: SharedFlow<ModalCallback>,
@@ -49,7 +46,7 @@ sealed class WindowModalController(
       }
       _state = value
       // 监听状态更新并且触发相关事件
-      mm.ioAsyncScope.launch {
+      mm.scopeLaunch(cancelable = false) {
         onStateChangeSignal.emit(value)
         when (_state) {
           WindowModalState.OPEN -> onOpenSignal.emit(Unit)
@@ -67,14 +64,16 @@ sealed class WindowModalController(
 
   init {
     // 在回调事件触发的时候更新state
-    onCallback.map {
-      state = when (it) {
-        is CloseAlertModalCallback -> WindowModalState.CLOSE
-        is CloseModalCallback -> WindowModalState.CLOSE
-        is OpenModalCallback -> WindowModalState.OPEN
-        is DestroyModalCallback -> WindowModalState.DESTROY
+    mm.scopeLaunch(cancelable = true) {
+      onCallback.collect {
+        state = when (it) {
+          is CloseAlertModalCallback -> WindowModalState.CLOSE
+          is CloseModalCallback -> WindowModalState.CLOSE
+          is OpenModalCallback -> WindowModalState.OPEN
+          is DestroyModalCallback -> WindowModalState.DESTROY
+        }
       }
-    }.launchIn(mm.ioAsyncScope)
+    }
   }
 
   val isDestroyed get() = isState(WindowModalState.DESTROYING, WindowModalState.DESTROY)

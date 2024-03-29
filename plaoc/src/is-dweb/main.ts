@@ -1,3 +1,7 @@
+/**
+ * 判断是不是dweb
+ * * @returns boolean
+ */
 export const isDweb = () => {
   const isDweb = self.navigator.userAgent.includes("Dweb");
   // @ts-ignore
@@ -20,6 +24,10 @@ export const isDweb = () => {
   return Array.isArray(brands) && brands.length > 0;
 };
 
+/**
+ * 判断dweb大版本
+ * @returns boolean
+ */
 export const dwebTarget = () => {
   if (isDweb()) {
     const userAgentData = self.navigator.userAgentData;
@@ -39,12 +47,25 @@ export const dwebTarget = () => {
   return 1.0;
 };
 
+/**
+ * 判断是否是移动端
+ * @returns boolean
+ */
+export const isMobile = () => {
+  // 非dweb环境
+  if (!navigator.userAgentData) {
+    return true;
+  }
+  return !!navigator.userAgentData.mobile;
+};
+
 declare global {
   interface Navigator {
     userAgentData?: NavigatorUAData;
   }
   interface NavigatorUAData {
     brands: { brand: string; version: string }[];
+    mobile?: boolean;
   }
   const NavigatorUAData: {
     new (): NavigatorUAData;

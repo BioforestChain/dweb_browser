@@ -32,9 +32,18 @@ data class DWebViewOptions(
    */
   val createWindowBehavior: CreateWindowBehavior = CreateWindowBehavior.Deeplink,
   /**
+   * 是否打开开发者工具
+   */
+  val openDevTools: Boolean = false,
+  /**
    * 标识
    */
-  var tag: Int? = null
+  var tag: Int? = null,
+  /**
+   * 是否使用离屏渲染模式(目前主要用于桌面端web browser)
+   * @suppress Desktop Only
+   */
+  val enabledOffScreenRender: Boolean = false
 ) {
 
   enum class DetachedStrategy {

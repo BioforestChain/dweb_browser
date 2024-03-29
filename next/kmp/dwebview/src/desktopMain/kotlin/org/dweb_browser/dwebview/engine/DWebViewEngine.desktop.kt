@@ -12,9 +12,11 @@ import com.teamdev.jxbrowser.dom.event.EventType
 import com.teamdev.jxbrowser.dom.event.MouseEvent
 import com.teamdev.jxbrowser.dom.event.MouseEventParams
 import com.teamdev.jxbrowser.dom.event.UiEventModifierParams
+import com.teamdev.jxbrowser.engine.EngineOptions
 import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.ConsoleMessageLevel
 import com.teamdev.jxbrowser.js.JsException
+import com.teamdev.jxbrowser.js.JsObject
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
 import com.teamdev.jxbrowser.net.HttpHeader
@@ -25,10 +27,13 @@ import com.teamdev.jxbrowser.net.callback.BeforeUrlRequestCallback
 import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
 import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
+import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback
 import com.teamdev.jxbrowser.ui.Bitmap
 import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
 import com.teamdev.jxbrowser.zoom.ZoomLevel
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -37,8 +42,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
+import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.createDir
+import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
@@ -62,77 +70,122 @@ import javax.swing.SwingUtilities
 
 
 class DWebViewEngine internal constructor(
-  internal val remoteMM: MicroModule,
+  internal val remoteMM: MicroModule.Runtime,
   val options: DWebViewOptions,
-  internal val browser: Browser = createMainBrowser(remoteMM)
+  internal val browser: Browser = createMainBrowser(remoteMM, options.enabledOffScreenRender)
 ) {
   companion object {
+    // userDataDir同一个engine不能多次调用，jxbrowser会弹出异常无法捕获
+    private val userDataDirectoryInUseMicroModuleSet = mutableSetOf<String>()
+    private val userDataDirectoryLock = SynchronizedObject()
+
     /**
      * 构建一个 main-browser，当 main-browser 销毁， 对应的 WebviewEngine 也会被销毁
      */
-    internal fun createMainBrowser(remoteMM: MicroModule) = WebviewEngine.hardwareAccelerated {
-      addScheme(Scheme.of("dweb")) { params ->
-        val pureResponse = runBlocking(ioAsyncExceptionHandler) {
-          remoteMM.nativeFetch(params.urlRequest().url().replaceFirst("/?", "?"))
+    internal fun createMainBrowser(remoteMM: MicroModule.Runtime, enabledOffScreenRender: Boolean): Browser {
+      val optionsBuilder: EngineOptions.Builder.() -> Unit = {
+        addScheme(Scheme.of("dweb")) { params ->
+          val pureResponse = runBlocking(ioAsyncExceptionHandler) {
+            remoteMM.nativeFetch(params.urlRequest().url())
+          }
+
+          val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
+          pureResponse.headers.forEach { (key, value) ->
+            jobBuilder.addHttpHeader(HttpHeader.of(key, value))
+          }
+
+          Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
         }
 
-        val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
-        pureResponse.headers.forEach { (key, value) ->
-          jobBuilder.addHttpHeader(HttpHeader.of(key, value))
-        }
+        addSwitch("--enable-experimental-web-platform-features")
 
-        Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
+        // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
+        synchronized(userDataDirectoryLock) {
+          if (!userDataDirectoryInUseMicroModuleSet.contains(remoteMM.mmid)) {
+            runBlocking(ioAsyncExceptionHandler) {
+              if (remoteMM.createDir("/data/chromium")) {
+                userDataDir(remoteMM.realFile("/data/chromium").toPath().toNioPath())
+                userDataDirectoryInUseMicroModuleSet.add(remoteMM.mmid)
+              }
+            }
+          }
+        }
       }
 
-      addSwitch("--enable-experimental-web-platform-features")
-    }.let { engine ->
-      // 设置https代理
-      val proxyRules = "https=${DwebViewProxy.ProxyUrl},http://127.0.0.1:17890"
-      engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
-      engine.network()
-        .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
-          // SSL Certificate to verify.
-          val certificate = params.certificate()
-          // FIXME 这里应该有更加严谨的证书内容判断
-          if (certificate.derEncodedValue().decodeToString().contains(".dweb")) {
-            VerifyCertificateCallback.Response.valid()
+      return if(enabledOffScreenRender) {
+        WebviewEngine.offScreen(optionsBuilder)
+      } else {
+        WebviewEngine.hardwareAccelerated(optionsBuilder)
+      }.let { engine ->
+        // 设置https代理
+        val proxyRules = "https=${DwebViewProxy.ProxyUrl},http://127.0.0.1:17890"
+        engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
+        engine.network()
+          .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
+            // SSL Certificate to verify.
+            val certificate = params.certificate()
+            // FIXME 这里应该有更加严谨的证书内容判断
+            if (certificate.derEncodedValue().decodeToString().contains(".dweb")) {
+              VerifyCertificateCallback.Response.valid()
+            } else {
+              VerifyCertificateCallback.Response.defaultAction()
+            }
+          });
+
+        // 拦截内部浏览器dweb deeplink跳转
+        engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
+          if (it.urlRequest().url().startsWith("dweb://")) {
+            remoteMM.scopeLaunch(cancelable = true) {
+              remoteMM.nativeFetch(it.urlRequest().url())
+            }
+            BeforeUrlRequestCallback.Response.cancel()
           } else {
-            VerifyCertificateCallback.Response.defaultAction()
+            BeforeUrlRequestCallback.Response.proceed()
           }
-        });
+        })
+        //TODO 这里是还没做完的桌面端获取地址，改成ip位置？
+        engine.permissions()
+          .set(RequestPermissionCallback::class.java, RequestPermissionCallback { params, tell ->
+//        if(params.permissionType() == PermissionType.GEOLOCATION) {
+//          tell.grant()
+//        }
+            tell.grant()
+          })
 
-      // 拦截内部浏览器dweb deeplink跳转
-      engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
-        if (it.urlRequest().url().startsWith("dweb://")) {
-          remoteMM.ioAsyncScope.launch {
-            remoteMM.nativeFetch(it.urlRequest().url().replace("/?", "?"))
-          }
-          BeforeUrlRequestCallback.Response.cancel()
-        } else {
-          BeforeUrlRequestCallback.Response.proceed()
-        }
-      })
-
-      val browser = engine.newBrowser()
-      // 同步销毁
-      browser.on(BrowserClosed::class.java) {
-        engine.close()
-      }
-      remoteMM.ioAsyncScope.launch {
-        localViewHookExit.collect {
+        val browser = engine.newBrowser()
+        // 同步销毁
+        browser.on(BrowserClosed::class.java) {
+          userDataDirectoryInUseMicroModuleSet.remove(remoteMM.mmid)
           engine.close()
         }
+        remoteMM.scopeLaunch(cancelable = true) {
+          localViewHookExit.collect {
+            engine.close()
+          }
+        }
+        browser
       }
-      browser
     }
   }
 
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
+
+  //  class MyFrame(private val frame: Frame) : Frame by frame {
+  //    override fun executeJavaScript(code: String, c: Consumer<*>) {
+  //      return frame.executeJavaScript("debugger;$code", c)
+  //    }
+  //
+  //    override fun <T : Any?> executeJavaScript(code: String): T? {
+  //      return frame.executeJavaScript<T>("debugger;$code")
+  //    }
+  //  }
+  //  val mainFrame get() = MyFrame(browser.mainFrame().get())
   val mainFrame get() = browser.mainFrame().get()
   val mainFrameOrNull get() = browser.mainFrame().getOrNull()
   val document get() = mainFrame.document().get()
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-  internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
+  internal val ioScope =
+    CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
 
 
   /**
@@ -145,20 +198,29 @@ class DWebViewEngine internal constructor(
    * 执行异步JS代码，需要传入一个表达式
    */
   suspend fun evaluateAsyncJavascriptCode(
-    script: String, afterEval: (suspend () -> Unit)? = null
+    script: String, afterEval: (suspend () -> Unit)? = null,
   ): String {
     val deferred = CompletableDeferred<String>()
-
     runCatching {
-      mainFrame.executeJavaScript("(async()=>{return ($script)})().then(r=>JSON.stringify(r)??'undefined',e=>{throw String(e)})",
-        Consumer<JsPromise> { promise ->
-          promise.then {
-            deferred.complete(it[0] as String)
-          }.catchError {
-            deferred.completeExceptionally(JsException(it[0] as String))
+      mainFrame.executeJavaScript("((async()=>String(JSON.stringify(await ($script))))()).catch(e=>{throw String(e)})",
+        Consumer<JsObject> { jsObject ->
+          if (jsObject is JsPromise) {
+            jsObject.then {
+              deferred.complete(it[0] as String)
+            }.catchError {
+              deferred.completeExceptionally(JsException(it[0] as String))
+            }.finallyExecute {
+              jsObject.close()
+            }
+          } else {
+            /// 语法错误
+            val errorMessage = jsObject.getProp<String?>("message")
+            deferred.completeExceptionally(JsException(errorMessage ?: "unknown error"))
           }
         })
-    }.getOrElse { deferred.completeExceptionally(it) }
+    }.getOrElse {
+      deferred.completeExceptionally(it)
+    }
     afterEval?.invoke()
 
     return deferred.await()
@@ -385,6 +447,7 @@ class DWebViewEngine internal constructor(
 
     if (debugDWebView.isEnable) {
       browser.on(ConsoleMessageReceived::class.java) { event ->
+        event.hasConsoleMessage()
         val consoleMessage = event.consoleMessage()
         val level = consoleMessage.level()
         val message = consoleMessage.message()
@@ -421,6 +484,9 @@ class DWebViewEngine internal constructor(
       ioScope.launch {
         loadUrl(options.url)
       }
+    }
+    if (options.openDevTools) {
+      browser.devTools().show()
     }
   }
 

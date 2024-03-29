@@ -9,7 +9,6 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.browser.common.createDwebView
-import org.dweb_browser.browser.nativeui.NativeUiController
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.MicroModule
@@ -39,8 +38,8 @@ class MultiWebViewController(
    */
   val ipc: Ipc,
   /// 以下这两参数是用来构建DWebView的时候使用的
-  private val localeMM: MicroModule,
-  private val remoteMM: MicroModule,
+  private val localeMM: MicroModule.Runtime,
+  private val remoteMM: MicroModule.Runtime,
 ) {
   companion object {
     private var webviewId_acc by SafeInt(1)
@@ -77,9 +76,7 @@ class MultiWebViewController(
     override val coroutineScope: CoroutineScope,
     override var hidden: Boolean = false,
     val win: WindowController,
-  ) : ViewItem {
-    var nativeUiController: NativeUiController? = null
-  }
+  ) : ViewItem
 
   /**
    * 打开WebView
@@ -97,6 +94,9 @@ class MultiWebViewController(
       win = win,
     ).also { viewItem ->
       webViewList.add(viewItem)
+      dWebView.onCreateWindow {
+        appendWebViewAsItem(it)
+      }
       dWebView.onDestroy {
         closeWebView(webviewId)
       }
@@ -157,10 +157,12 @@ class MultiWebViewController(
     state["views"] = JsonObject(views)
     return JsonObject(state)
   }
+
   // TODO
   private suspend fun updateStateHook() {
     ipc.postMessage(IpcEvent.fromUtf8("state", Json.encodeToString(getState())))
   }
+
   // TODO
   val webViewCloseSignal = Signal<WEBVIEW_ID>()
   val webViewOpenSignal = Signal<WEBVIEW_ID>()

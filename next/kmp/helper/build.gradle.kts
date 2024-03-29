@@ -24,6 +24,12 @@ kotlin {
     }
   }
 
+  val jvmMain = sourceSets.creating {
+    dependencies {
+      api(libs.org.slf4j.log4j12)
+    }
+  }
+
   kmpAndroidTarget(project) {
   }
   kmpIosTarget(project) {

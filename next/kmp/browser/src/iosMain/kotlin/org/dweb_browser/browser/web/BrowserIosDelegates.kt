@@ -3,11 +3,14 @@ package org.dweb_browser.browser.web
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
@@ -15,6 +18,7 @@ import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.platform.ios_browser.WebBrowserViewDataSourceProtocol
 import org.dweb_browser.platform.ios_browser.WebBrowserViewDelegateProtocol
+import org.dweb_browser.platform.ios_browser.WebBrowserViewDownloadData
 import org.dweb_browser.platform.ios_browser.WebBrowserViewSiteData
 import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.Foundation.NSData
@@ -56,14 +60,30 @@ class BrowserIosDelegate(private var browserViewModel: BrowserViewModel) : NSObj
     // kmp与iOS快速调试代码调用点。
   }
 
+  override fun readFileWithPath(path: String, completed: (NSData?, NSError?) -> Unit) {
+    scope.launch {
+      val data = browserViewModel.readFile(path)
+      completed(data.toNSData(), null)
+    }
+  }
+
+  fun destory() {
+
+  }
 }
 
 
 @OptIn(ExperimentalForeignApi::class)
-class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSObject(),
+class BrowserIosDataSource(val browserViewModel: BrowserViewModel) : NSObject(),
   WebBrowserViewDataSourceProtocol {
 
   private val scope = browserViewModel.ioScope
+
+  private val browserViewModelHelper = BrowserViewModelIosHelper(browserViewModel)
+
+  fun destory() {
+    browserViewModelHelper.destory()
+  }
 
   override fun getDatasFor(for_: String, params: Map<Any?, *>?): Map<Any?, *>? {
     // kmp与iOS快速调试代码调用点。
@@ -181,6 +201,7 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
       DWebViewOptions(),
       WKWebViewConfiguration()
     )
+    browserViewModel.addDownloadListener(engine.downloadSignal.toListener())
     return engine as objcnames.classes.DwebWKWebView
   }
 
@@ -195,6 +216,51 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
     }
   }
   //#endregion
+
+  //#region download
+  private val download = browserViewModelHelper.download
+
+  override fun loadAllDownloadDatas(): List<*>? = download.allDownloadList.map {
+    it.toIOS()
+  }
+
+  override fun removeDownloadWithIds(ids: List<*>) {
+    val ids = ids as List<String>
+    download.deletedDonwload(ids)
+  }
+
+  override fun addDownloadObserverWithId(
+    id: String,
+    didChanged: (WebBrowserViewDownloadData?) -> Unit
+  ) {
+    download.addDownloadProgressListenerIfNeed(id) {
+      val model = it.toIOS()
+      didChanged(model)
+    }
+  }
+
+  override fun removeAllDownloadObservers() {
+    download.removeAllDonwloadProgressListener()
+  }
+
+  override fun pauseDownloadWithId(id: String) {
+    scope.launch {
+      download.pauseDownload(id)
+    }
+  }
+
+  override fun resumeDownloadWithId(id: String) {
+    scope.launch {
+      download.resumeDownload(id)
+    }
+  }
+
+  override fun localPathForId(id: String): String? {
+    return null
+  }
+
+  //#endregion
+
 }
 
 fun WebSiteInfo.iconUIImage(): platform.UIKit.UIImage? {
@@ -202,3 +268,25 @@ fun WebSiteInfo.iconUIImage(): platform.UIKit.UIImage? {
     return UIImage(data = it.toNSData())
   }
 }
+
+fun DownloadState.toIosState(): UByte = when (this) {
+  DownloadState.Init -> 0U
+  DownloadState.Downloading -> 1U
+  DownloadState.Paused -> 2U
+  DownloadState.Canceled -> 3U
+  DownloadState.Failed -> 4U
+  DownloadState.Completed -> 5U
+  else -> 255U
+}
+
+@OptIn(ExperimentalForeignApi::class)
+fun BrowserDownloadItem.toIOS() = WebBrowserViewDownloadData(
+  fileName,
+  downloadTime.toULong(),
+  state.total.toUInt(),
+  downloadArgs.mimetype,
+  state.state.toIosState(),
+  id,
+  state.progress(),
+  if (filePath.length > 0) filePath else null
+)

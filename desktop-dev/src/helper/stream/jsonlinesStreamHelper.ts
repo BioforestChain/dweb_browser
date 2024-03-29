@@ -1,5 +1,5 @@
 import { JsonlinesStream } from "./JsonlinesStream.ts";
-import { $AbortAble, $StreamReadAllOptions, streamRead, streamReadAll } from "./readableStreamHelper.ts";
+import { type $AbortAble, type $StreamReadAllOptions, streamRead, streamReadAll } from "./readableStreamHelper.ts";
 export const binaryToJsonlinesStream = <Type>(stream: ReadableStream<Uint8Array>) => {
   return textToJsonlinesStream<Type>(
     stream

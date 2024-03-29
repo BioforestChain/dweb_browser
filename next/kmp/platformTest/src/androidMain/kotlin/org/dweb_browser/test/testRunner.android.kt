@@ -6,10 +6,10 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration
 
 actual fun runCommonTest(
-  context: CoroutineContext?, block: suspend CoroutineScope.() -> Unit
-) = runTest(context = context ?: EmptyCoroutineContext) {
-  /// 避免虚拟时间
-  withContext(Dispatchers.Default) { block() }
-}
+  context: CoroutineContext?,
+  timeout: Duration?,
+  block: suspend CoroutineScope.() -> Unit,
+) = defaultRunCommonTest(context, timeout, block)

@@ -9,7 +9,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import platform.CoreMotion.CMMotionManager
 import platform.Foundation.NSOperationQueue
 
-actual class MotionSensorsManage actual constructor(mm: NativeMicroModule) {
+actual class MotionSensorsManage actual constructor(mm: NativeMicroModule.NativeRuntime) {
   private val motionManager = CMMotionManager()
 
   actual val isSupportAccelerometer get() = motionManager.isAccelerometerAvailable()

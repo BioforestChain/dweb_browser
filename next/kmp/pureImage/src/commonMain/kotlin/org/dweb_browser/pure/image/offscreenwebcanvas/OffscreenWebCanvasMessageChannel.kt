@@ -12,13 +12,14 @@ import org.dweb_browser.pure.http.HttpPureServer
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureChannel
-import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureTextFrame
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.readResourceBytes
 
+internal suspend fun commonStartPureServer(server: HttpPureServer) = server.start(0u)
+internal expect suspend fun startPureServer(server: HttpPureServer): UShort
 internal class OffscreenWebCanvasMessageChannel {
   private var dataChannel = CompletableDeferred<PureChannel>()
   private var session: PureChannel? = null
@@ -46,9 +47,8 @@ internal class OffscreenWebCanvasMessageChannel {
               return@apply
             }
             when (frame) {
-              is PureBinaryFrame -> onMessageSignal.emit(ChannelMessage(binary = frame.data))
-              is PureTextFrame -> onMessageSignal.emit(ChannelMessage(text = frame.data))
-              is PureCloseFrame -> break
+              is PureBinaryFrame -> onMessageSignal.emit(ChannelMessage(binary = frame.binary))
+              is PureTextFrame -> onMessageSignal.emit(ChannelMessage(text = frame.text))
             }
           }
         }
@@ -80,7 +80,7 @@ internal class OffscreenWebCanvasMessageChannel {
   }
 
   suspend fun getEntryUrl(width: Int, height: Int): String {
-    val port = server.start(0u)
+    val port = startPureServer(server)
     val host = "localhost"
     val entry = "http://$host:$port/index.html"
     return "$entry?width=$width&height=$height&channel=${"ws://$host:$port/channel".encodeURIComponent()}&proxy=${"http://$host:$port/proxy".encodeURIComponent()}"
@@ -96,7 +96,7 @@ internal class OffscreenWebCanvasMessageChannel {
 
   suspend fun postMessage(message: String) {
     val session = this.session ?: dataChannel.await()
-    session.afterStart().sendText(message)
+    session.start().sendText(message)
   }
 
   suspend fun close() {

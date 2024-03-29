@@ -1,6 +1,5 @@
 package org.dweb_browser.core.module
 
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
@@ -9,12 +8,12 @@ import platform.UIKit.UIApplication
 
 lateinit var nativeMicroModuleUIApplication: UIApplication
 
-fun MicroModule.Companion.getUIApplication() = nativeMicroModuleUIApplication
-fun MicroModule.getUIApplication() = nativeMicroModuleUIApplication
+//fun MicroModule.Companion.getUIApplication() = nativeMicroModuleUIApplication
+fun MicroModule.Runtime.getUIApplication() = nativeMicroModuleUIApplication
 
 val lockActivityState = Mutex()
-fun MicroModule.startUIViewController(pureViewController: PureViewController) {
-  ioAsyncScope.launch {
+fun MicroModule.Runtime.startUIViewController(pureViewController: PureViewController) {
+  scopeLaunch(cancelable = false) {
     lockActivityState.withLock {
       if (grant?.await() == false) {
         return@withLock // TODO 用户拒绝协议应该做的事情

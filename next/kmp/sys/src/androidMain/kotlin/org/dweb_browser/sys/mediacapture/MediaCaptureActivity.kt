@@ -27,7 +27,7 @@ class MediaCaptureActivity : ComponentActivity() {
     private const val LaunchGetPhoto = 3
 
     private val launchTasks = mutableMapOf<UUID, CompletableDeferred<Uri?>>()
-    suspend fun launchAndroidTakePicture(microModule: MicroModule): Uri? {
+    suspend fun launchAndroidTakePicture(microModule: MicroModule.Runtime): Uri? {
       val taskId = randomUUID()
       return CompletableDeferred<Uri?>().also { task ->
         launchTasks[taskId] = task
@@ -42,7 +42,7 @@ class MediaCaptureActivity : ComponentActivity() {
       }.await()
     }
 
-    suspend fun launchAndroidCaptureVideo(microModule: MicroModule): Uri? {
+    suspend fun launchAndroidCaptureVideo(microModule: MicroModule.Runtime): Uri? {
       val taskId = randomUUID()
       return CompletableDeferred<Uri?>().also { task ->
         launchTasks[taskId] = task
@@ -57,7 +57,7 @@ class MediaCaptureActivity : ComponentActivity() {
       }.await()
     }
 
-    suspend fun launchAndroidRecordSound(microModule: MicroModule): Uri? {
+    suspend fun launchAndroidRecordSound(microModule: MicroModule.Runtime): Uri? {
       val taskId = randomUUID()
       return CompletableDeferred<Uri?>().also { task ->
         launchTasks[taskId] = task
@@ -105,7 +105,7 @@ class MediaCaptureActivity : ComponentActivity() {
           tempUri = FileProvider.getUriForFile(
             this@MediaCaptureActivity, "$packageName.file.opener.provider", tmpFile
           )
-          launcherTakePicture.launch(tempUri)
+          launcherTakePicture.launch(tempUri!!)
         }
 
         LaunchCaptureVideo -> {
@@ -113,15 +113,15 @@ class MediaCaptureActivity : ComponentActivity() {
           tempUri = FileProvider.getUriForFile(
             this@MediaCaptureActivity, "$packageName.file.opener.provider", tmpFile
           )
-          launcherCaptureVideo.launch(tempUri)
+          launcherCaptureVideo.launch(tempUri!!)
         }
 
         LaunchRecordAudio -> {
           val tmpFile = File.createTempFile("temp_capture", ".ogg", cacheDir);
-          val tmpUri = FileProvider.getUriForFile(
+          tempUri = FileProvider.getUriForFile(
             this@MediaCaptureActivity, "$packageName.file.opener.provider", tmpFile
           )
-          launcherRecordAudio.launch(tmpUri)
+          launcherRecordAudio.launch(tempUri!!)
         }
 
         LaunchGetPhoto -> {

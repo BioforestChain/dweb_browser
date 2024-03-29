@@ -7,7 +7,9 @@ actual suspend fun setDisplayMode(
   mode: DisplayMode?,
   win: WindowController
 ) {
-  if (mode == DisplayMode.Fullscreen) {
-    win.maximize()
+  when (mode) {
+    DisplayMode.Fullscreen -> win.fullscreen()
+    DisplayMode.Standalone -> win.maximize()
+    else -> {}
   }
 }

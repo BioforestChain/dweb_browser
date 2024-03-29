@@ -35,6 +35,7 @@ internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
   val jmmInstallerController = LocalJmmInstallerController.current
   val jmmState = jmmInstallerController.installMetadata.state
+  // 应用是否是当前支持的大版本
   val canSupportTarget =
     jmmInstallerController.installMetadata.metadata.canSupportTarget(JsMicroModule.VERSION)
 
@@ -55,11 +56,7 @@ internal fun BoxScope.BottomDownloadButton() {
       .fillMaxWidth()
       .clip(ButtonDefaults.elevatedShape)
     val m2 = if (showLinearProgress) {
-      val percent = if (jmmState.total == 0L) {
-        0f
-      } else {
-        jmmState.current * 1.0f / jmmState.total
-      }
+      val percent = jmmState.progress()
       modifier.background(
         Brush.horizontalGradient(
           0.0f to MaterialTheme.colorScheme.primary,
@@ -73,7 +70,7 @@ internal fun BoxScope.BottomDownloadButton() {
     }
 
     ElevatedButton(
-      onClick = produceEvent(jmmState, scope = jmmInstallerController.jmmNMM.ioAsyncScope) {
+      onClick = produceEvent(jmmState, scope = jmmInstallerController.jmmNMM.getRuntimeScope()) {
         when (jmmState.state) {
           JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled -> {
             jmmInstallerController.createAndStartDownload()

@@ -1,20 +1,13 @@
-import { decode } from "cbor-x";
-import { IpcError } from "../IpcError.ts";
-import { IpcEvent } from "../IpcEvent.ts";
-import { IpcLifeCycle } from "../IpcLifeCycle.ts";
-import { IpcRequest } from "../IpcRequest.ts";
-import { IpcResponse } from "../IpcResponse.ts";
-import { IpcPoolPack, IpcPoolPackString, PackIpcMessage } from "../index.ts";
+import * as CBOR from "cbor-x";
+import { ENDPOINT_MESSAGE_TYPE, type $EndpointMessage, type $EndpointRawMessage } from "../endpoint/EndpointMessage.ts";
+import type { $IpcMessage, $IpcRawMessage } from "../ipc-message/IpcMessage.ts";
+import { IpcClientRequest } from "../ipc-message/IpcRequest.ts";
+import { IpcResponse } from "../ipc-message/IpcResponse.ts";
+import { IPC_MESSAGE_TYPE } from "../ipc-message/internal/IpcMessage.ts";
+import { IpcBodyReceiver } from "../ipc-message/stream/IpcBodyReceiver.ts";
+import { MetaBody } from "../ipc-message/stream/MetaBody.ts";
 import type { Ipc } from "../ipc.ts";
-import { IpcBodyReceiver } from "../stream/IpcBodyReceiver.ts";
-import { IpcStreamAbort } from "../stream/IpcStreamAbort.ts";
-import { IpcStreamData } from "../stream/IpcStreamData.ts";
-import { IpcStreamEnd } from "../stream/IpcStreamEnd.ts";
-import { IpcStreamPaused } from "../stream/IpcStreamPaused.ts";
-import { IpcStreamPulling } from "../stream/IpcStreamPulling.ts";
-import { MetaBody } from "../stream/MetaBody.ts";
 import { IpcHeaders } from "./IpcHeaders.ts";
-import { $IpcMessage, $IpcTransferableMessage, IPC_MESSAGE_TYPE } from "./const.ts";
 
 export type $JSON<T> = {
   [key in keyof T]: T[key] extends Function ? never : T[key];
@@ -24,85 +17,100 @@ export type $JSON<T> = {
 // export const $isIpcSignalMessage = (msg: unknown): msg is $IpcSignalMessage =>
 //   msg === "close" || msg === "ping" || msg === "pong";
 
-/**
- * 针对各个IpcMessage进行构造
- * @param data
- * @param ipc
- * @returns $IpcMessage
- */
-export const $objectToIpcMessage = (data: $JSON<$IpcTransferableMessage>, ipc: Ipc) => {
-  let message: $IpcMessage = IpcError.internalServer("$objectToIpcMessage decode error"); // | $IpcSignalMessage
-  if (data.type === IPC_MESSAGE_TYPE.REQUEST) {
-    message = new IpcRequest(
-      data.reqId,
-      data.url,
-      data.method,
-      new IpcHeaders(data.headers),
-      IpcBodyReceiver.from(MetaBody.fromJSON(data.metaBody), ipc),
-      ipc
-    );
-  } else if (data.type === IPC_MESSAGE_TYPE.RESPONSE) {
-    message = new IpcResponse(
-      data.reqId,
-      data.statusCode,
-      new IpcHeaders(data.headers),
-      IpcBodyReceiver.from(MetaBody.fromJSON(data.metaBody), ipc),
-      ipc
-    );
-  } else if (data.type === IPC_MESSAGE_TYPE.EVENT) {
-    message = new IpcEvent(data.name, data.data, data.encoding);
-  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_DATA) {
-    message = new IpcStreamData(data.stream_id, data.data, data.encoding);
-  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_PULLING) {
-    message = new IpcStreamPulling(data.stream_id, data.bandwidth);
-  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_PAUSED) {
-    message = new IpcStreamPaused(data.stream_id, data.fuse);
-  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_ABORT) {
-    message = new IpcStreamAbort(data.stream_id);
-  } else if (data.type === IPC_MESSAGE_TYPE.STREAM_END) {
-    message = new IpcStreamEnd(data.stream_id);
-  } else if (data.type === IPC_MESSAGE_TYPE.ERROR) {
-    message = new IpcError(data.errorCode, data.message);
-  } else if (data.type === IPC_MESSAGE_TYPE.LIFE_CYCLE) {
-    message = new IpcLifeCycle(data.state, data.encoding);
+export const $endpointMessageToCbor = (message: $EndpointMessage) => CBOR.encode($serializableEndpointMessage(message));
+export const $endpointMessageToJson = (message: $EndpointMessage) =>
+  JSON.stringify($serializableEndpointMessage(message));
+
+export const $cborToEndpointMessage = (data: Uint8Array | ArrayBuffer | SharedArrayBuffer) => {
+  if (!ArrayBuffer.isView(data)) {
+    data = new Uint8Array();
   }
-  return message;
-};
-/**
- * 内存传输转换为message
- * @param data
- * @param ipc
- * @returns
- */
-export const $messageToIpcMessage = (data: $JSON<IpcPoolPack>, ipc: Ipc) => {
-  const ipcMessage = $objectToIpcMessage(data.ipcMessage as $JSON<$IpcTransferableMessage>, ipc);
-  return new IpcPoolPack(data.pid, ipcMessage);
+  return CBOR.decode(data) as $EndpointRawMessage;
 };
 
-/**
- * 把字符串转换为message
- * @param data
- * @param ipc
- * @returns IpcPoolPack
- */
-export const $jsonToIpcMessage = (data: string, ipc: Ipc) => {
-  const pack = JSON.parse(data) as $JSON<IpcPoolPackString>;
-  const ipcMessage = $objectToIpcMessage(JSON.parse(pack.ipcMessage), ipc);
-  return new IpcPoolPack(pack.pid, ipcMessage);
-};
-/**
- * 将字节转换成message
- * @param data
- * @param ipc
- * @returns IpcPoolPack
- */
-export const $cborToIpcMessage = (data: Uint8Array, ipc: Ipc) => {
-  const pack = decode(data) as $JSON<PackIpcMessage>;
-  const ipcMessage = $objectToIpcMessage(decode(pack.messageByteArray) as $JSON<$IpcTransferableMessage>, ipc);
-  return new IpcPoolPack(pack.pid, ipcMessage);
-};
+export const $jsonToEndpointMessage = (data: string) => JSON.parse(data) as $EndpointRawMessage;
 
-const textDecoder = new TextDecoder();
-export const $uint8ArrayToIpcMessage = (data: Uint8Array, ipc: Ipc) => {
-  return $jsonToIpcMessage(textDecoder.decode(data), ipc);
+export const $normalizeIpcMessage = (ipcMessage: $IpcRawMessage, ipc: Ipc): $IpcMessage => {
+  switch (ipcMessage.type) {
+    case IPC_MESSAGE_TYPE.REQUEST: {
+      return new IpcClientRequest(
+        ipcMessage.reqId,
+        ipcMessage.url,
+        ipcMessage.method,
+        new IpcHeaders(ipcMessage.headers),
+        IpcBodyReceiver.from(MetaBody.fromJSON(ipcMessage.metaBody), ipc),
+        ipc
+      );
+    }
+    case IPC_MESSAGE_TYPE.RESPONSE: {
+      return new IpcResponse(
+        ipcMessage.reqId,
+        ipcMessage.statusCode,
+        new IpcHeaders(ipcMessage.headers),
+        IpcBodyReceiver.from(MetaBody.fromJSON(ipcMessage.metaBody), ipc),
+        ipc
+      );
+    }
+    default:
+      return ipcMessage;
+  }
 };
+export const $serializableEndpointMessage = (message: $EndpointMessage): $EndpointRawMessage => {
+  switch (message.type) {
+    case ENDPOINT_MESSAGE_TYPE.LIFECYCLE:
+      return message;
+    case ENDPOINT_MESSAGE_TYPE.IPC:
+      switch (message.ipcMessage.type) {
+        case IPC_MESSAGE_TYPE.REQUEST:
+          return {
+            ...message,
+            ipcMessage: message.ipcMessage.toSerializable(),
+          };
+        case IPC_MESSAGE_TYPE.RESPONSE:
+          return {
+            ...message,
+            ipcMessage: message.ipcMessage.toSerializable(),
+          };
+        default:
+          return message as $EndpointRawMessage;
+      }
+  }
+};
+// /**
+//  * 内存传输转换为message
+//  * @param data
+//  * @param ipc
+//  * @returns
+//  */
+// export const $messageToIpcMessage = (data: $JSON<IpcPoolPack>, ipc: Ipc) => {
+//   const ipcMessage = $normalizeIpcMessage(data.ipcMessage as $JSON<$IpcTransferableMessage>, ipc);
+//   return new IpcPoolPack(data.pid, ipcMessage);
+// };
+
+// /**
+//  * 把字符串转换为message
+//  * @param data
+//  * @param ipc
+//  * @returns IpcPoolPack
+//  */
+// export const $jsonToIpcMessage = (data: string, ipc: Ipc) => {
+//   const pack = JSON.parse(data) as $JSON<IpcPoolPackString>;
+//   const ipcMessage = $normalizeIpcMessage(JSON.parse(pack.ipcMessage), ipc);
+//   return new IpcPoolPack(pack.pid, ipcMessage);
+// };
+// /**
+//  * 将字节转换成message
+//  * @param data
+//  * @param ipc
+//  * @returns IpcPoolPack
+//  */
+// export const $cborToIpcMessage = (data: Uint8Array, ipc: Ipc) => {
+//   const pack = decode(data) as $JSON<PackIpcMessage>;
+//   const ipcMessage = $normalizeIpcMessage(decode(pack.messageByteArray) as $JSON<$IpcTransferableMessage>, ipc);
+//   return new IpcPoolPack(pack.pid, ipcMessage);
+// };
+
+// const textDecoder = new TextDecoder();
+// export const $uint8ArrayToIpcMessage = (data: Uint8Array, ipc: Ipc) => {
+//   return $jsonToIpcMessage(textDecoder.decode(data), ipc);
+// };

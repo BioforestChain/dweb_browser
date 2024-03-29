@@ -6,13 +6,13 @@ import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
 import io.ktor.util.asStream
 import kotlinx.coroutines.flow.asFlow
-import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.PromiseOut
 
 actual suspend fun share(
   shareOptions: ShareOptions,
   multiPartData: MultiPartData?,
-  shareNMM: NativeMicroModule?
+  shareNMM: MicroModule.Runtime,
 ): String {
   val files = mutableListOf<String>()
   multiPartData?.forEachPart { partData ->
@@ -41,7 +41,7 @@ actual suspend fun share(
 actual suspend fun share(
   shareOptions: ShareOptions,
   files: List<String>,
-  shareNMM: NativeMicroModule?
+  shareNMM: MicroModule.Runtime,
 ): String {
   ShareController.controller.openActivity()
   ShareController.controller.waitActivityResultLauncherCreated()

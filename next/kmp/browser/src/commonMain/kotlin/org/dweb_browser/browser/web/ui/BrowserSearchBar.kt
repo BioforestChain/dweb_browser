@@ -126,7 +126,7 @@ fun BrowserSearchBar(modifier: Modifier) {
     }
 
     // 功能列表
-    IconButton({
+    IconButton(onClick = {
       viewModel.showMore = true
     }) {
       BrowserMenuPanel()

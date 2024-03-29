@@ -64,3 +64,7 @@
 -dontwarn org.openjsse.javax.net.ssl.SSLSocket
 -dontwarn org.openjsse.net.ssl.OpenJSSE
 -dontwarn org.slf4j.impl.StaticLoggerBinder
+-dontwarn javax.imageio.spi.ImageInputStreamSpi
+-dontwarn javax.imageio.spi.ImageOutputStreamSpi
+-dontwarn javax.imageio.spi.ImageReaderSpi
+-dontwarn javax.imageio.spi.ImageWriterSpi

@@ -60,9 +60,6 @@ kotlin {
       implementation(libs.camera.camera2)
       implementation(libs.camera.lifecycle)
       implementation(libs.camera.barcode)
-      // 图像
-      implementation(libs.coil.core)
-      implementation(libs.coil.compose)
       // 七牛
       implementation(libs.qiniu.upload)
     }

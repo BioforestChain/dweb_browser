@@ -4,13 +4,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalDensity
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.removeWhen
+import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getWindow
 
-suspend fun MultiWebViewNMM.webViewSysProtocol() {
+suspend fun MultiWebViewNMM.MultiWebViewRuntime.webViewSysProtocol() {
   protocol("webview.sys.dweb") {
 
     routes(
@@ -19,8 +19,7 @@ suspend fun MultiWebViewNMM.webViewSysProtocol() {
         val rid = request.query("rid")
         val url = request.query("url")
         val wid = request.query("wid")
-        val remoteMm = ipc.remoteAsInstance()
-          ?: throw Exception("webview.sys.dweb/open should be call by locale")
+        val remoteMm = getRemoteRuntime()
         val win = remoteMm.getWindow(wid)
         val webView = win.createDwebView(remoteMm, url)
 
@@ -30,7 +29,7 @@ suspend fun MultiWebViewNMM.webViewSysProtocol() {
             webView.setContentScale(scale, width, height, density)
           }
           webView.Render(modifier)
-        }.removeWhen(ipc.ipcScope)
+        }.removeWhen(ipc.scope)
 
       }).cors()
   }

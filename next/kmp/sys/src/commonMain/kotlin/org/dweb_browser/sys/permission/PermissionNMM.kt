@@ -78,200 +78,204 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
     )
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val permissionStdProtocol = permissionStdProtocol(hooks)
+  inner class PermissionRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+    override suspend fun _bootstrap() {
+      val permissionStdProtocol = permissionStdProtocol(hooks)
 
-    routes(
-      "/request" bind PureMethod.POST by defineJsonResponse {
-        val permissions = request.body.toPureString()
-        debugPermission("request@sys", "ipc=>${ipc.remote.mmid}, permission=>$permissions")
-        val permissionTaskList = Json.decodeFromString<List<SystemPermissionTask>>(permissions)
-        //val requestMicroModule = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@PermissionNMM
-        requestSysPermission(
-          microModule = this@PermissionNMM, // requestMicroModule,
-          pureViewController = null,//getOrOpenMainWindow().apply { hide() }.pureViewControllerState.value,
-          permissionTaskList = permissionTaskList
-        ).toJsonElement()
-      }
-    )
+      routes(
+        "/request" bind PureMethod.POST by defineJsonResponse {
+          val permissions = request.body.toPureString()
+          debugPermission("request@sys", "ipc=>${ipc.remote.mmid}, permission=>$permissions")
+          val permissionTaskList = Json.decodeFromString<List<SystemPermissionTask>>(permissions)
+          requestSysPermission(
+            microModule = getRemoteRuntime(), // requestMicroModule,
+            pureViewController = null,//getOrOpenMainWindow().apply { hide() }.pureViewControllerState.value,
+            permissionTaskList = permissionTaskList
+          ).toJsonElement()
+        }
+      )
 
-    onRenderer {
-      getMainWindow().apply {
-        setStateFromManifest(this@PermissionNMM)
-        windowAdapterManager.provideRender(id) { modifier ->
-          PermissionManagerRender(modifier, this, permissionStdProtocol)
+      onRenderer {
+        getMainWindow().apply {
+          setStateFromManifest(this@PermissionNMM)
+          windowAdapterManager.provideRender(id) { modifier ->
+            PermissionManagerRender(modifier, this, permissionStdProtocol)
+          }
         }
       }
     }
-  }
 
-  override suspend fun _shutdown() {}
+    override suspend fun _shutdown() {}
 
-  @OptIn(ExperimentalMaterial3Api::class)
-  val hooks = object : PermissionHooks {
-    override suspend fun onRequestPermissions(
-      applicantIpc: Ipc, permissions: List<PermissionProvider>
-    ): Map<PermissionProvider, AuthorizationRecord> {
-      val applicant = applicantIpc.remote
-      val permissionModuleMap = permissions.mapNotNull { permission ->
-        bootstrapContext.dns.query(permission.providerMmid)?.let { permission to it }
-      }.toMap()
-      val resultMap = mutableMapOf<PermissionProvider, Boolean>()
-      val checkedMap = mutableMapOf<PermissionProvider, MutableState<Boolean>>()
-      val submitDeferred = CompletableDeferred<Unit>()
+    @OptIn(ExperimentalMaterial3Api::class)
+    val hooks = object : PermissionHooks {
+      override suspend fun onRequestPermissions(
+        applicantIpc: Ipc, permissions: List<PermissionProvider>
+      ): Map<PermissionProvider, AuthorizationRecord> {
+        val applicant = applicantIpc.remote
+        val permissionModuleMap = permissions.mapNotNull { permission ->
+          bootstrapContext.dns.query(permission.providerMmid)?.let { permission to it }
+        }.toMap()
+        val resultMap = mutableMapOf<PermissionProvider, Boolean>()
+        val checkedMap = mutableMapOf<PermissionProvider, MutableState<Boolean>>()
+        val submitDeferred = CompletableDeferred<Unit>()
 
-      val modal = createBottomSheets(
-        title = "${applicant.name} ${PermissionI18nResource.request_title.text}",
-        iconUrl = "file:///sys/icons/$mmid.svg"
-      ) {
-        Card(elevation = CardDefaults.cardElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp, 0.dp)) {
-          Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.Center) {
-            Column(
-              modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 8.dp),
-              verticalArrangement = Arrangement.Center,
-              horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-              Text(
-                text = PermissionI18nResource.request_title.text,
-                style = MaterialTheme.typography.titleLarge
-              )
-              val applicantIcon = remember {
-                applicant.icons.toStrict().pickLargest()
-              }
-              Spacer(Modifier.width(32.dp))
-              when (applicantIcon) {
-                null -> Text(applicant.short_name)
-                else -> Box(Modifier.size(32.dp)) {
-                  AppIcon(
-                    applicantIcon,
-                    iconFetchHook = imageFetchHook,
-                  )
+        val modal = createBottomSheets(
+          title = "${applicant.name} ${PermissionI18nResource.request_title.text}",
+          iconUrl = "file:///sys/icons/$mmid.svg"
+        ) {
+          Card(elevation = CardDefaults.cardElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp, 0.dp)) {
+            Column(Modifier.padding(vertical = 12.dp), verticalArrangement = Arrangement.Center) {
+              Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 8.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+              ) {
+                Text(
+                  text = PermissionI18nResource.request_title.text,
+                  style = MaterialTheme.typography.titleLarge
+                )
+                val applicantIcon = remember {
+                  applicant.icons.toStrict().pickLargest()
                 }
+                Spacer(Modifier.width(32.dp))
+                when (applicantIcon) {
+                  null -> Text(applicant.short_name)
+                  else -> Box(Modifier.size(32.dp)) {
+                    AppIcon(
+                      applicantIcon,
+                      iconFetchHook = imageFetchHook,
+                    )
+                  }
+                }
+
+                Spacer(Modifier.width(16.dp))
+
+                Text(applicant.mmid, style = MaterialTheme.typography.bodySmall)
               }
 
-              Spacer(Modifier.width(16.dp))
+              HorizontalDivider()
 
-              Text(applicant.mmid, style = MaterialTheme.typography.bodySmall)
-            }
+              for ((permission, module) in permissionModuleMap) {
+                ListItem(
+                  colors = ListItemDefaults.colors(
+                    containerColor = Color.Transparent,
+                    overlineColor = Color.Transparent,
+                  ),
+                  leadingContent = {
+                    BadgedBox(badge = {
+                      val badgeIcon = remember {
+                        permission.badges.pickLargest()
+                      }
+                      badgeIcon?.also {
+                        AppIcon(
+                          iconResource = it,
+                          modifier = Modifier.size(6.dp),
+                          iconFetchHook = imageFetchHook,
+                        )
+                      }
+                    }) {
+                      val providerIcon = remember {
+                        module.icons.toStrict().pickLargest()
+                      }
+                      when (providerIcon) {
+                        null -> Image(
+                          imageVector = Icons.Rounded.Info, contentDescription = module.name
+                        )
 
-            HorizontalDivider()
-
-            for ((permission, module) in permissionModuleMap) {
-              ListItem(
-                colors = ListItemDefaults.colors(
-                  containerColor = Color.Transparent,
-                  overlineColor = Color.Transparent,
-                ),
-                leadingContent = {
-                  BadgedBox(badge = {
-                    val badgeIcon = remember {
-                      permission.badges.pickLargest()
+                        else -> AppIcon(
+                          iconResource = providerIcon,
+                          modifier = Modifier.size(24.dp),
+                          iconDescription = module.name,
+                          iconFetchHook = imageFetchHook,
+                        )
+                      }
                     }
-                    badgeIcon?.also {
-                      AppIcon(
-                        iconResource = it,
-                        modifier = Modifier.size(6.dp),
-                        iconFetchHook = imageFetchHook,
-                      )
+                  },
+                  headlineContent = { Text(permission.title()) },
+                  supportingContent = permission.description?.let {
+                    { Text(it()) }
+                  },
+                  trailingContent = {
+                    var checked by remember {
+                      checkedMap.getOrPut(permission) {
+                        mutableStateOf(true)
+                      }
                     }
+                    val icon: (@Composable () -> Unit)? = if (checked) {
+                      @Composable {
+                        Icon(
+                          imageVector = Icons.Filled.Check,
+                          contentDescription = null,
+                          modifier = Modifier.size(SwitchDefaults.IconSize),
+                        )
+                      }
+                    } else null
+                    Switch(checked = checked, onCheckedChange = {
+                      checked = it
+                    }, thumbContent = icon)
+                  })
+              }
+              HorizontalDivider()
+              Row(
+                Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+              ) {
+                Button(
+                  colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                  ),
+                  onClick = {
+                    for (permission in checkedMap.keys) {
+                      resultMap[permission] = false
+                    }
+                    submitDeferred.complete(Unit)
                   }) {
-                    val providerIcon = remember {
-                      module.icons.toStrict().pickLargest()
-                    }
-                    when (providerIcon) {
-                      null -> Image(
-                        imageVector = Icons.Rounded.Info, contentDescription = module.name
-                      )
-
-                      else -> AppIcon(
-                        iconResource = providerIcon,
-                        modifier = Modifier.size(24.dp),
-                        iconDescription = module.name,
-                        iconFetchHook = imageFetchHook,
-                      )
-                    }
-                  }
-                },
-                headlineContent = { Text(permission.title()) },
-                supportingContent = permission.description?.let {
-                  { Text(it()) }
-                },
-                trailingContent = {
-                  var checked by remember {
-                    checkedMap.getOrPut(permission) {
-                      mutableStateOf(true)
-                    }
-                  }
-                  val icon: (@Composable () -> Unit)? = if (checked) {
-                    @Composable {
-                      Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(SwitchDefaults.IconSize),
-                      )
-                    }
-                  } else null
-                  Switch(checked = checked, onCheckedChange = {
-                    checked = it
-                  }, thumbContent = icon)
-                })
-            }
-            HorizontalDivider()
-            Row(
-              Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 16.dp),
-              horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-              Button(
-                colors = ButtonDefaults.buttonColors(
-                  containerColor = MaterialTheme.colorScheme.errorContainer,
-                  contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                ),
-                onClick = {
-                  for (permission in checkedMap.keys) {
-                    resultMap[permission] = false
-                  }
-                  submitDeferred.complete(Unit)
-                }) {
-                Text(text = PermissionI18nResource.request_button_refuse())
-              }
-
-              Row {
-                Button(onClick = {
-                  for ((permission, state) in checkedMap) {
-                    resultMap[permission] = state.value
-                  }
-                  submitDeferred.complete(Unit)
-                }) {
-                  Text(text = PermissionI18nResource.request_button_confirm())
+                  Text(text = PermissionI18nResource.request_button_refuse())
                 }
-                Spacer(Modifier.width(8.dp))
-                ElevatedButton(onClick = {
-                  for (permission in checkedMap.keys) {
-                    resultMap[permission] = true
+
+                Row {
+                  Button(onClick = {
+                    for ((permission, state) in checkedMap) {
+                      resultMap[permission] = state.value
+                    }
+                    submitDeferred.complete(Unit)
+                  }) {
+                    Text(text = PermissionI18nResource.request_button_confirm())
                   }
-                  submitDeferred.complete(Unit)
-                }) {
-                  Text(text = PermissionI18nResource.request_button_authorize_all())
+                  Spacer(Modifier.width(8.dp))
+                  ElevatedButton(onClick = {
+                    for (permission in checkedMap.keys) {
+                      resultMap[permission] = true
+                    }
+                    submitDeferred.complete(Unit)
+                  }) {
+                    Text(text = PermissionI18nResource.request_button_authorize_all())
+                  }
                 }
               }
             }
           }
         }
-      }
-      submitDeferred.invokeOnCompletion {
-        ioAsyncScope.launch {
-          modal.close()
+        submitDeferred.invokeOnCompletion {
+          scopeLaunch(cancelable = false) {
+            modal.close()
+          }
         }
+        // 关闭主窗口，显示modal
+        val mainWindow = getMainWindow()
+        mainWindow.hide()
+        modal.open()
+        // 等待关闭
+        modal.onClose.awaitOnce()
+        modal.destroy()
+        mainWindow.closeRoot()
+        return resultMap.mapValues { it.key.getAuthorizationRecord(it.value, applicant.mmid) }
       }
-      // 关闭主窗口，显示modal
-      val mainWindow = getMainWindow()
-      mainWindow.hide()
-      modal.open()
-      // 等待关闭
-      modal.onClose.awaitOnce()
-      modal.destroy()
-      mainWindow.closeRoot()
-      return resultMap.mapValues { it.key.getAuthorizationRecord(it.value, applicant.mmid) }
     }
   }
+
+  override fun createRuntime(bootstrapContext: BootstrapContext) =
+    PermissionRuntime(bootstrapContext)
 }

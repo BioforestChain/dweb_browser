@@ -1,7 +1,7 @@
 import { isBinary } from "../../helper/binaryHelper.ts";
-import { $OnIpcRequestMessage, Ipc, IpcBody, IpcHeaders, IpcRequest, IpcResponse } from "../ipc/index.ts";
+import { Ipc, IpcBody, IpcHeaders, IpcResponse, IpcServerRequest } from "../ipc/index.ts";
 import { $bodyInitToIpcBodyArgs, isWebSocket } from "./ipcRequestHelper.ts";
-import { $PromiseMaybe } from "./types.ts";
+import { type $PromiseMaybe } from "./types.ts";
 
 export type $OnFetchReturn = Response | IpcResponse | $FetchResponse | void;
 
@@ -9,16 +9,16 @@ export type $OnFetchReturn = Response | IpcResponse | $FetchResponse | void;
  * fetch 处理函数
  * 如果标记成 中间件 模式，那么该函数会执行之前函数
  */
-export type $OnFetch = (event: FetchEvent) => $PromiseMaybe<$OnFetchReturn>;
+export type $OnFetch = (event: IpcFetchEvent) => $PromiseMaybe<$OnFetchReturn>;
 
-export type $OnFetchMid = (respose: IpcResponse, event: FetchEvent) => $PromiseMaybe<$OnFetchReturn>;
+export type $OnFetchMid = (respose: IpcResponse, event: IpcFetchEvent) => $PromiseMaybe<$OnFetchReturn>;
 /**
  * 对即将要进行的响应内容，作出额外的处理
  */
 export const fetchMid = (handler: $OnFetchMid) => Object.assign(handler, { [FETCH_MID_SYMBOL]: true } as const);
 export const FETCH_MID_SYMBOL = Symbol("fetch.middleware");
 
-export type $OnFetchEnd = (event: FetchEvent, respose: IpcResponse | undefined) => $PromiseMaybe<$OnFetchReturn>;
+export type $OnFetchEnd = (event: IpcFetchEvent, respose: IpcResponse | undefined) => $PromiseMaybe<$OnFetchReturn>;
 /**
  * 对即将要进行的响应内容，做出最后的处理
  *
@@ -73,7 +73,7 @@ export const fetchHanlderFactory = {
  * 一个通用的 ipcRequest 处理器
  * 开发不需要面对 ipcRequest，而是面对 web 标准的 Request、Response 即可
  */
-export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
+export const createFetchHandler = (onFetchs: Iterable<$OnFetch> = []) => {
   const onFetchHanlders: $AnyFetchHanlder[] = [...onFetchs];
 
   // deno-lint-ignore ban-types
@@ -138,8 +138,9 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
     return to;
   };
 
-  const onRequest = (async (request, ipc) => {
-    const event = new FetchEvent(request, ipc);
+  const onRequest = async (request: IpcServerRequest) => {
+    const ipc = request.ipc;
+    const event = new IpcFetchEvent(request, ipc);
     let res: IpcResponse | undefined;
 
     for (const handler of onFetchHanlders) {
@@ -233,17 +234,18 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
       ipc.postMessage(res);
       return res;
     }
-  }) satisfies $OnIpcRequestMessage;
+  };
 
   return extendsTo(onRequest);
 };
 
+export type $FetchHandler = ReturnType<typeof createFetchHandler>;
 export interface $FetchResponse extends ResponseInit {
   body?: BodyInit | null | IpcBody;
 }
 
-export class FetchEvent {
-  constructor(readonly ipcRequest: IpcRequest, readonly ipc: Ipc) {}
+export class IpcFetchEvent {
+  constructor(readonly ipcRequest: IpcServerRequest, readonly ipc: Ipc) {}
   get url() {
     return this.ipcRequest.parsed_url;
   }

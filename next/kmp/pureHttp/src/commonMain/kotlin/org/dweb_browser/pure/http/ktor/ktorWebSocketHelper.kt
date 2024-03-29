@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureChannel
-import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureFinData
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureTextFrame
@@ -18,7 +17,8 @@ import org.dweb_browser.pure.http.PureTextFrame
 val debugPureChannel = Debugger("pureChannel")
 
 suspend fun pipeToPureChannel(
-  ws: WebSocketSession, url: String,
+  ws: WebSocketSession,
+  url: String,
   income: Channel<PureFrame>,
   outgoing: Channel<PureFrame>,
   pureChannel: PureChannel,
@@ -28,9 +28,8 @@ suspend fun pipeToPureChannel(
     for (pureFrame in outgoing) {
       debugPureChannel("WebSocketToPureChannel") { "outgoing-to-ws:$pureFrame/$url" }
       val wsFrame = when (pureFrame) {
-        is PureTextFrame -> Frame.Text(pureFrame.data)
-        is PureBinaryFrame -> Frame.Binary(true, pureFrame.data)
-        is PureCloseFrame -> Frame.Close()
+        is PureTextFrame -> Frame.Text(pureFrame.text)
+        is PureBinaryFrame -> Frame.Binary(true, pureFrame.binary)
       }
       ws.send(wsFrame)
 //      debugPureChannel("WebSocketToPureChannel") { "ws-send:$wsFrame/$url" }
@@ -63,7 +62,6 @@ suspend fun pipeToPureChannel(
     income.send(pureFrame)
     debugPureChannel("WebSocketToPureChannel") { "income-send:$pureFrame/$url" }
   }
-  income.send(PureCloseFrame)
   debugPureChannel("WebSocketToPureChannel") { "ws-close-pureChannel/$url" }
   /// 等到双工关闭，同时也关闭channel
   pureChannel.close()

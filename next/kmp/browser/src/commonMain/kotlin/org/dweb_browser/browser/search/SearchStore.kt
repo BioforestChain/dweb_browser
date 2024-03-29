@@ -36,7 +36,7 @@ enum class SearchEngine(
 ) {
   BaiDu(
     host = "baidu.com",
-    keys = "baidu,百度,www.baidu.com,m.baidu.com",
+    keys = "baidu,百度,baidu.com,www.baidu.com,m.baidu.com",
     displayName = "百度",
     searchLinks = listOf("https://m.baidu.com/s?word=%s", "https://www.baidu.com/s?wd=%s"),
     homeLink = "https://www.baidu.com",
@@ -45,7 +45,7 @@ enum class SearchEngine(
 
   Bing(
     host = "bing.com",
-    keys = "bing,必应,www.bing.com,cn.bing.com",
+    keys = "bing,必应,bing.com,www.bing.com,cn.bing.com",
     displayName = "必应",
     searchLinks = listOf(
       "http://cn.bing.com/search?q=%s", "https://www.bing.com/search?q=%s"
@@ -56,7 +56,7 @@ enum class SearchEngine(
 
   So360(
     host = "so.com",
-    keys = "360,www.so.com,m.so.com",
+    keys = "360,so.com,www.so.com,m.so.com",
     displayName = "360",
     searchLinks = listOf("https://m.so.com/s?q=%s", "https://www.so.com/s?q=%s"),
     homeLink = "https://www.so.com/",
@@ -65,7 +65,7 @@ enum class SearchEngine(
 
   SoGou(
     host = "sogou.com",
-    keys = "sogou,搜狗,www.sogou.com,wap.sogou.com",
+    keys = "sogou,搜狗,sogou.com,www.sogou.com,wap.sogou.com",
     displayName = "搜狗",
     searchLinks = listOf(
       "https://wap.sogou.com/web/searchList.jsp?keyword=%s", "https://www.sogou.com/web?query=%s"
@@ -76,7 +76,7 @@ enum class SearchEngine(
 
   Google(
     host = "google.com",
-    keys = "Google,谷歌,www.google.com",
+    keys = "Google,谷歌,google.com,www.google.com",
     displayName = "Google",
     searchLinks = listOf("https://www.google.com/search?q=%s"),
     homeLink = "https://www.google.com",
@@ -94,7 +94,7 @@ enum class SearchEngine(
 
   Yahoo(
     host = "yahoo.com",
-    keys = "yahoo,雅虎,sg.search.yahoo.com,search.yahoo.com",
+    keys = "yahoo,雅虎,yahoo.com,sg.search.yahoo.com,search.yahoo.com",
     displayName = "雅虎",
     searchLinks = listOf(
       "https://search.yahoo.com/search?p=%s", "https://sg.search.yahoo.com/search?p=%s"
@@ -105,7 +105,7 @@ enum class SearchEngine(
 
   SM(
     host = "m.sm.cn",
-    keys = "神马,so.m.sm.cn,m.sm.cn",
+    keys = "神马,sm.cn,so.m.sm.cn,m.sm.cn",
     displayName = "神马",
     searchLinks = listOf("https://so.m.sm.cn/s?q=%s", "https://m.sm.cn/s?q=%s"),
     homeLink = "https://so.m.sm.cn",
@@ -270,7 +270,7 @@ data class SearchInject(
     ?: BrowserDrawResource.Web.painter()
 }
 
-class SearchStore(mm: MicroModule) {
+class SearchStore(mm: MicroModule.Runtime) {
   private val keyInject = "key_inject"
   private val storeEngine = mm.createStore("engines_state", false)
   private val storeInject = mm.createStore("inject_engine", false)

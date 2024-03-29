@@ -30,7 +30,7 @@ actual class ShortcutManage {
   actual suspend fun initShortcut() {
 
     scope.launch {
-      val app = MicroModule.getUIApplication()
+      val app = MicroModule.Runtime.getUIApplication()
       // 这里获取的都是动态的quick action
       val hasAddScan = app.shortcutItems?.firstOrNull {
         val item = it as UIApplicationShortcutItem
@@ -53,7 +53,7 @@ actual class ShortcutManage {
       if (shortcuts.count() > maxCount) {
         shortcuts.add(maxCount - 1, getMoreShortcutItem())
       }
-      val app = MicroModule.getUIApplication()
+      val app = MicroModule.Runtime.getUIApplication()
       app.shortcutItems = shortcuts
     }
     return true
@@ -95,7 +95,7 @@ actual class ShortcutManage {
   }
 
   // iOS: 由于无法正确解析SVG图片，所以iOS会一直返回null.
-  actual suspend fun getValidIcon(microModule: MicroModule, resource: ImageResource): ByteArray? {
+  actual suspend fun getValidIcon(microModule: MicroModule.Runtime, resource: ImageResource): ByteArray? {
     return null
   }
 }

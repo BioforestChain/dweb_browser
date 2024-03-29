@@ -7,7 +7,7 @@ import io.ktor.utils.io.core.readBytes
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import objcnames.classes.LPLinkMetadata
-import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.helper.toNSString
 import org.dweb_browser.helper.withMainContext
@@ -25,7 +25,7 @@ import kotlin.experimental.ExperimentalObjCName
 actual suspend fun share(
   shareOptions: ShareOptions,
   multiPartData: MultiPartData?,
-  shareNMM: NativeMicroModule?
+  shareNMM: MicroModule.Runtime,
 ): String {
 
   return withMainContext {
@@ -62,19 +62,17 @@ actual suspend fun share(
     val controller =
       UIActivityViewController(activityItems = activityItems, applicationActivities = null)
 
-    if (shareNMM != null) {
-      shareNMM.getUIApplication().keyWindow?.rootViewController?.presentViewController(
-        controller,
-        true,
-        null
+    shareNMM.getUIApplication().keyWindow?.rootViewController?.apply {
+
+      presentViewController(
+        controller, true, null
       )
 
       controller.completionWithItemsHandler = { _, completed, _, _ ->
         deferred.complete(if (completed) "OK" else "Cancel")
       }
-    } else {
-      deferred.complete("")
-    }
+    } ?: deferred.complete("")
+
 
     deferred.await()
   }
@@ -84,7 +82,7 @@ actual suspend fun share(
 actual suspend fun share(
   shareOptions: ShareOptions,
   files: List<String>,
-  shareNMM: NativeMicroModule?
+  shareNMM: MicroModule.Runtime,
 ): String {
   return withMainContext {
     val deferred = CompletableDeferred<String>()
@@ -111,33 +109,28 @@ actual suspend fun share(
     val controller =
       UIActivityViewController(activityItems = activityItems, applicationActivities = null)
 
-    if (shareNMM != null) {
-      shareNMM.getUIApplication().keyWindow?.rootViewController?.presentViewController(
-        controller,
-        true,
-        null
+    shareNMM.getUIApplication().keyWindow?.rootViewController?.apply {
+      presentViewController(
+        controller, true, null
       )
-
       controller.completionWithItemsHandler = { _, completed, _, _ ->
         deferred.complete(if (completed) "OK" else "Cancel")
       }
-    } else {
-      deferred.complete("")
-    }
+    } ?: deferred.complete("")
+
 
     deferred.await()
   }
 }
 
+@Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
 class FileShareModel @OptIn(ExperimentalForeignApi::class) constructor(
-  val url: NSURL,
-  private val lpLinkMetadata: platform.LinkPresentation.LPLinkMetadata? = null
+  val url: NSURL, private val lpLinkMetadata: platform.LinkPresentation.LPLinkMetadata? = null
 ) : NSObject(), UIActivityItemSourceProtocol {
   override fun activityViewController(
-    activityViewController: UIActivityViewController,
-    itemForActivityType: UIActivityType?
-  ): Any? {
-    return url
+    activityViewController: UIActivityViewController, itemForActivityType: UIActivityType
+  ): String {
+    return url.toString()
   }
 
   override fun activityViewControllerPlaceholderItem(activityViewController: UIActivityViewController): Any {

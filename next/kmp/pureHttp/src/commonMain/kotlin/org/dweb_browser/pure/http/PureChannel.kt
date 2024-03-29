@@ -1,14 +1,14 @@
 package org.dweb_browser.pure.http
 
 import io.ktor.http.HttpStatusCode
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
-import kotlinx.atomicfu.updateAndGet
-import kotlinx.coroutines.CancellationException
+import io.ktor.util.InternalAPI
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -16,60 +16,48 @@ import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.helper.DeferredSignal
 import org.dweb_browser.helper.IFrom
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.Once
 
 
 interface IPureChannel {
-  val onStart: Signal.Listener<PureChannelContext>
-  suspend fun start(): PureChannelContext
-  val onClose: Signal.Listener<Unit>
-  suspend fun close(cause: Throwable? = null, reason: CancellationException? = null)
+  fun start(): PureChannelContext
+  val onClose: DeferredSignal<Throwable?>
+  fun close(cause: Throwable? = null)
 }
 
 class PureChannelContext internal constructor(
-  val income: Channel<PureFrame>,
-  val outgoing: Channel<PureFrame>,
-  private val closeSignal: SimpleSignal,
-  val getChannel: () -> PureChannel
+  @InternalAPI val incomeChannel: Channel<PureFrame>,
+  @InternalAPI val outgoingChannel: Channel<PureFrame>,
+  val getChannel: () -> PureChannel,
 ) {
+  @OptIn(InternalAPI::class)
+  val income = incomeChannel as ReceiveChannel<PureFrame>
   operator fun iterator() = income.iterator()
-  inline suspend fun <reified T> readJsonLine() = sequenceOf(iterator())
+  inline fun <reified T> readJsonItems() = flow {
+    for (frame in income) {
+      emit(Json.decodeFromString<T>(frame.text))
+    }
+  }
 
-  suspend fun sendText(data: String) =
-    outgoing.send(PureTextFrame(data))
+  @OptIn(InternalAPI::class)
+  suspend fun sendText(data: String) = outgoingChannel.send(PureTextFrame(data))
 
-  suspend inline fun <reified T> sendJson(data: T) =
-    sendText(Json.encodeToString(data))
+  suspend inline fun <reified T> sendJson(data: T) = sendText(Json.encodeToString(data))
 
-  suspend inline fun <reified T> sendJsonLine(data: T) =
-    sendText(Json.encodeToString(data) + "\n")
+  suspend inline fun <reified T> sendJsonLine(data: T) = sendText(Json.encodeToString(data) + "\n")
 
 
-  suspend fun sendBinary(data: ByteArray) =
-    outgoing.send(PureBinaryFrame(data))
+  @OptIn(InternalAPI::class)
+  suspend fun sendBinary(data: ByteArray) = outgoingChannel.send(PureBinaryFrame(data))
 
 
   @OptIn(ExperimentalSerializationApi::class)
-  suspend inline fun <reified T> sendCbor(data: T) =
-    sendBinary(Cbor.encodeToByteArray(data))
+  suspend inline fun <reified T> sendCbor(data: T) = sendBinary(Cbor.encodeToByteArray(data))
 
 
-  private val closeLock = Mutex()
-
-  @OptIn(DelicateCoroutinesApi::class)
-  suspend fun close(cause: Throwable? = null, reason: CancellationException? = null) =
-    closeLock.withLock {
-      if (!income.isClosedForSend) {
-        income.cancel(reason)
-        income.close(cause)
-        outgoing.close(cause)
-        outgoing.cancel(reason)
-        closeSignal.emit()
-      }
-    }
+  fun close(cause: Throwable? = null) = getChannel().close(cause)
 }
 
 class PureChannel(
@@ -77,125 +65,136 @@ class PureChannel(
   private val _outgoing: Channel<PureFrame>,
   override var from: Any? = null,
 ) : IPureChannel, IFrom {
-  constructor(from: Any? = null) : this(Channel(), Channel(), from)
+  constructor(from: Any? = null) : this(
+    _income = Channel(),
+    _outgoing = Channel(),
+    from = from,
+  )
 
-  internal val closeSignal = SimpleSignal()
   var isClosed = false
     private set
-  override val onClose = closeSignal.toListener().also {
-    it.invoke { isClosed = true }
-  }
-
-  private val startSignal = Signal<PureChannelContext>()
-  override val onStart = startSignal.toListener()
 
 
-  private val _start = SuspendOnce {
+  private val _start = Once {
     PureChannelContext(
-      income = _income,
-      outgoing = _outgoing,
-      closeSignal = closeSignal
-    ) { this }
-      .also { startSignal.emit(it) }
+      incomeChannel = _income,
+      outgoingChannel = _outgoing,
+      getChannel = { this@PureChannel },
+    )
   }
 
-  override suspend fun start() = _start()
-  suspend fun afterStart(): PureChannelContext {
-    if (!_start.haveRun) {
-      onStart.awaitOnce()
+  override fun start() = _start()
+
+
+  private val closeDeferred = CompletableDeferred<Throwable?>()
+  override val onClose = DeferredSignal(closeDeferred)
+
+  private val closeLock = SynchronizedObject()
+
+  @OptIn(DelicateCoroutinesApi::class)
+  override fun close(cause: Throwable?) {
+    synchronized(closeLock) {
+      closeDeferred.complete(cause)
+      if (!_income.isClosedForSend) {
+        _income.close(cause)
+      }
+      if (!_outgoing.isClosedForSend) {
+        _outgoing.close(cause)
+      }
     }
-    return _start()
   }
 
-  override suspend fun close(cause: Throwable?, reason: CancellationException?) {
-    _start().close(cause, reason)
-  }
-
-  suspend fun afterClose() {
-    if (!isClosed) {
-      onClose.awaitOnce()
+  /**
+   * 只关闭输出
+   */
+  @OptIn(DelicateCoroutinesApi::class)
+  fun closeOutgoing(cause: Throwable? = null) {
+    synchronized(closeLock) {
+      closeDeferred.complete(cause)
+      if (!_outgoing.isClosedForSend) {
+        _outgoing.close(cause)
+      }
     }
   }
 
-  private val _remote = atomic<PureChannel?>(null)
+  private var remote: PureChannel? = null
 
-  fun reverse() = _remote.updateAndGet {
-    it ?: PureChannel(
-      _outgoing,
-      _income,
-      this
-    ).also { it._remote.update { this@PureChannel } }
-  }!!
+  companion object {
+    private val remoteLock = SynchronizedObject()
+  }
+
+  fun reverse() = synchronized(remoteLock) {
+    remote ?: PureChannel(
+      _outgoing, _income, this
+    ).also { remote ->
+      this.remote = remote
+      remote.remote = this
+    }
+  }
 }
 
 
 @Serializable
-sealed class PureFrame
+sealed class PureFrame {
+  abstract val text: String
+  abstract val binary: ByteArray
+}
 
 @Serializable
 @SerialName("text")
-class PureTextFrame(val data: String) : PureFrame()
+class PureTextFrame(override val text: String) : PureFrame() {
+  override val binary get() = text.encodeToByteArray()
+  override fun toString(): String {
+    return "PureTextFrame($text)"
+  }
+}
 
 @Serializable
 @SerialName("binary")
-class PureBinaryFrame(val data: ByteArray) : PureFrame()
-
-@Serializable
-@SerialName("close")
-data object PureCloseFrame : PureFrame()
-//
-//@Serializable
-//@SerialName("ping")
-//data object PurePingFrame : PureFrame()
-//
-//@Serializable
-//@SerialName("pong")
-//data object PurePongFrame : PureFrame()
+class PureBinaryFrame(override val binary: ByteArray) : PureFrame() {
+  override val text get() = binary.decodeToString()
+  override fun toString(): String {
+    return "PureBinaryFrame($text)"
+  }
+}
 
 
 val HttpStatusCode.Companion.WS_CLOSE_NORMAL by lazy { HttpStatusCode(1000, "Close normal") }
 val HttpStatusCode.Companion.WS_CLOSE_GOING_AWAY by lazy {
   HttpStatusCode(
-    1001,
-    "Close going away"
+    1001, "Close going away"
   )
 }
 val HttpStatusCode.Companion.WS_CLOSE_PROTOCOL_ERROR by lazy {
   HttpStatusCode(
-    1002,
-    "Close protocol error"
+    1002, "Close protocol error"
   )
 }
 val HttpStatusCode.Companion.WS_CLOSE_UNSUPPORTED by lazy {
   HttpStatusCode(
-    1003,
-    "Close unsupported"
+    1003, "Close unsupported"
   )
 }
 val HttpStatusCode.Companion.WS_CLOSED_NO_STATUS by lazy {
   HttpStatusCode(
-    1005,
-    "Closed no status"
+    1005, "Closed no status"
   )
 }
 val HttpStatusCode.Companion.WS_CLOSE_ABNORMAL by lazy { HttpStatusCode(1006, "Close abnormal") }
 val HttpStatusCode.Companion.WS_UNSUPPORTED_PAYLOAD by lazy {
   HttpStatusCode(
-    1007,
-    "Unsupported payload"
+    1007, "Unsupported payload"
   )
 }
 val HttpStatusCode.Companion.WS_POLICY_VIOLATION by lazy {
   HttpStatusCode(
-    1008,
-    "Policy violation"
+    1008, "Policy violation"
   )
 }
 val HttpStatusCode.Companion.WS_CLOSE_TOO_LARGE by lazy { HttpStatusCode(1009, "Close too large") }
 val HttpStatusCode.Companion.WS_MANDATORY_EXTENSION by lazy {
   HttpStatusCode(
-    1010,
-    "Mandatory extension"
+    1010, "Mandatory extension"
   )
 }
 val HttpStatusCode.Companion.WS_SERVER_ERROR by lazy { HttpStatusCode(1011, "Server error") }
@@ -204,7 +203,6 @@ val HttpStatusCode.Companion.WS_TRY_AGAIN_LATER by lazy { HttpStatusCode(1013, "
 val HttpStatusCode.Companion.WS_BAD_GATEWAY by lazy { HttpStatusCode(1014, "Bad gateway") }
 val HttpStatusCode.Companion.WS_TLS_HANDSHAKE_FAIL by lazy {
   HttpStatusCode(
-    1015,
-    "TLS handshake fail"
+    1015, "TLS handshake fail"
   )
 }

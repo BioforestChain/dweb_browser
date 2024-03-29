@@ -1,9 +1,8 @@
 package org.dweb_browser.browser.search
 
-import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SimpleSignal
 
-class SearchController(private val searchNMM: SearchNMM) {
+class SearchController(private val searchNMM: SearchNMM.SearchRuntime) {
   private val searchStore = SearchStore(searchNMM)
 
   internal val searchEngineList = mutableListOf<SearchEngine>()
@@ -17,7 +16,7 @@ class SearchController(private val searchNMM: SearchNMM) {
   val onInjectUpdate = injectUpdateSignal.toListener()
 
   init {
-    searchNMM.ioAsyncScope.launch {
+    searchNMM.scopeLaunch(cancelable = true) {
       searchEngineList.addAll(searchStore.getAllEnginesState())
       engineUpdateSignal.emit()
       searchInjectList.addAll(searchStore.getAllInjects())
@@ -33,7 +32,7 @@ class SearchController(private val searchNMM: SearchNMM) {
       if (item.matchKeyWord(key)) {
         item.enable = true
         engineUpdateSignal.emit()
-        searchNMM.ioAsyncScope.launch { searchStore.saveEngineState(item) }
+        searchNMM.scopeLaunch(cancelable = true) { searchStore.saveEngineState(item) }
         return item.homeLink
       }
     }
@@ -46,7 +45,7 @@ class SearchController(private val searchNMM: SearchNMM) {
   suspend fun inject(searchInject: SearchInject): Boolean {
     searchInjectList.add(searchInject) // TODO 暂时没做去重等操作。
     injectUpdateSignal.emit()
-    searchNMM.ioAsyncScope.launch { searchStore.saveInject(searchInjectList) } // 通知监听
+    searchNMM.scopeLaunch(cancelable = true) { searchStore.saveInject(searchInjectList) } // 通知监听
     return true
   }
 

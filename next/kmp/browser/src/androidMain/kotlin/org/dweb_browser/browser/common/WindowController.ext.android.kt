@@ -7,7 +7,7 @@ import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.platform.asAndroid
 import org.dweb_browser.sys.window.core.WindowController
 
-actual suspend fun WindowController.createDwebView(remoteMM: MicroModule, url: String) =
+actual suspend fun WindowController.createDwebView(remoteMM: MicroModule.Runtime, url: String) =
   IDWebView.create(
     viewBox.asAndroid().activity, remoteMM,
     DWebViewOptions(

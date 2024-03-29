@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jmm
 
 import androidx.compose.runtime.mutableStateMapOf
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -42,7 +41,7 @@ import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 
-class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) {
+class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore: JmmStore) {
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   // 构建jmm历史记录
@@ -195,10 +194,11 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     return true
   }
 
+  /**监听下载进度回调*/
   private suspend fun watchProcess(metadata: JmmHistoryMetadata) {
     val taskId = metadata.taskId ?: return
     metadata.alreadyWatch = true
-    jmmNMM.ioAsyncScope.launch {
+    jmmNMM.scopeLaunch(cancelable = true) {
       val res = jmmNMM.createChannelOfDownload(taskId) {
         metadata.updateByDownloadTask(downloadTask, jmmStore)
         when (downloadTask.status.state) {
@@ -296,6 +296,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
     }
   }
 
+  /**尝试获取app session 这个可以保证更新的时候数据不被清空*/
   private suspend fun getAppSessionInfo(mmid: MMID, version: String): SessionInfo? {
     val session = jmmNMM.readFile("/data/apps/${mmid}-${version}/usr/sys/session.json")
     return if (session.isOk) {
@@ -306,7 +307,6 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
       null
     }
   }
-
 
   suspend fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
     historyMetadataMaps.remove(historyMetadata.metadata.id)

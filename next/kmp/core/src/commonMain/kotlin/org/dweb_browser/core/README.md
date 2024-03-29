@@ -30,22 +30,15 @@ classDiagram
       跟环境一一对应
       fork()
     }
-    IpcPool --|> Endpoint1: create(endpoint,option)
-    IpcPool --|> Endpoint2: create(endpoint,option)
-    IpcPool --|> Endpoint3: create(endpoint,option)
-    class NaviteIpc1{
-      channel
-    }
-    class MessagePortIpc{
-      port
-    }
-    class ReadableStreamIpc{
-      inputStream/outputStream
-    }
-    Endpoint1 --|> NaviteIpc1: Ipc(channeId,ipcPool)
-    NaviteIpc1 --|> NaviteIpc2: fork
-    Endpoint2 --|> MessagePortIpc: Ipc(channeId,ipcPool)
-    Endpoint3 --|> ReadableStreamIpc: Ipc(channeId,ipcPool)
+    IpcPool --|> Endpoint1: create(channelEndpoint,option)
+    IpcPool --|> Endpoint2: create(messagePortEndpoint,option)
+    IpcPool --|> Endpoint3: create(streamEndpoint,option)
+    Endpoint1 --|> Ipc
+    Endpoint2 --|> Ipc
+    Endpoint3 --|> Ipc
+    Ipc: Ipc(pid, ipcPool) 
+    Ipc --|> Ipc2: fork
+    Ipc2: Ipc(pid2, ipcPool) 
 ```
 
 ### 目标

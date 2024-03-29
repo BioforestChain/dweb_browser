@@ -1,8 +1,10 @@
 package org.dweb_browser.core.ipc.helper
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+@SerialName(IPC_MESSAGE_TYPE_STREAM_PAUSED)
 data class IpcStreamPaused(
   override val stream_id: String,
   /**
@@ -14,4 +16,4 @@ data class IpcStreamPaused(
    * 一旦该数值为0，对方再发送数据过来的时候，底层会直接断开连接。
    */
   val fuse: Int = 1,
-) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_PAUSED), IpcStream
+) : IpcRawMessage, IpcMessage, IpcStream

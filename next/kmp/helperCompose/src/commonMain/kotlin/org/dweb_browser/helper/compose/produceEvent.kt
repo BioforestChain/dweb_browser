@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Queue
 
@@ -14,7 +13,7 @@ fun produceEvent(
   key2: Any? = null,
   key3: Any? = null,
   scope: CoroutineScope = rememberCoroutineScope(),
-  handler: suspend () -> Any
+  handler: suspend () -> Any,
 ): () -> Unit {
   val eventHandler = remember(key1, key2, key3) {
 

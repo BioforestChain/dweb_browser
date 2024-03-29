@@ -19,6 +19,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import java.nio.ByteBuffer
 
@@ -40,7 +41,7 @@ class ReverseProxyServer {
         throw IOException("Couldn't start proxy server on host [$proxyHost] and port [$proxyPort]\n\t${e.stackTraceToString()}")
       }
       println("Started proxy server at ${proxyServer.localAddress}")
-      CoroutineScope(ioAsyncExceptionHandler).launch {
+      val acceptJob = CoroutineScope(ioAsyncExceptionHandler).launch {
         while (true) {
           val client = proxyServer.accept()
           launch {
@@ -55,7 +56,6 @@ class ReverseProxyServer {
               clientReader.awaitContent()
               val buffer = ByteArray(clientReader.availableForRead)
               clientReader.readAvailable(buffer)
-//              println("messageSize=$messageSize")
               val request = ConnectRequest(buffer)
               val connectHost: String
               val connectPort: Int
@@ -95,6 +95,9 @@ class ReverseProxyServer {
             }
           }
         }
+      }
+      acceptJob.invokeOnCompletion {
+        WARNING("Proxy server closed ${proxyServer.localAddress}")
       }
 
       proxyServer
@@ -178,7 +181,7 @@ suspend fun tunnelHttps(
   client: Socket,
   clientReader: ByteReadChannel,
   clientWriter: ByteWriteChannel,
-  tcpSocketBuilder: TcpSocketBuilder
+  tcpSocketBuilder: TcpSocketBuilder,
 ) {
   val server: Socket?
   try {

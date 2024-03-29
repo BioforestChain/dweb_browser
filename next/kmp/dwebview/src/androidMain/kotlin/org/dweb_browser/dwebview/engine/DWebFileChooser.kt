@@ -18,7 +18,7 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermission
 import java.io.File
 
 class DWebFileChooser(
-  private val remoteMM: MicroModule,
+  private val remoteMM: MicroModule.Runtime,
   private val ioScope: CoroutineScope,
   private val activity: BaseActivity?
 ) : WebChromeClient() {

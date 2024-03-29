@@ -77,7 +77,7 @@ actual class MediaCaptureManage actual constructor() {
     return status
   }
 
-  actual suspend fun takePicture(microModule: MicroModule): PureStream? {
+  actual suspend fun takePicture(microModule: MicroModule.Runtime): PureStream? {
     val result = CompletableDeferred<ByteArray>()
     MediaCaptureHandler().launchCameraString {
       result.complete(it)
@@ -85,7 +85,7 @@ actual class MediaCaptureManage actual constructor() {
     return PureStream(result.await())
   }
 
-  actual suspend fun captureVideo(microModule: MicroModule): PureStream? {
+  actual suspend fun captureVideo(microModule: MicroModule.Runtime): PureStream? {
     val result = CompletableDeferred<ByteReadChannel>()
     withMainContext {
       val rootController = UIApplication.sharedApplication.keyWindow?.rootViewController
@@ -108,7 +108,7 @@ actual class MediaCaptureManage actual constructor() {
   }
 
   @OptIn(ExperimentalForeignApi::class)
-  actual suspend fun recordSound(microModule: MicroModule): PureStream? {
+  actual suspend fun recordSound(microModule: MicroModule.Runtime): PureStream? {
     val result = CompletableDeferred<ByteReadChannel>()
     val manager = SoundRecordManager()
     val coroutineScope =
