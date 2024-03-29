@@ -18,7 +18,6 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcError
 import org.dweb_browser.core.ipc.helper.IpcEvent
@@ -128,10 +127,17 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
   /**创建js文件流*/
   private suspend fun createNativeStream(): ReadableStreamIpc {
     debugJsMM("createNativeStream", "pid=$pid, root=${metadata.server}")
-    val streamIpc = kotlinIpcPool.create<ReadableStreamIpc>(
+    val streamIpc = kotlinIpcPool.create(
       "code-server-${mmid}",
-      IpcOptions(this@JsMicroModule)
-    )
+      this,
+    ) {
+      nativeFetch(
+        PureClientRequest(buildUrlString("file://js.browser.dweb/create-process") {
+          parameters["entry"] = metadata.server.entry
+          parameters["process_id"] = pid
+        }, PureMethod.POST, body = PureStreamBody(it.input.stream))
+      ).stream()
+    }
 
     streamIpc.requestFlow.onEach { (request, ipc) ->
       debugJsMM("streamIpc.onRequest", "path=${request.uri.fullPath}")
@@ -199,7 +205,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       debugJsMM("onProxyRequest", "start ${ipcRequest.uri}")
       if (scheme == "file" && host.endsWith(".dweb")) {
         val jsWebIpc = connect(host)
-        jsWebIpc.emitMessage(IpcMessageArgs(ipcRequest, jsWebIpc))
+        jsWebIpc.dispatchMessage(IpcMessageArgs(ipcRequest, jsWebIpc))
       } else {
         runCatching {
           withContext(ioAsyncExceptionHandler) {

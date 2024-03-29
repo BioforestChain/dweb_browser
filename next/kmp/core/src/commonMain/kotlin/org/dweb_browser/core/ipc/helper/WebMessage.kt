@@ -17,7 +17,7 @@ interface IWebMessagePort {
 enum class DWebMessageBytesEncode {
   Normal,
   Cbor,
-  Protobuf
+//  Protobuf
 }
 
 sealed interface DWebMessage {

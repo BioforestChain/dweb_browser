@@ -25,8 +25,6 @@ import org.dweb_browser.core.http.router.MiddlewareHttpHandler
 import org.dweb_browser.core.http.router.RouteHandler
 import org.dweb_browser.core.http.router.TypedHttpHandler
 import org.dweb_browser.core.http.router.toChain
-import org.dweb_browser.core.ipc.IpcOptions
-import org.dweb_browser.core.ipc.NativeIpc
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.core.ipc.helper.IpcResponse
@@ -67,13 +65,15 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           debugNMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel<IpcPoolPack, IpcPoolPack>(fromMM.id, toMM.id)
           val acc = ipc_acc++
-          val fromNativeIpc = kotlinIpcPool.create<NativeIpc>(
+          val fromNativeIpc = kotlinIpcPool.create(
             "from-native-${fromMM.id}-$acc",
-            IpcOptions(toMM, channel = channel.port1)
+            toMM,
+            channel.port1
           )
-          val toNativeIpc = kotlinIpcPool.create<NativeIpc>(
+          val toNativeIpc = kotlinIpcPool.create(
             "to-native-${toMM.id}-$acc",
-            IpcOptions(fromMM, channel = channel.port2)
+            fromMM,
+            channel.port2
           )
           fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
           toMM.beConnect(toNativeIpc, reason) // 通知接收者作为Server
@@ -361,14 +361,11 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
  * 创建一个 channel 通信
  */
 suspend fun NativeMicroModule.createChannel(
-  urlPath: String,
-  resolve: suspend PureChannelContext.() -> Unit
+  urlPath: String, resolve: suspend PureChannelContext.() -> Unit
 ): PureResponse {
   val channelDef = CompletableDeferred<PureChannel>()
   val request = PureClientRequest(
-    urlPath,
-    PureMethod.GET,
-    channel = channelDef
+    urlPath, PureMethod.GET, channel = channelDef
   )
   val channel = PureChannel(from = request).also { channelDef.complete(it) }
   val res = nativeFetch(request)

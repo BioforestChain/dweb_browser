@@ -1,12 +1,9 @@
 package info.bagen.dwebbrowser
 
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.IpcRequestInit
-import org.dweb_browser.core.ipc.NativeIpc
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.core.ipc.helper.IpcResponse
@@ -25,20 +22,15 @@ class IpcRequestTest {
     val channel = NativeMessageChannel<IpcPoolPack, IpcPoolPack>("from.id.dweb", "to.id.dweb")
     val fromMM = TestMicroModule()
     val toMM = TestMicroModule()
-    val senderIpc = kotlinIpcPool.create<NativeIpc>(
-      "test-request-1", IpcOptions(toMM, channel = channel.port1)
-    )
-    val receiverIpc = kotlinIpcPool.create<NativeIpc>(
-      "test-request-2", IpcOptions(fromMM, channel = channel.port2)
-    )
+    val senderIpc = kotlinIpcPool.create("test-request-1", toMM, channel.port1)
+    val receiverIpc = kotlinIpcPool.create("test-request-2", fromMM, channel.port2)
 
     launch {
       // send text body
       println("🧨=> send text body")
       val response = senderIpc.request(
         "https://test.dwebdapp_1.com", IpcRequestInit(
-          method = PureMethod.POST,
-          body = IPureBody.from("senderIpc")
+          method = PureMethod.POST, body = IPureBody.from("senderIpc")
         )
       )
       val res = response.body.text()
@@ -51,7 +43,11 @@ class IpcRequestTest {
         val data = request.body.toString()
         println("receiverIpc结果🧨=> $data ${ipc.remote.mmid}")
         assertEquals("senderIpc 除夕快乐", data)
-        ipc.postMessage(IpcResponse.fromText(request.reqId, text = "receiverIpc 除夕快乐", ipc = ipc))
+        ipc.postMessage(
+          IpcResponse.fromText(
+            request.reqId, text = "receiverIpc 除夕快乐", ipc = ipc
+          )
+        )
       }.launchIn(this)
       senderIpc.requestFlow.onEach { (request, ipc) ->
         val data = request.body.text()

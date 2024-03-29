@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.MicroModule
@@ -54,22 +53,20 @@ suspend fun MicroModule.listenHttpDwebServer(
   debugHttp("listen", microModule.mmid)
   val httpIpc = this.connect("http.std.dweb")
   val streamIpc =
-    kotlinIpcPool.create<ReadableStreamIpc>(
+    kotlinIpcPool.create(
       "http-server/${startResult.urlInfo.host}",
-      IpcOptions(httpIpc.remote)
-    ).also {
-      it.bindIncomeStream(
-        this.nativeFetch(
-          PureClientRequest(
-            URLBuilder("file://http.std.dweb/listen").apply {
-              parameters["token"] = startResult.token
-              parameters["routes"] = Json.encodeToString(routes)
-            }.buildUnsafeString(),
-            PureMethod.POST,
-            body = PureStreamBody(it.input.stream)
-          )
-        ).stream()
-      )
+      httpIpc.remote,
+    ) {
+      nativeFetch(
+        PureClientRequest(
+          URLBuilder("file://http.std.dweb/listen").apply {
+            parameters["token"] = startResult.token
+            parameters["routes"] = Json.encodeToString(routes)
+          }.buildUnsafeString(),
+          PureMethod.POST,
+          body = PureStreamBody(it.input.stream)
+        )
+      ).stream()
     }
   this.addToIpcSet(streamIpc)
   return streamIpc

@@ -21,7 +21,7 @@ class NativeIpc(
     ipcScope.launch {
       port.onMessage.collect { pack ->
         debugNativeIpc("onMessage_get", "$channelId $pack")
-        endpoint.emitMessage(
+        endpoint.dispatchMessage(
           IpcPoolMessageArgs(
             IpcPoolPack(pack.pid, pack.ipcMessage),
             this@NativeIpc

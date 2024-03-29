@@ -74,7 +74,7 @@ class JmmForwardIpc(
       if (ipcEvent.name == responseEventName || ipcEvent.name == lifeCycleEventName) {
         val pack = jsonToIpcPack(ipcEvent.text)
         val message = jsonToIpcPoolPack(pack.ipcMessage, jmmIpc)
-        endpoint.emitMessage(
+        endpoint.dispatchMessage(
           IpcPoolMessageArgs(
             IpcPoolPack(pack.pid, message),
             this@JmmForwardIpc

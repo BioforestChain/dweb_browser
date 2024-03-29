@@ -4,10 +4,7 @@ import io.ktor.http.URLBuilder
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.dweb_browser.core.http.router.bind
-import org.dweb_browser.core.ipc.IpcOptions
-import org.dweb_browser.core.ipc.NativeIpc
 import org.dweb_browser.core.ipc.NativeMessageChannel
-import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IPC_STATE
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcPoolPack
@@ -34,11 +31,11 @@ class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
     routes(
       "/test" bind PureMethod.POST by definePureStreamHandler {
         println("请求到了 /test")
-        val streamIpc = kotlinIpcPool.create<ReadableStreamIpc>(
+        val streamIpc = kotlinIpcPool.create(
           "TestMicroModule/test",
-          IpcOptions(ipc.remote)
+          ipc.remote,
+          request.body.toPureStream(),
         )
-        streamIpc.bindIncomeStream(request.body.toPureStream())
         println("xxx=> ${streamIpc.isActivity}")
         streamIpc.requestFlow.onEach { (request, ipc) ->
           val pathName = request.uri.encodedPath
@@ -61,13 +58,15 @@ class IpcPoolTest {
     val toMM = TestMicroModule("to.mm.dweb")
     val channel = NativeMessageChannel<IpcPoolPack, IpcPoolPack>(fromMM.id, toMM.id)
     println("1🧨=> ${fromMM.mmid} ${toMM.mmid}")
-    val fromNativeIpc = kotlinIpcPool.create<NativeIpc>(
+    val fromNativeIpc = kotlinIpcPool.create(
       "from-native",
-      IpcOptions(toMM, channel = channel.port1)
+      toMM,
+      channel.port1
     )
-    val toNativeIpc = kotlinIpcPool.create<NativeIpc>(
+    val toNativeIpc = kotlinIpcPool.create(
       "to-native",
-      IpcOptions(fromMM, channel = channel.port2)
+      fromMM,
+      channel.port2
     )
     toNativeIpc.eventFlow.onEach { (event) ->
       println("🌞 toNativeIpc $event")
@@ -97,20 +96,18 @@ class IpcPoolTest {
     dns.install(requestMM)
     dns.install(streamMM)
     dns.bootstrap()
-    val streamIpc = kotlinIpcPool.create<ReadableStreamIpc>(
+    val streamIpc = kotlinIpcPool.create(
       "test-stream",
-      IpcOptions(streamMM)
-    ).also {
-      it.bindIncomeStream(
-        streamMM.nativeFetch(
-          PureClientRequest(
-            URLBuilder("file://request.mm.dweb/test").apply {
-            }.buildUnsafeString(),
-            PureMethod.POST,
-            body = PureStreamBody(it.input.stream)
-          )
-        ).stream()
-      )
+      streamMM,
+    ) {
+      streamMM.nativeFetch(
+        PureClientRequest(
+          URLBuilder("file://request.mm.dweb/test").apply {
+          }.buildUnsafeString(),
+          PureMethod.POST,
+          body = PureStreamBody(it.input.stream)
+        )
+      ).stream()
     }
     val res = streamIpc.request("https://test.com/test")
     val data = res.body.toPureString()

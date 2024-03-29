@@ -14,7 +14,6 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.IpcOptions
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.kotlinIpcPool
@@ -192,12 +191,12 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     /**
      * 远端是代码服务，所以这里是 client 的身份
      */
-    val streamIpc =
-      kotlinIpcPool.create<ReadableStreamIpc>(
-        "code-proxy-server-$processId",
-        IpcOptions(ipc.remote)
-      )
-    streamIpc.bindIncomeStream(requestMessage.body.toPureStream())
+    val streamIpc = kotlinIpcPool.create(
+      "code-proxy-server-$processId",
+      ipc.remote,
+    ) {
+      requestMessage.body.toPureStream()
+    }
     this.addToIpcSet(streamIpc)
 
     /**

@@ -107,11 +107,11 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
 
   /**-----onMessage start*/
 
-  private fun <T : Any> startReceive(transform: suspend (value: IpcMessageArgs) -> T?) =
+  private fun <T : Any> messagePipeMap(transform: suspend (value: IpcMessageArgs) -> T?) =
     messageFlow.mapNotNull(transform).shareIn(ipcScope, SharingStarted.Lazily)
 
   val requestFlow by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    startReceive { args ->
+    messagePipeMap { args ->
       when (val ipcReq = args.message) {
         is IpcRequest -> {
           val ipcServerRequest = when (ipcReq) {
@@ -127,7 +127,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   }
 
   private val responseFlow by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    startReceive {
+    messagePipeMap {
       if (it.message is IpcResponse) {
         IpcResponseMessageArgs(it.message, it.ipc)
       } else null
@@ -135,7 +135,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   }
 
   val streamFlow by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    startReceive {
+    messagePipeMap {
       if (it.message is IpcStream) {
         IpcStreamMessageArgs(it.message, it.ipc)
       } else null
@@ -143,7 +143,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   }
 
   val eventFlow by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    startReceive { args ->
+    messagePipeMap { args ->
       if (args.message is IpcEvent) {
         IpcEventMessageArgs(
           args.message, args.ipc
@@ -153,7 +153,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   }
 
   val lifeCyCleFlow by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    startReceive { args ->
+    messagePipeMap { args ->
       if (args.message is IpcLifeCycle) {
         IpcLifeCycleMessageArgs(
           args.message, args.ipc
@@ -163,7 +163,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   }
 
   val errorFlow by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    startReceive { args ->
+    messagePipeMap { args ->
       if (args.message is IpcError) {
         IpcErrorMessageArgs(
           args.message, args.ipc
@@ -257,7 +257,9 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
   )
 
   /**分发各类消息到本地*/
-  suspend fun emitMessage(args: IpcMessageArgs) = messageFlow.emit(args)
+  suspend fun dispatchMessage(args: IpcMessageArgs) = messageFlow.emit(args)
+  internal suspend fun dispatchMessage(ipcMessage: IpcMessage) =
+    messageFlow.emit(IpcMessageArgs(ipcMessage, this))
 
   // 标记是否启动完成
   val startDeferred = CompletableDeferred<IpcLifeCycle>()

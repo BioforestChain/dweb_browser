@@ -1,16 +1,16 @@
 package org.dweb_browser.core.ipc
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.ipc.helper.IpcMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.core.ipc.helper.OnIpcPoolMessage
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -48,41 +48,59 @@ open class IpcPool {
   /**每一个ipcPool都会绑定一个body流池,只有当不在同一个IpcPool的时候才需要互相拉取*/
   val poolId: UUID = randomPoolId()
 
-  /**body  流池 <streamId,PureStream> */
-  val streamPool = mutableMapOf<String, PureStream>()
   override fun toString() = "IpcPool@poolId=$poolId<uid=$poolId>"
 
-  // 用来路由和自动切换
-  private val ipcPool = mutableMapOf<String, Ipc>()
+  /**
+   * 所有的ipc对象实例集合
+   */
+  private val ipcSet = mutableSetOf<Ipc>()
 
   /**
-   * fork出一个已经创建好通信的ipc, 这里会等待
+   * 所有的委托进来的流的实例集合
    */
-  suspend fun <T : Ipc> create(
-    channelId: String, options: IpcOptions
-  ): T {
-    val ipc = ipcPool.getOrPut(channelId) {
-      val mm = options.remote
-      // 创建不同的Ipc
-      val ipc = if (options.port != null) {
-        MessagePortIpc(options.port, mm, channelId, this)
-      } else if (options.channel != null) {
-        NativeIpc(options.channel, mm, channelId, this)
-      } else {
-        ReadableStreamIpc(channelId, mm, this)
-      }
+  private val streamPool = mutableMapOf<String, PureStream>()
+
+  fun create(channelId: String, mm: IMicroModuleManifest, port: MessagePort) = createAndSave {
+    MessagePortIpc(port, mm, channelId, this)
+  }
+
+  fun create(
+    channelId: String, mm: IMicroModuleManifest, channel: NativePort<IpcPoolPack, IpcPoolPack>
+  ) = createAndSave {
+    NativeIpc(channel, mm, channelId, this)
+  }
+
+  suspend fun create(
+    channelId: String,
+    mm: IMicroModuleManifest,
+    getStream: suspend (ReadableStreamIpc) -> PureStream,
+  ) = createAndSave {
+    ReadableStreamIpc(channelId, mm, this).apply { bindIncomeStream(getStream(this)) }
+  }
+
+  fun create(
+    channelId: String,
+    mm: IMicroModuleManifest,
+    stream: PureStream,
+  ) = createAndSave {
+    ReadableStreamIpc(channelId, mm, this).apply { bindIncomeStream(stream) }
+  }
+
+  /**
+   * 保存ipc，并且根据它的生命周期做自动删除
+   */
+  private inline fun <T : Ipc> createAndSave(creator: () -> T) = creator().also { ipc ->
+    ipcSet.add(ipc)
+    ipcPoolScope.launch {
       // 监听启动回调
       ipc.initLifeCycleHook()
+      // 发送开始信号
       ipc.start()
-      ipcPoolScope.launch {
-        ipc.closeDeferred.await()
-        debugIpcPool("pool-closeIpc", channelId)
-        ipcPool.remove(channelId)
-      }
-      return ipc as T
-    } as T
 
-    return ipc
+      ipc.closeDeferred.await()
+      debugIpcPool("pool-closeIpc", ipc.channelId)
+      ipcSet.remove(ipc)
+    }
   }
 
   /**
@@ -95,7 +113,7 @@ open class IpcPool {
 
   // 收消息
   private val _messageSignal = Signal<IpcPoolMessageArgs>()
-  suspend fun emitMessage(args: IpcPoolMessageArgs) = _messageSignal.emit(args)
+  suspend fun dispatchMessage(args: IpcPoolMessageArgs) = _messageSignal.emit(args)
   fun onMessage(cb: OnIpcPoolMessage) = _messageSignal.listen(cb)
 
   /**
@@ -104,29 +122,24 @@ open class IpcPool {
    */
   init {
     onMessage { (pack, ipc) ->
-      ipc.emitMessage(IpcMessageArgs(pack.ipcMessage, ipc))
+      ipc.dispatchMessage(pack.ipcMessage)
     }
   }
 
   /**-----close start*/
 
-  //关闭信号
-  val closeSignal = SimpleSignal()
 
-  /**用来释放一些跟ipcPool绑定的资源*/
-  val onClose = this.closeSignal.toListener()
-  private var _closed = false
-  val isClosed get() = _closed
-  suspend fun close() {
-    if (this._closed) {
-      return
+  /**关闭信号*/
+  val onDestroyed = CompletableDeferred<Unit>()
+  val isDestroyed get() = onDestroyed.isCompleted
+
+  val destroy = SuspendOnce {
+    val oldSet = this.ipcSet.toSet()
+    this.ipcSet.clear()
+    oldSet.forEach { ipc ->
+      ipc.close()
     }
-    this._closed = true
-    this.ipcPool.forEach { ipc ->
-      ipc.value.close()
-    }
-    this.ipcPool.clear()
-    this.closeSignal.emitAndClear()
+    this.onDestroyed.complete(Unit)
   }
 
   /**-----close end*/

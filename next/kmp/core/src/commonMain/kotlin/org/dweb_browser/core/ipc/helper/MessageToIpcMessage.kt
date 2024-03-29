@@ -25,17 +25,6 @@ object IpcMessageConst {
   val pongByteArray = "pong".encodeToByteArray()
 }
 
-fun bytesToIpcMessage(data: ByteArray, ipc: Ipc): Any {
-//  if (data.contentEquals(IpcMessageConst.closeByteArray) || data.contentEquals(IpcMessageConst.pingByteArray) || data.contentEquals(
-//      IpcMessageConst.pongByteArray
-//    )
-//  ) {
-//    return data
-//  }
-  val pack = jsonToIpcPack(data.decodeToString())
-  return IpcPoolPack(pack.pid, jsonToIpcPoolPack(pack.ipcMessage, ipc))
-}
-
 /***
  * 用于cbor解析type属于何种类型
  * 原因：无法使用IpcMessage，因为IpcMessage是密封类，无法直接构造

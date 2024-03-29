@@ -10,7 +10,6 @@ import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.core.ipc.helper.PackIpcMessage
-import org.dweb_browser.core.ipc.helper.bytesToIpcMessage
 import org.dweb_browser.core.ipc.helper.cborToIpcMessage
 import org.dweb_browser.core.ipc.helper.cborToIpcPoolPack
 import org.dweb_browser.core.ipc.helper.ipcMessageToCbor
@@ -83,56 +82,37 @@ open class MessagePortIpc(
     ipcScope.launch {
       port.webMessageFlow.collect { event ->
         val ipc = this@MessagePortIpc
-        if (event is DWebMessage.DWebMessageString) {
-          stringFactory(event)
-        } else if (event is DWebMessage.DWebMessageBytes) {
-          when (event.encode) {
-            DWebMessageBytesEncode.Normal -> when (val message =
-              bytesToIpcMessage(event.data, ipc)) {
-              is IpcPoolPack -> {
-//              debugMessagePortIpc("ON-MESSAGE", "Normal.IpcPoolPack=> $channelId => $message")
-                // 分发消息
-                endpoint.emitMessage(IpcPoolMessageArgs(message, ipc))
+
+        val packMessage = when (event) {
+          is DWebMessage.DWebMessageString -> {
+            val pack = jsonToIpcPack(event.data)
+            val message = jsonToIpcPoolPack(pack.ipcMessage, this@MessagePortIpc)
+            debugMessagePortIpc("ON-MESSAGE string") { "$channelId => $message" }
+            IpcPoolPack(pack.pid, message)
+          }
+
+          is DWebMessage.DWebMessageBytes -> {
+            when (event.encode) {
+              DWebMessageBytesEncode.Normal -> {
+                val pack = jsonToIpcPack(event.data.decodeToString())
+                val message = jsonToIpcPoolPack(pack.ipcMessage, ipc)
+                debugMessagePortIpc("ON-MESSAGE json") { "$endpoint => $message" }
+                IpcPoolPack(pack.pid, message)
               }
 
-              else -> throw Exception("unknown message: $message")
+              DWebMessageBytesEncode.Cbor -> {
+                val pack = cborToIpcPoolPack(event.data)
+                val message = cborToIpcMessage(pack.messageByteArray, this@MessagePortIpc)
+                debugMessagePortIpc("ON-MESSAGE cbor") { "$endpoint => $message" }
+                IpcPoolPack(pack.pid, message)
+              }
             }
-
-            DWebMessageBytesEncode.Cbor -> {
-              cborFactory(event)
-            }
-
-            else -> {}
           }
         }
+
+        endpoint.dispatchMessage(IpcPoolMessageArgs(packMessage, ipc))
       }
     }
-  }
-
-  private suspend fun stringFactory(event: DWebMessage.DWebMessageString) {
-    val pack = jsonToIpcPack(event.data)
-    val message = jsonToIpcPoolPack(pack.ipcMessage, this@MessagePortIpc)
-    debugMessagePortIpc("ON-MESSAGE string", "$channelId => $message")
-    // 分发消息
-    endpoint.emitMessage(
-      IpcPoolMessageArgs(
-        IpcPoolPack(pack.pid, message),
-        this@MessagePortIpc
-      )
-    )
-  }
-
-  private suspend fun cborFactory(event: DWebMessage.DWebMessageBytes) {
-    val pack = cborToIpcPoolPack(event.data)
-    val message = cborToIpcMessage(pack.messageByteArray, this@MessagePortIpc)
-    debugMessagePortIpc("ON-MESSAGE", "$endpoint => $message")
-    // 分发消息
-    endpoint.emitMessage(
-      IpcPoolMessageArgs(
-        IpcPoolPack(pack.pid, message),
-        this@MessagePortIpc
-      )
-    )
   }
 
   override suspend fun doPostMessage(pid: Int, data: IpcMessage) {

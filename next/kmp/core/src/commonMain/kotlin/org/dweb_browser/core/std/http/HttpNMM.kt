@@ -16,8 +16,6 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.by
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.IpcOptions
-import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -103,13 +101,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
   private val noGatewayResponse
     get() = PureResponse(
-      HttpStatusCode.BadGateway,
-      PureHeaders(
+      HttpStatusCode.BadGateway, PureHeaders(
         mutableMapOf(
           "Content-Type" to "text/html"
         )
-      ),
-      IPureBody.from("no found gateway")
+      ), IPureBody.from("no found gateway")
     )
 
   private suspend fun initHttpListener() {
@@ -150,34 +146,27 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       initHttpListener()
     }
     /// 启动http后端服务
-    dwebServer.createServer(
-      gatewayHandler = { request ->
-        findDwebGateway(request)?.let { info ->
-          debugHttp("gatewayMap:", gatewayMap.keys.joinToString(" "))
-          debugHttp("info.host:", info.host)
-          gatewayMap[info.host].also {
-            debugHttp("gateway:", it)
-          }
+    dwebServer.createServer(gatewayHandler = { request ->
+      findDwebGateway(request)?.let { info ->
+        debugHttp("gatewayMap:", gatewayMap.keys.joinToString(" "))
+        debugHttp("info.host:", info.host)
+        gatewayMap[info.host].also {
+          debugHttp("gateway:", it)
         }
-      },
-      httpHandler = { gateway, request ->
-        gateway.listener.hookHttpRequest(request)
-      },
-      errorHandler = { request, gateway ->
-        if (gateway == null) {
-          if (request.url.fullPath == "/debug") {
-            PureResponse(HttpStatusCode.OK, body = PureStringBody(request.headers.toString()))
-          } else noGatewayResponse
-        } else PureResponse(HttpStatusCode.NotFound)
-      })
+      }
+    }, httpHandler = { gateway, request ->
+      gateway.listener.hookHttpRequest(request)
+    }, errorHandler = { request, gateway ->
+      if (gateway == null) {
+        if (request.url.fullPath == "/debug") {
+          PureResponse(HttpStatusCode.OK, body = PureStringBody(request.headers.toString()))
+        } else noGatewayResponse
+      } else PureResponse(HttpStatusCode.NotFound)
+    })
 
     /// 为 nativeFetch 函数提供支持
     nativeFetchAdaptersManager.append { fromMM, request ->
-      if ((request.url.protocol == URLProtocol.HTTP
-            || request.url.protocol == URLProtocol.HTTPS
-            || request.url.protocol == URLProtocol.WS
-            || request.url.protocol == URLProtocol.WSS
-            ) && request.url.host.endsWith(
+      if ((request.url.protocol == URLProtocol.HTTP || request.url.protocol == URLProtocol.HTTPS || request.url.protocol == URLProtocol.WS || request.url.protocol == URLProtocol.WSS) && request.url.host.endsWith(
           ".dweb"
         )
       ) {
@@ -209,16 +198,14 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       // 主动关闭一个服务
       "/close" bind PureMethod.GET by defineBooleanResponse {
         close(ipc, request.queryAs())
-      },
-      "/websocket" byChannel { ctx ->
+      }, "/websocket" byChannel { ctx ->
         val rawUrl = request.query("url")
         val url = Url(rawUrl)
         val protocol = URLProtocol.byName[url.protocol.name]
 
         if (protocol != URLProtocol.WS && protocol != URLProtocol.WSS) {
           throwException(
-            HttpStatusCode.BadRequest,
-            "invalid request protocol: ${request.url.protocol.name}"
+            HttpStatusCode.BadRequest, "invalid request protocol: ${request.url.protocol.name}"
           )
         }
 
@@ -236,8 +223,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           }
         }
         ctx.close(null, null)
-      },
-      "/fetch" by definePureResponse {
+      }, "/fetch" by definePureResponse {
         val url = Url(request.query("url"))
         if (request.method == PureMethod.OPTIONS) {
           val requestOrigin = request.headers.get(HttpHeaders.Origin)
@@ -254,8 +240,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
         if (url.protocol != URLProtocol.HTTP && url.protocol != URLProtocol.HTTPS) {
           throwException(
-            HttpStatusCode.BadRequest,
-            "invalid request protocol: ${url.protocol.name}"
+            HttpStatusCode.BadRequest, "invalid request protocol: ${url.protocol.name}"
           )
         }
         val pureRequest = PureClientRequest(
@@ -323,13 +308,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           accessControlRequestHeaders.isNotBlank().trueAlso {
             accessControlRequestHeaders.replaceAfterLast(",", "")
             needPreflightHeaders.set(
-              HttpHeaders.AccessControlRequestHeaders,
-              accessControlRequestHeaders
+              HttpHeaders.AccessControlRequestHeaders, accessControlRequestHeaders
             )
           }
           needPreflightHeaders.set(
-            HttpHeaders.AccessControlRequestMethod,
-            pureRequest.method.method
+            HttpHeaders.AccessControlRequestMethod, pureRequest.method.method
           )
 
           val optionsResponse =
@@ -365,15 +348,10 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           }
 
           PureClientRequest(
-            url.toString(),
-            pureRequest.method,
-            PureHeaders(pureRequest.headers.toList().filter {
-              if (isSimpleHeader(it.first, it.second))
-                true
+            url.toString(), pureRequest.method, PureHeaders(pureRequest.headers.toList().filter {
+              if (isSimpleHeader(it.first, it.second)) true
               else it.first in allowHeaders
-            }),
-            body = pureRequest.body,
-            from = pureRequest.from
+            }), body = pureRequest.body, from = pureRequest.from
           )
         } else {
           pureRequest
@@ -392,8 +370,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         corsResponse.headers.set(HttpHeaders.AccessControlAllowCredentials, "true")
 
         return@definePureResponse corsResponse
-      }
-    )
+      })
   }
 
   private val simpleRequestHeaderKeys = setOf(
@@ -432,8 +409,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   )
 
   private val credentialsHeaderKeys = setOf(
-    "Cookie",
-    "Authorization"
+    "Cookie", "Authorization"
   )
 
   private val preflightRequestHeaderKeys = setOf(
@@ -446,9 +422,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   )
 
   private fun isSimpleHeader(key: String, value: String): Boolean {
-    if (key == "Content-Type" && value.split(";", limit = 2)
-        .first() !in simpleRequestContentType
-    ) {
+    if (key == "Content-Type" && value.split(";", limit = 2).first() !in simpleRequestContentType) {
       return false
     }
     if (key.startsWith("sec-", ignoreCase = true) || key.startsWith("proxy-", ignoreCase = true)) {
@@ -545,11 +519,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
     debugHttp("LISTEN/start", "host: ${gateway.urlInfo.host}, token: $token")
 
-    val streamIpc = kotlinIpcPool.create<ReadableStreamIpc>(
+    val streamIpc = kotlinIpcPool.create(
       "http-gateway/${gateway.urlInfo.host}",
-      IpcOptions(gateway.listener.mainIpc.remote)
+      gateway.listener.mainIpc.remote,
+      message.body.toPureStream(),
     )
-    streamIpc.bindIncomeStream(message.body.toPureStream())
     /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
     /// 自己nmm销毁的时候，ipc也会被全部销毁
     this.addToIpcSet(streamIpc)

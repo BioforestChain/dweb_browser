@@ -130,7 +130,7 @@ class ReadableStreamIpc(
 //    val logMessage = message.toString().trim()
 //    debugStreamIpc("bindIncomeStream", "message=$logMessage => pid: ${pack.pid}")
     // 收消息 分发出去
-    endpoint.emitMessage(
+    endpoint.dispatchMessage(
       IpcPoolMessageArgs(
         IpcPoolPack(pack.pid, message),
         this
@@ -145,7 +145,7 @@ class ReadableStreamIpc(
 //    val logMessage = message.toString().trim()
 //    debugStreamIpc("bindIncomeStream", "message=$logMessage => $pack")
     // 收消息 分发出去
-    endpoint.emitMessage(
+    endpoint.dispatchMessage(
       IpcPoolMessageArgs(
         IpcPoolPack(pack.pid, message),
         this
