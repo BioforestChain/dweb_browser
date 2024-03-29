@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.jsProcess.JsProcessWebApi
 import org.dweb_browser.browser.jsProcess.createJsProcessWeb
-import org.dweb_browser.core.ipc.MessagePort
+import org.dweb_browser.core.ipc.WebMessageEndpoint
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
@@ -135,9 +135,14 @@ class MessagePortTest1 {
     val ipcClient = kotlinIpcPool.create(
       "create-process-client",
       clientMM,
-      MessagePort.from(port1),
+      WebMessageEndpoint.from("create-process-client", kotlinIpcPool.scope, port1),
     )
-    val ipcServer = kotlinIpcPool.create("create-process-server", serverMM, MessagePort.from(port2))
+    val ipcServer =
+      kotlinIpcPool.create(
+        "create-process-server",
+        serverMM,
+        WebMessageEndpoint.from("create-process-server", kotlinIpcPool.scope, port2)
+      )
     ipcServer.lifeCyCleFlow.onEach {
       println("🧨 ipcServer=> ${it.event.state}")
     }.launchIn(this)

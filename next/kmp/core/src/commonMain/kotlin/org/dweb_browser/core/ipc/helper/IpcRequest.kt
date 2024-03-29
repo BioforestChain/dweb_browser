@@ -133,7 +133,7 @@ class IpcClientRequest(
       val pureRequest = this
       if (pureRequest.hasChannel) {
         val eventNameBase =
-          "$PURE_CHANNEL_EVENT_PREFIX-${postIpc.channelId}/${reqId}/${duplexAcc.inc().value}"
+          "$PURE_CHANNEL_EVENT_PREFIX-${postIpc.ipcDebugId}/${reqId}/${duplexAcc.inc().value}"
 
         debugIpc("ipcClient/hasChannel") { "create ipcEventBaseName:$eventNameBase => request:$pureRequest" }
         CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
@@ -332,16 +332,16 @@ sealed class IpcRequest(
             pureChannel.close()
           }
         }
-      }.launchIn(ipc.ipcScope)
-      debugIpc(_debugTag) { "waitLocaleStart:$eventNameBase ${ipc.channelId}" }
+      }.launchIn(ipc.scope)
+      debugIpc(_debugTag) { "waitLocaleStart:$eventNameBase ${ipc.ipcDebugId}" }
       // 提供回调函数，等待外部调用者执行开始指令
       waitReadyToStart()
-      debugIpc(_debugTag) { "waitRemoteStart:$eventNameBase ${ipc.channelId}" }
+      debugIpc(_debugTag) { "waitRemoteStart:$eventNameBase ${ipc.ipcDebugId}" }
       // 首先自己发送start，告知对方自己已经准备好数据接收了
       ipc.postMessage(IpcEvent.fromUtf8(eventStart, "", orderBy))
       // 同时也要等待对方发送 start 信号过来，那么也将 start 回传，避免对方遗漏前面的 start 消息
       val ipcStartEvent = started.await()
-      debugIpc(_debugTag) { "$ipc postIpcEventStart:$ipcStartEvent ${ipc.channelId}" }
+      debugIpc(_debugTag) { "$ipc postIpcEventStart:$ipcStartEvent ${ipc.ipcDebugId}" }
       ipc.postMessage(ipcStartEvent)
       /// 将PureFrame转成IpcEvent，然后一同发给对面
       for (pureFrame in channelForIpcPost) {
@@ -355,7 +355,7 @@ sealed class IpcRequest(
       }
       // 关闭的时候，发一个信号给对面
       val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "", orderBy)
-      debugIpc(_debugTag) { "$ipc postIpcEventClose:$ipcCloseEvent ${ipc.channelId}" }
+      debugIpc(_debugTag) { "$ipc postIpcEventClose:$ipcCloseEvent ${ipc.ipcDebugId}" }
       ipc.postMessage(ipcCloseEvent)
     }
   }

@@ -26,7 +26,6 @@ import org.dweb_browser.core.http.router.RouteHandler
 import org.dweb_browser.core.http.router.TypedHttpHandler
 import org.dweb_browser.core.http.router.toChain
 import org.dweb_browser.core.ipc.NativeMessageChannel
-import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.ReadableStreamOut
 import org.dweb_browser.core.ipc.kotlinIpcPool
@@ -63,7 +62,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       connectAdapterManager.append { fromMM, toMM, reason ->
         if (toMM is NativeMicroModule) {
           debugNMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
-          val channel = NativeMessageChannel<IpcPoolPack, IpcPoolPack>(fromMM.id, toMM.id)
+          val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
           val acc = ipc_acc++
           val fromNativeIpc = kotlinIpcPool.create(
             "from-native-${fromMM.id}-$acc",
@@ -202,7 +201,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
   class JsonLineHandlerContext constructor(context: HandlerContext) : IHandlerContext by context {
-    internal val responseReadableStream = ReadableStreamOut(context.ipc.ipcScope)
+    internal val responseReadableStream = ReadableStreamOut(context.ipc.scope)
     suspend fun emit(line: JsonElement) {
       responseReadableStream.controller.enqueue((Json.encodeToString(line) + "\n").toByteArray())
     }
@@ -261,7 +260,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
   class CborPacketHandlerContext(context: HandlerContext) : IHandlerContext by context {
-    internal val responseReadableStream = ReadableStreamOut(context.ipc.ipcScope)
+    internal val responseReadableStream = ReadableStreamOut(context.ipc.scope)
     suspend fun emit(data: ByteArray) {
       responseReadableStream.controller.enqueue(data.size.toLittleEndianByteArray(), data)
     }

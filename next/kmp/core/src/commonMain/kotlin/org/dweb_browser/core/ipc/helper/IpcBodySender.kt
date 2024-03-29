@@ -177,7 +177,7 @@ class IpcBodySender private constructor(
           }
         }
       }
-    }.launchIn(ipc.ipcScope)
+    }.launchIn(ipc.scope)
   }
 
   private suspend fun streamAsMeta(stream: PureStream) = asMateLock.withLock {

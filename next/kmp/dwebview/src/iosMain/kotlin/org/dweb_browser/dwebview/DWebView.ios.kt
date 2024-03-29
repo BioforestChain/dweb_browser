@@ -9,6 +9,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
@@ -192,8 +193,8 @@ class DWebView(
     val port1_id = ports_id.objectAtIndex(0u) as Double
     val port2_id = ports_id.objectAtIndex(1u) as Double
 
-    val port1 = DWebMessagePort(port1_id.toInt(), this)
-    val port2 = DWebMessagePort(port2_id.toInt(), this)
+    val port1 = DWebMessagePort(port1_id.toInt(), this,ioScope)
+    val port2 = DWebMessagePort(port2_id.toInt(), this,ioScope)
 
     DWebMessageChannel(port1, port2)
   }

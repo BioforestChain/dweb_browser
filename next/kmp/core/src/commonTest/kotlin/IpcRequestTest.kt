@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.IpcRequestInit
 import org.dweb_browser.core.ipc.NativeMessageChannel
-import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.pure.http.IPureBody
@@ -19,7 +18,7 @@ class IpcRequestTest {
   // 黑盒测试ipcRequest
   @Test
   fun testIpcRequestInBlackBox() = runCommonTest {
-    val channel = NativeMessageChannel<IpcPoolPack, IpcPoolPack>("from.id.dweb", "to.id.dweb")
+    val channel = NativeMessageChannel(kotlinIpcPool.scope, "from.id.dweb", "to.id.dweb")
     val fromMM = TestMicroModule()
     val toMM = TestMicroModule()
     val senderIpc = kotlinIpcPool.create("test-request-1", toMM, channel.port1)

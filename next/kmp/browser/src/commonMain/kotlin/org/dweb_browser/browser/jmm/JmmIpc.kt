@@ -1,17 +1,21 @@
 package org.dweb_browser.browser.jmm
 
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.IpcEndpoint
 import org.dweb_browser.core.ipc.IpcPool
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcLifeCycle
+import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
-import org.dweb_browser.core.ipc.helper.IpcPoolPack
+import org.dweb_browser.core.ipc.helper.EndpointMessage
 import org.dweb_browser.core.ipc.helper.IpcReqMessage
 import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.ipc.helper.ipcMessageToJson
@@ -33,17 +37,17 @@ class JmmIpc(
 
   init {
     // 监听启动回调
-    ipcScope.launch {
+    scope.launch {
       this@JmmIpc.initLifeCycleHook()
     }
     // 这里负责桥接消息，因此需要直接放行自己这边，真正的完成在worker那边的 dns/connect/done
-    this.startDeferred.complete(IpcLifeCycle.open())
+    this.startDeferred.complete(EndpointLifecycle.open())
   }
 
   val toForwardIpc = Once {
     val forwardIpc = JmmForwardIpc(this, object : IMicroModuleManifest by remote {
       override var mmid = fromMMID
-    }, fetchIpc, "${channelId}-forward", endpoint)
+    }, fetchIpc, "${channelId}-forward", pool)
     forwardIpc
   }
 }
@@ -56,17 +60,20 @@ class JmmForwardIpc(
   override val remote: IMicroModuleManifest,
   private val fetchIpc: Ipc,
   channelId: String,
-  endpoint: IpcPool
-) : Ipc(channelId, endpoint), BridgeAbleIpc {
+  pool: IpcPool
+) : IpcEndpoint(), BridgeAbleIpc {
   override val bridgeOriginIpc = jmmIpc
   private val lifeCycleEventName = "forward/lifeCycle/${jmmIpc.fromMMID}"
   private val requestEventName = "forward/request/${jmmIpc.fromMMID}"
   private val responseEventName = "forward/response/${jmmIpc.fromMMID}"
   private val closeEventName = "forward/close/${jmmIpc.fromMMID}"
+  override val scope = fetchIpc.scope + Job()+ SupervisorJob()
+
+  pool.scope, channelId, pool
 
   init {
     // 这里脱离于ipcPool 需要单独启动,放行jsMicroModule路由适配器中的beConnect
-    ipcScope.launch {
+    scope.launch {
       this@JmmForwardIpc.start()
     }
     // 收到代理的消息回复
@@ -74,21 +81,21 @@ class JmmForwardIpc(
       if (ipcEvent.name == responseEventName || ipcEvent.name == lifeCycleEventName) {
         val pack = jsonToIpcPack(ipcEvent.text)
         val message = jsonToIpcPoolPack(pack.ipcMessage, jmmIpc)
-        endpoint.dispatchMessage(
+        pool.dispatchMessage(
           IpcPoolMessageArgs(
-            IpcPoolPack(pack.pid, message),
+            EndpointMessage(pack.pid, message),
             this@JmmForwardIpc
           )
         )
       }
-    }.launchIn(ipcScope)
+    }.launchIn(scope)
   }
 
   // 发送代理消息到js-worker 中
   override suspend fun doPostMessage(pid: Int, data: IpcMessage) {
     println("sendMessage JmmForwardIpc ${fetchIpc.isActivity} $data")
     // 把激活信号发送到worker
-    if (data is IpcLifeCycle) {
+    if (data is EndpointLifecycle) {
       fetchIpc.postMessage(
         IpcEvent.fromUtf8(lifeCycleEventName, ipcMessageToJson(data))
       )
@@ -102,7 +109,7 @@ class JmmForwardIpc(
   }
 
   override suspend fun _doClose() {
-    debugJsMM("JmmForwardIpc close", channelId)
+    debugJsMM("JmmForwardIpc close", ipcDebugId)
     if (!fetchIpc.isClosed) {
       fetchIpc.postMessage(IpcEvent.fromUtf8(closeEventName, ""))
     }

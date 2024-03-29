@@ -4,7 +4,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -180,7 +179,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         }
         debugDNS(
           "connect-success",
-          "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid} FROM:${aConnectResult.ipcForFromMM.channelId} TO:${aConnectResult.ipcForToMM.channelId}"
+          "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid} FROM:${aConnectResult.ipcForFromMM.ipcDebugId} TO:${aConnectResult.ipcForToMM.ipcDebugId}"
         )
         aConnectResult
       }

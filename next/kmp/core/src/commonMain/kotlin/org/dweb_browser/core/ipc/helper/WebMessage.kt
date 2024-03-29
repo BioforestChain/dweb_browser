@@ -1,6 +1,7 @@
 package org.dweb_browser.core.ipc.helper
 
-import org.dweb_browser.helper.Signal
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.SharedFlow
 
 interface IWebMessageChannel {
   val port1: IWebMessagePort
@@ -9,29 +10,29 @@ interface IWebMessageChannel {
 
 interface IWebMessagePort {
   suspend fun start()
-  suspend fun close()
+  suspend fun close(cause: CancellationException? = null)
   suspend fun postMessage(event: DWebMessage)
-  val onMessage: Signal.Listener<DWebMessage>
-}
-
-enum class DWebMessageBytesEncode {
-  Normal,
-  Cbor,
-//  Protobuf
+  val onMessage: SharedFlow<DWebMessage>
 }
 
 sealed interface DWebMessage {
+  val text: String
+  val binary: ByteArray
   val ports: List<IWebMessagePort>
 
   class DWebMessageString(
-    val data: String,
+    data: String,
     override val ports: List<IWebMessagePort> = emptyList()
-  ) : DWebMessage
+  ) : DWebMessage {
+    override val text = data
+    override val binary by lazy { text.encodeToByteArray() }
+  }
 
   class DWebMessageBytes(
-    val data: ByteArray,
+    data: ByteArray,
     override val ports: List<IWebMessagePort> = emptyList(),
-    // TODO 这个编码要转移到应用层通讯协商那边
-    val encode: DWebMessageBytesEncode = DWebMessageBytesEncode.Normal
-  ) : DWebMessage
+  ) : DWebMessage {
+    override val binary = data
+    override val text by lazy { data.decodeToString() }
+  }
 }

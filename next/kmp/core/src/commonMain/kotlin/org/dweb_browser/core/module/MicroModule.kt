@@ -122,9 +122,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 //    }
     val jobs = _ipcSet.map {
       _scope.launch {
-        println("xxxx=> _ipcSet closeSTART ${it.channelId}")
+        println("xxxx=> _ipcSet closeSTART ${it.ipcDebugId}")
         it.close()
-        println("xxxx=> _ipcSet closeEND ${it.channelId}")
+        println("xxxx=> _ipcSet closeEND ${it.ipcDebugId}")
       }
     }
     jobs.joinAll()
@@ -167,10 +167,10 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP && ipc !is ReadableStreamIpc) {
       debugMicroModule(
         "addToIpcSet",
-        "⏸️「${ipc.channelId}」 $mmid => ${ipc.remote.mmid} , ${runningStateLock.isResolved}"
+        "⏸️「${ipc.ipcDebugId}」 $mmid => ${ipc.remote.mmid} , ${runningStateLock.isResolved}"
       )
       ipc.awaitStart()
-      debugMicroModule("addToIpcSet", "✅ ${ipc.channelId} end")
+      debugMicroModule("addToIpcSet", "✅ ${ipc.ipcDebugId} end")
     }
     return if (this._ipcSet.add(ipc)) {
       ioAsyncScope.launch {

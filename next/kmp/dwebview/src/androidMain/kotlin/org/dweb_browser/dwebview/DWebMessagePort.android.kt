@@ -4,19 +4,26 @@ import android.annotation.SuppressLint
 import androidx.webkit.WebMessageCompat
 import androidx.webkit.WebMessagePortCompat
 import androidx.webkit.WebViewFeature
-import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.WeakHashMap
-import org.dweb_browser.helper.defaultAsyncExceptionHandler
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 @SuppressLint("RestrictedApi")
-class DWebMessagePort private constructor(internal val port: WebMessagePortCompat) :
+class DWebMessagePort private constructor(
+  internal val port: WebMessagePortCompat,
+  parentScope: CoroutineScope = CoroutineScope(ioAsyncExceptionHandler)
+) :
   IWebMessagePort {
   companion object {
     private val wm = WeakHashMap<WebMessagePortCompat, DWebMessagePort>()
@@ -28,6 +35,8 @@ class DWebMessagePort private constructor(internal val port: WebMessagePortCompa
       return port
     }
   }
+
+  val scope = parentScope + Job()
 
   @SuppressLint("RequiresFeature")
   private val _started = lazy {
@@ -54,17 +63,15 @@ class DWebMessagePort private constructor(internal val port: WebMessagePortCompa
         }
       }
     })
-    val messageScope = CoroutineScope(CoroutineName("webMessage") + defaultAsyncExceptionHandler)
-    val onMessageSignal = Signal<DWebMessage>()
-    messageScope.launch {
+
+    scope.launch {
       /// 这里为了确保消息的顺序正确性，比如使用channel来一帧一帧地读取数据，不可以直接用 launch 去异步执行 event，这会导致下层解析数据的顺序问题
       /// 并发性需要到消息被解码出来后才能去执行并发。也就是非 IpcStream 类型的数据才可以走并发
       for (event in messageChannel) {
-        onMessageSignal.emit(event)
+        messageFlow.emit(event)
       }
-      onMessageSignal.clear()
     }
-    onMessageSignal
+    messageChannel
   }
 
   override suspend fun start() {
@@ -72,11 +79,15 @@ class DWebMessagePort private constructor(internal val port: WebMessagePortCompa
   }
 
   @SuppressLint("RequiresFeature")
-  override suspend fun close() {
+  override suspend fun close(cause: CancellationException?) {
+    if (_started.isInitialized()) {
+      _started.value.close(cause)
+    }
     port.close()
   }
 
-  override val onMessage get() = _started.value.toListener()
+  private val messageFlow = MutableSharedFlow<DWebMessage>()
+  override val onMessage = messageFlow.shareIn(scope, SharingStarted.Lazily)
 
   @SuppressLint("RequiresFeature")
   override suspend fun postMessage(event: DWebMessage) {

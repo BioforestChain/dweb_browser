@@ -5,9 +5,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.NativeMessageChannel
-import org.dweb_browser.core.ipc.helper.IPC_STATE
+import org.dweb_browser.core.ipc.helper.ENDPOINT_STATE
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcPoolPack
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
@@ -56,7 +55,7 @@ class IpcPoolTest {
   fun testCreateNativeIpc() = runCommonTest {
     val fromMM = TestMicroModule("from.mm.dweb")
     val toMM = TestMicroModule("to.mm.dweb")
-    val channel = NativeMessageChannel<IpcPoolPack, IpcPoolPack>(fromMM.id, toMM.id)
+    val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
     println("1🧨=> ${fromMM.mmid} ${toMM.mmid}")
     val fromNativeIpc = kotlinIpcPool.create(
       "from-native",
@@ -74,8 +73,8 @@ class IpcPoolTest {
     }.launchIn(this)
     println("🌞📸 send")
     fromNativeIpc.postMessage(IpcEvent.fromUtf8("哈哈", "xx"))
-    assertEquals(fromNativeIpc.awaitStart().state, IPC_STATE.OPEN)
-    assertEquals(toNativeIpc.awaitStart().state, IPC_STATE.OPEN)
+    assertEquals(fromNativeIpc.awaitStart().state, ENDPOINT_STATE.OPENED)
+    assertEquals(toNativeIpc.awaitStart().state, ENDPOINT_STATE.OPENED)
     fromMM.shutdown()
     toMM.shutdown()
   }

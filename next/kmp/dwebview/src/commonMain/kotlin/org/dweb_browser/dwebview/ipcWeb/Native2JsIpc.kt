@@ -3,17 +3,18 @@ package org.dweb_browser.dwebview.ipcWeb
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.IpcPool
-import org.dweb_browser.core.ipc.MessagePort
 import org.dweb_browser.core.ipc.MessagePortIpc
+import org.dweb_browser.core.ipc.WebMessageEndpoint
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
+import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.helper.SafeInt
 
-val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, MessagePort>();
+val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, WebMessageEndpoint>();
 private var all_ipc_id_acc by SafeInt(1);
-suspend fun saveNative2JsIpcPort(port: IWebMessagePort) =
-  (all_ipc_id_acc++).also { portId ->
-    ALL_MESSAGE_PORT_CACHE[portId] = MessagePort.from(port);
-  }
+fun saveNative2JsIpcPort(port: IWebMessagePort) = (all_ipc_id_acc++).also { portId ->
+  ALL_MESSAGE_PORT_CACHE[portId] =
+    WebMessageEndpoint.from("native2js-$portId", kotlinIpcPool.scope, port)
+}
 
 
 /**
@@ -28,10 +29,7 @@ suspend fun saveNative2JsIpcPort(port: IWebMessagePort) =
  *
  */
 open class Native2JsIpc(
-  private val portId: Int,
-  remote: IMicroModuleManifest,
-  channelId: String,
-  endpoint: IpcPool
+  private val portId: Int, remote: IMicroModuleManifest, channelId: String, endpoint: IpcPool
 ) : MessagePortIpc(
   ALL_MESSAGE_PORT_CACHE[portId] ?: throw Exception("no found port2(js-process) by id: $portId"),
   remote,
@@ -39,7 +37,7 @@ open class Native2JsIpc(
   endpoint
 ) {
   init {
-    ipcScope.launch {
+    scope.launch {
       closeDeferred.await()
       ALL_MESSAGE_PORT_CACHE.remove(this@Native2JsIpc.portId)
     }

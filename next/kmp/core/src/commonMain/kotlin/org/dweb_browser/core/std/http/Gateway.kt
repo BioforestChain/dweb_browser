@@ -23,7 +23,7 @@ class Gateway(
     fun addRouter(config: CommonRoute, ipc: Ipc) {
       val route = StreamIpcRouter(config, ipc)
       this._routerSet.add(route)
-      mainIpc.ipcScope.launch {
+      mainIpc.scope.launch {
         ipc.closeDeferred.await()
         _routerSet.remove(route)
       }

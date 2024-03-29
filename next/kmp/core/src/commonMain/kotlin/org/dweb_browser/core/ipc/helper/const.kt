@@ -3,7 +3,6 @@ package org.dweb_browser.core.ipc.helper
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.ByteEnumSerializer
-import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.IntEnumSerializer
 import org.dweb_browser.helper.SignalCallback
 import org.dweb_browser.helper.StringEnumSerializer
@@ -13,7 +12,7 @@ import org.dweb_browser.helper.toBase64ByteArray
 const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
 
 /**IpcPool*/
-data class IpcPoolMessageArgs(val message: IpcPoolPack, val ipc: Ipc)
+data class IpcPoolMessageArgs(val message: EndpointMessage, val ipc: Ipc)
 typealias OnIpcPoolMessage = SignalCallback<IpcPoolMessageArgs>
 
 /**Ipc*/
@@ -32,7 +31,7 @@ typealias OnIpcStreamMessage = SignalCallback<IpcStreamMessageArgs>
 data class IpcEventMessageArgs(val event: IpcEvent, val ipc: Ipc)
 typealias OnIpcEventMessage = SignalCallback<IpcEventMessageArgs>
 
-data class IpcLifeCycleMessageArgs(val event: IpcLifeCycle, val ipc: Ipc)
+data class IpcLifeCycleMessageArgs(val event: EndpointLifecycle, val ipc: Ipc)
 typealias OnIpcLifeCycleMessage = SignalCallback<IpcLifeCycleMessageArgs>
 
 data class IpcErrorMessageArgs(val event: IpcError, val ipc: Ipc)
@@ -68,11 +67,8 @@ enum class IPC_MESSAGE_TYPE(val type: Byte) {
   /** 类型：事件 */
   EVENT(7),
 
-  /**类型：生命周期 */
-  LIFE_CYCLE(8),
-
   /**类型：错误*/
-  ERROR(9)
+  ERROR(8)
   ;
 
   companion object {
@@ -84,18 +80,18 @@ object IPC_MESSAGE_TYPE_Serializer :
   ByteEnumSerializer<IPC_MESSAGE_TYPE>("IPC_MESSAGE_TYPE", IPC_MESSAGE_TYPE.ALL_VALUES, { type })
 
 
-object IPC_STATE_Serializer :
-  IntEnumSerializer<IPC_STATE>("IPC_STATE", IPC_STATE.ALL_VALUES, { state })
+object ENDPOINT_STATE_Serializer :
+  IntEnumSerializer<ENDPOINT_STATE>("ENDPOINT_STATE", ENDPOINT_STATE.ALL_VALUES, { state })
 
-@Serializable(IPC_STATE_Serializer::class)
-enum class IPC_STATE(val state: Int) {
+@Serializable(ENDPOINT_STATE_Serializer::class)
+enum class ENDPOINT_STATE(val state: Int) {
   OPENING(1),
-  OPEN(2),
+  OPENED(2),
   CLOSING(3),
   CLOSED(4), ;
 
   companion object {
-    val ALL_VALUES = IPC_STATE.entries.associateBy { it.state }
+    val ALL_VALUES = ENDPOINT_STATE.entries.associateBy { it.state }
   }
 }
 

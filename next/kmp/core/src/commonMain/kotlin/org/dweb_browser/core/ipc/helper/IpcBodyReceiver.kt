@@ -22,11 +22,11 @@ class IpcBodyReceiver(
     /// 将第一次得到这个metaBody的 ipc 保存起来，这个ipc将用于接收
     if (metaBody.type.isStream && metaBody.streamId != null) {
       CACHE.streamId_receiverIpc_Map.getOrPut(metaBody.streamId) {
-        ipc.ipcScope.launch {
+        ipc.scope.launch {
           ipc.closeDeferred.await()
           CACHE.streamId_receiverIpc_Map.remove(metaBody.streamId)
         }
-        metaBody.receiverPoolId = ipc.endpoint.poolId
+        metaBody.receiverPoolId = ipc.pool.poolId
         ipc
       }
     }
@@ -70,7 +70,7 @@ class IpcBodyReceiver(
        */
       val paused = atomic(true)
       val readableStream =
-        ReadableStream(ipc.ipcScope, cid = "receiver=${streamId}", onStart = { controller ->
+        ReadableStream(ipc.scope, cid = "receiver=${streamId}", onStart = { controller ->
           // 注册关闭事件
           this.launch {
             ipc.closeDeferred.await()
@@ -101,7 +101,7 @@ class IpcBodyReceiver(
                 }
               }
             }
-          }.launchIn(ipc.ipcScope)
+          }.launchIn(ipc.scope)
         }, onOpenReader = { controller ->
           debugIpcBodyReceiver(
             "postPullMessage/$ipc/${controller.stream}", streamId

@@ -20,7 +20,7 @@ open class StateObservable(
   fun observe(cb: SignalCallback<String>) = changeSignal.listen(cb)
 
   suspend fun startObserve(ipc: Ipc): PureStream {
-    return ReadableStream(ipc.ipcScope) { controller ->
+    return ReadableStream(ipc.scope) { controller ->
       val off = observe { state ->
         try {
           controller.enqueueBackground((Json.encodeToString(state) + "\n").toByteArray())

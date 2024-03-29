@@ -370,7 +370,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
   override suspend fun _shutdown() {
     debugJsMM(
       "jsMM_shutdown",
-      "$mmid/${this.fetchIpc?.channelId} ipcNumber=>${fromMMIDOriginIpcWM.size}"
+      "$mmid/${this.fetchIpc?.ipcDebugId} ipcNumber=>${fromMMIDOriginIpcWM.size}"
     )
     fromMMIDOriginIpcWM.forEach { map ->
       val ipc = map.value.waitPromise()
