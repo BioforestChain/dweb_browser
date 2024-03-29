@@ -46,8 +46,10 @@ import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.isDwebDeepLink
+import org.dweb_browser.helper.isWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.toWebUrl
+import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
@@ -353,7 +355,7 @@ class BrowserViewModel(
     if (url.isDwebDeepLink()) withScope(ioScope) {
       browserNMM.nativeFetch(url)
     } else {
-      val webUrl = url.toWebUrl() ?: checkAndEnableSearchEngine(url)
+      val webUrl = url.toWebUrlOrWithoutProtocol() ?: checkAndEnableSearchEngine(url)
       ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl()
       debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
       webUrl?.toString()?.let { searchUrl ->
