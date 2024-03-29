@@ -75,7 +75,7 @@ class BrowserWebPage(val webView: IDWebView, browserController: BrowserControlle
   // 根据url来搜索
   fun loadUrl(url: String) {
     // 判断 url 是否是 webUrl，如果是，直接loadUrl；如果不是，判断之前使用的搜索引擎将关键字替换了，进行搜索
-    if (url.isWebUrl()) {
+    if (isWebUrl(url)) {
       updateUrl(url)
     } else {
       searchEngine?.let { updateUrl(searchEngine.searchLinks.first().format(url)) }
