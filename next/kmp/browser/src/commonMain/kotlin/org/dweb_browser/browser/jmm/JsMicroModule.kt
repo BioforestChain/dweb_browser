@@ -151,14 +151,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       }
       ipc.postMessage(IpcResponse.fromResponse(request.reqId, response, ipc))
     }.launchIn(ioAsyncScope)
-    streamIpc.bindIncomeStream(
-      nativeFetch(
-        PureClientRequest(buildUrlString("file://js.browser.dweb/create-process") {
-          parameters["entry"] = metadata.server.entry
-          parameters["process_id"] = pid
-        }, PureMethod.POST, body = PureStreamBody(streamIpc.input.stream))
-      ).stream()
-    )
     this.addToIpcSet(streamIpc)
     return streamIpc
   }

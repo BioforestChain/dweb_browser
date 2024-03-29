@@ -16,8 +16,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IPC_STATE
 import org.dweb_browser.core.ipc.helper.IpcClientRequest
@@ -41,6 +39,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.IPureBody
@@ -306,7 +305,7 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
         // 对方关了，代表没有消息发过来了，我也关闭
         IPC_STATE.CLOSED -> {
           debugIpc("🌼IPC destroy", "$channelId ${ipc.remote.mmid} $isClosed")
-          ipc.destroy()
+          ipc.doClose()
         }
       }
     }.launchIn(ipcScope)
@@ -320,23 +319,18 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
 
   // 告知对方，我这条业务线已经准备关闭了
   private suspend fun tryClose() {
-    ipcLifeCycleState = IPC_STATE.CLOSING
-    this.postMessage(IpcLifeCycle(IPC_STATE.CLOSING))
+    if (ipcLifeCycleState < IPC_STATE.CLOSING) {
+      ipcLifeCycleState = IPC_STATE.CLOSING
+      this.postMessage(IpcLifeCycle(IPC_STATE.CLOSING))
+    }
   }
 
-  private var _isClose = false
-  private val closeLock = Mutex()
-
   // 开始触发关闭事件
-  suspend fun close() {
-    if (_isClose) {
-      return
-    }
-    _isClose = true
+  fun close() = SuspendOnce {
+    this.tryClose()
     if (!isClosed) {
-      this.tryClose()
+      this.doClose()
     }
-    this.destroy()
   }
 
   private val closeSignal = CompletableDeferred<CancellationException?>()
@@ -347,14 +341,11 @@ abstract class Ipc(val channelId: String, val endpoint: IpcPool) {
 //    cb()
 //  }
 
-  private var isDestroy = false
 
   //彻底销毁
-  private suspend fun destroy() = closeLock.withLock {
-    if (isDestroy) {
-      return
-    }
-    isDestroy = true
+  private val doClose = SuspendOnce {
+    // 做完全部工作了，关闭
+    ipcLifeCycleState = IPC_STATE.CLOSING
     // 我彻底关闭了
     this.postMessage(IpcLifeCycle.close())
     // 开始触发各类跟ipc绑定的关闭事件
