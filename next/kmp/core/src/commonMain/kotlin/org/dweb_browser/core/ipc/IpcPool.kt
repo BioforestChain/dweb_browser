@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
-import org.dweb_browser.core.ipc.helper.EndpointMessage
+import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.OnIpcPoolMessage
 import org.dweb_browser.core.ipc.helper.normalizeIpcMessage
 import org.dweb_browser.helper.Debugger
@@ -116,7 +116,7 @@ open class IpcPool {
   // 收消息
   private val _messageSignal = Signal<IpcPoolMessageArgs>()
   suspend fun dispatchMessage(args: IpcPoolMessageArgs) = _messageSignal.emit(args)
-  suspend fun dispatchMessage(pack: EndpointMessage, ipc: Ipc) =
+  suspend fun dispatchMessage(pack: EndpointIpcMessage, ipc: Ipc) =
     _messageSignal.emit(IpcPoolMessageArgs(normalizeIpcMessage(pack, ipc), ipc))
 
   fun onMessage(cb: OnIpcPoolMessage) = _messageSignal.listen(cb)

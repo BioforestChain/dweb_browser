@@ -81,11 +81,11 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   private suspend fun afterBootstrap(bootstrapContext: BootstrapContext) {
     debugMicroModule("afterBootstrap", "ready: $mmid, ${_ipcSet.size}")
     onConnect { (ipc) ->
-      ipc.awaitStart()
+      ipc.awaitOpen()
     }
     // 等待mm连接池中的ipc都连接完成
     for (ipc in _ipcSet) {
-      ipc.awaitStart()
+      ipc.awaitOpen()
     }
     this.runningStateLock.resolve()
     // 当microModule全部启动完成的时候解锁
@@ -169,7 +169,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         "addToIpcSet",
         "⏸️「${ipc.ipcDebugId}」 $mmid => ${ipc.remote.mmid} , ${runningStateLock.isResolved}"
       )
-      ipc.awaitStart()
+      ipc.awaitOpen()
       debugMicroModule("addToIpcSet", "✅ ${ipc.ipcDebugId} end")
     }
     return if (this._ipcSet.add(ipc)) {

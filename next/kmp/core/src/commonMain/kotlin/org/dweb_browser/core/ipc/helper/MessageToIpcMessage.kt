@@ -24,6 +24,10 @@ val moduleIpc = SerializersModule {
     subclass(IpcStreamAbort::class)
     subclass(IpcError::class)
   }
+  polymorphic(EndpointMessage::class) {
+    subclass(EndpointIpcMessage::class)
+    subclass(EndpointLifecycle::class)
+  }
 }
 
 val JsonIpc = Json {
@@ -70,6 +74,7 @@ fun unByteSpecial(data: ByteArray): ByteArray? {
 
 @OptIn(ExperimentalSerializationApi::class)
 inline fun cborToIpcPoolPack(data: ByteArray) = CborIpc.decodeFromByteArray<EndpointMessage>(data)
+
 inline fun jsonToIpcPoolPack(data: String) = JsonIpc.decodeFromString<EndpointMessage>(data)
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -79,8 +84,8 @@ fun ipcPoolPackToCbor(message: EndpointMessage) =
 fun ipcPoolPackToJson(message: EndpointMessage) =
   JsonIpc.encodeToString<EndpointMessage>(serializableIpcMessage(message))
 
-fun normalizeIpcMessage(ipcPoolPack: EndpointMessage, ipc: Ipc) =
-  when (val ipcMessage = ipcPoolPack.ipcMessage) {
+fun normalizeIpcMessage(ipcPoolPack: EndpointMessage, ipc: Ipc) = when (ipcPoolPack) {
+  is EndpointIpcMessage -> when (val ipcMessage = ipcPoolPack.ipcMessage) {
     is IpcReqMessage -> IpcServerRequest(
       ipcMessage.reqId,
       ipcMessage.url,
@@ -101,12 +106,18 @@ fun normalizeIpcMessage(ipcPoolPack: EndpointMessage, ipc: Ipc) =
     else -> ipcPoolPack
   }
 
-fun serializableIpcMessage(ipcPoolPack: EndpointMessage) =
-  when (val ipcMessage = ipcPoolPack.ipcMessage) {
+  else -> ipcPoolPack
+}
+
+fun serializableIpcMessage(ipcPoolPack: EndpointMessage) = when (ipcPoolPack) {
+  is EndpointIpcMessage -> when (val ipcMessage = ipcPoolPack.ipcMessage) {
     is IpcRequest -> ipcPoolPack.copy(ipcMessage = ipcMessage.ipcReqMessage)
     is IpcResponse -> ipcPoolPack.copy(ipcMessage = ipcMessage.ipcResMessage)
     else -> ipcPoolPack
   }
+
+  else -> ipcPoolPack
+}
 
 
 fun ipcMessageToJson(data: IpcMessage) = JsonIpc.encodeToString(data)

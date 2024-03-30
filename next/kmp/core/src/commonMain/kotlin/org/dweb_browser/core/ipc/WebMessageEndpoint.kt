@@ -12,7 +12,7 @@ import kotlinx.serialization.encodeToString
 import org.dweb_browser.core.ipc.helper.CborIpc
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
-import org.dweb_browser.core.ipc.helper.EndpointMessage
+import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
 import org.dweb_browser.core.ipc.helper.JsonIpc
 import org.dweb_browser.core.ipc.helper.cborToIpcPoolPack
@@ -42,7 +42,7 @@ class WebMessageEndpoint(
   }
 
   override val scope = parentScope + Job()
-  private val messageFlow = MutableSharedFlow<EndpointMessage>()
+  private val messageFlow = MutableSharedFlow<EndpointIpcMessage>()
 
   override val onMessage = messageFlow.asSharedFlow()
 
@@ -59,7 +59,7 @@ class WebMessageEndpoint(
   }
 
   @OptIn(ExperimentalSerializationApi::class)
-  override suspend fun postMessage(msg: EndpointMessage) {
+  override suspend fun postMessage(msg: EndpointIpcMessage) {
     withScope(scope) {
       when (protocol) {
         EndpointProtocol.Json -> {

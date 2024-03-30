@@ -13,7 +13,7 @@ import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
-import org.dweb_browser.core.ipc.helper.EndpointMessage
+import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.IpcReqMessage
 import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.ipc.helper.ipcMessageToJson
@@ -83,7 +83,7 @@ class JmmForwardIpc(
         val message = jsonToIpcPoolPack(pack.ipcMessage, jmmIpc)
         pool.dispatchMessage(
           IpcPoolMessageArgs(
-            EndpointMessage(pack.pid, message),
+            EndpointIpcMessage(pack.pid, message),
             this@JmmForwardIpc
           )
         )

@@ -12,7 +12,7 @@ import org.dweb_browser.helper.toBase64ByteArray
 const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
 
 /**IpcPool*/
-data class IpcPoolMessageArgs(val message: EndpointMessage, val ipc: Ipc)
+data class IpcPoolMessageArgs(val message: EndpointIpcMessage, val ipc: Ipc)
 typealias OnIpcPoolMessage = SignalCallback<IpcPoolMessageArgs>
 
 /**Ipc*/
@@ -85,6 +85,7 @@ object ENDPOINT_STATE_Serializer :
 
 @Serializable(ENDPOINT_STATE_Serializer::class)
 enum class ENDPOINT_STATE(val state: Int) {
+  INIT(0),
   OPENING(1),
   OPENED(2),
   CLOSING(3),

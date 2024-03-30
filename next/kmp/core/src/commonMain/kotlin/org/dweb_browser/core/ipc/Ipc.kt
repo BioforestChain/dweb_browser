@@ -17,8 +17,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.ENDPOINT_STATE
+import org.dweb_browser.core.ipc.helper.EndpointLifecycle
+import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.IpcClientRequest
 import org.dweb_browser.core.ipc.helper.IpcClientRequest.Companion.toIpc
 import org.dweb_browser.core.ipc.helper.IpcError
@@ -27,7 +28,6 @@ import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcMessageArgs
-import org.dweb_browser.core.ipc.helper.EndpointMessage
 import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.ipc.helper.IpcRequestMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcResponse
@@ -146,10 +146,20 @@ class Ipc(val remote: IMicroModuleManifest, val endpoint: IpcEndpoint, val pool:
 
 
   /**----- 发送请求 start */
-  suspend fun request(url: String) = request(PureClientRequest(method = PureMethod.GET, href = url))
+  suspend inline fun request(url: String) = request(
+    PureClientRequest(
+      method = PureMethod.GET,
+      href = url,
+    )
+  )
+  suspend inline fun request(url: Url) = request(url.toString())
+  suspend fun request(ipcRequest: IpcRequest): IpcResponse {
+    val result = CompletableDeferred<IpcResponse>()
+    _reqResMap[ipcRequest.reqId] = result
+    this.postMessage(ipcRequest)
+    return result.await()
+  }
 
-  suspend fun request(url: Url) =
-    request(PureClientRequest(method = PureMethod.GET, href = url.toString()))
 
   suspend fun postResponse(reqId: Int, response: PureResponse) {
     postMessage(
@@ -167,13 +177,6 @@ class Ipc(val remote: IMicroModuleManifest, val endpoint: IpcEndpoint, val pool:
         result.complete(response)
       }.launchIn(scope)
     }
-  }
-
-  suspend fun request(ipcRequest: IpcRequest): IpcResponse {
-    val result = CompletableDeferred<IpcResponse>()
-    _reqResMap[ipcRequest.reqId] = result
-    this.postMessage(ipcRequest)
-    return result.await()
   }
 
   private suspend fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
@@ -200,23 +203,13 @@ class Ipc(val remote: IMicroModuleManifest, val endpoint: IpcEndpoint, val pool:
 
   // 发消息
   suspend fun doPostMessage(data: IpcMessage) = withScope(scope) {
-    endpoint.postMessage(EndpointMessage(pid, data))
+    endpoint.postMessage(EndpointIpcMessage(pid, data))
   }
 
   /**发送各类消息到remote*/
   suspend fun postMessage(data: IpcMessage) {
-    if (isClosed) {
-      debugIpcPool("ipc postMessage", "[$ipcDebugId] already closed:discard $data")
-      return
-    }
-    // 等待通信建立完成（如果通道没有建立完成，并且不是生命周期消息）
-    if (!isActivity && data !is EndpointLifecycle) {
-      awaitStart()
-    }
-//    println("分发消息=> $data")
     withScope(scope) {
-      // 分发消息
-      doPostMessage(pid, data)
+      endpoint.postMessage(EndpointIpcMessage(pid, data))
     }
   }
 
@@ -226,19 +219,16 @@ class Ipc(val remote: IMicroModuleManifest, val endpoint: IpcEndpoint, val pool:
   internal suspend fun dispatchMessage(ipcMessage: IpcMessage) =
     messageFlow.emit(IpcMessageArgs(ipcMessage, this))
 
-  // 标记是否启动完成
-  val startDeferred = CompletableDeferred<EndpointLifecycle>()
-
   // 标记ipc通道是否激活
-  val isActivity get() = startDeferred.isCompleted
+  val isActivity get() = endpoint.isActivity
 
-  suspend fun awaitStart() = startDeferred.await()
+  suspend fun awaitOpen() = endpoint.awaitOpen()
 
   // 告知对方我启动了
   suspend fun start() {
-    ipcLifeCycleState = ENDPOINT_STATE.OPENED
-    // 连接成功不管先后发送请求
-    this.postMessage(EndpointLifecycle.opening())
+    withScope(scope) {
+      endpoint.launchSyncLifecycle()
+    }
   }
 
   /**生命周期初始化，协商数据格式*/
