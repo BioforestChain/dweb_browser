@@ -29,7 +29,8 @@ class ReadableStreamEndpoint(
 
   override fun toString() = "ReadableStreamEndpoint#$endpointDebugId"
   override val scope = parentScope + Job()
-  override var protocol = EndpointProtocol.Json
+  var protocol = EndpointProtocol.Json
+    private set
 
   private lateinit var controller: ReadableStream.ReadableStreamController
 

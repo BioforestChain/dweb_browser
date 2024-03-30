@@ -315,7 +315,7 @@ sealed class IpcRequest(
       val started = CompletableDeferred<IpcEvent>()
       val orderBy = Ipc.order_by_acc++
       /// 将收到的IpcEvent转成PureFrame
-      ipc.eventFlow.onEach { (ipcEvent) ->
+      ipc.onEvent.onEach { (ipcEvent) ->
         when (ipcEvent.name) {
           eventData -> {
             if (!channelByIpcEmit.isClosedForSend)

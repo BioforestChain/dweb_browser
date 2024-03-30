@@ -83,7 +83,7 @@ class IpcBodyReceiver(
             IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
             else -> null
           }?.let { firstData -> controller.enqueueBackground(firstData) }
-          ipc.streamFlow.onEach { (ipcStream) ->
+          ipc.onStream.onEach { (ipcStream) ->
             if (streamId == ipcStream.stream_id) {
               when (ipcStream) {
                 is IpcStreamData -> {

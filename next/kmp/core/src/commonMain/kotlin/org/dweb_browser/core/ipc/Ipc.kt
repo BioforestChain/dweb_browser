@@ -71,20 +71,23 @@ class Ipc(val remote: IMicroModuleManifest, val endpoint: IpcEndpoint, val pool:
 
   val scope = endpoint.scope + Job()
 
-  val ipcDebugId: String = "Ipc#$pid/${endpoint.endpointDebugId}"
+  val ipcDebugId: String = "$pid/${endpoint.endpointDebugId}"
 
-  override fun toString() = "$ipcDebugId#state=$ipcLifeCycleState"
+  override fun toString() = "Ipc#$ipcDebugId"
 
   fun remoteAsInstance() = if (remote is MicroModule) remote else null
 
-
-  private var ipcLifeCycleState: ENDPOINT_STATE = ENDPOINT_STATE.OPENING
-
+  // FIXME 这里两个10应该移除
+  val messageFlow = MutableSharedFlow<IpcMessageArgs>(
+    replay = 10,//相当于粘性数据
+    extraBufferCapacity = 10,//接受的慢时候，发送的入栈 防止有一个请求挂起的时候 app其他请求无法进行
+    onBufferOverflow = BufferOverflow.SUSPEND // 缓冲区溢出的时候挂起 背压
+  )
 
   /**-----onMessage start*/
 
-  private fun <T : Any> messagePipeMap(transform: suspend (value: IpcMessageArgs) -> T?) =
-    messageFlow.mapNotNull(transform).shareIn(scope, SharingStarted.Lazily)
+  private inline fun <T : Any> messagePipeMap(crossinline transform: suspend (value: IpcMessageArgs) -> T?) =
+    messageFlow.mapNotNull(transform).shareIn(scope, SharingStarted.Eagerly)
 
   val requestFlow by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     messagePipeMap { args ->
@@ -102,7 +105,7 @@ class Ipc(val remote: IMicroModuleManifest, val endpoint: IpcEndpoint, val pool:
     }
   }
 
-  private val responseFlow by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  val onResponse by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     messagePipeMap {
       if (it.message is IpcResponse) {
         IpcResponseMessageArgs(it.message, it.ipc)
@@ -110,7 +113,7 @@ class Ipc(val remote: IMicroModuleManifest, val endpoint: IpcEndpoint, val pool:
     }
   }
 
-  val streamFlow by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  val onStream by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     messagePipeMap {
       if (it.message is IpcStream) {
         IpcStreamMessageArgs(it.message, it.ipc)
@@ -118,7 +121,7 @@ class Ipc(val remote: IMicroModuleManifest, val endpoint: IpcEndpoint, val pool:
     }
   }
 
-  val eventFlow by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  val onEvent by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     messagePipeMap { args ->
       if (args.message is IpcEvent) {
         IpcEventMessageArgs(
@@ -129,7 +132,7 @@ class Ipc(val remote: IMicroModuleManifest, val endpoint: IpcEndpoint, val pool:
   }
 
 
-  val errorFlow by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  val onError by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     messagePipeMap { args ->
       if (args.message is IpcError) {
         IpcErrorMessageArgs(
@@ -158,7 +161,7 @@ class Ipc(val remote: IMicroModuleManifest, val endpoint: IpcEndpoint, val pool:
 
   private val _reqResMap by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     SafeHashMap<Int, CompletableDeferred<IpcResponse>>().also { reqResMap ->
-      responseFlow.onEach { (response) ->
+      onResponse.onEach { (response) ->
         val result = reqResMap.remove(response.reqId)
           ?: throw Exception("no found response by reqId: ${response.reqId}")
         result.complete(response)
@@ -217,13 +220,6 @@ class Ipc(val remote: IMicroModuleManifest, val endpoint: IpcEndpoint, val pool:
     }
   }
 
-  // Flow 对象本身并不持有任何状态，它只是一个冷数据流。真正持有状态的是 collect 的协程。所以，理论上来说，不需要特地去清空或注销 Flow。
-  // 如果你想停止数据流，你可以考虑取消消费这个 Flow 的协程。在你的协程被取消后，Flow 自然就停止了
-  val messageFlow = MutableSharedFlow<IpcMessageArgs>(
-    replay = 10,//相当于粘性数据
-    extraBufferCapacity = 10,//接受的慢时候，发送的入栈 防止有一个请求挂起的时候 app其他请求无法进行
-    onBufferOverflow = BufferOverflow.SUSPEND // 缓冲区溢出的时候挂起 背压
-  )
 
   /**分发各类消息到本地*/
   suspend fun dispatchMessage(args: IpcMessageArgs) = messageFlow.emit(args)

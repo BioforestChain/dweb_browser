@@ -37,7 +37,7 @@ val NativeMicroModule.hasMainWindow
   get() = getMainWindowIdWMDeferred(this).isCompleted
 
 fun NativeMicroModule.onRenderer(cb: suspend RendererContext.() -> Unit) = onConnect { (ipc) ->
-  ipc.eventFlow.onEach { args ->
+  ipc.onEvent.onEach { args ->
     if (args.event.isRenderer()) {
       val context = RendererContext.get(args, this@onRenderer)
       context.cb()

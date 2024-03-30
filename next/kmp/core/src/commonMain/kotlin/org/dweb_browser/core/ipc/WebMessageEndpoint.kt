@@ -27,7 +27,8 @@ class WebMessageEndpoint(
   parentScope: CoroutineScope,
   private val port: IWebMessagePort,
 ) : IpcEndpoint() {
-  override var protocol = EndpointProtocol.Json
+  var protocol = EndpointProtocol.Json
+    private set
 
   override fun toString() = "WebMessageEndpoint#$endpointDebugId"
 

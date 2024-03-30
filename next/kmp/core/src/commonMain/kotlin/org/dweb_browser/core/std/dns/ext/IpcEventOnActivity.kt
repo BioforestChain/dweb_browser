@@ -15,7 +15,7 @@ private const val ACTIVITY_EVENT_NAME = "activity"
 fun IpcEvent.Companion.createActivity(data: String) = IpcEvent.fromUtf8(ACTIVITY_EVENT_NAME, data)
 fun IpcEvent.isActivity() = name == ACTIVITY_EVENT_NAME
 fun MicroModule.onActivity(cb: suspend (value: IpcEventMessageArgs) -> Unit) = onConnect { (ipc) ->
-  ipc.eventFlow.onEach { args ->
+  ipc.onEvent.onEach { args ->
     if (args.event.isActivity()) {
       cb(args)
     }

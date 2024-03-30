@@ -4,9 +4,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
@@ -24,29 +24,28 @@ import kotlin.coroutines.coroutineContext
  */
 abstract class IpcEndpoint {
   abstract val endpointDebugId: String
-  abstract var protocol: EndpointProtocol
-    protected set
 
   abstract val scope: CoroutineScope
   abstract suspend fun postMessage(msg: EndpointMessage)
-  protected abstract suspend fun syncLifecycle(msg: EndpointLifecycle)
 
   abstract val onMessage: SharedFlow<EndpointMessage>
 
   // 标记是否启动完成
-  private val stateFlow = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Opening())
+//  private val localLifecycleFlow = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Opening())
+  abstract suspend fun postLifecycle(state:EndpointLifecycle)
+  abstract val onLifecycle: StateFlow<EndpointLifecycle>
 
-  val state get() = stateFlow.value
-  val onStateChange by lazy { stateFlow.shareIn(scope, SharingStarted.Eagerly) }
+  val lifecycle get() = onLifecycle.value
 
   // 标记ipc通道是否激活
-  val isActivity get() = ENDPOINT_STATE.OPENED == stateFlow.value.state
+  val isActivity get() = ENDPOINT_STATE.OPENED == onLifecycle.value.state
 
+  abstract suspend fun start()
   suspend fun awaitOpen() {
-    when (val state = stateFlow.value.state) {
+    when (val state = onLifecycle.value.state) {
       ENDPOINT_STATE.OPENED -> {}
       ENDPOINT_STATE.OPENING -> {
-        stateFlow.filter { it.state == ENDPOINT_STATE.OPENED }.first()
+        onLifecycle.filter { it.state == ENDPOINT_STATE.OPENED }.first()
       }
 
       else -> {
@@ -55,13 +54,6 @@ abstract class IpcEndpoint {
     }
   }
 
-  val isClosed get() = scope.coroutineContext[Job]!!.isCancelled
-
-  suspend fun awaitClosed() = runCatching {
-    scope.coroutineContext[Job]!!.join();
-    null
-  }.getOrElse { it }
-
   suspend fun close(cause: CancellationException? = null) = scope.isActive.trueAlso {
     if (scope.coroutineContext[Job] == coroutineContext[Job]) {
       throw Exception("could not close by self")
@@ -69,17 +61,23 @@ abstract class IpcEndpoint {
     doClose(cause)
   }
 
+  val isClosed get() = scope.coroutineContext[Job]!!.isCancelled
+
+  suspend fun awaitClosed() = runCatching {
+    scope.coroutineContext[Job]!!.join();
+    null
+  }.getOrElse { it }
   protected suspend fun doClose(cause: CancellationException? = null) {
-    when (state) {
+    when (lifecycle) {
       is EndpointLifecycle.Opened, is EndpointLifecycle.Opening -> {
-        stateFlow.emit(EndpointLifecycle.Closing())
+        postLifecycle(EndpointLifecycle.Closing())
       }
 
       is EndpointLifecycle.Closed -> return
       else -> {}
     }
     beforeClose?.invoke(cause)
-    stateFlow.emit(EndpointLifecycle.Closed())
+    postLifecycle(EndpointLifecycle.Closed())
     scope.cancel(cause)
     afterClosed?.invoke(cause)
   }
@@ -87,12 +85,4 @@ abstract class IpcEndpoint {
   protected var beforeClose: (suspend (cause: CancellationException?) -> Unit)? = null
   protected var afterClosed: ((cause: CancellationException?) -> Unit)? = null
 
-  init {
-    scope.launch {
-      stateFlow.collect { state ->
-        syncLifecycle(state)
-      }
-    }
-
-  }
 }

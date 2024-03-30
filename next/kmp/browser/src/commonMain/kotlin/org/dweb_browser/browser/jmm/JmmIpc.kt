@@ -2,8 +2,6 @@ package org.dweb_browser.browser.jmm
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.help.types.IMicroModuleManifest
@@ -21,7 +19,9 @@ import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.ipc.helper.ipcMessageToJson
 import org.dweb_browser.core.ipc.helper.jsonToIpcPack
 import org.dweb_browser.core.ipc.helper.jsonToIpcPoolPack
+import org.dweb_browser.core.ipc.invoke
 import org.dweb_browser.core.ipc.kotlinIpcPool
+import org.dweb_browser.core.ipc.helper.collectIn
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.Once
 
@@ -77,7 +77,7 @@ class JmmForwardIpc(
       this@JmmForwardIpc.start()
     }
     // 收到代理的消息回复
-    fetchIpc.eventFlow.onEach { (ipcEvent) ->
+    fetchIpc.onEvent.collectIn(scope) { (ipcEvent) ->
       if (ipcEvent.name == responseEventName || ipcEvent.name == lifeCycleEventName) {
         val pack = jsonToIpcPack(ipcEvent.text)
         val message = jsonToIpcPoolPack(pack.ipcMessage, jmmIpc)
@@ -88,7 +88,7 @@ class JmmForwardIpc(
           )
         )
       }
-    }.launchIn(scope)
+    }
   }
 
   // 发送代理消息到js-worker 中

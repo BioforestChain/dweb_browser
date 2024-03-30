@@ -222,7 +222,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     /**
      * 收到 Worker 的事件，如果是指令，执行一些特定的操作
      */
-    jsIpc.eventFlow.onEach { (ipcEvent) ->
+    jsIpc.onEvent.onEach { (ipcEvent) ->
       /**
        * 收到要与其它模块进行ipc连接的指令
        */
