@@ -6,7 +6,7 @@ import androidx.webkit.WebMessagePortCompat
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,7 +36,7 @@ class DWebMessagePort private constructor(
     }
   }
 
-  val scope = parentScope + Job()
+  val scope = parentScope + SupervisorJob()
 
   @SuppressLint("RequiresFeature")
   private val _started = lazy {
@@ -96,11 +96,11 @@ class DWebMessagePort private constructor(
 
     val msgCompat = when (event) {
       is DWebMessage.DWebMessageBytes -> {
-        WebMessageCompat(event.data, ports)
+        WebMessageCompat(event.binary, ports)
       }
 
       is DWebMessage.DWebMessageString -> {
-        WebMessageCompat(event.data, ports)
+        WebMessageCompat(event.text, ports)
       }
     }
     port.postMessage(msgCompat)

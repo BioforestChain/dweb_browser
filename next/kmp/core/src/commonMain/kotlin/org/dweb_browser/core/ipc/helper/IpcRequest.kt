@@ -6,8 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
@@ -32,8 +31,8 @@ import org.dweb_browser.pure.http.buildRequestX
 import kotlin.coroutines.coroutineContext
 
 
-const val PURE_CHANNEL_EVENT_PREFIX = "§"
 const val X_IPC_UPGRADE_KEY = "X-Dweb-Ipc-Upgrade-Key"
+const val PURE_CHANNEL_EVENT_PREFIX = "§"
 
 class IpcClientRequest(
   reqId: Int,
@@ -133,7 +132,7 @@ class IpcClientRequest(
       val pureRequest = this
       if (pureRequest.hasChannel) {
         val eventNameBase =
-          "$PURE_CHANNEL_EVENT_PREFIX-${postIpc.ipcDebugId}/${reqId}/${duplexAcc.inc().value}"
+          "$PURE_CHANNEL_EVENT_PREFIX-${postIpc.debugId}/${reqId}/${duplexAcc.inc().value}"
 
         debugIpc("ipcClient/hasChannel") { "create ipcEventBaseName:$eventNameBase => request:$pureRequest" }
         CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
@@ -144,12 +143,11 @@ class IpcClientRequest(
           /// 反之，ipc收到的数据也要作为 pureChannel 的
           val channelContext = pureChannel.start()
           pureChannelToIpcEvent(
-            eventNameBase,
             postIpc,
             pureChannel,
             channelByIpcEmit = channelContext.income,
             channelForIpcPost = channelContext.outgoing,
-            _debugTag = "IpcClient/channelToIpc"
+            debugTag = "IpcClient/channelToIpc"
           ) { }
         }
 
@@ -231,12 +229,11 @@ class IpcServerRequest(
           val pureChannel = pureChannelDeferred.await();
           val ctx = pureChannel.start()
           pureChannelToIpcEvent(
-            eventNameBase,
             ipc,
             pureChannel,
             channelByIpcEmit = ctx.income,
             channelForIpcPost = ctx.outgoing,
-            _debugTag = "PureServer/ipcToChannel",
+            debugTag = "PureServer/ipcToChannel",
           ) { }
         }
 
@@ -299,64 +296,66 @@ sealed class IpcRequest(
      */
     @OptIn(DelicateCoroutinesApi::class)
     internal suspend fun pureChannelToIpcEvent(
-      eventNameBase: String,
-      ipc: Ipc,
+      parentIpc: Ipc,
       pureChannel: PureChannel,
       /**收到ipcEvent时，需要对其进行接收的 channel*/
       channelByIpcEmit: SendChannel<PureFrame>,
       /**收到pureFrame时，需要将其转发给ipc的 channel*/
       channelForIpcPost: ReceiveChannel<PureFrame>,
-      _debugTag: String = "pureChannelToIpcEvent",
+      debugTag: String = "pureChannelToIpcEvent",
       waitReadyToStart: suspend () -> Unit,
     ) {
-      val eventStart = "$eventNameBase/start"
-      val eventData = "$eventNameBase/data"
-      val eventClose = "$eventNameBase/close"
+      val eventStart = "start"
+      val eventData = "data"
+      val eventClose = "close"
       val started = CompletableDeferred<IpcEvent>()
-      val orderBy = Ipc.order_by_acc++
-      /// 将收到的IpcEvent转成PureFrame
-      ipc.onEvent.onEach { (ipcEvent) ->
-        when (ipcEvent.name) {
-          eventData -> {
-            if (!channelByIpcEmit.isClosedForSend)
-              channelByIpcEmit.send(ipcEvent.toPureFrame())
-          }
+      val channelIpc = parentIpc.fork()
+      coroutineScope {
+        channelIpc.onEvent.collectIn(this) { (ipcEvent) ->
+          when (ipcEvent.name) {
+            eventData -> {
+//            debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent" }
+              if (!channelByIpcEmit.isClosedForSend)
+                channelByIpcEmit.send(ipcEvent.toPureFrame())
+            }
 
-          eventStart -> {
-            debugIpc(_debugTag) { "$ipc onIpcEventStart:$ipcEvent" }
-            started.complete(ipcEvent)
-          }
+            eventStart -> {
+              debugIpc(debugTag) { "$channelIpc onIpcEventStart:$ipcEvent" }
+              started.complete(ipcEvent)
+            }
 
-          eventClose -> {
-            debugIpc(_debugTag) { "$ipc onIpcEventClose:$ipcEvent " }
-            pureChannel.close()
+            eventClose -> {
+              debugIpc(debugTag) { "$channelIpc onIpcEventClose:$ipcEvent " }
+              pureChannel.close()
+            }
           }
         }
-      }.launchIn(ipc.scope)
-      debugIpc(_debugTag) { "waitLocaleStart:$eventNameBase ${ipc.ipcDebugId}" }
-      // 提供回调函数，等待外部调用者执行开始指令
-      waitReadyToStart()
-      debugIpc(_debugTag) { "waitRemoteStart:$eventNameBase ${ipc.ipcDebugId}" }
-      // 首先自己发送start，告知对方自己已经准备好数据接收了
-      ipc.postMessage(IpcEvent.fromUtf8(eventStart, "", orderBy))
-      // 同时也要等待对方发送 start 信号过来，那么也将 start 回传，避免对方遗漏前面的 start 消息
-      val ipcStartEvent = started.await()
-      debugIpc(_debugTag) { "$ipc postIpcEventStart:$ipcStartEvent ${ipc.ipcDebugId}" }
-      ipc.postMessage(ipcStartEvent)
-      /// 将PureFrame转成IpcEvent，然后一同发给对面
-      for (pureFrame in channelForIpcPost) {
-        when (pureFrame) {
-          PureCloseFrame -> break;
-          else -> {
-            val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame, orderBy)
-            ipc.postMessage(ipcDataEvent)
+        debugIpc(debugTag) { "waitLocaleStart ${channelIpc.debugId}" }
+        // 提供回调函数，等待外部调用者执行开始指令
+        waitReadyToStart()
+        debugIpc(debugTag) { "waitRemoteStart ${channelIpc.debugId}" }
+        // 首先自己发送start，告知对方自己已经准备好数据接收了
+        channelIpc.postMessage(IpcEvent.fromUtf8(eventStart, ""))
+        // 同时也要等待对方发送 start 信号过来，那么也将 start 回传，避免对方遗漏前面的 start 消息
+        val ipcStartEvent = started.await()
+        debugIpc(debugTag) { "$channelIpc postIpcEventStart:$ipcStartEvent ${channelIpc.debugId}" }
+        channelIpc.postMessage(ipcStartEvent)
+        /// 将PureFrame转成IpcEvent，然后一同发给对面
+        for (pureFrame in channelForIpcPost) {
+          when (pureFrame) {
+            PureCloseFrame -> break;
+            else -> {
+              val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame)
+              debugIpc(debugTag) { "$channelIpc postIpcEventData:$ipcDataEvent ${channelIpc.debugId}" }
+              channelIpc.postMessage(ipcDataEvent)
+            }
           }
         }
+        // 关闭的时候，发一个信号给对面
+        val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "")
+        debugIpc(debugTag) { "$channelIpc postIpcEventClose:$ipcCloseEvent ${channelIpc.debugId}" }
+        channelIpc.postMessage(ipcCloseEvent)
       }
-      // 关闭的时候，发一个信号给对面
-      val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "", orderBy)
-      debugIpc(_debugTag) { "$ipc postIpcEventClose:$ipcCloseEvent ${ipc.ipcDebugId}" }
-      ipc.postMessage(ipcCloseEvent)
     }
   }
 

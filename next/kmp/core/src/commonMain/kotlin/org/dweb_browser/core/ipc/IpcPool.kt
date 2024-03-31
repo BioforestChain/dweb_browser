@@ -2,18 +2,21 @@ package org.dweb_browser.core.ipc
 
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.updateAndGet
-import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
+import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
 import org.dweb_browser.core.ipc.helper.OnIpcPoolMessage
 import org.dweb_browser.core.ipc.helper.normalizeIpcMessage
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.randomUUID
@@ -45,7 +48,8 @@ open class IpcPool {
     private fun randomPoolId() = "kotlin-${randomUUID()}"
   }
 
-  val scope = CoroutineScope(CoroutineName("ipc-pool-kotlin") + ioAsyncExceptionHandler)
+  val scope =
+    CoroutineScope(CoroutineName("ipc-pool-kotlin") + ioAsyncExceptionHandler + SupervisorJob())
 
   /**每一个ipcPool都会绑定一个body流池,只有当不在同一个IpcPool的时候才需要互相拉取*/
   val poolId: UUID = randomPoolId()
@@ -61,50 +65,26 @@ open class IpcPool {
    * 所有的委托进来的流的实例集合
    */
   private val streamPool = mutableMapOf<String, PureStream>()
-
-  fun create(channelId: String, mm: IMicroModuleManifest, port: WebMessageEndpoint) =
-    createAndSave {
-      MessagePortIpc(port, mm, channelId, this)
-    }
-
-  fun create(
-    channelId: String, mm: IMicroModuleManifest, channel: NativeEndpoint
-  ) = createAndSave {
-    NativeIpc(channel, mm, channelId, this)
-  }
-
-  suspend fun create(
-    channelId: String,
-    mm: IMicroModuleManifest,
-    getStream: suspend (ReadableStreamIpc) -> PureStream,
-  ) = createAndSave {
-    ReadableStreamIpc(channelId, mm, this).apply { bindIncomeStream(getStream(this)) }
-  }
-
-  fun create(
-    channelId: String,
-    mm: IMicroModuleManifest,
-    stream: PureStream,
-  ) = createAndSave {
-    ReadableStreamIpc(channelId, mm, this).apply { bindIncomeStream(stream) }
-  }
-
-  /**
-   * 保存ipc，并且根据它的生命周期做自动删除
-   */
-  private inline fun <T : Ipc> createAndSave(creator: () -> T) = creator().also { ipc ->
+  fun createIpc(
+    endpoint: IpcEndpoint,
+    locale: IMicroModuleManifest,
+    remote: IMicroModuleManifest,
+    autoStart: Boolean = true,
+  ) = Ipc(endpoint = endpoint, locale = locale, remote = remote, pool = this).also { ipc ->
+    /// 保存ipc，并且根据它的生命周期做自动删除
+    debugIpcPool("createIpc") { "add ${ipc.debugId}" }
     ipcSet.add(ipc)
     scope.launch {
-      // 监听启动回调
-      ipc.initLifeCycleHook()
-      // 发送开始信号
-      ipc.start()
+      /// 自动启动
+      if (autoStart) {
+        ipc.start()
+      }
 
-      ipc.closeDeferred.await()
-      debugIpcPool("pool-closeIpc", ipc.ipcDebugId)
+      debugIpcPool("createIpc") { "remove ${ipc.debugId}" }
       ipcSet.remove(ipc)
     }
   }
+
 
   private var accPid = atomic(0)
 
@@ -131,21 +111,22 @@ open class IpcPool {
     }
   }
 
-  /**-----close start*/
-
 
   /**关闭信号*/
-  val onDestroyed = CompletableDeferred<Unit>()
-  val isDestroyed get() = onDestroyed.isCompleted
+  suspend fun awaitDestroyed() = runCatching {
+    scope.coroutineContext[Job]!!.join();
+    null
+  }.getOrElse { it }
 
-  val destroy = SuspendOnce {
-    val oldSet = this.ipcSet.toSet()
-    this.ipcSet.clear()
+  val isDestroyed get() = scope.coroutineContext[Job]!!.isCancelled
+
+  val destroy = SuspendOnce1 { cause: CancellationException ->
+    val oldSet = ipcSet.toSet()
+    ipcSet.clear()
     oldSet.forEach { ipc ->
       ipc.close()
     }
-    this.onDestroyed.complete(Unit)
+    scope.cancel(cause)
   }
 
-  /**-----close end*/
 }

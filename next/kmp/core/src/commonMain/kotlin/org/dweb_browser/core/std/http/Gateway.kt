@@ -24,7 +24,7 @@ class Gateway(
       val route = StreamIpcRouter(config, ipc)
       this._routerSet.add(route)
       mainIpc.scope.launch {
-        ipc.closeDeferred.await()
+        ipc.awaitClosed()
         _routerSet.remove(route)
       }
     }

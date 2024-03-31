@@ -1,17 +1,16 @@
 package org.dweb_browser.core.ipc
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.plus
-import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
+import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.withScope
@@ -26,7 +25,7 @@ class NativeMessageChannel(parentScope: CoroutineScope, fromId: String, toId: St
   private val messageFlow2 = MutableSharedFlow<EndpointIpcMessage>()
   private val lifecycleFlow1 = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
   private val lifecycleFlow2 = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
-  private val scope = parentScope + Job()
+  private val scope = parentScope + SupervisorJob()
   val port1 = NativeEndpoint(
     scope, messageFlow1, messageFlow2, lifecycleFlow1, lifecycleFlow2, "<$fromId=>$toId>"
   )
@@ -41,10 +40,10 @@ class NativeEndpoint(
   private val messageOut: MutableSharedFlow<EndpointIpcMessage>,
   override val lifecycleRemote: StateFlow<EndpointLifecycle>,
   override val lifecycleLocale: MutableStateFlow<EndpointLifecycle>,
-  override val endpointDebugId: String,
+  override val debugId: String,
 ) : IpcEndpoint() {
 
-  override fun toString() = "NativeEndpoint#$endpointDebugId"
+  override fun toString() = "NativeEndpoint#$debugId"
 
   /**
    * 发送消息
@@ -64,17 +63,7 @@ class NativeEndpoint(
   override val onMessage = messageIn.shareIn(scope, SharingStarted.Lazily)
 
   /**
-   * 本地生命周期状态
-   * 这里要用 Eagerly，因为是 StateFlow
+   * 原生通讯，不需要提供任何协商内容
    */
-  override val onLifecycle =
-    lifecycleLocale.stateIn(scope, SharingStarted.Eagerly, lifecycleLocale.value)
-
   override fun getLocaleSubProtocols() = setOf<EndpointProtocol>()
-
-  override suspend fun launchSyncLifecycle() {
-    /**
-     * NativeEndpoint 的lifecycle是天生双向同步的，所以不需要做任何同步工作
-     */
-  }
 }

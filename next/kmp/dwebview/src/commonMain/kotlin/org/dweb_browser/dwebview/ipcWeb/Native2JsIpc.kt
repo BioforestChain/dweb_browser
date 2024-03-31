@@ -1,9 +1,8 @@
 package org.dweb_browser.dwebview.ipcWeb
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.ipc.IpcPool
-import org.dweb_browser.core.ipc.MessagePortIpc
 import org.dweb_browser.core.ipc.WebMessageEndpoint
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.ipc.kotlinIpcPool
@@ -11,9 +10,19 @@ import org.dweb_browser.helper.SafeInt
 
 val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, WebMessageEndpoint>();
 private var all_ipc_id_acc by SafeInt(1);
-fun saveNative2JsIpcPort(port: IWebMessagePort) = (all_ipc_id_acc++).also { portId ->
-  ALL_MESSAGE_PORT_CACHE[portId] =
-    WebMessageEndpoint.from("native2js-$portId", kotlinIpcPool.scope, port)
+
+/**
+ * 保存用于 JsBridge 的 IpcEndpoint
+ */
+suspend fun saveJsBridgeIpcEndpoint(port: IWebMessagePort) = (all_ipc_id_acc++).also { portId ->
+  val endpoint = WebMessageEndpoint.from("native2js-$portId", kotlinIpcPool.scope, port)
+  ALL_MESSAGE_PORT_CACHE[portId] = endpoint
+  coroutineScope {
+    launch {
+      endpoint.awaitClosed()
+      ALL_MESSAGE_PORT_CACHE.remove(portId)
+    }
+  }
 }
 
 
@@ -28,13 +37,15 @@ fun saveNative2JsIpcPort(port: IWebMessagePort) = (all_ipc_id_acc++).also { port
  * 那么连接发起方就可以通过这个 id(number) 和 Native2JsIpc 构造器来实现与 js-worker 的直连
  *
  */
+fun native2JsEndpoint(portId: Int) =
+  ALL_MESSAGE_PORT_CACHE[portId] ?: throw Exception("no found port2(js-process) by id: $portId")
+
 open class Native2JsIpc(
-  private val portId: Int, remote: IMicroModuleManifest, channelId: String, endpoint: IpcPool
-) : MessagePortIpc(
+  private val portId: Int, parentScope: CoroutineScope, debugId: String,
+) : WebMessageEndpoint(
+  debugId,
+  parentScope,
   ALL_MESSAGE_PORT_CACHE[portId] ?: throw Exception("no found port2(js-process) by id: $portId"),
-  remote,
-  channelId,
-  endpoint
 ) {
   init {
     scope.launch {

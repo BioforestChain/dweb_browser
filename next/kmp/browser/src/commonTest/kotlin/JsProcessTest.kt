@@ -132,13 +132,13 @@ class MessagePortTest1 {
     val channel = apis.dWebView.createMessageChannel()
     val port1 = channel.port1
     val port2 = channel.port2
-    val ipcClient = kotlinIpcPool.create(
+    val ipcClient = kotlinIpcPool.createIpc(
       "create-process-client",
       clientMM,
       WebMessageEndpoint.from("create-process-client", kotlinIpcPool.scope, port1),
     )
     val ipcServer =
-      kotlinIpcPool.create(
+      kotlinIpcPool.createIpc(
         "create-process-server",
         serverMM,
         WebMessageEndpoint.from("create-process-server", kotlinIpcPool.scope, port2)

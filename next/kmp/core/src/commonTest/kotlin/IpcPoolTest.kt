@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.NativeMessageChannel
-import org.dweb_browser.core.ipc.helper.ENDPOINT_STATE
+import org.dweb_browser.core.ipc.helper.LIFECYCLE_STATE
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.kotlinIpcPool
@@ -30,13 +30,13 @@ class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
     routes(
       "/test" bind PureMethod.POST by definePureStreamHandler {
         println("请求到了 /test")
-        val streamIpc = kotlinIpcPool.create(
+        val streamIpc = kotlinIpcPool.createIpc(
           "TestMicroModule/test",
           ipc.remote,
           request.body.toPureStream(),
         )
         println("xxx=> ${streamIpc.isActivity}")
-        streamIpc.requestFlow.onEach { (request, ipc) ->
+        streamIpc.onRequest.onEach { (request, ipc) ->
           val pathName = request.uri.encodedPath
           println("/test 拿到结果=> $pathName")
           ipc.postMessage(IpcResponse.fromText(request.reqId, 200, PureHeaders(), "返回结果", ipc))
@@ -57,12 +57,12 @@ class IpcPoolTest {
     val toMM = TestMicroModule("to.mm.dweb")
     val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
     println("1🧨=> ${fromMM.mmid} ${toMM.mmid}")
-    val fromNativeIpc = kotlinIpcPool.create(
+    val fromNativeIpc = kotlinIpcPool.createIpc(
       "from-native",
       toMM,
       channel.port1
     )
-    val toNativeIpc = kotlinIpcPool.create(
+    val toNativeIpc = kotlinIpcPool.createIpc(
       "to-native",
       fromMM,
       channel.port2
@@ -73,8 +73,8 @@ class IpcPoolTest {
     }.launchIn(this)
     println("🌞📸 send")
     fromNativeIpc.postMessage(IpcEvent.fromUtf8("哈哈", "xx"))
-    assertEquals(fromNativeIpc.awaitStart().state, ENDPOINT_STATE.OPENED)
-    assertEquals(toNativeIpc.awaitStart().state, ENDPOINT_STATE.OPENED)
+    assertEquals(fromNativeIpc.awaitStart().state, LIFECYCLE_STATE.OPENED)
+    assertEquals(toNativeIpc.awaitStart().state, LIFECYCLE_STATE.OPENED)
     fromMM.shutdown()
     toMM.shutdown()
   }
@@ -95,7 +95,7 @@ class IpcPoolTest {
     dns.install(requestMM)
     dns.install(streamMM)
     dns.bootstrap()
-    val streamIpc = kotlinIpcPool.create(
+    val streamIpc = kotlinIpcPool.createIpc(
       "test-stream",
       streamMM,
     ) {

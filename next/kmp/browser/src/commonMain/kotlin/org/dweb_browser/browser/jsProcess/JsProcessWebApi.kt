@@ -11,6 +11,7 @@ import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.dwebHttpGatewayServer
+import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.MessagePortIpc
 import org.dweb_browser.core.ipc.WebMessageEndpoint
 import org.dweb_browser.core.ipc.kotlinIpcPool
@@ -19,14 +20,14 @@ import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
+import org.dweb_browser.dwebview.ipcWeb.saveJsBridgeIpcEndpoint
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
 
 @Serializable
 data class ProcessInfo(val process_id: Int)
-class ProcessHandler(val info: ProcessInfo, var ipc: MessagePortIpc)
+class ProcessHandler(val info: ProcessInfo, var ipc: Ipc)
 data class RunProcessMainOptions(val main_url: String)
 class JsProcessWebApi(internal val dWebView: IDWebView) {
 
@@ -75,7 +76,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     })
     debugJsProcess("processInfo", processInfo_json)
     val info = Json.decodeFromString<ProcessInfo>(processInfo_json)
-    val ipc = kotlinIpcPool.create(
+    val ipc = kotlinIpcPool.createIpc(
       "create-process-${remoteModule.mmid}",
       remoteModule,
       WebMessageEndpoint.from("create-process-${remoteModule.mmid}", kotlinIpcPool.scope, port2),
@@ -99,7 +100,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val channel = dWebView.createMessageChannel()
     val port1 = channel.port1
     val port2 = channel.port2
-    val jsIpcPortId = saveNative2JsIpcPort(port2)
+    val jsIpcPortId = saveJsBridgeIpcEndpoint(port2)
     val hid = hidAcc++
     dWebView.evaluateAsyncJavascriptCode("""
         new Promise((resolve,reject)=>{

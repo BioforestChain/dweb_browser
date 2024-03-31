@@ -7,31 +7,25 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 sealed class EndpointLifecycle(
-  val state: ENDPOINT_STATE,
+  val state: LIFECYCLE_STATE,
 ) : EndpointMessage(ENDPOINT_MESSAGE_TYPE.LIFECYCLE) {
-  class Init() : EndpointLifecycle(ENDPOINT_STATE.INIT)
+  // TODO 测试能否 equals？
+  @Serializable
+  class Init() : EndpointLifecycle(LIFECYCLE_STATE.INIT)
+
+  @Serializable
   data class Opening(val subProtocols: Set<EndpointProtocol> = setOf()) :
-    EndpointLifecycle(ENDPOINT_STATE.OPENING)
+    EndpointLifecycle(LIFECYCLE_STATE.OPENING)
 
+  @Serializable
   data class Opened(val subProtocols: Set<EndpointProtocol> = setOf()) :
-    EndpointLifecycle(ENDPOINT_STATE.OPENED)
+    EndpointLifecycle(LIFECYCLE_STATE.OPENED)
 
-  data class Closing(val reason: String? = null) : EndpointLifecycle(ENDPOINT_STATE.CLOSING)
-  data class Closed(val reason: String? = null) : EndpointLifecycle(ENDPOINT_STATE.CLOSED)
+  @Serializable
+  data class Closing(val reason: String? = null) : EndpointLifecycle(LIFECYCLE_STATE.CLOSING)
 
-  override fun hashCode(): Int {
-    return state.hashCode()
-  }
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (other !is EndpointLifecycle) return false
-
-    if (state != other.state) return false
-
-    return true
-  }
-
+  @Serializable
+  data class Closed(val reason: String? = null) : EndpointLifecycle(LIFECYCLE_STATE.CLOSED)
 }
 
 

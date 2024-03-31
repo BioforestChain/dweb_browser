@@ -21,8 +21,8 @@ class IpcRequestTest {
     val channel = NativeMessageChannel(kotlinIpcPool.scope, "from.id.dweb", "to.id.dweb")
     val fromMM = TestMicroModule()
     val toMM = TestMicroModule()
-    val senderIpc = kotlinIpcPool.create("test-request-1", toMM, channel.port1)
-    val receiverIpc = kotlinIpcPool.create("test-request-2", fromMM, channel.port2)
+    val senderIpc = kotlinIpcPool.createIpc("test-request-1", toMM, channel.port1)
+    val receiverIpc = kotlinIpcPool.createIpc("test-request-2", fromMM, channel.port2)
 
     launch {
       // send text body
@@ -38,7 +38,7 @@ class IpcRequestTest {
     }
     launch {
       println("🧨=>  开始监听消息")
-      receiverIpc.requestFlow.onEach { (request, ipc) ->
+      receiverIpc.onRequest.onEach { (request, ipc) ->
         val data = request.body.toString()
         println("receiverIpc结果🧨=> $data ${ipc.remote.mmid}")
         assertEquals("senderIpc 除夕快乐", data)
@@ -48,7 +48,7 @@ class IpcRequestTest {
           )
         )
       }.launchIn(this)
-      senderIpc.requestFlow.onEach { (request, ipc) ->
+      senderIpc.onRequest.onEach { (request, ipc) ->
         val data = request.body.text()
         println("senderIpc结果🧨=> $data ${ipc.remote.mmid}")
         assertEquals("senderIpc", data)

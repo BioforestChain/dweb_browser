@@ -135,7 +135,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       gateway.listener.addRouter(routeConfig, selfIpc)
     }
     /// ipc 在关闭的时候，自动释放所有的绑定
-    selfIpc.closeDeferred.await()
+    selfIpc.awaitClosed()
     close(selfIpc, options)
     listener.destroy()
   }
@@ -495,7 +495,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
     /// ipc 在关闭的时候，自动释放所有的绑定
     ioAsyncScope.launch {
-      ipc.closeDeferred.await()
+      ipc.awaitClosed()
       debugHttp("start close", "onDestroy ${ipc.remote.mmid} ${serverUrlInfo.host}")
       listener.destroy()
       close(ipc, options)
@@ -519,7 +519,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
     debugHttp("LISTEN/start", "host: ${gateway.urlInfo.host}, token: $token")
 
-    val streamIpc = kotlinIpcPool.create(
+    val streamIpc = kotlinIpcPool.createIpc(
       "http-gateway/${gateway.urlInfo.host}",
       gateway.listener.mainIpc.remote,
       message.body.toPureStream(),

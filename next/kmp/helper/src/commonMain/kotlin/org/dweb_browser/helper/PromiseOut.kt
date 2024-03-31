@@ -67,3 +67,22 @@ open class PromiseOut<T> : SynchronizedObject() {
     }
   }
 }
+
+
+inline fun <T> CompletableDeferred<T>.launchIn(
+  scope: CoroutineScope,
+  crossinline block: suspend CoroutineScope.() -> T,
+) {
+  scope.launch {
+    try {
+      complete(block())
+    } catch (e: Throwable) {
+      completeExceptionally(e)
+    }
+  }
+}
+
+inline fun <T> CompletableDeferred<T>.alsoLaunchIn(
+  scope: CoroutineScope,
+  crossinline block: suspend CoroutineScope.() -> T,
+) = also { launchIn(scope, block) }

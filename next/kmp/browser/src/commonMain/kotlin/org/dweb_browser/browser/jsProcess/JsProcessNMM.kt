@@ -14,9 +14,8 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcResponse
-import org.dweb_browser.core.ipc.kotlinIpcPool
+import org.dweb_browser.core.ipc.helper.collectIn
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -29,7 +28,6 @@ import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.http.PureServerRequest
 
 val debugJsProcess = Debugger("js-process")
 
@@ -58,34 +56,38 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
       // 提供基本的主页服务
       val serverIpc = server.listen()
-      serverIpc.requestFlow.onEach { (request, ipc) ->
+      serverIpc.onRequest.collectIn(ioAsyncScope) { request ->
         // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
         if (request.uri.encodedPath.startsWith(INTERNAL_PATH)) {
           val internalPath = request.uri.encodedPath.substring(INTERNAL_PATH.length)
           if (internalPath == "/bootstrap.js") {
-            ipc.postMessage(
+            serverIpc.postMessage(
               IpcResponse.fromBinary(
                 request.reqId,
                 200,
                 PureHeaders(JS_CORS_HEADERS),
                 JS_PROCESS_WORKER_CODE.await(),
-                ipc
+                serverIpc
               )
             )
           } else {
-            ipc.postMessage(
+            serverIpc.postMessage(
               IpcResponse.fromText(
-                request.reqId, 404, PureHeaders(JS_CORS_HEADERS), "// no found $internalPath", ipc
+                request.reqId,
+                404,
+                PureHeaders(JS_CORS_HEADERS),
+                "// no found $internalPath",
+                serverIpc
               )
             )
           }
         } else {
           val response = nativeFetch("file:///sys/browser/js-process.main${request.uri.fullPath}")
-          ipc.postMessage(
-            IpcResponse.fromResponse(request.reqId, response, ipc)
+          serverIpc.postMessage(
+            IpcResponse.fromResponse(request.reqId, response, serverIpc)
           )
         }
-      }.launchIn(ioAsyncScope)
+      }
     }
 
     val apis = createJsProcessWeb(mainServer, this)
@@ -121,14 +123,15 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         }
         // 创建成功了，注册销毁函数
         ioAsyncScope.launch {
-          ipc.closeDeferred.await()
+          ipc.awaitClosed()
           closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.remote.mmid)
         }
         val result = createProcessAndRun(
-          processId,
-          ipc, apis,
-          bootstrapUrl,
-          request.queryOrNull("entry"), request,
+          processId = processId,
+          processIpc = ipc,
+          apis = apis,
+          bootstrapUrl = bootstrapUrl,
+          entry = request.queryOrNull("entry"),
         )
         // 将自定义的 processId 与真实的 js-process_id 进行关联
         po.resolve(result.processHandler.info.process_id)
@@ -175,42 +178,25 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
 
   private suspend fun createProcessAndRun(
     processId: String,
-    ipc: Ipc,
+    processIpc: Ipc,
     apis: JsProcessWebApi,
     bootstrapUrl: String,
     entry: String?,
-    requestMessage: PureServerRequest,
   ): CreateProcessAndRunResult {
     /**
      * 用自己的域名的权限为它创建一个子域名
      */
     val httpDwebServer = createHttpDwebServer(
-      DwebHttpServerOptions(subdomain = ipc.remote.mmid),
+      DwebHttpServerOptions(subdomain = processIpc.remote.mmid),
     );
 
-    /**
-     * 远端是代码服务，所以这里是 client 的身份
-     */
-    val streamIpc = kotlinIpcPool.create(
-      "code-proxy-server-$processId",
-      ipc.remote,
-    ) {
-      requestMessage.body.toPureStream()
-    }
-    this.addToIpcSet(streamIpc)
+    this.addToIpcSet(processIpc)
 
     /**
      * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
      */
     ioAsyncScope.launch {
-      ipc.closeDeferred.await()
-      streamIpc.close()
-    }
-    /**
-     * “代码IPC流通道”关闭的时候，关闭这个子域名
-     */
-    ioAsyncScope.launch {
-      streamIpc.closeDeferred.await()
+      processIpc.awaitClosed()
       httpDwebServer.close();
     }
 
@@ -222,12 +208,12 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
      */
     val codeProxyServerIpc = httpDwebServer.listen()
 
-    codeProxyServerIpc.requestFlow.onEach { (request, ipc) ->
-      ipc.postResponse(
+    codeProxyServerIpc.onRequest.onEach { request ->
+      codeProxyServerIpc.postResponse(
         request.reqId,
         // 转发给远端来处理 IpcServerRequest -> PureServerRequest -> PureClientRequest
         /// TODO 对代码进行翻译处理
-        streamIpc.request(request.toPure().toClient()).let {
+        processIpc.request(request.toPure().toClient()).let {
           /// 加入跨域配置
           val response = it;
           for ((key, value) in JS_CORS_HEADERS) {
@@ -241,7 +227,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     @Serializable
     data class JsProcessMetadata(val mmid: MMID) {}
     /// TODO 需要传过来，而不是自己构建
-    val metadata = JsProcessMetadata(ipc.remote.mmid)
+    val metadata = JsProcessMetadata(processIpc.remote.mmid)
 
     /// TODO env 允许远端传过来扩展
     val env = mutableMapOf( // ...your envs
@@ -257,11 +243,11 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       bootstrapUrl,
       Json.encodeToString(metadata),
       Json.encodeToString(env),
-      ipc.remote,
+      processIpc.remote,
       httpDwebServer.startResult.urlInfo.host
     )
     ioAsyncScope.launch {
-      processHandler.ipc.closeDeferred.await()
+      processHandler.ipc.awaitClosed()
       apis.destroyProcess(processHandler.info.process_id)
     }
     /**
@@ -270,24 +256,24 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
      * TODO 所有的 ipcMessage 应该都有 headers，这样我们在 workerIpcMessage.headers 中附带上当前的 processId，
      * 回来的 remoteIpcMessage.headers 同样如此，否则目前的模式只能代理一个 js-process 的消息。另外开 streamIpc 导致的翻译成本是完全没必要的
      */
-    processHandler.ipc.messageFlow.onEach { (workerIpcMessage) ->
+    processHandler.ipc.onMessage.collectIn(ioAsyncScope) { workerIpcMessage ->
       /**
        * 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
        */
-      ipc.postMessage(workerIpcMessage)
-    }.launchIn(ioAsyncScope)
-    ipc.messageFlow.onEach { (remoteIpcMessage) ->
+      processIpc.postMessage(workerIpcMessage)
+    }
+    processIpc.onMessage.collectIn(ioAsyncScope) { remoteIpcMessage ->
       processHandler.ipc.postMessage(remoteIpcMessage)
-    }.launchIn(ioAsyncScope)
+    }
     /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
     ioAsyncScope.launch {
-      ipc.closeDeferred.await()
+      processIpc.awaitClosed()
       processHandler.ipc.close()
     }
     /// 双向绑定关闭
     ioAsyncScope.launch {
-      processHandler.ipc.closeDeferred.await()
-      ipc.close()
+      processHandler.ipc.awaitClosed()
+      processIpc.close()
     }
 
     /**
@@ -300,7 +286,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       }.toString()))
     )
 
-    return CreateProcessAndRunResult(streamIpc, processHandler)
+    return CreateProcessAndRunResult(processIpc, processHandler)
   }
 
   data class CreateProcessAndRunResult(

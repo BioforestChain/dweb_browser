@@ -15,60 +15,40 @@ const val DEFAULT_BUFFER_SIZE: Int = 8 * 1024
 data class IpcPoolMessageArgs(val message: EndpointIpcMessage, val ipc: Ipc)
 typealias OnIpcPoolMessage = SignalCallback<IpcPoolMessageArgs>
 
-/**Ipc*/
-data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc)
-typealias OnIpcMessage = SignalCallback<IpcMessageArgs>
-
-data class IpcRequestMessageArgs(val request: IpcServerRequest, val ipc: Ipc)
-typealias OnIpcRequestMessage = SignalCallback<IpcRequestMessageArgs>
-
-data class IpcResponseMessageArgs(val response: IpcResponse, val ipc: Ipc)
-typealias OnIpcResponseMessage = SignalCallback<IpcResponseMessageArgs>
-
-data class IpcStreamMessageArgs(val response: IpcStream, val ipc: Ipc)
-typealias OnIpcStreamMessage = SignalCallback<IpcStreamMessageArgs>
-
-data class IpcEventMessageArgs(val event: IpcEvent, val ipc: Ipc)
-typealias OnIpcEventMessage = SignalCallback<IpcEventMessageArgs>
-
-data class IpcLifeCycleMessageArgs(val event: EndpointLifecycle, val ipc: Ipc)
-typealias OnIpcLifeCycleMessage = SignalCallback<IpcLifeCycleMessageArgs>
-
-data class IpcErrorMessageArgs(val event: IpcError, val ipc: Ipc)
-typealias OnIpcErrorMessage = SignalCallback<IpcErrorMessageArgs>
-
 @Serializable(IPC_MESSAGE_TYPE_Serializer::class)
 enum class IPC_MESSAGE_TYPE(val type: Byte) {
+  LIFECYCLE(0),
+
   /** 类型：请求 */
-  REQUEST(0),
+  REQUEST(1),
 
   /** 类型：相应 */
-  RESPONSE(1),
+  RESPONSE(2),
 
   /** 类型：流数据，发送方 */
-  STREAM_DATA(2),
+  STREAM_DATA(3),
 
   /** 类型：流拉取，请求方 */
-  STREAM_PULL(3),
+  STREAM_PULL(4),
 
   /** 类型：推送流，发送方
    * 对方可能没有发送PULL过来，或者发送了被去重了，所以我们需要主动发送PUSH指令，对方收到后，如果状态允许，则会发送PULL指令过来拉取数据
    */
-  STREAM_PAUSED(4),
+  STREAM_PAUSED(5),
 
   /** 类型：流关闭，发送方
    * 可能是发送完成了，也有可能是被中断了
    */
-  STREAM_END(5),
+  STREAM_END(6),
 
   /** 类型：流中断，请求方 */
-  STREAM_ABORT(6),
+  STREAM_ABORT(7),
 
   /** 类型：事件 */
-  EVENT(7),
+  EVENT(8),
 
   /**类型：错误*/
-  ERROR(8)
+  ERROR(9),
   ;
 
   companion object {
@@ -81,10 +61,10 @@ object IPC_MESSAGE_TYPE_Serializer :
 
 
 object ENDPOINT_STATE_Serializer :
-  IntEnumSerializer<ENDPOINT_STATE>("ENDPOINT_STATE", ENDPOINT_STATE.ALL_VALUES, { state })
+  IntEnumSerializer<LIFECYCLE_STATE>("ENDPOINT_STATE", LIFECYCLE_STATE.ALL_VALUES, { state })
 
 @Serializable(ENDPOINT_STATE_Serializer::class)
-enum class ENDPOINT_STATE(val state: Int) {
+enum class LIFECYCLE_STATE(val state: Int) {
   INIT(0),
   OPENING(1),
   OPENED(2),
@@ -92,7 +72,7 @@ enum class ENDPOINT_STATE(val state: Int) {
   CLOSED(4), ;
 
   companion object {
-    val ALL_VALUES = ENDPOINT_STATE.entries.associateBy { it.state }
+    val ALL_VALUES = LIFECYCLE_STATE.entries.associateBy { it.state }
   }
 }
 

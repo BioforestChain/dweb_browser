@@ -64,12 +64,12 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           debugNMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
           val acc = ipc_acc++
-          val fromNativeIpc = kotlinIpcPool.create(
+          val fromNativeIpc = kotlinIpcPool.createIpc(
             "from-native-${fromMM.id}-$acc",
             toMM,
             channel.port1
           )
-          val toNativeIpc = kotlinIpcPool.create(
+          val toNativeIpc = kotlinIpcPool.createIpc(
             "to-native-${toMM.id}-$acc",
             fromMM,
             channel.port2
@@ -128,7 +128,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   override suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) =
     super.beforeBootstrap(bootstrapContext).trueAlso {
       onConnect { (clientIpc) ->
-        clientIpc.requestFlow.onEach { (ipcRequest) ->
+        clientIpc.onRequest.onEach { (ipcRequest) ->
           debugNMM("NMM/Handler", ipcRequest.url)
           /// 根据host找到对应的路由模块
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
@@ -249,7 +249,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       }
       // 监听 ipc 关闭，这可能由程序自己控制
       val closeListen = ioAsyncScope.launch {
-        ipc.closeDeferred.await()
+        ipc.awaitClosed()
         doClose()
       }
       // 监听 job 完成，释放相关的监听
@@ -309,7 +309,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       }
       // 监听 ipc 关闭，这可能由程序自己控制
       val closeListen = ioAsyncScope.launch {
-        ipc.closeDeferred.await()
+        ipc.awaitClosed()
         doClose()
       }
       // 监听 job 完成，释放相关的监听

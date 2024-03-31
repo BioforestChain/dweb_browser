@@ -168,18 +168,18 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         val bConnectResult = ConnectResult(aConnectResult.ipcForToMM, aConnectResult.ipcForFromMM)
         bPromiseOut.resolve(bConnectResult)
         ioAsyncScope.launch {
-          aConnectResult.ipcForFromMM.closeDeferred.await()
+          aConnectResult.ipcForFromMM.awaitClosed()
           mmConnectsMap.remove(aKey)
           mmConnectsMap.remove(bKey)
         }
         ioAsyncScope.launch {
-          aConnectResult.ipcForToMM.closeDeferred.await()
+          aConnectResult.ipcForToMM.awaitClosed()
           mmConnectsMap.remove(aKey)
           mmConnectsMap.remove(bKey)
         }
         debugDNS(
           "connect-success",
-          "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid} FROM:${aConnectResult.ipcForFromMM.ipcDebugId} TO:${aConnectResult.ipcForToMM.ipcDebugId}"
+          "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid} FROM:${aConnectResult.ipcForFromMM.debugId} TO:${aConnectResult.ipcForToMM.debugId}"
         )
         aConnectResult
       }

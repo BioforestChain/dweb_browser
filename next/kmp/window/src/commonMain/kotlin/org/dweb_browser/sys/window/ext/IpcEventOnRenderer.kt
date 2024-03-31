@@ -1,12 +1,10 @@
 package org.dweb_browser.sys.window.ext
 
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
+import org.dweb_browser.core.ipc.helper.collectIn
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SimpleSignal
@@ -37,29 +35,29 @@ val NativeMicroModule.hasMainWindow
   get() = getMainWindowIdWMDeferred(this).isCompleted
 
 fun NativeMicroModule.onRenderer(cb: suspend RendererContext.() -> Unit) = onConnect { (ipc) ->
-  ipc.onEvent.onEach { args ->
-    if (args.event.isRenderer()) {
-      val context = RendererContext.get(args, this@onRenderer)
+  ipc.onEvent.collectIn(ioAsyncScope) { ipcEvent ->
+    if (ipcEvent.isRenderer()) {
+      val context = RendererContext.get(ipcEvent, ipc, this@onRenderer)
       context.cb()
       ioAsyncScope.launch {
-        args.ipc.closeDeferred.await()
+        ipc.awaitClosed()
         context.emitDispose()
       }
-    } else if (args.event.isRendererDestroy()) {
-      val context = RendererContext.get(args, this@onRenderer)
+    } else if (ipcEvent.isRendererDestroy()) {
+      val context = RendererContext.get(ipcEvent, ipc, this@onRenderer)
       context.emitDispose()
     }
-  }.launchIn(ioAsyncScope)
+  }
 }
 
 class RendererContext(val wid: String, val ipc: Ipc, internal val mm: NativeMicroModule) {
   companion object {
     private val windowRendererContexts = SafeHashMap<String, RendererContext>()
-    fun get(args: IpcEventMessageArgs, mm: NativeMicroModule) = getWid(args).let { wid ->
-      windowRendererContexts.getOrPut(wid) { RendererContext(wid, args.ipc, mm) }
+    fun get(ipcEvent: IpcEvent, ipc: Ipc, mm: NativeMicroModule) = getWid(ipcEvent).let { wid ->
+      windowRendererContexts.getOrPut(wid) { RendererContext(wid, ipc, mm) }
     }
 
-    private fun getWid(args: IpcEventMessageArgs) = args.event.text
+    private fun getWid(args: IpcEvent) = args.text
   }
 
   internal val disposeSignal = lazy { SimpleSignal() }

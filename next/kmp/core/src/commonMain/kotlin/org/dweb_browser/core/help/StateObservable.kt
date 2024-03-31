@@ -30,7 +30,7 @@ open class StateObservable(
         }
       }
       this.launch {
-        ipc.closeDeferred.await()
+        ipc.awaitClosed()
 //        controller.closeWrite()
         off()
       }

@@ -14,6 +14,7 @@ import org.dweb_browser.pure.http.PureHeaders
 
 val moduleIpc = SerializersModule {
   polymorphic(IpcMessage::class) {
+    subclass(IpcLifecycle::class)
     subclass(IpcReqMessage::class)
     subclass(IpcResMessage::class)
     subclass(IpcEvent::class)
@@ -73,18 +74,20 @@ fun unByteSpecial(data: ByteArray): ByteArray? {
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-inline fun cborToIpcPoolPack(data: ByteArray) = CborIpc.decodeFromByteArray<EndpointMessage>(data)
+inline fun cborToEndpointMessage(data: ByteArray) =
+  CborIpc.decodeFromByteArray<EndpointMessage>(data)
 
-inline fun jsonToIpcPoolPack(data: String) = JsonIpc.decodeFromString<EndpointMessage>(data)
+inline fun jsonToEndpointMessage(data: String) = JsonIpc.decodeFromString<EndpointMessage>(data)
 
 @OptIn(ExperimentalSerializationApi::class)
-fun ipcPoolPackToCbor(message: EndpointMessage) =
+fun endpointMessageToCbor(message: EndpointMessage) =
   CborIpc.encodeToByteArray<EndpointMessage>(serializableIpcMessage(message))
 
-fun ipcPoolPackToJson(message: EndpointMessage) =
+fun endpointMessageToJson(message: EndpointMessage) =
   JsonIpc.encodeToString<EndpointMessage>(serializableIpcMessage(message))
 
-fun normalizeIpcMessage(ipcPoolPack: EndpointMessage, ipc: Ipc) = when (ipcPoolPack) {
+@Suppress("UNCHECKED_CAST")
+fun <T : EndpointMessage> normalizeIpcMessage(ipcPoolPack: T, ipc: Ipc): T = when (ipcPoolPack) {
   is EndpointIpcMessage -> when (val ipcMessage = ipcPoolPack.ipcMessage) {
     is IpcReqMessage -> IpcServerRequest(
       ipcMessage.reqId,
@@ -93,7 +96,7 @@ fun normalizeIpcMessage(ipcPoolPack: EndpointMessage, ipc: Ipc) = when (ipcPoolP
       PureHeaders(ipcMessage.headers),
       IpcBodyReceiver.from(ipcMessage.metaBody, ipc),
       ipc
-    ).let { ipcPoolPack.copy(ipcMessage = it) }
+    ).let { ipcPoolPack.copy(ipcMessage = it) as T }
 
     is IpcResMessage -> IpcResponse(
       ipcMessage.reqId,
@@ -101,7 +104,7 @@ fun normalizeIpcMessage(ipcPoolPack: EndpointMessage, ipc: Ipc) = when (ipcPoolP
       PureHeaders(ipcMessage.headers),
       IpcBodyReceiver.from(ipcMessage.metaBody, ipc),
       ipc
-    ).let { ipcPoolPack.copy(ipcMessage = it) }
+    ).let { ipcPoolPack.copy(ipcMessage = it) as T }
 
     else -> ipcPoolPack
   }
@@ -109,10 +112,11 @@ fun normalizeIpcMessage(ipcPoolPack: EndpointMessage, ipc: Ipc) = when (ipcPoolP
   else -> ipcPoolPack
 }
 
-fun serializableIpcMessage(ipcPoolPack: EndpointMessage) = when (ipcPoolPack) {
+@Suppress("UNCHECKED_CAST")
+fun <T : EndpointMessage> serializableIpcMessage(ipcPoolPack: T): T = when (ipcPoolPack) {
   is EndpointIpcMessage -> when (val ipcMessage = ipcPoolPack.ipcMessage) {
-    is IpcRequest -> ipcPoolPack.copy(ipcMessage = ipcMessage.ipcReqMessage)
-    is IpcResponse -> ipcPoolPack.copy(ipcMessage = ipcMessage.ipcResMessage)
+    is IpcRequest -> ipcPoolPack.copy(ipcMessage = ipcMessage.ipcReqMessage) as T
+    is IpcResponse -> ipcPoolPack.copy(ipcMessage = ipcMessage.ipcResMessage) as T
     else -> ipcPoolPack
   }
 

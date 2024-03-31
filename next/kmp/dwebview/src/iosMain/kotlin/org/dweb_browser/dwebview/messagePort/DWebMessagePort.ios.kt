@@ -3,7 +3,7 @@ package org.dweb_browser.dwebview.messagePort
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -42,7 +42,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView, parentScop
     }
     channel
   }
-  private val scope = parentScope + Job()
+  private val scope = parentScope + SupervisorJob()
 
   override suspend fun start() {
     _started.value
@@ -76,9 +76,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView, parentScop
         }.joinToString(",")
         webview.engine.evalAsyncJavascript<Unit>(
           "nativePortPostMessage($portId, ${
-            Json.encodeToString(
-              event.data.decodeToString()
-            )
+            Json.encodeToString(event.text)
           }, [$ports])", null, DWebViewWebMessage.webMessagePortContentWorld
         ).await()
       } else if (event is DWebMessage.DWebMessageString) {
@@ -88,9 +86,7 @@ class DWebMessagePort(val portId: Int, private val webview: DWebView, parentScop
         }.joinToString(",")
         webview.engine.evalAsyncJavascript<Unit>(
           "nativePortPostMessage($portId, ${
-            Json.encodeToString(
-              event.data
-            )
+            Json.encodeToString(event.text)
           }, [$ports])", null, DWebViewWebMessage.webMessagePortContentWorld
         ).await()
       }

@@ -23,7 +23,7 @@ class IpcBodyReceiver(
     if (metaBody.type.isStream && metaBody.streamId != null) {
       CACHE.streamId_receiverIpc_Map.getOrPut(metaBody.streamId) {
         ipc.scope.launch {
-          ipc.closeDeferred.await()
+          ipc.awaitClosed()
           CACHE.streamId_receiverIpc_Map.remove(metaBody.streamId)
         }
         metaBody.receiverPoolId = ipc.pool.poolId
@@ -73,7 +73,7 @@ class IpcBodyReceiver(
         ReadableStream(ipc.scope, cid = "receiver=${streamId}", onStart = { controller ->
           // 注册关闭事件
           this.launch {
-            ipc.closeDeferred.await()
+            ipc.awaitClosed()
             controller.closeWrite()
           }
           /// 如果有初始帧，直接存起来

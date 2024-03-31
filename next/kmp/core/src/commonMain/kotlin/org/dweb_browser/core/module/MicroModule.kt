@@ -1,6 +1,5 @@
 package org.dweb_browser.core.module
 
-import io.ktor.util.collections.ConcurrentSet
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -15,10 +14,10 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -122,9 +121,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 //    }
     val jobs = _ipcSet.map {
       _scope.launch {
-        println("xxxx=> _ipcSet closeSTART ${it.ipcDebugId}")
+        println("xxxx=> _ipcSet closeSTART ${it.debugId}")
         it.close()
-        println("xxxx=> _ipcSet closeEND ${it.ipcDebugId}")
+        println("xxxx=> _ipcSet closeEND ${it.debugId}")
       }
     }
     jobs.joinAll()
@@ -160,21 +159,19 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   /**
    * MicroModule连接池
    */
-  private val _ipcSet = ConcurrentSet<Ipc>()
+  private val _ipcSet = SafeHashSet<Ipc>()
 
   suspend fun addToIpcSet(ipc: Ipc): Boolean {
-    // 这里的ReadableStreamIpc比较特殊，因为是通过绑定对方的流来接收对方消息，如果这里等待，第一次没等到会出现死锁
-    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP && ipc !is ReadableStreamIpc) {
+    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
       debugMicroModule(
         "addToIpcSet",
-        "⏸️「${ipc.ipcDebugId}」 $mmid => ${ipc.remote.mmid} , ${runningStateLock.isResolved}"
+        "⏸️「${ipc.debugId}」 $mmid => ${ipc.remote.mmid} , ${runningStateLock.isResolved}"
       )
-      ipc.awaitOpen()
-      debugMicroModule("addToIpcSet", "✅ ${ipc.ipcDebugId} end")
+      debugMicroModule("addToIpcSet", "✅ ${ipc.debugId} end")
     }
     return if (this._ipcSet.add(ipc)) {
       ioAsyncScope.launch {
-        ipc.closeDeferred.await()
+        ipc.awaitClosed()
         _ipcSet.remove(ipc)
       }
       true

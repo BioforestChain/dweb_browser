@@ -2,8 +2,6 @@ package org.dweb_browser.browser.desk
 
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -14,6 +12,7 @@ import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.ipc.helper.collectIn
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.createChannel
@@ -336,7 +335,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   private suspend fun createTaskbarWebServer(): HttpDwebServer {
     val taskbarServer =
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar"))
-    taskbarServer.listen().requestFlow.onEach { (ipcServerRequest, ipc) ->
+    val serverIpc = taskbarServer.listen()
+    serverIpc.onRequest.collectIn(ioAsyncScope) { ipcServerRequest ->
       val pathName = ipcServerRequest.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {
         val internalUri = pathName.substring(API_PREFIX.length)
@@ -345,15 +345,16 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         "file:///sys/browser/desk${pathName}?mode=stream"
       }
       val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
-      ipc.postMessage(IpcResponse.fromResponse(ipcServerRequest.reqId, response, ipc))
-    }.launchIn(ioAsyncScope)
+      serverIpc.postMessage(IpcResponse.fromResponse(ipcServerRequest.reqId, response, serverIpc))
+    }
     return taskbarServer
   }
 
   private suspend fun createDesktopWebServer(): HttpDwebServer {
     val desktopServer =
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop"))
-    desktopServer.listen().requestFlow.onEach { (ipcServerRequest, ipc) ->
+    val serverIpc = desktopServer.listen()
+    serverIpc.onRequest.collectIn(ioAsyncScope) { ipcServerRequest ->
       val pathName = ipcServerRequest.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {
         val internalUri = pathName.substring(API_PREFIX.length)
@@ -362,12 +363,14 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         "file:///sys/browser/desk${ipcServerRequest.uri.encodedPath}?mode=stream"
       }
       val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
-      ipc.postMessage(
+      serverIpc.postMessage(
         IpcResponse.fromResponse(
-          ipcServerRequest.reqId, PureResponse.build(response) { appendHeaders(CORS_HEADERS) }, ipc
+          ipcServerRequest.reqId,
+          PureResponse.build(response) { appendHeaders(CORS_HEADERS) },
+          serverIpc
         )
       )
-    }.launchIn(ioAsyncScope)
+    }
     return desktopServer
   }
 }

@@ -39,11 +39,11 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
         val url = request.query("url")
         val wid = request.query("wid")
 
-        val remoteMm = ipc.remoteAsInstance()
+        val remoteMm = bootstrapContext.dns.query(ipc.remote.mmid)
           ?: throw Exception("mwebview.browser.dweb/open should be call by locale for now")
         debugMultiWebView("/open", "MultiWebViewNMM open!!! ${remoteMm.mmid}")
         ioAsyncScope.launch {
-          ipc.closeDeferred.await()
+          ipc.awaitClosed()
           debugMultiWebView("/open", "listen ipc close destroy window")
           val controller = controllerMap[ipc.remote.mmid]
           controller?.destroyWebView()
