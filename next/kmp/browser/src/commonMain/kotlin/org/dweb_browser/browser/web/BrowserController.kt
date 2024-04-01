@@ -25,14 +25,14 @@ import org.dweb_browser.sys.window.ext.getWindow
 class BrowserController(
   private val browserNMM: BrowserNMM, private val webLinkStore: WebLinkStore
 ) {
-  val viewModel = BrowserViewModel(this, browserNMM)
-  private val browserStore = BrowserStore(browserNMM)
+  private val windowVisibleSignal = Signal<Boolean>()
+  val onWindowVisible = windowVisibleSignal.toListener()
 
   private val closeWindowSignal = SimpleSignal()
   val onCloseWindow = closeWindowSignal.toListener()
 
-  private val windowVisibleSignal = Signal<Boolean>()
-  val onWindowVisible = windowVisibleSignal.toListener()
+  val viewModel = BrowserViewModel(this, browserNMM)
+  private val browserStore = BrowserStore(browserNMM)
 
   private val addWebLinkSignal = Signal<WebLinkManifest>()
   val onWebLinkAdded = addWebLinkSignal.toListener()

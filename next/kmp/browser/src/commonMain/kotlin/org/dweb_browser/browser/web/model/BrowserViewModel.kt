@@ -76,6 +76,9 @@ data class DwebLinkSearchItem(val link: String, val target: AppBrowserTarget) {
 class BrowserViewModel(
   private val browserController: BrowserController, internal val browserNMM: NativeMicroModule
 ) {
+  val browserOnVisible = browserController.onWindowVisible
+  val browserOnClose = browserController.onCloseWindow
+
   val ioScope get() = browserNMM.ioAsyncScope
   private val pages = mutableStateListOf<BrowserPage>() // 多浏览器列表
   val pageSize get() = pages.size
@@ -143,8 +146,6 @@ class BrowserViewModel(
 
   fun getBookmarks() = browserController.bookmarksStateFlow.value
   fun getHistoryLinks() = browserController.historyStateFlow.value
-  val browserOnVisible = browserController.onWindowVisible
-  val browserOnClose = browserController.onCloseWindow
 
   fun getPageOrNull(currentPage: Int) = pages.getOrNull(currentPage)
   fun getPage(currentPage: Int) = pages[currentPage]
