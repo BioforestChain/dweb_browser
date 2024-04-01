@@ -27,6 +27,8 @@ kotlin {
       implementation(projects.sys)
       implementation(projects.browser)
       implementation(projects.dwebview)
+      implementation(libs.ktor.server.core)
+      implementation(libs.ktor.server.netty)
     }
   }
 }
@@ -43,7 +45,7 @@ compose.desktop {
     nativeDistributions {
       targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
       packageName = "DwebBrowser"
-      packageVersion = "2.3.2700"
+      packageVersion = "2.4.0100"
       includeAllModules = true
 
       val iconsRoot =

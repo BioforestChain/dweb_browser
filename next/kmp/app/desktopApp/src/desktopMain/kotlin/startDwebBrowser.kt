@@ -1,3 +1,6 @@
+import WindowsSingleInstance.singleInstanceFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
@@ -16,6 +19,7 @@ import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.core.std.permission.debugPermission
 import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
@@ -79,6 +83,13 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   val dnsNMM = DnsNMM()
   suspend fun MicroModule.setup() = this.also {
     dnsNMM.install(this)
+  }
+
+  // 添加windows平台系統級dweb deeplinks处理
+  if(PureViewController.isWindows) {
+    singleInstanceFlow.onEach {
+      dnsNMM.nativeFetch(it.replace("/?", "?"))
+    }.launchIn(dnsNMM.ioAsyncScope)
   }
 
   // 添加dweb deeplinks处理
