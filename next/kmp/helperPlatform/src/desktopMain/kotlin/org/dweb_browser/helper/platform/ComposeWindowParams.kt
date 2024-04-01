@@ -226,13 +226,13 @@ class ComposeWindowParams(
       }
     }
   }
-
+  // 窗口是否聚焦状态
   enum class AwtWindowFocusState {
     Gained, Lost,
   }
 
   val mouseMotionEvents = MouseMotionEvents()
-
+  // 鼠标运动触发的副作用事件
   inner class MouseMotionEvents {
     private val _mouseDragged = MutableSharedFlow<MouseEvent>()
     val mouseDragged = _mouseDragged.asSharedFlow()

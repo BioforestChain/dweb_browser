@@ -88,11 +88,6 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
 
     val controller = controllerMap.getOrPut(remoteMmid) {
       val win = remoteMm.getWindow(wid)
-      remoteMm.manifest.display?.let { mode ->
-        if (mode == DisplayMode.Fullscreen) {
-          win.maximize()
-        }
-      }
       /// 窗口销毁的时候，释放这个Controller
       win.onClose {
         controllerMap.remove(remoteMmid)
