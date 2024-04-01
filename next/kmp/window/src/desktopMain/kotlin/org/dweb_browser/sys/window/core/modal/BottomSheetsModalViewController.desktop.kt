@@ -10,11 +10,12 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.helper.compose.ScreenSize
+import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.render.LocalWindowLimits
@@ -41,11 +42,11 @@ internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
             SheetValue.PartiallyExpanded -> emitModalVisibilityChange(EmitModalVisibilityState.Open)
           }
         }
-      });
-    val scope = rememberCoroutineScope()
-
+      })
+    // 给macos 的dock预留空间 todo 动态拿到dock 高度
+    val bottomInsets = if (PureViewController.isMacOS) 100 else 0
     val modalWindowInsets = remember {
-      WindowInsets(0, 0, 0, 0)
+      WindowInsets(0, 0, 0, bottomInsets)
     }
 
     val winPadding = LocalWindowPadding.current
