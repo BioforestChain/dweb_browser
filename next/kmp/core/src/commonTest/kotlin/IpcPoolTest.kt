@@ -25,7 +25,7 @@ import kotlin.test.assertEquals
 
 
 class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
-  NativeMicroModule(mmid, "test IpcPool") {
+  NativeMicroModule.NativeRuntime(mmid, "test IpcPool") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       "/test" bind PureMethod.POST by definePureStreamHandler {
@@ -40,7 +40,7 @@ class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
           val pathName = request.uri.encodedPath
           println("/test 拿到结果=> $pathName")
           ipc.postMessage(IpcResponse.fromText(request.reqId, 200, PureHeaders(), "返回结果", ipc))
-        }.launchIn(ioAsyncScope)
+        }.launchIn(mmScope)
         streamIpc.input.stream
       })
   }

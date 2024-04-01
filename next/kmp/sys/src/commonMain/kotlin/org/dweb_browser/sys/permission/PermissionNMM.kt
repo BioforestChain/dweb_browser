@@ -64,7 +64,7 @@ import org.dweb_browser.sys.window.ext.onRenderer
 import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.imageFetchHook
 
-class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Management") {
+class PermissionNMM : NativeMicroModule.NativeRuntime("permission.sys.dweb", "Permission Management") {
   init {
     short_name = "Permission";
     dweb_protocols = listOf("permission.std.dweb")
@@ -259,7 +259,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
         }
       }
       submitDeferred.invokeOnCompletion {
-        ioAsyncScope.launch {
+        mmScope.launch {
           modal.close()
         }
       }

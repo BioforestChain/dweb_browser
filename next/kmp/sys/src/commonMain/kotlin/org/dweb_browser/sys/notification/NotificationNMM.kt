@@ -12,7 +12,7 @@ import org.dweb_browser.pure.http.queryAs
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.ext.requestSystemPermission
 
-class NotificationNMM : NativeMicroModule("notification.sys.dweb", "notification") {
+class NotificationNMM : NativeMicroModule.NativeRuntime("notification.sys.dweb", "notification") {
 
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service)

@@ -5,7 +5,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.pure.http.PureMethod
 
-class KeyNMM : NativeMicroModule("key.sys.dweb", "root key manager") {
+class KeyNMM : NativeMicroModule.NativeRuntime("key.sys.dweb", "root key manager") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     KeyApi.generatePrivateKey()
 

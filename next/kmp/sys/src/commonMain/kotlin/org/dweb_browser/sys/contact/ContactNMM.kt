@@ -13,7 +13,7 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermission
 
 val debugContact = Debugger("ContactPicker")
 
-class ContactNMM : NativeMicroModule("contact-picker.sys.dweb", "ContactPicker") {
+class ContactNMM : NativeMicroModule.NativeRuntime("contact-picker.sys.dweb", "ContactPicker") {
   private val contactManage = ContactManage()
 
   init {

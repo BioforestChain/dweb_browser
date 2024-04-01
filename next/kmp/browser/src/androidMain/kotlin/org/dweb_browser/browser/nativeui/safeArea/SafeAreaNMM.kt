@@ -14,7 +14,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.toJsonElement
 
-class SafeAreaNMM : NativeMicroModule("safe-area.nativeui.browser.dweb", "safeArea") {
+class SafeAreaNMM : NativeMicroModule.NativeRuntime("safe-area.nativeui.browser.dweb", "safeArea") {
 
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);

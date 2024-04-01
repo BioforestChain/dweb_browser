@@ -36,7 +36,7 @@ actual class NotificationManager actual constructor() {
 //  private val tray = SystemTray.getSystemTray();
 
   @OptIn(ExperimentalResourceApi::class)
-  actual suspend fun createNotification(microModule: MicroModule, message: NotificationWebItem) {
+  actual suspend fun createNotification(microModule: MicroModule.Runtime, message: NotificationWebItem) {
     if (!isSupport) {
       return
     }

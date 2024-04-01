@@ -27,7 +27,7 @@ class BrowserDownloadController(
 
   init {
     // 初始化下载数据
-    browserNMM.ioAsyncScope.launch {
+    browserNMM.mmScope.launch {
       saveCompleteList.addAll(downloadStore.getCompleteAll())
       saveDownloadList.addAll(downloadStore.getDownloadAll())
       var save = false
@@ -51,7 +51,7 @@ class BrowserDownloadController(
    * 保存下载的数据
    */
   fun saveDownloadList(download: Boolean = true, complete: Boolean = false) =
-    browserNMM.ioAsyncScope.launch {
+    browserNMM.mmScope.launch {
       if (download) downloadStore.saveDownloadList(saveDownloadList)
       if (complete) downloadStore.saveCompleteList(saveCompleteList)
     }
@@ -85,7 +85,7 @@ class BrowserDownloadController(
 
   private suspend fun watchProcess(browserDownloadItem: BrowserDownloadItem) {
     val taskId = browserDownloadItem.taskId ?: return
-    browserNMM.ioAsyncScope.launch {
+    browserNMM.mmScope.launch {
       browserDownloadItem.alreadyWatch = true
       val res = browserNMM.createChannelOfDownload(taskId) {
         val lastState = browserDownloadItem.state.state
@@ -118,7 +118,7 @@ class BrowserDownloadController(
     }
   }
 
-  fun deleteDownloadItems(list: MutableList<BrowserDownloadItem>) = browserNMM.ioAsyncScope.launch {
+  fun deleteDownloadItems(list: MutableList<BrowserDownloadItem>) = browserNMM.mmScope.launch {
     list.forEach { item -> item.taskId?.let { taskId -> browserNMM.removeDownload(taskId) } }
     saveCompleteList.removeAll(list)
     saveDownloadList.removeAll(list)
@@ -130,7 +130,7 @@ class BrowserDownloadController(
   /**
    * 用于响应点击“下载中”列表的按钮
    */
-  fun clickDownloadButton(downloadItem: BrowserDownloadItem) = browserNMM.ioAsyncScope.launch {
+  fun clickDownloadButton(downloadItem: BrowserDownloadItem) = browserNMM.mmScope.launch {
     when (downloadItem.state.state) {
       DownloadState.Completed -> {
         if (downloadItem.fileSuffix.type == BrowserDownloadType.Application) {
@@ -153,7 +153,7 @@ class BrowserDownloadController(
   /**
    * 用于响应点击“已下载”列表的按钮
    */
-  fun clickCompleteButton(downloadItem: BrowserDownloadItem) = browserNMM.ioAsyncScope.launch {
+  fun clickCompleteButton(downloadItem: BrowserDownloadItem) = browserNMM.mmScope.launch {
     // TODO 比如打开文档，打开应用安装界面等
   }
 }

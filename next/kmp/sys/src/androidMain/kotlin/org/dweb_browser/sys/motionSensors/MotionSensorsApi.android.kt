@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 
-actual class MotionSensorsManage actual constructor(mm: NativeMicroModule) {
+actual class MotionSensorsManage actual constructor(mm: NativeMicroModule.NativeRuntime) {
   private val sensorManager =
     getAppContext().getSystemService(Context.SENSOR_SERVICE) as SensorManager
 

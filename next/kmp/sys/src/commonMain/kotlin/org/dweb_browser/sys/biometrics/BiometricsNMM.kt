@@ -12,7 +12,7 @@ import org.dweb_browser.pure.http.queryAsOrNull
 
 val debugBiometrics = Debugger("biometrics")
 
-class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
+class BiometricsNMM : NativeMicroModule.NativeRuntime("biometrics.sys.dweb", "biometrics") {
 
   init {
     categories =

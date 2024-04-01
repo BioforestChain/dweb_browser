@@ -23,7 +23,7 @@ class DWebViewTest {
 
     suspend inline fun getWebview(): IDWebView {
       debugDWebView.forceEnable()
-      val mm = object : NativeMicroModule("mm.test.dweb", "MM") {
+      val mm = object : NativeMicroModule.NativeRuntime("mm.test.dweb", "MM") {
         override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {}
         override suspend fun _shutdown() {}
       }

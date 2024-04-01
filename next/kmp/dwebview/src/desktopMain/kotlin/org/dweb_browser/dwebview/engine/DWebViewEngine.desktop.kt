@@ -62,7 +62,7 @@ import javax.swing.SwingUtilities
 
 
 class DWebViewEngine internal constructor(
-  internal val remoteMM: MicroModule,
+  internal val remoteMM: MicroModule.Runtime,
   val options: DWebViewOptions,
   internal val browser: Browser = createMainBrowser(remoteMM)
 ) {
@@ -70,7 +70,7 @@ class DWebViewEngine internal constructor(
     /**
      * 构建一个 main-browser，当 main-browser 销毁， 对应的 WebviewEngine 也会被销毁
      */
-    internal fun createMainBrowser(remoteMM: MicroModule) = WebviewEngine.hardwareAccelerated {
+    internal fun createMainBrowser(remoteMM: MicroModule.Runtime) = WebviewEngine.hardwareAccelerated {
       addScheme(Scheme.of("dweb")) { params ->
         val pureResponse = runBlocking(ioAsyncExceptionHandler) {
           remoteMM.nativeFetch(params.urlRequest().url().replaceFirst("/?", "?"))
@@ -132,7 +132,7 @@ class DWebViewEngine internal constructor(
   val mainFrameOrNull get() = browser.mainFrame().getOrNull()
   val document get() = mainFrame.document().get()
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-  internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
+  internal val ioScope = CoroutineScope(remoteMM.mmScope.coroutineContext + SupervisorJob())
 
 
   /**

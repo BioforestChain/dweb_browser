@@ -29,7 +29,7 @@ actual class ContactManage {
   }
 
   @SuppressLint("Recycle", "Range")
-  actual suspend fun pickContact(microModule: MicroModule): ContactInfo? =
+  actual suspend fun pickContact(microModule: MicroModule.Runtime): ContactInfo? =
     ContactPickerActivity.launchAndroidPickerContact(microModule)?.let { uri ->
       debugContact("pickContact", "uri=$uri")
       val resolver = getAppContext().contentResolver

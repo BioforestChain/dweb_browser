@@ -22,7 +22,7 @@ data class DwebHttpServerOptions(
 ) {
 }
 
-suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions): HttpNMM.ServerStartResult {
+suspend fun MicroModule.Runtime.startHttpDwebServer(options: DwebHttpServerOptions): HttpNMM.ServerStartResult {
   val urlString = URLBuilder("file://http.std.dweb/start").apply {
     parameters["subdomain"] = options.subdomain
   }.buildUnsafeString()
@@ -33,7 +33,7 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions): Htt
 }
 
 
-suspend fun MicroModule.listenHttpDwebServer(
+suspend fun MicroModule.Runtime.listenHttpDwebServer(
   microModule: IMicroModuleManifest,
   startResult: HttpNMM.ServerStartResult,
   routes: Array<CommonRoute> = arrayOf(
@@ -55,12 +55,12 @@ suspend fun MicroModule.listenHttpDwebServer(
     parameters["token"] = startResult.token
     parameters["routes"] = Json.encodeToString(routes)
   }.buildUnsafeString())
-  this.addToIpcSet(serverIpc)
+  this.linkIpc(serverIpc)
   return serverIpc
 }
 
 
-suspend fun MicroModule.closeHttpDwebServer(options: DwebHttpServerOptions) =
+suspend fun MicroModule.Runtime.closeHttpDwebServer(options: DwebHttpServerOptions) =
   this.nativeFetch(
     URLBuilder("file://http.std.dweb/close").apply {
       parameters["subdomain"] = options.subdomain
@@ -68,7 +68,7 @@ suspend fun MicroModule.closeHttpDwebServer(options: DwebHttpServerOptions) =
   ).boolean()
 
 class HttpDwebServer(
-  private val nmm: MicroModule,
+  private val nmm: MicroModule.Runtime,
   private val options: DwebHttpServerOptions,
   val startResult: HttpNMM.ServerStartResult
 ) {
@@ -91,6 +91,6 @@ class HttpDwebServer(
   }
 }
 
-suspend fun MicroModule.createHttpDwebServer(options: DwebHttpServerOptions) =
+suspend fun MicroModule.Runtime.createHttpDwebServer(options: DwebHttpServerOptions) =
   HttpDwebServer(this, options, startHttpDwebServer(options))
 

@@ -31,7 +31,7 @@ data class SystemShortcut(
   }
 }
 
-class ShortcutStore(nmm: NativeMicroModule) {
+class ShortcutStore(nmm: NativeMicroModule.NativeRuntime) {
   private val shortcutStore = nmm.createStore("shortcut", false)
 
   suspend fun getAll(): MutableMap<String, SystemShortcut> {

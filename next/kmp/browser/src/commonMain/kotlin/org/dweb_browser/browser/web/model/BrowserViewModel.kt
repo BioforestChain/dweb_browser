@@ -71,12 +71,12 @@ data class DwebLinkSearchItem(val link: String, val target: AppBrowserTarget) {
  * 这里作为 ViewModel
  */
 class BrowserViewModel(
-  private val browserController: BrowserController, internal val browserNMM: NativeMicroModule
+  private val browserController: BrowserController, internal val browserNMM: NativeMicroModule.NativeRuntime
 ) {
   val browserOnVisible = browserController.onWindowVisible
   val browserOnClose = browserController.onCloseWindow
 
-  val ioScope get() = browserNMM.ioAsyncScope
+  val ioScope get() = browserNMM.mmScope
   private val pages = mutableStateListOf<BrowserPage>() // 多浏览器列表
   val pageSize get() = pages.size
 

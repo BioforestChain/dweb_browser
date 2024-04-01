@@ -13,7 +13,7 @@ import org.dweb_browser.pure.http.PureMethod
 
 val debugZip = Debugger("ZipManager")
 
-class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
+class ZipNMM : NativeMicroModule.NativeRuntime("zip.browser.dweb", "Zip") {
   init {
     short_name = "Zip存档管理"
     categories = listOf(

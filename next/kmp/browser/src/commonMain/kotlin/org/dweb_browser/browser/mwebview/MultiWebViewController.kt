@@ -39,8 +39,8 @@ class MultiWebViewController(
    */
   val ipc: Ipc,
   /// 以下这两参数是用来构建DWebView的时候使用的
-  private val localeMM: MicroModule,
-  private val remoteMM: MicroModule,
+  private val localeMM: MicroModule.Runtime,
+  private val remoteMM: MicroModule.Runtime,
 ) {
   companion object {
     private var webviewId_acc by SafeInt(1)

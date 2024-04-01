@@ -44,6 +44,8 @@ val defaultAsyncExceptionHandler = Default + commonAsyncExceptionHandler
 val mainAsyncExceptionHandler = SupervisorJob() + Main + commonAsyncExceptionHandler
 expect val ioAsyncExceptionHandler: CoroutineContext
 
+val emptyScope = CoroutineScope(EmptyCoroutineContext + commonAsyncExceptionHandler)
+
 expect suspend inline fun <T> withMainContext(crossinline block: suspend () -> T): T
 
 

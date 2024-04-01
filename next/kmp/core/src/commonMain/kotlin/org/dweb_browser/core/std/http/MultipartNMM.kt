@@ -23,7 +23,7 @@ import org.dweb_browser.helper.platform.MultipartFilePackage
 import org.dweb_browser.helper.platform.MultipartFileType
 import org.dweb_browser.pure.http.PureMethod
 
-class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/form-data parser") {
+class MultipartNMM : NativeMicroModule.NativeRuntime("multipart.http.std.dweb", "multipart/form-data parser") {
 
 
   @OptIn(ExperimentalSerializationApi::class)
@@ -91,12 +91,12 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
           }
         }
 
-        ioAsyncScope.launch {
+        mmScope.launch {
           processMultipartOpen(boundary, multipartEachArrayRangeCallback)
         }
         val id = deferred.await()
 
-        ioAsyncScope.launch {
+        mmScope.launch {
           request.body.toPureStream().getReader("multipart/form-data")
             .consumeEachArrayRange { byteArray, last ->
               if (!(last && byteArray.isEmpty())) {

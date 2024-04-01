@@ -29,7 +29,7 @@ import org.dweb_browser.sys.window.ext.onRenderer
 
 val debugJMM = Debugger("JMM")
 
-class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
+class JmmNMM : NativeMicroModule.NativeRuntime("jmm.browser.dweb", "Js MicroModule Service") {
   companion object {
     init {
       IDWebView.Companion.brands.add(
@@ -65,7 +65,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
           val rootKey = "${fromMM.mmid}-${fromMM.version}"
           debugJMM("UsrFile", "$fromMM => ${request.href} in $rootKey")
           val root = usrRootMap.getOrPut(fromMM.mmid) {
-            fromMM.ioAsyncScope.async {
+            fromMM.mmScope.async {
               this@JmmNMM.withBootstrap {
                 this@JmmNMM.realFile("/data/apps/${fromMM.mmid}-${fromMM.version}")
               }

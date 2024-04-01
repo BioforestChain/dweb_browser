@@ -15,7 +15,7 @@ import org.dweb_browser.core.std.file.ext.createStore
  * 权限表
  * 该表中有两个索引： mmid 和 permissionId
  */
-class PermissionTable(private val nmm: NativeMicroModule) {
+class PermissionTable(private val nmm: NativeMicroModule.NativeRuntime) {
   /**
    * 认证记录
    *
@@ -47,7 +47,7 @@ class PermissionTable(private val nmm: NativeMicroModule) {
   private val lock = Mutex(true)
 
   init {
-    nmm.ioAsyncScope.launch {
+    nmm.mmScope.launch {
       for ((pid, recordMap) in permissionStore.getAll<MutableMap<MMID, AuthorizationRecord>>()) {
         authorizationMap[pid] =
           mutableStateMapOf(*recordMap.map { it.key to it.value }.toTypedArray())

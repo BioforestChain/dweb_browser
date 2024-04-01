@@ -1,7 +1,5 @@
 package org.dweb_browser.shared
 
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -25,7 +23,7 @@ class TestEntry {
     bootNMM.postSystemShare(title = "Hello", text = "Contentxxxxxx")
   }
 
-  suspend fun readyForTest(testNMM: NativeMicroModule): BootNMM {
+  suspend fun readyForTest(testNMM: NativeMicroModule.NativeRuntime): BootNMM {
     val dnsNMM = DnsNMM()
 
     // 安装

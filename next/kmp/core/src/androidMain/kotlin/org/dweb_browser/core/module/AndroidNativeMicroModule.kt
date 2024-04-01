@@ -11,11 +11,11 @@ lateinit var nativeMicroModuleAppContext: Context
 fun getAppContext() = nativeMicroModuleAppContext
 
 private val lockActivityState = Mutex()
-fun <T : Activity> MicroModule.startAppActivity(
+fun <T : Activity> MicroModule.Runtime.startAppActivity(
   cls: Class<T>,
   onIntent: (intent: Intent) -> Unit
 ) {
-  ioAsyncScope.launch {
+  mmScope.launch {
     lockActivityState.withLock {
       if (grant?.await() == false) {
         return@withLock // TODO 用户拒绝协议应该做的事情ØÏ

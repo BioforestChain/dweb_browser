@@ -6,11 +6,11 @@ import org.dweb_browser.core.module.NativeMicroModule
 expect suspend fun share(
   shareOptions: ShareOptions,
   multiPartData: MultiPartData?,
-  shareNMM: NativeMicroModule? = null
+  shareNMM: NativeMicroModule.NativeRuntime? = null
 ): String
 
 expect suspend fun share(
   shareOptions: ShareOptions,
   files: List<String>,
-  shareNMM: NativeMicroModule? = null
+  shareNMM: NativeMicroModule.NativeRuntime? = null
 ): String

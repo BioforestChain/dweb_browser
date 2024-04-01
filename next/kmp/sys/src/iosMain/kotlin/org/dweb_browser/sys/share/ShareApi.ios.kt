@@ -25,7 +25,7 @@ import kotlin.experimental.ExperimentalObjCName
 actual suspend fun share(
   shareOptions: ShareOptions,
   multiPartData: MultiPartData?,
-  shareNMM: NativeMicroModule?
+  shareNMM: NativeMicroModule.NativeRuntime?
 ): String {
 
   return withMainContext {
@@ -84,7 +84,7 @@ actual suspend fun share(
 actual suspend fun share(
   shareOptions: ShareOptions,
   files: List<String>,
-  shareNMM: NativeMicroModule?
+  shareNMM: NativeMicroModule.NativeRuntime?
 ): String {
   return withMainContext {
     val deferred = CompletableDeferred<String>()

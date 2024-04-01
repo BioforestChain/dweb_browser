@@ -29,13 +29,12 @@ import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.IpcServerRequest
 import org.dweb_browser.core.ipc.helper.IpcStream
-import org.dweb_browser.core.ipc.helper.collectIn
-import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.IPureBody
@@ -76,14 +75,12 @@ open class Ipc private constructor(
 
   override fun toString() = "Ipc#$debugId"
 
-  private val lifecycleLocaleFlow = MutableStateFlow(IpcLifecycle.Init(pid, locale, remote))
-  private val lifecycleRemoteFlow = MutableStateFlow(IpcLifecycle.Init(pid, remote, locale))
+  private val lifecycleLocaleFlow =
+    MutableStateFlow<IpcLifecycle>(IpcLifecycle.Init(pid, locale, remote))
   val onLifecycle =
     lifecycleLocaleFlow.stateIn(scope, SharingStarted.Eagerly, lifecycleLocaleFlow.value)
   val lifecycle get() = lifecycleLocaleFlow.value
 
-
-  fun remoteAsInstance() = if (remote is MicroModule) remote else null
 
   // FIXME 这里两个10应该移除
   private val messageFlow = MutableSharedFlow<IpcMessage>(
@@ -221,7 +218,7 @@ open class Ipc private constructor(
     null
   }.getOrElse { it }
 
-  private val beforeClose = mutableSetOf<(CancellationException?) -> Unit>()
+  private val beforeClose = MutableSharedFlow<Unit>()
 
   /**
    * 放置回调函数在ipc关闭之前
@@ -230,8 +227,7 @@ open class Ipc private constructor(
    * 比方说你在多个 ipc 里同时注册了 onBeforeClose 去执行其它 ipc 的 close 函数，如果这里的回调函数是 suspend，那么就会引发循环等待的问题
    * 因此这里强制使用同步函数，目的就是让开发者如要执行什么 suspend 函数，需要显示地使用 scope 去 launch
    */
-  val onBeforeClose = beforeClose::add
-  val offBeforeClose = beforeClose::remove
+  val onBeforeClose = beforeClose.shareIn(scope, SharingStarted.Eagerly)
 
   // 开始触发关闭事件
   suspend fun close(cause: CancellationException? = null) = scope.isActive.trueAlso {
@@ -243,11 +239,7 @@ open class Ipc private constructor(
       WARNING("close ipc by self. maybe leak.")
     }
     debugIpc("ipc Close=>", debugId)
-    val cbs = beforeClose.toSet()
-    beforeClose.clear()
-    for (cb in cbs) {
-      cb(cause)
-    }
+    beforeClose.emit(Unit)
     scope.cancel()
   }
   //#region
@@ -255,11 +247,25 @@ open class Ipc private constructor(
    * 在现有的线路中分叉出一个ipc通道
    * 如果自定义了 locale/remote，那么说明自己是帮别人代理
    */
-  fun fork(
+  suspend fun fork(
     locale: IMicroModuleManifest = this.locale,
     remote: IMicroModuleManifest = this.remote,
-    autoStart: Boolean = true,
-  ) = pool.createIpc(endpoint, locale, remote, autoStart)
+    autoStart: Boolean = false,
+  ) = pool.createIpc(
+    endpoint = endpoint,
+    locale = locale,
+    remote = remote,
+    autoStart = autoStart,
+  ).also {
+    postMessage(
+      IpcLifecycle.Init(
+        pid = it.pid,
+        /// 对调locale/remote
+        locale = it.remote,
+        remote = it.locale,
+      )
+    )
+  }
 
   private val forkFlow = MutableSharedFlow<Ipc>()
   val onFork = forkFlow.shareIn(scope, SharingStarted.Lazily)
@@ -276,16 +282,13 @@ open class Ipc private constructor(
                   endpoint = endpoint,
                   locale = locale,
                   remote = remote,
-                  pool = pool
+                  pool = pool,
                 )
               )
             }
           }
 
-          is IpcLifecycle.Closed -> TODO()
-          is IpcLifecycle.Closing -> TODO()
-          is IpcLifecycle.Opened -> TODO()
-          is IpcLifecycle.Opening -> TODO()
+          else -> lifecycleLocaleFlow.emit(it)
         }
       }
     }

@@ -14,7 +14,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.toJsonElement
 
-class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb", "statusBar") {
+class StatusBarNMM : NativeMicroModule.NativeRuntime("status-bar.nativeui.browser.dweb", "statusBar") {
 
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)

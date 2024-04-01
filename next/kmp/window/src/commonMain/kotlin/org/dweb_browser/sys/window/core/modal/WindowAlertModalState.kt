@@ -72,7 +72,7 @@ data class AlertModalState internal constructor(
     val mm = LocalWindowMM.current
     val show by isOpenState
 
-    fun onModalDismissRequest(isDismiss: Boolean) = mm.ioAsyncScope.launch {
+    fun onModalDismissRequest(isDismiss: Boolean) = mm.mmScope.launch {
       dismissFlow.emit(isDismiss)
     }
 
@@ -94,7 +94,7 @@ data class AlertModalState internal constructor(
         if (show && it) {
           safeClose(mm)
         }
-      }.launchIn(mm.ioAsyncScope)
+      }.launchIn(mm.mmScope)
       onDispose {
         job.cancel()
         /// 如果被销毁，那么也要进行安全的关闭
@@ -109,7 +109,7 @@ data class AlertModalState internal constructor(
         onModalDismissRequest(true)
         sendCallback(mm, CloseAlertModalCallback(sessionId, confirm))
         if (once) {
-          mm.ioAsyncScope.launch {
+          mm.mmScope.launch {
             parent.removeModal(mm, modalId)
           }
         }

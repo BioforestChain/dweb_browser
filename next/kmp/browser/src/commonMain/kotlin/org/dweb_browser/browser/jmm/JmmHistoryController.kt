@@ -50,18 +50,18 @@ class JmmHistoryController(
     }
   }
 
-  fun openInstallerView(historyMetadata: JmmHistoryMetadata) = jmmNMM.ioAsyncScope.launch {
+  fun openInstallerView(historyMetadata: JmmHistoryMetadata) = jmmNMM.mmScope.launch {
     jmmController.openOrUpsetInstallerView(historyMetadata.originUrl, historyMetadata, true)
   }
 
   fun unInstall(historyMetadata: JmmHistoryMetadata) {
-    jmmNMM.ioAsyncScope.launch {
+    jmmNMM.mmScope.launch {
       jmmController.uninstall(historyMetadata.metadata.id)
     }
   }
 
   fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
-    jmmNMM.ioAsyncScope.launch {
+    jmmNMM.mmScope.launch {
       jmmController.removeHistoryMetadata(historyMetadata)
     }
   }

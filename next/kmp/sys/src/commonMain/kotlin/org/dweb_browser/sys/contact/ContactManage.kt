@@ -11,5 +11,5 @@ data class ContactInfo(
 )
 
 expect class ContactManage() {
-  suspend fun pickContact(microModule: MicroModule): ContactInfo?
+  suspend fun pickContact(microModule: MicroModule.Runtime): ContactInfo?
 }

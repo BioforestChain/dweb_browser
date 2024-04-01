@@ -26,7 +26,7 @@ import org.dweb_browser.pure.http.PureMethod
 
 val debugMedia = Debugger("Media")
 
-class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
+class MediaNMM : NativeMicroModule.NativeRuntime("media.file.sys.dweb", "system media") {
   init {
     short_name = "Media";
     categories =
@@ -67,7 +67,7 @@ class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
             val fieldMediaMap = mutableMapOf</* field_index */Int, MediaPicture>()
             val channel = Channel<FieldChunkTask>(capacity = Channel.RENDEZVOUS)
             val deferred = CompletableDeferred<Boolean>()
-            ioAsyncScope.launch {
+            mmScope.launch {
               for (task in channel) {
                 fieldMediaMap[task.field_index]?.also {
                   it.consumePictureChunk(task.chunk)

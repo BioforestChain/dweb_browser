@@ -4,7 +4,6 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import okio.Path
 import okio.Path.Companion.toPath
@@ -41,7 +40,7 @@ val debugFile = Debugger("file")
  *
  * 比如 视频、相册、音乐、办公 等模块都是对文件读写有刚性依赖的，因此会基于标准文件模块实现同样的标准，这样别的模块可以将同类型的文件存储到它们的文件夹标准下管理
  */
-class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
+class FileNMM : NativeMicroModule.NativeRuntime("file.std.dweb", "File Manager") {
 
   companion object {
     internal fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory? {
@@ -134,15 +133,15 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     getDataVirtualFsDirectory().also {
       debugFile("DIR/DATA", it.getFsBasePath(this))
-      fileTypeAdapterManager.append(adapter = it).removeWhen(ioAsyncScope)
+      fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
     }
     getCacheVirtualFsDirectory().also {
       debugFile("DIR/CACHE", it.getFsBasePath(this))
-      fileTypeAdapterManager.append(adapter = it).removeWhen(ioAsyncScope)
+      fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
     }
     getExternalDownloadVirtualFsDirectory().also {
       debugFile("DIR/Ext Download", it.getFsBasePath(this))
-      fileTypeAdapterManager.append(adapter = it).removeWhen(ioAsyncScope)
+      fileTypeAdapterManager.append(adapter = it).removeWhen(mmScope)
     }
     /// nativeFetch 适配 file:///*/** 的请求
     nativeFetchAdaptersManager.append { fromMM, request ->
@@ -166,11 +165,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           null -> returnNext()
           else -> {
             val vfsPath = VirtualFsPath(fromMM, filePath) { vfsDirectory }
-            returnFile(SystemFileSystem, vfsPath.fsFullPath, fromMM.ioAsyncScope)
+            returnFile(SystemFileSystem, vfsPath.fsFullPath, fromMM.mmScope)
           }
         }
       }
-    }.removeWhen(ioAsyncScope)
+    }.removeWhen(mmScope)
 
     fun touchFile(filepath: Path) {
       if (!SystemFileSystem.exists(filepath)) {
@@ -266,7 +265,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         if (skip != null) {
           fileSource.skip(skip)
         }
-        PureStream(fileSource.toByteReadChannel(ioAsyncScope))
+        PureStream(fileSource.toByteReadChannel(mmScope))
       },
       // 写入文件，一次性写入
       "/write" bind PureMethod.POST by defineEmptyResponse {

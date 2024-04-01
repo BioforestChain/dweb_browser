@@ -19,7 +19,7 @@ class ContactPickerActivity : ComponentActivity() {
     private const val EXTRA_TASK_ID_KEY = "taskId"
 
     private val launchTasks = mutableMapOf<UUID, CompletableDeferred<Uri?>>()
-    suspend fun launchAndroidPickerContact(microModule: MicroModule): Uri? {
+    suspend fun launchAndroidPickerContact(microModule: MicroModule.Runtime): Uri? {
       val taskId = randomUUID()
       return CompletableDeferred<Uri?>().also { task ->
         launchTasks[taskId] = task

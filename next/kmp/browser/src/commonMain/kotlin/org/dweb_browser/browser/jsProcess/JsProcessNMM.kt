@@ -15,7 +15,7 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcResponse
-import org.dweb_browser.core.ipc.helper.collectIn
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -25,19 +25,20 @@ import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.encodeURI
+import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 
 val debugJsProcess = Debugger("js-process")
 
-class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
+class JsProcessNMM : NativeMicroModule.NativeRuntime("js.browser.dweb", "Js Process") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
   }
 
   private val JS_PROCESS_WORKER_CODE by lazy {
-    ioAsyncScope.async {
+    mmScope.async {
       nativeFetch("file:///sys/browser/js-process.worker/index.js").binary()
     }
   }
@@ -56,7 +57,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
       // 提供基本的主页服务
       val serverIpc = server.listen()
-      serverIpc.onRequest.collectIn(ioAsyncScope) { request ->
+      serverIpc.onRequest.collectIn(mmScope) { request ->
         // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
         if (request.uri.encodedPath.startsWith(INTERNAL_PATH)) {
           val internalPath = request.uri.encodedPath.substring(INTERNAL_PATH.length)
@@ -95,7 +96,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       apis.dWebView.resolveUrl(mainServer.startResult.urlInfo.buildInternalUrl { resolvePath("$INTERNAL_PATH/bootstrap.js") }
         .toString())
 
-    this.onAfterShutdown {
+    this.onAfterShutdown.listen {
       apis.destroy()
     }
     apis.onDestroy {
@@ -122,7 +123,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           PromiseOut<Int>().also { processIdMap[processId] = it }
         }
         // 创建成功了，注册销毁函数
-        ioAsyncScope.launch {
+        mmScope.launch {
           ipc.awaitClosed()
           closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.remote.mmid)
         }
@@ -190,12 +191,12 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       DwebHttpServerOptions(subdomain = processIpc.remote.mmid),
     );
 
-    this.addToIpcSet(processIpc)
+    this.linkIpc(processIpc)
 
     /**
      * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
      */
-    ioAsyncScope.launch {
+    mmScope.launch {
       processIpc.awaitClosed()
       httpDwebServer.close();
     }
@@ -222,7 +223,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           response
         },
       )
-    }.launchIn(ioAsyncScope)
+    }.launchIn(mmScope)
 
     @Serializable
     data class JsProcessMetadata(val mmid: MMID) {}
@@ -246,7 +247,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       processIpc.remote,
       httpDwebServer.startResult.urlInfo.host
     )
-    ioAsyncScope.launch {
+    mmScope.launch {
       processHandler.ipc.awaitClosed()
       apis.destroyProcess(processHandler.info.process_id)
     }
@@ -256,22 +257,22 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
      * TODO 所有的 ipcMessage 应该都有 headers，这样我们在 workerIpcMessage.headers 中附带上当前的 processId，
      * 回来的 remoteIpcMessage.headers 同样如此，否则目前的模式只能代理一个 js-process 的消息。另外开 streamIpc 导致的翻译成本是完全没必要的
      */
-    processHandler.ipc.onMessage.collectIn(ioAsyncScope) { workerIpcMessage ->
+    processHandler.ipc.onMessage.collectIn(mmScope) { workerIpcMessage ->
       /**
        * 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
        */
       processIpc.postMessage(workerIpcMessage)
     }
-    processIpc.onMessage.collectIn(ioAsyncScope) { remoteIpcMessage ->
+    processIpc.onMessage.collectIn(mmScope) { remoteIpcMessage ->
       processHandler.ipc.postMessage(remoteIpcMessage)
     }
     /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
-    ioAsyncScope.launch {
+    mmScope.launch {
       processIpc.awaitClosed()
       processHandler.ipc.close()
     }
     /// 双向绑定关闭
-    ioAsyncScope.launch {
+    mmScope.launch {
       processHandler.ipc.awaitClosed()
       processIpc.close()
     }

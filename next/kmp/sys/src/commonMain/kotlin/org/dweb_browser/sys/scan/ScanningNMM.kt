@@ -14,7 +14,7 @@ import org.dweb_browser.pure.http.PureTextFrame
 
 val debugScanning = Debugger("Scanning")
 
-class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scanning") {
+class ScanningNMM : NativeMicroModule.NativeRuntime("barcode-scanning.sys.dweb", "Barcode Scanning") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Utilities);
     short_name = "Scanning"

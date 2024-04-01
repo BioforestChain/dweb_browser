@@ -198,7 +198,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
   private suspend fun watchProcess(metadata: JmmHistoryMetadata) {
     val taskId = metadata.taskId ?: return
     metadata.alreadyWatch = true
-    jmmNMM.ioAsyncScope.launch {
+    jmmNMM.mmScope.launch {
       val res = jmmNMM.createChannelOfDownload(taskId) {
         metadata.updateByDownloadTask(downloadTask, jmmStore)
         when (downloadTask.status.state) {

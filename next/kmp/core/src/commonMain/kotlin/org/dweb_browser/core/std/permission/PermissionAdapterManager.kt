@@ -20,7 +20,7 @@ class PermissionProvider(
   /**
    * 权限提供者
    */
-  val providerModule: MicroModule,
+  val providerModule: MicroModule.Runtime,
   /**
    * 权限的唯一标识
    */
@@ -55,11 +55,11 @@ class PermissionProvider(
     generateAuthorizationRecord(pid, applicantMmid, granted)
 
   companion object {
-    fun DwebPermission.toProvider(providerModule: MicroModule, baseUrl: String? = null) =
+    fun DwebPermission.toProvider(providerModule: MicroModule.Runtime, baseUrl: String? = null) =
       from(providerModule, this, baseUrl)
 
     fun from(
-      providerModule: MicroModule, permission: DwebPermission, baseUrl: String? = null
+      providerModule: MicroModule.Runtime, permission: DwebPermission, baseUrl: String? = null
     ): PermissionProvider? {
       val pid = permission.pid ?: providerModule.mmid
       if (!(pid == providerModule.mmid || pid.startsWith("${providerModule.mmid}/"))) {

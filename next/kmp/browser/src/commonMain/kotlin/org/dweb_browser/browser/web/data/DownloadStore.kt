@@ -88,7 +88,7 @@ data class BrowserDownloadItem(
   var alreadyWatch: Boolean = false
 }
 
-class BrowserDownloadStore(mm: MicroModule) {
+class BrowserDownloadStore(mm: MicroModule.Runtime) {
   private val store = mm.createStore("browser_download", false)
   private val keyOfDownload = "downloading"
   private val keyOfComplete = "completed"

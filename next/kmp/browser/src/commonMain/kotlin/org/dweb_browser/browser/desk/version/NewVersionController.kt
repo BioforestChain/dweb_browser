@@ -76,7 +76,7 @@ class NewVersionController(private val deskNMM: DeskNMM, val desktopController: 
   }
 
   init {
-    deskNMM.ioAsyncScope.launch { initNewVersionItem() }
+    deskNMM.mmScope.launch { initNewVersionItem() }
   }
 
   private suspend fun initNewVersionItem() {
@@ -122,7 +122,7 @@ class NewVersionController(private val deskNMM: DeskNMM, val desktopController: 
   private suspend fun watchProcess(newVersionItem: NewVersionItem) {
     newVersionItem.taskId?.let { taskId ->
       newVersionItem.alreadyWatch = true
-      deskNMM.ioAsyncScope.launch {
+      deskNMM.mmScope.launch {
         val ret = deskNMM.createChannelOfDownload(taskId) {
           newVersionItem.updateDownloadTask(downloadTask, store)
           when (downloadTask.status.state) {
@@ -153,7 +153,7 @@ class NewVersionController(private val deskNMM: DeskNMM, val desktopController: 
   }
 
   suspend fun downloadApp() = debounce(
-    scope = deskNMM.ioAsyncScope,
+    scope = deskNMM.mmScope,
     action = {
       val grant = deskNMM.requestSystemPermission(
         name = SystemPermissionName.STORAGE,

@@ -22,7 +22,7 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 
 val debugLocation = Debugger("Location")
 
-class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
+class LocationNMM : NativeMicroModule.NativeRuntime("geolocation.sys.dweb", "geolocation") {
   init {
     categories =
       listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service)

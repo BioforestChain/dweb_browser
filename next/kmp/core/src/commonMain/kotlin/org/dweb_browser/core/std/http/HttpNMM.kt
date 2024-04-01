@@ -52,7 +52,7 @@ import kotlin.random.Random
 val debugHttp = Debugger("http")
 
 
-class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
+class HttpNMM : NativeMicroModule.NativeRuntime("http.std.dweb", "HTTP Server Provider") {
   init {
     short_name = "HTTP"
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service)
@@ -142,7 +142,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     // 初始化http监听
-    ioAsyncScope.launch {
+    mmScope.launch {
       initHttpListener()
     }
     /// 启动http后端服务
@@ -178,7 +178,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         // 无需走网络层，直接内部处理掉
         httpHandler(request)
       } else null
-    }.removeWhen(ioAsyncScope)
+    }.removeWhen(mmScope)
 
     /// 模块 API 接口
     routes(
@@ -494,7 +494,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
     val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
     /// ipc 在关闭的时候，自动释放所有的绑定
-    ioAsyncScope.launch {
+    mmScope.launch {
       ipc.awaitClosed()
       debugHttp("start close", "onDestroy ${ipc.remote.mmid} ${serverUrlInfo.host}")
       listener.destroy()
@@ -526,9 +526,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     )
     /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
     /// 自己nmm销毁的时候，ipc也会被全部销毁
-    this.addToIpcSet(streamIpc)
+    this.linkIpc(streamIpc)
     /// 自己创建的，就要自己销毁：这个listener被销毁的时候，streamIpc也要进行销毁
-    ioAsyncScope.launch {
+    mmScope.launch {
       gateway.listener.destroyDeferred.await()
       streamIpc.close()
     }

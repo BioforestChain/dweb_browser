@@ -26,7 +26,7 @@ import org.dweb_browser.sys.window.ext.onRenderer
 
 val debugShortcut = Debugger("Shortcut")
 
-class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
+class ShortcutNMM : NativeMicroModule.NativeRuntime("shortcut.sys.dweb", "Shortcut") {
   private val shortcutManage = ShortcutManage()
 
   init {
@@ -40,7 +40,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
     icons = listOf(
       ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml")
     )
-    ioAsyncScope.launch {
+    mmScope.launch {
       shortcutManage.initShortcut() // 初始化
     }
   }
@@ -81,7 +81,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
       "shortcutopen" bindDwebDeeplink defineEmptyResponse {
         val mmid = request.query("mmid")
         val data = request.query("data")
-        val (ipc) = bootstrapContext.dns.connect(mmid)
+        val ipc = connect(mmid)
         debugShortcut("shortcut-open=>", "${ipc.remote.mmid}=> $data")
         ipc.postMessage(IpcEvent.fromUtf8("shortcut", data))
       }
@@ -99,12 +99,12 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
               shortcutList.add(to.index, shortcutList.removeAt(from.index))
             },
             onDragEnd = { _, _ ->
-              ioAsyncScope.launch {
+              mmScope.launch {
                 shortcutManage.registryShortcut(shortcutList)
               }
             },
             onRemove = { item ->
-              ioAsyncScope.launch {
+              mmScope.launch {
                 shortcutList.removeAll { it.title == item.title }
                 shortcutManage.registryShortcut(shortcutList)
                 store.delete(item.title)
@@ -125,7 +125,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
     val list = map.values.sortedBy { it.order }
     shortcutList.addAll(list)
     shortcutManage.registryShortcut(shortcutList)
-    ioAsyncScope.launch {
+    mmScope.launch {
       // 监听 dns 中应用的变化来实时更新快捷方式列表
       doObserve("file://dns.std.dweb/observe/install-apps") {
         // 对排序app列表进行更新
@@ -148,7 +148,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
 
   private suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
     val response = createChannel(urlPath) {
-      for (frame in income){
+      for (frame in income) {
         when (frame) {
           is PureTextFrame -> {
             Json.decodeFromString<ChangeState<MMID>>(frame.data).also {

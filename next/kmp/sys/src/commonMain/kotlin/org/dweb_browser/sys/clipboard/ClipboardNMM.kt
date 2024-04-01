@@ -23,7 +23,7 @@ data class ClipboardData(val value: String, val type: String)
 
 
 /** 剪切板微模块*/
-class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
+class ClipboardNMM : NativeMicroModule.NativeRuntime("clipboard.sys.dweb", "clipboard") {
 
   init {
     categories = listOf(

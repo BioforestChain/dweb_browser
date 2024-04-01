@@ -75,7 +75,7 @@ sealed class ModalState() {
   }
 
   @OptIn(LowLevelWindowAPI::class)
-  suspend fun safeClose(mm: MicroModule) = this.isOpen.trueAlso {
+  suspend fun safeClose(mm: MicroModule.Runtime) = this.isOpen.trueAlso {
     close();
     /// 更新渲染中的modal
     parent.updateOpeningModal()
@@ -83,7 +83,7 @@ sealed class ModalState() {
     sendCallback(mm, CloseModalCallback(sessionId))
     // 如果是一次性显示的，那么直接关闭它
     if (once) {
-      mm.ioAsyncScope.launch {
+      mm.mmScope.launch {
         safeDestroy(mm)
       }
     }
@@ -94,7 +94,7 @@ sealed class ModalState() {
 
   @Transient
   internal val afterDestroy = CompletableDeferred<Unit>()
-  suspend fun safeDestroy(mm: MicroModule): Boolean {
+  suspend fun safeDestroy(mm: MicroModule.Runtime): Boolean {
     if (this._isDestroyed) {
       return false
     }
@@ -140,8 +140,8 @@ sealed class ModalState() {
   }
 
 
-  fun sendCallback(mm: MicroModule, callbackData: ModalCallback) = callbackUrl?.also { url ->
-    mm.ioAsyncScope.launch {
+  fun sendCallback(mm: MicroModule.Runtime, callbackData: ModalCallback) = callbackUrl?.also { url ->
+    mm.mmScope.launch {
       mm.nativeFetch(
         PureClientRequest.fromJson(
           url, PureMethod.POST, body = callbackData

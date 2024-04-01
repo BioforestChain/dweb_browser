@@ -12,7 +12,6 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.MessagePortIpc
 import org.dweb_browser.core.ipc.WebMessageEndpoint
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.NativeMicroModule
@@ -170,7 +169,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
 
 suspend fun createJsProcessWeb(
   mainServer: HttpDwebServer,
-  mm: NativeMicroModule
+  mm: NativeMicroModule.NativeRuntime
 ): JsProcessWebApi {
   /// WebView 实例
   val urlInfo = mainServer.startResult.urlInfo

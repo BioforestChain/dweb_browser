@@ -1,7 +1,6 @@
 package org.dweb_browser.sys.motionSensors
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.pure.http.queryAsOrNull
@@ -10,7 +9,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 
-class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Sensors") {
+class MotionSensorsNMM : NativeMicroModule.NativeRuntime("motion-sensors.sys.dweb", "Motion Sensors") {
   init {
     categories =
       listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);

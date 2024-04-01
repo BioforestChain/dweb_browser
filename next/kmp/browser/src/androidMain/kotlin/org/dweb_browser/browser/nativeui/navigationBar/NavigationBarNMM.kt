@@ -15,7 +15,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.toJsonElement
 
 class NavigationBarNMM :
-  NativeMicroModule("navigation-bar.nativeui.browser.dweb", "navigationBar") {
+  NativeMicroModule.NativeRuntime("navigation-bar.nativeui.browser.dweb", "navigationBar") {
 
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);

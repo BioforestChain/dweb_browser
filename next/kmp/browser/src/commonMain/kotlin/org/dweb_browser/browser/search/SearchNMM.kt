@@ -18,7 +18,7 @@ import org.dweb_browser.pure.http.queryAs
 
 val debugSearch = Debugger("search")
 
-class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
+class SearchNMM : NativeMicroModule.NativeRuntime("search.browser.dweb", "Search Browser") {
   init {
     short_name = BrowserI18nResource.search_short_name.text
     categories = listOf(MICRO_MODULE_CATEGORY.Web_Browser)

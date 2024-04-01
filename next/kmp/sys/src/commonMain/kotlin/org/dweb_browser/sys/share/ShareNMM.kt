@@ -44,7 +44,7 @@ data class ShareOptions(
   val url: String?,
 )
 
-class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
+class ShareNMM : NativeMicroModule.NativeRuntime("share.sys.dweb", "share") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
   }
@@ -79,7 +79,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
             val fileList = mutableListOf<String>()
             val channel = Channel<ShareChunkWriteTask>(capacity = Channel.RENDEZVOUS)
             val deferred = CompletableDeferred<Boolean>()
-            ioAsyncScope.launch {
+            mmScope.launch {
               for (task in channel) {
                 multipartFileDataAppendToTempFile(task.writePath, task.chunk)
               }

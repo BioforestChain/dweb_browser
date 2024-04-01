@@ -42,7 +42,7 @@ actual class NotificationManager {
     }
   }
 
-  actual suspend fun createNotification(microModule: MicroModule, message: NotificationWebItem) {
+  actual suspend fun createNotification(microModule: MicroModule.Runtime, message: NotificationWebItem) {
     val channelType = if (message.renotify) ChannelType.IMPORTANT else ChannelType.DEFAULT
     createNewNotification(
       title = message.actions.firstOrNull()?.title ?: microModule.mmid,

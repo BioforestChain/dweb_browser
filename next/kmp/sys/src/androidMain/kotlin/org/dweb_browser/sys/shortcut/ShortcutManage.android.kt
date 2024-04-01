@@ -100,7 +100,7 @@ actual class ShortcutManage {
       .build()
   }
 
-  actual suspend fun getValidIcon(microModule: MicroModule, resource: ImageResource): ByteArray? {
+  actual suspend fun getValidIcon(microModule: MicroModule.Runtime, resource: ImageResource): ByteArray? {
     return microModule.nativeFetch(resource.src).body.toPureBinary()
   }
 }

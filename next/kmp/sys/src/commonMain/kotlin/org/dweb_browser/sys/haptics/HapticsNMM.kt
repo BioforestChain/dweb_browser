@@ -8,7 +8,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.toJsonElement
 
-class HapticsNMM : NativeMicroModule("haptics.sys.dweb", "haptics") {
+class HapticsNMM : NativeMicroModule.NativeRuntime("haptics.sys.dweb", "haptics") {
 
   init {
     categories =

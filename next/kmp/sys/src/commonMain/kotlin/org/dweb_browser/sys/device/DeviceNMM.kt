@@ -15,7 +15,7 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermission
 
 val debugDevice = Debugger("Device")
 
-class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
+class DeviceNMM : NativeMicroModule.NativeRuntime("device.sys.dweb", "Device Info") {
   init {
     short_name = "Device";
     categories =

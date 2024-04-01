@@ -11,7 +11,7 @@ import org.dweb_browser.helper.Debugger
 
 val debugConfig = Debugger("config")
 
-class ConfigNMM : NativeMicroModule("config.sys.dweb", "Device Info") {
+class ConfigNMM : NativeMicroModule.NativeRuntime("config.sys.dweb", "Device Info") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val store = ConfigStore(this)
     routes(

@@ -50,7 +50,7 @@ class TaskbarController private constructor(
   }
 
   private val _taskbarView =
-    deskNMM.ioAsyncScope.async { ITaskbarView.create(this@TaskbarController) }
+    deskNMM.mmScope.async { ITaskbarView.create(this@TaskbarController) }
 
   private suspend fun taskbarView() = _taskbarView.await()
 
@@ -79,7 +79,7 @@ class TaskbarController private constructor(
     /**
      * 绑定 runningApps 集合
      */
-    deskNMM.ioAsyncScope.launch {
+    deskNMM.mmScope.launch {
       val apps = getTaskbarShowAppList()
       runningApps.onChange { map ->
         /// 将新增的打开应用追加到列表签名

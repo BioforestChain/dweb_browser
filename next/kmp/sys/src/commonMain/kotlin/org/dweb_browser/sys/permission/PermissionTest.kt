@@ -31,7 +31,7 @@ import org.dweb_browser.sys.window.ext.getMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 
 class PermissionProviderTNN :
-  NativeMicroModule("provider.test.permission.sys.dweb", "Permission Provider") {
+  NativeMicroModule.NativeRuntime("provider.test.permission.sys.dweb", "Permission Provider") {
   init {
     short_name = name
     categories = listOf(MICRO_MODULE_CATEGORY.Service)
@@ -67,7 +67,7 @@ class PermissionProviderTNN :
 }
 
 class PermissionApplicantTMM :
-  NativeMicroModule("applicant.test.permission.sys.dweb", "Permission Applicant") {
+  NativeMicroModule.NativeRuntime("applicant.test.permission.sys.dweb", "Permission Applicant") {
   init {
     short_name = name
     categories = listOf(MICRO_MODULE_CATEGORY.Application)
@@ -92,7 +92,7 @@ class PermissionApplicantTMM :
                 "body=${body.toPureString()}"
           Row(horizontalArrangement = Arrangement.SpaceAround) {
             ElevatedButton(onClick = {
-              ioAsyncScope.launch {
+              mmScope.launch {
                 okk =
                   nativeFetch("file://provider.test.permission.sys.dweb/publish").getResult()
               }
@@ -100,7 +100,7 @@ class PermissionApplicantTMM :
               Text("发布")
             }
             ElevatedButton(onClick = {
-              ioAsyncScope.launch {
+              mmScope.launch {
                 okk =
                   nativeFetch("file://provider.test.permission.sys.dweb/unPublish").getResult()
               }
@@ -110,7 +110,7 @@ class PermissionApplicantTMM :
           }
           Row {
             ElevatedButton(onClick = {
-              ioAsyncScope.launch {
+              mmScope.launch {
                 okk = this@PermissionApplicantTMM.requestSystemPermissions(
                   SystemPermissionTask(
                     SystemPermissionName.CAMERA,
@@ -140,7 +140,7 @@ class PermissionApplicantTMM :
           }
           Row(horizontalArrangement = Arrangement.SpaceAround) {
             ElevatedButton(onClick = {
-              ioAsyncScope.launch {
+              mmScope.launch {
                 okk =
                   nativeFetch("file://geolocation.sys.dweb/location").getResult()
               }

@@ -73,7 +73,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 初始化DNS服务
   val dnsNMM = DnsNMM()
-  suspend fun MicroModule.setup() = this.also {
+  suspend fun MicroModule.Runtime.setup() = this.also {
     dnsNMM.install(this)
   }
 

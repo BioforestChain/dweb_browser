@@ -21,7 +21,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.pure.http.PureResponse
 
-class HttpRouter(private val mm: MicroModule, val host: String) {
+class HttpRouter(private val mm: MicroModule.Runtime, val host: String) {
   private val routes = mutableMapOf<IRoute, HttpHandlerChain>()
 
   /**

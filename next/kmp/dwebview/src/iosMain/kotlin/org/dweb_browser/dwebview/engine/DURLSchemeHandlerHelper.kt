@@ -27,7 +27,7 @@ import platform.WebKit.WKURLSchemeTaskProtocol
 import platform.WebKit.WKWebView
 
 @OptIn(ExperimentalForeignApi::class)
-class DURLSchemeHandlerHelper(private val microModule: MicroModule) {
+class DURLSchemeHandlerHelper(private val microModule: MicroModule.Runtime) {
   private val nativeHelper = URLSchemeTaskHelper()
 
   @OptIn(BetaInteropApi::class)
@@ -42,7 +42,7 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule) {
     val pureBody = taskRequest.HTTPBodyStream?.let {
       PureStreamBody(
         NSInputStreamToByteReadChannel(
-          microModule.ioAsyncScope, it
+          microModule.mmScope, it
         )
       )
     } ?: IPureBody.Empty
@@ -56,7 +56,7 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule) {
       task = task
     )
 
-    microModule.ioAsyncScope.launch {
+    microModule.mmScope.launch {
       try {
 
         val response = microModule.nativeFetch(pureRequest)

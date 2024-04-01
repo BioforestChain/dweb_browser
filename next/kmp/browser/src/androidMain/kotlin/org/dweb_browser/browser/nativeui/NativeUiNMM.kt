@@ -9,7 +9,7 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 
-class NativeUiNMM : NativeMicroModule("nativeui.browser.dweb", "nativeUi") {
+class NativeUiNMM : NativeMicroModule.NativeRuntime("nativeui.browser.dweb", "nativeUi") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
   }

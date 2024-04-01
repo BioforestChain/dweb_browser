@@ -12,7 +12,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.encodeURIComponent
 
 sealed class WindowModalController(
-  val mm: NativeMicroModule,
+  val mm: NativeMicroModule.NativeRuntime,
   val modal: ModalState,
   val wid: String,
   onCallback: SharedFlow<ModalCallback>,
@@ -49,7 +49,7 @@ sealed class WindowModalController(
       }
       _state = value
       // 监听状态更新并且触发相关事件
-      mm.ioAsyncScope.launch {
+      mm.mmScope.launch {
         onStateChangeSignal.emit(value)
         when (_state) {
           WindowModalState.OPEN -> onOpenSignal.emit(Unit)
@@ -74,7 +74,7 @@ sealed class WindowModalController(
         is OpenModalCallback -> WindowModalState.OPEN
         is DestroyModalCallback -> WindowModalState.DESTROY
       }
-    }.launchIn(mm.ioAsyncScope)
+    }.launchIn(mm.mmScope)
   }
 
   val isDestroyed get() = isState(WindowModalState.DESTROYING, WindowModalState.DESTROY)

@@ -87,7 +87,7 @@ class DWebViewEngine internal constructor(
    */
   context: Context,
   /// 这两个参数是用来实现请求拦截与转发的
-  internal val remoteMM: MicroModule,
+  internal val remoteMM: MicroModule.Runtime,
   /**
    * 一些DWebView自定义的参数
    */
@@ -107,7 +107,7 @@ class DWebViewEngine internal constructor(
   }
 
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-  internal val ioScope = CoroutineScope(remoteMM.ioAsyncScope.coroutineContext + SupervisorJob())
+  internal val ioScope = CoroutineScope(remoteMM.mmScope.coroutineContext + SupervisorJob())
 
   suspend fun waitReady() {
     dWebViewClient.onReady.awaitOnce()

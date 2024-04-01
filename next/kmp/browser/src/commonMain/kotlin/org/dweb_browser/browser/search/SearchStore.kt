@@ -270,7 +270,7 @@ data class SearchInject(
     ?: BrowserDrawResource.Web.painter()
 }
 
-class SearchStore(mm: MicroModule) {
+class SearchStore(mm: MicroModule.Runtime) {
   private val keyInject = "key_inject"
   private val storeEngine = mm.createStore("engines_state", false)
   private val storeInject = mm.createStore("inject_engine", false)

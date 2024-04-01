@@ -12,7 +12,7 @@ import org.dweb_browser.helper.PromiseOut
 actual suspend fun share(
   shareOptions: ShareOptions,
   multiPartData: MultiPartData?,
-  shareNMM: NativeMicroModule?
+  shareNMM: NativeMicroModule.NativeRuntime?
 ): String {
   val files = mutableListOf<String>()
   multiPartData?.forEachPart { partData ->
@@ -41,7 +41,7 @@ actual suspend fun share(
 actual suspend fun share(
   shareOptions: ShareOptions,
   files: List<String>,
-  shareNMM: NativeMicroModule?
+  shareNMM: NativeMicroModule.NativeRuntime?
 ): String {
   ShareController.controller.openActivity()
   ShareController.controller.waitActivityResultLauncherCreated()

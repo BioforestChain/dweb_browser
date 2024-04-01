@@ -16,20 +16,17 @@ class ConnectResult(val ipcForFromMM: Ipc, val ipcForToMM: Ipc) {
   operator fun component2() = ipcForToMM
 }
 
-typealias ConnectAdapter = suspend (fromMM: MicroModule, toMM: MicroModule, reason: PureRequest) -> ConnectResult?
+typealias ConnectAdapter = suspend (fromMM: MicroModule.Runtime, toMM: MicroModule.Runtime, reason: PureRequest) -> Ipc?
 
 val connectAdapterManager = AdapterManager<ConnectAdapter>()
 
 
 /** 外部程序与内部程序建立链接的方法 */
 suspend fun connectMicroModules(
-  fromMM: MicroModule, toMM: MicroModule, reason: PureRequest
-): ConnectResult {
+  fromMM: MicroModule.Runtime, toMM: MicroModule.Runtime, reason: PureRequest
+): Ipc {
   for (connectAdapter in connectAdapterManager.adapters) {
-    val ipc = connectAdapter(fromMM, toMM, reason)
-    if (ipc != null) {
-      return ipc
-    }
+    connectAdapter(fromMM, toMM, reason)?.also { return it }
   }
   throw Exception("no support connect MicroModules, from:${fromMM.mmid} to:${toMM.mmid}")
 }
@@ -40,6 +37,6 @@ internal var grant: CompletableDeferred<Boolean>? = null
 /**
  * 启动拦截器，确保前置任务完成后，才会开始运行microModule
  */
-fun NativeMicroModule.Companion.interceptStartApp(granter: CompletableDeferred<Boolean>) {
+fun NativeMicroModule.NativeRuntime.Companion.interceptStartApp(granter: CompletableDeferred<Boolean>) {
   grant = granter
 }

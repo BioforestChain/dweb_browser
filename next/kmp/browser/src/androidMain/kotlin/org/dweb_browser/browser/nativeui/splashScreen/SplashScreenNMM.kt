@@ -12,7 +12,7 @@ import org.dweb_browser.pure.http.PureStringBody
 
 val debugSplashScreen = Debugger("SplashScreen")
 
-class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb", "splashScreen") {
+class SplashScreenNMM : NativeMicroModule.NativeRuntime("splash-screen.nativeui.browser.dweb", "splashScreen") {
 
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);

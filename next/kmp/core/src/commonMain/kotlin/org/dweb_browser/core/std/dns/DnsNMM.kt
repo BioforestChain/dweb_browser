@@ -4,9 +4,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonNull
 import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.core.help.types.IMicroModuleManifest
@@ -16,9 +13,9 @@ import org.dweb_browser.core.help.types.MPID
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.http.router.byChannel
+import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.ConnectResult
 import org.dweb_browser.core.module.DnsMicroModule
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
@@ -31,6 +28,7 @@ import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureClientRequest
@@ -44,7 +42,7 @@ import kotlin.jvm.JvmInline
 
 val debugDNS = Debugger("dns")
 
-class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
+class DnsNMM : NativeMicroModule.NativeRuntime("dns.std.dweb", "Dweb Name System") {
   init {
     dweb_deeplinks = listOf("dweb://open")
     short_name = "DNS";
@@ -54,21 +52,21 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   /**
    * 所有应用列表，这里基于 MMID 存储，ChangeableMap 提供变动监听功能
    */
-  private val allApps = ChangeableMap<MMID, MicroModule>()
+  private val allApps = ChangeableMap<MMID, MicroModule.Runtime>()
 
   /**
    * 所有应用和协议列表，这里基于 MMID 与 Protocol 存储
    */
-  private val _installApps = mutableMapOf<MPID, MutableSet<MicroModule>>()
+  private val _installApps = mutableMapOf<MPID, MutableSet<MicroModule.Runtime>>()
   private fun installApps(mpid: MPID) = _installApps.getOrElse(mpid) { emptySet() }
-  private fun addInstallApps(mpid: MPID, app: MicroModule) {
+  private fun addInstallApps(mpid: MPID, app: MicroModule.Runtime) {
     when (val beforeMms = _installApps[mpid]) {
       null -> _installApps[mpid] = mutableSetOf(app)
       else -> beforeMms += app
     }
   }
 
-  private fun removeInstallApps(mpid: MPID, app: MicroModule) =
+  private fun removeInstallApps(mpid: MPID, app: MicroModule.Runtime) =
     when (val beforeMms = _installApps[mpid]) {
       null -> false
       else -> beforeMms.remove(app)
@@ -78,8 +76,8 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   private val _runningApps =
     ChangeableMap</* mmid or dweb-protocol */MPID, Map</*真正的 realMmid*/MMID, RunningApp>>() // 正在运行的应用
 
-  class RunningApp(val module: MicroModule, private val afterBootstrap: PromiseOut<Unit>) {
-    suspend fun ready(): MicroModule {
+  class RunningApp(val module: MicroModule.Runtime, private val afterBootstrap: PromiseOut<Unit>) {
+    suspend fun ready(): MicroModule.Runtime {
       afterBootstrap.waitPromise()
       return module
     }
@@ -121,7 +119,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       .maxByOrNull { it.second }?.first
 
   suspend fun bootstrap() {
-    if (!this.running) {
+    if (!this.isRunning) {
       bootstrapMicroModule(this)
     }
   }
@@ -134,61 +132,26 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     private val toMMID get() = fromTo.substring(fromTo.indexOf(' ') + 1)
   }
 
-  /** 对等连接列表 */
-  private val mmConnectsMap = mutableMapOf<MM, PromiseOut<ConnectResult>>()
-  private val mmConnectsMapLock = Mutex()
 
   /** 为两个mm建立 ipc 通讯 */
   private suspend fun connectTo(
-    fromMM: MicroModule, toMPID: MPID, reason: PureRequest
-  ) = mmConnectsMapLock.withLock {
+    fromMM: MicroModule.Runtime, toMPID: MPID, reason: PureRequest
+  ): Ipc {
     // 找到要连接的模块
     val toMicroModule = query(toMPID, fromMM) ?: throw Throwable("not found app->$toMPID")
 
     val toMMID = toMicroModule.mmid
     val fromMMID = fromMM.mmid
+    debugDNS("connectTo") { "$fromMMID <=> $toMMID" }
 
     val toRunningApp = _open(toMicroModule.mmid, fromMM)
-    debugDNS("connectTo", "keyMap($fromMMID <=> $toMMID)")
-    val aKey = MM(fromMMID, toMMID)
-    mmConnectsMap[aKey] ?: run {
-      val bKey = MM(toMMID, fromMMID)
-      val aPromiseOut = PromiseOut<ConnectResult>()
-      val bPromiseOut = PromiseOut<ConnectResult>()
-      mmConnectsMap[aKey] = aPromiseOut
-      mmConnectsMap[bKey] = bPromiseOut
-      aPromiseOut.alsoLaunchIn(ioAsyncScope) {
-        debugDNS("connect", "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid}")
-        toRunningApp.ready()
-        debugDNS(
-          "connect end",
-          "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid} ${toRunningApp.module.mmid}"
-        )
-        val aConnectResult = connectMicroModules(fromMM, toMicroModule, reason)
-        val bConnectResult = ConnectResult(aConnectResult.ipcForToMM, aConnectResult.ipcForFromMM)
-        bPromiseOut.resolve(bConnectResult)
-        ioAsyncScope.launch {
-          aConnectResult.ipcForFromMM.awaitClosed()
-          mmConnectsMap.remove(aKey)
-          mmConnectsMap.remove(bKey)
-        }
-        ioAsyncScope.launch {
-          aConnectResult.ipcForToMM.awaitClosed()
-          mmConnectsMap.remove(aKey)
-          mmConnectsMap.remove(bKey)
-        }
-        debugDNS(
-          "connect-success",
-          "${fromMM.mmid} <=> $toMPID/${toMicroModule.mmid} FROM:${aConnectResult.ipcForFromMM.debugId} TO:${aConnectResult.ipcForToMM.debugId}"
-        )
-        aConnectResult
-      }
-    }
-  }.waitPromise()
+    toRunningApp.ready()
+    return connectMicroModules(fromMM, toMicroModule, reason)
+  }
 
-  class MyDnsMicroModule(private val dnsMM: DnsNMM, private val fromMM: MicroModule) :
+  class MyDnsMicroModule(private val dnsMM: DnsNMM, private val fromMM: MicroModule.Runtime) :
     DnsMicroModule {
-    override suspend fun install(mm: MicroModule) {
+    override suspend fun install(mm: MicroModule.Runtime) {
       // TODO 作用域保护
       dnsMM.install(mm)
     }
@@ -198,11 +161,11 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       return dnsMM.uninstall(mmid)
     }
 
-    override fun query(mmid: MMID): MicroModule? {
+    override fun query(mmid: MMID): MicroModule.Runtime? {
       return dnsMM.query(mmid, fromMM)
     }
 
-    override suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> {
+    override suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule.Runtime> {
       return dnsMM.search(category)
     }
 
@@ -214,14 +177,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       dnsMM.open(mmid, fromMM)
     }
 
+    // TODO 权限保护
     override suspend fun connect(
       mmid: MMID, reason: PureRequest?
-    ): ConnectResult {
-      // TODO 权限保护
-      return dnsMM.connectTo(
-        fromMM, mmid, reason ?: PureClientRequest("file://$mmid", PureMethod.GET)
-      )
-    }
+    ) = dnsMM.connectTo(fromMM, mmid, reason ?: PureClientRequest("file://$mmid", PureMethod.GET))
 
     override suspend fun open(mmid: MMID): Boolean {
       if (this.dnsMM.runningApps(mmid).isEmpty()) {
@@ -242,7 +201,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   class MyBootstrapContext(override val dns: MyDnsMicroModule) : BootstrapContext {}
 
-  private suspend fun bootstrapMicroModule(fromMM: MicroModule) {
+  private suspend fun bootstrapMicroModule(fromMM: MicroModule.Runtime) {
     fromMM.bootstrap(MyBootstrapContext(MyDnsMicroModule(this@DnsNMM, fromMM)))
   }
 
@@ -261,12 +220,12 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         val url = request.href
         val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
         if (installApps(mpid).isNotEmpty()) {
-          val (fromIpc) = connectTo(fromMM, mpid, reasonRequest)
+          val fromIpc = connectTo(fromMM, mpid, reasonRequest)
           var response = fromIpc.request(request)
           if (response.status == HttpStatusCode.Unauthorized) {
             val permissions = response.body.toPureString()
             /// 尝试进行授权请求
-            if (fromMM is NativeMicroModule && fromMM.requestPermissions(permissions)
+            if (fromMM is NativeMicroModule.NativeRuntime && fromMM.requestPermissions(permissions)
                 .all { it.value == AuthorizationStatus.GRANTED }
             ) {
               /// 如果授权完全成功，那么重新进行请求
@@ -276,7 +235,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           response
         } else PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
       } else null
-    }.removeWhen(this.ioAsyncScope)
+    }.removeWhen(this.mmScope)
     /** dwebDeepLink 适配器*/
     nativeFetchAdaptersManager.append { fromMM, request ->
       if (request.href.startsWith("dweb:")) {
@@ -284,7 +243,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         for (microModule in allApps.values) {
           for (deeplink in microModule.dweb_deeplinks) {
             if (request.href.startsWith(deeplink)) {
-              val (fromIpc) = connectTo(fromMM, microModule.mmid, request)
+              val fromIpc = connectTo(fromMM, microModule.mmid, request)
               return@append fromIpc.request(request)
             }
           }
@@ -293,7 +252,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           HttpStatusCode.BadGateway, body = PureStringBody(request.href)
         )
       } else null
-    }.removeWhen(this.ioAsyncScope)
+    }.removeWhen(this.mmScope)
 
     val queryAppId = PureUrl.query("app_id")
     val queryCategory = PureUrl.query("category")
@@ -319,8 +278,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       "/query" bind PureMethod.GET by defineJsonResponse {
         val mmid = request.queryAppId()
         query(mmid, ipc.remote)?.toManifest()?.toJsonElement() ?: JsonNull
-      },
-      "/search" bind PureMethod.GET by defineJsonResponse {
+      }, "/search" bind PureMethod.GET by defineJsonResponse {
         val category = request.queryCategory()
         val manifests = mutableListOf<CommonAppManifest>()
         search(category as MICRO_MODULE_CATEGORY).map { app ->
@@ -368,7 +326,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   /** 安装应用 */
-  suspend fun install(mm: MicroModule) {
+  suspend fun install(mm: MicroModule.Runtime) {
     allApps[mm.mmid] = mm
     addInstallApps(mm.mmid, mm)
     for (protocol in mm.dweb_protocols) {
@@ -392,7 +350,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   /** 查询应用 */
-  fun query(mmid: MMID, fromMM: IMicroModuleManifest): MicroModule? {
+  fun query(mmid: MMID, fromMM: IMicroModuleManifest): MicroModule.Runtime? {
     return getPreferenceApp(mmid, fromMM)
   }
 
@@ -401,8 +359,8 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
    * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
    * @param category
    */
-  fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> {
-    val categoryList = mutableListOf<MicroModule>()
+  fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule.Runtime> {
+    val categoryList = mutableListOf<MicroModule.Runtime>()
     for (app in allApps.values) {
       if (app.categories.contains(category)) {
         categoryList.add(app)
@@ -415,7 +373,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   /** 打开应用
    */
-  private fun _open(mpid: MPID, fromMM: MicroModule) = synchronized(openLock) {
+  private fun _open(mpid: MPID, fromMM: MicroModule.Runtime) = synchronized(openLock) {
     runningApps(mpid).firstNotNullOfOrNull {
       // 这里基于传入 fromMmid，从而才能做到 protocol 模块直接寻址 superMM
       // 首先 it.key != mpid 意味着这个mpid是一个protocol
@@ -425,7 +383,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       println("xxxx=> dns_open $mpid(by ${fromMM.mmid})")
       debugDNS("dns_open start", "$mpid(by ${fromMM.mmid})")
       val app = query(mpid, fromMM) ?: throw Exception("no found app: $mpid")
-      val afterBootstrap = PromiseOut<Unit>().alsoLaunchIn(ioAsyncScope) {
+      val afterBootstrap = PromiseOut<Unit>().alsoLaunchIn(mmScope) {
         println("xxxx=> dns_open bootstrapMicroModule $mpid")
         bootstrapMicroModule(app)
         println("xxxx=> dns_open bootstrapMicroModule end $mpid")
@@ -433,7 +391,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       }
       RunningApp(app, afterBootstrap).also { running ->
         addRunningApp(running)
-        app.onAfterShutdown {
+        app.onAfterShutdown.listen {
           println("xxxx=> onAfterShutdown XXX $mpid")
           removeRunningApp(running)
         }
@@ -442,7 +400,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
 
-  suspend fun open(mmid: MMID, fromMM: MicroModule = this) = _open(mmid, fromMM)
+  suspend fun open(mmid: MMID, fromMM: MicroModule.Runtime = this) = _open(mmid, fromMM)
 
   /** 关闭应用 */
   suspend fun close(mmid: MMID): Int {

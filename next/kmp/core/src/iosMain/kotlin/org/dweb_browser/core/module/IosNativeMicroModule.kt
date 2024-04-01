@@ -9,12 +9,12 @@ import platform.UIKit.UIApplication
 
 lateinit var nativeMicroModuleUIApplication: UIApplication
 
-fun MicroModule.Companion.getUIApplication() = nativeMicroModuleUIApplication
-fun MicroModule.getUIApplication() = nativeMicroModuleUIApplication
+fun MicroModule.Runtime.Companion.getUIApplication() = nativeMicroModuleUIApplication
+fun MicroModule.Runtime.getUIApplication() = nativeMicroModuleUIApplication
 
 val lockActivityState = Mutex()
-fun MicroModule.startUIViewController(pureViewController: PureViewController) {
-  ioAsyncScope.launch {
+fun MicroModule.Runtime.startUIViewController(pureViewController: PureViewController) {
+  mmScope.launch {
     lockActivityState.withLock {
       if (grant?.await() == false) {
         return@withLock // TODO 用户拒绝协议应该做的事情

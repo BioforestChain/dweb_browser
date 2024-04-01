@@ -22,34 +22,38 @@ import org.dweb_browser.pure.crypto.decipher.decipher_aes_256_gcm
 import org.dweb_browser.pure.crypto.hash.sha256
 import org.dweb_browser.pure.http.IPureBody
 
-fun MicroModule.createStore(storeName: String, encrypt: Boolean) =
+fun MicroModule.Runtime.createStore(storeName: String, encrypt: Boolean) =
   MicroModuleStore(this, storeName, encrypt)
 
-fun MicroModule.createStore(storeName: String, cipherChunkKey: ByteArray, encrypt: Boolean) =
+fun MicroModule.Runtime.createStore(
+  storeName: String,
+  cipherChunkKey: ByteArray,
+  encrypt: Boolean
+) =
   MicroModuleStore(this, storeName, cipherChunkKey, encrypt)
 
-private val defaultSimpleStoreCache by atomic(WeakHashMap<MicroModule, MicroModuleStore>())
+private val defaultSimpleStoreCache by atomic(WeakHashMap<MicroModule.Runtime, MicroModuleStore>())
 
-val MicroModule.store: MicroModuleStore
+val MicroModule.Runtime.store: MicroModuleStore
   get() = defaultSimpleStoreCache.getOrPut(this) {
     createStore("default", true)
   }
 
 class MicroModuleStore(
-  private val mm: MicroModule,
+  private val mm: MicroModule.Runtime,
   private val storeName: String,
   private val cipherChunkKey: ByteArray?,
   private val encrypt: Boolean,
 ) {
   constructor(
-    mm: MicroModule, storeName: String, encrypt: Boolean
+    mm: MicroModule.Runtime, storeName: String, encrypt: Boolean
   ) : this(mm, storeName, null, encrypt)
 
   private val taskQueues = Channel<Task<*>>(onBufferOverflow = BufferOverflow.SUSPEND)
   private val storeMutex = Mutex()
 
   init {
-    mm.ioAsyncScope.launch {
+    mm.mmScope.launch {
       for (task in taskQueues) {
         // 防止并发修改异常
         storeMutex.withLock {
@@ -100,7 +104,7 @@ class MicroModuleStore(
 
   private fun <T> exec(action: suspend () -> T): Deferred<T> {
     val deferred = CompletableDeferred<T>()
-    mm.ioAsyncScope.launch {
+    mm.mmScope.launch {
       taskQueues.send(Task(deferred, action))
     }
     return deferred

@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.dweb_browser.core.module.NativeMicroModule
 
-actual class MotionSensorsManage actual constructor(mm: NativeMicroModule) {
+actual class MotionSensorsManage actual constructor(mm: NativeMicroModule.NativeRuntime) {
   actual val isSupportAccelerometer = false
 
   actual fun getAccelerometerFlow(fps: Double?): Flow<Axis> {

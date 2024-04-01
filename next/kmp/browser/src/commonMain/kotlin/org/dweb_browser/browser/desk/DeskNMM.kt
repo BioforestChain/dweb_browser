@@ -12,7 +12,6 @@ import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcResponse
-import org.dweb_browser.core.ipc.helper.collectIn
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.createChannel
@@ -27,6 +26,8 @@ import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ReasonLock
+import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
@@ -43,7 +44,7 @@ import org.dweb_browser.sys.window.core.windowInstancesManager
 
 val debugDesk = Debugger("desk")
 
-class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
+class DeskNMM : NativeMicroModule.NativeRuntime("desk.browser.dweb", "Desk") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop)
     dweb_protocols = listOf("window.sys.dweb")
@@ -63,7 +64,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           RunningApp(ipc, bootstrapContext).also { app ->
             runningApps[mmid] = app
             /// 如果应用关闭，将它从列表中移除
-            ioAsyncScope.launch {
+            mmScope.launch {
               app.closeDeferred.await()
               runningApps.remove(mmid)
 
@@ -88,7 +89,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val controllersMap = mutableMapOf<String, DeskControllers>()
   }
 
-  private suspend fun listenApps() = ioAsyncScope.launch {
+  private suspend fun listenApps() = mmScope.launch {
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
       val response = createChannel(urlPath) {
         for (frame in income) {
@@ -192,7 +193,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val deskControllers = DeskControllers(desktopController, taskBarController, this)
     controllersMap[deskSessionId] = deskControllers
 
-    this.onAfterShutdown {
+    this.onAfterShutdown.listen {
       runningApps.reset()
       controllersMap.remove(deskSessionId)
     }
@@ -220,7 +221,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         // 内部接口，所以ipc通过connect获得
         // 发现desk.js是判断返回值true or false 来显示是否正常启动，所以这边做下修改
         try {
-          withScope(ioAsyncScope) {
+          withScope(mmScope) {
             openOrActivateAppWindow(connect(mmid, request), desktopController).id
           }
           true
@@ -336,7 +337,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val taskbarServer =
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar"))
     val serverIpc = taskbarServer.listen()
-    serverIpc.onRequest.collectIn(ioAsyncScope) { ipcServerRequest ->
+    serverIpc.onRequest.collectIn(mmScope) { ipcServerRequest ->
       val pathName = ipcServerRequest.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {
         val internalUri = pathName.substring(API_PREFIX.length)
@@ -354,7 +355,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val desktopServer =
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop"))
     val serverIpc = desktopServer.listen()
-    serverIpc.onRequest.collectIn(ioAsyncScope) { ipcServerRequest ->
+    serverIpc.onRequest.collectIn(mmScope) { ipcServerRequest ->
       val pathName = ipcServerRequest.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {
         val internalUri = pathName.substring(API_PREFIX.length)

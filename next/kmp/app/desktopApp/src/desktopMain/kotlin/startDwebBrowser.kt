@@ -82,13 +82,14 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
 
   /// 初始化DNS服务
   val dnsNMM = DnsNMM().also { dnsNMM ->
+    // TODO fuck this
     DeepLinkHook.deepLinkHook.deeplinkSignal.listen {
       println("deeplinkSignal => url=$it")
       dnsNMM.nativeFetch(it)
     }
   }
 
-  suspend fun MicroModule.setup() = this.also {
+  suspend fun MicroModule.Runtime.setup() = this.also {
     dnsNMM.install(this)
   }
 
@@ -103,7 +104,7 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   try {
     Desktop.getDesktop().setOpenURIHandler { event ->
       if (event.uri.scheme == "dweb") {
-        dnsNMM.ioAsyncScope.launch {
+        dnsNMM.mmScope.launch {
           dnsNMM.nativeFetch(event.uri.toString())
         }
       }

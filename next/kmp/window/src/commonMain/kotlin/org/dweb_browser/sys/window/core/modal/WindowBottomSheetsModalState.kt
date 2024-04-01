@@ -84,7 +84,7 @@ class BottomSheetsModalState private constructor(
     val show by isOpenState
 
     fun emitDismiss(isDismiss: Boolean) {
-      mm.ioAsyncScope.launch {
+      mm.mmScope.launch {
         dismissFlow.emit(isDismiss)
       }
     }
@@ -138,7 +138,7 @@ class BottomSheetsModalState private constructor(
         if (dismiss && show && hasExpanded) {
           safeClose(mm)
         }
-      }.launchIn(mm.ioAsyncScope)
+      }.launchIn(mm.mmScope)
       onDispose {
         job.cancel()
         /// 关闭动作只能被 dismiss 触发，不能因为Dispose触发，否则Activity重载时就会导致销毁

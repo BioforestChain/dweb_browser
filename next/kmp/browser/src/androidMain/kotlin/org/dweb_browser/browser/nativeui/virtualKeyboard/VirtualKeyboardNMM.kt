@@ -16,7 +16,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.toJsonElement
 
 class VirtualKeyboardNMM :
-  NativeMicroModule("virtual-keyboard.nativeui.browser.dweb", "virtualKeyBoard") {
+  NativeMicroModule.NativeRuntime("virtual-keyboard.nativeui.browser.dweb", "virtualKeyBoard") {
 
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);

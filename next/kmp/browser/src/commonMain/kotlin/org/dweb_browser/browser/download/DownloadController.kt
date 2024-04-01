@@ -140,7 +140,7 @@ data class DownloadStateEvent(
 ) {
 }
 
-class DownloadController(private val downloadNMM: DownloadNMM) {
+class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
   private val downloadStore = DownloadStore(downloadNMM)
   val downloadTaskMaps: ChangeableMutableMap<TaskId, DownloadTask> =
     ChangeableMutableMap() // 用于监听下载列表
@@ -151,7 +151,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
 
   init {
     // 从内存中恢复状态
-    downloadNMM.ioAsyncScope.launch {
+    downloadNMM.mmScope.launch {
       // 状态改变的时候存储保存到内存
       downloadTaskMaps.onChange { (type, _, value) ->
         when (type) {
@@ -274,7 +274,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     // 重要记录点 存储到硬盘
     downloadTaskMaps.put(taskId, task)
     // 正式下载需要另外起一个协程，不影响当前的返回值
-    downloadNMM.ioAsyncScope.launch {
+    downloadNMM.mmScope.launch {
       debugDownload("middleware", "start id:$taskId current:${task.status.current}")
       task.emitChanged()
       try {
@@ -428,7 +428,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     downloadTaskMaps.remove(taskId)?.let { downloadTask ->
       downloadTask.readChannel?.cancel()
       downloadTask.readChannel = null
-      downloadNMM.ioAsyncScope.launch { fileRemove(downloadTask.filepath) }
+      downloadNMM.mmScope.launch { fileRemove(downloadTask.filepath) }
     }
   }
 

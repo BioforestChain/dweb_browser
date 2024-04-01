@@ -69,17 +69,18 @@ open class IpcPool {
     endpoint: IpcEndpoint,
     locale: IMicroModuleManifest,
     remote: IMicroModuleManifest,
-    autoStart: Boolean = true,
+    autoStart: Boolean = false,
   ) = Ipc(endpoint = endpoint, locale = locale, remote = remote, pool = this).also { ipc ->
     /// 保存ipc，并且根据它的生命周期做自动删除
     debugIpcPool("createIpc") { "add ${ipc.debugId}" }
     ipcSet.add(ipc)
     scope.launch {
+
       /// 自动启动
       if (autoStart) {
         ipc.start()
       }
-
+      ipc.awaitClosed()
       debugIpcPool("createIpc") { "remove ${ipc.debugId}" }
       ipcSet.remove(ipc)
     }

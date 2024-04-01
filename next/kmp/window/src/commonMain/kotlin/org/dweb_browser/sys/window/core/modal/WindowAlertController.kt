@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.map
 import org.dweb_browser.core.module.NativeMicroModule
 
 class WindowAlertController(
-  mm: NativeMicroModule,
+  mm: NativeMicroModule.NativeRuntime,
   modal: AlertModalState,
   wid: String,
   onCallback: SharedFlow<ModalCallback>,
@@ -21,6 +21,6 @@ class WindowAlertController(
         is CloseAlertModalCallback -> _result = it.confirm
         else -> {}
       }
-    }.launchIn(mm.ioAsyncScope)
+    }.launchIn(mm.mmScope)
   }
 }

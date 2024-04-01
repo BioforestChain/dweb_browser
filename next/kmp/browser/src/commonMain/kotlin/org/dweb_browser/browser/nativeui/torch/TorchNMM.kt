@@ -6,7 +6,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 
-class TorchNMM : NativeMicroModule("torch.nativeui.browser.dweb", "torch") {
+class TorchNMM : NativeMicroModule.NativeRuntime("torch.nativeui.browser.dweb", "torch") {
   init {
     categories =
       listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);

@@ -25,7 +25,7 @@ import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 
 class TestHttpMicroModule(mmid: String = "http.server.dweb") :
-  NativeMicroModule(mmid, "test IpcPool") {
+  NativeMicroModule.NativeRuntime(mmid, "test IpcPool") {
 
   init {
     GlobalScope.launch {
@@ -42,7 +42,7 @@ class TestHttpMicroModule(mmid: String = "http.server.dweb") :
   }
 
   private val JS_PROCESS_WORKER_CODE by lazy {
-    ioAsyncScope.async {
+    mmScope.async {
       nativeFetch("file:///sys/browser/js-process.worker/index.js").binary()
     }
   }
@@ -85,7 +85,7 @@ class TestHttpMicroModule(mmid: String = "http.server.dweb") :
             IpcResponse.fromResponse(request.reqId, response, ipc)
           )
         }
-      }.launchIn(ioAsyncScope)
+      }.launchIn(mmScope)
     }
   }
 
@@ -109,7 +109,7 @@ class TestHttpMicroModule(mmid: String = "http.server.dweb") :
 }
 
 class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
-  NativeMicroModule(mmid, "test IpcPool") {
+  NativeMicroModule.NativeRuntime(mmid, "test IpcPool") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     TODO("Not yet implemented")
   }

@@ -23,6 +23,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.platform.setScale
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
@@ -42,7 +43,7 @@ import kotlin.native.runtime.NativeRuntimeApi
 
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun IDWebView.Companion.create(
-  mm: MicroModule,
+  mm: MicroModule.Runtime,
   options: DWebViewOptions
 ): IDWebView =
   create(
@@ -54,7 +55,7 @@ actual suspend fun IDWebView.Companion.create(
 @OptIn(ExperimentalForeignApi::class)
 suspend fun IDWebView.Companion.create(
   frame: CValue<CGRect>,
-  remoteMM: MicroModule,
+  remoteMM: MicroModule.Runtime,
   options: DWebViewOptions = DWebViewOptions(),
   configuration: WKWebViewConfiguration,
 ) = withMainContext {
@@ -91,7 +92,7 @@ class DWebView(
   }
 
   init {
-    viewEngine.remoteMM.onAfterShutdown {
+    viewEngine.remoteMM.onAfterShutdown.listen {
       destroy()
     }
   }

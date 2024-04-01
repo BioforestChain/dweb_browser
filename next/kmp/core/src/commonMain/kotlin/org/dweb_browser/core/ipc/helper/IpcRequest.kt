@@ -15,6 +15,7 @@ import org.dweb_browser.core.ipc.debugIpc
 import org.dweb_browser.helper.IFrom
 import org.dweb_browser.helper.LateInit
 import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.commonAsyncExceptionHandler
 import org.dweb_browser.helper.eprintln
 import org.dweb_browser.helper.falseAlso

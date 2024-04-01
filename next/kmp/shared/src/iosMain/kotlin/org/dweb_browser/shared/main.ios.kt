@@ -69,7 +69,7 @@ suspend fun startDwebBrowser(app: UIApplication, debugMode: Boolean): DnsNMM {
     }
   }
 
-  suspend fun MicroModule.setup() = this.also {
+  suspend fun MicroModule.Runtime.setup() = this.also {
     dnsNMM.install(this)
   }
 

@@ -12,7 +12,7 @@ val debugFileChooser = Debugger("FileChooser")
 /**
  * https://github.com/BioforestChain/dweb_browser/issues/58
  */
-class FileChooserNMM : NativeMicroModule("fs-picker.sys.dweb", "FileChooser") {
+class FileChooserNMM : NativeMicroModule.NativeRuntime("fs-picker.sys.dweb", "FileChooser") {
   private val fileChooserManage = FileChooserManage()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(

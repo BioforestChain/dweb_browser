@@ -19,7 +19,7 @@ import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 actual suspend fun IDWebView.Companion.create(
-  mm: MicroModule, options: DWebViewOptions
+  mm: MicroModule.Runtime, options: DWebViewOptions
 ): IDWebView {
   DWebView.prepare()
   return DWebView(DWebViewEngine(mm, options))

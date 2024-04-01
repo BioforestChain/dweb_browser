@@ -23,7 +23,7 @@ val debugBrowser = Debugger("browser")
 /**
  * TODO 这个模块应该进一步抽象，从而共享给IOS侧
  */
-class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
+class BrowserNMM : NativeMicroModule.NativeRuntime("web.browser.dweb", "Web Browser") {
   init {
     short_name = BrowserI18nResource.browser_short_name.text;
     dweb_deeplinks = listOf("dweb://search", "dweb://openinbrowser")

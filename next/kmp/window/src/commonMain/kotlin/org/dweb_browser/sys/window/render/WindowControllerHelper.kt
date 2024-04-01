@@ -711,8 +711,8 @@ fun WindowController.buildTheme(): WindowControllerTheme {
   )
 }
 
-val MicroModuleFetchHookCache = WeakHashMap<MicroModule, FetchHook>()
-val MicroModule.imageFetchHook
+val MicroModuleFetchHookCache = WeakHashMap<MicroModule.Runtime, FetchHook>()
+val MicroModule.Runtime.imageFetchHook
   get() = MicroModuleFetchHookCache.getOrPut(this) {
     {
       nativeFetch(request.url)

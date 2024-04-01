@@ -32,11 +32,12 @@ import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(
-  mm: MicroModule, options: DWebViewOptions
+  mm: MicroModule.Runtime, options: DWebViewOptions
 ): IDWebView = create(getAppContext(), mm, options)
 
 suspend fun IDWebView.Companion.create(
@@ -45,7 +46,7 @@ suspend fun IDWebView.Companion.create(
    */
   context: Context,
   /// 这两个参数是用来实现请求拦截与转发的
-  remoteMM: MicroModule,
+  remoteMM: MicroModule.Runtime,
   /**
    * 一些DWebView自定义的参数
    */
@@ -258,7 +259,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   // TODO 这段代码是否应该迁移到 common？如何迁移
   init {
-    engine.remoteMM.onAfterShutdown {
+    engine.remoteMM.onAfterShutdown.listen {
       destroy()
     }
   }

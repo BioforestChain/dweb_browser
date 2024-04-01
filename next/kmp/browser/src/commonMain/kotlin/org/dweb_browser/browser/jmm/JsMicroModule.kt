@@ -22,10 +22,8 @@ import org.dweb_browser.core.ipc.WebMessageEndpoint
 import org.dweb_browser.core.ipc.helper.IpcError
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcResponse
-import org.dweb_browser.core.ipc.helper.collectIn
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.ConnectResult
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.connectAdapterManager
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -36,16 +34,19 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.alsoLaunchIn
 import org.dweb_browser.helper.buildUnsafeString
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.toBase64Url
+import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.PureResponse
 import kotlin.random.Random
 
 val debugJsMM = Debugger("JsMM")
 
 open class JsMicroModule(val metadata: JmmAppInstallManifest) :
-  MicroModule(MicroModuleManifest().apply {
+  MicroModule.Runtime(MicroModuleManifest().apply {
     assign(metadata)
     categories += MICRO_MODULE_CATEGORY.Application
     icons.ifEmpty {
@@ -67,7 +68,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     init {
       val nativeToWhiteList = listOf<MMID>("js.browser.dweb")
 
-      data class MmDirection(val endJmm: JsMicroModule, val startMm: MicroModule)
+      data class MmDirection(val endJmm: JsMicroModule, val startMm: MicroModule.Runtime)
       // jsMM对外创建ipc的适配器，给DnsNMM的connectMicroModules使用
       connectAdapterManager.append(1) { fromMM, toMM, reason ->
 
@@ -92,18 +93,19 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           val toJmmIpc = jsMM.endJmm.ipcBridge(jsMM.startMm.mmid) //(tip:创建到worker内部的桥接)
           fromMM.beConnect(toJmmIpc, reason)
           toMM.beConnect(toJmmIpc, reason)
-          val forwardIpc = toJmmIpc.toForwardIpc()
-          return@append if (jsMM.startMm.mmid == fromMM.mmid) {
-            ConnectResult(
-              ipcForFromMM = toJmmIpc,
-              ipcForToMM = forwardIpc,
-            )
-          } else {
-            ConnectResult(
-              ipcForFromMM = forwardIpc,
-              ipcForToMM = toJmmIpc,
-            )
-          }
+          toJmmIpc
+//          val forwardIpc = toJmmIpc.toForwardIpc()
+//          return@append if (jsMM.startMm.mmid == fromMM.mmid) {
+//            ConnectResult(
+//              ipcForFromMM = toJmmIpc,
+//              ipcForToMM = forwardIpc,
+//            )
+//          } else {
+//            ConnectResult(
+//              ipcForFromMM = forwardIpc,
+//              ipcForToMM = toJmmIpc,
+//            )
+//          }
         }
       }
     }
@@ -132,7 +134,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     val processIpc = connect("js.browser.dweb").fork()
     // 让这个新的 ipc 作为 js-process 的通讯通道
     processIpc.request("file://js.browser.dweb/create-process")
-    processIpc.onRequest.collectIn(ioAsyncScope) { request ->
+    processIpc.onRequest.collectIn(mmScope) { request ->
       debugJsMM("processIpc.onRequest", "path=${request.uri.fullPath}")
       val response = if (request.uri.fullPath.endsWith("/")) {
         PureResponse(HttpStatusCode.Forbidden)
@@ -144,7 +146,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       }
       processIpc.postMessage(IpcResponse.fromResponse(request.reqId, response, processIpc))
     }
-    this.addToIpcSet(processIpc)
+    this.linkIpc(processIpc)
     return processIpc
   }
 
@@ -168,12 +170,12 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     /**
      * 拿到与js.browser.dweb模块的直连通道，它会将 Worker 中的数据带出来
      */
-    val (jsIpc) = bootstrapContext.dns.connect("js.browser.dweb")
+    val jsIpc = connect("js.browser.dweb")
     this.fetchIpc = jsIpc
 
     // 监听关闭事件
-    ioAsyncScope.launch {
-      if (running) {
+    mmScope.launch {
+      if (isRunning) {
         jsIpc.awaitClosed()
         shutdown()
       }
@@ -210,7 +212,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           )
         }
       }
-    }.launchIn(ioAsyncScope)
+    }.launchIn(mmScope)
 
     /**
      * 收到 Worker 的事件，如果是指令，执行一些特定的操作
@@ -237,7 +239,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
            *
            * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
            */
-          val (targetIpc) = bootstrapContext.dns.connect(event.mmid) // 由上面的适配器产生
+          val targetIpc = connect(event.mmid) // 由上面的适配器产生
           /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
           if (targetIpc.endpoint is WebMessageEndpoint) {
             ipcBridge(targetIpc.remote.mmid, targetIpc)
@@ -267,7 +269,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         // 调用重启
         bootstrapContext.dns.restart(mmid)
       }
-    }.launchIn(ioAsyncScope)
+    }.launchIn(mmScope)
   }
 
 
@@ -319,11 +321,11 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
   private fun ipcBridgeFactory(fromMMID: MMID, targetIpc: Ipc?) =
     fromMMIDOriginIpcWM.getOrPut(fromMMID) {
-      return@getOrPut CompletableDeferred<Ipc>().alsoLaunchIn(ioAsyncScope) {
+      return@getOrPut CompletableDeferred<Ipc>().alsoLaunchIn(mmScope) {
         debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
 
         val toJmmIpc = ipcBridgeSelf(fromMMID)
-        toJmmIpc.onBeforeClose {
+        toJmmIpc.onBeforeClose.listen {
           fromMMIDOriginIpcWM.remove(fromMMID)
         }
         // 如果是jsMM相互连接，直接把port丢过去
@@ -335,21 +337,21 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           /**
            * 将两个消息通道间接互联，这里targetIpc明确为NativeModule
            */
-          toJmmIpc.messageFlow.onEach { ipcMessage ->
+          toJmmIpc.onMessage.collectIn(mmScope) { ipcMessage ->
             targetIpc.postMessage(ipcMessage)
-          }.launchIn(ioAsyncScope)
-          targetIpc.messageFlow.onEach { ipcMessage ->
+          }
+          targetIpc.onMessage.collectIn(mmScope) { ipcMessage ->
             toJmmIpc.postMessage(ipcMessage)
-          }.launchIn(ioAsyncScope)
+          }
           /**
            * 监听关闭事件
            */
-          ioAsyncScope.launch {
+          mmScope.launch {
             toJmmIpc.awaitClosed()
             fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
             targetIpc.close()
           }
-          ioAsyncScope.launch {
+          mmScope.launch {
             targetIpc.awaitClosed()
             fromMMIDOriginIpcWM.remove(toJmmIpc.remote.mmid)
             toJmmIpc.close()
@@ -360,10 +362,9 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     }
 
 
-  private suspend fun ipcBridge(fromMMID: MMID, targetIpc: Ipc? = null) =
-    withContext(ioAsyncScope.coroutineContext) {
-      return@withContext ipcBridgeFactory(fromMMID, targetIpc).await()
-    }
+  private suspend fun ipcBridge(fromMMID: MMID, targetIpc: Ipc? = null) = withScope(mmScope) {
+    ipcBridgeFactory(fromMMID, targetIpc).await()
+  }
 
 
   override suspend fun _shutdown() {

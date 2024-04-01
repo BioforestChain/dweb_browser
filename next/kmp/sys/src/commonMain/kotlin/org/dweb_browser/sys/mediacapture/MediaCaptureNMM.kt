@@ -15,7 +15,7 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermission
 
 val debugMediaCapture = Debugger("MediaCapture")
 
-class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCapture") {
+class MediaCaptureNMM : NativeMicroModule.NativeRuntime("media-capture.sys.dweb", "MediaCapture") {
   private val mediaCaptureManage = MediaCaptureManage()
 
   init {
@@ -49,7 +49,7 @@ class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCaptur
 
   override suspend fun _shutdown() {}
 
-  private suspend fun IHandlerContext.takePicture(fromMM: MicroModule): PureStream {
+  private suspend fun IHandlerContext.takePicture(fromMM: MicroModule.Runtime): PureStream {
     debugMediaCapture("takePicture", "enter")
     return if (fromMM.requestSystemPermission(
         name = SystemPermissionName.CAMERA,
@@ -67,7 +67,7 @@ class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCaptur
     }
   }
 
-  private suspend fun IHandlerContext.captureVideo(fromMM: MicroModule): PureStream {
+  private suspend fun IHandlerContext.captureVideo(fromMM: MicroModule.Runtime): PureStream {
     debugMediaCapture("captureVideo", "enter")
     return if (fromMM.requestSystemPermission(
         name = SystemPermissionName.CAMERA,
@@ -85,7 +85,7 @@ class MediaCaptureNMM : NativeMicroModule("media-capture.sys.dweb", "MediaCaptur
     }
   }
 
-  private suspend fun IHandlerContext.recordAudio(fromMM: MicroModule): PureStream {
+  private suspend fun IHandlerContext.recordAudio(fromMM: MicroModule.Runtime): PureStream {
     debugMediaCapture("recordSound", "enter")
     return if (fromMM.requestSystemPermission(
         name = SystemPermissionName.MICROPHONE,

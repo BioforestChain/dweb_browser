@@ -7,7 +7,7 @@ import javax.swing.JOptionPane
 import javax.swing.Timer
 
 actual suspend fun showToast(
-  microModule: MicroModule,
+  microModule: MicroModule.Runtime,
   text: String,
   durationType: DurationType,
   positionType: PositionType
