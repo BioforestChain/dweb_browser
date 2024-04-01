@@ -13,6 +13,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.compose.ScreenSize
 import org.dweb_browser.helper.platform.PureViewController
@@ -43,17 +45,13 @@ internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
           }
         }
       })
-    // 给macos 的dock预留空间 todo 动态拿到dock 高度
-    val bottomInsets = if (PureViewController.isMacOS) 100 else 0
-    val modalWindowInsets = remember {
-      WindowInsets(0, 0, 0, bottomInsets)
-    }
 
     val winPadding = LocalWindowPadding.current
 
     /// win/mac 的标准桌面目前不需要提供inset，即便是有刘海屏幕的mac
-    val windowInsetTop = 0.dp
-    val windowInsetBottom = 0.dp
+    val windowInsetTop = winPadding.top.dp
+    val windowInsetBottom = winPadding.bottom.dp
+    val density = LocalDensity.current.density
 
     val windowLimits = LocalWindowLimits.current
 
@@ -68,14 +66,16 @@ internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
           BottomSheetDefaults.DragHandle(Modifier.align(Alignment.TopCenter))
         }
       },
-      windowInsets = modalWindowInsets,
+      /// dialog 的布局算法会自己算上安全区域，所以这里不需要做任何的 insets 的注入
+      windowInsets = WindowInsets(0),
+      scrimColor = Color.Transparent,
       onDismissRequest = { emitModalVisibilityChange(EmitModalVisibilityState.TryClose) }) {
       /// 显示内容
       BoxWithConstraints(
         Modifier.padding(
           start = winPadding.start.dp,
           end = winPadding.end.dp,
-          bottom = windowInsetBottom + windowInsetTop
+//          bottom = 0.do
         )
       ) {
         val windowRenderScope = remember(winPadding, maxWidth, maxHeight) {

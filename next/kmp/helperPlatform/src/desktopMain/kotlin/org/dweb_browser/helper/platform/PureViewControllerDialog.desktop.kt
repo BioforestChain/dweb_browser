@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.awt.ComposeDialog
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -16,7 +17,10 @@ import androidx.compose.ui.unit.IntSize
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.CompositionChain
+import org.dweb_browser.helper.compose.timesToInt
 import org.dweb_browser.helper.compose.toIntSize
+import org.dweb_browser.helper.compose.toSize
+import java.awt.Dialog
 import javax.swing.JDialog
 import javax.swing.SwingUtilities
 
@@ -28,15 +32,12 @@ fun PureViewController.ModalDialog(
   content: @Composable (JDialog) -> Unit
 ) {
   val viewBox = LocalPureViewBox.current
-  val panel = remember { ComposePanel() }
-  val dialog = remember(panel) {
-    JDialog(getComposeWindowOrNull(), state.title, /* isModal */true).apply {
+  val dialog = remember {
+    ComposeDialog(getComposeWindowOrNull(),Dialog.ModalityType.APPLICATION_MODAL, ).apply {
+      title = state.title
       isUndecorated = true
+//      isTransparent = true
       defaultCloseOperation = JDialog.DISPOSE_ON_CLOSE
-      background = java.awt.Color(0f, 0f, 0f, 0f)
-
-      panel.preferredSize = size
-      add(panel)
     }
   }
   // 绑定title
@@ -49,24 +50,24 @@ fun PureViewController.ModalDialog(
   val density = LocalDensity.current.density
   val layoutDirection = LocalLayoutDirection.current
   val boundsReady = remember { CompletableDeferred<Unit>() }
-  LaunchedEffect(density, layoutDirection, state.alignment, state.width, state.height) {
-    val displayIntSize = viewBox.getDisplaySizePx()
+  val safeAreaSpacePx  =viewBox.asDesktop() .currentViewControllerMaxBounds().timesToInt(density)
+  LaunchedEffect(density,safeAreaSpacePx, layoutDirection, state.alignment, state.width, state.height) {
     val maxDialogIntSize = viewBox.getViewControllerMaxBoundsPx().toIntSize()
     val dialogWidth = state.width?.times(density)?.toInt() ?: maxDialogIntSize.width
     val dialogHeight = state.height?.times(density)?.toInt() ?: maxDialogIntSize.height
     val offset = state.alignment.align(
       size = IntSize(dialogWidth, dialogHeight),
-      space = displayIntSize,
+      space = safeAreaSpacePx.toIntSize(),
       layoutDirection = layoutDirection
     )
     SwingUtilities.invokeLater {
-      dialog.setBounds(offset.x, offset.y, dialogWidth, dialogHeight)
+      dialog.setBounds(offset.x + safeAreaSpacePx.top, offset.y+safeAreaSpacePx.left, dialogWidth, dialogHeight)
       boundsReady.complete(Unit)
     }
   }
   val uiScope = rememberCoroutineScope()
   DisposableEffect(dialog) {
-    panel.setContent {
+    dialog.setContent {
       state.chain.Provider {
         content(dialog)
       }

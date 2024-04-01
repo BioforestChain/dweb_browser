@@ -64,11 +64,6 @@ class PureViewController(
         _beforeExit.emit(ApplicationSignal.Exit)
         this@awaitApplication.exitApplication()
       }
-      // https://github.com/JetBrains/kotlin-multiplatform-dev-docs/blob/master/topics/whats-new/whats-new-compose-1-6-0.md#desktop-experimental
-      System.setProperty("compose.layers.type", "COMPONENT")
-      // https://github.com/JetBrains/compose-multiplatform-core/pull/915
-      System.setProperty("compose.interop.blending", "true")
-      System.setProperty("compose.swing.render.on.graphics", "true")
 
       // windows dweb deeplink写入注册表
       if (isWindows) {

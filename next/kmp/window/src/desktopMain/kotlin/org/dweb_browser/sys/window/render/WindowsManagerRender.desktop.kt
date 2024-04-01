@@ -60,10 +60,9 @@ fun RenderWindowInNative(
       if (!pvc.composeWindowParams.isOpened) {
         // 使用系统原生的窗口进行渲染
         win.state.renderConfig.useSystemFrame = true
-
         pvc.composeWindowParams.apply {
           // 关闭边框
-          undecorated = true
+//          undecorated = true
           if (PureViewController.isMacOS) {
             // 背景透明
             transparent = true
