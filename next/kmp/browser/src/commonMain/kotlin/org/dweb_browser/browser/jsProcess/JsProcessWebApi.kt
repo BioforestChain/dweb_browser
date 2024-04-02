@@ -14,6 +14,7 @@ import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.WebMessageEndpoint
 import org.dweb_browser.core.ipc.kotlinIpcPool
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -42,6 +43,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     env_script_url: String,
     metadata_json: String,
     env_json: String,
+    localeModule: MicroModule,
     remoteModule: IMicroModuleManifest,
     host: String
   ): ProcessHandler {
@@ -76,9 +78,9 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     debugJsProcess("processInfo", processInfo_json)
     val info = Json.decodeFromString<ProcessInfo>(processInfo_json)
     val ipc = kotlinIpcPool.createIpc(
-      "create-process-${remoteModule.mmid}",
-      remoteModule,
       WebMessageEndpoint.from("create-process-${remoteModule.mmid}", kotlinIpcPool.scope, port2),
+      localeModule,
+      remoteModule,
     )
     return ProcessHandler(info, ipc)
   }

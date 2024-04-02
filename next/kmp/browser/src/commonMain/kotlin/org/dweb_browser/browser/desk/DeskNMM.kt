@@ -79,9 +79,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
               runningApps[mmid] = app
               /// 如果应用关闭，将它从列表中移除
               mmScope.launch {
-                app.closeDeferred.await()
+                app.awaitClosed()
                 runningApps.remove(mmid)
-
               }
             }
           } else null
@@ -383,4 +382,4 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   override fun createRuntime(bootstrapContext: BootstrapContext) = DeskRuntime(bootstrapContext)
 }
 
-expect suspend fun DeskNMM.startDesktopView(deskSessionId: String)
+expect suspend fun DeskNMM.DeskRuntime.startDesktopView(deskSessionId: String)

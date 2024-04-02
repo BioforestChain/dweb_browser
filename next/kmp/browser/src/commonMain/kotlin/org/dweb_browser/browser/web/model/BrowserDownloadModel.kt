@@ -16,7 +16,7 @@ import org.dweb_browser.sys.window.ext.createBottomSheets
 
 class BrowserDownloadModel(
   private val downloadController: BrowserDownloadController,
-  private val browserNMM: BrowserNMM,
+  private val browserNMM: BrowserNMM.BrowserRuntime,
 ) {
   val saveDownloadList = downloadController.saveDownloadList
   val saveCompleteList = downloadController.saveCompleteList

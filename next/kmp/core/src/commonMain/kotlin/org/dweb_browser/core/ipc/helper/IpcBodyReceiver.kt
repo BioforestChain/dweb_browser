@@ -83,7 +83,7 @@ class IpcBodyReceiver(
             IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
             else -> null
           }?.let { firstData -> controller.enqueueBackground(firstData) }
-          ipc.onStream.onEach { (ipcStream) ->
+          ipc.onStream.onEach { ipcStream ->
             if (streamId == ipcStream.stream_id) {
               when (ipcStream) {
                 is IpcStreamData -> {
@@ -99,6 +99,8 @@ class IpcBodyReceiver(
                   )
                   controller.closeWrite()
                 }
+
+                else -> {}
               }
             }
           }.launchIn(ipc.scope)

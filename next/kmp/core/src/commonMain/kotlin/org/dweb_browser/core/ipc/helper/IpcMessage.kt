@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class IpcMessage(val type: IPC_MESSAGE_TYPE)
 
-interface IpcStream {
+sealed interface IpcStream {
   val stream_id: String
 }
 

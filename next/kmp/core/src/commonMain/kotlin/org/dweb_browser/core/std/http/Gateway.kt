@@ -5,7 +5,6 @@ import io.ktor.util.collections.ConcurrentSet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
@@ -47,11 +46,8 @@ class Gateway(
     val destroyDeferred = CompletableDeferred<Unit>()
 
     suspend fun destroy() {
-      _routerSet.map {
-        when (val ipc = it.ipc) {
-          is ReadableStreamIpc -> ipc.input.closeRead()
-          else -> ipc.close()
-        }
+      _routerSet.forEach {
+        it.ipc.close()
       }
       _routerSet.clear()
       destroyDeferred.complete(Unit)

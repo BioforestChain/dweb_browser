@@ -200,8 +200,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         DwebHttpServerOptions(subdomain = processIpc.remote.mmid),
       );
 
-      this.linkIpc(processIpc)
-
       /**
        * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
        */
@@ -253,6 +251,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         bootstrapUrl,
         Json.encodeToString(metadata),
         Json.encodeToString(env),
+        this@JsProcessNMM,
         processIpc.remote,
         httpDwebServer.startResult.urlInfo.host
       )

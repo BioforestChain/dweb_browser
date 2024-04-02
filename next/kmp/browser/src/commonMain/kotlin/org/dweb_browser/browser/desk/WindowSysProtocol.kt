@@ -12,7 +12,7 @@ import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.constant.WindowStyle
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
-suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
+suspend fun DeskNMM.DeskRuntime.windowProtocol(desktopController: DesktopController) {
   protocol("window.sys.dweb") {
     routes(
       /// 打开主窗口，获取主窗口句柄

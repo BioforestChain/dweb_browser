@@ -3,10 +3,17 @@ package org.dweb_browser.dwebview.messagePort
 import com.teamdev.jxbrowser.js.JsArray
 import com.teamdev.jxbrowser.js.JsFunctionCallback
 import com.teamdev.jxbrowser.js.JsObject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import org.dweb_browser.dwebview.DWebMessage
+import kotlinx.coroutines.plus
+import org.dweb_browser.core.ipc.helper.DWebMessage
+import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.IWebMessagePort
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.launchWithMain
 import org.dweb_browser.helper.runIf
@@ -14,6 +21,7 @@ import kotlin.jvm.optionals.getOrNull
 
 class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: DWebView) :
   IWebMessagePort {
+  val scope = webview.ioScope + SupervisorJob()
   internal val _started = lazy {
     val onMessageSignal = Signal<DWebMessage>()
     webview.ioScope.launch {
@@ -47,10 +55,11 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
     _started.value
   }
 
-  override suspend fun close() {
+  override suspend fun close(cause: CancellationException?) {
     webview.ioScope.launchWithMain {
       port.call<Unit>("close")
-    }
+    }.join()
+    scope.cancel(cause)
   }
 
   override suspend fun postMessage(event: DWebMessage) {
@@ -61,7 +70,7 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
           it.port
         }
 
-        port.call<Unit>("postMessage", event.data, ports)
+        port.call<Unit>("postMessage", event.binary, ports)
       }
 
       is DWebMessage.DWebMessageString -> {
@@ -70,10 +79,11 @@ class DWebMessagePort(val port: /* MessagePort */JsObject, private val webview: 
           it.port
         }
 
-        port.call<Unit>("postMessage", event.data, ports)
+        port.call<Unit>("postMessage", event.text, ports)
       }
     }
   }
 
-  override val onMessage = _started.value.toListener()
+  private val messageFlow = MutableSharedFlow<DWebMessage>()
+  override val onMessage = messageFlow.shareIn(scope, SharingStarted.Lazily)
 }

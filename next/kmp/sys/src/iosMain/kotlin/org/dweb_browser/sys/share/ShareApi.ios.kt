@@ -65,9 +65,7 @@ actual suspend fun share(
     shareNMM.getUIApplication().keyWindow?.rootViewController?.apply {
 
       presentViewController(
-        controller,
-        true,
-        null
+        controller, true, null
       )
 
       controller.completionWithItemsHandler = { _, completed, _, _ ->
@@ -113,9 +111,7 @@ actual suspend fun share(
 
     shareNMM.getUIApplication().keyWindow?.rootViewController?.apply {
       presentViewController(
-        controller,
-        true,
-        null
+        controller, true, null
       )
       controller.completionWithItemsHandler = { _, completed, _, _ ->
         deferred.complete(if (completed) "OK" else "Cancel")
@@ -127,15 +123,14 @@ actual suspend fun share(
   }
 }
 
+@Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
 class FileShareModel @OptIn(ExperimentalForeignApi::class) constructor(
-  val url: NSURL,
-  private val lpLinkMetadata: platform.LinkPresentation.LPLinkMetadata? = null
+  val url: NSURL, private val lpLinkMetadata: platform.LinkPresentation.LPLinkMetadata? = null
 ) : NSObject(), UIActivityItemSourceProtocol {
   override fun activityViewController(
-    activityViewController: UIActivityViewController,
-    itemForActivityType: UIActivityType?
-  ): Any? {
-    return url
+    activityViewController: UIActivityViewController, itemForActivityType: UIActivityType
+  ): String {
+    return url.toString()
   }
 
   override fun activityViewControllerPlaceholderItem(activityViewController: UIActivityViewController): Any {

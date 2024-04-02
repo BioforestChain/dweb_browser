@@ -131,7 +131,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   @SuppressLint("RequiresFeature")
   override suspend fun createMessageChannel(): IWebMessageChannel = withMainContext {
-    DWebMessageChannel(WebViewCompat.createWebMessageChannel(engine))
+    DWebMessageChannel(WebViewCompat.createWebMessageChannel(engine),engine)
   }
 
   @SuppressLint("RequiresFeature")

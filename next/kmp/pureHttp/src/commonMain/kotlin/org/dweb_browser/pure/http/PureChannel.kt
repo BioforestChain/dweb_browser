@@ -38,23 +38,18 @@ class PureChannelContext internal constructor(
   operator fun iterator() = income.iterator()
   inline suspend fun <reified T> readJsonLine() = sequenceOf(iterator())
 
-  suspend fun sendText(data: String) =
-    outgoing.send(PureTextFrame(data))
+  suspend fun sendText(data: String) = outgoing.send(PureTextFrame(data))
 
-  suspend inline fun <reified T> sendJson(data: T) =
-    sendText(Json.encodeToString(data))
+  suspend inline fun <reified T> sendJson(data: T) = sendText(Json.encodeToString(data))
 
-  suspend inline fun <reified T> sendJsonLine(data: T) =
-    sendText(Json.encodeToString(data) + "\n")
+  suspend inline fun <reified T> sendJsonLine(data: T) = sendText(Json.encodeToString(data) + "\n")
 
 
-  suspend fun sendBinary(data: ByteArray) =
-    outgoing.send(PureBinaryFrame(data))
+  suspend fun sendBinary(data: ByteArray) = outgoing.send(PureBinaryFrame(data))
 
 
   @OptIn(ExperimentalSerializationApi::class)
-  suspend inline fun <reified T> sendCbor(data: T) =
-    sendBinary(Cbor.encodeToByteArray(data))
+  suspend inline fun <reified T> sendCbor(data: T) = sendBinary(Cbor.encodeToByteArray(data))
 
 
   private val closeLock = Mutex()
@@ -94,9 +89,9 @@ class PureChannel(
     PureChannelContext(
       income = _income,
       outgoing = _outgoing,
-      closeSignal = closeSignal
-    ) { this }
-      .also { startSignal.emit(it) }
+      closeSignal = closeSignal,
+      getChannel = { this@PureChannel },
+    ).also { startSignal.emit(it) }
   }
 
   override suspend fun start() = _start()
@@ -121,9 +116,7 @@ class PureChannel(
 
   fun reverse() = _remote.updateAndGet {
     it ?: PureChannel(
-      _outgoing,
-      _income,
-      this
+      _outgoing, _income, this
     ).also { it._remote.update { this@PureChannel } }
   }!!
 }
@@ -156,46 +149,39 @@ data object PureCloseFrame : PureFrame()
 val HttpStatusCode.Companion.WS_CLOSE_NORMAL by lazy { HttpStatusCode(1000, "Close normal") }
 val HttpStatusCode.Companion.WS_CLOSE_GOING_AWAY by lazy {
   HttpStatusCode(
-    1001,
-    "Close going away"
+    1001, "Close going away"
   )
 }
 val HttpStatusCode.Companion.WS_CLOSE_PROTOCOL_ERROR by lazy {
   HttpStatusCode(
-    1002,
-    "Close protocol error"
+    1002, "Close protocol error"
   )
 }
 val HttpStatusCode.Companion.WS_CLOSE_UNSUPPORTED by lazy {
   HttpStatusCode(
-    1003,
-    "Close unsupported"
+    1003, "Close unsupported"
   )
 }
 val HttpStatusCode.Companion.WS_CLOSED_NO_STATUS by lazy {
   HttpStatusCode(
-    1005,
-    "Closed no status"
+    1005, "Closed no status"
   )
 }
 val HttpStatusCode.Companion.WS_CLOSE_ABNORMAL by lazy { HttpStatusCode(1006, "Close abnormal") }
 val HttpStatusCode.Companion.WS_UNSUPPORTED_PAYLOAD by lazy {
   HttpStatusCode(
-    1007,
-    "Unsupported payload"
+    1007, "Unsupported payload"
   )
 }
 val HttpStatusCode.Companion.WS_POLICY_VIOLATION by lazy {
   HttpStatusCode(
-    1008,
-    "Policy violation"
+    1008, "Policy violation"
   )
 }
 val HttpStatusCode.Companion.WS_CLOSE_TOO_LARGE by lazy { HttpStatusCode(1009, "Close too large") }
 val HttpStatusCode.Companion.WS_MANDATORY_EXTENSION by lazy {
   HttpStatusCode(
-    1010,
-    "Mandatory extension"
+    1010, "Mandatory extension"
   )
 }
 val HttpStatusCode.Companion.WS_SERVER_ERROR by lazy { HttpStatusCode(1011, "Server error") }
@@ -204,7 +190,6 @@ val HttpStatusCode.Companion.WS_TRY_AGAIN_LATER by lazy { HttpStatusCode(1013, "
 val HttpStatusCode.Companion.WS_BAD_GATEWAY by lazy { HttpStatusCode(1014, "Bad gateway") }
 val HttpStatusCode.Companion.WS_TLS_HANDSHAKE_FAIL by lazy {
   HttpStatusCode(
-    1015,
-    "TLS handshake fail"
+    1015, "TLS handshake fail"
   )
 }

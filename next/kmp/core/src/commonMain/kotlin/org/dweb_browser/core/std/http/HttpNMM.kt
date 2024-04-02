@@ -535,7 +535,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
       /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
       /// 自己nmm销毁的时候，ipc也会被全部销毁
-      this.linkIpc(serverIpc)
       /// 自己创建的，就要自己销毁：这个listener被销毁的时候，serverIpc也要进行销毁
       mmScope.launch {
         gateway.listener.destroyDeferred.await()

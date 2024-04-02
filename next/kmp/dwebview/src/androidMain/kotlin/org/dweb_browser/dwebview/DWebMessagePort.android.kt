@@ -5,7 +5,6 @@ import androidx.webkit.WebMessageCompat
 import androidx.webkit.WebMessagePortCompat
 import androidx.webkit.WebViewFeature
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
@@ -16,19 +15,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.WeakHashMap
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 @SuppressLint("RestrictedApi")
 class DWebMessagePort private constructor(
   internal val port: WebMessagePortCompat,
-  parentScope: CoroutineScope = CoroutineScope(ioAsyncExceptionHandler)
+  val engine: DWebViewEngine,
 ) :
   IWebMessagePort {
   companion object {
     private val wm = WeakHashMap<WebMessagePortCompat, DWebMessagePort>()
-    fun from(port: WebMessagePortCompat): DWebMessagePort =
-      wm.getOrPut(port) { DWebMessagePort(port) }
+    fun from(port: WebMessagePortCompat, engine: DWebViewEngine): DWebMessagePort =
+      wm.getOrPut(port) { DWebMessagePort(port, engine) }
 
     fun IWebMessagePort.into(): WebMessagePortCompat {
       require(this is DWebMessagePort)
@@ -36,7 +35,7 @@ class DWebMessagePort private constructor(
     }
   }
 
-  val scope = parentScope + SupervisorJob()
+  val scope = engine.ioScope + SupervisorJob()
 
   @SuppressLint("RequiresFeature")
   private val _started = lazy {
@@ -49,7 +48,7 @@ class DWebMessagePort private constructor(
             messageChannel.trySend(
               DWebMessage.DWebMessageBytes(
                 message.arrayBuffer,
-                message.ports?.map { from(it) } ?: emptyList()))
+                message.ports?.map { from(it, engine) } ?: emptyList()))
             return
           }
         }
@@ -57,7 +56,7 @@ class DWebMessagePort private constructor(
         messageChannel.trySend(
           DWebMessage.DWebMessageString(
             message?.data ?: "",
-            message?.ports?.map { from(it) } ?: emptyList())
+            message?.ports?.map { from(it, engine) } ?: emptyList())
         ).getOrElse { err ->
           err?.printStackTrace()
         }

@@ -75,7 +75,6 @@ open class IpcPool {
     debugIpcPool("createIpc") { "add ${ipc.debugId}" }
     ipcSet.add(ipc)
     scope.launch {
-
       /// 自动启动
       if (autoStart) {
         ipc.start()

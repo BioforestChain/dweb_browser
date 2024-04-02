@@ -115,7 +115,7 @@ open class Ipc private constructor(
   }
 
   val onStream by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    messagePipeMap {
+    messagePipeMap<IpcStream> {
       if (it is IpcStream) it else null
     }
   }
@@ -257,6 +257,9 @@ open class Ipc private constructor(
     remote = remote,
     autoStart = autoStart,
   ).also {
+    // 自触发
+    forkFlow.emit(it)
+    // 通知对方
     postMessage(
       IpcLifecycle.Init(
         pid = it.pid,

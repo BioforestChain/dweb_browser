@@ -17,7 +17,7 @@ import org.dweb_browser.browser.web.model.BrowserDownloadModel
 import org.dweb_browser.dwebview.WebDownloadArgs
 
 class BrowserDownloadController(
-  private val browserNMM: BrowserNMM, private val browserController: BrowserController
+  private val browserNMM: BrowserNMM.BrowserRuntime, private val browserController: BrowserController
 ) {
   private val downloadStore = BrowserDownloadStore(browserNMM)
 

@@ -79,7 +79,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
   }
 
   inner class PermissionRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
-    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    override suspend fun _bootstrap() {
       val permissionStdProtocol = permissionStdProtocol(hooks)
 
       routes(

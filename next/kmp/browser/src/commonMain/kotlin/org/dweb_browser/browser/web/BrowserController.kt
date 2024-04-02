@@ -23,7 +23,7 @@ import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getWindow
 
 class BrowserController(
-  private val browserNMM: BrowserNMM, private val webLinkStore: WebLinkStore
+  private val browserNMM: BrowserNMM.BrowserRuntime, private val webLinkStore: WebLinkStore
 ) {
   private val windowVisibleSignal = Signal<Boolean>()
   val onWindowVisible = windowVisibleSignal.toListener()

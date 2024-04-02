@@ -1,6 +1,5 @@
 package org.dweb_browser.dwebview.ipcWeb
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.WebMessageEndpoint
@@ -39,18 +38,3 @@ suspend fun saveJsBridgeIpcEndpoint(port: IWebMessagePort) = (all_ipc_id_acc++).
  */
 fun native2JsEndpoint(portId: Int) =
   ALL_MESSAGE_PORT_CACHE[portId] ?: throw Exception("no found port2(js-process) by id: $portId")
-
-open class Native2JsIpc(
-  private val portId: Int, parentScope: CoroutineScope, debugId: String,
-) : WebMessageEndpoint(
-  debugId,
-  parentScope,
-  ALL_MESSAGE_PORT_CACHE[portId] ?: throw Exception("no found port2(js-process) by id: $portId"),
-) {
-  init {
-    scope.launch {
-      closeDeferred.await()
-      ALL_MESSAGE_PORT_CACHE.remove(this@Native2JsIpc.portId)
-    }
-  }
-}

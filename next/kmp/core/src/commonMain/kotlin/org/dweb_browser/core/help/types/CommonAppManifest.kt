@@ -14,7 +14,7 @@ typealias DWEB_PROTOCOL = MMID
  * MMID or Protocol
  * 这里的定义，目的是在代码中明确区分出需求
  */
-typealias MPID = MMID
+typealias MMPT = MMID
 
 object CommonAppManifestSerializer : PropMetasSerializer<CommonAppManifest>(CommonAppManifest.P)
 

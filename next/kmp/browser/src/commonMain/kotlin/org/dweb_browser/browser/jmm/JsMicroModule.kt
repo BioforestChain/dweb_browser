@@ -152,7 +152,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         }
         processIpc.postMessage(IpcResponse.fromResponse(request.reqId, response, processIpc))
       }
-      this.linkIpc(processIpc)
       return processIpc
     }
 

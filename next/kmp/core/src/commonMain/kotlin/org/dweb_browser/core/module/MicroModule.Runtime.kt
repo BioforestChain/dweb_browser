@@ -118,20 +118,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
      */
     private val connectionLinks = SafeHashSet<Ipc>()
 
-    /**
-     *
-     */
-    fun linkIpc(ipc: Ipc): Boolean {
-      return if (this.connectionLinks.add(ipc)) {
-        onBeforeShutdown.listen {
-          ipc.close()
-        }
-        ipc.onBeforeClose.listen {
-          connectionLinks.remove(ipc)
-        }
-        true
-      } else false
-    }
 
     /**
      * 内部程序与外部程序通讯的方法
@@ -153,7 +139,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     suspend fun connect(mmid: MMID, reason: PureRequest? = null) = connectionMap.getOrPut(mmid) {
       mmScope.async {
         bootstrapContext.dns.connect(mmid, reason).also {
-          linkIpc(it)
+          beConnect(it, reason)
         }
       }
     }.await()
@@ -162,12 +148,19 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
      * 收到一个连接，触发相关事件
      */
     suspend fun beConnect(ipc: Ipc, reason: PureRequest?) {
-      if (this.linkIpc(ipc)) {
-        // 尝试保存到连接池中
+      if (connectionLinks.add(ipc)) {
+        ipc.onFork.listen {
+          beConnect(it, null)
+        }
+        onBeforeShutdown.listen {
+          ipc.close()
+        }
+        ipc.onBeforeClose.listen {
+          connectionLinks.remove(ipc)
+        }
+        // 尝试保存到双向连接索引中
         @Suppress("DeferredResultUnused") connectionMap.getOrPut(ipc.remote.mmid) {
-          CompletableDeferred(
-            ipc
-          )
+          CompletableDeferred(ipc)
         }
         connectFlow.emit(IpcConnectArgs(ipc, reason))
       }

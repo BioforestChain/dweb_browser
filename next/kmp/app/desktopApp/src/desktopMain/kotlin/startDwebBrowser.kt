@@ -12,6 +12,7 @@ import org.dweb_browser.browser.search.SearchNMM
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileNMM
@@ -19,10 +20,10 @@ import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.core.std.permission.debugPermission
 import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.platform.DeepLinkHook
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.biometrics.BiometricsNMM
-import org.dweb_browser.sys.boot.BootNMM
 import org.dweb_browser.sys.clipboard.ClipboardNMM
 import org.dweb_browser.sys.configure.ConfigNMM
 import org.dweb_browser.sys.contact.ContactNMM
@@ -85,32 +86,12 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
     // TODO fuck this
     DeepLinkHook.deepLinkHook.deeplinkSignal.listen {
       println("deeplinkSignal => url=$it")
-      dnsNMM.nativeFetch(it)
+      dnsNMM.runtime.nativeFetch(it)
     }
   }
 
-  suspend fun MicroModule.Runtime.setup() = this.also {
+  suspend fun MicroModule.setup() = this.also {
     dnsNMM.install(this)
-  }
-
-  // 添加windows平台系統級dweb deeplinks处理
-  if(PureViewController.isWindows) {
-    singleInstanceFlow.onEach {
-      dnsNMM.nativeFetch(it.replace("/?", "?"))
-    }.launchIn(dnsNMM.ioAsyncScope)
-  }
-
-  // 添加dweb deeplinks处理
-  try {
-    Desktop.getDesktop().setOpenURIHandler { event ->
-      if (event.uri.scheme == "dweb") {
-        dnsNMM.mmScope.launch {
-          dnsNMM.nativeFetch(event.uri.toString())
-        }
-      }
-    }
-  } catch (e: UnsupportedOperationException) {
-    println("setOpenURIHandler is unsupported")
   }
 
   val permissionNMM = PermissionNMM().setup()
@@ -188,6 +169,28 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   }
 
   /// 启动
-  dnsNMM.bootstrap()
+  val dnsRuntime = dnsNMM.bootstrap()
+
+  // 添加dweb deeplinks处理
+  try {
+    Desktop.getDesktop().setOpenURIHandler { event ->
+      if (event.uri.scheme == "dweb") {
+        dnsRuntime.mmScope.launch {
+          dnsRuntime.nativeFetch(event.uri.toString())
+        }
+      }
+    }
+  } catch (e: UnsupportedOperationException) {
+    println("setOpenURIHandler is unsupported")
+  }
+
+
+  // 添加windows平台系統級dweb deeplinks处理
+  if(PureViewController.isWindows) {
+    singleInstanceFlow.collectIn(dnsRuntime.getRuntimeScope()) {
+      dnsRuntime.nativeFetch(it.replace("/?", "?"))
+    }
+  }
+
   return dnsNMM
 }

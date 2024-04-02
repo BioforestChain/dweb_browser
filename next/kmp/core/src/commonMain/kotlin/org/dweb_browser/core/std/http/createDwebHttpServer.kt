@@ -6,7 +6,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.PromiseOut
@@ -55,7 +54,6 @@ suspend fun MicroModule.Runtime.listenHttpDwebServer(
     parameters["token"] = startResult.token
     parameters["routes"] = Json.encodeToString(routes)
   }.buildUnsafeString())
-  this.linkIpc(serverIpc)
   return serverIpc
 }
 
@@ -72,8 +70,8 @@ class HttpDwebServer(
   private val options: DwebHttpServerOptions,
   val startResult: HttpNMM.ServerStartResult
 ) {
-  private val listenPo = PromiseOut<ReadableStreamIpc>()
-  val listen = SuspendOnce<ReadableStreamIpc> {
+  private val listenPo = PromiseOut<Ipc>()
+  val listen = SuspendOnce {
     if (listenPo.isFinished) {
       throw Exception("Listen method has been called more than once without closing.");
     }
@@ -82,7 +80,7 @@ class HttpDwebServer(
       startResult
     )
     listenPo.resolve(streamIpc)
-    return@SuspendOnce streamIpc
+    streamIpc
   }
 
   val close = SuspendOnce {

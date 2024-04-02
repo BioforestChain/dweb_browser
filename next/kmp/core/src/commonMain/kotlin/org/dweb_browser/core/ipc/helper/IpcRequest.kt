@@ -312,7 +312,7 @@ sealed class IpcRequest(
       val started = CompletableDeferred<IpcEvent>()
       val channelIpc = parentIpc.fork()
       coroutineScope {
-        channelIpc.onEvent.collectIn(this) { (ipcEvent) ->
+        channelIpc.onEvent.collectIn(this) { ipcEvent ->
           when (ipcEvent.name) {
             eventData -> {
 //            debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent" }

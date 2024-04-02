@@ -165,7 +165,7 @@ class IpcBodySender private constructor(
   /**开始监听控制信号拉取*/
   private fun onPulling(streamId: String) {
     // 接收流的控制信号,才能跟接收者(IpcBodyReceiver)互相配合 onStream = pull + pause + abort
-    ipc.onStream.onEach { (stream) ->
+    ipc.onStream.onEach { stream ->
       if (streamId == stream.stream_id) {
         debugIpcBodySender("onPulling", "sender INIT => $streamId => $stream")
         when (stream) {
@@ -175,6 +175,8 @@ class IpcBodySender private constructor(
             emitStreamAborted()
             ipc.close()
           }
+
+          else -> {}
         }
       }
     }.launchIn(ipc.scope)
