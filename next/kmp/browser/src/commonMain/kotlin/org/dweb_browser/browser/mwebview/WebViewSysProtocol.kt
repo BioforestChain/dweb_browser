@@ -10,7 +10,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.getWindow
 
-suspend fun MultiWebViewNMM.WebViewRuntime.webViewSysProtocol() {
+suspend fun MultiWebViewNMM.MultiWebViewRuntime.webViewSysProtocol() {
   protocol("webview.sys.dweb") {
 
     routes(
@@ -19,9 +19,7 @@ suspend fun MultiWebViewNMM.WebViewRuntime.webViewSysProtocol() {
         val rid = request.query("rid")
         val url = request.query("url")
         val wid = request.query("wid")
-        val remoteMm = (bootstrapContext.dns.query(ipc.remote.mmid)
-          ?: throw Exception("webview.sys.dweb/open should be call by locale")).runtimeOrNull
-          ?: throw Exception("webview.sys.dweb/open ${ipc.remote.mmid} is no running")
+        val remoteMm = getRemoteRuntime()
         val win = remoteMm.getWindow(wid)
         val webView = win.createDwebView(remoteMm, url)
 

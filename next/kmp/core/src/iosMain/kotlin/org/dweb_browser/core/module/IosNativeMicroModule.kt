@@ -9,7 +9,7 @@ import platform.UIKit.UIApplication
 
 lateinit var nativeMicroModuleUIApplication: UIApplication
 
-fun MicroModule.Runtime.Companion.getUIApplication() = nativeMicroModuleUIApplication
+//fun MicroModule.Companion.getUIApplication() = nativeMicroModuleUIApplication
 fun MicroModule.Runtime.getUIApplication() = nativeMicroModuleUIApplication
 
 val lockActivityState = Mutex()

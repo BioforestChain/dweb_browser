@@ -3,7 +3,7 @@ package org.dweb_browser.browser.search
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.SimpleSignal
 
-class SearchController(private val searchNMM: SearchNMM) {
+class SearchController(private val searchNMM: SearchNMM.SearchRuntime) {
   private val searchStore = SearchStore(searchNMM)
 
   internal val searchEngineList = mutableListOf<SearchEngine>()

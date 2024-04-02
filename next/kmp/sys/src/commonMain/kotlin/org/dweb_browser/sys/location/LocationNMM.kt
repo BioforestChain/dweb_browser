@@ -22,7 +22,7 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermissions
 
 val debugLocation = Debugger("Location")
 
-class LocationNMM : NativeMicroModule.NativeRuntime("geolocation.sys.dweb", "geolocation") {
+class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
   init {
     categories =
       listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service)
@@ -35,61 +35,67 @@ class LocationNMM : NativeMicroModule.NativeRuntime("geolocation.sys.dweb", "geo
     )
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(
-      "/location" byChannel { ctx ->
-        val locationManage = withMainContext { LocationManage() }
-        val remoteMmid = ipc.remote.mmid
-        val minDistance = request.queryOrNull("minDistance")?.toDouble() ?: 1.0
-        val precise = request.queryBoolean("precise")
-        debugLocation("locationChannel=>", "enter => $remoteMmid->$precise")
-        if (requestSystemPermission()) {
-          try {
-            val observer = locationManage.createLocationObserver(false)
-            observer.start(precise = precise, minDistance = minDistance)
-            // 缓存通道
-            val flowJob = CoroutineScope(ioAsyncExceptionHandler).launch {
-              observer.flow.buffer().collect { position ->
-                debugLocation("locationChannel=>", "loop:$position")
-                ctx.sendJsonLine(position.toJsonElement())
+  inner class LocationRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+
+
+    override suspend fun _bootstrap() {
+      routes(
+        "/location" byChannel { ctx ->
+          val locationManage = withMainContext { LocationManage() }
+          val remoteMmid = ipc.remote.mmid
+          val minDistance = request.queryOrNull("minDistance")?.toDouble() ?: 1.0
+          val precise = request.queryBoolean("precise")
+          debugLocation("locationChannel=>", "enter => $remoteMmid->$precise")
+          if (requestSystemPermission()) {
+            try {
+              val observer = locationManage.createLocationObserver(false)
+              observer.start(precise = precise, minDistance = minDistance)
+              // 缓存通道
+              val flowJob = CoroutineScope(ioAsyncExceptionHandler).launch {
+                observer.flow.buffer().collect { position ->
+                  debugLocation("locationChannel=>", "loop:$position")
+                  ctx.sendJsonLine(position.toJsonElement())
+                }
               }
+              onClose {
+                debugLocation("locationChannel=>", "onClose：$remoteMmid")
+                observer.destroy()
+                flowJob.cancel()
+              }
+            } catch (e: Exception) {
+              debugLocation("locationChannel=>", e.message ?: "close observe")
+              close(cause = e)
             }
-            onClose {
-              debugLocation("locationChannel=>", "onClose：$remoteMmid")
-              observer.destroy()
-              flowJob.cancel()
-            }
-          } catch (e: Exception) {
-            debugLocation("locationChannel=>", e.message ?: "close observe")
-            close(cause = e)
+          }
+        },
+        "/location" bind PureMethod.GET by defineJsonResponse {
+          val locationManage = withMainContext { LocationManage() }
+          val precise = request.queryBoolean("precise")
+          val isPermission = requestSystemPermission()
+          debugLocation("location/get", "isPermission=>$isPermission")
+          if (isPermission) {
+            locationManage.getCurrentLocation(precise).toJsonElement()
+          } else {
+            throwException(HttpStatusCode.Unauthorized, LocationI18nResource.permission_denied.text)
           }
         }
-      },
-      "/location" bind PureMethod.GET by defineJsonResponse {
-        val locationManage = withMainContext { LocationManage() }
-        val precise = request.queryBoolean("precise")
-        val isPermission = requestSystemPermission()
-        debugLocation("location/get", "isPermission=>$isPermission")
-        if (isPermission) {
-          locationManage.getCurrentLocation(precise).toJsonElement()
-        } else {
-          throwException(HttpStatusCode.Unauthorized, LocationI18nResource.permission_denied.text)
-        }
-      }
-    )
-  }
-
-  override suspend fun _shutdown() {
-  }
-
-  private suspend fun requestSystemPermission(): Boolean {
-    val permission = requestSystemPermissions(
-      SystemPermissionTask(
-        name = SystemPermissionName.LOCATION,
-        title = LocationI18nResource.request_permission_title.text,
-        description = LocationI18nResource.request_permission_message.text
       )
-    )
-    return permission.filterValues { it != AuthorizationStatus.GRANTED }.isEmpty()
+    }
+
+    override suspend fun _shutdown() {
+    }
+
+    private suspend fun requestSystemPermission(): Boolean {
+      val permission = requestSystemPermissions(
+        SystemPermissionTask(
+          name = SystemPermissionName.LOCATION,
+          title = LocationI18nResource.request_permission_title.text,
+          description = LocationI18nResource.request_permission_message.text
+        )
+      )
+      return permission.filterValues { it != AuthorizationStatus.GRANTED }.isEmpty()
+    }
   }
+
+  override fun createRuntime(bootstrapContext: BootstrapContext) = LocationRuntime(bootstrapContext)
 }

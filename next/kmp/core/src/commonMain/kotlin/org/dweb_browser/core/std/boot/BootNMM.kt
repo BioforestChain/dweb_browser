@@ -13,7 +13,7 @@ import org.dweb_browser.pure.http.PureMethod
 val debugBoot = Debugger("boot")
 
 class BootNMM(val initMmids: List<MMID>? = null) :
-  NativeMicroModule.NativeRuntime("boot.sys.dweb", "Boot Management") {
+  NativeMicroModule("boot.sys.dweb", "Boot Management") {
   init {
     short_name = "Boot";
     categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service)

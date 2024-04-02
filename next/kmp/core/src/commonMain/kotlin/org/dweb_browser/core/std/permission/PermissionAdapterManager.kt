@@ -4,8 +4,8 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.encodedPath
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.core.help.types.DwebPermission
+import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationRecord.Companion.generateAuthorizationRecord
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.buildUnsafeString
@@ -20,7 +20,7 @@ class PermissionProvider(
   /**
    * 权限提供者
    */
-  val providerModule: MicroModule.Runtime,
+  val providerModule: IMicroModuleManifest,
   /**
    * 权限的唯一标识
    */
@@ -55,11 +55,11 @@ class PermissionProvider(
     generateAuthorizationRecord(pid, applicantMmid, granted)
 
   companion object {
-    fun DwebPermission.toProvider(providerModule: MicroModule.Runtime, baseUrl: String? = null) =
+    fun DwebPermission.toProvider(providerModule: IMicroModuleManifest, baseUrl: String? = null) =
       from(providerModule, this, baseUrl)
 
     fun from(
-      providerModule: MicroModule.Runtime, permission: DwebPermission, baseUrl: String? = null
+      providerModule: IMicroModuleManifest, permission: DwebPermission, baseUrl: String? = null
     ): PermissionProvider? {
       val pid = permission.pid ?: providerModule.mmid
       if (!(pid == providerModule.mmid || pid.startsWith("${providerModule.mmid}/"))) {

@@ -39,7 +39,7 @@ import org.dweb_browser.sys.window.render.NativeBackHandler
 
 @Stable
 open class DesktopController private constructor(
-  private val deskNMM: DeskNMM,
+  private val deskNMM: DeskNMM.DeskRuntime,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, RunningApp>,
 ) {
@@ -120,7 +120,7 @@ open class DesktopController private constructor(
 
   companion object {
     suspend fun create(
-      deskNMM: DeskNMM,
+      deskNMM: DeskNMM.DeskRuntime,
       desktopServer: HttpDwebServer,
       runningApps: ChangeableMap<MMID, RunningApp>
     ) = DesktopController(deskNMM, desktopServer, runningApps)

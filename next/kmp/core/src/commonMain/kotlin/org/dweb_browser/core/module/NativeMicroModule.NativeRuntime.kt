@@ -64,7 +64,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
           val fromNativeIpc = kotlinIpcPool.createIpc(channel.port1, fromMM, toMM)
           val toNativeIpc = kotlinIpcPool.createIpc(channel.port2, toMM, fromMM)
-          fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
+          // fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
           toMM.beConnect(toNativeIpc, reason) // 通知接收者作为Server
           fromNativeIpc
         } else null
@@ -82,9 +82,10 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     private fun getProtocolRouters(protocol: DWEB_PROTOCOL) =
       protocolRouters.getOrPut(protocol) { mutableListOf() }
 
-    suspend fun routes(vararg list: RouteHandler) = HttpRouter(this@NativeMicroModule.NativeRuntime, mmid).also {
-      it.addRoutes(*list)
-    }.also { addRouter(it) }
+    suspend fun routes(vararg list: RouteHandler) =
+      HttpRouter(this, mmid).also {
+        it.addRoutes(*list)
+      }.also { addRouter(it) }
 
     fun addRouter(router: HttpRouter) {
       getProtocolRouters("*") += router
@@ -95,7 +96,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
 
     inner class ProtocolBuilderContext(val host: String) {
-      internal val router = HttpRouter(this@NativeMicroModule.NativeRuntime, host)
+      internal val router = HttpRouter(this@NativeRuntime, host)
       suspend fun routes(vararg list: RouteHandler) = router.apply { addRoutes(*list) }
 
       val onConnect get() = this@NativeRuntime::onConnect
@@ -141,6 +142,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         }
       }
     }
+
+    fun IHandlerContext.getRemoteRuntime() = (bootstrapContext.dns.query(ipc.remote.mmid)
+      ?: throw IllegalArgumentException("no found microModule ${ipc.remote.mmid}")).runtime
 
     fun defineEmptyResponse(
       middlewareHttpHandler: MiddlewareHttpHandler? = null,

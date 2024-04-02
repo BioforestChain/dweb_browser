@@ -36,7 +36,7 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
             PositionType.CENTER.position -> PositionType.CENTER
             else -> PositionType.TOP
           }
-          val fromMM = (bootstrapContext.dns.query(ipc.remote.mmid) ?: this@ToastNMM).runtime
+          val fromMM = getRemoteRuntime()
           showToast(fromMM, message, durationType, positionType)
           return@defineBooleanResponse true
         },

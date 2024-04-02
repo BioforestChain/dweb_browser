@@ -19,7 +19,7 @@ import org.dweb_browser.sys.window.ext.getWindow
 
 val debugMultiWebView = Debugger("mwebview")
 
-class MultiWebViewNMM : NativeMicroModule.NativeRuntime("mwebview.browser.dweb", "Multi Webview Renderer") {
+class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webview Renderer") {
   init {
     short_name = "MWebview"
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
@@ -30,7 +30,7 @@ class MultiWebViewNMM : NativeMicroModule.NativeRuntime("mwebview.browser.dweb",
     fun getCurrentWebViewController(mmid: MMID) = controllerMap[mmid]
   }
 
-  inner class WebViewRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+  inner class MultiWebViewRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     override suspend fun _bootstrap() {
       webViewSysProtocol()
 
@@ -40,8 +40,7 @@ class MultiWebViewNMM : NativeMicroModule.NativeRuntime("mwebview.browser.dweb",
           val url = request.query("url")
           val wid = request.query("wid")
 
-          val remoteMm = bootstrapContext.dns.query(ipc.remote.mmid)
-            ?: throw Exception("mwebview.browser.dweb/open should be call by locale for now")
+          val remoteMm = getRemoteRuntime()
           debugMultiWebView("/open", "MultiWebViewNMM open!!! ${remoteMm.mmid}")
           mmScope.launch {
             ipc.awaitClosed()
@@ -112,5 +111,5 @@ class MultiWebViewNMM : NativeMicroModule.NativeRuntime("mwebview.browser.dweb",
     }
   }
 
-  override fun createRuntime(bootstrapContext: BootstrapContext) = WebViewRuntime(bootstrapContext)
+  override fun createRuntime(bootstrapContext: BootstrapContext) = MultiWebViewRuntime(bootstrapContext)
 }

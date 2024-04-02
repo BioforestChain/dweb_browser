@@ -7,10 +7,10 @@ import org.dweb_browser.pure.http.PureRequest
 
 
 interface BootstrapContext {
-  val dns: DnsMicroModule
+  val dns: DnsApi
 }
 
-interface DnsMicroModule {
+interface DnsApi {
   /**
    * 动态安装应用
    */

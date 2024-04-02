@@ -56,7 +56,7 @@ class SplashActivity : AppCompatActivity() {
     }
     // 上启动锁
     val grant = CompletableDeferred<Boolean>().also { grant ->
-      NativeMicroModule.NativeRuntime.interceptStartApp(grant);
+      NativeMicroModule.interceptStartApp(grant);
       grant.invokeOnCompletion {
         if (grant.isCompleted && grant.getCompleted()) {
           mKeepOnAtomicBool = false

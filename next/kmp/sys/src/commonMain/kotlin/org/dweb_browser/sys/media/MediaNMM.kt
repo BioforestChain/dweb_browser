@@ -26,7 +26,7 @@ import org.dweb_browser.pure.http.PureMethod
 
 val debugMedia = Debugger("Media")
 
-class MediaNMM : NativeMicroModule.NativeRuntime("media.file.sys.dweb", "system media") {
+class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
   init {
     short_name = "Media";
     categories =
@@ -43,78 +43,88 @@ class MediaNMM : NativeMicroModule.NativeRuntime("media.file.sys.dweb", "system 
 
   data class FieldChunkTask(val field_index: Int, val chunk: ByteArray)
 
-  @OptIn(ExperimentalSerializationApi::class)
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(
-      /** 保存图片到相册*/
-      "/savePictures" bind PureMethod.POST by defineEmptyResponse {
-        val contentType =
-          request.headers.get("Content-Type")?.let { ContentType.parse(it) } ?: ContentType.Any
-        val saveLocation = request.queryOrNull("saveLocation") ?: "DwebBrowser"
-        debugMedia("savePictures", "contentType=$contentType saveLocation=$saveLocation")
+  inner class MediaRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
 
-        when {
-          contentType.match(ContentType.MultiPart.FormData) -> {
-            val response = nativeFetch(
-              PureClientRequest(
-                "file://multipart.http.std.dweb/parser",
-                PureMethod.POST,
-                request.headers,
-                request.body
+    @OptIn(ExperimentalSerializationApi::class)
+    override suspend fun _bootstrap() {
+      routes(
+        /** 保存图片到相册*/
+        "/savePictures" bind PureMethod.POST by defineEmptyResponse {
+          val contentType =
+            request.headers.get("Content-Type")?.let { ContentType.parse(it) } ?: ContentType.Any
+          val saveLocation = request.queryOrNull("saveLocation") ?: "DwebBrowser"
+          debugMedia("savePictures", "contentType=$contentType saveLocation=$saveLocation")
+
+          when {
+            contentType.match(ContentType.MultiPart.FormData) -> {
+              val response = nativeFetch(
+                PureClientRequest(
+                  "file://multipart.http.std.dweb/parser",
+                  PureMethod.POST,
+                  request.headers,
+                  request.body
+                )
               )
-            )
 
-            val fieldMediaMap = mutableMapOf</* field_index */Int, MediaPicture>()
-            val channel = Channel<FieldChunkTask>(capacity = Channel.RENDEZVOUS)
-            val deferred = CompletableDeferred<Boolean>()
-            mmScope.launch {
-              for (task in channel) {
-                fieldMediaMap[task.field_index]?.also {
-                  it.consumePictureChunk(task.chunk)
-                }
-              }
-              deferred.complete(true)
-            }
-            response.body.toPureStream().getReader("savePictures").consumeEachCborPacket<MultipartFilePackage> { multipartFilePackage ->
-              when(multipartFilePackage.type) {
-                MultipartFileType.Desc -> {
-                  val packet = Cbor.decodeFromByteArray<MultipartFieldDescription>(multipartFilePackage.chunk)
-                  fieldMediaMap[packet.fieldIndex] = MediaPicture.create(saveLocation, packet)
-                }
-                MultipartFileType.Data -> {
-                  val packet = Cbor.decodeFromByteArray<MultipartFieldData>(multipartFilePackage.chunk)
-                  fieldMediaMap[packet.fieldIndex]?.also {
-                    channel.send(FieldChunkTask(packet.fieldIndex, packet.chunk))
+              val fieldMediaMap = mutableMapOf</* field_index */Int, MediaPicture>()
+              val channel = Channel<FieldChunkTask>(capacity = Channel.RENDEZVOUS)
+              val deferred = CompletableDeferred<Boolean>()
+              mmScope.launch {
+                for (task in channel) {
+                  fieldMediaMap[task.field_index]?.also {
+                    it.consumePictureChunk(task.chunk)
                   }
                 }
-                MultipartFileType.End -> {
-                  val packet = Cbor.decodeFromByteArray<MultipartFieldEnd>(multipartFilePackage.chunk)
-                  fieldMediaMap[packet.fieldIndex]?.also {
-                    channel.close()
-                    it.savePicture()
+                deferred.complete(true)
+              }
+              response.body.toPureStream().getReader("savePictures")
+                .consumeEachCborPacket<MultipartFilePackage> { multipartFilePackage ->
+                  when (multipartFilePackage.type) {
+                    MultipartFileType.Desc -> {
+                      val packet =
+                        Cbor.decodeFromByteArray<MultipartFieldDescription>(multipartFilePackage.chunk)
+                      fieldMediaMap[packet.fieldIndex] = MediaPicture.create(saveLocation, packet)
+                    }
+
+                    MultipartFileType.Data -> {
+                      val packet =
+                        Cbor.decodeFromByteArray<MultipartFieldData>(multipartFilePackage.chunk)
+                      fieldMediaMap[packet.fieldIndex]?.also {
+                        channel.send(FieldChunkTask(packet.fieldIndex, packet.chunk))
+                      }
+                    }
+
+                    MultipartFileType.End -> {
+                      val packet =
+                        Cbor.decodeFromByteArray<MultipartFieldEnd>(multipartFilePackage.chunk)
+                      fieldMediaMap[packet.fieldIndex]?.also {
+                        channel.close()
+                        it.savePicture()
+                      }
+                    }
                   }
                 }
-              }
             }
-          }
 
-          contentType.match(ContentType.Application.Json) -> {
-            val files = Json.decodeFromString<List<MultiPartFile>>(request.body.toPureString())
-            // 目前只支持保存一个文件
-            savePictures(saveLocation, files)
-          }
+            contentType.match(ContentType.Application.Json) -> {
+              val files = Json.decodeFromString<List<MultiPartFile>>(request.body.toPureString())
+              // 目前只支持保存一个文件
+              savePictures(saveLocation, files)
+            }
 
-          contentType.match(ContentType.Application.Cbor) -> {
-            val files = Cbor.decodeFromByteArray<List<MultiPartFile>>(request.body.toPureBinary())
-            // 目前只支持保存一个文件
-            savePictures(saveLocation, files)
+            contentType.match(ContentType.Application.Cbor) -> {
+              val files = Cbor.decodeFromByteArray<List<MultiPartFile>>(request.body.toPureBinary())
+              // 目前只支持保存一个文件
+              savePictures(saveLocation, files)
+            }
           }
         }
-      }
-    )
+      )
+    }
+
+    override suspend fun _shutdown() {
+    }
   }
 
-  override suspend fun _shutdown() {
-    TODO("Not yet implemented")
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) = MediaRuntime(bootstrapContext)
 }

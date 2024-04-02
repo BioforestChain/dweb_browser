@@ -42,7 +42,7 @@ import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 
-class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) {
+class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore: JmmStore) {
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   // 构建jmm历史记录

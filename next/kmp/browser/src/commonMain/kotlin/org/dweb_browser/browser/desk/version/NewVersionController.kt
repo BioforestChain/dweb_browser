@@ -64,7 +64,7 @@ enum class NewVersionType {
   ;
 }
 
-class NewVersionController(private val deskNMM: DeskNMM, val desktopController: DesktopController) {
+class NewVersionController(private val deskNMM: DeskNMM.DeskRuntime, val desktopController: DesktopController) {
   private val store = NewVersionStore(deskNMM)
   private val manage = NewVersionManage()
   var newVersionItem: NewVersionItem? = null

@@ -178,12 +178,11 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   private val runtimeAtomic = atomic<Runtime?>(null)
   val isRunning get() = runtimeAtomic.value != null
   val runtimeOrNull get() = runtimeAtomic.value
-  val runtime get() = runtimeAtomic.value ?: throw IllegalStateException("$this is no running")
-  fun bootstrap(bootstrapContext: BootstrapContext) {
-    runtimeAtomic.updateAndGet {
-      it ?: createRuntime(bootstrapContext)
-    }
-  }
+  open val runtime get() = runtimeAtomic.value ?: throw IllegalStateException("$this is no running")
+  suspend fun bootstrap(bootstrapContext: BootstrapContext) = runtimeAtomic.updateAndGet {
+    it ?: createRuntime(bootstrapContext)
+  }!!.also { it.bootstrap() }
+
 
   abstract fun createRuntime(bootstrapContext: BootstrapContext): Runtime
 

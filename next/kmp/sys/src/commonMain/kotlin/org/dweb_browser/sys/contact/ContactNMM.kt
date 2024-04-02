@@ -13,7 +13,7 @@ import org.dweb_browser.sys.permission.ext.requestSystemPermission
 
 val debugContact = Debugger("ContactPicker")
 
-class ContactNMM : NativeMicroModule.NativeRuntime("contact-picker.sys.dweb", "ContactPicker") {
+class ContactNMM : NativeMicroModule("contact-picker.sys.dweb", "ContactPicker") {
   private val contactManage = ContactManage()
 
   init {
@@ -23,28 +23,35 @@ class ContactNMM : NativeMicroModule.NativeRuntime("contact-picker.sys.dweb", "C
     )
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(
-      "/pickContact" bind PureMethod.GET by defineJsonResponse {
-        debugContact("pickContact", "enter")
-        val fromMM = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@ContactNMM
-        if (requestSystemPermission(
-            name = SystemPermissionName.CONTACTS,
-            title = ContactI18nResource.request_permission_title_contact.text,
-            description = ContactI18nResource.request_permission_message_pick_contact.text
-          )
-        ) {
-          contactManage.pickContact(fromMM)?.toJsonElement() ?: throwException(HttpStatusCode.NotFound)
-        } else {
-          throwException(
-            HttpStatusCode.Unauthorized,
-            ContactI18nResource.permission_denied_pick_contact.text
-          )
+  inner class ContactRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+
+
+    override suspend fun _bootstrap() {
+      routes(
+        "/pickContact" bind PureMethod.GET by defineJsonResponse {
+          debugContact("pickContact", "enter")
+          val fromMM = getRemoteRuntime()
+          if (requestSystemPermission(
+              name = SystemPermissionName.CONTACTS,
+              title = ContactI18nResource.request_permission_title_contact.text,
+              description = ContactI18nResource.request_permission_message_pick_contact.text
+            )
+          ) {
+            contactManage.pickContact(fromMM)?.toJsonElement()
+              ?: throwException(HttpStatusCode.NotFound)
+          } else {
+            throwException(
+              HttpStatusCode.Unauthorized,
+              ContactI18nResource.permission_denied_pick_contact.text
+            )
+          }
         }
-      }
-    )
+      )
+    }
+
+    override suspend fun _shutdown() {
+    }
   }
 
-  override suspend fun _shutdown() {
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) = ContactRuntime(bootstrapContext)
 }

@@ -24,7 +24,7 @@ import org.dweb_browser.sys.window.ext.onRenderer
 
 internal val debugDownload = Debugger("Download")
 
-class DownloadNMM : NativeMicroModule.NativeRuntime("download.browser.dweb", "Download") {
+class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
   init {
     short_name = BrowserI18nResource.download_shore_name.text
     categories = listOf(

@@ -44,144 +44,146 @@ data class ShareOptions(
   val url: String?,
 )
 
-class ShareNMM : NativeMicroModule.NativeRuntime("share.sys.dweb", "share") {
+class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
   }
 
   data class ShareChunkWriteTask(val writePath: String, val chunk: ByteArray)
 
-  @OptIn(ExperimentalSerializationApi::class)
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(
-      /** 分享*/
-      "/share" bind PureMethod.POST by defineJsonResponse {
-        val contentType =
-          request.headers.get("Content-Type")?.let { ContentType.parse(it) } ?: ContentType.Any
+  inner class ShareRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+    @OptIn(ExperimentalSerializationApi::class)
+    override suspend fun _bootstrap() {
+      routes(
+        /** 分享*/
+        "/share" bind PureMethod.POST by defineJsonResponse {
+          val contentType =
+            request.headers.get("Content-Type")?.let { ContentType.parse(it) } ?: ContentType.Any
 
-        val shareOptions = ShareOptions(
-          title = request.queryOrNull("title"),
-          text = request.queryOrNull("text"),
-          url = request.queryOrNull("url"),
-        )
-        debugShare("share", "contentType=$contentType, shareOption=$shareOptions")
-        val result = when {
-          contentType.match(ContentType.MultiPart.FormData) -> try {
-            val response = nativeFetch(
-              PureClientRequest(
-                "file://multipart.http.std.dweb/parser",
-                PureMethod.POST,
-                request.headers,
-                request.body,
+          val shareOptions = ShareOptions(
+            title = request.queryOrNull("title"),
+            text = request.queryOrNull("text"),
+            url = request.queryOrNull("url"),
+          )
+          debugShare("share", "contentType=$contentType, shareOption=$shareOptions")
+          val shareMM = getRemoteRuntime()
+          val result = when {
+            contentType.match(ContentType.MultiPart.FormData) -> try {
+              val response = nativeFetch(
+                PureClientRequest(
+                  "file://multipart.http.std.dweb/parser",
+                  PureMethod.POST,
+                  request.headers,
+                  request.body,
+                )
               )
-            )
-            val fieldWritePathMap = mutableMapOf</* field_index */Int, /* writePath */String>()
-            val fileList = mutableListOf<String>()
-            val channel = Channel<ShareChunkWriteTask>(capacity = Channel.RENDEZVOUS)
-            val deferred = CompletableDeferred<Boolean>()
-            mmScope.launch {
-              for (task in channel) {
-                multipartFileDataAppendToTempFile(task.writePath, task.chunk)
+              val fieldWritePathMap = mutableMapOf</* field_index */Int, /* writePath */String>()
+              val fileList = mutableListOf<String>()
+              val channel = Channel<ShareChunkWriteTask>(capacity = Channel.RENDEZVOUS)
+              val deferred = CompletableDeferred<Boolean>()
+              mmScope.launch {
+                for (task in channel) {
+                  multipartFileDataAppendToTempFile(task.writePath, task.chunk)
+                }
+                deferred.complete(true)
               }
-              deferred.complete(true)
-            }
-            response.body.toPureStream().getReader("share/form-data")
-              .consumeEachCborPacket<MultipartFilePackage> { multipartFilePackage ->
-                when (multipartFilePackage.type) {
-                  MultipartFileType.Desc -> {
-                    val packet =
-                      Cbor.decodeFromByteArray<MultipartFieldDescription>(multipartFilePackage.chunk)
-                    fieldWritePathMap[packet.fieldIndex] =
-                      "/cache/${randomUUID()}${packet.fileName?.let { "/$it" }}"
-                  }
-
-                  MultipartFileType.Data -> {
-                    val packet =
-                      Cbor.decodeFromByteArray<MultipartFieldData>(multipartFilePackage.chunk)
-                    fieldWritePathMap[packet.fieldIndex]?.also { writePath ->
-                      channel.send(ShareChunkWriteTask(writePath, packet.chunk))
+              response.body.toPureStream().getReader("share/form-data")
+                .consumeEachCborPacket<MultipartFilePackage> { multipartFilePackage ->
+                  when (multipartFilePackage.type) {
+                    MultipartFileType.Desc -> {
+                      val packet =
+                        Cbor.decodeFromByteArray<MultipartFieldDescription>(multipartFilePackage.chunk)
+                      fieldWritePathMap[packet.fieldIndex] =
+                        "/cache/${randomUUID()}${packet.fileName?.let { "/$it" }}"
                     }
-                  }
 
-                  MultipartFileType.End -> {
-                    val packet =
-                      Cbor.decodeFromByteArray<MultipartFieldEnd>(multipartFilePackage.chunk)
-                    fieldWritePathMap[packet.fieldIndex]?.also { writePath ->
-                      val realPath = this@ShareNMM.realFile(writePath)
-                      fileList.add("file://$realPath")
-                      channel.close()
+                    MultipartFileType.Data -> {
+                      val packet =
+                        Cbor.decodeFromByteArray<MultipartFieldData>(multipartFilePackage.chunk)
+                      fieldWritePathMap[packet.fieldIndex]?.also { writePath ->
+                        channel.send(ShareChunkWriteTask(writePath, packet.chunk))
+                      }
+                    }
+
+                    MultipartFileType.End -> {
+                      val packet =
+                        Cbor.decodeFromByteArray<MultipartFieldEnd>(multipartFilePackage.chunk)
+                      fieldWritePathMap[packet.fieldIndex]?.also { writePath ->
+                        val realPath = realFile(writePath)
+                        fileList.add("file://$realPath")
+                        channel.close()
+                      }
                     }
                   }
                 }
+              deferred.await()
+              share(shareOptions, fileList, shareMM)
+            } catch (e: Exception) {
+              debugShare("ContentType/Form", "receiveMultipart error -> ${e.message}")
+              share(shareOptions, null, shareMM)
+            }
+
+            contentType.match(ContentType.Application.Json) -> {
+              val files = Json.decodeFromString<List<MultiPartFile>>(request.body.toPureString())
+              val fileList = mutableListOf<String>()
+
+              files.forEach {
+                fileList.add(multipartFileDataWriteToTempFile(it))
               }
-            deferred.await()
-            share(shareOptions, fileList, this@ShareNMM)
-          } catch (e: Exception) {
-            debugShare("ContentType/Form", "receiveMultipart error -> ${e.message}")
-            share(shareOptions, null, this@ShareNMM)
-          }
 
-          contentType.match(ContentType.Application.Json) -> {
-            val files = Json.decodeFromString<List<MultiPartFile>>(request.body.toPureString())
-            val fileList = mutableListOf<String>()
-
-            files.forEach {
-              fileList.add(multipartFileDataWriteToTempFile(it))
+              share(shareOptions, fileList, shareMM)
             }
 
-            share(shareOptions, fileList, this@ShareNMM)
-          }
+            contentType.match(ContentType.Application.Cbor) -> {
+              val byteArray = request.body.toPureBinary()
+              debugShare("ContentType/Cbor", "byteArray = ${byteArray.size}")
 
-          contentType.match(ContentType.Application.Cbor) -> {
-            val byteArray = request.body.toPureBinary()
-            debugShare("ContentType/Cbor", "byteArray = ${byteArray.size}")
+              val files = Cbor.decodeFromByteArray<List<MultiPartFile>>(byteArray)
+              val fileList = mutableListOf<String>()
 
-            val files = Cbor.decodeFromByteArray<List<MultiPartFile>>(byteArray)
-            val fileList = mutableListOf<String>()
+              files.forEach {
+                fileList.add(multipartFileDataWriteToTempFile(it))
+              }
 
-            files.forEach {
-              fileList.add(multipartFileDataWriteToTempFile(it))
+              share(shareOptions, fileList, shareMM)
             }
 
-            share(shareOptions, fileList, this@ShareNMM)
+            else -> {
+              debugShare("share", "Unable to process $contentType")
+              share(shareOptions, null, shareMM)
+            }
           }
 
-          else -> {
-            debugShare("share", "Unable to process $contentType")/*return@defineJsonResponse ShareResult(
-              false,
-              "Unable to process $contentType"
-            ).toJsonElement()*/
-            share(shareOptions, null, this@ShareNMM)
+          debugShare("/share", "result => $result")
+          ShareResult(result == "OK", result).toJsonElement()
+        },
+      ).cors()
+    }
+
+    private suspend fun multipartFileDataWriteToTempFile(
+      multiPartFile: MultiPartFile
+    ): String {
+      val writePath = "/cache/${randomUUID()}/${multiPartFile.name}"
+      writeFile(
+        writePath, body = IPureBody.from(
+          multiPartFile.data, encoding = when (multiPartFile.encoding) {
+            MultiPartFileEncode.UTF8 -> IPureBody.Companion.PureStringEncoding.Utf8
+            MultiPartFileEncode.BASE64 -> IPureBody.Companion.PureStringEncoding.Base64
           }
-        }
-
-        debugShare("/share", "result => $result")
-        ShareResult(result == "OK", result).toJsonElement()
-      },
-    ).cors()
-  }
-
-  private suspend fun multipartFileDataWriteToTempFile(
-    multiPartFile: MultiPartFile
-  ): String {
-    val writePath = "/cache/${randomUUID()}/${multiPartFile.name}"
-    this@ShareNMM.writeFile(
-      writePath, body = IPureBody.from(
-        multiPartFile.data, encoding = when (multiPartFile.encoding) {
-          MultiPartFileEncode.UTF8 -> IPureBody.Companion.PureStringEncoding.Utf8
-          MultiPartFileEncode.BASE64 -> IPureBody.Companion.PureStringEncoding.Base64
-        }
+        )
       )
-    )
 
-    val realPath = this@ShareNMM.realFile(writePath)
-    return "file://$realPath"
+      val realPath = realFile(writePath)
+      return "file://$realPath"
+    }
+
+    private suspend fun multipartFileDataAppendToTempFile(writePath: String, chunk: ByteArray) {
+      appendFile(writePath, IPureBody.Companion.from(chunk))
+    }
+
+    override suspend fun _shutdown() {}
+
   }
 
-  private suspend fun multipartFileDataAppendToTempFile(writePath: String, chunk: ByteArray) {
-    this@ShareNMM.appendFile(writePath, IPureBody.Companion.from(chunk))
-  }
-
-  override suspend fun _shutdown() {}
-
+  override fun createRuntime(bootstrapContext: BootstrapContext) = ShareRuntime(bootstrapContext)
 }
