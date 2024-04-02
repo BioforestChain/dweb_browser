@@ -16,8 +16,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.helper.compose.ScreenSize
-import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.window.core.WindowContentRenderScope
 import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.render.LocalWindowLimits

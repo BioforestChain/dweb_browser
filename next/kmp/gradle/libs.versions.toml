@@ -64,6 +64,7 @@ junit = "1.1.5"
 espresso = "3.5.1"
 uiautomator = "2.3.0"
 benchmark-macro-junit4 = "1.2.3"
+roomKtx = "2.6.1"
 
 [libraries]
 
@@ -230,6 +231,7 @@ gradlePlugin-jetbrainsCompose = { group = "org.jetbrains.compose", name = "compo
 
 # 七牛数据
 qiniu-upload = { group = "com.qiniu", name = "qiniu-android-sdk", version.ref = "qiniu-version" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-version" }

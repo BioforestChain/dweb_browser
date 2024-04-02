@@ -12,6 +12,7 @@ import com.teamdev.jxbrowser.dom.event.EventType
 import com.teamdev.jxbrowser.dom.event.MouseEvent
 import com.teamdev.jxbrowser.dom.event.MouseEventParams
 import com.teamdev.jxbrowser.dom.event.UiEventModifierParams
+import com.teamdev.jxbrowser.frame.EditorCommand
 import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.ConsoleMessageLevel
 import com.teamdev.jxbrowser.js.JsException
@@ -39,6 +40,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.DwebViewI18nResource
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
@@ -54,12 +56,19 @@ import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
 import org.dweb_browser.sys.device.DeviceManage
+import java.awt.Color
+import java.awt.Component
+import java.awt.Font
+import java.awt.event.MouseListener
 import java.util.function.Consumer
+import javax.swing.BorderFactory
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 import javax.swing.SwingUtilities
+import javax.swing.border.BevelBorder
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
+
 
 class DWebViewEngine internal constructor(
   internal val remoteMM: MicroModule,
@@ -393,8 +402,48 @@ class DWebViewEngine internal constructor(
       }
     }
     browser.set(ShowContextMenuCallback::class.java, ShowContextMenuCallback { params, tell ->
+      val backgroundColor = Color(88, 90, 91)
+
+      // 创建右键功能
+      fun createMenuItem(title: String, cb: () -> Unit): JMenuItem {
+        val menuItem = JMenuItem(title).apply {
+          font = Font("Sans-Serif", Font.PLAIN, 12)
+          background = backgroundColor
+          border = BorderFactory.createEmptyBorder(5, 10, 5, 10)
+          isOpaque = false
+//          foreground = Color.white
+        }
+        menuItem.addActionListener {
+          cb()
+          tell.close()
+        }
+        return menuItem
+      }
+
+      // 绑定命令能力
+      fun createCommandMenuItem(title: String, editorCommand: EditorCommand): Component {
+        val menuItem = createMenuItem(title) {
+          browser.mainFrame().ifPresent {
+            it.execute(editorCommand)
+          }
+        }
+        return menuItem
+      }
+      // 创建一个带阴影的边框
+      val shadowBorder = BorderFactory.createSoftBevelBorder(BevelBorder.LOWERED)
+      // 画样式
+//      val matteBorder = BorderFactory.createMatteBorder(0, 0, 0, 0, Color(214, 214, 214))
+      val popupMenu = JPopupMenu().apply {
+        font = Font("Sans-Serif", Font.PLAIN, 12)
+        background = backgroundColor
+        //组合这两个边框
+        border = shadowBorder
+//        border = BorderFactory.createCompoundBorder(matteBorder, shadowBorder)
+      }
+
+      // 创建事件调度线程，所有跟用户界面有关的代码都应当在这个线程上运行
       SwingUtilities.invokeLater {
-        val popupMenu = JPopupMenu()
+        // 事件
         popupMenu.addPopupMenuListener(object : PopupMenuListener {
           override fun popupMenuWillBecomeVisible(p0: PopupMenuEvent?) {
             println("QWQ popupMenuWillBecomeVisible")
@@ -405,55 +454,49 @@ class DWebViewEngine internal constructor(
           }
 
           override fun popupMenuCanceled(e: PopupMenuEvent) {
-            println("QWQ popupMenuCanceled")
+            // 关闭上下文菜单，不选择任何item
             tell.close()
           }
         })
+        // 开发者工具
+        popupMenu.add(createMenuItem(DwebViewI18nResource.popup_menu_devtool.text) {
+          browser.devTools().show()
+        })
 
-        // Add the suggestions menu items.
-        val spellCheckMenu = params.spellCheckMenu()
-        val suggestions = spellCheckMenu.dictionarySuggestions()
-        suggestions.forEach { suggestion ->
-          val menuItem = JMenuItem(suggestion)
-          menuItem.addActionListener {
-            browser.replaceMisspelledWord(suggestion)
-            tell.close()
-          }
-          popupMenu.add(menuItem)
-        }
+        popupMenu.addSeparator()
+        popupMenu.add(
+          createCommandMenuItem(
+            DwebViewI18nResource.popup_menu_copy.text,
+            EditorCommand.copy()
+          )
+        )
+        popupMenu.add(
+          createCommandMenuItem(
+            DwebViewI18nResource.popup_menu_paste.text,
+            EditorCommand.paste()
+          )
+        )
+        popupMenu.add(
+          createCommandMenuItem(
+            DwebViewI18nResource.popup_menu_select_all.text,
+            EditorCommand.selectAll()
+          )
+        )
+        popupMenu.addSeparator()
+        //放大
+        popupMenu.add(createMenuItem(DwebViewI18nResource.popup_menu_zoomIn.text) {
+          browser.zoom().`in`()
+        })
+        // 缩小
+        popupMenu.add(createMenuItem(DwebViewI18nResource.popup_menu_zoomOut.text) {
+          browser.zoom().out()
+        })
+        // 重置大小
+        popupMenu.add(createMenuItem(DwebViewI18nResource.popup_menu_reset.text) {
+          browser.zoom().reset()
+        })
 
-        // Add menu separator if necessary.
-        if (suggestions.isNotEmpty()) {
-          popupMenu.addSeparator()
-        }
-
-        // Add the "Add to Dictionary" menu item.
-        val misspelledWord = spellCheckMenu.misspelledWord()
-        if (misspelledWord.isNotEmpty() && misspelledWord.isNotBlank()) {
-          val addToDictionary = JMenuItem(spellCheckMenu.addToDictionaryMenuItemText())
-          addToDictionary.addActionListener {
-            val dictionary = browser.engine().spellChecker().customDictionary()
-            dictionary.add(misspelledWord)
-            tell.close()
-          }
-          popupMenu.add(addToDictionary)
-        }
-
-        if (debugDWebView.isEnable) {
-          popupMenu.addSeparator()
-          val toggleDevtool = JMenuItem("toggle devtool")
-          var isShowed = false
-          toggleDevtool.addActionListener {
-            when {
-              isShowed -> browser.devTools().hide()
-              else -> browser.devTools().show()
-            }
-            isShowed = !isShowed
-          }
-          popupMenu.add(toggleDevtool)
-        }
-
-        // Display context menu at specified location.
+        // 在指定位置显示上下文菜单。
         val location = params.location()
         popupMenu.show(wrapperView, location.x(), location.y())
       }
@@ -465,4 +508,7 @@ class DWebViewEngine internal constructor(
       }
     }
   }
+
+
 }
+

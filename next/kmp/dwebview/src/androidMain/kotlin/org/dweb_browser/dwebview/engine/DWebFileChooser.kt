@@ -6,12 +6,10 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DwebViewI18nResource
 import org.dweb_browser.helper.android.BaseActivity
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.filechooser.debugFileChooser
 import org.dweb_browser.sys.permission.SystemPermissionName

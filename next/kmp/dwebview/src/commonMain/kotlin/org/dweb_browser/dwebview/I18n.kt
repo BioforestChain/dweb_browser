@@ -27,4 +27,32 @@ object DwebViewI18nResource {
     Language.ZH to "DwebBrowser正在向您获取“麦克风”权限，同意后，将用于为您提供语音相关的服务",
     Language.EN to "DwebBrowser is asking you for \"Microphone\" permissions, and if you agree, it will be used to provide you with voice-related services"
   )
+  val popup_menu_devtool = SimpleI18nResource(
+    Language.EN to "Devtool",
+    Language.ZH to "开发者工具",
+  )
+  val popup_menu_copy = SimpleI18nResource(
+    Language.EN to "Copy",
+    Language.ZH to "复制",
+  )
+  val popup_menu_paste = SimpleI18nResource(
+    Language.EN to "Paste",
+    Language.ZH to "粘贴",
+  )
+  val popup_menu_select_all = SimpleI18nResource(
+    Language.EN to "Select All",
+    Language.ZH to "选择全部",
+  )
+  val popup_menu_reset = SimpleI18nResource(
+    Language.EN to "Actual Size",
+    Language.ZH to "重置",
+  )
+  val popup_menu_zoomIn = SimpleI18nResource(
+    Language.EN to "Zoom In",
+    Language.ZH to "放大",
+  )
+  val popup_menu_zoomOut = SimpleI18nResource(
+    Language.EN to "Zoom Out",
+    Language.ZH to "缩小",
+  )
 }

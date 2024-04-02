@@ -187,7 +187,7 @@ class CoilImageLoader(private val diskCache: DiskCache? = null) : PureImageLoade
                 }
                 ktorEngine.execute(data)
               }.let {
-                debugCoilImageLoader("execute", "url=${data.url} duration=${it.duration}")
+//                debugCoilImageLoader("execute", "url=${data.url} duration=${it.duration}")
                 it.value
               }
 
