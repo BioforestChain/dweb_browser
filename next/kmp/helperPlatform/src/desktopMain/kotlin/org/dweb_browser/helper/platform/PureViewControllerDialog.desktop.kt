@@ -10,7 +10,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.awt.ComposeDialog
-import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntSize
@@ -19,7 +18,6 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.CompositionChain
 import org.dweb_browser.helper.compose.timesToInt
 import org.dweb_browser.helper.compose.toIntSize
-import org.dweb_browser.helper.compose.toSize
 import java.awt.Dialog
 import javax.swing.JDialog
 import javax.swing.SwingUtilities
@@ -33,10 +31,12 @@ fun PureViewController.ModalDialog(
 ) {
   val viewBox = LocalPureViewBox.current
   val dialog = remember {
-    ComposeDialog(getComposeWindowOrNull(),Dialog.ModalityType.APPLICATION_MODAL, ).apply {
+    ComposeDialog(getComposeWindowOrNull(), Dialog.ModalityType.APPLICATION_MODAL).apply {
       title = state.title
       isUndecorated = true
-//      isTransparent = true
+      if (PureViewController.isMacOS) {
+        isTransparent = true
+      }
       defaultCloseOperation = JDialog.DISPOSE_ON_CLOSE
     }
   }
@@ -50,8 +50,10 @@ fun PureViewController.ModalDialog(
   val density = LocalDensity.current.density
   val layoutDirection = LocalLayoutDirection.current
   val boundsReady = remember { CompletableDeferred<Unit>() }
-  val safeAreaSpacePx  =viewBox.asDesktop() .currentViewControllerMaxBounds().timesToInt(density)
-  LaunchedEffect(density,safeAreaSpacePx, layoutDirection, state.alignment, state.width, state.height) {
+  val safeAreaSpacePx = viewBox.asDesktop().currentViewControllerMaxBounds().timesToInt(density)
+  LaunchedEffect(
+    density, safeAreaSpacePx, layoutDirection, state.alignment, state.width, state.height
+  ) {
     val maxDialogIntSize = viewBox.getViewControllerMaxBoundsPx().toIntSize()
     val dialogWidth = state.width?.times(density)?.toInt() ?: maxDialogIntSize.width
     val dialogHeight = state.height?.times(density)?.toInt() ?: maxDialogIntSize.height
@@ -61,7 +63,9 @@ fun PureViewController.ModalDialog(
       layoutDirection = layoutDirection
     )
     SwingUtilities.invokeLater {
-      dialog.setBounds(offset.x + safeAreaSpacePx.top, offset.y+safeAreaSpacePx.left, dialogWidth, dialogHeight)
+      dialog.setBounds(
+        offset.x + safeAreaSpacePx.left, offset.y + safeAreaSpacePx.top, dialogWidth, dialogHeight
+      )
       boundsReady.complete(Unit)
     }
   }

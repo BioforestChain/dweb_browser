@@ -56,7 +56,6 @@ internal class BottomSheetsModalViewController(modal: BottomSheetsModalState) :
     val windowLimits = LocalWindowLimits.current
 
     ModalBottomSheet(sheetState = sheetState,
-      modifier = Modifier.padding(top = windowInsetTop),
       // 桌面端允许铺满dialog宽度，因为有原生的dialog宽度来拖兜底
       sheetMaxWidth = windowLimits.maxWidth.dp,
       dragHandle = {
