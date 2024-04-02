@@ -85,7 +85,7 @@ fun PureViewController.ModalDialog(
     onDispose {
       job.cancel()
       SwingUtilities.invokeLater {
-        dialog.removeAll()
+        // dialog.removeAll()
         dialog.isVisible = false
       }
       requestClose()

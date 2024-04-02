@@ -22,6 +22,7 @@ import com.teamdev.jxbrowser.net.HttpHeader
 import com.teamdev.jxbrowser.net.HttpStatus
 import com.teamdev.jxbrowser.net.Scheme
 import com.teamdev.jxbrowser.net.UrlRequestJob
+import com.teamdev.jxbrowser.net.callback.BeforeUrlRequestCallback
 import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
 import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
@@ -59,7 +60,6 @@ import org.dweb_browser.sys.device.DeviceManage
 import java.awt.Color
 import java.awt.Component
 import java.awt.Font
-import java.awt.event.MouseListener
 import java.util.function.Consumer
 import javax.swing.BorderFactory
 import javax.swing.JMenuItem
@@ -110,10 +110,19 @@ class DWebViewEngine internal constructor(
           }
         });
 
+      // 拦截内部浏览器dweb deeplink跳转
+      engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
+        if(it.urlRequest().url().startsWith("dweb://")) {
+          remoteMM.ioAsyncScope.launch {
+            remoteMM.nativeFetch(it.urlRequest().url().replace("/?", "?"))
+          }
+          BeforeUrlRequestCallback.Response.cancel()
+        } else {
+          BeforeUrlRequestCallback.Response.proceed()
+        }
+      })
+
       val browser = engine.newBrowser()
-      if (debugDWebView.isEnable) {
-        browser.devTools().show()
-      }
       // 同步销毁
       browser.on(BrowserClosed::class.java) {
         engine.close()

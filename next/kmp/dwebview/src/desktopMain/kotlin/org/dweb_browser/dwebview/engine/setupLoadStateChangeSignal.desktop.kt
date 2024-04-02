@@ -84,5 +84,8 @@ fun setupLoadStateChangeSignal(engine: DWebViewEngine) = Signal<WebLoadState>().
         emitSignal(WebLoadErrorState(it.url(), it.error().name))
       }
     }
+    on(LoadFinished::class.java) {
+      emitSignal(WebLoadSuccessState(browser().url()))
+    }
   }
 }

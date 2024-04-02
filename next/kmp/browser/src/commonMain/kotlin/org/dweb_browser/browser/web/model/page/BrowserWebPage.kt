@@ -16,7 +16,6 @@ import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.ui.page.BrowserWebPageRender
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.helper.format
-import org.dweb_browser.helper.isWebUrl
 import org.dweb_browser.helper.isWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
 
