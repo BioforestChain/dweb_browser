@@ -24,6 +24,7 @@ val moduleIpc = SerializersModule {
     subclass(IpcStreamEnd::class)
     subclass(IpcStreamAbort::class)
     subclass(IpcError::class)
+    subclass(IpcFork::class)
   }
   polymorphic(EndpointMessage::class) {
     subclass(EndpointIpcMessage::class)

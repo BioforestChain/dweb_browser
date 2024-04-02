@@ -1,7 +1,6 @@
 package org.dweb_browser.core.ipc
 
 import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -62,12 +61,23 @@ open class IpcPool {
   private val streamPool = mutableMapOf<String, PureStream>()
   fun createIpc(
     endpoint: IpcEndpoint,
+    pid: Int,
     locale: IMicroModuleManifest,
     remote: IMicroModuleManifest,
     autoStart: Boolean = false,
-  ) = Ipc(endpoint = endpoint, locale = locale, remote = remote, pool = this).also { ipc ->
+  ) = Ipc(
+    pid = pid,
+    endpoint = endpoint,
+    locale = locale,
+    remote = remote,
+    pool = this,
+  ).also { ipc ->
+    safeCreatedIpc(ipc, autoStart)
+  }
+
+  internal fun safeCreatedIpc(ipc: Ipc, autoStart: Boolean) {
     /// 保存ipc，并且根据它的生命周期做自动删除
-    debugIpcPool("createIpc") { "${ipc.debugId} added" }
+    debugIpcPool("saveIpc") { "${ipc.debugId} added" }
     ipcSet.add(ipc)
     scope.launch {
       /// 自动启动
@@ -76,17 +86,16 @@ open class IpcPool {
       }
       ipc.awaitClosed()
       ipcSet.remove(ipc)
-      debugIpcPool("createIpc") { "${ipc.debugId} removed" }
+      debugIpcPool("removeIpc") { "${ipc.debugId} removed" }
     }
   }
-
 
   private var accPid = atomic(0)
 
   /**
-   * 根据传进来的业务描述，注册一个Pid
+   * 注册一个Pid
    */
-  internal fun generatePid() = accPid.updateAndGet { it + 1 }
+  fun generatePid() = accPid.getAndAdd(1)
 
   /**关闭信号*/
   suspend fun awaitDestroyed() = runCatching {

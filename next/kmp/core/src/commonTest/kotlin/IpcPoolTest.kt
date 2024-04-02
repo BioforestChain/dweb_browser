@@ -59,16 +59,9 @@ class IpcPoolTest {
     val toMM = TestMicroModule("to.mm.dweb")
     val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
     println("1🧨=> ${fromMM.mmid} ${toMM.mmid}")
-    val fromNativeIpc = kotlinIpcPool.createIpc(
-      channel.port1,
-      fromMM,
-      toMM,
-    )
-    val toNativeIpc = kotlinIpcPool.createIpc(
-      channel.port2,
-      toMM,
-      fromMM,
-    )
+    val pid = kotlinIpcPool.generatePid()
+    val fromNativeIpc = kotlinIpcPool.createIpc(channel.port1, pid, fromMM, toMM)
+    val toNativeIpc = kotlinIpcPool.createIpc(channel.port2, pid, toMM, fromMM)
     toNativeIpc.onEvent.collectIn(this@runCommonTest) { event ->
       println("🌞 toNativeIpc $event")
       assertEquals(event.text, "xx")

@@ -156,7 +156,7 @@ abstract class IpcEndpoint {
     }
   }
 
-  suspend fun awaitOpen() = lifecycleRemoteFlow.mapNotNull { state ->
+  suspend fun awaitOpen() = lifecycleLocaleFlow.mapNotNull { state ->
     debugEndpoint("awaitOpen-start", state)
     when (state) {
       is EndpointLifecycle.Opened -> state

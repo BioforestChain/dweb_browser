@@ -1,7 +1,7 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.serialization.Serializable
-import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.core.help.types.CommonAppManifest
 
 /**
  * Ipc生命周期控制
@@ -13,8 +13,8 @@ sealed class IpcLifecycle(
   @Serializable
   data class Init(
     val pid: Int,
-    val locale: IMicroModuleManifest,
-    val remote: IMicroModuleManifest,
+    val locale: CommonAppManifest,
+    val remote: CommonAppManifest,
   ) : IpcLifecycle(LIFECYCLE_STATE.INIT)
 
   // TODO 测试能否 equals？

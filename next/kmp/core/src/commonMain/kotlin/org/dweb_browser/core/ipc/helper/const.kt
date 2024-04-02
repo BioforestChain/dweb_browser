@@ -49,6 +49,9 @@ enum class IPC_MESSAGE_TYPE(val type: Byte) {
 
   /**类型：错误*/
   ERROR(9),
+
+  /**类型：分叉*/
+  FORK(10),
   ;
 
   companion object {

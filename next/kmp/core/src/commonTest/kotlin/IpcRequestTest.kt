@@ -21,8 +21,9 @@ class IpcRequestTest {
     val channel = NativeMessageChannel(kotlinIpcPool.scope, "from.id.dweb", "to.id.dweb")
     val fromMM = TestMicroModule()
     val toMM = TestMicroModule()
-    val senderIpc = kotlinIpcPool.createIpc(channel.port1, fromMM, toMM)
-    val receiverIpc = kotlinIpcPool.createIpc(channel.port2, toMM, fromMM)
+    val pid = kotlinIpcPool.generatePid()
+    val senderIpc = kotlinIpcPool.createIpc(channel.port1, pid, fromMM, toMM)
+    val receiverIpc = kotlinIpcPool.createIpc(channel.port2, pid, toMM, fromMM)
 
     launch {
       // send text body

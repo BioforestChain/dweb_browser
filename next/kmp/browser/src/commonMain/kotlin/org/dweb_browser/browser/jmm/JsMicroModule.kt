@@ -70,8 +70,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       val nativeToWhiteList = listOf<MMID>("js.browser.dweb")
 
       data class MmDirection(
-        val endJmm: JsMicroModule.JmmRuntime,
-        val startMm: IMicroModuleManifest
+        val endJmm: JsMicroModule.JmmRuntime, val startMm: IMicroModuleManifest
       )
       // jsMM对外创建ipc的适配器，给DnsNMM的connectMicroModules使用
       connectAdapterManager.append(1) { fromMM, toMM, reason ->
@@ -124,7 +123,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
      * 和 dweb 的 port 一样，pid 是我们自己定义的，它跟我们的 mmid 关联在一起
      * 所以不会和其它程序所使用的 pid 冲突
      */
-    private val pid = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
+    private val processId = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
 
     /**
      * 该对象有两个主要用途：
@@ -136,7 +135,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
     /**创建js文件流*/
     private suspend fun createNativeStream(): Ipc {
-      debugJsMM("createNativeStream", "pid=$pid, root=${metadata.server}")
+      debugJsMM("createNativeStream", "pid=$processId, root=${metadata.server}")
       val processIpc = connect("js.browser.dweb").fork()
       // 让这个新的 ipc 作为 js-process 的通讯通道
       processIpc.request("file://js.browser.dweb/create-process")
@@ -261,8 +260,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
             /// event.mmid 可能是自协议，所以result提供真正的mmid
             val done = DnsConnectDone(
-              connect = event.mmid,
-              result = targetIpc.remote.mmid
+              connect = event.mmid, result = targetIpc.remote.mmid
             )
             jsIpc.postMessage(IpcEvent.fromUtf8("dns/connect/done", Json.encodeToString(done)))
           } catch (e: Exception) {
@@ -286,17 +284,21 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
      * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
      */
     private suspend fun ipcBridgeSelf(fromMMID: MMID): Ipc {
+      val pid = kotlinIpcPool.generatePid()
+
       /**
        * 向js模块发起连接
        */
       val portId = nativeFetch(
         URLBuilder("file://js.browser.dweb/create-ipc").apply {
-          parameters["process_id"] = pid
+          parameters["pid"] = pid.toString()
+          parameters["process_id"] = processId
           parameters["mmid"] = fromMMID
         }.buildUnsafeString()
       ).int()
       return kotlinIpcPool.createIpc(
         endpoint = native2JsEndpoint(portId),
+        pid = pid,
         remote = this,
         locale = MicroModuleManifest().apply { mmid = fromMMID },
         // 不自动开始，等到web-worker中它自己去握手
@@ -317,7 +319,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     private suspend fun ipcBridgeJsMM(fromMMID: MMID, toMMID: MMID): Boolean {
       return nativeFetch(
         URLBuilder("file://js.browser.dweb/create-ipc").apply {
-          parameters["process_id"] = pid
+          parameters["process_id"] = processId
           parameters["from_mmid"] = fromMMID
           parameters["to_mmid"] = toMMID
         }.buildUnsafeString()
@@ -374,8 +376,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
     override suspend fun _shutdown() {
       debugJsMM(
-        "jsMM_shutdown",
-        "$mmid/${this.fetchIpc?.debugId} ipcNumber=>${fromMMIDOriginIpcWM.size}"
+        "jsMM_shutdown", "$mmid/${this.fetchIpc?.debugId} ipcNumber=>${fromMMIDOriginIpcWM.size}"
       )
       fromMMIDOriginIpcWM.forEach { map ->
         val ipc = map.value.await()
