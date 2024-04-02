@@ -82,15 +82,10 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   }
 
   /// 初始化DNS服务
-  val dnsNMM = DnsNMM().also { dnsNMM ->
-    // TODO fuck this
-    DeepLinkHook.deepLinkHook.deeplinkSignal.listen {
-      println("deeplinkSignal => url=$it")
-      dnsNMM.runtime.nativeFetch(it)
-    }
-  }
+  val dnsNMM = DnsNMM()
 
-  suspend fun MicroModule.setup() = this.also {
+  val dnsNMM = DnsNMM()
+  suspend fun <T:MicroModule> T.setup() = this.also {
     dnsNMM.install(this)
   }
 
@@ -153,7 +148,7 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   val deskNMM = DeskNMM().setup()
 
   /// 启动程序
-  BootNMM(
+  val bootNMM = BootNMM(
     listOf(
       downloadNMM.mmid, // 为了让jmmNMM判断是，download已具备
       jmmNMM.mmid,// 为了使得桌面能够显示模块管理，以及安装的相应应用图标
@@ -170,6 +165,13 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
 
   /// 启动
   val dnsRuntime = dnsNMM.bootstrap()
+
+
+  // TODO fuck this
+  DeepLinkHook.deepLinkHook.deeplinkSignal.listen {
+    println("deeplinkSignal => url=$it")
+    dnsRuntime.nativeFetch(it)
+  }
 
   // 添加dweb deeplinks处理
   try {
@@ -192,5 +194,6 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
     }
   }
 
+  dnsRuntime.boot(bootNMM)
   return dnsNMM
 }

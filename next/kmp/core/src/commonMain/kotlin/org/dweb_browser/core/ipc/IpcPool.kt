@@ -10,12 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
-import org.dweb_browser.core.ipc.helper.IpcPoolMessageArgs
-import org.dweb_browser.core.ipc.helper.OnIpcPoolMessage
-import org.dweb_browser.core.ipc.helper.normalizeIpcMessage
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -72,7 +67,7 @@ open class IpcPool {
     autoStart: Boolean = false,
   ) = Ipc(endpoint = endpoint, locale = locale, remote = remote, pool = this).also { ipc ->
     /// 保存ipc，并且根据它的生命周期做自动删除
-    debugIpcPool("createIpc") { "add ${ipc.debugId}" }
+    debugIpcPool("createIpc") { "${ipc.debugId} added" }
     ipcSet.add(ipc)
     scope.launch {
       /// 自动启动
@@ -80,8 +75,8 @@ open class IpcPool {
         ipc.start()
       }
       ipc.awaitClosed()
-      debugIpcPool("createIpc") { "remove ${ipc.debugId}" }
       ipcSet.remove(ipc)
+      debugIpcPool("createIpc") { "${ipc.debugId} removed" }
     }
   }
 
@@ -92,25 +87,6 @@ open class IpcPool {
    * 根据传进来的业务描述，注册一个Pid
    */
   internal fun generatePid() = accPid.updateAndGet { it + 1 }
-
-  // 收消息
-  private val _messageSignal = Signal<IpcPoolMessageArgs>()
-  suspend fun dispatchMessage(args: IpcPoolMessageArgs) = _messageSignal.emit(args)
-  suspend fun dispatchMessage(pack: EndpointIpcMessage, ipc: Ipc) =
-    _messageSignal.emit(IpcPoolMessageArgs(normalizeIpcMessage(pack, ipc), ipc))
-
-  fun onMessage(cb: OnIpcPoolMessage) = _messageSignal.listen(cb)
-
-  /**
-   * 分发到各个Ipc(endpoint)
-   * 为了防止消息丢失，得有一开始的握手和消息断开
-   */
-  init {
-    onMessage { (pack, ipc) ->
-      ipc.dispatchMessage(pack.ipcMessage)
-    }
-  }
-
 
   /**关闭信号*/
   suspend fun awaitDestroyed() = runCatching {

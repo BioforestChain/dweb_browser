@@ -12,16 +12,19 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
 import org.dweb_browser.core.ipc.helper.LIFECYCLE_STATE
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
+
+val debugEndpoint = Debugger("endpoint")
 
 /**
  *
@@ -53,22 +56,18 @@ abstract class IpcEndpoint {
   /**
    * 本地的生命周期状态流
    */
-  protected abstract val lifecycleLocale: MutableStateFlow<EndpointLifecycle>
+  val lifecycleLocaleFlow = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
 
   /**
    * 远端的生命周期状态流
    */
-  protected abstract val lifecycleRemote: StateFlow<EndpointLifecycle>
+  protected abstract val lifecycleRemoteFlow: StateFlow<EndpointLifecycle>
 
   /**
-   * 更新本地生命周期状态
+   * 向远端发送 生命周期 信号
    */
-  protected suspend fun updateLocaleLifecycle(state: EndpointLifecycle) {
-    withScope(scope) {
-      debugNativeEndpoint("lifecycle-out") { "$this >> $state " }
-      lifecycleLocale.emit(state)
-    }
-  }
+
+  abstract suspend fun sendLifecycleToRemote(state: EndpointLifecycle)
 
   /**
    * 生命周期 监听器
@@ -76,18 +75,18 @@ abstract class IpcEndpoint {
    * > 这里要用 Eagerly，因为是 StateFlow
    */
   val onLifecycle by lazy {
-    lifecycleLocale.stateIn(scope, SharingStarted.Eagerly, lifecycleLocale.value)
+    lifecycleLocaleFlow.stateIn(scope, SharingStarted.Eagerly, lifecycleLocaleFlow.value)
   }
 
   /**
    * 当前生命周期
    */
-  val lifecycle get() = lifecycleLocale.value
+  val lifecycle get() = lifecycleLocaleFlow.value
 
   /**
    * 是否处于可以发送消息的状态
    */
-  val isActivity get() = LIFECYCLE_STATE.OPENED == lifecycleLocale.value.state
+  val isActivity get() = LIFECYCLE_STATE.OPENED == lifecycleLocaleFlow.value.state
 
   /**
    * 获取支持的协议，在协商的时候会用到
@@ -99,50 +98,76 @@ abstract class IpcEndpoint {
    */
   protected open suspend fun doStart() {}
 
+  suspend fun start(await: Boolean = true) {
+    withScope(scope) {
+      startOnce()
+      if (await) {
+        awaitOpen()
+      }
+    }
+  }
+
   /**
    * 启动
    */
-  open val start = SuspendOnce {
+  private val startOnce = SuspendOnce {
     doStart()
     var localeSubProtocols = getLocaleSubProtocols()
     // 当前状态必须是从init开始
     when (val state = lifecycle) {
       is EndpointLifecycle.Init -> {
-        updateLocaleLifecycle(EndpointLifecycle.Opening(localeSubProtocols))
+        this@IpcEndpoint.sendLifecycleToRemote(EndpointLifecycle.Opening(localeSubProtocols).also {
+          lifecycleLocaleFlow.emit(it)
+        })
       }
 
       else -> throw IllegalStateException("endpoint state=$state")
     }
-    scope.launch {
-      // 监听远端生命周期指令，进行协议协商
-      lifecycleRemote.collect { state ->
-        when (state) {
-          is EndpointLifecycle.Closing, is EndpointLifecycle.Closed -> close()
-          is EndpointLifecycle.Init, is EndpointLifecycle.Opened -> {}
-          // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
-          is EndpointLifecycle.Opening -> {
-            val nextState = if (localeSubProtocols != state.subProtocols) {
-              localeSubProtocols = localeSubProtocols.intersect(state.subProtocols)
-              EndpointLifecycle.Opening(localeSubProtocols)
-            } else {
-              EndpointLifecycle.Opened(localeSubProtocols)
-            }
-            updateLocaleLifecycle(nextState)
+    debugEndpoint("start", this@IpcEndpoint)
+    // 监听远端生命周期指令，进行协议协商
+    lifecycleRemoteFlow.collectIn(scope) { state ->
+      debugEndpoint("lifecycle-in") { "${this@IpcEndpoint} << $state" }
+      when (state) {
+        is EndpointLifecycle.Closing, is EndpointLifecycle.Closed -> close()
+        // 收到 opened 了，自己也设置成 opened，代表正式握手成功
+        is EndpointLifecycle.Opened -> {
+          when (val localeState = lifecycleLocaleFlow.value) {
+            is EndpointLifecycle.Opening ->
+              lifecycleLocaleFlow.emit(EndpointLifecycle.Opened(localeState.subProtocols))
+
+            else -> {}
           }
+        }
+        // 如果对方是 init，代表刚刚初始化，那么发送目前自己的状态
+        is EndpointLifecycle.Init -> this@IpcEndpoint.sendLifecycleToRemote(lifecycleLocaleFlow.value)
+        // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
+        is EndpointLifecycle.Opening -> {
+          val nextState = if (localeSubProtocols != state.subProtocols) {
+            localeSubProtocols = localeSubProtocols.intersect(state.subProtocols)
+            EndpointLifecycle.Opening(localeSubProtocols).also {
+              lifecycleLocaleFlow.emit(it)
+            }
+          } else {
+            EndpointLifecycle.Opened(localeSubProtocols)
+          }
+          this@IpcEndpoint.sendLifecycleToRemote(nextState)
         }
       }
     }
   }
 
-  suspend fun awaitOpen() = when (val state = lifecycleLocale.value) {
-    is EndpointLifecycle.Opened -> state
-    is EndpointLifecycle.Opening, is EndpointLifecycle.Init -> {
-      lifecycleLocale.mapNotNull { if (it is EndpointLifecycle.Opened) it else null }.first()
-    }
+  suspend fun awaitOpen() = lifecycleRemoteFlow.mapNotNull { state ->
+    debugEndpoint("awaitOpen-start", state)
+    when (state) {
+      is EndpointLifecycle.Opened -> state
+      is EndpointLifecycle.Closing, is EndpointLifecycle.Closed -> {
+        throw IllegalStateException("endpoint already closed")
+      }
 
-    else -> {
-      throw IllegalStateException("fail to await start, already in $state")
+      else -> null
     }
+  }.first().also {
+    debugEndpoint("awaitOpen-end", it)
   }
 
 
@@ -167,14 +192,14 @@ abstract class IpcEndpoint {
   protected open suspend fun doClose(cause: CancellationException? = null) {
     when (lifecycle) {
       is EndpointLifecycle.Opened, is EndpointLifecycle.Opening -> {
-        updateLocaleLifecycle(EndpointLifecycle.Closing())
+        this.sendLifecycleToRemote(EndpointLifecycle.Closing())
       }
 
       is EndpointLifecycle.Closed -> return
       else -> {}
     }
     beforeClose?.invoke(cause)
-    updateLocaleLifecycle(EndpointLifecycle.Closed())
+    this.sendLifecycleToRemote(EndpointLifecycle.Closed())
     scope.cancel(cause)
     afterClosed?.invoke(cause)
   }

@@ -72,7 +72,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 初始化DNS服务
   val dnsNMM = DnsNMM()
-  suspend fun MicroModule.setup() = this.also {
+  suspend fun <T : MicroModule> T.setup() = this.also {
     dnsNMM.install(this)
   }
 
@@ -136,7 +136,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val deskNMM = DeskNMM().setup()
 
   /// 启动程序
-  BootNMM(
+  val bootNMM = BootNMM(
     listOf(
       deviceNMM.mmid, // 为了直接初始化设备ID
       downloadNMM.mmid, // 为了让jmmNMM判断是，download已具备
@@ -157,6 +157,6 @@ suspend fun startDwebBrowser(): DnsNMM {
   WebView.setWebContentsDebuggingEnabled(true)
 
   /// 启动
-  dnsNMM.bootstrap()
+  dnsNMM.bootstrap().boot(bootNMM)
   return dnsNMM
 }

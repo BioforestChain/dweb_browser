@@ -138,6 +138,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
             )
           }
 
+          /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯
           clientIpc.start()
         }
       }

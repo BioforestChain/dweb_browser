@@ -3,7 +3,6 @@ package org.dweb_browser.core.ipc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
@@ -43,8 +42,7 @@ abstract class CommonEndpoint(
 
   override val onMessage = endpointMsgFlow.mapNotNull { if (it is EndpointIpcMessage) it else null }
     .shareIn(scope, SharingStarted.Lazily)
-  override val lifecycleLocale = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
-  override val lifecycleRemote =
+  override val lifecycleRemoteFlow =
     endpointMsgFlow.mapNotNull { if (it is EndpointLifecycle) it else null }
       .stateIn(scope, SharingStarted.Lazily, EndpointLifecycle.Init())
 
@@ -52,7 +50,21 @@ abstract class CommonEndpoint(
   /**
    * kotlin 环境支持 Cbor 和 Json
    */
-  open override fun getLocaleSubProtocols() = setOf(EndpointProtocol.Cbor, EndpointProtocol.Json)
+  override fun getLocaleSubProtocols() = setOf(EndpointProtocol.Cbor, EndpointProtocol.Json)
+  override suspend fun sendLifecycleToRemote(state: EndpointLifecycle) {
+    debugEndpoint("lifecycle-out") { "${this@CommonEndpoint} >> $state " }
+    when (protocol) {
+      EndpointProtocol.Json -> {
+        val data = endpointMessageToJson(state)
+        postTextMessage(data)
+      }
+
+      EndpointProtocol.Cbor -> {
+        val data = endpointMessageToCbor(state)
+        postBinaryMessage(data)
+      }
+    }
+  }
 
   /**
    * 使用协商的结果来进行接下来的通讯
@@ -60,7 +72,7 @@ abstract class CommonEndpoint(
   override suspend fun doStart() {
     super.doStart()
     scope.launch {
-      lifecycleLocale.collect { state ->
+      lifecycleLocaleFlow.collect { state ->
         when (state) {
           is EndpointLifecycle.Opened -> if (state.subProtocols.contains(EndpointProtocol.Cbor)) {
             protocol = EndpointProtocol.Cbor

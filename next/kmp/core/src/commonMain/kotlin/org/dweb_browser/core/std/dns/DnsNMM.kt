@@ -23,6 +23,7 @@ import org.dweb_browser.core.module.DnsApi
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.connectMicroModules
+import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.core.std.dns.ext.createActivity
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.ext.requestPermissions
@@ -184,8 +185,8 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     val fromMMID = fromMM.mmid
     debugDNS("connectTo") { "$fromMMID <=> $toMMID" }
 
-    val toRunningApp = dnsRuntime.open(toMicroModule.mmid, fromMM)
-    return connectMicroModules(fromMM, toRunningApp.ready(), reason)
+    val toAppRuntime = dnsRuntime.open(toMicroModule.mmid, fromMM)
+    return connectMicroModules(fromMM, toAppRuntime, reason)
   }
 
   /** 安装应用 */
@@ -342,8 +343,11 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
             )
           }.removeWhen(onClose)
         })
+    }
+
+    suspend fun boot(bootNMM: BootNMM) {
       /// 启动 boot 模块
-      val bootIpc = connect("boot.sys.dweb");
+      val bootIpc = connect(bootNMM.mmid);
       bootIpc.postMessage(IpcEvent.createActivity(""))
     }
 
@@ -370,10 +374,12 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         val app = query(mmpt, fromMM) ?: throw Exception("no found app: $mmpt")
         RunningApp(app, mmScope.async { bootstrapMicroModule(app) })
       }
-    }.also { running ->
+    }.let { running ->
       addRunningApp(running)
-      running.ready().onAfterShutdown.listen {
-        removeRunningApp(running)
+      running.ready().apply {
+        onAfterShutdown.listen {
+          removeRunningApp(running)
+        }
       }
     }
 
@@ -396,7 +402,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     fromMM.bootstrap(MyBootstrapContext(MyDnsApi(this, fromMM)))
 
   override val runtime get() = super.runtime as DnsRuntime
-  suspend fun bootstrap() = bootstrapMicroModule(this)
+  suspend fun bootstrap() = bootstrapMicroModule(this) as DnsRuntime
 }
 
 

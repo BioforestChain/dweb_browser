@@ -165,7 +165,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         connectFlow.emit(IpcConnectArgs(ipc, reason))
       }
     }
-
   }
 
   private val runtimeAtomic = atomic<Runtime?>(null)

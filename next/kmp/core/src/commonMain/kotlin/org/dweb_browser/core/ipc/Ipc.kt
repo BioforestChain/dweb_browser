@@ -8,11 +8,12 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
@@ -32,6 +33,7 @@ import org.dweb_browser.core.ipc.helper.IpcStream
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.collectIn
@@ -77,17 +79,17 @@ open class Ipc private constructor(
 
   private val lifecycleLocaleFlow =
     MutableStateFlow<IpcLifecycle>(IpcLifecycle.Init(pid, locale, remote))
+  private val lifecycleRemoteFlow =
+    MutableStateFlow<IpcLifecycle>(IpcLifecycle.Init(pid, remote, locale))
   val onLifecycle =
     lifecycleLocaleFlow.stateIn(scope, SharingStarted.Eagerly, lifecycleLocaleFlow.value)
   val lifecycle get() = lifecycleLocaleFlow.value
 
 
-  // FIXME 这里两个10应该移除
-  private val messageFlow = MutableSharedFlow<IpcMessage>(
-    replay = 10,//相当于粘性数据
-    extraBufferCapacity = 10,//接受的慢时候，发送的入栈 防止有一个请求挂起的时候 app其他请求无法进行
-    onBufferOverflow = BufferOverflow.SUSPEND // 缓冲区溢出的时候挂起 背压
-  )
+  private val messageFlow = endpoint.onMessage.mapNotNull {
+    if (it.pid == pid) it.ipcMessage else null
+  }
+
   val onMessage = messageFlow.shareIn(scope, SharingStarted.Eagerly)
 
   //#region
@@ -182,6 +184,7 @@ open class Ipc private constructor(
 
   /**发送各类消息到remote*/
   suspend fun postMessage(data: IpcMessage) {
+    awaitOpen()
     withScope(scope) {
       endpoint.postMessage(EndpointIpcMessage(pid, data))
     }
@@ -191,19 +194,95 @@ open class Ipc private constructor(
     postMessage(IpcResponse.fromResponse(reqId, response, this))
   }
 
-  /**分发各类消息到本地*/
-  suspend fun dispatchMessage(ipcMessage: IpcMessage) = messageFlow.emit(ipcMessage)
-
   // 标记ipc通道是否激活
   val isActivity get() = endpoint.isActivity
 
-  suspend fun awaitOpen() = endpoint.awaitOpen()
+  suspend fun awaitOpen() = lifecycleRemoteFlow.mapNotNull { state ->
+    when (state) {
+      is IpcLifecycle.Opened -> state
+      is IpcLifecycle.Closing, is IpcLifecycle.Closed -> {
+        throw IllegalStateException("ipc already closed")
+      }
 
-  // 告知对方我启动了
-  suspend fun start() {
-    withScope(scope) {
-      endpoint.start()
+      else -> null
     }
+  }.first().also {
+    debugIpc("awaitOpen", it)
+  }
+
+  /**
+   * 启动，会至少等到endpoint握手完成
+   */
+  suspend fun start(await: Boolean = true) {
+    withScope(scope) {
+      endpoint.start(true)
+      startOnce()
+      if (await) {
+        awaitOpen()
+      }
+    }
+  }
+
+  private val startOnce = SuspendOnce {
+    // 当前状态必须是从init开始
+    when (val state = lifecycle) {
+      // 告知对方我启动了
+      is IpcLifecycle.Init -> sendLocaleLifecycle(IpcLifecycle.Opening())
+
+      else -> throw IllegalStateException("endpoint state=$state")
+    }
+    debugIpc("start", this@Ipc)
+    // 监听远端生命周期指令，进行协议协商
+    lifecycleRemoteFlow.collectIn(scope) { state ->
+      debugIpc("lifecycle-in") { "${this@Ipc} << $state" }
+      when (state) {
+        is IpcLifecycle.Closing, is IpcLifecycle.Closed -> close()
+        // 收到 opened 了，自己也设置成 opened，代表正式握手成功
+        is IpcLifecycle.Opened -> {
+          when (lifecycleLocaleFlow.value) {
+            is IpcLifecycle.Opening -> lifecycleLocaleFlow.emit(IpcLifecycle.Opened())
+
+            else -> {}
+          }
+        }
+        // 如果对方是 init，代表刚刚初始化，那么发送目前自己的状态
+        is IpcLifecycle.Init -> sendLocaleLifecycle(lifecycleLocaleFlow.value)
+        // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
+        is IpcLifecycle.Opening -> {
+          sendLocaleLifecycle(IpcLifecycle.Opened())
+        }
+      }
+    }
+    // 监听并分发 所有的消息
+    messageFlow.collectIn(scope) {
+      if (it is IpcLifecycle) {
+        when (it) {
+          is IpcLifecycle.Init -> {
+            if (it.pid != pid) {
+              forkFlow.emit(
+                Ipc(
+                  pid = it.pid,
+                  endpoint = endpoint,
+                  locale = locale,
+                  remote = remote,
+                  pool = pool,
+                )
+              )
+            }
+          }
+
+          else -> lifecycleRemoteFlow.emit(it)
+        }
+      }
+    }
+  }
+
+  /**
+   * 更新并发送 本地生命周期状态
+   */
+  private suspend fun sendLocaleLifecycle(state: IpcLifecycle) {
+    debugIpc("lifecycle-out") { "$this >> $state " }
+    endpoint.postMessage(EndpointIpcMessage(pid, state))
   }
 
   val isClosed get() = scope.coroutineContext[Job]!!.isCancelled
@@ -242,7 +321,7 @@ open class Ipc private constructor(
     beforeClose.emit(Unit)
     scope.cancel()
   }
-  //#region
+//#region
   /**
    * 在现有的线路中分叉出一个ipc通道
    * 如果自定义了 locale/remote，那么说明自己是帮别人代理
@@ -256,48 +335,29 @@ open class Ipc private constructor(
     locale = locale,
     remote = remote,
     autoStart = autoStart,
-  ).also {
+  ).also { forkedIpc ->
     // 自触发
-    forkFlow.emit(it)
+    forkFlow.emit(forkedIpc)
     // 通知对方
     postMessage(
       IpcLifecycle.Init(
-        pid = it.pid,
+        pid = forkedIpc.pid,
         /// 对调locale/remote
-        locale = it.remote,
-        remote = it.locale,
+        locale = forkedIpc.remote,
+        remote = forkedIpc.locale,
       )
     )
   }
 
   private val forkFlow = MutableSharedFlow<Ipc>()
-  val onFork = forkFlow.shareIn(scope, SharingStarted.Lazily)
+  val onFork = forkFlow.run {
+    if (debugIpc.isEnable) {
+      onEach { debugIpc("onFork", it) }
+    } else this
+  }.shareIn(scope, SharingStarted.Lazily)
 
-  init {
-    messageFlow.collectIn(scope) {
-      if (it is IpcLifecycle) {
-        when (it) {
-          is IpcLifecycle.Init -> {
-            if (it.pid != pid) {
-              forkFlow.emit(
-                Ipc(
-                  pid = it.pid,
-                  endpoint = endpoint,
-                  locale = locale,
-                  remote = remote,
-                  pool = pool,
-                )
-              )
-            }
-          }
 
-          else -> lifecycleLocaleFlow.emit(it)
-        }
-      }
-    }
-
-  }
-  //#endregion
+//#endregion
 }
 
 data class IpcRequestInit(

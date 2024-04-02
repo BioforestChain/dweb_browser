@@ -147,7 +147,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           // 将自定义的 processId 与真实的 js-process_id 进行关联
           po.resolve(result.processHandler.info.process_id)
           // 等待握手完成
-          result.streamIpc.awaitOpen()
+          result.streamIpc.start()
         },
         /// 创建 web 通讯管道
         "/create-ipc" bind PureMethod.GET by defineNumberResponse {

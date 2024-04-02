@@ -1,56 +1,58 @@
 package info.bagen.dwebbrowser
 
-import io.ktor.http.URLBuilder
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.NativeMessageChannel
-import org.dweb_browser.core.ipc.helper.LIFECYCLE_STATE
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.ipc.helper.LIFECYCLE_STATE
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.core.std.dns.DnsNMM
-import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.helper.buildUnsafeString
-import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
 class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
-  NativeMicroModule.NativeRuntime(mmid, "test IpcPool") {
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(
-      "/test" bind PureMethod.POST by definePureStreamHandler {
+  NativeMicroModule(mmid, "test IpcPool") {
+  inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+    override suspend fun _bootstrap() {
+      routes("/test" bind PureMethod.GET by defineEmptyResponse {
         println("请求到了 /test")
-        val streamIpc = kotlinIpcPool.createIpc(
-          "TestMicroModule/test",
-          ipc.remote,
-          request.body.toPureStream(),
-        )
-        println("xxx=> ${streamIpc.isActivity}")
-        streamIpc.onRequest.onEach { (request, ipc) ->
+        ipc.onRequest.onEach { request ->
           val pathName = request.uri.encodedPath
           println("/test 拿到结果=> $pathName")
-          ipc.postMessage(IpcResponse.fromText(request.reqId, 200, PureHeaders(), "返回结果", ipc))
+          ipc.postMessage(
+            IpcResponse.fromText(
+              request.reqId, 200, PureHeaders(), "返回结果", ipc
+            )
+          )
         }.launchIn(mmScope)
-        streamIpc.input.stream
+        ipc.awaitOpen()
       })
+    }
+
+    override suspend fun _shutdown() {
+    }
   }
 
-  override suspend fun _shutdown() {
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) = TestRuntime(bootstrapContext)
 
 }
 
 class IpcPoolTest {
+  init {
+    addDebugTags(listOf("/.+/"))
+  }
+
   @Test  // 测试基础通信生命周期的建立
   fun testCreateNativeIpc() = runCommonTest {
     val fromMM = TestMicroModule("from.mm.dweb")
@@ -58,62 +60,49 @@ class IpcPoolTest {
     val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
     println("1🧨=> ${fromMM.mmid} ${toMM.mmid}")
     val fromNativeIpc = kotlinIpcPool.createIpc(
-      "from-native",
+      channel.port1,
+      fromMM,
       toMM,
-      channel.port1
     )
     val toNativeIpc = kotlinIpcPool.createIpc(
-      "to-native",
+      channel.port2,
+      toMM,
       fromMM,
-      channel.port2
     )
-    toNativeIpc.eventFlow.onEach { (event) ->
+    toNativeIpc.onEvent.collectIn(this@runCommonTest) { event ->
       println("🌞 toNativeIpc $event")
       assertEquals(event.text, "xx")
-    }.launchIn(this)
+    }
     println("🌞📸 send")
     fromNativeIpc.postMessage(IpcEvent.fromUtf8("哈哈", "xx"))
-    assertEquals(fromNativeIpc.awaitStart().state, LIFECYCLE_STATE.OPENED)
-    assertEquals(toNativeIpc.awaitStart().state, LIFECYCLE_STATE.OPENED)
-    fromMM.shutdown()
-    toMM.shutdown()
+    assertEquals(fromNativeIpc.awaitOpen().state, LIFECYCLE_STATE.OPENED)
+    assertEquals(toNativeIpc.awaitOpen().state, LIFECYCLE_STATE.OPENED)
   }
 
   @Test
   fun testCreateReadableStreamIpc() = runCommonTest {
     val dns = DnsNMM()
-    val streamMM = TestMicroModule("stream.mm.dweb")
-    val requestMM = TestMicroModule("request.mm.dweb")
+    val serverMM = TestMicroModule("server.mm.dweb")
+    val clientMM = TestMicroModule("client.mm.dweb")
     dns.install(
       BootNMM(
         listOf(
-          requestMM.mmid,
-          streamMM.mmid
+          clientMM.mmid, serverMM.mmid
         )
       )
     )
-    dns.install(requestMM)
-    dns.install(streamMM)
+    dns.install(clientMM)
+    dns.install(serverMM)
     dns.bootstrap()
-    val streamIpc = kotlinIpcPool.createIpc(
-      "test-stream",
-      streamMM,
-    ) {
-      streamMM.nativeFetch(
-        PureClientRequest(
-          URLBuilder("file://request.mm.dweb/test").apply {
-          }.buildUnsafeString(),
-          PureMethod.POST,
-          body = PureStreamBody(it.input.stream)
-        )
-      ).stream()
-    }
-    val res = streamIpc.request("https://test.com/test")
+    val clientRuntime = dns.runtime.open(clientMM.mmid);
+    val testIpc = clientRuntime.connect(serverMM.mmid).fork()
+    testIpc.start()
+    testIpc.request("file://request.mm.dweb/test")
+    val res = testIpc.request("https://test.com/test")
     val data = res.body.toPureString()
     println("👾 $data")
     assertEquals(data, "返回结果")
 
-    streamMM.shutdown()
-    requestMM.shutdown()
+    dns.runtime.shutdown()
   }
 }

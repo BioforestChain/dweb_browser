@@ -197,7 +197,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         debugJsMM("onProxyRequest", "start ${ipcRequest.uri}")
         if (scheme == "file" && host.endsWith(".dweb")) {
           val jsWebIpc = connect(host)
-          jsWebIpc.dispatchMessage(ipcRequest)
+          jsWebIpc.postMessage(ipcRequest)
         } else {
           runCatching {
             withContext(ioAsyncExceptionHandler) {
@@ -299,8 +299,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         endpoint = native2JsEndpoint(portId),
         remote = this,
         locale = MicroModuleManifest().apply { mmid = fromMMID },
-//      // 默认不自动开始
-//      autoStart = false,
+        // 不自动开始，等到web-worker中它自己去握手
+        autoStart = false,
       )
 //    // 跟自己代理的js-worker 建立 ipc，也就是说，对这个ipc做通信能发到worker内部
 //    val toJmmIpc = JmmIpc(
