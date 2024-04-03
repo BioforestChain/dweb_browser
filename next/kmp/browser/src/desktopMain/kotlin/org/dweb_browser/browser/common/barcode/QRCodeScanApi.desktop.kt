@@ -1,19 +1,51 @@
 package org.dweb_browser.browser.common.barcode
 
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toAwtImage
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.NotFoundException
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource
+import com.google.zxing.common.HybridBinarizer
+import com.google.zxing.multi.qrcode.QRCodeMultiReader
+import kotlinx.io.IOException
 import org.dweb_browser.helper.WARNING
+import kotlin.math.abs
 
 /**
  * 振动，响铃
  */
 actual fun beepAudio() {
-  TODO("Not yet implemented beepAudio")
+  WARNING("Not yet implemented beepAudio")
 }
 
 actual fun decoderImage(
   imageBitmap: ImageBitmap, onSuccess: (QRCodeDecoderResult) -> Unit, onFailure: (Exception) -> Unit
 ) {
-  TODO("Not yet implemented decoderImage")
+  try {
+    val bufferedImage = imageBitmap.toAwtImage()
+    val source = BufferedImageLuminanceSource(bufferedImage)
+    val bitmap = BinaryBitmap(HybridBinarizer(source))
+    val reader = QRCodeMultiReader()
+    val result = reader.decodeMultiple(bitmap)
+    val listRect: MutableList<QRCodeDecoderResult.QRCode> = mutableListOf()
+    result.forEach { barcode ->
+      // 通常二维码是返回3个坐标，也就是左上，右上，左下的坐标，也可能存在4个坐标，也就是右下的坐标
+      val centerX = (maxOf(barcode.resultPoints[0].x, barcode.resultPoints[1].x, barcode.resultPoints[2].x) + minOf(barcode.resultPoints[0].x, barcode.resultPoints[1].x, barcode.resultPoints[2].x)) / 2
+      val centerY = (maxOf(barcode.resultPoints[0].y, barcode.resultPoints[1].y, barcode.resultPoints[2].y) + minOf(barcode.resultPoints[0].y, barcode.resultPoints[1].y, barcode.resultPoints[2].y)) / 2
+      println("decodeImage => barcode=$barcode, ($centerX, $centerY), ${barcode.resultPoints.size}, ${barcode.resultPoints.contentToString()}")
+      listRect.add(
+        QRCodeDecoderResult.QRCode(
+          org.dweb_browser.helper.PureRect(x = centerX, y = centerY,), null
+        )
+      )
+    }
+    val qrCodeDecoderResult = QRCodeDecoderResult(imageBitmap, imageBitmap, listRect)
+    onSuccess(qrCodeDecoderResult)
+  } catch (e: NotFoundException) {
+    onFailure(e)
+  } catch (e: IOException) {
+    onFailure(e)
+  }
 }
 
 /**
@@ -28,8 +60,19 @@ actual fun transformPoint(
   destHeight: Int,
   isFit: Boolean
 ): QRCodeDecoderResult.Point {
-  WARNING("Not yet implemented transformPoint")
-  return QRCodeDecoderResult.Point(0f, 0f)
+  val widthRatio = destWidth * 1.0f / srcWidth
+  val heightRatio = destHeight * 1.0f / srcHeight
+  return if (isFit) { //宽或高自适应铺满
+    val ratio = widthRatio.coerceAtMost(heightRatio)
+    val left = abs(srcWidth * ratio - destWidth) / 2
+    val top = abs(srcHeight * ratio - destHeight) / 2
+    QRCodeDecoderResult.Point(x * ratio + left, y * ratio + top)
+  } else { //填充铺满（可能会出现裁剪）
+    val ratio = widthRatio.coerceAtLeast(heightRatio)
+    val left = abs(srcWidth * ratio - destWidth) / 2
+    val top = abs(srcHeight * ratio - destHeight) / 2
+    QRCodeDecoderResult.Point(x * ratio - left, y * ratio - top)
+  }
 }
 
 /**

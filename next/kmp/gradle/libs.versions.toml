@@ -43,6 +43,7 @@ data-gson = "2.10.1"
 coil-version = "3.0.0-alpha06"
 camera-version = "1.4.0-alpha04"
 camera-barcode = "17.2.0"
+camera-zxing = "3.5.3"
 commons-compress = "1.26.1"
 jetbrains-compose-version = "1.6.1"
 
@@ -186,6 +187,8 @@ camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.r
 camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camera-version" }
 camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camera-version" }
 camera-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "camera-barcode" }
+camera-zxing-code = { group = "com.google.zxing", name = "core", version.ref = "camera-zxing" }
+camera-zxing-javase = { group = "com.google.zxing", name = "javase", version.ref = "camera-zxing" }
 # 解压文件
 apache-common-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress" }
 # 生物识别

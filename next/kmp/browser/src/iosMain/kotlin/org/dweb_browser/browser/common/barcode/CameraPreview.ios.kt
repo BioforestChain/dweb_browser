@@ -8,7 +8,8 @@ import org.dweb_browser.helper.WARNING
 actual fun CameraPreviewRender(
   openAlarmResult: (ImageBitmap) -> Unit,
   onBarcodeDetected: (QRCodeDecoderResult) -> Unit,
-  maskView: @Composable (FlashLightSwitch, OpenAlbum) -> Unit
+  maskView: @Composable (FlashLightSwitch, OpenAlbum) -> Unit,
+  onCancel: (String) -> Unit,
 ) {
   WARNING("Not yet implemented CameraPreviewView")
 }

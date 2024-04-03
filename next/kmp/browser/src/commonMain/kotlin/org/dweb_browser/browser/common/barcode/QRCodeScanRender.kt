@@ -47,7 +47,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -109,9 +108,9 @@ fun QRCodeScanRender(
             scanModel.updateQRCodeStateUI(QRCodeState.MultiSelect)
           }, maskView = { flashLightSwitch, openAlbum ->
             DefaultScanningView(flashLightSwitch = flashLightSwitch, openAlbum = openAlbum) {
-              onCancel("")
+              onCancel("Cancel")
             }
-          })
+          }, onCancel = onCancel)
         }
 
         QRCodeState.AnalyzePhoto.type -> {
@@ -306,7 +305,6 @@ fun AnalyzeImageView(
 @Composable
 private fun DefaultScanResultView(onClose: () -> Unit, onDataCallback: (String) -> Unit) {
   val qrCodeScanModel = LocalQRCodeModel.current
-  val scope = rememberCoroutineScope()
   val pointScale = remember { mutableFloatStateOf(1f) }
   val infiniteTransition = rememberInfiniteTransition(label = "")
   val animatedLinePosition by infiniteTransition.animateFloat(
@@ -359,6 +357,7 @@ private fun DefaultScanResultView(onClose: () -> Unit, onDataCallback: (String) 
 
     Canvas(modifier = Modifier.matchParentSize().pointerInput(Unit) {
       detectTapGestures { offset ->
+        println("detectTapGestures => offset=(${offset.x}, ${offset.y})")
         pointList.forEachIndexed { index, point ->
           if (offset.x >= point.x - 56f && offset.x <= point.x + 56f && offset.y >= point.y - 56f && offset.y <= point.y + 56f) {
             val data = try {

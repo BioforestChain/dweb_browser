@@ -33,7 +33,8 @@ import java.util.concurrent.Executors
 actual fun CameraPreviewRender(
   openAlarmResult: (ImageBitmap) -> Unit,
   onBarcodeDetected: (QRCodeDecoderResult) -> Unit,
-  maskView: @Composable (FlashLightSwitch, OpenAlbum) -> Unit
+  maskView: @Composable (FlashLightSwitch, OpenAlbum) -> Unit,
+  onCancel: (String) -> Unit,
 ) {
   var cameraProvider: ProcessCameraProvider? = null
   val context = LocalContext.current
