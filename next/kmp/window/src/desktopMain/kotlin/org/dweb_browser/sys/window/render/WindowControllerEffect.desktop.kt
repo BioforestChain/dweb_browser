@@ -157,6 +157,7 @@ private fun WindowController.ModeEffect(composeWindowParams: ComposeWindowParams
   RememberEffect(composeWindowParams) {
     state.observable.onChange {
       if (it.key == WindowPropertyKeys.Mode) {
+        // 针对桌面端原生窗口的浮动 最大化 全屏 绑定
         when (it.newValue as WindowMode) {
           WindowMode.FLOAT -> {
             composeWindowParams.placement = WindowPlacement.Floating
@@ -179,15 +180,15 @@ private fun WindowController.ModeEffect(composeWindowParams: ComposeWindowParams
       }
     }
   }
-
+  // 保证单向数据流这里不需要再绑定
   /// 反向绑定原生的窗口的 placement 到state中
-  LaunchedEffect(composeWindowParams.placement) {
-    state.mode = when (composeWindowParams.placement) {
-      WindowPlacement.Floating -> WindowMode.FLOAT
-      WindowPlacement.Maximized -> WindowMode.MAXIMIZE
-      WindowPlacement.Fullscreen -> WindowMode.FULLSCREEN
-    }
-  }
+//  LaunchedEffect(composeWindowParams.placement) {
+//    state.mode = when (composeWindowParams.placement) {
+//      WindowPlacement.Floating -> WindowMode.FLOAT
+//      WindowPlacement.Maximized -> WindowMode.MAXIMIZE
+//      WindowPlacement.Fullscreen -> WindowMode.FULLSCREEN
+//    }
+//  }
 
   /// 反向绑定原生的窗口的 close 到 state中
   LaunchedEffect(composeWindowParams) {

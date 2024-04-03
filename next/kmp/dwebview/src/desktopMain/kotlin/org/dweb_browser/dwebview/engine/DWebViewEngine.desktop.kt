@@ -12,7 +12,6 @@ import com.teamdev.jxbrowser.dom.event.EventType
 import com.teamdev.jxbrowser.dom.event.MouseEvent
 import com.teamdev.jxbrowser.dom.event.MouseEventParams
 import com.teamdev.jxbrowser.dom.event.UiEventModifierParams
-import com.teamdev.jxbrowser.frame.EditorCommand
 import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.ConsoleMessageLevel
 import com.teamdev.jxbrowser.js.JsException
@@ -34,6 +33,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
@@ -41,7 +42,6 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
-import org.dweb_browser.dwebview.DwebViewI18nResource
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.dwebview.polyfill.DwebViewDesktopPolyfill
@@ -57,17 +57,8 @@ import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
 import org.dweb_browser.sys.device.DeviceManage
-import java.awt.Color
-import java.awt.Component
-import java.awt.Font
 import java.util.function.Consumer
-import javax.swing.BorderFactory
-import javax.swing.JMenuItem
-import javax.swing.JPopupMenu
 import javax.swing.SwingUtilities
-import javax.swing.border.BevelBorder
-import javax.swing.event.PopupMenuEvent
-import javax.swing.event.PopupMenuListener
 
 
 class DWebViewEngine internal constructor(
@@ -112,7 +103,7 @@ class DWebViewEngine internal constructor(
 
       // 拦截内部浏览器dweb deeplink跳转
       engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
-        if(it.urlRequest().url().startsWith("dweb://")) {
+        if (it.urlRequest().url().startsWith("dweb://")) {
           remoteMM.ioAsyncScope.launch {
             remoteMM.nativeFetch(it.urlRequest().url().replace("/?", "?"))
           }
@@ -410,103 +401,17 @@ class DWebViewEngine internal constructor(
         }
       }
     }
+    // 创建menu,初始化就创建，而不是监听的时候
+    val (popupMenu, clickEffect) = browser.createRightClickMenu(ioScope)
+    // 监听右击事件
     browser.set(ShowContextMenuCallback::class.java, ShowContextMenuCallback { params, tell ->
-      val backgroundColor = Color(88, 90, 91)
-
-      // 创建右键功能
-      fun createMenuItem(title: String, cb: () -> Unit): JMenuItem {
-        val menuItem = JMenuItem(title).apply {
-          font = Font("Sans-Serif", Font.PLAIN, 12)
-          background = backgroundColor
-          border = BorderFactory.createEmptyBorder(5, 10, 5, 10)
-          isOpaque = false
-//          foreground = Color.white
-        }
-        menuItem.addActionListener {
-          cb()
-          tell.close()
-        }
-        return menuItem
-      }
-
-      // 绑定命令能力
-      fun createCommandMenuItem(title: String, editorCommand: EditorCommand): Component {
-        val menuItem = createMenuItem(title) {
-          browser.mainFrame().ifPresent {
-            it.execute(editorCommand)
-          }
-        }
-        return menuItem
-      }
-      // 创建一个带阴影的边框
-      val shadowBorder = BorderFactory.createSoftBevelBorder(BevelBorder.LOWERED)
-      // 画样式
-//      val matteBorder = BorderFactory.createMatteBorder(0, 0, 0, 0, Color(214, 214, 214))
-      val popupMenu = JPopupMenu().apply {
-        font = Font("Sans-Serif", Font.PLAIN, 12)
-        background = backgroundColor
-        //组合这两个边框
-        border = shadowBorder
-//        border = BorderFactory.createCompoundBorder(matteBorder, shadowBorder)
-      }
-
+      clickEffect.onEach {
+        if (!tell.isClosed) tell.close()
+      }.launchIn(ioScope)
+      // 在指定位置显示上下文菜单。
+      val location = params.location()
       // 创建事件调度线程，所有跟用户界面有关的代码都应当在这个线程上运行
       SwingUtilities.invokeLater {
-        // 事件
-        popupMenu.addPopupMenuListener(object : PopupMenuListener {
-          override fun popupMenuWillBecomeVisible(p0: PopupMenuEvent?) {
-            println("QWQ popupMenuWillBecomeVisible")
-          }
-
-          override fun popupMenuWillBecomeInvisible(p0: PopupMenuEvent?) {
-            println("QWQ popupMenuWillBecomeInvisible")
-          }
-
-          override fun popupMenuCanceled(e: PopupMenuEvent) {
-            // 关闭上下文菜单，不选择任何item
-            tell.close()
-          }
-        })
-        // 开发者工具
-        popupMenu.add(createMenuItem(DwebViewI18nResource.popup_menu_devtool.text) {
-          browser.devTools().show()
-        })
-
-        popupMenu.addSeparator()
-        popupMenu.add(
-          createCommandMenuItem(
-            DwebViewI18nResource.popup_menu_copy.text,
-            EditorCommand.copy()
-          )
-        )
-        popupMenu.add(
-          createCommandMenuItem(
-            DwebViewI18nResource.popup_menu_paste.text,
-            EditorCommand.paste()
-          )
-        )
-        popupMenu.add(
-          createCommandMenuItem(
-            DwebViewI18nResource.popup_menu_select_all.text,
-            EditorCommand.selectAll()
-          )
-        )
-        popupMenu.addSeparator()
-        //放大
-        popupMenu.add(createMenuItem(DwebViewI18nResource.popup_menu_zoomIn.text) {
-          browser.zoom().`in`()
-        })
-        // 缩小
-        popupMenu.add(createMenuItem(DwebViewI18nResource.popup_menu_zoomOut.text) {
-          browser.zoom().out()
-        })
-        // 重置大小
-        popupMenu.add(createMenuItem(DwebViewI18nResource.popup_menu_reset.text) {
-          browser.zoom().reset()
-        })
-
-        // 在指定位置显示上下文菜单。
-        val location = params.location()
         popupMenu.show(wrapperView, location.x(), location.y())
       }
     })

@@ -3,6 +3,17 @@ plugins {
 }
 
 kotlin {
+  kmpCommonTarget(project) {
+    applyHierarchy {
+      common {
+        group("mobile") {
+          withAndroidTarget()
+          withIosTarget()
+        }
+      }
+    }
+  }
+
   kmpComposeTarget(project) {
     dependencies {
       implementation(projects.helper)

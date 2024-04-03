@@ -387,7 +387,6 @@ internal fun WindowBottomNavigationThemeBar(
             shape = RoundedCornerShape(buttonRoundedSize),
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxWidth(),
           ) {
-
             Icon(
               Icons.Rounded.FullscreenExit,
               contentDescription = "UnMaximizes the window",

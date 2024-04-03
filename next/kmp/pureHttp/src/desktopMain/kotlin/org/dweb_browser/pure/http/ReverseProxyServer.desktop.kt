@@ -54,8 +54,8 @@ class ReverseProxyServer {
               // whatever, it works without awaitContent() but let's just left it here
               clientReader.awaitContent()
               val buffer = ByteArray(clientReader.availableForRead)
-              val messageSize = clientReader.readAvailable(buffer)
-              println("messageSize=$messageSize")
+              clientReader.readAvailable(buffer)
+//              println("messageSize=$messageSize")
               val request = ConnectRequest(buffer)
               val connectHost: String
               val connectPort: Int

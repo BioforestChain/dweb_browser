@@ -12,7 +12,6 @@ import androidx.compose.ui.window.awaitApplication
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -86,6 +85,7 @@ class PureViewController(
           }
           winRender.state = state
         }
+        // 桌面端创建窗口并且绑定一大堆事件
         Window(
           onCloseRequest = winRender.onCloseRequest,
           state = state,
@@ -169,7 +169,6 @@ class PureViewController(
 
   fun getComposeWindowOrNull() = composeWindowStateFlow.replayCache.firstOrNull()
 
-  @OptIn(ExperimentalCoroutinesApi::class)
   val composeWindowParams by lazy {
     ComposeWindowParams(this) {
       composeWindowStateFlow.tryEmit(window)

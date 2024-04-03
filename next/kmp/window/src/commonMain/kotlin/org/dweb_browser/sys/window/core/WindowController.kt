@@ -174,6 +174,8 @@ abstract class WindowController(
           _beforeMaximizeBounds = null
         }
       }
+      println("xxxxxx simpleUnMaximize")
+      // 将窗口变成浮动模式，会触发双向绑定
       state.mode = WindowMode.FLOAT
     }
   }

@@ -195,7 +195,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
     ) {
       val theme = LocalWindowControllerTheme.current
       //#region 窗口内容
-      Column(Modifier.clip(winPadding.boxRounded.roundedCornerShape).background(theme.winFrameBrush)
+      Column(Modifier.background(theme.winFrameBrush)
         .clickableWithNoEffect {
           win.focusInBackground()
         }) {
@@ -203,10 +203,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
         WindowTopBar(win, Modifier.height(winPadding.top.dp).fillMaxWidth())
         /// 内容区域
         BoxWithConstraints(
-          Modifier.weight(1f).padding(
-            start = winPadding.start.dp,
-            end = winPadding.end.dp,
-          ).clip(winPadding.contentRounded.roundedCornerShape)
+          Modifier.weight(1f)
         ) {
           val contentBoxWidth = maxWidth
           val contentBoxHeight = maxHeight
@@ -249,7 +246,7 @@ fun WindowController.WindowRender(modifier: Modifier) {
 
       /// 失去焦点的时候，提供 movable 的遮罩（在移动中需要确保遮罩存在）
       if (inMove or !isFocus) {
-        Box(modifier = Modifier.fillMaxSize().clip(winPadding.boxRounded.roundedCornerShape)
+        Box(modifier = Modifier.fillMaxSize()
           .background(MaterialTheme.colorScheme.onSurface.copy(alpha = if (isFocus) 0f else 0.2f))
           .run {
             val isMaximized by win.watchedIsMaximized()

@@ -51,11 +51,13 @@ class ComposeWindowParams(
     set(value) {
       state.isMinimized = value
     }
+  // 控制窗口状态
   var placement
     get() = state.placement
     set(value) {
       state.placement = value
     }
+  // 控制窗口位置
   var position
     get() = state.position
     set(value) {
@@ -87,9 +89,11 @@ class ComposeWindowParams(
     if (isOpened) {
       return@withLock
     }
+    // 触发窗口创建事件
     withScope(pvc.lifecycleScope) {
       pvc.createSignal.emit(pvc.createParams)
     }
+    // 添加渲染参数
     withScope(PureViewController.uiScope) {
       PureViewController.windowRenders.add(this@ComposeWindowParams)
     }
@@ -115,6 +119,7 @@ class ComposeWindowParams(
 
   val windowEvents = WindowEvents()
 
+  // 统一管理窗口事件
   inner class WindowEvents {
     private val _windowOpened = MutableSharedFlow<WindowEvent>()
     val windowOpened = _windowOpened.asSharedFlow()
@@ -147,18 +152,22 @@ class ComposeWindowParams(
               _windowClosed.launchEmit(event)
             }
 
+            // 窗口图标化
             override fun windowIconified(event: WindowEvent) {
               _windowIconified.launchEmit(event)
             }
 
+            // 取消窗口图标化
             override fun windowDeiconified(event: WindowEvent) {
               _windowDeiconified.launchEmit(event)
             }
 
+            // 窗口激活
             override fun windowActivated(event: WindowEvent) {
               _windowActivated.launchEmit(event)
             }
 
+            // 窗口停用事件，比如缩小到dock
             override fun windowDeactivated(event: WindowEvent) {
               _windowDeactivated.launchEmit(event)
             }
@@ -207,8 +216,11 @@ class ComposeWindowParams(
 
   val windowFocusStateFlow = WindowFocusStateFlow()
 
+  // 窗口失去焦点获得焦点状态监听
   inner class WindowFocusStateFlow(
-    private val sharedFlow: MutableStateFlow<AwtWindowFocusState> = MutableStateFlow(AwtWindowFocusState.Lost)
+    private val sharedFlow: MutableStateFlow<AwtWindowFocusState> = MutableStateFlow(
+      AwtWindowFocusState.Lost
+    )
   ) : StateFlow<AwtWindowFocusState> by sharedFlow.asStateFlow() {
     init {
       pvc.lifecycleScope.launch {
@@ -226,12 +238,14 @@ class ComposeWindowParams(
       }
     }
   }
+
   // 窗口是否聚焦状态
   enum class AwtWindowFocusState {
     Gained, Lost,
   }
 
   val mouseMotionEvents = MouseMotionEvents()
+
   // 鼠标运动触发的副作用事件
   inner class MouseMotionEvents {
     private val _mouseDragged = MutableSharedFlow<MouseEvent>()

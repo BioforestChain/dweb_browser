@@ -72,6 +72,7 @@ fun List<StrictImageResource>.pickMinimal() =
   maxOfOrNull { comparableBuilder.build(it) }?.value
 
 
+/**设置默认窗口边界*/
 fun WindowState.setDefaultFloatWindowBounds(
   maxWindowWidth: Float,
   maxWindowHeight: Float,

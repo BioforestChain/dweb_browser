@@ -48,6 +48,7 @@ sealed class WindowModalController(
         return
       }
       _state = value
+      // 监听状态更新并且触发相关事件
       mm.ioAsyncScope.launch {
         onStateChangeSignal.emit(value)
         when (_state) {
@@ -65,6 +66,7 @@ sealed class WindowModalController(
     }
 
   init {
+    // 在回调事件触发的时候更新state
     onCallback.map {
       state = when (it) {
         is CloseAlertModalCallback -> WindowModalState.CLOSE

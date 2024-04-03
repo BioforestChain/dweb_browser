@@ -519,6 +519,7 @@ fun WindowController.calcContentScale(
   return scaleProgress.toScale(limits.minScale).let { if (it.isNaN()) 1f else it.toFloat() }
 }
 
+/**窗口主题控制器*/
 val LocalWindowControllerTheme = compositionChainOf<WindowControllerTheme>("WindowControllerTheme")
 
 class WindowControllerTheme(

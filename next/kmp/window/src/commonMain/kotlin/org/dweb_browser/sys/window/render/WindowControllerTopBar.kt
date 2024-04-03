@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.window.render
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,8 +23,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -33,35 +30,15 @@ import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.sys.window.core.WindowController
 
-
+// 这里是窗口顶部，分成移动端和桌面端实现，桌面端将使用原生的窗口并且绑定事件
 @Composable
-internal fun WindowTopBar(
+expect fun WindowTopBar(
   win: WindowController, modifier: Modifier
-) {
-  val contentColor = LocalWindowControllerTheme.current.topContentColor
-  Box(
-    modifier = modifier
-      .windowMoveAble(win)
-      .background(
-        Brush.verticalGradient(
-          colors = listOf(
-            contentColor.copy(alpha = 0.2f),
-            Color.Transparent,
-          )
-        )
-      )
-  ) {
-    val maximize by win.watchedIsMaximized()
-    if (maximize) {
-      WindowTopMaximizedBar(win)
-    } else {
-      WindowTopControllerBar(win)
-    }
-  }
-}
+)
 
+// 平常情况下的顶部窗口
 @Composable
-private fun WindowTopControllerBar(
+fun WindowTopControllerBar(
   win: WindowController,
 ) {
   val scope = rememberCoroutineScope()
@@ -172,7 +149,7 @@ private fun WindowTopControllerBar(
  * 这时候的顶部与 save-area-top 一致
  */
 @Composable
-private fun WindowTopMaximizedBar(
+fun WindowTopMaximizedBar(
   @Suppress("UNUSED_PARAMETER") win: WindowController,
 ) {
   /// 这里可以渲染一些特殊的信息，比如将应用图标渲染到状态栏中
