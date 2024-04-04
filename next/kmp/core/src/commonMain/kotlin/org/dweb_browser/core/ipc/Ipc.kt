@@ -1,8 +1,7 @@
 package org.dweb_browser.core.ipc
 
 import io.ktor.http.Url
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
@@ -33,7 +32,6 @@ import org.dweb_browser.core.ipc.helper.IpcServerRequest
 import org.dweb_browser.core.ipc.helper.IpcStream
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeHashMap
-import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
@@ -58,7 +56,7 @@ open class Ipc internal constructor(
   val debugIpc by lazy { Debugger(this.toString()) }
 
   companion object {
-    private var reqId_acc by SafeInt(0)
+    private val reqIdAcc = atomic(0)
   }
 
   val scope = endpoint.scope + SupervisorJob()
@@ -70,10 +68,7 @@ open class Ipc internal constructor(
     if (it.pid == pid) {
       debugIpc("ipc-message-in", it.ipcMessage)
       it.ipcMessage
-    } else {
-      debugIpc("ipc-message-pass", "${it.pid}/${it.ipcMessage}")
-      null
-    }
+    } else null
   }.shareIn(
     scope,
     SharingStarted.Eagerly, // 这里要立刻打开通道接收数据，endpoint不会只服务于一个ipc
@@ -96,18 +91,21 @@ open class Ipc internal constructor(
   // 标记ipc通道是否激活
   val isActivity get() = endpoint.isActivity
 
-  suspend fun awaitOpen(reason: String? = null) = lifecycleLocaleFlow.mapNotNull { state ->
-    debugIpc("awaitOpen", "reason=$reason state=$state")
-    when (state) {
-      is IpcLifecycle.Opened -> state
-      is IpcLifecycle.Closing, is IpcLifecycle.Closed -> {
-        throw IllegalStateException("ipc already closed")
-      }
+  suspend fun awaitOpen(reason: String? = null) = when (val state = lifecycle) {
+    is IpcLifecycle.Opened -> state
+    else -> lifecycleLocaleFlow.mapNotNull {
+      debugIpc("awaitOpen", "state=$it reason=$reason")
+      when (it) {
+        is IpcLifecycle.Opened -> it
+        is IpcLifecycle.Closing, is IpcLifecycle.Closed -> {
+          throw IllegalStateException("ipc already closed")
+        }
 
-      else -> null
+        else -> null
+      }
+    }.first().also {
+      debugIpc("lifecycle-opened", reason)
     }
-  }.first().also {
-    debugIpc("lifecycle-opened", reason)
   }
 
   /**
@@ -132,7 +130,7 @@ open class Ipc internal constructor(
         lifecycleLocaleFlow.emit(it)
       })
 
-      else -> throw IllegalStateException("endpoint state=$state")
+      else -> throw IllegalStateException("fail to start: ipc=$this state=$state")
     }
     // 监听远端生命周期指令，进行协议协商
     lifecycleRemoteFlow.collectIn(scope) { state ->
@@ -320,6 +318,7 @@ open class Ipc internal constructor(
 
   private val _reqResMap by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     SafeHashMap<Int, CompletableDeferred<IpcResponse>>().also { reqResMap ->
+      debugIpc("reqResMap")
       onResponse.collectIn(scope) { response ->
         val result = reqResMap.remove(response.reqId)
           ?: throw Exception("no found response by reqId: ${response.reqId}")
@@ -335,7 +334,7 @@ open class Ipc internal constructor(
 
   // PureClientRequest -> ipcRequest -> IpcResponse -> PureResponse
   suspend fun request(pureRequest: PureClientRequest): PureResponse {
-    return this.request(
+    return request(
       pureRequest.toIpc(allocReqId(), this)
     ).toPure()
   }
@@ -345,8 +344,7 @@ open class Ipc internal constructor(
     return request(ipcRequest)
   }
 
-  private val reqIdSyncObj = SynchronizedObject()
-  private fun allocReqId() = synchronized(reqIdSyncObj) { ++reqId_acc }
+  private fun allocReqId() = reqIdAcc.incrementAndGet()
 
 
   /**发送各类消息到remote*/

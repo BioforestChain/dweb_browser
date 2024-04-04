@@ -156,17 +156,20 @@ abstract class IpcEndpoint {
     }
   }
 
-  suspend fun awaitOpen(reason: String? = null) = lifecycleLocaleFlow.mapNotNull { state ->
-    when (state) {
-      is EndpointLifecycle.Opened -> state
-      is EndpointLifecycle.Closing, is EndpointLifecycle.Closed -> {
-        throw IllegalStateException("endpoint already closed")
-      }
+  suspend fun awaitOpen(reason: String? = null) = when (val state = lifecycle) {
+    is EndpointLifecycle.Opened -> state
+    else -> lifecycleLocaleFlow.mapNotNull {
+      when (it) {
+        is EndpointLifecycle.Opened -> it
+        is EndpointLifecycle.Closing, is EndpointLifecycle.Closed -> {
+          throw IllegalStateException("endpoint already closed")
+        }
 
-      else -> null
+        else -> null
+      }
+    }.first().also {
+      debugEndpoint("lifecycle-opened", reason)
     }
-  }.first().also {
-    debugEndpoint("lifecycle-opened", reason)
   }
 
   suspend fun close(cause: CancellationException? = null) = scope.isActive.trueAlso {

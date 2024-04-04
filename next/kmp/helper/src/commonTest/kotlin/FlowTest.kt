@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.collectIn
@@ -124,7 +125,7 @@ class FlowTest {
 
 
   @Test
-  fun channelSharedIn() = runCommonTest {
+  fun channelConsumeAsFlowSharedIn() = runCommonTest {
     val channel = Channel<Int>()
     val MAX = 5;
 
@@ -134,12 +135,6 @@ class FlowTest {
       for (i in 1..MAX) {
         channel.send(i)
         println("send($i)")
-      }
-      delay(5000)
-      println("start send 2")
-      for (i in (MAX+1)..(MAX*2)) {
-        channel.send(i)
-        println("send($i)")Failed	https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-serialization/provider(%3F)/kotlin-serialization-provider(%3F).pom	1 s 792 ms	0 B	0 B/s
       }
     }
     val flow = channel.consumeAsFlow().shareIn(this, SharingStarted.Lazily)
@@ -159,6 +154,35 @@ class FlowTest {
     }
   }
 
+  @Test
+  fun channelReceiveAsFlowSharedIn() = runCommonTest {
+    val channel = Channel<Int>()
+    val MAX = 5;
+
+    launch {
+      /// 所有的send，并不会被 collect 阻塞，consumeAsFlow 已经将它全部消费
+      println("start send")
+      for (i in 1..MAX) {
+        channel.send(i)
+        println("send($i)")
+      }
+    }
+    val flow = channel.receiveAsFlow().shareIn(this, SharingStarted.Lazily)
+
+    launch {
+      delay(1000)
+      flow.collect {
+        println("collect1($it)")
+        delay(1000)
+      }
+    }
+    launch {
+      delay(2000)
+      flow.collect {
+        println("collect2($it)")
+      }
+    }
+  }
   @Test
   fun flowChannelSharedIn() = runCommonTest {
     val MAX = 5;

@@ -63,6 +63,10 @@ class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
   override var background_color by P_background_color(p)
   override var shortcuts by P_shortcuts(p)
   override var version by P_version(p)
+
+  override fun toString(): String {
+    return "CommonAppManifest@${hashCode()}"
+  }
 }
 
 interface ICommonAppManifest {

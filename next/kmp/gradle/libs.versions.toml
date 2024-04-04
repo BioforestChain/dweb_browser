@@ -69,6 +69,7 @@ espresso = "3.5.1"
 uiautomator = "2.3.0"
 benchmark-macro-junit4 = "1.2.3"
 roomKtx = "2.6.1"
+log4j12 = "2.0.12"
 
 [libraries]
 
@@ -212,6 +213,7 @@ androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espres
 androidx-test-espresso-web = { group = "androidx.test.espresso", name = "espresso-web", version.ref = "espresso" }
 androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark-macro-junit4" }
+org-slf4j-log4j12 = { group = "org.slf4j", name = "slf4j-log4j12", version.ref = "log4j12" }
 
 
 # jna

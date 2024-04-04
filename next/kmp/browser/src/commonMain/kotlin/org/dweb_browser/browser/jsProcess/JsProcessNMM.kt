@@ -2,8 +2,6 @@ package org.dweb_browser.browser.jsProcess
 
 import io.ktor.http.fullPath
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -216,7 +214,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
        */
       val codeProxyServerIpc = httpDwebServer.listen()
 
-      codeProxyServerIpc.onRequest.onEach { request ->
+      codeProxyServerIpc.onRequest.collectIn(mmScope) { request ->
         codeProxyServerIpc.postResponse(
           request.reqId,
           // 转发给远端来处理 IpcServerRequest -> PureServerRequest -> PureClientRequest
@@ -230,7 +228,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
             response
           },
         )
-      }.launchIn(mmScope)
+      }
 
       @Serializable
       data class JsProcessMetadata(val mmid: MMID) {}

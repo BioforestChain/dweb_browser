@@ -1,7 +1,5 @@
 package info.bagen.dwebbrowser
 
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IpcEvent
@@ -27,7 +25,7 @@ class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
     override suspend fun _bootstrap() {
       routes("/test" bind PureMethod.GET by defineEmptyResponse {
         println("请求到了 /test")
-        ipc.onRequest.onEach { request ->
+        ipc.onRequest.collectIn(mmScope) { request ->
           val pathName = request.uri.encodedPath
           println("/test 拿到结果=> $pathName")
           ipc.postMessage(
@@ -35,7 +33,7 @@ class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
               request.reqId, 200, PureHeaders(), "返回结果", ipc
             )
           )
-        }.launchIn(mmScope)
+        }
         ipc.awaitOpen()
       })
     }
@@ -95,6 +93,7 @@ class IpcPoolTest {
     forkedIpc.start()
     println("QAQ forkedIpc=$forkedIpc then request")
     forkedIpc.request("file://request.mm.dweb/test")
+    /// TODO reqId 会乱窜
     val res = forkedIpc.request("https://test.com/test")
     val data = res.body.toPureString()
     println("👾 $data")
