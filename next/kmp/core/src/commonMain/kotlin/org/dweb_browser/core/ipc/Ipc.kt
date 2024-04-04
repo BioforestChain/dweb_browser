@@ -46,7 +46,6 @@ import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 
-val debugIpc = Debugger("ipc")
 
 open class Ipc internal constructor(
   private val pid: Int,
@@ -54,51 +53,51 @@ open class Ipc internal constructor(
   val locale: IMicroModuleManifest,
   val remote: IMicroModuleManifest,
   val pool: IpcPool,
-  val debugId: String = "${endpoint.debugId}:$pid"
+  val debugId: String = "${endpoint.debugId}/$pid"
 ) {
+  val debugIpc by lazy { Debugger(this.toString()) }
+
   companion object {
     private var reqId_acc by SafeInt(0)
   }
 
   val scope = endpoint.scope + SupervisorJob()
 
-  override fun toString() = "Ipc#$debugId"
+  override fun toString() = "Ipc@$debugId"
 
 
-  val onMessage = endpoint.onMessage.mapNotNull {
+  val onMessage = endpoint.onIpcMessage.mapNotNull {
     if (it.pid == pid) {
-      debugIpc("endpoint-msg-in", "$this << (${it.pid})${it.ipcMessage}")
+      debugIpc("ipc-message-in", it.ipcMessage)
       it.ipcMessage
     } else {
-      debugIpc("endpoint-msg-pass", "$this << (${it.pid})${it.ipcMessage}")
+      debugIpc("ipc-message-pass", "${it.pid}/${it.ipcMessage}")
       null
     }
-  }.shareIn(scope, SharingStarted.Eagerly)
-
-  private inline fun <T : Any> messagePipeMap(
-    started: SharingStarted = SharingStarted.Eagerly,
-    replay: Int = 0,
-    crossinline transform: suspend (value: IpcMessage) -> T?,
-  ) = this.onMessage.mapNotNull(transform).shareIn(scope, started, replay)
+  }.shareIn(
+    scope,
+    SharingStarted.Eagerly, // 这里要立刻打开通道接收数据，endpoint不会只服务于一个ipc
+    replay = 1,// 只用来缓存握手相关的指令
+  )
 
   //#region 生命周期相关的
   private val lifecycleLocaleFlow = MutableStateFlow<IpcLifecycle>(
     IpcLifecycle.Init(pid, locale.toCommonAppManifest(), remote.toCommonAppManifest())
   )
 
-  private val lifecycleRemoteFlow = messagePipeMap(SharingStarted.Eagerly, 1) {
-    if (it is IpcLifecycle) it.also { println("QAQ lifecycle in $it") } else null
-  }
+  private val lifecycleRemoteFlow = onMessage.mapNotNull {
+    if (it is IpcLifecycle) it.also { debugIpc("lifecycle-remote", it) } else null
+  }.shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
-  val onLifecycle =
-    lifecycleLocaleFlow.stateIn(scope, SharingStarted.Eagerly, lifecycleLocaleFlow.value)
   val lifecycle get() = lifecycleLocaleFlow.value
+  val onLifecycle = lifecycleLocaleFlow.stateIn(scope, SharingStarted.Eagerly, lifecycle)
 
 
   // 标记ipc通道是否激活
   val isActivity get() = endpoint.isActivity
 
-  suspend fun awaitOpen() = lifecycleLocaleFlow.mapNotNull { state ->
+  suspend fun awaitOpen(reason: String? = null) = lifecycleLocaleFlow.mapNotNull { state ->
+    debugIpc("awaitOpen", "reason=$reason state=$state")
     when (state) {
       is IpcLifecycle.Opened -> state
       is IpcLifecycle.Closing, is IpcLifecycle.Closed -> {
@@ -108,7 +107,7 @@ open class Ipc internal constructor(
       else -> null
     }
   }.first().also {
-    debugIpc("awaitOpened", it)
+    debugIpc("lifecycle-opened", reason)
   }
 
   /**
@@ -119,35 +118,37 @@ open class Ipc internal constructor(
       endpoint.start(true)
       startOnce()
       if (await) {
-        awaitOpen()
+        awaitOpen("from start")
       }
     }
   }
 
   private val startOnce = SuspendOnce {
+    debugIpc("start", lifecycle)
     // 当前状态必须是从init开始
     when (val state = lifecycle) {
       // 告知对方我启动了
-      is IpcLifecycle.Init -> sendLifecycleToRemote(IpcLifecycle.Opening())
+      is IpcLifecycle.Init -> sendLifecycleToRemote(IpcLifecycle.Opening().also {
+        lifecycleLocaleFlow.emit(it)
+      })
 
       else -> throw IllegalStateException("endpoint state=$state")
     }
-    debugIpc("start", this@Ipc)
     // 监听远端生命周期指令，进行协议协商
     lifecycleRemoteFlow.collectIn(scope) { state ->
-      debugIpc("lifecycle-in") { "${this@Ipc} << $state" }
+      debugIpc("lifecycle-in", state)
       when (state) {
         is IpcLifecycle.Closing, is IpcLifecycle.Closed -> close()
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         is IpcLifecycle.Opened -> {
-          when (lifecycleLocaleFlow.value) {
+          when (lifecycle) {
             is IpcLifecycle.Opening -> lifecycleLocaleFlow.emit(IpcLifecycle.Opened())
 
             else -> {}
           }
         }
         // 如果对方是 init，代表刚刚初始化，那么发送目前自己的状态
-        is IpcLifecycle.Init -> sendLifecycleToRemote(lifecycleLocaleFlow.value)
+        is IpcLifecycle.Init -> sendLifecycleToRemote(lifecycle)
         // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
         is IpcLifecycle.Opening -> {
           sendLifecycleToRemote(IpcLifecycle.Opened())
@@ -155,7 +156,7 @@ open class Ipc internal constructor(
       }
     }
     // 监听并分发 所有的消息
-    this@Ipc.onMessage.collectIn(scope) { ipcFork ->
+    onMessage.collectIn(scope) { ipcFork ->
       if (ipcFork is IpcFork) {
         forkFlow.emit(Ipc(
           pid = ipcFork.pid,
@@ -174,8 +175,8 @@ open class Ipc internal constructor(
    * 向远端发送 生命周期 信号
    */
   private suspend fun sendLifecycleToRemote(state: IpcLifecycle) {
-    debugIpc("lifecycle-out") { "$this >> $state " }
-    endpoint.postMessage(EndpointIpcMessage(pid, state))
+    debugIpc("lifecycle-out", state)
+    endpoint.postIpcMessage(EndpointIpcMessage(pid, state))
   }
 
   val isClosed get() = scope.coroutineContext[Job]!!.isCancelled
@@ -223,13 +224,15 @@ open class Ipc internal constructor(
     locale: IMicroModuleManifest = this.locale,
     remote: IMicroModuleManifest = this.remote,
     autoStart: Boolean = false,
-  ) = pool.createIpc(
-    pid = pool.generatePid(),
-    endpoint = endpoint,
-    locale = locale,
-    remote = remote,
-    autoStart = autoStart,
-  ).also { forkedIpc ->
+  ): Ipc {
+    awaitOpen("then fork")
+    val forkedIpc = pool.createIpc(
+      pid = pool.generatePid(),
+      endpoint = endpoint,
+      locale = locale,
+      remote = remote,
+      autoStart = autoStart,
+    )
     // 自触发
     forkFlow.emit(forkedIpc)
     // 通知对方
@@ -241,12 +244,13 @@ open class Ipc internal constructor(
         remote = forkedIpc.locale.toCommonAppManifest(),
       )
     )
+    return forkedIpc
   }
 
   /**
    * 因为要实现 自触发，所以这里使用 Mutable
    */
-  private val forkFlow = MutableSharedFlow<Ipc>()
+  private val forkFlow = MutableSharedFlow<Ipc>(replay = 1)
   val onFork = forkFlow.run {
     if (debugIpc.isEnable) {
       onEach { debugIpc("onFork", it) }
@@ -257,6 +261,9 @@ open class Ipc internal constructor(
 
   //#region 消息相关的
 
+
+  private inline fun <T : Any> messagePipeMap(crossinline transform: suspend (value: IpcMessage) -> T?) =
+    onMessage.mapNotNull(transform).shareIn(scope, SharingStarted.Lazily, replay = 0)
 
   val onRequest by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     messagePipeMap { ipcMessage ->
@@ -344,9 +351,9 @@ open class Ipc internal constructor(
 
   /**发送各类消息到remote*/
   suspend fun postMessage(data: IpcMessage) {
-    awaitOpen()
+    awaitOpen("then postMessage")
     withScope(scope) {
-      endpoint.postMessage(EndpointIpcMessage(pid, data))
+      endpoint.postIpcMessage(EndpointIpcMessage(pid, data))
     }
   }
 

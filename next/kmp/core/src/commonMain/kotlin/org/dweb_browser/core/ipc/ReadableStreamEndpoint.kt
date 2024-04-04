@@ -21,7 +21,7 @@ class ReadableStreamEndpoint(
   override val debugId: String,
 ) : CommonEndpoint(parentScope) {
 
-  override fun toString() = "ReadableStreamEndpoint#$debugId"
+  override fun toString() = "ReadableStreamEndpoint@$debugId"
 
   private lateinit var controller: ReadableStream.ReadableStreamController
 
@@ -45,7 +45,7 @@ class ReadableStreamEndpoint(
       throw Exception("already closed")
     }
     scope.launch {
-      awaitOpen()
+      awaitOpen("then bindIncomeStream")
       val reader = stream.getReader("ReadableStreamIpc bindIncomeStream").also { _reader = it }
 
       val readStream = suspend {

@@ -8,10 +8,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
@@ -22,8 +21,7 @@ import org.dweb_browser.helper.WeakHashMap
 class DWebMessagePort private constructor(
   internal val port: WebMessagePortCompat,
   val engine: DWebViewEngine,
-) :
-  IWebMessagePort {
+) : IWebMessagePort {
   companion object {
     private val wm = WeakHashMap<WebMessagePortCompat, DWebMessagePort>()
     fun from(port: WebMessagePortCompat, engine: DWebViewEngine): DWebMessagePort =
@@ -39,35 +37,26 @@ class DWebMessagePort private constructor(
 
   @SuppressLint("RequiresFeature")
   private val _started = lazy {
-    val messageChannel = Channel<DWebMessage>(capacity = Channel.UNLIMITED)
-
+    val messageChannel = Channel<DWebMessage>(Channel.UNLIMITED)
     port.setWebMessageCallback(object : WebMessagePortCompat.WebMessageCallbackCompat() {
       override fun onMessage(port: WebMessagePortCompat, message: WebMessageCompat?) {
-        if (message?.type == WebMessageCompat.TYPE_ARRAY_BUFFER) {
-          if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_ARRAY_BUFFER)) {
-            messageChannel.trySend(
-              DWebMessage.DWebMessageBytes(
-                message.arrayBuffer,
-                message.ports?.map { from(it, engine) } ?: emptyList()))
-            return
-          }
-        }
+        message ?: return
+        val dWebMessage = when (message.type) {
+          WebMessageCompat.TYPE_STRING -> DWebMessage.DWebMessageString(message.data ?: "",
+            message.ports?.map { from(it, engine) } ?: emptyList())
 
-        messageChannel.trySend(
-          DWebMessage.DWebMessageString(
-            message?.data ?: "",
-            message?.ports?.map { from(it, engine) } ?: emptyList())
-        ).getOrElse { err ->
-          err?.printStackTrace()
+          WebMessageCompat.TYPE_ARRAY_BUFFER -> DWebMessage.DWebMessageBytes(message.arrayBuffer,
+            message.ports?.map { from(it, engine) } ?: emptyList())
+
+          else -> return
         }
+        messageChannel.trySend(dWebMessage).getOrElse { err -> err?.printStackTrace() }
       }
     })
 
-    scope.launch {
-      /// 这里为了确保消息的顺序正确性，比如使用channel来一帧一帧地读取数据，不可以直接用 launch 去异步执行 event，这会导致下层解析数据的顺序问题
-      /// 并发性需要到消息被解码出来后才能去执行并发。也就是非 IpcStream 类型的数据才可以走并发
-      for (event in messageChannel) {
-        messageFlow.emit(event)
+    if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_PORT_CLOSE)) {
+      messageChannel.invokeOnClose {
+        port.close()
       }
     }
     messageChannel
@@ -85,8 +74,9 @@ class DWebMessagePort private constructor(
     port.close()
   }
 
-  private val messageFlow = MutableSharedFlow<DWebMessage>()
-  override val onMessage = messageFlow.shareIn(scope, SharingStarted.Lazily)
+  override val onMessage by lazy {
+    _started.value.consumeAsFlow().shareIn(scope, SharingStarted.Lazily)
+  }
 
   @SuppressLint("RequiresFeature")
   override suspend fun postMessage(event: DWebMessage) {

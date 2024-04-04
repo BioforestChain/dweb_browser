@@ -140,7 +140,16 @@ fun printDebug(scope: String, tag: String, message: Any?, error: Any? = null) {
 
     else -> message
   }
-  printError("${now()} | ${scope.padEndAndSub(16)} | ${tag.padEndAndSub(22)} |", msg, err)
+  printError(
+    "${now()} | ${
+      when (scope.length) {
+        in 0..16 -> scope.padEndAndSub(16)
+        in 16..32 -> scope.padEndAndSub(32)
+        in 32..48 -> scope.padEndAndSub(48)
+        else -> scope.padEndAndSub(60)
+      }
+    } | ${tag.padEndAndSub(22)} |", msg, err
+  )
 }
 
 fun String.padEndAndSub(length: Int): String {

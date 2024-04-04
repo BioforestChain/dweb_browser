@@ -29,7 +29,6 @@ import org.dweb_browser.core.ipc.helper.ReadableStreamOut
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.PermissionProvider
-import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.collectIn
@@ -46,7 +45,6 @@ import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.PureStreamBody
 
-val debugNMM = Debugger("NMM")
 
 abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(manifest) {
   constructor(mmid: MMID, name: String) : this(MicroModuleManifest().apply {
@@ -60,7 +58,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     init {
       connectAdapterManager.append { fromMM, toMM, reason ->
         if (toMM is NativeMicroModule.NativeRuntime) {
-          debugNMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
+          fromMM.debugMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
           val pid = kotlinIpcPool.generatePid()
           val fromNativeIpc = kotlinIpcPool.createIpc(channel.port1, pid, fromMM, toMM)
@@ -116,9 +114,11 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
      */
     init {
       onBeforeBootstrap.listen {
+        debugMM("onConnect", "start")
         onConnect.listen { (clientIpc) ->
+          debugMM("onConnect", clientIpc)
           clientIpc.onRequest.collectIn(mmScope) { ipcRequest ->
-            debugNMM("NMM/Handler", ipcRequest.url)
+            debugMM("NMM/Handler", ipcRequest.url)
             /// 根据host找到对应的路由模块
             val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
             var response: PureResponse? = null

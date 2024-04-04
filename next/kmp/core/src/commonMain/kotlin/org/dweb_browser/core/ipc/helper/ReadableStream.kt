@@ -110,7 +110,7 @@ class ReadableStream(
     private var id_acc by SafeInt(1)
   }
 
-  val uid = "ReadableStream@${id_acc++}#($cid)"
+  val uid = "ReadableStream@${id_acc++}($cid)"
 
   override fun toString() = uid
 

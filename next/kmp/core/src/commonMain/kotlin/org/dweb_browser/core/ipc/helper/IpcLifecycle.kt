@@ -7,28 +7,48 @@ import org.dweb_browser.core.help.types.CommonAppManifest
  * Ipc生命周期控制
  */
 @Serializable
-sealed class IpcLifecycle(
-  val state: LIFECYCLE_STATE,
-) : IpcMessage(IPC_MESSAGE_TYPE.LIFECYCLE) {
+sealed class IpcLifecycle : IpcMessage(IPC_MESSAGE_TYPE.LIFECYCLE) {
+  abstract val state: LIFECYCLE_STATE
+
   @Serializable
-  data class Init(
+  data class Init internal constructor(
+    override val state: LIFECYCLE_STATE,
     val pid: Int,
     val locale: CommonAppManifest,
     val remote: CommonAppManifest,
-  ) : IpcLifecycle(LIFECYCLE_STATE.INIT)
+  ) : IpcLifecycle() {
+    constructor(pid: Int, locale: CommonAppManifest, remote: CommonAppManifest) : this(
+      LIFECYCLE_STATE.INIT, pid, locale, remote
+    )
+  }
 
   // TODO 测试能否 equals？
   @Serializable
-  class Opening() : IpcLifecycle(LIFECYCLE_STATE.OPENING)
+  data class Opening internal constructor(override val state: LIFECYCLE_STATE) : IpcLifecycle() {
+    constructor() : this(LIFECYCLE_STATE.OPENING)
+  }
 
   // TODO 测试能否 equals？
   @Serializable
-  class Opened() : IpcLifecycle(LIFECYCLE_STATE.OPENED)
+  data class Opened internal constructor(override val state: LIFECYCLE_STATE) : IpcLifecycle() {
+    constructor() : this(LIFECYCLE_STATE.OPENED)
+  }
 
   @Serializable
-  data class Closing(val reason: String? = null) : IpcLifecycle(LIFECYCLE_STATE.CLOSING)
+  data class Closing internal constructor(
+    override val state: LIFECYCLE_STATE,
+    val reason: String?,
+  ) : IpcLifecycle() {
+    constructor(reason: String? = null) : this(LIFECYCLE_STATE.CLOSING, reason)
+  }
 
   @Serializable
-  data class Closed(val reason: String? = null) : IpcLifecycle(LIFECYCLE_STATE.CLOSED)
+  data class Closed internal constructor(
+    override val state: LIFECYCLE_STATE,
+    val reason: String? = null,
+  ) : IpcLifecycle() {
+    constructor(reason: String? = null) : this(LIFECYCLE_STATE.CLOSED, reason)
+  }
+
 
 }

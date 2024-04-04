@@ -40,7 +40,7 @@ abstract class CommonEndpoint(
   protected val endpointMsgFlow = MutableSharedFlow<EndpointMessage>()
 
 
-  override val onMessage = endpointMsgFlow.mapNotNull { if (it is EndpointIpcMessage) it else null }
+  override val onIpcMessage = endpointMsgFlow.mapNotNull { if (it is EndpointIpcMessage) it else null }
     .shareIn(scope, SharingStarted.Lazily)
   override val lifecycleRemoteFlow =
     endpointMsgFlow.mapNotNull { if (it is EndpointLifecycle) it else null }
@@ -88,8 +88,8 @@ abstract class CommonEndpoint(
    * 发送 EndpointIpcMessage
    */
   @OptIn(ExperimentalSerializationApi::class)
-  override suspend fun postMessage(msg: EndpointIpcMessage) {
-    awaitOpen()
+  override suspend fun postIpcMessage(msg: EndpointIpcMessage) {
+    awaitOpen("then postIpcMessage")
     withScope(scope) {
       when (protocol) {
         EndpointProtocol.Json -> {

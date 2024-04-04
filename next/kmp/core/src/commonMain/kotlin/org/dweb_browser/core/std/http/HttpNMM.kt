@@ -246,7 +246,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           val token = request.query("token")
           val routes = Json.decodeFromString<List<CommonRoute>>(request.query("routes"))
           listen(ipc, token, routes)
-          ipc.awaitOpen()
+          ipc.awaitOpen("from listen")
         },
         // 主动关闭一个服务
         "/close" bind PureMethod.GET by defineBooleanResponse {

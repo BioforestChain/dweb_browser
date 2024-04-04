@@ -24,12 +24,12 @@ import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
 
-val debugEndpoint = Debugger("endpoint")
 
 /**
  *
  */
 abstract class IpcEndpoint {
+  val debugEndpoint by lazy { Debugger(this.toString()) }
   abstract val debugId: String
 
   abstract val scope: CoroutineScope
@@ -40,13 +40,13 @@ abstract class IpcEndpoint {
   /**
    * 发送消息
    */
-  abstract suspend fun postMessage(msg: EndpointIpcMessage)
+  abstract suspend fun postIpcMessage(msg: EndpointIpcMessage)
 
   /**
    * 接收消息
    */
 
-  abstract val onMessage: SharedFlow<EndpointIpcMessage>
+  abstract val onIpcMessage: SharedFlow<EndpointIpcMessage>
   //#endregion
 
   //#region EndpointLifecycle
@@ -56,7 +56,7 @@ abstract class IpcEndpoint {
   /**
    * 本地的生命周期状态流
    */
-  val lifecycleLocaleFlow = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
+  protected val lifecycleLocaleFlow = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
 
   /**
    * 远端的生命周期状态流
@@ -67,7 +67,7 @@ abstract class IpcEndpoint {
    * 向远端发送 生命周期 信号
    */
 
-  abstract suspend fun sendLifecycleToRemote(state: EndpointLifecycle)
+  protected abstract suspend fun sendLifecycleToRemote(state: EndpointLifecycle)
 
   /**
    * 生命周期 监听器
@@ -102,7 +102,7 @@ abstract class IpcEndpoint {
     withScope(scope) {
       startOnce()
       if (await) {
-        awaitOpen()
+        awaitOpen("from start")
       }
     }
   }
@@ -123,10 +123,10 @@ abstract class IpcEndpoint {
 
       else -> throw IllegalStateException("endpoint state=$state")
     }
-    debugEndpoint("start", this@IpcEndpoint)
+    debugEndpoint("start")
     // 监听远端生命周期指令，进行协议协商
     lifecycleRemoteFlow.collectIn(scope) { state ->
-      debugEndpoint("lifecycle-in") { "${this@IpcEndpoint} << $state" }
+      debugEndpoint("lifecycle-in", state)
       when (state) {
         is EndpointLifecycle.Closing, is EndpointLifecycle.Closed -> close()
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
@@ -156,8 +156,7 @@ abstract class IpcEndpoint {
     }
   }
 
-  suspend fun awaitOpen() = lifecycleLocaleFlow.mapNotNull { state ->
-    debugEndpoint("awaitOpen-start", state)
+  suspend fun awaitOpen(reason: String? = null) = lifecycleLocaleFlow.mapNotNull { state ->
     when (state) {
       is EndpointLifecycle.Opened -> state
       is EndpointLifecycle.Closing, is EndpointLifecycle.Closed -> {
@@ -167,9 +166,8 @@ abstract class IpcEndpoint {
       else -> null
     }
   }.first().also {
-    debugEndpoint("awaitOpen-end", it)
+    debugEndpoint("lifecycle-opened", reason)
   }
-
 
   suspend fun close(cause: CancellationException? = null) = scope.isActive.trueAlso {
     closeOnce(cause)

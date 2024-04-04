@@ -86,16 +86,21 @@ class IpcPoolTest {
     )
     dns.install(clientMM)
     dns.install(serverMM)
-    dns.bootstrap()
-    val clientRuntime = dns.runtime.open(clientMM.mmid);
-    val testIpc = clientRuntime.connect(serverMM.mmid).fork()
-    testIpc.start()
-    testIpc.request("file://request.mm.dweb/test")
-    val res = testIpc.request("https://test.com/test")
+    val dnsRuntime = dns.bootstrap()
+    val clientRuntime = dnsRuntime.open(clientMM.mmid);
+    val clientIpc = clientRuntime.connect(serverMM.mmid)
+    println("QAQ clientIpc=$clientIpc then fork")
+    val forkedIpc = clientIpc.fork()
+    println("QAQ forkedIpc=$forkedIpc then start")
+    forkedIpc.start()
+    println("QAQ forkedIpc=$forkedIpc then request")
+    forkedIpc.request("file://request.mm.dweb/test")
+    val res = forkedIpc.request("https://test.com/test")
     val data = res.body.toPureString()
     println("👾 $data")
     assertEquals(data, "返回结果")
 
-    dns.runtime.shutdown()
+    dnsRuntime.shutdown()
   }
+
 }

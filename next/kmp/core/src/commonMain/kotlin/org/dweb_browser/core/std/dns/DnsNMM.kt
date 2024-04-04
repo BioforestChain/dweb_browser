@@ -175,9 +175,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   /** 为两个mm建立 ipc 通讯 */
-  internal suspend fun connectTo(
-    fromMM: IMicroModuleManifest, toMMPT: MMPT, reason: PureRequest
-  ): Ipc {
+  internal suspend fun connectTo(fromMM: MicroModule, toMMPT: MMPT, reason: PureRequest): Ipc {
     // 找到要连接的模块
     val toMicroModule = query(toMMPT, fromMM) ?: throw Throwable("not found app->$toMMPT")
 
@@ -251,7 +249,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           val url = request.href
           val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
           if (installApps(mpid).isNotEmpty()) {
-            val fromIpc = connectTo(fromMM, mpid, reasonRequest)
+            val fromIpc = connectTo(fromMM.microModule, mpid, reasonRequest)
             var response = fromIpc.request(request)
             if (response.status == HttpStatusCode.Unauthorized) {
               val permissions = response.body.toPureString()
@@ -274,7 +272,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           for (microModule in allApps.values) {
             for (deeplink in microModule.dweb_deeplinks) {
               if (request.href.startsWith(deeplink)) {
-                val fromIpc = connectTo(fromMM, microModule.mmid, request)
+                val fromIpc = connectTo(fromMM.microModule, microModule.mmid, request)
                 return@append fromIpc.request(request)
               }
             }

@@ -10,8 +10,10 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.shareIn
 import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.core.help.types.IMicroModuleManifest
@@ -34,10 +36,8 @@ enum class MMState {
   BOOTSTRAP, SHUTDOWN,
 }
 
-val debugMicroModule = Debugger("MicroModule")
-
-
 abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleManifest by manifest {
+  val debugMM by lazy { Debugger("$this") }
 
   companion object {}
 
@@ -52,6 +52,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
    * 那么会创建该运行时
    */
   abstract inner class Runtime : IMicroModuleManifest by manifest {
+    val debugMM get() = this@MicroModule.debugMM
     abstract val bootstrapContext: BootstrapContext
     val scope =
       CoroutineScope(SupervisorJob() + defaultAsyncExceptionHandler + CoroutineName(manifest.mmid))
@@ -82,11 +83,12 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         _bootstrap();
         afterBootstrapFlow.emit(Unit)
       } else {
-        debugMicroModule("beforeBootstrap", "$mmid already running")
+        debugMM("beforeBootstrap", "$mmid already running")
       }
       MMState.BOOTSTRAP
     }
 
+    val microModule get() = this@MicroModule
 
     private val beforeShutdownFlow = MutableSharedFlow<Unit>()
     val onBeforeShutdown = beforeShutdownFlow.shareIn(mmScope, SharingStarted.Eagerly)
@@ -122,14 +124,14 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     /**
      * 内部程序与外部程序通讯的方法
      */
-    private val connectFlow = MutableSharedFlow<IpcConnectArgs>();
+    private val ipcConnectedChannel = Channel<IpcConnectArgs>();
 
     /**
      * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
      * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
      * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
      */
-    val onConnect = connectFlow.shareIn(mmScope, SharingStarted.Lazily)
+    val onConnect = ipcConnectedChannel.consumeAsFlow().shareIn(mmScope, SharingStarted.Lazily)
 
     private val connectionMap = SafeHashMap<MMID, Deferred<Ipc>>()
 
@@ -162,7 +164,8 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         @Suppress("DeferredResultUnused") connectionMap.getOrPut(ipc.remote.mmid) {
           CompletableDeferred(ipc)
         }
-        connectFlow.emit(IpcConnectArgs(ipc, reason))
+        println("QAQ ipcConnectedChannel.send=$ipc")
+        ipcConnectedChannel.send(IpcConnectArgs(ipc, reason))
       }
     }
   }

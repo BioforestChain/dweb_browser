@@ -3,7 +3,6 @@ package org.dweb_browser.core.ipc.helper
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.debugIpc
 import org.dweb_browser.pure.http.DEFAULT_BUFFER_SIZE
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureResponse
@@ -18,10 +17,11 @@ class IpcResponse(
   val ipc: Ipc,
 ) : IpcMessage(IPC_MESSAGE_TYPE.RESPONSE) {
   override fun toString() = "IpcResponse@$reqId/[$statusCode]".let { str ->
-    if (debugIpc.isEnable) "$str{${
+    if (ipc.debugIpc.isEnable) "$str{${
       headers.toList().joinToString(", ") { it.first + ":" + it.second }
     }}" + "" else str
   }
+
   companion object {
     fun fromText(
       reqId: Int,
@@ -38,11 +38,7 @@ class IpcResponse(
     )
 
     fun fromBinary(
-      reqId: Int,
-      statusCode: Int = 200,
-      headers: PureHeaders,
-      binary: ByteArray,
-      ipc: Ipc
+      reqId: Int, statusCode: Int = 200, headers: PureHeaders, binary: ByteArray, ipc: Ipc
     ) = IpcResponse(
       reqId,
       statusCode,
@@ -76,10 +72,7 @@ class IpcResponse(
     }
 
     suspend fun fromResponse(
-      reqId: Int,
-      response: PureResponse,
-      ipc: Ipc,
-      bodyStrategy: BodyStrategy = BodyStrategy.AUTO
+      reqId: Int, response: PureResponse, ipc: Ipc, bodyStrategy: BodyStrategy = BodyStrategy.AUTO
     ) = IpcResponse(
       reqId,
       response.status.value,
@@ -102,8 +95,7 @@ class IpcResponse(
     )
   }
 
-  fun toPure() =
-    PureResponse(HttpStatusCode.fromValue(statusCode), this.headers, body = body.raw)
+  fun toPure() = PureResponse(HttpStatusCode.fromValue(statusCode), this.headers, body = body.raw)
 
   val ipcResMessage by lazy {
     IpcResMessage(reqId, statusCode, headers.toMap(), body.metaBody)

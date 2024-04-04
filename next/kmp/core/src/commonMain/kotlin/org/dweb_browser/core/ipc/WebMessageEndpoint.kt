@@ -16,7 +16,7 @@ class WebMessageEndpoint(
   private val port: IWebMessagePort,
 ) : CommonEndpoint(parentScope) {
 
-  override fun toString() = "WebMessageEndpoint#$debugId"
+  override fun toString() = "WebMessageEndpoint@$debugId"
 
   companion object {
     private val wm = WeakHashMap<IWebMessagePort, WebMessageEndpoint>()

@@ -2,7 +2,6 @@ package org.dweb_browser.core.module
 
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.help.AdapterManager
-import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.pure.http.PureRequest
 
@@ -17,14 +16,14 @@ class ConnectResult(val ipcForFromMM: Ipc, val ipcForToMM: Ipc) {
   operator fun component2() = ipcForToMM
 }
 
-typealias ConnectAdapter = suspend (fromMM: IMicroModuleManifest, toMM: MicroModule.Runtime, reason: PureRequest) -> Ipc?
+typealias ConnectAdapter = suspend (fromMM: MicroModule, toMM: MicroModule.Runtime, reason: PureRequest) -> Ipc?
 
 val connectAdapterManager = AdapterManager<ConnectAdapter>()
 
 
 /** 外部程序与内部程序建立链接的方法 */
 suspend fun connectMicroModules(
-  fromMM: IMicroModuleManifest, toMM: MicroModule.Runtime, reason: PureRequest
+  fromMM: MicroModule, toMM: MicroModule.Runtime, reason: PureRequest
 ): Ipc {
   for (connectAdapter in connectAdapterManager.adapters) {
     connectAdapter(fromMM, toMM, reason)?.also { return it }

@@ -16,7 +16,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureStream
 
-val debugIpcPool = Debugger("ipc")
+val debugIpcPool = Debugger("ipcPool")
 
 val kotlinIpcPool = IpcPool()
 
@@ -77,7 +77,7 @@ open class IpcPool {
 
   internal fun safeCreatedIpc(ipc: Ipc, autoStart: Boolean) {
     /// 保存ipc，并且根据它的生命周期做自动删除
-    debugIpcPool("saveIpc") { "${ipc.debugId} added" }
+    debugIpcPool("createIpc", ipc)
     ipcSet.add(ipc)
     scope.launch {
       /// 自动启动
@@ -86,7 +86,7 @@ open class IpcPool {
       }
       ipc.awaitClosed()
       ipcSet.remove(ipc)
-      debugIpcPool("removeIpc") { "${ipc.debugId} removed" }
+      debugIpcPool("removeIpc", ipc)
     }
   }
 
