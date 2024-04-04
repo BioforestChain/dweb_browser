@@ -1,8 +1,5 @@
 package org.dweb_browser.core.module
 
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
-import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -15,6 +12,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
@@ -64,8 +63,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
     val mmScope = getModuleCoroutineScope() // 给外部使用
 
-    private val stateAtomic = atomic(MMState.SHUTDOWN)
-    val isRunning get() = stateAtomic.value == MMState.BOOTSTRAP
+    private val stateLock = Mutex()
+    private var state = MMState.SHUTDOWN
+    val isRunning get() = state == MMState.BOOTSTRAP
 
 
     protected abstract suspend fun _bootstrap()
@@ -77,15 +77,17 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     private val afterBootstrapFlow = MutableSharedFlow<Unit>()
     val onAfterBootstrap = afterBootstrapFlow.shareIn(mmScope, SharingStarted.Eagerly)
 
-    suspend fun bootstrap() = stateAtomic.update {
-      if (it != MMState.BOOTSTRAP) {
+    suspend fun bootstrap() = stateLock.withLock {
+      if (state != MMState.BOOTSTRAP) {
+        debugMM("bootstrap-start")
         beforeBootstrapFlow.emit(Unit)
         _bootstrap();
         afterBootstrapFlow.emit(Unit)
+        debugMM("bootstrap-end")
       } else {
-        debugMM("beforeBootstrap", "$mmid already running")
+        debugMM("bootstrap", "$mmid already running")
       }
-      MMState.BOOTSTRAP
+      state = MMState.BOOTSTRAP
     }
 
     val microModule get() = this@MicroModule
@@ -104,15 +106,15 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
     protected abstract suspend fun _shutdown()
 
-    suspend fun shutdown() = stateAtomic.update {
-      if (it != MMState.SHUTDOWN) {
+    suspend fun shutdown() = stateLock.withLock {
+      if (state != MMState.SHUTDOWN) {
         beforeShutdownFlow.emit(Unit)
         _shutdown()
         afterShutdownFlow.emit(Unit)
         // 取消所有的工作
         this.mmScope.cancel()
       }
-      MMState.SHUTDOWN
+      state = MMState.SHUTDOWN
     }
 
     /**
@@ -170,14 +172,17 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     }
   }
 
-  private val runtimeAtomic = atomic<Runtime?>(null)
-  val isRunning get() = runtimeAtomic.value != null
-  val runtimeOrNull get() = runtimeAtomic.value
-  open val runtime get() = runtimeAtomic.value ?: throw IllegalStateException("$this is no running")
-  suspend fun bootstrap(bootstrapContext: BootstrapContext) = runtimeAtomic.updateAndGet {
-    it ?: createRuntime(bootstrapContext)
-  }!!.also { it.bootstrap() }
-
+  private val runtimeLock = Mutex()
+  var runtimeOrNull: Runtime? = null
+    private set
+  val isRunning get() = runtimeOrNull != null
+  open val runtime get() = runtimeOrNull ?: throw IllegalStateException("$this is no running")
+  suspend fun bootstrap(bootstrapContext: BootstrapContext) = runtimeLock.withLock {
+    runtimeOrNull ?: createRuntime(bootstrapContext).also {
+      runtimeOrNull = it
+      it.bootstrap()
+    }
+  }
 
   abstract fun createRuntime(bootstrapContext: BootstrapContext): Runtime
 
