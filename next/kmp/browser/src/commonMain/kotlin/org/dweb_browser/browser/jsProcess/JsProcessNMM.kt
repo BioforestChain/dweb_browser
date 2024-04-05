@@ -100,7 +100,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         apis.dWebView.resolveUrl(mainServer.startResult.urlInfo.buildInternalUrl { resolvePath("$INTERNAL_PATH/bootstrap.js") }
           .toString())
 
-      this.onAfterShutdown.listen {
+      onBeforeShutdown.listen {
         apis.destroy()
       }
       apis.onDestroy {

@@ -70,19 +70,10 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
     protected abstract suspend fun _bootstrap()
 
-    private val beforeBootstrapFlow = MutableSharedFlow<Unit>()
-    val onBeforeBootstrap = beforeBootstrapFlow.shareIn(mmScope, SharingStarted.Eagerly)
-
-
-    private val afterBootstrapFlow = MutableSharedFlow<Unit>()
-    val onAfterBootstrap = afterBootstrapFlow.shareIn(mmScope, SharingStarted.Eagerly)
-
     suspend fun bootstrap() = stateLock.withLock {
       if (state != MMState.BOOTSTRAP) {
         debugMM("bootstrap-start")
-        beforeBootstrapFlow.emit(Unit)
         _bootstrap();
-        afterBootstrapFlow.emit(Unit)
         debugMM("bootstrap-end")
       } else {
         debugMM("bootstrap", "$mmid already running")
@@ -95,8 +86,11 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     private val beforeShutdownFlow = MutableSharedFlow<Unit>()
     val onBeforeShutdown = beforeShutdownFlow.shareIn(mmScope, SharingStarted.Eagerly)
 
-    private val afterShutdownFlow = MutableSharedFlow<Unit>()
-    val onAfterShutdown = afterShutdownFlow.shareIn(mmScope, SharingStarted.Eagerly)
+    private val shutdownDeferred = CompletableDeferred(Unit)
+    val awaitShutdown = shutdownDeferred::await
+    fun onShutdown(action: () -> Unit) {
+      shutdownDeferred.invokeOnCompletion { action() }
+    }
 
 //
 //    /**
@@ -113,9 +107,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         beforeShutdownFlow.emit(Unit)
         debugMM("shutdown-before-end")
         _shutdown()
-        debugMM("shutdown-after-start")
-        afterShutdownFlow.emit(Unit)
-        debugMM("shutdown-after-end")
+        shutdownDeferred.complete(Unit)
         debugMM("shutdown-end")
         // 取消所有的工作
         mmScope.cancel()
@@ -158,23 +150,25 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
      * 收到一个连接，触发相关事件
      */
     suspend fun beConnect(ipc: Ipc, reason: PureRequest?) {
-      if (connectionLinks.add(ipc)) {
-        // 这个ipc分叉出来的ipc也会一并归入管理
-        ipc.onFork.listen {
-          beConnect(it, null)
+      runtimeLock.withLock {
+        if (connectionLinks.add(ipc)) {
+          // 这个ipc分叉出来的ipc也会一并归入管理
+          ipc.onFork.listen {
+            beConnect(it, null)
+          }
+          onBeforeShutdown.listen {
+            ipc.close()
+          }
+          ipc.onClosed {
+            connectionLinks.remove(ipc)
+          }
+          // 尝试保存到双向连接索引中
+          @Suppress("DeferredResultUnused") connectionMap.getOrPut(ipc.remote.mmid) {
+            CompletableDeferred(ipc)
+          }
+          println("QAQ ipcConnectedChannel.send=$ipc")
+          ipcConnectedChannel.send(IpcConnectArgs(ipc, reason))
         }
-        onBeforeShutdown.listen {
-          ipc.close()
-        }
-        ipc.onBeforeClose.listen {
-          connectionLinks.remove(ipc)
-        }
-        // 尝试保存到双向连接索引中
-        @Suppress("DeferredResultUnused") connectionMap.getOrPut(ipc.remote.mmid) {
-          CompletableDeferred(ipc)
-        }
-        println("QAQ ipcConnectedChannel.send=$ipc")
-        ipcConnectedChannel.send(IpcConnectArgs(ipc, reason))
       }
     }
   }

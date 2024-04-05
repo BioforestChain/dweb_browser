@@ -4,8 +4,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -15,8 +15,10 @@ import kotlinx.coroutines.isActive
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
+import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.LIFECYCLE_STATE
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
@@ -46,7 +48,19 @@ abstract class IpcEndpoint {
    * 接收消息
    */
 
-  abstract val onIpcMessage: SharedFlow<EndpointIpcMessage>
+//  abstract val onIpcMessage: SharedFlow<EndpointIpcMessage>
+  /**
+   * 获取消息管道
+   */
+
+  private val ipcMessageChannels = SafeHashMap<Int, Channel<IpcMessage>>()
+
+  /**
+   * 获取消息管道
+   */
+  fun getIpcMessageChannel(pid: Int) = ipcMessageChannels.getOrPut(pid) {
+    Channel<IpcMessage>(Channel.BUFFERED).apply { invokeOnClose { ipcMessageChannels.remove(pid) } }
+  }
   //#endregion
 
   //#region EndpointLifecycle
@@ -96,13 +110,13 @@ abstract class IpcEndpoint {
   /**
    * 启动生命周期的相关的工作
    */
-  protected open suspend fun doStart() {}
+  abstract suspend fun doStart()
 
   suspend fun start(await: Boolean = true) {
     withScope(scope) {
       startOnce()
       if (await) {
-        awaitOpen("from start")
+        awaitOpen("from-start")
       }
     }
   }
@@ -204,6 +218,12 @@ abstract class IpcEndpoint {
       else -> {}
     }
     beforeClose?.invoke(cause)
+    ipcMessageChannels.sync {
+      for (channel in values) {
+        channel.close(cause)
+      }
+      clear()
+    }
     this.sendLifecycleToRemote(EndpointLifecycle.Closed())
     scope.cancel(cause)
     afterClosed?.invoke(cause)

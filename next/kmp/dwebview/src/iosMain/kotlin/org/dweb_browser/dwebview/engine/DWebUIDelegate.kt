@@ -99,7 +99,7 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
               engine.remoteMM.nativeFetch(url)
             } else if (isWebUrlScheme(urlScheme)) {
               var target = "_self"
-              if(forNavigationAction.targetFrame == null) {
+              if (forNavigationAction.targetFrame == null) {
                 target = "_blank"
               }
 
@@ -118,10 +118,10 @@ class DWebUIDelegate(private val engine: DWebViewEngine) : NSObject(), WKUIDeleg
             DWebViewOptions(url ?: ""),
             createWebViewWithConfiguration
           )
-          val dwebView = IDWebView.create(
-            createDwebviewEngin
-          )
           engine.mainScope.launch {
+            val dwebView = IDWebView.create(
+              createDwebviewEngin
+            )
             createWindowSignal.emit(dwebView)
           }
           createDwebviewEngin

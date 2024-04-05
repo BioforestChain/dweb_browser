@@ -73,7 +73,8 @@ class IpcPoolTest {
   }
 
   @Test
-  fun testCreateReadableStreamIpc() = runCommonTest {
+  fun testCreateReadableStreamIpc() = runCommonTest(1000) { time ->
+    println("test-$time start")
     val dns = DnsNMM()
     val serverMM = TestMicroModule("server.mm.dweb")
     val clientMM = TestMicroModule("client.mm.dweb")
@@ -102,7 +103,7 @@ class IpcPoolTest {
     assertEquals(data, "返回结果")
 
     dnsRuntime.shutdown()
-    println("QAQ")
+    println("test-$time end")
   }
 
 }

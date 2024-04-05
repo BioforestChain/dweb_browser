@@ -45,7 +45,7 @@ class ReadableStreamEndpoint(
       throw Exception("already closed")
     }
     scope.launch {
-      awaitOpen("then bindIncomeStream")
+      awaitOpen("then-bindIncomeStream")
       val reader = stream.getReader("ReadableStreamIpc bindIncomeStream").also { _reader = it }
 
       val readStream = suspend {
@@ -65,7 +65,7 @@ class ReadableStreamEndpoint(
               EndpointProtocol.Json -> jsonToEndpointMessage(packData.decodeToString())
               EndpointProtocol.Cbor -> cborToEndpointMessage(packData)
             }
-            endpointMsgFlow.emit(packMessage)
+            endpointMsgChannel.send(packMessage)
           }
           debugStreamEndpoint("END", "$stream")
         } catch (e: Exception) {

@@ -7,7 +7,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SuspendOnce1
@@ -59,7 +58,7 @@ open class IpcPool {
    * 所有的委托进来的流的实例集合
    */
   private val streamPool = mutableMapOf<String, PureStream>()
-  fun createIpc(
+  suspend fun createIpc(
     endpoint: IpcEndpoint,
     pid: Int,
     locale: IMicroModuleManifest,
@@ -75,16 +74,15 @@ open class IpcPool {
     safeCreatedIpc(ipc, autoStart)
   }
 
-  internal fun safeCreatedIpc(ipc: Ipc, autoStart: Boolean) {
+  internal suspend fun safeCreatedIpc(ipc: Ipc, autoStart: Boolean) {
     /// 保存ipc，并且根据它的生命周期做自动删除
     debugIpcPool("createIpc", ipc)
     ipcSet.add(ipc)
-    scope.launch {
-      /// 自动启动
-      if (autoStart) {
-        ipc.start(reason = "in-safeCreatedIpc")
-      }
-      ipc.awaitClosed()
+    /// 自动启动
+    if (autoStart) {
+      ipc.start(reason = "in-safeCreatedIpc")
+    }
+    ipc.onClosed {
       ipcSet.remove(ipc)
       debugIpcPool("removeIpc", ipc)
     }

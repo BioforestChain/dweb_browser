@@ -78,9 +78,12 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     debugJsProcess("processInfo", processInfo_json)
     val info = Json.decodeFromString<ProcessInfo>(processInfo_json)
     val ipc = kotlinIpcPool.createIpc(
-      WebMessageEndpoint.from("create-process-${remoteModule.mmid}", kotlinIpcPool.scope, port2),
-      localeModule,
-      remoteModule,
+      endpoint = WebMessageEndpoint.from(
+        "create-process-${remoteModule.mmid}", kotlinIpcPool.scope, port2
+      ),
+      pid = 0,
+      locale = localeModule,
+      remote = remoteModule,
     )
     return ProcessHandler(info, ipc)
   }
@@ -170,8 +173,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
 
 
 suspend fun createJsProcessWeb(
-  mainServer: HttpDwebServer,
-  mm: NativeMicroModule.NativeRuntime
+  mainServer: HttpDwebServer, mm: NativeMicroModule.NativeRuntime
 ): JsProcessWebApi {
   /// WebView 实例
   val urlInfo = mainServer.startResult.urlInfo

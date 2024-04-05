@@ -31,7 +31,7 @@ import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.listen
+import org.dweb_browser.helper.listenAsync
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.toLittleEndianByteArray
 import org.dweb_browser.pure.http.PureBinary
@@ -111,37 +111,35 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
      * 实现一整套简易的路由响应规则
      */
     init {
-      onBeforeBootstrap.listen {
-        debugMM("onConnect", "start")
-        onConnect.listen { (clientIpc) ->
-          debugMM("onConnect", clientIpc)
-          clientIpc.onRequest.collectIn(mmScope) { ipcRequest ->
-            when (ipcRequest.uri.protocol.name) {
-              "file", "dweb" -> {}
-              else -> return@collectIn
+      debugMM("onConnect", "start")
+      onConnect.listenAsync { (clientIpc) ->
+        debugMM("onConnect", clientIpc)
+        clientIpc.onRequest.collectIn(mmScope) { ipcRequest ->
+          when (ipcRequest.uri.protocol.name) {
+            "file", "dweb" -> {}
+            else -> return@collectIn
+          }
+          debugMM("NMM/Handler", ipcRequest.url)
+          /// 根据host找到对应的路由模块
+          val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
+          var response: PureResponse? = null
+          if (routers != null) for (router in routers) {
+            val pureRequest = ipcRequest.toPure()
+            val res =
+              router.withFilter(pureRequest)?.invoke(HandlerContext(pureRequest, clientIpc))
+            if (res != null) {
+              response = res
+              break
             }
-            debugMM("NMM/Handler", ipcRequest.url)
-            /// 根据host找到对应的路由模块
-            val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
-            var response: PureResponse? = null
-            if (routers != null) for (router in routers) {
-              val pureRequest = ipcRequest.toPure()
-              val res =
-                router.withFilter(pureRequest)?.invoke(HandlerContext(pureRequest, clientIpc))
-              if (res != null) {
-                response = res
-                break
-              }
-            }
-
-            clientIpc.postResponse(
-              ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway)
-            )
           }
 
-          /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯
-          clientIpc.start(reason = "on-connect")
+          clientIpc.postResponse(
+            ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway)
+          )
         }
+
+        /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯
+        clientIpc.start(reason = "on-connect")
       }
     }
 

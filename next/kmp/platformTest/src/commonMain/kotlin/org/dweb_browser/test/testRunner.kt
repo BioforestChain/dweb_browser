@@ -11,3 +11,13 @@ expect fun runCommonTest(
   context: CoroutineContext? = null,
   block: suspend CoroutineScope.() -> Unit
 ): TestResult
+
+fun runCommonTest(
+  times: Int,
+  context: CoroutineContext? = null,
+  block: suspend CoroutineScope.(Int) -> Unit
+) {
+  for (i in 1..times) {
+    runCommonTest(context) { block(i) }
+  }
+}

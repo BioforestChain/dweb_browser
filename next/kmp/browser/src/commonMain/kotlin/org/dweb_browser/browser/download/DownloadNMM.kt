@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.download
 
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -57,11 +56,9 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     override suspend fun _bootstrap() {
       val controller = DownloadController(this)
       controller.loadDownloadList()
-      onAfterShutdown.listen {
-        mmScope.launch {
-          controller.downloadTaskMaps.suspendForEach { _, downloadTask ->
-            controller.pauseDownload(downloadTask)
-          }
+      onBeforeShutdown.listen {
+        controller.downloadTaskMaps.suspendForEach { _, downloadTask ->
+          controller.pauseDownload(downloadTask)
         }
       }
       routes(

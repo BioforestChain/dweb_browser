@@ -56,16 +56,16 @@ suspend fun IDWebView.Companion.create(
    * 我们将这些功能都写到了BaseActivity上，如果没有提供该对象，则相关的功能将会被禁用
    */
   activity: org.dweb_browser.helper.android.BaseActivity? = null
-): IDWebView =
-  withMainContext {
-    DWebView.prepare()
-    create(DWebViewEngine(context, remoteMM, options, activity), options.url)
-  }
+): IDWebView = withMainContext {
+  DWebView.prepare()
+  create(DWebViewEngine(context, remoteMM, options, activity), options.url)
+}
 
-internal fun IDWebView.Companion.create(engine: DWebViewEngine, initUrl: String?) =
-  DWebView(engine, initUrl)
+internal suspend fun IDWebView.Companion.create(engine: DWebViewEngine, initUrl: String?) =
+  DWebView.create(engine, initUrl)
 
-class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : IDWebView(initUrl) {
+class DWebView private constructor(internal val engine: DWebViewEngine, initUrl: String? = null) :
+  IDWebView(initUrl) {
   companion object {
     val prepare = SuspendOnce {
       coroutineScope {
@@ -83,6 +83,13 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
         prepare()
       }
     }
+
+    suspend fun create(engine: DWebViewEngine, initUrl: String? = null) =
+      DWebView(engine, initUrl).also { dwebView ->
+        engine.remoteMM.onBeforeShutdown.listen {
+          dwebView.destroy()
+        }
+      }
   }
 
 
@@ -131,15 +138,13 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   @SuppressLint("RequiresFeature")
   override suspend fun createMessageChannel(): IWebMessageChannel = withMainContext {
-    DWebMessageChannel(WebViewCompat.createWebMessageChannel(engine),engine)
+    DWebMessageChannel(WebViewCompat.createWebMessageChannel(engine), engine)
   }
 
   @SuppressLint("RequiresFeature")
   override suspend fun postMessage(data: String, ports: List<IWebMessagePort>) = withMainContext {
     WebViewCompat.postWebMessage(
-      engine,
-      WebMessageCompat(data, ports.map { it.into() }.toTypedArray()),
-      Uri.EMPTY
+      engine, WebMessageCompat(data, ports.map { it.into() }.toTypedArray()), Uri.EMPTY
     )
   }
 
@@ -147,9 +152,7 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   override suspend fun postMessage(data: ByteArray, ports: List<IWebMessagePort>) =
     withMainContext {
       WebViewCompat.postWebMessage(
-        engine,
-        WebMessageCompat(data, ports.map { it.into() }.toTypedArray()),
-        Uri.EMPTY
+        engine, WebMessageCompat(data, ports.map { it.into() }.toTypedArray()), Uri.EMPTY
       )
     }
 
@@ -255,13 +258,6 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
 
   override fun requestRefresh() {
     engine.invalidate()
-  }
-
-  // TODO 这段代码是否应该迁移到 common？如何迁移
-  init {
-    engine.remoteMM.onAfterShutdown.listen {
-      destroy()
-    }
   }
 }
 

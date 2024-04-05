@@ -33,7 +33,6 @@ import org.dweb_browser.core.std.permission.permissionAdapterManager
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureClientRequest
@@ -377,7 +376,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }.let { running ->
       addRunningApp(running)
       running.ready().also { appRuntime ->
-        appRuntime.onAfterShutdown.listen {
+        appRuntime.onShutdown {
           removeRunningApp(running)
         }
       }

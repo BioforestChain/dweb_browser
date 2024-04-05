@@ -4,6 +4,7 @@ import io.ktor.http.Url
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
@@ -64,11 +66,10 @@ open class Ipc internal constructor(
   override fun toString() = "Ipc@$debugId"
 
 
-  val onMessage = endpoint.onIpcMessage.mapNotNull {
-    if (it.pid == pid) {
-      debugIpc("ipc-message-in", it.ipcMessage)
-      it.ipcMessage
-    } else null
+  val onMessage = endpoint.getIpcMessageChannel(pid).receiveAsFlow().run {
+    if (debugIpc.isEnable) {
+      onEach { debugIpc("ipc-message-in", it) }
+    } else this
   }.shareIn(
     scope,
     SharingStarted.Eagerly, // 这里要立刻打开通道接收数据，endpoint不会只服务于一个ipc
@@ -183,28 +184,22 @@ open class Ipc internal constructor(
     endpoint.postIpcMessage(EndpointIpcMessage(pid, state))
   }
 
-  val isClosed get() = scope.coroutineContext[Job]!!.isCancelled
+
+  private val closeDeferred = CompletableDeferred<CancellationException?>()
+
+  val isClosed get() = closeDeferred.isCompleted
 
   /**
    * 等待ipc关闭之后
    *
    * 对比 onBeforeClose ，该函数不在 ipc scope
    */
-  suspend fun awaitClosed() = runCatching {
-    scope.coroutineContext[Job]!!.join();
-    null
-  }.getOrElse { it }
+  suspend fun awaitClosed() = closeDeferred.await()
 
-  private val beforeClose = MutableSharedFlow<Unit>()
-
-  /**
-   * 放置回调函数在ipc关闭之前
-   *
-   * 这里的 回调函数 被设计成同步，是利用了 close 是 suspend 函数，从而为了避免死循环的引用：
-   * 比方说你在多个 ipc 里同时注册了 onBeforeClose 去执行其它 ipc 的 close 函数，如果这里的回调函数是 suspend，那么就会引发循环等待的问题
-   * 因此这里强制使用同步函数，目的就是让开发者如要执行什么 suspend 函数，需要显示地使用 scope 去 launch
-   */
-  val onBeforeClose = beforeClose.shareIn(scope, SharingStarted.Eagerly)
+  @OptIn(ExperimentalCoroutinesApi::class)
+  fun onClosed(action: (CancellationException?) -> Unit) {
+    closeDeferred.invokeOnCompletion { action(closeDeferred.getCompleted()) }
+  }
 
   // 开始触发关闭事件
   suspend fun close(cause: CancellationException? = null) = scope.isActive.trueAlso {
@@ -216,7 +211,7 @@ open class Ipc internal constructor(
       WARNING("close ipc by self. maybe leak.")
     }
     debugIpc("ipc Close=>", debugId)
-    beforeClose.emit(Unit)
+    closeDeferred.complete(cause)
     scope.cancel()
   }
 

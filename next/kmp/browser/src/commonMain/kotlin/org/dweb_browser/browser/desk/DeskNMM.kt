@@ -26,7 +26,6 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
@@ -194,7 +193,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       val deskControllers = DeskControllers(desktopController, taskBarController, this)
       controllersMap[deskSessionId] = deskControllers
 
-      this.onAfterShutdown.listen {
+      onShutdown {
         runningApps.reset()
         controllersMap.remove(deskSessionId)
       }

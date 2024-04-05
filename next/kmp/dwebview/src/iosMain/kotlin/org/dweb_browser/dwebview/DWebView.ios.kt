@@ -64,13 +64,13 @@ suspend fun IDWebView.Companion.create(
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal fun IDWebView.Companion.create(
+internal suspend fun IDWebView.Companion.create(
   engine: DWebViewEngine,
   initUrl: String? = null,
-) = DWebView(engine, initUrl)
+) = DWebView.create(engine, initUrl)
 
 @OptIn(ExperimentalForeignApi::class, NativeRuntimeApi::class)
-class DWebView(
+class DWebView private constructor(
   viewEngine: DWebViewEngine,
   initUrl: String? = null
 ) : IDWebView(initUrl ?: viewEngine.options.url) {
@@ -89,11 +89,14 @@ class DWebView(
         prepare()
       }
     }
-  }
 
-  init {
-    viewEngine.remoteMM.onAfterShutdown.listen {
-      destroy()
+    suspend fun create(
+      viewEngine: DWebViewEngine,
+      initUrl: String? = null
+    ) = DWebView(viewEngine, initUrl).also { dwebView ->
+      viewEngine.remoteMM.onBeforeShutdown.listen {
+        dwebView.destroy()
+      }
     }
   }
 
@@ -194,8 +197,8 @@ class DWebView(
     val port1_id = ports_id.objectAtIndex(0u) as Double
     val port2_id = ports_id.objectAtIndex(1u) as Double
 
-    val port1 = DWebMessagePort(port1_id.toInt(), this,ioScope)
-    val port2 = DWebMessagePort(port2_id.toInt(), this,ioScope)
+    val port1 = DWebMessagePort(port1_id.toInt(), this, ioScope)
+    val port2 = DWebMessagePort(port2_id.toInt(), this, ioScope)
 
     DWebMessageChannel(port1, port2)
   }

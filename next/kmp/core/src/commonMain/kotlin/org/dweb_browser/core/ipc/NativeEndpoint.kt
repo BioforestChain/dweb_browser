@@ -4,10 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
@@ -69,22 +66,30 @@ class NativeEndpoint(
    * 发送消息
    */
   override suspend fun postIpcMessage(msg: EndpointIpcMessage) {
-    awaitOpen("then postIpcMessage")
+    awaitOpen("then-postIpcMessage")
     withScope(scope) {
       debugEndpoint("message-out", msg)
       messageOut.send(msg)
     }
   }
+//
+//  /**
+//   * 收取消息
+//   * 这里要用 Lazily，因为 messageIn 是使用 BufferOverflow.SUSPEND
+//   */
+//  override val onIpcMessage = messageIn.consumeAsFlow().run {
+//    if (debugEndpoint.isEnable) {
+//      onEach { debugEndpoint("message-in", it) }
+//    } else this
+//  }.shareIn(scope, SharingStarted.Lazily)
 
-  /**
-   * 收取消息
-   * 这里要用 Lazily，因为 messageIn 是使用 BufferOverflow.SUSPEND
-   */
-  override val onIpcMessage = messageIn.consumeAsFlow().run {
-    if (debugEndpoint.isEnable) {
-      onEach { debugEndpoint("message-in", it) }
-    } else this
-  }.shareIn(scope, SharingStarted.Lazily)
+  override suspend fun doStart() {
+    scope.launch {
+      for ((pid, ipcMessage) in messageIn) {
+        getIpcMessageChannel(pid).send(ipcMessage)
+      }
+    }
+  }
 
   /**
    * 原生通讯，不需要提供任何协商内容

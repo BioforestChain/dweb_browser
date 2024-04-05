@@ -43,7 +43,7 @@ class WebMessageEndpoint(
           EndpointProtocol.Json -> jsonToEndpointMessage(event.text)
           EndpointProtocol.Cbor -> cborToEndpointMessage(event.binary)
         }
-        endpointMsgFlow.emit(packMessage)
+        endpointMsgChannel.send(packMessage)
       }
     }
   }

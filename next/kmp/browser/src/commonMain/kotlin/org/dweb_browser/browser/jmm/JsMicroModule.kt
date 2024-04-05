@@ -37,7 +37,6 @@ import org.dweb_browser.helper.alsoLaunchIn
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.helper.withScope
@@ -331,7 +330,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
           debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
 
           val toJmmIpc = ipcBridgeSelf(fromMMID)
-          toJmmIpc.onBeforeClose.listen {
+          toJmmIpc.onClosed {
             fromMMIDOriginIpcWM.remove(fromMMID)
           }
           // 如果是jsMM相互连接，直接把port丢过去

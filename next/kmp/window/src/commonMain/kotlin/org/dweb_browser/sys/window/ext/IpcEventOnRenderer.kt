@@ -35,7 +35,7 @@ suspend fun NativeMicroModule.NativeRuntime.getOrOpenMainWindowId() =
 val NativeMicroModule.NativeRuntime.hasMainWindow
   get() = getMainWindowIdWMDeferred(this).isCompleted
 
-fun NativeMicroModule.NativeRuntime.onRenderer(cb: suspend RendererContext.() -> Unit) =
+suspend fun NativeMicroModule.NativeRuntime.onRenderer(cb: suspend RendererContext.() -> Unit) =
   onConnect.listen { (ipc) ->
     ipc.onEvent.collectIn(mmScope) { ipcEvent ->
       if (ipcEvent.isRenderer()) {

@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser
 
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -10,13 +11,15 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.listen
+import org.dweb_browser.helper.listenAsync
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class FlowTest {
 
@@ -91,11 +94,40 @@ class FlowTest {
       }
     }
 
-    delay(100)
+//    delay(100)
     for (i in 1..MAX) {
       messageFlow.emit(i)
       println("emit($i)")
     }
+    job.join()
+  }
+
+  @Test
+  fun eventEmitter() = runCommonTest {
+    val MAX = 5;
+    val emitter = MutableSharedFlow<Int>().onSubscription {
+      println("onSubscription")
+//    delay(100)
+      for (i in 1..MAX) {
+        emit(i)
+        println("emit($i)")
+      }
+    }
+
+    val onMessage = emitter.shareIn(this, SharingStarted.Lazily)
+    val job = launch {
+      println("prepare")
+      delay(1000)
+      onMessage.collect {
+        println("collect($it)")
+        delay(1000)
+        if (it == MAX) {
+          currentCoroutineContext().cancel()
+        }
+      }
+    }
+
+
     job.join()
   }
 
@@ -131,6 +163,7 @@ class FlowTest {
 
     launch {
       /// 所有的send，并不会被 collect 阻塞，consumeAsFlow 已经将它全部消费
+      delay(1000)
       println("start send")
       for (i in 1..MAX) {
         channel.send(i)
@@ -140,7 +173,6 @@ class FlowTest {
     val flow = channel.consumeAsFlow().shareIn(this, SharingStarted.Lazily)
 
     launch {
-      delay(1000)
       flow.collect {
         println("collect1($it)")
         delay(1000)
@@ -161,6 +193,7 @@ class FlowTest {
 
     launch {
       /// 所有的send，并不会被 collect 阻塞，consumeAsFlow 已经将它全部消费
+      delay(1000)
       println("start send")
       for (i in 1..MAX) {
         channel.send(i)
@@ -170,7 +203,6 @@ class FlowTest {
     val flow = channel.receiveAsFlow().shareIn(this, SharingStarted.Lazily)
 
     launch {
-      delay(1000)
       flow.collect {
         println("collect1($it)")
         delay(1000)
@@ -183,6 +215,7 @@ class FlowTest {
       }
     }
   }
+
   @Test
   fun flowChannelSharedIn() = runCommonTest {
     val MAX = 5;
@@ -236,19 +269,33 @@ class FlowTest {
   }
 
   @Test
-  fun flowListen() = runCommonTest {
+  fun flowListen() = runCommonTest(10000) { time ->
+    println("job-$time start")
     val channel = Channel<Int>()
     val MAX = 5;
-    launch {
-      println("start send")
-      for (i in 1..MAX) {
-        channel.send(i)
-        println("send($i)")
+    val result = atomic(0)
+    val flow = channel.consumeAsFlow().shareIn(this, SharingStarted.Lazily)
+    val job = flow.listenAsync {
+      val res = result.addAndGet(it)
+      // println("collect($it)=>$res")
+      if (it == MAX) {
+        currentCoroutineContext().cancel()
       }
     }
-    val flow = channel.consumeAsFlow().shareIn(this, SharingStarted.Lazily)
-    flow.listen {
-      println("collect($it)")
+
+    launch {
+      // println("send start")
+      for (i in 1..MAX) {
+        channel.send(i)
+        // println("send($i)")
+      }
+      // println("send end")
+    }
+
+    job.invokeOnCompletion {
+      println("job-$time complete")
+      assertEquals(15, result.value)
+      channel.close()
     }
   }
 }
