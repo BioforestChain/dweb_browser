@@ -24,7 +24,6 @@ import org.dweb_browser.core.http.router.RouteHandler
 import org.dweb_browser.core.http.router.TypedHttpHandler
 import org.dweb_browser.core.http.router.toChain
 import org.dweb_browser.core.ipc.NativeMessageChannel
-import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.ReadableStreamOut
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -81,10 +80,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     private fun getProtocolRouters(protocol: DWEB_PROTOCOL) =
       protocolRouters.getOrPut(protocol) { mutableListOf() }
 
-    suspend fun routes(vararg list: RouteHandler) =
-      HttpRouter(this, mmid).also {
-        it.addRoutes(*list)
-      }.also { addRouter(it) }
+    suspend fun routes(vararg list: RouteHandler) = HttpRouter(this, mmid).also {
+      it.addRoutes(*list)
+    }.also { addRouter(it) }
 
     fun addRouter(router: HttpRouter) {
       getProtocolRouters("*") += router
@@ -118,6 +116,10 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         onConnect.listen { (clientIpc) ->
           debugMM("onConnect", clientIpc)
           clientIpc.onRequest.collectIn(mmScope) { ipcRequest ->
+            when (ipcRequest.uri.protocol.name) {
+              "file", "dweb" -> {}
+              else -> return@collectIn
+            }
             debugMM("NMM/Handler", ipcRequest.url)
             /// 根据host找到对应的路由模块
             val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
@@ -132,15 +134,13 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
               }
             }
 
-            clientIpc.postMessage(
-              IpcResponse.fromResponse(
-                ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway), clientIpc
-              )
+            clientIpc.postResponse(
+              ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway)
             )
           }
 
           /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯
-          clientIpc.start()
+          clientIpc.start(reason = "on-connect")
         }
       }
     }
@@ -312,8 +312,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
   }
 
-  class JsonLineHandlerContext constructor(context: HandlerContext) :
-    IHandlerContext by context {
+  class JsonLineHandlerContext constructor(context: HandlerContext) : IHandlerContext by context {
     internal val responseReadableStream = ReadableStreamOut(context.ipc.scope)
     suspend fun emit(line: JsonElement) {
       responseReadableStream.controller.enqueue((Json.encodeToString(line) + "\n").toByteArray())

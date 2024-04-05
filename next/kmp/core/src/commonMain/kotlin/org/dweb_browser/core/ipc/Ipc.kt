@@ -111,12 +111,12 @@ open class Ipc internal constructor(
   /**
    * 启动，会至少等到endpoint握手完成
    */
-  suspend fun start(await: Boolean = true) {
+  suspend fun start(await: Boolean = true, reason: String = "") {
     withScope(scope) {
       endpoint.start(true)
       startOnce()
       if (await) {
-        awaitOpen("from start")
+        awaitOpen("from-start $reason")
       }
     }
   }
@@ -126,9 +126,11 @@ open class Ipc internal constructor(
     // 当前状态必须是从init开始
     when (val state = lifecycle) {
       // 告知对方我启动了
-      is IpcLifecycle.Init -> sendLifecycleToRemote(IpcLifecycle.Opening().also {
+      is IpcLifecycle.Init -> IpcLifecycle.Opening().also {
+        sendLifecycleToRemote(it)
+        debugIpc("emit-locale-lifecycle", it)
         lifecycleLocaleFlow.emit(it)
-      })
+      }
 
       else -> throw IllegalStateException("fail to start: ipc=$this state=$state")
     }
@@ -140,7 +142,11 @@ open class Ipc internal constructor(
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         is IpcLifecycle.Opened -> {
           when (lifecycle) {
-            is IpcLifecycle.Opening -> lifecycleLocaleFlow.emit(IpcLifecycle.Opened())
+            is IpcLifecycle.Opening -> IpcLifecycle.Opened().also {
+              debugIpc("emit-locale-lifecycle", it)
+              sendLifecycleToRemote(it)
+              lifecycleLocaleFlow.emit(it)
+            }
 
             else -> {}
           }
@@ -223,7 +229,7 @@ open class Ipc internal constructor(
     remote: IMicroModuleManifest = this.remote,
     autoStart: Boolean = false,
   ): Ipc {
-    awaitOpen("then fork")
+    awaitOpen("then-fork")
     val forkedIpc = pool.createIpc(
       pid = pool.generatePid(),
       endpoint = endpoint,
@@ -349,7 +355,7 @@ open class Ipc internal constructor(
 
   /**发送各类消息到remote*/
   suspend fun postMessage(data: IpcMessage) {
-    awaitOpen("then postMessage")
+    awaitOpen("then-postMessage")
     withScope(scope) {
       endpoint.postIpcMessage(EndpointIpcMessage(pid, data))
     }

@@ -11,7 +11,6 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.createChannel
@@ -337,8 +336,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
     private val API_PREFIX = "/api/"
     private suspend fun createTaskbarWebServer(): HttpDwebServer {
-      val taskbarServer =
-        createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar"))
+      val taskbarServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar"))
       val serverIpc = taskbarServer.listen()
       serverIpc.onRequest.collectIn(mmScope) { ipcServerRequest ->
         val pathName = ipcServerRequest.uri.encodedPathAndQuery
@@ -349,14 +347,13 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           "file:///sys/browser/desk${pathName}?mode=stream"
         }
         val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
-        serverIpc.postMessage(IpcResponse.fromResponse(ipcServerRequest.reqId, response, serverIpc))
+        serverIpc.postResponse(ipcServerRequest.reqId, response)
       }
       return taskbarServer
     }
 
     private suspend fun createDesktopWebServer(): HttpDwebServer {
-      val desktopServer =
-        createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop"))
+      val desktopServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop"))
       val serverIpc = desktopServer.listen()
       serverIpc.onRequest.collectIn(mmScope) { ipcServerRequest ->
         val pathName = ipcServerRequest.uri.encodedPathAndQuery
@@ -367,12 +364,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           "file:///sys/browser/desk${ipcServerRequest.uri.encodedPath}?mode=stream"
         }
         val response = nativeFetch(ipcServerRequest.toPure().toClient().copy(href = url))
-        serverIpc.postMessage(
-          IpcResponse.fromResponse(
-            ipcServerRequest.reqId,
-            PureResponse.build(response) { appendHeaders(CORS_HEADERS) },
-            serverIpc
-          )
+        serverIpc.postResponse(
+          ipcServerRequest.reqId,
+          PureResponse.build(response) { appendHeaders(CORS_HEADERS) },
         )
       }
       return desktopServer

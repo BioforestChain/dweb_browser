@@ -149,7 +149,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
             "file://" + (metadata.server.root + request.uri.fullPath).replace(Regex("/{2,}"), "/")
           )
         }
-        processIpc.postMessage(IpcResponse.fromResponse(request.reqId, response, processIpc))
+        processIpc.postResponse(request.reqId, response, processIpc)
       }
       return processIpc
     }
@@ -204,8 +204,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
               // 转发请求
               val request = ipcRequest.toPure().toClient()
               val response = nativeFetch(request)
-              val ipcResponse = IpcResponse.fromResponse(ipcRequest.reqId, response, jsIpc)
-              jsIpc.postMessage(ipcResponse)
+              jsIpc.postResponse(ipcRequest.reqId, response)
             }
           }.onFailure {
             debugJsMM("onProxyRequest", "fail ${ipcRequest.uri} ${it}")

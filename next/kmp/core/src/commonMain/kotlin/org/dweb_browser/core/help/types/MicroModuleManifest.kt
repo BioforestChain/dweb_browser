@@ -48,4 +48,6 @@ interface IMicroModuleManifest : ICommonAppManifest {
   var mmid: MMID
   var ipc_support_protocols: IpcSupportProtocols
   fun toCommonAppManifest(): CommonAppManifest
+
+  fun getMmptList() = listOf(mmid, *dweb_protocols.toTypedArray())
 }

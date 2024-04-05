@@ -90,9 +90,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
             }
           } else {
             val response = nativeFetch("file:///sys/browser/js-process.main${request.uri.fullPath}")
-            serverIpc.postMessage(
-              IpcResponse.fromResponse(request.reqId, response, serverIpc)
-            )
+            serverIpc.postResponse(request.reqId, response)
           }
         }
       }
@@ -145,7 +143,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           // 将自定义的 processId 与真实的 js-process_id 进行关联
           po.resolve(result.processHandler.info.process_id)
           // 等待握手完成
-          result.streamIpc.start()
+          result.streamIpc.start(reason = "in-create-process")
         },
         /// 创建 web 通讯管道
         "/create-ipc" bind PureMethod.GET by defineNumberResponse {

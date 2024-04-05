@@ -82,7 +82,7 @@ open class IpcPool {
     scope.launch {
       /// 自动启动
       if (autoStart) {
-        ipc.start()
+        ipc.start(reason = "in-safeCreatedIpc")
       }
       ipc.awaitClosed()
       ipcSet.remove(ipc)

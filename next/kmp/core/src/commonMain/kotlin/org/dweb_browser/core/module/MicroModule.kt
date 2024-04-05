@@ -108,11 +108,17 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
     suspend fun shutdown() = stateLock.withLock {
       if (state != MMState.SHUTDOWN) {
+        debugMM("shutdown-start")
+        debugMM("shutdown-before-start")
         beforeShutdownFlow.emit(Unit)
+        debugMM("shutdown-before-end")
         _shutdown()
+        debugMM("shutdown-after-start")
         afterShutdownFlow.emit(Unit)
+        debugMM("shutdown-after-end")
+        debugMM("shutdown-end")
         // 取消所有的工作
-        this.mmScope.cancel()
+        mmScope.cancel()
       }
       state = MMState.SHUTDOWN
     }
@@ -153,6 +159,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
      */
     suspend fun beConnect(ipc: Ipc, reason: PureRequest?) {
       if (connectionLinks.add(ipc)) {
+        // 这个ipc分叉出来的ipc也会一并归入管理
         ipc.onFork.listen {
           beConnect(it, null)
         }

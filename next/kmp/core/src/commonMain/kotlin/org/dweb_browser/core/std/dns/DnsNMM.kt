@@ -2,6 +2,8 @@ package org.dweb_browser.core.std.dns
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -91,7 +93,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     ) = dnsMM.connectTo(fromMM, mmid, reason ?: PureClientRequest("file://$mmid", PureMethod.GET))
 
     override suspend fun open(mmid: MMID): Boolean {
-      if (this.dnsMM.runningApps(mmid).isEmpty()) {
+      if (this.dnsMM.getRunningApps(mmid).isEmpty()) {
         dnsMM.runtime.open(mmid, fromMM)
         return true
       }
@@ -99,7 +101,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }
 
     override suspend fun close(mmid: MMID): Boolean {
-      if (this.dnsMM.runningApps(mmid).isNotEmpty()) {
+      if (this.dnsMM.getRunningApps(mmid).isNotEmpty()) {
         dnsMM.runtime.close(mmid);
         return true;
       }
@@ -142,36 +144,36 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       .maxByOrNull { it.second }?.first
 
 
-  private val _runningApps =
+  private val runningAppLock = SynchronizedObject()
+  private val runningApps =
     ChangeableMap</* mmid or dweb-protocol */MMPT, Map</*真正的 realMmid*/MMID, RunningApp>>() // 正在运行的应用
 
   private val dnsRuntime get() = runtime as DnsRuntime
 
-  internal fun runningApps(mmpt: MMPT) = _runningApps.getOrPut(mmpt) { mapOf() }
+  internal fun getRunningApps(mmpt: MMPT) = runningApps.getOrPut(mmpt) { mapOf() }
 
-  internal fun addRunningApp(runningApp: RunningApp) {
+  internal fun addRunningApp(runningApp: RunningApp) = synchronized(runningAppLock) {
     val mmid = runningApp.module.mmid
-    fun add(mmpt: MMPT) {
-      val apps = runningApps(mmpt)
+    debugDNS("add-running", mmid)
+
+    for (mmpt in runningApp.module.getMmptList()) {
+      val apps = getRunningApps(mmpt)
       if (!apps.containsKey(mmid)) {
-        _runningApps[mmpt] = apps + (mmid to runningApp)
+        runningApps[mmpt] = apps + (mmid to runningApp)
       }
     }
-    add(runningApp.module.mmid)
-    runningApp.module.dweb_protocols.forEach { add(it) }
   }
 
-  internal fun removeRunningApp(runningApp: RunningApp) {
+  internal fun removeRunningApp(runningApp: RunningApp) = synchronized(runningAppLock) {
     val mmid = runningApp.module.mmid
     debugDNS("remove-running", mmid)
-    fun remove(mmpt: MMPT) {
-      val apps = runningApps(mmpt)
+
+    for (mmpt in runningApp.module.getMmptList()) {
+      val apps = getRunningApps(mmpt)
       if (apps.containsKey(mmid)) {
-        _runningApps[mmid] = apps.filter { it.key != mmid }
+        runningApps[mmid] = apps.filter { it.key != mmid }
       }
     }
-    remove(runningApp.module.mmid)
-    runningApp.module.dweb_protocols.forEach { remove(it) }
   }
 
   /** 为两个mm建立 ipc 通讯 */
@@ -333,7 +335,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         },
         //
         "/observe/running-apps" byChannel { ctx ->
-          _runningApps.onChange { changes ->
+          runningApps.onChange { changes ->
             ctx.sendJsonLine(
               ChangeState(
                 changes.adds, changes.updates, changes.removes
@@ -351,10 +353,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
     override suspend fun _shutdown() {
       allApps.values.forEach {
-        it.runtimeOrNull?.shutdown()
+        if (it !== this@DnsNMM) {
+          it.runtimeOrNull?.shutdown()
+        }
       }
-      allApps.clear()
-      _installApps.clear()
     }
 
     private val openLock = Mutex()
@@ -362,7 +364,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     /** 打开应用
      */
     suspend fun open(mmpt: MMPT, fromMM: IMicroModuleManifest = this) = openLock.withLock {
-      runningApps(mmpt).firstNotNullOfOrNull {
+      getRunningApps(mmpt).firstNotNullOfOrNull {
         // 这里基于传入 fromMmid，从而才能做到 protocol 模块直接寻址 superMM
         // 首先 it.key != mpid 意味着这个mpid是一个protocol
         // 在此基础上，it.key == fromMM.mmid 意味着它循环引用到自己的protocol了，这没必要，所以返回null
@@ -374,8 +376,8 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       }
     }.let { running ->
       addRunningApp(running)
-      running.ready().apply {
-        onAfterShutdown.listen {
+      running.ready().also { appRuntime ->
+        appRuntime.onAfterShutdown.listen {
           removeRunningApp(running)
         }
       }
@@ -383,7 +385,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
     /** 关闭应用 */
     suspend fun close(mmid: MMID): Int {
-      return runningApps(mmid).let { apps ->
+      return getRunningApps(mmid).let { apps ->
         var count = 0;
         apps.filter { it.key == mmid }.forEach {
           it.value.ready().shutdown()
@@ -401,7 +403,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   override val runtime get() = super.runtime as DnsRuntime
   suspend fun bootstrap() = bootstrapMicroModule(this) as DnsRuntime
+
+  suspend fun reset() {
+    runtimeOrNull?.shutdown()
+    allApps.clear()
+    _installApps.clear()
+  }
 }
-
-
-

@@ -115,10 +115,10 @@ abstract class IpcEndpoint {
     var localeSubProtocols = getLocaleSubProtocols()
     // 当前状态必须是从init开始
     when (val state = lifecycle) {
-      is EndpointLifecycle.Init -> {
-        this@IpcEndpoint.sendLifecycleToRemote(EndpointLifecycle.Opening(localeSubProtocols).also {
-          lifecycleLocaleFlow.emit(it)
-        })
+      is EndpointLifecycle.Init -> EndpointLifecycle.Opening(localeSubProtocols).also {
+        sendLifecycleToRemote(it)
+        debugEndpoint("emit-locale-lifecycle", it)
+        lifecycleLocaleFlow.emit(it)
       }
 
       else -> throw IllegalStateException("endpoint state=$state")
@@ -132,14 +132,18 @@ abstract class IpcEndpoint {
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         is EndpointLifecycle.Opened -> {
           when (val localeState = lifecycleLocaleFlow.value) {
-            is EndpointLifecycle.Opening ->
-              lifecycleLocaleFlow.emit(EndpointLifecycle.Opened(localeState.subProtocols))
+            is EndpointLifecycle.Opening -> EndpointLifecycle.Opened(localeState.subProtocols)
+              .also {
+                sendLifecycleToRemote(it)
+                debugEndpoint("emit-locale-lifecycle", it)
+                lifecycleLocaleFlow.emit(it)
+              }
 
             else -> {}
           }
         }
         // 如果对方是 init，代表刚刚初始化，那么发送目前自己的状态
-        is EndpointLifecycle.Init -> this@IpcEndpoint.sendLifecycleToRemote(lifecycleLocaleFlow.value)
+        is EndpointLifecycle.Init -> sendLifecycleToRemote(lifecycleLocaleFlow.value)
         // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
         is EndpointLifecycle.Opening -> {
           val nextState = if (localeSubProtocols != state.subProtocols) {
@@ -150,7 +154,7 @@ abstract class IpcEndpoint {
           } else {
             EndpointLifecycle.Opened(localeSubProtocols)
           }
-          this@IpcEndpoint.sendLifecycleToRemote(nextState)
+          sendLifecycleToRemote(nextState)
         }
       }
     }

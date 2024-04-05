@@ -23,19 +23,21 @@ class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
   NativeMicroModule(mmid, "test IpcPool") {
   inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     override suspend fun _bootstrap() {
-      routes("/test" bind PureMethod.GET by defineEmptyResponse {
-        println("请求到了 /test")
-        ipc.onRequest.collectIn(mmScope) { request ->
-          val pathName = request.uri.encodedPath
-          println("/test 拿到结果=> $pathName")
-          ipc.postMessage(
-            IpcResponse.fromText(
-              request.reqId, 200, PureHeaders(), "返回结果", ipc
+      routes(
+        //
+        "/test" bind PureMethod.GET by defineEmptyResponse {
+          println("请求到了 /test")
+          ipc.onRequest.collectIn(mmScope) { request ->
+            val pathName = request.uri.encodedPath
+            println("/test 拿到结果=> $pathName")
+            ipc.postMessage(
+              IpcResponse.fromText(
+                request.reqId, 200, PureHeaders(), "返回结果", ipc
+              )
             )
-          )
-        }
-        ipc.awaitOpen()
-      })
+          }
+          ipc.awaitOpen()
+        })
     }
 
     override suspend fun _shutdown() {
@@ -90,7 +92,7 @@ class IpcPoolTest {
     println("QAQ clientIpc=$clientIpc then fork")
     val forkedIpc = clientIpc.fork()
     println("QAQ forkedIpc=$forkedIpc then start")
-    forkedIpc.start()
+    forkedIpc.start(reason = "then-request")
     println("QAQ forkedIpc=$forkedIpc then request")
     forkedIpc.request("file://request.mm.dweb/test")
     /// TODO reqId 会乱窜
@@ -100,6 +102,7 @@ class IpcPoolTest {
     assertEquals(data, "返回结果")
 
     dnsRuntime.shutdown()
+    println("QAQ")
   }
 
 }

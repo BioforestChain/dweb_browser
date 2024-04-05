@@ -58,31 +58,31 @@ class TestHttpMicroModule(mmid: String = "http.server.dweb") :
     return this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
       // 提供基本的主页服务
       val serverIpc = server.listen();
-      serverIpc.requestFlow.onEach { (request, ipc) ->
+      serverIpc.onRequest.onEach { request ->
         // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
         if (request.uri.encodedPath.startsWith(INTERNAL_PATH)) {
           val internalPath = request.uri.encodedPath.substring(INTERNAL_PATH.length)
           if (internalPath == "/bootstrap.js") {
-            ipc.postMessage(
+            serverIpc.postMessage(
               IpcResponse.fromBinary(
                 request.reqId,
                 200,
                 PureHeaders(JS_CORS_HEADERS),
                 JS_PROCESS_WORKER_CODE.await(),
-                ipc
+                serverIpc
               )
             )
           } else {
-            ipc.postMessage(
+            serverIpc.postMessage(
               IpcResponse.fromText(
-                request.reqId, 404, PureHeaders(JS_CORS_HEADERS), "// no found $internalPath", ipc
+                request.reqId, 404, PureHeaders(JS_CORS_HEADERS), "// no found $internalPath", serverIpc
               )
             )
           }
         } else {
           val response = nativeFetch("file:///sys/browser/js-process.main${request.uri.fullPath}")
-          ipc.postMessage(
-            IpcResponse.fromResponse(request.reqId, response, ipc)
+          serverIpc.postMessage(
+            IpcResponse.fromResponse(request.reqId, response, serverIpc)
           )
         }
       }.launchIn(mmScope)
