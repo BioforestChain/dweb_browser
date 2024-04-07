@@ -2,6 +2,7 @@ package org.dweb_browser.platform.desktop.os
 
 enum class OsType(val type: String) {
   MacOS("Mac OS"),
+  M2("MacOS"),
   Windows("Windows"),
   Linux("Linux"),
   Unknown("unknown"),

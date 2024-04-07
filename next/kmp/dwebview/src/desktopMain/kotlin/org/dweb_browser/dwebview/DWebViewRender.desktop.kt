@@ -24,11 +24,12 @@ actual fun IDWebView.Render(
   onDispose: (suspend IDWebView.() -> Unit)?
 ) {
   require(this is DWebView)
-
+  // view渲染到swingPanel上
   SwingPanel(modifier = modifier, factory = {
     viewEngine.wrapperView
   })
-  MenuEffect()
+  // 取消menuBar的实现，因为这里会破坏windows端的样式
+  //  MenuEffect()
 }
 
 // 窗口devtools menu菜单

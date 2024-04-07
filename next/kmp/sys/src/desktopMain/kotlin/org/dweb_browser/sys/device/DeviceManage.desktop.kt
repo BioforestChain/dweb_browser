@@ -10,7 +10,15 @@ actual object DeviceManage {
   val uuid by lazy {
     runCatching {
       when (OsType.current) {
-        OsType.MacOS -> runtime.exec("system_profiler SPHardwareDataType | awk '/UUID/ { print $3; }'")
+        OsType.MacOS, OsType.M2 -> {
+          val cmd = arrayOf(
+            "/bin/sh",
+            "-c",
+            "system_profiler SPHardwareDataType | awk '/UUID/ { print $3; }'"
+          )
+          runtime.exec(cmd)
+        }
+
         OsType.Windows -> runtime.exec("wmic csproduct get UUID")
         else -> runtime.exec("cat /sys/class/dmi/id/product_uuid")
       }.inputStream.readAllBytes().decodeToString()

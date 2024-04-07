@@ -3,6 +3,7 @@
 .idea
 .kotlin
 .DS_Store
+.os
 build
 captures
 .externalNativeBuild
