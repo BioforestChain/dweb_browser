@@ -34,6 +34,9 @@ dependencies {
   implementation(libs.gradlePlugin.kotlin)
   implementation(kotlin("serialization:${libs.versions.kotlin.version}"))
   implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
+
+  // jxbrowser
+  implementation(libs.gradlePlugin.jxbrowser)
 }
 tasks.withType<JavaCompile>().configureEach {
   println("JavaCompile: $name")

@@ -54,7 +54,8 @@ material3Android = "1.2.1"
 
 kotlinx-serialization = "1.6.3"
 
-jxbrowser = "7.38.0"
+jxbrowser-version = "8.0.0-eap.+"
+jxbrowser-gradle = "1.0.2"
 
 # jna
 java-jna-version = "5.13.0"
@@ -211,18 +212,6 @@ androidx-test-espresso-web = { group = "androidx.test.espresso", name = "espress
 androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark-macro-junit4" }
 
-# JVM+Desktop
-jxbrowser-cross-platform = { group = "com.teamdev.jxbrowser", name = "jxbrowser-cross-platform", version.ref = "jxbrowser" }
-jxbrowser-linux64 = { group = "com.teamdev.jxbrowser", name = "jxbrowser-linux64", version.ref = "jxbrowser" }
-jxbrowser-linux64-arm = { group = "com.teamdev.jxbrowser", name = "jxbrowser-linux64-arm", version.ref = "jxbrowser" }
-jxbrowser-mac = { group = "com.teamdev.jxbrowser", name = "jxbrowser-mac", version.ref = "jxbrowser" }
-jxbrowser-mac-arm = { group = "com.teamdev.jxbrowser", name = "jxbrowser-mac-arm", version.ref = "jxbrowser" }
-jxbrowser-win32 = { group = "com.teamdev.jxbrowser", name = "jxbrowser-win32", version.ref = "jxbrowser" }
-jxbrowser-win64 = { group = "com.teamdev.jxbrowser", name = "jxbrowser-win64", version.ref = "jxbrowser" }
-jxbrowser = { group = "com.teamdev.jxbrowser", name = "jxbrowser", version.ref = "jxbrowser" }
-jxbrowser-swing = { group = "com.teamdev.jxbrowser", name = "jxbrowser-swing", version.ref = "jxbrowser" }
-jxbrowser-compose = { group = "com.teamdev.jxbrowser", name = "jxbrowser-compose", version.ref = "jxbrowser" }
-
 
 # jna
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "java-jna-version" }
@@ -231,6 +220,7 @@ androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "w
 gradlePlugin-android = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 gradlePlugin-kotlin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin-version" }
 gradlePlugin-jetbrainsCompose = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "jetbrains-compose-version" }
+gradlePlugin-jxbrowser = { group = "com.teamdev.jxbrowser", name = "JxBrowser-Gradle-Plugin", version.ref = "jxbrowser-gradle" }
 
 # 七牛数据
 qiniu-upload = { group = "com.qiniu", name = "qiniu-android-sdk", version.ref = "qiniu-version" }

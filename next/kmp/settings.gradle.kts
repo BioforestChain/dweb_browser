@@ -31,6 +31,7 @@ dependencyResolutionManagement {
      * https://github.com/TeamDev-IP/JxBrowser-Gradle-Plugin/blob/main/src/main/kotlin/com/teamdev/jxbrowser/gradle/Repository.kt
      */
     maven("https://us-maven.pkg.dev/jxbrowser/releases")
+    maven("https://europe-maven.pkg.dev/jxbrowser/eaps")
   }
 }
 //apply(from = "gradle/features.gradle.kts")

@@ -36,6 +36,7 @@ kotlin {
 compose.desktop {
   application {
     mainClass = "MainKt"
+    version = "2.4.0100"
 
     // 用于打包应用时注入key
     jvmArgs += listOf(
@@ -45,7 +46,7 @@ compose.desktop {
     nativeDistributions {
       targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
       packageName = "DwebBrowser"
-      packageVersion = "2.4.0100"
+      packageVersion = version.toString()
       includeAllModules = true
 
       val iconsRoot =
