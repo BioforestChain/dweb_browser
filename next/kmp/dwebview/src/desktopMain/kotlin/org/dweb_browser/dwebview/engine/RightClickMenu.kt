@@ -60,6 +60,7 @@ fun Browser.createRightClickMenu(scope: CoroutineScope): Pair<JPopupMenu, Flow<U
     font = Font("Sans-Serif", Font.PLAIN, 12)
     background = backgroundColor
     border = shadowBorder
+    isLightWeightPopupEnabled =false
     // 组合这两个边框
     // border = BorderFactory.createCompoundBorder(matteBorder, shadowBorder)
   }
@@ -75,11 +76,10 @@ fun Browser.createRightClickMenu(scope: CoroutineScope): Pair<JPopupMenu, Flow<U
     //弹出菜单将变为不可见
     override fun popupMenuWillBecomeInvisible(p0: PopupMenuEvent?) {
       println("QWQ popupMenuWillBecomeInvisible")
+      scope.launch { clickEffect.emit(Unit) }
     }
 
     override fun popupMenuCanceled(e: PopupMenuEvent) {
-      // 关闭上下文菜单，不选择任何item
-      scope.launch { clickEffect.emit(Unit) }
     }
   })
 

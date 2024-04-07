@@ -405,13 +405,14 @@ class DWebViewEngine internal constructor(
     val (popupMenu, clickEffect) = browser.createRightClickMenu(ioScope)
     // 监听右击事件
     browser.set(ShowContextMenuCallback::class.java, ShowContextMenuCallback { params, tell ->
+      // 监听回调的点击事件
       clickEffect.onEach {
         if (!tell.isClosed) tell.close()
       }.launchIn(ioScope)
-      // 在指定位置显示上下文菜单。
-      val location = params.location()
       // 创建事件调度线程，所有跟用户界面有关的代码都应当在这个线程上运行
       SwingUtilities.invokeLater {
+        // 在指定位置显示上下文菜单。
+        val location = params.location()
         popupMenu.show(wrapperView, location.x(), location.y())
       }
     })
