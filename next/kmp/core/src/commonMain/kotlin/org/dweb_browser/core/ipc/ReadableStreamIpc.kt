@@ -112,8 +112,8 @@ class ReadableStreamIpc(
           debugStreamIpc("bindIncomeStream", "size=$size => $stream")
           // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
           val chunk = reader.readPacket(size)
-          debugStreamIpc("bindIncomeStream", "chunk=${chunk.remaining} => $stream")
-          debugStreamIpc("bindIncomeStream", "supportCbor=$supportCbor")
+//          debugStreamIpc("bindIncomeStream", "chunk=${chunk.remaining} => $stream")
+//          debugStreamIpc("bindIncomeStream", "supportCbor=$supportCbor")
 
           if (supportCbor) {
             when (val message =

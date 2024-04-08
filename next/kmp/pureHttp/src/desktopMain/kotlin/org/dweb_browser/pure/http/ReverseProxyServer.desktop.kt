@@ -182,6 +182,10 @@ suspend fun tunnelHttps(
 ) {
   val server: Socket?
   try {
+    // 获取url并检查该url是否是 "optimizationguide-pa.googleapis.com"
+    if (connectHost.contains("optimizationguide-pa.googleapis.com")) {
+      return
+    }
     server = tcpSocketBuilder.connect(connectHost, connectPort)
   } catch (e: Exception) {
     println("Failed to connect to ${connectHost}:${connectPort}\n\t${e.printStackTrace()}")
@@ -214,9 +218,6 @@ class ConnectRequest(buffer: ByteArray) {
   init {
     try {
       val content = buffer.decodeToString()
-      println("-----")
-      println(content)
-      println("-----")
       for (line in content.splitToSequence(Regex("\n"))) {
         if (!line.startsWith("CONNECT ")) {
           continue

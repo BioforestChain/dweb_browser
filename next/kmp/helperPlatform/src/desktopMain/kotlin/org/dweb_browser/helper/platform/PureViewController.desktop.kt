@@ -7,9 +7,12 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
 import androidx.compose.ui.window.rememberWindowState
+import dweb_browser_kmp.helperplatform.generated.resources.Res
+import dweb_browser_kmp.helperplatform.generated.resources.tray_dweb_browser
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -17,11 +20,15 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.LocalCompositionChain
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.platform.desktop.os.WindowsRegistry
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
+import kotlin.system.exitProcess
 
 
 class PureViewController(
@@ -48,6 +55,7 @@ class PureViewController(
       prepared.await()
     }
 
+    // app钩子事件
     private val _beforeExit = MutableSharedFlow<ApplicationSignal>(replay = 1)
     val beforeExit = _beforeExit.asSharedFlow()
 
@@ -55,14 +63,32 @@ class PureViewController(
       Exit
     }
 
+    // tray 事件回调
+    private val _clickJsProcess = MutableSharedFlow<TrayEvent>(replay = 1)
+    val clickTray = _clickJsProcess.asSharedFlow()
+
+    enum class TrayEvent {
+      JsProcess
+    }
+
     var exitApplication: suspend () -> Unit = {}
       private set
 
+    @OptIn(ExperimentalResourceApi::class)
     suspend fun startApplication() = awaitApplication {
       exitApplication = {
         _beforeExit.emit(ApplicationSignal.Exit)
         this@awaitApplication.exitApplication()
       }
+      Tray(icon = painterResource(Res.drawable.tray_dweb_browser), menu = {
+        Item("JsProcess") {
+          runBlocking { _clickJsProcess.emit(TrayEvent.JsProcess) }
+        }
+        Item("Exit") {
+          exitApplication()
+          exitProcess(0)
+        }
+      })
 
       // windows dweb deeplink写入注册表
       if (isWindows) {

@@ -55,7 +55,7 @@ class MultiWebViewController(
     val rid = win.id
     /// 提供渲染适配
     windowAdapterManager.provideRender(rid) { modifier ->
-      Render(modifier, scale, width, height)
+      Render(modifier, scale, width, height) // 开始渲染
     }
     /// 窗口销毁的时候
     win.onClose {

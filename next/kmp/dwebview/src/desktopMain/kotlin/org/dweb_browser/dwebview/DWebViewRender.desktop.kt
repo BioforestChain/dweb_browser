@@ -5,10 +5,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.awt.SwingPanel
+import androidx.compose.ui.res.painterResource
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.LocalPureViewController
@@ -28,8 +32,25 @@ actual fun IDWebView.Render(
   SwingPanel(modifier = modifier, factory = {
     viewEngine.wrapperView
   })
+  // icon加载
+//  iconEffect()
+
   // 取消menuBar的实现，因为这里会破坏windows端的样式
   //  MenuEffect()
+}
+
+@Composable
+fun IDWebView.iconEffect() {
+  // 拿到当前窗口状态
+  val window = LocalPureViewController.current.asDesktop().composeWindowParams
+  val scope = rememberCoroutineScope()
+  val icon = remember { mutableStateOf("") }
+  scope.launch {
+    icon.value = getIcon()
+  }
+  if (icon.value.isNotEmpty()) {
+    window.icon = painterResource(icon.value)
+  }
 }
 
 // 窗口devtools menu菜单

@@ -51,12 +51,14 @@ class ComposeWindowParams(
     set(value) {
       state.isMinimized = value
     }
+
   // 控制窗口状态
   var placement
     get() = state.placement
     set(value) {
       state.placement = value
     }
+
   // 控制窗口位置
   var position
     get() = state.position
