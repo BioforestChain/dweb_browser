@@ -24,6 +24,9 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
 
   val UUID_KEY = "DEVICE_UUID"
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    // 由于android改造了，这边在初始化强制执行一次“文件夹”的创建操作。
+    DeviceManage.deviceUUID(store.getOrNull(UUID_KEY))
+
     routes(
       /** 获取设备唯一标识uuid*/
       "/uuid" bind PureMethod.GET by defineJsonResponse {
@@ -33,7 +36,7 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
             description = "Request external storage permissions"
           )
         ) {
-          val uuid = DeviceManage.deviceUUID(store.getOrNull(UUID_KEY))
+          val uuid = store.getOrPut(UUID_KEY) { DeviceManage.deviceUUID() }
           UUIDResponse(uuid).toJsonElement()
         } else {
           throwException(HttpStatusCode.Unauthorized, "permission dined")
