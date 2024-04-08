@@ -6,8 +6,8 @@ import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.platform.desktop.os.OsType
 
 actual object DeviceManage {
-  val runtime by lazy { Runtime.getRuntime() }
-  val uuid by lazy {
+  private val runtime by lazy { Runtime.getRuntime() }
+  private val deviceUUID by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     runCatching {
       when (OsType.current) {
         OsType.MacOS, OsType.M2 -> {
@@ -31,8 +31,8 @@ actual object DeviceManage {
     }
   }
 
-  actual fun deviceUUID(): String {
-    return uuid
+  actual fun deviceUUID(uuid: String?): String {
+    return uuid ?: deviceUUID // 由于安卓的改造，这边如果有传入uuid，直接返回即可
   }
 
   actual fun deviceAppVersion(): String {

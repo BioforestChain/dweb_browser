@@ -1,5 +1,6 @@
 package org.dweb_browser.sys.device
 
+import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -9,6 +10,8 @@ import org.dweb_browser.core.std.file.ext.store
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.sys.permission.SystemPermissionName
+import org.dweb_browser.sys.permission.ext.requestSystemPermission
 
 val debugDevice = Debugger("Device")
 
@@ -24,10 +27,17 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
     routes(
       /** 获取设备唯一标识uuid*/
       "/uuid" bind PureMethod.GET by defineJsonResponse {
-        val uuid = store.getOrPut(UUID_KEY) {
-          DeviceManage.deviceUUID()
+        if (requestSystemPermission(
+            name = SystemPermissionName.STORAGE,
+            title = "Request external storage permissions",
+            description = "Request external storage permissions"
+          )
+        ) {
+          val uuid = DeviceManage.deviceUUID(store.getOrNull(UUID_KEY))
+          UUIDResponse(uuid).toJsonElement()
+        } else {
+          throwException(HttpStatusCode.Unauthorized, "permission dined")
         }
-        UUIDResponse(uuid).toJsonElement()
       },
       /** 获取设备当前安装的 DwebBrowser 版本 */
       "/version" bind PureMethod.GET by defineStringResponse {
