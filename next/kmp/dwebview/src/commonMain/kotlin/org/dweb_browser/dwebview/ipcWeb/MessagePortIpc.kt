@@ -109,7 +109,7 @@ open class MessagePortIpc(
           "ping" -> port.postMessage("pong")
           "pong" -> debugMessagePortIpc("PONG", "$ipc")
           is IpcMessage -> {
-            debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
+//            debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
             _messageSignal.emit(IpcMessageArgs(message, ipc))
           }
 
@@ -122,7 +122,7 @@ open class MessagePortIpc(
             pingByteArray -> port.postMessage(pongByteArray)
             pongByteArray -> debugMessagePortIpc("PONG", "$ipc")
             is IpcMessage -> {
-              debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
+//              debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
               _messageSignal.emit(IpcMessageArgs(message, ipc))
             }
 
@@ -134,7 +134,7 @@ open class MessagePortIpc(
             pingCborByteArray -> port.postMessage(pongCborByteArray)
             pongCborByteArray -> debugMessagePortIpc("PONG", "$ipc")
             is IpcMessage -> {
-              debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
+//              debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
               _messageSignal.emit(IpcMessageArgs(message, ipc))
             }
 

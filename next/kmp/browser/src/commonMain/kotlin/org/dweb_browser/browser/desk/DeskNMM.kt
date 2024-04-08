@@ -276,7 +276,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         val pureChannel = ctx.getChannel()
         taskBarController.onUpdate {
           try {
-            debugDesk("/taskbar/observe/apps") { "onUpdate $pureChannel=>${request.body.toPureString()}" }
             val apps = taskBarController.getTaskbarAppList(limit)
             debugDesk("/taskbar/observe/apps") { "apps:$apps" }
             ctx.sendJsonLine(apps)

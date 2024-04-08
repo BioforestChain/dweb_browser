@@ -73,7 +73,7 @@ class NativePort<I, O>(
 
     debugNativeIpc("port-message-start", "$this")
     for (message in channelIn) {
-      debugNativeIpc("port-message-in", "$this << $message")
+//      debugNativeIpc("port-message-in", "$this << $message")
       _messageSignal.emit(message)
       debugNativeIpc("port-message-waiting", "$this")
     }

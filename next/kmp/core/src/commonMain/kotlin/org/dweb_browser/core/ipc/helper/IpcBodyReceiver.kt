@@ -81,16 +81,16 @@ class IpcBodyReceiver(
         ipc.onStream { (message) ->
           when (message) {
             is IpcStreamData -> if (message.stream_id == stream_id) {
-              debugIpcBody(
-                "receiver/StreamData/$ipc/${controller.stream}", message
-              )
+//              debugIpcBody(
+//                "receiver/StreamData/$ipc/${controller.stream}", message
+//              )
               controller.enqueue(message.binary)
             }
 
             is IpcStreamEnd -> if (message.stream_id == stream_id) {
-              debugIpcBody(
-                "receiver/StreamEnd/$ipc/${controller.stream}", message
-              )
+//              debugIpcBody(
+//                "receiver/StreamEnd/$ipc/${controller.stream}", message
+//              )
               controller.closeWrite()
               offListener()
             }

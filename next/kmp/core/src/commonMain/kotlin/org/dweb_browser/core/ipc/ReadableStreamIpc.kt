@@ -119,9 +119,9 @@ class ReadableStreamIpc(
             when (val message =
               cborToIpcMessage(chunk.readByteArray(), this@ReadableStreamIpc)) {
               is IpcMessage -> {
-                val logMessage = message.toString().trim()
-                debugStreamIpc("bindIncomeStream", "message=$logMessage => $stream")
-                debugStreamIpc("ON-MESSAGE", "$size => $logMessage => ${this@ReadableStreamIpc}")
+//                val logMessage = message.toString().trim()
+//                debugStreamIpc("bindIncomeStream", "message=$logMessage => $stream")
+//                debugStreamIpc("ON-MESSAGE", "$size => $logMessage => ${this@ReadableStreamIpc}")
                 _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
               }
 
@@ -134,9 +134,9 @@ class ReadableStreamIpc(
             when (val message =
               jsonToIpcMessage(chunk.readByteArray().decodeToString(), this@ReadableStreamIpc)) {
               is IpcMessage -> {
-                val logMessage = message.toString().trim()
-                debugStreamIpc("bindIncomeStream", "message=$logMessage => $stream")
-                debugStreamIpc("ON-MESSAGE", "$size => $logMessage => ${this@ReadableStreamIpc}")
+//                val logMessage = message.toString().trim()
+//                debugStreamIpc("bindIncomeStream", "message=$logMessage => $stream")
+//                debugStreamIpc("ON-MESSAGE", "$size => $logMessage => ${this@ReadableStreamIpc}")
                 _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
               }
 
@@ -164,13 +164,13 @@ class ReadableStreamIpc(
   override suspend fun _doPostMessage(data: IpcMessage) {
     if (supportCbor) {
       val message = ipcMessageToCbor(data)
-      debugStreamIpc("post", "${message.size} => $input => $data")
+//      debugStreamIpc("post", "${message.size} => $input => $data")
       enqueue(message.size.toLittleEndianByteArray(), message)// 必须合并起来发送，否则中间可能插入其他写入
       return
     }
 
     val message = ipcMessageToJson(data).encodeToByteArray()
-    debugStreamIpc("post", "${message.size} => $input => $data")
+//    debugStreamIpc("post", "${message.size} => $input => $data")
     enqueue(message.size.toLittleEndianByteArray(), message)// 必须合并起来发送，否则中间可能插入其他写入
   }
 

@@ -28,6 +28,7 @@ fun WindowController.RenderCloseTip() {
   if (showCloseTip) {
     val alertDialogColors = winTheme.alertDialogColors;
     /// 会不会有人专门监听showCloseTip然后一直动态地控制closeTip参数呀？
+    // 不知道呀
     AlertDialog(
       containerColor = alertDialogColors.containerColor,
       iconContentColor = alertDialogColors.iconContentColor,

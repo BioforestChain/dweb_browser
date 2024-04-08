@@ -60,7 +60,12 @@ fun WindowTopControllerBar(
           .fillMaxHeight(),
       ) {
         IconButton(modifier = Modifier.align(Alignment.Center),
-          onClick = { scope.launch { win.tryCloseOrHide() } }) {
+          onClick = {
+            scope.launch {
+              println("被点击了关闭")
+              win.tryCloseOrHide()
+            }
+          }) {
           Icon(Icons.Rounded.Close, contentDescription = "Close the Window", tint = contentColor)
         }
       }

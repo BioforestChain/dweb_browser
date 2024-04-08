@@ -203,7 +203,10 @@ fun WindowController.WindowRender(modifier: Modifier) {
         WindowTopBar(win, Modifier.height(winPadding.top.dp).fillMaxWidth())
         /// 内容区域
         BoxWithConstraints(
-          Modifier.weight(1f)
+          Modifier.weight(1f).padding(
+            start = 0.dp,
+            end = 0.dp,
+          ).clip(winPadding.contentRounded.roundedCornerShape)
         ) {
           val contentBoxWidth = maxWidth
           val contentBoxHeight = maxHeight

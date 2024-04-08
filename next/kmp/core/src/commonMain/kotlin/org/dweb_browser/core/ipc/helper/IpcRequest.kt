@@ -319,7 +319,7 @@ sealed class IpcRequest(
       val off = ipc.onEvent { (ipcEvent) ->
         when (ipcEvent.name) {
           eventData -> {
-            debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent $pureChannel" }
+//            debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent $pureChannel" }
             if (!channelByIpcEmit.isClosedForSend)
               channelByIpcEmit.send(ipcEvent.toPureFrame())
           }
@@ -345,20 +345,13 @@ sealed class IpcRequest(
       val ipcStartEvent = started.await()
       debugIpc(_debugTag) { "$ipc postIpcEventStart:$ipcStartEvent $pureChannel" }
       ipc.postMessage(ipcStartEvent)
-//      CoroutineScope(ioAsyncExceptionHandler).launch {
-//        select {
-//          channelForIpcPost.onReceiveCatching {
-//
-//          }
-//        }
-//      }
       /// 将PureFrame转成IpcEvent，然后一同发给对面
       for (pureFrame in channelForIpcPost) {
         when (pureFrame) {
           PureCloseFrame -> break;
           else -> {
             val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame, orderBy)
-            debugIpc(_debugTag) { "$ipc postIpcEventData:$ipcDataEvent $pureChannel" }
+//            debugIpc(_debugTag) { "$ipc postIpcEventData:$ipcDataEvent $pureChannel" }
             ipc.postMessage(ipcDataEvent)
           }
         }
