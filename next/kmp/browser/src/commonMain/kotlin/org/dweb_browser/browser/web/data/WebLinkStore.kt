@@ -7,8 +7,6 @@ import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.pure.crypto.hash.sha256
 
-const val DESK_WEBLINK_ICONS = "file:///web_icons/"
-
 @Serializable
 data class WebLinkManifest(
   val id: String, val title: String, val url: String, val icons: List<ImageResource>

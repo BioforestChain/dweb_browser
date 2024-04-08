@@ -11,12 +11,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import io.ktor.http.Url
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.search.SearchEngine
-import org.dweb_browser.browser.search.SearchEngineList
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.search.ext.collectChannelOfEngines
 import org.dweb_browser.browser.search.ext.getEngineHomeLink
@@ -46,7 +44,6 @@ import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.isDwebDeepLink
-import org.dweb_browser.helper.isWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.toWebUrl
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
@@ -92,6 +89,7 @@ class BrowserViewModel(
   }
 
   var showQRCodePanel by mutableStateOf(false)
+
   /**
    * previewPanel 是否完成了布局计算，可以开始动画渲染
    */
@@ -583,7 +581,7 @@ internal fun pageUrlTransformer(pageUrl: String, needHost: Boolean = true): Stri
   val url = pageUrl.toWebUrl() ?: return pageUrl
 
   // 判断是不是搜索引擎，如果是提取它的关键字
-  for (item in SearchEngineList) {
+  for (item in SearchEngine.entries) {
     item.queryKeyWordValue(url)?.let { searchText ->
       return searchText
     }

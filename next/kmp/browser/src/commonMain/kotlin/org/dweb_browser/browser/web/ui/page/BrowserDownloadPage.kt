@@ -35,7 +35,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,9 +61,7 @@ import org.dweb_browser.helper.format
 import org.dweb_browser.helper.formatDatestampByMilliseconds
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.helper.valueIn
-import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.imageFetchHook
 
 @Composable
 fun BrowserDownloadPage.BrowserDownloadPageRender(modifier: Modifier) {
@@ -237,19 +234,16 @@ private fun BrowserDownloadPage.BrowserDownloadMorePage(
  */
 @Composable
 private fun BrowserDownloadItem.RowDownloadItem(onClick: () -> Unit) {
-  val windowState = LocalWindowController.current.state
-  val microModule by windowState.constants.microModule
-
   Row(
     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceBetween
   ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-      AppIcon(
-        icon = fileSuffix.icon,
+      Image(
+        painter = fileSuffix.painter(),
+        contentDescription = fileName,
         modifier = Modifier.padding(8.dp).size(56.dp),
-        iconFetchHook = microModule?.imageFetchHook
       )
 
       Column {
@@ -354,19 +348,16 @@ private fun BrowserDownloadPage.BrowserDownloadDeletePage(
 private fun BrowserDownloadItem.RowDownloadItemDelete(
   select: MutableState<Boolean>, onClick: (Boolean) -> Unit
 ) {
-  val windowState = LocalWindowController.current.state
-  val microModule by windowState.constants.microModule
-
   Row(
     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceBetween
   ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-      AppIcon(
-        icon = fileSuffix.icon,
+      Image(
+        painter = fileSuffix.painter(),
+        contentDescription = fileName,
         modifier = Modifier.padding(8.dp).size(56.dp),
-        iconFetchHook = microModule?.imageFetchHook
       )
 
       Column {

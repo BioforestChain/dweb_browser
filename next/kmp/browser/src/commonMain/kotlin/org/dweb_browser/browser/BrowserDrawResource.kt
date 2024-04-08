@@ -6,7 +6,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import dweb_browser_kmp.browser.generated.resources.Res
 import dweb_browser_kmp.browser.generated.resources.ic_engine_360
 import dweb_browser_kmp.browser.generated.resources.ic_engine_baidu
-import dweb_browser_kmp.browser.generated.resources.ic_engine_bing_fluent
+import dweb_browser_kmp.browser.generated.resources.ic_engine_bing
 import dweb_browser_kmp.browser.generated.resources.ic_engine_sogou
 import dweb_browser_kmp.browser.generated.resources.ic_launcher_foreground
 import dweb_browser_kmp.browser.generated.resources.ic_main_star
@@ -31,7 +31,7 @@ enum class BrowserDrawResource(
   WebEngineBaidu("https://www.baidu.com/favicon.ico", Res.drawable.ic_engine_baidu),//
   WebEngineBing(
     "https://www.bing.com/sa/simg/favicon-2x.ico",
-    Res.drawable.ic_engine_bing_fluent
+    Res.drawable.ic_engine_bing// Res.drawable.ic_engine_bing_fluent
   ),//
   WebEngineSogou(
     "https://sogou.com/images/logo/new/favicon.ico?v=4",

@@ -1,7 +1,21 @@
 package org.dweb_browser.browser.web.data
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import dweb_browser_kmp.browser.generated.resources.Res
+import dweb_browser_kmp.browser.generated.resources.ic_download_android
+import dweb_browser_kmp.browser.generated.resources.ic_download_audio
+import dweb_browser_kmp.browser.generated.resources.ic_download_excel
+import dweb_browser_kmp.browser.generated.resources.ic_download_exe
+import dweb_browser_kmp.browser.generated.resources.ic_download_file
+import dweb_browser_kmp.browser.generated.resources.ic_download_ios
+import dweb_browser_kmp.browser.generated.resources.ic_download_package
+import dweb_browser_kmp.browser.generated.resources.ic_download_pdf
+import dweb_browser_kmp.browser.generated.resources.ic_download_picture
+import dweb_browser_kmp.browser.generated.resources.ic_download_powerpoint
+import dweb_browser_kmp.browser.generated.resources.ic_download_video
+import dweb_browser_kmp.browser.generated.resources.ic_download_word
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -12,37 +26,49 @@ import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.datetimeNow
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 
 enum class BrowserDownloadType {
   Application, Picture, Package, Video, Document, Audio, Other;
 }
 
 // 文件后缀的类型
-enum class FileSuffix(val suffix: String, val type: BrowserDownloadType, val icon: String) {
-  ANDROID("apk", BrowserDownloadType.Application, "file:///sys/download/android.svg"),
-  IOS("ipa", BrowserDownloadType.Application, "file:///sys/download/ios.svg"),
-  EXE("exe", BrowserDownloadType.Application, "file:///sys/download/exe.svg"),
-  GZ("gz", BrowserDownloadType.Package, "file:///sys/download/package.svg"),
-  ZIP("zip", BrowserDownloadType.Package, "file:///sys/download/package.svg"),
-  RAR("rar", BrowserDownloadType.Package, "file:///sys/download/package.svg"),
-  DOC("doc", BrowserDownloadType.Document, "file:///sys/download/word.svg"),
-  DOCX("doc", BrowserDownloadType.Document, "file:///sys/download/word.svg"),
-  XLS("xls", BrowserDownloadType.Document, "file:///sys/download/excel.svg"),
-  XLSX("xlsx", BrowserDownloadType.Document, "file:///sys/download/excel.svg"),
-  PPT("ppt", BrowserDownloadType.Document, "file:///sys/download/powerpoint.svg"),
-  PPTX("pptx", BrowserDownloadType.Document, "file:///sys/download/powerpoint.svg"),
-  PDF("pdf", BrowserDownloadType.Document, "file:///sys/download/pdf.svg"),
-  PNG("png", BrowserDownloadType.Picture, "file:///sys/download/picture.svg"),
-  JPG("jpg", BrowserDownloadType.Picture, "file:///sys/download/picture.svg"),
-  JPEG("jpeg", BrowserDownloadType.Picture, "file:///sys/download/picture.svg"),
-  BMP("bmp", BrowserDownloadType.Picture, "file:///sys/download/picture.svg"),
-  SVG("svg", BrowserDownloadType.Picture, "file:///sys/download/picture.svg"),
-  MP3("mp3", BrowserDownloadType.Audio, "file:///sys/download/audio.svg"),
-  MP4("mp4", BrowserDownloadType.Video, "file:///sys/download/video.svg"),
-  AVI("avi", BrowserDownloadType.Video, "file:///sys/download/video.svg"),
-  RMVB("rmvb", BrowserDownloadType.Video, "file:///sys/download/video.svg"),
+@OptIn(ExperimentalResourceApi::class)
+enum class FileSuffix(
+  val suffix: String,
+  val type: BrowserDownloadType,
+  val icon: DrawableResource
+) {
+  ANDROID("apk", BrowserDownloadType.Application, Res.drawable.ic_download_android),
+  IOS("ipa", BrowserDownloadType.Application, Res.drawable.ic_download_ios),
+  EXE("exe", BrowserDownloadType.Application, Res.drawable.ic_download_exe),
+  GZ("gz", BrowserDownloadType.Package, Res.drawable.ic_download_package),
+  ZIP("zip", BrowserDownloadType.Package, Res.drawable.ic_download_package),
+  RAR("rar", BrowserDownloadType.Package, Res.drawable.ic_download_package),
+  DOC("doc", BrowserDownloadType.Document, Res.drawable.ic_download_word),
+  DOCX("doc", BrowserDownloadType.Document, Res.drawable.ic_download_word),
+  XLS("xls", BrowserDownloadType.Document, Res.drawable.ic_download_excel),
+  XLSX("xlsx", BrowserDownloadType.Document, Res.drawable.ic_download_excel),
+  PPT("ppt", BrowserDownloadType.Document, Res.drawable.ic_download_powerpoint),
+  PPTX("pptx", BrowserDownloadType.Document, Res.drawable.ic_download_powerpoint),
+  PDF("pdf", BrowserDownloadType.Document, Res.drawable.ic_download_pdf),
+  PNG("png", BrowserDownloadType.Picture, Res.drawable.ic_download_picture),
+  JPG("jpg", BrowserDownloadType.Picture, Res.drawable.ic_download_picture),
+  JPEG("jpeg", BrowserDownloadType.Picture, Res.drawable.ic_download_picture),
+  BMP("bmp", BrowserDownloadType.Picture, Res.drawable.ic_download_picture),
+  SVG("svg", BrowserDownloadType.Picture, Res.drawable.ic_download_picture),
+  MP3("mp3", BrowserDownloadType.Audio, Res.drawable.ic_download_audio),
+  MP4("mp4", BrowserDownloadType.Video, Res.drawable.ic_download_video),
+  AVI("avi", BrowserDownloadType.Video, Res.drawable.ic_download_video),
+  RMVB("rmvb", BrowserDownloadType.Video, Res.drawable.ic_download_video),
 
-  Other("*", BrowserDownloadType.Other, "file:///sys/download/file.svg"),
+  Other("*", BrowserDownloadType.Other, Res.drawable.ic_download_file),
+  ;
+
+  @Composable
+  fun painter() = painterResource(icon)
 }
 
 @Serializable

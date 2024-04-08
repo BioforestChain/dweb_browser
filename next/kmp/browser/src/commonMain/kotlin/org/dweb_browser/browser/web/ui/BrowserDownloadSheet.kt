@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +24,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,15 +34,12 @@ import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
-import org.dweb_browser.browser.web.model.BrowserDownloadModel
 import org.dweb_browser.browser.web.data.BrowserDownloadType
+import org.dweb_browser.browser.web.model.BrowserDownloadModel
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.helper.toSpaceSize
 import org.dweb_browser.helper.valueIn
-import org.dweb_browser.sys.window.render.AppIcon
-import org.dweb_browser.sys.window.render.LocalWindowController
-import org.dweb_browser.sys.window.render.imageFetchHook
 
 /**
  * 下载弹出界面
@@ -117,9 +114,6 @@ private fun BrowserDownloadModel.DownloadTip(downloadItem: BrowserDownloadItem) 
  */
 @Composable
 private fun BrowserDownloadModel.DownloadSheet(downloadItem: BrowserDownloadItem) {
-  val state = LocalWindowController.current.state
-  val microModule by state.constants.microModule
-
   Card(elevation = CardDefaults.cardElevation(0.dp, 0.dp, 0.dp, 0.dp, 0.dp, 0.dp)) {
     Column(
       Modifier.padding(horizontal = 16.dp, vertical = 32.dp),
@@ -138,10 +132,10 @@ private fun BrowserDownloadModel.DownloadSheet(downloadItem: BrowserDownloadItem
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
-        AppIcon(
-          icon = downloadItem.fileSuffix.icon,
+        Image(
+          painter = downloadItem.fileSuffix.painter(),
+          contentDescription = downloadItem.fileName,
           modifier = Modifier.size(56.dp),
-          iconFetchHook = microModule?.imageFetchHook
         )
 
         Column(

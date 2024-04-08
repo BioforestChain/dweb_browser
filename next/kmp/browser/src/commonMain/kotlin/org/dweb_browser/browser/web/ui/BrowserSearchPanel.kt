@@ -63,10 +63,8 @@ import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.ui.common.BrowserTopBar
 import org.dweb_browser.helper.format
-import org.dweb_browser.sys.window.render.AppIcon
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
-import org.dweb_browser.sys.window.render.imageFetchHook
 
 /**
  * 搜索界面
@@ -106,7 +104,8 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
       modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
       contentWindowInsets = WindowInsets(0),
       topBar = {
-        BrowserTopBar(title = BrowserI18nResource.browser_search_title(),
+        BrowserTopBar(
+          title = BrowserI18nResource.browser_search_title(),
           navigationIcon = { /// 左上角导航按钮
             IconButton(onClick = hide) {
               Icon(
@@ -313,16 +312,16 @@ private fun LazyListScope.searchEngineItems(
     key(searchEngine.host) {
       if (index > 0) HorizontalDivider()
       ListItem(headlineContent = {
-        Text(text = searchEngine.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(text = searchEngine.displayName, maxLines = 1, overflow = TextOverflow.Ellipsis)
       }, modifier = Modifier.clickable {
         onSearch(searchEngine.searchLinks.first().format(searchText))
       }, supportingContent = {
         Text(text = searchText, maxLines = 1, overflow = TextOverflow.Ellipsis)
       }, leadingContent = {
-        AppIcon(
-          icon = searchEngine.iconLink,
+        Image(
+          painter = searchEngine.painter(),
+          contentDescription = searchEngine.displayName,
           modifier = Modifier.size(56.dp),
-          iconFetchHook = viewModel.browserNMM.imageFetchHook
         )
       })
     }
