@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jmm
 
-import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.jmm.ui.ManagerViewRender
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -14,7 +13,6 @@ import org.dweb_browser.sys.window.ext.getMainWindow
 class JmmHistoryController(
   internal val jmmNMM: JmmNMM, private val jmmController: JmmController
 ) {
-  val jmmHistoryMetadataList: MutableList<JmmHistoryMetadata> = mutableStateListOf()
   fun getHistoryMetadataMap() = jmmController.historyMetadataMaps
 
   suspend fun close() {
@@ -23,7 +21,7 @@ class JmmHistoryController(
 
   suspend fun openHistoryView(win: WindowController) {
     // 主界面定义
-    win.maximize()
+    win.unMaximize()
     windowAdapterManager.provideRender(win.id) { modifier ->
       ManagerViewRender(modifier = modifier, windowRenderScope = this)
     }

@@ -8,7 +8,9 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.multi.qrcode.QRCodeMultiReader
 import kotlinx.io.IOException
+import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.isWebUrl
 import kotlin.math.abs
 
 /**
@@ -79,6 +81,10 @@ actual fun transformPoint(
  * 打开扫码的结果
  */
 actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
+  // 下盘的是否是 DeepLink，如果不是的话，判断是否是
+  val deepLink = data.regexDeepLink() ?: run {
+    if (data.isWebUrl()) { "dweb://openinbrowser?url=$data" } else "dweb://search?q=$data"
+  }
   WARNING("Not yet implemented openDeepLink")
   return false
 }
