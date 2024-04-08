@@ -3,7 +3,6 @@
 
 import com.android.build.gradle.internal.lint.AndroidLintAnalysisTask
 import com.android.build.gradle.internal.lint.LintModelWriterTask
-import gradle.kotlin.dsl.accessors._55139628d4347f3c5d2203565c61e17d.compose
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectProvider
@@ -14,11 +13,16 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.compose.ComposeExtension
+import org.jetbrains.compose.ComposePlugin
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.kpm.external.ExternalVariantApi
+import org.jetbrains.kotlin.gradle.kpm.external.project
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
@@ -41,6 +45,10 @@ open class KmpJsTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl
 }
 
 class KmpBrowserJsTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpJsTargetDsl(kmpe)
+
+@OptIn(ExternalVariantApi::class)
+val KotlinMultiplatformExtension.compose: ComposePlugin.Dependencies
+  get() = project.extensions.getByType<ComposeExtension>().dependencies
 
 fun KotlinMultiplatformExtension.kmpBrowserJsTarget(
   project: Project,
