@@ -60,10 +60,15 @@ class PureViewController(
 
     @OptIn(ExperimentalResourceApi::class)
     suspend fun startApplication() = awaitApplication {
-      // 初始化退出事件
-      exitDesktop = {
+      // 退出应用
+      suspend fun exitApp() {
         LocalViewHookFlow.emit(TrayEvent.Exit)
         exitApplication()
+        exitProcess(0)
+      }
+      // 初始化退出事件
+      exitDesktop = {
+        exitApp()
       }
       Tray(icon = painterResource(Res.drawable.tray_dweb_browser), menu = {
         Item("Js Process", enabled = LocalViewHookJsProcess.isUse) {
@@ -73,10 +78,8 @@ class PureViewController(
         }
         Item("Exit App") {
           runBlocking {
-            LocalViewHookFlow.emit(TrayEvent.Exit)
+            exitApp()
           }
-          exitApplication()
-          exitProcess(0)
         }
       })
 
