@@ -17,9 +17,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Error
@@ -51,13 +48,13 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
+import org.dweb_browser.browser.common.CommonTextField
 import org.dweb_browser.browser.search.SearchInject
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
@@ -162,33 +159,23 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
               }
             }
           }
-          BasicTextField(
+          CommonTextField(
             value = searchTextField,
-            onValueChange = {
-              searchTextField = it
-            },
+            onValueChange = { searchTextField = it },
             modifier = Modifier.fillMaxWidth().searchBoxStyle(SearchBoxTheme.Border)
               .focusRequester(focusRequester),
-            maxLines = 1,
             singleLine = true,
+            maxLines = 1,
             textStyle = TextStyle.Default.copy(
               fontSize = dimenTextFieldFontSize,
               color = MaterialTheme.colorScheme.onSecondaryContainer
             ),
-            keyboardOptions = KeyboardOptions(
-              // 旧版本判断，如果搜索过一次，那么就直接按照之前搜索的来搜索，不进行输入内容是否域名的判断
-              // imeAction = if (webEngine != null || inputText.isUrlOrHost()) ImeAction.Search else ImeAction.Done
-              imeAction = ImeAction.Search // 增加上面的切换功能，会引起荣耀手机输入法异常多输出一个空格。
-            ),
-            keyboardActions = KeyboardActions(
-              // onDone = { focusManager.clearFocus(); keyboardController?.hide() },
-              onSearch = {
-                // 如果内容符合地址，直接进行搜索，其他情况就按照如果有搜索引擎就按照搜索引擎来，没有的就隐藏键盘
-                uiScope.launch {
-                  viewModel.doSearchUI(searchTextField.text.trim().trim('\u200B').trim())
-                  hide()
-                }
-              }),
+            onKeyboardSearch = {
+              uiScope.launch {
+                viewModel.doSearchUI(searchTextField.text.trim().trim('\u200B').trim())
+                hide()
+              }
+            },
           ) { innerTextField ->
             Row(
               modifier = Modifier.fillMaxSize(),
@@ -210,9 +197,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
                 }
               }
               // 清除文本的按钮
-              IconButton({
-                searchTextField = TextFieldValue("")
-              }) {
+              IconButton(onClick = { searchTextField = TextFieldValue("") }) {
                 Icon(Icons.Default.Clear, contentDescription = "Clear Input Text")
               }
             }
