@@ -15,10 +15,10 @@ actual fun decoderImage(
 }
 
 actual fun transformPoint(
-  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isFit: Boolean
+  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isAlarm: Boolean
 ): QRCodeDecoderResult.Point {
   WARNING("Not yet implemented transformPoint")
-  TODO("Not yet implemented")
+  return QRCodeDecoderResult.Point(0f, 0f)
 }
 
 actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {

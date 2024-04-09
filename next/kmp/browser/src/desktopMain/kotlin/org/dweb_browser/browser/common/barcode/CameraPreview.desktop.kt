@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import org.dweb_browser.helper.platform.PureViewController
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
@@ -23,29 +22,13 @@ actual fun CameraPreviewRender(
   // maskView({ it }, {})
   // 目前考虑到电脑端没有摄像头处理二维码，这边考虑直接使用本地图片打开的方式
   LaunchedEffect(Unit) {
-    val imageBitmap = if (PureViewController.isMacOS) {
-      openFileSelectInMac()
-    } else {
-      openFileSelectInWindowsOrLinux()
-    }
+    val imageBitmap = chooserQRCodeImage()
     imageBitmap?.let { openAlarmResult(imageBitmap) } ?: onCancel("Cancel")
   }
 }
 
-fun openFileSelectInMac(): ImageBitmap? {
-//  val panel = NSOpenPanel.openPanel()
-//  panel.canChooseFiles = true
-//  panel.beginWithCompletionHandler { result ->
-//    if (result == NSFileHandlingPanelOKButton && panel.urls != null) {
-//      println(panel.urls)
-//    }
-//  }
-  return null
-}
-
-fun openFileSelectInWindowsOrLinux(): ImageBitmap? {
-  val dialog = FileDialog(Frame())
-  dialog.mode = FileDialog.LOAD
+fun chooserQRCodeImage(): ImageBitmap? {
+  val dialog = FileDialog(Frame(), "选择一张二维码图片", FileDialog.LOAD)
   dialog.isVisible = true
 
   val fileName = dialog.file

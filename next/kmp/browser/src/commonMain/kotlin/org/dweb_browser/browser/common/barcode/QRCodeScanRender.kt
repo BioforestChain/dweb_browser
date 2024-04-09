@@ -20,6 +20,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,6 +62,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -105,7 +107,7 @@ fun QRCodeScanRender(
           }, onBarcodeDetected = { qrCodeDecoderResult ->
             if (enableBeep) beepAudio()
             scanModel.qrCodeDecoderResult = qrCodeDecoderResult
-            scanModel.updateQRCodeStateUI(QRCodeState.MultiSelect)
+            scanModel.updateQRCodeStateUI(QRCodeState.CameraCheck)
           }, maskView = { flashLightSwitch, openAlbum ->
             DefaultScanningView(flashLightSwitch = flashLightSwitch, openAlbum = openAlbum) {
               onCancel("Cancel")
@@ -119,13 +121,16 @@ fun QRCodeScanRender(
           }, onBarcodeDetected = { qrCodeDecoderResult ->
             if (enableBeep) beepAudio()
             scanModel.qrCodeDecoderResult = qrCodeDecoderResult
-            scanModel.updateQRCodeStateUI(QRCodeState.MultiSelect)
+            scanModel.updateQRCodeStateUI(QRCodeState.AlarmCheck)
           })
         }
 
-        QRCodeState.MultiSelect.type -> {
-          DefaultScanResultView(onClose = { scanModel.updateQRCodeStateUI(QRCodeState.Scanning) },
-            onDataCallback = { onSuccess(it) })
+        QRCodeState.CameraCheck.type, QRCodeState.AlarmCheck.type -> {
+          DefaultScanResultView(
+            isAlarm = state == QRCodeState.AlarmCheck.type,
+            onClose = { scanModel.updateQRCodeStateUI(QRCodeState.Scanning) },
+            onDataCallback = { onSuccess(it) }
+          )
         }
       }
     }
@@ -303,7 +308,9 @@ fun AnalyzeImageView(
 }
 
 @Composable
-private fun DefaultScanResultView(onClose: () -> Unit, onDataCallback: (String) -> Unit) {
+private fun DefaultScanResultView(
+  isAlarm: Boolean, onClose: () -> Unit, onDataCallback: (String) -> Unit
+) {
   val qrCodeScanModel = LocalQRCodeModel.current
   val pointScale = remember { mutableFloatStateOf(1f) }
   val infiniteTransition = rememberInfiniteTransition(label = "")
@@ -331,35 +338,50 @@ private fun DefaultScanResultView(onClose: () -> Unit, onDataCallback: (String) 
     }
   }
 
-  Box(
+  val preBitmap = qrCodeScanModel.qrCodeDecoderResult?.preBitmap ?: run { // 没有图片信息，不要显示选择
+    qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
+    return
+  }
+
+  BoxWithConstraints(
     modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
   ) {
+    val density = LocalDensity.current.density
+    Image(
+      bitmap = preBitmap,
+      contentDescription = "Scan",
+      modifier = Modifier.align(Alignment.Center),
+      contentScale = ContentScale.Fit,
+      alignment = Alignment.Center
+    )
 
-    qrCodeScanModel.qrCodeDecoderResult?.preBitmap?.let { imageBitmap ->
-      Image(
-        bitmap = imageBitmap,
-        contentDescription = "Scan",
-        modifier = Modifier.align(Alignment.Center),
-        contentScale = ContentScale.Fit,
-        alignment = Alignment.Center
-      )
-    } ?: run {// 没有图片信息，不要显示选择
-      qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
-      return
+    val barcodes = qrCodeScanModel.qrCodeDecoderResult?.listQRCode ?: emptyList()
+    val pointList = remember {
+      arrayListOf<QRCodeDecoderResult.Point>().apply {
+        val lastBitmap = qrCodeScanModel.qrCodeDecoderResult?.lastBitmap
+        barcodes.forEach { barcode ->
+          val point = transformPoint(
+            x = barcode.rect.x.toInt(),
+            y = barcode.rect.y.toInt(),
+            srcWidth = lastBitmap?.width ?: 0,
+            srcHeight = lastBitmap?.height ?: 0,
+            destWidth = (maxWidth.value * density).toInt(),
+            destHeight = (maxHeight.value * density).toInt(),
+            isAlarm = isAlarm,
+          )
+          add(point) // 为了响应点击操作
+        }
+      }
     }
 
-    val pointList = arrayListOf<QRCodeDecoderResult.Point>()
-    val barcodes = qrCodeScanModel.qrCodeDecoderResult?.listQRCode ?: emptyList()
-    val bitmapPair =
-      qrCodeScanModel.qrCodeDecoderResult?.lastBitmap?.let { Pair(it.width, it.height) } ?: Pair(
-        0, 0
-      )
 
     Canvas(modifier = Modifier.matchParentSize().pointerInput(Unit) {
       detectTapGestures { offset ->
-        println("detectTapGestures => offset=(${offset.x}, ${offset.y})")
+        println("detectTapGestures => offset=(${offset.x}, ${offset.y}), size=${pointList.size}")
         pointList.forEachIndexed { index, point ->
-          if (offset.x >= point.x - 56f && offset.x <= point.x + 56f && offset.y >= point.y - 56f && offset.y <= point.y + 56f) {
+          if (offset.x >= point.x - 56f && offset.x <= point.x + 56f &&
+            offset.y >= point.y - 56f && offset.y <= point.y + 56f
+          ) {
             val data = try {
               barcodes[index].displayName ?: "data is null"
             } catch (e: Exception) {
@@ -372,17 +394,7 @@ private fun DefaultScanResultView(onClose: () -> Unit, onDataCallback: (String) 
       }
     }) {
       val showBitmap = barcodes.size > 1
-      barcodes.forEach { barcode ->
-        val point = transformPoint(
-          barcode.rect.x.toInt(),
-          barcode.rect.y.toInt(),
-          bitmapPair.first,
-          bitmapPair.second,
-          size.width.toInt(),
-          size.height.toInt()
-        )
-        pointList.add(point) // 为了响应点击操作
-
+      pointList.forEach { point ->
         drawerPoint(point = point, scale = pointScale, showPic = showBitmap)
       }
     }
@@ -409,7 +421,7 @@ private fun DrawScope.drawerPoint(
     radius = radius,
     center = center,
   )
-  if (showPic) { // 手动绘制箭头 TODO 使用path是为了转角连贯，如果三个都用drawLine会导致转角是断裂的
+  if (showPic) { // 手动绘制箭头 // 使用path是为了转角连贯，如果三个都用drawLine会导致转角是断裂的
     val minus = radius / 2
     val path = Path()
     path.moveTo(center.x, center.y - minus)

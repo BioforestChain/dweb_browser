@@ -9,7 +9,7 @@ import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.Signal
 
 enum class QRCodeState(val type: Int) {
-  Hide(0), Scanning(1), AnalyzePhoto(2), MultiSelect(3);
+  Hide(0), Scanning(1), AnalyzePhoto(2), CameraCheck(3), AlarmCheck(4);
 }
 
 /**

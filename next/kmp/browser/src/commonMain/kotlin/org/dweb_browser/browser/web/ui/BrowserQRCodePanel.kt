@@ -40,7 +40,7 @@ fun BrowserQRCodePanel(modifier: Modifier) {
     }
     LocalWindowController.current.GoBackHandler {
       when (qrCodeScanModel.state) {
-        QRCodeState.MultiSelect -> {
+        QRCodeState.CameraCheck, QRCodeState.AlarmCheck -> {
           qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
         }
 

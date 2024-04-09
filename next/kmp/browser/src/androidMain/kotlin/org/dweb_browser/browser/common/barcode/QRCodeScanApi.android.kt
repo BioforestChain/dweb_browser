@@ -39,7 +39,7 @@ actual fun decoderImage(
             org.dweb_browser.helper.PureRect(
               x = barcode.boundingBox?.centerX()?.toFloat() ?: 0f,
               y = barcode.boundingBox?.centerY()?.toFloat() ?: 0f
-            ), null
+            ), barcode.displayValue
           )
         )
       }
@@ -52,16 +52,16 @@ actual fun decoderImage(
 
 
 actual fun transformPoint(
-  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isFit: Boolean
+  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isAlarm: Boolean
 ): QRCodeDecoderResult.Point {
   val widthRatio = destWidth * 1.0f / srcWidth
   val heightRatio = destHeight * 1.0f / srcHeight
-  return if (isFit) { //宽或高自适应铺满
+  return if (isAlarm) {
     val ratio = widthRatio.coerceAtMost(heightRatio)
     val left = abs(srcWidth * ratio - destWidth) / 2
     val top = abs(srcHeight * ratio - destHeight) / 2
     QRCodeDecoderResult.Point(x * ratio + left, y * ratio + top)
-  } else { //填充铺满（可能会出现裁剪）
+  } else {
     val ratio = widthRatio.coerceAtLeast(heightRatio)
     val left = abs(srcWidth * ratio - destWidth) / 2
     val top = abs(srcHeight * ratio - destHeight) / 2
@@ -73,7 +73,9 @@ actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
   val context = getAppContext()
   // 下盘的是否是 DeepLink，如果不是的话，判断是否是
   val deepLink = data.regexDeepLink() ?: run {
-    if (data.isWebUrl()) { "dweb://openinbrowser?url=$data" } else "dweb://search?q=$data"
+    if (data.isWebUrl()) {
+      "dweb://openinbrowser?url=$data"
+    } else "dweb://search?q=$data"
   }
 
   context.startActivity(Intent().apply {

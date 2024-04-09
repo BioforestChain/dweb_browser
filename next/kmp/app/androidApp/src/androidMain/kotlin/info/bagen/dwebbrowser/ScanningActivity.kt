@@ -41,9 +41,11 @@ class ScanningActivity : ComponentActivity() {
     setContent {
       DwebBrowserAppTheme {
         Box(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
-          NativeBackHandler {
+          NativeBackHandler(enabled = true) {
             when (qrCodeScanModel.state) {
-              QRCodeState.MultiSelect -> qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
+              QRCodeState.CameraCheck, QRCodeState.AlarmCheck -> {
+                qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Scanning)
+              }
               else -> {
                 qrCodeScanModel.updateQRCodeStateUI(QRCodeState.Hide)
                 finish()

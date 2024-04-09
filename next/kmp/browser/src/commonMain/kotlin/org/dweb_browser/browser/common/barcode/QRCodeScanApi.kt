@@ -43,13 +43,7 @@ expect fun decoderImage(
  * 计算二维码的位置
  */
 expect fun transformPoint(
-  x: Int,
-  y: Int,
-  srcWidth: Int,
-  srcHeight: Int,
-  destWidth: Int,
-  destHeight: Int,
-  isFit: Boolean = false
+  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isAlarm: Boolean
 ): QRCodeDecoderResult.Point
 
 /**

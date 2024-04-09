@@ -44,10 +44,10 @@ actual fun decoderImage(
       ) + minOf(
         barcode.resultPoints[0].y, barcode.resultPoints[1].y, barcode.resultPoints[2].y
       )) / 2
-      println("decodeImage => barcode=$barcode, ($centerX, $centerY), ${barcode.resultPoints.size}, ${barcode.resultPoints.contentToString()}")
+      println("decodeImage => center=($centerX, $centerY), ${barcode.resultPoints.size}, ${barcode.resultPoints.contentToString()}")
       listRect.add(
         QRCodeDecoderResult.QRCode(
-          org.dweb_browser.helper.PureRect(x = centerX, y = centerY), null
+          org.dweb_browser.helper.PureRect(x = centerX, y = centerY), barcode.text
         )
       )
     }
@@ -64,16 +64,17 @@ actual fun decoderImage(
  * 计算二维码的位置
  */
 actual fun transformPoint(
-  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isFit: Boolean
+  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isAlarm: Boolean
 ): QRCodeDecoderResult.Point {
   val widthRatio = destWidth * 1.0f / srcWidth
   val heightRatio = destHeight * 1.0f / srcHeight
-  return if (isFit) { //宽或高自适应铺满
+
+  return if (isAlarm) {
     val ratio = widthRatio.coerceAtMost(heightRatio)
     val left = abs(srcWidth * ratio - destWidth) / 2
     val top = abs(srcHeight * ratio - destHeight) / 2
     QRCodeDecoderResult.Point(x * ratio + left, y * ratio + top)
-  } else { //填充铺满（可能会出现裁剪）
+  } else {
     val ratio = widthRatio.coerceAtLeast(heightRatio)
     val left = abs(srcWidth * ratio - destWidth) / 2
     val top = abs(srcHeight * ratio - destHeight) / 2
