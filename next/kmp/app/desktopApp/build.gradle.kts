@@ -33,20 +33,22 @@ kotlin {
   }
 }
 
+val appVersion = "2.4.0903"
+
 compose.desktop {
   application {
     mainClass = "MainKt"
-    version = "2.4.0100"
 
     // 用于打包应用时注入key
     jvmArgs += listOf(
-      "-Djxbrowser.license.key=${System.getProperty("jxbrowser.license.key")}"
+      "-Djxbrowser.license.key=${System.getProperty("jxbrowser.license.key")}",
+      "-Ddwebbrowser.version=$appVersion",
     )
 
     nativeDistributions {
       targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
       packageName = "DwebBrowser"
-      packageVersion = version.toString()
+      packageVersion = appVersion
       includeAllModules = true
 
       val iconsRoot =
@@ -91,5 +93,9 @@ compose.desktop {
 afterEvaluate {
   tasks.withType<JavaExec>() {
     systemProperties["jxbrowser.license.key"] = System.getProperty("jxbrowser.license.key")
+    // 注入应用版本
+    systemProperties["dwebbrowser.version"] = appVersion
+
+//    jvmArgs("--add-opens", "java.desktop/java.awt=ALL-UNNAMED")
   }
 }

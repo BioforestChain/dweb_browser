@@ -36,6 +36,6 @@ actual object DeviceManage {
   }
 
   actual fun deviceAppVersion(): String {
-    return DeviceManage::class.java.`package`?.implementationVersion ?: "0.0.0-dev.0"
+    return System.getProperty("dwebbrowser.version") ?: javaClass.`package`?.implementationVersion ?: "0.0.0-dev.0"
   }
 }
