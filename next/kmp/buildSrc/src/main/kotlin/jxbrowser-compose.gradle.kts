@@ -19,7 +19,7 @@ repositories {
 
 jxbrowser {
   version = libs.versions.jxbrowser.version.get()
-  includePreviewBuilds = true
+  includePreviewBuilds = version.contains("eap")
 }
 
 kotlin {
@@ -27,7 +27,9 @@ kotlin {
     dependencies {
       api(jxbrowser.currentPlatform)
       api(jxbrowser.swing)
-      api(jxbrowser.compose)
+      if (libs.versions.jxbrowser.version.get().contains("eap")) {
+        api(jxbrowser.compose)
+      }
     }
   }
 }

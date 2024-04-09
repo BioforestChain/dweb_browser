@@ -140,6 +140,9 @@ class DWebView(
   override val onCreateWindow by _engineLazy.then { viewEngine.createWindowSignal.toListener() }
   override val onDownloadListener by _engineLazy.then { viewEngine.downloadSignal.toListener() }
   override val onScroll by _engineLazy.then { viewEngine.scrollSignal.toListener() }
+  override suspend fun openDevTool() {
+    viewEngine.browser.devTools().show()
+  }
 
   override suspend fun getFavoriteIcon() = viewEngine.getFavoriteIcon()
 

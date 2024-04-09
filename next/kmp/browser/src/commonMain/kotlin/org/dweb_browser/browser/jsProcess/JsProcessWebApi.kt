@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.jsProcess
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -141,6 +142,8 @@ suspend fun createJsProcessWeb(
   val jsProcessUrl = urlInfo.buildInternalUrl().build { resolvePath("/index.html") }.toString()
   val dWebView = IDWebView.create(mm, DWebViewOptions(privateNet = true))
   dWebView.loadUrl(jsProcessUrl)
+  // 监听打开开发者工具事件
+  listenOpenDevTool(dWebView, mm.ioAsyncScope)
   /// 确保API可用
   while (dWebView.evaluateAsyncJavascriptCode("typeof createProcess==='function'") == "false") {
     delay(5)
@@ -148,3 +151,8 @@ suspend fun createJsProcessWeb(
 
   return JsProcessWebApi(dWebView)
 }
+
+/**
+ *  桌面端监听打开开发者工具事件
+ */
+expect fun listenOpenDevTool(dWebView: IDWebView, scope: CoroutineScope)

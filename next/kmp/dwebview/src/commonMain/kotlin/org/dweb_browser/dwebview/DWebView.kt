@@ -134,6 +134,11 @@ abstract class IDWebView(initUrl: String?) {
   abstract val onScroll: Signal.Listener<ScrollChangeEvent>
 
   /**
+   * 打开开发者工具
+   */
+  abstract suspend fun openDevTool():Unit
+
+  /**
    * 获取webview返回到favorite icon
    */
   abstract suspend fun getFavoriteIcon(): ImageBitmap?

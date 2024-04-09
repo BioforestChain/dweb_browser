@@ -7,6 +7,15 @@ kotlin {
     @Suppress("OPT_IN_USAGE")
     applyHierarchy {
       common {
+        group("mobile") {
+          withAndroidTarget()
+          withIosTarget()
+        }
+      }
+    }
+    @Suppress("OPT_IN_USAGE")
+    applyHierarchy {
+      common {
         group("jvm") {
           withDesktopTarget()
           withAndroidTarget()

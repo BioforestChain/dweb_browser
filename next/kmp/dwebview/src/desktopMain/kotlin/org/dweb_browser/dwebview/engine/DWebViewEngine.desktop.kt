@@ -31,7 +31,6 @@ import com.teamdev.jxbrowser.view.swing.BrowserView
 import com.teamdev.jxbrowser.zoom.ZoomLevel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -53,6 +52,7 @@ import org.dweb_browser.helper.getOrNull
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.PureViewController
+import org.dweb_browser.helper.platform.localViewHookExit
 import org.dweb_browser.helper.platform.toImageBitmap
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.platform.desktop.webview.WebviewEngine
@@ -118,8 +118,8 @@ class DWebViewEngine internal constructor(
       browser.on(BrowserClosed::class.java) {
         engine.close()
       }
-      MainScope().launch {
-        PureViewController.beforeExit.collect {
+      remoteMM.ioAsyncScope.launch {
+        localViewHookExit.collect {
           engine.close()
         }
       }

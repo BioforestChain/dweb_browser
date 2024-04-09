@@ -2,6 +2,9 @@ package org.dweb_browser.helper.platform
 
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.mapNotNull
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.compose.compositionChainOf
 
@@ -47,4 +50,33 @@ interface IPureViewCreateParams : Map<String, Any?> {
   fun getBoolean(key: String): Boolean?
 }
 
+// 视图控制器
 val LocalPureViewController = compositionChainOf<IPureViewController>("LocalPureViewController")
+
+// region 视图回调事件 TODO 感觉这种回调视图的事件操作方法是不是不太好？
+val LocalViewHookFlow = MutableSharedFlow<TrayEvent>()
+
+// jsProcess 控制台回调
+class LocalViewHookJsProcess {
+  companion object {
+    var isUse = false
+    fun flow(): Flow<Boolean> {
+      isUse = true
+      return LocalViewHookFlow.mapNotNull {
+        if (it == TrayEvent.JsProcess) true else null
+      }
+    }
+  }
+
+}
+
+// 返回销毁事件回调
+val localViewHookExit = LocalViewHookFlow.mapNotNull {
+  if (it == TrayEvent.Exit) true else null
+}
+
+enum class TrayEvent {
+  Exit,
+  JsProcess
+}
+// endregion

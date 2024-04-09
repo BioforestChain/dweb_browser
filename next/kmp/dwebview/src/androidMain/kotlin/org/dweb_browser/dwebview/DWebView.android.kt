@@ -222,13 +222,15 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
   override val onDownloadListener by lazy { engine.dWebDownloadListener.downloadSignal.toListener() }
   override val onScroll by lazy { engine.scrollSignal.toListener() }
 
-  private class FaviconIcon(val favicon:Bitmap){
+
+  private class FaviconIcon(val favicon: Bitmap) {
     val imageBitmap = favicon.asImageBitmap()
   }
-  private var faviconIcon:FaviconIcon?=null
+
+  private var faviconIcon: FaviconIcon? = null
   override suspend fun getFavoriteIcon(): ImageBitmap? = withMainContext {
     val favicon = engine.favicon
-    if(faviconIcon?.favicon != favicon){
+    if (faviconIcon?.favicon != favicon) {
       faviconIcon = favicon?.let { FaviconIcon(it) }
     }
     faviconIcon?.imageBitmap
@@ -243,6 +245,10 @@ class DWebView(internal val engine: DWebViewEngine, initUrl: String? = null) : I
     if (loadUrl(destroyUrl) == destroyUrl) {
       destroy()
     }
+  }
+
+  override suspend fun openDevTool() {
+    evaluateAsyncJavascriptCode("console.log('openDevTool')")
   }
 
   override fun requestRefresh() {

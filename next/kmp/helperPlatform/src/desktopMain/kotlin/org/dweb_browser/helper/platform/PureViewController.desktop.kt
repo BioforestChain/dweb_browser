@@ -17,7 +17,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -55,36 +54,27 @@ class PureViewController(
       prepared.await()
     }
 
-    // app钩子事件
-    private val _beforeExit = MutableSharedFlow<ApplicationSignal>(replay = 1)
-    val beforeExit = _beforeExit.asSharedFlow()
-
-    enum class ApplicationSignal {
-      Exit
-    }
-
-    // tray 事件回调
-    private val _clickJsProcess = MutableSharedFlow<TrayEvent>(replay = 1)
-    val clickTray = _clickJsProcess.asSharedFlow()
-
-    enum class TrayEvent {
-      JsProcess
-    }
-
-    var exitApplication: suspend () -> Unit = {}
+    // dweb_browser桌面窗口退出
+    var exitDesktop: suspend () -> Unit = {}
       private set
 
     @OptIn(ExperimentalResourceApi::class)
     suspend fun startApplication() = awaitApplication {
-      exitApplication = {
-        _beforeExit.emit(ApplicationSignal.Exit)
-        this@awaitApplication.exitApplication()
+      // 初始化退出事件
+      exitDesktop = {
+        LocalViewHookFlow.emit(TrayEvent.Exit)
+        exitApplication()
       }
       Tray(icon = painterResource(Res.drawable.tray_dweb_browser), menu = {
-        Item("JsProcess") {
-          runBlocking { _clickJsProcess.emit(TrayEvent.JsProcess) }
+        Item("Js Process", enabled = LocalViewHookJsProcess.isUse) {
+          runBlocking {
+            LocalViewHookFlow.emit(TrayEvent.JsProcess)
+          }
         }
-        Item("Exit") {
+        Item("Exit App") {
+          runBlocking {
+            LocalViewHookFlow.emit(TrayEvent.Exit)
+          }
           exitApplication()
           exitProcess(0)
         }

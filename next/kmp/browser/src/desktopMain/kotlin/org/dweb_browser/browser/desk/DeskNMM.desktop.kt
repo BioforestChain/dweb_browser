@@ -17,7 +17,7 @@ actual suspend fun DeskNMM.startDesktopView(deskSessionId: String) {
     composeWindowParams.openWindow()
     composeWindowParams.onCloseRequest = {
       ioAsyncScope.launch {
-        PureViewController.exitApplication()
+        PureViewController.exitDesktop()
       }
     }
   }

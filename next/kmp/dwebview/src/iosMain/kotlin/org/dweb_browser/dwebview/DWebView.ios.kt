@@ -273,6 +273,10 @@ class DWebView(
     Signal<ScrollChangeEvent>().toListener()
   }
 
+  override suspend fun openDevTool() {
+    evaluateAsyncJavascriptCode("console.log('openDevTool')")
+  }
+
   override suspend fun getFavoriteIcon(): ImageBitmap? = withMainContext {
     WARNING("Not yet implemented getFavoriteIcon")
     null
