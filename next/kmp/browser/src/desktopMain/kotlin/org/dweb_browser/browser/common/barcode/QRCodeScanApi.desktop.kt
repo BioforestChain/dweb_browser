@@ -10,7 +10,9 @@ import com.google.zxing.multi.qrcode.QRCodeMultiReader
 import kotlinx.io.IOException
 import org.dweb_browser.browser.util.regexDeepLink
 import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.isWebUrl
+import org.dweb_browser.helper.platform.DeepLinkHook
 import kotlin.math.abs
 
 /**
@@ -32,12 +34,20 @@ actual fun decoderImage(
     val listRect: MutableList<QRCodeDecoderResult.QRCode> = mutableListOf()
     result.forEach { barcode ->
       // 通常二维码是返回3个坐标，也就是左上，右上，左下的坐标，也可能存在4个坐标，也就是右下的坐标
-      val centerX = (maxOf(barcode.resultPoints[0].x, barcode.resultPoints[1].x, barcode.resultPoints[2].x) + minOf(barcode.resultPoints[0].x, barcode.resultPoints[1].x, barcode.resultPoints[2].x)) / 2
-      val centerY = (maxOf(barcode.resultPoints[0].y, barcode.resultPoints[1].y, barcode.resultPoints[2].y) + minOf(barcode.resultPoints[0].y, barcode.resultPoints[1].y, barcode.resultPoints[2].y)) / 2
+      val centerX = (maxOf(
+        barcode.resultPoints[0].x, barcode.resultPoints[1].x, barcode.resultPoints[2].x
+      ) + minOf(
+        barcode.resultPoints[0].x, barcode.resultPoints[1].x, barcode.resultPoints[2].x
+      )) / 2
+      val centerY = (maxOf(
+        barcode.resultPoints[0].y, barcode.resultPoints[1].y, barcode.resultPoints[2].y
+      ) + minOf(
+        barcode.resultPoints[0].y, barcode.resultPoints[1].y, barcode.resultPoints[2].y
+      )) / 2
       println("decodeImage => barcode=$barcode, ($centerX, $centerY), ${barcode.resultPoints.size}, ${barcode.resultPoints.contentToString()}")
       listRect.add(
         QRCodeDecoderResult.QRCode(
-          org.dweb_browser.helper.PureRect(x = centerX, y = centerY,), null
+          org.dweb_browser.helper.PureRect(x = centerX, y = centerY), null
         )
       )
     }
@@ -54,13 +64,7 @@ actual fun decoderImage(
  * 计算二维码的位置
  */
 actual fun transformPoint(
-  x: Int,
-  y: Int,
-  srcWidth: Int,
-  srcHeight: Int,
-  destWidth: Int,
-  destHeight: Int,
-  isFit: Boolean
+  x: Int, y: Int, srcWidth: Int, srcHeight: Int, destWidth: Int, destHeight: Int, isFit: Boolean
 ): QRCodeDecoderResult.Point {
   val widthRatio = destWidth * 1.0f / srcWidth
   val heightRatio = destHeight * 1.0f / srcHeight
@@ -83,8 +87,12 @@ actual fun transformPoint(
 actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
   // 下盘的是否是 DeepLink，如果不是的话，判断是否是
   val deepLink = data.regexDeepLink() ?: run {
-    if (data.isWebUrl()) { "dweb://openinbrowser?url=$data" } else "dweb://search?q=$data"
+    if (data.isWebUrl()) {
+      "dweb://openinbrowser?url=${data.encodeURIComponent()}"
+    } else {
+      "dweb://search?q=${data.encodeURIComponent()}"
+    }
   }
-  WARNING("Not yet implemented openDeepLink")
+  DeepLinkHook.deepLinkHook.emitOnInit(deepLink)
   return false
 }

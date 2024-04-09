@@ -19,6 +19,7 @@ import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.std.http.MultipartNMM
 import org.dweb_browser.core.std.permission.debugPermission
 import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.platform.DeepLinkHook
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.sys.biometrics.BiometricsNMM
 import org.dweb_browser.sys.boot.BootNMM
@@ -80,7 +81,13 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   }
 
   /// 初始化DNS服务
-  val dnsNMM = DnsNMM()
+  val dnsNMM = DnsNMM().also { dnsNMM ->
+    DeepLinkHook.deepLinkHook.deeplinkSignal.listen {
+      println("deeplinkSignal => url=$it")
+      dnsNMM.nativeFetch(it)
+    }
+  }
+
   suspend fun MicroModule.setup() = this.also {
     dnsNMM.install(this)
   }
