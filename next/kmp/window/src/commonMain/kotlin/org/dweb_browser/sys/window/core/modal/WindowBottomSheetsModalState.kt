@@ -83,7 +83,7 @@ class BottomSheetsModalState private constructor(
     val show by isOpenState
 
     fun emitDismiss(isDismiss: Boolean) {
-      mm.scopeLaunch {
+      mm.scopeLaunch(cancelable = true) {
         dismissFlow.emit(isDismiss)
       }
     }
@@ -127,7 +127,7 @@ class BottomSheetsModalState private constructor(
       sendCallback(mm, OpenModalCallback(sessionId))
 
       debugModal("DisposableEffect", " disposable")
-      val job = mm.scopeLaunch(cancelable = true) {
+      val job = mm.scopeLaunch(cancelable = false) {
         dismissFlow.map { dismiss ->
           dismiss.falseAlso { hasExpanded = true }
         }.debounce(200).collect { dismiss ->

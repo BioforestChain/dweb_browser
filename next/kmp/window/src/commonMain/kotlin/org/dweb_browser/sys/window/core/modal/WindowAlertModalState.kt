@@ -69,7 +69,7 @@ data class AlertModalState internal constructor(
     val mm = LocalWindowMM.current
     val show by isOpenState
 
-    fun onModalDismissRequest(isDismiss: Boolean) = mm.scopeLaunch {
+    fun onModalDismissRequest(isDismiss: Boolean) = mm.scopeLaunch(cancelable = false) {
       dismissFlow.emit(isDismiss)
     }
 
@@ -108,7 +108,7 @@ data class AlertModalState internal constructor(
         onModalDismissRequest(true)
         sendCallback(mm, CloseAlertModalCallback(sessionId, confirm))
         if (once) {
-          mm.scopeLaunch {
+          mm.scopeLaunch(cancelable = false) {
             parent.removeModal(mm, modalId)
           }
         }

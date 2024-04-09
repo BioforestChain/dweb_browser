@@ -259,7 +259,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
           }
         }
         submitDeferred.invokeOnCompletion {
-          scopeLaunch {
+          scopeLaunch(cancelable = false) {
             modal.close()
           }
         }

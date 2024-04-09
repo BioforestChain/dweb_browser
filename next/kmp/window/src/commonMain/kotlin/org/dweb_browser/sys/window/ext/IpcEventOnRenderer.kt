@@ -39,15 +39,16 @@ val NativeMicroModule.NativeRuntime.hasMainWindow
   get() = getMainWindowIdWMDeferred(this).isCompleted
 
 suspend fun NativeMicroModule.NativeRuntime.onRenderer(cb: suspend RendererContext.() -> Unit) =
-  onConnect.listen { (ipc) ->
-    scopeLaunch {
+  onConnect.listen { event ->
+    val (ipc) = event.data
+    scopeLaunch(cancelable = false) {
       ipc.onEvent("onRender").collectIn { event ->
         event.consumeFilter { ipcEvent ->
           if (ipcEvent.isRenderer()) {
             val context = RendererContext.get(ipcEvent, ipc, this@onRenderer)
             context.cb()
             ipc.onClosed {
-              scopeLaunch {
+              scopeLaunch(cancelable = false) {
                 context.emitDispose()
               }
             }

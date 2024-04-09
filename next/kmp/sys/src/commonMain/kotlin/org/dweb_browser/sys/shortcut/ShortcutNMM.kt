@@ -44,7 +44,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
 
   inner class ShortcutRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     init {
-      scopeLaunch {
+      scopeLaunch(cancelable = false) {
         shortcutManage.initShortcut() // 初始化
       }
     }

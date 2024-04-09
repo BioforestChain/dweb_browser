@@ -176,7 +176,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
       // 监听关闭事件
       jsIpc.onClosed {
-        scopeLaunch {
+        scopeLaunch(cancelable = false) {
           shutdown()
         }
       }
@@ -356,13 +356,13 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
              * 监听关闭事件
              */
             toJmmIpc.onClosed {
-              scopeLaunch {
+              scopeLaunch(cancelable = false) {
                 fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
                 targetIpc.close()
               }
             }
             targetIpc.onClosed {
-              scopeLaunch {
+              scopeLaunch(cancelable = false) {
                 fromMMIDOriginIpcWM.remove(toJmmIpc.remote.mmid)
                 toJmmIpc.close()
               }

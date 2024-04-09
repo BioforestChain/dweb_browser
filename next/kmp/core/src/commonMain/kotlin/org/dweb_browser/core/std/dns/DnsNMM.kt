@@ -27,8 +27,6 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.connectMicroModules
 import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.core.std.dns.ext.createActivity
-import org.dweb_browser.core.std.permission.AuthorizationStatus
-import org.dweb_browser.core.std.permission.ext.requestPermissions
 import org.dweb_browser.core.std.permission.permissionAdapterManager
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
@@ -41,7 +39,6 @@ import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.pure.http.PureUrl
-import org.dweb_browser.pure.http.buildRequestX
 
 val debugDNS = Debugger("dns")
 
@@ -239,33 +236,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       install(this@DnsNMM)
       addRunningApp(RunningApp(this@DnsNMM, CompletableDeferred(this)))
 
-      /**
-       * 对全局的自定义路由提供适配器
-       * 对 nativeFetch 定义 file://xxx.dweb的解析
-       */
-      nativeFetchAdaptersManager.append { fromMM, request ->
-        if (request.url.protocol.name == "file" && request.url.host.endsWith(".dweb")) {
-          val mpid = request.url.host
-          debugDNS("fetch ipc", "$fromMM => ${request.href}")
-          val url = request.href
-          val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
-          if (installApps(mpid).isNotEmpty()) {
-            val fromIpc = connectTo(fromMM.microModule, mpid, reasonRequest)
-            var response = fromIpc.request(request)
-            if (response.status == HttpStatusCode.Unauthorized) {
-              val permissions = response.body.toPureString()
-              /// 尝试进行授权请求
-              if (fromMM is NativeMicroModule.NativeRuntime && fromMM.requestPermissions(permissions)
-                  .all { it.value == AuthorizationStatus.GRANTED }
-              ) {
-                /// 如果授权完全成功，那么重新进行请求
-                response = fromIpc.request(request)
-              }
-            }
-            response
-          } else PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
-        } else null
-      }.removeWhen(this.mmScope)
       /** dwebDeepLink 适配器*/
       nativeFetchAdaptersManager.append { fromMM, request ->
         if (request.href.startsWith("dweb:")) {

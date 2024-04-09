@@ -162,7 +162,11 @@ open class Ipc internal constructor(
           remote = remote,
           pool = pool,
         ).also { ipc ->
-          pool.safeCreatedIpc(ipc, autoStart = ipcFork.autoStart)
+          pool.safeCreatedIpc(
+            ipc,
+            autoStart = ipcFork.autoStart,
+            startReason = ipcFork.startReason
+          )
         })
       }
     }
@@ -215,6 +219,7 @@ open class Ipc internal constructor(
     locale: IMicroModuleManifest = this.locale,
     remote: IMicroModuleManifest = this.remote,
     autoStart: Boolean = false,
+    startReason: String? = null,
   ): Ipc {
     awaitOpen("then-fork")
     val forkedIpc = pool.createIpc(
@@ -223,6 +228,7 @@ open class Ipc internal constructor(
       locale = locale,
       remote = remote,
       autoStart = autoStart,
+      startReason = startReason
     )
     // 自触发
     forkProducer.emit(forkedIpc)
@@ -231,6 +237,7 @@ open class Ipc internal constructor(
       IpcFork(
         pid = forkedIpc.pid,
         autoStart = autoStart,
+        startReason = startReason,
         /// 对调locale/remote
         locale = forkedIpc.remote.toCommonAppManifest(),
         remote = forkedIpc.locale.toCommonAppManifest(),

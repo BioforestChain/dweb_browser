@@ -115,7 +115,7 @@ class PermissionApplicantTMM :
             }
             Row {
               ElevatedButton(onClick = {
-                scopeLaunch {
+                scopeLaunch(cancelable = false) {
                   okk = requestSystemPermissions(
                     SystemPermissionTask(
                       SystemPermissionName.CAMERA,

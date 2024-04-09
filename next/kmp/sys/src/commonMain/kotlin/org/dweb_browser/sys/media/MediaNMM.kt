@@ -3,7 +3,6 @@ package org.dweb_browser.sys.media
 import io.ktor.http.ContentType
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -69,7 +68,7 @@ class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
               val fieldMediaMap = mutableMapOf</* field_index */Int, MediaPicture>()
               val channel = Channel<FieldChunkTask>(capacity = Channel.RENDEZVOUS)
               val deferred = CompletableDeferred<Boolean>()
-              scopeLaunch {
+              scopeLaunch(cancelable = true) {
                 for (task in channel) {
                   fieldMediaMap[task.field_index]?.also {
                     it.consumePictureChunk(task.chunk)

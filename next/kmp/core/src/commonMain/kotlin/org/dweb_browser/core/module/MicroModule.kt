@@ -3,17 +3,13 @@ package org.dweb_browser.core.module
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -24,6 +20,8 @@ import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.Producer
+import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
@@ -58,15 +56,12 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   abstract inner class Runtime : IMicroModuleManifest by manifest {
     val debugMM get() = this@MicroModule.debugMM
     abstract val bootstrapContext: BootstrapContext
-    val scope =
-      CoroutineScope(SupervisorJob() + defaultAsyncExceptionHandler + CoroutineName(manifest.mmid))
 
     open val routers: Router? = null
 
-    private fun getModuleCoroutineScope() =
-      CoroutineScope(SupervisorJob() + defaultAsyncExceptionHandler + CoroutineName(mmid))
+    protected val mmScope =
+      CoroutineScope(SupervisorJob() + defaultAsyncExceptionHandler + CoroutineName(manifest.mmid))
 
-    protected val mmScope = getModuleCoroutineScope()
     fun getRuntimeScope() = mmScope
 
     private inner class ScopeJob(val job: Job, val cancelable: Boolean) {
@@ -86,15 +81,15 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
      */
     fun scopeLaunch(
       context: CoroutineContext = EmptyCoroutineContext,
-      cancelable: Boolean = false,
+      cancelable: Boolean,
       action: suspend CoroutineScope.() -> Unit,
     ) = mmScope.launch(context = context, block = action).also { job ->
       ScopeJob(job, cancelable)
     }
 
-    fun <R>scopeAsync(
+    fun <R> scopeAsync(
       context: CoroutineContext = EmptyCoroutineContext,
-      cancelable: Boolean = false,
+      cancelable: Boolean,
       action: suspend CoroutineScope.() -> R,
     ) = mmScope.async(context = context, block = action).also { job ->
       ScopeJob(job, cancelable)
@@ -171,33 +166,34 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     /**
      * 内部程序与外部程序通讯的方法
      */
-    private val ipcConnectedChannel = Channel<IpcConnectArgs>();
+    private val ipcConnectedProducer = Producer<IpcConnectArgs>("ipcConnect", mmScope);
 
     /**
      * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
      * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
      * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
      */
-    val onConnect = ipcConnectedChannel.consumeAsFlow().shareIn(mmScope, SharingStarted.Lazily)
+    val onConnect = ipcConnectedProducer.consumer("for-internal")
 
-    private val connectionMap = SafeHashMap<MMID, Deferred<Ipc>>()
+    private val connectReason = ReasonLock()
+    private val connectionMap = SafeHashMap<MMID, Ipc>()
 
     /**
      * 尝试连接到指定对象
      */
-    suspend fun connect(mmid: MMID, reason: PureRequest? = null) = connectionMap.getOrPut(mmid) {
-      mmScope.async {
-        bootstrapContext.dns.connect(mmid, reason).also {
-          beConnect(it, reason)
-        }
-      }.also { jobs.add(ScopeJob(it.job, true)) }
-    }.await()
+    suspend fun connect(mmid: MMID, reason: PureRequest? = null) = connectReason.withLock(mmid) {
+      connectionMap[mmid] ?: bootstrapContext.dns.connect(mmid, reason).also {
+        connectionMap[mmid] = it
+        beConnect(it, reason)
+      }
+    }
 
     /**
      * 收到一个连接，触发相关事件
      */
     suspend fun beConnect(ipc: Ipc, reason: PureRequest?) {
-      runtimeLock.withLock {
+      scopeLaunch(cancelable = false) {
+        println("QAQ beConnect $ipc")
         if (connectionLinks.add(ipc)) {
           // 这个ipc分叉出来的ipc也会一并归入管理
           ipc.onFork("beConnect").listen {
@@ -211,10 +207,14 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
             connectionLinks.remove(ipc)
           }
           // 尝试保存到双向连接索引中
-          @Suppress("DeferredResultUnused") connectionMap.getOrPut(ipc.remote.mmid) {
-            CompletableDeferred(ipc)
+          ipc.remote.mmid.also { remoteMmid ->
+            connectReason.withLock(remoteMmid) {
+              if (!connectionMap.contains(remoteMmid)) {
+                connectionMap[remoteMmid] = ipc
+              }
+            }
           }
-          ipcConnectedChannel.send(IpcConnectArgs(ipc, reason))
+          ipcConnectedProducer.emit(IpcConnectArgs(ipc, reason))
         }
       }
     }

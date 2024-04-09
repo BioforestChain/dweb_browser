@@ -47,7 +47,7 @@ class PermissionTable(private val nmm: NativeMicroModule.NativeRuntime) {
   private val lock = Mutex(true)
 
   init {
-    nmm.scopeLaunch {
+    nmm.scopeLaunch(cancelable = false) {
       for ((pid, recordMap) in permissionStore.getAll<MutableMap<MMID, AuthorizationRecord>>()) {
         authorizationMap[pid] =
           mutableStateMapOf(*recordMap.map { it.key to it.value }.toTypedArray())

@@ -13,7 +13,7 @@ fun MicroModule.Runtime.getUIApplication() = nativeMicroModuleUIApplication
 
 val lockActivityState = Mutex()
 fun MicroModule.Runtime.startUIViewController(pureViewController: PureViewController) {
-  scopeLaunch {
+  scopeLaunch(cancelable = false) {
     lockActivityState.withLock {
       if (grant?.await() == false) {
         return@withLock // TODO 用户拒绝协议应该做的事情

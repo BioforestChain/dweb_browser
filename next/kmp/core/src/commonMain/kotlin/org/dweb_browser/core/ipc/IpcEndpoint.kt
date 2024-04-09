@@ -59,7 +59,7 @@ abstract class IpcEndpoint {
    * 获取消息管道
    */
   fun getIpcMessageProducer(pid: Int) = ipcMessageProducers.getOrPut(pid) {
-    Producer<IpcMessage>("ipc-message", scope).apply {
+    Producer<IpcMessage>("ipc-msg#$debugId", scope).apply {
       invokeOnClose { ipcMessageProducers.remove(pid) }
     }
   }
@@ -127,6 +127,7 @@ abstract class IpcEndpoint {
    * 启动
    */
   private val startOnce = SuspendOnce {
+    debugEndpoint("start", lifecycle)
     doStart()
     var localeSubProtocols = getLocaleSubProtocols()
     // 当前状态必须是从init开始
@@ -139,7 +140,6 @@ abstract class IpcEndpoint {
 
       else -> throw IllegalStateException("endpoint state=$state")
     }
-    debugEndpoint("start")
     // 监听远端生命周期指令，进行协议协商
     lifecycleRemoteFlow.collectIn(scope) { state ->
       debugEndpoint("lifecycle-in", state)

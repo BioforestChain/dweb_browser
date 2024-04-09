@@ -43,7 +43,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
           val remoteMm = getRemoteRuntime()
           debugMultiWebView("/open", "MultiWebViewNMM open!!! ${remoteMm.mmid}")
           ipc.onClosed {
-            scopeLaunch {
+            scopeLaunch(cancelable = false) {
               debugMultiWebView("/open", "listen ipc close destroy window")
               val controller = controllerMap[ipc.remote.mmid]
               controller?.destroyWebView()

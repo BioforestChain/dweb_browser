@@ -87,7 +87,7 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
           }
         }
 
-        scopeLaunch {
+        scopeLaunch(cancelable = false) {
           processMultipartOpen(boundary, multipartEachArrayRangeCallback)
         }
         val id = deferred.await()

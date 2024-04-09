@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -83,7 +82,7 @@ sealed class ModalState() {
     sendCallback(mm, CloseModalCallback(sessionId))
     // 如果是一次性显示的，那么直接关闭它
     if (once) {
-      mm.scopeLaunch {
+      mm.scopeLaunch(cancelable = false) {
         safeDestroy(mm)
       }
     }

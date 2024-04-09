@@ -46,7 +46,7 @@ sealed class WindowModalController(
       }
       _state = value
       // 监听状态更新并且触发相关事件
-      mm.scopeLaunch {
+      mm.scopeLaunch(cancelable = false) {
         onStateChangeSignal.emit(value)
         when (_state) {
           WindowModalState.OPEN -> onOpenSignal.emit(Unit)

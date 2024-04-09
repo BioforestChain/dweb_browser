@@ -51,7 +51,7 @@ class BrowserDownloadController(
    * 保存下载的数据
    */
   fun saveDownloadList(download: Boolean = true, complete: Boolean = false) =
-    browserNMM.scopeLaunch {
+    browserNMM.scopeLaunch(cancelable = false) {
       if (download) downloadStore.saveDownloadList(saveDownloadList)
       if (complete) downloadStore.saveCompleteList(saveCompleteList)
     }

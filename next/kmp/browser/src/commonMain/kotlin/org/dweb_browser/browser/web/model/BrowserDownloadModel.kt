@@ -84,7 +84,7 @@ class BrowserDownloadModel(
     downloadSheet = browserNMM.createBottomSheets { BrowserDownloadSheet(item) }.apply { open() }
   }
 
-  fun close() = browserNMM.scopeLaunch {
+  fun close() = browserNMM.scopeLaunch(cancelable = false) {
     downloadSheet?.close()
     downloadSheet = null
   }

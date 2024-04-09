@@ -427,7 +427,7 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
     downloadTaskMaps.remove(taskId)?.let { downloadTask ->
       downloadTask.readChannel?.cancel()
       downloadTask.readChannel = null
-      downloadNMM.scopeLaunch { fileRemove(downloadTask.filepath) }
+      downloadNMM.scopeLaunch(cancelable = false) { fileRemove(downloadTask.filepath) }
     }
   }
 

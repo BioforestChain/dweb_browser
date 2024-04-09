@@ -120,7 +120,7 @@ class IpcClientRequest(
           "$PURE_CHANNEL_EVENT_PREFIX-${postIpc.debugId}/${reqId}/${duplexAcc.inc().value}"
 
         postIpc.debugIpc("ipcClient/hasChannel") { "create ipcEventBaseName:$eventNameBase => request:$pureRequest" }
-        CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
+        postIpc.scope.launch {
           val pureChannel = pureRequest.getChannel()
 //          debugIpc("ipcClient/channelToIpc") { "channelId:$eventNameBase => pureChannel:$pureChannel start!!" }
           /// 不论是请求者还是响应者
@@ -289,7 +289,7 @@ sealed class IpcRequest(
       val eventData = "data"
       val eventClose = "close"
       val started = CompletableDeferred<IpcEvent>()
-      val channelIpc = parentIpc.fork()
+      val channelIpc = parentIpc.fork(autoStart = true, startReason = debugTag)
       coroutineScope {
         channelIpc.onEvent("pureChannelToIpcEvent").collectIn(this) { event ->
           val ipcEvent = event.data

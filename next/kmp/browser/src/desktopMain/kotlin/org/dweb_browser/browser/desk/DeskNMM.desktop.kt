@@ -16,7 +16,7 @@ actual suspend fun DeskNMM.DeskRuntime.startDesktopView(deskSessionId: String) {
     composeWindowParams.title = "desk.browser.dweb"
     composeWindowParams.openWindow()
     composeWindowParams.onCloseRequest = {
-      scopeLaunch {
+      scopeLaunch(cancelable = false) {
         PureViewController.exitDesktop()
       }
     }

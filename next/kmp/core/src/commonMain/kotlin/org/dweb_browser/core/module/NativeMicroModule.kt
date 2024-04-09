@@ -26,7 +26,10 @@ import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.ReadableStreamOut
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.PermissionProvider
+import org.dweb_browser.core.std.permission.ext.requestPermissions
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.collectIn
@@ -42,6 +45,8 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.PureStreamBody
+import org.dweb_browser.pure.http.PureStringBody
+import org.dweb_browser.pure.http.buildRequestX
 
 
 abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(manifest) {
@@ -68,6 +73,36 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           // fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
           toMM.beConnect(toNativeIpc, reason) // 通知接收者作为Server
           fromNativeIpc
+        } else null
+      }
+
+      /**
+       * 对全局的自定义路由提供适配器
+       * 对 nativeFetch 定义 file://xxx.dweb的解析
+       */
+      nativeFetchAdaptersManager.append { fromMM, request ->
+        if (request.url.protocol.name == "file" && request.url.host.endsWith(".dweb")) {
+          val mpid = request.url.host
+          fromMM.debugMM("fetch ipc", "$fromMM => ${request.href}")
+          val url = request.href
+          val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
+          val fromIpc = runCatching {
+            fromMM.connect(mpid, reasonRequest)
+          }.getOrElse {
+            return@append PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
+          }
+          var response = fromIpc.request(request)
+          if (response.status == HttpStatusCode.Unauthorized) {
+            val permissions = response.body.toPureString()
+            /// 尝试进行授权请求
+            if (fromMM is NativeMicroModule.NativeRuntime && fromMM.requestPermissions(permissions)
+                .all { it.value == AuthorizationStatus.GRANTED }
+            ) {
+              /// 如果授权完全成功，那么重新进行请求
+              response = fromIpc.request(request)
+            }
+          }
+          response
         } else null
       }
     }
@@ -115,14 +150,16 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
      */
     init {
       debugMM("onConnect", "start")
-      onConnect.listen { (clientIpc) ->
+      onConnect.listen { connectEvent ->
+        val (clientIpc) = connectEvent.consume()
         debugMM("onConnect", clientIpc)
         clientIpc.onRequest("file-dweb-router").collectIn(mmScope) { event ->
-          val ipcRequest = event.data
-          when (ipcRequest.uri.protocol.name) {
-            "file", "dweb" -> {}
-            else -> return@collectIn
-          }
+          val ipcRequest = event.consumeFilter {
+            when (it.uri.protocol.name) {
+              "file", "dweb" -> true
+              else -> false
+            }
+          } ?: return@collectIn
           debugMM("NMM/Handler", ipcRequest.url)
           /// 根据host找到对应的路由模块
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
@@ -140,11 +177,10 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           clientIpc.postResponse(
             ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway)
           )
-          event.consume()
         }
 
         /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯
-        clientIpc.start(reason = "on-connect")
+        clientIpc.start(await = false, reason = "on-connect")
       }
     }
 
@@ -228,7 +264,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         }
         // 监听 ipc 关闭，这可能由程序自己控制
         ipc.onClosed {
-          scopeLaunch {
+          scopeLaunch(cancelable = false) {
             doClose()
           }
         }
@@ -244,7 +280,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     ) = wrapHandler(middlewareHttpHandler) {
       CborPacketHandlerContext(this).run {
         // 执行分发器
-        val job = scopeLaunch {
+        val job = scopeLaunch(cancelable = false) {
           try {
             handler()
           } catch (e: Throwable) {

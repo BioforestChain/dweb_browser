@@ -130,7 +130,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           }
           // 创建成功了，注册销毁函数
           ipc.onClosed {
-            scopeLaunch {
+            scopeLaunch(cancelable = false) {
               closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.remote.mmid)
             }
           }
@@ -201,7 +201,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
        * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
        */
       processIpc.onClosed {
-        scopeLaunch {
+        scopeLaunch(cancelable = false) {
           httpDwebServer.close();
         }
       }
@@ -255,7 +255,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         httpDwebServer.startResult.urlInfo.host
       )
       processHandler.ipc.onClosed {
-        scopeLaunch {
+        scopeLaunch(cancelable = false) {
           apis.destroyProcess(processHandler.info.process_id)
         }
       }
@@ -276,13 +276,13 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       }
       /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
       processIpc.onClosed {
-        scopeLaunch {
+        scopeLaunch(cancelable = false) {
           processHandler.ipc.close()
         }
       }
       /// 双向绑定关闭
       processHandler.ipc.onClosed {
-        scopeLaunch {
+        scopeLaunch(cancelable = false) {
           processIpc.close()
         }
       }

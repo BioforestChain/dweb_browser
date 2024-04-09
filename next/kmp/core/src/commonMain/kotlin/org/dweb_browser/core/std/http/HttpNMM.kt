@@ -8,7 +8,6 @@ import io.ktor.http.Url
 import io.ktor.http.fullPath
 import io.ktor.http.protocolWithAuthority
 import io.ktor.util.decodeBase64String
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -242,16 +241,17 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
          * 使用当前的ipc，监听一个服务
          * 建议fork出一条链路后再使用
          */
-        "/listen" bind PureMethod.POST by defineEmptyResponse {
+        "/listen" bind PureMethod.GET by defineEmptyResponse {
           val token = request.query("token")
           val routes = Json.decodeFromString<List<CommonRoute>>(request.query("routes"))
           listen(ipc, token, routes)
-          ipc.awaitOpen("from-listen")
         },
         // 主动关闭一个服务
         "/close" bind PureMethod.GET by defineBooleanResponse {
           close(ipc, request.queryAs())
-        }, "/websocket" byChannel { ctx ->
+        },
+        // 提供 httpclient-websocket 的通讯功能
+        "/websocket" byChannel { ctx ->
           val rawUrl = request.query("url")
           val url = Url(rawUrl)
           val protocol = URLProtocol.byName[url.protocol.name]
@@ -276,7 +276,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             }
           }
           ctx.close(null, null)
-        }, "/fetch" by definePureResponse {
+        },
+        // 提供 httpclient-fetch 的请求功能
+        "/fetch" by definePureResponse {
           val url = Url(request.query("url"))
           if (request.method == PureMethod.OPTIONS) {
             val requestOrigin = request.headers.get(HttpHeaders.Origin)
@@ -507,7 +509,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
       /// ipc 在关闭的时候，自动释放所有的绑定
       ipc.onClosed {
-        scopeLaunch {
+        scopeLaunch(cancelable = false) {
           debugHttp("start close", "onDestroy ${ipc.remote.mmid} ${serverUrlInfo.host}")
           listener.destroy()
           close(ipc, options)
@@ -537,7 +539,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
       /// 自己nmm销毁的时候，ipc也会被全部销毁
       /// 自己创建的，就要自己销毁：这个listener被销毁的时候，serverIpc也要进行销毁
-      scopeLaunch {
+      scopeLaunch(cancelable = false) {
         gateway.listener.destroyDeferred.await()
         serverIpc.close()
       }

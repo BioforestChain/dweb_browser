@@ -44,12 +44,12 @@ suspend fun MicroModule.Runtime.listenHttpDwebServer(
     CommonRoute(pathname = "", method = PureMethod.PATCH),
     CommonRoute(pathname = "", method = PureMethod.HEAD),
     CommonRoute(pathname = "", method = PureMethod.CONNECT),
-    CommonRoute(pathname = "", method = PureMethod.TRACE)
-  )
+    CommonRoute(pathname = "", method = PureMethod.TRACE),
+  ),
 ): Ipc {
   debugHttp("listen", microModule.mmid)
   val httpIpc = this.connect("http.std.dweb")
-  val serverIpc = httpIpc.fork()
+  val serverIpc = httpIpc.fork(autoStart = true, startReason = "listenHttpDwebServer")
   serverIpc.request(URLBuilder("file://http.std.dweb/listen").apply {
     parameters["token"] = startResult.token
     parameters["routes"] = Json.encodeToString(routes)
@@ -68,7 +68,7 @@ suspend fun MicroModule.Runtime.closeHttpDwebServer(options: DwebHttpServerOptio
 class HttpDwebServer(
   private val nmm: MicroModule.Runtime,
   private val options: DwebHttpServerOptions,
-  val startResult: HttpNMM.ServerStartResult
+  val startResult: HttpNMM.ServerStartResult,
 ) {
   private val listenPo = PromiseOut<Ipc>()
   val listen = SuspendOnce {
