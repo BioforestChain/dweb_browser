@@ -29,15 +29,20 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
         var rotation = 0
         for (frame in ctx) {
           when (frame) {
-            is PureTextFrame -> rotation = frame.data.toFloatOrNull()?.toInt() ?: 0
+            is PureTextFrame -> {
+              debugScanning("process=>byChannel", "PureTextFrame($time)")
+              rotation = frame.data.toIntOrNull() ?: 0
+            }
+
             is PureBinaryFrame -> {
+              debugScanning("process=>byChannel", "PureBinaryFrame($time) $rotation")
               val result = try {
                 scanningManager.recognize(frame.data, rotation)
               } catch (e: Throwable) {
-                debugScanning("/process byChannel", null, e)
+                debugScanning("process=>byChannel", null, e)
                 emptyList()
               }
-              debugScanning("/process=result") { result.joinToString(", ") { it.data } }
+              debugScanning("process=>byChannel", result.joinToString(", ") { it.data })
               // 不论 result 是否为空数组，都进行响应
               ctx.sendJson(result)
             }
@@ -51,16 +56,16 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
       // 处理二维码图像
       "/process" bind PureMethod.POST by defineJsonResponse {
         val rotation = request.queryOrNull("rotation")?.toIntOrNull() ?: 0
-        debugScanning("/process", "rotation:$rotation imageSize:${request.body.contentLength}")
+        debugScanning("process=>POST", "rotation=$rotation, ${request.body.contentLength}")
 
         val imgBitArray = request.body.toPureBinary()
         val result = try {
           scanningManager.recognize(imgBitArray, rotation)
         } catch (e: Throwable) {
-          debugScanning("/process byPost", e.stackTraceToString())
+          debugScanning("process=>POST", null, e)
           emptyList()
         }
-        debugScanning("process", "result=> $result")
+        debugScanning("process=>POST", result.joinToString(", ") { it.data })
         return@defineJsonResponse result.toJsonElement()
       },
 
@@ -73,7 +78,5 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
   }
 
   override suspend fun _shutdown() {
-
   }
-
 }
