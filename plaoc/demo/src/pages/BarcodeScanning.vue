@@ -1,82 +1,71 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { Ref, onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
-import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
-import { HTMLDwebBarcodeScanningElement, ScannerProcesser, barcodeScannerPlugin } from "../plugin";
+import LogPanel, { toConsole } from "../components/LogPanel.vue";
+import { HTMLDwebBarcodeScanningElement, barcodeScannerPlugin } from "../plugin";
 
 const title = "Scanner";
 
 const $logPanel = ref<typeof LogPanel>();
-const $barcodeScannerPlugin = ref<HTMLDwebBarcodeScanningElement>();
+const $scannerComponent = ref<HTMLDwebBarcodeScanningElement>();
 
 let console: Console;
-let scanner = barcodeScannerPlugin;
 let barcodeScanner: HTMLDwebBarcodeScanningElement;
-let scannerServer: ScannerProcesser;
 onMounted(async () => {
   console = toConsole($logPanel);
-  barcodeScanner = $barcodeScannerPlugin.value!;
-  scannerServer = await scanner.createProcesser();
+  barcodeScanner = $scannerComponent.value!;
 });
 
-const result = ref();
+const imgFile: Ref<File | undefined> = ref();
+// 文件选择
+const onFileChanged = async ($event: Event) => {
+  const target = $event.target as HTMLInputElement;
+  if (target && target.files?.[0]) {
+    const img = target.files[0];
+    console.info("photo ==> ", img.name, img.type, img.size);
+    imgFile.value = img;
+  }
+};
 
-const onFileChanged = defineLogAction(
-  async ($event: Event) => {
-    const target = $event.target as HTMLInputElement;
-    if (target && target.files?.[0]) {
-      const img = target.files[0];
-      console.info("photo ==> ", img.name, img.type, img.size);
-      const res = await scannerServer.process(img);
-      res.forEach((value) => console.log(value.data));
-      result.value = res.length;
-    }
-  },
-  { name: "process", args: [result], logPanel: $logPanel }
-);
+const postScanner = async () => {
+  if (imgFile.value == undefined) {
+    alert("请先选择图片再识别");
+    return;
+  }
+  console.log("图片识别结果=>", await barcodeScannerPlugin.process(imgFile.value));
+};
 
-const onStop = defineLogAction(
-  async () => {
-    barcodeScanner.stopScanning();
-  },
-  { name: "onStop", args: [], logPanel: $logPanel }
-);
+//  components 组件
+const stopScanning = async () => {
+  barcodeScanner.stopScanning();
+};
 
-const takePhoto = defineLogAction(
-  async () => {
-    result.value = await barcodeScanner.startScanning();
-  },
-  { name: "takePhoto", args: [result], logPanel: $logPanel }
-);
+const camaraScanner = async () => {
+  console.log("相机扫描结果=>", await barcodeScanner.startScanning());
+};
 </script>
 
 <template>
-  <dweb-barcode-scanning ref="$barcodeScannerPlugin"></dweb-barcode-scanning>
+  <dweb-barcode-scanning ref="$scannerComponent"></dweb-barcode-scanning>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/vibrate.svg" :alt="title" />
     </figure>
     <article class="card-body">
       <h2 class="card-title">Scanner</h2>
-      <FieldLabel label="Vibrate Pattern:">
-        <input type="file" @change="onFileChanged($event)" accept="image/*" capture />
+      <FieldLabel label="选择文件扫码">
+        <input type="file" @change="onFileChanged($event)" accept="image/*" />
       </FieldLabel>
-      <button class="inline-block rounded-full btn btn-accent" @click="takePhoto">scanner</button>
-      <button class="inline-block rounded-full btn btn-accent" @click="onStop">stop</button>
-      <!-- <button class="inline-block rounded-full btn btn-accent" @click="getSupportedformats">getSupportedFormats</button> -->
+      <button class="inline-block rounded-full btn btn-accent" @click="postScanner">scanner</button>
     </article>
 
-    <!-- <article class="card-body">
-      <h2 class="card-title">get Photo</h2>
-      <select class="w-full max-w-xs select" v-model="cameraSource">
-        <option value="PROMPT">PROMPT</option>
-        <option value="CAMERA">CAMERA</option>
-        <option value="PHOTOS">PHOTOS</option>
-      </select>
+    <article class="card-body">
+      <h2 class="card-title">扫描模式</h2>
       <div class="justify-end card-actions">
-        <button class="inline-block rounded-full btn btn-accent" @click="getPhoto">getPhoto</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="camaraScanner">摄像头识别</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="stopScanning">stop</button>
       </div>
-    </article> -->
+    </article>
   </div>
 
   <div class="divider">LOG</div>

@@ -35,6 +35,7 @@ internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
   val jmmInstallerController = LocalJmmInstallerController.current
   val jmmState = jmmInstallerController.installMetadata.state
+  // 应用是否是当前支持的大版本
   val canSupportTarget =
     jmmInstallerController.installMetadata.metadata.canSupportTarget(JsMicroModule.VERSION)
 

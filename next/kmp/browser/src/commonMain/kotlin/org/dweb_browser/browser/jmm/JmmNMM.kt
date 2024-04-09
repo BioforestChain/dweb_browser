@@ -3,7 +3,6 @@ package org.dweb_browser.browser.jmm
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
@@ -83,33 +82,32 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
 
     val jmmController = JmmController(this, store)
     jmmController.loadHistoryMetadataUrl() // 加载之前加载过的应用
-
+    // 应用安装
     val routeInstallHandler = defineEmptyResponse {
       val metadataUrl = request.query("url")
       // 打开渲染器
-      coroutineScope {
-        val job = launch {
-          jmmController.openOrUpsetInstallerView(metadataUrl)
-          // 超时请求的一些操作
-          delay(5000)
-          showToast("请求超时，请检查下载链接")
-          getOrOpenMainWindow().closeRoot()
-        }
-        // 加载url资源，这一步可能要多一些时间
-        val response = nativeFetch(metadataUrl)
-        job.cancel()
-        if (!response.isOk) {
-          val message = "invalid status code: ${response.status}"
-          showToast(message)
-          throwException(HttpStatusCode.ExpectationFailed, message)
-        }
-
-        val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
-        debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
-        jmmController.openOrUpsetInstallerView(
-          metadataUrl, jmmAppInstallManifest.createJmmHistoryMetadata(metadataUrl)
-        )
+      val job = ioAsyncScope.launch {
+        jmmController.openOrUpsetInstallerView(metadataUrl)
+        // 超时请求的一些操作
+        delay(5000)
+        showToast("请求超时，请检查下载链接")
+        getOrOpenMainWindow().closeRoot()
       }
+      // 加载url资源，这一步可能要多一些时间
+      val response = nativeFetch(metadataUrl)
+      job.cancel()
+      //
+      if (!response.isOk) {
+        val message = "invalid status code: ${response.status}"
+        showToast(message)
+        throwException(HttpStatusCode.ExpectationFailed, message)
+      }
+
+      val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
+      debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
+      jmmController.openOrUpsetInstallerView(
+        metadataUrl, jmmAppInstallManifest.createJmmHistoryMetadata(metadataUrl)
+      )
     }
     routes(
       // 安装

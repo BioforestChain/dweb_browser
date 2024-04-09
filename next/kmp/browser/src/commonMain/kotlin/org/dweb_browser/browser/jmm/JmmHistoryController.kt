@@ -54,6 +54,7 @@ class JmmHistoryController(
     jmmController.openOrUpsetInstallerView(historyMetadata.originUrl, historyMetadata, true)
   }
 
+  /// 卸载app
   fun unInstall(historyMetadata: JmmHistoryMetadata) {
     jmmNMM.ioAsyncScope.launch {
       jmmController.uninstall(historyMetadata.metadata.id)
