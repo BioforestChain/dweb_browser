@@ -7,19 +7,18 @@ const go = (path: string) => {
 };
 
 const items = ref([
-  { text: "motionSensors", icon: "mdi-account", router: "/motionSensors" },
   { text: "window", icon: "mdi-clock", router: "./window" },
   { text: "inputfile", icon: "mdi-account", router: "/inputfile" },
-  { text: "camera", icon: "mdi-flag", router: "/camera" },
-  { text: "statusbar", icon: "mdi-flag", router: "/statusbar" },
+  // { text: "camera", icon: "mdi-flag", router: "/camera" },
 
+  { text: "statusbar", icon: "mdi-flag", router: "/statusbar" },
   { text: "navigationbar", icon: "mdi-clock", router: "./navigationbar" },
   { text: "safearea", icon: "mdi-account", router: "/safearea" },
   { text: "virtualkeyboard", icon: "mdi-flag", router: "/virtualkeyboard" },
   { text: "toast", icon: "mdi-flag", router: "/toast" },
 
   { text: "share", icon: "mdi-clock", router: "./share" },
-  { text: "splashscreen", icon: "mdi-account", router: "/splashscreen" },
+  // { text: "splashscreen", icon: "mdi-account", router: "/splashscreen" },
   { text: "barcodescanning", icon: "mdi-flag", router: "/barcodescanning" },
   { text: "torch", icon: "mdi-flag", router: "/torch" },
 
@@ -28,13 +27,15 @@ const items = ref([
   { text: "closewatcher", icon: "mdi-flag", router: "/closewatcher" },
   { text: "serviceworker", icon: "mdi-flag", router: "/serviceworker" },
 
-  { text: "filesystem", icon: "mdi-clock", router: "./filesystem" },
+  { text: "media", icon: "mdi-clock", router: "./media" },
   { text: "biometrics", icon: "mdi-account", router: "/biometrics" },
   { text: "network", icon: "mdi-flag", router: "/network" },
-  { text: "bluetooth", icon: "mdi-flag", router: "/bluetooth" },
+  // { text: "bluetooth", icon: "mdi-flag", router: "/bluetooth" },
 
   { text: "device", icon: "mdi-clock", router: "./device" },
   { text: "shortcut", icon: "mdi-account", router: "/shortcut" },
+  { text: "motionSensors", icon: "mdi-account", router: "/motionSensors" },
+  { text: "clipboard", icon: "mdi-account", router: "/clipboard" },
 ]);
 </script>
 <template>

@@ -13,6 +13,7 @@ export class ShortcutPlugin extends BasePlugin {
    * @param option ShortcutOption
    * @returns boolean
    * @since 2.0.0
+   * @Platform android/ios only
    */
   @bindThis
    registry(option: ShortcutOption) {

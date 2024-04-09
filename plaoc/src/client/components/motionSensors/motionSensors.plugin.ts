@@ -1,4 +1,3 @@
-import { JsonlinesStreamResponse } from "../../helper/JsonlinesStreamHelper.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { $Coder } from "../../util/StateObserver.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
@@ -17,6 +16,7 @@ export class MotionSensorsPlugin extends BasePlugin {
   /**
    * 拿到加速计传感器控制器
    * @param fps 每秒帧率
+   * @Platform android/ios only
    */
   @bindThis
   async startAccelerometer(fps?: number): Promise<$MotionSensorsController> {
@@ -43,6 +43,7 @@ export class MotionSensorsPlugin extends BasePlugin {
   /**
    * 启动陀螺仪传感器
    * @param fps 每秒帧率
+   * @Platform android/ios only
    */
   @bindThis
   async startGyroscope(fps?: number): Promise<$MotionSensorsController> {

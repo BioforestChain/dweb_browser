@@ -9,20 +9,22 @@ const $logPanel = ref<typeof LogPanel>();
 
 let console: Console;
 let geolocation: HTMLGeolocationElement;
+let controller: $GeolocationController;
 
 onMounted(async () => {
   geolocation = $geolocationElement.value!;
   console = toConsole($logPanel);
+  controller = await geolocationPlugin.createLocation();
 });
 
+// 获取一次
 async function getLocation() {
   const res = await geolocation.getLocation();
   console.log("Location", res);
 }
-let controller: $GeolocationController;
+
 // 创建控制器
 async function createLocation() {
-  controller = await geolocationPlugin.createLocation();
   onLocation();
 }
 function stop() {

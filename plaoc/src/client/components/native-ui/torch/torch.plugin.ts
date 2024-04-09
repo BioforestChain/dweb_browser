@@ -10,6 +10,7 @@ export class TorchPlugin extends BasePlugin {
 
   /**
    * 打开/关闭手电筒
+   * @Platform android/ios only
    */
   @bindThis
   async toggleTorch() {
@@ -18,6 +19,7 @@ export class TorchPlugin extends BasePlugin {
 
   /**
    * 手电筒状态
+   * @Platform android/ios only
    */
   @bindThis
   async getTorchState(): Promise<boolean> {

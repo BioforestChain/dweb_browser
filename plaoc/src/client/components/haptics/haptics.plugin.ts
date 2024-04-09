@@ -9,7 +9,10 @@ export class HapticsPlugin extends BasePlugin {
   constructor() {
     super(HapticsPlugin.isIOSDWebBrowser ? "haptics.browser.dweb" : "haptics.sys.dweb");
   }
-  /** 触碰轻质量物体 */
+  /**
+   * 触碰轻质量物体
+   *@Platform android/ios only
+   *  */
   @bindThis
   async impactLight(options: ImpactOptions) {
     return await this.fetchApi("/impactLight", {
@@ -19,7 +22,10 @@ export class HapticsPlugin extends BasePlugin {
     });
   }
 
-  /** 振动通知 */
+  /**
+   * 振动通知
+   * @Platform android/ios only
+   */
   @bindThis
   async notification(options: NotificationOptions) {
     return await this.fetchApi("/notification", {
@@ -29,7 +35,10 @@ export class HapticsPlugin extends BasePlugin {
     });
   }
 
-  /** 单击手势的反馈振动 */
+  /** 
+   * 单击手势的反馈振动
+   * @Platform android/ios only
+   *  */
   @bindThis
   async vibrateClick() {
     return await this.fetchApi("/vibrateClick");
@@ -39,24 +48,34 @@ export class HapticsPlugin extends BasePlugin {
    * 与 headShak 特效一致, 详见 ripple-button.animation.ts
    * headShak 是一段抖动特效, 前面抖动增强然后衰退
    * 这里只针对抖动增强阶段提供同步的振动反馈
+   * @Platform android/ios only
    */
   @bindThis
   async vibrateDisabled() {
     return await this.fetchApi("/vibrateDisabled");
   }
 
-  /** 双击手势的反馈振动 */
+  /** 
+   * 双击手势的反馈振动
+   * @Platform android/ios only
+   */
   @bindThis
   async vibrateDoubleClick() {
     return await this.fetchApi("/vibrateDoubleClick");
   }
-  /** 重击手势的反馈振动, 比如菜单键/惨案/3Dtouch */
+  /** 
+   * 重击手势的反馈振动, 比如菜单键/惨案/3Dtouch
+   * @Platform android/ios only
+   *  */
   @bindThis
   async vibrateHeavyClick() {
     return await this.fetchApi("/vibrateHeavyClick");
   }
 
-  /** 滴答 */
+  /** 
+   * 滴答
+   * @Platform android/ios only
+   *  */
   @bindThis
   async vibrateTick() {
     return await this.fetchApi("/vibrateTick");
@@ -64,6 +83,7 @@ export class HapticsPlugin extends BasePlugin {
   /**
    * 自定义效果
    * @param VibrateOptions
+   * @Platform android/ios only
    */
   @bindThis
   async vibrate(options: VibrateOptions) {

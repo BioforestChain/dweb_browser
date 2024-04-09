@@ -89,9 +89,5 @@ export class NavigationBarPlugin extends BasePlugin {
   async getVisible() {
     return (await this.getState()).visible;
   }
-  @bindThis
-  async show() {}
-  @bindThis
-  async hide() {}
 }
 export const navigationBarPlugin = new NavigationBarPlugin();

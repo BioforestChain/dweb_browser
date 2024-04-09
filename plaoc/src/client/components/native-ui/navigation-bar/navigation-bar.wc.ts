@@ -21,14 +21,6 @@ export class HTMLDwebNavigationBarElement extends HTMLElement {
     return navigationBarPlugin.getStyle;
   }
   @cacheGetter()
-  get show() {
-    return navigationBarPlugin.show;
-  }
-  @cacheGetter()
-  get hide() {
-    return navigationBarPlugin.hide;
-  }
-  @cacheGetter()
   get setVisible() {
     return navigationBarPlugin.setVisible;
   }

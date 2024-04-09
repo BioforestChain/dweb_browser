@@ -34,16 +34,6 @@ onMounted(() => {
 // });
 
 const drawer_controller = ref(false);
-
-// const apiUrl = new URL(location.href);
-// {
-//   apiUrl.hostname = apiUrl.hostname.replace("www", "api");
-//   const xDwebHost = apiUrl.searchParams.get("X-Dweb-Host");
-//   if (xDwebHost) {
-//     apiUrl.searchParams.set("X-Dweb-Host", xDwebHost.replace("www", "api"));
-//   }
-//  // https://api.cotdemo.bfs.dweb/index.html?X-Dweb-Host=api.cotdemo.bfs.dweb%3A443#/
-// }
 </script>
 <template>
   <v-app>

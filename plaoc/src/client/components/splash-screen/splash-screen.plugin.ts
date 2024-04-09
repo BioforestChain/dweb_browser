@@ -8,8 +8,9 @@ export class SplashScreenPlugin extends BasePlugin {
   }
 
   /**
-   * 显示启动页
+   * 显示启动页（不稳定）
    * @param options
+   * @Platform android/ios only
    */
   @bindThis
   async show(options?: SplashScreenShowOptions): Promise<boolean> {
@@ -24,8 +25,9 @@ export class SplashScreenPlugin extends BasePlugin {
   }
 
   /**
-   * 隐藏启动页
+   * 隐藏启动页（不稳定）
    * @param options
+   * @Platform android/ios only
    */
   @bindThis
   async hide(options?: SplashScreenHideOptions): Promise<boolean> {

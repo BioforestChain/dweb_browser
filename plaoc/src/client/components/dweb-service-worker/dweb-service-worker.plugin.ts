@@ -6,6 +6,7 @@ import { BasePlugin } from "../base/base.plugin.ts";
 import type { $BuildRequestWithBaseInit } from "../base/base.type.ts";
 import { $DwebResult } from "../base/base.type.ts";
 
+/**这是app之间通信的组件 */
 export class DwebServiceWorkerPlugin extends BasePlugin {
   readonly tagName = "dweb-service-worker";
 
@@ -35,7 +36,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   }
 
   /**
-   * 关闭前端
+   * 关闭自己的前端
    * @returns
    */
   @bindThis
@@ -43,14 +44,14 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     return this.fetchApi("/close").boolean();
   }
 
-  /**重启后前端 */
+  /**重启自己的后前端 */
   @bindThis
   restart() {
     return this.fetchApi("/restart").object<$DwebResult>();
   }
 
   /**
-   * 查看应用是否安装
+   * 查询应用是否安装
    * @param mmid
    */
   @bindThis
@@ -71,7 +72,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   }
 
   /**
-   * 跟外部app通信
+   * 向别的app发送request消息
    * @param pathname
    * @param init
    * @returns

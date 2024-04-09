@@ -3,7 +3,7 @@ import { ref } from "vue";
 import LogPanel from "../components/LogPanel.vue";
 import { mediaPlugin } from "../plugin";
 
-const title = "fileSystemPlugin";
+const title = "mediaPlugin";
 const $logPanel = ref<typeof LogPanel>();
 
 const fileChange = ($event: Event) => {
