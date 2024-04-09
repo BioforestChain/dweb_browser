@@ -6,6 +6,7 @@ import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureMethod
@@ -24,16 +25,14 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       "/process" byChannel { ctx ->
-        var rotation = 0;
+        val time = datetimeNow()
+        var rotation = 0
         for (frame in ctx) {
           when (frame) {
-            is PureTextFrame -> rotation = frame.data.toFloatOrNull()?.toInt() ?: 0;
+            is PureTextFrame -> rotation = frame.data.toFloatOrNull()?.toInt() ?: 0
             is PureBinaryFrame -> {
               val result = try {
-                scanningManager.recognize(
-                  frame.data,
-                  rotation
-                );
+                scanningManager.recognize(frame.data, rotation)
               } catch (e: Throwable) {
                 debugScanning("/process byChannel", null, e)
                 emptyList()
@@ -51,19 +50,12 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
       },
       // 处理二维码图像
       "/process" bind PureMethod.POST by defineJsonResponse {
-        val rotation = request.queryOrNull("rotation")?.toFloatOrNull()?.toInt() ?: 0
-        debugScanning(
-          "/process",
-        ) {
-          "rotation:$rotation imageSize:${request.body.contentLength}"
-        }
+        val rotation = request.queryOrNull("rotation")?.toIntOrNull() ?: 0
+        debugScanning("/process", "rotation:$rotation imageSize:${request.body.contentLength}")
 
         val imgBitArray = request.body.toPureBinary()
         val result = try {
-          scanningManager.recognize(
-            imgBitArray,
-            rotation
-          )
+          scanningManager.recognize(imgBitArray, rotation)
         } catch (e: Throwable) {
           debugScanning("/process byPost", e.stackTraceToString())
           emptyList()

@@ -26,10 +26,10 @@ actual class ScanningManager actual constructor() {
     BarcodeScanning.getClient().process(image)
       .addOnSuccessListener { barcodes ->
         task.resolve(barcodes.map {
-          val cornerPoints = it.cornerPoints;
+          val cornerPoints = it.cornerPoints
           BarcodeResult(
-            it.rawBytes?.decodeToString() ?: "",
-            it.boundingBox?.toRect() ?: PureRect.Zero,
+            data = it.rawBytes?.decodeToString() ?: "",
+            boundingBox = it.boundingBox?.toRect() ?: PureRect.Zero,
             topLeft = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,
             topRight = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,
             bottomLeft = cornerPoints?.get(0)?.toPoint() ?: PurePoint.Zero,

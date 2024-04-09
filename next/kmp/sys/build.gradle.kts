@@ -49,6 +49,9 @@ kotlin {
   kmpDesktopTarget(project) {
     dependencies {
       implementation(projects.libBiometrics)
+      // zxing 解析二维码
+      implementation(libs.camera.zxing.code)
+      implementation(libs.camera.zxing.javase)
     }
   }
 }
