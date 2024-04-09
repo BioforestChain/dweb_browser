@@ -358,7 +358,7 @@ private fun PagePreviewCell(
   ).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.onSurface)
 ) {
   val viewModel = LocalBrowserViewModel.current
-  val scope = viewModel.browserNMM.mmScope
+  val scope = viewModel.browserNMM.getRuntimeScope()
   val uiScope = rememberCoroutineScope()
 
   Box(modifier) {

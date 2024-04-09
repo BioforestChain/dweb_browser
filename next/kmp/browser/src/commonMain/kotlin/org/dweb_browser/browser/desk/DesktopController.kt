@@ -61,7 +61,7 @@ open class DesktopController private constructor(
         _desktopView = CompletableDeferred()
       }
       if (value != null) {
-        deskNMM.mmScope.launch {
+        deskNMM.scopeLaunch(cancelable = true) {
           runCatching {
             _desktopView.complete(createDesktopView(value))
           }.onFailure {
@@ -176,7 +176,7 @@ open class DesktopController private constructor(
       }.removeWhen(dwm.viewController.lifecycleScope)
 
       preDesktopWindowsManager?.also { preDwm ->
-        deskNMM.mmScope.launch(Dispatchers.Main) {
+        deskNMM.scopeLaunch(Dispatchers.Main, cancelable = true) {
           /// 窗口迁移
           preDwm.moveWindows(dwm)
         }

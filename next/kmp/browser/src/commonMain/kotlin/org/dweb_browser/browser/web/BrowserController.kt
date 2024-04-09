@@ -39,7 +39,7 @@ class BrowserController(
 
   private var winLock = Mutex(false)
 
-  val ioScope get() = browserNMM.mmScope
+  val ioScope get() = browserNMM.getRuntimeScope()
 
   //  val searchEngines: MutableList<WebEngine> = mutableStateListOf()
   val bookmarksStateFlow = MutableStateFlow<List<WebSiteInfo>>(listOf())

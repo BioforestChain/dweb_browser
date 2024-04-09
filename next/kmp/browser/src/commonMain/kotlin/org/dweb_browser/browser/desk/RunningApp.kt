@@ -25,7 +25,7 @@ class RunningApp(
   val bootstrapContext: BootstrapContext,
   defaultWindowState: WindowState? = null
 ) {
-  val awaitClosed = ipc::awaitClosed
+  val onClosed = ipc::onClosed
 
   /**
    * 所有的窗口实例

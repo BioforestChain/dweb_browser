@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.desk.version
 
 import androidx.compose.runtime.mutableStateOf
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.desk.DesktopController
 import org.dweb_browser.browser.desk.debugDesk
@@ -76,7 +75,7 @@ class NewVersionController(private val deskNMM: DeskNMM.DeskRuntime, val desktop
   }
 
   init {
-    deskNMM.mmScope.launch { initNewVersionItem() }
+    deskNMM.scopeLaunch(cancelable = true) { initNewVersionItem() }
   }
 
   private suspend fun initNewVersionItem() {
@@ -122,7 +121,7 @@ class NewVersionController(private val deskNMM: DeskNMM.DeskRuntime, val desktop
   private suspend fun watchProcess(newVersionItem: NewVersionItem) {
     newVersionItem.taskId?.let { taskId ->
       newVersionItem.alreadyWatch = true
-      deskNMM.mmScope.launch {
+      deskNMM.scopeLaunch(cancelable = true) {
         val ret = deskNMM.createChannelOfDownload(taskId) {
           newVersionItem.updateDownloadTask(downloadTask, store)
           when (downloadTask.status.state) {
@@ -153,7 +152,7 @@ class NewVersionController(private val deskNMM: DeskNMM.DeskRuntime, val desktop
   }
 
   suspend fun downloadApp() = debounce(
-    scope = deskNMM.mmScope,
+    scope = deskNMM.getRuntimeScope(),
     action = {
       val grant = deskNMM.requestSystemPermission(
         name = SystemPermissionName.STORAGE,

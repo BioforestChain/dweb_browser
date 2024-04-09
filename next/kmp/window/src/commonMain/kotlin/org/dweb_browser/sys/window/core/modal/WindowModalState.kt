@@ -83,7 +83,7 @@ sealed class ModalState() {
     sendCallback(mm, CloseModalCallback(sessionId))
     // 如果是一次性显示的，那么直接关闭它
     if (once) {
-      mm.mmScope.launch {
+      mm.scopeLaunch {
         safeDestroy(mm)
       }
     }
@@ -141,7 +141,7 @@ sealed class ModalState() {
 
 
   fun sendCallback(mm: MicroModule.Runtime, callbackData: ModalCallback) = callbackUrl?.also { url ->
-    mm.mmScope.launch {
+    mm.scopeLaunch(cancelable = true) {
       mm.nativeFetch(
         PureClientRequest.fromJson(
           url, PureMethod.POST, body = callbackData

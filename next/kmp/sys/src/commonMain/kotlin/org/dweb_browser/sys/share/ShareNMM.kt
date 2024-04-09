@@ -3,7 +3,6 @@ package org.dweb_browser.sys.share
 import io.ktor.http.ContentType
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
@@ -81,7 +80,7 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
               val fileList = mutableListOf<String>()
               val channel = Channel<ShareChunkWriteTask>(capacity = Channel.RENDEZVOUS)
               val deferred = CompletableDeferred<Boolean>()
-              mmScope.launch {
+              scopeLaunch(cancelable = true) {
                 for (task in channel) {
                   multipartFileDataAppendToTempFile(task.writePath, task.chunk)
                 }

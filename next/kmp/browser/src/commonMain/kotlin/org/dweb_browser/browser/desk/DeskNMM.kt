@@ -76,8 +76,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
             RunningApp(ipc, bootstrapContext).also { app ->
               runningApps[mmid] = app
               /// 如果应用关闭，将它从列表中移除
-              mmScope.launch {
-                app.awaitClosed()
+              app.onClosed {
                 runningApps.remove(mmid)
               }
             }
@@ -89,7 +88,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     }
 
 
-    private suspend fun listenApps() = mmScope.launch {
+    private suspend fun listenApps() = scopeLaunch(cancelable = true) {
       suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
         val response = createChannel(urlPath) {
           for (frame in income) {
@@ -132,7 +131,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
     private val openAppLock = ReasonLock()
     suspend fun IHandlerContext.openOrActivateAppWindow(
-      ipc: Ipc, desktopController: DesktopController
+      ipc: Ipc, desktopController: DesktopController,
     ): WindowController {
       val appId = ipc.remote.mmid;
       debugDesk("ActivateAppWindow", appId)
@@ -337,7 +336,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     private suspend fun createTaskbarWebServer(): HttpDwebServer {
       val taskbarServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar"))
       val serverIpc = taskbarServer.listen()
-      serverIpc.onRequest.collectIn(mmScope) { ipcServerRequest ->
+      serverIpc.onRequest("TaskbarWebServer").collectIn(mmScope) { event ->
+        val ipcServerRequest = event.consume()
         val pathName = ipcServerRequest.uri.encodedPathAndQuery
         val url = if (pathName.startsWith(API_PREFIX)) {
           val internalUri = pathName.substring(API_PREFIX.length)
@@ -354,7 +354,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     private suspend fun createDesktopWebServer(): HttpDwebServer {
       val desktopServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop"))
       val serverIpc = desktopServer.listen()
-      serverIpc.onRequest.collectIn(mmScope) { ipcServerRequest ->
+      serverIpc.onRequest("DesktopWebServer").collectIn(mmScope) { event ->
+        val ipcServerRequest = event.consume()
         val pathName = ipcServerRequest.uri.encodedPathAndQuery
         val url = if (pathName.startsWith(API_PREFIX)) {
           val internalUri = pathName.substring(API_PREFIX.length)

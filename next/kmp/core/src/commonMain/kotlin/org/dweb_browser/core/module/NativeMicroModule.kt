@@ -4,7 +4,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
@@ -31,7 +30,7 @@ import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.listenAsync
+import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.toLittleEndianByteArray
 import org.dweb_browser.pure.http.PureBinary
@@ -46,6 +45,10 @@ import org.dweb_browser.pure.http.PureStreamBody
 
 
 abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(manifest) {
+  override fun toString(): String {
+    return "NMM($mmid)"
+  }
+
   constructor(mmid: MMID, name: String) : this(MicroModuleManifest().apply {
     this.mmid = mmid
     this.name = name
@@ -100,7 +103,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
 
     suspend fun protocol(
-      protocol: DWEB_PROTOCOL, buildProtocol: suspend ProtocolBuilderContext.() -> Unit
+      protocol: DWEB_PROTOCOL, buildProtocol: suspend ProtocolBuilderContext.() -> Unit,
     ) {
       val context = ProtocolBuilderContext(protocol)
       context.buildProtocol()
@@ -112,9 +115,10 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
      */
     init {
       debugMM("onConnect", "start")
-      onConnect.listenAsync { (clientIpc) ->
+      onConnect.listen { (clientIpc) ->
         debugMM("onConnect", clientIpc)
-        clientIpc.onRequest.collectIn(mmScope) { ipcRequest ->
+        clientIpc.onRequest("file-dweb-router").collectIn(mmScope) { event ->
+          val ipcRequest = event.data
           when (ipcRequest.uri.protocol.name) {
             "file", "dweb" -> {}
             else -> return@collectIn
@@ -136,6 +140,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           clientIpc.postResponse(
             ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway)
           )
+          event.consume()
         }
 
         /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯
@@ -202,7 +207,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     ) = wrapHandler(middlewareHttpHandler) {
       JsonLineHandlerContext(this).run {
         // 执行分发器
-        val job = mmScope.launch {
+        val job = scopeLaunch(cancelable = true) {
           try {
             handler()
           } catch (e: Throwable) {
@@ -210,7 +215,6 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
             end(reason = e)
           }
         }
-
         val doClose = suspend {
           if (job.isActive) {
             job.cancel(CancellationException("ipc closed"))
@@ -223,12 +227,11 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           doClose()
         }
         // 监听 ipc 关闭，这可能由程序自己控制
-        val closeListen = mmScope.launch {
-          ipc.awaitClosed()
-          doClose()
+        ipc.onClosed {
+          scopeLaunch {
+            doClose()
+          }
         }
-        // 监听 job 完成，释放相关的监听
-        job.invokeOnCompletion { closeListen.cancel() }
         // 返回响应流
         PureResponse.build { body(responseReadableStream.stream.stream) }
       }
@@ -241,7 +244,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     ) = wrapHandler(middlewareHttpHandler) {
       CborPacketHandlerContext(this).run {
         // 执行分发器
-        val job = mmScope.launch {
+        val job = scopeLaunch {
           try {
             handler()
           } catch (e: Throwable) {
@@ -250,7 +253,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           }
         }
 
-        val doClose = suspend {
+        val doClose = {
           if (job.isActive) {
             job.cancel(CancellationException("ipc closed"))
             end()
@@ -262,12 +265,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           doClose()
         }
         // 监听 ipc 关闭，这可能由程序自己控制
-        val closeListen = mmScope.launch {
-          ipc.awaitClosed()
+        ipc.onClosed {
           doClose()
         }
-        // 监听 job 完成，释放相关的监听
-        job.invokeOnCompletion { closeListen.cancel() }
         // 返回响应流
         PureResponse.build { body(responseReadableStream.stream.stream) }
       }
@@ -340,7 +340,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     @OptIn(ExperimentalSerializationApi::class)
     suspend inline fun <reified T> emit(lineData: T) = emit(Cbor.encodeToByteArray(lineData))
 
-    suspend fun end(reason: Throwable? = null) {
+    fun end(reason: Throwable? = null) {
       if (reason != null) {
         responseReadableStream.controller.closeWrite(reason)
       } else {
@@ -358,7 +358,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
  * 创建一个 channel 通信
  */
 suspend fun NativeMicroModule.NativeRuntime.createChannel(
-  urlPath: String, resolve: suspend PureChannelContext.() -> Unit
+  urlPath: String, resolve: suspend PureChannelContext.() -> Unit,
 ): PureResponse {
   val channelDef = CompletableDeferred<PureChannel>()
   val request = PureClientRequest(

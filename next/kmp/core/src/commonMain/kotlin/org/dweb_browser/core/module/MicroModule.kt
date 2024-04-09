@@ -4,6 +4,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
@@ -12,6 +13,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.CommonAppManifest
@@ -26,6 +29,8 @@ import org.dweb_browser.helper.SafeHashSet
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.listen
 import org.dweb_browser.pure.http.PureRequest
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 typealias Router = MutableMap<String, AppRun>
 typealias AppRun = (options: NativeOptions) -> Any
@@ -61,7 +66,39 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     private fun getModuleCoroutineScope() =
       CoroutineScope(SupervisorJob() + defaultAsyncExceptionHandler + CoroutineName(mmid))
 
-    val mmScope = getModuleCoroutineScope() // 给外部使用
+    protected val mmScope = getModuleCoroutineScope()
+    fun getRuntimeScope() = mmScope
+
+    private inner class ScopeJob(val job: Job, val cancelable: Boolean) {
+      init {
+        jobs.add(this)
+        job.invokeOnCompletion {
+          jobs.remove(this)
+        }
+      }
+    }
+
+    private val jobs = mutableSetOf<ScopeJob>()
+
+    /**
+     * 使用当前的MicroModule的生命周期来启动一个job
+     * 生命周期会确保这个job完成后才会完全结束
+     */
+    fun scopeLaunch(
+      context: CoroutineContext = EmptyCoroutineContext,
+      cancelable: Boolean = false,
+      action: suspend CoroutineScope.() -> Unit,
+    ) = mmScope.launch(context = context, block = action).also { job ->
+      ScopeJob(job, cancelable)
+    }
+
+    fun <R>scopeAsync(
+      context: CoroutineContext = EmptyCoroutineContext,
+      cancelable: Boolean = false,
+      action: suspend CoroutineScope.() -> R,
+    ) = mmScope.async(context = context, block = action).also { job ->
+      ScopeJob(job, cancelable)
+    }
 
     private val stateLock = Mutex()
     private var state = MMState.SHUTDOWN
@@ -109,6 +146,16 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         _shutdown()
         shutdownDeferred.complete(Unit)
         debugMM("shutdown-end")
+        // 等待注册的任务完成
+        while (jobs.isNotEmpty()) {
+          val sj = jobs.firstOrNull() ?: continue
+          if (sj.cancelable) {
+            sj.job.cancel()
+          } else {
+            sj.job.join()
+          }
+          jobs.remove(sj)
+        }
         // 取消所有的工作
         mmScope.cancel()
       }
@@ -143,7 +190,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         bootstrapContext.dns.connect(mmid, reason).also {
           beConnect(it, reason)
         }
-      }
+      }.also { jobs.add(ScopeJob(it.job, true)) }
     }.await()
 
     /**
@@ -153,8 +200,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       runtimeLock.withLock {
         if (connectionLinks.add(ipc)) {
           // 这个ipc分叉出来的ipc也会一并归入管理
-          ipc.onFork.listen {
-            beConnect(it, null)
+          ipc.onFork("beConnect").listen {
+            ipc.debugIpc("onFork", it.data)
+            beConnect(it.consume(), null)
           }
           onBeforeShutdown.listen {
             ipc.close()
@@ -166,7 +214,6 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
           @Suppress("DeferredResultUnused") connectionMap.getOrPut(ipc.remote.mmid) {
             CompletableDeferred(ipc)
           }
-          println("QAQ ipcConnectedChannel.send=$ipc")
           ipcConnectedChannel.send(IpcConnectArgs(ipc, reason))
         }
       }
@@ -188,7 +235,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   abstract fun createRuntime(bootstrapContext: BootstrapContext): Runtime
 
   override fun toString(): String {
-    return "MicroModule($mmid)"
+    return "MM($mmid)"
   }
 
   open fun toManifest(): CommonAppManifest {

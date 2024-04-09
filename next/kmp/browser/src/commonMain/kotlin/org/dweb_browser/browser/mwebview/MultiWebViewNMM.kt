@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.mwebview
 
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -30,7 +29,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
     fun getCurrentWebViewController(mmid: MMID) = controllerMap[mmid]
   }
 
-  inner class MultiWebViewRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+  inner class MultiWebViewRuntime(override val bootstrapContext: BootstrapContext) :
+    NativeRuntime() {
     override suspend fun _bootstrap() {
       webViewSysProtocol()
 
@@ -42,11 +42,12 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
 
           val remoteMm = getRemoteRuntime()
           debugMultiWebView("/open", "MultiWebViewNMM open!!! ${remoteMm.mmid}")
-          mmScope.launch {
-            ipc.awaitClosed()
-            debugMultiWebView("/open", "listen ipc close destroy window")
-            val controller = controllerMap[ipc.remote.mmid]
-            controller?.destroyWebView()
+          ipc.onClosed {
+            scopeLaunch {
+              debugMultiWebView("/open", "listen ipc close destroy window")
+              val controller = controllerMap[ipc.remote.mmid]
+              controller?.destroyWebView()
+            }
           }
           val (viewItem, controller) = openDwebView(remoteMm, wid, url, ipc)
           debugMultiWebView("create/open end", "${viewItem.webviewId}, ${controller.win.id}")
@@ -111,5 +112,6 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
     }
   }
 
-  override fun createRuntime(bootstrapContext: BootstrapContext) = MultiWebViewRuntime(bootstrapContext)
+  override fun createRuntime(bootstrapContext: BootstrapContext) =
+    MultiWebViewRuntime(bootstrapContext)
 }

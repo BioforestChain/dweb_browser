@@ -1,11 +1,10 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureStream
@@ -83,7 +82,8 @@ class IpcBodyReceiver(
             IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
             else -> null
           }?.let { firstData -> controller.enqueueBackground(firstData) }
-          ipc.onStream.onEach { ipcStream ->
+          ipc.onStream("metaToStream").collectIn(ipc.scope) { event ->
+            val ipcStream = event.data
             if (streamId == ipcStream.stream_id) {
               when (ipcStream) {
                 is IpcStreamData -> {
@@ -100,10 +100,11 @@ class IpcBodyReceiver(
                   controller.closeWrite()
                 }
 
-                else -> {}
+                else -> return@collectIn
               }
+              event.consume()
             }
-          }.launchIn(ipc.scope)
+          }
         }, onOpenReader = { controller ->
           debugIpcBodyReceiver(
             "postPullMessage/$ipc/${controller.stream}", streamId

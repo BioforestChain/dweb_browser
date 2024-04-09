@@ -9,8 +9,6 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -20,6 +18,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -165,7 +164,8 @@ class IpcBodySender private constructor(
   /**开始监听控制信号拉取*/
   private fun onPulling(streamId: String) {
     // 接收流的控制信号,才能跟接收者(IpcBodyReceiver)互相配合 onStream = pull + pause + abort
-    ipc.onStream.onEach { stream ->
+    ipc.onStream("onPulling").collectIn(ipc.scope) { event ->
+      val stream = event.data
       if (streamId == stream.stream_id) {
         debugIpcBodySender("onPulling", "sender INIT => $streamId => $stream")
         when (stream) {
@@ -176,10 +176,11 @@ class IpcBodySender private constructor(
             ipc.close()
           }
 
-          else -> {}
+          else -> return@collectIn
         }
+        event.consume()
       }
-    }.launchIn(ipc.scope)
+    }
   }
 
   private suspend fun streamAsMeta(stream: PureStream) = asMateLock.withLock {

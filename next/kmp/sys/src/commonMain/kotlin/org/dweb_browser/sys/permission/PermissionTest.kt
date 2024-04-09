@@ -98,14 +98,14 @@ class PermissionApplicantTMM :
               "status=${status.value} ${status.description}\n" + "body=${body.toPureString()}"
             Row(horizontalArrangement = Arrangement.SpaceAround) {
               ElevatedButton(onClick = {
-                mmScope.launch {
+                scopeLaunch(cancelable = true) {
                   okk = nativeFetch("file://provider.test.permission.sys.dweb/publish").getResult()
                 }
               }) {
                 Text("发布")
               }
               ElevatedButton(onClick = {
-                mmScope.launch {
+                scopeLaunch(cancelable = true) {
                   okk =
                     nativeFetch("file://provider.test.permission.sys.dweb/unPublish").getResult()
                 }
@@ -115,7 +115,7 @@ class PermissionApplicantTMM :
             }
             Row {
               ElevatedButton(onClick = {
-                mmScope.launch {
+                scopeLaunch {
                   okk = requestSystemPermissions(
                     SystemPermissionTask(
                       SystemPermissionName.CAMERA,
@@ -140,7 +140,7 @@ class PermissionApplicantTMM :
             }
             Row(horizontalArrangement = Arrangement.SpaceAround) {
               ElevatedButton(onClick = {
-                mmScope.launch {
+                scopeLaunch(cancelable = true) {
                   okk = nativeFetch("file://geolocation.sys.dweb/location").getResult()
                 }
               }) {

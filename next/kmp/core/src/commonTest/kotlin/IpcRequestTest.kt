@@ -7,6 +7,7 @@ import org.dweb_browser.core.ipc.IpcRequestInit
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.kotlinIpcPool
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.test.runCommonTest
@@ -39,7 +40,8 @@ class IpcRequestTest {
     }
     launch {
       println("🧨=>  开始监听消息")
-      receiverIpc.onRequest.onEach { request ->
+      receiverIpc.onRequest("test").collectIn(this) { event ->
+        val request = event.consume()
         val data = request.body.toString()
         println("receiverIpc结果🧨=> $data ")
         assertEquals("senderIpc 除夕快乐", data)
@@ -48,8 +50,9 @@ class IpcRequestTest {
             request.reqId, text = "receiverIpc 除夕快乐", ipc = receiverIpc
           )
         )
-      }.launchIn(this)
-      senderIpc.onRequest.onEach { request ->
+      }
+      senderIpc.onRequest("test").onEach { event ->
+        val request = event.consume()
         val data = request.body.text()
         println("senderIpc结果🧨=> $data ${senderIpc.remote.mmid}")
         assertEquals("senderIpc", data)

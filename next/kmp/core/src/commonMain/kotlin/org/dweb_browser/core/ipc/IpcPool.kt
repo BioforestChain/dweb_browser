@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SuspendOnce1
@@ -80,7 +81,9 @@ open class IpcPool {
     ipcSet.add(ipc)
     /// 自动启动
     if (autoStart) {
-      ipc.start(reason = "in-safeCreatedIpc")
+      scope.launch {
+        ipc.start(reason = "autoStart")
+      }
     }
     ipc.onClosed {
       ipcSet.remove(ipc)

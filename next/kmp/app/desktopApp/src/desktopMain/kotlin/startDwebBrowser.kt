@@ -85,7 +85,7 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   val dnsNMM = DnsNMM()
 
   val dnsNMM = DnsNMM()
-  suspend fun <T:MicroModule> T.setup() = this.also {
+  suspend fun <T : MicroModule> T.setup() = this.also {
     dnsNMM.install(this)
   }
 
@@ -177,7 +177,7 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   try {
     Desktop.getDesktop().setOpenURIHandler { event ->
       if (event.uri.scheme == "dweb") {
-        dnsRuntime.mmScope.launch {
+        dnsRuntime.scopeLaunch(cancelable = true) {
           dnsRuntime.nativeFetch(event.uri.toString())
         }
       }
@@ -188,7 +188,7 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
 
 
   // 添加windows平台系統級dweb deeplinks处理
-  if(PureViewController.isWindows) {
+  if (PureViewController.isWindows) {
     singleInstanceFlow.collectIn(dnsRuntime.getRuntimeScope()) {
       dnsRuntime.nativeFetch(it.replace("/?", "?"))
     }

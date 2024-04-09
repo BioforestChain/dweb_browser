@@ -38,7 +38,7 @@ class BrowserDownloadModel(
   /**
    * 用于响应重新下载操作，主要就是网页点击下载后，如果判断列表中已经存在下载数据时调用
    */
-  fun clickRetryButton(downloadItem: BrowserDownloadItem) = browserNMM.mmScope.launch {
+  fun clickRetryButton(downloadItem: BrowserDownloadItem) = browserNMM.scopeLaunch(cancelable = true) {
     // 将状态进行修改下，然后启动下载
 
     if (downloadItem.state.state != DownloadState.Init) {
@@ -84,7 +84,7 @@ class BrowserDownloadModel(
     downloadSheet = browserNMM.createBottomSheets { BrowserDownloadSheet(item) }.apply { open() }
   }
 
-  fun close() = browserNMM.mmScope.launch {
+  fun close() = browserNMM.scopeLaunch {
     downloadSheet?.close()
     downloadSheet = null
   }

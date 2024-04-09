@@ -22,12 +22,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
@@ -84,7 +83,7 @@ class BottomSheetsModalState private constructor(
     val show by isOpenState
 
     fun emitDismiss(isDismiss: Boolean) {
-      mm.mmScope.launch {
+      mm.scopeLaunch {
         dismissFlow.emit(isDismiss)
       }
     }
@@ -128,17 +127,16 @@ class BottomSheetsModalState private constructor(
       sendCallback(mm, OpenModalCallback(sessionId))
 
       debugModal("DisposableEffect", " disposable")
-      val job = dismissFlow.map { dismiss ->
-        if (!dismiss) {
-          hasExpanded = true
+      val job = mm.scopeLaunch(cancelable = true) {
+        dismissFlow.map { dismiss ->
+          dismiss.falseAlso { hasExpanded = true }
+        }.debounce(200).collect { dismiss ->
+          debugModal("dismissFlow", "close=$dismiss hasExpanded=$hasExpanded")
+          if (dismiss && show && hasExpanded) {
+            safeClose(mm)
+          }
         }
-        dismiss
-      }.debounce(200).map { dismiss ->
-        debugModal("dismissFlow", "close=$dismiss hasExpanded=$hasExpanded")
-        if (dismiss && show && hasExpanded) {
-          safeClose(mm)
-        }
-      }.launchIn(mm.mmScope)
+      }
       onDispose {
         job.cancel()
         /// 关闭动作只能被 dismiss 触发，不能因为Dispose触发，否则Activity重载时就会导致销毁
@@ -157,7 +155,7 @@ internal expect fun BottomSheetsModalState.RenderImpl(emitModalVisibilityChange:
 
 @Composable
 fun BottomSheetsModalState.TitleBarWithCustomCloseBottom(
-  closeBottom: @Composable (Modifier) -> Unit, content: @Composable BoxScope.() -> Unit
+  closeBottom: @Composable (Modifier) -> Unit, content: @Composable BoxScope.() -> Unit,
 ) {
   val winTheme = LocalWindowControllerTheme.current
   val contentColor = winTheme.topContentColor
@@ -192,7 +190,7 @@ fun BottomSheetsModalState.TitleBarWithCustomCloseBottom(
 
 @Composable
 fun BottomSheetsModalState.TitleBarWithOnClose(
-  onClose: () -> Unit, content: @Composable BoxScope.() -> Unit
+  onClose: () -> Unit, content: @Composable BoxScope.() -> Unit,
 ) {
   TitleBarWithCustomCloseBottom(
     { modifier ->

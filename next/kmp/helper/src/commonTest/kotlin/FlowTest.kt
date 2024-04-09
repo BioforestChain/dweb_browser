@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.listenAsync
+import org.dweb_browser.helper.listen
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -275,7 +275,7 @@ class FlowTest {
     val MAX = 5;
     val result = atomic(0)
     val flow = channel.consumeAsFlow().shareIn(this, SharingStarted.Lazily)
-    val job = flow.listenAsync {
+    val job = flow.listen {
       val res = result.addAndGet(it)
       // println("collect($it)=>$res")
       if (it == MAX) {

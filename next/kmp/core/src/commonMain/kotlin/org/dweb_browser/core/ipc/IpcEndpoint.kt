@@ -4,7 +4,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +17,7 @@ import org.dweb_browser.core.ipc.helper.EndpointProtocol
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.LIFECYCLE_STATE
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.Producer
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
@@ -53,13 +53,15 @@ abstract class IpcEndpoint {
    * 获取消息管道
    */
 
-  private val ipcMessageChannels = SafeHashMap<Int, Channel<IpcMessage>>()
+  private val ipcMessageProducers = SafeHashMap<Int, Producer<IpcMessage>>()
 
   /**
    * 获取消息管道
    */
-  fun getIpcMessageChannel(pid: Int) = ipcMessageChannels.getOrPut(pid) {
-    Channel<IpcMessage>(Channel.BUFFERED).apply { invokeOnClose { ipcMessageChannels.remove(pid) } }
+  fun getIpcMessageProducer(pid: Int) = ipcMessageProducers.getOrPut(pid) {
+    Producer<IpcMessage>("ipc-message", scope).apply {
+      invokeOnClose { ipcMessageProducers.remove(pid) }
+    }
   }
   //#endregion
 
@@ -218,7 +220,7 @@ abstract class IpcEndpoint {
       else -> {}
     }
     beforeClose?.invoke(cause)
-    ipcMessageChannels.sync {
+    ipcMessageProducers.sync {
       for (channel in values) {
         channel.close(cause)
       }

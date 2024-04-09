@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jmm
 
 import androidx.compose.runtime.mutableStateMapOf
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -198,7 +197,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
   private suspend fun watchProcess(metadata: JmmHistoryMetadata) {
     val taskId = metadata.taskId ?: return
     metadata.alreadyWatch = true
-    jmmNMM.mmScope.launch {
+    jmmNMM.scopeLaunch(cancelable = true) {
       val res = jmmNMM.createChannelOfDownload(taskId) {
         metadata.updateByDownloadTask(downloadTask, jmmStore)
         when (downloadTask.status.state) {

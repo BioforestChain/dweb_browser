@@ -15,7 +15,7 @@ fun <T : Activity> MicroModule.Runtime.startAppActivity(
   cls: Class<T>,
   onIntent: (intent: Intent) -> Unit
 ) {
-  mmScope.launch {
+  scopeLaunch {
     lockActivityState.withLock {
       if (grant?.await() == false) {
         return@withLock // TODO 用户拒绝协议应该做的事情ØÏ

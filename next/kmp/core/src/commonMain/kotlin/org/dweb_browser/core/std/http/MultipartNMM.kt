@@ -2,7 +2,6 @@ package org.dweb_browser.core.std.http
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
@@ -88,12 +87,12 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
           }
         }
 
-        mmScope.launch {
+        scopeLaunch {
           processMultipartOpen(boundary, multipartEachArrayRangeCallback)
         }
         val id = deferred.await()
 
-        mmScope.launch {
+        scopeLaunch(cancelable = true) {
           request.body.toPureStream().getReader("multipart/form-data")
             .consumeEachArrayRange { byteArray, last ->
               if (!(last && byteArray.isEmpty())) {

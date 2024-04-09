@@ -4,9 +4,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.fullPath
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -69,7 +66,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       val nativeToWhiteList = listOf<MMID>("js.browser.dweb")
 
       data class MmDirection(
-        val endJmm: JsMicroModule.JmmRuntime, val startMm: IMicroModuleManifest
+        val endJmm: JsMicroModule.JmmRuntime, val startMm: IMicroModuleManifest,
       )
       // jsMM对外创建ipc的适配器，给DnsNMM的connectMicroModules使用
       connectAdapterManager.append(1) { fromMM, toMM, reason ->
@@ -77,7 +74,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         val jsMM = if (nativeToWhiteList.contains(toMM.mmid)) null
         /// 这里优先判断 toMM 是否是 endJmm
         else if (toMM is JsMicroModule.JmmRuntime) MmDirection(toMM, fromMM)
-        else if (fromMM is JsMicroModule.JmmRuntime) MmDirection(fromMM, toMM)
+        else if (fromMM is JsMicroModule) MmDirection(fromMM.runtime, toMM)
         else null
 
         debugJsMM(
@@ -138,7 +135,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       val processIpc = connect("js.browser.dweb").fork()
       // 让这个新的 ipc 作为 js-process 的通讯通道
       processIpc.request("file://js.browser.dweb/create-process")
-      processIpc.onRequest.collectIn(mmScope) { request ->
+      processIpc.onRequest("js-process").collectIn(mmScope) { event ->
+        val request = event.consume()
         debugJsMM("processIpc.onRequest", "path=${request.uri.fullPath}")
         val response = if (request.uri.fullPath.endsWith("/")) {
           PureResponse(HttpStatusCode.Forbidden)
@@ -148,7 +146,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
             "file://" + (metadata.server.root + request.uri.fullPath).replace(Regex("/{2,}"), "/")
           )
         }
-        processIpc.postResponse(request.reqId, response, processIpc)
+        processIpc.postResponse(request.reqId, response)
       }
       return processIpc
     }
@@ -177,9 +175,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       this.fetchIpc = jsIpc
 
       // 监听关闭事件
-      mmScope.launch {
-        if (isRunning) {
-          jsIpc.awaitClosed()
+      jsIpc.onClosed {
+        scopeLaunch {
           shutdown()
         }
       }
@@ -188,7 +185,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
        * 这里 jmm 的对于 request 的默认处理方式是将这些请求直接代理转发出去
        * TODO 跟 dns 要 jmmMetadata 信息然后进行路由限制 eg: jmmMetadata.permissions.contains(ipcRequest.uri.host) // ["media-capture.sys.dweb"]
        */
-      jsIpc.onRequest.onEach { ipcRequest ->
+      jsIpc.onRequest("fetch-ipc-proxy-request").collectIn(mmScope) { event ->
+        val ipcRequest = event.consume()
         /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
         val scheme = ipcRequest.uri.protocol.name
         val host = ipcRequest.uri.host
@@ -214,63 +212,69 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
             )
           }
         }
-      }.launchIn(mmScope)
+      }
 
       /**
        * 收到 Worker 的事件，如果是指令，执行一些特定的操作
        */
-      jsIpc.onEvent.onEach { ipcEvent ->
-        /**
-         * 收到要与其它模块进行ipc连接的指令
-         */
-        if (ipcEvent.name == "dns/connect") {
-          @Serializable
-          data class DnsConnectEvent(val mmid: MMID, val sub_protocols: List<String> = listOf())
+      jsIpc.onEvent("fetch-ipc-proxy-event").collectIn(mmScope) { event ->
+        event.consumeFilter { ipcEvent ->
 
-          val event = JsonLoose.decodeFromString<DnsConnectEvent>(ipcEvent.text)
-          try {
-            /**
-             * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
-             * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
-             *
-             * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
-             */
-            /**
-             * 向目标模块发起连接，注意，这里是很特殊的，因为我们自定义了 JMM 的连接适配器 connectAdapterManager，
-             * 所以 JsMicroModule 这里作为一个中间模块，是没法直接跟其它模块通讯的。
-             *
-             * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
-             */
-            val targetIpc = connect(event.mmid) // 由上面的适配器产生
-            /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
-            if (targetIpc.endpoint is WebMessageEndpoint) {
-              ipcBridge(targetIpc.remote.mmid, targetIpc)
-            }
-            // 如果是jsMM互联，那么直接把port分配给两个人
-            // ipcBridgeJsMM(mmid, targetIpc.remote.mmid)
-
-            /**
-             * 连接成功，正式告知它数据返回。注意，create-ipc虽然也会resolve任务，但是我们还是需要一个明确的done事件，来确保逻辑闭环
-             * 否则如果遇到ipc重用，create-ipc是不会触发的
-             */
+          /**
+           * 收到要与其它模块进行ipc连接的指令
+           */
+          if (ipcEvent.name == "dns/connect") {
             @Serializable
-            data class DnsConnectDone(val connect: MMID, val result: MMID)
+            data class DnsConnectEvent(val mmid: MMID, val sub_protocols: List<String> = listOf())
 
-            /// event.mmid 可能是自协议，所以result提供真正的mmid
-            val done = DnsConnectDone(
-              connect = event.mmid, result = targetIpc.remote.mmid
-            )
-            jsIpc.postMessage(IpcEvent.fromUtf8("dns/connect/done", Json.encodeToString(done)))
-          } catch (e: Exception) {
-            jsIpc.postMessage(IpcError(503, e.message))
-            printError("dns/connect", e)
+            val connectEvent = JsonLoose.decodeFromString<DnsConnectEvent>(ipcEvent.text)
+            try {
+              /**
+               * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
+               * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
+               *
+               * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
+               */
+              /**
+               * 向目标模块发起连接，注意，这里是很特殊的，因为我们自定义了 JMM 的连接适配器 connectAdapterManager，
+               * 所以 JsMicroModule 这里作为一个中间模块，是没法直接跟其它模块通讯的。
+               *
+               * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
+               */
+              val targetIpc = connect(connectEvent.mmid) // 由上面的适配器产生
+              /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
+              if (targetIpc.endpoint is WebMessageEndpoint) {
+                ipcBridge(targetIpc.remote.mmid, targetIpc)
+              }
+              // 如果是jsMM互联，那么直接把port分配给两个人
+              // ipcBridgeJsMM(mmid, targetIpc.remote.mmid)
+
+              /**
+               * 连接成功，正式告知它数据返回。注意，create-ipc虽然也会resolve任务，但是我们还是需要一个明确的done事件，来确保逻辑闭环
+               * 否则如果遇到ipc重用，create-ipc是不会触发的
+               */
+              @Serializable
+              data class DnsConnectDone(val connect: MMID, val result: MMID)
+
+              /// event.mmid 可能是自协议，所以result提供真正的mmid
+              val done = DnsConnectDone(
+                connect = connectEvent.mmid, result = targetIpc.remote.mmid
+              )
+              jsIpc.postMessage(IpcEvent.fromUtf8("dns/connect/done", Json.encodeToString(done)))
+            } catch (e: Exception) {
+              jsIpc.postMessage(IpcError(503, e.message))
+              printError("dns/connect", e)
+            }
+            return@consumeFilter true
           }
+          if (ipcEvent.name == "restart") {
+            // 调用重启
+            bootstrapContext.dns.restart(mmid)
+            return@consumeFilter true
+          }
+          false
         }
-        if (ipcEvent.name == "restart") {
-          // 调用重启
-          bootstrapContext.dns.restart(mmid)
-        }
-      }.launchIn(mmScope)
+      }
     }
 
 
@@ -342,24 +346,26 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
             /**
              * 将两个消息通道间接互联，这里targetIpc明确为NativeModule
              */
-            toJmmIpc.onMessage.collectIn(mmScope) { ipcMessage ->
-              targetIpc.postMessage(ipcMessage)
+            toJmmIpc.onMessage("jmm-to-target").collectIn(mmScope) { ipcMessage ->
+              targetIpc.postMessage(ipcMessage.consume())
             }
-            targetIpc.onMessage.collectIn(mmScope) { ipcMessage ->
-              toJmmIpc.postMessage(ipcMessage)
+            targetIpc.onMessage("target-to-jmm").collectIn(mmScope) { ipcMessage ->
+              toJmmIpc.postMessage(ipcMessage.consume())
             }
             /**
              * 监听关闭事件
              */
-            mmScope.launch {
-              toJmmIpc.awaitClosed()
-              fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
-              targetIpc.close()
+            toJmmIpc.onClosed {
+              scopeLaunch {
+                fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
+                targetIpc.close()
+              }
             }
-            mmScope.launch {
-              targetIpc.awaitClosed()
-              fromMMIDOriginIpcWM.remove(toJmmIpc.remote.mmid)
-              toJmmIpc.close()
+            targetIpc.onClosed {
+              scopeLaunch {
+                fromMMIDOriginIpcWM.remove(toJmmIpc.remote.mmid)
+                toJmmIpc.close()
+              }
             }
           }
           toJmmIpc

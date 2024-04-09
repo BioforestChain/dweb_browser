@@ -41,7 +41,7 @@ class IpcClientRequest(
   headers: PureHeaders,
   body: IpcBody,
   ipc: Ipc,
-  override val from: Any? = null
+  override val from: Any? = null,
 ) : IpcRequest(
   reqId = reqId, url = url, method = method, headers = headers, body = body, ipc = ipc
 ) {
@@ -53,7 +53,7 @@ class IpcClientRequest(
       method: PureMethod = PureMethod.GET,
       headers: PureHeaders = PureHeaders(),
       text: String,
-      ipc: Ipc
+      ipc: Ipc,
     ) = IpcClientRequest(
       reqId,
       url,
@@ -69,7 +69,7 @@ class IpcClientRequest(
       url: String,
       headers: PureHeaders = PureHeaders(),
       binary: ByteArray,
-      ipc: Ipc
+      ipc: Ipc,
     ) = IpcClientRequest(
       reqId,
       url,
@@ -89,7 +89,7 @@ class IpcClientRequest(
       headers: PureHeaders = PureHeaders(),
       stream: PureStream,
       ipc: Ipc,
-      size: Long? = null
+      size: Long? = null,
     ) = IpcClientRequest(
       reqId,
       url,
@@ -105,7 +105,7 @@ class IpcClientRequest(
     )
 
     suspend fun fromRequest(
-      reqId: Int, ipc: Ipc, url: String, init: IpcRequestInit, from: Any? = null
+      reqId: Int, ipc: Ipc, url: String, init: IpcRequestInit, from: Any? = null,
     ) = IpcClientRequest(
       reqId, url, init.method, init.headers, IpcBodySender.from(init.body, ipc), ipc, from
     )
@@ -185,7 +185,7 @@ class IpcServerRequest(
   headers: PureHeaders,
   body: IpcBody,
   ipc: Ipc,
-  override val from: Any? = null
+  override val from: Any? = null,
 ) : IpcRequest(
   reqId = reqId, url = url, method = method, headers = headers, body = body, ipc = ipc
 ) {
@@ -291,7 +291,8 @@ sealed class IpcRequest(
       val started = CompletableDeferred<IpcEvent>()
       val channelIpc = parentIpc.fork()
       coroutineScope {
-        channelIpc.onEvent.collectIn(this) { ipcEvent ->
+        channelIpc.onEvent("pureChannelToIpcEvent").collectIn(this) { event ->
+          val ipcEvent = event.data
           when (ipcEvent.name) {
             eventData -> {
 //            debugIpc(_debugTag) { "$ipc onIpcEventData:$ipcEvent" }
@@ -307,7 +308,10 @@ sealed class IpcRequest(
               channelIpc.debugIpc(debugTag) { "$channelIpc onIpcEventClose:$ipcEvent " }
               pureChannel.close()
             }
+
+            else -> return@collectIn
           }
+          event.consume()
         }
         channelIpc.debugIpc(debugTag) { "waitLocaleStart ${channelIpc.debugId}" }
         // 提供回调函数，等待外部调用者执行开始指令

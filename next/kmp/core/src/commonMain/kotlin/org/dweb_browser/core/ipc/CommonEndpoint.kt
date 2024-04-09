@@ -82,7 +82,7 @@ abstract class CommonEndpoint(
             lifecycleRemoteMutableFlow.emit(endpointMessage)
           }
 
-          is EndpointIpcMessage -> getIpcMessageChannel(endpointMessage.pid).send(endpointMessage.ipcMessage)
+          is EndpointIpcMessage -> getIpcMessageProducer(endpointMessage.pid).emit(endpointMessage.ipcMessage)
         }
       }
     }

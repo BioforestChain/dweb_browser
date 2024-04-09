@@ -191,7 +191,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
     public override suspend fun _bootstrap() {
       // 初始化http监听
-      mmScope.launch {
+      scopeLaunch(cancelable = true) {
         initHttpListener()
       }
       /// 启动http后端服务
@@ -506,11 +506,12 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
       val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
       /// ipc 在关闭的时候，自动释放所有的绑定
-      mmScope.launch {
-        ipc.awaitClosed()
-        debugHttp("start close", "onDestroy ${ipc.remote.mmid} ${serverUrlInfo.host}")
-        listener.destroy()
-        close(ipc, options)
+      ipc.onClosed {
+        scopeLaunch {
+          debugHttp("start close", "onDestroy ${ipc.remote.mmid} ${serverUrlInfo.host}")
+          listener.destroy()
+          close(ipc, options)
+        }
       }
       val token = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
 
@@ -536,7 +537,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
       /// 自己nmm销毁的时候，ipc也会被全部销毁
       /// 自己创建的，就要自己销毁：这个listener被销毁的时候，serverIpc也要进行销毁
-      mmScope.launch {
+      scopeLaunch {
         gateway.listener.destroyDeferred.await()
         serverIpc.close()
       }

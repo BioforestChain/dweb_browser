@@ -72,21 +72,12 @@ class NativeEndpoint(
       messageOut.send(msg)
     }
   }
-//
-//  /**
-//   * 收取消息
-//   * 这里要用 Lazily，因为 messageIn 是使用 BufferOverflow.SUSPEND
-//   */
-//  override val onIpcMessage = messageIn.consumeAsFlow().run {
-//    if (debugEndpoint.isEnable) {
-//      onEach { debugEndpoint("message-in", it) }
-//    } else this
-//  }.shareIn(scope, SharingStarted.Lazily)
 
   override suspend fun doStart() {
     scope.launch {
       for ((pid, ipcMessage) in messageIn) {
-        getIpcMessageChannel(pid).send(ipcMessage)
+        debugEndpoint("message-in", "pid=$pid ipcMessage=$ipcMessage")
+        getIpcMessageProducer(pid).emit(ipcMessage)
       }
     }
   }

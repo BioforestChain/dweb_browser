@@ -3,7 +3,6 @@ package org.dweb_browser.core.std.dns.ext
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.listen
 
 /**
@@ -16,9 +15,11 @@ fun IpcEvent.Companion.createActivity(data: String) = IpcEvent.fromUtf8(ACTIVITY
 fun IpcEvent.isActivity() = name == ACTIVITY_EVENT_NAME
 suspend fun MicroModule.Runtime.onActivity(cb: suspend (value: Pair<IpcEvent, Ipc>) -> Unit) =
   onConnect.listen { (ipc) ->
-    ipc.onEvent.collectIn(mmScope) { ipcEvent ->
-      if (ipcEvent.isActivity()) {
-        cb(Pair(ipcEvent, ipc))
+    scopeLaunch {
+      ipc.onEvent("onActivity").collect { event ->
+        if (event.data.isActivity()) {
+          cb(Pair(event.consume(), ipc))
+        }
       }
     }
   }

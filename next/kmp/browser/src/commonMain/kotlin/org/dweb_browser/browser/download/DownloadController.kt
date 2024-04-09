@@ -12,7 +12,6 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.core.ByteReadPacket
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
@@ -151,29 +150,28 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
 
   init {
     // 从内存中恢复状态
-    downloadNMM.mmScope.launch {
-      // 状态改变的时候存储保存到内存
-      downloadTaskMaps.onChange { (type, _, value) ->
-        when (type) {
-          ChangeableType.Add -> {
-            downloadStore.set(value!!.id, value)
-            downloadList.add(0, value)
-          }
 
-          ChangeableType.Remove -> {
-            downloadStore.delete(value!!.id)
-            downloadList.remove(value)
-          }
+    // 状态改变的时候存储保存到内存
+    downloadTaskMaps.onChange { (type, _, value) ->
+      when (type) {
+        ChangeableType.Add -> {
+          downloadStore.set(value!!.id, value)
+          downloadList.add(0, value)
+        }
 
-          ChangeableType.PutAll -> {
-            downloadList.addAll(
-              downloadTaskMaps.toMutableList().sortedByDescending { it.createTime }
-            )
-          }
+        ChangeableType.Remove -> {
+          downloadStore.delete(value!!.id)
+          downloadList.remove(value)
+        }
 
-          ChangeableType.Clear -> {
-            downloadList.clear()
-          }
+        ChangeableType.PutAll -> {
+          downloadList.addAll(
+            downloadTaskMaps.toMutableList().sortedByDescending { it.createTime }
+          )
+        }
+
+        ChangeableType.Clear -> {
+          downloadList.clear()
         }
       }
     }
@@ -237,7 +235,8 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
     // 目前发现测试的时候，如果不存在range的上面会报错。直接使用下面这个来请求
     if (response.status == HttpStatusCode.RequestedRangeNotSatisfiable) {
       task.status.current = 0L
-      response = downloadNMM.nativeFetch(PureClientRequest(href = task.url, method = PureMethod.GET))
+      response =
+        downloadNMM.nativeFetch(PureClientRequest(href = task.url, method = PureMethod.GET))
     }
 
     if (!response.isOk) {
@@ -274,7 +273,7 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
     // 重要记录点 存储到硬盘
     downloadTaskMaps.put(taskId, task)
     // 正式下载需要另外起一个协程，不影响当前的返回值
-    downloadNMM.mmScope.launch {
+    downloadNMM.scopeLaunch(cancelable = true) {
       debugDownload("middleware", "start id:$taskId current:${task.status.current}")
       task.emitChanged()
       try {
@@ -428,7 +427,7 @@ class DownloadController(private val downloadNMM: DownloadNMM.DownloadRuntime) {
     downloadTaskMaps.remove(taskId)?.let { downloadTask ->
       downloadTask.readChannel?.cancel()
       downloadTask.readChannel = null
-      downloadNMM.mmScope.launch { fileRemove(downloadTask.filepath) }
+      downloadNMM.scopeLaunch { fileRemove(downloadTask.filepath) }
     }
   }
 

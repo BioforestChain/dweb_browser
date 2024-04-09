@@ -79,7 +79,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val info = Json.decodeFromString<ProcessInfo>(processInfo_json)
     val ipc = kotlinIpcPool.createIpc(
       endpoint = WebMessageEndpoint.from(
-        "create-process-${remoteModule.mmid}", kotlinIpcPool.scope, port2
+        "jsWorker-${remoteModule.mmid}", kotlinIpcPool.scope, port2
       ),
       pid = 0,
       locale = localeModule,

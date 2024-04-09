@@ -6,8 +6,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.core.help.types.MMID
@@ -38,7 +36,7 @@ class TaskbarController private constructor(
       deskNMM: DeskNMM.DeskRuntime,
       desktopController: DesktopController,
       taskbarServer: HttpDwebServer,
-      runningApps: ChangeableMap<MMID, RunningApp>
+      runningApps: ChangeableMap<MMID, RunningApp>,
     ) =
       TaskbarController(
         deskNMM,
@@ -50,7 +48,7 @@ class TaskbarController private constructor(
   }
 
   private val _taskbarView =
-    deskNMM.mmScope.async { ITaskbarView.create(this@TaskbarController) }
+    deskNMM.scopeAsync(cancelable = true) { ITaskbarView.create(this@TaskbarController) }
 
   private suspend fun taskbarView() = _taskbarView.await()
 
@@ -79,7 +77,7 @@ class TaskbarController private constructor(
     /**
      * 绑定 runningApps 集合
      */
-    deskNMM.mmScope.launch {
+    deskNMM.scopeLaunch(cancelable = true) {
       val apps = getTaskbarShowAppList()
       runningApps.onChange { map ->
         /// 将新增的打开应用追加到列表签名

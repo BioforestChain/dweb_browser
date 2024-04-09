@@ -56,7 +56,7 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule.Runtime) {
       task = task
     )
 
-    microModule.mmScope.launch {
+    microModule.scopeLaunch(cancelable = true) {
       try {
 
         val response = microModule.nativeFetch(pureRequest)

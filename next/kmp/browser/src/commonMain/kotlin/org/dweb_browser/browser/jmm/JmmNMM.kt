@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jmm
 
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -65,7 +64,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
           val rootKey = "${fromMM.mmid}-${fromMM.version}"
           debugJMM("UsrFile", "$fromMM => ${request.href} in $rootKey")
           val root = usrRootMap.getOrPut(fromMM.mmid) {
-            fromMM.mmScope.async {
+            fromMM.scopeAsync(cancelable = true) {
               fromMM.realFile("/data/apps/${fromMM.mmid}-${fromMM.version}")
             }
           }.await()

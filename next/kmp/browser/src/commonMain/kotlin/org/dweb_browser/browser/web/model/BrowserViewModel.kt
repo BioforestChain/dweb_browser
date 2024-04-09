@@ -76,7 +76,7 @@ class BrowserViewModel(
   val browserOnVisible = browserController.onWindowVisible
   val browserOnClose = browserController.onCloseWindow
 
-  val ioScope get() = browserNMM.mmScope
+  val ioScope get() = browserNMM.getRuntimeScope()
   private val pages = mutableStateListOf<BrowserPage>() // 多浏览器列表
   val pageSize get() = pages.size
 

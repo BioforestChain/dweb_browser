@@ -69,7 +69,7 @@ class MediaNMM : NativeMicroModule("media.file.sys.dweb", "system media") {
               val fieldMediaMap = mutableMapOf</* field_index */Int, MediaPicture>()
               val channel = Channel<FieldChunkTask>(capacity = Channel.RENDEZVOUS)
               val deferred = CompletableDeferred<Boolean>()
-              mmScope.launch {
+              scopeLaunch {
                 for (task in channel) {
                   fieldMediaMap[task.field_index]?.also {
                     it.consumePictureChunk(task.chunk)

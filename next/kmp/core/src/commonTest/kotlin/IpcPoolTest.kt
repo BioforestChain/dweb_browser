@@ -27,7 +27,8 @@ class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
         //
         "/test" bind PureMethod.GET by defineEmptyResponse {
           println("请求到了 /test")
-          ipc.onRequest.collectIn(mmScope) { request ->
+          ipc.onRequest("test").collectIn(mmScope) { event ->
+            val request = event.consume()
             val pathName = request.uri.encodedPath
             println("/test 拿到结果=> $pathName")
             ipc.postMessage(
@@ -62,9 +63,10 @@ class IpcPoolTest {
     val pid = kotlinIpcPool.generatePid()
     val fromNativeIpc = kotlinIpcPool.createIpc(channel.port1, pid, fromMM, toMM)
     val toNativeIpc = kotlinIpcPool.createIpc(channel.port2, pid, toMM, fromMM)
-    toNativeIpc.onEvent.collectIn(this@runCommonTest) { event ->
-      println("🌞 toNativeIpc $event")
-      assertEquals(event.text, "xx")
+    toNativeIpc.onEvent("test").collectIn(this@runCommonTest) { event ->
+      val ipcEvent = event.consume()
+      println("🌞 toNativeIpc $ipcEvent")
+      assertEquals(ipcEvent.text, "xx")
     }
     println("🌞📸 send")
     fromNativeIpc.postMessage(IpcEvent.fromUtf8("哈哈", "xx"))
@@ -78,13 +80,7 @@ class IpcPoolTest {
     val dns = DnsNMM()
     val serverMM = TestMicroModule("server.mm.dweb")
     val clientMM = TestMicroModule("client.mm.dweb")
-    dns.install(
-      BootNMM(
-        listOf(
-          clientMM.mmid, serverMM.mmid
-        )
-      )
-    )
+    dns.install(BootNMM(listOf(clientMM.mmid, serverMM.mmid)))
     dns.install(clientMM)
     dns.install(serverMM)
     val dnsRuntime = dns.bootstrap()

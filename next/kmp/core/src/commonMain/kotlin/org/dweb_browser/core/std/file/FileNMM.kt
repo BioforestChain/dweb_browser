@@ -134,7 +134,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
             null -> returnNext()
             else -> {
               val vfsPath = VirtualFsPath(fromMM, filePath) { vfsDirectory }
-              returnFile(SystemFileSystem, vfsPath.fsFullPath, fromMM.mmScope)
+              returnFile(SystemFileSystem, vfsPath.fsFullPath, fromMM.getRuntimeScope())
             }
           }
         }

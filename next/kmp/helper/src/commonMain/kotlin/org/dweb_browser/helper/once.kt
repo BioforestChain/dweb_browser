@@ -16,26 +16,30 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class SuspendOnce<R>(val runnable: suspend CoroutineScope.() -> R) {
-  private val lock = Mutex()
-  private val hasRun = atomic<Deferred<R>>(noRun)
-  val haveRun get() = hasRun.value !== noRun
-  suspend fun getResult() = hasRun.value.await()
-  suspend fun reset() {
-    lock.withLock { hasRun.update { noRun } }
+  private val lock = SynchronizedObject()
+  private var hasRun = noRun as Deferred<R>
+  val haveRun get() = hasRun !== noRun
+  suspend fun getResult() = hasRun.await()
+  fun reset() {
+    synchronized(lock) {
+      if (hasRun !== noRun) {
+        hasRun.cancel()
+      }
+      noRun
+    }
   }
 
   suspend operator fun invoke(): R {
-    return lock.withLock {
-      hasRun.updateAndGet { run ->
-        if (run === noRun) {
-          coroutineScope {
-            async {
-              runnable()
-            }
+    return coroutineScope {
+      synchronized(lock) {
+        if (hasRun === noRun) {
+          hasRun = async {
+            runnable()
           }
-        } else run
-      }.await()
-    }
+        }
+      }
+      hasRun
+    }.await()
   }
 }
 
@@ -75,7 +79,7 @@ class SuspendOnce1<A1, R>(
 
 class Once<R>(
   val before: ((() -> Unit))? = null,
-  val runnable: () -> R
+  val runnable: () -> R,
 ) {
   private val lock = SynchronizedObject()
   private val hasRun = atomic(false)
@@ -112,7 +116,7 @@ class Once<R>(
 
 class Once1<A1, R>(
   val before: (((A1) -> Unit))? = null,
-  val runnable: (A1) -> R
+  val runnable: (A1) -> R,
 ) {
   private val lock = SynchronizedObject()
   private val hasRun = atomic(false)

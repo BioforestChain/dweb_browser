@@ -5,7 +5,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -52,7 +51,7 @@ class MicroModuleStore(
   private val storeMutex = Mutex()
 
   init {
-    mm.mmScope.launch {
+    mm.scopeLaunch(cancelable = true) {
       for (task in taskQueues) {
         // 防止并发修改异常
         storeMutex.withLock {
@@ -103,7 +102,7 @@ class MicroModuleStore(
 
   private fun <T> exec(action: suspend () -> T): Deferred<T> {
     val deferred = CompletableDeferred<T>()
-    mm.mmScope.launch {
+    mm.scopeLaunch(cancelable = true) {
       taskQueues.send(Task(deferred, action))
     }
     return deferred

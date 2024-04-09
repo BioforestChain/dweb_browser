@@ -39,7 +39,7 @@ import org.dweb_browser.helper.PrivacyUrl
 internal fun BrowserMenuPanel() {
   val uiScope = rememberCoroutineScope()
   val viewModel = LocalBrowserViewModel.current
-  val scope = LocalBrowserViewModel.current.browserNMM.mmScope
+  val scope = LocalBrowserViewModel.current.browserNMM.getRuntimeScope()
 
   val hide = remember(viewModel) { { viewModel.showMore = false } }
 
