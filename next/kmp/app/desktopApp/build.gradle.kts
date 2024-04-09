@@ -96,6 +96,6 @@ afterEvaluate {
     // 注入应用版本
     systemProperties["dwebbrowser.version"] = appVersion
 
-//    jvmArgs("--add-opens", "java.desktop/java.awt=ALL-UNNAMED")
+    jvmArgs("--add-opens", "java.desktop/java.awt=ALL-UNNAMED")
   }
 }

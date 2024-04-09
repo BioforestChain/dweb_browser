@@ -25,6 +25,8 @@ import com.teamdev.jxbrowser.net.callback.BeforeUrlRequestCallback
 import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
 import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
+import com.teamdev.jxbrowser.permission.PermissionType
+import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback
 import com.teamdev.jxbrowser.ui.Bitmap
 import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
@@ -111,6 +113,13 @@ class DWebViewEngine internal constructor(
         } else {
           BeforeUrlRequestCallback.Response.proceed()
         }
+      })
+
+      engine.permissions().set(RequestPermissionCallback::class.java, RequestPermissionCallback { params, tell ->
+//        if(params.permissionType() == PermissionType.GEOLOCATION) {
+//          tell.grant()
+//        }
+        tell.grant()
       })
 
       val browser = engine.newBrowser()
