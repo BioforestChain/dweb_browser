@@ -135,6 +135,9 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
     init {
       consumers.add(this)
+      invokeOnClose {
+        cancel()
+      }
     }
 
     fun cancel() {

@@ -2,7 +2,6 @@ package org.dweb_browser.core.ipc.helper
 
 import io.ktor.http.Url
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -15,7 +14,6 @@ import org.dweb_browser.helper.IFrom
 import org.dweb_browser.helper.LateInit
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.commonAsyncExceptionHandler
 import org.dweb_browser.helper.eprintln
 import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.pure.http.IPureBody
@@ -28,11 +26,10 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureServerRequest
 import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.pure.http.buildRequestX
-import kotlin.coroutines.coroutineContext
 
 
 const val X_IPC_UPGRADE_KEY = "X-Dweb-Ipc-Upgrade-Key"
-const val PURE_CHANNEL_EVENT_PREFIX = "§"
+const val PURE_CHANNEL_EVENT_PREFIX = "§-"
 
 class IpcClientRequest(
   reqId: Int,
@@ -116,8 +113,8 @@ class IpcClientRequest(
     ): IpcClientRequest {
       val pureRequest = this
       if (pureRequest.hasChannel) {
-        val eventNameBase =
-          "$PURE_CHANNEL_EVENT_PREFIX-${postIpc.debugId}/${reqId}/${duplexAcc.inc().value}"
+        val channelIpc = postIpc.fork(autoStart = true, startReason = "PureClientRequestToIpc")
+        val eventNameBase = "$PURE_CHANNEL_EVENT_PREFIX${channelIpc.pid}"
 
         postIpc.debugIpc("ipcClient/hasChannel") { "create ipcEventBaseName:$eventNameBase => request:$pureRequest" }
         postIpc.scope.launch {
@@ -127,8 +124,9 @@ class IpcClientRequest(
           /// 那么意味着数据需要通过ipc来进行发送。所以我需要将 pureChannel 中要发送的数据读取出来进行发送
           /// 反之，ipc收到的数据也要作为 pureChannel 的
           val channelContext = pureChannel.start()
+
           pureChannelToIpcEvent(
-            postIpc,
+            channelIpc,
             pureChannel,
             channelByIpcEmit = channelContext.income,
             channelForIpcPost = channelContext.outgoing,
@@ -198,18 +196,19 @@ class IpcServerRequest(
     buildRequestX(url, method, headers, body.raw, from = this).let { pureRequest ->
       /// 如果存在双工通道，那么这个 pureRequest 用不了，需要重新构建一个新的 PureServerRequest
       if (hasDuplex) {
-        val eventNameBase = duplexEventBaseName!!
-//        debugIpc(
-//          "PureServer/ipcToChannel",
-//          "channelId:$eventNameBase => request:$this start!!"
-//        )
+        val forkedIpcId = duplexIpcId!!
+        ipc.debugIpc(
+          "PureServer/ipcToChannel",
+          "forkedIpcId:$forkedIpcId => request:$this start!!"
+        )
+        val channelIpc = ipc.waitForkedIpc(forkedIpcId)
 
         val pureChannelDeferred = CompletableDeferred<PureChannel>()
-        CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
+        ipc.scope.launch {
           val pureChannel = pureChannelDeferred.await();
           val ctx = pureChannel.start()
           pureChannelToIpcEvent(
-            ipc,
+            channelIpc,
             pureChannel,
             channelByIpcEmit = ctx.income,
             channelForIpcPost = ctx.outgoing,
@@ -276,7 +275,7 @@ sealed class IpcRequest(
      */
     @OptIn(DelicateCoroutinesApi::class)
     internal suspend fun pureChannelToIpcEvent(
-      parentIpc: Ipc,
+      channelIpc: Ipc,
       pureChannel: PureChannel,
       /**收到ipcEvent时，需要对其进行接收的 channel*/
       channelByIpcEmit: SendChannel<PureFrame>,
@@ -289,7 +288,6 @@ sealed class IpcRequest(
       val eventData = "data"
       val eventClose = "close"
       val started = CompletableDeferred<IpcEvent>()
-      val channelIpc = parentIpc.fork(autoStart = true, startReason = debugTag)
       coroutineScope {
         channelIpc.onEvent("pureChannelToIpcEvent").collectIn(this) { event ->
           val ipcEvent = event.data
@@ -348,15 +346,15 @@ sealed class IpcRequest(
    * 注意，这里WebSocket，但是可以由 WebSocket 来提供支持
    * WebSocket 是在头部中有 Upgrade ，我们这里是 X_IPC_PURE_CHANNEL_ID
    */
-  val hasDuplex get() = duplexEventBaseName != null
-  protected val duplexEventBaseName by lazy {
-    var eventNameBase: String? = null
+  val hasDuplex get() = duplexIpcId != null
+  protected val duplexIpcId by lazy {
+    var forkedIpcId: Int? = null
     headers.get(X_IPC_UPGRADE_KEY)?.also {
       if (it.startsWith(PURE_CHANNEL_EVENT_PREFIX)) {
-        eventNameBase = it
+        forkedIpcId = it.substring(PURE_CHANNEL_EVENT_PREFIX.length).toInt()
       }
     }
-    eventNameBase
+    forkedIpcId
   }
 
   val ipcReqMessage by lazy {

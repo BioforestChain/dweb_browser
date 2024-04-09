@@ -13,6 +13,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.createChannel
 import org.dweb_browser.core.std.dns.DnsNMM
+import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureBinaryFrame
@@ -24,6 +25,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class IpcRequestTest {
+  init {
+    addDebugTags(listOf("/.+/"))
+  }
 
   // 黑盒测试ipcRequest
   @Test
@@ -111,7 +115,6 @@ class IpcRequestTest {
     val dnsRuntime = dns.bootstrap()
     val clientRuntime = dnsRuntime.open(clientMM.mmid) as NativeMicroModule.NativeRuntime;
 
-    val clientIpc = clientRuntime.connect(serverMM.mmid)
     clientRuntime.createChannel("file://${serverMM.mmid}/channel") {
       launch {
         for (i in 1..10) {
@@ -121,8 +124,8 @@ class IpcRequestTest {
         close()
       }
 
-      for (i in income) {
-        println(i)
+      for (frame in income) {
+        println("client got msg: $frame")
       }
     }
   }

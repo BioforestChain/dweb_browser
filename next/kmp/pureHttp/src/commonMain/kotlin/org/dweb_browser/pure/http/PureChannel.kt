@@ -127,11 +127,11 @@ sealed class PureFrame
 
 @Serializable
 @SerialName("text")
-class PureTextFrame(val data: String) : PureFrame()
+data class PureTextFrame(val data: String) : PureFrame()
 
 @Serializable
 @SerialName("binary")
-class PureBinaryFrame(val data: ByteArray) : PureFrame()
+data class PureBinaryFrame(val data: ByteArray) : PureFrame()
 
 @Serializable
 @SerialName("close")

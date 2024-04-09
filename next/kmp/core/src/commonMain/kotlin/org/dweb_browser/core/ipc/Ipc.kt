@@ -4,17 +4,23 @@ import io.ktor.http.Url
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.IpcClientRequest
@@ -46,7 +52,7 @@ import org.dweb_browser.pure.http.PureResponse
 
 
 open class Ipc internal constructor(
-  private val pid: Int,
+  val pid: Int,
   val endpoint: IpcEndpoint,
   val locale: IMicroModuleManifest,
   val remote: IMicroModuleManifest,
@@ -155,19 +161,22 @@ open class Ipc internal constructor(
     // 监听并分发 所有的消息
     onMessage("fork#$debugId").collectIn(scope) { event ->
       event.consumeAs<IpcFork> { ipcFork ->
-        forkProducer.emit(Ipc(
+        val forkedIpc = Ipc(
           pid = ipcFork.pid,
           endpoint = endpoint,
           locale = locale,
           remote = remote,
           pool = pool,
-        ).also { ipc ->
-          pool.safeCreatedIpc(
-            ipc,
-            autoStart = ipcFork.autoStart,
-            startReason = ipcFork.startReason
-          )
-        })
+        )
+        pool.safeCreatedIpc(
+          forkedIpc,
+          autoStart = ipcFork.autoStart,
+          startReason = ipcFork.startReason
+        )
+        forkedIpcLock.withLock {
+          forkedIpcMap[forkedIpc.pid] = forkedIpc
+          forkProducer.emit(forkedIpc)
+        }
       }
     }
   }
@@ -212,6 +221,25 @@ open class Ipc internal constructor(
   }
 
   /**
+   * 这里lock用来将 forkedIpcMap.set 和 forkProducer.emit 做成一个原子操作
+   */
+  private val forkedIpcLock = Mutex()
+  private val forkedIpcMap = mutableMapOf<Int, Ipc>()
+  fun getForkedIpc(id: Int) = forkedIpcMap[id]
+
+  suspend fun waitForkedIpc(pid: Int): Ipc {
+    return coroutineScope {
+      forkedIpcLock.withLock {
+        /// 因为 forkedIpcMap.set 和 forkProducer.emit 是一个原子操作，所以在lock中，如果找不到，可以开始一个监听
+        forkedIpcMap[pid]?.let { CompletableDeferred(it) }
+          ?: async(start = CoroutineStart.UNDISPATCHED) {
+            onFork("waitForkedIpc:$pid").filter { it.data.pid == pid }.first().data
+          }
+      }
+    }.await()
+  }
+
+  /**
    * 在现有的线路中分叉出一个ipc通道
    * 如果自定义了 locale/remote，那么说明自己是帮别人代理
    */
@@ -230,8 +258,11 @@ open class Ipc internal constructor(
       autoStart = autoStart,
       startReason = startReason
     )
-    // 自触发
-    forkProducer.emit(forkedIpc)
+    forkedIpcLock.withLock {
+      forkedIpcMap[forkedIpc.pid] = forkedIpc
+      // 自触发
+      forkProducer.emit(forkedIpc)
+    }
     // 通知对方
     postMessage(
       IpcFork(
