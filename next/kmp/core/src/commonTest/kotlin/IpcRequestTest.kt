@@ -16,10 +16,7 @@ import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureBinaryFrame
-import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -89,11 +86,7 @@ class IpcRequestTest {
             //
             "/channel" byChannel { ctx ->
               for (msg in ctx.income) {
-                when (msg) {
-                  PureCloseFrame -> {}
-                  is PureBinaryFrame -> ctx.sendText("echo: ${msg.data.decodeToString()}")
-                  is PureTextFrame -> ctx.sendText("echo: ${msg.data}")
-                }
+                ctx.sendText((msg.text.toInt() * 2).toString())
               }
             },
           )
@@ -115,10 +108,13 @@ class IpcRequestTest {
     val dnsRuntime = dns.bootstrap()
     val clientRuntime = dnsRuntime.open(clientMM.mmid) as NativeMicroModule.NativeRuntime;
 
+    var actual = 0
+    var expected = 0
     clientRuntime.createChannel("file://${serverMM.mmid}/channel") {
       launch {
         for (i in 1..10) {
-          sendText("hi~$i")
+          actual += i * 2
+          sendText("$i")
         }
         delay(1000)
         close()
@@ -126,7 +122,9 @@ class IpcRequestTest {
 
       for (frame in income) {
         println("client got msg: $frame")
+        expected += frame.text.toInt()
       }
     }
+    assertEquals(expected = expected, actual = actual)
   }
 }

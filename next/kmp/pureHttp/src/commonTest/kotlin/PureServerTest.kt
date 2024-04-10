@@ -49,7 +49,7 @@ class PureServerTest {
       launch {
         for (echoMsg in income) {
           require(echoMsg is PureTextFrame)
-          incomeRes.add(echoMsg.data)
+          incomeRes.add(echoMsg.text)
         }
         assertEquals(incomeRes.joinToString("\n"), outgoingRes.joinToString("\n"))
       }

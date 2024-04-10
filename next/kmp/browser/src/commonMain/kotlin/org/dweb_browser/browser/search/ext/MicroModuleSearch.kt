@@ -26,7 +26,7 @@ suspend fun NativeMicroModule.NativeRuntime.collectChannelOfEngines(collector: s
       when (pureFrame) {
         is PureTextFrame -> {
           WatchSearchEngineContext(
-            Json.decodeFromString<List<SearchEngine>>(pureFrame.data),
+            Json.decodeFromString<List<SearchEngine>>(pureFrame.text),
             this
           ).collector()
         }

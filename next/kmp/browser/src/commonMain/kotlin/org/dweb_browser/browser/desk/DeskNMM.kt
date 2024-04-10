@@ -94,7 +94,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           for (frame in income) {
             when (frame) {
               is PureTextFrame -> {
-                Json.decodeFromString<ChangeState<MMID>>(frame.data).also {
+                Json.decodeFromString<ChangeState<MMID>>(frame.text).also {
                   it.cb()
                 }
               }

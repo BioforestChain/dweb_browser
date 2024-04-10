@@ -35,13 +35,13 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
             when (frame) {
               is PureTextFrame -> {
                 debugScanning("process=>byChannel", "PureTextFrame($time)")
-                rotation = frame.data.toIntOrNull() ?: 0
+                rotation = frame.text.toIntOrNull() ?: 0
               }
   
               is PureBinaryFrame -> {
                 debugScanning("process=>byChannel", "PureBinaryFrame($time) $rotation")
                 val result = try {
-                  scanningManager.recognize(frame.data, rotation)
+                  scanningManager.recognize(frame.binary, rotation)
                 } catch (e: Throwable) {
                   debugScanning("process=>byChannel", null, e)
                   emptyList()

@@ -49,7 +49,7 @@ suspend fun NativeMicroModule.NativeRuntime.createChannelOfDownload(
   for (pureFrame in income) {
     when (pureFrame) {
       is PureTextFrame -> {
-        WatchDownloadContext(Json.decodeFromString<DownloadTask>(pureFrame.data), this).resolve()
+        WatchDownloadContext(Json.decodeFromString<DownloadTask>(pureFrame.text), this).resolve()
       }
 
       else -> {}

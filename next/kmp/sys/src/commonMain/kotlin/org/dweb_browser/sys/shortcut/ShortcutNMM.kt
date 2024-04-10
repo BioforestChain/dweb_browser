@@ -1,7 +1,6 @@
 package org.dweb_browser.sys.shortcut
 
 import androidx.compose.runtime.mutableStateListOf
-import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -155,7 +154,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
         for (frame in income) {
           when (frame) {
             is PureTextFrame -> {
-              Json.decodeFromString<ChangeState<MMID>>(frame.data).also {
+              Json.decodeFromString<ChangeState<MMID>>(frame.text).also {
                 it.cb()
               }
             }

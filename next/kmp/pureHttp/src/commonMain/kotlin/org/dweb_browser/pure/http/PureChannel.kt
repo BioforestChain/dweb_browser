@@ -33,7 +33,7 @@ class PureChannelContext internal constructor(
   val income: Channel<PureFrame>,
   val outgoing: Channel<PureFrame>,
   private val closeSignal: SimpleSignal,
-  val getChannel: () -> PureChannel
+  val getChannel: () -> PureChannel,
 ) {
   operator fun iterator() = income.iterator()
   inline suspend fun <reified T> readJsonLine() = sequenceOf(iterator())
@@ -58,8 +58,8 @@ class PureChannelContext internal constructor(
   suspend fun close(cause: Throwable? = null, reason: CancellationException? = null) =
     closeLock.withLock {
       if (!income.isClosedForSend) {
-        income.cancel(reason)
         income.close(cause)
+        income.cancel(reason)
         outgoing.close(cause)
         outgoing.cancel(reason)
         closeSignal.emit()
@@ -123,27 +123,28 @@ class PureChannel(
 
 
 @Serializable
-sealed class PureFrame
+sealed class PureFrame {
+  abstract val text: String
+  abstract val binary: ByteArray
+}
 
 @Serializable
 @SerialName("text")
-data class PureTextFrame(val data: String) : PureFrame()
+class PureTextFrame(override val text: String) : PureFrame() {
+  override val binary get() = text.encodeToByteArray()
+  override fun toString(): String {
+    return "PureTextFrame($text)"
+  }
+}
 
 @Serializable
 @SerialName("binary")
-data class PureBinaryFrame(val data: ByteArray) : PureFrame()
-
-@Serializable
-@SerialName("close")
-data object PureCloseFrame : PureFrame()
-//
-//@Serializable
-//@SerialName("ping")
-//data object PurePingFrame : PureFrame()
-//
-//@Serializable
-//@SerialName("pong")
-//data object PurePongFrame : PureFrame()
+class PureBinaryFrame(override val binary: ByteArray) : PureFrame() {
+  override val text get() = binary.decodeToString()
+  override fun toString(): String {
+    return "PureBinaryFrame($text)"
+  }
+}
 
 
 val HttpStatusCode.Companion.WS_CLOSE_NORMAL by lazy { HttpStatusCode(1000, "Close normal") }

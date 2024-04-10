@@ -19,7 +19,6 @@ import org.dweb_browser.helper.falseAlso
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
@@ -323,14 +322,9 @@ sealed class IpcRequest(
         channelIpc.postMessage(ipcStartEvent)
         /// 将PureFrame转成IpcEvent，然后一同发给对面
         for (pureFrame in channelForIpcPost) {
-          when (pureFrame) {
-            PureCloseFrame -> break;
-            else -> {
-              val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame)
-              channelIpc.debugIpc(debugTag) { "$channelIpc postIpcEventData:$ipcDataEvent ${channelIpc.debugId}" }
-              channelIpc.postMessage(ipcDataEvent)
-            }
-          }
+          val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame)
+          channelIpc.debugIpc(debugTag) { "$channelIpc postIpcEventData:$ipcDataEvent ${channelIpc.debugId}" }
+          channelIpc.postMessage(ipcDataEvent)
         }
         // 关闭的时候，发一个信号给对面
         val ipcCloseEvent = IpcEvent.fromUtf8(eventClose, "")
