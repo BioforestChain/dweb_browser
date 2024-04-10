@@ -22,7 +22,7 @@ const onFileChanged = async ($event: Event) => {
   const target = $event.target as HTMLInputElement;
   if (target && target.files?.[0]) {
     const img = target.files[0];
-    console.info("photo ==> ", img.name, img.type, img.size);
+    console.info("选中图片，请点击下面的扫描 ==> ", img.name, img.type, img.size);
     imgFile.value = img;
   }
 };

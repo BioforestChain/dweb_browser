@@ -85,17 +85,8 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
     // 应用安装
     val routeInstallHandler = defineEmptyResponse {
       val metadataUrl = request.query("url")
-      // 打开渲染器
-      val job = ioAsyncScope.launch {
-        jmmController.openOrUpsetInstallerView(metadataUrl)
-        // 超时请求的一些操作
-        delay(5000)
-        showToast("请求超时，请检查下载链接")
-        getOrOpenMainWindow().closeRoot()
-      }
       // 加载url资源，这一步可能要多一些时间
       val response = nativeFetch(metadataUrl)
-      job.cancel()
       //
       if (!response.isOk) {
         val message = "invalid status code: ${response.status}"

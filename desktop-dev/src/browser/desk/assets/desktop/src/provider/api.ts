@@ -2,7 +2,7 @@ import { $TaskBarState, $WidgetAppData, $WidgetCustomData } from "../types/app.t
 import { searchWidget } from "./custom/search.widget.ts";
 import { buildApiRequestArgs, nativeFetch, nativeFetchStream } from "./fetch.ts";
 
-export async function readPathFile(path: string) {
+export function readPathFile(path: string) {
   return path.startsWith("file:")
     ? buildApiRequestArgs("/readFile", {
         search: {
@@ -19,7 +19,6 @@ export async function readAccept(ext: string = "") {
     .split(",")
     .map((mime) => {
       const mimeLower = mime.toLowerCase();
-      // @ts-ignore
       if (mime.includes("*")) {
         const mimeReg = new RegExp(mime.replace(/\*/g, ".+"), "i");
         return (type: string) => mimeLower === type.toLowerCase() || mimeReg.test(type);
@@ -30,13 +29,13 @@ export async function readAccept(ext: string = "") {
 
 let _readAcceptSvg: undefined | ReturnType<typeof readAccept>;
 export const readAcceptSvg = () => (_readAcceptSvg ??= readAccept("svg"));
-export async function watchDesktopAppInfo() {
+export function watchDesktopAppInfo() {
   return nativeFetchStream<$WidgetAppData[]>("/desktop/observe/apps");
 }
-export async function watchTaskbarAppInfo() {
+export function watchTaskbarAppInfo() {
   return nativeFetchStream<$WidgetAppData[]>("/taskbar/observe/apps");
 }
-export async function watchTaskBarStatus() {
+export function watchTaskBarStatus() {
   return nativeFetchStream<$TaskBarState>("/taskbar/observe/status");
 }
 
@@ -44,21 +43,21 @@ export async function watchTaskBarStatus() {
  * 获取search组件
  * @returns
  */
-export async function getWidgetInfo() {
+export function getWidgetInfo() {
   return [searchWidget] as $WidgetCustomData[];
 }
 
 /**点击打开JMM */
-export async function openApp(id: string) {
-  return await nativeFetch<boolean>("/openAppOrActivate", {
+export function openApp(id: string) {
+  nativeFetch<boolean>("/openAppOrActivate", {
     search: {
       app_id: id,
     },
   });
 }
 
-export async function doToggleTaskbar(toggle?: boolean) {
-  return await nativeFetch<boolean>("/taskbar/toggle-float-button-mode", {
+export function doToggleTaskbar(toggle?: boolean) {
+  return nativeFetch<boolean>("/taskbar/toggle-float-button-mode", {
     search: {
       open: toggle,
     },
@@ -75,8 +74,8 @@ export async function detailApp(id: string) {
   });
 }
 
-export async function openBrowser(url: string) {
-  return await nativeFetch<boolean>("/openinbrowser", {
+export function openBrowser(url: string) {
+  return nativeFetch<boolean>("/openinbrowser", {
     search: {
       url: url,
     },
@@ -119,7 +118,7 @@ export async function deleteApp(id: string) {
   });
 }
 
-export async function closeBrowser(mmid?: string) {
+export function closeBrowser(mmid?: string) {
   return nativeFetch<Response>("/close", {
     search: {
       mmid: mmid,
@@ -128,7 +127,7 @@ export async function closeBrowser(mmid?: string) {
   });
 }
 
-export async function deleteWebLink(mmid: string) {
+export function deleteWebLink(mmid: string) {
   return nativeFetch<Response>("/uninstall", {
     search: {
       app_id: mmid,

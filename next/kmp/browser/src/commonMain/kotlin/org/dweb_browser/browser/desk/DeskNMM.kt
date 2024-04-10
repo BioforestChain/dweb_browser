@@ -29,7 +29,6 @@ import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureStringBody
@@ -211,19 +210,12 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         )
       },
       //
-      "/openAppOrActivate" bind PureMethod.GET by defineBooleanResponse {
+      "/openAppOrActivate" bind PureMethod.GET by defineEmptyResponse {
         val mmid = request.query("app_id")
         debugDesk("openAppOrActivate", "requestMMID=$mmid")
         // 内部接口，所以ipc通过connect获得
         // 发现desk.js是判断返回值true or false 来显示是否正常启动，所以这边做下修改
-        try {
-          withScope(ioAsyncScope) {
-            openOrActivateAppWindow(connect(mmid, request), desktopController).id
-          }
-          true
-        } catch (e: Exception) {
-          false
-        }
+        openOrActivateAppWindow(connect(mmid, request), desktopController).id
       },
       // 获取isMaximized 的值
       "/toggleMaximize" bind PureMethod.GET by defineBooleanResponse {
