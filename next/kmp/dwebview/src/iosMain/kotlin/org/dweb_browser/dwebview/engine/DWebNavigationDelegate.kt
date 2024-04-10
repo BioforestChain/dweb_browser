@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
+import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.WebLoadErrorState
 import org.dweb_browser.dwebview.WebLoadStartState
 import org.dweb_browser.dwebview.WebLoadSuccessState
@@ -45,7 +46,20 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
     decidePolicyForNavigationResponse: WKNavigationResponse,
     decisionHandler: (WKNavigationResponsePolicy) -> Unit
   ) {
-    decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyAllow)
+    if (decidePolicyForNavigationResponse.canShowMIMEType() == true) {
+      decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyAllow)
+    } else {
+      decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyCancel)
+      engine.ioScope.launch {
+        val agent = engine.customUserAgent() ?: ""
+        val fileName = decidePolicyForNavigationResponse.response.suggestedFilename ?: ""
+        val mime = decidePolicyForNavigationResponse.response.MIMEType ?: ""
+        val length = decidePolicyForNavigationResponse.response.expectedContentLength()
+        val url = decidePolicyForNavigationResponse.response.URL?.absoluteString() ?: ""
+        val arg = WebDownloadArgs(agent, fileName, mime, length, url)
+        engine.downloadSignal.emit(arg)
+      }
+    }
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -113,8 +127,12 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
     preferences: WKWebpagePreferences,
     decisionHandler: (WKNavigationActionPolicy, WKWebpagePreferences?) -> Unit
   ) {
-    decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction) {
-      decisionHandler(it, null)
+    if (decidePolicyForNavigationAction.shouldPerformDownload) {
+      decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyDownload, preferences)
+    } else {
+      decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction) {
+        decisionHandler(it, null)
+      }
     }
   }
 

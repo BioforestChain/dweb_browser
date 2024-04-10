@@ -11,6 +11,7 @@ import WebKit
 import DwebPlatformIosKit
 
 class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSource {
+    
     func requestCameraPermission(completed: @escaping (Bool) -> Void) {
         completed(false)
     }
@@ -45,6 +46,10 @@ class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSourc
     }
     
     func recognizedScreenGestures() {
+        Log()
+    }
+    
+    func readFile(path: String, completed: (NSData?, NSError?) -> Void) {
         Log()
     }
     
@@ -86,4 +91,11 @@ class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSourc
         Log("histroy: \(history)")
     }
     
+    func loadAllDownloadDatas() -> [WebBrowserViewDownloadData]? {
+        nil
+    }
+    
+    func removeDownload(ids: [String]) {
+        Log()
+    }
 }

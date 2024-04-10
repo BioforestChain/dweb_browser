@@ -17,8 +17,7 @@ struct BrowserView: View {
     @State var openingLink = OpeningLink()
     @State var toolbarState = ToolBarState()
     @State var outerSearch = OuterSearch()
-
-    @State private var presentSheet = false
+    let sheetState = ResizeSheetState()
 
     var body: some View {
         ZStack {
@@ -38,26 +37,27 @@ struct BrowserView: View {
                     .environment(selectedTab)
                     .environment(outerSearch)
                 }
-                .resizableSheet(isPresented: $presentSheet) {
+                .resizableSheet(isPresented: sheetState) {
                     SheetSegmentView(webCache: webcacheStore.cache(at: selectedTab.index))
                         .environment(selectedTab)
                         .environment(dragScale)
                         .environment(openingLink)
                         .environment(toolbarState)
+                        .environment(sheetState)
                 }
                 .onChange(of: geometry.size, initial: true) { _, newSize in
                     dragScale.onWidth = (newSize.width - 6.0) / screen_width
                 }
                 .onChange(of: toolbarState.showMoreMenu) { _, showMenu in
                     if showMenu {
-                        presentSheet = true
+                        sheetState.presenting = true
                     } else {
-                        if presentSheet {
-                            presentSheet = false
+                        if sheetState.presenting {
+                            sheetState.presenting = false
                         }
                     }
                 }
-                .onChange(of: presentSheet) { _, present in
+                .onChange(of: sheetState.presenting) { _, present in
                     if present == false {
                         toolbarState.showMoreMenu = false
                     }

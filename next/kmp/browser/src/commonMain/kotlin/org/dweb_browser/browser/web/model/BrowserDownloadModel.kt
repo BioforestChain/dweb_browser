@@ -76,7 +76,7 @@ class BrowserDownloadModel(
             fileName = tmpName
             break
           }
-          tmpName = name.substringBeforeLast(".") + "_${index}." + fileSuffix.suffix
+          tmpName = name.substringBeforeLast(".") + "_${index}." + suffix
           index++
         } while (true)
       }

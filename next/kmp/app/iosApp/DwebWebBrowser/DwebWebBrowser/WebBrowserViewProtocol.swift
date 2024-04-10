@@ -27,11 +27,12 @@ import DwebPlatformIosKit
     func createDesktopLink(link:String, title: String, iconString:String, completionHandler: @escaping (NSError?)->Void)
     func recognizedScreenGestures()
     func openDeepLink(url: String)
+    func readFile(path: String, completed: @escaping (NSData?, NSError?) -> Void)
     #warning("doAction(name:params:)便捷方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
     func doAction(name: String, params: [String: String]?)
 }
 
-@objc public protocol WebBrowserViewDataSource: TracklessDataSource, BookMarkDataSource, HistoryDataSource, WebBrowserViewWebDataSource, PermissionDataSource {
+@objc public protocol WebBrowserViewDataSource: TracklessDataSource, BookMarkDataSource, HistoryDataSource, WebBrowserViewWebDataSource, PermissionDataSource, DownloadDataSource {
     #warning("getDatas(for:params:)便捷方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
     func getDatas(for: String, params: [String: AnyObject]?) -> [String: AnyObject]?
 }
@@ -88,3 +89,29 @@ extension HistoryDataSource {
         }
     }
 }
+
+// MARK: download data
+
+@objcMembers public class WebBrowserViewDownloadData: NSObject {
+    let name: String
+    let date: UInt64
+    let size: UInt32
+    let mime: String
+    let id: String
+    /// 0: init, 1：下载中，2：暂停，4：取消, 5:失败，6: 完成
+    let status: UInt8
+    public init(name: String, date: UInt64, size: UInt32, mime: String, status: UInt8, id: String) {
+        self.name = name
+        self.date = date
+        self.size = size
+        self.mime = mime
+        self.status = status
+        self.id = id
+    }
+}
+
+@objc public protocol DownloadDataSource {
+    func loadAllDownloadDatas() -> [WebBrowserViewDownloadData]?
+    func removeDownload(ids: [String])
+}
+

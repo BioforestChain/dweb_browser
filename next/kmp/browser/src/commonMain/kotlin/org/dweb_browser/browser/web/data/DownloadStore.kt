@@ -24,11 +24,13 @@ import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.dwebview.WebDownloadArgs
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.datetimeNow
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
+import org.dweb_browser.helper.randomUUID
 
 enum class BrowserDownloadType {
   Application, Picture, Package, Video, Document, Audio, Other;
@@ -83,6 +85,7 @@ data class BrowserDownloadItem(
   var downloadTime: Long = datetimeNow(), // 记录下载开始时间，等下载完成后，改为下载完成时间。用于排序
 ) {
   var state by ObservableMutableState(_state) { _state = it }
+  val id = randomUUID() //标识符，iOS端删除时，使用。
 
   @Transient
   var alreadyWatch: Boolean = false

@@ -8,7 +8,7 @@
 import SwiftUI
 
 internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: View {
-    @Binding var isPresented: Bool
+    @Bindable var isPresented: ResizeSheetState
 
     @State private var startOffsetY: CGFloat = 0
     @State private var curDragOffsetY: CGFloat = 0
@@ -51,7 +51,7 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                                                 withAnimation(.spring()) {
                                                     if curDragOffsetY > 50 {
                                                         startOffsetY = wndHeight
-                                                        isPresented = false
+                                                        isPresented.presenting = false
                                                     }
                                                     curDragOffsetY = 0
                                                 }
@@ -64,8 +64,8 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                             .padding(.horizontal, 4)
                             .offset(y: startOffsetY)
                             .offset(y: curDragOffsetY)
-                            .onChange(of: isPresented) { _, _ in
-                                if isPresented {
+                            .onChange(of: isPresented.presenting) { _, _ in
+                                if isPresented.presenting {
                                     withAnimation(.spring()) {
                                         startOffsetY = 0
                                     }
@@ -86,7 +86,7 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
 }
 
 extension View {
-    func resizableSheet<SheetView: View>(isPresented: Binding<Bool>, content: @escaping () -> SheetView) -> some View {
+    func resizableSheet<SheetView: View>(isPresented: ResizeSheetState, content: @escaping () -> SheetView) -> some View {
         modifier(sheetYOffsetModifier(isPresented: isPresented, sheetView: content()))
     }
 }

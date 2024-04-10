@@ -21,6 +21,7 @@ import org.dweb_browser.browser.search.ext.getEngineHomeLink
 import org.dweb_browser.browser.search.ext.getInjectList
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.data.AppBrowserTarget
+import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.KEY_NO_TRACE
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType
@@ -35,6 +36,7 @@ import org.dweb_browser.browser.web.model.page.BrowserSettingPage
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.readFile
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebDownloadArgs
@@ -142,6 +144,23 @@ class BrowserViewModel(
     }
   }
 
+  fun getAllDownloadDatas(): List<BrowserDownloadItem> =
+    browserController.downloadController.saveDownloadList + browserController.downloadController.saveCompleteList
+
+  fun detetedDonwload(ids: List<String>) {
+    val allDatas =
+      browserController.downloadController.saveDownloadList + browserController.downloadController.saveCompleteList
+    val toDeleteds = allDatas.filter {
+      ids.contains(it.id)
+    }
+
+    toDeleteds?.let {
+      browserController.downloadController.deleteDownloadItems(toDeleteds.toMutableList())
+    }
+  }
+
+  suspend fun readFile(path: String) = browserNMM.readFile(path,create = false).binary()
+
   fun getBookmarks() = browserController.bookmarksStateFlow.value
   fun getHistoryLinks() = browserController.historyStateFlow.value
 
@@ -225,11 +244,15 @@ class BrowserViewModel(
         val newWebPage = BrowserWebPage(itemDwebView, browserController)
         addNewPageUI(newWebPage)
       }
-      dWebView.onDownloadListener { args: WebDownloadArgs ->
-        debugBrowser("download", args)
-        browserController.openDownloadView(args)
-      }
+      addDownloadListener(dWebView.onDownloadListener)
     }
+
+  fun addDownloadListener(listener: Signal.Listener<WebDownloadArgs>) {
+    listener.invoke { args: WebDownloadArgs ->
+      debugBrowser("download", args)
+      browserController.openDownloadView(args)
+    }
+  }
 
   private suspend fun createWebPage(url: String) = createWebPage(createDwebView(url))
 

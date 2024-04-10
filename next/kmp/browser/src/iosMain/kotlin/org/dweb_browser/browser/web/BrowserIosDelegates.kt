@@ -3,6 +3,7 @@ package org.dweb_browser.browser.web
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.BrowserViewModel
@@ -15,6 +16,7 @@ import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import org.dweb_browser.helper.platform.NativeViewController.Companion.nativeViewController
 import org.dweb_browser.platform.ios_browser.WebBrowserViewDataSourceProtocol
 import org.dweb_browser.platform.ios_browser.WebBrowserViewDelegateProtocol
+import org.dweb_browser.platform.ios_browser.WebBrowserViewDownloadData
 import org.dweb_browser.platform.ios_browser.WebBrowserViewSiteData
 import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.Foundation.NSData
@@ -56,6 +58,12 @@ class BrowserIosDelegate(private var browserViewModel: BrowserViewModel) : NSObj
     // kmp与iOS快速调试代码调用点。
   }
 
+  override fun readFileWithPath(path: String, completed: (NSData?, NSError?) -> Unit) {
+    scope.launch {
+      val data = browserViewModel.readFile(path)
+      completed(data.toNSData(), null)
+    }
+  }
 }
 
 
@@ -181,6 +189,7 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
       DWebViewOptions(),
       WKWebViewConfiguration()
     )
+    browserViewModel.addDownloadListener(engine.downloadSignal.toListener())
     return engine as objcnames.classes.DwebWKWebView
   }
 
@@ -195,10 +204,40 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
     }
   }
   //#endregion
+
+  //#region download
+  override fun loadAllDownloadDatas(): List<*>? = browserViewModel.getAllDownloadDatas().map {
+    WebBrowserViewDownloadData(
+      it.fileName,
+      it.downloadTime.toULong(),
+      it.state.total.toUInt(),
+      it.downloadArgs.mimetype,
+      it.state.state.toIosState(),
+      it.id
+    )
+  }
+
+  override fun removeDownloadWithIds(ids: List<*>) {
+    val ids = ids as List<String>
+    browserViewModel.detetedDonwload(ids)
+  }
+
+  //#endregion
+
 }
 
 fun WebSiteInfo.iconUIImage(): platform.UIKit.UIImage? {
   return icon?.let {
     return UIImage(data = it.toNSData())
   }
+}
+
+fun DownloadState.toIosState(): UByte = when (this) {
+  DownloadState.Init -> 0U
+  DownloadState.Downloading -> 1U
+  DownloadState.Paused -> 2U
+  DownloadState.Canceled -> 3U
+  DownloadState.Failed -> 4U
+  DownloadState.Completed -> 5U
+  else -> 255U
 }

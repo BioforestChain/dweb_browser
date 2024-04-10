@@ -55,6 +55,10 @@ class WndDragScale {
     var scaledFont_18: Font { Font.system(size: 1.0 * max(9, onWidth * 18)) }
     var scaledFont_20: Font { Font.system(size: 1.0 * max(10, onWidth * 20)) }
     var scaledFont_22: Font { Font.system(size: 1.0 * max(11, onWidth * 22)) }
+    var scaledFont_28: Font { Font.system(size: 1.0 * max(32, onWidth * 28)) }
+    var scaledFont_32: Font { Font.system(size: 1.0 * max(32, onWidth * 32)) }
+    var scaledFont_42: Font { Font.system(size: 1.0 * max(42, onWidth * 42)) }
+
 }
 
 @Observable
@@ -111,6 +115,12 @@ class OuterSearch {
     var content = ""
     var shouldDoSearch = true
 }
+
+@Observable
+class ResizeSheetState {
+    var presenting = false
+}
+
 
 @Observable
 class TabGridState {
