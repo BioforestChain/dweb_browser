@@ -112,7 +112,9 @@ fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
   ) { metadata ->
     JmmViewItem(
       jmmHistoryMetadata = metadata,
-      buttonClick = produceEvent(metadata, scope = jmmNMM.ioAsyncScope) { this@JmmTabsView.buttonClick(metadata) },
+      buttonClick = produceEvent(metadata, scope = jmmNMM.ioAsyncScope) {
+        this@JmmTabsView.buttonClick(metadata)
+      },
       uninstall = { this@JmmTabsView.unInstall(metadata) },
       detail = { this@JmmTabsView.openInstallerView(metadata) }
     )

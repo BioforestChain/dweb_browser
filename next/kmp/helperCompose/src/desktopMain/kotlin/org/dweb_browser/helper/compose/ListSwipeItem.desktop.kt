@@ -1,10 +1,8 @@
 package org.dweb_browser.helper.compose
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.PointerMatcher
+import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.onClick
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.DropdownMenu
@@ -16,11 +14,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerButton
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
 
 // TODO 桌面端应该改变交互方式，比如使用鼠标右键而不是通过swipe
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 actual fun CommonSwipeDismiss(
   modifier: Modifier,
@@ -29,26 +33,37 @@ actual fun CommonSwipeDismiss(
   content: @Composable RowScope.() -> Unit,
 ) {
   var showDropMenu by remember { mutableStateOf(false) }
-  Row(
-    modifier = modifier.onClick(
-      matcher = PointerMatcher.mouse(PointerButton.Secondary), // Right Mouse Button
-      onClick = { showDropMenu = true },
-    )
-  ) {
-    content()
-  }
+  var offset by remember { mutableStateOf(Offset.Zero) }
+  val density = LocalDensity.current.density
 
-  DropdownMenu(expanded = showDropMenu, onDismissRequest = { showDropMenu = false }) {
-    DropdownMenuItem(
-      text = { Text(text = SwipeI18nResource.delete()) },
-      leadingIcon = {
+  Row(modifier = modifier.pointerInput(Unit) {
+    forEachGesture {
+      awaitPointerEventScope {
+        while (true) {
+          val event = awaitPointerEvent()
+          event.changes.forEach { change ->
+            if (change.pressed && event.button == PointerButton.Secondary) {
+              offset = change.position
+              showDropMenu = true
+            }
+          }
+        }
+      }
+    }
+  }) {
+    content()
+    DropdownMenu(
+      expanded = showDropMenu,
+      onDismissRequest = { showDropMenu = false },
+      offset = DpOffset((offset.x / density).dp, (offset.y / density).dp - 86.dp) // 锚点偏移量
+    ) {
+      DropdownMenuItem(text = { Text(text = SwipeI18nResource.delete()) }, leadingIcon = {
         Icon(
-          imageVector = Icons.Default.Delete,
-          contentDescription = SwipeI18nResource.delete()
+          imageVector = Icons.Default.Delete, contentDescription = SwipeI18nResource.delete()
         )
-      },
-      onClick = onRemove
-    )
+      }, onClick = onRemove
+      )
+    }
   }
 }
 
