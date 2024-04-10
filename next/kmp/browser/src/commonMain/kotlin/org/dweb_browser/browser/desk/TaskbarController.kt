@@ -177,6 +177,7 @@ class TaskbarController private constructor(
 
   fun getTaskbarDWebViewOptions() = DWebViewOptions(
     url = getTaskbarUrl().toString(),
+//    url = "about:blank",
     privateNet = true,
     detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
     tag = 2,

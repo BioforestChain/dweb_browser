@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -111,11 +112,16 @@ open class Ipc internal constructor(
    * 启动，会至少等到endpoint握手完成
    */
   suspend fun start(await: Boolean = true, reason: String = "") {
-    withScope(scope) {
-      endpoint.start(true)
-      startOnce()
-      if (await) {
+    if (await) {
+      withScope(scope) {
+        endpoint.start(true)
+        startOnce()
         awaitOpen("from-start $reason")
+      }
+    } else {
+      scope.launch {
+        endpoint.start(true)
+        startOnce()
       }
     }
   }

@@ -155,9 +155,13 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         ), IPureBody.from("no found gateway")
       )
 
+    /**
+     * 允许通过 https 协议访问 httpsNmm 的协议
+     */
     private suspend fun initHttpListener() {
       val options = DwebHttpServerOptions("")
       val selfIpc = connect(mmid)
+      println("QAQ http self connect :$selfIpc")
       val serverUrlInfo = getServerUrlInfo(selfIpc, options)
       val listener = Gateway.PortListener(selfIpc, serverUrlInfo.host)
 
@@ -195,7 +199,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       /// 启动http后端服务
       dwebServer.createServer(gatewayHandler = { request ->
         findDwebGateway(request)?.let { info ->
-          debugHttp("gatewayMap:", gatewayMap.keys.joinToString(" "))
           debugHttp("info.host:", info.host)
           gatewayMap[info.host].also {
             debugHttp("gateway:", it)
@@ -242,6 +245,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
          */
         "/listen" bind PureMethod.GET by defineEmptyResponse {
           val token = request.query("token")
+          debugHttp("listen by token=$token")
           val routes = Json.decodeFromString<List<CommonRoute>>(request.query("routes"))
           listen(ipc, token, routes)
         },

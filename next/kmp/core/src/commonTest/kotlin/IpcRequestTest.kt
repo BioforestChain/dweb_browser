@@ -1,5 +1,7 @@
 package info.bagen.dwebbrowser
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -78,8 +80,8 @@ class IpcRequestTest {
   @Test
   fun testIpcChannel() = runCommonTest {
 
-    class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
-      NativeMicroModule(mmid, "test IpcPool") {
+    class TestMicroModule(mmid: String = "test.ipcChannel.dweb") :
+      NativeMicroModule(mmid, "test IpcChannel") {
       inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
         override suspend fun _bootstrap() {
           routes(
@@ -108,23 +110,54 @@ class IpcRequestTest {
     val dnsRuntime = dns.bootstrap()
     val clientRuntime = dnsRuntime.open(clientMM.mmid) as NativeMicroModule.NativeRuntime;
 
-    var actual = 0
-    var expected = 0
-    clientRuntime.createChannel("file://${serverMM.mmid}/channel") {
-      launch {
-        for (i in 1..10) {
-          actual += i * 2
-          sendText("$i")
-        }
-        delay(1000)
-        close()
-      }
+    /// 用来测试前面发起的ws不会阻塞后面的请求
+    val job1 = CompletableDeferred<Unit>()
+    val job2 = CompletableDeferred<Unit>()
 
-      for (frame in income) {
-        println("client got msg: $frame")
-        expected += frame.text.toInt()
+    launch(start = CoroutineStart.UNDISPATCHED) {
+      var actual = 0
+      var expected = 0
+      clientRuntime.createChannel("file://${serverMM.mmid}/channel") {
+        job1.complete(Unit)
+        job2.await()
+        launch {
+          for (i in 1..10) {
+            actual += i * 2
+            sendText("$i")
+          }
+          delay(1000)
+          close()
+        }
+
+        for (frame in income) {
+          println("client got msg: $frame")
+          expected += frame.text.toInt()
+        }
       }
+      assertEquals(expected = expected, actual = actual)
     }
-    assertEquals(expected = expected, actual = actual)
+
+    launch(start = CoroutineStart.UNDISPATCHED) {
+      var actual = 0
+      var expected = 0
+      job1.await()
+      clientRuntime.createChannel("file://${serverMM.mmid}/channel") {
+        launch {
+          for (i in 1..10) {
+            actual += i * 2
+            sendText("$i")
+          }
+          delay(1000)
+          close()
+        }
+
+        for (frame in income) {
+          println("client got msg: $frame")
+          expected += frame.text.toInt()
+        }
+      }
+      assertEquals(expected = expected, actual = actual)
+      job2.complete(Unit)
+    }
   }
 }

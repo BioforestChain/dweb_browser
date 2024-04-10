@@ -118,7 +118,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     private val beforeShutdownFlow = MutableSharedFlow<Unit>()
     val onBeforeShutdown = beforeShutdownFlow.shareIn(mmScope, SharingStarted.Eagerly)
 
-    private val shutdownDeferred = CompletableDeferred(Unit)
+    private val shutdownDeferred = CompletableDeferred<Unit>()
     val awaitShutdown = shutdownDeferred::await
     fun onShutdown(action: () -> Unit) {
       shutdownDeferred.invokeOnCompletion { action() }
@@ -182,6 +182,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
      * 尝试连接到指定对象
      */
     suspend fun connect(mmid: MMID, reason: PureRequest? = null) = connectReason.withLock(mmid) {
+      debugMM("connect", mmid)
       connectionMap[mmid] ?: bootstrapContext.dns.connect(mmid, reason).also {
         connectionMap[mmid] = it
         beConnect(it, reason)
@@ -193,8 +194,8 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
      */
     suspend fun beConnect(ipc: Ipc, reason: PureRequest?) {
       scopeLaunch(cancelable = false) {
-        println("QAQ beConnect $ipc")
         if (connectionLinks.add(ipc)) {
+          debugMM("beConnect", ipc)
           // 这个ipc分叉出来的ipc也会一并归入管理
           ipc.onFork("beConnect").listen {
             ipc.debugIpc("onFork", it.data)
@@ -214,6 +215,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
               }
             }
           }
+          debugMM("beConnect", "emit $ipc")
           ipcConnectedProducer.emit(IpcConnectArgs(ipc, reason))
         }
       }

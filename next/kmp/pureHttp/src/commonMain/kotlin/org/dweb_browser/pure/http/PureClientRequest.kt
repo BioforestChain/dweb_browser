@@ -9,7 +9,6 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.IFrom
 import org.dweb_browser.helper.LateInit
 import org.dweb_browser.helper.commonAsyncExceptionHandler
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toIpcUrl
 import kotlin.coroutines.coroutineContext
 
@@ -22,7 +21,7 @@ data class PureClientRequest(
   override val headers: PureHeaders = PureHeaders(),
   override val body: IPureBody = IPureBody.Empty,
   override val channel: CompletableDeferred<PureChannel>? = null,
-  override val from: Any? = null
+  override val from: Any? = null,
 ) : PureRequest() {
   companion object {
     inline fun <reified T> fromJson(
@@ -30,7 +29,7 @@ data class PureClientRequest(
       method: PureMethod,
       body: T,
       headers: PureHeaders = PureHeaders(),
-      from: Any? = null
+      from: Any? = null,
     ) = PureClientRequest(
       href, method, headers.apply { init("Content-Type", "application/json") }, IPureBody.from(
         Json.encodeToString(body)
@@ -61,7 +60,7 @@ data class PureServerRequest(
   override val headers: PureHeaders = PureHeaders(),
   override val body: IPureBody = IPureBody.Empty,
   override val channel: CompletableDeferred<PureChannel>? = null,
-  override val from: Any? = null
+  override val from: Any? = null,
 ) : PureRequest() {
   internal val client = LateInit<PureClientRequest>()
   suspend fun toClient() = client.getOrInit {
@@ -93,9 +92,7 @@ sealed class PureRequest : PureUrl, IFrom {
 
   val hasChannel get() = this.channel != null
   suspend fun getChannel() = channelPreparer.await()
-  suspend fun byChannel(
-    by: suspend PureChannel.() -> Unit
-  ): PureResponse {
+  suspend fun byChannel(by: suspend PureChannel.() -> Unit): PureResponse {
     channelPreparer// check support
     CoroutineScope(coroutineContext + commonAsyncExceptionHandler).launch {
       getChannel().by()

@@ -102,4 +102,15 @@ class IpcPoolTest {
     println("test-$time end")
   }
 
+  @Test
+  fun testSelfConnectMM() = runCommonTest(1000) { time ->
+    println("test-$time start")
+    val dns = DnsNMM()
+    val selfMM = TestMicroModule("self.mm.dweb")
+    dns.install(selfMM)
+    val dnsRuntime = dns.bootstrap()
+    val selfRuntime = dnsRuntime.open(selfMM.mmid);
+    val ipc = selfRuntime.connect(selfMM.mmid)
+  }
+
 }
