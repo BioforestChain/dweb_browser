@@ -3,8 +3,6 @@ package org.dweb_browser.browser.jmm
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -23,7 +21,6 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.helper.setStateFromManifest
 import org.dweb_browser.sys.window.ext.getMainWindow
-import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 import org.dweb_browser.sys.window.ext.onRenderer
 
 val debugJMM = Debugger("JMM")
