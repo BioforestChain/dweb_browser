@@ -5,7 +5,6 @@ import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -25,7 +24,6 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.IpcClientRequest
-import org.dweb_browser.core.ipc.helper.IpcClientRequest.Companion.toIpc
 import org.dweb_browser.core.ipc.helper.IpcError
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcFork
@@ -35,7 +33,9 @@ import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.IpcServerRequest
 import org.dweb_browser.core.ipc.helper.IpcStream
+import org.dweb_browser.core.ipc.helper.toIpc
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.DeferredSignal
 import org.dweb_browser.helper.Producer
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SuspendOnce
@@ -207,10 +207,7 @@ open class Ipc internal constructor(
    */
   suspend fun awaitClosed() = closeDeferred.await()
 
-  @OptIn(ExperimentalCoroutinesApi::class)
-  fun onClosed(action: (CancellationException?) -> Unit) {
-    closeDeferred.invokeOnCompletion { action(closeDeferred.getCompleted()) }
-  }
+  val onClosed = DeferredSignal(closeDeferred)
 
   // 开始触发关闭事件
   suspend fun close(cause: CancellationException? = null) = scope.isActive.trueAlso {
@@ -221,8 +218,12 @@ open class Ipc internal constructor(
     if (scope.coroutineContext[Job] == coroutineContext[Job]) {
       WARNING("close ipc by self. maybe leak.")
     }
-    debugIpc("ipc Close=>", debugId)
+    debugIpc("ipc Close=>", cause)
+    val reason = cause?.message
+    sendLifecycleToRemote(IpcLifecycle.IpcClosing(reason))
     closeDeferred.complete(cause)
+    lifecycleLocaleFlow.emit(IpcLifecycle.IpcClosed(reason))
+    sendLifecycleToRemote(IpcLifecycle.IpcClosed(reason))
     scope.cancel()
   }
 

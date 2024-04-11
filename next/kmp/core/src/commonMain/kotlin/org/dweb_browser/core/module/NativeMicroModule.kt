@@ -156,7 +156,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         clientIpc.onRequest("file-dweb-router").collectIn(mmScope) { event ->
           val ipcRequest = event.consumeFilter {
             when (it.uri.protocol.name) {
-              "file", "dweb" -> true
+              "file", "dweb", "https" -> true
               else -> false
             }
           } ?: return@collectIn

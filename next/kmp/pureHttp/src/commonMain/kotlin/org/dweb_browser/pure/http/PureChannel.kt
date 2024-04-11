@@ -1,14 +1,14 @@
 package org.dweb_browser.pure.http
 
 import io.ktor.http.HttpStatusCode
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
-import kotlinx.atomicfu.updateAndGet
-import kotlinx.coroutines.CancellationException
+import io.ktor.util.InternalAPI
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -16,55 +16,49 @@ import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.helper.DeferredSignal
 import org.dweb_browser.helper.IFrom
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.Once
 
 
 interface IPureChannel {
-  val onStart: Signal.Listener<PureChannelContext>
-  suspend fun start(): PureChannelContext
-  val onClose: Signal.Listener<Unit>
-  suspend fun close(cause: Throwable? = null, reason: CancellationException? = null)
+  fun start(): PureChannelContext
+  val onClose: DeferredSignal<Throwable?>
+  fun close(cause: Throwable? = null)
 }
 
 class PureChannelContext internal constructor(
-  val income: Channel<PureFrame>,
-  val outgoing: Channel<PureFrame>,
-  private val closeSignal: SimpleSignal,
+  @InternalAPI val incomeChannel: Channel<PureFrame>,
+  @InternalAPI val outgoingChannel: Channel<PureFrame>,
   val getChannel: () -> PureChannel,
 ) {
+  @OptIn(InternalAPI::class)
+  val income = incomeChannel as ReceiveChannel<PureFrame>
   operator fun iterator() = income.iterator()
-  inline suspend fun <reified T> readJsonLine() = sequenceOf(iterator())
+  inline fun <reified T> readJsonItems() = flow {
+    for (frame in income) {
+      emit(Json.decodeFromString<T>(frame.text))
+    }
+  }
 
-  suspend fun sendText(data: String) = outgoing.send(PureTextFrame(data))
+  @OptIn(InternalAPI::class)
+  suspend fun sendText(data: String) = outgoingChannel.send(PureTextFrame(data))
 
   suspend inline fun <reified T> sendJson(data: T) = sendText(Json.encodeToString(data))
 
   suspend inline fun <reified T> sendJsonLine(data: T) = sendText(Json.encodeToString(data) + "\n")
 
 
-  suspend fun sendBinary(data: ByteArray) = outgoing.send(PureBinaryFrame(data))
+  @OptIn(InternalAPI::class)
+  suspend fun sendBinary(data: ByteArray) = outgoingChannel.send(PureBinaryFrame(data))
 
 
   @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun <reified T> sendCbor(data: T) = sendBinary(Cbor.encodeToByteArray(data))
 
 
-  private val closeLock = Mutex()
-
-  @OptIn(DelicateCoroutinesApi::class)
-  suspend fun close(cause: Throwable? = null, reason: CancellationException? = null) =
-    closeLock.withLock {
-      if (!income.isClosedForSend) {
-        income.close(cause)
-        income.cancel(reason)
-        outgoing.close(cause)
-        outgoing.cancel(reason)
-        closeSignal.emit()
-      }
-    }
+  @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
+  fun close(cause: Throwable? = null) = getChannel().close()
 }
 
 class PureChannel(
@@ -74,51 +68,53 @@ class PureChannel(
 ) : IPureChannel, IFrom {
   constructor(from: Any? = null) : this(Channel(), Channel(), from)
 
-  internal val closeSignal = SimpleSignal()
   var isClosed = false
     private set
-  override val onClose = closeSignal.toListener().also {
-    it.invoke { isClosed = true }
-  }
-
-  private val startSignal = Signal<PureChannelContext>()
-  override val onStart = startSignal.toListener()
 
 
-  private val _start = SuspendOnce {
+  private val _start = Once {
     PureChannelContext(
-      income = _income,
-      outgoing = _outgoing,
-      closeSignal = closeSignal,
+      incomeChannel = _income,
+      outgoingChannel = _outgoing,
       getChannel = { this@PureChannel },
-    ).also { startSignal.emit(it) }
+    )
   }
 
-  override suspend fun start() = _start()
-  suspend fun afterStart(): PureChannelContext {
-    if (!_start.haveRun) {
-      onStart.awaitOnce()
+  override fun start() = _start()
+
+
+  private val closeDeferred = CompletableDeferred<Throwable?>()
+  override val onClose = DeferredSignal(closeDeferred)
+
+  private val closeLock = SynchronizedObject()
+
+  @OptIn(DelicateCoroutinesApi::class)
+  override fun close(cause: Throwable?) {
+    synchronized(closeLock) {
+      closeDeferred.complete(cause)
+      if (!_income.isClosedForSend) {
+        _income.close(cause)
+//        _income.cancel(reason)
+        _outgoing.close(cause)
+//        _outgoing.cancel(reason)
+      }
     }
-    return _start()
   }
 
-  override suspend fun close(cause: Throwable?, reason: CancellationException?) {
-    _start().close(cause, reason)
+  private var remote: PureChannel? = null
+
+  companion object {
+    private val remoteLock = SynchronizedObject()
   }
 
-  suspend fun afterClose() {
-    if (!isClosed) {
-      onClose.awaitOnce()
-    }
-  }
-
-  private val _remote = atomic<PureChannel?>(null)
-
-  fun reverse() = _remote.updateAndGet {
-    it ?: PureChannel(
+  fun reverse() = synchronized(remoteLock) {
+    remote ?: PureChannel(
       _outgoing, _income, this
-    ).also { it._remote.update { this@PureChannel } }
-  }!!
+    ).also { remote ->
+      this.remote = remote
+      remote.remote = this
+    }
+  }
 }
 
 

@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -69,7 +70,12 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         if (consumed) {
           return@withLock
         }
+        val job = scope.launch {
+          delay(1000)
+          WARNING("emitBy TIMEOUT!! consumer=$consumer data=$data")
+        }
         consumer.input.emit(this)
+        job.cancel()
         if (consumed) {
           debugProducer("emitBy", "consumer=$consumer consumed data=$data")
         }
@@ -85,7 +91,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         WARNING("$this buffers overflow maybe leak: $buffers")
       }
       for (consumer in consumers) {
-        if (!consumer.started) {
+        if (!consumer.started || consumer.startingBuffers?.contains(event) == true) {
           continue
         }
         event.emitBy(consumer)
@@ -112,15 +118,20 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     var started = false
       private set
 
+    var startingBuffers: List<Event>? = null
+
     private val start = SuspendOnce {
       withScope(scope) {
         started = true
-        debugConsumer("startJob", "begin $buffers")
+        val starting = buffers.toList()
+        startingBuffers = starting
+        debugConsumer("startJob", "begin $starting")
         /// 将之前没有被消费的逐个触发，这里不用担心 buffers 被中途追加，emit会同步触发
-        for (event in buffers.toList()) {
+        for (event in starting) {
           event.emitBy(this@Consumer)
         }
-        debugConsumer("startJob", "done $buffers")
+        debugConsumer("startJob", "done")
+        startingBuffers = null
       }
     }
 
@@ -128,9 +139,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       scope.launch(start = CoroutineStart.UNDISPATCHED) {
         input.collect(collector)
       }
-      withScope(scope) {
-        start()
-      }
+      start()
     }
 
     init {

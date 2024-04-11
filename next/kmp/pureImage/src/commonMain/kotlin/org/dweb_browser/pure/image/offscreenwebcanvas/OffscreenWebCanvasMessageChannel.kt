@@ -94,7 +94,7 @@ internal class OffscreenWebCanvasMessageChannel {
 
   suspend fun postMessage(message: String) {
     val session = this.session ?: dataChannel.await()
-    session.afterStart().sendText(message)
+    session.start().sendText(message)
   }
 
   suspend fun close() {

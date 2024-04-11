@@ -161,7 +161,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     private suspend fun initHttpListener() {
       val options = DwebHttpServerOptions("")
       val selfIpc = connect(mmid)
-      println("QAQ http self connect :$selfIpc")
       val serverUrlInfo = getServerUrlInfo(selfIpc, options)
       val listener = Gateway.PortListener(selfIpc, serverUrlInfo.host)
 
@@ -277,7 +276,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
               }
             }
           }
-          ctx.close(null, null)
+          ctx.close()
         },
         // 提供 httpclient-fetch 的请求功能
         "/fetch" by definePureResponse {

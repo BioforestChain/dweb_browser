@@ -4,6 +4,7 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +25,8 @@ private enum class SIGNAL_CTOR {
   /**
    * 返回该值，会让接下来的其它监听函数不再触发
    */
-  BREAK, ;
+  BREAK,
+  ;
 }
 
 class OffListener<Args>(val origin: Signal<Args>, val cb: SignalCallback<Args>) {
@@ -35,6 +37,10 @@ class OffListener<Args>(val origin: Signal<Args>, val cb: SignalCallback<Args>) 
    */
   suspend fun emitSelf(args: Args) = origin._emit(args, setOf(cb))
   fun removeWhen(listener: Signal.Listener<*>) = listener {
+    this@OffListener()
+  }
+
+  fun removeWhen(job: Job) = job.invokeOnCompletion {
     this@OffListener()
   }
 
@@ -114,7 +120,7 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
     val parentSignal: Signal<Args>,
     val childSignal: Signal<R>,
     val filter: (Args) -> F?,
-    val map: (F) -> R
+    val map: (F) -> R,
   )
 
   private val children = mutableMapOf<Signal<*>, Child<Args, *, *>>()
@@ -220,7 +226,7 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
   class Listener<Args>(val signal: Signal<Args>) {
     operator fun invoke(cb: SignalCallback<Args>) = signal.listen(cb)
     fun <F : Any, R> createChild(
-      filter: (Args) -> F?, map: (F) -> R
+      filter: (Args) -> F?, map: (F) -> R,
     ) = signal.createChild(filter, map).toListener()
 
     fun toFlow() = signal.toFlow()

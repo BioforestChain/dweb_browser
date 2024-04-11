@@ -26,6 +26,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.invoke
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement

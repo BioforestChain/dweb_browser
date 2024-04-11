@@ -22,34 +22,39 @@ class NativeMessageChannel(parentScope: CoroutineScope, fromId: String, toId: St
   private val lifecycleFlow1 = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
   private val lifecycleFlow2 = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
   private val scope = parentScope + SupervisorJob()
-  private var debugFromId = ""
-  private var debugToId = ""
+  private var port1DebugId = ""
+  private var port2DebugId = ""
 
   /// 取最短的前缀，从而做成
   init {
-    val from = fromId.split(".")
-    val to = toId.split(".")
-    val maxFromEndIndex = from.size - 1
-    val maxToEndIndex = to.size - 1
-    for (endIndex in 1..<min(maxFromEndIndex, maxToEndIndex)) {
-      debugFromId = from.subList(0, endIndex).joinToString(".")
-      debugToId = to.subList(0, endIndex).joinToString(".")
-      if (debugFromId != debugToId) {
-        break
+    if (fromId == toId) {
+      port1DebugId = "$fromId[from]↹"
+      port2DebugId = "$toId[to]↹"
+    } else {
+      val from = fromId.split(".")
+      val to = toId.split(".")
+      val maxFromEndIndex = from.size - 1
+      val maxToEndIndex = to.size - 1
+      var debugFromId = ""
+      var debugToId = ""
+      for (endIndex in 1..<min(maxFromEndIndex, maxToEndIndex)) {
+        debugFromId = from.subList(0, endIndex).joinToString(".")
+        debugToId = to.subList(0, endIndex).joinToString(".")
+        if (debugFromId != debugToId) {
+          break
+        }
       }
-    }
-    if (debugFromId == debugToId) {
-      debugFromId = fromId
-      debugToId = toId
+      if (debugFromId == debugToId) {
+        debugFromId = fromId
+        debugToId = toId
+      }
+      port1DebugId = "$debugFromId=>$debugToId"
+      port2DebugId = "$debugToId=>$debugFromId"
     }
   }
 
-  val port1 = NativeEndpoint(
-    scope, messageChannel1, messageChannel2, lifecycleFlow1, "$debugFromId=>$debugToId"
-  )
-  val port2 = NativeEndpoint(
-    scope, messageChannel2, messageChannel1, lifecycleFlow2, "$debugToId=>$debugFromId"
-  )
+  val port1 = NativeEndpoint(scope, messageChannel1, messageChannel2, lifecycleFlow1, port1DebugId)
+  val port2 = NativeEndpoint(scope, messageChannel2, messageChannel1, lifecycleFlow2, port2DebugId)
 }
 
 class NativeEndpoint(

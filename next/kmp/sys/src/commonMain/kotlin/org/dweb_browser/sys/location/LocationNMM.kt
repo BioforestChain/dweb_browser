@@ -12,6 +12,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.invoke
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.withMainContext
@@ -59,7 +60,9 @@ class LocationNMM : NativeMicroModule("geolocation.sys.dweb", "geolocation") {
               }
               onClose {
                 debugLocation("locationChannel=>", "onClose：$remoteMmid")
-                observer.destroy()
+                scopeLaunch(cancelable = false) {
+                  observer.destroy()
+                }
                 flowJob.cancel()
               }
             } catch (e: Exception) {
