@@ -46,7 +46,6 @@ fun File.resolveArchPath(target: KonanTarget): File? {
 }
 
 fun org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget.configureIos(frameworks: List<String>) {
-
   compilations.getByName("main") {
 
     frameworks.forEach {
@@ -66,9 +65,7 @@ fun org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget.configureIos(frame
 
       println("xc:$xc")
 
-      println("compilations.asMap:${compilations.asMap}")
-
-      binaries.all {
+      this@configureIos.binaries.all {
         linkerOpts(
           "-framework", it, "-F$xcPath/",// "-rpath", "$xcPath", "-ObjC"
         )

@@ -1,4 +1,6 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
+import com.android.build.gradle.internal.api.ApkVariantOutputImpl
+import com.android.build.gradle.internal.tasks.FinalizeBundleTask
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import java.util.Properties
 
 plugins {
@@ -97,7 +99,29 @@ android {
       resValue("string", "appName", "Dweb Browser")
       applicationIdSuffix = null
       versionNameSuffix = null
-      archivesName = "Dweb Browser_v${libs.versions.versionName.get()}"
+
+      // 修改release打包应用名
+      val archivesName = "Dweb Browser_v${libs.versions.versionName.get()}"
+      applicationVariants.all {
+        outputs.all {
+          // 修改bundle名
+          val bundleFinalizeTaskName = StringBuilder("sign").run {
+            append(flavorName.capitalizeAsciiOnly())
+            append(buildType.name.capitalizeAsciiOnly())
+            append("Bundle")
+            toString()
+          }
+          tasks.named(bundleFinalizeTaskName, FinalizeBundleTask::class) {
+            val file = finalBundleFile.asFile.get()
+            finalBundleFile.set(File(file.parentFile, "$archivesName.aab"))
+          }
+
+          // 修改apk名
+          if(this is ApkVariantOutputImpl) {
+            outputFileName = "$archivesName.apk"
+          }
+        }
+      }
     }
     debug {
       signingConfig = signingConfigs.getByName("debug")
