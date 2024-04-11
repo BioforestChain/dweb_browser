@@ -320,10 +320,9 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         // 如果不存在则需要创建空文件夹
         if (!SystemFileSystem.exists(targetPath)) {
           SystemFileSystem.createDirectories(targetPath, true)
-        } else {
-          // 需要保证文件夹为空
-          SystemFileSystem.deleteRecursively(targetPath, false)
         }
+        // TODO 由于在 desktop 验证发现，创建后，直接调用move，会失败，这边做下清除子文件的操作
+        SystemFileSystem.deleteRecursively(targetPath, false) // 需要保证文件夹为空
         // atomicMove 如果是不同的文件系统时，移动会失败，如 data 目录移动到 外部download目录，所以需要使用copy后自行删除源文件
         SystemFileSystem.atomicMove(sourcePath, targetPath)
         true
