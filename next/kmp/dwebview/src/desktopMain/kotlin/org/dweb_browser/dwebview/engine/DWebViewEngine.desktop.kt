@@ -64,67 +64,69 @@ import javax.swing.SwingUtilities
 class DWebViewEngine internal constructor(
   internal val remoteMM: MicroModule.Runtime,
   val options: DWebViewOptions,
-  internal val browser: Browser = createMainBrowser(remoteMM)
+  internal val browser: Browser = createMainBrowser(remoteMM),
 ) {
   companion object {
     /**
      * 构建一个 main-browser，当 main-browser 销毁， 对应的 WebviewEngine 也会被销毁
      */
-    internal fun createMainBrowser(remoteMM: MicroModule.Runtime) = WebviewEngine.hardwareAccelerated {
-      addScheme(Scheme.of("dweb")) { params ->
-        val pureResponse = runBlocking(ioAsyncExceptionHandler) {
-          remoteMM.nativeFetch(params.urlRequest().url().replaceFirst("/?", "?"))
+    internal fun createMainBrowser(remoteMM: MicroModule.Runtime) =
+      WebviewEngine.hardwareAccelerated {
+        addScheme(Scheme.of("dweb")) { params ->
+          val pureResponse = runBlocking(ioAsyncExceptionHandler) {
+            remoteMM.nativeFetch(params.urlRequest().url().replaceFirst("/?", "?"))
+          }
+
+          val jobBuilder =
+            UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
+          pureResponse.headers.forEach { (key, value) ->
+            jobBuilder.addHttpHeader(HttpHeader.of(key, value))
+          }
+
+          Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
         }
 
-        val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
-        pureResponse.headers.forEach { (key, value) ->
-          jobBuilder.addHttpHeader(HttpHeader.of(key, value))
-        }
+        addSwitch("--enable-experimental-web-platform-features")
+      }.let { engine ->
+        // 设置https代理
+        val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
+        engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
+        engine.network()
+          .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
+            // SSL Certificate to verify.
+            val certificate = params.certificate()
+            // FIXME 这里应该有更加严谨的证书内容判断
+            if (certificate.derEncodedValue().decodeToString().contains(".dweb")) {
+              VerifyCertificateCallback.Response.valid()
+            } else {
+              VerifyCertificateCallback.Response.defaultAction()
+            }
+          });
 
-        Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
-      }
-
-      addSwitch("--enable-experimental-web-platform-features")
-    }.let { engine ->
-      // 设置https代理
-      val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
-      engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
-      engine.network()
-        .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
-          // SSL Certificate to verify.
-          val certificate = params.certificate()
-          // FIXME 这里应该有更加严谨的证书内容判断
-          if (certificate.derEncodedValue().decodeToString().contains(".dweb")) {
-            VerifyCertificateCallback.Response.valid()
+        // 拦截内部浏览器dweb deeplink跳转
+        engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
+          if (it.urlRequest().url().startsWith("dweb://")) {
+            remoteMM.scopeLaunch(cancelable = true) {
+              remoteMM.nativeFetch(it.urlRequest().url().replace("/?", "?"))
+            }
+            BeforeUrlRequestCallback.Response.cancel()
           } else {
-            VerifyCertificateCallback.Response.defaultAction()
+            BeforeUrlRequestCallback.Response.proceed()
           }
-        });
+        })
 
-      // 拦截内部浏览器dweb deeplink跳转
-      engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
-        if (it.urlRequest().url().startsWith("dweb://")) {
-          remoteMM.ioAsyncScope.launch {
-            remoteMM.nativeFetch(it.urlRequest().url().replace("/?", "?"))
-          }
-          BeforeUrlRequestCallback.Response.cancel()
-        } else {
-          BeforeUrlRequestCallback.Response.proceed()
-        }
-      })
-
-      val browser = engine.newBrowser()
-      // 同步销毁
-      browser.on(BrowserClosed::class.java) {
-        engine.close()
-      }
-      remoteMM.ioAsyncScope.launch {
-        localViewHookExit.collect {
+        val browser = engine.newBrowser()
+        // 同步销毁
+        browser.on(BrowserClosed::class.java) {
           engine.close()
         }
+        remoteMM.scopeLaunch(cancelable = true) {
+          localViewHookExit.collect {
+            engine.close()
+          }
+        }
+        browser
       }
-      browser
-    }
   }
 
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
@@ -132,7 +134,8 @@ class DWebViewEngine internal constructor(
   val mainFrameOrNull get() = browser.mainFrame().getOrNull()
   val document get() = mainFrame.document().get()
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-  internal val ioScope = CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
+  internal val ioScope =
+    CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
 
 
   /**
@@ -145,7 +148,7 @@ class DWebViewEngine internal constructor(
    * 执行异步JS代码，需要传入一个表达式
    */
   suspend fun evaluateAsyncJavascriptCode(
-    script: String, afterEval: (suspend () -> Unit)? = null
+    script: String, afterEval: (suspend () -> Unit)? = null,
   ): String {
     val deferred = CompletableDeferred<String>()
 
@@ -421,6 +424,9 @@ class DWebViewEngine internal constructor(
       ioScope.launch {
         loadUrl(options.url)
       }
+    }
+    if (options.openDevTools) {
+      browser.devTools().show()
     }
   }
 

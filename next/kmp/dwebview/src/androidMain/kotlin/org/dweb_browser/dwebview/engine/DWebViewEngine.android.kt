@@ -108,7 +108,7 @@ class DWebViewEngine internal constructor(
   }
 
   internal val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-  internal val ioScope = CoroutineScope(remoteMM.mmScope.coroutineContext + SupervisorJob())
+  internal val ioScope = CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
 
   suspend fun waitReady() {
     dWebViewClient.onReady.awaitOnce()

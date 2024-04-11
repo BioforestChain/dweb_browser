@@ -20,7 +20,7 @@ class HttpNMMTest {
   }
 
   @Test
-  fun testListen() = runCommonTest {
+  fun testListen() = runCommonTest(1000) {
 
     class TestMicroModule(mmid: String = "test.httpListen.dweb") :
       NativeMicroModule(mmid, "test Http Listen") {

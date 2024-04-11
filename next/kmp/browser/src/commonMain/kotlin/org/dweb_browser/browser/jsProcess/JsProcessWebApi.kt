@@ -182,7 +182,7 @@ suspend fun createJsProcessWeb(
   val dWebView = IDWebView.create(mm, DWebViewOptions(privateNet = true))
   dWebView.loadUrl(jsProcessUrl)
   // 监听打开开发者工具事件
-  listenOpenDevTool(dWebView, mm.ioAsyncScope)
+  listenOpenDevTool(dWebView, mm.getRuntimeScope())
   /// 确保API可用
   while (dWebView.evaluateAsyncJavascriptCode("typeof createProcess==='function'") == "false") {
     delay(5)
@@ -192,6 +192,7 @@ suspend fun createJsProcessWeb(
 }
 
 /**
- *  桌面端监听打开开发者工具事件
+ * 桌面端监听打开开发者工具事件
+ * TODO fuck this
  */
 expect fun listenOpenDevTool(dWebView: IDWebView, scope: CoroutineScope)

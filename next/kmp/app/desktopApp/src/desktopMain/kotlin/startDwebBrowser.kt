@@ -1,7 +1,4 @@
 import WindowsSingleInstance.singleInstanceFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
@@ -84,7 +81,6 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   /// 初始化DNS服务
   val dnsNMM = DnsNMM()
 
-  val dnsNMM = DnsNMM()
   suspend fun <T : MicroModule> T.setup() = this.also {
     dnsNMM.install(this)
   }

@@ -32,9 +32,13 @@ data class DWebViewOptions(
    */
   val createWindowBehavior: CreateWindowBehavior = CreateWindowBehavior.Deeplink,
   /**
+   * 是否打开开发者工具
+   */
+  val openDevTools: Boolean = false,
+  /**
    * 标识
    */
-  var tag: Int? = null
+  var tag: Int? = null,
 ) {
 
   enum class DetachedStrategy {
