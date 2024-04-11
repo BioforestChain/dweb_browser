@@ -64,10 +64,6 @@
 		48334DF22B50DBF700399FFF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4803BFE52B4FF2A8006B2F79 /* Assets.xcassets */; };
 		48334DF42B50DF9700399FFF /* Bundle+module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48334DF32B50DF9700399FFF /* Bundle+module.swift */; };
 		48334DF62B50E12000399FFF /* Browser.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF6C2B4FF279006B2F79 /* Browser.xcdatamodeld */; };
-		48CB59B42BC27DE1001B699A /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CB59B02BC27DE1001B699A /* ViewModel.swift */; };
-		48CB59B52BC27DE1001B699A /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CB59B12BC27DE1001B699A /* Models.swift */; };
-		48CB59B62BC27DE1001B699A /* Views.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CB59B22BC27DE1001B699A /* Views.swift */; };
-		48CB59B72BC27DE1001B699A /* ContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CB59B32BC27DE1001B699A /* ContainerView.swift */; };
 		48EEA8EE2B4FF17F006DA0F3 /* DwebWebBrowser.h in Headers */ = {isa = PBXBuildFile; fileRef = 48EEA8E12B4FF17F006DA0F3 /* DwebWebBrowser.h */; };
 		48EEA8F02B4FF17F006DA0F3 /* DwebWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EEA8E62B4FF17F006DA0F3 /* DwebWebView.swift */; };
 		F0DA27022B679F350005ED24 /* MenuViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0DA27012B679F350005ED24 /* MenuViewModel.swift */; };
@@ -500,18 +496,14 @@
 				4803BFA82B4FF279006B2F79 /* UIImage+Trans.swift in Sources */,
 				4803BFCF2B4FF279006B2F79 /* WebWrapper.swift in Sources */,
 				4803BFE32B4FF279006B2F79 /* ScannerViewController.swift in Sources */,
-				48CB59B42BC27DE1001B699A /* ViewModel.swift in Sources */,
 				4803BFBC2B4FF279006B2F79 /* const.swift in Sources */,
-				48CB59B52BC27DE1001B699A /* Models.swift in Sources */,
 				4803BFE12B4FF279006B2F79 /* ScanState.swift in Sources */,
-				48CB59B62BC27DE1001B699A /* Views.swift in Sources */,
 				4803BFA42B4FF279006B2F79 /* UIImage+Resize.swift in Sources */,
 				4803BFA92B4FF279006B2F79 /* Url+Validator.swift in Sources */,
 				4803BFC62B4FF279006B2F79 /* TabsContainerView.swift in Sources */,
 				4803BFA62B4FF279006B2F79 /* Color+Hex.swift in Sources */,
 				4803BFAD2B4FF279006B2F79 /* WebCacheStore.swift in Sources */,
 				4803BFC82B4FF279006B2F79 /* TabPageView.swift in Sources */,
-				48CB59B72BC27DE1001B699A /* ContainerView.swift in Sources */,
 				4803BFA32B4FF279006B2F79 /* Date+format.swift in Sources */,
 				4803BFCD2B4FF279006B2F79 /* WatermarkModifier.swift in Sources */,
 				4803BFD42B4FF279006B2F79 /* WebSearcher.swift in Sources */,
