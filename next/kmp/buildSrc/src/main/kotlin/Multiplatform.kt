@@ -580,6 +580,9 @@ fun KotlinMultiplatformExtension.kmpIosTarget(
   }
   println("kmpIosTarget: ${project.name}")
 
+  // TODO: 升级 kotlin 2.0.0 版本之前临时使用来软链接到 shared ComposeResource
+  kmpComposeResourceSymbolToShared(project)
+
   val dsl = KmpIosTargetDsl(this)
   dsl.configure()
   val libs = project.the<LibrariesForLibs>()
@@ -620,13 +623,21 @@ fun KotlinMultiplatformExtension.kmpComposeResourceSymbolToShared(
   project: Project,
   configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure
 ) {
+  if(project.name == "shared") {
+    return
+  }
   with(sourceSets.commonMain.get()) {
     kotlin.srcDirs.firstOrNull()?.let { srcFile ->
+      val composeResources = srcFile.resolve("../composeResources")
+
+      if(!composeResources.exists()) {
+        return
+      }
+
       val sharedComposeResources = srcFile.resolve(
         "../../../../shared/src/iosMain/composeResources"
       ).also { it.mkdirs() }
 
-      val composeResources = srcFile.resolve("../composeResources")
       composeResources.listFiles { dir, name ->
         if (name.isNotEmpty()) {
           val linkDeskFile = sharedComposeResources.resolve(name) // 创建link

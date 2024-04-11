@@ -52,6 +52,5 @@ kotlin {
   }
   kmpIosTarget(project)
   kmpDesktopTarget(project)
-  kmpComposeResourceSymbolToShared(project)
 }
 

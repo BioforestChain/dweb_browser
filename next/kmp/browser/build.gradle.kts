@@ -83,5 +83,4 @@ kotlin {
       implementation(libs.camera.zxing.javase)
     }
   }
-  kmpComposeResourceSymbolToShared(project)
 }
