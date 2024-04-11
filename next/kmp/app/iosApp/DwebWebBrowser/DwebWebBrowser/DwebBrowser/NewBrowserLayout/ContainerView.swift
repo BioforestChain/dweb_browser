@@ -59,12 +59,12 @@ struct WebContainerView: View {
                         .popover(isPresented: $show,
                                  attachmentAnchor: .point(UnitPoint(x: 0, y: -2)),
                                  content: {
-//                                     ContainerMoreMenu(datas: viewModel.moreItems,
-//                                                       traceless: viewModel.tracelessBinding,
-//                                                       show: $show)
-//                                         .presentationCompactAdaptation(.popover)
-//                                         .frame(minWidth: 200)
-//                                         .padding()
+                                     ContainerMoreMenu(datas: viewModel.moreItems,
+                                                       traceless: viewModel.tracelessBinding,
+                                                       show: $show)
+                                         .presentationCompactAdaptation(.popover)
+                                         .frame(minWidth: 200)
+                                         .padding()
                                  })
                 })
             }

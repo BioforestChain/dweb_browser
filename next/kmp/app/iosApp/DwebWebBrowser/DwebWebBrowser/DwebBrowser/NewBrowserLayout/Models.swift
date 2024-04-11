@@ -65,10 +65,10 @@ extension String {
     
     var address = AddressModel.empty
     
-//    @ObservationIgnored
-//    let id: Int {
-//        url.id
-//    }
+    @ObservationIgnored
+    let id: Int {
+        url.id
+    }
         
     init(url: DwebUrl = .blank) {
         self.url = url

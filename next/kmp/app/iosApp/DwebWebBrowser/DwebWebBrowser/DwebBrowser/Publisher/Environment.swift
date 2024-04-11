@@ -58,7 +58,6 @@ class WndDragScale {
     var scaledFont_28: Font { Font.system(size: 1.0 * max(32, onWidth * 28)) }
     var scaledFont_32: Font { Font.system(size: 1.0 * max(32, onWidth * 32)) }
     var scaledFont_42: Font { Font.system(size: 1.0 * max(42, onWidth * 42)) }
-
 }
 
 @Observable
@@ -76,7 +75,7 @@ class ToolBarState {
     var shouldCreateTab = false
     var showMoreMenu = false
     var isPresentingScanner = false
-    
+
     enum TabsStates: Int {
         case shouldExpand
         case shouldShrink
@@ -106,7 +105,7 @@ class TracelessMode {
 }
 
 @Observable
-class OpeningLink{
+class OpeningLink {
     var clickedLink: URL = emptyURL
 }
 
@@ -121,7 +120,6 @@ class ResizeSheetState {
     var presenting = false
 }
 
-
 @Observable
 class TabGridState {
     var scale = 1.0
@@ -132,28 +130,28 @@ class DeleteCache {
     var cacheId = UUID()
 }
 
-enum LocalColorScheme: Int{
+enum LocalColorScheme: Int {
     case unspecified, light, dark
 }
 
-class ColorSchemeManager: ObservableObject{
+class ColorSchemeManager: ObservableObject {
     static let shared = ColorSchemeManager()
     @AppStorage("colorScheme") var colorScheme: LocalColorScheme = .unspecified {
-        didSet{
+        didSet {
             applyColorScheme()
         }
     }
-    
-    func applyColorScheme(){
+
+    func applyColorScheme() {
         keyWindow?.overrideUserInterfaceStyle = UIUserInterfaceStyle(rawValue: colorScheme.rawValue)!
     }
-    
-    private var keyWindow: UIWindow?{
-     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-        if let window = windowScene.windows.first {
-            return window
+
+    private var keyWindow: UIWindow? {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            if let window = windowScene.windows.first {
+                return window
+            }
         }
-     }
-    return nil
+        return nil
     }
 }

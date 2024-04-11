@@ -22,3 +22,6 @@ debug
 *.link
 /app/electronApp/src/jsMain/resources/demo/
 /kotlin-js-store/
+
+# 开发桌面端时应用缓存目录
+/app/desktopApp/appdata

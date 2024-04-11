@@ -39,17 +39,17 @@ import SwiftUI
     
     //MARK: -more items
     var traceless = false
-//    @ObservationIgnored
-//    var moreItems: [ContainerMoreItem] {
-//        return [
-//            .bookmark(handleMoreAction),
-//            .tackless(false, handleMoreAction),
-//            .privacy(handleMoreAction),
-//            .scan(handleMoreAction),
-//            .download(handleMoreAction),
-//            .history(handleMoreAction)
-//        ]
-//    }
+    @ObservationIgnored
+    var moreItems: [ContainerMoreItem] {
+        return [
+            .bookmark(handleMoreAction),
+            .tackless(false, handleMoreAction),
+            .privacy(handleMoreAction),
+            .scan(handleMoreAction),
+            .download(handleMoreAction),
+            .history(handleMoreAction)
+        ]
+    }
 
     var tracelessBinding: Binding<Bool> {
         Binding { [weak self] in
