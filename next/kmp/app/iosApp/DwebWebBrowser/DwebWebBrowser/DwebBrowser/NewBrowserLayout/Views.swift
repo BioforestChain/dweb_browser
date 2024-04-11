@@ -125,7 +125,7 @@ struct PageView: View {
                     Text("privacy")
                 case .history:
                     Text("history")
-                case .url(let urlStr, let salt):
+                case .url(let urlStr, _):
                     PageWebView(urlString: urlStr)
             }
         })

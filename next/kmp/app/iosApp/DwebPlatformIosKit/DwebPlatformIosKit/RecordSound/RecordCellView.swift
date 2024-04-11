@@ -151,7 +151,6 @@ struct RecordCellView: View {
                             selectedIndex = nil
                             PlayerManager.shared.stop()
                             withAnimation {
-                                print(model.path)
                                 deleteVoiceFile(path: model.path ?? "")
                                 modelContext.delete(model)
                                 try? modelContext.save()

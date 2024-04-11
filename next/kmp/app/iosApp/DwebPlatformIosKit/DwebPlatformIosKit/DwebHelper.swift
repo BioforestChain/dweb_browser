@@ -12,7 +12,7 @@ import WebKit
     @objc open func setProxy(configuration: WKWebViewConfiguration, host: String, port: UInt16) {
         let endpoint = NWEndpoint.hostPort(
             host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!)
-        var proxyConfig = ProxyConfiguration(httpCONNECTProxy: endpoint, tlsOptions: .none)
+        let proxyConfig = ProxyConfiguration(httpCONNECTProxy: endpoint, tlsOptions: .none)
         configuration.websiteDataStore.proxyConfigurations = [proxyConfig]
     }
 

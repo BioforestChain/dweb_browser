@@ -149,6 +149,11 @@ class ColorSchemeManager: ObservableObject{
     }
     
     private var keyWindow: UIWindow?{
-        return UIApplication.shared.keyWindow
+     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+        if let window = windowScene.windows.first {
+            return window
+        }
+     }
+    return nil
     }
 }

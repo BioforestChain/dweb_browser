@@ -23,7 +23,7 @@ import SwiftUI
     func scrollIndex(by index: Int) -> Int? {
         guard index >= 0, index < pages.count else { return nil }
         let page = pages[index]
-        return page.id
+        return page.id.hashValue
     }
     
     // MARK: -Page items
@@ -39,17 +39,17 @@ import SwiftUI
     
     //MARK: -more items
     var traceless = false
-    @ObservationIgnored
-    var moreItems: [ContainerMoreItem] {
-        return [
-            .bookmark(handleMoreAction),
-            .tackless(false, handleMoreAction),
-            .privacy(handleMoreAction),
-            .scan(handleMoreAction),
-            .download(handleMoreAction),
-            .history(handleMoreAction)
-        ]
-    }
+//    @ObservationIgnored
+//    var moreItems: [ContainerMoreItem] {
+//        return [
+//            .bookmark(handleMoreAction),
+//            .tackless(false, handleMoreAction),
+//            .privacy(handleMoreAction),
+//            .scan(handleMoreAction),
+//            .download(handleMoreAction),
+//            .history(handleMoreAction)
+//        ]
+//    }
 
     var tracelessBinding: Binding<Bool> {
         Binding { [weak self] in

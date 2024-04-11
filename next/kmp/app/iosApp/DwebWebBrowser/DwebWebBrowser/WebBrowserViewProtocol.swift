@@ -28,12 +28,12 @@ import DwebPlatformIosKit
     func recognizedScreenGestures()
     func openDeepLink(url: String)
     func readFile(path: String, completed: @escaping (NSData?, NSError?) -> Void)
-    #warning("doAction(name:params:)便捷方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
+    //warning("doAction(name:params:)便捷方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
     func doAction(name: String, params: [String: String]?)
 }
 
 @objc public protocol WebBrowserViewDataSource: TracklessDataSource, BookMarkDataSource, HistoryDataSource, WebBrowserViewWebDataSource, PermissionDataSource, DownloadDataSource {
-    #warning("getDatas(for:params:)便捷方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
+    //warning("getDatas(for:params:)便捷方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
     func getDatas(for: String, params: [String: AnyObject]?) -> [String: AnyObject]?
 }
 
