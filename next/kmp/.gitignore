@@ -12,6 +12,7 @@ local.properties
 xcuserdata
 X-Build
 /shared/src/commonMain/resources/browser
+/shared/src/iosMain/composeResources
 /dwebview/src/commonMain/composeResources/files/dwebview-polyfill
 release
 debug

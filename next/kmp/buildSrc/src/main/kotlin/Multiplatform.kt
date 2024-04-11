@@ -619,3 +619,33 @@ fun Project.configureJvmTests(fn: Test.() -> Unit = {}) {
 }
 
 infix fun String.belong(domain: String) = this == domain || this.startsWith("$domain.")
+
+fun KotlinMultiplatformExtension.kmpComposeResourceSymbolToShared(
+  project: Project,
+  configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure
+) {
+  with(sourceSets.commonMain.get()) {
+    kotlin.srcDirs.firstOrNull()?.let { srcFile ->
+      val sharedComposeResources = srcFile.resolve(
+        "../../../../shared/src/iosMain/composeResources"
+      ).also { it.mkdirs() }
+
+      val composeResources = srcFile.resolve("../composeResources")
+      composeResources.listFiles { dir, name ->
+        if (name.isNotEmpty()) {
+          val linkDeskFile = sharedComposeResources.resolve(name) // 创建link
+          val targetFile = dir.resolve(name) // 目标路径
+          if (!linkDeskFile.exists()) {
+            Files.createSymbolicLink(
+              linkDeskFile.toPath(),
+              targetFile.toPath()
+            )
+          } else {
+            println("file already exists => ${linkDeskFile.absolutePath}")
+          }
+        }
+        false
+      }
+    }
+  }
+}
