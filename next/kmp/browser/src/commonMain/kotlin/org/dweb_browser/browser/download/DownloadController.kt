@@ -210,6 +210,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
       filepath = fileCreateByPath(params.decodeUrl, externalDownload),
       status = DownloadStateEvent(total = params.total)
     )
+    task.external = externalDownload // 后面有用到这个字段，这边需要在初始化的时候赋值
     downloadTaskMaps.put(task.id, task)
     downloadStore.set(task.id, task) // 保存下载状态
     debugDownload("createTaskFactory", "${task.id} -> $task")
