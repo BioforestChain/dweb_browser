@@ -12,7 +12,6 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.invoke
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.withMainContext

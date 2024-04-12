@@ -20,19 +20,6 @@ val debugIpcPool = Debugger("ipcPool")
 
 val kotlinIpcPool = IpcPool()
 
-data class IpcOptions(
-  /**远程的模块是谁*/
-  val remote: IMicroModuleManifest,
-  /**是否自动发送握手消息*/
-//  val autoStart: Boolean = true,
-  /**当endpoint为Worker的时候需要传递*/
-  val port: WebMessageEndpoint? = null,
-  /**当endpoint为Kotlin的时候需要传递*/
-  val channel: NativeEndpoint? = null,
-  /**当endpoint为FrontEnd的时候需要传递*/
-//  val stream: PureStream? = null
-)
-
 /**
  * IpcPool跟上下文对应，跟body流对应
  * Context(Kotlin,Worker,Front)

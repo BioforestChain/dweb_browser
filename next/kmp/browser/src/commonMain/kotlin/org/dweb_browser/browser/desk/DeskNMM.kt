@@ -26,7 +26,6 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.invoke
 import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
@@ -76,8 +75,10 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           if (ipc.remote.categories.contains(MICRO_MODULE_CATEGORY.Application)) {
             RunningApp(ipc, bootstrapContext).also { app ->
               runningApps[mmid] = app
-              /// 如果应用关闭，将它从列表中移除
-              app.onClosed {
+              // TODO 待测试这里冗余
+              ipc.scope.launch {
+                /// 如果应用关闭，将它从列表中移除
+                app.onClosed.invoke().await()
                 runningApps.remove(mmid)
               }
             }

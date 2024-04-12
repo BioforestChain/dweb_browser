@@ -335,7 +335,7 @@ open class Ipc internal constructor(
     }
   }
 
-  fun onResponse(name: String) = responseProducer.consumer(name)
+  private fun onResponse(name: String) = responseProducer.consumer(name)
 
   private val streamProducer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     messagePipeMap("stream") {
@@ -379,9 +379,10 @@ open class Ipc internal constructor(
 
   private val _reqResMap by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     SafeHashMap<Int, CompletableDeferred<IpcResponse>>().also { reqResMap ->
-      debugIpc("reqResMap")
       onResponse("req-res").collectIn(scope) { event ->
-        val result = reqResMap.remove(event.data.reqId) ?: return@collectIn debugIpc(
+        // 消耗掉
+        val response = event.consume()
+        val result = reqResMap.remove(response.reqId) ?: return@collectIn debugIpc(
           "reqResMap", "onResponse", "no found response by reqId: ${event.data.reqId}"
         )
         result.complete(event.consume())

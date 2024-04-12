@@ -20,6 +20,7 @@ import org.dweb_browser.helper.withScope
 
 /**
  * 基于单通讯通道编解码的 通用Endpoint
+ * 当前ReadableStream和WebMessage基于这个构建
  */
 abstract class CommonEndpoint(
   parentScope: CoroutineScope,

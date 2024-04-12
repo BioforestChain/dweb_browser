@@ -47,7 +47,7 @@ actual object BiometricsManage {
       val uid = randomUUID()
       BiometricsActivity.creates[uid] = this
       invokeOnCompletion { BiometricsActivity.creates.remove(uid) }
-      biometricsNMM.startAppActivity(BiometricsActivity::class.java) { intent ->
+      biometricsNMM.runtime.startAppActivity(BiometricsActivity::class.java) { intent ->
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)

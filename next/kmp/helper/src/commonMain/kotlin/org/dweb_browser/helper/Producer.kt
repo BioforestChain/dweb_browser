@@ -18,7 +18,9 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-
+/**
+ * 消息生产者，彻底的消费掉消息需要显示调用consume()
+ */
 class Producer<T>(val name: String, parentScope: CoroutineScope) {
   private val job = SupervisorJob(parentScope.coroutineContext[Job])
   val scope = parentScope + job
@@ -32,7 +34,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   override fun toString(): String {
     return "Producer<$name>"
   }
-
+    /**生产者构造的事件*/
   inner class Event(val data: T, order: Int?, private val eventJob: CompletableJob = Job()) :
     OrderBy, Job by eventJob {
     override val orderBy = when {
@@ -56,7 +58,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
      */
     suspend fun next() {
     }
-
+    /**将其消耗转换为R对象 以返回值形式继续传递*/
     inline fun <reified R : T> consumeAs(): R? {
       if (R::class.isInstance(data)) {
         return consume() as R
@@ -71,6 +73,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       return null
     }
 
+    /**将其消耗转换为R对象 以回调形式继续传递*/
     inline fun <reified R : T> consumeAs(block: (R) -> Unit) {
       if (R::class.isInstance(data)) {
         block(consume() as R)
@@ -81,7 +84,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       return "Event($data)"
     }
 
-
+    /**按顺序触发事件*/
     internal suspend inline fun orderInvoke(crossinline invoker: suspend () -> Unit) {
       orderInvoker.tryInvoke(orderBy) {
         invoker()
@@ -94,12 +97,14 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         if (consumed) {
           return@withLock
         }
+        // 事件超时告警
         val job = scope.launch {
           delay(1000)
           WARNING("emitBy TIMEOUT!! consumer=$consumer data=$data")
         }
         emitJobsLock.lock()
         consumer.input.send(this)
+        // 等待事件执行完成在往下走
         emitJobsLock.withLock {
           emitJobs.joinAll()
           emitJobs.clear()
@@ -161,7 +166,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       }
     }
   }
-
+  /**事件消耗器，调用后事件将被彻底消耗，不会再进行传递*/
   fun consumer(name: String): Consumer {
     ensureOpen()
     return Consumer(name)
@@ -211,9 +216,11 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
           event.emitJobs += launch {
             collector.emit(event)
           }
+          // 告知完成了，放行
           event.emitJobsLock.unlock()
         }
       }
+      // 事件在收集了再调用开始
       start()
       job.join()
     }
@@ -233,7 +240,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
   var isCloseForEmit = false
     private set
-
+  /**关闭写，这个将会消耗完没有消费的*/
   fun closeWrite(cause: Throwable? = null) {
     isCloseForEmit = true
     for (event in buffers.toList()) {
@@ -261,9 +268,11 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
           doEmit(event)
         }
       }
+      // 等待消费者全部完成
       buffers.toList().joinAll()
 
       debugProducer("close")
+      // 关闭消费者channel，表示彻底无法再发数据
       for (consumer in consumers) {
         consumer.input.close()
       }
@@ -282,6 +291,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   }
 }
 
+/**创建一个新的消耗者继续传递*/
 fun <T> Flow<T>.asProducer(
   name: String,
   scope: CoroutineScope,
