@@ -7,7 +7,8 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.IFrom
-import org.dweb_browser.helper.listen
+import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.debugger
 import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureHeaders
@@ -94,22 +95,30 @@ internal suspend fun pureChannelToIpcEvent(
 ) {
   val eventData = "${PURE_CHANNEL_EVENT_PREFIX}data"
   channelIpc.onClosed {
-    channelIpc.debugIpc(debugTag) { "channel will-be-close-by ipc" }
-    pureChannel.close()
+    channelIpc.debugIpc(debugTag) { "ipc will-close outgoing-channel" }
+    // 这里只是关闭输出
+    pureChannel.closeOutgoing()
   }
-  channelIpc.onEvent("pureChannelToIpcEvent").listen { event ->
-    val ipcEvent = event.consumeFilter { it.name == eventData } ?: return@listen
+  channelIpc.onEvent("pureChannelToIpcEvent").collectIn(channelIpc.scope) { event ->
+    val ipcEvent = event.consumeFilter { it.name == eventData } ?: return@collectIn
     channelIpc.debugIpc(debugTag) { "inChannelData=$ipcEvent" }
     if (!ipcListenToChannel.isClosedForSend) ipcListenToChannel.send(ipcEvent.toPureFrame())
+  }.also { job ->
+    channelIpc.launchJobs += job
+    job.invokeOnCompletion {
+      channelIpc.debugIpc(debugTag) { "ipc will-close channel" }
+      // 这里做完全的关闭
+      pureChannel.close()
+    }
   }
   /// 将PureFrame转成IpcEvent，然后一同发给对面
   for (pureFrame in channelForIpcPost) {
-    val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame)
+    val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame, 0)
     channelIpc.debugIpc(debugTag) { "outChannelData=$ipcDataEvent" }
-    channelIpc.postMessage(ipcDataEvent)
+    channelIpc.postMessage(ipcDataEvent, orderBy = 1)
   }
   // 关闭的时候，同时关闭 channelIpc
-  channelIpc.debugIpc(debugTag) { "ipc will-be-close-by channel" }
+  channelIpc.debugIpc(debugTag) { "channel will-close ipc" }
   channelIpc.close()
 }
 

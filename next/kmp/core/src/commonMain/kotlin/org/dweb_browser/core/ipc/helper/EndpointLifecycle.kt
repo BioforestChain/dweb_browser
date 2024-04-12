@@ -1,14 +1,14 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.serialization.Serializable
+import org.dweb_browser.helper.OrderBy
 
 /**
  * Ipc生命周期控制
  */
 @Serializable
-sealed class EndpointLifecycle(
-  val state: LIFECYCLE_STATE,
-) : EndpointMessage(ENDPOINT_MESSAGE_TYPE.LIFECYCLE) {
+sealed class EndpointLifecycle(val state: LIFECYCLE_STATE, override val orderBy: Int = 0) :
+  EndpointMessage(ENDPOINT_MESSAGE_TYPE.LIFECYCLE), OrderBy {
   // TODO 测试能否 equals？
   @Serializable
   class Init() : EndpointLifecycle(LIFECYCLE_STATE.INIT)

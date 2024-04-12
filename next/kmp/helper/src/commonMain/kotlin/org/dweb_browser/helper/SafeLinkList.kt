@@ -6,7 +6,7 @@ import kotlinx.atomicfu.locks.synchronized
 class SafeLinkList<T>(val origin: MutableList<T> = mutableListOf()) : MutableList<T> {
   val lock = SynchronizedObject()
   inline fun <R> sync(block: MutableList<T>.() -> R) = synchronized(lock) { origin.block() }
-  override val size = sync { origin.size }
+  override val size get() = sync { origin.size }
   override fun clear() = sync { clear() }
 
   override fun addAll(elements: Collection<T>) = sync { addAll(elements) }

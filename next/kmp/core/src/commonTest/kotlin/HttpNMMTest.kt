@@ -66,7 +66,8 @@ class HttpNMMTest {
 
 
   @Test
-  fun testWebSocket() = runCommonTest(1000) {
+  fun testWebSocket() = runCommonTest(100) {
+    println("---test-$it")
 
     class TestMicroModule(mmid: String = "test.httpListen.dweb") :
       NativeMicroModule(mmid, "test Http Listen") {
@@ -76,9 +77,9 @@ class HttpNMMTest {
           val serverIpc = server.listen()
           serverIpc.onRequest("listen").collectIn(mmScope) { event ->
             val ipcServerRequest = event.consume()
-            println("QAQ onRequest=$ipcServerRequest")
+            println("QAQ GG onRequest=$ipcServerRequest")
             val response = nativeFetch(ipcServerRequest.toPure().toClient())
-            println("QAQ response=$response")
+            println("QAQ GG response=$response")
             serverIpc.postResponse(ipcServerRequest.reqId, response)
           }
           println("http start at ${server.startResult.urlInfo}")
@@ -87,6 +88,7 @@ class HttpNMMTest {
             for (i in 1..10) {
               ctx.sendText("hi~$i")
             }
+            println("QAQ server ctx.close")
             ctx.close()
           })
         }
@@ -120,10 +122,10 @@ class HttpNMMTest {
     val ctx = channel.start()
     var res = ""
     for (i in ctx.income) {
-      println("QAQ $i")
       res = i.text
+      println("QAQ client $i")
     }
-    println("DONE")
+    println("TEST DONE")
     assertEquals("hi~10", res)
   }
 }

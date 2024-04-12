@@ -1,6 +1,7 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.serialization.Serializable
+import org.dweb_browser.helper.OrderBy
 import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.pure.http.PureBinaryFrame
@@ -10,8 +11,8 @@ import org.dweb_browser.pure.http.PureTextFrame
 
 @Serializable
 data class IpcEventJsonAble(
-  val name: String, val data: String, val encoding: IPC_DATA_ENCODING, val orderBy: Int?,
-) : IpcMessage(IPC_MESSAGE_TYPE.EVENT) {
+  val name: String, val data: String, val encoding: IPC_DATA_ENCODING, override val orderBy: Int?,
+) : IpcMessage(IPC_MESSAGE_TYPE.EVENT), OrderBy {
   fun toIpcEvent() = IpcEvent(name, data, encoding)
 }
 
@@ -25,9 +26,10 @@ class IpcEvent(
   val name: String,
   val data: Any, /*String or ByteArray*/
   val encoding: IPC_DATA_ENCODING,
-  val orderBy: Int? = null,
-) : IpcMessage(IPC_MESSAGE_TYPE.EVENT) {
-  override fun toString() = "IpcEvent(name=$name, data=$encoding::${data.toString().trim()})"
+  override val orderBy: Int? = null,
+) : IpcMessage(IPC_MESSAGE_TYPE.EVENT), OrderBy {
+  override fun toString() =
+    "IpcEvent(name=$name, data=$encoding::${data.toString().trim()}, orderBy=$orderBy)"
 
   companion object {
     fun fromBinary(name: String, data: ByteArray, orderBy: Int? = null) =
@@ -76,7 +78,7 @@ class IpcEvent(
         name,
         data as String,
         encoding,
-        orderBy
+        orderBy,
       )
     }
   }

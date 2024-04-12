@@ -1,6 +1,7 @@
 package org.dweb_browser.core.ipc
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,8 @@ import org.dweb_browser.core.ipc.helper.EndpointMessage
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
 import org.dweb_browser.core.ipc.helper.endpointMessageToCbor
 import org.dweb_browser.core.ipc.helper.endpointMessageToJson
+import org.dweb_browser.helper.OrderInvoker
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.withScope
 
 /**
@@ -60,29 +63,40 @@ abstract class CommonEndpoint(
     }
   }
 
+  private val orderInvoker = OrderInvoker()
+
   /**
    * 使用协商的结果来进行接下来的通讯
    */
   override suspend fun doStart() {
-    scope.launch {
-      lifecycleLocaleFlow.collect { state ->
-        when (state) {
-          is EndpointLifecycle.Opened -> if (state.subProtocols.contains(EndpointProtocol.Cbor)) {
-            protocol = EndpointProtocol.Cbor
-          }
-
-          else -> {}
+    lifecycleLocaleFlow.collectIn(scope) { state ->
+      when (state) {
+        // 握手完成，确定通讯协议
+        is EndpointLifecycle.Opened -> if (state.subProtocols.contains(EndpointProtocol.Cbor)) {
+          protocol = EndpointProtocol.Cbor
         }
+        // 即将关闭，
+        is EndpointLifecycle.Closing -> {
+
+        }
+
+        else -> {}
       }
     }
-    scope.launch {
+    launchJobs += scope.launch {
       for (endpointMessage in endpointMsgChannel) {
-        when (endpointMessage) {
-          is EndpointLifecycle -> {
-            lifecycleRemoteMutableFlow.emit(endpointMessage)
+        launch(start = CoroutineStart.UNDISPATCHED) {
+          orderInvoker.tryInvoke(endpointMessage) {
+            when (endpointMessage) {
+              is EndpointLifecycle -> lifecycleRemoteMutableFlow.emit(endpointMessage)
+              is EndpointIpcMessage -> getIpcMessageProducer(endpointMessage.pid).also {
+                when {
+                  it.isCloseForEmit -> it.sendBeacon(endpointMessage.ipcMessage)
+                  else -> it.emit(endpointMessage.ipcMessage)
+                }
+              }
+            }
           }
-
-          is EndpointIpcMessage -> getIpcMessageProducer(endpointMessage.pid).emit(endpointMessage.ipcMessage)
         }
       }
     }

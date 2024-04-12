@@ -57,8 +57,7 @@ class PureChannelContext internal constructor(
   suspend inline fun <reified T> sendCbor(data: T) = sendBinary(Cbor.encodeToByteArray(data))
 
 
-  @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
-  fun close(cause: Throwable? = null) = getChannel().close()
+  fun close(cause: Throwable? = null) = getChannel().close(cause)
 }
 
 class PureChannel(
@@ -66,7 +65,11 @@ class PureChannel(
   private val _outgoing: Channel<PureFrame>,
   override var from: Any? = null,
 ) : IPureChannel, IFrom {
-  constructor(from: Any? = null) : this(Channel(), Channel(), from)
+  constructor(from: Any? = null) : this(
+    _income = Channel(),
+    _outgoing = Channel(),
+    from = from,
+  )
 
   var isClosed = false
     private set
@@ -94,9 +97,22 @@ class PureChannel(
       closeDeferred.complete(cause)
       if (!_income.isClosedForSend) {
         _income.close(cause)
-//        _income.cancel(reason)
+      }
+      if (!_outgoing.isClosedForSend) {
         _outgoing.close(cause)
-//        _outgoing.cancel(reason)
+      }
+    }
+  }
+
+  /**
+   * 只关闭输出
+   */
+  @OptIn(DelicateCoroutinesApi::class)
+  fun closeOutgoing(cause: Throwable? = null) {
+    synchronized(closeLock) {
+      closeDeferred.complete(cause)
+      if (!_outgoing.isClosedForSend) {
+        _outgoing.close(cause)
       }
     }
   }

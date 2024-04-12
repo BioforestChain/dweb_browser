@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.joinAll
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
@@ -19,6 +20,7 @@ import org.dweb_browser.core.ipc.helper.LIFECYCLE_STATE
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Producer
 import org.dweb_browser.helper.SafeHashMap
+import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
@@ -210,6 +212,11 @@ abstract class IpcEndpoint {
     null
   }.getOrElse { it }
 
+  /**
+   * 长任务，需要全部完成才能结束ipcEndpoint
+   */
+  protected val launchJobs = SafeLinkList<Job>()
+
   protected open suspend fun doClose(cause: CancellationException? = null) {
     when (lifecycle) {
       is EndpointLifecycle.Opened, is EndpointLifecycle.Opening -> {
@@ -220,6 +227,9 @@ abstract class IpcEndpoint {
       else -> {}
     }
     beforeClose?.invoke(cause)
+    /// 等待所有长任务完成
+    launchJobs.joinAll()
+    /// 关闭所有的子通道
     ipcMessageProducers.sync {
       for (channel in values) {
         channel.close(cause)

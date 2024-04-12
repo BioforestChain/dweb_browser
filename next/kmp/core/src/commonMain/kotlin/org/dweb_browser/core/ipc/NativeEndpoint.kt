@@ -1,6 +1,7 @@
 package org.dweb_browser.core.ipc
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +10,7 @@ import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
+import org.dweb_browser.helper.OrderInvoker
 import org.dweb_browser.helper.withScope
 import kotlin.math.min
 
@@ -78,11 +80,25 @@ class NativeEndpoint(
     }
   }
 
+  private val orderInvoker = OrderInvoker()
+
   override suspend fun doStart() {
     scope.launch {
-      for ((pid, ipcMessage) in messageIn) {
+      for ((pid, ipcMessage, orderBy) in messageIn) {
         debugEndpoint("message-in", "pid=$pid ipcMessage=$ipcMessage")
-        getIpcMessageProducer(pid).emit(ipcMessage)
+        /**
+         * UNDISPATCHED 能确保 orderBy 的顺序前提
+         */
+        launch(start = CoroutineStart.UNDISPATCHED) {
+          orderInvoker.tryInvoke(orderBy) {
+            getIpcMessageProducer(pid).also {
+              when {
+                it.isCloseForEmit -> it.sendBeacon(ipcMessage)
+                else -> it.emit(ipcMessage)
+              }
+            }
+          }
+        }
       }
     }
   }

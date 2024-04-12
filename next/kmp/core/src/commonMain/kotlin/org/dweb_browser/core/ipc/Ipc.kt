@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
@@ -38,6 +39,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DeferredSignal
 import org.dweb_browser.helper.Producer
 import org.dweb_browser.helper.SafeHashMap
+import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
@@ -66,7 +68,8 @@ open class Ipc internal constructor(
     private val reqIdAcc = atomic(0)
   }
 
-  val scope = endpoint.scope + SupervisorJob()
+  private val job = SupervisorJob()
+  val scope = endpoint.scope + job
 
   override fun toString() = "Ipc@$debugId"
 
@@ -80,7 +83,7 @@ open class Ipc internal constructor(
     IpcLifecycle.Init(pid, locale.toCommonAppManifest(), remote.toCommonAppManifest())
   )
 
-  private val lifecycleRemoteFlow = onMessage("ipc-lifecycle-remote#$debugId").mapNotNull { event ->
+  private val lifecycleRemoteFlow = onMessage("ipc-lifecycle-remote#$pid").mapNotNull { event ->
     event.consumeAs<IpcLifecycle>()
   }
 
@@ -143,7 +146,7 @@ open class Ipc internal constructor(
     lifecycleRemoteFlow.collectIn(scope) { state ->
       debugIpc("lifecycle-in", state)
       when (state) {
-        is IpcLifecycle.IpcClosing, is IpcLifecycle.IpcClosed -> close()
+        is IpcLifecycle.IpcClosing, is IpcLifecycle.IpcClosed -> scope.launch(start = CoroutineStart.UNDISPATCHED) { close() }
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         is IpcLifecycle.IpcOpened -> {
           when (lifecycle) {
@@ -175,9 +178,7 @@ open class Ipc internal constructor(
           pool = pool,
         )
         pool.safeCreatedIpc(
-          forkedIpc,
-          autoStart = ipcFork.autoStart,
-          startReason = ipcFork.startReason
+          forkedIpc, autoStart = ipcFork.autoStart, startReason = ipcFork.startReason
         )
         forkedIpcLock.withLock {
           forkedIpcMap[forkedIpc.pid] = forkedIpc
@@ -214,17 +215,27 @@ open class Ipc internal constructor(
     closeOnce(cause)
   }
 
+  /**
+   * 长任务，需要全部完成才能结束ipcEndpoint
+   */
+  val launchJobs = SafeLinkList<Job>()
+
   private val closeOnce = SuspendOnce1 { cause: CancellationException? ->
     if (scope.coroutineContext[Job] == coroutineContext[Job]) {
       WARNING("close ipc by self. maybe leak.")
     }
-    debugIpc("ipc Close=>", cause)
+    debugIpc("closing", cause)
     val reason = cause?.message
     sendLifecycleToRemote(IpcLifecycle.IpcClosing(reason))
+    messageProducer.closeWrite()
+    launchJobs.joinAll()
     closeDeferred.complete(cause)
-    lifecycleLocaleFlow.emit(IpcLifecycle.IpcClosed(reason))
-    sendLifecycleToRemote(IpcLifecycle.IpcClosed(reason))
-    scope.cancel()
+    IpcLifecycle.IpcClosed(reason).also { closed ->
+      lifecycleLocaleFlow.emit(closed)
+      sendLifecycleToRemote(closed)
+    }
+    scope.cancel(cause)
+    debugIpc("closed", cause)
   }
 
   /**
@@ -297,9 +308,10 @@ open class Ipc internal constructor(
 
   private inline fun <T : Any> messagePipeMap(
     name: String,
-    crossinline transform: suspend (value: IpcMessage) -> T?,
+    crossinline mapNoNull: suspend (value: IpcMessage) -> T?,
   ) = onMessage(name).mapNotNull { event ->
-    transform(event.data)?.also { event.consume() }
+    event.next();
+    mapNoNull(event.data)?.also { event.consume() }
   }.asProducer(messageProducer.name + "." + name, scope)
 
   private val requestProducer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -398,15 +410,15 @@ open class Ipc internal constructor(
 
 
   /**发送各类消息到remote*/
-  suspend fun postMessage(data: IpcMessage) {
+  suspend fun postMessage(data: IpcMessage, orderBy: Int? = null) {
     awaitOpen("then-postMessage")
     withScope(scope) {
-      endpoint.postIpcMessage(EndpointIpcMessage(pid, data))
+      endpoint.postIpcMessage(EndpointIpcMessage(pid, data, orderBy))
     }
   }
 
-  suspend inline fun postResponse(reqId: Int, response: PureResponse) {
-    postMessage(IpcResponse.fromResponse(reqId, response, this))
+  suspend inline fun postResponse(reqId: Int, response: PureResponse, orderBy: Int? = null) {
+    postMessage(IpcResponse.fromResponse(reqId, response, this), orderBy)
   }
   //#endregion
 
