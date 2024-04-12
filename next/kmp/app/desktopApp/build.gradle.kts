@@ -33,7 +33,7 @@ kotlin {
   }
 }
 
-val appVersion = "2.4.0903"
+val appVersion = "2.4.1201"
 
 compose.desktop {
   application {

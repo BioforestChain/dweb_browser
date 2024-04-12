@@ -18,8 +18,14 @@ actual fun FileNMM.getDataVirtualFsDirectory() = commonVirtualFsDirectoryFactory
     OsType.MacOS -> System.getProperty("user.home").toPath(true)
       .resolve("Library/Application Support/dweb-browser/data")
 
-    // 修改为自己启动的应用内目录
-    OsType.Windows -> FileNMM.getApplicationRootDir().resolve("appdata/dweb-browser/data")
+    // TODO: 修改为自己启动的应用内目录
+    OsType.Windows -> System.getenv("APPDATA").let { appData ->
+      if (appData.isBlank()) {
+        FileNMM.Companion.getApplicationRootDir().resolve("data")
+      } else {
+        appData.toPath(true).resolve("Local/dweb-browser/data")
+      }
+    }
 
     else -> FileNMM.getApplicationRootDir().resolve("data")
   }
