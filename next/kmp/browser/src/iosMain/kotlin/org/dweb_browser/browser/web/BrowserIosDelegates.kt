@@ -4,6 +4,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.BrowserViewModel
@@ -206,20 +207,44 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
   //#endregion
 
   //#region download
-  override fun loadAllDownloadDatas(): List<*>? = browserViewModel.getAllDownloadDatas().map {
-    WebBrowserViewDownloadData(
-      it.fileName,
-      it.downloadTime.toULong(),
-      it.state.total.toUInt(),
-      it.downloadArgs.mimetype,
-      it.state.state.toIosState(),
-      it.id
-    )
+  override fun loadAllDownloadDatas(): List<*>? = browserViewModel.allDownloadList.map {
+    it.toIOS()
   }
 
   override fun removeDownloadWithIds(ids: List<*>) {
     val ids = ids as List<String>
     browserViewModel.detetedDonwload(ids)
+  }
+
+  override fun addDownloadObserverWithId(
+    id: String,
+    didChanged: (WebBrowserViewDownloadData?) -> Unit
+  ) {
+    browserViewModel.watchDownload(id) {
+      val model = it.toIOS()
+      println("[iOS] watchDownload: ${it.state.total} ${it.state.current}")
+      didChanged(model)
+    }
+  }
+
+  override fun removeAllDownloadObservers() {
+    TODO("Not yet implemented")
+  }
+
+  override fun pauseDownloadWithId(id: String) {
+    scope.launch {
+      browserViewModel.pauseDownload(id)
+    }
+  }
+
+  override fun resumeDownloadWithId(id: String) {
+    scope.launch {
+      browserViewModel.resumeDownload(id)
+    }
+  }
+
+  override fun localPathForId(id: String): String? {
+    return null
   }
 
   //#endregion
@@ -241,3 +266,15 @@ fun DownloadState.toIosState(): UByte = when (this) {
   DownloadState.Completed -> 5U
   else -> 255U
 }
+
+@OptIn(ExperimentalForeignApi::class)
+fun BrowserDownloadItem.toIOS() = WebBrowserViewDownloadData(
+  fileName,
+  downloadTime.toULong(),
+  state.total.toUInt(),
+  downloadArgs.mimetype,
+  state.state.toIosState(),
+  id,
+  state.current.toFloat() / state.total.toFloat(),
+  null
+)

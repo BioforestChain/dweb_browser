@@ -98,20 +98,29 @@ extension HistoryDataSource {
     let size: UInt32
     let mime: String
     let id: String
-    /// 0: init, 1：下载中，2：暂停，4：取消, 5:失败，6: 完成
+    /// 0: init, 1：下载中，2：暂停，3：取消,  4:失败，5: 完成
     let status: UInt8
-    public init(name: String, date: UInt64, size: UInt32, mime: String, status: UInt8, id: String) {
+    let progress: Float //下载进度，只在status处于未完成时，有意义。
+    let localPath: String? //只有下载完成后，才有值。
+    public init(name: String, date: UInt64, size: UInt32, mime: String, status: UInt8, id: String, progress: Float, localPath: String?) {
         self.name = name
         self.date = date
         self.size = size
         self.mime = mime
         self.status = status
         self.id = id
+        self.progress = progress
+        self.localPath = localPath
     }
 }
 
 @objc public protocol DownloadDataSource {
     func loadAllDownloadDatas() -> [WebBrowserViewDownloadData]?
     func removeDownload(ids: [String])
+    func addDownloadObserver(id: String, didChanged:@escaping (WebBrowserViewDownloadData) -> Void)
+    func removeAllDownloadObservers()
+    func pauseDownload(id: String)
+    func resumeDownload(id: String)
+    func localPathFor(id: String) -> String?
 }
 

@@ -64,6 +64,10 @@
 		48334DF22B50DBF700399FFF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4803BFE52B4FF2A8006B2F79 /* Assets.xcassets */; };
 		48334DF42B50DF9700399FFF /* Bundle+module.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48334DF32B50DF9700399FFF /* Bundle+module.swift */; };
 		48334DF62B50E12000399FFF /* Browser.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 4803BF6C2B4FF279006B2F79 /* Browser.xcdatamodeld */; };
+		48A4AE432BC91CE8008F5860 /* DownloadListData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A4AE422BC91CE8008F5860 /* DownloadListData.swift */; };
+		48A4AE452BC91D26008F5860 /* DownloadListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A4AE442BC91D26008F5860 /* DownloadListViewModel.swift */; };
+		48A4AE472BC91D5C008F5860 /* DwebCircleProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A4AE462BC91D5C008F5860 /* DwebCircleProgressView.swift */; };
+		48EA39F02BC785DD00FC4898 /* DownloadPreviewViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EA39EF2BC785DD00FC4898 /* DownloadPreviewViews.swift */; };
 		48EEA8EE2B4FF17F006DA0F3 /* DwebWebBrowser.h in Headers */ = {isa = PBXBuildFile; fileRef = 48EEA8E12B4FF17F006DA0F3 /* DwebWebBrowser.h */; };
 		48EEA8F02B4FF17F006DA0F3 /* DwebWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EEA8E62B4FF17F006DA0F3 /* DwebWebView.swift */; };
 		F0DA27022B679F350005ED24 /* MenuViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0DA27012B679F350005ED24 /* MenuViewModel.swift */; };
@@ -128,10 +132,14 @@
 		482F5EA92BC62B27008F089D /* DownloadListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadListView.swift; sourceTree = "<group>"; };
 		48334DE82B50D10400399FFF /* DwebBrowserCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DwebBrowserCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		48334DF32B50DF9700399FFF /* Bundle+module.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+module.swift"; sourceTree = "<group>"; };
+		48A4AE422BC91CE8008F5860 /* DownloadListData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadListData.swift; sourceTree = "<group>"; };
+		48A4AE442BC91D26008F5860 /* DownloadListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadListViewModel.swift; sourceTree = "<group>"; };
+		48A4AE462BC91D5C008F5860 /* DwebCircleProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebCircleProgressView.swift; sourceTree = "<group>"; };
 		48CB59B02BC27DE1001B699A /* ViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 		48CB59B12BC27DE1001B699A /* Models.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		48CB59B22BC27DE1001B699A /* Views.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Views.swift; sourceTree = "<group>"; };
 		48CB59B32BC27DE1001B699A /* ContainerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContainerView.swift; sourceTree = "<group>"; };
+		48EA39EF2BC785DD00FC4898 /* DownloadPreviewViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadPreviewViews.swift; sourceTree = "<group>"; };
 		48EEA8E12B4FF17F006DA0F3 /* DwebWebBrowser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DwebWebBrowser.h; sourceTree = "<group>"; };
 		48EEA8E62B4FF17F006DA0F3 /* DwebWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebWebView.swift; sourceTree = "<group>"; };
 		F0DA27012B679F350005ED24 /* MenuViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuViewModel.swift; sourceTree = "<group>"; };
@@ -241,6 +249,7 @@
 				4803BF842B4FF279006B2F79 /* AddressBarView.swift */,
 				4803BF852B4FF279006B2F79 /* AddressBarTyping */,
 				4803BF8A2B4FF279006B2F79 /* Sheet */,
+				48A4AE462BC91D5C008F5860 /* DwebCircleProgressView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -365,6 +374,9 @@
 			children = (
 				4803BF932B4FF279006B2F79 /* MenuView.swift */,
 				482F5EA92BC62B27008F089D /* DownloadListView.swift */,
+				48A4AE442BC91D26008F5860 /* DownloadListViewModel.swift */,
+				48A4AE422BC91CE8008F5860 /* DownloadListData.swift */,
+				48EA39EF2BC785DD00FC4898 /* DownloadPreviewViews.swift */,
 			);
 			path = Menu;
 			sourceTree = "<group>";
@@ -480,6 +492,7 @@
 				4803BFA72B4FF279006B2F79 /* String+Validator.swift in Sources */,
 				4803BFCE2B4FF279006B2F79 /* ResizableSheetModifier.swift in Sources */,
 				4803BFCA2B4FF279006B2F79 /* TabGridView.swift in Sources */,
+				48A4AE432BC91CE8008F5860 /* DownloadListData.swift in Sources */,
 				4803C00A2B4FF51E006B2F79 /* DependencyHeaders.swift in Sources */,
 				4803BFC42B4FF279006B2F79 /* HistoryCoreDataManager.swift in Sources */,
 				4803BFC22B4FF279006B2F79 /* DataController.swift in Sources */,
@@ -495,6 +508,7 @@
 				4803BFC92B4FF279006B2F79 /* BlankTabView.swift in Sources */,
 				4803BFA82B4FF279006B2F79 /* UIImage+Trans.swift in Sources */,
 				4803BFCF2B4FF279006B2F79 /* WebWrapper.swift in Sources */,
+				48EA39F02BC785DD00FC4898 /* DownloadPreviewViews.swift in Sources */,
 				4803BFE32B4FF279006B2F79 /* ScannerViewController.swift in Sources */,
 				4803BFBC2B4FF279006B2F79 /* const.swift in Sources */,
 				4803BFE12B4FF279006B2F79 /* ScanState.swift in Sources */,
@@ -506,6 +520,7 @@
 				4803BFC82B4FF279006B2F79 /* TabPageView.swift in Sources */,
 				4803BFA32B4FF279006B2F79 /* Date+format.swift in Sources */,
 				4803BFCD2B4FF279006B2F79 /* WatermarkModifier.swift in Sources */,
+				48A4AE452BC91D26008F5860 /* DownloadListViewModel.swift in Sources */,
 				4803BFD42B4FF279006B2F79 /* WebSearcher.swift in Sources */,
 				4803BFCB2B4FF279006B2F79 /* GridCellView.swift in Sources */,
 				4803BFD92B4FF279006B2F79 /* SheetSegmentView.swift in Sources */,
@@ -524,6 +539,7 @@
 				4803BFD72B4FF279006B2F79 /* BookmarkView.swift in Sources */,
 				4803BFBF2B4FF279006B2F79 /* BookmarkModel.swift in Sources */,
 				4803BFAB2B4FF279006B2F79 /* Environment.swift in Sources */,
+				48A4AE472BC91D5C008F5860 /* DwebCircleProgressView.swift in Sources */,
 				4803C01C2B4FF9E1006B2F79 /* WebBrowserViewProtocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

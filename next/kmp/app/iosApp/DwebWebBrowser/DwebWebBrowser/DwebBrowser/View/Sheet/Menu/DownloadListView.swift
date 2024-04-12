@@ -6,36 +6,17 @@
 //
 
 import Foundation
-import SwiftUI
 import Observation
+import SwiftUI
 
 struct DownloadListView: View {
-    let viewModel = DownloadListViewModel()
+    @Bindable var viewModel = DownloadListViewModel()
     var body: some View {
         Group {
             if viewModel.isEmpty {
-                VStack(alignment: .center) {
-                    Image(systemName: "arrow.down.circle")
-                        .font(.system(size: 40))
-                        .foregroundColor(.gray)
-                        .padding(10)
-                    Text("No Downloaded Files")
-                        .font(.system(size: 24, weight: .semibold))
-                        .padding(5)
-                    Text("Files you download will appear here")
-                        .font(.system(size: 16))
-                        .foregroundColor(.gray)
-                }
+                emptyView
             } else {
-                List(content: {
-                    ForEach(viewModel.datas, id: \.id) { data in
-                            DownloadItemView(data: data)
-                        }
-                        .onDelete(perform: { indexSet in
-                            viewModel.remove(indexSet)
-                        })
-                })
-                .listStyle(.plain)
+                listView
             }
         }
         .toolbarTitleDisplayMode(.automatic)
@@ -48,142 +29,61 @@ struct DownloadListView: View {
             viewModel.commitEidt()
         })
     }
-}
-
-@Observable class DownloadListViewModel {
     
-    var datas: [DownloadItem] = []
-    
-    @ObservationIgnored
-    private var toDeletes = Set<String>()
-    
-    var isEmpty: Bool {
-        return datas.isEmpty
-    }
-    
-    @ObservationIgnored
-    private lazy var dateFormater: DateFormatter = {
-        let formater = DateFormatter()
-        formater.dateFormat = "yyyy-MM-dd"
-        return formater
-    }()
-    
-    @ObservationIgnored
-    private lazy var dateStringCreator: (UInt64) -> String = {
-        return { [weak self] date in
-            let date = Date(timeIntervalSince1970: TimeInterval(date/1000))
-            return self?.dateFormater.string(from: date) ?? ""
-        }
-    }()
-    
-    @ObservationIgnored
-    private var sizeStringCreator: (UInt32) -> String = { size in
-        switch size {
-            case 0..<1024: "\(size)Byte"
-            case 1024..<1024*1024: "\(size/1024)KB"
-            case 1024*1024..<1024*1024*1024: "\(size/1024/1024)MB"
-            default:
-                "\(size/1024/1024/1024)GB"
+    var emptyView: some View {
+        VStack(alignment: .center) {
+            Image(systemName: "arrow.down.circle")
+                .font(.system(size: 40))
+                .foregroundColor(.gray)
+                .padding(10)
+            Text("No Downloaded Files")
+                .font(.system(size: 24, weight: .semibold))
+                .padding(5)
+            Text("Files you download will appear here")
+                .font(.system(size: 16))
+                .foregroundColor(.gray)
         }
     }
     
-    func loadDatas() {
-        datas = browserViewDataSource.loadAllDownloadDatas()?.map {
-            return DownloadItem(id: $0.id,
-                                mime: $0.mime.toDownloadDataType(),
-                                title: $0.name,
-                                date: dateStringCreator($0.date),
-                                size: sizeStringCreator($0.size))
-        } ?? []
-    }
-    
-    func remove(_ indexSet: IndexSet) {
-        let deletes: Array<String> = indexSet.map { index in
-            datas[index].id
-        }
-        toDeletes.formUnion(deletes)
-        datas.remove(atOffsets: indexSet)
-    }
-    
-    func commitEidt() {
-        guard !toDeletes.isEmpty else { return }
-        browserViewDataSource.removeDownload(ids: Array(toDeletes))
-    }
-}
-
-enum DownloadDataMIME {
-    case text(String)
-    case image(String)
-    case audio(String)
-    case video(String)
-    case application(String) //appl
-    case other(String)
-    
-    var sfIcon: String {
-        switch self {
-            case .text:
-                "doc.plaintext"
-            case .image:
-                "photo"
-            case .audio:
-                "speaker.wave.3"
-            case .video:
-                "video"
-            case let .application(subType):
-                switch subType {
-                    case "json": "doc.plaintext"
-                    case "xml": "tablecells"
-                    case "pdf": "doc.plaintext"
-                    case "zip": "doc.zipper"
-                    default:
-                        "doc"
+    var listView: some View {
+        List(content: {
+            ForEach(viewModel.datas, id: \.id) { data in
+                if data.isLoaded {
+                    NavigationLink {
+                        getPreview(data)
+                    } label: {
+                        DownloadItemView(data: data)
+                    }
+                } else {
+                    DownloadItemView(data: data)
                 }
-            default:
-                "doc"
-        }
+            }
+            .onDelete(perform: { indexSet in
+                viewModel.remove(indexSet)
+            })
+        })
+        .listStyle(.plain)
+        .environment(viewModel)
+    }
+    
+    @ViewBuilder
+    func getPreview(_ item: DownloadItem) -> some View {
+//        DownloadTextPreviewView(data: item)
+        // TODO: 预览
+        Text("TODO: Preview")
     }
 }
 
-extension String {
-    func toDownloadDataType() -> DownloadDataMIME {
-        
-        let compents = components(separatedBy: "/")
-        
-        guard compents.count == 2 else {
-            return DownloadDataMIME.other(self)
-        }
-        //
-        return switch compents.first! {
-            case "text": .text(compents.last!)
-            case "image": .image(compents.last!)
-            case "audio": .audio(compents.last!)
-            case "video": .video(compents.last!)
-            case "application": .application(compents.last!)
-            default :
-                    .other(self)
-        }
-    }
-}
-
-struct DownloadItem: Identifiable {
-    let id: String
-    let mime: DownloadDataMIME
-    let title: String
-    let date: String
-    let size: String
-}
 
 struct DownloadItemView: View {
-    let data: DownloadItem
+    @Bindable var data: DownloadItem
+    @Environment(DownloadListViewModel.self) var viewModel
     var body: some View {
         HStack {
-            Circle()
-                .foregroundColor(.blue.opacity(0.3))
+            let _ = Self._printChanges()
+            leftView
                 .frame(maxWidth: 40)
-                .overlay {
-                    Image(systemName: data.mime.sfIcon)
-                }
-                .padding()
+                .padding(10)
             VStack(alignment: .leading) {
                 Text(data.title)
                     .font(.system(size: 18, weight: .semibold))
@@ -197,13 +97,54 @@ struct DownloadItemView: View {
             }
         }
     }
+    
+    @ViewBuilder
+    var leftView: some View {
+        if case let .loading(progress) = data.state {
+            DwebCircleProgressView(pauseAction: {
+                viewModel.pause(item: data)
+            }, pause: data.pause, progress: progress)
+            .background(content: {
+                Image(systemName: data.mime.sfIcon)
+                    .font(.system(size: 20))
+            })
+        } else if case let .pause(progress) = data.state {
+            DwebCircleProgressView(pauseAction: {
+                viewModel.resume(item: data)
+            }, pause: data.pause, progress: progress)
+        } else {
+            Circle()
+                .foregroundStyle(Color.blue.opacity(0.5))
+                .background(content: {
+                    Image(systemName: data.mime.sfIcon)
+                        .font(.system(size: 20))
+                })
+        }
+    }
+}
+
+
+struct Demo: View {
+    var data = DownloadItem(id: "", mime: .text("sss"), title: "Fuck", date: "2021-01", size: "11M", state: .pause(0.5))
+    var body: some View {
+        List {
+            DownloadItemView(data: data)
+        }
+        .task {
+            Task {
+                for i in (0..<9) {
+                    data.updateState(DownloadItem.State.loading(Float(i) * 0.1 + 0.1))
+                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                }
+                
+                data.updateState(DownloadItem.State.loaded(""))
+            }
+        }
+    }
 }
 
 
 #Preview(body: {
-    DownloadItemView(data: DownloadItem(id: "",
-                                        mime: .text("html"),
-                                        title: "Hello.txt",
-                                        date: "100000000",
-                                        size: "100000"))
+    Demo()
+        .environment(DownloadListViewModel())
 })

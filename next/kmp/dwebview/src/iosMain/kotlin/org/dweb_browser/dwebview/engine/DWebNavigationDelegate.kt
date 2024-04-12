@@ -4,6 +4,7 @@ import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -50,7 +51,7 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
       decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyAllow)
     } else {
       decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyCancel)
-      engine.ioScope.launch {
+      MainScope().launch {
         val agent = engine.customUserAgent() ?: ""
         val fileName = decidePolicyForNavigationResponse.response.suggestedFilename ?: ""
         val mime = decidePolicyForNavigationResponse.response.MIMEType ?: ""

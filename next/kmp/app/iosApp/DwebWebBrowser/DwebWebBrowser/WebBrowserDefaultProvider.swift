@@ -91,6 +91,7 @@ class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSourc
         Log("histroy: \(history)")
     }
     
+    // MARK: download
     func loadAllDownloadDatas() -> [WebBrowserViewDownloadData]? {
         nil
     }
@@ -98,4 +99,25 @@ class WebBrowserDefaultProvider: WebBrowserViewDelegate, WebBrowserViewDataSourc
     func removeDownload(ids: [String]) {
         Log()
     }
+    
+    func addDownloadObserver(id: String, didChanged:@escaping (WebBrowserViewDownloadData) -> Void) {
+        Log()
+    }
+    
+    func removeAllDownloadObservers() {
+        Log()
+    }
+    
+    func pauseDownload(id: String) {
+        Log()
+    }
+    
+    func resumeDownload(id: String) {
+        Log()
+    }
+    
+    func localPathFor(id: String) -> String? {
+        return nil
+    }
+    
 }

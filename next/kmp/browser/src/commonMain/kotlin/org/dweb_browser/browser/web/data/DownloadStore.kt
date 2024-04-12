@@ -16,6 +16,11 @@ import dweb_browser_kmp.browser.generated.resources.ic_download_picture
 import dweb_browser_kmp.browser.generated.resources.ic_download_powerpoint
 import dweb_browser_kmp.browser.generated.resources.ic_download_video
 import dweb_browser_kmp.browser.generated.resources.ic_download_word
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -24,6 +29,7 @@ import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.dwebview.WebDownloadArgs
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.datetimeNow
@@ -78,17 +84,28 @@ data class BrowserDownloadItem(
   val urlKey: String,
   val downloadArgs: WebDownloadArgs,
   var taskId: TaskId? = null,
-  @SerialName("state")
-  private var _state: DownloadStateEvent = DownloadStateEvent(),
   var fileName: String = "",
   var fileSuffix: FileSuffix = FileSuffix.Other,
   var downloadTime: Long = datetimeNow(), // 记录下载开始时间，等下载完成后，改为下载完成时间。用于排序
 ) {
-  var state by ObservableMutableState(_state) { _state = it }
+  @SerialName("state")
+  private var _state: DownloadStateEvent = DownloadStateEvent()
+
+  var state by ObservableMutableState(_state) {
+    _state = it
+    CoroutineScope(Dispatchers.IO).launch {
+      println("[iOS] ObservableMutableState: ${it.total} ${it.current}")
+      stateSignal.emit(it)
+    }
+  }
   val id = randomUUID() //标识符，iOS端删除时，使用。
 
   @Transient
   var alreadyWatch: Boolean = false
+
+  @Transient
+  var stateSignal = Signal<DownloadStateEvent>()
+
 }
 
 class BrowserDownloadStore(mm: MicroModule) {

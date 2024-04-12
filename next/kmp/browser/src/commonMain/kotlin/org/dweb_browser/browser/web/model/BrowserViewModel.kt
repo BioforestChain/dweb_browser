@@ -42,6 +42,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
@@ -144,19 +145,51 @@ class BrowserViewModel(
     }
   }
 
-  fun getAllDownloadDatas(): List<BrowserDownloadItem> =
-    browserController.downloadController.saveDownloadList + browserController.downloadController.saveCompleteList
+  val allDownloadList: List<BrowserDownloadItem>
+    get() = downloadCompletedList + downloadingList
+
+  private val downloadCompletedList: List<BrowserDownloadItem>
+    get() = browserController.downloadController.saveCompleteList
+
+  private val downloadingList: List<BrowserDownloadItem>
+    get() = browserController.downloadController.saveDownloadList
+
+  suspend fun resumeDownload(id: UUID) {
+    downloadingList.firstOrNull {
+      it.id == id
+    }?.let {
+      browserController.downloadController.startDownload(it)
+    }
+  }
+
+  suspend fun pauseDownload(id: UUID) {
+    downloadingList.firstOrNull {
+      it.id == id
+    }?.let {
+      browserController.downloadController.pauseDownload(it)
+    }
+  }
+
+  fun watchDownload(id: UUID, action:(BrowserDownloadItem)->Unit) {
+    downloadingList.firstOrNull {
+      it.id == id
+    }?.let { it ->
+      it.stateSignal.toListener().invoke { state ->
+        action(it)
+      }
+    }
+  }
 
   fun detetedDonwload(ids: List<String>) {
-    val allDatas =
-      browserController.downloadController.saveDownloadList + browserController.downloadController.saveCompleteList
-    val toDeleteds = allDatas.filter {
+    allDownloadList.filter {
       ids.contains(it.id)
+    }?.let {
+      browserController.downloadController.deleteDownloadItems(it.toMutableList())
     }
+  }
 
-    toDeleteds?.let {
-      browserController.downloadController.deleteDownloadItems(toDeleteds.toMutableList())
-    }
+  fun getDownloadLocalPath(taskId: String): String? {
+    return null
   }
 
   suspend fun readFile(path: String) = browserNMM.readFile(path,create = false).binary()
