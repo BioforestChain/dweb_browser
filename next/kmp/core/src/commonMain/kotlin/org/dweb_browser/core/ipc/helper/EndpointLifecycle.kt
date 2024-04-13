@@ -7,7 +7,7 @@ import org.dweb_browser.helper.OrderBy
  * Ipc生命周期控制
  */
 @Serializable
-sealed class EndpointLifecycle(val state: LIFECYCLE_STATE, override val orderBy: Int = 0) :
+sealed class EndpointLifecycle(val state: LIFECYCLE_STATE, override val order: Int = 0) :
   EndpointMessage(ENDPOINT_MESSAGE_TYPE.LIFECYCLE), OrderBy {
   // TODO 测试能否 equals？
   @Serializable

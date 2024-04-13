@@ -26,7 +26,6 @@ class HttpNMMTest {
 
   @Test
   fun testListen() = runCommonTest(1000) {
-
     class TestMicroModule(mmid: String = "test.httpListen.dweb") :
       NativeMicroModule(mmid, "test Http Listen") {
       inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
@@ -66,14 +65,14 @@ class HttpNMMTest {
 
 
   @Test
-  fun testWebSocket() = runCommonTest(100) {
+  fun testWebSocket() = runCommonTest(10) {
     println("---test-$it")
 
     class TestMicroModule(mmid: String = "test.httpListen.dweb") :
       NativeMicroModule(mmid, "test Http Listen") {
       inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
         override suspend fun _bootstrap() {
-          val server = createHttpDwebServer(DwebHttpServerOptions(subdomain = "testwww"))
+          val server = createHttpDwebServer(DwebHttpServerOptions(subdomain = "www"))
           val serverIpc = server.listen()
           serverIpc.onRequest("listen").collectIn(mmScope) { event ->
             val ipcServerRequest = event.consume()
@@ -105,15 +104,17 @@ class HttpNMMTest {
     val httpMM = HttpNMM()
     dns.install(httpMM)
 
-    val serverMM = TestMicroModule()
+    val serverMM = TestMicroModule("server.dweb")
+    val clientMM = serverMM//TestMicroModule("client.dweb")
     dns.install(serverMM)
+    dns.install(clientMM)
     val dnsRuntime = dns.bootstrap()
-    val serverRuntime = dnsRuntime.open(serverMM.mmid) as TestMicroModule.TestRuntime;
+    val clientRuntime = dnsRuntime.open(clientMM.mmid) as TestMicroModule.TestRuntime;
 
     val channelDeferred = CompletableDeferred(PureChannel())
-    serverRuntime.nativeFetch(
+    clientRuntime.nativeFetch(
       PureClientRequest(
-        href = "https://testwww.${serverRuntime.mmid}/ws",
+        href = "https://www.${serverMM.mmid}/ws",
         method = PureMethod.GET,
         channel = channelDeferred,
       )

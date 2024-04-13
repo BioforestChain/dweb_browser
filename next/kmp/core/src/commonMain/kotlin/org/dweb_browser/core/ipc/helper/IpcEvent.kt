@@ -11,7 +11,7 @@ import org.dweb_browser.pure.http.PureTextFrame
 
 @Serializable
 data class IpcEventJsonAble(
-  val name: String, val data: String, val encoding: IPC_DATA_ENCODING, override val orderBy: Int?,
+  val name: String, val data: String, val encoding: IPC_DATA_ENCODING, override val order: Int?,
 ) : IpcMessage(IPC_MESSAGE_TYPE.EVENT), OrderBy {
   fun toIpcEvent() = IpcEvent(name, data, encoding)
 }
@@ -26,10 +26,10 @@ class IpcEvent(
   val name: String,
   val data: Any, /*String or ByteArray*/
   val encoding: IPC_DATA_ENCODING,
-  override val orderBy: Int? = null,
+  override val order: Int? = null,
 ) : IpcMessage(IPC_MESSAGE_TYPE.EVENT), OrderBy {
   override fun toString() =
-    "IpcEvent(name=$name, data=$encoding::${data.toString().trim()}, orderBy=$orderBy)"
+    "IpcEvent(name=$name, data=$encoding::${data.toString().trim()}, orderBy=$order)"
 
   companion object {
     fun fromBinary(name: String, data: ByteArray, orderBy: Int? = null) =
@@ -78,7 +78,7 @@ class IpcEvent(
         name,
         data as String,
         encoding,
-        orderBy,
+        order,
       )
     }
   }

@@ -1,5 +1,6 @@
 package org.dweb_browser.core.ipc
 
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
@@ -10,7 +11,6 @@ import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
-import org.dweb_browser.helper.OrderInvoker
 import org.dweb_browser.helper.withScope
 import kotlin.math.min
 
@@ -23,15 +23,14 @@ class NativeMessageChannel(parentScope: CoroutineScope, fromId: String, toId: St
   private val messageChannel2 = Channel<EndpointIpcMessage>()
   private val lifecycleFlow1 = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
   private val lifecycleFlow2 = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
-  private val scope = parentScope + SupervisorJob()
-  private var port1DebugId = ""
-  private var port2DebugId = ""
+  private var debugId1 = ""
+  private var debugId2 = ""
 
   /// 取最短的前缀，从而做成
   init {
     if (fromId == toId) {
-      port1DebugId = "$fromId[from]↹"
-      port2DebugId = "$toId[to]↹"
+      debugId1 = "$fromId[from]↹"
+      debugId2 = "$toId[to]↹"
     } else {
       val from = fromId.split(".")
       val to = toId.split(".")
@@ -50,24 +49,27 @@ class NativeMessageChannel(parentScope: CoroutineScope, fromId: String, toId: St
         debugFromId = fromId
         debugToId = toId
       }
-      port1DebugId = "$debugFromId=>$debugToId"
-      port2DebugId = "$debugToId=>$debugFromId"
+      debugId1 = "$debugFromId=>$debugToId"
+      debugId2 = "$debugToId=>$debugFromId"
     }
   }
 
-  val port1 = NativeEndpoint(scope, messageChannel1, messageChannel2, lifecycleFlow1, port1DebugId)
-  val port2 = NativeEndpoint(scope, messageChannel2, messageChannel1, lifecycleFlow2, port2DebugId)
+  val port1 =
+    NativeEndpoint(parentScope, messageChannel1, messageChannel2, lifecycleFlow1, debugId1)
+  val port2 =
+    NativeEndpoint(parentScope, messageChannel2, messageChannel1, lifecycleFlow2, debugId2)
 }
 
 class NativeEndpoint(
-  override val scope: CoroutineScope,
+  parentScope: CoroutineScope,
   private val messageIn: Channel<EndpointIpcMessage>,
   private val messageOut: Channel<EndpointIpcMessage>,
   override val lifecycleRemoteFlow: MutableStateFlow<EndpointLifecycle>,
   override val debugId: String,
 ) : IpcEndpoint() {
-
   override fun toString() = "NativeEndpoint@$debugId"
+
+  override val scope = parentScope + SupervisorJob() + CoroutineName("$this")
 
   /**
    * 发送消息
@@ -80,25 +82,22 @@ class NativeEndpoint(
     }
   }
 
-  private val orderInvoker = OrderInvoker()
-
   override suspend fun doStart() {
     scope.launch {
-      for ((pid, ipcMessage, orderBy) in messageIn) {
+      for ((pid, ipcMessage) in messageIn) {
         debugEndpoint("message-in", "pid=$pid ipcMessage=$ipcMessage")
         /**
-         * UNDISPATCHED 能确保 orderBy 的顺序前提
+         * UNDISPATCHED 能确保 orderBy 的顺序
          */
         launch(start = CoroutineStart.UNDISPATCHED) {
-          orderInvoker.tryInvoke(orderBy) {
-            getIpcMessageProducer(pid).also {
-              when {
-                it.isCloseForEmit -> it.sendBeacon(ipcMessage)
-                else -> it.emit(ipcMessage)
-              }
+          getIpcMessageProducer(pid).also {
+            when {
+              it.isClosedForSend -> it.sendBeacon(ipcMessage)
+              else -> it.send(ipcMessage)
             }
           }
         }
+        debugEndpoint("message-in-end", "pid=$pid ipcMessage=$ipcMessage")
       }
     }
   }

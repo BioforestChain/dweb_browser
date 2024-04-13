@@ -182,7 +182,7 @@ open class Ipc internal constructor(
         )
         forkedIpcLock.withLock {
           forkedIpcMap[forkedIpc.pid] = forkedIpc
-          forkProducer.emit(forkedIpc)
+          forkProducer.send(forkedIpc)
         }
       }
     }
@@ -227,13 +227,14 @@ open class Ipc internal constructor(
     debugIpc("closing", cause)
     val reason = cause?.message
     sendLifecycleToRemote(IpcLifecycle.IpcClosing(reason))
-    messageProducer.closeWrite()
+    messageProducer.closeWrite(cause)
     launchJobs.joinAll()
     closeDeferred.complete(cause)
     IpcLifecycle.IpcClosed(reason).also { closed ->
       lifecycleLocaleFlow.emit(closed)
       sendLifecycleToRemote(closed)
     }
+    messageProducer.close(cause)
     scope.cancel(cause)
     debugIpc("closed", cause)
   }
@@ -279,7 +280,7 @@ open class Ipc internal constructor(
     forkedIpcLock.withLock {
       forkedIpcMap[forkedIpc.pid] = forkedIpc
       // 自触发
-      forkProducer.emit(forkedIpc)
+      forkProducer.send(forkedIpc)
     }
     // 通知对方
     postMessage(
@@ -411,15 +412,15 @@ open class Ipc internal constructor(
 
 
   /**发送各类消息到remote*/
-  suspend fun postMessage(data: IpcMessage, orderBy: Int? = null) {
+  suspend fun postMessage(data: IpcMessage) {
     awaitOpen("then-postMessage")
     withScope(scope) {
-      endpoint.postIpcMessage(EndpointIpcMessage(pid, data, orderBy))
+      endpoint.postIpcMessage(EndpointIpcMessage(pid, data))
     }
   }
 
-  suspend inline fun postResponse(reqId: Int, response: PureResponse, orderBy: Int? = null) {
-    postMessage(IpcResponse.fromResponse(reqId, response, this), orderBy)
+  suspend inline fun postResponse(reqId: Int, response: PureResponse) {
+    postMessage(IpcResponse.fromResponse(reqId, response, this))
   }
   //#endregion
 

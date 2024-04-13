@@ -50,7 +50,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   class RunningApp(
-    val module: MicroModule, private val afterBootstrap: Deferred<MicroModule.Runtime>
+    val module: MicroModule, private val afterBootstrap: Deferred<MicroModule.Runtime>,
   ) {
     suspend fun ready() = afterBootstrap.await()
   }
@@ -85,7 +85,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
     // TODO 权限保护
     override suspend fun connect(
-      mmid: MMID, reason: PureRequest?
+      mmid: MMID, reason: PureRequest?,
     ) = dnsMM.connectTo(fromMM, mmid, reason ?: PureClientRequest("file://$mmid", PureMethod.GET))
 
     override suspend fun open(mmid: MMID): Boolean {
@@ -185,8 +185,13 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     return connectMicroModules(fromMM, toAppRuntime, reason)
   }
 
+  private val installLock = Mutex()
+
   /** 安装应用 */
-  suspend fun install(mm: MicroModule) {
+  suspend fun install(mm: MicroModule): Boolean = installLock.withLock {
+    if (allApps.containsKey(mm.mmid)) {
+      return false
+    }
     allApps[mm.mmid] = mm
     addInstallApps(mm.mmid, mm)
     for (protocol in mm.dweb_protocols) {
@@ -195,6 +200,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     for (provider in mm.getSafeDwebPermissionProviders()) {
       permissionAdapterManager.append(adapter = provider)
     }
+    return true
   }
 
   /** 卸载应用 */

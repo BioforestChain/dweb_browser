@@ -87,13 +87,18 @@ abstract class CommonEndpoint(
     launchJobs += scope.launch {
       for (endpointMessage in endpointMsgChannel) {
         launch(start = CoroutineStart.UNDISPATCHED) {
-          orderInvoker.tryInvoke(endpointMessage) {
+          orderInvoker.tryInvoke(
+            /**
+             * EndpointLifecycle 属于 OrderBy
+             */
+            endpointMessage
+          ) {
             when (endpointMessage) {
               is EndpointLifecycle -> lifecycleRemoteMutableFlow.emit(endpointMessage)
               is EndpointIpcMessage -> getIpcMessageProducer(endpointMessage.pid).also {
                 when {
-                  it.isCloseForEmit -> it.sendBeacon(endpointMessage.ipcMessage)
-                  else -> it.emit(endpointMessage.ipcMessage)
+                  it.isClosedForSend -> it.sendBeacon(endpointMessage.ipcMessage)
+                  else -> it.send(endpointMessage.ipcMessage)
                 }
               }
             }

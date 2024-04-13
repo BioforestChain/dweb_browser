@@ -10,7 +10,11 @@ import org.dweb_browser.helper.OrderBy
 @Serializable
 sealed class IpcLifecycle : IpcMessage(IPC_MESSAGE_TYPE.LIFECYCLE), OrderBy {
   abstract val state: LIFECYCLE_STATE
-  abstract override val orderBy: Int
+  abstract override val order: Int
+
+  companion object {
+    const val DEFAULT_ORDER = -1
+  }
 
   @Serializable
   data class Init internal constructor(
@@ -18,13 +22,13 @@ sealed class IpcLifecycle : IpcMessage(IPC_MESSAGE_TYPE.LIFECYCLE), OrderBy {
     val pid: Int,
     val locale: CommonAppManifest,
     val remote: CommonAppManifest,
-    override val orderBy: Int,
+    override val order: Int,
   ) : IpcLifecycle() {
     constructor(
       pid: Int,
       locale: CommonAppManifest,
       remote: CommonAppManifest,
-      orderBy: Int = 0,
+      orderBy: Int = DEFAULT_ORDER,
     ) : this(
       LIFECYCLE_STATE.INIT, pid, locale, remote, orderBy
     )
@@ -34,19 +38,19 @@ sealed class IpcLifecycle : IpcMessage(IPC_MESSAGE_TYPE.LIFECYCLE), OrderBy {
   @Serializable
   data class IpcOpening internal constructor(
     override val state: LIFECYCLE_STATE,
-    override val orderBy: Int,
+    override val order: Int,
   ) : IpcLifecycle() {
-    constructor(orderBy: Int = 0) : this(LIFECYCLE_STATE.OPENING, orderBy)
+    constructor(orderBy: Int = DEFAULT_ORDER) : this(LIFECYCLE_STATE.OPENING, orderBy)
   }
 
   // TODO 测试能否 equals？
   @Serializable
   data class IpcOpened internal constructor(
     override val state: LIFECYCLE_STATE,
-    override val orderBy: Int,
+    override val order: Int,
   ) : IpcLifecycle() {
     constructor(
-      orderBy: Int = 0,
+      orderBy: Int = DEFAULT_ORDER,
     ) : this(LIFECYCLE_STATE.OPENED, orderBy)
   }
 
@@ -54,11 +58,11 @@ sealed class IpcLifecycle : IpcMessage(IPC_MESSAGE_TYPE.LIFECYCLE), OrderBy {
   data class IpcClosing internal constructor(
     override val state: LIFECYCLE_STATE,
     val reason: String?,
-    override val orderBy: Int,
+    override val order: Int,
   ) : IpcLifecycle() {
     constructor(
       reason: String? = null,
-      orderBy: Int = 0,
+      orderBy: Int = DEFAULT_ORDER,
     ) : this(LIFECYCLE_STATE.CLOSING, reason, orderBy)
   }
 
@@ -66,11 +70,11 @@ sealed class IpcLifecycle : IpcMessage(IPC_MESSAGE_TYPE.LIFECYCLE), OrderBy {
   data class IpcClosed internal constructor(
     override val state: LIFECYCLE_STATE,
     val reason: String? = null,
-    override val orderBy: Int,
+    override val order: Int,
   ) : IpcLifecycle() {
     constructor(
       reason: String? = null,
-      orderBy: Int = 0,
+      orderBy: Int = DEFAULT_ORDER,
     ) : this(LIFECYCLE_STATE.CLOSED, reason, orderBy)
   }
 

@@ -12,6 +12,4 @@ import org.dweb_browser.helper.OrderBy
 data class EndpointIpcMessage(
   val pid: Int,
   val ipcMessage: IpcMessage,
-  override val orderBy: Int? = null,
-) :
-  EndpointMessage(ENDPOINT_MESSAGE_TYPE.IPC), OrderBy
+) : EndpointMessage(ENDPOINT_MESSAGE_TYPE.IPC)

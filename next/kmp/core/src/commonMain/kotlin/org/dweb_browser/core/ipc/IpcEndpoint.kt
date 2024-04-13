@@ -230,12 +230,10 @@ abstract class IpcEndpoint {
     /// 等待所有长任务完成
     launchJobs.joinAll()
     /// 关闭所有的子通道
-    ipcMessageProducers.sync {
-      for (channel in values) {
-        channel.close(cause)
-      }
-      clear()
+    ipcMessageProducers.toList().map { (_, channel) ->
+      channel.close(cause)
     }
+    ipcMessageProducers.clear()
     this.sendLifecycleToRemote(EndpointLifecycle.Closed())
     scope.cancel(cause)
     afterClosed?.invoke(cause)

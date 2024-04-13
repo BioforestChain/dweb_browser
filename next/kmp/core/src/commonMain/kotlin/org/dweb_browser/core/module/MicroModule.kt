@@ -216,7 +216,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
             }
           }
           debugMM("beConnect", "emit $ipc")
-          ipcConnectedProducer.emit(IpcConnectArgs(ipc, reason))
+          ipcConnectedProducer.send(IpcConnectArgs(ipc, reason))
         }
       }
     }

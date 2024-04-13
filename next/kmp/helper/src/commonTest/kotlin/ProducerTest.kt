@@ -81,10 +81,10 @@ class ProducerTest {
   @Test
   fun consumeTest() = runCommonTest {
     val producer = Producer<Float>("test", this)
-    producer.emit(1f)
-    producer.emit(2f)
-    producer.emit(3f)
-    producer.emit(4f)
+    producer.send(1f)
+    producer.send(2f)
+    producer.send(3f)
+    producer.send(4f)
     delay(1000)
     println("start consumer1")
     val consumer1 = producer.consumer("consumer1")
@@ -121,10 +121,10 @@ class ProducerTest {
 
     delay(1000)
     println("start emit more")
-    producer.emit(1f)
-    producer.emit(2f)
-    producer.emit(3f)
-    producer.emit(4f)
+    producer.send(1f)
+    producer.send(2f)
+    producer.send(3f)
+    producer.send(4f)
     producer.close()
   }
 
@@ -132,16 +132,16 @@ class ProducerTest {
   fun lazyTest() = runCommonTest {
     val producer = Producer<Float>("test", this)
 
-    producer.emit(1f)
-    producer.emit(2f)
-    producer.emit(3f)
-    producer.emit(4f)
+    producer.send(1f)
+    producer.send(2f)
+    producer.send(3f)
+    producer.send(4f)
     println("create consumer1")
     val consumer1 = producer.consumer("consumer1")
-    producer.emit(1f)
-    producer.emit(2f)
-    producer.emit(3f)
-    producer.emit(4f)
+    producer.send(1f)
+    producer.send(2f)
+    producer.send(3f)
+    producer.send(4f)
 
     println("start consumer1")
     delay(1000)
@@ -162,10 +162,10 @@ class ProducerTest {
 
 
     delay(1000)
-    producer.emit(1f)
-    producer.emit(2f)
-    producer.emit(3f)
-    producer.emit(4f)
+    producer.send(1f)
+    producer.send(2f)
+    producer.send(3f)
+    producer.send(4f)
 
     producer.close()
   }
@@ -239,7 +239,7 @@ class ProducerTest {
     for (i in 1..MAX) {
       launch(start = CoroutineStart.UNDISPATCHED) {
         orderInvoker.tryInvoke(null) {
-          producer.emit(i)
+          producer.send(i)
         }
       }
     }
@@ -249,7 +249,7 @@ class ProducerTest {
   @Test
   fun orderEmit() = runCommonTest(10) {
     data class Data(val data: Int) : OrderBy {
-      override val orderBy = 1
+      override val order = 1
     }
 
     val producer = Producer<Data>("test", this)
@@ -277,7 +277,7 @@ class ProducerTest {
     for (i in 1..MAX) {
       launch(start = CoroutineStart.UNDISPATCHED) {
         orderInvoker.tryInvoke(null) {
-          producer.emit(Data(i))
+          producer.send(Data(i))
         }
       }
     }

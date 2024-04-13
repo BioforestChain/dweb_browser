@@ -77,6 +77,7 @@ open class DesktopController private constructor(
       privateNet = true,
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
       displayCutoutStrategy = DWebViewOptions.DisplayCutoutStrategy.Default,
+      openDevTools = true,
       tag = 1
     );
     val webView = activity.createDwebView(deskNMM, options)

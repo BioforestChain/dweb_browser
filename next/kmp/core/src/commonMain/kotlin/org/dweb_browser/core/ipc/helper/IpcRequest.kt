@@ -8,7 +8,6 @@ import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.IFrom
 import org.dweb_browser.helper.collectIn
-import org.dweb_browser.helper.debugger
 import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureHeaders
@@ -51,8 +50,7 @@ sealed class IpcRequest(
     }}" + "" else str
   }
 
-  companion object {
-  }
+  companion object {}
 
   /**
    * 判断是否是双工协议
@@ -99,7 +97,7 @@ internal suspend fun pureChannelToIpcEvent(
     // 这里只是关闭输出
     pureChannel.closeOutgoing()
   }
-  channelIpc.onEvent("pureChannelToIpcEvent").collectIn(channelIpc.scope) { event ->
+  channelIpc.onEvent("IpcEventToPureChannel").collectIn(channelIpc.scope) { event ->
     val ipcEvent = event.consumeFilter { it.name == eventData } ?: return@collectIn
     channelIpc.debugIpc(debugTag) { "inChannelData=$ipcEvent" }
     if (!ipcListenToChannel.isClosedForSend) ipcListenToChannel.send(ipcEvent.toPureFrame())
@@ -113,9 +111,13 @@ internal suspend fun pureChannelToIpcEvent(
   }
   /// 将PureFrame转成IpcEvent，然后一同发给对面
   for (pureFrame in channelForIpcPost) {
-    val ipcDataEvent = IpcEvent.fromPureFrame(eventData, pureFrame, 0)
+    val ipcDataEvent = IpcEvent.fromPureFrame(
+      eventData, pureFrame,
+      // 这里使用和生命周期一致的 order，以确保对面反能在数据消息接收完后再处理关闭信号
+      orderBy = IpcLifecycle.DEFAULT_ORDER,
+    )
     channelIpc.debugIpc(debugTag) { "outChannelData=$ipcDataEvent" }
-    channelIpc.postMessage(ipcDataEvent, orderBy = 1)
+    channelIpc.postMessage(ipcDataEvent)
   }
   // 关闭的时候，同时关闭 channelIpc
   channelIpc.debugIpc(debugTag) { "channel will-close ipc" }

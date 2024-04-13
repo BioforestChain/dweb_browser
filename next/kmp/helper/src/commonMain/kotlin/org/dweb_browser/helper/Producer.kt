@@ -11,6 +11,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -29,16 +30,27 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
   private val consumers = SafeHashSet<Consumer>()
   private val buffers = SafeLinkList<Event>()
-  private val eventChannel = Channel<Event>(capacity = Channel.BUFFERED)
+  private val eventChannel =
+    MutableSharedFlow<Event>()// Channel<Event>(capacity = Channel.BUFFERED)
+  private val eventLoopJob = scope.launch {
+    val job = launch {
+      eventChannel.collect { event ->
+        launch(start = CoroutineStart.UNDISPATCHED) {
+          doEmit(event)
+        }
+      }
+    }
+  }
 
   override fun toString(): String {
     return "Producer<$name>"
   }
-    /**生产者构造的事件*/
+
+  /**生产者构造的事件*/
   inner class Event(val data: T, order: Int?, private val eventJob: CompletableJob = Job()) :
     OrderBy, Job by eventJob {
-    override val orderBy = when {
-      order == null && data is OrderBy -> data.orderBy
+    override val order = when {
+      order == null && data is OrderBy -> data.order
       else -> order
     }
     var consumed = false
@@ -58,6 +70,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
      */
     suspend fun next() {
     }
+
     /**将其消耗转换为R对象 以返回值形式继续传递*/
     inline fun <reified R : T> consumeAs(): R? {
       if (R::class.isInstance(data)) {
@@ -86,7 +99,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
     /**按顺序触发事件*/
     internal suspend inline fun orderInvoke(crossinline invoker: suspend () -> Unit) {
-      orderInvoker.tryInvoke(orderBy) {
+      orderInvoker.tryInvoke(order, key = this) {
         invoker()
       }
     }
@@ -123,25 +136,24 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   private val orderInvoker = OrderInvoker()
 
   @OptIn(DelicateCoroutinesApi::class)
-  fun ensureOpen() {
-    if (eventChannel.isClosedForSend) {
+  private fun ensureOpen() {
+    if (isClosedForSend) {
       throw Exception("$this already close for emit.")
     }
   }
 
-  suspend fun emit(value: T, order: Int? = null) {
+  private val eventLock = OrderDeferred()
+  suspend fun send(value: T, order: Int? = null) = eventLock.withLock {
     ensureOpen()
     val event = Event(value, order)
     buffers.add(event)
     if (buffers.size > 10) {
       WARNING("$this buffers overflow maybe leak: $buffers")
     }
-    eventChannel.send(event)
-//    event.join()
-//    doEmit(event)
+    eventChannel.emit(event)
   }
 
-  suspend fun sendBeacon(value: T, order: Int? = null) {
+  suspend fun sendBeacon(value: T, order: Int? = null) = eventLock.withLock {
     val event = Event(value, order)
     doEmit(event)
     when {
@@ -166,6 +178,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       }
     }
   }
+
   /**事件消耗器，调用后事件将被彻底消耗，不会再进行传递*/
   fun consumer(name: String): Consumer {
     ensureOpen()
@@ -238,12 +251,19 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     }
   }
 
-  var isCloseForEmit = false
+  var isClosedForSend = false
     private set
+
   /**关闭写，这个将会消耗完没有消费的*/
-  fun closeWrite(cause: Throwable? = null) {
-    isCloseForEmit = true
-    for (event in buffers.toList()) {
+  suspend fun closeWrite(cause: Throwable? = null) {
+    if (isClosedForSend) {
+      return
+    }
+    debugProducer("closeWrite", cause)
+    isClosedForSend = true
+    val bufferEvents = buffers.toList()
+    debugProducer("closeEvents", bufferEvents)
+    for (event in bufferEvents) {
       scope.launch(start = CoroutineStart.UNDISPATCHED) {
         event.orderInvoke {
           if (!event.consumed) {
@@ -253,37 +273,29 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         }
       }
     }
-    eventChannel.close(cause)
+    debugProducer("closeWrite", "eventLoopJob.cancel")
+    eventLock.withLock {
+      eventLoopJob.cancel()
+    }
   }
 
-  fun close(cause: Throwable? = null) {
+  suspend fun close(cause: Throwable? = null) {
     closeWrite(cause)
+    debugProducer("close", "eventLoopJob.join")
+    eventLoopJob.join()
 
-  }
+    // 等待消费者全部完成
+    buffers.toList().joinAll()
 
-  init {
-    scope.launch {
-      for (event in eventChannel) {
-        launch(start = CoroutineStart.UNDISPATCHED) {
-          doEmit(event)
-        }
-      }
-      // 等待消费者全部完成
-      buffers.toList().joinAll()
-
-      debugProducer("close")
-      // 关闭消费者channel，表示彻底无法再发数据
-      for (consumer in consumers) {
-        consumer.input.close()
-      }
-      scope.close()
+    debugProducer("close", "close consumers")
+    // 关闭消费者channel，表示彻底无法再发数据
+    for (consumer in consumers) {
+      consumer.input.close(cause)
     }
-
-    job.invokeOnCompletion {
-      debugProducer("invokeOnCompletion", "free memory")
-      consumers.clear()
-      buffers.clear()
-    }
+    scope.close()
+    debugProducer("close", "free memory")
+    consumers.clear()
+    buffers.clear()
   }
 
   fun invokeOnClose(handler: CompletionHandler) {
@@ -295,11 +307,13 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 fun <T> Flow<T>.asProducer(
   name: String,
   scope: CoroutineScope,
-  emitter: suspend Producer<T>.(T) -> Unit = { emit(it) },
+  emitter: suspend Producer<T>.(T) -> Unit = { send(it) },
 ) = Producer<T>(name, scope).also { producer ->
   collectIn(producer.scope) {
     producer.emitter(it)
   }.invokeOnCompletion {
-    producer.close()
+    producer.scope.launch {
+      producer.close()
+    }
   }
 }
