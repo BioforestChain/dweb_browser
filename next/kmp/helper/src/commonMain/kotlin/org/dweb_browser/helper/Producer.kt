@@ -37,10 +37,8 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         doEmit(event)
       }
     }
-    println("QAQ eventLoopJob done")
   }.also {
     it.invokeOnCompletion {
-      println("QAQ eventLoopJob done do close")
       scope.launch {
         this@Producer.close()
       }
@@ -115,16 +113,22 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         if (consumed) {
           return@withLock
         }
+        var i = 0;
         // 事件超时告警
         val job = scope.launch {
           delay(1000)
-          WARNING("emitBy TIMEOUT!! consumer=$consumer data=$data")
+          WARNING("emitBy TIMEOUT!! step=$i consumer=$consumer data=$data")
         }
+        i = 1
         emitJobsLock.lock()
+        i = 2
         consumer.input.send(this)
+        i = 3
         // 等待事件执行完成在往下走
         emitJobsLock.withLock {
+          i = 3
           emitJobs.joinAll()
+          i = 4
           emitJobs.clear()
         }
         job.cancel()
@@ -206,7 +210,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
     var startingBuffers: List<Event>? = null
 
-    @OptIn(DelicateCoroutinesApi::class)
     private val start = SuspendOnce {
       withScope(scope) {
         started = true
@@ -231,7 +234,9 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         for (event in input) {
           // 同一个事件的处理，不做任何阻塞，直接发出
           event.emitJobs += launch {
+            println("QAQ emit ${this@Consumer}>>$collector 1")
             collector.emit(event)
+            println("QAQ emit ${this@Consumer}>>$collector 2")
           }
           // 告知完成了，放行
           event.emitJobsLock.unlock()
@@ -285,13 +290,10 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   }
 
   suspend fun close(cause: Throwable? = null) {
-    debugProducer("close", "start")
     closeWrite(cause)
-    debugProducer("close", "eventLoopJob.join")
     eventLoopJob.join()
 
     // 等待消费者全部完成
-    debugProducer("close", "buffers.toList().joinAll()=${buffers.toList()}")
     buffers.toList().joinAll()
 
     debugProducer("close", "close consumers")

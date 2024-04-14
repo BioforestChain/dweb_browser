@@ -164,10 +164,14 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           /// 根据host找到对应的路由模块
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
           var response: PureResponse? = null
+          println("QAQ routes=$routers")
           if (routers != null) for (router in routers) {
+            println("QAQ ipcRequest=$ipcRequest")
             val pureRequest = ipcRequest.toPure()
+            println("QAQ pureRequest=$pureRequest")
             val res =
               router.withFilter(pureRequest)?.invoke(HandlerContext(pureRequest, clientIpc))
+            println("QAQ response=$response")
             if (res != null) {
               response = res
               break

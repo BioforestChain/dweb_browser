@@ -65,7 +65,7 @@ class HttpNMMTest {
 
 
   @Test
-  fun testWebSocket() = runCommonTest(10) {
+  fun testWebSocket() = runCommonTest(100) {
     println("---test-$it")
 
     class TestMicroModule(mmid: String = "test.httpListen.dweb") :

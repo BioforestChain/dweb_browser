@@ -92,7 +92,7 @@ class IpcClientRequest(
   }
 
   internal val server = LateInit<IpcServerRequest>()
-  fun toServer(serverIpc: Ipc) = server.getOrInit {
+  fun toServer(serverIpc: Ipc) = server.getOrInitSync {
     IpcServerRequest(
       reqId = reqId,
       url = url,
