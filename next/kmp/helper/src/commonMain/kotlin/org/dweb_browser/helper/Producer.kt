@@ -11,7 +11,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -30,14 +29,20 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
   private val consumers = SafeHashSet<Consumer>()
   private val buffers = SafeLinkList<Event>()
-  private val eventChannel =
-    MutableSharedFlow<Event>()// Channel<Event>(capacity = Channel.BUFFERED)
+  private val eventChannel = Channel<Event>(capacity = Channel.BUFFERED)
+  private val eventLock = OrderDeferred()
   private val eventLoopJob = scope.launch {
-    val job = launch {
-      eventChannel.collect { event ->
-        launch(start = CoroutineStart.UNDISPATCHED) {
-          doEmit(event)
-        }
+    for (event in eventChannel) {
+      launch(start = CoroutineStart.UNDISPATCHED) {
+        doEmit(event)
+      }
+    }
+    println("QAQ eventLoopJob done")
+  }.also {
+    it.invokeOnCompletion {
+      println("QAQ eventLoopJob done do close")
+      scope.launch {
+        this@Producer.close()
       }
     }
   }
@@ -142,7 +147,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     }
   }
 
-  private val eventLock = OrderDeferred()
   suspend fun send(value: T, order: Int? = null) = eventLock.withLock {
     ensureOpen()
     val event = Event(value, order)
@@ -150,7 +154,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     if (buffers.size > 10) {
       WARNING("$this buffers overflow maybe leak: $buffers")
     }
-    eventChannel.emit(event)
+    eventChannel.send(event)
   }
 
   suspend fun sendBeacon(value: T, order: Int? = null) = eventLock.withLock {
@@ -275,16 +279,19 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     }
     debugProducer("closeWrite", "eventLoopJob.cancel")
     eventLock.withLock {
-      eventLoopJob.cancel()
+      eventChannel.close(cause)
     }
+    debugProducer("closeWrite", "eventLoopJob.canceld")
   }
 
   suspend fun close(cause: Throwable? = null) {
+    debugProducer("close", "start")
     closeWrite(cause)
     debugProducer("close", "eventLoopJob.join")
     eventLoopJob.join()
 
     // 等待消费者全部完成
+    debugProducer("close", "buffers.toList().joinAll()=${buffers.toList()}")
     buffers.toList().joinAll()
 
     debugProducer("close", "close consumers")
