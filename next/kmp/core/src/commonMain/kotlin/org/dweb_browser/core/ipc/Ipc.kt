@@ -7,12 +7,10 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
@@ -181,7 +179,7 @@ open class Ipc internal constructor(
           forkedIpc, autoStart = ipcFork.autoStart, startReason = ipcFork.startReason
         )
         forkedIpcLock.withLock {
-          forkedIpcMap[forkedIpc.pid] = forkedIpc
+          forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
           forkProducer.send(forkedIpc)
         }
       }
@@ -243,17 +241,13 @@ open class Ipc internal constructor(
    * 这里lock用来将 forkedIpcMap.set 和 forkProducer.emit 做成一个原子操作
    */
   private val forkedIpcLock = Mutex()
-  private val forkedIpcMap = mutableMapOf<Int, Ipc>()
-  fun getForkedIpc(id: Int) = forkedIpcMap[id]
+  private val forkedIpcMap = mutableMapOf<Int, CompletableDeferred<Ipc>>()
 
   suspend fun waitForkedIpc(pid: Int): Ipc {
     return coroutineScope {
       forkedIpcLock.withLock {
-        /// 因为 forkedIpcMap.set 和 forkProducer.emit 是一个原子操作，所以在lock中，如果找不到，可以开始一个监听
-        forkedIpcMap[pid]?.let { CompletableDeferred(it) }
-          ?: async(start = CoroutineStart.UNDISPATCHED) {
-            onFork("waitForkedIpc:$pid").filter { it.data.pid == pid }.first().data
-          }
+        // 因为 forkedIpcMap.set 和 forkProducer.emit 是一个原子操作，所以在lock中，如果找不到，可以开始一个监听
+        forkedIpcMap.getOrPut(pid) { CompletableDeferred() }
       }
     }.await()
   }
@@ -278,7 +272,7 @@ open class Ipc internal constructor(
       startReason = startReason
     )
     forkedIpcLock.withLock {
-      forkedIpcMap[forkedIpc.pid] = forkedIpc
+      forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
       // 自触发
       forkProducer.send(forkedIpc)
     }

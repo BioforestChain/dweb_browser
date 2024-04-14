@@ -32,8 +32,8 @@ class OrderDeferred(var current: Job? = null) {
     queue(key, this, handler)
   }
 
-  suspend inline fun withLock(noinline block: suspend () -> Unit) {
-    queue(null, handler = block)
+  suspend inline fun withLock(reason: String = "withLock", noinline block: suspend () -> Unit) {
+    queue(reason, handler = block)
   }
 }
 

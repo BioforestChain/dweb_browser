@@ -283,7 +283,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       }
     }
     debugProducer("closeWrite", "eventLoopJob.cancel")
-    eventLock.withLock {
+    eventLock.withLock("for-close-event-channel") {
       eventChannel.close(cause)
     }
     debugProducer("closeWrite", "eventLoopJob.canceld")
