@@ -72,24 +72,27 @@ class HttpNMMTest {
       NativeMicroModule(mmid, "test Http Listen") {
       inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
         override suspend fun _bootstrap() {
-          val server = createHttpDwebServer(DwebHttpServerOptions(subdomain = "www"))
-          val serverIpc = server.listen()
-          serverIpc.onRequest("listen").collectIn(mmScope) { event ->
-            val ipcServerRequest = event.consume()
-            println("QAQ GG onRequest=$ipcServerRequest")
-            val response = nativeFetch(ipcServerRequest.toPure().toClient())
-            println("QAQ GG response=$response")
-            serverIpc.postResponse(ipcServerRequest.reqId, response)
-          }
-          println("http start at ${server.startResult.urlInfo}")
+          if (mmid.contains("server")) {
 
-          routes("/ws" byChannel { ctx ->
-            for (i in 1..10) {
-              ctx.sendText("hi~$i")
+            val server = createHttpDwebServer(DwebHttpServerOptions(subdomain = "www"))
+            val serverIpc = server.listen()
+            serverIpc.onRequest("listen").collectIn(mmScope) { event ->
+              val ipcServerRequest = event.consume()
+              println("QAQ GG onRequest=$ipcServerRequest")
+              val response = nativeFetch(ipcServerRequest.toPure().toClient())
+              println("QAQ GG response=$response")
+              serverIpc.postResponse(ipcServerRequest.reqId, response)
             }
-            println("QAQ server ctx.close")
-            ctx.close()
-          })
+            println("http start at ${server.startResult.urlInfo}")
+
+            routes("/ws" byChannel { ctx ->
+              for (i in 1..10) {
+                ctx.sendText("hi~$i")
+              }
+              println("QAQ server ctx.close")
+              ctx.close()
+            })
+          }
         }
 
         override suspend fun _shutdown() {
@@ -105,10 +108,11 @@ class HttpNMMTest {
     dns.install(httpMM)
 
     val serverMM = TestMicroModule("server.dweb")
-    val clientMM = serverMM//TestMicroModule("client.dweb")
+    val clientMM = TestMicroModule("client.dweb")
     dns.install(serverMM)
     dns.install(clientMM)
     val dnsRuntime = dns.bootstrap()
+    val serverRuntime = dnsRuntime.open(serverMM.mmid) as TestMicroModule.TestRuntime;
     val clientRuntime = dnsRuntime.open(clientMM.mmid) as TestMicroModule.TestRuntime;
 
     val channelDeferred = CompletableDeferred(PureChannel())

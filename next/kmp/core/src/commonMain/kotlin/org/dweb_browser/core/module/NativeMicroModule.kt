@@ -67,7 +67,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         if (toMM is NativeMicroModule.NativeRuntime) {
           fromMM.debugMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
-          val pid = kotlinIpcPool.generatePid()
+          val pid = 0
           val fromNativeIpc = kotlinIpcPool.createIpc(channel.port1, pid, fromMM, toMM)
           val toNativeIpc = kotlinIpcPool.createIpc(channel.port2, pid, toMM, fromMM)
           // fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
@@ -181,6 +181,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           clientIpc.postResponse(
             ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway)
           )
+          println("QAQ postResponse=${ipcRequest.reqId}")
         }
 
         /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯

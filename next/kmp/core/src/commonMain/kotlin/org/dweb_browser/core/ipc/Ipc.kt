@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
@@ -18,8 +18,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.IpcClientRequest
@@ -142,17 +140,20 @@ open class Ipc internal constructor(
     }
     // 监听远端生命周期指令，进行协议协商
     lifecycleRemoteFlow.collectIn(scope) { state ->
-      debugIpc("lifecycle-in", state)
+      debugIpc("lifecycle-in") { "remote=$state locale=$lifecycle" }
+      val doIpcOpened = suspend {
+        IpcLifecycle.IpcOpened().also {
+          debugIpc("emit-locale-lifecycle", it)
+          sendLifecycleToRemote(it)
+          lifecycleLocaleFlow.emit(it)
+        }
+      }
       when (state) {
         is IpcLifecycle.IpcClosing, is IpcLifecycle.IpcClosed -> scope.launch(start = CoroutineStart.UNDISPATCHED) { close() }
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         is IpcLifecycle.IpcOpened -> {
           when (lifecycle) {
-            is IpcLifecycle.IpcOpening -> IpcLifecycle.IpcOpened().also {
-              debugIpc("emit-locale-lifecycle", it)
-              sendLifecycleToRemote(it)
-              lifecycleLocaleFlow.emit(it)
-            }
+            is IpcLifecycle.IpcOpening -> doIpcOpened()
 
             else -> {}
           }
@@ -160,9 +161,7 @@ open class Ipc internal constructor(
         // 如果对方是 init，代表刚刚初始化，那么发送目前自己的状态
         is IpcLifecycle.Init -> sendLifecycleToRemote(lifecycle)
         // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
-        is IpcLifecycle.IpcOpening -> {
-          sendLifecycleToRemote(IpcLifecycle.IpcOpened())
-        }
+        is IpcLifecycle.IpcOpening -> doIpcOpened()
       }
     }
     // 监听并分发 所有的消息
@@ -178,10 +177,8 @@ open class Ipc internal constructor(
         pool.safeCreatedIpc(
           forkedIpc, autoStart = ipcFork.autoStart, startReason = ipcFork.startReason
         )
-        forkedIpcLock.withLock {
-          forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
-          forkProducer.send(forkedIpc)
-        }
+        forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
+        forkProducer.send(forkedIpc)
       }
     }
   }
@@ -225,7 +222,7 @@ open class Ipc internal constructor(
     debugIpc("closing", cause)
     val reason = cause?.message
     sendLifecycleToRemote(IpcLifecycle.IpcClosing(reason))
-    messageProducer.closeWrite(cause)
+    messageProducer.close(cause)
     launchJobs.joinAll()
     closeDeferred.complete(cause)
     IpcLifecycle.IpcClosed(reason).also { closed ->
@@ -237,19 +234,16 @@ open class Ipc internal constructor(
     debugIpc("closed", cause)
   }
 
-  /**
-   * 这里lock用来将 forkedIpcMap.set 和 forkProducer.emit 做成一个原子操作
-   */
-  private val forkedIpcLock = Mutex()
-  private val forkedIpcMap = mutableMapOf<Int, CompletableDeferred<Ipc>>()
+  private val forkedIpcMap = SafeHashMap<Int, CompletableDeferred<Ipc>>()
 
   suspend fun waitForkedIpc(pid: Int): Ipc {
-    return coroutineScope {
-      forkedIpcLock.withLock {
-        // 因为 forkedIpcMap.set 和 forkProducer.emit 是一个原子操作，所以在lock中，如果找不到，可以开始一个监听
-        forkedIpcMap.getOrPut(pid) { CompletableDeferred() }
-      }
-    }.await()
+    val job = scope.launch {
+      delay(1000)
+      println("waitForkedIpc TIMEOUT!! $pid $forkedIpcMap")
+    }
+    val ipc = forkedIpcMap.getOrPut(pid) { CompletableDeferred() }.await()
+    job.cancel()
+    return ipc
   }
 
   /**
@@ -264,18 +258,16 @@ open class Ipc internal constructor(
   ): Ipc {
     awaitOpen("then-fork")
     val forkedIpc = pool.createIpc(
-      pid = pool.generatePid(),
+      pid = endpoint.generatePid(),
       endpoint = endpoint,
       locale = locale,
       remote = remote,
       autoStart = autoStart,
       startReason = startReason
     )
-    forkedIpcLock.withLock {
-      forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
-      // 自触发
-      forkProducer.send(forkedIpc)
-    }
+    forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
+    // 自触发
+    forkProducer.send(forkedIpc)
     // 通知对方
     postMessage(
       IpcFork(
@@ -307,7 +299,7 @@ open class Ipc internal constructor(
   ) = onMessage(name).mapNotNull { event ->
     event.next();
     mapNoNull(event.data)?.also { event.consume() }
-  }.asProducer(messageProducer.name + "." + name, scope)
+  }.asProducer(messageProducer.name + "/" + name, scope)
 
   private val requestProducer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     messagePipeMap("request") { ipcMessage ->

@@ -1,5 +1,8 @@
 package org.dweb_browser.core.ipc
 
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.getAndUpdate
+import kotlinx.atomicfu.update
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -15,6 +18,7 @@ import kotlinx.coroutines.joinAll
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
+import org.dweb_browser.core.ipc.helper.IpcFork
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.LIFECYCLE_STATE
 import org.dweb_browser.helper.Debugger
@@ -27,12 +31,23 @@ import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
+import kotlin.math.max
 
 
 /**
- *
+ * 通常我们将先进入 opened 状态的称为 endpoint-0，其次是 endpoint-1
  */
 abstract class IpcEndpoint {
+  private val accPid = atomic(0)
+
+  /**
+   * 注册一个Pid
+   * endpoint-0 的 ipc-fork 出来的 pid 是偶数
+   * endpoint-1 的 ipc-fork 出来的 pid 是奇数
+   */
+  fun generatePid() = accPid.addAndGet(2)
+
+
   val debugEndpoint by lazy { Debugger(this.toString()) }
   abstract val debugId: String
 
@@ -61,7 +76,16 @@ abstract class IpcEndpoint {
    * 获取消息管道
    */
   fun getIpcMessageProducer(pid: Int) = ipcMessageProducers.getOrPut(pid) {
-    Producer<IpcMessage>("ipc-msg#$debugId", scope).apply {
+    Producer<IpcMessage>("ipc-msg/$debugId/$pid", scope).apply {
+      consumer("watch-fork").collectIn(scope) { event ->
+        when (val ipcFork = event.data) {
+          is IpcFork -> accPid.getAndUpdate {
+            max(it, ipcFork.pid - 1)
+          }
+
+          else -> {}
+        }
+      }
       invokeOnClose { ipcMessageProducers.remove(pid) }
     }
   }
@@ -155,6 +179,8 @@ abstract class IpcEndpoint {
                 sendLifecycleToRemote(it)
                 debugEndpoint("emit-locale-lifecycle", it)
                 lifecycleLocaleFlow.emit(it)
+                /// 后面被链接的ipc，pid从奇数开始
+                accPid.update { 1 }
               }
 
             else -> {}

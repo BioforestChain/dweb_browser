@@ -29,21 +29,22 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
   private val consumers = SafeHashSet<Consumer>()
   private val buffers = SafeLinkList<Event>()
-  private val eventChannel = Channel<Event>(capacity = Channel.BUFFERED)
-  private val eventLock = OrderDeferred()
-  private val eventLoopJob = scope.launch {
-    for (event in eventChannel) {
-      launch(start = CoroutineStart.UNDISPATCHED) {
-        doEmit(event)
-      }
-    }
-  }.also {
-    it.invokeOnCompletion {
-      scope.launch {
-        this@Producer.close()
-      }
-    }
-  }
+
+  //  private val eventChannel = Channel<Event>(capacity = Channel.BUFFERED)
+  private val actionQueue = OrderDeferred()
+//  private val eventLoopJob = scope.launch {
+//    for (event in eventChannel) {
+//      launch(start = CoroutineStart.UNDISPATCHED) {
+//        doEmit(event)
+//      }
+//    }
+//  }.also {
+//    it.invokeOnCompletion {
+//      scope.launch {
+//        this@Producer.close()
+//      }
+//    }
+//  }
 
   override fun toString(): String {
     return "Producer<$name>"
@@ -144,24 +145,26 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
   private val orderInvoker = OrderInvoker()
 
-  @OptIn(DelicateCoroutinesApi::class)
   private fun ensureOpen() {
     if (isClosedForSend) {
       throw Exception("$this already close for emit.")
     }
   }
 
-  suspend fun send(value: T, order: Int? = null) = eventLock.withLock {
+  suspend fun send(value: T, order: Int? = null) = actionQueue.queue("send") {
     ensureOpen()
     val event = Event(value, order)
     buffers.add(event)
     if (buffers.size > 10) {
       WARNING("$this buffers overflow maybe leak: $buffers")
     }
-    eventChannel.send(event)
+//    eventChannel.send(event)
+    scope.launch(start = CoroutineStart.UNDISPATCHED) {
+      doEmit(event)
+    }
   }
 
-  suspend fun sendBeacon(value: T, order: Int? = null) = eventLock.withLock {
+  suspend fun sendBeacon(value: T, order: Int? = null) = actionQueue.queue("sendBeacon") {
     val event = Event(value, order)
     doEmit(event)
     when {
@@ -215,7 +218,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         started = true
         val starting = buffers.toList()
         startingBuffers = starting
-        debugConsumer("startJob", "begin $starting")
         /// 将之前没有被消费的逐个触发，这里不用担心 buffers 被中途追加，emit会同步触发
         for (event in starting) {
           launch(start = CoroutineStart.UNDISPATCHED) {
@@ -224,7 +226,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
             }
           }
         }
-        debugConsumer("startJob", "done")
         startingBuffers = null
       }
     }
@@ -234,9 +235,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         for (event in input) {
           // 同一个事件的处理，不做任何阻塞，直接发出
           event.emitJobs += launch {
-            println("QAQ emit ${this@Consumer}>>$collector 1")
             collector.emit(event)
-            println("QAQ emit ${this@Consumer}>>$collector 2")
           }
           // 告知完成了，放行
           event.emitJobsLock.unlock()
@@ -264,9 +263,9 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     private set
 
   /**关闭写，这个将会消耗完没有消费的*/
-  suspend fun closeWrite(cause: Throwable? = null) {
+  suspend fun closeWrite(cause: Throwable? = null) = actionQueue.queue("for-close-event-channel") {
     if (isClosedForSend) {
-      return
+      return@queue
     }
     debugProducer("closeWrite", cause)
     isClosedForSend = true
@@ -283,15 +282,15 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       }
     }
     debugProducer("closeWrite", "eventLoopJob.cancel")
-    eventLock.withLock("for-close-event-channel") {
-      eventChannel.close(cause)
-    }
-    debugProducer("closeWrite", "eventLoopJob.canceld")
+
+//      eventChannel.close(cause)
+    println("QAQ closeWrite eventLoopJob.canceld")
   }
+
 
   suspend fun close(cause: Throwable? = null) {
     closeWrite(cause)
-    eventLoopJob.join()
+//    eventLoopJob.join()
 
     // 等待消费者全部完成
     buffers.toList().joinAll()

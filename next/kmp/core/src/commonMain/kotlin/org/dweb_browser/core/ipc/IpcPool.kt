@@ -83,13 +83,6 @@ open class IpcPool {
     }
   }
 
-  private var accPid = atomic(0)
-
-  /**
-   * 注册一个Pid
-   */
-  fun generatePid() = accPid.getAndAdd(1)
-
   /**关闭信号*/
   suspend fun awaitDestroyed() = runCatching {
     scope.coroutineContext[Job]!!.join();

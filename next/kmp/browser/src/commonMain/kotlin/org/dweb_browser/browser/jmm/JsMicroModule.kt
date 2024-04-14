@@ -286,7 +286,10 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
      * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
      */
     private suspend fun ipcBridgeSelf(fromMMID: MMID): Ipc {
-      val pid = kotlinIpcPool.generatePid()
+      /**
+       * endpoint 的 初始ipc 的 id 为 0
+       */
+      val pid = 0
 
       /**
        * 向js模块发起连接

@@ -34,7 +34,7 @@ class IpcServerRequest(
       if (hasDuplex) {
         val debugTag = "PureServer/ipcToChannel"
         val forkedIpcId = duplexIpcId!!
-        ipc.debugIpc(debugTag) { "waitForkedIpc:$forkedIpcId" }
+        ipc.debugIpc(debugTag) { "waitForkedIpc=$forkedIpcId" }
         val channelIpc = ipc.waitForkedIpc(forkedIpcId)
         ipc.debugIpc(debugTag) { "forkedIpc=$channelIpc" }
 
