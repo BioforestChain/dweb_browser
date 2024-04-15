@@ -9,15 +9,17 @@ import Foundation
 import Observation
 
 @Observable class DownloadListViewModel {
-    var datas: [DownloadItem] = []
+    
+    var downloadedDatas: [DownloadItem] = []
+    var downloadingDatas: [DownloadItem] = []
     
     @ObservationIgnored
     private var toDeletes = Set<String>()
     
     var isEmpty: Bool {
-        return datas.isEmpty
+        return downloadingDatas.count + downloadedDatas.count == 0
     }
-    
+        
     @ObservationIgnored
     private lazy var dateFormater: DateFormatter = {
         let formater = DateFormatter()
@@ -51,25 +53,37 @@ import Observation
         
         let downloadDatas = browserViewDataSource.loadAllDownloadDatas()
                 
-        datas = downloadDatas?.map {
+        let allDatas = downloadDatas?.map {
             DownloadItem(id: $0.id,
                          mime: $0.mime.toDownloadDataType(),
                          title: $0.name,
                          date: dateStringCreator($0.date),
+                         dateValue: $0.date,
                          size: sizeStringCreator($0.size),
                          state: $0.toDownloadState())
         } ?? []
         
+        downloadingDatas = allDatas.filter({ !$0.isLoaded })
+        downloadedDatas = allDatas.filter({ $0.isLoaded })
+
         addDownloadObserverIfNeed(downloadDatas)
 
     }
         
-    func remove(_ indexSet: IndexSet) {
+    func removeDownloading(_ indexSet: IndexSet) {
         let deletes: [String] = indexSet.map { index in
-            datas[index].id
+            downloadingDatas[index].id
         }
         toDeletes.formUnion(deletes)
-        datas.remove(atOffsets: indexSet)
+        downloadingDatas.remove(atOffsets: indexSet)
+    }
+    
+    func removeDownloaded(_ indexSet: IndexSet) {
+        let deletes: [String] = indexSet.map { index in
+            downloadedDatas[index].id
+        }
+        toDeletes.formUnion(deletes)
+        downloadedDatas.remove(atOffsets: indexSet)
     }
     
     func commitEidt() {
@@ -93,20 +107,36 @@ import Observation
         
     }
     
-    func addDownloadObserverIfNeed(_ datas: [WebBrowserViewDownloadData]?) {
+    private func addDownloadObserverIfNeed(_ datas: [WebBrowserViewDownloadData]?) {
         guard let datas = datas, datas.count > 0 else { return }
         datas.forEach { [weak self] in
             guard let self = self, $0.isNeedObserved else { return }
-            browserViewDataSource.addDownloadObserver(id: $0.id, didChanged: self.downloadDataChanged)
+            browserViewDataSource.addDownloadObserver(id: $0.id, didChanged: self.downloadingDataChanged)
+        }
+    }
+        
+    private func downloadingDataChanged(data: WebBrowserViewDownloadData) {
+        DispatchQueue.main.async {
+            if let item = self.downloadingDatas.first(where: { $0.id == data.id }) {
+                item.updateState(data.toDownloadState())
+                self.downloadingToDownloadedHandleIfNeed(item)
+            }
+            Log("\(data.name) \(data.progress) \(Thread.current)")
         }
     }
     
-    func downloadDataChanged(data: WebBrowserViewDownloadData) {
-        datas.first { $0.id == data.id }?.updateState(data.toDownloadState())
-        Log("\(data.name) \(data.progress)")
+    private func downloadingToDownloadedHandleIfNeed(_ item: DownloadItem) {
+        guard item.isLoaded else { return }
+        downloadingDatas.removeAll { $0.id == item.id }
+        downloadedDatas.append(item)
+        downloadedDatas.sort { $0.dateValue > $1.dateValue }
     }
     
-    func removeAllDownloadObservers() {
+    private func removeAllDownloadObservers() {
         browserViewDataSource.removeAllDownloadObservers()
+    }
+    
+    func clear() {
+        removeAllDownloadObservers()
     }
 }

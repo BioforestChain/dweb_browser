@@ -83,7 +83,7 @@ extension String {
     }
 }
 
-@Observable class DownloadItem: Identifiable {
+class DownloadItem: Identifiable, ObservableObject {
     
     enum State {
         case none
@@ -106,29 +106,26 @@ extension String {
         }
     }
     
-    @ObservationIgnored
     let id: String
-    @ObservationIgnored
     let mime: DownloadDataMIME
-    @ObservationIgnored
     let title: String
-    @ObservationIgnored
-    let date: String
-    @ObservationIgnored
+    let date: String //时间戳
+    let dateValue: UInt64 //时间戳，排序用的。
     let size: String
     
-    var state: State
-    
+    @Published var state: State
+        
     var url: URL {
         let p = Bundle.main.path(forResource: "hello", ofType: "txt") ?? ""
         return URL(filePath: p)
     }
         
-    init(id: String, mime: DownloadDataMIME, title: String, date: String, size: String, state: State) {
+    init(id: String, mime: DownloadDataMIME, title: String, date: String, dateValue: UInt64, size: String, state: State) {
         self.id = id
         self.mime = mime
         self.title = title
         self.date = date
+        self.dateValue = dateValue
         self.size = size
         self.state = state
         updatePause()
@@ -136,15 +133,8 @@ extension String {
     
     func updateState(_ state: State) {
         Log("\(title) update: \(state)")
-        if case let .loading(p) = state,
-           case let .loading(oldP) = self.state {
-            if (p - oldP < 0.05) && (abs(p-1.0) > 0.01)  {
-                return
-            }
-        }
-        
         self.state = state
-        updatePause()
+        self.updatePause()
     }
     
     private func updatePause() {

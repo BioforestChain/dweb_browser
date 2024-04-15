@@ -21,12 +21,13 @@ struct DownloadListView: View {
         }
         .toolbarTitleDisplayMode(.automatic)
         .toolbarBackground(.white)
-        .navigationTitle("Download Manager")
+        .navigationTitle("Download")
         .task {
             viewModel.loadDatas()
         }
         .onDisappear(perform: {
             viewModel.commitEidt()
+            viewModel.clear()
         })
     }
     
@@ -47,20 +48,46 @@ struct DownloadListView: View {
     
     var listView: some View {
         List(content: {
-            ForEach(viewModel.datas, id: \.id) { data in
-                if data.isLoaded {
-                    NavigationLink {
-                        getPreview(data)
-                    } label: {
-                        DownloadItemView(data: data)
+            
+            let downloadingDatas = viewModel.downloadingDatas
+            if downloadingDatas.count > 0 {
+                Section(header: Text("下载中")) {
+                    ForEach(viewModel.downloadingDatas, id: \.id) { data in
+                        if data.isLoaded {
+                            NavigationLink {
+                                getPreview(data)
+                            } label: {
+                                DownloadItemView(data: data)
+                            }
+                        } else {
+                            DownloadItemView(data: data)
+                        }
                     }
-                } else {
-                    DownloadItemView(data: data)
+                    .onDelete(perform: { indexSet in
+                        viewModel.removeDownloading(indexSet)
+                    })
                 }
             }
-            .onDelete(perform: { indexSet in
-                viewModel.remove(indexSet)
-            })
+            
+            let downloadedDatas = viewModel.downloadedDatas
+            if downloadedDatas.count > 0 {
+                Section(header: Text("已下载")) {
+                    ForEach(viewModel.downloadedDatas, id: \.id) { data in
+                        if data.isLoaded {
+                            NavigationLink {
+                                getPreview(data)
+                            } label: {
+                                DownloadItemView(data: data)
+                            }
+                        } else {
+                            DownloadItemView(data: data)
+                        }
+                    }
+                    .onDelete(perform: { indexSet in
+                        viewModel.removeDownloaded(indexSet)
+                    })
+                }
+            }
         })
         .listStyle(.plain)
         .environment(viewModel)
@@ -76,7 +103,7 @@ struct DownloadListView: View {
 
 
 struct DownloadItemView: View {
-    @Bindable var data: DownloadItem
+    @StateObject var data: DownloadItem
     @Environment(DownloadListViewModel.self) var viewModel
     var body: some View {
         HStack {
@@ -125,7 +152,7 @@ struct DownloadItemView: View {
 
 
 struct Demo: View {
-    var data = DownloadItem(id: "", mime: .text("sss"), title: "Fuck", date: "2021-01", size: "11M", state: .pause(0.5))
+    var data = DownloadItem(id: "", mime: .text("sss"), title: "Fuck", date: "2021-01", dateValue: 0, size: "11M", state: .pause(0.5))
     var body: some View {
         List {
             DownloadItemView(data: data)
