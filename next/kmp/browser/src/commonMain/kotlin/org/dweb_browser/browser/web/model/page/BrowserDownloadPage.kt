@@ -50,16 +50,10 @@ class BrowserDownloadPage(browserController: BrowserController) : BrowserPage(br
   }
 
   /**
-   * 用于响应点击“下载中”列表的按钮
+   * 用于响应点击列表的按钮
    */
   fun clickDownloadButton(downloadItem: BrowserDownloadItem) =
     downloadController.clickDownloadButton(downloadItem)
-
-  /**
-   * 用于响应点击“已下载”列表的按钮
-   */
-  fun clickCompleteButton(downloadItem: BrowserDownloadItem) =
-    downloadController.clickCompleteButton(downloadItem)
 
   fun deleteDownloadItems(list: MutableList<BrowserDownloadItem>) =
     downloadController.deleteDownloadItems(list)

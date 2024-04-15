@@ -24,16 +24,10 @@ class BrowserDownloadModel(
   val alreadyExist = mutableStateOf(false)
 
   /**
-   * 用于响应点击“下载中”列表的按钮
+   * 用于响应按键
    */
   fun clickDownloadButton(downloadItem: BrowserDownloadItem) =
     downloadController.clickDownloadButton(downloadItem)
-
-  /**
-   * 用于响应点击“已下载”列表的按钮
-   */
-  fun clickCompleteButton(downloadItem: BrowserDownloadItem) =
-    downloadController.clickCompleteButton(downloadItem)
 
   /**
    * 用于响应重新下载操作，主要就是网页点击下载后，如果判断列表中已经存在下载数据时调用

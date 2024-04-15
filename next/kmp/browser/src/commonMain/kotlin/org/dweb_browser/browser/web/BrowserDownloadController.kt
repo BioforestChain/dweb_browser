@@ -2,6 +2,7 @@ package org.dweb_browser.browser.web
 
 import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.desk.upgrade.checkInstallPermission
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.ext.createChannelOfDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
@@ -14,7 +15,9 @@ import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadStore
 import org.dweb_browser.browser.web.data.BrowserDownloadType
 import org.dweb_browser.browser.web.model.BrowserDownloadModel
+import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.dwebview.WebDownloadArgs
+import org.dweb_browser.helper.falseAlso
 
 class BrowserDownloadController(
   private val browserNMM: BrowserNMM, private val browserController: BrowserController
@@ -50,7 +53,7 @@ class BrowserDownloadController(
   /**
    * 保存下载的数据
    */
-  fun saveDownloadList(download: Boolean = true, complete: Boolean = false) =
+  private fun saveDownloadList(download: Boolean = true, complete: Boolean = false) =
     browserNMM.ioAsyncScope.launch {
       if (download) downloadStore.saveDownloadList(saveDownloadList)
       if (complete) downloadStore.saveCompleteList(saveCompleteList)
@@ -99,6 +102,7 @@ class BrowserDownloadController(
           if (downloadTask.status.state == DownloadState.Completed) {
             saveDownloadList.remove(browserDownloadItem)
             saveCompleteList.add(0, browserDownloadItem)
+            browserDownloadItem.filePath = browserNMM.realFile(downloadTask.filepath) // 保存下载路径
             saveDownloadList(complete = true)
           } else {
             saveDownloadList()
@@ -133,10 +137,19 @@ class BrowserDownloadController(
   fun clickDownloadButton(downloadItem: BrowserDownloadItem) = browserNMM.ioAsyncScope.launch {
     when (downloadItem.state.state) {
       DownloadState.Completed -> {
-        if (downloadItem.fileSuffix.type == BrowserDownloadType.Application) {
-          // TODO 打开安装界面
-        } else {
-          // TODO 打开文件
+        // 判断类型如果是 Application 的话，就进行打开安装界面，如果返回失败，继续执行打开文件操作。
+        val installAppUtil = org.dweb_browser.browser.util.InstallAppUtil()
+        val openApp = if (downloadItem.fileSuffix.type == BrowserDownloadType.Application) {
+          // 打开安装界面
+          if (!checkInstallPermission(browserNMM)) {
+            installAppUtil.openSystemInstallSetting()
+          }
+          if (checkInstallPermission(browserNMM)) {
+            installAppUtil.installApp(downloadItem.filePath)
+          } else false
+        } else false
+        openApp.falseAlso {
+          installAppUtil.openOrShareFile(downloadItem.filePath)
         }
       }
 
@@ -148,12 +161,5 @@ class BrowserDownloadController(
         startDownload(downloadItem)
       }
     }
-  }
-
-  /**
-   * 用于响应点击“已下载”列表的按钮
-   */
-  fun clickCompleteButton(downloadItem: BrowserDownloadItem) = browserNMM.ioAsyncScope.launch {
-    // TODO 比如打开文档，打开应用安装界面等
   }
 }

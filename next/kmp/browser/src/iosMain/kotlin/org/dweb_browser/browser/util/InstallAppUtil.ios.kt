@@ -1,11 +1,11 @@
-package org.dweb_browser.browser.desk.version
+package org.dweb_browser.browser.util
 
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
 
-actual class NewVersionManage {
+actual class InstallAppUtil {
   init {
     SystemPermissionAdapterManager.append {
       when (task.name) {
@@ -27,11 +27,16 @@ actual class NewVersionManage {
     return null
   }
 
-  actual fun openSystemInstallSetting() {
+  actual fun openSystemInstallSetting() { // 打开系统的授权安装界面
     WARNING("Not yet implement openSystemInstallSetting")
   }
 
-  actual fun installApk(realPath: String) {
-    WARNING("Not yet implement installApk")
+  actual fun installApp(realPath: String): Boolean { // 安装应用
+    WARNING("Not yet implement installApp")
+    return false
+  }
+
+  actual fun openOrShareFile(realPath: String) {
+    WARNING("Not yet implement openOrShareFile => $realPath")
   }
 }

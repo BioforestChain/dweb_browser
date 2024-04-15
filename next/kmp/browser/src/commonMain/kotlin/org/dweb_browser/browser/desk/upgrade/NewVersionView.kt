@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.desk.version
+package org.dweb_browser.browser.desk.upgrade
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn

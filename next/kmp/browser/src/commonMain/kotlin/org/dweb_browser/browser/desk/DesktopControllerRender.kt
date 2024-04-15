@@ -14,7 +14,7 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import org.dweb_browser.browser.desk.version.NewVersionView
+import org.dweb_browser.browser.desk.upgrade.NewVersionView
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.helper.compose.LocalCompositionChain

@@ -179,7 +179,7 @@ private fun BrowserDownloadPage.BrowserDownloadHomePage(
 
             // 考虑 已下载 可能比较多，这边只显示五个。上面有个点击查看更多的操作。
             saveCompleteList.take(5).forEach { item ->
-              item.RowDownloadItem { clickCompleteButton(item) }
+              item.RowDownloadItem { clickDownloadButton(item) }
             }
           }
         }
@@ -221,7 +221,7 @@ private fun BrowserDownloadPage.BrowserDownloadMorePage(
           modifier = Modifier.fillMaxWidth().padding(8.dp)
         ) {
           saveCompleteList.forEach { item ->
-            item.RowDownloadItem { clickCompleteButton(item) }
+            item.RowDownloadItem { clickDownloadButton(item) }
           }
         }
       }

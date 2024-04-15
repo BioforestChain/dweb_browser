@@ -71,6 +71,7 @@ enum class FileSuffix(
   MP4("mp4", BrowserDownloadType.Video, Res.drawable.ic_download_video),
   AVI("avi", BrowserDownloadType.Video, Res.drawable.ic_download_video),
   RMVB("rmvb", BrowserDownloadType.Video, Res.drawable.ic_download_video),
+  WMV("wmv", BrowserDownloadType.Video, Res.drawable.ic_download_video),
 
   Other("*", BrowserDownloadType.Other, Res.drawable.ic_download_file),
   ;
@@ -89,6 +90,7 @@ data class BrowserDownloadItem(
   var fileName: String = "",
   var fileSuffix: FileSuffix = FileSuffix.Other,
   var downloadTime: Long = datetimeNow(), // 记录下载开始时间，等下载完成后，改为下载完成时间。用于排序
+  var filePath: String = "", // 用于保存下载文件的路径
 ) {
   var state by ObservableMutableState(_state) {
     _state = it
