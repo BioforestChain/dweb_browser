@@ -101,6 +101,7 @@ internal suspend fun pureChannelToIpcEvent(
     val ipcEvent = event.consumeFilter { it.name == eventData } ?: return@collectIn
     channelIpc.debugIpc(debugTag) { "inChannelData=$ipcEvent" }
     if (!ipcListenToChannel.isClosedForSend) ipcListenToChannel.send(ipcEvent.toPureFrame())
+    println("QAQ ipcListenToChannel.isClosedForSend=${ipcListenToChannel.isClosedForSend}")
   }.also { job ->
     channelIpc.launchJobs += job
     job.invokeOnCompletion {

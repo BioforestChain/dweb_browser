@@ -7,6 +7,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
@@ -253,8 +255,10 @@ abstract class IpcEndpoint {
       else -> {}
     }
     beforeClose?.invoke(cause)
+    val timeoutJob = scope.launch { delay(1000);println("QAQ TIMEOUT ${this@IpcEndpoint}") }
     /// 等待所有长任务完成
     launchJobs.joinAll()
+    timeoutJob.cancel()
     /// 关闭所有的子通道
     ipcMessageProducers.toList().map { (_, channel) ->
       channel.close(cause)

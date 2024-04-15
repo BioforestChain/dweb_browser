@@ -1,6 +1,7 @@
 package org.dweb_browser.core.ipc.helper
 
 import io.ktor.util.InternalAPI
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.IpcRequestInit
@@ -92,7 +93,7 @@ class IpcClientRequest(
   }
 
   internal val server = LateInit<IpcServerRequest>()
-  fun toServer(serverIpc: Ipc) = server.getOrInitSync {
+  suspend fun toServer(serverIpc: Ipc) = server.getOrInit {
     IpcServerRequest(
       reqId = reqId,
       url = url,
@@ -119,19 +120,15 @@ suspend fun PureClientRequest.toIpc(
     val eventNameBase = "$PURE_CHANNEL_EVENT_PREFIX${channelIpc.pid}"
 
     postIpc.debugIpc(debugTag) { "forkedIpc:${channelIpc.pid}" }
-    postIpc.scope.launch {
-      val pureChannel = pureRequest.getChannel()
-      /// 不论是请求者还是响应者
-      /// 那么意味着数据需要通过ipc来进行发送。所以我需要将 pureChannel 中要发送的数据读取出来进行发送
-      /// 反之，ipc收到的数据也要作为 pureChannel 的
-      val channelContext = pureChannel.start()
+    val pureChannel = pureRequest.getChannel()
+    postIpc.scope.launch(start = CoroutineStart.UNDISPATCHED) {
+      val ctx = pureChannel.start()
       channelIpc.debugIpc(debugTag, "pureChannel start")
-
       pureChannelToIpcEvent(
         channelIpc,
         pureChannel = pureChannel,
-        ipcListenToChannel = channelContext.incomeChannel,
-        channelForIpcPost = channelContext.outgoingChannel,
+        ipcListenToChannel = ctx.incomeChannel,
+        channelForIpcPost = ctx.outgoingChannel,
         debugTag = debugTag
       )
     }

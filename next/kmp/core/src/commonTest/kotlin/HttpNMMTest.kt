@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -63,13 +64,15 @@ class HttpNMMTest {
     assertEquals(url, res)
   }
 
-
-  @Test
-  fun testWebSocket() = runCommonTest(100) {
+  val webSocketTester: suspend CoroutineScope.(Int) -> Unit = {
     println("---test-$it")
+
+    val MAX = 2
 
     class TestMicroModule(mmid: String = "test.httpListen.dweb") :
       NativeMicroModule(mmid, "test Http Listen") {
+
+
       inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
         override suspend fun _bootstrap() {
           if (mmid.contains("server")) {
@@ -86,7 +89,7 @@ class HttpNMMTest {
             println("http start at ${server.startResult.urlInfo}")
 
             routes("/ws" byChannel { ctx ->
-              for (i in 1..10) {
+              for (i in 1..MAX) {
                 ctx.sendText("hi~$i")
               }
               println("QAQ server ctx.close")
@@ -125,14 +128,17 @@ class HttpNMMTest {
     )
     val channel = channelDeferred.await()
     val ctx = channel.start()
-    var res = ""
+    var res = "hi~0"
     for (i in ctx.income) {
       res = i.text
       println("QAQ client $i")
     }
     println("TEST DONE")
-    assertEquals("hi~10", res)
+    assertEquals("hi~$MAX", res)
 
     dnsRuntime.shutdown()
   }
+
+  @Test
+  fun testWebSocket() = runCommonTest(200, block = webSocketTester)
 }

@@ -30,7 +30,6 @@ import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.core.std.permission.ext.requestPermissions
-import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.listen
@@ -60,8 +59,6 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   })
 
   companion object {
-    private var ipc_acc by SafeInt(1)
-
     init {
       connectAdapterManager.append { fromMM, toMM, reason ->
         if (toMM is NativeMicroModule.NativeRuntime) {
@@ -164,14 +161,14 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           /// 根据host找到对应的路由模块
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
           var response: PureResponse? = null
-          println("QAQ routes=$routers")
+//          println("QAQ routes=$routers")
           if (routers != null) for (router in routers) {
-            println("QAQ ipcRequest=$ipcRequest")
+//            println("QAQ ipcRequest=$ipcRequest")
             val pureRequest = ipcRequest.toPure()
-            println("QAQ pureRequest=$pureRequest")
+//            println("QAQ pureRequest=$pureRequest")
             val res =
               router.withFilter(pureRequest)?.invoke(HandlerContext(pureRequest, clientIpc))
-            println("QAQ response=$response")
+//            println("QAQ response=$response")
             if (res != null) {
               response = res
               break
@@ -181,7 +178,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           clientIpc.postResponse(
             ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway)
           )
-          println("QAQ postResponse=${ipcRequest.reqId}")
+//          println("QAQ postResponse=${ipcRequest.reqId}")
         }
 
         /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯

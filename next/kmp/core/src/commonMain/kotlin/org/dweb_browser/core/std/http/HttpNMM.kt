@@ -135,13 +135,13 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
       /// TODO 30s 没有任何 body 写入的话，认为网关超时
 
-      debugHttp("httpHandler start", request.href)
+      debugHttp("httpHandler start") { "${request.href} >> ${gatewayMap[info.host]}" }
       /**
        * WARNING 我们底层使用 KtorCIO，它是完全以流的形式来将response的内容传输给web
        * 所以这里要小心，不要去读取 response 对象，否则 pos 会被偏移
        */
       val response = gatewayMap[info.host]?.listener?.hookHttpRequest(request.toServer())
-      debugHttp("httpHandler end", request.href)
+      debugHttp("httpHandler end") { "${request.href} => $response" }
 
       return response ?: PureResponse(HttpStatusCode.NotFound)
     }
@@ -234,9 +234,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         // 开启一个服务
         "/start" bind PureMethod.GET by defineJsonResponse {
           val subdomain = request.query("subdomain")
-          start(
-            ipc, DwebHttpServerOptions(subdomain)
-          ).toJsonElement()
+          start(ipc, DwebHttpServerOptions(subdomain)).toJsonElement()
         },
         /**
          * 使用当前的ipc，监听一个服务
@@ -528,14 +526,13 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     /**
      *  绑定流监听
      */
-    private suspend fun listen(
+    private fun listen(
       serverIpc: Ipc,
       token: String,
       routes: List<CommonRoute>,
     ) {
-      debugHttp("LISTEN", tokenMap.keys.toList())
+      debugHttp("LISTEN/start", token)
       val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
-      debugHttp("LISTEN/start", "host: ${gateway.urlInfo.host}, token: $token")
 
       /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
       /// 自己nmm销毁的时候，ipc也会被全部销毁
@@ -548,6 +545,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       for (routeConfig in routes) {
         gateway.listener.addRouter(routeConfig, serverIpc)
       }
+      debugHttp("LISTEN/end", gateway)
     }
 
     private fun close(ipc: Ipc, options: DwebHttpServerOptions): Boolean {

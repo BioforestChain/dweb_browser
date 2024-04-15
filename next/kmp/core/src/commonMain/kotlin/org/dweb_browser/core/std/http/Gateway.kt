@@ -9,11 +9,11 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureServerRequest
 
-class Gateway(
+data class Gateway(
   val listener: PortListener, val urlInfo: HttpNMM.ServerUrlInfo, val token: String,
 ) {
 
-  class PortListener(
+  data class PortListener(
     val mainIpc: Ipc, val host: String,
   ) {
     private val _routerSet = ConcurrentSet<StreamIpcRouter>()

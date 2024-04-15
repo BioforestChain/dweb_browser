@@ -3,6 +3,7 @@ package org.dweb_browser.helper
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -12,19 +13,37 @@ class OrderDeferred(var current: Job? = null) {
   val lock = SynchronizedObject()
   fun queue(key: Any?, scope: CoroutineScope, handler: suspend () -> Unit) = synchronized(lock) {
     val preJob = current;
-    scope.launch {
+    var done = false
+    println("QAQ OrderDeferred start: key=$key")
+    scope.launch(start = CoroutineStart.UNDISPATCHED) {
       preJob?.join();
       handler()
     }.also { job ->
       current = job
-//      job.invokeOnCompletion {
+      job.invokeOnCompletion {
+        done = true
+//        println("QAQ OrderDeferred done: key=$key pre=${preJob.hashCode()} cur=${current.hashCode()}")
 //        synchronized(lock) {
 //          if (current === job) {
 //            current = null
 //          }
 //        }
-//      }
-      println("QAQ OrderDeferred queue: key=$key pre=$preJob cur=$current")
+      }
+//      println("QAQ OrderDeferred queue: key=$key pre=${preJob.hashCode()} cur=${current.hashCode()}")
+      if (done) {
+        if (key == "close" || key == "trySend") {
+        } else if (key is String && (
+              //
+              key.startsWith("send=IpcResponse") ||
+                  //
+                  key.startsWith("send=IpcRequest") ||
+                  //
+                  key.contains("file://http.std.dweb/listen"))
+        ) {
+        } else {
+          WARNING("QAQ OrderDeferred maybe error: key=$key")
+        }
+      }
     }
   }
 

@@ -2,6 +2,7 @@ package org.dweb_browser.core.ipc.helper
 
 import io.ktor.util.InternalAPI
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.LateInit
@@ -38,9 +39,8 @@ class IpcServerRequest(
         val channelIpc = ipc.waitForkedIpc(forkedIpcId)
         ipc.debugIpc(debugTag) { "forkedIpc=$channelIpc" }
 
-        val pureChannelDeferred = CompletableDeferred<PureChannel>()
-        ipc.scope.launch {
-          val pureChannel = pureChannelDeferred.await();
+        val pureChannel = PureChannel()
+        ipc.scope.launch(start = CoroutineStart.UNDISPATCHED) {
           val ctx = pureChannel.start()
           ipc.debugIpc(debugTag) { "pureChannel start" }
           pureChannelToIpcEvent(
@@ -57,10 +57,10 @@ class IpcServerRequest(
           method = pureRequest.method,
           headers = headers.copy().apply { delete(X_IPC_UPGRADE_KEY) },
           body = pureRequest.body,
-          channel = pureChannelDeferred,
+          channel = CompletableDeferred(pureChannel),
           from = pureRequest.from,
         ).also { pureServerRequest ->
-          pureChannelDeferred.complete(PureChannel(pureServerRequest))
+          pureChannel.from = pureServerRequest
         }
       } else pureRequest.toServer()
     }

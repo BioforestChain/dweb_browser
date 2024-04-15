@@ -15,6 +15,7 @@ import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.await
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.now
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -340,5 +341,31 @@ class ProducerTest {
       }
       assertNull(err)
     }
+  }
+
+  @Test
+  fun closeTest() = runCommonTest(1000) {
+    println("---test-$it")
+
+    data class Data(val data: Int) : OrderBy {
+      override val order = 1
+    }
+
+    val MAX = 2
+
+    val producer = Producer<Data>("test", this)
+    val res = SafeLinkList<Data>()
+
+    producer.consumer("consumer1").collectIn(this) {
+      res.add(it.consume())
+      println("${now()} $it")
+    }
+    for (i in 1..MAX) {
+      producer.send(Data(i))
+    }
+    producer.close()
+
+    assertEquals(MAX, res.size)
+    producer.await()
   }
 }

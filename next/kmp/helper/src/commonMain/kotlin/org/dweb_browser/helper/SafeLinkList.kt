@@ -69,6 +69,8 @@ class SafeLinkList<T>(val origin: MutableList<T> = mutableListOf()) : MutableLis
   fun toMutableList() = sync { toMutableList() }
   fun toHashSet() = sync { toHashSet() }
 
+  fun firstOrNull() = sync { firstOrNull() }
+
   override fun toString(): String {
     return sync { origin.toString() }
   }

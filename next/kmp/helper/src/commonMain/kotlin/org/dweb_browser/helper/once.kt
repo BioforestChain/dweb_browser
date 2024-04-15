@@ -9,6 +9,7 @@ import kotlinx.atomicfu.update
 import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -33,7 +34,7 @@ class SuspendOnce<R>(val runnable: suspend CoroutineScope.() -> R) {
     return coroutineScope {
       synchronized(lock) {
         if (hasRun === noRun) {
-          hasRun = async {
+          hasRun = async(start = CoroutineStart.UNDISPATCHED) {
             runnable()
           }
         }
@@ -67,7 +68,7 @@ class SuspendOnce1<A1, R>(
       hasRun.updateAndGet { run ->
         if (run === noRun) {
           coroutineScope {
-            async {
+            async(start = CoroutineStart.UNDISPATCHED) {
               runnable(arg1)
             }
           }

@@ -3,6 +3,7 @@ package org.dweb_browser.core.module
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
@@ -24,6 +25,7 @@ import org.dweb_browser.helper.Producer
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SafeHashSet
+import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.listen
 import org.dweb_browser.pure.http.PureRequest
@@ -73,7 +75,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       }
     }
 
-    private val jobs = mutableSetOf<ScopeJob>()
+    private val jobs = SafeLinkList<ScopeJob>()
 
     /**
      * 使用当前的MicroModule的生命周期来启动一个job
@@ -83,17 +85,19 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
       context: CoroutineContext = EmptyCoroutineContext,
       cancelable: Boolean,
       action: suspend CoroutineScope.() -> Unit,
-    ) = mmScope.launch(context = context, block = action).also { job ->
-      ScopeJob(job, cancelable)
-    }
+    ) = mmScope.launch(context = context, block = action, start = CoroutineStart.UNDISPATCHED)
+      .also { job ->
+        ScopeJob(job, cancelable)
+      }
 
     fun <R> scopeAsync(
       context: CoroutineContext = EmptyCoroutineContext,
       cancelable: Boolean,
       action: suspend CoroutineScope.() -> R,
-    ) = mmScope.async(context = context, block = action).also { job ->
-      ScopeJob(job, cancelable)
-    }
+    ) = mmScope.async(context = context, block = action, start = CoroutineStart.UNDISPATCHED)
+      .also { job ->
+        ScopeJob(job, cancelable)
+      }
 
     private val stateLock = Mutex()
     private var state = MMState.SHUTDOWN
@@ -192,31 +196,29 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     /**
      * 收到一个连接，触发相关事件
      */
-    suspend fun beConnect(ipc: Ipc, reason: PureRequest?) {
-      scopeLaunch(cancelable = false) {
-        if (connectionLinks.add(ipc)) {
-          debugMM("beConnect", ipc)
-          // 这个ipc分叉出来的ipc也会一并归入管理
-          ipc.onFork("beConnect").listen {
-            ipc.debugIpc("onFork", it.data)
-            beConnect(it.consume(), null)
-          }
-          onBeforeShutdown.listen {
-            ipc.close()
-          }
-          ipc.onClosed {
-            connectionLinks.remove(ipc)
-          }
-          // 尝试保存到双向连接索引中
-          ipc.remote.mmid.also { remoteMmid ->
-            connectReason.withLock(remoteMmid) {
-              if (!connectionMap.contains(remoteMmid)) {
-                connectionMap[remoteMmid] = ipc
-              }
+    fun beConnect(ipc: Ipc, reason: PureRequest?): Job = scopeLaunch(cancelable = false) {
+      if (connectionLinks.add(ipc)) {
+        debugMM("beConnect", ipc)
+        // 这个ipc分叉出来的ipc也会一并归入管理
+        ipc.onFork("beConnect").listen {
+          ipc.debugIpc("onFork", it.data)
+          beConnect(it.consume(), null).join()
+        }
+        onBeforeShutdown.listen {
+          ipc.close()
+        }
+        ipc.onClosed {
+          connectionLinks.remove(ipc)
+        }
+        // 尝试保存到双向连接索引中
+        ipc.remote.mmid.also { remoteMmid ->
+          connectReason.withLock(remoteMmid) {
+            if (!connectionMap.contains(remoteMmid)) {
+              connectionMap[remoteMmid] = ipc
             }
           }
-          ipcConnectedProducer.send(IpcConnectArgs(ipc, reason))
         }
+        ipcConnectedProducer.send(IpcConnectArgs(ipc, reason))
       }
     }
   }

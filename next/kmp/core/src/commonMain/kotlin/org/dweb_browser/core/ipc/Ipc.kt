@@ -223,13 +223,14 @@ open class Ipc internal constructor(
     val reason = cause?.message
     sendLifecycleToRemote(IpcLifecycle.IpcClosing(reason))
     messageProducer.close(cause)
-    launchJobs.joinAll()
     closeDeferred.complete(cause)
     IpcLifecycle.IpcClosed(reason).also { closed ->
       lifecycleLocaleFlow.emit(closed)
       sendLifecycleToRemote(closed)
     }
-    messageProducer.close(cause)
+    val timeoutJob = scope.launch { delay(1000);println("QAQ TIMEOUT ${this@Ipc}") }
+    launchJobs.joinAll()
+    timeoutJob.cancel()
     scope.cancel(cause)
     debugIpc("closed", cause)
   }
@@ -299,7 +300,14 @@ open class Ipc internal constructor(
   ) = onMessage(name).mapNotNull { event ->
     event.next();
     mapNoNull(event.data)?.also { event.consume() }
-  }.asProducer(messageProducer.name + "/" + name, scope)
+  }.asProducer(messageProducer.name + "/" + name, scope).also { producer ->
+    onClosed { cause ->
+      launchJobs += scope.launch {
+        println("QAQ start ")
+        producer.close(cause.exceptionOrNull())
+      }
+    }
+  }
 
   private val requestProducer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     messagePipeMap("request") { ipcMessage ->
@@ -372,7 +380,7 @@ open class Ipc internal constructor(
         val result = reqResMap.remove(response.reqId) ?: return@collectIn debugIpc(
           "reqResMap", "onResponse", "no found response by reqId: ${event.data.reqId}"
         )
-        result.complete(event.consume())
+        result.complete(response)
       }
     }
   }

@@ -91,11 +91,11 @@ class NativeEndpoint(
          */
         launch(start = CoroutineStart.UNDISPATCHED) {
           getIpcMessageProducer(pid).also {
-            println("QAQ message-in-send pid=$pid ipcMessage=$ipcMessage")
+//            println("QAQ message-in-send pid=$pid ipcMessage=$ipcMessage")
             it.trySend(ipcMessage)
           }
         }
-        println("QAQ message-in-end pid=$pid ipcMessage=$ipcMessage")
+//        println("QAQ message-in-end pid=$pid ipcMessage=$ipcMessage")
       }
     }
   }
