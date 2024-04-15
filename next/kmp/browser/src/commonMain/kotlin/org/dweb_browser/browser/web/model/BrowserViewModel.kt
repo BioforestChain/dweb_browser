@@ -74,7 +74,7 @@ data class DwebLinkSearchItem(val link: String, val target: AppBrowserTarget) {
  * 这里作为 ViewModel
  */
 class BrowserViewModel(
-  private val browserController: BrowserController, internal val browserNMM: NativeMicroModule
+  internal val browserController: BrowserController, internal val browserNMM: NativeMicroModule
 ) {
   val browserOnVisible = browserController.onWindowVisible
   val browserOnClose = browserController.onCloseWindow
@@ -143,53 +143,6 @@ class BrowserViewModel(
         searchEngineList.addAll(engineList)
       }
     }
-  }
-
-  val allDownloadList: List<BrowserDownloadItem>
-    get() = downloadCompletedList + downloadingList
-
-  private val downloadCompletedList: List<BrowserDownloadItem>
-    get() = browserController.downloadController.saveCompleteList
-
-  private val downloadingList: List<BrowserDownloadItem>
-    get() = browserController.downloadController.saveDownloadList
-
-  suspend fun resumeDownload(id: UUID) {
-    downloadingList.firstOrNull {
-      it.id == id
-    }?.let {
-      browserController.downloadController.startDownload(it)
-    }
-  }
-
-  suspend fun pauseDownload(id: UUID) {
-    downloadingList.firstOrNull {
-      it.id == id
-    }?.let {
-      browserController.downloadController.pauseDownload(it)
-    }
-  }
-
-  fun watchDownload(id: UUID, action:(BrowserDownloadItem)->Unit) {
-    downloadingList.firstOrNull {
-      it.id == id
-    }?.let { it ->
-      it.stateSignal.toListener().invoke { state ->
-        action(it)
-      }
-    }
-  }
-
-  fun detetedDonwload(ids: List<String>) {
-    allDownloadList.filter {
-      ids.contains(it.id)
-    }?.let {
-      browserController.downloadController.deleteDownloadItems(it.toMutableList())
-    }
-  }
-
-  fun getDownloadLocalPath(taskId: String): String? {
-    return null
   }
 
   suspend fun readFile(path: String) = browserNMM.readFile(path,create = false).binary()

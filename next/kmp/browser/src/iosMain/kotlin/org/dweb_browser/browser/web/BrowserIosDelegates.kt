@@ -10,6 +10,7 @@ import org.dweb_browser.browser.web.data.WebSiteType
 import org.dweb_browser.browser.web.model.BrowserViewModel
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.DeepLinkHook.Companion.deepLinkHook
 import org.dweb_browser.helper.platform.NSDataHelper.toByteArray
@@ -65,14 +66,24 @@ class BrowserIosDelegate(private var browserViewModel: BrowserViewModel) : NSObj
       completed(data.toNSData(), null)
     }
   }
+
+  fun destory() {
+
+  }
 }
 
 
 @OptIn(ExperimentalForeignApi::class)
-class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSObject(),
+class BrowserIosDataSource(val browserViewModel: BrowserViewModel) : NSObject(),
   WebBrowserViewDataSourceProtocol {
 
   private val scope = browserViewModel.ioScope
+
+  private val browserViewModelHelper = BrowserViewModelIosHelper(browserViewModel)
+
+  fun destory() {
+    browserViewModelHelper.destory()
+  }
 
   override fun getDatasFor(for_: String, params: Map<Any?, *>?): Map<Any?, *>? {
     // kmp与iOS快速调试代码调用点。
@@ -207,20 +218,22 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
   //#endregion
 
   //#region download
-  override fun loadAllDownloadDatas(): List<*>? = browserViewModel.allDownloadList.map {
+  private val download = browserViewModelHelper.download
+
+  override fun loadAllDownloadDatas(): List<*>? = download.allDownloadList.map {
     it.toIOS()
   }
 
   override fun removeDownloadWithIds(ids: List<*>) {
     val ids = ids as List<String>
-    browserViewModel.detetedDonwload(ids)
+    download.deletedDonwload(ids)
   }
 
   override fun addDownloadObserverWithId(
     id: String,
     didChanged: (WebBrowserViewDownloadData?) -> Unit
   ) {
-    browserViewModel.watchDownload(id) {
+    download.addDownloadProgressListenerIfNeed(id) {
       val model = it.toIOS()
       println("[iOS] watchDownload: ${it.state.total} ${it.state.current}")
       didChanged(model)
@@ -228,18 +241,18 @@ class BrowserIosDataSource(private val browserViewModel: BrowserViewModel) : NSO
   }
 
   override fun removeAllDownloadObservers() {
-    TODO("Not yet implemented")
+    download.removeAllDonwloadProgressListener()
   }
 
   override fun pauseDownloadWithId(id: String) {
     scope.launch {
-      browserViewModel.pauseDownload(id)
+      download.pauseDownload(id)
     }
   }
 
   override fun resumeDownloadWithId(id: String) {
     scope.launch {
-      browserViewModel.resumeDownload(id)
+      download.resumeDownload(id)
     }
   }
 

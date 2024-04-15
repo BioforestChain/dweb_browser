@@ -84,13 +84,12 @@ data class BrowserDownloadItem(
   val urlKey: String,
   val downloadArgs: WebDownloadArgs,
   var taskId: TaskId? = null,
+  @SerialName("state")
+  private var _state: DownloadStateEvent = DownloadStateEvent(),
   var fileName: String = "",
   var fileSuffix: FileSuffix = FileSuffix.Other,
   var downloadTime: Long = datetimeNow(), // 记录下载开始时间，等下载完成后，改为下载完成时间。用于排序
 ) {
-  @SerialName("state")
-  private var _state: DownloadStateEvent = DownloadStateEvent()
-
   var state by ObservableMutableState(_state) {
     _state = it
     CoroutineScope(Dispatchers.IO).launch {
@@ -104,8 +103,9 @@ data class BrowserDownloadItem(
   var alreadyWatch: Boolean = false
 
   @Transient
-  var stateSignal = Signal<DownloadStateEvent>()
-
+  private var stateSignal = Signal<DownloadStateEvent>()
+  @Transient
+  val stateChanged = stateSignal.toListener()
 }
 
 class BrowserDownloadStore(mm: MicroModule) {

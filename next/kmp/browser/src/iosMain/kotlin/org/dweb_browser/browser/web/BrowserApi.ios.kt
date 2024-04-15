@@ -2,6 +2,7 @@ package org.dweb_browser.browser.web
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,6 +46,8 @@ private fun winClose(): Unit {
     it.browserClear()
   }
   iOSViewHolder = null
+  iOSViewDelegateHolder?.destory()
+  iOSViewDataSourceHolder?.destory()
   iOSViewDelegateHolder = null
   iOSViewDataSourceHolder = null
 }
@@ -92,13 +95,20 @@ actual fun CommonBrowserView(
     }
   }
 
-  val iOSDataSource = remember {
+  val iOSDataSource = remember(viewModel) {
     when (val dataSource = iOSViewDataSourceHolder) {
       null -> BrowserIosDataSource(viewModel).apply {
         iOSViewDataSourceHolder = this
       }
 
       else -> dataSource
+    }
+  }
+
+  DisposableEffect(viewModel) {
+    onDispose {
+      iOSDelegate.destory()
+      iOSDataSource.destory()
     }
   }
 
