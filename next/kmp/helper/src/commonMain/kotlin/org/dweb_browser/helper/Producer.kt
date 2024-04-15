@@ -235,13 +235,13 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     internal val collectorLock = Mutex()
     private val startCollect = SuspendOnce {
       val job = scope.launch(start = CoroutineStart.UNDISPATCHED) {
-        println("QAQ startCollect ${
+        debugProducer("startCollect") {
           Exception().stackTraceToString().split("\n").firstOrNull {
             it.trim().run {
               startsWith("at org.dweb_browser") && !(startsWith("at org.dweb_browser.helper"))
             }
           }
-        }")
+        }
         for (event in input) {
           // 同一个事件的处理，不做任何阻塞，直接发出
           // 这里包一层launch，目的是确保不阻塞input的循环，从而确保上游event能快速涌入
@@ -316,10 +316,10 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       }
     }
 
-    val timeoutJob = scope.launch { delay(1000);println("QAQ TIMEOUT ${this@Producer}") }
-    // 等待消费者全部完成
-    buffers.toList().joinAll()
-    timeoutJob.cancel()
+    traceTimeout(1000, { this@Producer }) {
+      // 等待消费者全部完成
+      buffers.toList().joinAll()
+    }
 
     debugProducer("close", "close consumers")
     // 关闭消费者channel，表示彻底无法再发数据

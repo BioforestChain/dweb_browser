@@ -33,7 +33,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
 
     /// 提供图标文件的适配器。注意，这里不需要随着 BrowserNMM bootstrap 来安装，而是始终有效。
     /// 因为只要存在 BrowserNMM 这个模块，那么就会有桌面链接图标
-    nativeFetchAdaptersManager.append { fromMM, request ->
+    nativeFetchAdaptersManager.append(order = 5) { fromMM, request ->
       return@append request.respondLocalFile {
         if (filePath.startsWith("/web_icons/")) {
           debugBrowser("IconFile", "$fromMM => ${request.href}")

@@ -214,14 +214,12 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       })
 
       /// 为 nativeFetch 函数提供支持
-      nativeFetchAdaptersManager.append { fromMM, request ->
+      nativeFetchAdaptersManager.append(order = 10) { fromMM, request ->
         if ((request.url.protocol == URLProtocol.HTTP || request.url.protocol == URLProtocol.HTTPS || request.url.protocol == URLProtocol.WS || request.url.protocol == URLProtocol.WSS) && request.url.host.endsWith(
             ".dweb"
           )
         ) {
-          debugFetch(
-            "HTTP/nativeFetch", "$fromMM => ${request.href} authority-> ${dwebServer.authority}"
-          )
+          debugFetch("HTTP/nativeFetch") { "$fromMM => ${request.href} authority-> ${dwebServer.authority}" }
           // 头部里添加 X-Dweb-Host
           request.headers.set("X-Dweb-Host", request.url.run { "$host:$port" })
           // 无需走网络层，直接内部处理掉

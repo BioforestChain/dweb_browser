@@ -41,6 +41,7 @@ import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.asProducer
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.traceTimeout
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.IPureBody
@@ -228,9 +229,9 @@ open class Ipc internal constructor(
       lifecycleLocaleFlow.emit(closed)
       sendLifecycleToRemote(closed)
     }
-    val timeoutJob = scope.launch { delay(1000);println("QAQ TIMEOUT ${this@Ipc}") }
-    launchJobs.joinAll()
-    timeoutJob.cancel()
+    traceTimeout(1000, { this@Ipc }) {
+      launchJobs.joinAll()
+    }
     scope.cancel(cause)
     debugIpc("closed", cause)
   }
@@ -303,7 +304,6 @@ open class Ipc internal constructor(
   }.asProducer(messageProducer.name + "/" + name, scope).also { producer ->
     onClosed { cause ->
       launchJobs += scope.launch {
-        println("QAQ start ")
         producer.close(cause.exceptionOrNull())
       }
     }

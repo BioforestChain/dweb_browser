@@ -57,7 +57,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
     dweb_deeplinks = listOf("dweb://install")
     /// 提供JsMicroModule的文件适配器
     /// 这个适配器不需要跟着bootstrap声明周期，只要存在JmmNMM模块，就能生效
-    nativeFetchAdaptersManager.append { fromMM, request ->
+    nativeFetchAdaptersManager.append(order = 3) { fromMM, request ->
       val usrRootMap = mutableMapOf<String, Deferred<String>>()
       return@append request.respondLocalFile {
         if (filePath.startsWith("/usr/")) {

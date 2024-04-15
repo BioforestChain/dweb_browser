@@ -5,6 +5,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
@@ -59,12 +61,12 @@ suspend inline fun <T> withMainContextCommon(crossinline block: suspend () -> T)
 
 suspend fun <T> withScope(
   scope: CoroutineScope,
-  block: suspend CoroutineScope.() -> T
+  block: suspend CoroutineScope.() -> T,
 ) = withContext(scope.coroutineContext, block)
 //  scope.async(block=block).await()
 
 inline fun CoroutineScope.launchWithMain(
-  crossinline block: suspend () -> Unit
+  crossinline block: suspend () -> Unit,
 ) = launch { withMainContext(block) }
 
 
@@ -202,3 +204,19 @@ class Debugger(val scope: String) {
 }
 
 val debugTest = Debugger("test")
+val debugTimeout = Debugger("timeout")
+suspend inline fun <R> traceTimeout(
+  ms: Long,
+  crossinline log: () -> Any?,
+  crossinline block: suspend () -> R,
+) {
+  if (debugTimeout.isEnable) {
+    coroutineScope {
+      val timeoutJob = launch { delay(ms);debugTimeout("traceTimeout", msgGetter = log) }
+      block()
+      timeoutJob.cancel()
+    }
+  } else {
+    block()
+  }
+}

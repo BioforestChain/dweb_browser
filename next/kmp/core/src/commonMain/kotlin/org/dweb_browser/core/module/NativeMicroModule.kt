@@ -77,7 +77,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
        * 对全局的自定义路由提供适配器
        * 对 nativeFetch 定义 file://xxx.dweb的解析
        */
-      nativeFetchAdaptersManager.append { fromMM, request ->
+      nativeFetchAdaptersManager.append(order = 1) { fromMM, request ->
         if (request.url.protocol.name == "file" && request.url.host.endsWith(".dweb")) {
           val mpid = request.url.host
           fromMM.debugMM("fetch ipc", "$fromMM => ${request.href}")
@@ -153,7 +153,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         clientIpc.onRequest("file-dweb-router").collectIn(mmScope) { event ->
           val ipcRequest = event.consumeFilter {
             when (it.uri.protocol.name) {
-              "file", "dweb", "https" -> true
+              "file", "dweb" -> true
               else -> false
             }
           } ?: return@collectIn
@@ -161,14 +161,10 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           /// 根据host找到对应的路由模块
           val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
           var response: PureResponse? = null
-//          println("QAQ routes=$routers")
           if (routers != null) for (router in routers) {
-//            println("QAQ ipcRequest=$ipcRequest")
             val pureRequest = ipcRequest.toPure()
-//            println("QAQ pureRequest=$pureRequest")
             val res =
               router.withFilter(pureRequest)?.invoke(HandlerContext(pureRequest, clientIpc))
-//            println("QAQ response=$response")
             if (res != null) {
               response = res
               break
@@ -178,7 +174,6 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           clientIpc.postResponse(
             ipcRequest.reqId, response ?: PureResponse(HttpStatusCode.BadGateway)
           )
-//          println("QAQ postResponse=${ipcRequest.reqId}")
         }
 
         /// 在 NMM 这里，只要绑定好了，就可以开始握手通讯

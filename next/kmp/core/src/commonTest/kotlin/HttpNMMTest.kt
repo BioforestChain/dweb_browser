@@ -82,7 +82,10 @@ class HttpNMMTest {
             serverIpc.onRequest("listen").collectIn(mmScope) { event ->
               val ipcServerRequest = event.consume()
               println("QAQ GG onRequest=$ipcServerRequest")
-              val response = nativeFetch(ipcServerRequest.toPure().toClient())
+              val pureClientRequest = ipcServerRequest.toPure().toClient()
+                .run { copy(href = href.replace(Regex("https://[^/]+") , "file://$mmid")) }
+              println("QAQ GG pureClientRequest=$pureClientRequest")
+              val response = nativeFetch(pureClientRequest)
               println("QAQ GG response=$response")
               serverIpc.postResponse(ipcServerRequest.reqId, response)
             }

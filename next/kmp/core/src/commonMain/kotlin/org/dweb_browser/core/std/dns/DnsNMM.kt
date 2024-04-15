@@ -6,7 +6,6 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonNull
@@ -243,7 +242,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       addRunningApp(RunningApp(this@DnsNMM, CompletableDeferred(this)))
 
       /** dwebDeepLink 适配器*/
-      nativeFetchAdaptersManager.append { fromMM, request ->
+      nativeFetchAdaptersManager.append(order = 0) { fromMM, request ->
         if (request.href.startsWith("dweb:")) {
           debugDNS("fetch deeplink", "$fromMM => ${request.href}")
           for (microModule in allApps.values) {
@@ -347,7 +346,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       } ?: run {
         debugDNS("dns_open", "$mmpt(by ${fromMM.mmid})")
         val app = query(mmpt, fromMM) ?: throw Exception("no found app: $mmpt")
-        RunningApp(app, mmScope.async { bootstrapMicroModule(app) })
+        RunningApp(app, scopeAsync(cancelable = false) { bootstrapMicroModule(app) })
       }
     }.let { running ->
       addRunningApp(running)
