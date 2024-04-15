@@ -132,5 +132,7 @@ class HttpNMMTest {
     }
     println("TEST DONE")
     assertEquals("hi~10", res)
+
+    dnsRuntime.shutdown()
   }
 }

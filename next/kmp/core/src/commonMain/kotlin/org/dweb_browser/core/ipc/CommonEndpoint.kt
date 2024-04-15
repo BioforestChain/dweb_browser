@@ -96,10 +96,7 @@ abstract class CommonEndpoint(
             when (endpointMessage) {
               is EndpointLifecycle -> lifecycleRemoteMutableFlow.emit(endpointMessage)
               is EndpointIpcMessage -> getIpcMessageProducer(endpointMessage.pid).also {
-                when {
-                  it.isClosedForSend -> it.sendBeacon(endpointMessage.ipcMessage)
-                  else -> it.send(endpointMessage.ipcMessage)
-                }
+                it.trySend(endpointMessage.ipcMessage)
               }
             }
           }

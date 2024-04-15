@@ -91,13 +91,11 @@ class NativeEndpoint(
          */
         launch(start = CoroutineStart.UNDISPATCHED) {
           getIpcMessageProducer(pid).also {
-            when {
-              it.isClosedForSend -> it.sendBeacon(ipcMessage)
-              else -> it.send(ipcMessage)
-            }
+            println("QAQ message-in-send pid=$pid ipcMessage=$ipcMessage")
+            it.trySend(ipcMessage)
           }
         }
-        debugEndpoint("message-in-end", "pid=$pid ipcMessage=$ipcMessage")
+        println("QAQ message-in-end pid=$pid ipcMessage=$ipcMessage")
       }
     }
   }

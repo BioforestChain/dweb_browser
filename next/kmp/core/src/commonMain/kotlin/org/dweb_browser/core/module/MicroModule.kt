@@ -229,6 +229,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   suspend fun bootstrap(bootstrapContext: BootstrapContext) = runtimeLock.withLock {
     runtimeOrNull ?: createRuntime(bootstrapContext).also {
       runtimeOrNull = it
+      it.onShutdown {
+        runtimeOrNull = null
+      }
       it.bootstrap()
     }
   }

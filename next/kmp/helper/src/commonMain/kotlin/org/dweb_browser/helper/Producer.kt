@@ -151,8 +151,13 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     }
   }
 
+
   suspend fun send(value: T, order: Int? = null) = actionQueue.queue("send") {
     ensureOpen()
+    doSend(value, order)
+  }
+
+  private fun doSend(value: T, order: Int?) {
     val event = Event(value, order)
     buffers.add(event)
     if (buffers.size > 10) {
@@ -165,6 +170,10 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   }
 
   suspend fun sendBeacon(value: T, order: Int? = null) = actionQueue.queue("sendBeacon") {
+    doSendBeacon(value, order)
+  }
+
+  private suspend fun doSendBeacon(value: T, order: Int?) {
     val event = Event(value, order)
     doEmit(event)
     when {
@@ -172,6 +181,15 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       else -> debugProducer("lostBeacon", event)
     }
   }
+
+  suspend fun trySend(value: T, order: Int? = null) = actionQueue.queue("tryBeacon") {
+    if (isClosedForSend) {
+      doSendBeacon(value, order)
+    } else {
+      doSend(value, order)
+    }
+  }
+
 
   @OptIn(DelicateCoroutinesApi::class)
   private suspend fun doEmit(event: Event) {
