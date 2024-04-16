@@ -1,6 +1,5 @@
 package org.dweb_browser.core.ipc.helper
 
-import io.ktor.util.InternalAPI
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.Ipc
@@ -108,7 +107,6 @@ class IpcClientRequest(
   internal val pure = LateInit<PureClientRequest>()
 }
 
-@OptIn(InternalAPI::class)
 suspend fun PureClientRequest.toIpc(
   reqId: Int,
   postIpc: Ipc,
@@ -116,19 +114,18 @@ suspend fun PureClientRequest.toIpc(
   val pureRequest = this
   if (pureRequest.hasChannel) {
     val debugTag = "IpcClient/channelToIpc"
-    val channelIpc = postIpc.fork(autoStart = true, startReason = "PureClientRequestToIpc")
+
+    /**
+     * 这里不能自动开始
+     */
+    val channelIpc = postIpc.fork(autoStart = false, startReason = "PureClientRequestToIpc")
+    postIpc.debugIpc(debugTag) { "forkedIpc=${channelIpc}" }
     val eventNameBase = "$PURE_CHANNEL_EVENT_PREFIX${channelIpc.pid}"
 
-    postIpc.debugIpc(debugTag) { "forkedIpc:${channelIpc.pid}" }
-    val pureChannel = pureRequest.getChannel()
     postIpc.scope.launch(start = CoroutineStart.UNDISPATCHED) {
-      val ctx = pureChannel.start()
-      channelIpc.debugIpc(debugTag, "pureChannel start")
       pureChannelToIpcEvent(
         channelIpc,
-        pureChannel = pureChannel,
-        ipcListenToChannel = ctx.incomeChannel,
-        channelForIpcPost = ctx.outgoingChannel,
+        pureChannelDeferred = pureRequest.channel!!,
         debugTag = debugTag
       )
     }

@@ -40,14 +40,11 @@ class IpcServerRequest(
         ipc.debugIpc(debugTag) { "forkedIpc=$channelIpc" }
 
         val pureChannel = PureChannel()
+        val pureChannelDeferred = CompletableDeferred(pureChannel)
         ipc.scope.launch(start = CoroutineStart.UNDISPATCHED) {
-          val ctx = pureChannel.start()
-          ipc.debugIpc(debugTag) { "pureChannel start" }
           pureChannelToIpcEvent(
             channelIpc,
-            pureChannel = pureChannel,
-            ipcListenToChannel = ctx.incomeChannel,
-            channelForIpcPost = ctx.outgoingChannel,
+            pureChannelDeferred = pureChannelDeferred,
             debugTag = debugTag,
           )
         }
@@ -57,7 +54,7 @@ class IpcServerRequest(
           method = pureRequest.method,
           headers = headers.copy().apply { delete(X_IPC_UPGRADE_KEY) },
           body = pureRequest.body,
-          channel = CompletableDeferred(pureChannel),
+          channel = pureChannelDeferred,
           from = pureRequest.from,
         ).also { pureServerRequest ->
           pureChannel.from = pureServerRequest

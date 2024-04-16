@@ -1,8 +1,10 @@
 package org.dweb_browser.core.ipc.helper
 
 import io.ktor.http.Url
+import io.ktor.util.InternalAPI
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
@@ -80,35 +82,47 @@ sealed class IpcRequest(
  * 一个将 pureChannel 与 ipc 进行关联转换的函数
  *
  * 目前这里使用一个 ipcEvent 来承载 pureChannel，二者转换几乎没有性能损失
+ *
+ * 请使用 launch(start = CoroutineStart.UNDISPATCHED) 启动这个函数，因为我们要尽量确保消息不丢失，而我们是依靠 orderBy 来消费 event，因此如果没有消费函数的阻塞，那么closing会自然而然地执行，
  */
-@OptIn(DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
 internal suspend fun pureChannelToIpcEvent(
   channelIpc: Ipc,
-  pureChannel: PureChannel,
-  /**收到ipcEvent时，需要对其进行接收的 channel*/
-  ipcListenToChannel: SendChannel<PureFrame>,
-  /**收到pureFrame时，需要将其转发给ipc的 channel*/
-  channelForIpcPost: ReceiveChannel<PureFrame>,
+  pureChannelDeferred: Deferred<PureChannel>,
   debugTag: String,
 ) {
   val eventData = "${PURE_CHANNEL_EVENT_PREFIX}data"
+
+  val ipcListenToChannelDeferred = CompletableDeferred<SendChannel<PureFrame>>()
+  /// 这里需要立刻开始绑定事件，否则外部可能对ipc进行start，最终导致直接 ipc 关闭。那么这些 event 就会因为 close 而被强制消费
+  val job = channelIpc.onEvent("IpcEventToPureChannel").collectIn(channelIpc.scope) { event ->
+    val ipcEvent = event.consumeFilter { it.name == eventData } ?: return@collectIn
+    channelIpc.debugIpc(debugTag) { "inChannelData=$ipcEvent" }
+    val ipcListenToChannel = ipcListenToChannelDeferred.await()
+    if (!ipcListenToChannel.isClosedForSend) ipcListenToChannel.send(ipcEvent.toPureFrame())
+  }
+  channelIpc.launchJobs += job
+  // 等待外部提供 pureChannel
+  val pureChannel = pureChannelDeferred.await()
+  /// 绑定 ipc => channel 的关闭
   channelIpc.onClosed {
     channelIpc.debugIpc(debugTag) { "ipc will-close outgoing-channel" }
     // 这里只是关闭输出
     pureChannel.closeOutgoing()
   }
-  channelIpc.onEvent("IpcEventToPureChannel").collectIn(channelIpc.scope) { event ->
-    val ipcEvent = event.consumeFilter { it.name == eventData } ?: return@collectIn
-    channelIpc.debugIpc(debugTag) { "inChannelData=$ipcEvent" }
-    if (!ipcListenToChannel.isClosedForSend) ipcListenToChannel.send(ipcEvent.toPureFrame())
-  }.also { job ->
-    channelIpc.launchJobs += job
-    job.invokeOnCompletion {
-      channelIpc.debugIpc(debugTag) { "ipc will-close channel" }
-      // 这里做完全的关闭
-      pureChannel.close()
-    }
+  job.invokeOnCompletion {
+    channelIpc.debugIpc(debugTag) { "ipc will-close channel" }
+    // 这里做完全的关闭
+    pureChannel.close()
   }
+  val ctx = pureChannel.start()
+  channelIpc.debugIpc(debugTag) { "pureChannel start" }
+  /**收到ipcEvent时，需要对其进行接收的 channel*/
+  ipcListenToChannelDeferred.complete(ctx.incomeChannel)
+  /**收到pureFrame时，需要将其转发给ipc的 channel*/
+  val channelForIpcPost = ctx.outgoingChannel
+
+  channelIpc.start(reason = debugTag)
   /// 将PureFrame转成IpcEvent，然后一同发给对面
   for (pureFrame in channelForIpcPost) {
     val ipcDataEvent = IpcEvent.fromPureFrame(
@@ -119,7 +133,7 @@ internal suspend fun pureChannelToIpcEvent(
     channelIpc.debugIpc(debugTag) { "outChannelData=$ipcDataEvent" }
     channelIpc.postMessage(ipcDataEvent)
   }
-  // 关闭的时候，同时关闭 channelIpc
+  /// 绑定 channel => ipc 的关闭
   channelIpc.debugIpc(debugTag) { "channel will-close ipc" }
   channelIpc.close()
 }
