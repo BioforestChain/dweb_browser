@@ -26,6 +26,20 @@ val moduleIpc = SerializersModule {
     subclass(IpcError::class)
     subclass(IpcFork::class)
   }
+  polymorphic(IpcLifecycleState::class) {
+    subclass(IpcLifecycleInit::class)
+    subclass(IpcLifecycleOpening::class)
+    subclass(IpcLifecycleOpened::class)
+    subclass(IpcLifecycleClosing::class)
+    subclass(IpcLifecycleClosed::class)
+  }
+  polymorphic(EndpointLifecycleState::class) {
+    subclass(EndpointLifecycleInit::class)
+    subclass(EndpointLifecycleOpening::class)
+    subclass(EndpointLifecycleOpened::class)
+    subclass(EndpointLifecycleClosing::class)
+    subclass(EndpointLifecycleClosed::class)
+  }
   polymorphic(EndpointMessage::class) {
     subclass(EndpointIpcMessage::class)
     subclass(EndpointLifecycle::class)
@@ -33,45 +47,16 @@ val moduleIpc = SerializersModule {
 }
 
 val JsonIpc = Json {
+  encodeDefaults = true
   ignoreUnknownKeys = true
   serializersModule = moduleIpc
 }
 
 @OptIn(ExperimentalSerializationApi::class)
 val CborIpc = Cbor {
+  encodeDefaults = true
   ignoreUnknownKeys = true
   serializersModule = moduleIpc
-}
-
-object IpcMessageConst {
-  @OptIn(ExperimentalSerializationApi::class)
-  val closeCborByteArray = CborIpc.encodeToByteArray("close")
-  val closeByteArray = "close".encodeToByteArray()
-
-  @OptIn(ExperimentalSerializationApi::class)
-  val pingCborByteArray = CborIpc.encodeToByteArray("ping")
-  val pingByteArray = "ping".encodeToByteArray()
-
-  @OptIn(ExperimentalSerializationApi::class)
-  val pongCborByteArray = CborIpc.encodeToByteArray("pong")
-  val pongByteArray = "pong".encodeToByteArray()
-}
-
-/***
- * 用于cbor解析type属于何种类型
- * 原因：无法使用IpcMessage，因为IpcMessage是密封类，无法直接构造
- */
-private class IpcMessageType(val type: IPC_MESSAGE_TYPE)
-
-fun unByteSpecial(data: ByteArray): ByteArray? {
-  // 判断特殊的字节
-  if (data.contentEquals(IpcMessageConst.closeCborByteArray) || data.contentEquals(IpcMessageConst.pingCborByteArray) || data.contentEquals(
-      IpcMessageConst.pongCborByteArray
-    )
-  ) {
-    return data
-  }
-  return null
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -82,47 +67,53 @@ inline fun jsonToEndpointMessage(data: String) = JsonIpc.decodeFromString<Endpoi
 
 @OptIn(ExperimentalSerializationApi::class)
 fun endpointMessageToCbor(message: EndpointMessage) =
-  CborIpc.encodeToByteArray<EndpointMessage>(serializableIpcMessage(message))
+  CborIpc.encodeToByteArray<EndpointMessage>(serializableEndpointMessage(message, false))
 
 fun endpointMessageToJson(message: EndpointMessage) =
-  JsonIpc.encodeToString<EndpointMessage>(serializableIpcMessage(message))
+  JsonIpc.encodeToString<EndpointMessage>(serializableEndpointMessage(message, true))
 
 @Suppress("UNCHECKED_CAST")
-fun <T : EndpointMessage> normalizeIpcMessage(ipcPoolPack: T, ipc: Ipc): T = when (ipcPoolPack) {
-  is EndpointIpcMessage -> when (val ipcMessage = ipcPoolPack.ipcMessage) {
-    is IpcReqMessage -> IpcServerRequest(
-      ipcMessage.reqId,
-      ipcMessage.url,
-      ipcMessage.method,
-      PureHeaders(ipcMessage.headers),
-      IpcBodyReceiver.from(ipcMessage.metaBody, ipc),
-      ipc
-    ).let { ipcPoolPack.copy(ipcMessage = it) as T }
+fun <T : IpcMessage> normalizeIpcMessage(ipcMessage: T, ipc: Ipc): T = when (ipcMessage) {
+  is IpcReqMessage -> IpcServerRequest(
+    ipcMessage.reqId,
+    ipcMessage.url,
+    ipcMessage.method,
+    PureHeaders(ipcMessage.headers),
+    IpcBodyReceiver.from(ipcMessage.metaBody, ipc),
+    ipc
+  ) as T
 
-    is IpcResMessage -> IpcResponse(
-      ipcMessage.reqId,
-      ipcMessage.statusCode,
-      PureHeaders(ipcMessage.headers),
-      IpcBodyReceiver.from(ipcMessage.metaBody, ipc),
-      ipc
-    ).let { ipcPoolPack.copy(ipcMessage = it) as T }
+  is IpcResMessage -> IpcResponse(
+    ipcMessage.reqId,
+    ipcMessage.statusCode,
+    PureHeaders(ipcMessage.headers),
+    IpcBodyReceiver.from(ipcMessage.metaBody, ipc),
+    ipc
+  ) as T
+
+  else -> ipcMessage
+}
+
+
+interface JsonAble {
+  val jsonAble: Any
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <T : EndpointMessage> serializableEndpointMessage(
+  ipcPoolPack: T,
+  jsonAble: Boolean,
+): T =
+  when (ipcPoolPack) {
+    is EndpointIpcMessage -> when (val ipcMessage = ipcPoolPack.ipcMessage) {
+      is IpcRequest -> ipcPoolPack.copy(ipcMessage = ipcMessage.ipcReqMessage) as T
+      is IpcResponse -> ipcPoolPack.copy(ipcMessage = ipcMessage.ipcResMessage) as T
+      is JsonAble -> if (jsonAble) ipcPoolPack.copy(ipcMessage = ipcMessage.jsonAble as IpcMessage) as T else ipcPoolPack
+      else -> ipcPoolPack
+    }
 
     else -> ipcPoolPack
   }
 
-  else -> ipcPoolPack
-}
 
-@Suppress("UNCHECKED_CAST")
-fun <T : EndpointMessage> serializableIpcMessage(ipcPoolPack: T): T = when (ipcPoolPack) {
-  is EndpointIpcMessage -> when (val ipcMessage = ipcPoolPack.ipcMessage) {
-    is IpcRequest -> ipcPoolPack.copy(ipcMessage = ipcMessage.ipcReqMessage) as T
-    is IpcResponse -> ipcPoolPack.copy(ipcMessage = ipcMessage.ipcResMessage) as T
-    else -> ipcPoolPack
-  }
-
-  else -> ipcPoolPack
-}
-
-
-fun ipcMessageToJson(data: IpcMessage) = JsonIpc.encodeToString(data)
+//fun ipcMessageToJson(data: IpcMessage) = JsonIpc.encodeToString(data)

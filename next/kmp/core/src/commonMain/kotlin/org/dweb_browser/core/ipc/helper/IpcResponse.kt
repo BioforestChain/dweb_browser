@@ -1,6 +1,7 @@
 package org.dweb_browser.core.ipc.helper
 
 import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.pure.http.DEFAULT_BUFFER_SIZE
@@ -15,7 +16,7 @@ class IpcResponse(
   val headers: PureHeaders,
   val body: IpcBody,
   val ipc: Ipc,
-) : IpcMessage(IPC_MESSAGE_TYPE.RESPONSE) {
+) : IpcMessage {
   override fun toString() = "IpcResponse@$reqId/[$statusCode]".let { str ->
     if (ipc.debugIpc.isEnable) "$str{${
       headers.toList().joinToString(", ") { it.first + ":" + it.second }
@@ -28,7 +29,7 @@ class IpcResponse(
       statusCode: Int = 200,
       headers: PureHeaders = PureHeaders(),
       text: String,
-      ipc: Ipc
+      ipc: Ipc,
     ) = IpcResponse(
       reqId,
       statusCode,
@@ -38,7 +39,7 @@ class IpcResponse(
     )
 
     fun fromBinary(
-      reqId: Int, statusCode: Int = 200, headers: PureHeaders, binary: ByteArray, ipc: Ipc
+      reqId: Int, statusCode: Int = 200, headers: PureHeaders, binary: ByteArray, ipc: Ipc,
     ) = IpcResponse(
       reqId,
       statusCode,
@@ -56,7 +57,7 @@ class IpcResponse(
       statusCode: Int = 200,
       headers: PureHeaders = PureHeaders(),
       stream: PureStream,
-      ipc: Ipc
+      ipc: Ipc,
     ) = IpcResponse(
       reqId,
       statusCode,
@@ -72,7 +73,7 @@ class IpcResponse(
     }
 
     suspend fun fromResponse(
-      reqId: Int, response: PureResponse, ipc: Ipc, bodyStrategy: BodyStrategy = BodyStrategy.AUTO
+      reqId: Int, response: PureResponse, ipc: Ipc, bodyStrategy: BodyStrategy = BodyStrategy.AUTO,
     ) = IpcResponse(
       reqId,
       response.status.value,
@@ -103,9 +104,10 @@ class IpcResponse(
 }
 
 @Serializable
+@SerialName(IPC_MESSAGE_TYPE_RESPONSE)
 data class IpcResMessage(
   val reqId: Int,
   val statusCode: Int,
   val headers: MutableMap<String, String>,
   val metaBody: MetaBody,
-) : IpcMessage(IPC_MESSAGE_TYPE.RESPONSE)
+) : IpcMessage

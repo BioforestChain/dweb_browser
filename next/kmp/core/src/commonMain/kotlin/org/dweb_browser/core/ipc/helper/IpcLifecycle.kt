@@ -1,6 +1,10 @@
 package org.dweb_browser.core.ipc.helper
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonClassDiscriminator
 import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.helper.OrderBy
 
@@ -8,75 +12,51 @@ import org.dweb_browser.helper.OrderBy
  * Ipc生命周期控制
  */
 @Serializable
-sealed class IpcLifecycle : IpcMessage(IPC_MESSAGE_TYPE.LIFECYCLE), OrderBy {
-  abstract val state: LIFECYCLE_STATE
-  abstract override val order: Int
-
+@SerialName(IPC_MESSAGE_TYPE_LIFECYCLE)
+data class IpcLifecycle(
+  @Polymorphic val state: IpcLifecycleState,
+  override val order: Int = DEFAULT_ORDER,
+) : IpcMessage, OrderBy {
   companion object {
     const val DEFAULT_ORDER = -1
   }
-
-  @Serializable
-  data class Init internal constructor(
-    override val state: LIFECYCLE_STATE,
-    val pid: Int,
-    val locale: CommonAppManifest,
-    val remote: CommonAppManifest,
-    override val order: Int,
-  ) : IpcLifecycle() {
-    constructor(
-      pid: Int,
-      locale: CommonAppManifest,
-      remote: CommonAppManifest,
-      orderBy: Int = DEFAULT_ORDER,
-    ) : this(
-      LIFECYCLE_STATE.INIT, pid, locale, remote, orderBy
-    )
-  }
-
-  // TODO 测试能否 equals？
-  @Serializable
-  data class IpcOpening internal constructor(
-    override val state: LIFECYCLE_STATE,
-    override val order: Int,
-  ) : IpcLifecycle() {
-    constructor(orderBy: Int = DEFAULT_ORDER) : this(LIFECYCLE_STATE.OPENING, orderBy)
-  }
-
-  // TODO 测试能否 equals？
-  @Serializable
-  data class IpcOpened internal constructor(
-    override val state: LIFECYCLE_STATE,
-    override val order: Int,
-  ) : IpcLifecycle() {
-    constructor(
-      orderBy: Int = DEFAULT_ORDER,
-    ) : this(LIFECYCLE_STATE.OPENED, orderBy)
-  }
-
-  @Serializable
-  data class IpcClosing internal constructor(
-    override val state: LIFECYCLE_STATE,
-    val reason: String?,
-    override val order: Int,
-  ) : IpcLifecycle() {
-    constructor(
-      reason: String? = null,
-      orderBy: Int = DEFAULT_ORDER,
-    ) : this(LIFECYCLE_STATE.CLOSING, reason, orderBy)
-  }
-
-  @Serializable
-  data class IpcClosed internal constructor(
-    override val state: LIFECYCLE_STATE,
-    val reason: String? = null,
-    override val order: Int,
-  ) : IpcLifecycle() {
-    constructor(
-      reason: String? = null,
-      orderBy: Int = DEFAULT_ORDER,
-    ) : this(LIFECYCLE_STATE.CLOSED, reason, orderBy)
-  }
-
-
 }
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
+@Polymorphic
+@JsonClassDiscriminator("state")
+sealed interface IpcLifecycleState
+
+const val IPC_LIFECYCLE_STATE_INIT = "init"
+const val IPC_LIFECYCLE_STATE_OPENING = "opening"
+const val IPC_LIFECYCLE_STATE_OPENED = "opened"
+const val IPC_LIFECYCLE_STATE_CLOSING = "closing"
+const val IPC_LIFECYCLE_STATE_CLOSED = "closed"
+
+@Serializable
+@SerialName(IPC_LIFECYCLE_STATE_INIT)
+data class IpcLifecycleInit(
+  val pid: Int,
+  val locale: CommonAppManifest,
+  val remote: CommonAppManifest,
+) : IpcLifecycleState
+
+// TODO 测试能否 equals？
+@Serializable
+@SerialName(IPC_LIFECYCLE_STATE_OPENING)
+data object IpcLifecycleOpening : IpcLifecycleState
+
+// TODO 测试能否 equals？
+@Serializable
+@SerialName(IPC_LIFECYCLE_STATE_OPENED)
+data object IpcLifecycleOpened : IpcLifecycleState
+
+@Serializable
+@SerialName(IPC_LIFECYCLE_STATE_CLOSING)
+data class IpcLifecycleClosing(val reason: String? = null) : IpcLifecycleState
+
+@Serializable
+@SerialName(IPC_LIFECYCLE_STATE_CLOSED)
+data class IpcLifecycleClosed(val reason: String? = null) : IpcLifecycleState
+

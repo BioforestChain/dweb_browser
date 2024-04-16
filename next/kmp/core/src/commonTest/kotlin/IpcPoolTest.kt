@@ -3,8 +3,8 @@ package info.bagen.dwebbrowser
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.core.ipc.helper.IpcLifecycleOpened
 import org.dweb_browser.core.ipc.helper.IpcResponse
-import org.dweb_browser.core.ipc.helper.LIFECYCLE_STATE
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
@@ -17,6 +17,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 
 
 class TestMicroModule(mmid: String = "test.ipcPool.dweb") :
@@ -70,8 +71,8 @@ class IpcPoolTest {
     }
     println("🌞📸 send")
     fromNativeIpc.postMessage(IpcEvent.fromUtf8("哈哈", "xx"))
-    assertEquals(fromNativeIpc.awaitOpen().state, LIFECYCLE_STATE.OPENED)
-    assertEquals(toNativeIpc.awaitOpen().state, LIFECYCLE_STATE.OPENED)
+    assertIs<IpcLifecycleOpened>(fromNativeIpc.awaitOpen().state)
+    assertIs<IpcLifecycleOpened>(toNativeIpc.awaitOpen().state)
   }
 
   @Test

@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
+import org.dweb_browser.core.ipc.helper.EndpointLifecycleInit
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
 import org.dweb_browser.helper.withScope
 import kotlin.math.min
@@ -21,8 +22,8 @@ class NativeMessageChannel(parentScope: CoroutineScope, fromId: String, toId: St
    */
   private val messageChannel1 = Channel<EndpointIpcMessage>()
   private val messageChannel2 = Channel<EndpointIpcMessage>()
-  private val lifecycleFlow1 = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
-  private val lifecycleFlow2 = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
+  private val lifecycleFlow1 = MutableStateFlow(EndpointLifecycle(EndpointLifecycleInit))
+  private val lifecycleFlow2 = MutableStateFlow(EndpointLifecycle(EndpointLifecycleInit))
   private var debugId1 = ""
   private var debugId2 = ""
 
@@ -91,7 +92,7 @@ class NativeEndpoint(
          */
         launch(start = CoroutineStart.UNDISPATCHED) {
           getIpcMessageProducer(pid).also {
-            it.trySend(ipcMessage)
+            it.producer.trySend(ipcMessage)
           }
         }
       }

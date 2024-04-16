@@ -4,6 +4,7 @@ import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.getAndUpdate
 import kotlinx.atomicfu.update
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -17,10 +18,14 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.joinAll
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
+import org.dweb_browser.core.ipc.helper.EndpointLifecycleClosed
+import org.dweb_browser.core.ipc.helper.EndpointLifecycleClosing
+import org.dweb_browser.core.ipc.helper.EndpointLifecycleInit
+import org.dweb_browser.core.ipc.helper.EndpointLifecycleOpened
+import org.dweb_browser.core.ipc.helper.EndpointLifecycleOpening
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
 import org.dweb_browser.core.ipc.helper.IpcFork
 import org.dweb_browser.core.ipc.helper.IpcMessage
-import org.dweb_browser.core.ipc.helper.LIFECYCLE_STATE
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.Producer
 import org.dweb_browser.helper.SafeHashMap
@@ -68,13 +73,11 @@ abstract class IpcEndpoint {
 
 //  abstract val onIpcMessage: SharedFlow<EndpointIpcMessage>
 
-  private val ipcMessageProducers = SafeHashMap<Int, Producer<IpcMessage>>()
+  protected val ipcMessageProducers = SafeHashMap<Int, IpcMessageProducer>()
 
-  /**
-   * 获取消息管道
-   */
-  fun getIpcMessageProducer(pid: Int) = ipcMessageProducers.getOrPut(pid) {
-    Producer<IpcMessage>("ipc-msg/$debugId/$pid", scope).apply {
+  inner class IpcMessageProducer(val pid: Int) {
+    val ipcDeferred = CompletableDeferred<Ipc>()
+    val producer = Producer<IpcMessage>("ipc-msg/$debugId/${pid}", scope).apply {
       consumer("watch-fork").collectIn(scope) { event ->
         when (val ipcFork = event.data) {
           is IpcFork -> accPid.getAndUpdate {
@@ -87,6 +90,17 @@ abstract class IpcEndpoint {
       invokeOnClose { ipcMessageProducers.remove(pid) }
     }
   }
+
+  /**
+   * 获取消息管道
+   */
+  fun getIpcMessageProducer(pid: Int) = ipcMessageProducers.getOrPut(pid) {
+    IpcMessageProducer(pid)
+  }
+
+  fun getIpcMessageProducer(ipc: Ipc) = getIpcMessageProducer(ipc.pid).apply {
+    ipcDeferred.complete(ipc)
+  }
   //#endregion
 
   //#region EndpointLifecycle
@@ -96,7 +110,7 @@ abstract class IpcEndpoint {
   /**
    * 本地的生命周期状态流
    */
-  protected val lifecycleLocaleFlow = MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
+  protected val lifecycleLocaleFlow = MutableStateFlow(EndpointLifecycle(EndpointLifecycleInit))
 
   /**
    * 远端的生命周期状态流
@@ -126,7 +140,7 @@ abstract class IpcEndpoint {
   /**
    * 是否处于可以发送消息的状态
    */
-  val isActivity get() = LIFECYCLE_STATE.OPENED == lifecycleLocaleFlow.value.state
+  val isActivity get() = lifecycleLocaleFlow.value.state is EndpointLifecycleOpened
 
   /**
    * 获取支持的协议，在协商的时候会用到
@@ -155,8 +169,8 @@ abstract class IpcEndpoint {
     doStart()
     var localeSubProtocols = getLocaleSubProtocols()
     // 当前状态必须是从init开始
-    when (val state = lifecycle) {
-      is EndpointLifecycle.Init -> EndpointLifecycle.Opening(localeSubProtocols).also {
+    when (val state = lifecycle.state) {
+      is EndpointLifecycleInit -> EndpointLifecycle(EndpointLifecycleOpening(localeSubProtocols)).also {
         sendLifecycleToRemote(it)
         debugEndpoint("emit-locale-lifecycle", it)
         lifecycleLocaleFlow.emit(it)
@@ -165,14 +179,14 @@ abstract class IpcEndpoint {
       else -> throw IllegalStateException("endpoint state=$state")
     }
     // 监听远端生命周期指令，进行协议协商
-    lifecycleRemoteFlow.collectIn(scope) { state ->
-      debugEndpoint("lifecycle-in", state)
-      when (state) {
-        is EndpointLifecycle.Closing, is EndpointLifecycle.Closed -> close()
+    lifecycleRemoteFlow.collectIn(scope) { lifecycleRemote ->
+      debugEndpoint("lifecycle-in", lifecycleRemote)
+      when (val lifecycleState = lifecycleRemote.state) {
+        is EndpointLifecycleClosing, is EndpointLifecycleClosed -> close()
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
-        is EndpointLifecycle.Opened -> {
-          when (val localeState = lifecycleLocaleFlow.value) {
-            is EndpointLifecycle.Opening -> EndpointLifecycle.Opened(localeState.subProtocols)
+        is EndpointLifecycleOpened -> {
+          when (val localeState = lifecycleLocaleFlow.value.state) {
+            is EndpointLifecycleOpening -> EndpointLifecycle(EndpointLifecycleOpened(localeState.subProtocols))
               .also {
                 sendLifecycleToRemote(it)
                 debugEndpoint("emit-locale-lifecycle", it)
@@ -185,16 +199,16 @@ abstract class IpcEndpoint {
           }
         }
         // 如果对方是 init，代表刚刚初始化，那么发送目前自己的状态
-        is EndpointLifecycle.Init -> sendLifecycleToRemote(lifecycleLocaleFlow.value)
+        is EndpointLifecycleInit -> sendLifecycleToRemote(lifecycleLocaleFlow.value)
         // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
-        is EndpointLifecycle.Opening -> {
-          val nextState = if (localeSubProtocols != state.subProtocols) {
-            localeSubProtocols = localeSubProtocols.intersect(state.subProtocols)
-            EndpointLifecycle.Opening(localeSubProtocols).also {
+        is EndpointLifecycleOpening -> {
+          val nextState = if (localeSubProtocols != lifecycleState.subProtocols) {
+            localeSubProtocols = localeSubProtocols.intersect(lifecycleState.subProtocols)
+            EndpointLifecycle(EndpointLifecycleOpening(localeSubProtocols)).also {
               lifecycleLocaleFlow.emit(it)
             }
           } else {
-            EndpointLifecycle.Opened(localeSubProtocols)
+            EndpointLifecycle(EndpointLifecycleOpened(localeSubProtocols))
           }
           sendLifecycleToRemote(nextState)
         }
@@ -202,12 +216,12 @@ abstract class IpcEndpoint {
     }
   }
 
-  suspend fun awaitOpen(reason: String? = null) = when (val state = lifecycle) {
-    is EndpointLifecycle.Opened -> state
+  suspend fun awaitOpen(reason: String? = null) = when (lifecycle.state) {
+    is EndpointLifecycleOpened -> lifecycle
     else -> lifecycleLocaleFlow.mapNotNull {
-      when (it) {
-        is EndpointLifecycle.Opened -> it
-        is EndpointLifecycle.Closing, is EndpointLifecycle.Closed -> {
+      when (it.state) {
+        is EndpointLifecycleOpened -> it
+        is EndpointLifecycleClosing, is EndpointLifecycleClosed -> {
           throw IllegalStateException("endpoint already closed")
         }
 
@@ -242,12 +256,12 @@ abstract class IpcEndpoint {
   protected val launchJobs = SafeLinkList<Job>()
 
   protected open suspend fun doClose(cause: CancellationException? = null) {
-    when (lifecycle) {
-      is EndpointLifecycle.Opened, is EndpointLifecycle.Opening -> {
-        this.sendLifecycleToRemote(EndpointLifecycle.Closing())
+    when (lifecycle.state) {
+      is EndpointLifecycleOpened, is EndpointLifecycleOpening -> {
+        this.sendLifecycleToRemote(EndpointLifecycle(EndpointLifecycleClosing()))
       }
 
-      is EndpointLifecycle.Closed -> return
+      is EndpointLifecycleClosed -> return
       else -> {}
     }
     beforeClose?.invoke(cause)
@@ -256,11 +270,11 @@ abstract class IpcEndpoint {
       launchJobs.joinAll()
     }
     /// 关闭所有的子通道
-    ipcMessageProducers.toList().map { (_, channel) ->
-      channel.close(cause)
+    ipcMessageProducers.toList().map { (_, ipcMessageProducer) ->
+      ipcMessageProducer.producer.close(cause)
     }
     ipcMessageProducers.clear()
-    this.sendLifecycleToRemote(EndpointLifecycle.Closed())
+    this.sendLifecycleToRemote(EndpointLifecycle(EndpointLifecycleClosed()))
     scope.cancel(cause)
     afterClosed?.invoke(cause)
   }

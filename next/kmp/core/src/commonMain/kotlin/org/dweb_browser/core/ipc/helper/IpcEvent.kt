@@ -1,5 +1,6 @@
 package org.dweb_browser.core.ipc.helper
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.OrderBy
 import org.dweb_browser.helper.ProxySerializer
@@ -10,9 +11,10 @@ import org.dweb_browser.pure.http.PureTextFrame
 
 
 @Serializable
+@SerialName(IPC_MESSAGE_TYPE_EVENT)
 data class IpcEventJsonAble(
   val name: String, val data: String, val encoding: IPC_DATA_ENCODING, override val order: Int?,
-) : IpcMessage(IPC_MESSAGE_TYPE.EVENT), OrderBy {
+) : IpcMessage, OrderBy {
   fun toIpcEvent() = IpcEvent(name, data, encoding)
 }
 
@@ -22,12 +24,13 @@ object IpcEventSerializer :
     { toIpcEvent() })
 
 @Serializable(with = IpcEventSerializer::class)
+@SerialName(IPC_MESSAGE_TYPE_EVENT)
 class IpcEvent(
   val name: String,
   val data: Any, /*String or ByteArray*/
   val encoding: IPC_DATA_ENCODING,
   override val order: Int? = null,
-) : IpcMessage(IPC_MESSAGE_TYPE.EVENT), OrderBy {
+) : IpcMessage, OrderBy, JsonAble {
   override fun toString() =
     "IpcEvent(name=$name, data=$encoding::${data.toString().trim()}, orderBy=$order)"
 
@@ -65,7 +68,7 @@ class IpcEvent(
     dataToText(data, encoding)
   }
 
-  val jsonAble by lazy {
+  override val jsonAble by lazy {
     when (encoding) {
       IPC_DATA_ENCODING.BINARY -> fromBase64(
         name,

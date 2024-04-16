@@ -6,6 +6,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.helper.IFrom
@@ -42,7 +43,7 @@ sealed class IpcRequest(
   val headers: PureHeaders,
   val body: IpcBody,
   val ipc: Ipc,
-) : IpcMessage(IPC_MESSAGE_TYPE.REQUEST), IFrom {
+) : IpcMessage, IFrom {
 
   val uri by lazy { Url(url) }
 
@@ -139,10 +140,11 @@ internal suspend fun pureChannelToIpcEvent(
 }
 
 @Serializable
+@SerialName(IPC_MESSAGE_TYPE_REQUEST)
 data class IpcReqMessage(
   val reqId: Int,
   val method: PureMethod,
   val url: String,
   val headers: MutableMap<String, String>,
   val metaBody: MetaBody,
-) : IpcMessage(IPC_MESSAGE_TYPE.REQUEST)
+) : IpcMessage

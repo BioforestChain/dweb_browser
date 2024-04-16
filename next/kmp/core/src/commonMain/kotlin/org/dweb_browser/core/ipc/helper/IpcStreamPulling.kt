@@ -1,8 +1,10 @@
 package org.dweb_browser.core.ipc.helper
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+@SerialName(IPC_MESSAGE_TYPE_STREAM_PULL)
 data class IpcStreamPulling(
   override val stream_id: String,
   /**
@@ -12,4 +14,4 @@ data class IpcStreamPulling(
    * 而负数的带宽代表物理意义上的阻塞，此时更不该再发送更多的数据过去
    */
   val bandwidth: Int = 0,
-) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_PULL), IpcStream
+) : IpcMessage, IpcStream

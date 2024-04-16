@@ -10,10 +10,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
+import org.dweb_browser.core.ipc.helper.EndpointLifecycleClosing
+import org.dweb_browser.core.ipc.helper.EndpointLifecycleInit
+import org.dweb_browser.core.ipc.helper.EndpointLifecycleOpened
 import org.dweb_browser.core.ipc.helper.EndpointMessage
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
 import org.dweb_browser.core.ipc.helper.endpointMessageToCbor
 import org.dweb_browser.core.ipc.helper.endpointMessageToJson
+import org.dweb_browser.core.ipc.helper.normalizeIpcMessage
 import org.dweb_browser.helper.OrderInvoker
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.withScope
@@ -41,7 +45,7 @@ abstract class CommonEndpoint(
   protected val endpointMsgChannel = Channel<EndpointMessage>()
 
   private val lifecycleRemoteMutableFlow =
-    MutableStateFlow<EndpointLifecycle>(EndpointLifecycle.Init())
+    MutableStateFlow(EndpointLifecycle(EndpointLifecycleInit))
   override val lifecycleRemoteFlow = lifecycleRemoteMutableFlow.asStateFlow()
 
 
@@ -70,10 +74,10 @@ abstract class CommonEndpoint(
    * 使用协商的结果来进行接下来的通讯
    */
   override suspend fun doStart() {
-    lifecycleLocaleFlow.collectIn(scope) { state ->
-      when (state) {
+    lifecycleLocaleFlow.collectIn(scope) { lifecycleLocale ->
+      when (val lifecycleState = lifecycleLocale.state) {
         // 握手完成，确定通讯协议
-        is EndpointLifecycle.Opened -> if (state.subProtocols.contains(EndpointProtocol.Cbor)) {
+        is EndpointLifecycleOpened -> if (lifecycleState.subProtocols.contains(EndpointProtocol.Cbor)) {
           protocol = EndpointProtocol.Cbor
         }
 
@@ -92,7 +96,9 @@ abstract class CommonEndpoint(
             when (endpointMessage) {
               is EndpointLifecycle -> lifecycleRemoteMutableFlow.emit(endpointMessage)
               is EndpointIpcMessage -> getIpcMessageProducer(endpointMessage.pid).also {
-                it.trySend(endpointMessage.ipcMessage)
+                it.producer.trySend(
+                  normalizeIpcMessage(endpointMessage.ipcMessage, it.ipcDeferred.await())
+                )
               }
             }
           }

@@ -1,13 +1,15 @@
 package org.dweb_browser.core.ipc.helper
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.toBase64
 
 @Serializable
+@SerialName(IPC_MESSAGE_TYPE_STREAM_DATA)
 data class IpcStreamDataJsonAble(
   val stream_id: String, val encoding: IPC_DATA_ENCODING, val data: String
-) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_DATA) {
+) : IpcMessage {
   fun toIpcStreamData() = IpcStreamData(stream_id, encoding, data)
 }
 
@@ -22,7 +24,7 @@ data class IpcStreamData(
   override val stream_id: String,
   val encoding: IPC_DATA_ENCODING,
   val data: Any, /*String or ByteArray*/
-) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_DATA), IpcStream {
+) : IpcMessage, IpcStream {
 
   companion object {
     fun fromBinary(streamId: String, data: ByteArray) =
