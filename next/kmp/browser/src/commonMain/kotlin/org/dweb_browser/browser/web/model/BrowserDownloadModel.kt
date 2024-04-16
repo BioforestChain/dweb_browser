@@ -8,7 +8,7 @@ import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.web.BrowserDownloadController
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
-import org.dweb_browser.browser.web.data.FileSuffix
+import org.dweb_browser.browser.web.data.BrowserDownloadType
 import org.dweb_browser.browser.web.ui.BrowserDownloadSheet
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
@@ -57,7 +57,10 @@ class BrowserDownloadModel(
         val name = webDownloadArgs.suggestedFilename
 
         val suffix = name.split(".").last()
-        fileSuffix = FileSuffix.entries.find { it.suffix == suffix } ?: FileSuffix.Other
+        // fileSuffix = FileSuffix.entries.find { it.suffix == suffix } ?: FileSuffix.Other
+        fileType = BrowserDownloadType.entries.find { downloadType ->
+          downloadType.matchSuffix(suffix)
+        } ?: BrowserDownloadType.Other
 
         // 名称去重操作
         var index = 1

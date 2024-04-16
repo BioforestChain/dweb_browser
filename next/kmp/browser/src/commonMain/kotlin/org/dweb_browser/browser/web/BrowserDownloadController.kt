@@ -2,7 +2,6 @@ package org.dweb_browser.browser.web
 
 import androidx.compose.runtime.mutableStateListOf
 import kotlinx.coroutines.launch
-import org.dweb_browser.browser.desk.upgrade.checkInstallPermission
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.ext.createChannelOfDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
@@ -13,11 +12,9 @@ import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadStore
-import org.dweb_browser.browser.web.data.BrowserDownloadType
 import org.dweb_browser.browser.web.model.BrowserDownloadModel
 import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.dwebview.WebDownloadArgs
-import org.dweb_browser.helper.falseAlso
 
 class BrowserDownloadController(
   private val browserNMM: BrowserNMM, private val browserController: BrowserController
@@ -122,7 +119,7 @@ class BrowserDownloadController(
     }
   }
 
-  fun deleteDownloadItems(list: MutableList<BrowserDownloadItem>) = browserNMM.ioAsyncScope.launch {
+  fun deleteDownloadItems(list: List<BrowserDownloadItem>) = browserNMM.ioAsyncScope.launch {
     list.forEach { item -> item.taskId?.let { taskId -> browserNMM.removeDownload(taskId) } }
     saveCompleteList.removeAll(list)
     saveDownloadList.removeAll(list)
@@ -137,20 +134,20 @@ class BrowserDownloadController(
   fun clickDownloadButton(downloadItem: BrowserDownloadItem) = browserNMM.ioAsyncScope.launch {
     when (downloadItem.state.state) {
       DownloadState.Completed -> {
-        // 判断类型如果是 Application 的话，就进行打开安装界面，如果返回失败，继续执行打开文件操作。
-        val installAppUtil = org.dweb_browser.browser.util.InstallAppUtil()
-        val openApp = if (downloadItem.fileSuffix.type == BrowserDownloadType.Application) {
-          // 打开安装界面
-          if (!checkInstallPermission(browserNMM)) {
-            installAppUtil.openSystemInstallSetting()
-          }
-          if (checkInstallPermission(browserNMM)) {
-            installAppUtil.installApp(downloadItem.filePath)
-          } else false
-        } else false
-        openApp.falseAlso {
-          installAppUtil.openOrShareFile(downloadItem.filePath)
-        }
+        openFileOnDownload(downloadItem) // 直接调用系统级别的打开文件操作
+//        // 判断类型如果是 Application 的话，就进行打开安装界面，如果返回失败，继续执行打开文件操作。
+//        val openApp = if (downloadItem.fileSuffix.type == BrowserDownloadType.Application) {
+//          // 打开安装界面
+//          if (!checkInstallPermission(browserNMM)) {
+//            InstallAppUtil.openSystemInstallSetting()
+//          }
+//          if (checkInstallPermission(browserNMM)) {
+//            InstallAppUtil.installApp(downloadItem.filePath)
+//          } else false
+//        } else false
+//        openApp.falseAlso {
+//          InstallAppUtil.openOrShareFile(downloadItem.filePath)
+//        }
       }
 
       DownloadState.Downloading -> {
@@ -162,4 +159,11 @@ class BrowserDownloadController(
       }
     }
   }
+
+  fun shareDownloadItem(downloadItem: BrowserDownloadItem) {
+    // TODO 这边执行分享操作
+  }
+
+  suspend fun openFileOnDownload(downloadItem: BrowserDownloadItem) =
+    openFileByPath(realPath = downloadItem.filePath, justInstall = false)
 }

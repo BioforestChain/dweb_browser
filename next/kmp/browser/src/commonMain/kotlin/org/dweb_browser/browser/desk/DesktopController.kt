@@ -22,6 +22,7 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.common.createDwebView
 import org.dweb_browser.browser.desk.types.DeskAppMetaData
 import org.dweb_browser.browser.desk.upgrade.NewVersionController
+import org.dweb_browser.browser.desk.upgrade.NewVersionItem
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.std.http.HttpDwebServer
@@ -213,3 +214,8 @@ open class DesktopController private constructor(
     alertMessages.add(AlertMessage(title, message))
   }
 }
+
+/**
+ * 获取当前版本，存储的版本，以及在线加载最新版本
+ */
+expect suspend fun loadApplicationNewVersion(): NewVersionItem?

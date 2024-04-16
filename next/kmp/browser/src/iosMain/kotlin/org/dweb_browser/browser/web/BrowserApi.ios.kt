@@ -158,3 +158,8 @@ actual fun CommonBrowserView(
     iOSView.WindowFrameStyleEffect()
   }
 }
+
+actual suspend fun openFileByPath(realPath: String, justInstall: Boolean): Boolean {
+  WARNING("Not yet implement openFileByPath")
+  return false
+}

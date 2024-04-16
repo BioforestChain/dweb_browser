@@ -1,6 +1,8 @@
 package org.dweb_browser.browser.desk
 
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.desk.upgrade.NewVersionItem
+import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.platform.PureViewController
 import org.dweb_browser.helper.platform.PureViewCreateParams
 import org.dweb_browser.helper.platform.asDesktop
@@ -21,4 +23,9 @@ actual suspend fun DeskNMM.startDesktopView(deskSessionId: String) {
       }
     }
   }
+}
+
+actual suspend fun loadApplicationNewVersion(): NewVersionItem? {
+  WARNING("Not yet implement loadNewVersion")
+  return null
 }

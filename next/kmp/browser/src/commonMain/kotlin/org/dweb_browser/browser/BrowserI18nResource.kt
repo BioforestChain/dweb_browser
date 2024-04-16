@@ -25,7 +25,7 @@ object BrowserI18nResource {
   val install_tab_file =
     SimpleI18nResource(Language.ZH to "文件", Language.EN to "File")
   val install_button_install = SimpleI18nResource(Language.ZH to "安装", Language.EN to "Install")
-val install_button_update = SimpleI18nResource(Language.ZH to "升级", Language.EN to "Upgrade")
+  val install_button_update = SimpleI18nResource(Language.ZH to "升级", Language.EN to "Upgrade")
   val install_button_downloading =
     SimpleI18nResource(Language.ZH to "下载中", Language.EN to "Downloading")
   val install_button_paused = SimpleI18nResource(Language.ZH to "暂停", Language.EN to "Pause")
@@ -47,7 +47,7 @@ val install_button_update = SimpleI18nResource(Language.ZH to "升级", Language
   val no_apps_data = SimpleI18nResource(
     Language.ZH to "没有应用数据", Language.EN to "There are no Apps",
   )
-val unzip_title_no = SimpleI18nResource(Language.ZH to "编号", Language.EN to "No")
+  val unzip_title_no = SimpleI18nResource(Language.ZH to "编号", Language.EN to "No")
   val unzip_title_url =
     SimpleI18nResource(Language.ZH to "下载链接", Language.EN to "Download Link")
   val unzip_title_createTime =
@@ -124,15 +124,15 @@ val unzip_title_no = SimpleI18nResource(Language.ZH to "编号", Language.EN to 
 
   val browser_multi_count = SimpleI18nResource(Language.ZH to "个标签页", Language.EN to "tabs")
   val browser_multi_done = SimpleI18nResource(Language.ZH to "完成", Language.EN to "Done")
-val search_short_name = SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search")
+  val search_short_name = SimpleI18nResource(Language.ZH to "搜索引擎", Language.EN to "Search")
 
   val toast_message_add_bookmark =
     SimpleI18nResource(Language.ZH to "添加书签成功", Language.EN to "Add Bookmark Success")
-val toast_message_remove_bookmark =
+  val toast_message_remove_bookmark =
     SimpleI18nResource(Language.ZH to "移除书签成功", Language.EN to "Remove Bookmark Success")
   val toast_message_update_bookmark =
     SimpleI18nResource(Language.ZH to "修改书签成功", Language.EN to "Change Bookmark Success")
-val toast_message_add_desk_success =
+  val toast_message_add_desk_success =
     SimpleI18nResource(Language.ZH to "添加到桌面成功", Language.EN to "Add to Desktop Success")
   val toast_message_add_desk_exist = SimpleI18nResource(
     Language.ZH to "桌面已存在该链接",
@@ -225,7 +225,7 @@ val toast_message_add_desk_success =
 
   object Download {
     val page_title =
-      SimpleI18nResource(Language.ZH to "下载内容", Language.EN to "Download Content")
+      SimpleI18nResource(Language.ZH to "下载内容", Language.EN to "Downloads")
 
     val page_title_manage =
       SimpleI18nResource(Language.ZH to "下载管理", Language.EN to "Download Manager")
@@ -269,19 +269,21 @@ val toast_message_add_desk_success =
       Language.ZH to "重新下载", Language.EN to "Re-Download"
     )
 
-    val tab_downloading = SimpleI18nResource(
-      Language.ZH to "下载中", Language.EN to "Downloading"
-    )
-    val tab_downloaded = SimpleI18nResource(
-      Language.ZH to "已下载", Language.EN to "Downloaded"
-    )
-    val tab_downloaded_more = SimpleI18nResource(
-      Language.ZH to "更多", Language.EN to "More"
-    )
-
     val tip_empty = SimpleI18nResource(
       Language.ZH to "暂无下载任务和记录", Language.EN to "No Download Tasks And Records"
     )
+
+    val dropdown_delete = SimpleI18nResource(Language.ZH to "删除", Language.EN to "Delete")
+    val dropdown_share = SimpleI18nResource(Language.ZH to "分享", Language.EN to "Share")
+    val dropdown_rename = SimpleI18nResource(Language.ZH to "重命名", Language.EN to "Rename")
+
+    val chip_all = SimpleI18nResource(Language.ZH to "所有", Language.EN to "All")
+    val chip_image = SimpleI18nResource(Language.ZH to "图片", Language.EN to "Photo")
+    val chip_video = SimpleI18nResource(Language.ZH to "视频", Language.EN to "Video")
+    val chip_audio = SimpleI18nResource(Language.ZH to "音频", Language.EN to "Audio")
+    val chip_doc = SimpleI18nResource(Language.ZH to "文档", Language.EN to "Documents")
+    val chip_package = SimpleI18nResource(Language.ZH to "压缩包", Language.EN to "Archives")
+    val chip_other = SimpleI18nResource(Language.ZH to "其它", Language.EN to "Other")
   }
 
   object Setting {

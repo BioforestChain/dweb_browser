@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
-import org.dweb_browser.browser.web.data.BrowserDownloadType
 import org.dweb_browser.browser.web.model.BrowserDownloadModel
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -133,7 +132,7 @@ private fun BrowserDownloadModel.DownloadSheet(downloadItem: BrowserDownloadItem
         horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
         Image(
-          painter = downloadItem.fileSuffix.painter(),
+          painter = downloadItem.fileType.painter(),
           contentDescription = downloadItem.fileName,
           modifier = Modifier.size(56.dp),
         )
@@ -186,12 +185,7 @@ fun DownloadButton(
     }
 
     DownloadState.Paused -> BrowserI18nResource.Download.button_title_resume()
-    DownloadState.Completed -> {
-      if (downloadItem.fileSuffix.type == BrowserDownloadType.Application)
-        BrowserI18nResource.Download.button_title_install()
-      else
-        BrowserI18nResource.Download.button_title_open()
-    }
+    DownloadState.Completed -> BrowserI18nResource.Download.button_title_open() // 完成后，直接显示为打开
   }
 
   val progress = if (showProgress &&

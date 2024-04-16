@@ -11,3 +11,8 @@ actual fun getImageResourceRootPath(): String {
 actual suspend fun deepLinkDoSearch(dwebLinkSearchItem: DwebLinkSearchItem) {
   // 不需要实现，这个目前是专门给 Ios 使用
 }
+
+actual suspend fun openFileByPath(realPath: String, justInstall: Boolean): Boolean {
+  WARNING("Not yet implement openFileByPath")
+  return false
+}

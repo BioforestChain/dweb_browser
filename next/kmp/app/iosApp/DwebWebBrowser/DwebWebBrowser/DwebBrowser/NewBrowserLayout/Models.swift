@@ -178,7 +178,7 @@ enum ContainerMoreItem: Identifiable {
         case .scan:
             "Scan"
         case .download:
-            "Download Content"
+            "Downloads"
         case .history:
             "History Record"
         }
