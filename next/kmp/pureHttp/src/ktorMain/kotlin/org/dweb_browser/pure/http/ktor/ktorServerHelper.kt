@@ -2,9 +2,10 @@ package org.dweb_browser.pure.http.ktor
 
 import io.ktor.client.utils.EmptyContent
 import io.ktor.http.ContentType
+import io.ktor.http.URLProtocol
+import io.ktor.server.plugins.origin
 import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.httpMethod
-import io.ktor.server.request.uri
 import io.ktor.server.response.ApplicationResponse
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
@@ -87,7 +88,11 @@ fun ApplicationRequest.asPureRequest(): PureServerRequest {
     pureHeaders.set("Host", local.serverHost)
   }
   return PureServerRequest(
-    uri, pureMethod, pureHeaders,
+    // 组装出完整的url
+    origin.run {
+      "$scheme://$serverHost${if (URLProtocol.byName[scheme]?.defaultPort == serverPort) "" else ":$serverPort"}$uri"
+    },
+    pureMethod, pureHeaders,
     body = if (//
       (pureMethod == org.dweb_browser.pure.http.PureMethod.GET && !isWebSocket(
         pureMethod,
