@@ -1,6 +1,19 @@
 package org.dweb_browser.browser.web
 
 import androidx.compose.runtime.mutableStateListOf
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.http.ContentDisposition
+import io.ktor.http.ContentType
+import io.ktor.http.HeaderValueParam
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.content.PartData
+import io.ktor.http.headersOf
+import io.ktor.util.InternalAPI
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.streams.asInput
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.ext.createChannelOfDownload
@@ -13,8 +26,18 @@ import org.dweb_browser.browser.download.ext.startDownload
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadStore
 import org.dweb_browser.browser.web.model.BrowserDownloadModel
+import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.core.std.dns.httpFetch
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.readFile
 import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.dwebview.WebDownloadArgs
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.IPureChannel
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.fetch
 
 class BrowserDownloadController(
   private val browserNMM: BrowserNMM, private val browserController: BrowserController
@@ -135,19 +158,6 @@ class BrowserDownloadController(
     when (downloadItem.state.state) {
       DownloadState.Completed -> {
         openFileOnDownload(downloadItem) // 直接调用系统级别的打开文件操作
-//        // 判断类型如果是 Application 的话，就进行打开安装界面，如果返回失败，继续执行打开文件操作。
-//        val openApp = if (downloadItem.fileSuffix.type == BrowserDownloadType.Application) {
-//          // 打开安装界面
-//          if (!checkInstallPermission(browserNMM)) {
-//            InstallAppUtil.openSystemInstallSetting()
-//          }
-//          if (checkInstallPermission(browserNMM)) {
-//            InstallAppUtil.installApp(downloadItem.filePath)
-//          } else false
-//        } else false
-//        openApp.falseAlso {
-//          InstallAppUtil.openOrShareFile(downloadItem.filePath)
-//        }
       }
 
       DownloadState.Downloading -> {
@@ -160,8 +170,34 @@ class BrowserDownloadController(
     }
   }
 
-  fun shareDownloadItem(downloadItem: BrowserDownloadItem) {
-    // TODO 这边执行分享操作
+  suspend fun shareDownloadItem(downloadItem: BrowserDownloadItem): Boolean {
+
+    val ipc = browserNMM.connect("share.sys.dweb")
+    ipc.postMessage(IpcEvent.fromUtf8(
+      "shareLocalFile", downloadItem.filePath)
+    )
+
+//    val bytes = browserNMM.readFile(downloadItem.filePath).body.toPureBinary()
+//    val formData = formData {
+//      append("file", bytes, Headers.build {
+//        append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
+//        append(
+//          HttpHeaders.ContentDisposition, ContentDisposition.File.withParameters(
+//            listOf(HeaderValueParam(ContentDisposition.Parameters.FileName, downloadItem.fileName))
+//          ).toString()
+//        )
+//      })
+//    }
+//
+//    browserNMM.nativeFetch(
+//      PureClientRequest(
+//        href = "file://share.sys.dweb/share",
+//        headers = PureHeaders(mapOf("Content-Type" to ContentType.MultiPart.FormData.toString())),
+//        method = PureMethod.POST,
+//        body = IPureBody.from(formData)
+//      )
+//    )
+    return false
   }
 
   suspend fun openFileOnDownload(downloadItem: BrowserDownloadItem) =

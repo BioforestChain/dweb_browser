@@ -50,8 +50,9 @@ class BrowserDownloadPage(
   fun clickDownloadButton(downloadItem: BrowserDownloadItem) =
     downloadController.clickDownloadButton(downloadItem)
 
-  fun shareDownloadItem(downloadItem: BrowserDownloadItem) =
+  fun shareDownloadItem(downloadItem: BrowserDownloadItem) = browserController.ioScope.launch {
     downloadController.shareDownloadItem(downloadItem)
+  }
 
   fun deleteDownloadItems(list: List<BrowserDownloadItem>) =
     downloadController.deleteDownloadItems(list)

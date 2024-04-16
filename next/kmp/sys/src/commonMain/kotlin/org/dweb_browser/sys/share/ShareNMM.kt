@@ -159,6 +159,15 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
         ShareResult(result == "OK", result).toJsonElement()
       },
     ).cors()
+
+    onConnect { (ipc, _) ->
+      ipc.onEvent { (event) ->
+        if (event.name == "shareLocalFile") { // 用于文件分享，传入的内容是 《文件名&&文件路径》
+          val filePath = (event.data as String)
+          share(ShareOptions(null, null, null), listOf("file://$filePath"), this@ShareNMM)
+        }
+      }
+    }
   }
 
   private suspend fun multipartFileDataWriteToTempFile(
