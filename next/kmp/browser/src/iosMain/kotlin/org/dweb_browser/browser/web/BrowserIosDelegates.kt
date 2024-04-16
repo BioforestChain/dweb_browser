@@ -235,7 +235,6 @@ class BrowserIosDataSource(val browserViewModel: BrowserViewModel) : NSObject(),
   ) {
     download.addDownloadProgressListenerIfNeed(id) {
       val model = it.toIOS()
-      println("[iOS] watchDownload: ${it.state.total} ${it.state.current}")
       didChanged(model)
     }
   }
@@ -289,5 +288,5 @@ fun BrowserDownloadItem.toIOS() = WebBrowserViewDownloadData(
   state.state.toIosState(),
   id,
   state.current.toFloat() / state.total.toFloat(),
-  null
+  if (filePath.length > 0) filePath else null
 )

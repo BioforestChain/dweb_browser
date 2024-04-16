@@ -97,7 +97,13 @@ struct DownloadListView: View {
     func getPreview(_ item: DownloadItem) -> some View {
 //        DownloadTextPreviewView(data: item)
         // TODO: 预览
-        Text("TODO: Preview")
+        
+        if let filePath = item.localPath, case .video(_) =  item.mime {
+            DownloadVideoPreviewView(url: URL(filePath: filePath))
+        } else {
+            Text("TODO: Preview")
+        }
+        
     }
 }
 
@@ -152,7 +158,7 @@ struct DownloadItemView: View {
 
 
 struct Demo: View {
-    var data = DownloadItem(id: "", mime: .text("sss"), title: "Fuck", date: "2021-01", dateValue: 0, size: "11M", state: .pause(0.5))
+    var data = DownloadItem(id: "", mime: .text("sss"), title: "Fuck", date: "2021-01", dateValue: 0, size: "11M", state: .pause(0.5), localPath: nil)
     var body: some View {
         List {
             DownloadItemView(data: data)

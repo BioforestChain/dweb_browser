@@ -21,6 +21,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.defaultForFileExtension
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -136,6 +137,7 @@ data class BrowserDownloadItem(
       stateSignal.emit(it)
     }
   }
+  @Transient
   val id = randomUUID() //标识符，iOS端删除时，使用。
 
   @Transient

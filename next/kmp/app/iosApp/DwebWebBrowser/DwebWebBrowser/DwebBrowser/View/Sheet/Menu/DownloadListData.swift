@@ -112,15 +112,17 @@ class DownloadItem: Identifiable, ObservableObject {
     let date: String //时间戳
     let dateValue: UInt64 //时间戳，排序用的。
     let size: String
+    let localPath: String?
     
     @Published var state: State
+    
         
     var url: URL {
         let p = Bundle.main.path(forResource: "hello", ofType: "txt") ?? ""
         return URL(filePath: p)
     }
         
-    init(id: String, mime: DownloadDataMIME, title: String, date: String, dateValue: UInt64, size: String, state: State) {
+    init(id: String, mime: DownloadDataMIME, title: String, date: String, dateValue: UInt64, size: String, state: State, localPath: String?) {
         self.id = id
         self.mime = mime
         self.title = title
@@ -128,6 +130,7 @@ class DownloadItem: Identifiable, ObservableObject {
         self.dateValue = dateValue
         self.size = size
         self.state = state
+        self.localPath = localPath
         updatePause()
     }
     

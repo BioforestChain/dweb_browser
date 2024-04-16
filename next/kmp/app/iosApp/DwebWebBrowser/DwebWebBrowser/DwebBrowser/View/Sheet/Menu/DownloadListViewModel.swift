@@ -60,7 +60,9 @@ import Observation
                          date: dateStringCreator($0.date),
                          dateValue: $0.date,
                          size: sizeStringCreator($0.size),
-                         state: $0.toDownloadState())
+                         state: $0.toDownloadState(),
+                         localPath: $0.localPath
+            )
         } ?? []
         
         downloadingDatas = allDatas.filter({ !$0.isLoaded })
