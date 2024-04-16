@@ -8,7 +8,6 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
@@ -239,12 +238,9 @@ open class Ipc internal constructor(
   private val forkedIpcMap = SafeHashMap<Int, CompletableDeferred<Ipc>>()
 
   suspend fun waitForkedIpc(pid: Int): Ipc {
-    val job = scope.launch {
-      delay(1000)
-      println("waitForkedIpc TIMEOUT!! $pid $forkedIpcMap")
+    val ipc = traceTimeout(1000, { "$pid" }) {
+      forkedIpcMap.getOrPut(pid) { CompletableDeferred() }.await()
     }
-    val ipc = forkedIpcMap.getOrPut(pid) { CompletableDeferred() }.await()
-    job.cancel()
     return ipc
   }
 

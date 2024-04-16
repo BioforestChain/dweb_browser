@@ -7,7 +7,6 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.joinAll
@@ -122,22 +121,18 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         if (consumed) {
           return
         }
-        // 事件超时告警
-        val timeoutJob = scope.launch {
-          delay(1000)
-          WARNING("emitBy TIMEOUT!! consumer=$consumer data=$data")
-        }
 
-        // 对方的接收是非阻塞的，所以我们才会有 collectorLock，等待 consumer 挂载完成所有的 emitJobs
-        consumer.collectorLock.lock()
-        consumer.input.send(this)
+        traceTimeout(1000, { "consumer=$consumer data=$data" }) {
+          // 对方的接收是非阻塞的，所以我们才会有 collectorLock，等待 consumer 挂载完成所有的 emitJobs
+          consumer.collectorLock.lock()
+          consumer.input.send(this)
 
-        consumer.collectorLock.withLock {
-          emitJobs.joinAll()
-          emitJobs.clear()
+          // 等待事件执行完成在往下走
+          consumer.collectorLock.withLock {
+            emitJobs.joinAll()
+            emitJobs.clear()
+          }
         }
-        // 等待事件执行完成在往下走
-        timeoutJob.cancel()
         if (consumed) {
           complete()
           debugProducer("emitBy", "consumer=$consumer consumed data=$data")

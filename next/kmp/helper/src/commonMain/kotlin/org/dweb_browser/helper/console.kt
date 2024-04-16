@@ -209,14 +209,15 @@ suspend inline fun <R> traceTimeout(
   ms: Long,
   crossinline log: () -> Any?,
   crossinline block: suspend () -> R,
-) {
-  if (debugTimeout.isEnable) {
-    coroutineScope {
-      val timeoutJob = launch { delay(ms);debugTimeout("traceTimeout", msgGetter = log) }
+) = if (debugTimeout.isEnable) {
+  coroutineScope {
+    val timeoutJob = launch { delay(ms);debugTimeout("traceTimeout", msgGetter = log) }
+    try {
       block()
+    } finally {
       timeoutJob.cancel()
     }
-  } else {
-    block()
   }
+} else {
+  block()
 }
