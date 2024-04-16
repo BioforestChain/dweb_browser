@@ -1,6 +1,6 @@
-import { PromiseOut } from "../../helper/PromiseOut.ts";
-import { ReadableStreamOut, streamRead } from "../../helper/stream/readableStreamHelper.ts";
-import { IPC_DATA_ENCODING, Ipc, IpcEvent } from "./index.ts";
+import { PromiseOut } from "../../../helper/PromiseOut.ts";
+import { ReadableStreamOut, streamRead } from "../../../helper/stream/readableStreamHelper.ts";
+import { IPC_DATA_ENCODING, Ipc, IpcEvent } from "../index.ts";
 
 export class PureChannel {
   constructor(readonly income: ReadableStreamOut<$PureFrame>, readonly outgoing: ReadableStreamOut<$PureFrame>) {}

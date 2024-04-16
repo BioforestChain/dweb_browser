@@ -70,7 +70,7 @@ open class Ipc internal constructor(
   override fun toString() = "Ipc@$debugId"
 
 
-  //  val onMessage by lazy { endpoint.getIpcMessageChannel(pid).observe() }
+  // 消息生产者，所有的消息在这里分发出去
   private val messageProducer = endpoint.getIpcMessageProducer(pid)
   fun onMessage(name: String) = messageProducer.consumer(name)
 

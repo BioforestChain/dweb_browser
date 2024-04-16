@@ -7,48 +7,48 @@ export const createSignal = <CB extends $Callback<any[]> = $Callback>(autoStart?
 export class Signal<CB extends $Callback<any[]> = $Callback> {
   constructor(autoStart = true) {
     if (autoStart) {
-      this.start();
+      this.#start();
     }
   }
   private _cbs = new Set<CB>();
 
-  private _started = false;
-  private _cachedEmits: Array<Parameters<CB>> = [];
-  start = () => {
-    if (this._started) {
+  #started = false;
+  #cachedEmits: Array<Parameters<CB>> = [];
+  #start = () => {
+    if (this.#started) {
       return;
     }
-    this._started = true;
-    if (this._cachedEmits.length) {
-      for (const args of this._cachedEmits) {
-        this._emit(args, this._cbs);
+    this.#started = true;
+    if (this.#cachedEmits.length) {
+      for (const args of this.#cachedEmits) {
+        this.#emit(args, this._cbs);
       }
-      this._cachedEmits.length = 0;
+      this.#cachedEmits.length = 0;
     }
   };
   listen = (cb: CB): $OffListener => {
     this._cbs.add(cb);
-    this.start();
+    this.#start();
     return () => this._cbs.delete(cb);
   };
 
   emit = (...args: Parameters<CB>) => {
-    if (this._started) {
-      this._emit(args, this._cbs);
+    if (this.#started) {
+      this.#emit(args, this._cbs);
     } else {
-      this._cachedEmits.push(args);
+      this.#cachedEmits.push(args);
     }
   };
   emitAndClear = (...args: Parameters<CB>) => {
-    if (this._started) {
+    if (this.#started) {
       const cbs = [...this._cbs];
       this._cbs.clear();
-      this._emit(args, cbs);
+      this.#emit(args, cbs);
     } else {
-      this._cachedEmits.push(args);
+      this.#cachedEmits.push(args);
     }
   };
-  private _emit = (args: Parameters<CB>, cbs: Iterable<CB>) => {
+  #emit = (args: Parameters<CB>, cbs: Iterable<CB>) => {
     for (const cb of cbs) {
       try {
         cb.apply(null, args);
@@ -58,6 +58,16 @@ export class Signal<CB extends $Callback<any[]> = $Callback> {
       }
     }
   };
+
+  mapNotNull<T, R>(transform: (value: T) => R | undefined) {
+    const signal = new Signal<CB>();
+    return {
+      collect(value) {
+        // signal.listen(transform)
+      }
+    }
+  }
+
   clear = () => {
     this._cbs.clear();
   };

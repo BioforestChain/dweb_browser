@@ -203,7 +203,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     }
   }
 
-  /**事件消耗器，调用后事件将被彻底消耗，不会再进行传递*/
+  /**创建消费者*/
   fun consumer(name: String): Consumer {
     ensureOpen()
     return Consumer(name)
@@ -326,7 +326,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     consumers.clear()
     buffers.clear()
   }
-
+  /**调用监听关闭*/
   fun invokeOnClose(handler: CompletionHandler) {
     scope.coroutineContext[Job]!!.invokeOnCompletion(handler)
   }

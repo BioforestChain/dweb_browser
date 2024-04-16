@@ -3,26 +3,30 @@ import { CacheGetter } from "../../helper/cacheGetter.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { MicroModule } from "../micro-module.ts";
 import type { $MicroModuleManifest } from "../types.ts";
-import { IpcRequest } from "./IpcRequest.ts";
-import type { IpcResponse } from "./IpcResponse.ts";
 import type { IpcHeaders } from "./helper/IpcHeaders.ts";
 import {
   $IpcMessage,
   $OnIpcErrorMessage,
   $OnIpcEventMessage,
-  $OnIpcLifeCycleMessage,
   $OnIpcRequestMessage,
   $OnIpcStreamMessage,
+  ENDPOINT_LIFECYCLE_STATE,
+  IPC_LIFECYCLE_STATE,
   IPC_MESSAGE_TYPE,
-  IPC_STATE,
   type $OnIpcMessage,
 } from "./helper/const.ts";
+import { IpcRequest } from "./ipc-message/IpcRequest.ts";
+import type { IpcResponse } from "./ipc-message/IpcResponse.ts";
 
+import { once } from "../../helper/$once.ts";
+import { StateSignal } from "../../helper/StateSignal.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { $OnFetch, createFetchHandler } from "../helper/ipcFetchHelper.ts";
-import { IpcLifeCycle } from "./IpcLifeCycle.ts";
 import { IpcPool } from "./IpcPool.ts";
-import { PureChannel, pureChannelToIpcEvent } from "./PureChannel.ts";
+import { EndpointIpcMessage } from "./endpoint/EndpointMessage.ts";
+import { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
+import { PureChannel, pureChannelToIpcEvent } from "./helper/PureChannel.ts";
+import { IpcLifeCycle } from "./ipc-message/IpcLifeCycle.ts";
 export {
   FetchError,
   FetchEvent,
@@ -31,55 +35,112 @@ export {
   type $OnFetchReturn
 } from "../helper/ipcFetchHelper.ts";
 
-let ipc_uid_acc = 0;
-let _order_by_acc = 0;
-export abstract class Ipc {
-  private pid = 0;
-  constructor(readonly channelId: string, readonly endpoint: IpcPool) {
-    this.pid = endpoint.generatePid(channelId);
+export class Ipc {
+  constructor(
+    readonly pid: number,
+    readonly endpoint: IpcEndpoint,
+    readonly locale: $MicroModuleManifest,
+    readonly remote: $MicroModuleManifest,
+    readonly pool: IpcPool,
+    readonly debugId = `${endpoint.debugId}/${pid}`
+  ) {}
+
+  // reqId计数
+  #reqIdAcc = 0;
+  // 消息生产者，所有的消息在这里分发出去
+  #messageProducer = this.endpoint.getIpcMessageProducer(this.pid);
+
+  onMessage(name: string) {
+    return this.#messageProducer.consumer(name);
   }
 
-  readonly uid = (ipc_uid_acc++).toString();
-  static order_by_acc = _order_by_acc++;
+  //#region 生命周期相关的
+  #lifecycleLocaleFlow = new StateSignal(IpcLifeCycle.init(this.pid, this.locale, this.remote));
 
-  /**
-   * 是否支持使用 cbor 直接传输二进制
-   */
-  get support_cbor() {
-    return this._support_cbor;
-  }
-  protected _support_cbor = false;
-  /**
-   * 是否支持使用 Protobuf 直接传输二进制
-   * 在网络环境里，protobuf 是更加高效的协议
-   */
-  get support_protobuf() {
-    return this._support_protobuf;
-  }
-  protected _support_protobuf = false;
+  readonly lifecycleLocaleFlow = this.#lifecycleLocaleFlow.asReadyonly();
 
-  /**
-   * 是否支持结构化内存协议传输：
-   * 就是说不需要对数据手动序列化反序列化，可以直接传输内存对象
-   */
-  get support_raw() {
-    return this._support_raw;
+  #lifecycleRemoteFlow = this.onMessage(`ipc-lifecycle-remote#${this.pid}`);
+
+  readonly lifecycleRemoteFlow = this.#lifecycleRemoteFlow
+
+  get lifecycle() {
+    return this.lifecycleLocaleFlow.state;
   }
-  protected _support_raw = false;
-  /**
-   * 是否支持二进制传输
-   */
-  get support_binary() {
-    return this._support_binary ?? (this.support_cbor || this.support_protobuf || this.support_raw);
+  onLifeCycle = this.lifecycleLocaleFlow.listen;
+
+  // 标记ipc通道是否激活
+  get isActivity() {
+    return this.endpoint.isActivity;
   }
 
-  protected _support_binary = false;
-  // 跟ipc绑定的模块
-  abstract readonly remote: $MicroModuleManifest;
+  /**等待启动 */
+  async awaitOpen(reason?: string) {
+    if (this.lifecycle.state == IPC_LIFECYCLE_STATE.OPENED) {
+      return this.lifecycle.state;
+    }
+    const op = new PromiseOut<IPC_LIFECYCLE_STATE>();
+    const off = this.onLifeCycle((lifecycle) => {
+      switch (lifecycle.state) {
+        case IPC_LIFECYCLE_STATE.OPENED: {
+          op.resolve(lifecycle.state);
+          break;
+        }
+        case (IPC_LIFECYCLE_STATE.CLOSED, IPC_LIFECYCLE_STATE.CLOSING): {
+          op.reject("endpoint already closed");
+          break;
+        }
+      }
+    });
+    const lifecycle = await op.promise;
+    console.log("js_awaitOpen", lifecycle, reason);
+    off();
+    return lifecycle;
+  }
+
+  /**
+   * 启动，会至少等到endpoint握手完成
+   */
+  async start(isAwait = true, reason?: string) {
+    console.log("ipc-start", reason);
+    if (isAwait) {
+      this.endpoint.start(true);
+      this.startOnce();
+      await this.awaitOpen(`from-start ${reason}`);
+    } else {
+      this.endpoint.start(true);
+      this.startOnce();
+    }
+  }
+
+  startOnce = once(() => {
+    console.log("ipc-startOnce", this.lifecycle);
+    // 当前状态必须是从init开始
+    if (this.lifecycle.state === IPC_LIFECYCLE_STATE.INIT) {
+      // 告知对方我启动了
+      const opening = IpcLifeCycle.opening();
+      this.#sendLifecycleToRemote(opening);
+      this.#lifecycleLocaleFlow.emit(opening);
+    } else {
+      throw new Error(`fail to start: ipc=${this} state=${this.lifecycle}`);
+    }
+    // 监听远端生命周期指令，进行协议协商
+    this.#lifecycleRemoteFlow.collect((state)=>{
+      console.log("ipc-lifecycle-in",)
+    })
+  });
+
+  /**
+   * 向远端发送 生命周期 信号
+   */
+  #sendLifecycleToRemote(state: IpcLifeCycle) {
+    console.log("lifecycle-out", state);
+    this.endpoint.postIpcMessage(new EndpointIpcMessage(this.pid, state));
+  }
+
   // 当前ipc生命周期
-  private ipcLifeCycleState: IPC_STATE = IPC_STATE.OPENING;
+  private ipcLifeCycleState: ENDPOINT_LIFECYCLE_STATE = ENDPOINT_LIFECYCLE_STATE.OPENING;
   protected _closeSignal = createSignal<() => unknown>(false);
-  onClose = this._closeSignal.listen;
+  onClosed = this._closeSignal.listen;
   asRemoteInstance() {
     if (this.remote instanceof MicroModule) {
       return this.remote;
@@ -89,14 +150,13 @@ export abstract class Ipc {
   // deno-lint-ignore no-explicit-any
   private _createSignal<T extends $Callback<any[]>>(autoStart?: boolean) {
     const signal = createSignal<T>(autoStart);
-    this.onClose(() => signal.clear());
+    this.onClosed(() => signal.clear());
     return signal;
   }
 
   private _messageSignal = this._createSignal<$OnIpcMessage>(false);
 
-  abstract _doPostMessage(pid: number, data: $IpcMessage): void;
-  onMessage = this._messageSignal.listen;
+  _doPostMessage(pid: number, data: $IpcMessage): void;
 
   /**分发各类消息到本地*/
   emitMessage = (args: $IpcMessage) => this._messageSignal.emit(args, this);
@@ -151,21 +211,6 @@ export abstract class Ipc {
   onEvent(cb: $OnIpcEventMessage) {
     return this._onEventSignal.value.listen(cb);
   }
-  // lifecycle start
-  private _lifeCycleSignal = new CacheGetter(() => {
-    const signal = this._createSignal<$OnIpcLifeCycleMessage>(false);
-    this.onMessage((event, ipc) => {
-      if (event.type === IPC_MESSAGE_TYPE.LIFE_CYCLE) {
-        signal.emit(event, ipc);
-      }
-    });
-    return signal;
-  });
-
-  onLifeCycle(cb: $OnIpcLifeCycleMessage) {
-    return this._lifeCycleSignal.value.listen(cb);
-  }
-  // lifecycle end
 
   private _errorSignal = new CacheGetter(() => {
     const signal = this._createSignal<$OnIpcErrorMessage>(false);
@@ -256,71 +301,20 @@ export abstract class Ipc {
     this._doPostMessage(this.pid, message);
   }
 
-  ready() {
-    return this.awaitStart;
-  }
-
   // 标记是否启动完成
   startDeferred = new PromiseOut<IpcLifeCycle>();
-  get isActivity() {
-    return this.startDeferred.is_finished;
-  }
   awaitStart = this.startDeferred.promise;
-  // 告知对方我启动了
-  async start() {
-    this.ipcLifeCycleState = IPC_STATE.OPEN;
-    // 如果是后连接的也需要发个连接消息  这里唯一可能出现消息的丢失就是通道中消息丢失
-    await this.postMessage(IpcLifeCycle.opening());
-  }
 
-  /**ipc激活回调 */
-  initlifeCycleHook() {
-    // TODO 跟对方通信 协商数据格式
-    // console.log(`🌸 xxlife start=>🍃 ${this.remote.mmid} ${this.channelId}`);
-    this.onLifeCycle(async (lifeCycle, ipc) => {
-      switch (lifeCycle.state) {
-        // 收到打开中的消息，也告知自己已经准备好了
-        case IPC_STATE.OPENING: {
-          await ipc.postMessage(IpcLifeCycle.open());
-          ipc.startDeferred.resolve(lifeCycle);
-          break;
-        }
-        // 收到对方完成开始建立连接
-        case IPC_STATE.OPEN: {
-          // console.log(`🌸 xxlife start=>🍟 ${ipc.remote.mmid} ${ipc.channelId} ${lifeCycle.state}`);
-          if (!ipc.startDeferred.is_finished) {
-            ipc.startDeferred.resolve(lifeCycle);
-          }
-          break;
-        }
-        // 消息通道开始关闭
-        case IPC_STATE.CLOSING: {
-          //这里可以接受最后一些消息
-          this.ipcLifeCycleState = IPC_STATE.CLOSING;
-          await this.postMessage(IpcLifeCycle.close());
-          await this.close();
-          break;
-        }
-        // 对方关了，代表没有消息发过来了，我也关闭
-        case IPC_STATE.CLOSED: {
-          await this.destroy();
-          break;
-        }
-      }
-    });
-  }
-
-  /**----- close start*/
-  abstract _doClose(): void;
+  //#region close start
 
   private get isClosed() {
-    return this.ipcLifeCycleState == IPC_STATE.CLOSED;
+    return this.ipcLifeCycleState == ENDPOINT_LIFECYCLE_STATE.CLOSED;
   }
 
   // 告知对面我要关闭了
   async tryClose() {
     // 开始关闭
-    this.ipcLifeCycleState = IPC_STATE.CLOSING;
+    this.ipcLifeCycleState = ENDPOINT_LIFECYCLE_STATE.CLOSING;
     await this.postMessage(IpcLifeCycle.closing());
   }
 
@@ -350,7 +344,7 @@ export abstract class Ipc {
     await this.postMessage(IpcLifeCycle.close());
     this._closeSignal.emitAndClear();
     this._doClose();
-    this.ipcLifeCycleState = IPC_STATE.CLOSED;
+    this.ipcLifeCycleState = ENDPOINT_LIFECYCLE_STATE.CLOSED;
   }
 
   /**----- close end*/

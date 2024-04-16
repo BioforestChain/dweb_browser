@@ -2,8 +2,8 @@ import { encode } from "cbor-x";
 
 import { IpcPool, IpcPoolPack, IpcPoolPackString } from "../index.ts";
 import type { $IpcSupportProtocols, $MicroModuleManifest } from "../types.ts";
-import { IpcRequest } from "./IpcRequest.ts";
-import { IpcResponse } from "./IpcResponse.ts";
+import { IpcRequest } from "./ipc-message/IpcRequest.ts";
+import { IpcResponse } from "./ipc-message/IpcResponse.ts";
 import {
   $cborToIpcMessage,
   $jsonToIpcMessage,

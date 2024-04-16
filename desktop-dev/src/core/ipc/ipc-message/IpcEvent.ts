@@ -1,7 +1,7 @@
-import { CacheGetter } from "../../helper/cacheGetter.ts";
-import { simpleDecoder } from "../../helper/encoding.ts";
-import { $dataToBinary, $dataToText, IPC_DATA_ENCODING, IPC_MESSAGE_TYPE } from "./helper/const.ts";
-import { IpcMessage } from "./helper/IpcMessage.ts";
+import { CacheGetter } from "../../../helper/cacheGetter.ts";
+import { simpleDecoder } from "../../../helper/encoding.ts";
+import { $dataToBinary, $dataToText, IPC_DATA_ENCODING, IPC_MESSAGE_TYPE } from "../helper/const.ts";
+import { IpcMessage } from "./IpcMessage.ts";
 
 export class IpcEvent extends IpcMessage<IPC_MESSAGE_TYPE.EVENT> {
   constructor(

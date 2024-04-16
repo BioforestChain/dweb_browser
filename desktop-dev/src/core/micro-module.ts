@@ -40,7 +40,7 @@ export abstract class MicroModule implements $MicroModule {
       await ipc.ready();
     }
     this._ipcSet.add(ipc);
-    ipc.onClose(() => {
+    ipc.onClosed(() => {
       this._ipcSet.delete(ipc);
     });
   }

@@ -1,4 +1,4 @@
-import { $IpcMessage, IPC_MESSAGE_TYPE } from "./const.ts";
+import { $IpcMessage, IPC_MESSAGE_TYPE } from "../helper/const.ts";
 
 /**基础ipc消息*/
 export class IpcMessage<T extends IPC_MESSAGE_TYPE> {

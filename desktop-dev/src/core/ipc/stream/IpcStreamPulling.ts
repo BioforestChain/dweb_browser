@@ -1,5 +1,5 @@
 import { IPC_MESSAGE_TYPE } from "../helper/const.ts";
-import { IpcMessage } from "../helper/IpcMessage.ts";
+import { IpcMessage } from "../ipc-message/IpcMessage.ts";
 
 export class IpcStreamPulling extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_PULLING> {
   /**

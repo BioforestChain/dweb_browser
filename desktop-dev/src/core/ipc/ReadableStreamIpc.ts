@@ -48,8 +48,6 @@ export class ReadableStreamIpc extends Ipc {
 
   private _incomne_stream?: ReadableStream<Uint8Array>;
 
-  // 判断流绑定
-  isBinding = this._incomne_stream != undefined;
   /**
    * 输入流要额外绑定
    * 注意，非必要不要 await 这个promise
@@ -61,7 +59,7 @@ export class ReadableStreamIpc extends Ipc {
     this._incomne_stream = await stream;
     const { signal } = options;
     const reader = binaryStreamRead(this._incomne_stream, { signal });
-    this.onClose(() => {
+    this.onClosed(() => {
       reader.throw("output stream closed");
     });
     while ((await reader.available()) > 0) {

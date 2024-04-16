@@ -76,10 +76,6 @@ abstract class CommonEndpoint(
         is EndpointLifecycle.Opened -> if (state.subProtocols.contains(EndpointProtocol.Cbor)) {
           protocol = EndpointProtocol.Cbor
         }
-        // 即将关闭，
-        is EndpointLifecycle.Closing -> {
-
-        }
 
         else -> {}
       }
@@ -133,6 +129,5 @@ abstract class CommonEndpoint(
   /**
    * 发送二进制类型的消息
    */
-  abstract suspend fun postBinaryMessage(data: ByteArray)
-
+  protected abstract suspend fun postBinaryMessage(data: ByteArray)
 }

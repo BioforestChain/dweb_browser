@@ -63,6 +63,7 @@ object IPC_MESSAGE_TYPE_Serializer :
   ByteEnumSerializer<IPC_MESSAGE_TYPE>("IPC_MESSAGE_TYPE", IPC_MESSAGE_TYPE.ALL_VALUES, { type })
 
 
+// #region endpoint声明周期
 object ENDPOINT_STATE_Serializer :
   IntEnumSerializer<LIFECYCLE_STATE>("ENDPOINT_STATE", LIFECYCLE_STATE.ALL_VALUES, { state })
 
@@ -78,6 +79,8 @@ enum class LIFECYCLE_STATE(val state: Int) {
     val ALL_VALUES = LIFECYCLE_STATE.entries.associateBy { it.state }
   }
 }
+
+//# endregion
 
 /**
  * 可预读取的流

@@ -1,9 +1,9 @@
 import { decode } from "cbor-x";
-import { IpcError } from "../IpcError.ts";
-import { IpcEvent } from "../IpcEvent.ts";
-import { IpcLifeCycle } from "../IpcLifeCycle.ts";
-import { IpcRequest } from "../IpcRequest.ts";
-import { IpcResponse } from "../IpcResponse.ts";
+import { IpcError } from "../ipc-message/IpcError.ts";
+import { IpcEvent } from "../ipc-message/IpcEvent.ts";
+import { IpcLifeCycle } from "../ipc-message/IpcLifeCycle.ts";
+import { IpcRequest } from "../ipc-message/IpcRequest.ts";
+import { IpcResponse } from "../ipc-message/IpcResponse.ts";
 import { IpcPoolPack, IpcPoolPackString, PackIpcMessage } from "../index.ts";
 import type { Ipc } from "../ipc.ts";
 import { IpcBodyReceiver } from "../stream/IpcBodyReceiver.ts";

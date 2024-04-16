@@ -20,7 +20,7 @@ export class IpcBodyReceiver extends IpcBody {
     if (metaBody.type_isStream) {
       const streamId = metaBody.streamId!;
       if (IpcBodyReceiver.CACHE.streamId_receiverIpc_Map.has(streamId) === false) {
-        ipc.onClose(() => {
+        ipc.onClosed(() => {
           IpcBodyReceiver.CACHE.streamId_receiverIpc_Map.delete(streamId);
         });
         IpcBodyReceiver.CACHE.streamId_receiverIpc_Map.set(streamId, ipc);
@@ -66,7 +66,7 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
     {
       start(controller) {
         /// ipc 一旦关闭，这个流也要关闭，因为只有这个ipc能为它提供数据
-        ipc.onClose(() => {
+        ipc.onClosed(() => {
           try {
             controller.close();
           // deno-lint-ignore no-empty

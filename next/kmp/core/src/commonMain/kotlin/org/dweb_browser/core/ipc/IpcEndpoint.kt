@@ -67,9 +67,6 @@ abstract class IpcEndpoint {
    */
 
 //  abstract val onIpcMessage: SharedFlow<EndpointIpcMessage>
-  /**
-   * 获取消息管道
-   */
 
   private val ipcMessageProducers = SafeHashMap<Int, Producer<IpcMessage>>()
 

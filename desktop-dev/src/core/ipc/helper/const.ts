@@ -1,17 +1,18 @@
 import { simpleDecoder, simpleEncoder } from "../../../helper/encoding.ts";
 import { $MicroModuleManifest } from "../../types.ts";
-import type { IpcError } from "../IpcError.ts";
-import type { IpcEvent } from "../IpcEvent.ts";
-import type { IpcLifeCycle } from "../IpcLifeCycle.ts";
-import type { IpcReqMessage, IpcRequest } from "../IpcRequest.ts";
-import type { IpcResMessage, IpcResponse } from "../IpcResponse.ts";
+import type { IpcError } from "../ipc-message/IpcError.ts";
+import type { IpcEvent } from "../ipc-message/IpcEvent.ts";
+import { IpcFork } from "../ipc-message/IpcFork.ts";
+import type { IpcLifeCycle } from "../ipc-message/IpcLifeCycle.ts";
+import type { IpcPoolPack } from "../ipc-message/IpcMessage.ts";
+import type { IpcReqMessage, IpcRequest } from "../ipc-message/IpcRequest.ts";
+import type { IpcResMessage, IpcResponse } from "../ipc-message/IpcResponse.ts";
 import type { Ipc } from "../ipc.ts";
 import type { IpcStreamAbort } from "../stream/IpcStreamAbort.ts";
 import type { IpcStreamData } from "../stream/IpcStreamData.ts";
 import type { IpcStreamEnd } from "../stream/IpcStreamEnd.ts";
 import type { IpcStreamPaused } from "../stream/IpcStreamPaused.ts";
 import type { IpcStreamPulling } from "../stream/IpcStreamPulling.ts";
-import type { IpcPoolPack } from "./IpcMessage.ts";
 
 export const enum IPC_METHOD {
   GET = "GET",
@@ -92,6 +93,8 @@ export const enum IPC_MESSAGE_TYPE {
   LIFE_CYCLE,
   /**错误响应 */
   ERROR,
+  /**类型：分叉*/
+  FORK,
 }
 
 /**
@@ -106,9 +109,18 @@ export const enum IPC_DATA_ENCODING {
   BINARY = 1 << 3,
 }
 
-export const enum IPC_STATE {
+export const enum ENDPOINT_LIFECYCLE_STATE {
+  INIT = 0,
   OPENING = 1,
-  OPEN = 2,
+  OPENED = 2,
+  CLOSING = 3,
+  CLOSED = 4,
+}
+
+export const enum IPC_LIFECYCLE_STATE {
+  INIT = 0,
+  OPENING = 1,
+  OPENED = 2,
   CLOSING = 3,
   CLOSED = 4,
 }
@@ -123,7 +135,7 @@ export type $IpcTransferableMessage =
   | IpcLifeCycle;
 
 /** 发送的消息 */
-export type $IpcMessage = IpcRequest | IpcResponse | IpcEvent | $IpcStreamMessage | IpcError | IpcLifeCycle;
+export type $IpcMessage = IpcRequest | IpcResponse | IpcEvent | $IpcStreamMessage | IpcError | IpcLifeCycle | IpcFork;
 
 export type $IpcStreamMessage = IpcStreamData | IpcStreamPulling | IpcStreamPaused | IpcStreamEnd | IpcStreamAbort;
 

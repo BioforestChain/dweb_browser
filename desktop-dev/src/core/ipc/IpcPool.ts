@@ -1,7 +1,5 @@
-import { $Callback, createSignal } from "../../helper/createSignal.ts";
-import { mapHelper } from "../../helper/mapHelper.ts";
-import { $IpcOptions, $OnIpcPool, Ipc, IpcPoolPack, MessagePortIpc, ReadableStreamIpc } from "../index.ts";
-import { NativeIpc } from "./NativeIpc.ts";
+import { createSignal } from "../../helper/createSignal.ts";
+import { Ipc } from "../index.ts";
 
 let ipc_pool_uid_acc = 0;
 
@@ -9,84 +7,44 @@ let ipc_pool_uid_acc = 0;
 export class IpcPool {
   constructor(readonly poolName: string) {
     this.poolId = this.poolName + this.poolId;
-    this.initOnMessage();
   }
 
   readonly poolId = `-worker-${ipc_pool_uid_acc++}`;
 
-  private ipcPool = new Map<string, Ipc>();
-
-  // close start
-  protected _closeSignal = createSignal<() => unknown>(false);
-  onClose = this._closeSignal.listen;
-  async close() {
-    for (const _ipc of this.ipcPool.values()) {
-      await _ipc.close();
-    }
-    this.ipcPool.clear();
-  }
-  // close end
-  // deno-lint-ignore no-explicit-any
-  private _createSignal<T extends $Callback<any[]>>(autoStart?: boolean) {
-    const signal = createSignal<T>(autoStart);
-    this.onClose(() => signal.clear());
-    return signal;
-  }
-
   /**
-   * fork出一个已经创建好通信的ipc
-   * @options IpcOptions
+   * 所有的ipc对象实例集合
    */
-  create<T extends Ipc>(
-    /**ipc的业务线标识*/
-    channelId: string,
-    options: $IpcOptions
-  ) {
-    const ipc = mapHelper.getOrPut(this.ipcPool, channelId, () => {
-      const mm = options.remote;
-      // 创建不同的Ipc
-      let ipc: Ipc;
-      if (options.port != null) {
-        ipc = new MessagePortIpc(options.port, mm, channelId, this);
-      } else if (options.channel != null) {
-        ipc = new NativeIpc(options.channel, mm, channelId, this);
-      } else {
-        ipc = new ReadableStreamIpc(mm, channelId, this);
-      }
-      ipc.initlifeCycleHook();
-      ipc.start();
-      ipc.onClose(() => {
-        console.log(`🏀 worker closeIpc=>${channelId}`);
-        this.ipcPool.delete(channelId);
-      });
-      return ipc;
-    }) as T;
+  #ipcSet = new Set<Ipc>();
+  /**
+   * 所有的委托进来的流的实例集合
+   */
+  #streamPool = new Map<String, ReadableStream>();
 
-    return ipc;
-  }
-
-  // 收集消息并且转发到各个通道
-  private _messageSignal = this._createSignal<$OnIpcPool>(false);
-
-  emitMessage = (message: IpcPoolPack, ipc: Ipc) => this._messageSignal.emit(message, ipc);
-
-  onMessage = this._messageSignal.listen;
-
-  // 分发消息
-  initOnMessage() {
-    this.onMessage((message, ipc) => {
-      ipc.emitMessage(message.ipcMessage);
+  /**安全的创建ipc */
+  safeCreatedIpc(ipc: Ipc, autoStart: boolean, startReason?: string) {
+    /// 保存ipc，并且根据它的生命周期做自动删除
+    this.#ipcSet.add(ipc);
+    // 自动启动
+    if (autoStart) {
+      ipc.start(startReason ?? "autoStart");
+    }
+    ipc.onClosed(() => {
+      this.#ipcSet.delete(ipc);
+      console.log("ipcpool-remote-ipc", ipc);
     });
   }
 
-  /**
-   * 根据传进来的业务描述，注册一个Pid
-   */
-  generatePid(channelId: string): number {
-    const time = new Date().getTime();
-    const hashPid = hashString(`${channelId}${time}`);
-    return hashPid;
+  //#region  close
+  #destroySignal = createSignal();
+  onDestory = this.#destroySignal.listen;
+  async destroy() {
+    this.#destroySignal.emit();
+    for (const _ipc of this.#ipcSet) {
+      await _ipc.close();
+    }
+    this.#ipcSet.clear();
   }
+  // close end
 }
 
 // 这是一个简单的hashCode实现，用于计算字符串的hashCode

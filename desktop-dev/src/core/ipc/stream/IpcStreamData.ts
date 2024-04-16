@@ -1,7 +1,7 @@
 import { CacheGetter } from "../../../helper/cacheGetter.ts";
 import { simpleDecoder } from "../../../helper/encoding.ts";
 import { $dataToBinary, $dataToText, IPC_DATA_ENCODING, IPC_MESSAGE_TYPE } from "../helper/const.ts";
-import { IpcMessage } from "../helper/IpcMessage.ts";
+import { IpcMessage } from "../ipc-message/IpcMessage.ts";
 
 export class IpcStreamData extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_DATA> {
   constructor(readonly stream_id: string, readonly data: string | Uint8Array, readonly encoding: IPC_DATA_ENCODING) {

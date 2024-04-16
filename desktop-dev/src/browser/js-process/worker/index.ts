@@ -133,7 +133,7 @@ export class JsProcessMicroModule implements $MicroModule {
         const port_po = mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
           const ipc_po = new PromiseOut<MessagePortIpc>();
           ipc_po.onSuccess((ipc) => {
-            ipc.onClose(() => {
+            ipc.onClosed(() => {
               this._ipcConnectsMap.delete(mmid);
             });
           });
@@ -192,7 +192,7 @@ export class JsProcessMicroModule implements $MicroModule {
       port: this.nativeFetchPort,
     });
     // 整个worker关闭
-    this.fetchIpc.onClose(async () => {
+    this.fetchIpc.onClosed(async () => {
       console.log("worker-close=>", this.fetchIpc.channelId, this.mmid);
       // 当worker关闭的时候，触发关闭，让用户可以基于这个事件释放资源
       this._onCloseSignal.emit(IpcEvent.fromText("close", this.mmid), this.fetchIpc);
@@ -359,7 +359,7 @@ export class JsProcessMicroModule implements $MicroModule {
         )
       );
       ipc_po.onSuccess((ipc) => {
-        ipc.onClose(() => {
+        ipc.onClosed(() => {
           this._ipcConnectsMap.delete(mmid);
         });
       });
@@ -373,7 +373,7 @@ export class JsProcessMicroModule implements $MicroModule {
   private _ipcSet = new Set<Ipc>();
   async addToIpcSet(ipc: Ipc) {
     this._ipcSet.add(ipc);
-    ipc.onClose(() => {
+    ipc.onClosed(() => {
       this._ipcSet.delete(ipc);
     });
     await this.afterIpcReady(ipc);
@@ -399,7 +399,7 @@ export class JsProcessMicroModule implements $MicroModule {
   // 提供一个关闭通信的功能
   // deno-lint-ignore no-explicit-any
   close(reson?: any) {
-    this.ipcPool.close();
+    this.ipcPool.destroy();
     this._ipcConnectsMap.forEach(async (ipc) => {
       ipc.promise.then((res) => {
         res.postMessage(new IpcError(500, `worker error=>${reson}`));
