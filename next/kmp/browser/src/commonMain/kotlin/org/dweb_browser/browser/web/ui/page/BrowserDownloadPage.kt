@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,7 +46,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadStateEvent
@@ -147,26 +145,11 @@ private fun BrowserDownloadPage.DownloadItemManage(downloadItem: BrowserDownload
     },
     headlineContent = {
       Column {
-        Text(downloadItem.fileName)
-        Row {
-          Text(
-            text = downloadItem.state.current.toSpaceSize(),
-            fontSize = 12.sp,
-            maxLines = 1
-          )
-          Text(" / ")
-          Text(
-            text = downloadItem.state.total.toSpaceSize(),
-            fontSize = 12.sp,
-            maxLines = 1
-          )
-          Text(" • ")
-          Text(
-            text = downloadItem.state.state.name,
-            fontSize = 12.sp,
-            maxLines = 1
-          )
-        }
+        Text(text = downloadItem.fileName, style = MaterialTheme.typography.bodyMedium)
+        Text(
+          text = "${downloadItem.state.current.toSpaceSize()} / ${downloadItem.state.total.toSpaceSize()} • ${downloadItem.state.state.name}",
+          style = MaterialTheme.typography.bodySmall
+        )
       }
     },
     leadingContent = {

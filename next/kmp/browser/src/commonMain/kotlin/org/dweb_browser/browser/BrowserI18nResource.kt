@@ -229,19 +229,29 @@ object BrowserI18nResource {
 
     val page_title_manage =
       SimpleI18nResource(Language.ZH to "下载管理", Language.EN to "Download Manager")
-    val page_title_delete =
-      SimpleI18nResource(Language.ZH to "选择项目", Language.EN to "Select Items")
-    val page_title_delete_count =
-      SimpleI18nResource(Language.ZH to "已选择 %s 项", Language.EN to "%s selected")
-    val page_title_complete =
-      SimpleI18nResource(Language.ZH to "已下载", Language.EN to "Downloaded")
 
-    val sheet_download = SimpleI18nResource(
-      Language.ZH to "下载文件", Language.EN to "Download File"
+    val unknownSize = SimpleI18nResource(Language.ZH to "未知", Language.EN to "unknown")
+
+    val dialog_download_title = SimpleI18nResource(
+      Language.ZH to "下载文件",
+      Language.EN to "Download File"
     )
-    val sheet_exist = SimpleI18nResource(
-      Language.ZH to "此文件已在下载列表中",
-      Language.EN to "This file is already in the download list"
+
+    val dialog_retry_title = SimpleI18nResource(
+      Language.ZH to "是否重新下载文件？",
+      Language.EN to "Do you want to re-download the file?"
+    )
+
+    val dialog_retry_message = SimpleI18nResource(
+      Language.ZH to "您想再次下载 %s ((%s)) 吗？",
+      Language.EN to "Would you like to download %s ((%s)) again?"
+    )
+
+    val dialog_confirm = SimpleI18nResource(
+      Language.ZH to "再次下载", Language.EN to "Download Again"
+    )
+    val dialog_cancel = SimpleI18nResource(
+      Language.ZH to "取消", Language.EN to "Cancel"
     )
 
     val button_title_init = SimpleI18nResource(

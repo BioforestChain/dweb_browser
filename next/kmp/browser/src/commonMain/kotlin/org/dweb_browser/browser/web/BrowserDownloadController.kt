@@ -1,19 +1,10 @@
 package org.dweb_browser.browser.web
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import io.ktor.client.request.forms.MultiPartFormDataContent
-import io.ktor.client.request.forms.formData
-import io.ktor.http.ContentDisposition
-import io.ktor.http.ContentType
-import io.ktor.http.HeaderValueParam
-import io.ktor.http.Headers
-import io.ktor.http.HttpHeaders
-import io.ktor.http.content.PartData
-import io.ktor.http.headersOf
-import io.ktor.util.InternalAPI
-import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.streams.asInput
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import io.ktor.http.URLBuilder
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.ext.createChannelOfDownload
@@ -25,19 +16,11 @@ import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
 import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.BrowserDownloadStore
-import org.dweb_browser.browser.web.model.BrowserDownloadModel
+import org.dweb_browser.browser.web.data.BrowserDownloadType
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.std.dns.httpFetch
-import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.file.ext.readFile
 import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.dwebview.WebDownloadArgs
-import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.IPureChannel
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureHeaders
-import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.http.fetch
+import org.dweb_browser.helper.PromiseOut
 
 class BrowserDownloadController(
   private val browserNMM: BrowserNMM, private val browserController: BrowserController
@@ -46,7 +29,9 @@ class BrowserDownloadController(
 
   val saveDownloadList: MutableList<BrowserDownloadItem> = mutableStateListOf()
   val saveCompleteList: MutableList<BrowserDownloadItem> = mutableStateListOf()
-  private val downloadModel = BrowserDownloadModel(this, browserNMM)
+  private val newDownloadMaps: HashMap<String, BrowserDownloadItem> = hashMapOf() // 保存当前启动后新增的临时列表
+  var curDownloadItem by mutableStateOf<BrowserDownloadItem?>(null)
+  var alreadyExists by mutableStateOf(false) // 用于判断当前的下载地址是否在 newDownloadMaps 中
 
   init {
     // 初始化下载数据
@@ -64,7 +49,6 @@ class BrowserDownloadController(
             item.state = item.state.copy(current = 0L, state = DownloadState.Init)
           }
         }
-
       }
       if (save) saveDownloadList() // 只保存下载中的内容
     }
@@ -149,7 +133,46 @@ class BrowserDownloadController(
     saveDownloadList(download = true, complete = true)
   }
 
-  suspend fun openDownloadView(args: WebDownloadArgs) = downloadModel.openDownloadView(args)
+  /**
+   * 打开网页下载的提示框
+   */
+  suspend fun openDownloadDialog(webDownloadArgs: WebDownloadArgs) {
+    val urlKey = URLBuilder(webDownloadArgs.url).apply { parameters.clear() }.buildString()
+    alreadyExists = true // 获取状态前，先置为 true
+    curDownloadItem = newDownloadMaps.getOrPut(urlKey) {
+      alreadyExists = false // 如果是属于新增的，那么就是不存在的，状态为 false
+      BrowserDownloadItem(urlKey, downloadArgs = webDownloadArgs).apply {
+        val name = webDownloadArgs.suggestedFilename
+        val suffix = name.split(".").last()
+        fileType = BrowserDownloadType.entries.find { downloadType ->
+          downloadType.matchSuffix(suffix)
+        } ?: BrowserDownloadType.Other
+
+        // 名称去重操作
+        var index = 1
+        var tmpName: String = name
+        do {
+          if (
+            saveDownloadList.firstOrNull { it.fileName == tmpName && it.urlKey == urlKey } == null &&
+            saveCompleteList.firstOrNull { it.fileName == tmpName && it.urlKey == urlKey } == null
+          ) {
+            fileName = tmpName
+            break
+          }
+          tmpName = name.substringBeforeLast(".") + "_${index}." + suffix
+          index++
+        } while (true)
+      }
+    }
+  }
+
+  /**
+   * 隐藏网页下载的提示框
+   */
+  fun closeDownloadDialog() {
+    curDownloadItem = null
+    alreadyExists = false
+  }
 
   /**
    * 用于响应点击“下载中”列表的按钮
@@ -170,34 +193,35 @@ class BrowserDownloadController(
     }
   }
 
+  /**
+   * 用于响应重新下载操作，主要就是网页点击下载后，如果判断列表中已经存在下载数据时调用
+   */
+  fun clickRetryButton(downloadItem: BrowserDownloadItem) = browserNMM.ioAsyncScope.launch {
+    // 将状态进行修改下，然后启动下载
+    alreadyExists = false
+    if (downloadItem.state.state != DownloadState.Init) {
+      downloadItem.taskId?.let { taskId ->
+        browserNMM.removeDownload(taskId)
+        downloadItem.taskId = null
+      }
+      downloadItem.state = downloadItem.state.copy(state = DownloadState.Init, current = 0L)
+      clickDownloadButton(downloadItem)
+    }
+  }
+
   suspend fun shareDownloadItem(downloadItem: BrowserDownloadItem): Boolean {
-
     val ipc = browserNMM.connect("share.sys.dweb")
-    ipc.postMessage(IpcEvent.fromUtf8(
-      "shareLocalFile", downloadItem.filePath)
+    ipc.postMessage(
+      IpcEvent.fromUtf8("shareLocalFile", downloadItem.filePath)
     )
-
-//    val bytes = browserNMM.readFile(downloadItem.filePath).body.toPureBinary()
-//    val formData = formData {
-//      append("file", bytes, Headers.build {
-//        append(HttpHeaders.ContentType, ContentType.MultiPart.FormData)
-//        append(
-//          HttpHeaders.ContentDisposition, ContentDisposition.File.withParameters(
-//            listOf(HeaderValueParam(ContentDisposition.Parameters.FileName, downloadItem.fileName))
-//          ).toString()
-//        )
-//      })
-//    }
-//
-//    browserNMM.nativeFetch(
-//      PureClientRequest(
-//        href = "file://share.sys.dweb/share",
-//        headers = PureHeaders(mapOf("Content-Type" to ContentType.MultiPart.FormData.toString())),
-//        method = PureMethod.POST,
-//        body = IPureBody.from(formData)
-//      )
-//    )
-    return false
+    val sharePromiseOut = PromiseOut<String>()
+    ipc.onEvent { (event, ipc) ->
+      if (event.name == "shareLocalFile") {
+        sharePromiseOut.resolve(event.data as String)
+        ipc.close()
+      }
+    }
+    return sharePromiseOut.waitPromise() == "success"
   }
 
   suspend fun openFileOnDownload(downloadItem: BrowserDownloadItem) =

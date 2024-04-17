@@ -21,7 +21,6 @@ import org.dweb_browser.browser.search.ext.getEngineHomeLink
 import org.dweb_browser.browser.search.ext.getInjectList
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.data.AppBrowserTarget
-import org.dweb_browser.browser.web.data.BrowserDownloadItem
 import org.dweb_browser.browser.web.data.KEY_NO_TRACE
 import org.dweb_browser.browser.web.data.WebSiteInfo
 import org.dweb_browser.browser.web.data.WebSiteType
@@ -42,7 +41,6 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
@@ -236,7 +234,7 @@ class BrowserViewModel(
   fun addDownloadListener(listener: Signal.Listener<WebDownloadArgs>) {
     listener.invoke { args: WebDownloadArgs ->
       debugBrowser("download", args)
-      browserController.openDownloadView(args)
+      browserController.openDownloadDialog(args)
     }
   }
 

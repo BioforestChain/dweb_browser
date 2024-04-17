@@ -11,6 +11,7 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -164,7 +165,9 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
       ipc.onEvent { (event) ->
         if (event.name == "shareLocalFile") { // 用于文件分享，传入的内容是 《文件名&&文件路径》
           val filePath = (event.data as String)
-          share(ShareOptions(null, null, null), listOf("file://$filePath"), this@ShareNMM)
+          val ret = share(ShareOptions(null, null, null), listOf("file://$filePath"), this@ShareNMM)
+          debugShare("shareLocalFile", ret)
+          ipc.postMessage(IpcEvent.fromUtf8("shareLocalFile", ret))
         }
       }
     }
