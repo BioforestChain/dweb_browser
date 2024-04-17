@@ -28,4 +28,6 @@ class WindowInstancesManager {
   val onRemove = instances.onChange
 }
 
-val windowInstancesManager = WindowInstancesManager()
+val windowInstancesManager by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+  WindowInstancesManager()
+}
