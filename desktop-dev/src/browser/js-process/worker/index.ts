@@ -17,7 +17,7 @@ import * as http from "./std-dweb-http.ts";
 
 import { $RunMainConfig } from "../main/index.ts";
 import {
-  $objectToIpcMessage,
+  $normalizeIpcMessage,
   $OnFetch,
   $OnIpcEventMessage,
   $OnIpcRequestMessage,
@@ -26,7 +26,7 @@ import {
   IPC_HANDLE_EVENT,
   IpcError,
   IpcEvent,
-  IpcRequest,
+  IpcClientRequest,
   MessagePortIpc,
 } from "./std-dweb-core.ts";
 
@@ -229,9 +229,9 @@ export class JsProcessMicroModule implements $MicroModule {
         const [_, action, mmid] = ipcEvent.name.split("/");
         const ipc = await this.connect(mmid as $MMID);
         if (action === "lifeCycle") {
-          ipc.postMessage($objectToIpcMessage(JSON.parse(ipcEvent.text), ipc));
+          ipc.postMessage($normalizeIpcMessage(JSON.parse(ipcEvent.text), ipc));
         } else if (action === "request") {
-          const response = await ipc.request($objectToIpcMessage(JSON.parse(ipcEvent.text), ipc) as IpcRequest);
+          const response = await ipc.request($normalizeIpcMessage(JSON.parse(ipcEvent.text), ipc) as IpcClientRequest);
           this.fetchIpc.postMessage(
             IpcEvent.fromText(`forward/response/${mmid}`, JSON.stringify(response.ipcResMessage()))
           );

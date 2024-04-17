@@ -25,7 +25,7 @@ data class IpcLifecycle(
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @Polymorphic
-@JsonClassDiscriminator("state")
+@JsonClassDiscriminator("name")
 sealed interface IpcLifecycleState
 
 const val IPC_LIFECYCLE_STATE_INIT = "init"

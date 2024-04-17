@@ -4,28 +4,45 @@ import { CacheGetter } from "../../../helper/cacheGetter.ts";
 import { ReadableStreamOut } from "../../../helper/stream/readableStreamHelper.ts";
 import { parseUrl } from "../../../helper/urlHelper.ts";
 import { buildRequestX } from "../../helper/ipcRequestHelper.ts";
-import { $PureFrame, PureChannel } from "../helper/PureChannel.ts";
 import { IpcHeaders } from "../helper/IpcHeaders.ts";
-import { IpcMessage } from "./IpcMessage.ts";
-import { IPC_MESSAGE_TYPE, IPC_METHOD, toIpcMethod } from "../helper/const.ts";
+import { $PureFrame, PureChannel } from "../helper/PureChannel.ts";
+import { PURE_METHOD, toPureMethod } from "../helper/PureMethod.ts";
 import type { Ipc } from "../ipc.ts";
-import type { IpcBody } from "../stream/IpcBody.ts";
-import { IpcBodySender } from "../stream/IpcBodySender.ts";
-import type { MetaBody } from "../stream/MetaBody.ts";
+import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
+import type { IpcBody } from "./stream/IpcBody.ts";
+import { IpcBodySender } from "./stream/IpcBodySender.ts";
+import type { MetaBody } from "./stream/MetaBody.ts";
 
-const PURE_CHANNEL_EVENT_PREFIX = "§";
+const PURE_CHANNEL_EVENT_PREFIX = "§-";
 const X_IPC_UPGRADE_KEY = "X-Dweb-Ipc-Upgrade-Key";
 
-export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
+export type $IpcRequest = ReturnType<typeof ipcRequest>;
+export const ipcRequest = (
+  reqId: number,
+  method: PURE_METHOD,
+  url: string,
+  headers: Record<string, string>,
+  metaBody: MetaBody
+) =>
+  ({
+    ...ipcMessageBase(IPC_MESSAGE_TYPE.REQUEST),
+    reqId,
+    method,
+    url,
+    headers,
+    metaBody,
+  } as const);
+
+class IpcRequest {
+  readonly type = IPC_MESSAGE_TYPE.REQUEST;
   constructor(
     readonly reqId: number,
     readonly url: string,
-    readonly method: IPC_METHOD,
+    readonly method: PURE_METHOD,
     readonly headers: IpcHeaders,
     readonly body: IpcBody,
     readonly ipc: Ipc
   ) {
-    super(IPC_MESSAGE_TYPE.REQUEST);
     if (body instanceof IpcBodySender) {
       IpcBodySender.$usableByIpc(ipc, body);
     }
@@ -39,7 +56,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   static fromText(
     reqId: number,
     url: string,
-    method: IPC_METHOD = IPC_METHOD.GET,
+    method: PURE_METHOD = PURE_METHOD.GET,
     headers = new IpcHeaders(),
     text: string,
     ipc: Ipc
@@ -50,7 +67,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   static fromBinary(
     reqId: number,
     url: string,
-    method: IPC_METHOD = IPC_METHOD.GET,
+    method: PURE_METHOD = PURE_METHOD.GET,
     headers = new IpcHeaders(),
     binary: $Binary,
     ipc: Ipc
@@ -64,7 +81,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   static fromStream(
     reqId: number,
     url: string,
-    method: IPC_METHOD = IPC_METHOD.GET,
+    method: PURE_METHOD = PURE_METHOD.GET,
     headers = new IpcHeaders(),
     stream: ReadableStream<Uint8Array>,
     ipc: Ipc
@@ -91,7 +108,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
       headers?: IpcHeaders | HeadersInit;
     } = {}
   ) {
-    const method = toIpcMethod(init.method);
+    const method = toPureMethod(init.method);
     const headers = init.headers instanceof IpcHeaders ? init.headers : new IpcHeaders(init.headers);
 
     let ipcBody: IpcBody;
@@ -144,29 +161,30 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     return buildRequestX(this.url, { method: this.method, headers: this.headers, body: this.body.raw });
   }
 
-  readonly ipcReqMessage = once(
-    () => new IpcReqMessage(this.reqId, this.method, this.url, this.headers.toJSON(), this.body.metaBody)
+  readonly ipcReqMessage = once(() =>
+    ipcRequest(this.reqId, this.method, this.url, this.headers.toJSON(), this.body.metaBody)
   );
 
   toJSON() {
     const { method } = this;
     // let body: undefined | $BodyData;
-    if ((method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) === false) {
+    if ((method === PURE_METHOD.GET || method === PURE_METHOD.HEAD) === false) {
       // body = this.body.raw;
-      return new IpcReqMessage(this.reqId, this.method, this.url, this.headers.toJSON(), this.body.metaBody);
+      return ipcRequest(this.reqId, this.method, this.url, this.headers.toJSON(), this.body.metaBody);
     }
     return this.ipcReqMessage();
   }
 }
 
-export class IpcReqMessage extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
-  constructor(
-    readonly reqId: number,
-    readonly method: IPC_METHOD,
-    readonly url: string,
-    readonly headers: Record<string, string>,
-    readonly metaBody: MetaBody
-  ) {
-    super(IPC_MESSAGE_TYPE.REQUEST);
+export class IpcClientRequest extends IpcRequest {
+  private server?: IpcServerRequest;
+  toServer(serverIpc: Ipc) {
+    return (this.server ??= new IpcServerRequest(this, serverIpc));
+  }
+}
+
+export class IpcServerRequest extends IpcRequest {
+  constructor(readonly client: IpcClientRequest, ipc: Ipc) {
+    super(client.reqId, client.url, client.method, client.headers, client.body, ipc);
   }
 }

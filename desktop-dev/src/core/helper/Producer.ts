@@ -72,7 +72,7 @@ export class Producer<T> extends Signal<$Callback<[T]>> {
     const signal = new Signal<$Callback<[R]>>();
     this.listen((value) => {
       const tran = transform(value);
-      if (tran) {
+      if (tran !== undefined) {
         signal.emit(tran);
       }
     });
@@ -145,26 +145,12 @@ class Event<T> extends Producer<T> {
 
   /**向下传递 */
   next() {}
-
-  /**将其消耗转换为R对象 以返回值形式继续传递*/
-  consumeAs<R extends T>(c: new () => R): R | null {
-    if (this.data instanceof c) {
-      return this.consume() as R;
-    }
-    return null;
-  }
-
   /**过滤触发 */
-  consumeFilter(filter: (data: T) => boolean): T | null {
-    if (filter(this.data)) {
-      return this.consume();
-    }
-    return null;
-  }
-  /**将其消耗转换为R对象 以回调形式继续传递*/
-  consumeAsCallback<R extends T>(c: new () => R, block: (data: R) => void) {
-    if (this.data instanceof c) {
-      block(this.consume() as R);
+  consumeMapNotNull<R extends T>(mapNotNull: (data: T) => R | undefined): R | undefined {
+    const result = mapNotNull(this.data);
+    if (result !== null) {
+      this.consume();
+      return result as R;
     }
   }
 
@@ -221,7 +207,7 @@ export class Consumer<T> extends Producer<T> {
   #collectors: $FlowCollector<T>[] = [];
   // 收集并触发所有的事件
   #startCollect = once(() => {
-    (async () => {
+    const job = (async () => {
       for await (const event of this.input) {
         for (const collector of this.#collectors) {
           collector(event);
@@ -229,12 +215,13 @@ export class Consumer<T> extends Producer<T> {
       }
     })();
     this.#start();
+    return job;
   });
   /**收集事件 */
   collect(collector: (event: Event<T>) => void) {
     this.#collectors.push(collector);
     // 事件在收集了再调用开始
-    this.#startCollect();
+    return this.#startCollect();
   }
 
   cancel() {

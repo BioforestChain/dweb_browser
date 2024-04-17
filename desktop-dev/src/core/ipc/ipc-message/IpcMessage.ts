@@ -1,20 +1,19 @@
-import { $IpcMessage, IPC_MESSAGE_TYPE } from "../helper/const.ts";
+import { $IpcError } from "./IpcError.ts";
+import { $IpcEvent } from "./IpcEvent.ts";
+import { $IpcFork } from "./IpcFork.ts";
+import { $IpcLifecycle } from "./IpcLifecycle.ts";
+import { $IpcRequest, IpcClientRequest, IpcServerRequest } from "./IpcRequest.ts";
+import { $IpcResponse, IpcResponse } from "./IpcResponse.ts";
+import { $IpcStream } from "./stream/IpcStream.ts";
 
-/**基础ipc消息*/
-export class IpcMessage<T extends IPC_MESSAGE_TYPE> {
-  constructor(readonly type: T) {}
-}
-
-/**分发消息到各个ipc的监听时使用*/
-export class IpcPoolPack {
-  constructor(readonly pid: number, readonly ipcMessage: $IpcMessage) {}
-}
-
-export class IpcPoolPackString {
-  constructor(readonly pid: number, readonly ipcMessage: string) {}
-}
-
-/**消息传递时包裹pool消息📦*/
-export class PackIpcMessage {
-  constructor(readonly pid: number, readonly messageByteArray: Uint8Array) {}
-}
+/** 发送的消息 */
+export type $IpcRawMessage = $IpcRequest | $IpcResponse | $IpcEvent | $IpcStream | $IpcError | $IpcLifecycle | $IpcFork;
+export type $IpcMessage =
+  | IpcClientRequest
+  | IpcServerRequest
+  | IpcResponse
+  | $IpcEvent
+  | $IpcStream
+  | $IpcError
+  | $IpcLifecycle
+  | $IpcFork;

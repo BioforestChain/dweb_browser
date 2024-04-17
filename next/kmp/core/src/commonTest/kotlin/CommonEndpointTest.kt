@@ -79,7 +79,7 @@ class CommonEndpointTest {
   fun testEndpoint() = runCommonTest {
     val endpointLifecycle: EndpointMessage = EndpointLifecycle(EndpointLifecycleInit)
     assertEquals(
-      """{"type":"life","state":{"state":"init"},"order":-1}""",
+      """{"type":"life","state":{"name":"init"},"order":-1}""",
       endpointMessageToJson(endpointLifecycle),
     )
 

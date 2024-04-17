@@ -83,9 +83,9 @@ class IpcBodySender private constructor(
   companion object {
     suspend fun from(raw: IPureBody, ipc: Ipc): IpcBodySender {
       val metaBody = when (raw) {
-        is PureEmptyBody -> MetaBody.fromText(raw.toPureString())
-        is PureStringBody -> MetaBody.fromText(raw.toPureString())
-        is PureBinaryBody -> MetaBody.fromBinary(raw.toPureBinary())
+        is PureEmptyBody -> MetaBody.fromText(raw.toPureString(), ipc.pool.poolId)
+        is PureStringBody -> MetaBody.fromText(raw.toPureString(), ipc.pool.poolId)
+        is PureBinaryBody -> MetaBody.fromBinary(raw.toPureBinary(), ipc.pool.poolId)
         is PureStreamBody -> null
       }
       return IpcBodySender(
@@ -98,7 +98,7 @@ class IpcBodySender private constructor(
     }
 
     fun fromText(raw: PureString, ipc: Ipc) =
-      IpcBodySender(MetaBody.fromText(raw), IPureBody.from(raw), ipc)
+      IpcBodySender(MetaBody.fromText(raw, ipc.pool.poolId), IPureBody.from(raw), ipc)
 
     fun fromBase64(raw: PureString, ipc: Ipc) = fromBinary(raw.toBase64ByteArray(), ipc)
 
@@ -107,8 +107,8 @@ class IpcBodySender private constructor(
 
       return IpcBodySender(
         when (pureBody) {
-          is PureEmptyBody -> MetaBody.fromText("")
-          is PureBinaryBody -> MetaBody.fromBinary(pureBody.data)
+          is PureEmptyBody -> MetaBody.fromText("", ipc.pool.poolId)
+          is PureBinaryBody -> MetaBody.fromBinary(pureBody.data, ipc.pool.poolId)
           else -> throw Exception("should not happen")
         },
         pureBody,

@@ -72,8 +72,7 @@ fun endpointMessageToCbor(message: EndpointMessage) =
 fun endpointMessageToJson(message: EndpointMessage) =
   JsonIpc.encodeToString<EndpointMessage>(serializableEndpointMessage(message, true))
 
-@Suppress("UNCHECKED_CAST")
-fun <T : IpcMessage> normalizeIpcMessage(ipcMessage: T, ipc: Ipc): T = when (ipcMessage) {
+fun normalizeIpcMessage(ipcMessage: IpcMessage, ipc: Ipc): IpcMessage = when (ipcMessage) {
   is IpcReqMessage -> IpcServerRequest(
     ipcMessage.reqId,
     ipcMessage.url,
@@ -81,7 +80,7 @@ fun <T : IpcMessage> normalizeIpcMessage(ipcMessage: T, ipc: Ipc): T = when (ipc
     PureHeaders(ipcMessage.headers),
     IpcBodyReceiver.from(ipcMessage.metaBody, ipc),
     ipc
-  ) as T
+  )
 
   is IpcResMessage -> IpcResponse(
     ipcMessage.reqId,
@@ -89,7 +88,7 @@ fun <T : IpcMessage> normalizeIpcMessage(ipcMessage: T, ipc: Ipc): T = when (ipc
     PureHeaders(ipcMessage.headers),
     IpcBodyReceiver.from(ipcMessage.metaBody, ipc),
     ipc
-  ) as T
+  )
 
   else -> ipcMessage
 }

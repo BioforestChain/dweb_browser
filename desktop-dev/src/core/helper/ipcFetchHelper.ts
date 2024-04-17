@@ -1,5 +1,5 @@
 import { isBinary } from "../../helper/binaryHelper.ts";
-import { $OnIpcRequestMessage, Ipc, IpcBody, IpcHeaders, IpcRequest, IpcResponse } from "../ipc/index.ts";
+import { $OnIpcRequestMessage, Ipc, IpcBody, IpcHeaders, IpcClientRequest, IpcResponse } from "../ipc/index.ts";
 import { $bodyInitToIpcBodyArgs, isWebSocket } from "./ipcRequestHelper.ts";
 import { $PromiseMaybe } from "./types.ts";
 
@@ -243,7 +243,7 @@ export interface $FetchResponse extends ResponseInit {
 }
 
 export class FetchEvent {
-  constructor(readonly ipcRequest: IpcRequest, readonly ipc: Ipc) {}
+  constructor(readonly ipcRequest: IpcClientRequest, readonly ipc: Ipc) {}
   get url() {
     return this.ipcRequest.parsed_url;
   }

@@ -1,9 +1,8 @@
-import { CacheGetter } from "../../../helper/cacheGetter.ts";
-import { simpleDecoder } from "../../../helper/encoding.ts";
-import "../../helper/crypto.shims.ts";
-import type { $JSON } from "../helper/$messageToIpcMessage.ts";
-import { IPC_DATA_ENCODING } from "../helper/const.ts";
-import type { Ipc } from "../ipc.ts";
+import { CacheGetter } from "../../../../helper/cacheGetter.ts";
+import { simpleDecoder } from "../../../../helper/encoding.ts";
+import "../../../helper/crypto.shims.ts";
+import type { $JSON } from "../../helper/$messageToIpcMessage.ts";
+import { IPC_DATA_ENCODING } from "../internal/IpcData.ts";
 
 export class MetaBody {
   constructor(
@@ -11,7 +10,7 @@ export class MetaBody {
     readonly senderUid: string,
     readonly data: string | Uint8Array,
     readonly streamId: string = simpleDecoder(crypto.getRandomValues(new Uint8Array(8)), "base64"),
-    public receiverUid?: string,
+    public receiverUid?: string
   ) {}
   static fromJSON(metaBody: MetaBody | $JSON<MetaBody>) {
     if (metaBody instanceof MetaBody === false) {
@@ -20,7 +19,7 @@ export class MetaBody {
         metaBody.senderUid,
         metaBody.data,
         metaBody.streamId,
-        metaBody.receiverUid,
+        metaBody.receiverUid
       );
     }
     return metaBody as MetaBody;
@@ -44,20 +43,14 @@ export class MetaBody {
       receiverUid
     );
   }
-  static fromBinary(sender: Ipc | string, data: Uint8Array, streamId?: string, receiverUid?: string): MetaBody {
-    if (typeof sender === "string") {
-      return new MetaBody(
-        streamId == null ? IPC_META_BODY_TYPE.INLINE_BINARY : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
-        sender,
-        data,
-        streamId,
-        receiverUid
-      );
-    }
-    if (sender.support_binary) {
-      return this.fromBinary(sender.uid, data, streamId, receiverUid);
-    }
-    return this.fromBase64(sender.uid, simpleDecoder(data, "base64"), streamId, receiverUid);
+  static fromBinary(sender: string, data: Uint8Array, streamId?: string, receiverUid?: string): MetaBody {
+    return new MetaBody(
+      streamId == null ? IPC_META_BODY_TYPE.INLINE_BINARY : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
+      sender,
+      data,
+      streamId,
+      receiverUid
+    );
   }
   #type_encoding = new CacheGetter(() => {
     const encoding = this.type & 0b11111110;

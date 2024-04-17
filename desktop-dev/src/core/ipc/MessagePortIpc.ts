@@ -2,7 +2,7 @@ import { encode } from "cbor-x";
 
 import { IpcPool, IpcPoolPack, IpcPoolPackString } from "../index.ts";
 import type { $IpcSupportProtocols, $MicroModuleManifest } from "../types.ts";
-import { IpcRequest } from "./ipc-message/IpcRequest.ts";
+import { IpcClientRequest } from "./ipc-message/IpcRequest.ts";
 import { IpcResponse } from "./ipc-message/IpcResponse.ts";
 import {
   $cborToIpcMessage,
@@ -52,7 +52,7 @@ export class MessagePortIpc extends Ipc {
   _doPostMessage(pid: number, message: $IpcMessage): void {
     // deno-lint-ignore no-explicit-any
     let message_raw: any;
-    if (message instanceof IpcRequest) {
+    if (message instanceof IpcClientRequest) {
       message_raw = message.ipcReqMessage();
     } else if (message instanceof IpcResponse) {
       message_raw = message.ipcResMessage();

@@ -1,8 +1,8 @@
-import { simpleDecoder, simpleEncoder } from "../../../helper/encoding.ts";
-import { streamReadAllBuffer } from "../../../helper/stream/readableStreamHelper.ts";
+import { simpleDecoder, simpleEncoder } from "../../../../helper/encoding.ts";
+import { streamReadAllBuffer } from "../../../../helper/stream/readableStreamHelper.ts";
 import type { IpcBodySender } from "./IpcBodySender.ts";
 import type { MetaBody } from "./MetaBody.ts";
-import { Ipc } from "../ipc.ts";
+import { Ipc } from "../../ipc.ts";
 
 export abstract class IpcBody {
   static CACHE = new (class {

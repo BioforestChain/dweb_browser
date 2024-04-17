@@ -25,7 +25,7 @@ data class EndpointLifecycle(
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @Polymorphic
-@JsonClassDiscriminator("state")
+@JsonClassDiscriminator("name")
 sealed interface EndpointLifecycleState
 
 const val ENDPOINT_LIFECYCLE_STATE_INIT = "init"

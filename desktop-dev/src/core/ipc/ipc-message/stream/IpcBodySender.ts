@@ -1,15 +1,15 @@
-import { PromiseOut } from "../../../helper/PromiseOut.ts";
-import { $Callback, createSignal } from "../../../helper/createSignal.ts";
-import { binaryStreamRead } from "../../../helper/stream/readableStreamHelper.ts";
-import "../../helper/crypto.shims.ts";
+import { PromiseOut } from "../../../../helper/PromiseOut.ts";
+import { $Callback, createSignal } from "../../../../helper/createSignal.ts";
+import { binaryStreamRead } from "../../../../helper/stream/readableStreamHelper.ts";
+import "../../../helper/crypto.shims.ts";
+import type { Ipc } from "../../ipc.ts";
+import { IPC_MESSAGE_TYPE } from "../internal/IpcMessage.ts";
 import { BodyHub, IpcBody, type $BodyData } from "./IpcBody.ts";
-import { IpcStreamData } from "../stream/IpcStreamData.ts";
-import { IpcStreamEnd } from "../stream/IpcStreamEnd.ts";
-import type { IpcStreamPaused } from "../stream/IpcStreamPaused.ts";
-import type { IpcStreamPulling } from "../stream/IpcStreamPulling.ts";
+import { ipcStreamData } from "./IpcStreamData.ts";
+import { ipcStreamEnd } from "./IpcStreamEnd.ts";
+import type { $IpcStreamPaused } from "./IpcStreamPaused.ts";
+import type { $IpcStreamPulling } from "./IpcStreamPulling.ts";
 import { IPC_META_BODY_TYPE, MetaBody } from "./MetaBody.ts";
-import { IPC_MESSAGE_TYPE } from "../helper/const.ts";
-import type { Ipc } from "../ipc.ts";
 
 /**
  * 控制信号
@@ -67,11 +67,11 @@ export class IpcBodySender extends IpcBody {
   private readonly usedIpcMap = new Map<Ipc, $UsedIpcInfo>();
   private UsedIpcInfo = class UsedIpcInfo {
     constructor(readonly ipcBody: IpcBodySender, readonly ipc: Ipc, public bandwidth = 0, public fuse = 0) {}
-    emitStreamPull(message: IpcStreamPulling) {
+    emitStreamPull(message: $IpcStreamPulling) {
       return this.ipcBody.emitStreamPull(this, message);
     }
 
-    emitStreamPaused(message: IpcStreamPaused) {
+    emitStreamPaused(message: $IpcStreamPaused) {
       return this.ipcBody.emitStreamPaused(this, message);
     }
 
@@ -101,7 +101,7 @@ export class IpcBodySender extends IpcBody {
   /**
    * 拉取数据
    */
-  private emitStreamPull(info: $UsedIpcInfo, message: IpcStreamPulling) {
+  private emitStreamPull(info: $UsedIpcInfo, message: $IpcStreamPulling) {
     /// desiredSize 仅作参考，我们以发过来的拉取次数为准
     info.bandwidth = message.bandwidth;
     // 只要有一个开始读取，那么就可以开始
@@ -110,7 +110,7 @@ export class IpcBodySender extends IpcBody {
   /**
    * 暂停数据
    */
-  private emitStreamPaused(info: $UsedIpcInfo, message: IpcStreamPaused) {
+  private emitStreamPaused(info: $UsedIpcInfo, message: $IpcStreamPaused) {
     /// 更新保险限制
     info.bandwidth = -1;
     info.fuse = message.fuse;
@@ -186,12 +186,12 @@ export class IpcBodySender extends IpcBody {
 
   private $bodyAsMeta(body: $BodyData, ipc: Ipc): MetaBody {
     if (typeof body === "string") {
-      return MetaBody.fromText(ipc.uid, body);
+      return MetaBody.fromText(ipc.pool.poolId, body);
     }
     if (body instanceof ReadableStream) {
       return this.$streamAsMeta(body, ipc);
     }
-    return MetaBody.fromBinary(ipc, body);
+    return MetaBody.fromBinary(ipc.pool.poolId, body);
   }
   /**
    * 如果 rawData 是流模式，需要提供数据发送服务
@@ -249,14 +249,14 @@ export class IpcBodySender extends IpcBody {
           this.isStreamOpened = true;
           // console.log("sender/read", stream_id, ipc.uid);
 
-          const message = IpcStreamData.fromBinary(stream_id, await reader.readBinary(availableLen));
+          const message = ipcStreamData.fromBinary(stream_id, await reader.readBinary(availableLen));
           for (const ipc of this.usedIpcMap.keys()) {
             ipc.postMessage(message);
           }
         } else if (availableLen === -1) {
           // console.log("sender/end", stream_id, ipc.uid);
           /// 不论是不是被 aborted，都发送结束信号
-          const message = new IpcStreamEnd(stream_id);
+          const message = ipcStreamEnd(stream_id);
           for (const ipc of this.usedIpcMap.keys()) {
             ipc.postMessage(message);
           }
@@ -274,7 +274,7 @@ export class IpcBodySender extends IpcBody {
       // js的不支持输出预读取帧
     }
 
-    const metaBody = new MetaBody(streamType, ipc.uid, streamFirstData, stream_id);
+    const metaBody = new MetaBody(streamType, ipc.pool.poolId, streamFirstData, stream_id);
     // 流对象，写入缓存
     IpcBodySender.CACHE.streamId_ipcBodySender_Map.set(metaBody.streamId, this);
     this.streamCtorSignal.listen((signal) => {

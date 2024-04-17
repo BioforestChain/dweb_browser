@@ -21,13 +21,13 @@ import type * as $Core from "./worker/std-dweb-core.ts";
 export const { jsProcess, http, ipc, core } = navigator.dweb;
 export const {
   FetchError,
-  IPC_METHOD,
+  PURE_METHOD,
   Ipc,
   IpcBodySender,
   IpcEvent,
   //
   IpcHeaders,
-  IpcRequest,
+  IpcRequest: IpcClientRequest,
   IpcResponse,
   ReadableStreamIpc,
   ReadableStreamOut,
@@ -44,7 +44,7 @@ export type $ServerUrlInfo = InstanceType<typeof ServerUrlInfo>;
 export type $ServerStartResult = InstanceType<typeof ServerStartResult>;
 
 export type $Ipc = $Core.Ipc;
-export type $IpcRequest = $Core.IpcRequest;
+export type $IpcRequest = $Core.IpcClientRequest;
 export type $IpcResponse = $Core.IpcResponse;
 export type $IpcEvent = $Core.IpcEvent;
 export type $IpcHeaders = $Core.IpcHeaders;

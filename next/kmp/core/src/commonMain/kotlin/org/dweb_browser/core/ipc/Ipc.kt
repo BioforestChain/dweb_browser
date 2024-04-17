@@ -287,9 +287,6 @@ class Ipc internal constructor(
     return forkedIpc
   }
 
-  /**
-   * 因为要实现 自触发，所以这里使用 Mutable
-   */
   private val forkProducer = Producer<Ipc>("fork#$debugId", scope)
   fun onFork(name: String) = forkProducer.consumer(name)
 
@@ -300,10 +297,10 @@ class Ipc internal constructor(
 
   private inline fun <T : Any> messagePipeMap(
     name: String,
-    crossinline mapNoNull: suspend (value: IpcMessage) -> T?,
+    crossinline mapNotNull: suspend (value: IpcMessage) -> T?,
   ) = onMessage(name).mapNotNull { event ->
     event.next();
-    mapNoNull(event.data)?.also { event.consume() }
+    mapNotNull(event.data)?.also { event.consume() }
   }.asProducer(messageProducer.producer.name + "/" + name, scope).also { producer ->
     onClosed { cause ->
       launchJobs += scope.launch {

@@ -1,14 +1,24 @@
 import { once } from "../../../helper/$once.ts";
 import { $Binary, binaryToU8a } from "../../../helper/binaryHelper.ts";
 import { IpcHeaders } from "../helper/IpcHeaders.ts";
-import { IpcMessage } from "./IpcMessage.ts";
-import { IPC_MESSAGE_TYPE } from "../helper/const.ts";
 import type { Ipc } from "../ipc.ts";
-import type { IpcBody } from "../stream/IpcBody.ts";
-import { IpcBodySender, setStreamId } from "../stream/IpcBodySender.ts";
-import type { MetaBody } from "../stream/MetaBody.ts";
+import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
+import type { IpcBody } from "./stream/IpcBody.ts";
+import { IpcBodySender, setStreamId } from "./stream/IpcBodySender.ts";
+import type { MetaBody } from "./stream/MetaBody.ts";
 
-export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
+export type $IpcResponse = ReturnType<typeof ipcResponse>;
+export const ipcResponse = (reqId: number, statusCode: number, headers: Record<string, string>, metaBody: MetaBody) =>
+  ({
+    ...ipcMessageBase(IPC_MESSAGE_TYPE.RESPONSE),
+    reqId,
+    statusCode,
+    headers,
+    metaBody,
+  } as const);
+
+export class IpcResponse {
+  readonly type = IPC_MESSAGE_TYPE.RESPONSE
   constructor(
     readonly reqId: number,
     readonly statusCode: number,
@@ -16,7 +26,6 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
     readonly body: IpcBody,
     readonly ipc: Ipc
   ) {
-    super(IPC_MESSAGE_TYPE.RESPONSE);
     if (body instanceof IpcBodySender) {
       IpcBodySender.$usableByIpc(ipc, body);
     }
@@ -32,9 +41,9 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
     if (body instanceof Uint8Array) {
       this.headers.init("Content-Length", body.length + "");
     }
-    let response:Response
+    let response: Response;
     if (this.statusCode < 200 || this.statusCode > 599) {
-      response =new Response(body, {
+      response = new Response(body, {
         headers: this.headers,
         status: 200,
       });
@@ -114,21 +123,10 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
     return ipcResponse;
   }
 
-  readonly ipcResMessage = once(
-    () => new IpcResMessage(this.reqId, this.statusCode, this.headers.toJSON(), this.body.metaBody)
+  readonly ipcResMessage = once(() =>
+    ipcResponse(this.reqId, this.statusCode, this.headers.toJSON(), this.body.metaBody)
   );
   toJSON() {
     return this.ipcResMessage();
-  }
-}
-
-export class IpcResMessage extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
-  constructor(
-    readonly reqId: number,
-    readonly statusCode: number,
-    readonly headers: Record<string, string>,
-    readonly metaBody: MetaBody
-  ) {
-    super(IPC_MESSAGE_TYPE.RESPONSE);
   }
 }

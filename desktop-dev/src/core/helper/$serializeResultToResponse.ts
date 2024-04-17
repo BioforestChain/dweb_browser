@@ -1,5 +1,5 @@
 import { isBinary } from "../../helper/binaryHelper.ts";
-import { Ipc, IpcRequest, IpcResponse } from "../ipc/index.ts";
+import { Ipc, IpcClientRequest, IpcResponse } from "../ipc/index.ts";
 import type { $Schema2, $Schema2ToType } from "./types.ts";
 
 /**
@@ -8,7 +8,7 @@ import type { $Schema2, $Schema2ToType } from "./types.ts";
 
 export const $serializeResultToResponse = <S extends $Schema2>(schema: S) => {
   type O = $Schema2ToType<S>;
-  return (request: IpcRequest, result: O, ipc: Ipc) => {
+  return (request: IpcClientRequest, result: O, ipc: Ipc) => {
     if (result instanceof Response) {
       return IpcResponse.fromResponse(request.reqId, result, ipc);
     }

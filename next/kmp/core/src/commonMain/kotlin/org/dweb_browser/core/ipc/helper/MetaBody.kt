@@ -1,7 +1,6 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.serialization.Serializable
-import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.helper.IntEnumSerializer
 import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.UUID
@@ -15,7 +14,7 @@ data class MetaBodyJsonAble(
   val senderUid: UUID,
   val data: String,
   val streamId: String? = null,
-  val receiverUid: UUID? = null
+  val receiverUid: UUID? = null,
 ) {
   fun toMetaBody() = MetaBody(type, data, senderUid, receiverUid, streamId)
 }
@@ -36,7 +35,7 @@ data class MetaBody(
   val type: IPC_META_BODY_TYPE,
   val data: Any,
   /**发送者的uid*/
-  val senderPoolId: UUID = kotlinIpcPool.poolId,
+  val senderPoolId: UUID,
   /**接收者的uid*/
   var receiverPoolId: UUID? = null,
   /**
@@ -73,7 +72,8 @@ data class MetaBody(
     INLINE_BASE64(INLINE or IPC_DATA_ENCODING.BASE64),
 
     /** 二进制 */
-    INLINE_BINARY(INLINE or IPC_DATA_ENCODING.BINARY), ;
+    INLINE_BINARY(INLINE or IPC_DATA_ENCODING.BINARY),
+    ;
 
     val encoding by lazy {
       val encoding = type and 0b11111110;
@@ -103,7 +103,7 @@ data class MetaBody(
     private fun randomMetaId() = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
     fun fromText(
       data: String,
-      senderPoolId: UUID = kotlinIpcPool.poolId,
+      senderPoolId: UUID,
       streamId: String? = null,
       receiverPoolId: UUID? = null,
     ) = MetaBody(
@@ -116,9 +116,9 @@ data class MetaBody(
 
     fun fromBase64(
       data: String,
-      senderPoolId: UUID = kotlinIpcPool.poolId,
+      senderPoolId: UUID,
       streamId: String? = null,
-      receiverPoolId: UUID? = null
+      receiverPoolId: UUID? = null,
     ) = MetaBody(
       type = if (streamId == null) IPC_META_BODY_TYPE.INLINE_BASE64 else IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
       senderPoolId = senderPoolId,
@@ -129,9 +129,9 @@ data class MetaBody(
 
     fun fromBinary(
       data: ByteArray,
-      senderPoolId: UUID = kotlinIpcPool.poolId,
+      senderPoolId: UUID,
       receiverPoolId: UUID? = null,
-      streamId: String? = null
+      streamId: String? = null,
     ) = MetaBody(
       type = if (streamId == null) IPC_META_BODY_TYPE.INLINE_BINARY else IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
       senderPoolId = senderPoolId,
@@ -144,7 +144,7 @@ data class MetaBody(
   val jsonAble by lazy {
     when (type.encoding) {
       IPC_DATA_ENCODING.BINARY -> fromBase64(
-         (data as ByteArray).toBase64(),senderPoolId, streamId, receiverPoolId
+        (data as ByteArray).toBase64(), senderPoolId, streamId, receiverPoolId
       )
 
       else -> this

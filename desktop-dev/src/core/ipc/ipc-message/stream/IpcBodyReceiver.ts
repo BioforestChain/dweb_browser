@@ -1,18 +1,21 @@
-import type { Ipc } from "../ipc.ts";
+import type { Ipc } from "../../ipc.ts";
 import { BodyHub, IpcBody } from "./IpcBody.ts";
 import type { MetaBody } from "./MetaBody.ts";
 
-import { simpleEncoder } from "../../../helper/encoding.ts";
-import { IPC_DATA_ENCODING, IPC_MESSAGE_TYPE } from "../helper/const.ts";
-import { IpcStreamAbort } from "../stream/IpcStreamAbort.ts";
-import { IpcStreamPulling } from "../stream/IpcStreamPulling.ts";
+import { simpleEncoder } from "../../../../helper/encoding.ts";
+import { IPC_DATA_ENCODING } from "../internal/IpcData.ts";
+import { IPC_MESSAGE_TYPE } from "../internal/IpcMessage.ts";
+import { ipcStreamAbort } from "./IpcStreamAbort.ts";
+import { ipcStreamPulling } from "./IpcStreamPulling.ts";
 
 export class IpcBodyReceiver extends IpcBody {
   /**
    * 基于 metaBody 还原 IpcBodyReceiver
    */
   static from(metaBody: MetaBody, ipc: Ipc) {
-    return IpcBodyReceiver.CACHE.streamId_ipcBodySender_Map.get(metaBody.streamId) ?? new IpcBodyReceiver(metaBody, ipc);
+    return (
+      IpcBodyReceiver.CACHE.streamId_ipcBodySender_Map.get(metaBody.streamId) ?? new IpcBodyReceiver(metaBody, ipc)
+    );
   }
 
   constructor(readonly metaBody: MetaBody, ipc: Ipc) {
@@ -24,7 +27,7 @@ export class IpcBodyReceiver extends IpcBody {
           IpcBodyReceiver.CACHE.streamId_receiverIpc_Map.delete(streamId);
         });
         IpcBodyReceiver.CACHE.streamId_receiverIpc_Map.set(streamId, ipc);
-        metaBody.receiverUid = ipc.uid;
+        metaBody.receiverUid = ipc.pool.poolId;
       }
       const receiver = IpcBodyReceiver.CACHE.streamId_receiverIpc_Map.get(streamId);
       if (receiver === undefined) {
@@ -69,7 +72,7 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
         ipc.onClosed(() => {
           try {
             controller.close();
-          // deno-lint-ignore no-empty
+            // deno-lint-ignore no-empty
           } catch {}
         });
 
@@ -112,11 +115,11 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
         if (paused) {
           paused = false;
           // console.log("receiver/pull", stream_id, ipc.uid);
-          stream_ipc.postMessage(new IpcStreamPulling(stream_id));
+          stream_ipc.postMessage(ipcStreamPulling(stream_id));
         }
       },
       cancel() {
-        stream_ipc.postMessage(new IpcStreamAbort(stream_id));
+        stream_ipc.postMessage(ipcStreamAbort(stream_id));
       },
     },
     {

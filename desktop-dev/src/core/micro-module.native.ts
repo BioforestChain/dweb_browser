@@ -5,8 +5,8 @@ import { $serializeResultToResponse } from "./helper/$serializeResultToResponse.
 import type { MICRO_MODULE_CATEGORY } from "./helper/category.const.ts";
 import { $OnFetch, createFetchHandler } from "./helper/ipcFetchHelper.ts";
 import type { $PromiseMaybe, $Schema1, $Schema1ToType, $Schema2, $Schema2ToType } from "./helper/types.ts";
-import { workerIpcPool } from "./index.ts";
-import { Ipc, IpcRequest, IpcResponse } from "./ipc/index.ts";
+import { jsIpcPool } from "./index.ts";
+import { Ipc, IpcClientRequest, IpcResponse } from "./ipc/index.ts";
 import { MicroModule } from "./micro-module.ts";
 import { connectAdapterManager } from "./nativeConnect.ts";
 import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID } from "./types.ts";
@@ -15,11 +15,11 @@ connectAdapterManager.append((fromMM, toMM, reason) => {
   if (toMM instanceof NativeMicroModule) {
     const channel = new MessageChannel();
     const { port1, port2 } = channel;
-    const toNativeIpc = workerIpcPool.create(`native-connect-from-${fromMM.mmid}`, {
+    const toNativeIpc = jsIpcPool.create(`native-connect-from-${fromMM.mmid}`, {
       remote: fromMM,
       port: port1,
     });
-    const fromNativeIpc = workerIpcPool.create(`native-connect-to-${toMM.mmid}`, {
+    const fromNativeIpc = jsIpcPool.create(`native-connect-to-${toMM.mmid}`, {
       remote: toMM,
       port: port2,
     });
@@ -145,7 +145,7 @@ export abstract class NativeMicroModule extends MicroModule {
 }
 
 interface $RequestHanlderSchema<ARGS, RES> extends $ReqMatcher {
-  readonly handler: (args: ARGS, client_ipc: Ipc, ipc_request: IpcRequest) => $PromiseMaybe<RES | IpcResponse>;
+  readonly handler: (args: ARGS, client_ipc: Ipc, ipc_request: IpcClientRequest) => $PromiseMaybe<RES | IpcResponse>;
 }
 
 export interface $RequestCommonHanlderSchema<I extends $Schema1, O extends $Schema2>
@@ -155,6 +155,6 @@ export interface $RequestCommonHanlderSchema<I extends $Schema1, O extends $Sche
 }
 
 export interface $RequestCustomHanlderSchema<ARGS = unknown, RES = unknown> extends $RequestHanlderSchema<ARGS, RES> {
-  readonly input: (request: IpcRequest) => ARGS;
-  readonly output: (request: IpcRequest, result: RES, ipc: Ipc) => $PromiseMaybe<IpcResponse>;
+  readonly input: (request: IpcClientRequest) => ARGS;
+  readonly output: (request: IpcClientRequest, result: RES, ipc: Ipc) => $PromiseMaybe<IpcResponse>;
 }

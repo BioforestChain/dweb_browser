@@ -7,4 +7,4 @@ export const enum IPC_LIFECYCLE_STATE {
   CLOSED = "closed",
 }
 
-export const ipcLifecycleStateBase = <S extends IPC_LIFECYCLE_STATE>(state: S) => ({ state } as const);
+export const ipcLifecycleStateBase = <S extends IPC_LIFECYCLE_STATE>(name: S) => ({ name } as const);

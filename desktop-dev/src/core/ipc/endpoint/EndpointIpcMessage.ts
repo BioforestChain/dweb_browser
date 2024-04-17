@@ -1,8 +1,8 @@
-import { $IpcMessage } from "../helper/const.ts";
+import { $IpcMessage } from "../../index.ts";
 import { ENDPOINT_MESSAGE_TYPE } from "./EndpointMessage.ts";
 import { endpointMessageBase } from "./internal/EndpointMessage.ts";
 
-export type $EndpointIpcMessage<M extends $IpcMessage> = ReturnType<typeof endpointIpcMessage<M>>;
+export type $EndpointIpcMessage<M extends $IpcMessage = $IpcMessage> = ReturnType<typeof endpointIpcMessage<M>>;
 
 export const endpointIpcMessage = <M extends $IpcMessage>(pid: number, ipcMessage: M) =>
   ({
