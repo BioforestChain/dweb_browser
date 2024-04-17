@@ -29,7 +29,7 @@ fun SkikoCoilAsyncImage(
   // TODO 目前发现 webp 使用 PureImageLoader 失败，无法显示。
   if (model is String && (model.endsWith(".svg") || model.startsWith("data:"))) {
     BoxWithConstraints(modifier) {
-      PureImageLoader.SmartLoad(model, maxWidth, maxHeight).with {
+      PureImageLoader.WebLoad(model, maxWidth, maxHeight).with {
         Image(it, contentDescription = model, modifier = modifier)
       }
     }

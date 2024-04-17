@@ -19,6 +19,8 @@ import org.dweb_browser.pure.http.PureTextFrame
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.readResourceBytes
 
+internal suspend fun commonStartPureServer(server: HttpPureServer) = server.start(0u)
+internal expect suspend fun startPureServer(server: HttpPureServer): UShort
 internal class OffscreenWebCanvasMessageChannel {
   private var dataChannel = CompletableDeferred<PureChannel>()
   private var session: PureChannel? = null
@@ -80,7 +82,7 @@ internal class OffscreenWebCanvasMessageChannel {
   }
 
   suspend fun getEntryUrl(width: Int, height: Int): String {
-    val port = server.start(0u)
+    val port = startPureServer(server)
     val host = "localhost"
     val entry = "http://$host:$port/index.html"
     return "$entry?width=$width&height=$height&channel=${"ws://$host:$port/channel".encodeURIComponent()}&proxy=${"http://$host:$port/proxy".encodeURIComponent()}"
