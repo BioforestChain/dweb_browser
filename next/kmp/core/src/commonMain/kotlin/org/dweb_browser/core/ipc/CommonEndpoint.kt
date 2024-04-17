@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
-import org.dweb_browser.core.ipc.helper.EndpointLifecycleClosing
 import org.dweb_browser.core.ipc.helper.EndpointLifecycleInit
 import org.dweb_browser.core.ipc.helper.EndpointLifecycleOpened
 import org.dweb_browser.core.ipc.helper.EndpointMessage
@@ -34,7 +33,7 @@ abstract class CommonEndpoint(
    * 默认使用 Json 这种最通用的协议
    * 在一开始的握手阶段会强制使用
    */
-  var protocol = EndpointProtocol.Json
+  var protocol = EndpointProtocol.JSON
     private set
 
   final override val scope = parentScope + SupervisorJob()
@@ -52,16 +51,16 @@ abstract class CommonEndpoint(
   /**
    * kotlin 环境支持 Cbor 和 Json
    */
-  override fun getLocaleSubProtocols() = setOf(EndpointProtocol.Cbor, EndpointProtocol.Json)
+  override fun getLocaleSubProtocols() = setOf(EndpointProtocol.CBOR, EndpointProtocol.JSON)
   override suspend fun sendLifecycleToRemote(state: EndpointLifecycle) {
     debugEndpoint("lifecycle-out") { "${this@CommonEndpoint} >> $state " }
     when (protocol) {
-      EndpointProtocol.Json -> {
+      EndpointProtocol.JSON -> {
         val data = endpointMessageToJson(state)
         postTextMessage(data)
       }
 
-      EndpointProtocol.Cbor -> {
+      EndpointProtocol.CBOR -> {
         val data = endpointMessageToCbor(state)
         postBinaryMessage(data)
       }
@@ -77,8 +76,8 @@ abstract class CommonEndpoint(
     lifecycleLocaleFlow.collectIn(scope) { lifecycleLocale ->
       when (val lifecycleState = lifecycleLocale.state) {
         // 握手完成，确定通讯协议
-        is EndpointLifecycleOpened -> if (lifecycleState.subProtocols.contains(EndpointProtocol.Cbor)) {
-          protocol = EndpointProtocol.Cbor
+        is EndpointLifecycleOpened -> if (lifecycleState.subProtocols.contains(EndpointProtocol.CBOR)) {
+          protocol = EndpointProtocol.CBOR
         }
 
         else -> {}
@@ -114,12 +113,12 @@ abstract class CommonEndpoint(
     awaitOpen("then-postIpcMessage")
     withScope(scope) {
       when (protocol) {
-        EndpointProtocol.Json -> {
+        EndpointProtocol.JSON -> {
           val data = endpointMessageToJson(msg)
           postTextMessage(data)
         }
 
-        EndpointProtocol.Cbor -> {
+        EndpointProtocol.CBOR -> {
           val data = endpointMessageToCbor(msg)
           postBinaryMessage(data)
         }

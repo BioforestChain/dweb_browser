@@ -26,7 +26,7 @@ import { IpcPool } from "./IpcPool.ts";
 import { EndpointIpcMessage } from "./endpoint/EndpointMessage.ts";
 import { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
 import { PureChannel, pureChannelToIpcEvent } from "./helper/PureChannel.ts";
-import { IpcLifeCycle } from "./ipc-message/IpcLifeCycle.ts";
+import { IpcLifeCycle, IpcLifecycleState } from "./ipc-message/IpcLifeCycle.ts";
 export {
   FetchError,
   FetchEvent,
@@ -59,9 +59,11 @@ export class Ipc {
 
   readonly lifecycleLocaleFlow = this.#lifecycleLocaleFlow.asReadyonly();
 
-  #lifecycleRemoteFlow = this.onMessage(`ipc-lifecycle-remote#${this.pid}`);
+  #lifecycleRemoteFlow = this.onMessage(`ipc-lifecycle-remote#${this.pid}`).mapNotNull<IpcLifeCycle>((message) => {
+    return message.type === IPC_MESSAGE_TYPE.LIFE_CYCLE;
+  });
 
-  readonly lifecycleRemoteFlow = this.#lifecycleRemoteFlow
+  readonly lifecycleRemoteFlow = this.#lifecycleRemoteFlow;
 
   get lifecycle() {
     return this.lifecycleLocaleFlow.state;
@@ -75,12 +77,12 @@ export class Ipc {
 
   /**等待启动 */
   async awaitOpen(reason?: string) {
-    if (this.lifecycle.state == IPC_LIFECYCLE_STATE.OPENED) {
+    if (this.lifecycle.state.name === IPC_LIFECYCLE_STATE.OPENED) {
       return this.lifecycle.state;
     }
-    const op = new PromiseOut<IPC_LIFECYCLE_STATE>();
+    const op = new PromiseOut<IpcLifecycleState>();
     const off = this.onLifeCycle((lifecycle) => {
-      switch (lifecycle.state) {
+      switch (lifecycle.state.name) {
         case IPC_LIFECYCLE_STATE.OPENED: {
           op.resolve(lifecycle.state);
           break;
@@ -115,7 +117,7 @@ export class Ipc {
   startOnce = once(() => {
     console.log("ipc-startOnce", this.lifecycle);
     // 当前状态必须是从init开始
-    if (this.lifecycle.state === IPC_LIFECYCLE_STATE.INIT) {
+    if (this.lifecycle.state.name === IPC_LIFECYCLE_STATE.INIT) {
       // 告知对方我启动了
       const opening = IpcLifeCycle.opening();
       this.#sendLifecycleToRemote(opening);
@@ -124,8 +126,42 @@ export class Ipc {
       throw new Error(`fail to start: ipc=${this} state=${this.lifecycle}`);
     }
     // 监听远端生命周期指令，进行协议协商
-    this.#lifecycleRemoteFlow.collect((state)=>{
-      console.log("ipc-lifecycle-in",)
+    this.#lifecycleRemoteFlow((lifecycleRemote) => {
+      console.log("ipc-lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
+      // 告知启动完成
+      const doIpcOpened = () => {
+        const opend = IpcLifeCycle.opend();
+        this.#sendLifecycleToRemote(opend);
+        this.#lifecycleLocaleFlow.emit(opend);
+      };
+      // 处理远端生命周期
+      switch (lifecycleRemote.state.name) {
+        case (IPC_LIFECYCLE_STATE.CLOSING, IPC_LIFECYCLE_STATE.CLOSED): {
+          this.close();
+          break;
+        }
+        // 收到 opened 了，自己也设置成 opened，代表正式握手成功
+        case IPC_LIFECYCLE_STATE.OPENED: {
+          if (this.lifecycle.state.name === IPC_LIFECYCLE_STATE.OPENING) {
+            doIpcOpened();
+          }
+          break;
+        }
+        // 如果对方是 init，代表刚刚初始化，那么发送目前自己的状态
+        case IPC_LIFECYCLE_STATE.INIT: {
+          this.#sendLifecycleToRemote(this.lifecycle);
+          break;
+        }
+        // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
+        case IPC_LIFECYCLE_STATE.OPENING: {
+          doIpcOpened();
+          break;
+        }
+      }
+    });
+    // 监听并分发 所有的消息
+    this.onMessage(`fork#${this.debugId}`).collect((event)=> {
+      event.consumeAs<I>
     })
   });
 

@@ -2,6 +2,7 @@ import { $Callback, Signal, createSignal } from "../../browser/js-process/module
 import { once } from "../../helper/$once.ts";
 import { Channel } from "./Channel.ts";
 
+//#region Producer
 /**生产者 */
 export class Producer<T> extends Signal<$Callback<[T]>> {
   constructor(readonly name: string) {
@@ -67,6 +68,18 @@ export class Producer<T> extends Signal<$Callback<[T]>> {
     }
   }
 
+  mapNotNull<R>(transform: (value: T) => R | undefined) {
+    const signal = new Signal<$Callback<[R]>>();
+    this.listen((value) => {
+      const tran = transform(value);
+      if (tran) {
+        signal.emit(tran);
+      }
+    });
+
+    return signal.listen;
+  }
+
   //#region Close
   #isClosedForSend = false;
   get isClosedForSend() {
@@ -101,6 +114,7 @@ export class Producer<T> extends Signal<$Callback<[T]>> {
   //#endregion
 }
 
+//#region Event
 /**生产者构造的事件*/
 class Event<T> extends Producer<T> {
   constructor(name: string, readonly data: T) {
@@ -108,19 +122,27 @@ class Event<T> extends Producer<T> {
   }
 
   /**标记事件是否被消耗 */
-  private _consumed = false;
+  #consumed = false;
   get consumed() {
-    return this._consumed;
+    return this.#consumed;
   }
 
   /**事件消耗器，调用后事件将被彻底消耗，不会再进行传递*/
   consume(): T {
-    if (!this._consumed) {
-      this._consumed = true;
+    if (!this.#consumed) {
+      this.#consumed = true;
       this.buffers.delete(this);
     }
     return this.data;
   }
+
+  /**
+   * 在 complete 的时候再进行 remove
+   */
+  complete() {
+    this.buffers.delete(this);
+  }
+
   /**向下传递 */
   next() {}
 
@@ -147,18 +169,25 @@ class Event<T> extends Producer<T> {
   }
 
   emitBy(consumer: Consumer<T>) {
-    if (this._consumed) {
+    if (this.#consumed) {
       return;
     }
     // 事件超时告警
     const timeoutId = setTimeout(() => {
       console.warn(`emitBy TIMEOUT!! step=$i consumer=${consumer} data=${this.data}`);
     }, 1000);
-
+    consumer.input.send(this);
     clearTimeout(timeoutId);
+
+    if (this.#consumed) {
+      this.complete();
+      console.log("emitBy", `consumer=${consumer}`);
+    }
   }
 }
+//#endregion
 
+//#region Consumer
 /**消费者 */
 export class Consumer<T> extends Producer<T> {
   constructor(name: string, readonly input: Channel<Event<T>> = new Channel()) {
@@ -189,20 +218,20 @@ export class Consumer<T> extends Producer<T> {
     }
     this.startingBuffers = null;
   }
-  #collectors: FlowCollector<Event<T>>[] = [];
+  #collectors: $FlowCollector<T>[] = [];
   // 收集并触发所有的事件
   #startCollect = once(() => {
     (async () => {
       for await (const event of this.input) {
         for (const collector of this.#collectors) {
-          collector.emit(event);
+          collector(event);
         }
       }
     })();
     this.#start();
   });
-
-  collect(collector: FlowCollector<Event<T>>) {
+  /**收集事件 */
+  collect(collector: (event: Event<T>) => void) {
     this.#collectors.push(collector);
     // 事件在收集了再调用开始
     this.#startCollect();
@@ -213,8 +242,4 @@ export class Consumer<T> extends Producer<T> {
   }
 }
 
-class FlowCollector<T> {
-  #signal = createSignal<$Callback<[T]>>();
-  emit = this.#signal.emit;
-  listen = this.#signal.listen;
-}
+export type $FlowCollector<T> = (event: Event<T>) => void;

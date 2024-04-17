@@ -62,69 +62,6 @@ export const toIpcMethod = (method?: string) => {
   throw new Error(`invalid method: ${method}`);
 };
 
-export const enum IPC_MESSAGE_TYPE {
-  // /** 特殊位：结束符 */
-  // END = 1,
-  /** 类型：请求 */
-  REQUEST,
-  /** 类型：相应 */
-  RESPONSE,
-  /** 类型：流数据，发送方 */
-  STREAM_DATA,
-  /** 类型：流拉取，请求方
-   * 发送方一旦收到该指令，就可以持续发送数据
-   * 该指令中可以携带一些“限流协议信息”，如果违背该协议，请求方可能会断开连接
-   */
-  STREAM_PULLING,
-  /** 类型：流暂停，请求方
-   * 发送方一旦收到该指令，就应当停止基本的数据发送
-   * 该指令中可以携带一些“保险协议信息”，描述仍然允许发送的一些数据类型、发送频率等。如果违背该协议，请求方可以会断开连接
-   */
-  STREAM_PAUSED,
-  /** 类型：流关闭，发送方
-   * 可能是发送完成了，也有可能是被中断了
-   */
-  STREAM_END,
-  /** 类型：流中断，请求方 */
-  STREAM_ABORT,
-  /** 类型：事件 */
-  EVENT,
-  /**生命周期 */
-  LIFE_CYCLE,
-  /**错误响应 */
-  ERROR,
-  /**类型：分叉*/
-  FORK,
-}
-
-/**
- * 数据编码格式
- */
-export const enum IPC_DATA_ENCODING {
-  /** 文本 json html 等 */
-  UTF8 = 1 << 1,
-  /** 使用文本表示的二进制 */
-  BASE64 = 1 << 2,
-  /** 二进制 */
-  BINARY = 1 << 3,
-}
-
-export const enum ENDPOINT_LIFECYCLE_STATE {
-  INIT = 0,
-  OPENING = 1,
-  OPENED = 2,
-  CLOSING = 3,
-  CLOSED = 4,
-}
-
-export const enum IPC_LIFECYCLE_STATE {
-  INIT = 0,
-  OPENING = 1,
-  OPENED = 2,
-  CLOSING = 3,
-  CLOSED = 4,
-}
-
 /** 接收到的消息，可传输的数据 */
 export type $IpcTransferableMessage =
   | IpcReqMessage

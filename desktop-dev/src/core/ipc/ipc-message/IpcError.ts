@@ -1,12 +1,15 @@
-import { IPC_MESSAGE_TYPE } from "../helper/const.ts";
-import { IpcMessage } from "./IpcMessage.ts";
+import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
 
-export class IpcError extends IpcMessage<IPC_MESSAGE_TYPE.ERROR> {
-  constructor(readonly errorCode: number, readonly message?: string) {
-    super(IPC_MESSAGE_TYPE.ERROR);
-  }
+export type $IpcError = ReturnType<typeof ipcError>;
 
-  static internalServer(message: string) {
-    return new IpcError(500, message);
+export const ipcError = Object.assign(
+  (errorCode: number, message?: string) =>
+    ({
+      ...ipcMessageBase(IPC_MESSAGE_TYPE.ERROR),
+      errorCode,
+      message,
+    } as const),
+  {
+    internalServer: (message: string) => ipcError(500, message),
   }
-}
+);

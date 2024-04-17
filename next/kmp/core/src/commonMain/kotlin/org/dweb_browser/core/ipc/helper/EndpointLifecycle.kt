@@ -35,7 +35,7 @@ const val ENDPOINT_LIFECYCLE_STATE_CLOSING = "closing"
 const val ENDPOINT_LIFECYCLE_STATE_CLOSED = "closed"
 
 enum class EndpointProtocol {
-  Json, Cbor,
+  JSON, CBOR,
 //  Protobuf,
 }
 

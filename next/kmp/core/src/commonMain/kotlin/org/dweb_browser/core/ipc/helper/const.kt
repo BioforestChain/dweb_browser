@@ -2,7 +2,6 @@ package org.dweb_browser.core.ipc.helper
 
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.IntEnumSerializer
-import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.toBase64ByteArray
 
 
@@ -53,20 +52,6 @@ enum class IPC_DATA_ENCODING(val encoding: Int) {
     val ALL_VALUES = entries.associateBy { it.encoding }
   }
 }
-
-object IPC_ROLE_Serializer :
-  StringEnumSerializer<IPC_ROLE>("IPC_ROLE", IPC_ROLE.ALL_VALUES, { role })
-
-@Serializable(IPC_ROLE_Serializer::class)
-enum class IPC_ROLE(val role: String) {
-  SERVER("server"), CLIENT("client"),
-  ;
-
-  companion object {
-    val ALL_VALUES = entries.associateBy { it.role }
-  }
-}
-
 
 fun dataToBinary(
   data: Any, /*String or ByteArray*/ encoding: IPC_DATA_ENCODING,

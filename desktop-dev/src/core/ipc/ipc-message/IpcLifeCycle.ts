@@ -1,25 +1,42 @@
 import { $MicroModuleManifest } from "../../types.ts";
-import { IPC_LIFECYCLE_STATE, IPC_MESSAGE_TYPE } from "../helper/const.ts";
-import { IpcMessage } from "./IpcMessage.ts";
+import { IPC_LIFECYCLE_STATE, ipcLifecycleStateBase } from "./internal/IpcLifecycle.ts";
+import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
 
-export class IpcLifeCycle extends IpcMessage<IPC_MESSAGE_TYPE.LIFE_CYCLE> {
-  constructor(
-    readonly state: IPC_LIFECYCLE_STATE,
-    readonly pid?: number,
-    readonly locale?: $MicroModuleManifest,
-    readonly remote?: $MicroModuleManifest
-  ) {
-    super(IPC_MESSAGE_TYPE.LIFE_CYCLE);
-  }
+export type $IpcLifecycle<S extends $IpcLifecycleState> = ReturnType<typeof ipcLifecycle<S>>;
+export const ipcLifecycle = <S extends $IpcLifecycleState>(state: S) =>
+  ({ ...ipcMessageBase(IPC_MESSAGE_TYPE.LIFECYCLE), state } as const);
 
-  static init(pid: number, locale: $MicroModuleManifest, remote: $MicroModuleManifest) {
-    return new IpcLifeCycle(IPC_LIFECYCLE_STATE.INIT, pid, locale, remote);
-  }
+export type $IpcLifecycleState =
+  | $IpcLifecycleInit
+  | $IpcLifecycleOpening
+  | $IpcLifecycleOpened
+  | $IpcLifecycleClosing
+  | $IpcLifecycleClosed;
+export type $IpcLifecycleInit = ReturnType<typeof ipcLifecycleInit>;
+const ipcLifecycleInit = (pid: number, locale: $MicroModuleManifest, remote: $MicroModuleManifest) => ({
+  ...ipcLifecycleStateBase(IPC_LIFECYCLE_STATE.INIT),
+  pid,
+  locale,
+  remote,
+});
+export type $IpcLifecycleOpening = ReturnType<typeof ipcLifecycleOpening>;
+const ipcLifecycleOpening = () => ({
+  ...ipcLifecycleStateBase(IPC_LIFECYCLE_STATE.OPENING),
+});
 
-  static opening = () => new IpcLifeCycle(IPC_LIFECYCLE_STATE.OPENING);
+export type $IpcLifecycleOpened = ReturnType<typeof ipcLifecycleOpened>;
+const ipcLifecycleOpened = () => ({
+  ...ipcLifecycleStateBase(IPC_LIFECYCLE_STATE.OPENED),
+});
 
-  static open = () => new IpcLifeCycle(IPC_LIFECYCLE_STATE.OPENED);
+export type $IpcLifecycleClosing = ReturnType<typeof ipcLifecycleClosing>;
+const ipcLifecycleClosing = (reason?: string) => ({
+  ...ipcLifecycleStateBase(IPC_LIFECYCLE_STATE.CLOSING),
+  reason,
+});
 
-  static closing = () => new IpcLifeCycle(IPC_LIFECYCLE_STATE.OPENING);
-  static close = () => new IpcLifeCycle(IPC_LIFECYCLE_STATE.CLOSED);
-}
+export type $IpcLifecycleClosed = ReturnType<typeof ipcLifecycleClosed>;
+const ipcLifecycleClosed = (reason?: string) => ({
+  ...ipcLifecycleStateBase(IPC_LIFECYCLE_STATE.CLOSED),
+  reason,
+});

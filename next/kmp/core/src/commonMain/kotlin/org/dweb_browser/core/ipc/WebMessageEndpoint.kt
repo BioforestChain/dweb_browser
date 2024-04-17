@@ -40,8 +40,8 @@ class WebMessageEndpoint(
     scope.launch {
       port.onMessage.collect { event ->
         val packMessage = when (protocol) {
-          EndpointProtocol.Json -> jsonToEndpointMessage(event.text)
-          EndpointProtocol.Cbor -> cborToEndpointMessage(event.binary)
+          EndpointProtocol.JSON -> jsonToEndpointMessage(event.text)
+          EndpointProtocol.CBOR -> cborToEndpointMessage(event.binary)
         }
         endpointMsgChannel.send(packMessage)
       }

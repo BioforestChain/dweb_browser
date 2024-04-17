@@ -59,15 +59,6 @@ export class Signal<CB extends $Callback<any[]> = $Callback> {
     }
   };
 
-  mapNotNull<T, R>(transform: (value: T) => R | undefined) {
-    const signal = new Signal<CB>();
-    return {
-      collect(value) {
-        // signal.listen(transform)
-      }
-    }
-  }
-
   clear = () => {
     this._cbs.clear();
   };

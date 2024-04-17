@@ -62,8 +62,8 @@ class ReadableStreamEndpoint(
               "bindIncomeStream", "protocol=$protocol,chunk=${packData} => $stream"
             )
             val packMessage = when (protocol) {
-              EndpointProtocol.Json -> jsonToEndpointMessage(packData.decodeToString())
-              EndpointProtocol.Cbor -> cborToEndpointMessage(packData)
+              EndpointProtocol.JSON -> jsonToEndpointMessage(packData.decodeToString())
+              EndpointProtocol.CBOR -> cborToEndpointMessage(packData)
             }
             endpointMsgChannel.send(packMessage)
           }
