@@ -88,7 +88,7 @@ private fun BrowserDownloadPage.TopChipBar(onClick: (chipType: BrowserDownloadTy
         FilterChip(
           selected = item.second,
           onClick = {
-            filterMap.replaceAll { _, _ -> false } // 所有都置 false
+            filterMap.forEach { (key, _) -> filterMap[key] = false } // 所有都置 false
             filterMap[item.first] = true // 当前点击的为 true
             onClick(item.first)
           },

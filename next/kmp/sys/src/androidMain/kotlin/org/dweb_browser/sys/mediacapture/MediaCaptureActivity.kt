@@ -105,7 +105,7 @@ class MediaCaptureActivity : ComponentActivity() {
           tempUri = FileProvider.getUriForFile(
             this@MediaCaptureActivity, "$packageName.file.opener.provider", tmpFile
           )
-          launcherTakePicture.launch(tempUri)
+          launcherTakePicture.launch(tempUri!!)
         }
 
         LaunchCaptureVideo -> {
@@ -113,15 +113,15 @@ class MediaCaptureActivity : ComponentActivity() {
           tempUri = FileProvider.getUriForFile(
             this@MediaCaptureActivity, "$packageName.file.opener.provider", tmpFile
           )
-          launcherCaptureVideo.launch(tempUri)
+          launcherCaptureVideo.launch(tempUri!!)
         }
 
         LaunchRecordAudio -> {
           val tmpFile = File.createTempFile("temp_capture", ".ogg", cacheDir);
-          val tmpUri = FileProvider.getUriForFile(
+          tempUri = FileProvider.getUriForFile(
             this@MediaCaptureActivity, "$packageName.file.opener.provider", tmpFile
           )
-          launcherRecordAudio.launch(tmpUri)
+          launcherRecordAudio.launch(tempUri!!)
         }
 
         LaunchGetPhoto -> {
