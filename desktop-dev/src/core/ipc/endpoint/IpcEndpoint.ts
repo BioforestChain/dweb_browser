@@ -4,16 +4,15 @@
 
 import { once } from "../../../helper/$once.ts";
 import { PromiseOut } from "../../../helper/PromiseOut.ts";
-import { $ReadyonlyStateSignal, StateSignal } from "../../../helper/StateSignal.ts";
+import { StateSignal, type $ReadyonlyStateSignal } from "../../../helper/StateSignal.ts";
 import { mapHelper } from "../../../helper/mapHelper.ts";
 import { setHelper } from "../../../helper/setHelper.ts";
 import { Producer } from "../../helper/Producer.ts";
-import { $IpcMessage } from "../ipc-message/IpcMessage.ts";
+import type { $IpcMessage } from "../ipc-message/IpcMessage.ts";
 import { IPC_MESSAGE_TYPE } from "../ipc-message/internal/IpcMessage.ts";
 import { Ipc } from "../ipc.ts";
-import { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
+import type { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
 import {
-  $EndpointLifecycle,
   ENDPOINT_LIFECYCLE_STATE,
   ENDPOINT_PROTOCOL,
   endpointLifecycle,
@@ -22,6 +21,7 @@ import {
   endpointLifecycleInit,
   endpointLifecycleOpend,
   endpointLifecycleOpening,
+  type $EndpointLifecycle,
 } from "./EndpointLifecycle.ts";
 
 export abstract class IpcEndpoint {
@@ -55,7 +55,7 @@ export abstract class IpcEndpoint {
         this.accPid = Math.max(event.data.pid - 1, this.accPid);
       }
     });
-    consumer.onClose(() => {
+    producer.onClosed(() => {
       this.ipcMessageProducers.delete(pid);
     });
     return { pid, ipcPo, producer };
@@ -67,6 +67,9 @@ export abstract class IpcEndpoint {
 
   getIpcMessageProducerByIpc(ipc: Ipc) {
     const result = this.getIpcMessageProducer(ipc.pid);
+    ipc.onClosed(() => {
+      this.ipcMessageProducers.delete(ipc.pid);
+    });
     result.ipcPo.resolve(ipc);
     return result;
   }

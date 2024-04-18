@@ -6,6 +6,7 @@ import { simpleEncoder } from "../../../../helper/encoding.ts";
 import { IPC_DATA_ENCODING } from "../internal/IpcData.ts";
 import { IPC_MESSAGE_TYPE } from "../internal/IpcMessage.ts";
 import { ipcStreamAbort } from "./IpcStreamAbort.ts";
+import { ipcStreamData } from "./IpcStreamData.ts";
 import { ipcStreamPulling } from "./IpcStreamPulling.ts";
 
 export class IpcBodyReceiver extends IpcBody {
@@ -94,20 +95,27 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
         }
 
         /// 监听事件
-        const off = ipc.onStream((message) => {
-          if (message.stream_id === stream_id) {
-            // STREAM_DATA || STREAM_END
-            switch (message.type) {
-              case IPC_MESSAGE_TYPE.STREAM_DATA:
-                // console.log("receiver/data", stream_id, ipc.uid);
-                controller.enqueue(message.binary);
-                break;
-              case IPC_MESSAGE_TYPE.STREAM_END:
-                // console.log("receiver/end", stream_id, ipc.uid);
-                controller.close();
-                off();
-                break;
+        const off = ipc.onStream("metaToStream").collect((event) => {
+          const message = event.consumeMapNotNull((message) => {
+            if (message.stream_id === stream_id) {
+              return message;
             }
+          });
+          if (message === undefined) {
+            return;
+          }
+
+          // STREAM_DATA || STREAM_END
+          switch (message.type) {
+            case IPC_MESSAGE_TYPE.STREAM_DATA:
+              // console.log("receiver/data", stream_id, ipc.uid);
+              controller.enqueue(ipcStreamData.binary(message));
+              break;
+            case IPC_MESSAGE_TYPE.STREAM_END:
+              // console.log("receiver/end", stream_id, ipc.uid);
+              controller.close();
+              off();
+              break;
           }
         });
       },

@@ -1,4 +1,4 @@
-import { $MicroModuleManifest } from "../../types.ts";
+import type { $MicroModuleManifest } from "../../types.ts";
 import { IPC_LIFECYCLE_STATE, ipcLifecycleStateBase } from "./internal/IpcLifecycle.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
 

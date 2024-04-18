@@ -1,6 +1,6 @@
 import * as CBOR from "cbor-x";
-import { $IpcMessage, $IpcRawMessage } from "../../index.ts";
-import { $EndpointMessage } from "../endpoint/EndpointMessage.ts";
+import type { $EndpointMessage } from "../endpoint/EndpointMessage.ts";
+import type { $IpcMessage, $IpcRawMessage } from "../ipc-message/IpcMessage.ts";
 import { IpcClientRequest } from "../ipc-message/IpcRequest.ts";
 import { IpcResponse } from "../ipc-message/IpcResponse.ts";
 import { IPC_MESSAGE_TYPE } from "../ipc-message/internal/IpcMessage.ts";

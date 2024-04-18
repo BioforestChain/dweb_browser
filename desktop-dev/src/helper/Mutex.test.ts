@@ -1,5 +1,5 @@
+import { test } from "bun:test";
 import assert from "node:assert";
-import test from "node:test";
 import { setTimeout } from "node:timers/promises";
 import { Mutex } from "./Mutex.ts";
 const DUR = 100;
@@ -19,7 +19,7 @@ test("Mutex queue", async () => {
   });
   assert.equal(step, 2);
 });
-test("Mutex isLocked", async (t) => {
+test("Mutex isLocked", async () => {
   const mutex = new Mutex();
   assert.equal(mutex.isLocked, false);
   const task = mutex.withLock(async () => {

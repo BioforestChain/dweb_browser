@@ -1,6 +1,6 @@
 import { binaryToU8a, isBinary } from "../../helper/binaryHelper.ts";
 import { headersToRecord, httpMethodCanOwnBody } from "../../helper/httpHelper.ts";
-import { PURE_METHOD } from "../ipc/helper/const.ts";
+import { PURE_METHOD } from "../ipc/helper/PureMethod.ts";
 
 /**
  * 将 RequestInit 解构成 ipcRequest 的构造参数

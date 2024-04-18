@@ -1,5 +1,5 @@
 import { once } from "../../../helper/$once.ts";
-import { $Binary, binaryToU8a } from "../../../helper/binaryHelper.ts";
+import { binaryToU8a, type $Binary } from "../../../helper/binaryHelper.ts";
 import { IpcHeaders } from "../helper/IpcHeaders.ts";
 import type { Ipc } from "../ipc.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
@@ -18,7 +18,7 @@ export const ipcResponse = (reqId: number, statusCode: number, headers: Record<s
   } as const);
 
 export class IpcResponse {
-  readonly type = IPC_MESSAGE_TYPE.RESPONSE
+  readonly type = IPC_MESSAGE_TYPE.RESPONSE;
   constructor(
     readonly reqId: number,
     readonly statusCode: number,

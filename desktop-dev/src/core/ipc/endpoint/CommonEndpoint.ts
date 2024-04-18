@@ -1,16 +1,22 @@
 import { encode } from "cbor-x";
 import { StateSignal } from "../../../helper/StateSignal.ts";
 import { Channel } from "../../helper/Channel.ts";
-import { ENDPOINT_LIFECYCLE_STATE } from "../../index.ts";
-import { EndpointLifecycle, EndpointProtocol } from "./EndpointLifecycle.ts";
-import { $EndpointMessage, ENDPOINT_MESSAGE_TYPE, EndpointIpcMessage } from "./EndpointMessage.ts";
+import type { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
+import {
+  ENDPOINT_LIFECYCLE_STATE,
+  ENDPOINT_PROTOCOL,
+  endpointLifecycle,
+  endpointLifecycleInit,
+  type $EndpointLifecycle,
+} from "./EndpointLifecycle.ts";
+import { ENDPOINT_MESSAGE_TYPE, type $EndpointMessage } from "./EndpointMessage.ts";
 import { IpcEndpoint } from "./IpcEndpoint.ts";
 export abstract class CommonEndpoint extends IpcEndpoint {
   /**
    * 默认使用 Json 这种最通用的协议
    * 在一开始的握手阶段会强制使用
    */
-  #protocol = EndpointProtocol.Json;
+  #protocol = ENDPOINT_PROTOCOL.JSON;
   get protocol() {
     return this.#protocol;
   }
@@ -20,22 +26,22 @@ export abstract class CommonEndpoint extends IpcEndpoint {
    */
   protected endpointMsgChannel = new Channel<$EndpointMessage>();
 
-  #lifecycleRemoteMutableFlow = new StateSignal(EndpointLifecycle.init());
+  #lifecycleRemoteMutableFlow = new StateSignal<$EndpointLifecycle>(endpointLifecycle(endpointLifecycleInit()));
 
   readonly lifecycleRemoteFlow = this.#lifecycleRemoteMutableFlow.asReadyonly();
 
   /**初始化支持的协议 */
   protected override getLocaleSubProtocols() {
-    return new Set([EndpointProtocol.Json, EndpointProtocol.Cbor]);
+    return new Set([ENDPOINT_PROTOCOL.JSON, ENDPOINT_PROTOCOL.CBOR]);
   }
 
   /**向远端发送声明周期 */
-  protected override sendLifecycleToRemote(state: EndpointLifecycle) {
+  protected override sendLifecycleToRemote(state: $EndpointLifecycle) {
     console.log("lifecycle-out", this, state);
-    if (EndpointProtocol.Cbor === this.protocol) {
+    if (ENDPOINT_PROTOCOL.CBOR === this.protocol) {
       return this.postBinaryMessage(encode(state));
     }
-    if (EndpointProtocol.Json === this.protocol) {
+    if (ENDPOINT_PROTOCOL.JSON === this.protocol) {
       return this.postTextMessage(JSON.stringify(state));
     }
   }
@@ -44,10 +50,10 @@ export abstract class CommonEndpoint extends IpcEndpoint {
    * 使用协商的结果来进行接下来的通讯
    */
   override async doStart(): Promise<void> {
-    this.lifecycleLocaleFlow.listen((state) => {
-      if (state.state === ENDPOINT_LIFECYCLE_STATE.OPENED) {
-        if (state.subProtocols.has(EndpointProtocol.Cbor)) {
-          this.#protocol = EndpointProtocol.Cbor;
+    this.lifecycleLocaleFlow.listen((lifecycle) => {
+      if (lifecycle.state.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
+        if (lifecycle.state.subProtocols.includes(ENDPOINT_PROTOCOL.CBOR)) {
+          this.#protocol = ENDPOINT_PROTOCOL.CBOR;
         }
       }
     });
@@ -56,7 +62,7 @@ export abstract class CommonEndpoint extends IpcEndpoint {
         switch (endpointMessage.type) {
           case ENDPOINT_MESSAGE_TYPE.IPC: {
             const producer = this.getIpcMessageProducer(endpointMessage.pid);
-            producer.trySend(endpointMessage.ipcMessage);
+            producer.producer.trySend(endpointMessage.ipcMessage);
             break;
           }
           case ENDPOINT_MESSAGE_TYPE.LIFECYCLE: {
@@ -71,12 +77,12 @@ export abstract class CommonEndpoint extends IpcEndpoint {
   /**
    * 发送 EndpointIpcMessage
    */
-  override async postIpcMessage(msg: EndpointIpcMessage) {
+  override async postIpcMessage(msg: $EndpointIpcMessage) {
     await this.awaitOpen("then-postIpcMessage");
-    if (EndpointProtocol.Json === this.#protocol) {
+    if (ENDPOINT_PROTOCOL.JSON === this.#protocol) {
       return this.postTextMessage(JSON.stringify(msg));
     }
-    if (EndpointProtocol.Cbor === this.#protocol) {
+    if (ENDPOINT_PROTOCOL.CBOR === this.#protocol) {
       return this.postBinaryMessage(encode(msg));
     }
   }

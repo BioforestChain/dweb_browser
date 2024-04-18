@@ -1,16 +1,22 @@
 {
-    "name": "assets-projects",
-    "description": "该配置文件是声明各个 assets 文件夹的依赖",
-    "dependencies": {
-        "@lit-labs/motion": "^1.0.3",
-        "cbor-x": "^1.5.3",
-        "comlink": "^4.4.1",
-        "deep-object-diff": "^1.1.9",
-        "lit": "^2.7.6"
-    },
-    "devDependencies": {
-        "vite": "^4.4.2",
-        "vite-plugin-electron-renderer": "^0.12.1",
-        "vite-tsconfig-paths": "^4.2.0"
-    }
+  "name": "assets-projects",
+  "description": "该配置文件是声明各个 assets 文件夹的依赖",
+  "dependencies": {
+    "@lit-labs/motion": "^1.0.3",
+    "cbor-x": "^1.5.3",
+    "comlink": "^4.4.1",
+    "deep-object-diff": "^1.1.9",
+    "lit": "^2.7.6"
+  },
+  "devDependencies": {
+    "vite": "^4.4.2",
+    "vite-plugin-electron-renderer": "^0.12.1",
+    "vite-tsconfig-paths": "^4.2.0",
+    "@types/bun": "latest"
+  },
+  "module": "index.ts",
+  "type": "module",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
 }

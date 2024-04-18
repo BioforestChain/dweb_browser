@@ -1,16 +1,16 @@
 import { decode } from "cbor-x";
 import { CommonEndpoint } from "./CommonEndpoint.ts";
-import { EndpointProtocol } from "./EndpointLifecycle.ts";
-import { $EndpointMessage } from "./EndpointMessage.ts";
+import { ENDPOINT_PROTOCOL } from "./EndpointLifecycle.ts";
+import type { $EndpointMessage } from "./EndpointMessage.ts";
 export class WebMessageEndpoint extends CommonEndpoint {
-  debugId = "WebMessageEndpoint";
+  readonly debugId = `WME-${this.name}`;
 
-  constructor(readonly port: MessagePort, name?: string) {
+  constructor(readonly port: MessagePort, private name?: string) {
     super();
-    this.debugId += name;
     port.addEventListener("message", (event) => {
       let message: $EndpointMessage;
-      if (this.protocol === EndpointProtocol.Cbor) {
+
+      if (this.protocol === ENDPOINT_PROTOCOL.CBOR) {
         message = decode(event.data);
       } else {
         message = JSON.parse(event.data);

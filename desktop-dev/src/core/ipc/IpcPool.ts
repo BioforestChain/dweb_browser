@@ -1,11 +1,11 @@
 import { createSignal } from "../../helper/createSignal.ts";
-import { $MicroModuleManifest } from "../types.ts";
+import type { $MicroModuleManifest } from "../types.ts";
 import { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
 import { Ipc } from "./ipc.ts";
 
 /**每一个worker 都会创建单独的IpcPool */
 export class IpcPool {
-  readonly poolId = `js-${crypto.randomUUID()}`;
+  constructor(readonly poolId = `js-${crypto.randomUUID()}`) {}
 
   /**
    * 所有的ipc对象实例集合

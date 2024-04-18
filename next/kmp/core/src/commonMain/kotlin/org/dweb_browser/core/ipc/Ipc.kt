@@ -228,7 +228,10 @@ class Ipc internal constructor(
     }
     debugIpc("closing", cause)
     val reason = cause?.message
-    sendLifecycleToRemote(IpcLifecycle(IpcLifecycleClosing(reason)))
+    IpcLifecycle(IpcLifecycleClosing(reason)).also { closing ->
+      lifecycleLocaleFlow.emit(closing)
+      sendLifecycleToRemote(closing)
+    }
     messageProducer.producer.close(cause)
     closeDeferred.complete(cause)
     IpcLifecycle(IpcLifecycleClosed(reason)).also { closed ->

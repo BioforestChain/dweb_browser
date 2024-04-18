@@ -4,7 +4,7 @@
 import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MicroModule, $MMID } from "../../../core/types.ts";
 
 import { $normalizeRequestInitAsIpcRequestArgs } from "../../../core/helper/ipcRequestHelper.ts";
-import { $Callback, createSignal } from "../../../helper/createSignal.ts";
+import { createSignal, type $Callback } from "../../../helper/createSignal.ts";
 import { fetchExtends } from "../../../helper/fetchExtends/index.ts";
 import { mapHelper } from "../../../helper/mapHelper.ts";
 import { normalizeFetchArgs } from "../../../helper/normalizeFetchArgs.ts";
@@ -15,19 +15,14 @@ export type { fetchExtends } from "../../../helper/fetchExtends/index.ts";
 import * as core from "./std-dweb-core.ts";
 import * as http from "./std-dweb-http.ts";
 
-import { $RunMainConfig } from "../main/index.ts";
+import type { $RunMainConfig } from "../main/index.ts";
 import {
   $normalizeIpcMessage,
-  $OnFetch,
-  $OnIpcEventMessage,
-  $OnIpcRequestMessage,
   createFetchHandler,
   Ipc,
   IPC_HANDLE_EVENT,
-  IpcError,
-  IpcEvent,
   IpcClientRequest,
-  MessagePortIpc,
+  type $OnFetch,
 } from "./std-dweb-core.ts";
 
 declare global {

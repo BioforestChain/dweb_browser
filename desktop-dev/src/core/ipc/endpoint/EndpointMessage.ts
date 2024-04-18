@@ -1,5 +1,5 @@
-import { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
-import { $EndpointLifecycle } from "./EndpointLifecycle.ts";
+import type { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
+import type { $EndpointLifecycle } from "./EndpointLifecycle.ts";
 
 export { ENDPOINT_MESSAGE_TYPE } from "./internal/EndpointMessage.ts";
 

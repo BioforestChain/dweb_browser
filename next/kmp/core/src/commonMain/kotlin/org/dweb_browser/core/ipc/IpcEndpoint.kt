@@ -6,6 +6,7 @@ import kotlinx.atomicfu.update
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,7 +77,8 @@ abstract class IpcEndpoint {
   protected val ipcMessageProducers = SafeHashMap<Int, IpcMessageProducer>()
 
   inner class IpcMessageProducer(val pid: Int) {
-    val ipcDeferred = CompletableDeferred<Ipc>()
+    internal val ipcCompletableDeferred = CompletableDeferred<Ipc>()
+    val ipcDeferred: Deferred<Ipc> get() = ipcCompletableDeferred
     val producer = Producer<IpcMessage>("ipc-msg/$debugId/${pid}", scope).apply {
       consumer("watch-fork").collectIn(scope) { event ->
         when (val ipcFork = event.data) {
@@ -99,7 +101,10 @@ abstract class IpcEndpoint {
   }
 
   fun getIpcMessageProducer(ipc: Ipc) = getIpcMessageProducer(ipc.pid).apply {
-    ipcDeferred.complete(ipc)
+    ipc.onClosed {
+      ipcMessageProducers.remove(ipc.pid)
+    }
+    ipcCompletableDeferred.complete(ipc)
   }
   //#endregion
 

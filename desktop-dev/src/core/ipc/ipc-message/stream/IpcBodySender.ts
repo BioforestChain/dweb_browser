@@ -1,5 +1,5 @@
 import { PromiseOut } from "../../../../helper/PromiseOut.ts";
-import { $Callback, createSignal } from "../../../../helper/createSignal.ts";
+import { createSignal, type $Callback } from "../../../../helper/createSignal.ts";
 import { binaryStreamRead } from "../../../../helper/stream/readableStreamHelper.ts";
 import "../../../helper/crypto.shims.ts";
 import type { Ipc } from "../../ipc.ts";
@@ -297,7 +297,8 @@ export class IpcBodySender extends IpcBody {
         const mapper = new UsableIpcBodyMapper();
         IpcUsableIpcBodyMap.set(ipc, mapper);
         mapper.onDestroy(
-          ipc.onStream((message) => {
+          ipc.onStream("usableByIpc").collect((event) => {
+            const message = event.data;
             switch (message.type) {
               case IPC_MESSAGE_TYPE.STREAM_PULLING:
                 mapper.get(message.stream_id)?.useByIpc(ipc)?.emitStreamPull(message);
@@ -308,7 +309,10 @@ export class IpcBodySender extends IpcBody {
               case IPC_MESSAGE_TYPE.STREAM_ABORT:
                 mapper.get(message.stream_id)?.useByIpc(ipc)?.emitStreamAborted();
                 break;
+              default:
+                return;
             }
+            event.consume();
           })
         );
         mapper.onDestroy(() => IpcUsableIpcBodyMap.delete(ipc));

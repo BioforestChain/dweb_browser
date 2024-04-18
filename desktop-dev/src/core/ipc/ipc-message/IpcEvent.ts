@@ -1,6 +1,5 @@
 import { simpleDecoder } from "../../../helper/encoding.ts";
-import { $dataToBinary, $dataToText } from "../helper/const.ts";
-import { IPC_DATA_ENCODING } from "./internal/IpcData.ts";
+import { $dataToBinary, $dataToText, IPC_DATA_ENCODING } from "./internal/IpcData.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
 
 export type $IpcEvent = ReturnType<typeof _ipcEvent>;

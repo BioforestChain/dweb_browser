@@ -5,7 +5,7 @@ import { fetchExtends } from "../helper/fetchExtends/index.ts";
 import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.ts";
 import type { $BootstrapContext } from "./bootstrapContext.ts";
 import type { MICRO_MODULE_CATEGORY } from "./helper/category.const.ts";
-import type { Ipc, IpcEvent } from "./ipc/index.ts";
+import type { $IpcEvent, Ipc } from "./ipc/index.ts";
 import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID, $MicroModule, $MicroModuleManifest } from "./types.ts";
 import { IPC_HANDLE_EVENT, nativeFetchAdaptersManager } from "./types.ts";
 
@@ -37,7 +37,7 @@ export abstract class MicroModule implements $MicroModule {
 
   public async addToIpcSet(ipc: Ipc) {
     if (this._running_state_lock.value === true) {
-      await ipc.ready();
+      await ipc.start();
     }
     this._ipcSet.add(ipc);
     ipc.onClosed(() => {
@@ -66,13 +66,6 @@ export abstract class MicroModule implements $MicroModule {
 
   protected async after_bootstrap(_context: $BootstrapContext) {
     this._running_state_lock.resolve(true);
-    /// 默认承认ready协议的存在，并在模块启动完成后，通知对方ready了
-    this.onConnect(async (ipc) => {
-      await ipc.ready();
-    });
-    for (const ipc of this._ipcSet) {
-      await ipc.ready();
-    }
   }
 
   async bootstrap(context: $BootstrapContext) {
@@ -138,12 +131,14 @@ export abstract class MicroModule implements $MicroModule {
    */
   async beConnect(ipc: Ipc, reason: Request) {
     await this.addToIpcSet(ipc);
-    ipc.onEvent((event, ipc) => {
-      if (event.name == IPC_HANDLE_EVENT.Activity) {
-        this._activitySignal.emit(event, ipc);
+    ipc.onEvent("beConnect").collect((event) => {
+      const activityEvent = event.consumeFilter((ipcEvent) => ipcEvent.name == IPC_HANDLE_EVENT.Activity);
+      if (activityEvent !== undefined) {
+        this._activitySignal.emit(activityEvent, ipc);
       }
-      if (event.name == IPC_HANDLE_EVENT.Renderer) {
-        this._activitySignal.emit(event, ipc);
+      const renderEvent = event.consumeFilter((ipcEvent) => ipcEvent.name == IPC_HANDLE_EVENT.Renderer);
+      if (renderEvent !== undefined) {
+        this._rendererSignal.emit(renderEvent, ipc);
       }
     });
     this._connectSignal.emit(ipc, reason);
@@ -197,4 +192,4 @@ export abstract class MicroModule implements $MicroModule {
 }
 
 type $OnIpcConnect = (ipc: Ipc, reason: Request) => unknown;
-type $OnActivity = (event: IpcEvent, ipc: Ipc) => unknown;
+type $OnActivity = (event: $IpcEvent, ipc: Ipc) => unknown;
