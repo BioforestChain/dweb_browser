@@ -1,4 +1,4 @@
-import { test } from "bun:test";
+import { test } from "vitest";
 import assert from "node:assert";
 import { setTimeout } from "node:timers/promises";
 import { Mutex } from "./Mutex.ts";

@@ -1,27 +1,36 @@
-import { decode } from "cbor-x";
+import { $cborToEndpointMessage, $jsonToEndpointMessage } from "../helper/$messageToIpcMessage.ts";
 import { CommonEndpoint } from "./CommonEndpoint.ts";
 import { ENDPOINT_PROTOCOL } from "./EndpointLifecycle.ts";
-import type { $EndpointMessage } from "./EndpointMessage.ts";
+import type { $EndpointRawMessage } from "./EndpointMessage.ts";
 export class WebMessageEndpoint extends CommonEndpoint {
-  readonly debugId = `WME-${this.name}`;
+  override toString(): string {
+    return `WebMessageEndpoint#${this.debugId}`;
+  }
 
-  constructor(readonly port: MessagePort, private name?: string) {
-    super();
+  constructor(readonly port: MessagePort, debugId: string) {
+    super(debugId);
     port.addEventListener("message", (event) => {
-      let message: $EndpointMessage;
+      let message: $EndpointRawMessage;
 
       if (this.protocol === ENDPOINT_PROTOCOL.CBOR) {
-        message = decode(event.data);
+        message = $cborToEndpointMessage(event.data);
       } else {
-        message = JSON.parse(event.data);
+        message = $jsonToEndpointMessage(event.data);
       }
+      this.console.debug("QAQ", "in", event.data, message);
 
       this.endpointMsgChannel.send(message);
     });
     port.start();
   }
 
+  override doStart() {
+    this.port.start();
+    return super.doStart();
+  }
+
   protected postTextMessage(data: String) {
+    this.console.debug("QAQ", "out", data);
     this.port.postMessage(data);
   }
   protected postBinaryMessage(data: Uint8Array) {

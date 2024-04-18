@@ -1,6 +1,7 @@
 import { encode } from "cbor-x";
 import { StateSignal } from "../../../helper/StateSignal.ts";
 import { Channel } from "../../helper/Channel.ts";
+import { $normalizeIpcMessage } from "../helper/$messageToIpcMessage.ts";
 import type { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
 import {
   ENDPOINT_LIFECYCLE_STATE,
@@ -9,7 +10,7 @@ import {
   endpointLifecycleInit,
   type $EndpointLifecycle,
 } from "./EndpointLifecycle.ts";
-import { ENDPOINT_MESSAGE_TYPE, type $EndpointMessage } from "./EndpointMessage.ts";
+import { ENDPOINT_MESSAGE_TYPE, type $EndpointRawMessage } from "./EndpointMessage.ts";
 import { IpcEndpoint } from "./IpcEndpoint.ts";
 export abstract class CommonEndpoint extends IpcEndpoint {
   /**
@@ -24,7 +25,7 @@ export abstract class CommonEndpoint extends IpcEndpoint {
   /**
    * 单讯息通道
    */
-  protected endpointMsgChannel = new Channel<$EndpointMessage>();
+  protected endpointMsgChannel = new Channel<$EndpointRawMessage>();
 
   #lifecycleRemoteMutableFlow = new StateSignal<$EndpointLifecycle>(endpointLifecycle(endpointLifecycleInit()));
 
@@ -37,7 +38,7 @@ export abstract class CommonEndpoint extends IpcEndpoint {
 
   /**向远端发送声明周期 */
   protected override sendLifecycleToRemote(state: $EndpointLifecycle) {
-    console.log("lifecycle-out", this, state);
+    this.console.debug("lifecycle-out", state);
     if (ENDPOINT_PROTOCOL.CBOR === this.protocol) {
       return this.postBinaryMessage(encode(state));
     }
@@ -58,11 +59,15 @@ export abstract class CommonEndpoint extends IpcEndpoint {
       }
     });
     (async () => {
+      setTimeout(() => {
+        this.console.debug("doStart", this.endpointMsgChannel.stream);
+      });
       for await (const endpointMessage of this.endpointMsgChannel) {
+        this.console.debug("QAQ", "endpointMessage", endpointMessage);
         switch (endpointMessage.type) {
           case ENDPOINT_MESSAGE_TYPE.IPC: {
             const producer = this.getIpcMessageProducer(endpointMessage.pid);
-            producer.producer.trySend(endpointMessage.ipcMessage);
+            producer.producer.trySend($normalizeIpcMessage(endpointMessage.ipcMessage, await producer.ipcPo.promise));
             break;
           }
           case ENDPOINT_MESSAGE_TYPE.LIFECYCLE: {

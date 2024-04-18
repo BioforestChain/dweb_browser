@@ -1,6 +1,9 @@
 {
   "name": "assets-projects",
   "description": "该配置文件是声明各个 assets 文件夹的依赖",
+  "scripts": {
+    "test": "vitest"
+  },
   "dependencies": {
     "@lit-labs/motion": "^1.0.3",
     "cbor-x": "^1.5.3",
@@ -9,10 +12,10 @@
     "lit": "^2.7.6"
   },
   "devDependencies": {
-    "vite": "^4.4.2",
-    "vite-plugin-electron-renderer": "^0.12.1",
-    "vite-tsconfig-paths": "^4.2.0",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "vite": "^5.2.9",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^1.5.0"
   },
   "module": "index.ts",
   "type": "module",

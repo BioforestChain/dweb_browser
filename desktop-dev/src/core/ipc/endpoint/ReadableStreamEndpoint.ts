@@ -1,19 +1,19 @@
-import { decode } from "cbor-x";
 import { simpleDecoder } from "../../../helper/encoding";
 import { streamRead } from "../../../helper/stream/readableStreamHelper";
 import { Channel } from "../../helper/Channel";
-import { $PromiseMaybe } from "../../helper/types";
-import { $JSON } from "../helper/$messageToIpcMessage";
+import type { $PromiseMaybe } from "../../helper/types";
+import { $cborToEndpointMessage, $jsonToEndpointMessage } from "../helper/$messageToIpcMessage";
 import { CommonEndpoint } from "./CommonEndpoint";
-import { EndpointProtocol } from "./EndpointLifecycle";
-import { $EndpointMessage, EndpointIpcMessage } from "./EndpointMessage";
+import { ENDPOINT_PROTOCOL } from "./EndpointLifecycle";
+import type { $EndpointRawMessage } from "./EndpointMessage";
 
 export class ReadableStreamEndpoint extends CommonEndpoint {
-  debugId = "ReadableStreamEndpoint";
+  override toString() {
+    return `ReadableStreamEndpoint#${this.debugId}`;
+  }
 
-  constructor(name?: string) {
-    super();
-    this.debugId += name;
+  constructor(debugId: string) {
+    super(debugId);
   }
 
   #input = new Channel<string | Uint8Array>();
@@ -43,13 +43,14 @@ export class ReadableStreamEndpoint extends CommonEndpoint {
     (async () => {
       await this.awaitOpen("then-bindIncomeStream");
       for await (const data of reader) {
-        let packMessage: $EndpointMessage;
-        if (this.protocol === EndpointProtocol.Cbor) {
-          packMessage = decode(data);
+        let message: $EndpointRawMessage;
+
+        if (this.protocol === ENDPOINT_PROTOCOL.CBOR) {
+          message = $cborToEndpointMessage(data);
         } else {
-          packMessage = JSON.parse(simpleDecoder(data, "utf8")) as $JSON<EndpointIpcMessage>;
+          message = $jsonToEndpointMessage(simpleDecoder(data, "utf8"));
         }
-        this.endpointMsgChannel.send(packMessage);
+        this.endpointMsgChannel.send(message);
       }
     })();
 
@@ -68,11 +69,11 @@ export class ReadableStreamEndpoint extends CommonEndpoint {
 
   //#region close
 
-  protected beforeClose = () => {
+  protected override beforeClose = () => {
     this.#input.closeWrite();
   };
   // 彻底关闭
-  protected afterClosed = () => {
+  protected override afterClosed = () => {
     this.#input.close();
   };
 }

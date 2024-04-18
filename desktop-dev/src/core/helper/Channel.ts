@@ -1,17 +1,12 @@
-import { streamRead } from "../../helper/stream/readableStreamHelper.ts";
+import { ReadableStreamOut, streamRead } from "../../helper/stream/readableStreamHelper.ts";
 
 /**模拟kotlin Channel */
 export class Channel<T = Uint8Array> {
-  private controller!: ReadableStreamDefaultController<T>;
-
-  private channel = new ReadableStream<T>({
-    start: (controller) => {
-      this.controller = controller;
-    },
-  });
+  private streamOut = new ReadableStreamOut<T>();
+  private controller = this.streamOut.controller;
 
   get stream() {
-    return this.channel;
+    return this.streamOut.stream;
   }
 
   private _isClosedForSend = false;
@@ -24,6 +19,8 @@ export class Channel<T = Uint8Array> {
       console.error("Channel send is close!!");
       return;
     }
+    console.debug("QAQ", "in", value);
+    console.debug("QAQ", "this.controller", this.stream);
     this.controller.enqueue(value);
   }
 
@@ -37,6 +34,6 @@ export class Channel<T = Uint8Array> {
   }
 
   [Symbol.asyncIterator](): AsyncIterator<T> {
-    return streamRead(this.channel);
+    return streamRead(this.streamOut.stream);
   }
 }

@@ -1,5 +1,5 @@
 import * as CBOR from "cbor-x";
-import type { $EndpointMessage } from "../endpoint/EndpointMessage.ts";
+import type { $EndpointMessage, $EndpointRawMessage } from "../endpoint/EndpointMessage.ts";
 import type { $IpcMessage, $IpcRawMessage } from "../ipc-message/IpcMessage.ts";
 import { IpcClientRequest } from "../ipc-message/IpcRequest.ts";
 import { IpcResponse } from "../ipc-message/IpcResponse.ts";
@@ -20,9 +20,9 @@ export type $JSON<T> = {
 export const $endpointMessageToCbor = (message: $EndpointMessage) => CBOR.encode(message);
 export const $endpointMessageToJson = (message: $EndpointMessage) => JSON.stringify(message);
 
-export const $cborToEndpointMessage = (data: Uint8Array) => CBOR.decode(data) as $EndpointMessage;
+export const $cborToEndpointMessage = (data: Uint8Array) => CBOR.decode(data) as $EndpointRawMessage;
 
-export const $jsonToEndpointMessage = (data: string) => JSON.parse(data) as $EndpointMessage;
+export const $jsonToEndpointMessage = (data: string) => JSON.parse(data) as $EndpointRawMessage;
 
 export const $normalizeIpcMessage = (ipcMessage: $IpcRawMessage, ipc: Ipc): $IpcMessage => {
   switch (ipcMessage.type) {

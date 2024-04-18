@@ -1,4 +1,5 @@
 import { createSignal } from "../../helper/createSignal.ts";
+import { logger } from "../../helper/logger.ts";
 import type { $MicroModuleManifest } from "../types.ts";
 import { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
 import { Ipc } from "./ipc.ts";
@@ -6,7 +7,10 @@ import { Ipc } from "./ipc.ts";
 /**每一个worker 都会创建单独的IpcPool */
 export class IpcPool {
   constructor(readonly poolId = `js-${crypto.randomUUID()}`) {}
-
+  toString() {
+    return `IpcPool#${this.poolId}`;
+  }
+  readonly console = logger(this);
   /**
    * 所有的ipc对象实例集合
    */
@@ -39,7 +43,7 @@ export class IpcPool {
     }
     ipc.onClosed(() => {
       this.#ipcSet.delete(ipc);
-      console.log("ipcpool-remote-ipc", ipc);
+      this.console.debug("ipcpool-remote-ipc", ipc);
     });
   }
 

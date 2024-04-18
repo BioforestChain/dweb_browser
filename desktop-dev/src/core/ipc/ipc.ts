@@ -8,6 +8,7 @@ import { IpcResponse } from "./ipc-message/IpcResponse.ts";
 
 import { once } from "../../helper/$once.ts";
 import { StateSignal } from "../../helper/StateSignal.ts";
+import { logger } from "../../helper/logger.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { promiseAsSignalListener } from "../../helper/promiseSignal.ts";
 import { Producer } from "../helper/Producer.ts";
@@ -44,6 +45,10 @@ export class Ipc {
     readonly pool: IpcPool,
     readonly debugId = `${endpoint.debugId}/${pid}`
   ) {}
+  toString() {
+    return `Ipc#${this.debugId}`;
+  }
+  readonly console = logger(this);
 
   // reqId计数
   #reqIdAcc = 0;
@@ -74,7 +79,7 @@ export class Ipc {
    * 向远端发送 生命周期 信号
    */
   #sendLifecycleToRemote(state: $IpcLifecycle) {
-    console.log("lifecycle-out", state);
+    this.console.debug("lifecycle-out", state);
     this.endpoint.postIpcMessage(endpointIpcMessage(this.pid, state));
   }
 
@@ -102,7 +107,7 @@ export class Ipc {
       }
     });
     const lifecycle = await op.promise;
-    console.log("awaitOpen", lifecycle, reason);
+    this.console.debug("awaitOpen", lifecycle, reason);
     off();
     return lifecycle;
   }
@@ -111,7 +116,7 @@ export class Ipc {
    * 启动，会至少等到endpoint握手完成
    */
   async start(isAwait = true, reason?: string) {
-    console.log("ipc-start", reason);
+    this.console.debug("start", reason);
     if (isAwait) {
       this.endpoint.start(true);
       this.startOnce();
@@ -123,7 +128,7 @@ export class Ipc {
   }
 
   startOnce = once(() => {
-    console.log("ipc-startOnce", this.lifecycle);
+    this.console.debug("startOnce", this.lifecycle);
     // 当前状态必须是从init开始
     if (this.lifecycle.state.name === IPC_LIFECYCLE_STATE.INIT) {
       // 告知对方我启动了
@@ -135,7 +140,7 @@ export class Ipc {
     }
     // 监听远端生命周期指令，进行协议协商
     this.#lifecycleRemoteFlow((lifecycleRemote) => {
-      console.log("ipc-lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
+      this.console.debug("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
       // 告知启动完成
       const doIpcOpened = () => {
         const opend = ipcLifecycle(ipcLifecycleOpened());
@@ -345,7 +350,7 @@ export class Ipc {
     try {
       await this.awaitOpen("then-postMessage");
     } catch (e) {
-      console.log(`ipc(${this}) fail to poseMessage: ${e}`);
+      this.console.debug(`ipc(${this}) fail to poseMessage: ${e}`);
       return;
     }
     this.endpoint.postIpcMessage(endpointIpcMessage(this.pid, message));
@@ -356,13 +361,16 @@ export class Ipc {
   //#region close
 
   #closePo = new PromiseOut<string | undefined>();
+  awaitClosed() {
+    return this.#closePo.promise;
+  }
   onClosed = promiseAsSignalListener(this.#closePo.promise);
   get isClosed() {
     return this.lifecycle.state.name == IPC_LIFECYCLE_STATE.CLOSED;
   }
 
   #closeOnce = once(async (cause?: string) => {
-    console.log("closing", cause);
+    this.console.debug("closing", cause);
     {
       const closing = ipcLifecycle(ipcLifecycleClosing(cause));
       this.#lifecycleLocaleFlow.emit(closing);

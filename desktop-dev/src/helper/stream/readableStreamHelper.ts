@@ -1,5 +1,5 @@
 import { u8aConcat } from "../binaryHelper.ts";
-import { $Callback, createSignal, Signal } from "../createSignal.ts";
+import { Signal, createSignal, type $Callback } from "../createSignal.ts";
 export interface $AbortAble {
   signal?: AbortSignal;
 }
@@ -12,6 +12,7 @@ async function* _doRead<T extends unknown>(reader: ReadableStreamDefaultReader<T
   try {
     while (true) {
       const item = await reader.read();
+      console.log("QAQ item", item);
       if (item.done) {
         break;
       }
@@ -63,7 +64,7 @@ export const binaryStreamRead = (stream: ReadableStream<Uint8Array>, options?: $
     if (await appendToCache()) {
       return readBinary(size);
     } else {
-      console.log(new TextDecoder().decode(cache))
+      console.log(new TextDecoder().decode(cache));
       throw new Error(`fail to read bytes(${cache.length}/${size} byte) in stream`);
     }
   };
