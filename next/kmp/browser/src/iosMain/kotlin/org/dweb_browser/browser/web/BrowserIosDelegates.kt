@@ -287,6 +287,6 @@ fun BrowserDownloadItem.toIOS() = WebBrowserViewDownloadData(
   downloadArgs.mimetype,
   state.state.toIosState(),
   id,
-  state.current.toFloat() / state.total.toFloat(),
+  state.progress(),
   if (filePath.length > 0) filePath else null
 )

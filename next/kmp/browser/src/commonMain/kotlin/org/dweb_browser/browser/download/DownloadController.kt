@@ -138,6 +138,21 @@ data class DownloadStateEvent(
   var state: DownloadState = DownloadState.Init,
   var stateMessage: String = ""
 ) {
+  fun progress(): Float {
+    return if (total == 0L) {
+      0f
+    } else {
+      (current * 1.0f / total) * 10 / 10.0f
+    }
+  }
+
+  fun percentProgress(): String {
+    return if (total == 0L) {
+      "0 %"
+    } else {
+      "${(current * 1000 / total) / 10.0f} %"
+    }
+  }
 }
 
 class DownloadController(private val downloadNMM: DownloadNMM) {
@@ -166,9 +181,8 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
           }
 
           ChangeableType.PutAll -> {
-            downloadList.addAll(
-              downloadTaskMaps.toMutableList().sortedByDescending { it.createTime }
-            )
+            downloadList.addAll(downloadTaskMaps.toMutableList()
+              .sortedByDescending { it.createTime })
           }
 
           ChangeableType.Clear -> {
@@ -228,17 +242,16 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     debugDownload("recoverDownload", "start=$start => $task")
     task.status.state = DownloadState.Downloading // 这边开始请求http了，属于开始下载
     task.emitChanged()
-    var response = downloadNMM.nativeFetch(PureClientRequest(
-      href = task.url,
+    var response = downloadNMM.nativeFetch(PureClientRequest(href = task.url,
       method = PureMethod.GET,
       headers = PureHeaders().apply {
         init(HttpHeaders.Range, "${RangeUnits.Bytes}=${ContentRange.TailFrom(start)}")
-      }
-    ))
+      }))
     // 目前发现测试的时候，如果不存在range的上面会报错。直接使用下面这个来请求
     if (response.status == HttpStatusCode.RequestedRangeNotSatisfiable) {
       task.status.current = 0L
-      response = downloadNMM.nativeFetch(PureClientRequest(href = task.url, method = PureMethod.GET))
+      response =
+        downloadNMM.nativeFetch(PureClientRequest(href = task.url, method = PureMethod.GET))
     }
 
     if (!response.isOk) {
@@ -436,24 +449,23 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
   /**
    * 执行下载任务 ,可能是断点下载
    */
-  suspend fun downloadFactory(task: DownloadTask): Boolean =
-    when (task.status.state) {
-      DownloadState.Init, DownloadState.Failed, DownloadState.Canceled -> {
-        doDownload(task) // 执行下载
-      }
-
-      DownloadState.Paused -> when (task.readChannel) {
-        /// 从磁盘中恢复下载
-        null -> doDownload(task)
-        else -> {
-          task.status.state = DownloadState.Downloading // 这边开始请求http了，属于开始下载
-          task.emitChanged()
-          true
-        }
-      }
-
-      DownloadState.Downloading, DownloadState.Completed -> true
+  suspend fun downloadFactory(task: DownloadTask): Boolean = when (task.status.state) {
+    DownloadState.Init, DownloadState.Failed, DownloadState.Canceled -> {
+      doDownload(task) // 执行下载
     }
+
+    DownloadState.Paused -> when (task.readChannel) {
+      /// 从磁盘中恢复下载
+      null -> doDownload(task)
+      else -> {
+        task.status.state = DownloadState.Downloading // 这边开始请求http了，属于开始下载
+        task.emitChanged()
+        true
+      }
+    }
+
+    DownloadState.Downloading, DownloadState.Completed -> true
+  }
 
 
   /**

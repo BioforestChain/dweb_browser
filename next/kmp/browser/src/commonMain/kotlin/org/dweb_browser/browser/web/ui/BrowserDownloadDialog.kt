@@ -146,7 +146,8 @@ private fun BrowserDownloadController.DownloadTopToastBar(downloadItem: BrowserD
               color = MaterialTheme.colorScheme.onBackground
             )
             Text(
-              text = downloadItem.downloadArgs.contentLength?.toSpaceSize() ?: "",
+              text = downloadItem.downloadArgs.contentLength?.toSpaceSize()
+                ?: BrowserI18nResource.Download.unknownSize(),
               maxLines = 1,
               style = MaterialTheme.typography.bodySmall,
             )
@@ -174,8 +175,7 @@ private fun DownloadButton(
     // 显示百分比
     DownloadState.Downloading -> {
       if (showProgress) {
-        val progress = (downloadItem.state.current * 1000 / downloadItem.state.total) / 10.0f
-        "$progress %"
+        downloadItem.state.percentProgress()
       } else {
         BrowserI18nResource.Download.button_title_pause()
       }
@@ -189,7 +189,7 @@ private fun DownloadButton(
       DownloadState.Downloading, DownloadState.Paused
     )
   ) {
-    downloadItem.state.current * 1.0f / downloadItem.state.total
+    downloadItem.state.progress()
   } else {
     1.0f
   }
