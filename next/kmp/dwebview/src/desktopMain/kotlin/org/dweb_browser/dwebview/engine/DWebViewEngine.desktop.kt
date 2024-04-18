@@ -30,6 +30,8 @@ import com.teamdev.jxbrowser.ui.Bitmap
 import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
 import com.teamdev.jxbrowser.zoom.ZoomLevel
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -71,6 +73,10 @@ class DWebViewEngine internal constructor(
   internal val browser: Browser = createMainBrowser(remoteMM)
 ) {
   companion object {
+    // userDataDir同一个engine不能多次调用，jxbrowser会弹出异常无法捕获
+    private val userDataDirectoryInUseMicroModuleSet = mutableSetOf<String>()
+    private val userDataDirectoryLock = SynchronizedObject()
+
     /**
      * 构建一个 main-browser，当 main-browser 销毁， 对应的 WebviewEngine 也会被销毁
      */
@@ -91,10 +97,13 @@ class DWebViewEngine internal constructor(
       addSwitch("--enable-experimental-web-platform-features")
 
       // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
-      if (remoteMM.mmid != "desk.browser.dweb") {
-        runBlocking(ioAsyncExceptionHandler) {
-          if (remoteMM.createDir("/data/chromium")) {
-            userDataDir(remoteMM.realFile("/data/chromium").toPath().toNioPath())
+      synchronized(userDataDirectoryLock) {
+        if (!userDataDirectoryInUseMicroModuleSet.contains(remoteMM.mmid)) {
+          runBlocking(ioAsyncExceptionHandler) {
+            if (remoteMM.createDir("/data/chromium")) {
+              userDataDir(remoteMM.realFile("/data/chromium").toPath().toNioPath())
+              userDataDirectoryInUseMicroModuleSet.add(remoteMM.mmid)
+            }
           }
         }
       }
@@ -137,6 +146,7 @@ class DWebViewEngine internal constructor(
       val browser = engine.newBrowser()
       // 同步销毁
       browser.on(BrowserClosed::class.java) {
+        userDataDirectoryInUseMicroModuleSet.remove(remoteMM.mmid)
         engine.close()
       }
       remoteMM.ioAsyncScope.launch {
