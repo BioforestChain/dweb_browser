@@ -49,7 +49,7 @@ data class PathRoute(
     fun isMatch(request_pathname: String, config_pathname: String, config_matchMode: MatchMode) =
       when (config_matchMode) {
         MatchMode.PREFIX -> request_pathname.startsWith(config_pathname)
-        MatchMode.FULL -> request_pathname.trimEnd('/') == config_pathname.trimEnd('/')
+        MatchMode.FULL -> request_pathname.trimEnd('/') == config_pathname
       }
   }
 

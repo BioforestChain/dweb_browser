@@ -224,7 +224,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         end()
       },
       // 创建文件夹
-      "/createDir" bind PureMethod.POST by defineBooleanResponse {
+      "/createDir" bind PureMethod.GET by defineBooleanResponse {
         val path = getPath()
         if (SystemFileSystem.exists(path)) {
           return@defineBooleanResponse true

@@ -59,3 +59,6 @@ suspend fun MicroModule.writeFile(path: String, body: IPureBody) {
     )
   )
 }
+
+suspend fun MicroModule.createDir(path: String) =
+  nativeFetch("file://file.std.dweb/createDir?path=$path").boolean()

@@ -38,8 +38,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
+import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.createDir
+import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
@@ -86,6 +89,15 @@ class DWebViewEngine internal constructor(
       }
 
       addSwitch("--enable-experimental-web-platform-features")
+
+      // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
+      if (remoteMM.mmid != "desk.browser.dweb") {
+        runBlocking(ioAsyncExceptionHandler) {
+          if (remoteMM.createDir("/data/chromium")) {
+            userDataDir(remoteMM.realFile("/data/chromium").toPath().toNioPath())
+          }
+        }
+      }
     }.let { engine ->
       // 设置https代理
       val proxyRules = "https=${DwebViewProxy.ProxyUrl},http://127.0.0.1:17890"
@@ -114,12 +126,13 @@ class DWebViewEngine internal constructor(
         }
       })
 
-      engine.permissions().set(RequestPermissionCallback::class.java, RequestPermissionCallback { params, tell ->
+      engine.permissions()
+        .set(RequestPermissionCallback::class.java, RequestPermissionCallback { params, tell ->
 //        if(params.permissionType() == PermissionType.GEOLOCATION) {
 //          tell.grant()
 //        }
-        tell.grant()
-      })
+          tell.grant()
+        })
 
       val browser = engine.newBrowser()
       // 同步销毁
