@@ -173,7 +173,7 @@ fun JmmViewItem(
           contentAlignment = Alignment.Center
         ) {
           val progress = with(jmmHistoryMetadata.state) {
-            if (total > 0) current * 1.0f / total else 0f
+            if (total > 0) progress() else 0f
           }
           val primary = MaterialTheme.colorScheme.primary
           when (jmmHistoryMetadata.state.state) {

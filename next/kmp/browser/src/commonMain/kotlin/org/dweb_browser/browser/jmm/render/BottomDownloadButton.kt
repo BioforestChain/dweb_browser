@@ -56,11 +56,7 @@ internal fun BoxScope.BottomDownloadButton() {
       .fillMaxWidth()
       .clip(ButtonDefaults.elevatedShape)
     val m2 = if (showLinearProgress) {
-      val percent = if (jmmState.total == 0L) {
-        0f
-      } else {
-        jmmState.current * 1.0f / jmmState.total
-      }
+      val percent = jmmState.progress()
       modifier.background(
         Brush.horizontalGradient(
           0.0f to MaterialTheme.colorScheme.primary,

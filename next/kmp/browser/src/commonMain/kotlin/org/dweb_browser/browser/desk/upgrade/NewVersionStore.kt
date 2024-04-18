@@ -52,6 +52,14 @@ data class NewVersionItem(
       store.setNewVersion(this)
     }
   }
+
+  fun progress(): Float {
+    return if (_status.total == 0L) {
+      .0f
+    } else {
+      (_status.current * 1.0f / _status.total) * 10 / 10.0f
+    }
+  }
 }
 
 class NewVersionStore(mm: MicroModule) {

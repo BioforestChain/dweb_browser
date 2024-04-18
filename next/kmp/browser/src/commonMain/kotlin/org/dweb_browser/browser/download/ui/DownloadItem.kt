@@ -13,7 +13,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -99,12 +99,15 @@ fun DownloadItem(downloadTask: DownloadTask, onClick: (DownloadTask) -> Unit) {
   var taskCurrent by remember { mutableLongStateOf(downloadTask.status.current) }
   var taskState by remember { mutableStateOf(downloadTask.status.state) }
 
-  LaunchedEffect(downloadTask) { // 监听状态，更新显示
-    if (downloadTask.status.state != DownloadState.Completed) {
+  DisposableEffect(downloadTask) { // 监听状态，更新显示
+    val off = if (downloadTask.status.state != DownloadState.Completed) {
       downloadTask.onChange {
         taskState = it.status.state
         taskCurrent = it.status.current
       }
+    } else null
+    onDispose {
+      off?.let { it() }
     }
   }
 
@@ -146,7 +149,9 @@ fun DownloadItem(downloadTask: DownloadTask, onClick: (DownloadTask) -> Unit) {
               )
             }
             // 显示下载进度
-            LinearProgressIndicator(progress = taskCurrent / downloadTask.status.total.toFloat())
+            LinearProgressIndicator(
+              progress = { taskCurrent / downloadTask.status.total.toFloat() }
+            )
           }
         }
       }

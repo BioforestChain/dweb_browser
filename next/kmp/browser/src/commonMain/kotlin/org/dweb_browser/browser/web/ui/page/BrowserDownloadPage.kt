@@ -211,7 +211,7 @@ private fun DownloadProgressIndicator(event: DownloadStateEvent, onClick: () -> 
       drawArc(
         color = primary,
         startAngle = -90f,
-        sweepAngle = (event.current * 1.0f / event.total) * 360f,
+        sweepAngle = event.progress() * 360f,
         useCenter = false,
         style = Stroke(width = 8f)
       )

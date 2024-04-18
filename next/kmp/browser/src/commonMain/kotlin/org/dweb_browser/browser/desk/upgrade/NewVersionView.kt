@@ -32,8 +32,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.BrowserDrawResource
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.desk.debugDesk
 import org.dweb_browser.browser.download.DownloadState
 
@@ -180,7 +180,7 @@ private fun NewVersionController.DialogDownloadView() {
               sweepAngle = if (newVersion.status.current == 0L) {
                 -360f
               } else {
-                ((newVersion.status.current * 1.0f / newVersion.status.total) - 1) * 360f
+                (newVersion.progress() - 1) * 360f
               },
               useCenter = true
             )
