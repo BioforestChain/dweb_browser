@@ -37,6 +37,7 @@ import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.createByteChannel
 import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.decodeURI
+import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
@@ -264,6 +265,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
 
     task.mime = mimeFactory(response.headers, task.url)
     task.filepath = fileCreateByHeadersAndPath(response.headers, task.url, task.mime, task.external)
+
     // 判断地址是否支持断点
     val supportRange =
       response.headers.getByIgnoreCase("Accept-Ranges")?.equals("bytes", true) == true
@@ -355,7 +357,6 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
     var fileName = headers.get("Content-Disposition")?.substringAfter("filename=")?.trim('"')
       ?: Url(url).encodedPath.lastPath()
     if (fileName.isEmpty()) fileName = "${datetimeNow()}.${mime.substringAfter("/")}"
-
     var index = 0
     while (true) {
       val path = if (externalDownload) {
@@ -374,7 +375,7 @@ class DownloadController(private val downloadNMM: DownloadNMM) {
    */
   private suspend fun fileCreateByPath(url: String, externalDownload: Boolean): String {
     var index = 0
-    val fileName = Url(url).encodedPath.lastPath().decodeURI()
+    val fileName = Url(url).encodedPath.lastPath() //.decodeURI()
     while (true) {
       val path = if (externalDownload) {
         "/download/${index++}_${fileName}"

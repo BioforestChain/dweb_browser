@@ -38,6 +38,6 @@ actual suspend fun openFileByPath(realPath: String, justInstall: Boolean): Boole
       false
     }
   } else {
-    InstallApkUtil.openFile(realPath)
+    if (!justInstall) InstallApkUtil.openFile(realPath) else false
   }
 }

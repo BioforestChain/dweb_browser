@@ -74,8 +74,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     private val virtualFullPath = virtualPathString.toPath(true).also {
       if (!it.isAbsolute) {
         throw ResponseException(
-          HttpStatusCode.BadRequest,
-          "File path should be absolute path"
+          HttpStatusCode.BadRequest, "File path should be absolute path"
         )
       }
       if (it.segments.isEmpty()) {
@@ -101,8 +100,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
   private fun IHandlerContext.getVfsPath(
     pathKey: String = "path",
   ) = getVirtualFsPath(
-    ipc.remote,
-    request.query(pathKey)
+    ipc.remote, request.query(pathKey)
   )
 
   private fun IHandlerContext.getPath(pathKey: String = "path"): Path {
@@ -113,12 +111,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     return getVfsPath(pathKey).fsFullPath
   }
 
-  fun IHandlerContext.getPathInfo(path: Path = getPath()): JsonElement {
-    val metadata = SystemFileSystem.metadataOrNull(path);
+  private fun IHandlerContext.getPathInfo(path: Path = getPath()): JsonElement {
+    val metadata = SystemFileSystem.metadataOrNull(path)
     return if (metadata == null) {
       JsonNull
     } else {
-
       FileMetadata(
         metadata.isRegularFile,
         metadata.isDirectory,
@@ -190,39 +187,37 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         debugFile("/open", path)
         val handler = SystemFileSystem.openReadWrite(path)
         // TODO 这里需要定义完整的操作指令
-        request.body.toPureStream().getReader("open file")
-          .consumeEachCborPacket<FileOp<*>> { op ->
-            when (op) {
-              // 获取大小
-              is FileOpSize -> emit(handler.size())
-              // 读取内容
-              is FileOpRead -> emit(when (val fileOffset = op.input.first) {
-                null -> handler.source()
-                else -> handler.source(fileOffset)
-              }.buffer().let { bufferedSource ->
-                when (val byteCount = op.input.second) {
-                  null -> bufferedSource.readByteArray()
-                  else -> bufferedSource.readByteArray(byteCount)
-                }.also { bufferedSource.close() }
-              })
-              // 写入内容
-              is FileOpWrite -> emit(when (val fileOffset = op.input.first) {
-                null -> handler.sink()
-                else -> handler.sink(fileOffset)
-              }.buffer().let { bufferedSink ->
-                bufferedSink.write(op.input.second)
-                bufferedSink.close()
-              })
-              // 追加内容
-              is FileOpAppend -> handler.appendingSink().buffer()
-                .let { bufferedSink ->
-                  bufferedSink.write(op.input)
-                  bufferedSink.close()
-                }
-              // 主动关闭
-              is FileOpClose -> this@consumeEachCborPacket.breakLoop()
+        request.body.toPureStream().getReader("open file").consumeEachCborPacket<FileOp<*>> { op ->
+          when (op) {
+            // 获取大小
+            is FileOpSize -> emit(handler.size())
+            // 读取内容
+            is FileOpRead -> emit(when (val fileOffset = op.input.first) {
+              null -> handler.source()
+              else -> handler.source(fileOffset)
+            }.buffer().let { bufferedSource ->
+              when (val byteCount = op.input.second) {
+                null -> bufferedSource.readByteArray()
+                else -> bufferedSource.readByteArray(byteCount)
+              }.also { bufferedSource.close() }
+            })
+            // 写入内容
+            is FileOpWrite -> emit(when (val fileOffset = op.input.first) {
+              null -> handler.sink()
+              else -> handler.sink(fileOffset)
+            }.buffer().let { bufferedSink ->
+              bufferedSink.write(op.input.second)
+              bufferedSink.close()
+            })
+            // 追加内容
+            is FileOpAppend -> handler.appendingSink().buffer().let { bufferedSink ->
+              bufferedSink.write(op.input)
+              bufferedSink.close()
             }
+            // 主动关闭
+            is FileOpClose -> this@consumeEachCborPacket.breakLoop()
           }
+        }
         // 关闭句柄
         handler.close()
         // 结束算工流
@@ -372,10 +367,10 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
   override suspend fun _shutdown() {
   }
 
-  object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>(
-    "FileWatchEventName",
-    FileWatchEventName.ALL_VALUES,
-    { eventName });
+  object FileWatchEventNameSerializer :
+    StringEnumSerializer<FileWatchEventName>("FileWatchEventName",
+      FileWatchEventName.ALL_VALUES,
+      { eventName });
   @Serializable(with = FileWatchEventNameSerializer::class)
   enum class FileWatchEventName(val eventName: String) {
     /** 初始化监听时，执行的触发 */
