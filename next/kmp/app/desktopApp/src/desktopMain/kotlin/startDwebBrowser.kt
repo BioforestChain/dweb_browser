@@ -95,7 +95,7 @@ suspend fun startDwebBrowser(debugTags: String?): DnsNMM {
   // 添加windows平台系統級dweb deeplinks处理
   if(PureViewController.isWindows) {
     singleInstanceFlow.onEach {
-      dnsNMM.nativeFetch(it.replace("/?", "?"))
+      dnsNMM.nativeFetch(it)
     }.launchIn(dnsNMM.ioAsyncScope)
   }
 

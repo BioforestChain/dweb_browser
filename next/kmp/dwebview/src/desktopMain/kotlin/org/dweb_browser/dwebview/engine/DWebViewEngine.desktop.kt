@@ -74,7 +74,7 @@ class DWebViewEngine internal constructor(
     internal fun createMainBrowser(remoteMM: MicroModule) = WebviewEngine.hardwareAccelerated {
       addScheme(Scheme.of("dweb")) { params ->
         val pureResponse = runBlocking(ioAsyncExceptionHandler) {
-          remoteMM.nativeFetch(params.urlRequest().url().replaceFirst("/?", "?"))
+          remoteMM.nativeFetch(params.urlRequest().url())
         }
 
         val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
@@ -106,7 +106,7 @@ class DWebViewEngine internal constructor(
       engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
         if (it.urlRequest().url().startsWith("dweb://")) {
           remoteMM.ioAsyncScope.launch {
-            remoteMM.nativeFetch(it.urlRequest().url().replace("/?", "?"))
+            remoteMM.nativeFetch(it.urlRequest().url())
           }
           BeforeUrlRequestCallback.Response.cancel()
         } else {
