@@ -17,7 +17,6 @@ export class WebMessageEndpoint extends CommonEndpoint {
       } else {
         message = $jsonToEndpointMessage(event.data);
       }
-      this.console.debug("QAQ", "in", event.data, message);
 
       this.endpointMsgChannel.send(message);
     });
@@ -30,7 +29,6 @@ export class WebMessageEndpoint extends CommonEndpoint {
   }
 
   protected postTextMessage(data: String) {
-    this.console.debug("QAQ", "out", data);
     this.port.postMessage(data);
   }
   protected postBinaryMessage(data: Uint8Array) {

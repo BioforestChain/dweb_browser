@@ -27,7 +27,10 @@ export abstract class CommonEndpoint extends IpcEndpoint {
    */
   protected endpointMsgChannel = new Channel<$EndpointRawMessage>();
 
-  #lifecycleRemoteMutableFlow = new StateSignal<$EndpointLifecycle>(endpointLifecycle(endpointLifecycleInit()));
+  #lifecycleRemoteMutableFlow = new StateSignal<$EndpointLifecycle>(
+    endpointLifecycle(endpointLifecycleInit()),
+    endpointLifecycle.equals
+  );
 
   readonly lifecycleRemoteFlow = this.#lifecycleRemoteMutableFlow.asReadyonly();
 
@@ -63,7 +66,6 @@ export abstract class CommonEndpoint extends IpcEndpoint {
         this.console.debug("doStart", this.endpointMsgChannel.stream);
       });
       for await (const endpointMessage of this.endpointMsgChannel) {
-        this.console.debug("QAQ", "endpointMessage", endpointMessage);
         switch (endpointMessage.type) {
           case ENDPOINT_MESSAGE_TYPE.IPC: {
             const producer = this.getIpcMessageProducer(endpointMessage.pid);

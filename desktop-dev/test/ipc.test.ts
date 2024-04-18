@@ -41,9 +41,9 @@ test("WebMessageEndpoint+IpcEvent", async () => {
     for (let i = 1; i <= MAX; i++) {
       const item = `${i}`;
       actual.push(item);
-      port1.postMessage(ipcEvent.fromText("hi", item));
+      await port1.postMessage(ipcEvent.fromText("hi", item));
     }
-    port1.close();
+    port1.close("send-done");
   })();
 
   const result = [] as string[];

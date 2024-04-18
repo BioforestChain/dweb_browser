@@ -8,7 +8,7 @@ import { IpcResponse } from "./ipc-message/IpcResponse.ts";
 
 import { once } from "../../helper/$once.ts";
 import { StateSignal } from "../../helper/StateSignal.ts";
-import { logger } from "../../helper/logger.ts";
+import { CUSTOM_INSPECT, logger } from "../../helper/logger.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { promiseAsSignalListener } from "../../helper/promiseSignal.ts";
 import { Producer } from "../helper/Producer.ts";
@@ -48,6 +48,9 @@ export class Ipc {
   toString() {
     return `Ipc#${this.debugId}`;
   }
+  [CUSTOM_INSPECT]() {
+    return this.toString();
+  }
   readonly console = logger(this);
 
   // reqId计数
@@ -61,7 +64,8 @@ export class Ipc {
 
   //#region 生命周期相关
   #lifecycleLocaleFlow = new StateSignal<$IpcLifecycle>(
-    ipcLifecycle(ipcLifecycleInit(this.pid, this.locale, this.remote))
+    ipcLifecycle(ipcLifecycleInit(this.pid, this.locale, this.remote)),
+    ipcLifecycle.equals
   );
   readonly lifecycleLocaleFlow = this.#lifecycleLocaleFlow.asReadyonly();
   get lifecycle() {
@@ -150,7 +154,7 @@ export class Ipc {
       // 处理远端生命周期
       switch (lifecycleRemote.state.name) {
         case (IPC_LIFECYCLE_STATE.CLOSING, IPC_LIFECYCLE_STATE.CLOSED): {
-          this.close();
+          this.close(lifecycleRemote.state.reason);
           break;
         }
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功

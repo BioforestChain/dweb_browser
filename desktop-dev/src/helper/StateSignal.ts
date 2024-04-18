@@ -1,4 +1,4 @@
-import { $Callback, $OffListener, Signal } from "./createSignal.ts";
+import { Signal, type $Callback, type $OffListener } from "./createSignal.ts";
 
 export class StateSignal<T> implements $ReadyonlyStateSignal<T> {
   #state: T;
@@ -6,17 +6,17 @@ export class StateSignal<T> implements $ReadyonlyStateSignal<T> {
     return this.#state;
   }
   #signal = new Signal<$Callback<[T]>>();
-  constructor(state: T) {
+  constructor(state: T, readonly equals: (newValue: T, oldValue: T) => boolean = (a, b) => a === b) {
     this.#state = state;
   }
   emit = (state: T) => {
-    if (state !== this.#state) {
+    if (this.equals(state, this.#state)) {
       this.#state = state;
       this.#signal.emit(state);
     }
   };
   emitAndClear = (state: T) => {
-    if (state !== this.#state) {
+    if (this.equals(state, this.#state)) {
       this.#state = state;
       this.#signal.emitAndClear(state);
     } else {

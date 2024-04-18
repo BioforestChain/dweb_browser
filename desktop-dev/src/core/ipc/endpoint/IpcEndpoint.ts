@@ -5,7 +5,7 @@
 import { once } from "../../../helper/$once.ts";
 import { PromiseOut } from "../../../helper/PromiseOut.ts";
 import { StateSignal, type $ReadyonlyStateSignal } from "../../../helper/StateSignal.ts";
-import { logger } from "../../../helper/logger.ts";
+import { CUSTOM_INSPECT, logger } from "../../../helper/logger.ts";
 import { mapHelper } from "../../../helper/mapHelper.ts";
 import { setHelper } from "../../../helper/setHelper.ts";
 import { Producer } from "../../helper/Producer.ts";
@@ -28,6 +28,9 @@ import {
 export abstract class IpcEndpoint {
   constructor(readonly debugId: string) {}
   abstract toString(): string;
+  [CUSTOM_INSPECT]() {
+    return this.toString();
+  }
 
   private accPid = 0;
 
@@ -87,7 +90,10 @@ export abstract class IpcEndpoint {
   /**
    * 本地的生命周期状态流
    */
-  protected lifecycleLocaleFlow = new StateSignal<$EndpointLifecycle>(endpointLifecycle(endpointLifecycleInit()));
+  protected lifecycleLocaleFlow = new StateSignal<$EndpointLifecycle>(
+    endpointLifecycle(endpointLifecycleInit()),
+    endpointLifecycle.equals
+  );
   /**
    * 生命周期 监听器
    */
@@ -160,10 +166,10 @@ export abstract class IpcEndpoint {
         case ENDPOINT_LIFECYCLE_STATE.OPENED: {
           const lifecycleLocale = this.lifecycle;
           if (lifecycleLocale.state.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
-            const state = endpointLifecycle(endpointLifecycleOpend(lifecycleLocale.state.subProtocols));
-            this.sendLifecycleToRemote(state);
-            this.console.debug("emit-locale-lifecycle", state);
-            this.lifecycleLocaleFlow.emit(state);
+            const opend = endpointLifecycle(endpointLifecycleOpend(lifecycleLocale.state.subProtocols));
+            this.sendLifecycleToRemote(opend);
+            this.console.debug("emit-locale-lifecycle", opend);
+            this.lifecycleLocaleFlow.emit(opend);
             /// 后面被链接的ipc，pid从奇数开始
             this.accPid++;
           }
@@ -177,6 +183,11 @@ export abstract class IpcEndpoint {
         // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
         case ENDPOINT_LIFECYCLE_STATE.OPENING: {
           let nextState: $EndpointLifecycle;
+          this.console.debug(
+            "ENDPOINT_LIFECYCLE_STATE.OPENING",
+            [...localeSubProtocols].sort().join(),
+            lifecycle.state.subProtocols.slice().sort().join()
+          );
           if ([...localeSubProtocols].sort().join() !== lifecycle.state.subProtocols.slice().sort().join()) {
             localeSubProtocols = setHelper.intersect(localeSubProtocols, lifecycle.state.subProtocols);
             const opening = endpointLifecycle(endpointLifecycleOpening(localeSubProtocols));

@@ -19,8 +19,6 @@ export class Channel<T = Uint8Array> {
       console.error("Channel send is close!!");
       return;
     }
-    console.debug("QAQ", "in", value);
-    console.debug("QAQ", "this.controller", this.stream);
     this.controller.enqueue(value);
   }
 

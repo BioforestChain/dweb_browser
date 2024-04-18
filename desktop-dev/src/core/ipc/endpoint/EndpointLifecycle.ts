@@ -3,13 +3,31 @@ import { ENDPOINT_MESSAGE_TYPE, endpointMessageBase } from "./internal/EndpointM
 export { ENDPOINT_LIFECYCLE_STATE, ENDPOINT_PROTOCOL } from "./internal/EndpointLifecycle";
 
 export type $EndpointLifecycle<T extends $EndpointLifecycleState = $EndpointLifecycleState> = ReturnType<
-  typeof endpointLifecycle<T>
+  typeof _endpointLifecycle<T>
 >;
-export const endpointLifecycle = <T extends $EndpointLifecycleState>(state: T) =>
+const _endpointLifecycle = <T extends $EndpointLifecycleState>(state: T) =>
   ({
     ...endpointMessageBase(ENDPOINT_MESSAGE_TYPE.LIFECYCLE),
     state,
   } as const);
+
+export const endpointLifecycle = Object.assign(_endpointLifecycle, {
+  equals: (a: $EndpointLifecycle, b: $EndpointLifecycle) => {
+    if (a.state.name !== b.state.name) {
+      return false;
+    }
+    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.CLOSING) {
+      return a.state.reason === (b.state as $EndpointLifecycleClosing).reason;
+    }
+    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.CLOSED) {
+      return a.state.reason === (b.state as $EndpointLifecycleClosed).reason;
+    }
+    if (a.state.name === ENDPOINT_LIFECYCLE_STATE.OPENING || a.state.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
+      return JSON.stringify(a.state) === JSON.stringify(b.state);
+    }
+    return true;
+  },
+});
 
 export type $EndpointLifecycleState =
   | $EndpointLifecycleInit

@@ -12,7 +12,6 @@ async function* _doRead<T extends unknown>(reader: ReadableStreamDefaultReader<T
   try {
     while (true) {
       const item = await reader.read();
-      console.log("QAQ item", item);
       if (item.done) {
         break;
       }

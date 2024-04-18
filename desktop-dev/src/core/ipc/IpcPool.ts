@@ -1,5 +1,5 @@
 import { createSignal } from "../../helper/createSignal.ts";
-import { logger } from "../../helper/logger.ts";
+import { CUSTOM_INSPECT, logger } from "../../helper/logger.ts";
 import type { $MicroModuleManifest } from "../types.ts";
 import { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
 import { Ipc } from "./ipc.ts";
@@ -9,6 +9,9 @@ export class IpcPool {
   constructor(readonly poolId = `js-${crypto.randomUUID()}`) {}
   toString() {
     return `IpcPool#${this.poolId}`;
+  }
+  [CUSTOM_INSPECT]() {
+    return this.toString();
   }
   readonly console = logger(this);
   /**
