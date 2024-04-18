@@ -116,14 +116,14 @@ class BrowserViewModel(
     }
   }
 
-  private val searchEngineList = mutableStateListOf<SearchEngine>()
+  private var searchEngineList = listOf<SearchEngine>()
   val filterShowEngines get() = searchEngineList.filter { it.enable }
 
   private suspend fun checkAndEnableSearchEngine(key: String): Url? {
     val homeLink = withScope(ioScope) {
       browserNMM.getEngineHomeLink(key.encodeURIComponent())
     } // 将关键字对应的搜索引擎置为有效
-    return homeLink.toWebUrl()
+    return if (homeLink.isNotEmpty()) homeLink.toWebUrl() else null
   }
 
   val searchInjectList = mutableStateListOf<SearchInject>()
@@ -137,13 +137,12 @@ class BrowserViewModel(
     ioScope.launch {
       // 同步搜索引擎列表
       browserNMM.collectChannelOfEngines {
-        searchEngineList.clear()
-        searchEngineList.addAll(engineList)
+        searchEngineList = engineList
       }
     }
   }
 
-  suspend fun readFile(path: String) = browserNMM.readFile(path,create = false).binary()
+  suspend fun readFile(path: String) = browserNMM.readFile(path, create = false).binary()
 
   fun getBookmarks() = browserController.bookmarksStateFlow.value
   fun getHistoryLinks() = browserController.historyStateFlow.value
@@ -358,11 +357,16 @@ class BrowserViewModel(
    * 否：将 url 进行判断封装，符合条件后，判断当前界面是否是 BrowserWebPage，然后进行搜索操作
    */
   suspend fun doSearchUI(url: String) {
-    if (url.isDwebDeepLink()) withScope(ioScope) {
-      browserNMM.nativeFetch(url)
+    if (url.isDwebDeepLink()) {
+      withScope(ioScope) { browserNMM.nativeFetch(url) }
     } else {
-      val webUrl = url.toWebUrlOrWithoutProtocol() ?: checkAndEnableSearchEngine(url)
-      ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl()
+      val webUrl = url.toWebUrl()
+        ?: checkAndEnableSearchEngine(url)
+        ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl()
+      println("lin.huang ====> $url")
+      println("lin.huang ====> ${url.toWebUrl()}")
+      println("lin.huang ====> ${checkAndEnableSearchEngine(url)}")
+      println("lin.huang ====> ${filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl()}")
       debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
       webUrl?.toString()?.let { searchUrl ->
         if (focusedPage != null && focusedPage is BrowserWebPage) {
