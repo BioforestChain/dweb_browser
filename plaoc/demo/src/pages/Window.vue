@@ -105,8 +105,8 @@ const boardData = reactive({
 });
 
 //#region board
-const setBoard = () => {
-  windowComponent.setBoard(boardData.resizeable, boardData.width, boardData.height);
+const setBounds = () => {
+  windowComponent.setBounds(boardData.resizeable, boardData.width, boardData.height);
 };
 //#endregion
 </script>
@@ -126,7 +126,7 @@ const setBoard = () => {
       <v-switch v-model="boardData.resizeable" color="indigo-darken-3" label="是否可以resize"></v-switch>
       <v-text-field label="宽" type="number" v-model="boardData.width"></v-text-field>
       <v-text-field label="高" type="number" v-model="boardData.height"></v-text-field>
-      <v-btn color="indigo-darken-3" @click="setBoard">设置</v-btn>
+      <v-btn color="indigo-darken-3" @click="setBounds">设置</v-btn>
     </article>
     <article class="card-body">
       <h2 class="card-title">设置窗口状态</h2>

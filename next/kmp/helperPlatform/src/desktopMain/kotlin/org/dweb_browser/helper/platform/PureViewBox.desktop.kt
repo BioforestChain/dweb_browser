@@ -8,6 +8,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.toIntRect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.dweb_browser.helper.WeakHashMap
@@ -33,7 +34,10 @@ class PureViewBox(
     with(pureViewController.awaitComposeWindow()) { IntSize(width, height) }
 
   override suspend fun getDisplaySizePx() =
-    with(pureViewController.awaitComposeWindow().toolkit.screenSize) { IntSize(width, height) }
+    getDisplaySizePxSync(pureViewController.awaitComposeWindow())
+
+  fun getDisplaySizePxSync(composeWindow: ComposeWindow) =
+    with(composeWindow.toolkit.screenSize) { IntSize(width, height) }
 
   override suspend fun getViewControllerMaxBoundsPx() =
     getViewControllerMaxBoundsPxSync(pureViewController.awaitComposeWindow())
@@ -63,11 +67,14 @@ class PureViewBox(
     }
 
   @Composable
-  fun currentViewControllerMaxBounds(): Rect {
+  fun currentViewControllerMaxBounds(withSafeArea: Boolean): Rect {
     val composeWindow by pureViewController.composeWindowAsState()
     val density = LocalDensity.current.density
-    return remember(composeWindow, density) {
-      getViewControllerMaxBoundsPxSync(composeWindow) / density
+    return remember(composeWindow, density, withSafeArea) {
+      when {
+        withSafeArea -> getViewControllerMaxBoundsPxSync(composeWindow)
+        else -> getDisplaySizePxSync(composeWindow).toIntRect()
+      } / density
     }
   }
 

@@ -52,7 +52,7 @@ fun PureViewController.ModalDialog(
   val density = LocalDensity.current.density
   val layoutDirection = LocalLayoutDirection.current
   val boundsReady = remember { CompletableDeferred<Unit>() }
-  val safeAreaSpacePx = viewBox.asDesktop().currentViewControllerMaxBounds().timesToInt(density)
+  val safeAreaSpacePx = viewBox.asDesktop().currentViewControllerMaxBounds(true).timesToInt(density)
   LaunchedEffect(
     density, safeAreaSpacePx, layoutDirection, state.alignment, state.width, state.height
   ) {

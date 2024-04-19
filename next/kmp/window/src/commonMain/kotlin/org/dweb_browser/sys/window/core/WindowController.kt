@@ -133,6 +133,8 @@ abstract class WindowController(
 
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
+  fun isFullscreen(mode: WindowMode = state.mode) =
+     mode == WindowMode.FULLSCREEN
 
   val onMaximize = createStateListener(WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", id) }

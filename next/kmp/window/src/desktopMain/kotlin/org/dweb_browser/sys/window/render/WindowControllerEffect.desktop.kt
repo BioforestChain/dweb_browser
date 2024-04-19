@@ -170,12 +170,12 @@ private fun WindowController.ModeEffect(composeWindowParams: ComposeWindowParams
 
           WindowMode.MAXIMIZE -> {
             composeWindowParams.placement = WindowPlacement.Maximized
-            composeWindowParams.resizable = false
+            composeWindowParams.resizable = true
           }
 
           WindowMode.FULLSCREEN -> {
             composeWindowParams.placement = WindowPlacement.Fullscreen
-            composeWindowParams.resizable = false
+            composeWindowParams.resizable = true
           }
 
           WindowMode.PIP -> WARNING("ComposeWindow No Support PIP")
@@ -184,15 +184,14 @@ private fun WindowController.ModeEffect(composeWindowParams: ComposeWindowParams
       }
     }
   }
-  // 保证单向数据流这里不需要再绑定
   /// 反向绑定原生的窗口的 placement 到state中
-//  LaunchedEffect(composeWindowParams.placement) {
-//    state.mode = when (composeWindowParams.placement) {
-//      WindowPlacement.Floating -> WindowMode.FLOAT
-//      WindowPlacement.Maximized -> WindowMode.MAXIMIZE
-//      WindowPlacement.Fullscreen -> WindowMode.FULLSCREEN
-//    }
-//  }
+  LaunchedEffect(composeWindowParams.placement) {
+    state.mode = when (composeWindowParams.placement) {
+      WindowPlacement.Floating -> WindowMode.FLOAT
+      WindowPlacement.Maximized -> WindowMode.MAXIMIZE
+      WindowPlacement.Fullscreen -> WindowMode.FULLSCREEN
+    }
+  }
 
   /// 反向绑定原生的窗口的 close 到 state中
   LaunchedEffect(composeWindowParams) {

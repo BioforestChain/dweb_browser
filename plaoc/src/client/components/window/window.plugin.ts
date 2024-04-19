@@ -70,8 +70,8 @@ export class WindowPlugin extends BasePlugin {
    * @returns
    */
   @bindThis
-  async setBoard(resizable: boolean, width?: number, height?: number) {
-    return this.fetchApi("/setBoard", {
+  async setBounds(resizable: boolean, width?: number, height?: number) {
+    return this.fetchApi("/setBounds", {
       search: {
         wid: (await this.windowInfo).wid,
         resizable,

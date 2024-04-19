@@ -250,6 +250,10 @@ fun WindowController.watchedIsMaximized() =
   watchedState(watchKey = WindowPropertyKeys.Mode) { isMaximized(mode) }
 
 @Composable
+fun WindowController.watchedIsFullscreen() =
+  watchedState(watchKey = WindowPropertyKeys.Mode) { isFullscreen(mode) }
+
+@Composable
 fun WindowController.watchedBounds() = watchedState(watchKey = WindowPropertyKeys.Bounds) { bounds }
 
 
