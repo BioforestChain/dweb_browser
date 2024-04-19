@@ -5,7 +5,9 @@
       "ESNext",
       "DOM"
     ],
-    "target": "ESNext",
+    "rootDir": "src",
+    "outDir": "dist",
+    "target": "ES2022",
     "module": "ESNext",
     "moduleDetection": "force",
     "jsx": "react-jsx",
@@ -21,9 +23,16 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
     "useDefineForClassFields": false,
+    "experimentalDecorators": true,
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+  "include": ["**/*.ts"],
+  "exclude": [
+    "scripts",
+    "src/browser",
+    "src/helperPlatformElectron",
+  ]
 }

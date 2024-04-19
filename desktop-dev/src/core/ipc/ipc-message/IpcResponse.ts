@@ -1,4 +1,3 @@
-import { once } from "../../../helper/$once.ts";
 import { binaryToU8a, type $Binary } from "../../../helper/binaryHelper.ts";
 import { IpcHeaders } from "../helper/IpcHeaders.ts";
 import type { Ipc } from "../ipc.ts";
@@ -123,10 +122,10 @@ export class IpcResponse {
     return ipcResponse;
   }
 
-  readonly ipcResMessage = once(() =>
-    ipcResponse(this.reqId, this.statusCode, this.headers.toJSON(), this.body.metaBody)
-  );
+  toSerializable() {
+    return ipcResponse(this.reqId, this.statusCode, this.headers.toJSON(), this.body.metaBody);
+  }
   toJSON() {
-    return this.ipcResMessage();
+    return this.toSerializable();
   }
 }

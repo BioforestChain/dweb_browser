@@ -1,7 +1,7 @@
 import { isBinary } from "../../helper/binaryHelper.ts";
-import { $OnIpcRequestMessage, Ipc, IpcBody, IpcHeaders, IpcClientRequest, IpcResponse } from "../ipc/index.ts";
+import { Ipc, IpcBody, IpcHeaders, IpcResponse, IpcServerRequest } from "../ipc/index.ts";
 import { $bodyInitToIpcBodyArgs, isWebSocket } from "./ipcRequestHelper.ts";
-import { $PromiseMaybe } from "./types.ts";
+import { type $PromiseMaybe } from "./types.ts";
 
 export type $OnFetchReturn = Response | IpcResponse | $FetchResponse | void;
 
@@ -138,7 +138,8 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
     return to;
   };
 
-  const onRequest = (async (request, ipc) => {
+  const onRequest = async (request: IpcServerRequest) => {
+    const ipc = request.ipc;
     const event = new FetchEvent(request, ipc);
     let res: IpcResponse | undefined;
 
@@ -233,7 +234,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
       ipc.postMessage(res);
       return res;
     }
-  }) satisfies $OnIpcRequestMessage;
+  };
 
   return extendsTo(onRequest);
 };
@@ -243,7 +244,7 @@ export interface $FetchResponse extends ResponseInit {
 }
 
 export class FetchEvent {
-  constructor(readonly ipcRequest: IpcClientRequest, readonly ipc: Ipc) {}
+  constructor(readonly ipcRequest: IpcServerRequest, readonly ipc: Ipc) {}
   get url() {
     return this.ipcRequest.parsed_url;
   }

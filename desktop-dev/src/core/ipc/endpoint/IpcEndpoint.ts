@@ -2,7 +2,7 @@
  * 通常我们将先进入 opened 状态的称为 endpoint-0，其次是 endpoint-1
  */
 
-import { once } from "../../../helper/$once.ts";
+import { $once } from "../../../helper/$once.ts";
 import { PromiseOut } from "../../../helper/PromiseOut.ts";
 import { StateSignal, type $ReadyonlyStateSignal } from "../../../helper/StateSignal.ts";
 import { CUSTOM_INSPECT, logger } from "../../../helper/logger.ts";
@@ -97,7 +97,7 @@ export abstract class IpcEndpoint {
   /**
    * 生命周期 监听器
    */
-  onLifeCycle = this.lifecycleLocaleFlow.listen;
+  onLifecycle = this.lifecycleLocaleFlow.listen;
   /**
    * 当前生命周期
    */
@@ -140,7 +140,7 @@ export abstract class IpcEndpoint {
   }
 
   /**启动 */
-  startOnce = once(async () => {
+  startOnce = $once(async () => {
     this.console.debug("startOnce", this.lifecycle);
     await this.doStart();
     let localeSubProtocols = this.getLocaleSubProtocols();
@@ -165,7 +165,8 @@ export abstract class IpcEndpoint {
         // 收到 opened 了，自己也设置成 opened，代表正式握手成功
         case ENDPOINT_LIFECYCLE_STATE.OPENED: {
           const lifecycleLocale = this.lifecycle;
-          if (lifecycleLocale.state.name === ENDPOINT_LIFECYCLE_STATE.OPENED) {
+          this.console.debug("remote-opend-&-locale-lifecycle", lifecycleLocale);
+          if (lifecycleLocale.state.name === ENDPOINT_LIFECYCLE_STATE.OPENING) {
             const opend = endpointLifecycle(endpointLifecycleOpend(lifecycleLocale.state.subProtocols));
             this.sendLifecycleToRemote(opend);
             this.console.debug("emit-locale-lifecycle", opend);
@@ -188,7 +189,7 @@ export abstract class IpcEndpoint {
             [...localeSubProtocols].sort().join(),
             lifecycle.state.subProtocols.slice().sort().join()
           );
-          if ([...localeSubProtocols].sort().join() !== lifecycle.state.subProtocols.slice().sort().join()) {
+          if (setHelper.equals(localeSubProtocols, lifecycle.state.subProtocols) === false) {
             localeSubProtocols = setHelper.intersect(localeSubProtocols, lifecycle.state.subProtocols);
             const opening = endpointLifecycle(endpointLifecycleOpening(localeSubProtocols));
             this.lifecycleLocaleFlow.emit(opening);
@@ -209,7 +210,8 @@ export abstract class IpcEndpoint {
       return this.lifecycle;
     }
     const op = new PromiseOut<$EndpointLifecycle>();
-    const off = this.onLifeCycle((lifecycle) => {
+    const off = this.onLifecycle((lifecycle) => {
+      this.console.debug("QAQ", "awaitOpen", lifecycle);
       switch (lifecycle.state.name) {
         case ENDPOINT_LIFECYCLE_STATE.OPENED: {
           op.resolve(lifecycle);

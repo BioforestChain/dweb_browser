@@ -1,4 +1,3 @@
-import { once } from "../../../helper/$once.ts";
 import { binaryToU8a, isBinary, type $Binary } from "../../../helper/binaryHelper.ts";
 import { CacheGetter } from "../../../helper/cacheGetter.ts";
 import { parseUrl } from "../../../helper/urlHelper.ts";
@@ -82,18 +81,12 @@ abstract class IpcRequest {
     return buildRequestX(this.url, { method: this.method, headers: this.headers, body: this.body.raw });
   }
 
-  readonly ipcReqMessage = once(() =>
-    ipcRequest(this.reqId, this.method, this.url, this.headers.toJSON(), this.body.metaBody)
-  );
+  toSerializable() {
+    return ipcRequest(this.reqId, this.method, this.url, this.headers.toJSON(), this.body.metaBody);
+  }
 
   toJSON() {
-    const { method } = this;
-    // let body: undefined | $BodyData;
-    if ((method === PURE_METHOD.GET || method === PURE_METHOD.HEAD) === false) {
-      // body = this.body.raw;
-      return ipcRequest(this.reqId, this.method, this.url, this.headers.toJSON(), this.body.metaBody);
-    }
-    return this.ipcReqMessage();
+    return this.toSerializable();
   }
 }
 

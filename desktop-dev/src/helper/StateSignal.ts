@@ -10,13 +10,13 @@ export class StateSignal<T> implements $ReadyonlyStateSignal<T> {
     this.#state = state;
   }
   emit = (state: T) => {
-    if (this.equals(state, this.#state)) {
+    if (!this.equals(state, this.#state)) {
       this.#state = state;
       this.#signal.emit(state);
     }
   };
   emitAndClear = (state: T) => {
-    if (this.equals(state, this.#state)) {
+    if (!this.equals(state, this.#state)) {
       this.#state = state;
       this.#signal.emitAndClear(state);
     } else {

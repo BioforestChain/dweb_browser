@@ -1,4 +1,4 @@
-import { $Callback, createSignal } from "./createSignal.ts";
+import { type $Callback, createSignal } from "./createSignal.ts";
 
 type stateKey = "add"| "delete" 
 export type changeState<K> = {

@@ -1,7 +1,11 @@
 import { encode } from "cbor-x";
 import { StateSignal } from "../../../helper/StateSignal.ts";
 import { Channel } from "../../helper/Channel.ts";
-import { $normalizeIpcMessage } from "../helper/$messageToIpcMessage.ts";
+import {
+  $endpointMessageToCbor,
+  $endpointMessageToJson,
+  $normalizeIpcMessage,
+} from "../helper/$messageToIpcMessage.ts";
 import type { $EndpointIpcMessage } from "./EndpointIpcMessage.ts";
 import {
   ENDPOINT_LIFECYCLE_STATE,
@@ -62,13 +66,11 @@ export abstract class CommonEndpoint extends IpcEndpoint {
       }
     });
     (async () => {
-      setTimeout(() => {
-        this.console.debug("doStart", this.endpointMsgChannel.stream);
-      });
       for await (const endpointMessage of this.endpointMsgChannel) {
         switch (endpointMessage.type) {
           case ENDPOINT_MESSAGE_TYPE.IPC: {
             const producer = this.getIpcMessageProducer(endpointMessage.pid);
+            const ipc = await producer.ipcPo.promise;
             producer.producer.trySend($normalizeIpcMessage(endpointMessage.ipcMessage, await producer.ipcPo.promise));
             break;
           }
@@ -86,11 +88,13 @@ export abstract class CommonEndpoint extends IpcEndpoint {
    */
   override async postIpcMessage(msg: $EndpointIpcMessage) {
     await this.awaitOpen("then-postIpcMessage");
-    if (ENDPOINT_PROTOCOL.JSON === this.#protocol) {
-      return this.postTextMessage(JSON.stringify(msg));
-    }
-    if (ENDPOINT_PROTOCOL.CBOR === this.#protocol) {
-      return this.postBinaryMessage(encode(msg));
+    switch (this.#protocol) {
+      case ENDPOINT_PROTOCOL.JSON:
+        this.postTextMessage($endpointMessageToJson(msg));
+        break;
+      case ENDPOINT_PROTOCOL.CBOR:
+        this.postBinaryMessage($endpointMessageToCbor(msg));
+        break;
     }
   }
 

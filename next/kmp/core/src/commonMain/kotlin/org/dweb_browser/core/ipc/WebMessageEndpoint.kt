@@ -21,7 +21,7 @@ class WebMessageEndpoint(
   companion object {
     private val wm = WeakHashMap<IWebMessagePort, WebMessageEndpoint>()
     fun from(
-      debugId: String, parentScope: CoroutineScope, port: IWebMessagePort
+      debugId: String, parentScope: CoroutineScope, port: IWebMessagePort,
     ): WebMessageEndpoint = wm.getOrPut(port) {
       WebMessageEndpoint(debugId, parentScope, port)
     }
@@ -39,10 +39,12 @@ class WebMessageEndpoint(
     super.doStart()
     scope.launch {
       port.onMessage.collect { event ->
-        val packMessage = when (protocol) {
-          EndpointProtocol.JSON -> jsonToEndpointMessage(event.text)
-          EndpointProtocol.CBOR -> cborToEndpointMessage(event.binary)
-        }
+        val packMessage =
+          if (protocol == EndpointProtocol.CBOR && event is DWebMessage.DWebMessageBytes) {
+            cborToEndpointMessage(event.binary)
+          } else {
+            jsonToEndpointMessage(event.text)
+          }
         endpointMsgChannel.send(packMessage)
       }
     }

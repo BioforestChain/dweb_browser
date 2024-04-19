@@ -10,12 +10,13 @@ export class WebMessageEndpoint extends CommonEndpoint {
   constructor(readonly port: MessagePort, debugId: string) {
     super(debugId);
     port.addEventListener("message", (event) => {
+      const rawData = event.data;
       let message: $EndpointRawMessage;
 
-      if (this.protocol === ENDPOINT_PROTOCOL.CBOR) {
-        message = $cborToEndpointMessage(event.data);
+      if (this.protocol === ENDPOINT_PROTOCOL.CBOR && typeof rawData !== "string") {
+        message = $cborToEndpointMessage(rawData);
       } else {
-        message = $jsonToEndpointMessage(event.data);
+        message = $jsonToEndpointMessage(rawData);
       }
 
       this.endpointMsgChannel.send(message);

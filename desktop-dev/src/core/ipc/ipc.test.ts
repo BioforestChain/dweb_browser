@@ -1,8 +1,8 @@
 import { assert, test } from "vitest";
 
-import { ipcEvent, jsIpcPool, type $MicroModuleManifest } from "../src/core/index.ts";
-import { WebMessageEndpoint } from "../src/core/ipc/endpoint/WebMessageEndpoint.ts";
-import { IPC_MESSAGE_TYPE } from "../src/core/ipc/ipc-message/internal/IpcMessage.ts";
+import { ipcEvent, jsIpcPool, type $MicroModuleManifest } from "../index.ts";
+import { WebMessageEndpoint } from "./endpoint/WebMessageEndpoint.ts";
+import { IPC_MESSAGE_TYPE } from "./ipc-message/internal/IpcMessage.ts";
 
 const clientManifest: $MicroModuleManifest = {
   mmid: "client.dweb",
@@ -58,5 +58,6 @@ test("WebMessageEndpoint+IpcEvent", async () => {
     }
   });
   await port2.awaitClosed();
+  console.log("result", result);
   assert.deepEqual(actual, result);
 });

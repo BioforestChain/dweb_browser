@@ -1,6 +1,5 @@
-import { test } from "vitest";
-import assert from "node:assert";
 import { setTimeout } from "node:timers/promises";
+import { assert, test } from "vitest";
 import { Mutex } from "./Mutex.ts";
 const DUR = 100;
 

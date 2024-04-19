@@ -1,4 +1,4 @@
-import { $CommonAppManifest } from "../../types.ts";
+import type { $CommonAppManifest } from "../../types.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
 
 export type $IpcFork = ReturnType<typeof ipcFork>;

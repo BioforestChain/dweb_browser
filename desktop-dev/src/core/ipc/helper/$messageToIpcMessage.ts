@@ -1,5 +1,5 @@
 import * as CBOR from "cbor-x";
-import type { $EndpointMessage, $EndpointRawMessage } from "../endpoint/EndpointMessage.ts";
+import { ENDPOINT_MESSAGE_TYPE, type $EndpointMessage, type $EndpointRawMessage } from "../endpoint/EndpointMessage.ts";
 import type { $IpcMessage, $IpcRawMessage } from "../ipc-message/IpcMessage.ts";
 import { IpcClientRequest } from "../ipc-message/IpcRequest.ts";
 import { IpcResponse } from "../ipc-message/IpcResponse.ts";
@@ -17,8 +17,9 @@ export type $JSON<T> = {
 // export const $isIpcSignalMessage = (msg: unknown): msg is $IpcSignalMessage =>
 //   msg === "close" || msg === "ping" || msg === "pong";
 
-export const $endpointMessageToCbor = (message: $EndpointMessage) => CBOR.encode(message);
-export const $endpointMessageToJson = (message: $EndpointMessage) => JSON.stringify(message);
+export const $endpointMessageToCbor = (message: $EndpointMessage) => CBOR.encode($serializableEndpointMessage(message));
+export const $endpointMessageToJson = (message: $EndpointMessage) =>
+  JSON.stringify($serializableEndpointMessage(message));
 
 export const $cborToEndpointMessage = (data: Uint8Array) => CBOR.decode(data) as $EndpointRawMessage;
 
@@ -47,6 +48,27 @@ export const $normalizeIpcMessage = (ipcMessage: $IpcRawMessage, ipc: Ipc): $Ipc
     }
     default:
       return ipcMessage;
+  }
+};
+export const $serializableEndpointMessage = (message: $EndpointMessage): $EndpointRawMessage => {
+  switch (message.type) {
+    case ENDPOINT_MESSAGE_TYPE.LIFECYCLE:
+      return message;
+    case ENDPOINT_MESSAGE_TYPE.IPC:
+      switch (message.ipcMessage.type) {
+        case IPC_MESSAGE_TYPE.REQUEST:
+          return {
+            ...message,
+            ipcMessage: message.ipcMessage.toSerializable(),
+          };
+        case IPC_MESSAGE_TYPE.RESPONSE:
+          return {
+            ...message,
+            ipcMessage: message.ipcMessage.toSerializable(),
+          };
+        default:
+          return message as $EndpointRawMessage;
+      }
   }
 };
 // /**

@@ -6,7 +6,7 @@ import type { IpcHeaders } from "./helper/IpcHeaders.ts";
 import { IpcClientRequest, IpcServerRequest } from "./ipc-message/IpcRequest.ts";
 import { IpcResponse } from "./ipc-message/IpcResponse.ts";
 
-import { once } from "../../helper/$once.ts";
+import { $once, once } from "../../helper/$once.ts";
 import { StateSignal } from "../../helper/StateSignal.ts";
 import { CUSTOM_INSPECT, logger } from "../../helper/logger.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
@@ -56,7 +56,7 @@ export class Ipc {
   // reqId计数
   #reqIdAcc = 0;
   // 消息生产者，所有的消息在这里分发出去
-  #messageProducer = this.endpoint.getIpcMessageProducer(this.pid);
+  #messageProducer = this.endpoint.getIpcMessageProducerByIpc(this);
 
   onMessage(name: string) {
     return this.#messageProducer.producer.consumer(name);
@@ -131,7 +131,7 @@ export class Ipc {
     }
   }
 
-  startOnce = once(() => {
+  startOnce = $once(() => {
     this.console.debug("startOnce", this.lifecycle);
     // 当前状态必须是从init开始
     if (this.lifecycle.state.name === IPC_LIFECYCLE_STATE.INIT) {
@@ -364,16 +364,22 @@ export class Ipc {
 
   //#region close
 
-  #closePo = new PromiseOut<string | undefined>();
-  awaitClosed() {
-    return this.#closePo.promise;
+  @once()
+  private get _closePo() {
+    return new PromiseOut<string | undefined>();
   }
-  onClosed = promiseAsSignalListener(this.#closePo.promise);
+  awaitClosed() {
+    return this._closePo.promise;
+  }
+  @once()
+  get onClosed() {
+    return promiseAsSignalListener(this._closePo.promise);
+  }
   get isClosed() {
     return this.lifecycle.state.name == IPC_LIFECYCLE_STATE.CLOSED;
   }
 
-  #closeOnce = once(async (cause?: string) => {
+  #closeOnce = $once(async (cause?: string) => {
     this.console.debug("closing", cause);
     {
       const closing = ipcLifecycle(ipcLifecycleClosing(cause));
@@ -381,7 +387,7 @@ export class Ipc {
       this.#sendLifecycleToRemote(closing);
     }
     await this.#messageProducer.producer.close(cause);
-    this.#closePo.resolve(cause);
+    this._closePo.resolve(cause);
     {
       const closed = ipcLifecycle(ipcLifecycleClosed(cause));
       this.#lifecycleLocaleFlow.emitAndClear(closed);
