@@ -46,6 +46,7 @@ import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.isDwebDeepLink
 import org.dweb_browser.helper.platform.toByteArray
+import org.dweb_browser.helper.toNoProtocolWebUrl
 import org.dweb_browser.helper.toWebUrl
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.withScope
@@ -360,13 +361,9 @@ class BrowserViewModel(
     if (url.isDwebDeepLink()) {
       withScope(ioScope) { browserNMM.nativeFetch(url) }
     } else {
-      val webUrl = url.toWebUrl()
+      val webUrl = url.toWebUrlOrWithoutProtocol()
         ?: checkAndEnableSearchEngine(url)
         ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl()
-      println("lin.huang ====> $url")
-      println("lin.huang ====> ${url.toWebUrl()}")
-      println("lin.huang ====> ${checkAndEnableSearchEngine(url)}")
-      println("lin.huang ====> ${filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl()}")
       debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
       webUrl?.toString()?.let { searchUrl ->
         if (focusedPage != null && focusedPage is BrowserWebPage) {
@@ -374,7 +371,7 @@ class BrowserViewModel(
         } else {
           addNewPageUI(searchUrl) { replaceOldPage = true } // 新增 BrowserWebPage 覆盖当前页
         }
-      }
+      } ?: showToastMessage("Invalid search => $url")
     }
   }
 
