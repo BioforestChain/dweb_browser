@@ -15,4 +15,11 @@ export const setHelper = new (class {
     }
     return true;
   }
+  add<T>(target: Set<T>, value: T) {
+    if (target.has(value)) {
+      return false;
+    }
+    target.add(value);
+    return true;
+  }
 })();

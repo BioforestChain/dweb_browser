@@ -2,6 +2,7 @@
 export { isWebSocket } from "../../core/helper/ipcRequestHelper.ts";
 export type { $MMID, $MicroModuleManifest } from "../../core/helper/types.ts";
 export * from "../../helper/$debounce.ts";
+export * from "../../helper/$once.ts";
 export * from "../../helper/PromiseOut.ts";
 export * from "../../helper/binaryHelper.ts";
 export * from "../../helper/createSignal.ts";
@@ -12,11 +13,11 @@ export type { $JmmAppInstallManifest, $JmmAppManifest } from "./types.ts";
 //#endregion
 
 //#region runtime types
-export type * from "./worker/index.ts";
-export type * from "./worker/std-dweb-core.ts";
+export type * from "../../js-process-worker/index.ts";
+export type * from "../../js-process-worker/std-dweb-core.ts";
 
-export type * from "./worker/std-dweb-http.ts";
-import type * as $Core from "./worker/std-dweb-core.ts";
+export type * from "../../js-process-worker/std-dweb-http.ts";
+import type * as $Core from "../../js-process-worker/std-dweb-core.ts";
 
 
 export const { jsProcess, http, ipc, core } = navigator.dweb;

@@ -1,6 +1,6 @@
 import { assert, test } from "vitest";
 
-import { ipcEvent, jsIpcPool, type $MicroModuleManifest } from "../index.ts";
+import { IpcEvent, jsIpcPool, type $MicroModuleManifest } from "../index.ts";
 import { WebMessageEndpoint } from "./endpoint/WebMessageEndpoint.ts";
 import { IPC_MESSAGE_TYPE } from "./ipc-message/internal/IpcMessage.ts";
 
@@ -9,7 +9,7 @@ const clientManifest: $MicroModuleManifest = {
   ipc_support_protocols: {
     cbor: false,
     protobuf: false,
-    raw: false,
+    json: false,
   },
   dweb_deeplinks: [],
   categories: [],
@@ -20,7 +20,7 @@ const serverManifest: $MicroModuleManifest = {
   ipc_support_protocols: {
     cbor: false,
     protobuf: false,
-    raw: false,
+    json: false,
   },
   dweb_deeplinks: [],
   categories: [],
@@ -41,7 +41,7 @@ test("WebMessageEndpoint+IpcEvent", async () => {
     for (let i = 1; i <= MAX; i++) {
       const item = `${i}`;
       actual.push(item);
-      await port1.postMessage(ipcEvent.fromText("hi", item));
+      await port1.postMessage(IpcEvent.fromText("hi", item));
     }
     port1.close("send-done");
   })();
@@ -50,7 +50,7 @@ test("WebMessageEndpoint+IpcEvent", async () => {
   port2.onMessage("test").collect((event) => {
     const item = event.consumeMapNotNull((event) => {
       if (event.type === IPC_MESSAGE_TYPE.EVENT) {
-        return ipcEvent.text(event);
+        return IpcEvent.text(event);
       }
     });
     if (item !== undefined) {

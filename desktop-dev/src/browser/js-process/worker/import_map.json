@@ -1,7 +1,0 @@
-{
-    "imports": {
-        "@dweb-browser/desktop": "../../../../index.ts",
-        "@dweb-browser/desktop/": "../../../../",
-        "cbor-x": "https://esm.sh/v124/cbor-x@1.5.4/es2022/index.js"
-    }
-}

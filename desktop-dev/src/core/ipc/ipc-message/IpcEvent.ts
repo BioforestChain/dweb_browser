@@ -2,9 +2,14 @@ import { simpleDecoder } from "../../../helper/encoding.ts";
 import { $dataToBinary, $dataToText, IPC_DATA_ENCODING } from "./internal/IpcData.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
 
-export type $IpcEvent = ReturnType<typeof _ipcEvent>;
+export type $IpcEvent<N extends string = string> = ReturnType<typeof ipcEvent<N>>;
 
-const _ipcEvent = (name: string, data: string | Uint8Array, encoding: IPC_DATA_ENCODING, orderBy?: number) =>
+const ipcEvent = <N extends string>(
+  name: N,
+  data: string | Uint8Array,
+  encoding: IPC_DATA_ENCODING,
+  orderBy?: number
+) =>
   ({
     ...ipcMessageBase(IPC_MESSAGE_TYPE.EVENT),
     name,
@@ -13,7 +18,7 @@ const _ipcEvent = (name: string, data: string | Uint8Array, encoding: IPC_DATA_E
     orderBy,
   } as const);
 
-export const ipcEvent = Object.assign(_ipcEvent, {
+export const IpcEvent = Object.assign(ipcEvent, {
   fromBase64(name: string, data: Uint8Array, orderBy?: number) {
     return ipcEvent(name, simpleDecoder(data, "base64"), IPC_DATA_ENCODING.BASE64, orderBy);
   },

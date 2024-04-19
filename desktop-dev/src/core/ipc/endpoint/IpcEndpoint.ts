@@ -211,7 +211,6 @@ export abstract class IpcEndpoint {
     }
     const op = new PromiseOut<$EndpointLifecycle>();
     const off = this.onLifecycle((lifecycle) => {
-      this.console.debug("QAQ", "awaitOpen", lifecycle);
       switch (lifecycle.state.name) {
         case ENDPOINT_LIFECYCLE_STATE.OPENED: {
           op.resolve(lifecycle);

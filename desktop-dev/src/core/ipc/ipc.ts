@@ -235,7 +235,7 @@ export class Ipc {
     return forkedIpc;
   }
 
-  #forkProducer = new Producer(`fork#${this.debugId}`);
+  #forkProducer = new Producer<Ipc>(`fork#${this.debugId}`);
   onFork(name: string) {
     return this.#forkProducer.consumer(name);
   }

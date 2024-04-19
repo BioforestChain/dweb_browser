@@ -51,7 +51,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
     }
     mmid = metadata.id
     ipc_support_protocols = IpcSupportProtocols(
-      cbor = true, protobuf = false, raw = true
+      cbor = true, protobuf = false, json = true
     )
   }) {
 

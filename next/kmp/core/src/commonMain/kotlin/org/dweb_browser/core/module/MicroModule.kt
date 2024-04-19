@@ -187,10 +187,14 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
      */
     suspend fun connect(mmid: MMID, reason: PureRequest? = null) = connectReason.withLock(mmid) {
       debugMM("connect", mmid)
-      connectionMap[mmid] ?: bootstrapContext.dns.connect(mmid, reason).also {
-        connectionMap[mmid] = it
-        beConnect(it, reason)
+      connectionMap[mmid] ?: bootstrapContext.dns.connect(mmid, reason).also { ipc ->
+        connectionMap[mmid] = ipc
+        ipc.onClosed {
+          connectionMap.remove(mmid, ipc)
+        }
       }
+    }.also { ipc ->
+      beConnect(ipc, reason)
     }
 
     /**
@@ -215,6 +219,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
           connectReason.withLock(remoteMmid) {
             if (!connectionMap.contains(remoteMmid)) {
               connectionMap[remoteMmid] = ipc
+              ipc.onClosed {
+                connectionMap.remove(remoteMmid, ipc)
+              }
             }
           }
         }
@@ -226,7 +233,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   private val runtimeLock = Mutex()
   var runtimeOrNull: Runtime? = null
     private set
-  val isRunning get() = runtimeOrNull != null
+  val isRunning get() = runtimeOrNull?.isRunning != true
   open val runtime get() = runtimeOrNull ?: throw IllegalStateException("$this is no running")
   suspend fun bootstrap(bootstrapContext: BootstrapContext) = runtimeLock.withLock {
     runtimeOrNull ?: createRuntime(bootstrapContext).also {

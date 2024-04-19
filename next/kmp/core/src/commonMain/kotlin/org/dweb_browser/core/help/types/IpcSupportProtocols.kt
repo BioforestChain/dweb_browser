@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class IpcSupportProtocols(
   val cbor: Boolean,
   val protobuf: Boolean,
-  val raw: Boolean,
+  val json: Boolean,
 )

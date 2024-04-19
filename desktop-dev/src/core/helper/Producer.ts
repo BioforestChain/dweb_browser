@@ -50,9 +50,9 @@ export class Producer<T> {
         return result as R;
       }
     }
-    consumeFilter(filter: (data: T) => boolean) {
+    consumeFilter<R extends T = T>(filter: (data: T) => boolean) {
       if (filter(this.data)) {
-        return this.consume();
+        return this.consume() as R;
       }
     }
 

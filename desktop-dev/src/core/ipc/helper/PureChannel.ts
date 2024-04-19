@@ -1,6 +1,6 @@
 import { PromiseOut } from "../../../helper/PromiseOut.ts";
 import { ReadableStreamOut, streamRead } from "../../../helper/stream/readableStreamHelper.ts";
-import { ipcEvent, type $IpcEvent } from "../ipc-message/IpcEvent.ts";
+import { IpcEvent, type $IpcEvent } from "../ipc-message/IpcEvent.ts";
 import { PURE_CHANNEL_EVENT_PREFIX } from "../ipc-message/IpcRequest.ts";
 import { IPC_DATA_ENCODING } from "../ipc-message/internal/IpcData.ts";
 import type { Ipc } from "../ipc.ts";
@@ -62,15 +62,15 @@ export const ipcEventToPureFrame = (event: $IpcEvent) => {
       return new PureTextFrame(event.data as string);
     case IPC_DATA_ENCODING.BINARY:
     case IPC_DATA_ENCODING.BASE64:
-      return new PureBinaryFrame(ipcEvent.binary(event));
+      return new PureBinaryFrame(IpcEvent.binary(event));
   }
 };
 
 export const pureFrameToIpcEvent = (eventName: string, pureFrame: $PureFrame, orderBy?: number) => {
   if (pureFrame.type === PureFrameType.Text) {
-    return ipcEvent.fromText(eventName, pureFrame.data, orderBy);
+    return IpcEvent.fromText(eventName, pureFrame.data, orderBy);
   }
-  return ipcEvent.fromBinary(eventName, pureFrame.data, orderBy);
+  return IpcEvent.fromBinary(eventName, pureFrame.data, orderBy);
 };
 
 export const pureChannelToIpcEvent = async (channelIpc: Ipc, pureChannel: PureChannel, debugTag: string) => {

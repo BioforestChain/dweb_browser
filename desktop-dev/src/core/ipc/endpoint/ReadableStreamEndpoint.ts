@@ -66,6 +66,7 @@ export class ReadableStreamEndpoint extends CommonEndpoint {
   protected postBinaryMessage(data: Uint8Array) {
     this.#input.send(data);
   }
+  //#endregion
 
   //#region close
 
@@ -76,4 +77,5 @@ export class ReadableStreamEndpoint extends CommonEndpoint {
   protected override afterClosed = () => {
     this.#input.close();
   };
+  //#endregion
 }

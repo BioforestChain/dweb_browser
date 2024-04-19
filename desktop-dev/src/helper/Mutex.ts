@@ -31,7 +31,7 @@ export class Mutex {
     const locker = this._lockers.shift();
     locker?.po.resolve();
   }
-  async withLock<R>(cb: () => R) {
+  async withLock<R>(cb: () => R): Promise<Awaited<R>> {
     await this.lock();
     try {
       return await cb();

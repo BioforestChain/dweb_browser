@@ -21,7 +21,7 @@ class MicroModuleManifest private constructor(
     private val P_mmid = P.required<MMID>("mmid", "")
     private val P_ipc_support_protocols = P.required<IpcSupportProtocols>(
       "ipc_support_protocols", IpcSupportProtocols(
-        cbor = true, protobuf = true, raw = true
+        cbor = true, protobuf = false, json = true
       )
     )
   }

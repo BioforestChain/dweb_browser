@@ -6,7 +6,7 @@ export type $DWEB_DEEPLINK = `dweb:${string}`;
 export interface $IpcSupportProtocols {
   cbor: boolean;
   protobuf: boolean;
-  raw: boolean;
+  json: boolean;
 }
 import { MICRO_MODULE_CATEGORY } from "./helper/category.const.ts";
 /**
@@ -54,18 +54,18 @@ export interface $MicroModuleManifest extends RequiredByKey<Omit<$CommonAppManif
   readonly dweb_deeplinks: $DWEB_DEEPLINK[];
   readonly categories: MICRO_MODULE_CATEGORY[];
 }
-export interface $MicroModule extends $MicroModuleManifest {
-  nativeFetch(
-    input: RequestInfo | URL,
-    init?: RequestInit
-  ): Promise<Response> & typeof import("../helper/fetchExtends/index.ts")["fetchExtends"];
+export interface $MicroModuleRuntime extends $MicroModuleManifest {
+  // nativeFetch(
+  //   input: RequestInfo | URL,
+  //   init?: RequestInit
+  // ): Promise<Response> & typeof import("../helper/fetchExtends/index.ts")["fetchExtends"];
   connect(mmid: $MMID): Promise<import("./ipc/ipc.ts").Ipc | undefined>;
 
   /**
    * 添加双工连接到自己的池子中，但自己销毁，这些双工连接都会被断掉
    * @param ipc
    */
-  addToIpcSet(ipc: import("./ipc/ipc.ts").Ipc): Promise<void>;
+  beConnect(ipc: import("./ipc/ipc.ts").Ipc): Promise<void>;
 }
 
 export const enum IPC_HANDLE_EVENT {
@@ -408,7 +408,7 @@ export interface WebAppManifest {
 }
 
 import { AdaptersManager } from "../helper/AdaptersManager.ts";
-import type { MicroModule } from "./micro-module.ts";
+import type { MicroModule } from "./MicroModule.ts";
 
 export type $FetchAdapter = (
   remote: MicroModule,
