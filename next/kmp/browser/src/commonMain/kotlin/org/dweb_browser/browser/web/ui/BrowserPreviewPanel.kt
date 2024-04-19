@@ -174,7 +174,7 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier) {
       }
     }
     Row(
-      modifier = Modifier.fillMaxWidth().height(DimenBottomBarHeight)
+      modifier = Modifier.fillMaxWidth().height(dimenBottomHeight)
         .background(MaterialTheme.colorScheme.surface), verticalAlignment = CenterVertically
     ) {
       IconButton(onClick = {
