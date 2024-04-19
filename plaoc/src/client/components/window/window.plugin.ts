@@ -50,20 +50,41 @@ export class WindowPlugin extends BasePlugin {
       }
     );
   }
+
   @bindThis
   protected async fetchState<S extends $WindowRawState>() {
     return await this.fetchApi("/getState", { search: await this.windowInfo }).object<S>();
   }
 
+  /**获取当前屏幕信息 */
   @bindThis
   async getDisplay<S extends $DisplayState>() {
-    return await this.fetchApi("/display", { search: await this.windowInfo }).object<S>();
+    return await this.fetchApi("/getDisplayInfo", { search: await this.windowInfo }).object<S>();
+  }
+
+  /**
+   *  设置窗口大小
+   * @param resizable 窗口是否手动改变宽高
+   * @param width 宽
+   * @param height 高
+   * @returns
+   */
+  @bindThis
+  async setBoard(resizable: boolean, width?: number, height?: number) {
+    return this.fetchApi("/setBoard", {
+      search: {
+        wid: (await this.windowInfo).wid,
+        resizable,
+        width,
+        height,
+      },
+    });
   }
 
   get getState() {
     return this.state.getState;
   }
-
+  /** 设置窗口样式 */
   @bindThis
   async setStyle(options: {
     topBarOverlay?: boolean;
@@ -116,6 +137,9 @@ export class WindowPlugin extends BasePlugin {
   async close() {
     return this.fetchApi("/close", { search: await this.windowInfo }).void();
   }
+
+  /** */
+
   /** */
   private async wsToIpc(url: string) {
     const afterOpen = new PromiseOut<void>();
@@ -205,16 +229,6 @@ export class WindowPlugin extends BasePlugin {
       search: { url: contentUrl, rid: bottomSheets.modal.renderId },
     }).void();
     return bottomSheets;
-  }
-  /**
-   * 在browser 打开新页面
-   * @param url http?://xxxx
-   */
-  openInBrowser(url: string) {
-    this.fetchApi("/openinbrowser", {
-      pathPrefix: "web.browser.dweb",
-      search: { url: url },
-    });
   }
 }
 

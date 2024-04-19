@@ -97,7 +97,7 @@ fun WindowController.WindowControllerEffect() {
       }
     }
   }
-
+  // 把状态都作用到窗口上
   TitleEffect(composeWindowParams)
   VisibleEffect(composeWindowParams)
   ModeEffect(composeWindowParams)
@@ -156,8 +156,12 @@ private fun WindowController.VisibleEffect(
 private fun WindowController.ModeEffect(composeWindowParams: ComposeWindowParams) {
   RememberEffect(composeWindowParams) {
     state.observable.onChange {
+      // 针对固定窗口大小的绑定
+      if (it.key == WindowPropertyKeys.Resizable) {
+        composeWindowParams.resizable = it.newValue as Boolean
+      }
+      // 针对桌面端原生窗口的浮动 最大化 全屏 绑定
       if (it.key == WindowPropertyKeys.Mode) {
-        // 针对桌面端原生窗口的浮动 最大化 全屏 绑定
         when (it.newValue as WindowMode) {
           WindowMode.FLOAT -> {
             composeWindowParams.placement = WindowPlacement.Floating

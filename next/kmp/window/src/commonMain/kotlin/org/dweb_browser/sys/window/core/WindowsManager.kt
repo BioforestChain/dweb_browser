@@ -39,8 +39,7 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
    */
   val hasMaximizedWins = ChangeableSet<T>(viewBox.lifecycleScope.coroutineContext)
 
-  val allWindows =
-    ChangeableMap<T, WindowsManagerScope>(viewBox.lifecycleScope.coroutineContext);
+  val allWindows = ChangeableMap<T, WindowsManagerScope>(viewBox.lifecycleScope.coroutineContext);
 
   /**
    * 寻找最后一个聚焦的窗口
@@ -124,8 +123,7 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
 
     /// 第一次装载窗口，默认将它聚焦到最顶层
     if (autoFocus) {
-      @Suppress("DeferredResultUnused")
-      focusWindow(win) // void job
+      @Suppress("DeferredResultUnused") focusWindow(win) // void job
     }
   }
 
@@ -359,6 +357,11 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
     win.simpleUnMaximize()
   }
 
+  fun setBroad(win: WindowController, board: SetWindowSize) = winLifecycleScopeAsync(win) {
+    win.setBoard(board)
+  }
+
+
   fun toggleVisibleWindow(win: WindowController, visible: Boolean? = null) =
     winLifecycleScopeAsync(win) {
       win.simpleToggleVisible(visible)
@@ -388,10 +391,9 @@ open class WindowsManager<T : WindowController>(internal val viewBox: IPureViewB
     win.simpleHideCloseTip()
   }
 
-  fun windowToggleMenuPanel(win: WindowController, show: Boolean?) =
-    winLifecycleScopeAsync(win) {
-      win.simpleToggleMenuPanel(show)
-    }
+  fun windowToggleMenuPanel(win: WindowController, show: Boolean?) = winLifecycleScopeAsync(win) {
+    win.simpleToggleMenuPanel(show)
+  }
 
   fun windowToggleAlwaysOnTop(win: WindowController, onTop: Boolean?) =
     winLifecycleScopeAsync(win) {

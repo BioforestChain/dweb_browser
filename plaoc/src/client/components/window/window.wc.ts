@@ -38,6 +38,11 @@ export class HTMLDwebWindowElement extends HTMLStateObserverElement<$WindowRawSt
   }
 
   @cacheGetter()
+  get setBoard() {
+    return this.plugin.setBoard;
+  }
+
+  @cacheGetter()
   get visible() {
     return this.plugin.visible;
   }
