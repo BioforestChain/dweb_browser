@@ -65,8 +65,10 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
           fromMM.debugMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
           val pid = 0
-          val fromNativeIpc = kotlinIpcPool.createIpc(channel.port1, pid, fromMM, toMM)
-          val toNativeIpc = kotlinIpcPool.createIpc(channel.port2, pid, toMM, fromMM)
+          val fromNativeIpc =
+            kotlinIpcPool.createIpc(channel.port1, pid, fromMM.manifest, toMM.microModule.manifest)
+          val toNativeIpc =
+            kotlinIpcPool.createIpc(channel.port2, pid, toMM.microModule.manifest, fromMM.manifest)
           // fromMM.beConnect(fromNativeIpc, reason) // 通知发起连接者作为Client
           toMM.beConnect(toNativeIpc, reason) // 通知接收者作为Server
           fromNativeIpc

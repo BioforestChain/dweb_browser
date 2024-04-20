@@ -22,7 +22,7 @@ import { onRenderer, onRendererDestroy } from "../core/ipcEventOnRender.ts";
 import { onShortcut } from "../core/ipcEventOnShortcut.ts";
 import { MicroModule, MicroModuleRuntime } from "../core/MicroModule.ts";
 import { once } from "../helper/$once.ts";
-import { createFetchHandler, Ipc, WebMessageEndpoint, type $OnFetch } from "./std-dweb-core.ts";
+import { createFetchHandler, Ipc, WebMessageEndpoint } from "./std-dweb-core.ts";
 
 declare global {
   interface DWebCore {
@@ -111,7 +111,7 @@ export class JsProcessMicroModule extends MicroModule {
   protected createRuntime(context: $BootstrapContext) {
     return new JsProcessMicroModuleRuntime(this, context);
   }
-  get bootstrapContext() {
+  private get bootstrapContext() {
     const ctx: $BootstrapContext = {
       dns: {
         install: function (mm: MicroModule): void {
@@ -181,22 +181,10 @@ export class JsProcessMicroModule extends MicroModule {
             if (data[0] === `ipc-connect/${mmid}`) {
               const port = event.ports[0];
               const endpoint = new WebMessageEndpoint(port, mmid);
-              const env = JSON.parse(data[2] ?? "{}");
-              const protocols = env["ipc-support-protocols"] ?? "";
-              const ipc_support_protocols = {
-                json: protocols.includes("json"),
-                cbor: protocols.includes("cbor"),
-                protobuf: protocols.includes("protobuf"),
-              } satisfies $IpcSupportProtocols;
+              const manifest: core.$MicroModuleManifest = data[1];
+              const env: Record<string, string> = data[2];
+              Object.defineProperty(manifest, "env", { value: Object.freeze(env) });
 
-              // 这里创建的是netive的代理ipc（Native2JsIpc） (tip: 这里的通信并不是马上建立的，因为对方只是发送过来一个port1,native端端port2有可能还在一个map里)
-              const manifest = {
-                mmid,
-                ipc_support_protocols,
-                dweb_deeplinks: [],
-                categories: [],
-                name: env["name"] || mmid,
-              } satisfies core.$MicroModuleManifest;
               const ipc = this.ipcPool.createIpc(
                 endpoint,
                 0,
@@ -237,13 +225,14 @@ export class JsProcessMicroModule extends MicroModule {
   constructor(readonly meta: Metadata, private nativeFetchPort: MessagePort) {
     super();
   }
+  override async bootstrap() {
+    return (await super.bootstrap(this.bootstrapContext)) as unknown as JsProcessMicroModuleRuntime;
+  }
 }
 export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
-  protected override _bootstrap(): unknown {
-    throw new Error("Method not implemented.");
-  }
-  protected override _shutdown(): unknown {
-    throw new Error("Method not implemented.");
+  protected override _bootstrap() {}
+  protected override async _shutdown() {
+    await this.fetchIpc.close();
   }
   readonly mmid: $MMID;
   readonly name: string;
@@ -273,11 +262,10 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
 
   @once()
   get ipc_support_protocols() {
-    const protocols = this.microModule.meta.envStringOrNull("ipc-support-protocols")?.split(/[\s\,]+/) ?? [];
     return {
-      json: protocols.includes("raw"),
-      cbor: protocols.includes("cbor"),
-      protobuf: protocols.includes("protobuf"),
+      json: true,
+      cbor: true,
+      protobuf: false,
     } satisfies $IpcSupportProtocols;
   }
   readonly ipcPool = this.microModule.ipcPool;
@@ -416,26 +404,21 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
     const args = normalizeFetchArgs(url, init);
     return this._nativeRequest(args.parsed_url, args.request_init);
   }
-
-  /**重启 */
-  restart() {
-    this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
-  }
-
-  onFetch(...handlers: $OnFetch[]) {
-    const onRequest = createFetchHandler(handlers);
-    return onRequest.extendsTo(this.onRequest(onRequest));
-  }
-
-  private _appReady = new PromiseOut<void>();
-  private async afterIpcReady(_ipc: Ipc) {
-    await this._appReady.promise;
+  @once()
+  get routes() {
+    const routes = createFetchHandler([]);
+    this.onConnect.collect((ipcConnectEvent) => {
+      ipcConnectEvent.data.onRequest("onFetch").collect((ipcRequestEvent) => {
+        const ipcRequest = ipcRequestEvent.consume();
+        routes(ipcRequest);
+      });
+    });
+    return routes;
   }
 
   // 提供一个关闭通信的功能
-  // deno-lint-ignore no-explicit-any
-  async close(reson?: any) {
-    await this.bootstrapContext.dns.close(this.mmid);
+  async close(cause?: string) {
+    await this.fetchIpc.close(cause);
     this.ipcPool.destroy();
   }
 }
@@ -527,7 +510,7 @@ class DwebXMLHttpRequest extends XMLHttpRequest {
  */
 export const installEnv = async (metadata: Metadata, versions: Record<string, string>, gatewayPort: number) => {
   const jmm = new JsProcessMicroModule(metadata, await waitFetchPort());
-  const jsProcess = await jmm.bootstrap(jmm.bootstrapContext);
+  const jsProcess = await jmm.bootstrap();
   const [version, patch] = versions.jsMicroModule.split(".").map((v) => parseInt(v));
 
   const dweb = {

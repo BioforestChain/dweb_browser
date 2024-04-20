@@ -17,7 +17,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.IpcClientRequest
 import org.dweb_browser.core.ipc.helper.IpcError
@@ -58,8 +58,8 @@ import org.dweb_browser.pure.http.PureResponse
 class Ipc internal constructor(
   val pid: Int,
   val endpoint: IpcEndpoint,
-  val locale: IMicroModuleManifest,
-  val remote: IMicroModuleManifest,
+  val locale: MicroModuleManifest,
+  val remote: MicroModuleManifest,
   val pool: IpcPool,
   val debugId: String = "${endpoint.debugId}/$pid",
 ) {
@@ -73,6 +73,59 @@ class Ipc internal constructor(
   val scope = endpoint.scope + job
 
   override fun toString() = "Ipc@$debugId"
+
+  /**
+   * 这部分得放最前面，因为有些地方需要立刻使用 onClosed
+   */
+
+  //#region close
+
+  private val closeDeferred = CompletableDeferred<CancellationException?>()
+
+  val isClosed get() = closeDeferred.isCompleted
+
+  /**
+   * 等待ipc关闭之后
+   *
+   * 对比 onBeforeClose ，该函数不在 ipc scope
+   */
+  suspend fun awaitClosed() = closeDeferred.await()
+
+  val onClosed = DeferredSignal(closeDeferred)
+
+  // 开始触发关闭事件
+  suspend fun close(cause: CancellationException? = null) = scope.isActive.trueAlso {
+    closeOnce(cause)
+  }
+
+  /**
+   * 长任务，需要全部完成才能结束ipcEndpoint
+   */
+  val launchJobs = SafeLinkList<Job>()
+
+  private val closeOnce = SuspendOnce1 { cause: CancellationException? ->
+    if (scope.coroutineContext[Job] == coroutineContext[Job]) {
+      WARNING("close ipc by self. maybe leak.")
+    }
+    debugIpc("closing", cause)
+    val reason = cause?.message
+    IpcLifecycle(IpcLifecycleClosing(reason)).also { closing ->
+      lifecycleLocaleFlow.emit(closing)
+      sendLifecycleToRemote(closing)
+    }
+    messageProducer.producer.close(cause)
+    closeDeferred.complete(cause)
+    IpcLifecycle(IpcLifecycleClosed(reason)).also { closed ->
+      lifecycleLocaleFlow.emit(closed)
+      sendLifecycleToRemote(closed)
+    }
+    traceTimeout(1000, { this@Ipc }) {
+      launchJobs.joinAll()
+    }
+    scope.cancel(cause)
+    debugIpc("closed", cause)
+  }
+  //#endregion
 
   /**
    * 消息生产者，所有的消息在这里分发出去
@@ -198,53 +251,6 @@ class Ipc internal constructor(
     endpoint.postIpcMessage(EndpointIpcMessage(pid, state))
   }
 
-
-  private val closeDeferred = CompletableDeferred<CancellationException?>()
-
-  val isClosed get() = closeDeferred.isCompleted
-
-  /**
-   * 等待ipc关闭之后
-   *
-   * 对比 onBeforeClose ，该函数不在 ipc scope
-   */
-  suspend fun awaitClosed() = closeDeferred.await()
-
-  val onClosed = DeferredSignal(closeDeferred)
-
-  // 开始触发关闭事件
-  suspend fun close(cause: CancellationException? = null) = scope.isActive.trueAlso {
-    closeOnce(cause)
-  }
-
-  /**
-   * 长任务，需要全部完成才能结束ipcEndpoint
-   */
-  val launchJobs = SafeLinkList<Job>()
-
-  private val closeOnce = SuspendOnce1 { cause: CancellationException? ->
-    if (scope.coroutineContext[Job] == coroutineContext[Job]) {
-      WARNING("close ipc by self. maybe leak.")
-    }
-    debugIpc("closing", cause)
-    val reason = cause?.message
-    IpcLifecycle(IpcLifecycleClosing(reason)).also { closing ->
-      lifecycleLocaleFlow.emit(closing)
-      sendLifecycleToRemote(closing)
-    }
-    messageProducer.producer.close(cause)
-    closeDeferred.complete(cause)
-    IpcLifecycle(IpcLifecycleClosed(reason)).also { closed ->
-      lifecycleLocaleFlow.emit(closed)
-      sendLifecycleToRemote(closed)
-    }
-    traceTimeout(1000, { this@Ipc }) {
-      launchJobs.joinAll()
-    }
-    scope.cancel(cause)
-    debugIpc("closed", cause)
-  }
-
   private val forkedIpcMap = SafeHashMap<Int, CompletableDeferred<Ipc>>()
 
   suspend fun waitForkedIpc(pid: Int): Ipc {
@@ -259,8 +265,8 @@ class Ipc internal constructor(
    * 如果自定义了 locale/remote，那么说明自己是帮别人代理
    */
   suspend fun fork(
-    locale: IMicroModuleManifest = this.locale,
-    remote: IMicroModuleManifest = this.remote,
+    locale: MicroModuleManifest = this.locale,
+    remote: MicroModuleManifest = this.remote,
     autoStart: Boolean = false,
     startReason: String? = null,
   ): Ipc {

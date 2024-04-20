@@ -1,3 +1,4 @@
+import type { $MicroModuleManifest } from "../../../core/index.ts";
 import { ChangeableMap } from "../../../helper/ChangeableMap.ts";
 import { PromiseOut } from "../../../helper/PromiseOut.ts";
 
@@ -106,14 +107,16 @@ const createProcess = async (
  * @param env_json
  * @returns
  */
-const createIpc = async (process_id: number, mmid: string, ipc_port: MessagePort, env_json = "{}") => {
+const createIpc = async (process_id: number, mainfest_json: string, ipc_port: MessagePort, env_json = "{}") => {
   const process = _forceGetProcess(process_id);
+  const manifest = JSON.parse(mainfest_json) as $MicroModuleManifest;
+  const env: Record<string, string> = JSON.parse(env_json);
 
-  process.worker.postMessage(["ipc-connect", mmid, env_json], [ipc_port]);
+  process.worker.postMessage([`ipc-connect/${manifest.mmid}`, manifest, env], [ipc_port]);
   /// 等待连接任务完成
   const connect_ready_po = new PromiseOut<void>();
   const onEnvReady = (event: MessageEvent) => {
-    if (Array.isArray(event.data) && event.data[0] === "ipc-connect-ready" && event.data[1] === mmid) {
+    if (Array.isArray(event.data) && event.data[0] === "ipc-connect-ready" && event.data[1] === manifest.mmid) {
       connect_ready_po.resolve();
     }
   };

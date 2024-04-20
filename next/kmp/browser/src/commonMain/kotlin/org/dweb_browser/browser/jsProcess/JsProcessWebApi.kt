@@ -8,13 +8,12 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.jmm.JsMicroModule
-import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.http.dwebHttpGatewayServer
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.WebMessageEndpoint
 import org.dweb_browser.core.ipc.kotlinIpcPool
-import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -43,9 +42,9 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     env_script_url: String,
     metadata_json: String,
     env_json: String,
-    localeModule: MicroModule,
-    remoteModule: IMicroModuleManifest,
-    host: String
+    localeModule: MicroModuleManifest,
+    remoteModule: MicroModuleManifest,
+    host: String,
   ): ProcessHandler {
     val channel = dWebView.createMessageChannel()
     val port1 = channel.port1
@@ -88,19 +87,19 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     return ProcessHandler(info, ipc)
   }
 
-  suspend fun runProcessMain(process_id: Int, options: RunProcessMainOptions) {
+  suspend fun runProcessMain(processId: Int, options: RunProcessMainOptions) {
     dWebView.evaluateAsyncJavascriptCode(
-      "runProcessMain($process_id, { main_url:`${options.main_url}` })"
+      "runProcessMain($processId, { main_url:`${options.main_url}` })"
     )
   }
 
-  suspend fun destroyProcess(process_id: Int) {
+  suspend fun destroyProcess(processId: Int) {
     dWebView.evaluateAsyncJavascriptCode(
-      "destroyProcess($process_id)"
+      "destroyProcess($processId)"
     )
   }
 
-  suspend fun createIpc(process_id: Int, mmid: MMID) = withContext(Dispatchers.Main) {
+  suspend fun createIpc(processId: Int, manifestJson: String) = withContext(Dispatchers.Main) {
     val channel = dWebView.createMessageChannel()
     val port1 = channel.port1
     val port2 = channel.port2
@@ -108,12 +107,14 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val hid = hidAcc++
     dWebView.evaluateAsyncJavascriptCode("""
         new Promise((resolve,reject)=>{
+            const prefix = "js-process/create-ipc/$hid:"
             addEventListener("message", async function doCreateIpc(event) {
-                if (event.data === "js-process/create-ipc/$hid") {
+                if (event.data.startsWith(prefix)) {
+                  const manifest_json = event.data.slice(prefix.length);
                   try{
                     removeEventListener("message", doCreateIpc);
                     const ipc_port = event.ports[0];
-                    resolve(await createIpc($process_id, `$mmid`, ipc_port))
+                    resolve(await createIpc($processId, manifest_json, ipc_port))
                     }catch(err){
                         reject(err)
                     }
@@ -121,7 +122,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
             })
         })
         """.trimIndent(), afterEval = {
-      dWebView.postMessage("js-process/create-ipc/$hid", listOf(port1))
+      dWebView.postMessage("js-process/create-ipc/$hid:$manifestJson", listOf(port1))
     })
     jsIpcPortId
   }
@@ -173,7 +174,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
 
 
 suspend fun createJsProcessWeb(
-  mainServer: HttpDwebServer, mm: NativeMicroModule.NativeRuntime
+  mainServer: HttpDwebServer, mm: NativeMicroModule.NativeRuntime,
 ): JsProcessWebApi {
   /// WebView 实例
   val urlInfo = mainServer.startResult.urlInfo

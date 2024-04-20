@@ -7,7 +7,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.UUID
@@ -48,8 +48,8 @@ open class IpcPool {
   suspend fun createIpc(
     endpoint: IpcEndpoint,
     pid: Int,
-    locale: IMicroModuleManifest,
-    remote: IMicroModuleManifest,
+    locale: MicroModuleManifest,
+    remote: MicroModuleManifest,
     autoStart: Boolean = false,
     startReason: String? = null,
   ) = Ipc(

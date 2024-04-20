@@ -110,9 +110,7 @@ class IpcBodySender private constructor(
           is PureEmptyBody -> MetaBody.fromText("", ipc.pool.poolId)
           is PureBinaryBody -> MetaBody.fromBinary(pureBody.data, ipc.pool.poolId)
           else -> throw Exception("should not happen")
-        },
-        pureBody,
-        ipc
+        }, pureBody, ipc
       )
     }
 
@@ -263,7 +261,10 @@ class IpcBodySender private constructor(
     }
 
     MetaBody(
-      type = streamType, data = streamFirstData, streamId = streamId
+      type = streamType,
+      data = streamFirstData,
+      streamId = streamId,
+      senderPoolId = ipc.pool.poolId,
     ).also { metaBody ->
       metaBody.streamId?.let { streamId ->
         // 流对象，写入缓存,用于IpcReceiver快速拿到句柄

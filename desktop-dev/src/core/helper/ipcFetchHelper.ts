@@ -9,16 +9,16 @@ export type $OnFetchReturn = Response | IpcResponse | $FetchResponse | void;
  * fetch 处理函数
  * 如果标记成 中间件 模式，那么该函数会执行之前函数
  */
-export type $OnFetch = (event: FetchEvent) => $PromiseMaybe<$OnFetchReturn>;
+export type $OnFetch = (event: IpcFetchEvent) => $PromiseMaybe<$OnFetchReturn>;
 
-export type $OnFetchMid = (respose: IpcResponse, event: FetchEvent) => $PromiseMaybe<$OnFetchReturn>;
+export type $OnFetchMid = (respose: IpcResponse, event: IpcFetchEvent) => $PromiseMaybe<$OnFetchReturn>;
 /**
  * 对即将要进行的响应内容，作出额外的处理
  */
 export const fetchMid = (handler: $OnFetchMid) => Object.assign(handler, { [FETCH_MID_SYMBOL]: true } as const);
 export const FETCH_MID_SYMBOL = Symbol("fetch.middleware");
 
-export type $OnFetchEnd = (event: FetchEvent, respose: IpcResponse | undefined) => $PromiseMaybe<$OnFetchReturn>;
+export type $OnFetchEnd = (event: IpcFetchEvent, respose: IpcResponse | undefined) => $PromiseMaybe<$OnFetchReturn>;
 /**
  * 对即将要进行的响应内容，做出最后的处理
  *
@@ -140,7 +140,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
 
   const onRequest = async (request: IpcServerRequest) => {
     const ipc = request.ipc;
-    const event = new FetchEvent(request, ipc);
+    const event = new IpcFetchEvent(request, ipc);
     let res: IpcResponse | undefined;
 
     for (const handler of onFetchHanlders) {
@@ -243,7 +243,7 @@ export interface $FetchResponse extends ResponseInit {
   body?: BodyInit | null | IpcBody;
 }
 
-export class FetchEvent {
+export class IpcFetchEvent {
   constructor(readonly ipcRequest: IpcServerRequest, readonly ipc: Ipc) {}
   get url() {
     return this.ipcRequest.parsed_url;

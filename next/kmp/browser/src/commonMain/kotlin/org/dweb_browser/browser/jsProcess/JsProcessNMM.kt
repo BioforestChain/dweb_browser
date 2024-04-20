@@ -154,14 +154,14 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
            * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
            * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
            */
-          val mmid = request.query("mmid")
+          val manifestJson = request.query("manifest")
           val ipcProcessID = ipcProcessIdMapLock.withLock {
             ipcProcessIdMap[ipc.remote.mmid]?.get(processId)
               ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processId invalid")
           }.waitPromise()
 
           // 返回 port_id
-          createIpc(apis, ipcProcessID, mmid)
+          createIpc(apis, ipcProcessID, manifestJson)
         },
         /// 桥接两个JMM
         "/bridge-ipc" bind PureMethod.GET by defineEmptyResponse {
@@ -250,7 +250,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         bootstrapUrl,
         Json.encodeToString(metadata),
         Json.encodeToString(env),
-        this@JsProcessNMM,
+        manifest,
         processIpc.remote,
         httpDwebServer.startResult.urlInfo.host
       )
@@ -302,9 +302,9 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
 
     /**创建到worker的Ipc 如果是worker到worker互联，则每个人分配一个messageChannel的port*/
     private suspend fun createIpc(
-      apis: JsProcessWebApi, processId: Int, mmid: MMID,
+      apis: JsProcessWebApi, processId: Int, manifestJson: String,
     ): Int {
-      return apis.createIpc(processId, mmid)
+      return apis.createIpc(processId, manifestJson)
     }
 
     private suspend fun bridgeIpc(

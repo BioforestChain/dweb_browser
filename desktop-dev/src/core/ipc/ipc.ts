@@ -30,7 +30,7 @@ import { IPC_LIFECYCLE_STATE } from "./ipc-message/internal/IpcLifecycle.ts";
 import { IPC_MESSAGE_TYPE } from "./ipc-message/internal/IpcMessage.ts";
 export {
   FetchError,
-  FetchEvent,
+  IpcFetchEvent as FetchEvent,
   type $FetchResponse,
   type $OnFetch,
   type $OnFetchReturn,

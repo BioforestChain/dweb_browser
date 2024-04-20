@@ -9,7 +9,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.CommonAppManifest
-import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.IpcSupportProtocols
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -66,7 +65,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       val nativeToWhiteList = listOf<MMID>("js.browser.dweb")
 
       data class MmDirection(
-        val endJmm: JsMicroModule.JmmRuntime, val startMm: IMicroModuleManifest,
+        val endJmm: JsMicroModule.JmmRuntime, val startMm: MicroModule,
       )
       // jsMM对外创建ipc的适配器，给DnsNMM的connectMicroModules使用
       connectAdapterManager.append(1) { fromMM, toMM, reason ->
@@ -74,7 +73,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         val jsMM = if (nativeToWhiteList.contains(toMM.mmid)) null
         /// 这里优先判断 toMM 是否是 endJmm
         else if (toMM is JsMicroModule.JmmRuntime) MmDirection(toMM, fromMM)
-        else if (fromMM is JsMicroModule) MmDirection(fromMM.runtime, toMM)
+        else if (fromMM is JsMicroModule) MmDirection(fromMM.runtime, toMM.microModule)
         else null
 
         debugJsMM(
@@ -89,7 +88,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
            * 也就是说。如果是 jsMM 内部自己去执行一个 connect，那么这里返回的 ipcForFromMM，其实还是通往 js-context 的， 而不是通往 toMM的。
            * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
            */
-          val toJmmIpc = jsMM.endJmm.ipcBridge(jsMM.startMm.mmid) //(tip:创建到worker内部的桥接)
+          val toJmmIpc = jsMM.endJmm.ipcBridge(jsMM.startMm.manifest) //(tip:创建到worker内部的桥接)
 //          fromMM.beConnect(toJmmIpc, reason)
           toMM.beConnect(toJmmIpc, reason)
           toJmmIpc
@@ -244,7 +243,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
               val targetIpc = connect(connectEvent.mmid) // 由上面的适配器产生
               /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
               if (targetIpc.endpoint is WebMessageEndpoint) {
-                ipcBridge(targetIpc.remote.mmid, targetIpc)
+                ipcBridge(targetIpc.remote, targetIpc)
               }
               // 如果是jsMM互联，那么直接把port分配给两个人
               // ipcBridgeJsMM(mmid, targetIpc.remote.mmid)
@@ -285,7 +284,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
      * 桥接ipc到js内部：
      * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
      */
-    private suspend fun ipcBridgeSelf(fromMMID: MMID): Ipc {
+    private suspend fun ipcBridgeSelf(fromMM: MicroModuleManifest): Ipc {
       /**
        * endpoint 的 初始ipc 的 id 为 0
        */
@@ -296,16 +295,15 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
        */
       val portId = nativeFetch(
         URLBuilder("file://js.browser.dweb/create-ipc").apply {
-          parameters["pid"] = pid.toString()
           parameters["process_id"] = processId
-          parameters["mmid"] = fromMMID
+          parameters["manifest"] = Json.encodeToString(fromMM)
         }.buildUnsafeString()
       ).int()
       return kotlinIpcPool.createIpc(
         endpoint = native2JsEndpoint(portId),
         pid = pid,
-        remote = this,
-        locale = MicroModuleManifest().apply { mmid = fromMMID },
+        remote = manifest,
+        locale = fromMM,
         // 不自动开始，等到web-worker中它自己去握手
         autoStart = false,
       )
@@ -320,25 +318,25 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 //    return toJmmIpc
     }
 
-    /**桥接两个JsMM*/
-    private suspend fun ipcBridgeJsMM(fromMMID: MMID, toMMID: MMID): Boolean {
-      return nativeFetch(
-        URLBuilder("file://js.browser.dweb/create-ipc").apply {
-          parameters["process_id"] = processId
-          parameters["from_mmid"] = fromMMID
-          parameters["to_mmid"] = toMMID
-        }.buildUnsafeString()
-      ).boolean()
-    }
+//    /**桥接两个JsMM*/
+//    private suspend fun ipcBridgeJsMM(fromMMID: MMID, toMMID: MMID): Boolean {
+//      return nativeFetch(
+//        URLBuilder("file://js.browser.dweb/create-ipc").apply {
+//          parameters["process_id"] = processId
+//          parameters["from_mmid"] = fromMMID
+//          parameters["to_mmid"] = toMMID
+//        }.buildUnsafeString()
+//      ).boolean()
+//    }
 
-    private fun ipcBridgeFactory(fromMMID: MMID, targetIpc: Ipc?) =
-      fromMMIDOriginIpcWM.getOrPut(fromMMID) {
+    private fun ipcBridgeFactory(fromMM: MicroModuleManifest, targetIpc: Ipc?) =
+      fromMMIDOriginIpcWM.getOrPut(fromMM.mmid) {
         return@getOrPut CompletableDeferred<Ipc>().alsoLaunchIn(mmScope) {
-          debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
+          debugJsMM("ipcBridge", "fromMmid:${fromMM.mmid} targetIpc:$targetIpc")
 
-          val toJmmIpc = ipcBridgeSelf(fromMMID)
+          val toJmmIpc = ipcBridgeSelf(fromMM)
           toJmmIpc.onClosed {
-            fromMMIDOriginIpcWM.remove(fromMMID)
+            fromMMIDOriginIpcWM.remove(fromMM.mmid)
           }
           // 如果是jsMM相互连接，直接把port丢过去
 
@@ -376,9 +374,10 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
       }
 
 
-    internal suspend fun ipcBridge(fromMMID: MMID, targetIpc: Ipc? = null) = withScope(mmScope) {
-      ipcBridgeFactory(fromMMID, targetIpc).await()
-    }
+    internal suspend fun ipcBridge(fromMM: MicroModuleManifest, targetIpc: Ipc? = null) =
+      withScope(mmScope) {
+        ipcBridgeFactory(fromMM, targetIpc).await()
+      }
 
 
     override suspend fun _shutdown() {
