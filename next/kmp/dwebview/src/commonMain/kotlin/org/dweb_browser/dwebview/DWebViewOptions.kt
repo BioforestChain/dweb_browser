@@ -39,6 +39,10 @@ data class DWebViewOptions(
    * 标识
    */
   var tag: Int? = null,
+  /**
+   * 是否离屏渲染
+   */
+  val offscreen: Boolean = false,
 ) {
 
   enum class DetachedStrategy {

@@ -14,7 +14,7 @@ interface IHandlerContext {
   fun throwException(
     code: HttpStatusCode = HttpStatusCode.InternalServerError,
     message: String = code.description,
-    cause: Throwable? = null
+    cause: Throwable? = null,
   ): Nothing = throw ResponseException(code, message, cause)
 }
 
@@ -26,6 +26,11 @@ typealias TypedHttpHandler<T> = suspend HandlerContext.() -> T
 
 fun HttpHandler.toChain() = HttpHandlerChain(this)
 class HttpHandlerChain(val handler: HttpHandler) {
+  /**
+   * 上下文，如果绑定，那么在RouteHandler创建的时候，会发生自动注册路由
+   */
+  var ctx: HttpRouter? = null
+
   private var middlewares: MutableList<MiddlewareHttpHandler>? = null
   fun use(middleware: MiddlewareHttpHandler, force: Boolean = false): Boolean {
     if (!force && hasUse(middleware)) {
@@ -39,7 +44,7 @@ class HttpHandlerChain(val handler: HttpHandler) {
   fun hasUse(after: MiddlewareHttpHandler) = middlewares?.contains(after) ?: false
 
   private suspend fun HandlerContext.doHandler(
-    ite: Iterator<MiddlewareHttpHandler>, handler: HttpHandler
+    ite: Iterator<MiddlewareHttpHandler>, handler: HttpHandler,
   ): PureResponse = if (ite.hasNext()) {
     val middleware = ite.next()
     middleware {
@@ -78,7 +83,7 @@ interface IChannelHandlerContext : IHandlerContext, IPureChannel {
 open class ChannelHandlerContext(
   context: IHandlerContext,
   pureChannel: IPureChannel,
-  override val pureChannelContext: PureChannelContext
+  override val pureChannelContext: PureChannelContext,
 ) :
   IChannelHandlerContext, IHandlerContext by context, IPureChannel by pureChannel {
 }

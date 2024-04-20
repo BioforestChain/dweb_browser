@@ -3,7 +3,9 @@
   "description": "该配置文件是声明各个 assets 文件夹的依赖",
   "scripts": {
     "test": "vitest",
-    "build": "bun build ./src/core/index.ts --outdir=./build"
+    "build": "bun build ./src/core/index.ts --outdir=./build",
+    "build:js-process.worker": "bun build src/js-process/worker/index.ts --outfile=../next/kmp/browser/src/commonMain/resources/browser/js-process.worker/index.js",
+    "build:js-process.main": "bunx --bun vite build src/js-process/main --outDir=../../../../next/kmp/browser/src/commonMain/resources/browser/js-process.main/"
   },
   "dependencies": {
     "@lit-labs/motion": "^1.0.3",

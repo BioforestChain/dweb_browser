@@ -1,6 +1,6 @@
-import type { $MicroModuleManifest } from "../../../core/index.ts";
-import { ChangeableMap } from "../../../helper/ChangeableMap.ts";
-import { PromiseOut } from "../../../helper/PromiseOut.ts";
+import type { $MicroModuleManifest } from "../../core/index.ts";
+import { ChangeableMap } from "../../helper/ChangeableMap.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
 // 也可以用在其他的 .html 文件中 但是内容需要部分的修改
@@ -31,7 +31,6 @@ const createProcess = async (
   env_json: string,
   fetch_port: MessagePort,
   name: string = new URL(env_script_url).hostname,
-  versions_json: string,
   gatewayPort: number
 ) => {
   const process_id = allocProcessId();
@@ -41,7 +40,7 @@ const createProcess = async (
         `import("${env_script_url}")
         .then(
           async({installEnv,Metadata})=>{
-            void installEnv(new Metadata(${metadata_json},${env_json}), ${versions_json}, ${gatewayPort});
+            void installEnv(new Metadata(${metadata_json},${env_json}), ${gatewayPort});
             postMessage("ready")
           },
           (err)=>postMessage("ERROR:"+err)

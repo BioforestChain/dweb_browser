@@ -1,27 +1,27 @@
 /// <reference lib="webworker"/>
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
-import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MicroModuleRuntime, $MMID } from "../core/types.ts";
+import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MicroModuleRuntime, $MMID } from "../../core/types.ts";
 
-import { $normalizeRequestInitAsIpcRequestArgs } from "../core/helper/ipcRequestHelper.ts";
-import { fetchExtends } from "../helper/fetchExtends/index.ts";
-import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.ts";
-import { PromiseOut } from "../helper/PromiseOut.ts";
-import { updateUrlOrigin } from "../helper/urlHelper.ts";
-export type { fetchExtends } from "../helper/fetchExtends/index.ts";
+import { $normalizeRequestInitAsIpcRequestArgs } from "../../core/helper/ipcRequestHelper.ts";
+import { fetchExtends } from "../../helper/fetchExtends/index.ts";
+import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { updateUrlOrigin } from "../../helper/urlHelper.ts";
+export type { fetchExtends } from "../../helper/fetchExtends/index.ts";
 
 import * as core from "./std-dweb-core.ts";
 import * as http from "./std-dweb-http.ts";
 
-import type { $RunMainConfig } from "../browser/js-process/main/index.ts";
-import { type $BootstrapContext } from "../core/bootstrapContext.ts";
-import type { $PromiseMaybe } from "../core/helper/types.ts";
-import type { MICRO_MODULE_CATEGORY } from "../core/index.ts";
-import { onActivity } from "../core/ipcEventOnActivity.ts";
-import { onRenderer, onRendererDestroy } from "../core/ipcEventOnRender.ts";
-import { onShortcut } from "../core/ipcEventOnShortcut.ts";
-import { MicroModule, MicroModuleRuntime } from "../core/MicroModule.ts";
-import { once } from "../helper/$once.ts";
+import { type $BootstrapContext } from "../../core/bootstrapContext.ts";
+import type { $PromiseMaybe } from "../../core/helper/types.ts";
+import type { MICRO_MODULE_CATEGORY } from "../../core/index.ts";
+import { onActivity } from "../../core/ipcEventOnActivity.ts";
+import { onRenderer, onRendererDestroy } from "../../core/ipcEventOnRender.ts";
+import { onShortcut } from "../../core/ipcEventOnShortcut.ts";
+import { MicroModule, MicroModuleRuntime } from "../../core/MicroModule.ts";
+import { once } from "../../helper/$once.ts";
+import type { $RunMainConfig } from "../main/index.ts";
 import { createFetchHandler, Ipc, WebMessageEndpoint } from "./std-dweb-core.ts";
 
 declare global {
@@ -30,7 +30,7 @@ declare global {
     core: typeof core;
     ipc: typeof core;
     http: typeof http;
-    versions: Record<string, string>;
+    versions: { jsMicroModule: string };
     version: number;
     patch: number;
   }
@@ -43,8 +43,8 @@ declare global {
 }
 const workerGlobal = self as DedicatedWorkerGlobalScope;
 
-export class Metadata<T extends $Metadata = $Metadata> {
-  constructor(readonly data: T, readonly env: Record<string, string>) {}
+export class Metadata {
+  constructor(readonly data: core.$MicroModuleManifest, readonly env: Record<string, string>) {}
   envString(key: string) {
     const val = this.envStringOrNull(key);
     if (val == null) {
@@ -74,10 +74,6 @@ export class Metadata<T extends $Metadata = $Metadata> {
     return val === "true";
   }
 }
-
-type $Metadata = {
-  mmid: $MMID;
-};
 
 /// 这个文件是给所有的 js-worker 用的，所以会重写全局的 fetch 函数，思路与 dns 模块一致
 /// 如果是在原生的系统中，不需要重写fetch函数，因为底层那边可以直接捕捉 fetch
@@ -508,17 +504,18 @@ class DwebXMLHttpRequest extends XMLHttpRequest {
 /**
  * 安装上下文
  */
-export const installEnv = async (metadata: Metadata, versions: Record<string, string>, gatewayPort: number) => {
+export const installEnv = async (metadata: Metadata, gatewayPort: number) => {
   const jmm = new JsProcessMicroModule(metadata, await waitFetchPort());
   const jsProcess = await jmm.bootstrap();
-  const [version, patch] = versions.jsMicroModule.split(".").map((v) => parseInt(v));
+  const jsMicroModule = metadata.envString("jsMicroModule");
+  const [version, patch] = jsMicroModule.split(".").map((v) => parseInt(v));
 
   const dweb = {
     jsProcess,
     core,
     ipc: core,
     http,
-    versions,
+    versions: { jsMicroModule },
     version,
     patch,
   } satisfies DWebCore;

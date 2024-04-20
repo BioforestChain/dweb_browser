@@ -5,15 +5,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.browser.jmm.JsMicroModule
-import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.http.dwebHttpGatewayServer
-import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.WebMessageEndpoint
-import org.dweb_browser.core.ipc.kotlinIpcPool
+import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -25,8 +21,12 @@ import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
 
 @Serializable
-data class ProcessInfo(val process_id: Int)
-class ProcessHandler(val info: ProcessInfo, var ipc: Ipc)
+data class ProcessInfo(val process_id: Int) {
+  @Transient
+  lateinit var port: IWebMessagePort
+    internal set
+}
+
 data class RunProcessMainOptions(val main_url: String)
 class JsProcessWebApi(internal val dWebView: IDWebView) {
 
@@ -42,10 +42,8 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     env_script_url: String,
     metadata_json: String,
     env_json: String,
-    localeModule: MicroModuleManifest,
-    remoteModule: MicroModuleManifest,
     host: String,
-  ): ProcessHandler {
+  ): ProcessInfo {
     val channel = dWebView.createMessageChannel()
     val port1 = channel.port1
     val port2 = channel.port2
@@ -60,7 +58,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
                      try{
                         removeEventListener("message", doCreateProcess);
                         const fetch_port = event.ports[0];
-                        resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`,`{"jsMicroModule":"${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"}, ${dwebHttpGatewayServer.startServer()}`))
+                        resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`, ${dwebHttpGatewayServer.startServer()}`))
                         }catch(err){
                             reject(err)
                         }
@@ -76,15 +74,8 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     })
     debugJsProcess("processInfo", processInfo_json)
     val info = Json.decodeFromString<ProcessInfo>(processInfo_json)
-    val ipc = kotlinIpcPool.createIpc(
-      endpoint = WebMessageEndpoint.from(
-        "jsWorker-${remoteModule.mmid}", kotlinIpcPool.scope, port2
-      ),
-      pid = 0,
-      locale = localeModule,
-      remote = remoteModule,
-    )
-    return ProcessHandler(info, ipc)
+    info.port = port2
+    return info
   }
 
   suspend fun runProcessMain(processId: Int, options: RunProcessMainOptions) {
@@ -126,43 +117,43 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     })
     jsIpcPortId
   }
-
-  // 桥接两个worker
-  suspend fun bridgeIpc(process_id: Int, fromMMid: MMID, toMMid: MMID) =
-    withContext(Dispatchers.Main) {
-      val channel = dWebView.createMessageChannel()
-      val port1 = channel.port1
-      val port2 = channel.port2
-      val fromHid = hidAcc++
-      val toHid = hidAcc++
-      dWebView.evaluateAsyncJavascriptCode("""
-        new Promise((resolve,reject)=>{
-            addEventListener("message", async function doCreateIpc(event) {
-                if (event.data === "js-process/create-ipc/$fromHid") {
-                  try{
-                    removeEventListener("message", doCreateIpc);
-                    const ipc_port = event.ports[0];
-                    resolve(await createIpc($process_id, `$fromMMid`, ipc_port))
-                    }catch(err){
-                        reject(err)
-                    }
-                } else if (event.data === "js-process/bridge-ipc/$toHid") {
-                  try{
-                    removeEventListener("message", doCreateIpc);
-                    const ipc_port = event.ports[0];
-                    resolve(await bridgeIpc(`$toMMid`, ipc_port))
-                    }catch(err){
-                        reject(err)
-                    }
-                }
-            })
-        })
-        """.trimIndent(), afterEval = {
-        dWebView.postMessage("js-process/create-ipc/$fromHid", listOf(port1))
-        dWebView.postMessage("js-process/bridge-ipc/$toHid", listOf(port2))
-      })
-      return@withContext true
-    }
+//
+//  // 桥接两个worker
+//  suspend fun bridgeIpc(process_id: Int, fromMMid: MMID, toMMid: MMID) =
+//    withContext(Dispatchers.Main) {
+//      val channel = dWebView.createMessageChannel()
+//      val port1 = channel.port1
+//      val port2 = channel.port2
+//      val fromHid = hidAcc++
+//      val toHid = hidAcc++
+//      dWebView.evaluateAsyncJavascriptCode("""
+//        new Promise((resolve,reject)=>{
+//            addEventListener("message", async function doCreateIpc(event) {
+//                if (event.data === "js-process/create-ipc/$fromHid") {
+//                  try{
+//                    removeEventListener("message", doCreateIpc);
+//                    const ipc_port = event.ports[0];
+//                    resolve(await createIpc($process_id, `$fromMMid`, ipc_port))
+//                    }catch(err){
+//                        reject(err)
+//                    }
+//                } else if (event.data === "js-process/bridge-ipc/$toHid") {
+//                  try{
+//                    removeEventListener("message", doCreateIpc);
+//                    const ipc_port = event.ports[0];
+//                    resolve(await bridgeIpc(`$toMMid`, ipc_port))
+//                    }catch(err){
+//                        reject(err)
+//                    }
+//                }
+//            })
+//        })
+//        """.trimIndent(), afterEval = {
+//        dWebView.postMessage("js-process/create-ipc/$fromHid", listOf(port1))
+//        dWebView.postMessage("js-process/bridge-ipc/$toHid", listOf(port2))
+//      })
+//      return@withContext true
+//    }
 
 
   suspend fun destroy() {

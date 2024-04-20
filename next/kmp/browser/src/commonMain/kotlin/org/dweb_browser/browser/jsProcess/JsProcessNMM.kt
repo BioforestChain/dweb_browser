@@ -2,16 +2,15 @@ package org.dweb_browser.browser.jsProcess
 
 import io.ktor.http.fullPath
 import kotlinx.coroutines.async
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.WebMessageEndpoint
 import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -19,10 +18,11 @@ import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.closeHttpDwebServer
 import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.listen
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
@@ -33,11 +33,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
   }
-
-
-  data class CreateProcessAndRunResult(
-    val streamIpc: Ipc, val processHandler: ProcessHandler,
-  )
 
   inner class JsProcessRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
 
@@ -107,75 +102,63 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         shutdown()
       }
 
-      val ipcProcessIdMap = mutableMapOf<String, MutableMap<String, PromiseOut<Int>>>()
-      val ipcProcessIdMapLock = Mutex()
+      val processIdMap = SafeHashMap<String, Int>()
       routes(
         /**
          * 创建 web worker
          * 那么当前的ipc将会用来用作接下来的通讯
          */
-        "/create-process" bind PureMethod.POST by defineEmptyResponse {
-          val processId = request.query("process_id")
-          val po = ipcProcessIdMapLock.withLock {
-            debugJsProcess("-create-process", "mmid=${ipc.remote.mmid} processId=$processId")
-
-            val processIdMap = ipcProcessIdMap.getOrPut(ipc.remote.mmid) {
-              mutableMapOf()
-            }
-
-            if (processIdMap.contains(processId)) {
-              throw Exception("ipc:${ipc.remote.mmid}/processId:$processId has already using")
-            }
-            PromiseOut<Int>().also { processIdMap[processId] = it }
-          }
-          // 创建成功了，注册销毁函数
-          ipc.onClosed {
-            scopeLaunch(cancelable = false) {
-              closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.remote.mmid)
-            }
-          }
-          val result = createProcessAndRun(
-            processId = processId,
+        "/create-process" bind PureMethod.GET by defineStringResponse {
+          val processId = createProcessAndRun(
             processIpc = ipc,
             apis = apis,
             bootstrapUrl = bootstrapUrl,
             entry = request.queryOrNull("entry"),
           )
-          // 将自定义的 processId 与真实的 js-process_id 进行关联
-          po.resolve(result.processHandler.info.process_id)
-          // 等待握手完成
-          result.streamIpc.start(reason = "in-create-process")
+          val handlerId = randomUUID()
+          processIdMap[handlerId] = processId
+
+          // 创建成功了，注册销毁函数
+          ipc.onClosed {
+            scopeLaunch(cancelable = false) {
+              debugJsProcess("close-all-process", mmid)
+              val processMap = processIdMap.remove(handlerId)
+              // 关闭代码通道
+              closeHttpDwebServer(DwebHttpServerOptions(mmid))
+              // 关闭程序
+              apis.destroyProcess(processId)
+            }
+          }
+          // 返回具柄
+          handlerId
         },
         /// 创建 web 通讯管道
         "/create-ipc" bind PureMethod.GET by defineNumberResponse {
-          val processId = request.query("process_id")
+          val handlerId = request.query("id")
 
           /**
            * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
            * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
            */
           val manifestJson = request.query("manifest")
-          val ipcProcessID = ipcProcessIdMapLock.withLock {
-            ipcProcessIdMap[ipc.remote.mmid]?.get(processId)
-              ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processId invalid")
-          }.waitPromise()
+          val processId = processIdMap[handlerId]
+            ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$handlerId invalid")
 
           // 返回 port_id
-          createIpc(apis, ipcProcessID, manifestJson)
+          createIpc(apis, processId, manifestJson)
         },
-        /// 桥接两个JMM
-        "/bridge-ipc" bind PureMethod.GET by defineEmptyResponse {
-          val processId = request.query("process_id")
-          val fromMMid = request.query("from_mmid")
-          val toMMid = request.query("to_mmid")
-          val ipcProcessID = ipcProcessIdMapLock.withLock {
-            ipcProcessIdMap[ipc.remote.mmid]?.get(processId)
-              ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processId invalid")
-          }.waitPromise()
-
-          // 返回 port_id
-          bridgeIpc(apis, ipcProcessID, fromMMid, toMMid)
-        }
+//        /// 桥接两个JMM
+//        "/bridge-ipc" bind PureMethod.GET by defineEmptyResponse {
+//          val handlerId = request.query("id")
+//          val fromMMid = request.query("from_mmid")
+//          val toMMid = request.query("to_mmid")
+//          val processId = processIdMap[handlerId]
+//            ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$handlerId invalid")
+//
+//
+//          // 返回 port_id
+//          bridgeIpc(apis, ipcProcessID, fromMMid, toMMid)
+//        }
       )
     }
 
@@ -184,17 +167,16 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     }
 
     private suspend fun createProcessAndRun(
-      processId: String,
       processIpc: Ipc,
       apis: JsProcessWebApi,
       bootstrapUrl: String,
       entry: String?,
-    ): CreateProcessAndRunResult {
+    ): Int {
       /**
        * 用自己的域名的权限为它创建一个子域名
        */
       val httpDwebServer = createHttpDwebServer(
-        DwebHttpServerOptions(subdomain = processIpc.remote.mmid),
+        DwebHttpServerOptions(subdomain = "${processIpc.remote.mmid}-${processIpc.pid}"),
       );
 
       /**
@@ -231,32 +213,34 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         )
       }
 
-      @Serializable
-      data class JsProcessMetadata(val mmid: MMID) {}
-      /// TODO 需要传过来，而不是自己构建
-      val metadata = JsProcessMetadata(processIpc.remote.mmid)
-
       /// TODO env 允许远端传过来扩展
       val env = mutableMapOf( // ...your envs
-        Pair("host", httpDwebServer.startResult.urlInfo.host),
-        Pair("debug", "true"),
-        Pair("ipc-support-protocols", "")
+        "host" to httpDwebServer.startResult.urlInfo.host,
+        "debug" to "true",
+        "jsMicroModule" to "${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"
       )
 
       /**
        * 创建一个通往 worker 的消息通道
        */
-      val processHandler = apis.createProcess(
+      val processInfo = apis.createProcess(
         bootstrapUrl,
-        Json.encodeToString(metadata),
+        Json.encodeToString(processIpc.remote),
         Json.encodeToString(env),
-        manifest,
-        processIpc.remote,
-        httpDwebServer.startResult.urlInfo.host
+        processIpc.remote.mmid
       )
-      processHandler.ipc.onClosed {
+
+      val fetchIpc = kotlinIpcPool.createIpc(
+        endpoint = WebMessageEndpoint.from(
+          "jsWorker-${processIpc.remote.mmid}", kotlinIpcPool.scope, processInfo.port
+        ),
+        pid = 0,
+        locale = processIpc.remote,
+        remote = processIpc.remote,
+      )
+      fetchIpc.onClosed {
         scopeLaunch(cancelable = false) {
-          apis.destroyProcess(processHandler.info.process_id)
+          apis.destroyProcess(processInfo.process_id)
         }
       }
       /**
@@ -265,23 +249,23 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
        * TODO 所有的 ipcMessage 应该都有 headers，这样我们在 workerIpcMessage.headers 中附带上当前的 processId，
        * 回来的 remoteIpcMessage.headers 同样如此，否则目前的模式只能代理一个 js-process 的消息。另外开 streamIpc 导致的翻译成本是完全没必要的
        */
-      processHandler.ipc.onMessage("jsWorker-to-process").collectIn(mmScope) { workerIpcMessage ->
+      fetchIpc.onMessage("jsWorker-to-process").collectIn(mmScope) { workerIpcMessage ->
         /**
          * 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
          */
         processIpc.postMessage(workerIpcMessage.consume())
       }
       processIpc.onMessage("process-to-jsWorker").collectIn(mmScope) { remoteIpcMessage ->
-        processHandler.ipc.postMessage(remoteIpcMessage.consume())
+        fetchIpc.postMessage(remoteIpcMessage.consume())
       }
       /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
       processIpc.onClosed {
         scopeLaunch(cancelable = false) {
-          processHandler.ipc.close()
+          fetchIpc.close()
         }
       }
       /// 双向绑定关闭
-      processHandler.ipc.onClosed {
+      fetchIpc.onClosed {
         scopeLaunch(cancelable = false) {
           processIpc.close()
         }
@@ -291,13 +275,13 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
        * 开始执行代码
        */
       apis.runProcessMain(
-        processHandler.info.process_id,
+        processInfo.process_id,
         RunProcessMainOptions(main_url = apis.dWebView.resolveUrl(httpDwebServer.startResult.urlInfo.buildInternalUrl {
           resolvePath(entry ?: "/index.js")
         }.toString()))
       )
 
-      return CreateProcessAndRunResult(processIpc, processHandler)
+      return processInfo.process_id
     }
 
     /**创建到worker的Ipc 如果是worker到worker互联，则每个人分配一个messageChannel的port*/
@@ -307,31 +291,15 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       return apis.createIpc(processId, manifestJson)
     }
 
-    private suspend fun bridgeIpc(
-      apis: JsProcessWebApi,
-      processId: Int,
-      fromMMid: MMID,
-      toMMid: MMID,
-    ): Boolean {
-      return apis.bridgeIpc(processId, fromMMid, toMMid)
-    }
+//    private suspend fun bridgeIpc(
+//      apis: JsProcessWebApi,
+//      processId: Int,
+//      fromMMid: MMID,
+//      toMMid: MMID,
+//    ): Boolean {
+//      return apis.bridgeIpc(processId, fromMMid, toMMid)
+//    }
 
-    private suspend fun closeAllProcessByIpc(
-      apis: JsProcessWebApi,
-      ipcProcessIdMap: MutableMap<String, MutableMap<String, PromiseOut<Int>>>,
-      mmid: MMID,
-    ) {
-      debugJsProcess("close-all-process", mmid)
-      val processMap = ipcProcessIdMap.remove(mmid) ?: return
-      // 关闭代码通道
-      closeHttpDwebServer(DwebHttpServerOptions(mmid))
-      // 关闭程序
-      for (po in processMap.values) {
-        val processId = po.waitPromise()
-        apis.destroyProcess(processId)
-      }
-
-    }
   }
 
   override fun createRuntime(bootstrapContext: BootstrapContext) =

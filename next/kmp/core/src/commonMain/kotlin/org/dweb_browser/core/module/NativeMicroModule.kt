@@ -1,7 +1,6 @@
 package org.dweb_browser.core.module
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -14,14 +13,10 @@ import org.dweb_browser.core.help.types.DWEB_PROTOCOL
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.http.router.HandlerContext
-import org.dweb_browser.core.http.router.HttpHandler
-import org.dweb_browser.core.http.router.HttpHandlerChain
+import org.dweb_browser.core.http.router.HttpHandlerToolkit
 import org.dweb_browser.core.http.router.HttpRouter
 import org.dweb_browser.core.http.router.IHandlerContext
-import org.dweb_browser.core.http.router.MiddlewareHttpHandler
 import org.dweb_browser.core.http.router.RouteHandler
-import org.dweb_browser.core.http.router.TypedHttpHandler
-import org.dweb_browser.core.http.router.toChain
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.ReadableStreamOut
 import org.dweb_browser.core.ipc.kotlinIpcPool
@@ -35,15 +30,11 @@ import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.toLittleEndianByteArray
-import org.dweb_browser.pure.http.PureBinary
-import org.dweb_browser.pure.http.PureBinaryBody
 import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
-import org.dweb_browser.pure.http.PureStream
-import org.dweb_browser.pure.http.PureStreamBody
 import org.dweb_browser.pure.http.PureStringBody
 import org.dweb_browser.pure.http.buildRequestX
 
@@ -112,7 +103,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
 
-  abstract inner class NativeRuntime : Runtime() {
+  abstract inner class NativeRuntime : Runtime() , HttpHandlerToolkit {
     private val protocolRouters = mutableMapOf<DWEB_PROTOCOL, MutableList<HttpRouter>>()
     private fun getProtocolRouters(protocol: DWEB_PROTOCOL) =
       protocolRouters.getOrPut(protocol) { mutableListOf() }
@@ -186,163 +177,6 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     fun IHandlerContext.getRemoteRuntime() = (bootstrapContext.dns.query(ipc.remote.mmid)
       ?: throw IllegalArgumentException("no found microModule ${ipc.remote.mmid}")).runtime
 
-    fun defineEmptyResponse(
-      middlewareHttpHandler: MiddlewareHttpHandler? = null,
-      handler: TypedHttpHandler<Unit>,
-    ) = wrapHandler(middlewareHttpHandler) {
-      handler()
-      PureResponse(HttpStatusCode.OK)
-    }
-
-    fun defineStringResponse(
-      middlewareHttpHandler: MiddlewareHttpHandler? = null,
-      handler: TypedHttpHandler<String>,
-    ) = wrapHandler(middlewareHttpHandler) {
-      PureResponse.build { body(handler()) }
-    }
-
-    fun defineNumberResponse(
-      middlewareHttpHandler: MiddlewareHttpHandler? = null,
-      handler: TypedHttpHandler<Number>,
-    ) = wrapHandler(middlewareHttpHandler) {
-      PureResponse.build {
-        jsonBody(handler())
-      }
-    }
-
-    fun defineBooleanResponse(
-      middlewareHttpHandler: MiddlewareHttpHandler? = null,
-      handler: TypedHttpHandler<Boolean>,
-    ) = wrapHandler(middlewareHttpHandler) {
-      PureResponse.build {
-        jsonBody(
-          try {
-            handler()
-          } catch (e: Throwable) {
-            e.printStackTrace()
-            false
-          }
-        )
-      }
-    }
-
-    fun defineJsonResponse(
-      middlewareHttpHandler: MiddlewareHttpHandler? = null,
-      handler: TypedHttpHandler<JsonElement>,
-    ) = wrapHandler(middlewareHttpHandler) {
-      PureResponse.build {
-        jsonBody(handler())
-      }
-    }
-
-
-    fun defineJsonLineResponse(
-      middlewareHttpHandler: MiddlewareHttpHandler? = null,
-      handler: suspend JsonLineHandlerContext.() -> Unit,
-    ) = wrapHandler(middlewareHttpHandler) {
-      JsonLineHandlerContext(this).run {
-        // 执行分发器
-        val job = scopeLaunch(cancelable = true) {
-          try {
-            handler()
-          } catch (e: Throwable) {
-            e.printStackTrace()
-            end(reason = e)
-          }
-        }
-        val doClose = suspend {
-          if (job.isActive) {
-            job.cancel(CancellationException("ipc closed"))
-            end()
-          }
-        }
-        // 监听 response 流关闭，这可能发生在网页刷新
-        responseReadableStream.controller.awaitClose {
-          onDisposeSignal.emit()
-          doClose()
-        }
-        // 监听 ipc 关闭，这可能由程序自己控制
-        ipc.onClosed {
-          scopeLaunch(cancelable = false) {
-            doClose()
-          }
-        }
-        // 返回响应流
-        PureResponse.build { body(responseReadableStream.stream.stream) }
-      }
-    }
-
-
-    fun defineCborPackageResponse(
-      middlewareHttpHandler: MiddlewareHttpHandler? = null,
-      handler: suspend CborPacketHandlerContext.() -> Unit,
-    ) = wrapHandler(middlewareHttpHandler) {
-      CborPacketHandlerContext(this).run {
-        // 执行分发器
-        val job = scopeLaunch(cancelable = false) {
-          try {
-            handler()
-          } catch (e: Throwable) {
-            e.printStackTrace()
-            end(reason = e)
-          }
-        }
-
-        val doClose = {
-          if (job.isActive) {
-            job.cancel(CancellationException("ipc closed"))
-            end()
-          }
-        }
-        // 监听 response 流关闭，这可能发生在网页刷新
-        responseReadableStream.controller.awaitClose {
-          onDisposeSignal.emit()
-          doClose()
-        }
-        // 监听 ipc 关闭，这可能由程序自己控制
-        ipc.onClosed {
-          doClose()
-        }
-        // 返回响应流
-        PureResponse.build { body(responseReadableStream.stream.stream) }
-      }
-    }
-
-    fun definePureResponse(
-      middlewareHttpHandler: MiddlewareHttpHandler? = null,
-      handler: TypedHttpHandler<PureResponse>,
-    ) = wrapHandler(middlewareHttpHandler) {
-      handler()
-    }
-
-    fun definePureBinaryHandler(
-      middlewareHttpHandler: MiddlewareHttpHandler? = null,
-      handler: TypedHttpHandler<PureBinary>,
-    ) = wrapHandler(middlewareHttpHandler) {
-      PureResponse(body = PureBinaryBody(handler()))
-    }
-
-    fun definePureStreamHandler(
-      middlewareHttpHandler: MiddlewareHttpHandler? = null,
-      handler: TypedHttpHandler<PureStream>,
-    ) = wrapHandler(middlewareHttpHandler) {
-      PureResponse(body = PureStreamBody(handler()))
-    }
-
-    private fun wrapHandler(
-      middlewareHttpHandler: MiddlewareHttpHandler? = null,
-      handler: TypedHttpHandler<PureResponse?>,
-    ): HttpHandlerChain {
-
-      val httpHandler: HttpHandler = {
-        handler() ?: PureResponse(HttpStatusCode.NotImplemented)
-      }
-      return httpHandler.toChain().also {
-        if (middlewareHttpHandler != null) {
-          it.use(middlewareHttpHandler)
-        }
-      }
-    }
   }
 
   class JsonLineHandlerContext constructor(context: HandlerContext) : IHandlerContext by context {

@@ -13,11 +13,11 @@ export type { $JmmAppInstallManifest, $JmmAppManifest } from "./types.ts";
 //#endregion
 
 //#region runtime types
-export type * from "../../js-process-worker/index.ts";
-export type * from "../../js-process-worker/std-dweb-core.ts";
+export type * from "../../js-process/worker/index.ts";
+export type * from "../../js-process/worker/std-dweb-core.ts";
 
-export type * from "../../js-process-worker/std-dweb-http.ts";
-import type * as $Core from "../../js-process-worker/std-dweb-core.ts";
+export type * from "../../js-process/worker/std-dweb-http.ts";
+import type * as $Core from "../../js-process/worker/std-dweb-core.ts";
 
 
 export const { jsProcess, http, ipc, core } = navigator.dweb;
