@@ -368,4 +368,63 @@ class ProducerTest {
     assertEquals(MAX, res.size)
     producer.await()
   }
+
+  @Test
+  fun testMultiConsumer() = runCommonTest {
+    data class Data(val data: Int) : OrderBy {
+      override val order = 1
+    }
+
+    val MAX = 20
+    val producer = Producer<Data>("test", this)
+    val res = SafeLinkList<Data>()
+
+    producer.consumer("consumer1").collectIn(this) {
+      res.add(it.consume())
+      println("${now()} $it")
+    }
+    producer.consumer("consumer2").collectIn(this) {
+      res.add(it.consume())
+      println("${now()} $it")
+    }
+    for (i in 1..MAX) {
+      producer.send(Data(i))
+    }
+    producer.close()
+
+    assertEquals(MAX, res.size / 2)
+    producer.await()
+  }
+
+  @Test
+  fun testStopImmediatePropagation() = runCommonTest {
+    data class Data(val data: Int) : OrderBy {
+      override val order = 1
+    }
+
+    val MAX = 20
+    val producer = Producer<Data>("test", this)
+    val res = SafeLinkList<Data>()
+
+    producer.consumer("consumer1").collectIn(this) {
+      res.add(it.consume())
+      println("${now()} $it")
+    }
+    producer.consumer("consumer2").collectIn(this) {
+      res.add(it.consume())
+      println("${now()} $it")
+      it.stopImmediatePropagation()
+    }
+    producer.consumer("consumer3").collectIn(this) {
+      res.add(it.consume())
+      println("${now()} $it")
+    }
+    for (i in 1..MAX) {
+      producer.send(Data(i))
+    }
+    producer.close()
+
+    assertEquals(MAX, res.size / 2)
+    producer.await()
+  }
 }

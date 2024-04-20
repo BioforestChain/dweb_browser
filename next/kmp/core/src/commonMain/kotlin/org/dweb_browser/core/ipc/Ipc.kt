@@ -237,7 +237,7 @@ class Ipc internal constructor(
         pool.safeCreatedIpc(
           forkedIpc, autoStart = ipcFork.autoStart, startReason = ipcFork.startReason
         )
-        forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
+        endpoint.forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
         forkProducer.send(forkedIpc)
       }
     }
@@ -251,14 +251,7 @@ class Ipc internal constructor(
     endpoint.postIpcMessage(EndpointIpcMessage(pid, state))
   }
 
-  private val forkedIpcMap = SafeHashMap<Int, CompletableDeferred<Ipc>>()
-
-  suspend fun waitForkedIpc(pid: Int): Ipc {
-    val ipc = traceTimeout(1000, { "$pid" }) {
-      forkedIpcMap.getOrPut(pid) { CompletableDeferred() }.await()
-    }
-    return ipc
-  }
+  val waitForkedIpc = endpoint::waitForkedIpc
 
   /**
    * 在现有的线路中分叉出一个ipc通道
@@ -279,7 +272,7 @@ class Ipc internal constructor(
       autoStart = autoStart,
       startReason = startReason
     )
-    forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
+    endpoint.forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
     // 自触发
     forkProducer.send(forkedIpc)
     // 通知对方
@@ -308,8 +301,9 @@ class Ipc internal constructor(
     name: String,
     crossinline mapNotNull: suspend (value: IpcMessage) -> T?,
   ) = onMessage(name).mapNotNull { event ->
-    event.next();
-    mapNotNull(event.data)?.also { event.consume() }
+    event.consumeMapNotNull {
+      mapNotNull(it)
+    }
   }.asProducer(messageProducer.producer.name + "/" + name, scope).also { producer ->
     onClosed { cause ->
       launchJobs += scope.launch {
@@ -339,7 +333,7 @@ class Ipc internal constructor(
     }
   }
 
-  private fun onResponse(name: String) = responseProducer.consumer(name)
+  fun onResponse(name: String) = responseProducer.consumer(name)
 
   private val streamProducer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     messagePipeMap("stream") {

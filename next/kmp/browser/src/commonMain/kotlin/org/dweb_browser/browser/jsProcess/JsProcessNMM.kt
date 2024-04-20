@@ -26,6 +26,7 @@ import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.queryAs
 
 val debugJsProcess = Debugger("js-process")
 
@@ -53,6 +54,8 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     private val INTERNAL_PATH = "/<internal>".encodeURI()
 
     override suspend fun _bootstrap() {
+      // 依赖 file 模块，所以需要启动它
+      bootstrapContext.dns.open("file.std.dweb")
       /// 主页的网页服务
       val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
         // 提供基本的主页服务
@@ -110,7 +113,9 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
          */
         "/create-process" bind PureMethod.GET by defineStringResponse {
           val processId = createProcessAndRun(
-            processIpc = ipc,
+            processName = request.queryOrNull("name") ?: ipc.remote.name,
+            remoteCodeIpc = ipc,
+            remoteFetchIpc = ipc.waitForkedIpc(request.queryAs("fetch-ipc-pid")),
             apis = apis,
             bootstrapUrl = bootstrapUrl,
             entry = request.queryOrNull("entry"),
@@ -167,7 +172,9 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     }
 
     private suspend fun createProcessAndRun(
-      processIpc: Ipc,
+      processName: String,
+      remoteCodeIpc: Ipc,
+      remoteFetchIpc:Ipc,
       apis: JsProcessWebApi,
       bootstrapUrl: String,
       entry: String?,
@@ -176,13 +183,13 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
        * 用自己的域名的权限为它创建一个子域名
        */
       val httpDwebServer = createHttpDwebServer(
-        DwebHttpServerOptions(subdomain = "${processIpc.remote.mmid}-${processIpc.pid}"),
+        DwebHttpServerOptions(subdomain = "${remoteCodeIpc.remote.mmid}-${remoteCodeIpc.pid}"),
       );
 
       /**
        * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
        */
-      processIpc.onClosed {
+      remoteCodeIpc.onClosed {
         scopeLaunch(cancelable = false) {
           httpDwebServer.close();
         }
@@ -198,25 +205,27 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
 
       codeProxyServerIpc.onRequest("codeProxyServer").collectIn(mmScope) { event ->
         val request = event.consume()
+        debugMM("code server", request)
         codeProxyServerIpc.postResponse(
           request.reqId,
           // 转发给远端来处理 IpcServerRequest -> PureServerRequest -> PureClientRequest
-          /// TODO 对代码进行翻译处理
-          processIpc.request(request.toPure().toClient()).let {
+          /// TODO 对代码进行翻译处理，比如 tsc
+          remoteCodeIpc.request(request.toPure().toClient()).also { response ->
             /// 加入跨域配置
-            val response = it;
             for ((key, value) in JS_CORS_HEADERS) {
-              response.headers.apply { set(key, value) }
+              response.headers.set(key, value)
             }
-            response
           },
         )
       }
 
       /// TODO env 允许远端传过来扩展
-      val env = mutableMapOf( // ...your envs
+      val env = mutableMapOf<String, String>( // ...your envs
+        // 这不是是它代码的请求路径，代码请求路径从 import.meta.url 中读取，这里是用来为开发者提供一个 baseURL 而已
         "host" to httpDwebServer.startResult.urlInfo.host,
-        "debug" to "true",
+        // native环境是否启用调试
+        "debug" to debugJsProcess.isEnable.toString(),
+        // jmm的版本信息
         "jsMicroModule" to "${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"
       )
 
@@ -224,19 +233,19 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
        * 创建一个通往 worker 的消息通道
        */
       val processInfo = apis.createProcess(
+        processName,
         bootstrapUrl,
-        Json.encodeToString(processIpc.remote),
+        Json.encodeToString(remoteFetchIpc.remote),
         Json.encodeToString(env),
-        processIpc.remote.mmid
       )
 
       val fetchIpc = kotlinIpcPool.createIpc(
         endpoint = WebMessageEndpoint.from(
-          "jsWorker-${processIpc.remote.mmid}", kotlinIpcPool.scope, processInfo.port
+          "jsWorker-${remoteFetchIpc.remote.mmid}", kotlinIpcPool.scope, processInfo.port
         ),
         pid = 0,
-        locale = processIpc.remote,
-        remote = processIpc.remote,
+        locale = remoteFetchIpc.remote,
+        remote = remoteFetchIpc.remote,
       )
       fetchIpc.onClosed {
         scopeLaunch(cancelable = false) {
@@ -253,13 +262,13 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         /**
          * 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
          */
-        processIpc.postMessage(workerIpcMessage.consume())
+        remoteFetchIpc.postMessage(workerIpcMessage.consume())
       }
-      processIpc.onMessage("process-to-jsWorker").collectIn(mmScope) { remoteIpcMessage ->
+      remoteFetchIpc.onMessage("process-to-jsWorker").collectIn(mmScope) { remoteIpcMessage ->
         fetchIpc.postMessage(remoteIpcMessage.consume())
       }
       /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
-      processIpc.onClosed {
+      remoteFetchIpc.onClosed {
         scopeLaunch(cancelable = false) {
           fetchIpc.close()
         }
@@ -267,7 +276,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       /// 双向绑定关闭
       fetchIpc.onClosed {
         scopeLaunch(cancelable = false) {
-          processIpc.close()
+          remoteFetchIpc.close()
         }
       }
 

@@ -22,15 +22,15 @@ const allocProcessId = () => acc_process_id++;
  * @param metadata_json 对应的 JsMicroModurl 的 元数据 一般包括 mmid 和 worker.js 的位置
  * @param env_json
  * @param fetch_port messagePort 通过 js.browser.dweb 传递进来的 transfer
- * @param name woker 的名称
+ * @param process_name woker 的名称
  * @returns
  */
 const createProcess = async (
+  process_name: string,
   env_script_url: string,
   metadata_json: string,
   env_json: string,
   fetch_port: MessagePort,
-  name: string = new URL(env_script_url).hostname,
   gatewayPort: number
 ) => {
   const process_id = allocProcessId();
@@ -55,7 +55,7 @@ const createProcess = async (
   /// https://caniuse.com/mdn-api_worker_worker_ecmascript_modules 需要 2019 年之后的 WebView 支持： Safari 15+ || Chrome 80+
   const worker = new Worker(worker_url, {
     type: "module",
-    name: name,
+    name: process_name,
   });
 
   await new Promise<void>((resolve, reject) => {

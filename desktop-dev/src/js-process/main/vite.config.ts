@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   base: "./",
   build: {
+    emptyOutDir: true,
     assetsDir: "./", // 资源目录,相对于 dist 目录
     assetsInlineLimit: 4096, // 小于该大小的资源将内联为 base64 编码
     rollupOptions: {

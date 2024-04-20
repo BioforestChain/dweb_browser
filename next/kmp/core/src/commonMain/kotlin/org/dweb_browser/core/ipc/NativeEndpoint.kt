@@ -12,6 +12,8 @@ import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.EndpointLifecycle
 import org.dweb_browser.core.ipc.helper.EndpointLifecycleInit
 import org.dweb_browser.core.ipc.helper.EndpointProtocol
+import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.helper.debugger
 import org.dweb_browser.helper.withScope
 import kotlin.math.min
 
@@ -87,6 +89,9 @@ class NativeEndpoint(
     scope.launch {
       for ((pid, ipcMessage) in messageIn) {
         debugEndpoint("message-in", "pid=$pid ipcMessage=$ipcMessage")
+        if (pid == 3 && ipcMessage is IpcResponse && ipcMessage.reqId == 11) {
+          debugger()
+        }
         /**
          * UNDISPATCHED 能确保 orderBy 的顺序
          */

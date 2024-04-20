@@ -54,6 +54,15 @@ abstract class IpcEndpoint {
    */
   fun generatePid() = accPid.addAndGet(2)
 
+  internal val forkedIpcMap = SafeHashMap<Int, CompletableDeferred<Ipc>>()
+
+  suspend fun waitForkedIpc(pid: Int): Ipc {
+    val ipc = traceTimeout(1000, { "$pid" }) {
+      forkedIpcMap.getOrPut(pid) { CompletableDeferred() }.await()
+    }
+    return ipc
+  }
+
 
   val debugEndpoint by lazy { Debugger(this.toString()) }
   abstract val debugId: String

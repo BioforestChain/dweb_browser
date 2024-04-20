@@ -6,6 +6,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
+import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
@@ -121,6 +122,10 @@ class TestNMM(mmid: String = "test.ipcPool.dweb", name: String) :
 class JsProcessTest {
 
 
+  init {
+    addDebugTags(listOf("/.+/"))
+  }
+
   @Test
   fun testCreateMessagePortIpc() = runCommonTest {
     val dns = DnsNMM()
@@ -133,14 +138,20 @@ class JsProcessTest {
     val testNMM = TestNMM("xx.dweb", "xx")
     dns.install(testNMM)
     val dnsRunTime = dns.bootstrap()
-    val testRuntime = dnsRunTime.open(testNMM.manifest.mmid) as TestNMM.TestRuntime
+    val testRuntime = dnsRunTime.open(testNMM.mmid) as TestNMM.TestRuntime
 
-    val jsProcess = testRuntime.createJsProcess()
+    val jsProcess = testRuntime.createJsProcess("hhh")
     jsProcess.defineRoutes {
       "/" bindPrefix PureMethod.GET by defineStringResponse {
-        println("QAQ request.url")
+        println("QAQ request.url=${request.url}")
         request.url.toString()
+        when (request.url.encodedPath) {
+          "/index.js" -> "import {a} from './a';console.log('a=',a)"
+          "/a" -> "export const a=1"
+          else -> "console.error('should not load:',import.meta.url)"
+        }
       }
     }
+    jsProcess.codeIpc.awaitClosed()
   }
 }

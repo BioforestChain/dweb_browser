@@ -15,6 +15,7 @@ import com.teamdev.jxbrowser.dom.event.UiEventModifierParams
 import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.ConsoleMessageLevel
 import com.teamdev.jxbrowser.js.JsException
+import com.teamdev.jxbrowser.js.JsObject
 import com.teamdev.jxbrowser.js.JsPromise
 import com.teamdev.jxbrowser.navigation.LoadUrlParams
 import com.teamdev.jxbrowser.net.HttpHeader
@@ -153,12 +154,20 @@ class DWebViewEngine internal constructor(
     val deferred = CompletableDeferred<String>()
 
     runCatching {
-      mainFrame.executeJavaScript("(async()=>{return ($script)})().then(r=>JSON.stringify(r)??'undefined',e=>{throw String(e)})",
-        Consumer<JsPromise> { promise ->
-          promise.then {
-            deferred.complete(it[0] as String)
-          }.catchError {
-            deferred.completeExceptionally(JsException(it[0] as String))
+      mainFrame.executeJavaScript("(async()=>{return ($script)})().then(r=>JSON.stringify(r)??'undefined',e=>{throw  String(e)})",
+        Consumer<JsObject> { jsObject ->
+          if (jsObject is JsPromise) {
+            jsObject.then {
+              deferred.complete(it[0] as String)
+            }.catchError {
+              deferred.completeExceptionally(JsException(it[0] as String))
+            }.finallyExecute {
+              jsObject.close()
+            }
+          } else {
+            /// 语法错误
+            val errorMessage = jsObject.getProp<String?>("message")
+            deferred.completeExceptionally(JsException(errorMessage ?: "unknown error"))
           }
         })
     }.getOrElse { deferred.completeExceptionally(it) }

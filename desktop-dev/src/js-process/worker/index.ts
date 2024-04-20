@@ -85,17 +85,7 @@ export class Metadata {
  * 这个是虚假的 $MicroModule，这里只是一个影子，指代 native 那边的 micro_module
  */
 export class JsProcessMicroModule extends MicroModule {
-  override manifest: core.$MicroModuleManifest = {
-    mmid: this.meta.data.mmid,
-    ipc_support_protocols: {
-      json: false,
-      cbor: true,
-      protobuf: false,
-    },
-    dweb_deeplinks: [],
-    categories: [],
-    name: this.meta.data.mmid,
-  };
+  override manifest = this.meta.data;
   readonly ipcPool = new core.IpcPool(this.meta.data.mmid);
   readonly fetchIpc = this.ipcPool.createIpc(
     new WebMessageEndpoint(this.nativeFetchPort, "fetch"),

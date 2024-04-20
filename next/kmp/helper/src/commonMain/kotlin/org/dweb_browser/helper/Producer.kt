@@ -62,11 +62,31 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
      */
     private val emitLock = Mutex()
     internal val emitJobs = SafeLinkList<Job>()
+
+    /**
+     * 消费事件
+     *
+     * 默认情况下，事件会被缓存，直到被消费
+     * 但是这并不会停止向当前已有的其它消费器继续传播
+     */
     fun consume(): T {
       if (!consumed) {
         consumed = true
       }
       return data
+    }
+
+    var stoped = false
+      private set
+
+    /**
+     * 停止传播
+     *
+     * 事件消费，并停止向其它消费器继续传播
+     */
+    fun stopImmediatePropagation() {
+      consume()
+      stoped = true
     }
 
     /**
@@ -75,12 +95,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     internal fun complete() {
       eventJob.complete()
       buffers.remove(this)
-    }
-
-    /**
-     * TODO
-     */
-    suspend fun next() {
     }
 
     /**将其消耗转换为R对象 以返回值形式继续传递*/
@@ -94,6 +108,15 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     inline fun consumeFilter(filter: (T) -> Boolean): T? {
       if (filter(data)) {
         return consume()
+      }
+      return null
+    }
+
+    inline fun <R : Any?> consumeMapNotNull(mapNotNull: (T) -> R?): R? {
+      val result = mapNotNull(data)
+      if (result != null) {
+        consume()
+        return result
       }
       return null
     }
@@ -118,7 +141,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
     internal suspend fun emitBy(consumer: Consumer) {
       emitLock.withLock {
-        if (consumed) {
+        if (stoped) {
           return
         }
 
@@ -195,7 +218,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
             continue
           }
           event.emitBy(consumer)
-          if (event.consumed) {
+          if (event.stoped) {
             break
           }
         }
@@ -326,6 +349,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     consumers.clear()
     buffers.clear()
   }
+
   /**调用监听关闭*/
   fun invokeOnClose(handler: CompletionHandler) {
     scope.coroutineContext[Job]!!.invokeOnCompletion(handler)

@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jsProcess
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -39,41 +38,52 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
    * 创建一个jsWorker线程
    */
   suspend fun createProcess(
-    env_script_url: String,
-    metadata_json: String,
-    env_json: String,
-    host: String,
+    processName: String,
+    envScriptUrl: String,
+    metadataJson: String,
+    envJson: String,
   ): ProcessInfo {
+    debugJsProcess("createProcess") {
+      """
+      ---
+      processName=$processName
+      envScriptUrl=$envScriptUrl
+      metadataJson=$metadataJson
+      envJson=$envJson
+      ---
+      """.trimIndent()
+    }
     val channel = dWebView.createMessageChannel()
     val port1 = channel.port1
     val port2 = channel.port2
-    val metadata_json_str = Json.encodeToString(metadata_json)
-    val env_json_str = Json.encodeToString(env_json)
+    val metadataJsonStr = Json.encodeToString(metadataJson)
+    val envJsonStr = Json.encodeToString(envJson)
+    val processNameStr = Json.encodeToString(processName)
 
     val hid = hidAcc++
-    val processInfo_json = dWebView.evaluateAsyncJavascriptCode("""
-            new Promise((resolve,reject)=>{
-                addEventListener("message", async function doCreateProcess(event) {
-                    if (event.data === "js-process/create-process/$hid") {
-                     try{
-                        removeEventListener("message", doCreateProcess);
-                        const fetch_port = event.ports[0];
-                        resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`, ${dwebHttpGatewayServer.startServer()}`))
-                        }catch(err){
-                            reject(err)
-                        }
-                    }
-                })
-            })
-            """.trimIndent(), afterEval = {
+    val processinfoJson = dWebView.evaluateAsyncJavascriptCode("""
+      new Promise((resolve,reject)=>{
+          addEventListener("message", async function doCreateProcess(event) {
+              if (event.data === "js-process/create-process/$hid") {
+               try{
+                  removeEventListener("message", doCreateProcess);
+                  const fetch_port = event.ports[0];
+                  resolve(await createProcess($processNameStr,`$envScriptUrl`,$metadataJsonStr,$envJsonStr,fetch_port,${dwebHttpGatewayServer.startServer()}))
+                  }catch(err){
+                      reject(err)
+                  }
+              }
+          })
+      })
+      """.trimIndent(), afterEval = {
       try {
         dWebView.postMessage("js-process/create-process/$hid", listOf(port1))
       } catch (e: Exception) {
         e.printStackTrace()
       }
     })
-    debugJsProcess("processInfo", processInfo_json)
-    val info = Json.decodeFromString<ProcessInfo>(processInfo_json)
+    debugJsProcess("processInfo", processinfoJson)
+    val info = Json.decodeFromString<ProcessInfo>(processinfoJson)
     info.port = port2
     return info
   }
@@ -167,14 +177,19 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
 suspend fun createJsProcessWeb(
   mainServer: HttpDwebServer, mm: NativeMicroModule.NativeRuntime,
 ): JsProcessWebApi {
+  debugJsProcess("createJsProcessWeb")
   /// WebView 实例
   val urlInfo = mainServer.startResult.urlInfo
 
   val jsProcessUrl = urlInfo.buildInternalUrl().build { resolvePath("/index.html") }.toString()
-  val dWebView = IDWebView.create(mm, DWebViewOptions(privateNet = true))
+  val dWebView = IDWebView.create(
+    mm, DWebViewOptions(
+      privateNet = true,
+      openDevTools = true,
+    )
+  )
+  // 等待加载完成
   dWebView.loadUrl(jsProcessUrl)
-  // 监听打开开发者工具事件
-  listenOpenDevTool(dWebView, mm.getRuntimeScope())
   /// 确保API可用
   while (dWebView.evaluateAsyncJavascriptCode("typeof createProcess==='function'") == "false") {
     delay(5)
@@ -182,9 +197,3 @@ suspend fun createJsProcessWeb(
 
   return JsProcessWebApi(dWebView)
 }
-
-/**
- * 桌面端监听打开开发者工具事件
- * TODO fuck this
- */
-expect fun listenOpenDevTool(dWebView: IDWebView, scope: CoroutineScope)
