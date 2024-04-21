@@ -6,37 +6,39 @@ import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.atomicfu.update
-import kotlinx.atomicfu.updateAndGet
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
-class SuspendOnce<R>(val runnable: suspend CoroutineScope.() -> R) {
-  private val lock = SynchronizedObject()
-  private var hasRun = noRun as Deferred<R>
+
+internal val noRun = CompletableDeferred<Nothing>().apply {
+  completeExceptionally(
+    Throwable("no run")
+  )
+}
+
+sealed class SuspendOnceBase<R> {
+  internal val lock = SynchronizedObject()
+  internal var hasRun = noRun as Deferred<R>
   val haveRun get() = hasRun !== noRun
   suspend fun getResult() = hasRun.await()
   fun reset() {
     synchronized(lock) {
-      if (hasRun !== noRun) {
+      if (hasRun !== noRun && hasRun.isActive) {
         hasRun.cancel()
       }
-      noRun
+      hasRun = noRun
     }
   }
 
-  suspend operator fun invoke(): R {
+  internal suspend inline fun doInvoke(crossinline doRun: CoroutineScope.() -> Deferred<R>): R {
     return coroutineScope {
       synchronized(lock) {
         if (hasRun === noRun) {
-          hasRun = async(start = CoroutineStart.UNDISPATCHED) {
-            runnable()
-          }
+          hasRun = doRun()
         }
       }
       hasRun
@@ -44,36 +46,26 @@ class SuspendOnce<R>(val runnable: suspend CoroutineScope.() -> R) {
   }
 }
 
-
-private val noRun = CompletableDeferred<Nothing>().apply {
-  completeExceptionally(
-    Throwable("no run")
-  )
+class SuspendOnce<R>(val runnable: suspend CoroutineScope.() -> R) : SuspendOnceBase<R>() {
+  suspend operator fun invoke(): R {
+    return doInvoke {
+      async(start = CoroutineStart.UNDISPATCHED) {
+        runnable()
+      }
+    }
+  }
 }
 
 class SuspendOnce1<A1, R>(
   val before: (suspend ((A1) -> Unit))? = null,
   val runnable: suspend CoroutineScope.(A1) -> R,
-) {
-  private val lock = Mutex()
-  private val hasRun = atomic<Deferred<R>>(noRun)
-  val haveRun get() = hasRun.value !== noRun
-  suspend fun getResult() = hasRun.value.await()
-  suspend fun reset() {
-    lock.withLock { hasRun.update { noRun } }
-  }
+) : SuspendOnceBase<R>() {
 
   suspend operator fun invoke(arg1: A1): R {
-    return lock.withLock {
-      hasRun.updateAndGet { run ->
-        if (run === noRun) {
-          coroutineScope {
-            async(start = CoroutineStart.UNDISPATCHED) {
-              runnable(arg1)
-            }
-          }
-        } else run
-      }.await()
+    return doInvoke {
+      async(start = CoroutineStart.UNDISPATCHED) {
+        runnable(arg1)
+      }
     }
   }
 }

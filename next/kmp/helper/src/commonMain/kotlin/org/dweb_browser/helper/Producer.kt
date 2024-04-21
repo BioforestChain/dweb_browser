@@ -249,9 +249,8 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
     internal var startingBuffers: List<Event>? = null
 
-    private val collectors = SafeLinkList<FlowCollector<Event>>()
     internal val collectorLock = Mutex()
-    private val startCollect = SuspendOnce {
+    private val startCollect = SuspendOnce1 { collector: FlowCollector<Event> ->
       val job = scope.launch(start = CoroutineStart.UNDISPATCHED) {
         debugProducer("startCollect") {
           Exception().stackTraceToString().split("\n").firstOrNull {
@@ -263,9 +262,11 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         for (event in input) {
           // 同一个事件的处理，不做任何阻塞，直接发出
           // 这里包一层launch，目的是确保不阻塞input的循环，从而确保上游event能快速涌入
-          for (collector in collectors) {
-            event.emitJobs += launch(start = CoroutineStart.UNDISPATCHED) {
+          event.emitJobs += launch(start = CoroutineStart.UNDISPATCHED) {
+            try {
               collector.emit(event)
+            } catch (e: Throwable) {
+              job.completeExceptionally(e)
             }
           }
           collectorLock.unlock()
@@ -289,9 +290,8 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
     }
 
     override suspend fun collect(collector: FlowCollector<Event>) {
-      collectors.add(collector)
       // 事件在收集了再调用开始
-      startCollect()
+      startCollect(collector)
     }
 
     init {

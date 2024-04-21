@@ -1,5 +1,5 @@
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.jsProcess.ext.createJsProcess
 import org.dweb_browser.core.http.router.bindPrefix
@@ -104,10 +104,8 @@ import kotlin.time.Duration.Companion.seconds
 //
 //}
 
-class TestNMM(mmid: String = "test.ipcPool.dweb", name: String) :
-  NativeMicroModule(mmid, name) {
-  inner class TestRuntime(override val bootstrapContext: BootstrapContext) :
-    NativeRuntime() {
+class TestNMM(mmid: String = "test.ipcPool.dweb", name: String) : NativeMicroModule(mmid, name) {
+  inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     override suspend fun _bootstrap() {
 
     }
@@ -152,15 +150,24 @@ class JsProcessTest {
         println("QAQ request.url=${request.url}")
         request.url.toString()
         when (request.url.encodedPath) {
-          "/index.js" -> "import {a} from './a';console.log('a=',a)"
-          "/a" -> "export const a=1"
+          "/index.js" -> """
+            import {a} from './a';
+            const ipcEvent = navigator.dweb.ipc.IpcEvent.fromText('test',a)
+            navigator.dweb.jsProcess.fetchIpc.postMessage(ipcEvent)
+          """.trimIndent()
+
+          "/a" -> "export const a=`$test`"
           else -> "console.error('should not load:',import.meta.url)"
         }
       }
     }
-    val result = jsProcess.fetchIpc.onEvent("wait-js").map { event ->
-      event.consume().text
+    val result = jsProcess.fetchIpc.onEvent("wait-js").mapNotNull { event ->
+      val r = event.consumeFilter { it.name == "test" }?.text
+      println("QAQ okk1 $r")
+      r
     }.first()
     assertEquals(test, result)
+    println("QAQ okk2 $result")
+    dnsRunTime.shutdown()
   }
 }
