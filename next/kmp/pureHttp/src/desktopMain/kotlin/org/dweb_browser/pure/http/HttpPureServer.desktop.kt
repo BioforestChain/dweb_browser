@@ -30,8 +30,8 @@ actual class HttpPureServer actual constructor(onRequest: HttpPureServerOnReques
           this.keyStorePath = SslSettings.keyStoreFile
         }
       }.also {
-        serverDeferred.complete(it)
         it.start(wait = false)
+        serverDeferred.complete(it)
       }
     }
 

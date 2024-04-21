@@ -34,7 +34,7 @@ val debugHttpPureServer = Debugger("httpPureServer")
 
 open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
   val serverEngine: ApplicationEngineFactory<TEngine, TConfiguration>,
-  val onRequest: HttpPureServerOnRequest
+  val onRequest: HttpPureServerOnRequest,
 ) {
   protected val serverDeferred = CompletableDeferred<ApplicationEngine>()
   protected fun createServer(
@@ -132,8 +132,8 @@ open class KtorPureServer<out TEngine : ApplicationEngine, TConfiguration : Appl
           this.host = "0.0.0.0"
         }
       }.also {
-        serverDeferred.complete(it)
         it.start(wait = false)
+        serverDeferred.complete(it)
       }
     }
 

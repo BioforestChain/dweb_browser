@@ -235,7 +235,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         Json.encodeToString(env),
       )
       remoteCodeIpc.onClosed {
-        scopeLaunch(cancelable = false) {
+        scopeLaunch(cancelable = true) {
           apis.destroyProcess(processInfo.processId)
         }
       }

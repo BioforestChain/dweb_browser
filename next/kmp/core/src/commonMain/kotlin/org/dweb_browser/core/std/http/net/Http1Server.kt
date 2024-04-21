@@ -23,7 +23,7 @@ class Http1Server {
   suspend fun createServer(
     gatewayHandler: GatewayHandler,
     httpHandler: GatewayHttpHandler,
-    errorHandler: GatewayErrorHandler
+    errorHandler: GatewayErrorHandler,
   ) {
     DwebHttpGatewayServer.gatewayAdapterManager.append { request ->
       when (val gateway = gatewayHandler(request)) {

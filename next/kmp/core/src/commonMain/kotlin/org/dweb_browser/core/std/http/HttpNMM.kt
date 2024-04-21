@@ -196,22 +196,24 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         initHttpListener()
       }
       /// 启动http后端服务
-      dwebServer.createServer(gatewayHandler = { request ->
-        findDwebGateway(request)?.let { info ->
-          debugHttp("gateway") {
-            "host=${info.host} gateway=${gatewayMap.contains(info.host)}"
+      scopeLaunch(cancelable = true) {
+        dwebServer.createServer(gatewayHandler = { request ->
+          findDwebGateway(request)?.let { info ->
+            debugHttp("gateway") {
+              "host=${info.host} gateway=${gatewayMap.contains(info.host)}"
+            }
+            gatewayMap[info.host]
           }
-          gatewayMap[info.host]
-        }
-      }, httpHandler = { gateway, request ->
-        gateway.listener.hookHttpRequest(request)
-      }, errorHandler = { request, gateway ->
-        if (gateway == null) {
-          if (request.url.fullPath == "/debug") {
-            PureResponse(HttpStatusCode.OK, body = PureStringBody(request.headers.toString()))
-          } else noGatewayResponse
-        } else PureResponse(HttpStatusCode.NotFound)
-      })
+        }, httpHandler = { gateway, request ->
+          gateway.listener.hookHttpRequest(request)
+        }, errorHandler = { request, gateway ->
+          if (gateway == null) {
+            if (request.url.fullPath == "/debug") {
+              PureResponse(HttpStatusCode.OK, body = PureStringBody(request.headers.toString()))
+            } else noGatewayResponse
+          } else PureResponse(HttpStatusCode.NotFound)
+        })
+      }
 
       /// 为 nativeFetch 函数提供支持
       nativeFetchAdaptersManager.append(order = 10) { fromMM, request ->
