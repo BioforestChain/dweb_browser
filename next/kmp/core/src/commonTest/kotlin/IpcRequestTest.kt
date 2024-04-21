@@ -35,8 +35,8 @@ class IpcRequestTest {
     val fromMM = TestMicroModule()
     val toMM = TestMicroModule()
     val pid = 0
-    val senderIpc = kotlinIpcPool.createIpc(channel.port1, pid, fromMM, toMM)
-    val receiverIpc = kotlinIpcPool.createIpc(channel.port2, pid, toMM, fromMM)
+    val senderIpc = kotlinIpcPool.createIpc(channel.port1, pid, fromMM.manifest, toMM.manifest)
+    val receiverIpc = kotlinIpcPool.createIpc(channel.port2, pid, toMM.manifest, fromMM.manifest)
 
     launch {
       // send text body

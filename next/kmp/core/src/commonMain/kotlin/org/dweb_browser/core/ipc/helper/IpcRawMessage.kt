@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
  * 总的消息类型抽象
  */
 @Serializable
+sealed interface IpcRawMessage {
+}
+
 sealed interface IpcMessage {
 }
 

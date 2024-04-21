@@ -40,7 +40,7 @@ export abstract class CommonEndpoint extends IpcEndpoint {
 
   /**初始化支持的协议 */
   protected override getLocaleSubProtocols() {
-    return new Set([ENDPOINT_PROTOCOL.JSON, ENDPOINT_PROTOCOL.CBOR]);
+    return new Set([ENDPOINT_PROTOCOL.JSON]); //ENDPOINT_PROTOCOL.CBOR
   }
 
   /**向远端发送声明周期 */

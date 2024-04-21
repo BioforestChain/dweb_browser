@@ -16,4 +16,4 @@ data class IpcStreamPaused(
    * 一旦该数值为0，对方再发送数据过来的时候，底层会直接断开连接。
    */
   val fuse: Int = 1,
-) : IpcMessage, IpcStream
+) : IpcRawMessage, IpcMessage, IpcStream

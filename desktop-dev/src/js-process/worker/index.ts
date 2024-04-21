@@ -204,6 +204,7 @@ export class JsProcessMicroModule extends MicroModule {
       },
     };
     this.fetchIpc.onClosed(() => {
+      console.debug("fetch-ipc closed, then close the js-process-worker.");
       workerGlobal.close();
     });
     return ctx;

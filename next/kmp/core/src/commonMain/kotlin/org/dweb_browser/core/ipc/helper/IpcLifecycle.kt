@@ -16,7 +16,7 @@ import org.dweb_browser.helper.OrderBy
 data class IpcLifecycle(
   @Polymorphic val state: IpcLifecycleState,
   override val order: Int = DEFAULT_ORDER,
-) : IpcMessage, OrderBy {
+) : IpcRawMessage, IpcMessage, OrderBy {
   companion object {
     const val DEFAULT_ORDER = -1
   }

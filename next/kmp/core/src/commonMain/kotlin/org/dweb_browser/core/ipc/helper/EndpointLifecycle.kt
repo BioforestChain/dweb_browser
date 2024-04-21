@@ -15,8 +15,7 @@ import org.dweb_browser.helper.OrderBy
 data class EndpointLifecycle(
   @Polymorphic val state: EndpointLifecycleState,
   override val order: Int = DEFAULT_ORDER,
-) :
-  EndpointMessage, OrderBy {
+) : EndpointRawMessage, EndpointMessage, OrderBy {
   companion object {
     const val DEFAULT_ORDER = -1
   }

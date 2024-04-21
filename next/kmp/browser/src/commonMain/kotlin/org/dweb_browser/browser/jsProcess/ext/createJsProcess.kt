@@ -1,24 +1,32 @@
 package org.dweb_browser.browser.jsProcess.ext
 
 import io.ktor.http.URLBuilder
+import org.dweb_browser.browser.jsProcess.CreateProcessReturn
 import org.dweb_browser.core.http.router.HandlerContext
 import org.dweb_browser.core.http.router.HttpHandlerToolkit
 import org.dweb_browser.core.http.router.HttpRouter
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.dwebview.ipcWeb.native2JsEndpoint
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.collectIn
 
 suspend fun MicroModule.Runtime.createJsProcess(processName: String?): JsProcess {
   val mainIpc = this.connect("js.browser.dweb")
   val codeIpc = mainIpc.fork(autoStart = true)
-  val fetchIpc = mainIpc.fork(autoStart = true)
-  val handlerId = codeIpc.request(URLBuilder("file://js.browser.dweb/create-process").run {
+  val result = codeIpc.request(URLBuilder("file://js.browser.dweb/create-process").run {
     processName?.also { parameters["name"] = processName }
-    parameters["fetch-ipc-pid"] = fetchIpc.pid.toString()
     buildUnsafeString()
-  }).text()
-  return JsProcess(handlerId, this, codeIpc, fetchIpc)
+  }).json<CreateProcessReturn>()
+  val fetchIpc = kotlinIpcPool.createIpc(
+    endpoint = native2JsEndpoint(result.portId),
+    pid = 0,
+    locale = microModule.manifest,
+    remote = microModule.manifest,
+    autoStart = true,
+  )
+  return JsProcess(result.handlerId, this, codeIpc, fetchIpc)
 }
 
 class JsProcess(

@@ -16,5 +16,5 @@ class IpcFork(
   val startReason: String?,
   val locale: CommonAppManifest,
   val remote: CommonAppManifest,
-) : IpcMessage {
+) : IpcRawMessage, IpcMessage {
 }

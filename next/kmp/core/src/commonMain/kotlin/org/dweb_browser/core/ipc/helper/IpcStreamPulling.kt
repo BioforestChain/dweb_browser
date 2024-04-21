@@ -14,4 +14,4 @@ data class IpcStreamPulling(
    * 而负数的带宽代表物理意义上的阻塞，此时更不该再发送更多的数据过去
    */
   val bandwidth: Int = 0,
-) : IpcMessage, IpcStream
+) : IpcRawMessage, IpcMessage, IpcStream

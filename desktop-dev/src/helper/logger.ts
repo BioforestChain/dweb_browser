@@ -35,7 +35,6 @@ export const logger = (scope: unknown) => {
   };
   return logger;
 };
-
 const customInspect = (arg: any) =>
   typeof arg === "object" && arg !== null && CUSTOM_INSPECT in arg ? arg[CUSTOM_INSPECT]() : arg;
 const customInspects = (args: any[]) => args.map(customInspect);

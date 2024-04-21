@@ -8,6 +8,6 @@ import kotlinx.serialization.Serializable
 data class IpcError(
   val errorCode: Int,
   val message: String? = null,
-) : IpcMessage {
+) : IpcRawMessage, IpcMessage {
   override fun toString() = "IpcError(errorCode=$errorCode,message=$message)"
 }

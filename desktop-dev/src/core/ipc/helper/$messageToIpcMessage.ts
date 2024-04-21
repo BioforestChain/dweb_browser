@@ -21,7 +21,12 @@ export const $endpointMessageToCbor = (message: $EndpointMessage) => CBOR.encode
 export const $endpointMessageToJson = (message: $EndpointMessage) =>
   JSON.stringify($serializableEndpointMessage(message));
 
-export const $cborToEndpointMessage = (data: Uint8Array) => CBOR.decode(data) as $EndpointRawMessage;
+export const $cborToEndpointMessage = (data: Uint8Array | ArrayBuffer | SharedArrayBuffer) => {
+  if (!ArrayBuffer.isView(data)) {
+    data = new Uint8Array();
+  }
+  return CBOR.decode(data) as $EndpointRawMessage;
+};
 
 export const $jsonToEndpointMessage = (data: string) => JSON.parse(data) as $EndpointRawMessage;
 

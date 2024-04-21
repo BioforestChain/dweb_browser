@@ -43,7 +43,7 @@ sealed class IpcRequest(
   val headers: PureHeaders,
   val body: IpcBody,
   val ipc: Ipc,
-) : IpcMessage, IFrom {
+) : IpcMessage, IFrom, RawAble<IpcReqMessage> {
 
   val uri by lazy { Url(url) }
 
@@ -72,10 +72,9 @@ sealed class IpcRequest(
     forkedIpcId
   }
 
-  val ipcReqMessage by lazy {
+  override val stringAble by lazy {
     IpcReqMessage(reqId, method, url, headers.toMap(), body.metaBody)
   }
-
 }
 
 
@@ -147,4 +146,4 @@ data class IpcReqMessage(
   val url: String,
   val headers: MutableMap<String, String>,
   val metaBody: MetaBody,
-) : IpcMessage
+) : IpcRawMessage

@@ -62,8 +62,8 @@ class IpcPoolTest {
     val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
     println("1🧨=> ${fromMM.mmid} ${toMM.mmid}")
     val pid = 0
-    val fromNativeIpc = kotlinIpcPool.createIpc(channel.port1, pid, fromMM, toMM)
-    val toNativeIpc = kotlinIpcPool.createIpc(channel.port2, pid, toMM, fromMM)
+    val fromNativeIpc = kotlinIpcPool.createIpc(channel.port1, pid, fromMM.manifest, toMM.manifest)
+    val toNativeIpc = kotlinIpcPool.createIpc(channel.port2, pid, toMM.manifest, fromMM.manifest)
     toNativeIpc.onEvent("test").collectIn(this@runCommonTest) { event ->
       val ipcEvent = event.consume()
       println("🌞 toNativeIpc $ipcEvent")

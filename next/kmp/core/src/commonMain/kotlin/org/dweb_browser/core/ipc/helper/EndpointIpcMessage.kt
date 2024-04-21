@@ -11,7 +11,19 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 @SerialName(ENDPOINT_MESSAGE_TYPE_IPC)
+data class EndpointIpcRawMessage(
+  val pid: Int,
+  @Polymorphic val ipcMessage: IpcRawMessage,
+) : EndpointRawMessage
+
 data class EndpointIpcMessage(
   val pid: Int,
   @Polymorphic val ipcMessage: IpcMessage,
-) : EndpointMessage
+) : EndpointMessage, RawAble<EndpointIpcRawMessage> {
+  override val stringAble by lazy {
+    EndpointIpcRawMessage(pid, ipcMessage.toIpcRawMessage(false))
+  }
+  override val binaryAble by lazy {
+    EndpointIpcRawMessage(pid, ipcMessage.toIpcRawMessage(true))
+  }
+}

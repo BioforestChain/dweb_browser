@@ -5,6 +5,7 @@ import kotlinx.atomicfu.getAndUpdate
 import kotlinx.atomicfu.update
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CompletionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
@@ -257,12 +258,16 @@ abstract class IpcEndpoint {
     doClose(cause)
   }
 
-  val isClosed get() = scope.coroutineContext[Job]!!.isCancelled
+  private val job get() = scope.coroutineContext[Job]!!
+
+  val isClosed get() = job.isCancelled
 
   suspend fun awaitClosed() = runCatching {
-    scope.coroutineContext[Job]!!.join();
+    job.join();
     null
   }.getOrElse { it }
+
+  fun onClosed(handler: CompletionHandler) = job.invokeOnCompletion(handler)
 
   /**
    * 长任务，需要全部完成才能结束ipcEndpoint

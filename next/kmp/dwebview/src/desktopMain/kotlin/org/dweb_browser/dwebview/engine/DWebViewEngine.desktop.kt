@@ -397,6 +397,7 @@ class DWebViewEngine internal constructor(
 
     if (debugDWebView.isEnable) {
       browser.on(ConsoleMessageReceived::class.java) { event ->
+        event.hasConsoleMessage()
         val consoleMessage = event.consoleMessage()
         val level = consoleMessage.level()
         val message = consoleMessage.message()

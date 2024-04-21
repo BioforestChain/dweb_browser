@@ -8,9 +8,7 @@ import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.WebMessageEndpoint
 import org.dweb_browser.core.ipc.helper.IpcResponse
-import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -24,9 +22,9 @@ import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
-import org.dweb_browser.pure.http.queryAs
 
 val debugJsProcess = Debugger("js-process")
 
@@ -111,17 +109,16 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
          * 创建 web worker
          * 那么当前的ipc将会用来用作接下来的通讯
          */
-        "/create-process" bind PureMethod.GET by defineStringResponse {
-          val processId = createProcessAndRun(
+        "/create-process" bind PureMethod.GET by defineJsonResponse {
+          val processInfo = createProcessAndRun(
             processName = request.queryOrNull("name") ?: ipc.remote.name,
             remoteCodeIpc = ipc,
-            remoteFetchIpc = ipc.waitForkedIpc(request.queryAs("fetch-ipc-pid")),
             apis = apis,
             bootstrapUrl = bootstrapUrl,
             entry = request.queryOrNull("entry"),
           )
           val handlerId = randomUUID()
-          processIdMap[handlerId] = processId
+          processIdMap[handlerId] = processInfo.processId
 
           // 创建成功了，注册销毁函数
           ipc.onClosed {
@@ -131,11 +128,11 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
               // 关闭代码通道
               closeHttpDwebServer(DwebHttpServerOptions(mmid))
               // 关闭程序
-              apis.destroyProcess(processId)
+              apis.destroyProcess(processInfo.processId)
             }
           }
           // 返回具柄
-          handlerId
+          CreateProcessReturn(handlerId, portId = processInfo.portId).toJsonElement()
         },
         /// 创建 web 通讯管道
         "/create-ipc" bind PureMethod.GET by defineNumberResponse {
@@ -174,11 +171,10 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     private suspend fun createProcessAndRun(
       processName: String,
       remoteCodeIpc: Ipc,
-      remoteFetchIpc:Ipc,
       apis: JsProcessWebApi,
       bootstrapUrl: String,
       entry: String?,
-    ): Int {
+    ): ProcessInfo {
       /**
        * 用自己的域名的权限为它创建一个子域名
        */
@@ -235,62 +231,53 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       val processInfo = apis.createProcess(
         processName,
         bootstrapUrl,
-        Json.encodeToString(remoteFetchIpc.remote),
+        Json.encodeToString(remoteCodeIpc.remote),
         Json.encodeToString(env),
       )
-
-      val fetchIpc = kotlinIpcPool.createIpc(
-        endpoint = WebMessageEndpoint.from(
-          "jsWorker-${remoteFetchIpc.remote.mmid}", kotlinIpcPool.scope, processInfo.port
-        ),
-        pid = 0,
-        locale = remoteFetchIpc.remote,
-        remote = remoteFetchIpc.remote,
-      )
-      fetchIpc.onClosed {
+      remoteCodeIpc.onClosed {
         scopeLaunch(cancelable = false) {
-          apis.destroyProcess(processInfo.process_id)
+          apis.destroyProcess(processInfo.processId)
         }
       }
-      /**
-       * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
-       *
-       * TODO 所有的 ipcMessage 应该都有 headers，这样我们在 workerIpcMessage.headers 中附带上当前的 processId，
-       * 回来的 remoteIpcMessage.headers 同样如此，否则目前的模式只能代理一个 js-process 的消息。另外开 streamIpc 导致的翻译成本是完全没必要的
-       */
-      fetchIpc.onMessage("jsWorker-to-process").collectIn(mmScope) { workerIpcMessage ->
-        /**
-         * 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
-         */
-        remoteFetchIpc.postMessage(workerIpcMessage.consume())
-      }
-      remoteFetchIpc.onMessage("process-to-jsWorker").collectIn(mmScope) { remoteIpcMessage ->
-        fetchIpc.postMessage(remoteIpcMessage.consume())
-      }
-      /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
-      remoteFetchIpc.onClosed {
-        scopeLaunch(cancelable = false) {
-          fetchIpc.close()
-        }
-      }
-      /// 双向绑定关闭
-      fetchIpc.onClosed {
-        scopeLaunch(cancelable = false) {
-          remoteFetchIpc.close()
-        }
-      }
+//      /**
+//       * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
+//       *
+//       * TODO 所有的 ipcMessage 应该都有 headers，这样我们在 workerIpcMessage.headers 中附带上当前的 processId，
+//       * 回来的 remoteIpcMessage.headers 同样如此，否则目前的模式只能代理一个 js-process 的消息。另外开 streamIpc 导致的翻译成本是完全没必要的
+//       */
+//      fetchIpc.onMessage("jsWorker-to-process").collectIn(mmScope) { workerIpcMessage ->
+//        /**
+//         * 直接转发给远端 ipc，如果是nativeIpc，那么几乎没有性能损耗
+//         */
+//        remoteFetchIpc.postMessage(workerIpcMessage.consume())
+//      }
+//      remoteFetchIpc.onMessage("process-to-jsWorker").collectIn(mmScope) { remoteIpcMessage ->
+//        fetchIpc.postMessage(remoteIpcMessage.consume())
+//      }
+//      /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
+//      remoteFetchIpc.onClosed {
+//        scopeLaunch(cancelable = false) {
+//          fetchIpc.close()
+//        }
+//      }
+//      /// 双向绑定关闭
+//      fetchIpc.onClosed {
+//        scopeLaunch(cancelable = false) {
+//          remoteFetchIpc.close()
+//        }
+//      }
 
       /**
        * 开始执行代码
        */
       apis.runProcessMain(
-        processInfo.process_id,
+        processInfo.processId,
         RunProcessMainOptions(main_url = apis.dWebView.resolveUrl(httpDwebServer.startResult.urlInfo.buildInternalUrl {
           resolvePath(entry ?: "/index.js")
         }.toString()))
       )
 
-      return processInfo.process_id
+      return processInfo
     }
 
     /**创建到worker的Ipc 如果是worker到worker互联，则每个人分配一个messageChannel的port*/

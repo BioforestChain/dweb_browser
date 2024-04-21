@@ -1,3 +1,5 @@
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.jsProcess.ext.createJsProcess
 import org.dweb_browser.core.http.router.bindPrefix
@@ -7,9 +9,12 @@ import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.seconds
 
 //class TestHttpMicroModule(mmid: String = "http.server.dweb") :
 //  NativeRuntime(mmid, "test IpcPool") {
@@ -127,7 +132,7 @@ class JsProcessTest {
   }
 
   @Test
-  fun testCreateMessagePortIpc() = runCommonTest {
+  fun testCreateMessagePortIpc() = runCommonTest(timeout = 600.seconds) {
     val dns = DnsNMM()
     val jsProcessNMM = JsProcessNMM()
     dns.install(jsProcessNMM)
@@ -140,6 +145,7 @@ class JsProcessTest {
     val dnsRunTime = dns.bootstrap()
     val testRuntime = dnsRunTime.open(testNMM.mmid) as TestNMM.TestRuntime
 
+    val test = randomUUID()
     val jsProcess = testRuntime.createJsProcess("hhh")
     jsProcess.defineRoutes {
       "/" bindPrefix PureMethod.GET by defineStringResponse {
@@ -152,6 +158,9 @@ class JsProcessTest {
         }
       }
     }
-    jsProcess.codeIpc.awaitClosed()
+    val result = jsProcess.fetchIpc.onEvent("wait-js").map { event ->
+      event.consume().text
+    }.first()
+    assertEquals(test, result)
   }
 }

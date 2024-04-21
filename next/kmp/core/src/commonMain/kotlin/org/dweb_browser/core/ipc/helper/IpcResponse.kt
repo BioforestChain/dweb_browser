@@ -16,7 +16,7 @@ class IpcResponse(
   val headers: PureHeaders,
   val body: IpcBody,
   val ipc: Ipc,
-) : IpcMessage {
+) : IpcMessage, RawAble<IpcResMessage> {
   override fun toString() = "IpcResponse@$reqId/[$statusCode]".let { str ->
     if (ipc.debugIpc.isEnable) "$str{${
       headers.toList().joinToString(", ") { it.first + ":" + it.second }
@@ -98,7 +98,7 @@ class IpcResponse(
 
   fun toPure() = PureResponse(HttpStatusCode.fromValue(statusCode), this.headers, body = body.raw)
 
-  val ipcResMessage by lazy {
+  override val stringAble by lazy {
     IpcResMessage(reqId, statusCode, headers.toMap(), body.metaBody)
   }
 }
@@ -110,4 +110,4 @@ data class IpcResMessage(
   val statusCode: Int,
   val headers: MutableMap<String, String>,
   val metaBody: MetaBody,
-) : IpcMessage
+) : IpcRawMessage

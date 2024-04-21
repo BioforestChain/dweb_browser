@@ -1,7 +1,5 @@
 package org.dweb_browser.dwebview.ipcWeb
 
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.WebMessageEndpoint
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.ipc.kotlinIpcPool
@@ -13,16 +11,14 @@ private var all_ipc_id_acc by SafeInt(1);
 /**
  * 保存用于 JsBridge 的 IpcEndpoint
  */
-suspend fun saveJsBridgeIpcEndpoint(port: IWebMessagePort) = (all_ipc_id_acc++).also { portId ->
-  val endpoint = WebMessageEndpoint.from("native2js-$portId", kotlinIpcPool.scope, port)
-  ALL_MESSAGE_PORT_CACHE[portId] = endpoint
-  coroutineScope {
-    launch {
-      endpoint.awaitClosed()
+fun saveJsBridgeIpcEndpoint(port: IWebMessagePort, debugIdPrefix: String = "native2js") =
+  (all_ipc_id_acc++).also { portId ->
+    val endpoint = WebMessageEndpoint.from("$debugIdPrefix-$portId", kotlinIpcPool.scope, port)
+    ALL_MESSAGE_PORT_CACHE[portId] = endpoint
+    endpoint.onClosed {
       ALL_MESSAGE_PORT_CACHE.remove(portId)
     }
   }
-}
 
 
 /**

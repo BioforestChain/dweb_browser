@@ -3,12 +3,11 @@ package org.dweb_browser.browser.jsProcess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.http.dwebHttpGatewayServer
-import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -16,15 +15,15 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.dwebview.ipcWeb.saveJsBridgeIpcEndpoint
 import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
 
 @Serializable
-data class ProcessInfo(val process_id: Int) {
-  @Transient
-  lateinit var port: IWebMessagePort
-    internal set
-}
+data class ProcessInfo(@SerialName("process_id") val processId: Int, var portId: Int = -1)
+
+@Serializable
+data class CreateProcessReturn(val handlerId: UUID, val portId: Int)
 
 data class RunProcessMainOptions(val main_url: String)
 class JsProcessWebApi(internal val dWebView: IDWebView) {
@@ -61,7 +60,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val processNameStr = Json.encodeToString(processName)
 
     val hid = hidAcc++
-    val processinfoJson = dWebView.evaluateAsyncJavascriptCode("""
+    val processInfoJson = dWebView.evaluateAsyncJavascriptCode("""
       new Promise((resolve,reject)=>{
           addEventListener("message", async function doCreateProcess(event) {
               if (event.data === "js-process/create-process/$hid") {
@@ -82,9 +81,9 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
         e.printStackTrace()
       }
     })
-    debugJsProcess("processInfo", processinfoJson)
-    val info = Json.decodeFromString<ProcessInfo>(processinfoJson)
-    info.port = port2
+    debugJsProcess("processInfo", processInfoJson)
+    val info = Json.decodeFromString<ProcessInfo>(processInfoJson)
+    info.portId = saveJsBridgeIpcEndpoint(port2, "fetch-ipc-$processName")
     return info
   }
 
@@ -104,7 +103,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     val channel = dWebView.createMessageChannel()
     val port1 = channel.port1
     val port2 = channel.port2
-    val jsIpcPortId = saveJsBridgeIpcEndpoint(port2)
+    val jsIpcPortId = saveJsBridgeIpcEndpoint(port2, "bridge-ipc")
     val hid = hidAcc++
     dWebView.evaluateAsyncJavascriptCode("""
         new Promise((resolve,reject)=>{
