@@ -12,6 +12,7 @@ import com.teamdev.jxbrowser.dom.event.EventType
 import com.teamdev.jxbrowser.dom.event.MouseEvent
 import com.teamdev.jxbrowser.dom.event.MouseEventParams
 import com.teamdev.jxbrowser.dom.event.UiEventModifierParams
+import com.teamdev.jxbrowser.engine.EngineOptions
 import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.ConsoleMessageLevel
 import com.teamdev.jxbrowser.js.JsException
@@ -70,7 +71,7 @@ import javax.swing.SwingUtilities
 class DWebViewEngine internal constructor(
   internal val remoteMM: MicroModule,
   val options: DWebViewOptions,
-  internal val browser: Browser = createMainBrowser(remoteMM)
+  internal val browser: Browser = createMainBrowser(remoteMM, options.enabledOffScreenRender)
 ) {
   companion object {
     // userDataDir同一个engine不能多次调用，jxbrowser会弹出异常无法捕获
@@ -80,81 +81,89 @@ class DWebViewEngine internal constructor(
     /**
      * 构建一个 main-browser，当 main-browser 销毁， 对应的 WebviewEngine 也会被销毁
      */
-    internal fun createMainBrowser(remoteMM: MicroModule) = WebviewEngine.hardwareAccelerated {
-      addScheme(Scheme.of("dweb")) { params ->
-        val pureResponse = runBlocking(ioAsyncExceptionHandler) {
-          remoteMM.nativeFetch(params.urlRequest().url())
+    internal fun createMainBrowser(remoteMM: MicroModule, enabledOffScreenRender: Boolean): Browser {
+      val optionsBuilder: EngineOptions.Builder.() -> Unit = {
+        addScheme(Scheme.of("dweb")) { params ->
+          val pureResponse = runBlocking(ioAsyncExceptionHandler) {
+            remoteMM.nativeFetch(params.urlRequest().url())
+          }
+
+          val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
+          pureResponse.headers.forEach { (key, value) ->
+            jobBuilder.addHttpHeader(HttpHeader.of(key, value))
+          }
+
+          Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
         }
 
-        val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
-        pureResponse.headers.forEach { (key, value) ->
-          jobBuilder.addHttpHeader(HttpHeader.of(key, value))
-        }
+        addSwitch("--enable-experimental-web-platform-features")
 
-        Response.intercept(params.newUrlRequestJob(jobBuilder.build()))
-      }
-
-      addSwitch("--enable-experimental-web-platform-features")
-
-      // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
-      synchronized(userDataDirectoryLock) {
-        if (!userDataDirectoryInUseMicroModuleSet.contains(remoteMM.mmid)) {
-          runBlocking(ioAsyncExceptionHandler) {
-            if (remoteMM.createDir("/data/chromium")) {
-              userDataDir(remoteMM.realFile("/data/chromium").toPath().toNioPath())
-              userDataDirectoryInUseMicroModuleSet.add(remoteMM.mmid)
+        // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
+        synchronized(userDataDirectoryLock) {
+          if (!userDataDirectoryInUseMicroModuleSet.contains(remoteMM.mmid)) {
+            runBlocking(ioAsyncExceptionHandler) {
+              if (remoteMM.createDir("/data/chromium")) {
+                userDataDir(remoteMM.realFile("/data/chromium").toPath().toNioPath())
+                userDataDirectoryInUseMicroModuleSet.add(remoteMM.mmid)
+              }
             }
           }
         }
       }
-    }.let { engine ->
-      // 设置https代理
-      val proxyRules = "https=${DwebViewProxy.ProxyUrl},http://127.0.0.1:17890"
-      engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
-      engine.network()
-        .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
-          // SSL Certificate to verify.
-          val certificate = params.certificate()
-          // FIXME 这里应该有更加严谨的证书内容判断
-          if (certificate.derEncodedValue().decodeToString().contains(".dweb")) {
-            VerifyCertificateCallback.Response.valid()
-          } else {
-            VerifyCertificateCallback.Response.defaultAction()
-          }
-        });
 
-      // 拦截内部浏览器dweb deeplink跳转
-      engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
-        if (it.urlRequest().url().startsWith("dweb://")) {
-          remoteMM.ioAsyncScope.launch {
-            remoteMM.nativeFetch(it.urlRequest().url())
+      return if(enabledOffScreenRender) {
+        WebviewEngine.offScreen(optionsBuilder)
+      } else {
+        WebviewEngine.hardwareAccelerated(optionsBuilder)
+      }.let { engine ->
+        // 设置https代理
+        val proxyRules = "https=${DwebViewProxy.ProxyUrl},http://127.0.0.1:17890"
+        engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
+        engine.network()
+          .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
+            // SSL Certificate to verify.
+            val certificate = params.certificate()
+            // FIXME 这里应该有更加严谨的证书内容判断
+            if (certificate.derEncodedValue().decodeToString().contains(".dweb")) {
+              VerifyCertificateCallback.Response.valid()
+            } else {
+              VerifyCertificateCallback.Response.defaultAction()
+            }
+          });
+
+        // 拦截内部浏览器dweb deeplink跳转
+        engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
+          if (it.urlRequest().url().startsWith("dweb://")) {
+            remoteMM.ioAsyncScope.launch {
+              remoteMM.nativeFetch(it.urlRequest().url())
+            }
+            BeforeUrlRequestCallback.Response.cancel()
+          } else {
+            BeforeUrlRequestCallback.Response.proceed()
           }
-          BeforeUrlRequestCallback.Response.cancel()
-        } else {
-          BeforeUrlRequestCallback.Response.proceed()
-        }
-      })
-      //TODO 这里是还没做完的桌面端获取地址，改成ip位置？
-      engine.permissions()
-        .set(RequestPermissionCallback::class.java, RequestPermissionCallback { params, tell ->
+        })
+        //TODO 这里是还没做完的桌面端获取地址，改成ip位置？
+        engine.permissions()
+          .set(RequestPermissionCallback::class.java, RequestPermissionCallback { params, tell ->
 //        if(params.permissionType() == PermissionType.GEOLOCATION) {
 //          tell.grant()
 //        }
-          tell.grant()
-        })
+            tell.grant()
+          })
 
-      val browser = engine.newBrowser()
-      // 同步销毁
-      browser.on(BrowserClosed::class.java) {
-        userDataDirectoryInUseMicroModuleSet.remove(remoteMM.mmid)
-        engine.close()
-      }
-      remoteMM.ioAsyncScope.launch {
-        localViewHookExit.collect {
+        val browser = engine.newBrowser()
+        // 同步销毁
+        browser.on(BrowserClosed::class.java) {
+          userDataDirectoryInUseMicroModuleSet.remove(remoteMM.mmid)
           engine.close()
         }
+        remoteMM.ioAsyncScope.launch {
+          localViewHookExit.collect {
+            engine.close()
+          }
+        }
+        browser
       }
-      browser
     }
   }
 

@@ -46,7 +46,6 @@ import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.isDwebDeepLink
 import org.dweb_browser.helper.platform.toByteArray
-import org.dweb_browser.helper.toNoProtocolWebUrl
 import org.dweb_browser.helper.toWebUrl
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
 import org.dweb_browser.helper.withScope
@@ -219,6 +218,8 @@ class BrowserViewModel(
       url = url,
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
+      /// 桌面端web browser需要使用离屏渲染，才能preview tabs
+      enabledOffScreenRender = false
     )
   )
 

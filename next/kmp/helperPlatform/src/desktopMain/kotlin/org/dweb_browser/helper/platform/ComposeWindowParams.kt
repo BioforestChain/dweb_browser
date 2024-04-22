@@ -32,8 +32,14 @@ import java.awt.event.WindowFocusListener
 import java.awt.event.WindowListener
 
 class ComposeWindowParams(
-  private val pvc: PureViewController, val content: @Composable FrameWindowScope.() -> Unit
+  private val pvc: PureViewController,
+  private val innerContent: @Composable FrameWindowScope.() -> Unit
 ) {
+  val content: @Composable FrameWindowScope.() -> Unit = {
+    frameWindowScope = this
+    innerContent()
+  }
+
   class CacheWindowState(
     override var isMinimized: Boolean,
     override var placement: WindowPlacement,
@@ -98,6 +104,8 @@ class ComposeWindowParams(
       state.size = value
     }
 
+  var frameWindowScope by mutableStateOf<FrameWindowScope?>(null)
+    private set
   var onCloseRequest by mutableStateOf<() -> Unit>({})
   var visible by mutableStateOf<Boolean>(true)
   var title by mutableStateOf<String>("Untitled")

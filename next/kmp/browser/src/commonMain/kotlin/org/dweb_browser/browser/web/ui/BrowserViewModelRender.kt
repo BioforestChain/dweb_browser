@@ -59,13 +59,15 @@ fun BrowserViewModalRender(
       }
     }.background(MaterialTheme.colorScheme.background)) {
       // 移除 viewModel.isPreviewInvisible, 避免显示的时候 WebView 重新加载。
-      Column(Modifier.fillMaxSize()) {
-        // 网页主体
-        Box(modifier = Modifier.weight(1f)) {
-          BrowserPageBox(windowRenderScope)   // 中间网页主体
+      if (!viewModel.showPreview) {//!viewModel.isPreviewInvisible
+        Column(Modifier.fillMaxSize()) {
+          // 网页主体
+          Box(modifier = Modifier.weight(1f)) {
+            BrowserPageBox(windowRenderScope)   // 中间网页主体
+          }
+          // 工具栏，包括搜索框和导航栏
+          BrowserBottomBar(Modifier.fillMaxWidth().wrapContentHeight())
         }
-        // 工具栏，包括搜索框和导航栏
-        BrowserBottomBar(Modifier.fillMaxWidth().wrapContentHeight())
       }
 
       BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))
