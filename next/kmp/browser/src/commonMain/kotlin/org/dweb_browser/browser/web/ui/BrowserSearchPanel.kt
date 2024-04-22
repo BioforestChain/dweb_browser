@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -201,7 +200,15 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
                 }
               }
               // 清除文本的按钮
-              IconButton(onClick = { searchTextField = TextFieldValue("") }) {
+              IconButton(onClick = {
+                // 清空文本之后再次点击需要还原文本内容并对输入框失焦
+                if(searchTextField.text.isEmpty()) {
+                  searchTextField = TextFieldValue(searchPage.url)
+                  hide()
+                } else {
+                  searchTextField = TextFieldValue("")
+                }
+              }) {
                 Icon(Icons.Default.Clear, contentDescription = "Clear Input Text")
               }
             }
