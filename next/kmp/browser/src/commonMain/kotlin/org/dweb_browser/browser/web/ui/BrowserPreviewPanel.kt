@@ -72,7 +72,6 @@ import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
 import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
 import org.dweb_browser.sys.window.render.LocalWindowController
 import kotlin.math.max
 
@@ -374,6 +373,7 @@ private fun PagePreviewCell(
         Icon(
           Icons.Default.Close,
           contentDescription = "Close Page",
+          tint = MaterialTheme.colorScheme.surfaceTint
         )
       }
     }
