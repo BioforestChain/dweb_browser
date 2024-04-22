@@ -8,6 +8,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.core.help.types.IpcSupportProtocols
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -25,10 +26,8 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.connectAdapterManager
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.permission.PermissionProvider
-import org.dweb_browser.dwebview.ipcWeb.native2JsEndpoint
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.alsoLaunchIn
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.collectIn
@@ -218,60 +217,59 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
        */
       jsIpc.onEvent("fetch-ipc-proxy-event").collectIn(mmScope) { event ->
         event.consumeFilter { ipcEvent ->
-
           /**
            * 收到要与其它模块进行ipc连接的指令
            */
-          if (ipcEvent.name == "dns/connect") {
-            @Serializable
-            data class DnsConnectEvent(val mmid: MMID, val sub_protocols: List<String> = listOf())
+          when (ipcEvent.name) {
+            "dns/connect" -> {
+              val connectMmid = ipcEvent.text
+              try {
+                /**
+                 * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
+                 * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
+                 *
+                 * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
+                 *
+                 * 向目标模块发起连接，注意，这里是很特殊的，因为我们自定义了 JMM 的连接适配器 connectAdapterManager，
+                 * 所以 JsMicroModule 这里作为一个中间模块，是没法直接跟其它模块通讯的。
+                 *
+                 * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
+                 */
+                val targetIpc = connect(connectMmid) // 由上面的适配器产生
+                /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
+                if (targetIpc.endpoint is WebMessageEndpoint) {
+                  ipcBridge(targetIpc.remote, targetIpc)
+                }
+                // 如果是jsMM互联，那么直接把port分配给两个人
+                // ipcBridgeJsMM(mmid, targetIpc.remote.mmid)
 
-            val connectEvent = JsonLoose.decodeFromString<DnsConnectEvent>(ipcEvent.text)
-            try {
-              /**
-               * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
-               * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
-               *
-               * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
-               */
-              /**
-               * 向目标模块发起连接，注意，这里是很特殊的，因为我们自定义了 JMM 的连接适配器 connectAdapterManager，
-               * 所以 JsMicroModule 这里作为一个中间模块，是没法直接跟其它模块通讯的。
-               *
-               * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
-               */
-              val targetIpc = connect(connectEvent.mmid) // 由上面的适配器产生
-              /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
-              if (targetIpc.endpoint is WebMessageEndpoint) {
-                ipcBridge(targetIpc.remote, targetIpc)
+                /**
+                 * 连接成功，正式告知它数据返回。注意，create-ipc虽然也会resolve任务，但是我们还是需要一个明确的done事件，来确保逻辑闭环
+                 * 否则如果遇到ipc重用，create-ipc是不会触发的
+                 */
+                @Serializable
+                data class DnsConnectDone(val connect: MMID, val result: MMID)
+
+                /// event.mmid 可能是自协议，所以result提供真正的mmid
+                val done = DnsConnectDone(
+                  connect = connectMmid, result = targetIpc.remote.mmid
+                )
+                jsIpc.postMessage(IpcEvent.fromUtf8("dns/connect/done", Json.encodeToString(done)))
+              } catch (e: Exception) {
+                jsIpc.postMessage(IpcError(503, e.message))
+                printError("dns/connect", e)
               }
-              // 如果是jsMM互联，那么直接把port分配给两个人
-              // ipcBridgeJsMM(mmid, targetIpc.remote.mmid)
-
-              /**
-               * 连接成功，正式告知它数据返回。注意，create-ipc虽然也会resolve任务，但是我们还是需要一个明确的done事件，来确保逻辑闭环
-               * 否则如果遇到ipc重用，create-ipc是不会触发的
-               */
-              @Serializable
-              data class DnsConnectDone(val connect: MMID, val result: MMID)
-
-              /// event.mmid 可能是自协议，所以result提供真正的mmid
-              val done = DnsConnectDone(
-                connect = connectEvent.mmid, result = targetIpc.remote.mmid
-              )
-              jsIpc.postMessage(IpcEvent.fromUtf8("dns/connect/done", Json.encodeToString(done)))
-            } catch (e: Exception) {
-              jsIpc.postMessage(IpcError(503, e.message))
-              printError("dns/connect", e)
+              true
             }
-            return@consumeFilter true
+
+            "restart" -> {
+              // 调用重启
+              bootstrapContext.dns.restart(mmid)
+              true
+            }
+
+            else -> false
           }
-          if (ipcEvent.name == "restart") {
-            // 调用重启
-            bootstrapContext.dns.restart(mmid)
-            return@consumeFilter true
-          }
-          false
         }
       }
     }
@@ -300,7 +298,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
         }.buildUnsafeString()
       ).int()
       return kotlinIpcPool.createIpc(
-        endpoint = native2JsEndpoint(portId),
+        endpoint = GlobalWebMessageEndpoint.get(portId),
         pid = pid,
         remote = manifest,
         locale = fromMM,

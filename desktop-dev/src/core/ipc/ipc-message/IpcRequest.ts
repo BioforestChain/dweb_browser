@@ -5,7 +5,7 @@ import { buildRequestX } from "../../helper/ipcRequestHelper.ts";
 import { IpcHeaders } from "../helper/IpcHeaders.ts";
 import { PureChannel, pureChannelToIpcEvent } from "../helper/PureChannel.ts";
 import { PURE_METHOD, toPureMethod } from "../helper/PureMethod.ts";
-import type { Ipc } from "../ipc.ts";
+import type { $IpcRequestInit, Ipc } from "../ipc.ts";
 import { IPC_MESSAGE_TYPE, ipcMessageBase } from "./internal/IpcMessage.ts";
 import type { IpcBody } from "./stream/IpcBody.ts";
 import { IpcBodySender } from "./stream/IpcBodySender.ts";
@@ -134,29 +134,21 @@ export class IpcClientRequest extends IpcRequest {
     return new IpcClientRequest(reqId, url, method, headers, IpcBodySender.fromStream(stream, ipc), ipc);
   }
 
-  static fromRequest(
-    reqId: number,
-    ipc: Ipc,
-    url: string,
-    init: {
-      method?: string;
-      body?: /* json+text */
-      | null
-        | string
-        /* base64 */
-        | Uint8Array
-        /* stream+base64 */
-        | Blob
-        | ReadableStream<Uint8Array>;
-      headers?: IpcHeaders | HeadersInit;
-    } = {}
-  ) {
+  static fromRequest(reqId: number, ipc: Ipc, url: string, init: $IpcRequestInit = {}) {
     const method = toPureMethod(init.method);
     const headers = init.headers instanceof IpcHeaders ? init.headers : new IpcHeaders(init.headers);
 
     let ipcBody: IpcBody;
     if (isBinary(init.body)) {
-      ipcBody = IpcBodySender.fromBinary(init.body, ipc);
+      let u8aBody: Uint8Array;
+      if (init.body instanceof Uint8Array) {
+        u8aBody = init.body;
+      } else if (init.body instanceof ArrayBuffer) {
+        u8aBody = new Uint8Array(init.body);
+      } else {
+        u8aBody = new Uint8Array(init.body.buffer, init.body.byteOffset, init.body.byteLength);
+      }
+      ipcBody = IpcBodySender.fromBinary(u8aBody, ipc);
     } else if (init.body instanceof ReadableStream) {
       ipcBody = IpcBodySender.fromStream(init.body, ipc);
     } else if (init.body instanceof Blob) {

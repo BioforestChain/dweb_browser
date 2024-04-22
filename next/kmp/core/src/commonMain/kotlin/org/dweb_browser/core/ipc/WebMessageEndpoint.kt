@@ -10,10 +10,10 @@ import org.dweb_browser.core.ipc.helper.jsonToEndpointMessage
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 
-class WebMessageEndpoint(
+open class WebMessageEndpoint(
   override val debugId: String,
   parentScope: CoroutineScope,
-  private val port: IWebMessagePort,
+  val port: IWebMessagePort,
 ) : CommonEndpoint(parentScope) {
 
   override fun toString() = "WebMessageEndpoint@$debugId"

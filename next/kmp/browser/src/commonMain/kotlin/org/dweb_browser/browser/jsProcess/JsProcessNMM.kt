@@ -147,7 +147,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
             ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$handlerId invalid")
 
           // 返回 port_id
-          createIpc(apis, processId, manifestJson)
+          createIpcEndpoint(apis, processId, manifestJson)
         },
 //        /// 桥接两个JMM
 //        "/bridge-ipc" bind PureMethod.GET by defineEmptyResponse {
@@ -281,10 +281,10 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     }
 
     /**创建到worker的Ipc 如果是worker到worker互联，则每个人分配一个messageChannel的port*/
-    private suspend fun createIpc(
+    private suspend fun createIpcEndpoint(
       apis: JsProcessWebApi, processId: Int, manifestJson: String,
     ): Int {
-      return apis.createIpc(processId, manifestJson)
+      return apis.createIpcEndpoint(processId, manifestJson).globalId
     }
 
 //    private suspend fun bridgeIpc(

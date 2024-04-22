@@ -13,7 +13,7 @@ import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.dwebview.ipcWeb.saveJsBridgeIpcEndpoint
+import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.build
@@ -83,7 +83,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     })
     debugJsProcess("processInfo", processInfoJson)
     val info = Json.decodeFromString<ProcessInfo>(processInfoJson)
-    info.portId = saveJsBridgeIpcEndpoint(port2, "fetch-ipc-$processName")
+    info.portId = GlobalWebMessageEndpoint(port2, "fetch-ipc-$processName").globalId
     return info
   }
 
@@ -94,16 +94,18 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
   }
 
   suspend fun destroyProcess(processId: Int) {
-    dWebView.evaluateAsyncJavascriptCode(
-      "destroyProcess($processId)"
-    )
+    runCatching {
+      dWebView.evaluateAsyncJavascriptCode(
+        "destroyProcess($processId)"
+      )
+    }.getOrNull()
   }
 
-  suspend fun createIpc(processId: Int, manifestJson: String) = withContext(Dispatchers.Main) {
+  suspend fun createIpcEndpoint(processId: Int, manifestJson: String) = withContext(Dispatchers.Main) {
     val channel = dWebView.createMessageChannel()
     val port1 = channel.port1
     val port2 = channel.port2
-    val jsIpcPortId = saveJsBridgeIpcEndpoint(port2, "bridge-ipc")
+    val jsIpcEndpoint = GlobalWebMessageEndpoint(port2, "bridge-ipc")
     val hid = hidAcc++
     dWebView.evaluateAsyncJavascriptCode("""
         new Promise((resolve,reject)=>{
@@ -124,7 +126,7 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
         """.trimIndent(), afterEval = {
       dWebView.postMessage("js-process/create-ipc/$hid:$manifestJson", listOf(port1))
     })
-    jsIpcPortId
+    jsIpcEndpoint
   }
 //
 //  // 桥接两个worker

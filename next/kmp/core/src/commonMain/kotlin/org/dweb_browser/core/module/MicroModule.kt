@@ -143,8 +143,8 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         beforeShutdownFlow.emit(Unit)
         debugMM("shutdown-before-end")
         _shutdown()
+        debugMM("shutdown-wait-jobs")
         shutdownDeferred.complete(Unit)
-        debugMM("shutdown-end")
         // 等待注册的任务完成
         while (jobs.isNotEmpty()) {
           val sj = jobs.firstOrNull() ?: continue
@@ -155,6 +155,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
           }
           jobs.remove(sj)
         }
+        debugMM("shutdown-end")
         // 取消所有的工作
         mmScope.cancel()
       }

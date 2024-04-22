@@ -28,13 +28,6 @@ import {
 import type { $IpcMessage } from "./ipc-message/IpcMessage.ts";
 import { IPC_LIFECYCLE_STATE } from "./ipc-message/internal/IpcLifecycle.ts";
 import { IPC_MESSAGE_TYPE } from "./ipc-message/internal/IpcMessage.ts";
-export {
-  FetchError,
-  IpcFetchEvent as FetchEvent,
-  type $FetchResponse,
-  type $OnFetch,
-  type $OnFetchReturn,
-} from "../helper/ipcFetchHelper.ts";
 
 export class Ipc {
   constructor(
@@ -412,7 +405,8 @@ export type $IpcRequestInit = {
   | null
     | string
     /* base64 */
-    | Uint8Array
+    | ArrayBuffer
+    | ArrayBufferView
     /* stream+base64 */
     | Blob
     | ReadableStream<Uint8Array>;

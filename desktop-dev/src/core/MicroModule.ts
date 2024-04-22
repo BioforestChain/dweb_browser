@@ -1,20 +1,23 @@
 import { once } from "../helper/$once.ts";
 import { Mutex } from "../helper/Mutex.ts";
 import { PromiseOut } from "../helper/PromiseOut.ts";
+import { fetchExtends } from "../helper/fetchExtends/index.ts";
 import { logger } from "../helper/logger.ts";
 import { mapHelper } from "../helper/mapHelper.ts";
+import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.ts";
 import { promiseAsSignalListener } from "../helper/promiseSignal.ts";
 import { setHelper } from "../helper/setHelper.ts";
 import type { $BootstrapContext } from "./bootstrapContext.ts";
 import { Producer } from "./helper/Producer.ts";
 import type { MICRO_MODULE_CATEGORY } from "./helper/category.const.ts";
+import { $normalizeRequestInitAsIpcRequestArgs } from "./helper/ipcRequestHelper.ts";
 import type { $IpcEvent, Ipc } from "./ipc/index.ts";
-import type {
-  $DWEB_DEEPLINK,
-  $IpcSupportProtocols,
-  $MMID,
-  $MicroModuleManifest,
-  $MicroModuleRuntime,
+import {
+  type $DWEB_DEEPLINK,
+  type $IpcSupportProtocols,
+  type $MMID,
+  type $MicroModuleManifest,
+  type $MicroModuleRuntime,
 } from "./types.ts";
 
 const enum MMState {
@@ -186,14 +189,13 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   }
 
   // private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
-  //   const args = normalizeFetchArgs(url, init);
-  //   for (const adapter of nativeFetchAdaptersManager.adapters) {
-  //     const response = await adapter(this, args.parsed_url, args.request_init);
-  //     if (response !== undefined) {
-  //       return response;
-  //     }
+  //   const { parsed_url, request_init } = normalizeFetchArgs(url, init);
+  //   if (parsed_url.protocol === "file:") {
+  //     const ipc = this.connect(parsed_url.hostname as $MMID);
+  //     const reasonRequest = buildRequestX(parsed_url, request_init);
+  //     return (await (await ipc).request(parsed_url.href, reasonRequest)).toResponse();
   //   }
-  //   return fetch(args.parsed_url, args.request_init);
+  //   return fetch(parsed_url, request_init);
   // }
 
   // nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
@@ -202,6 +204,60 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   //   }
   //   return Object.assign(this._nativeFetch(url, init), fetchExtends);
   // }
+
+  // protected abstract _nativeRequest(parsed_url: URL, request_init: RequestInit): Promise<IpcResponse>;
+
+  // /** 同 ipc.request，只不过使用 fetch 接口的输入参数 */
+  // nativeRequest(url: RequestInfo | URL, init?: RequestInit) {
+  //   const args = normalizeFetchArgs(url, init);
+  //   return this._nativeRequest(args.parsed_url, args.request_init);
+  // }
+  private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    const { parsed_url, request_init } = normalizeFetchArgs(url, init);
+    const hostName = parsed_url.hostname;
+    if (hostName.endsWith(".dweb") && parsed_url.protocol === "file:") {
+      // const tmp = this._ipcConnectsMap.get(hostName as $MMID);
+      // console.log("🧊 connect=> ", hostName, tmp?.is_finished, tmp);
+      const ipc = await this.connect(hostName as $MMID);
+      const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(request_init);
+      // console.log("🧊 connect request=> ", ipc.isActivity, ipc.channelId, parsed_url.href);
+      let ipc_response = await ipc.request(parsed_url.href, ipc_req_init);
+      // console.log("🧊 connect response => ", ipc_response.statusCode, ipc.isActivity, parsed_url.href);
+      if (ipc_response.statusCode === 401) {
+        /// 尝试进行授权请求
+        try {
+          const permissions = await ipc_response.body.text();
+          if (await this.requestDwebPermissions(permissions)) {
+            /// 如果授权完全成功，那么重新进行请求
+            ipc_response = await ipc.request(parsed_url.href, ipc_req_init);
+          }
+        } catch (e) {
+          console.error("fail to request permission:", e);
+        }
+      }
+      return ipc_response.toResponse(parsed_url.href);
+    }
+    // const ipc_response = await this._nativeRequest(parsed_url, request_init);
+    // return ipc_response.toResponse(parsed_url.href);
+    return fetch(parsed_url, request_init);
+  }
+  /**
+   * 模拟fetch的返回值
+   * 这里的做fetch的时候需要先connect
+   */
+  nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
+    return Object.assign(this._nativeFetch(url, init), fetchExtends);
+  }
+
+  async requestDwebPermissions(permissions: string) {
+    const res = await (
+      await this.nativeFetch(
+        new URL(`file://permission.std.dweb/request?permissions=${encodeURIComponent(permissions)}`)
+      )
+    ).text();
+    const requestPermissionResult: Record<string, string> = JSON.parse(res);
+    return Object.values(requestPermissionResult).every((status) => status === "granted");
+  }
 
   @once()
   private get _manifest() {

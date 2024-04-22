@@ -73,7 +73,7 @@ export const fetchHanlderFactory = {
  * 一个通用的 ipcRequest 处理器
  * 开发不需要面对 ipcRequest，而是面对 web 标准的 Request、Response 即可
  */
-export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
+export const createFetchHandler = (onFetchs: Iterable<$OnFetch> = []) => {
   const onFetchHanlders: $AnyFetchHanlder[] = [...onFetchs];
 
   // deno-lint-ignore ban-types
@@ -239,6 +239,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
   return extendsTo(onRequest);
 };
 
+export type $FetchHandler = ReturnType<typeof createFetchHandler>;
 export interface $FetchResponse extends ResponseInit {
   body?: BodyInit | null | IpcBody;
 }

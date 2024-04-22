@@ -407,13 +407,13 @@ export interface WebAppManifest {
   shortcuts?: ShortcutItem[] | undefined;
 }
 
-import { AdaptersManager } from "../helper/AdaptersManager.ts";
-import type { MicroModule } from "./MicroModule.ts";
+// import { AdaptersManager } from "../helper/AdaptersManager.ts";
+// import type { MicroModule } from "./MicroModule.ts";
 
-export type $FetchAdapter = (
-  remote: MicroModule,
-  parsedUrl: URL,
-  requestInit: RequestInit
-) => Promise<Response | void> | Response | void;
+// export type $FetchAdapter = (
+//   remote: MicroModule,
+//   parsedUrl: URL,
+//   requestInit: RequestInit
+// ) => Promise<Response | void> | Response | void;
 
-export const nativeFetchAdaptersManager = new AdaptersManager<$FetchAdapter>();
+// export const nativeFetchAdaptersManager = new AdaptersManager<$FetchAdapter>();

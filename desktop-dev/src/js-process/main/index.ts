@@ -41,7 +41,6 @@ const createProcess = async (
         .then(
           async({installEnv,Metadata})=>{
             void installEnv(new Metadata(${metadata_json},${env_json}), ${gatewayPort});
-            postMessage("ready")
           },
           (err)=>postMessage("ERROR:"+err)
         )`,
@@ -62,7 +61,8 @@ const createProcess = async (
     worker.addEventListener(
       "message",
       (event) => {
-        if (event.data === "ready") {
+        if (event.data === "waiting-fetch-ipc") {
+          worker.postMessage(["fetch-ipc-channel", fetch_port], [fetch_port]);
           resolve();
         } else {
           reject(event.data);
@@ -72,7 +72,6 @@ const createProcess = async (
     );
   });
 
-  worker.postMessage(["fetch-ipc-channel", fetch_port], [fetch_port]);
   /// 等待启动任务完成
   const env_ready_po = new PromiseOut<void>();
   const onEnvReady = (event: MessageEvent) => {

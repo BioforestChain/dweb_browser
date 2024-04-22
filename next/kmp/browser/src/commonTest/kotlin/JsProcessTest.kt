@@ -2,10 +2,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.jsProcess.ext.createJsProcess
+import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.DnsNMM
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.helper.addDebugTags
@@ -129,45 +131,94 @@ class JsProcessTest {
     addDebugTags(listOf("/.+/"))
   }
 
-  @Test
-  fun testCreateMessagePortIpc() = runCommonTest(timeout = 600.seconds) {
+  inner class TestContext {
     val dns = DnsNMM()
     val jsProcessNMM = JsProcessNMM()
-    dns.install(jsProcessNMM)
     val httpNMM = HttpNMM()
-    dns.install(httpNMM)
     val fileNMM = FileNMM()
-    dns.install(fileNMM)
     val testNMM = TestNMM("xx.dweb", "xx")
-    dns.install(testNMM)
-    val dnsRunTime = dns.bootstrap()
-    val testRuntime = dnsRunTime.open(testNMM.mmid) as TestNMM.TestRuntime
+    lateinit var dnsRunTime: DnsNMM.DnsRuntime
+      private set
+    lateinit var testRuntime: TestNMM.TestRuntime
+      private set
 
-    val test = randomUUID()
-    val jsProcess = testRuntime.createJsProcess("hhh")
-    jsProcess.defineRoutes {
-      "/" bindPrefix PureMethod.GET by defineStringResponse {
-        println("QAQ request.url=${request.url}")
-        request.url.toString()
-        when (request.url.encodedPath) {
-          "/index.js" -> """
+    suspend fun init() {
+      dns.install(jsProcessNMM)
+      dns.install(httpNMM)
+      dns.install(fileNMM)
+      dns.install(testNMM)
+      dnsRunTime = dns.bootstrap()
+      testRuntime = dnsRunTime.open(testNMM.mmid) as TestNMM.TestRuntime
+    }
+  }
+
+  suspend fun buildJsProcessTestContext(cb: suspend TestContext.() -> Unit) {
+    TestContext().run {
+      init()
+      cb()
+      dnsRunTime.shutdown()
+    }
+  }
+
+  @Test
+  fun testCreateProcess() = runCommonTest(timeout = 600.seconds) {
+    buildJsProcessTestContext {
+      val actual = randomUUID()
+      println("QAQ actual=$actual")
+      val jsProcess = testRuntime.createJsProcess("hhh")
+      jsProcess.defineEsm {
+        "/" bindPrefix PureMethod.GET by defineStringResponse {
+          println("QAQ request.url=${request.url}")
+          request.url.toString()
+          when (request.url.encodedPath) {
+            "/index.js" -> """
             import {a} from './a';
             const ipcEvent = navigator.dweb.ipc.IpcEvent.fromText('test',a)
             navigator.dweb.jsProcess.fetchIpc.postMessage(ipcEvent)
           """.trimIndent()
 
-          "/a" -> "export const a=`$test`"
-          else -> "console.error('should not load:',import.meta.url)"
+            "/a" -> "export const a=`$actual`"
+            else -> "console.error('should not load:',import.meta.url)"
+          }
         }
       }
+      val expected = jsProcess.fetchIpc.onEvent("wait-js").mapNotNull { event ->
+        event.consumeFilter { it.name == "test" }?.text
+      }.first()
+      println("QAQ expected=$expected")
+      assertEquals(actual, expected)
     }
-    val result = jsProcess.fetchIpc.onEvent("wait-js").mapNotNull { event ->
-      val r = event.consumeFilter { it.name == "test" }?.text
-      println("QAQ okk1 $r")
-      r
-    }.first()
-    assertEquals(test, result)
-    println("QAQ okk2 $result")
-    dnsRunTime.shutdown()
+  }
+
+  @Test
+  fun testHttpInJsProcess() = runCommonTest(timeout = 600.seconds) {
+    buildJsProcessTestContext {
+      val jsProcess = testRuntime.createJsProcess("js-http-demo")
+      jsProcess.defineEsm {
+        "/index.js" bind PureMethod.GET by defineStringResponse {
+          """
+            const { http, jsProcess, ipc } = navigator.dweb;
+            const httpServer = await http.createHttpDwebServer(jsProcess, { subdomain: "www" });
+            jsProcess.fetchIpc.postMessage(
+              ipc.IpcEvent.fromText("http-server", httpServer.startResult.urlInfo.buildDwebUrl().href)
+            );
+            await httpServer.listen((event) => {
+              console.log("got request", event.ipcRequest.url);
+              return { body: event.ipcRequest.url };
+            });
+          """.trimIndent()
+        }
+      }
+
+      val jsHttpUrl = jsProcess.fetchIpc.onEvent("wait-js").mapNotNull { event ->
+        event.consumeFilter { it.name == "http-server" }?.text
+      }.first()
+      println("QAQ jsHttpUrl=$jsHttpUrl")
+
+      val actual = "/${randomUUID()}"
+      val expected = testRuntime.nativeFetch("$jsHttpUrl$actual").text()
+      println("QAQ expected=$expected")
+      assertEquals(actual, expected)
+    }
   }
 }

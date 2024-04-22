@@ -8,7 +8,7 @@ import org.dweb_browser.core.http.router.HttpRouter
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.kotlinIpcPool
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.dwebview.ipcWeb.native2JsEndpoint
+import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.collectIn
 
@@ -20,7 +20,7 @@ suspend fun MicroModule.Runtime.createJsProcess(processName: String?): JsProcess
     buildUnsafeString()
   }).json<CreateProcessReturn>()
   val fetchIpc = kotlinIpcPool.createIpc(
-    endpoint = native2JsEndpoint(result.portId),
+    endpoint = GlobalWebMessageEndpoint.get(result.portId),
     pid = 0,
     locale = microModule.manifest,
     remote = microModule.manifest,
@@ -40,7 +40,10 @@ class JsProcess(
     return httpRouter
   }
 
-  fun defineRoutes(definer: HttpHandlerToolkit.() -> Unit) {
+  /**
+   * 使用路由定义 esm 模块的代码内容
+   */
+  fun defineEsm(definer: HttpHandlerToolkit.() -> Unit) {
     definer()
   }
 

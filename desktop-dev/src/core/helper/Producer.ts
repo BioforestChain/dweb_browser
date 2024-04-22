@@ -1,4 +1,6 @@
 import { $once } from "../../helper/$once.ts";
+import { Mutex } from "../../helper/Mutex.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { Signal, createSignal, type $Callback } from "../../helper/createSignal.ts";
 import { logger } from "../../helper/logger.ts";
 import { Channel } from "./Channel.ts";
@@ -17,6 +19,10 @@ export class Producer<T> {
   //#region Event
   static #Event = class Event<T> {
     constructor(readonly data: T, private producer: Producer<T>) {}
+    #job = new PromiseOut<void>();
+    get job() {
+      return this.#job.promise;
+    }
 
     /**标记事件是否被消耗 */
     #consumed = false;
@@ -24,24 +30,35 @@ export class Producer<T> {
       return this.#consumed;
     }
 
-    /**事件消耗器，调用后事件将被彻底消耗，不会再进行传递*/
+    /**
+     * 事件消耗器，调用后事件被标记成已消耗，这意味着：
+     * 1. 现有的消费者还是能看到它
+     * 2. 其它后来的消费者不会再看到它
+     */
     consume(): T {
-      if (!this.#consumed) {
-        this.#consumed = true;
-        this.producer.buffers.delete(this);
-      }
+      this.#consumed = true;
       return this.data;
+    }
+
+    /**
+     * 事件停止传播，调用后事件不会被其他消费者触发
+     */
+    #stoped = false;
+    get stoped() {
+      return this.#stoped;
+    }
+    stopImmediatePropagation() {
+      this.consume();
+      this.#stoped = true;
     }
 
     /**
      * 在 complete 的时候再进行 remove
      */
     complete() {
+      this.#job.resolve();
       this.producer.buffers.delete(this);
     }
-
-    /**向下传递 */
-    next() {}
     /**过滤触发 */
     consumeMapNotNull<R>(mapNotNull: (data: T) => R | undefined): R | undefined {
       const result = mapNotNull(this.data);
@@ -50,27 +67,37 @@ export class Producer<T> {
         return result as R;
       }
     }
+    async consumeAwaitMapNotNull<R>(mapNotNull: (data: T) => R | undefined) {
+      const result = await mapNotNull(this.data);
+      if (result !== null) {
+        this.consume();
+        return result as Awaited<R>;
+      }
+    }
     consumeFilter<R extends T = T>(filter: (data: T) => boolean) {
       if (filter(this.data)) {
         return this.consume() as R;
       }
     }
 
+    #emitLock = new Mutex();
     emitBy(consumer: Consumer<T>) {
-      if (this.#consumed) {
+      if (this.#stoped) {
         return;
       }
-      // 事件超时告警
-      const timeoutId = setTimeout(() => {
-        console.warn(`emitBy TIMEOUT!! step=$i consumer=${consumer} data=${this.data}`);
-      }, 1000);
-      consumer.input.send(this);
-      clearTimeout(timeoutId);
+      return this.#emitLock.withLock(() => {
+        // 事件超时告警
+        const timeoutId = setTimeout(() => {
+          console.warn(`emitBy TIMEOUT!! step=$i consumer=${consumer} data=${this.data}`);
+        }, 1000);
+        consumer.input.send(this);
+        clearTimeout(timeoutId);
 
-      if (this.#consumed) {
-        this.complete();
-        this.producer.console.debug("emitBy", `event=${this} consumed by consumer=${consumer}`);
-      }
+        if (this.#consumed) {
+          this.complete();
+          this.producer.console.debug("emitBy", `event=${this} consumed by consumer=${consumer}`);
+        }
+      });
     }
   };
 
@@ -94,13 +121,13 @@ export class Producer<T> {
     if (this.buffers.size > 10) {
       this.console.warn(`${this} buffers overflow maybe leak: ${this.buffers.size}`);
     }
-    this.doEmit(event);
+    return this.doEmit(event);
   }
 
   /**无保证发送 */
   sendBeacon(value: T) {
     const event = this.event(value);
-    this.doEmit(event);
+    return this.doEmit(event);
   }
 
   trySend(value: T) {
@@ -112,7 +139,7 @@ export class Producer<T> {
   }
 
   /**触发该消息 */
-  protected doEmit(event: Event<T>) {
+  protected async doEmit(event: Event<T>) {
     this.#ensureOpen();
     const consumers = this.consumers;
     for (const consumer of consumers) {
@@ -120,8 +147,8 @@ export class Producer<T> {
       if (!consumer.started || consumer.startingBuffers?.has(event) == true || consumer.input.isClosedForSend) {
         continue;
       }
-      event.emitBy(consumer);
-      if (event.consumed) {
+      await event.emitBy(consumer);
+      if (event.stoped) {
         break;
       }
     }

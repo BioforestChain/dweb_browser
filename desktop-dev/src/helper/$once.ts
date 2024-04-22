@@ -1,23 +1,44 @@
-export const $once = <T extends Function>(fn: T) => {
+export const $once = <T extends (...args: any) => unknown>(fn: T) => {
   let first = true;
   let resolved: any;
   let rejected: any;
   let success = false;
-  return function (this: any, ...args: unknown[]) {
-    if (first) {
-      first = false;
-      try {
-        resolved = fn.apply(this, args);
-        success = true;
-      } catch (err) {
-        rejected = err;
+  return Object.defineProperties(
+    function (this: any, ...args: unknown[]) {
+      if (first) {
+        first = false;
+        try {
+          resolved = fn.apply(this, args);
+          success = true;
+        } catch (err) {
+          rejected = err;
+        }
       }
+      if (success) {
+        return resolved;
+      }
+      throw rejected;
+    } as unknown as T,
+    {
+      hasRun: {
+        get() {
+          return !first;
+        },
+      },
+      result: {
+        get() {
+          if (success) {
+            return resolved as ReturnType<T>;
+          } else {
+            throw rejected;
+          }
+        },
+      },
     }
-    if (success) {
-      return resolved;
-    }
-    throw rejected;
-  } as unknown as T;
+  ) as T & {
+    hasRun: boolean;
+    result: ReturnType<T>;
+  };
 };
 
 // export const once = ((target, ctx) => {

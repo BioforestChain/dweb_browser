@@ -3,9 +3,6 @@
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MicroModuleRuntime, $MMID } from "../../core/types.ts";
 
-import { $normalizeRequestInitAsIpcRequestArgs } from "../../core/helper/ipcRequestHelper.ts";
-import { fetchExtends } from "../../helper/fetchExtends/index.ts";
-import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { updateUrlOrigin } from "../../helper/urlHelper.ts";
 export type { fetchExtends } from "../../helper/fetchExtends/index.ts";
@@ -108,16 +105,7 @@ export class JsProcessMicroModule extends MicroModule {
         },
         connect: (mmid: `${string}.dweb`, reason?: Request | undefined): $PromiseMaybe<core.Ipc> => {
           const po = new PromiseOut<Ipc>();
-          this.fetchIpc.postMessage(
-            core.IpcEvent.fromText(
-              `dns/connect/${mmid}`,
-              JSON.stringify({
-                mmid: mmid,
-                /// 要求使用 ready 协议
-                ipc_support_protocols: this.manifest.ipc_support_protocols,
-              })
-            )
-          );
+          this.fetchIpc.postMessage(core.IpcEvent.fromText("dns/connect", mmid));
 
           // fetchIpc.onEvent("wait-dns-connect").collect(async (event) => {
           //   const ipcEvent = event.consumeFilter((ipcEvent) => ipcEvent.name === `dns/connect/done/${connectMmid}`);
@@ -334,63 +322,11 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
     return onShortcut.bind(null, this);
   }
 
-  private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-    const args = normalizeFetchArgs(url, init);
-    const hostName = args.parsed_url.hostname;
-    if (!(hostName.endsWith(".dweb") && args.parsed_url.protocol === "file:")) {
-      const ipc_response = await this._nativeRequest(args.parsed_url, args.request_init);
-      return ipc_response.toResponse(args.parsed_url.href);
-    }
-    // const tmp = this._ipcConnectsMap.get(hostName as $MMID);
-    // console.log("🧊 connect=> ", hostName, tmp?.is_finished, tmp);
-    const ipc = await this.connect(hostName as $MMID);
-    const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(args.request_init);
-    // console.log("🧊 connect request=> ", ipc.isActivity, ipc.channelId, args.parsed_url.href);
-    let ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
-    // console.log("🧊 connect response => ", ipc_response.statusCode, ipc.isActivity, args.parsed_url.href);
-    if (ipc_response.statusCode === 401) {
-      /// 尝试进行授权请求
-      try {
-        const permissions = await ipc_response.body.text();
-        if (await this.requestDwebPermissions(permissions)) {
-          /// 如果授权完全成功，那么重新进行请求
-          ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
-        }
-      } catch (e) {
-        console.error("fail to request permission:", e);
-      }
-    }
-    return ipc_response.toResponse(args.parsed_url.href);
-  }
+  // protected override async _nativeRequest(parsed_url: URL, request_init: RequestInit) {
+  //   const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(request_init);
+  //   return await this.fetchIpc.request(parsed_url.href, ipc_req_init);
+  // }
 
-  async requestDwebPermissions(permissions: string) {
-    const res = await (
-      await this.nativeFetch(
-        new URL(`file://permission.std.dweb/request?permissions=${encodeURIComponent(permissions)}`)
-      )
-    ).text();
-    const requestPermissionResult: Record<string, string> = JSON.parse(res);
-    return Object.values(requestPermissionResult).every((status) => status === "granted");
-  }
-
-  /**
-   * 模拟fetch的返回值
-   * 这里的做fetch的时候需要先connect
-   */
-  nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
-    return Object.assign(this._nativeFetch(url, init), fetchExtends);
-  }
-
-  private async _nativeRequest(parsed_url: URL, request_init: RequestInit) {
-    const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(request_init);
-    return await this.fetchIpc.request(parsed_url.href, ipc_req_init);
-  }
-
-  /** 同 ipc.request，只不过使用 fetch 接口的输入参数 */
-  nativeRequest(url: RequestInfo | URL, init?: RequestInit) {
-    const args = normalizeFetchArgs(url, init);
-    return this._nativeRequest(args.parsed_url, args.request_init);
-  }
   @once()
   get routes() {
     const routes = createFetchHandler([]);
@@ -425,6 +361,7 @@ const waitFetchPort = () => {
         workerGlobal.removeEventListener("message", onFetchIpcChannel);
       }
     });
+    postMessage("waiting-fetch-ipc");
   });
 };
 
@@ -496,8 +433,10 @@ class DwebXMLHttpRequest extends XMLHttpRequest {
  * 安装上下文
  */
 export const installEnv = async (metadata: Metadata, gatewayPort: number) => {
-  const jmm = new JsProcessMicroModule(metadata, await waitFetchPort());
+  const fetchPort = await waitFetchPort();
+  const jmm = new JsProcessMicroModule(metadata, fetchPort);
   const jsProcess = await jmm.bootstrap();
+
   const jsMicroModule = metadata.envString("jsMicroModule");
   const [version, patch] = jsMicroModule.split(".").map((v) => parseInt(v));
 
@@ -583,5 +522,20 @@ export const installEnv = async (metadata: Metadata, gatewayPort: number) => {
       workerGlobal.removeEventListener("message", runMain);
     }
   });
+
+  // //#region
+  // {
+  //   const { http, jsProcess } = navigator.dweb;
+  //   const httpServer = await http.createHttpDwebServer(jsProcess, { subdomain: "www" });
+  //   jsProcess.fetchIpc.postMessage(
+  //     core.IpcEvent.fromText("http-server", httpServer.startResult.urlInfo.buildDwebUrl().href)
+  //   );
+  //   await httpServer.listen((event) => {
+  //     console.log("got request", event.ipcRequest.url);
+  //     return { body: event.ipcRequest.url };
+  //   });
+  // }
+  // //#endregion
+
   return jsProcess;
 };

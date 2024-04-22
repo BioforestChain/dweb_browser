@@ -70,9 +70,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
      * 但是这并不会停止向当前已有的其它消费器继续传播
      */
     fun consume(): T {
-      if (!consumed) {
-        consumed = true
-      }
+      consumed = true
       return data
     }
 
