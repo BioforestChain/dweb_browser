@@ -27,7 +27,7 @@ sealed class SuspendOnceBase<R> {
   suspend fun getResult() = hasRun.await()
   fun reset() {
     synchronized(lock) {
-      if (hasRun !== noRun && hasRun.isActive) {
+      if (hasRun !== noRun && !hasRun.isCancelled) {
         hasRun.cancel()
       }
       hasRun = noRun
