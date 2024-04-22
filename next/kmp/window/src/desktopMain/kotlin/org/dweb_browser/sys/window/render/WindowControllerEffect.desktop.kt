@@ -100,7 +100,7 @@ fun WindowController.WindowControllerEffect() {
   // 把状态都作用到窗口上
   TitleEffect(composeWindowParams)
   VisibleEffect(composeWindowParams)
-  ModeEffect(composeWindowParams)
+  ModeEffect(composeWindow, composeWindowParams)
   FocusEffect(composeWindow, composeWindowParams)
 }
 
@@ -153,29 +153,29 @@ private fun WindowController.VisibleEffect(
  * 包括窗口关闭的双向绑定
  */
 @Composable
-private fun WindowController.ModeEffect(composeWindowParams: ComposeWindowParams) {
+private fun WindowController.ModeEffect(
+  composeWindow: ComposeWindow,
+  composeWindowParams: ComposeWindowParams
+) {
   RememberEffect(composeWindowParams) {
     state.observable.onChange {
       // 针对固定窗口大小的绑定
       if (it.key == WindowPropertyKeys.Resizable) {
-        composeWindowParams.resizable = it.newValue as Boolean
+        composeWindow.isResizable = it.newValue as Boolean
       }
       // 针对桌面端原生窗口的浮动 最大化 全屏 绑定
       if (it.key == WindowPropertyKeys.Mode) {
         when (it.newValue as WindowMode) {
           WindowMode.FLOAT -> {
-            composeWindowParams.placement = WindowPlacement.Floating
-            composeWindowParams.resizable = true
+            composeWindow.placement = WindowPlacement.Floating
           }
 
           WindowMode.MAXIMIZE -> {
-            composeWindowParams.placement = WindowPlacement.Maximized
-            composeWindowParams.resizable = true
+            composeWindow.placement = WindowPlacement.Maximized
           }
 
           WindowMode.FULLSCREEN -> {
-            composeWindowParams.placement = WindowPlacement.Fullscreen
-            composeWindowParams.resizable = true
+            composeWindow.placement = WindowPlacement.Fullscreen
           }
 
           WindowMode.PIP -> WARNING("ComposeWindow No Support PIP")

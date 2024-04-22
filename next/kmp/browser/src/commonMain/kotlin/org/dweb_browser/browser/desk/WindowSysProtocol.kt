@@ -75,8 +75,8 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
       "/setStyle" bind PureMethod.GET by defineEmptyResponse {
         getWindow().setStyle(request.queryAs<WindowStyle>())
       },
-      // 色泽窗口大小
-      "/setBoard" bind PureMethod.GET by defineEmptyResponse {
+      // 设置窗口大小
+      "/setBounds" bind PureMethod.GET by defineEmptyResponse {
         getWindow().setBroad(request.queryAs<SetWindowSize>())
       },
       // 获取窗口信息
