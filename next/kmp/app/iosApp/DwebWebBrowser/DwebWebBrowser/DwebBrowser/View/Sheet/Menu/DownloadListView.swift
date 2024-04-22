@@ -95,12 +95,12 @@ struct DownloadListView: View {
     
     @ViewBuilder
     func getPreview(_ item: DownloadItem) -> some View {
-//        DownloadTextPreviewView(data: item)
-        // TODO: 预览
-        
         if let filePath = item.localPath, case .video(_) =  item.mime {
             DownloadVideoPreviewView(url: URL(filePath: filePath))
+        } else if let filePath = item.localPath, case .audio(_) =  item.mime {
+            DownloadAudioPreviewView(audioUrl: URL(filePath: filePath))
         } else {
+            //DownloadTextPreviewView(data: item)
             Text("TODO: Preview")
         }
         
