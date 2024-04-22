@@ -46,16 +46,43 @@ class ComposeWindowParams(
     position = WindowPosition.PlatformDefault,
     size = DpSize(800.dp, 600.dp),
   )
+  /**是否最小化*/
   var isMinimized
     get() = state.isMinimized
     set(value) {
       state.isMinimized = value
     }
+  /**是否全屏*/
+  var isFullscreen:Boolean = false
+    private set
+  /**是否最大化*/
+  var isMaximized:Boolean = false
+    private set
 
-  // 控制窗口状态
-  var placement
-    get() = state.placement
+  /**控制窗口状态*/
+  var placement: WindowPlacement
+    get() = when {
+      isFullscreen -> WindowPlacement.Fullscreen
+      isMaximized -> WindowPlacement.Maximized
+      else -> WindowPlacement.Floating
+    }
     set(value) {
+      when (value) {
+        WindowPlacement.Fullscreen -> {
+          isMaximized = false
+          isFullscreen = true
+        }
+
+        WindowPlacement.Maximized -> {
+          isFullscreen = false
+          isMaximized = true
+        }
+
+        WindowPlacement.Floating -> {
+          isFullscreen = false
+          isMaximized = false
+        }
+      }
       state.placement = value
     }
 
