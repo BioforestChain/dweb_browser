@@ -205,6 +205,7 @@ object BrowserI18nResource {
 
   object Home {
     val page_title = SimpleI18nResource(Language.ZH to "起始页", Language.EN to "Home Page")
+    val search_error = SimpleI18nResource(Language.ZH to "没有与您搜索相关的数据！", Language.EN to "No data relevant to your search！")
   }
 
   object Web {

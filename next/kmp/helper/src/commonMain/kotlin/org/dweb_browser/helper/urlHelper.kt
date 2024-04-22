@@ -144,6 +144,7 @@ fun String.toWebUrl() = try {
 fun String.toNoProtocolWebUrl() =
   if (this.split("/").first().isMaybeDomain()) "https://$this".toWebUrl() else null
 
+/**尝试转换成webUrl*/
 fun String.toWebUrlOrWithoutProtocol() = toWebUrl() ?: toNoProtocolWebUrl()
 
 /**

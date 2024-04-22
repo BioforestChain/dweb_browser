@@ -50,7 +50,7 @@ class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
         controller.engineUpdateSignal.emit()
       },
       /**
-       * 搜索都有注入的搜索列表
+       * 搜索注入的搜索列表
        */
       "/injectList" bind PureMethod.GET by defineStringResponse {
         val key = request.queryOrNull("key")

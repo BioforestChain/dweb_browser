@@ -16,10 +16,8 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.search.SearchEngine
 import org.dweb_browser.browser.search.SearchInject
-import org.dweb_browser.browser.search.ext.collectChannelOfEngines
-import org.dweb_browser.browser.search.ext.getEngineHomeLink
-import org.dweb_browser.browser.search.ext.getInjectList
 import org.dweb_browser.browser.web.BrowserController
+import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.data.KEY_NO_TRACE
 import org.dweb_browser.browser.web.data.WebSiteInfo
@@ -33,7 +31,6 @@ import org.dweb_browser.browser.web.model.page.BrowserHomePage
 import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.browser.web.model.page.BrowserSettingPage
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.readFile
 import org.dweb_browser.dwebview.DWebViewOptions
@@ -72,7 +69,7 @@ data class DwebLinkSearchItem(val link: String, val target: AppBrowserTarget) {
  * 这里作为 ViewModel
  */
 class BrowserViewModel(
-  internal val browserController: BrowserController, internal val browserNMM: NativeMicroModule
+  internal val browserController: BrowserController, internal val browserNMM: BrowserNMM
 ) {
   val browserOnVisible = browserController.onWindowVisible
   val browserOnClose = browserController.onCloseWindow
@@ -119,6 +116,7 @@ class BrowserViewModel(
   private var searchEngineList = listOf<SearchEngine>()
   val filterShowEngines get() = searchEngineList.filter { it.enable }
 
+  /**检查是否有设置过的默认搜索引擎，并且拼接成webUrl*/
   private suspend fun checkAndEnableSearchEngine(key: String): Url? {
     val homeLink = withScope(ioScope) {
       browserNMM.getEngineHomeLink(key.encodeURIComponent())
@@ -127,6 +125,8 @@ class BrowserViewModel(
   }
 
   val searchInjectList = mutableStateListOf<SearchInject>()
+
+  /**获取注入的搜索引擎列表*/
   suspend fun getInjectList(searchText: String) {
     val list = browserNMM.getInjectList(searchText)
     searchInjectList.clear()
@@ -360,19 +360,24 @@ class BrowserViewModel(
    */
   suspend fun doSearchUI(url: String) {
     if (url.isDwebDeepLink()) {
-      withScope(ioScope) { browserNMM.nativeFetch(url) }
-    } else {
-      val webUrl = url.toWebUrlOrWithoutProtocol()
-        ?: checkAndEnableSearchEngine(url)
-        ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl()
-      debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
-      webUrl?.toString()?.let { searchUrl ->
-        if (focusedPage != null && focusedPage is BrowserWebPage) {
-          (focusedPage as BrowserWebPage).loadUrl(searchUrl)
-        } else {
-          addNewPageUI(searchUrl) { replaceOldPage = true } // 新增 BrowserWebPage 覆盖当前页
-        }
-      } ?: showToastMessage("Invalid search => $url")
+      return withScope(ioScope) { browserNMM.nativeFetch(url) }
+    }
+    // 尝试
+    val webUrl = url.toWebUrlOrWithoutProtocol()
+      ?: checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
+      ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl() // 转换成搜索链接
+    debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
+    // 当没有搜到需要的数据，给出提示
+    if (webUrl == null) {
+      showToastMessage(BrowserI18nResource.Home.search_error.text)
+      return
+    }
+    webUrl.toString().let { searchUrl ->
+      if (focusedPage != null && focusedPage is BrowserWebPage) {
+        (focusedPage as BrowserWebPage).loadUrl(searchUrl)// 使用当前页面继续搜索
+      } else {
+        addNewPageUI(searchUrl) { replaceOldPage = true } // 新增 BrowserWebPage 覆盖当前页
+      }
     }
   }
 
