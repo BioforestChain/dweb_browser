@@ -42,6 +42,7 @@ import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.isDwebDeepLink
+import org.dweb_browser.helper.isTrimEndSlashEqual
 import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.toWebUrl
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
@@ -535,9 +536,9 @@ class BrowserViewModel(
     val dayKey = item.day.toString()
     val addUrl = item.url
     browserController.historyStateFlow.update { historyMap ->
-      val dayList = historyMap[dayKey]?.apply {
+      val dayList = historyMap[dayKey]?.run {
         toMutableList().apply {
-          removeAll { item -> item.url == addUrl } // 删除同一天的重复数据
+          removeAll { item -> item.url.isTrimEndSlashEqual(addUrl) } // 删除同一天的重复数据
           add(0, item)
         }.toList()
       } ?: listOf(item)

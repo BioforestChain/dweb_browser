@@ -12,6 +12,11 @@ fun String.parseAsDomain() = DomainParser(this.toPunyCode()).apply { parse() }
 
 fun String.isMaybeDomain() = parseAsDomain().hasError.not()
 
+/**
+ * 裁掉url末尾的/后进行比较是否相等
+ */
+fun String.isTrimEndSlashEqual(url: String) = this.trimEnd('/') == url.trimEnd('/')
+
 
 /**
  * 所有的顶级域名
