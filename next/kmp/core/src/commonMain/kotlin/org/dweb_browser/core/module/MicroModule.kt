@@ -43,7 +43,17 @@ enum class MMState {
 abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleManifest by manifest {
   val debugMM by lazy { Debugger("$this") }
 
-  companion object {}
+  companion object {
+    private val connectReason = ReasonLock()
+    private suspend inline fun <T> connectWithLock(mmid1: MMID, mmid2: MMID, block: () -> T): T {
+      val lockKey = listOf(mmid1, mmid2).sorted().joinToString("<=>")
+      println("QAQ connectWithLock-start $lockKey")
+      return connectReason.withLock(lockKey, block = block).also {
+        println("QAQ connectWithLock-end $lockKey")
+      }
+    }
+
+  }
 
   /**
    * 获取权限提供器，这需要在bootstrap之前就能提供
@@ -180,23 +190,27 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
      */
     val onConnect = ipcConnectedProducer.consumer("for-internal")
 
-    private val connectReason = ReasonLock()
-    private val connectionMap = SafeHashMap<MMID, Ipc>()
+    private val connectionMap = SafeHashMap<MMID, CompletableDeferred<Ipc>>()
 
     /**
      * 尝试连接到指定对象
      */
-    suspend fun connect(mmid: MMID, reason: PureRequest? = null) = connectReason.withLock(mmid) {
-      debugMM("connect", mmid)
-      connectionMap[mmid] ?: bootstrapContext.dns.connect(mmid, reason).also { ipc ->
-        connectionMap[mmid] = ipc
-        ipc.onClosed {
-          connectionMap.remove(mmid, ipc)
-        }
+    suspend fun connect(remoteMmid: MMID, reason: PureRequest? = null) =
+      connectWithLock(mmid, remoteMmid) {
+        debugMM("connect", remoteMmid)
+        connectionMap.getOrPut(remoteMmid) {
+          CompletableDeferred<Ipc>().also { ipcDeferred ->
+            scopeLaunch(cancelable = false) {
+              val ipc = bootstrapContext.dns.connect(remoteMmid, reason)
+              ipcDeferred.complete(ipc)
+              beConnect(ipc, reason)
+              ipc.onClosed {
+                connectionMap.remove(remoteMmid, ipcDeferred)
+              }
+            }
+          }
+        }.await()
       }
-    }.also { ipc ->
-      beConnect(ipc, reason)
-    }
 
     /**
      * 收到一个连接，触发相关事件
@@ -215,17 +229,17 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
         ipc.onClosed {
           connectionLinks.remove(ipc)
         }
-        // 尝试保存到双向连接索引中
-        ipc.remote.mmid.also { remoteMmid ->
-          connectReason.withLock(remoteMmid) {
-            if (!connectionMap.contains(remoteMmid)) {
-              connectionMap[remoteMmid] = ipc
-              ipc.onClosed {
-                connectionMap.remove(remoteMmid, ipc)
-              }
+        /// 尝试保存到双向连接索引中
+        val remoteMmid = ipc.remote.mmid
+        connectionMap.getOrPut(remoteMmid) {
+          CompletableDeferred(ipc).also { ipcDeferred ->
+            connectionMap[remoteMmid] = ipcDeferred
+            ipc.onClosed {
+              connectionMap.remove(remoteMmid, ipcDeferred)
             }
           }
         }
+
         ipcConnectedProducer.send(IpcConnectArgs(ipc, reason))
       }
     }

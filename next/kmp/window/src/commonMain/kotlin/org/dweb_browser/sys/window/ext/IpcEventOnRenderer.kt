@@ -9,7 +9,6 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.getOrPut
-import org.dweb_browser.helper.listen
 
 /**
  * Renderer：窗口由 window.sys.dweb 被创建后，要求窗口拥有着对内容进行渲染
@@ -38,31 +37,27 @@ suspend fun NativeMicroModule.NativeRuntime.getOrOpenMainWindowId() =
 val NativeMicroModule.NativeRuntime.hasMainWindow
   get() = getMainWindowIdWMDeferred(this).isCompleted
 
-suspend fun NativeMicroModule.NativeRuntime.onRenderer(cb: suspend RendererContext.() -> Unit) =
-  onConnect.listen { connectEvent ->
-    val (ipc) = connectEvent.consume()
-    scopeLaunch(cancelable = false) {
-      ipc.onEvent("onRender").collectIn { event ->
-        event.consumeFilter { ipcEvent ->
-          if (ipcEvent.isRenderer()) {
-            val context = RendererContext.get(ipcEvent, ipc, this@onRenderer)
-            context.cb()
-            ipc.onClosed {
-              scopeLaunch(cancelable = false) {
-                context.emitDispose()
-              }
-            }
-            true
-          } else if (ipcEvent.isRendererDestroy()) {
-            val context = RendererContext.get(ipcEvent, ipc, this@onRenderer)
+suspend fun NativeMicroModule.NativeRuntime.onRenderer(cb: suspend RendererContext.() -> Unit) {
+  val winIpc = connect("window.std.dweb")
+  winIpc.onEvent("onRender").collectIn(getRuntimeScope()) { event ->
+    event.consumeFilter { ipcEvent ->
+      if (ipcEvent.isRenderer()) {
+        val context = RendererContext.get(ipcEvent, winIpc, this)
+        context.cb()
+        winIpc.onClosed {
+          scopeLaunch(cancelable = false) {
             context.emitDispose()
-            true
-          } else false
+          }
         }
-      }
+        true
+      } else if (ipcEvent.isRendererDestroy()) {
+        val context = RendererContext.get(ipcEvent, winIpc, this)
+        context.emitDispose()
+        true
+      } else false
     }
-
   }
+}
 
 class RendererContext(
   val wid: String,

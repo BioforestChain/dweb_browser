@@ -5,15 +5,17 @@ import kotlinx.coroutines.sync.withLock
 
 class ReasonLock {
   val locks = SafeHashMap<String, Mutex>()
+  val rootLock = Mutex()
   suspend inline fun lock(reasons: Collection<String>) = lock(*reasons.toTypedArray())
-  suspend inline fun lock(vararg reasons: String): List<Mutex> =
+  suspend inline fun lock(vararg reasons: String): List<Mutex> = rootLock.withLock {
     mutableListOf<Mutex>().also { mutexList ->
-      for (reason in reasons) {
+      for (reason in reasons.toSet()) {// ToSet 去重
         val mutex = locks.getOrPut(reason) { Mutex() }
         mutex.lock()
         mutexList.add(mutex)
       }
     }
+  }
 
   fun unlock(mutexList: List<Mutex>) {
     for (mutex in mutexList) {
