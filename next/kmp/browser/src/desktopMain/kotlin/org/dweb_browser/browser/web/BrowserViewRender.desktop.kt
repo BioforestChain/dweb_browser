@@ -24,20 +24,20 @@ actual fun CommonBrowserView(
   val composeWindow by LocalPureViewController.current.asDesktop().composeWindowAsState()
   LaunchedEffect(viewModel.showMore, composeWindow) {
     while (true) {
+      delay(100)
       if (viewModel.showMore && composeWindow.focusOwner != null) {
         viewModel.showMore = false
       }
-      delay(100)
     }
   }
   val windowController = LocalWindowController.current
   val isShowMenuPanel by windowController.watchedState { showMenuPanel }
   LaunchedEffect(isShowMenuPanel, composeWindow) {
     while (true) {
+      delay(100)
       if (isShowMenuPanel && composeWindow.focusOwner != null) {
         windowController.hideMenuPanel()
       }
-      delay(100)
     }
   }
 }
