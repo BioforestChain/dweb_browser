@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import org.dweb_browser.pure.image.compose.PureImageLoader
+import org.dweb_browser.pure.image.compose.SmartLoad
 
 @Composable
 fun ImageLoaderDemo() {

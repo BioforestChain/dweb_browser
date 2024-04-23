@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.pure.image.compose.PureImageLoader
+import org.dweb_browser.pure.image.compose.SmartLoad
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 

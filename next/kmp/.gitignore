@@ -13,6 +13,7 @@ xcuserdata
 X-Build
 /shared/src/commonMain/resources/browser
 /browser/src/commonMain/composeResources/files/browser
+/shared/src/iosMain/composeResources
 /dwebview/src/commonMain/composeResources/files/dwebview-polyfill
 release
 debug
@@ -22,3 +23,6 @@ debug
 *.link
 /app/electronApp/src/jsMain/resources/demo/
 /kotlin-js-store/
+
+# 开发桌面端时应用缓存目录
+/app/desktopApp/appdata

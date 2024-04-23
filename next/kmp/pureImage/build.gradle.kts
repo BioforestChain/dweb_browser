@@ -22,9 +22,9 @@ kotlin {
       implementation(projects.pureHttp)
 
       // 加载图片 coil
-      implementation(libs.coil.core)
+      api(libs.coil.core) // 为了给其他模块直接应用 MimeType 获取的方法
+      api(libs.coil.compose)
       implementation(libs.coil.network.ktor)
-      implementation(libs.coil.compose)
       implementation(libs.coil.svg)
 
       // ext

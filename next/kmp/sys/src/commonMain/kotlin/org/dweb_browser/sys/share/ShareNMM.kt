@@ -10,6 +10,7 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -17,6 +18,7 @@ import org.dweb_browser.core.std.file.ext.appendFile
 import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.core.std.file.ext.writeFile
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.consumeEachCborPacket
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultiPartFileEncode
@@ -27,6 +29,7 @@ import org.dweb_browser.helper.platform.MultipartFilePackage
 import org.dweb_browser.helper.platform.MultipartFileType
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
@@ -157,10 +160,26 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
           ShareResult(result == "OK", result).toJsonElement()
         },
       ).cors()
+
+      onConnect.collectIn(mmScope) { connectEvent ->
+        val (ipc) = connectEvent.consume()
+        ipc.onEvent("shareLocalFile").collectIn(mmScope) { event ->
+          event.consumeFilter { ipcEvent ->
+            (ipcEvent.name == "shareLocalFile").trueAlso { // 用于文件分享，传入的内容是 《文件名&&文件路径》
+              val filePath = ipcEvent.text
+              val ret =
+                share(ShareOptions(null, null, null), listOf("file://$filePath"), this@ShareRuntime)
+              debugShare("shareLocalFile", ret)
+              ipc.postMessage(IpcEvent.fromUtf8("shareLocalFile", ret))
+            }
+          }
+        }
+      }
     }
 
+
     private suspend fun multipartFileDataWriteToTempFile(
-      multiPartFile: MultiPartFile
+      multiPartFile: MultiPartFile,
     ): String {
       val writePath = "/cache/${randomUUID()}/${multiPartFile.name}"
       writeFile(

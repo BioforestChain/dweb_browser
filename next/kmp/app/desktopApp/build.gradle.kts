@@ -33,7 +33,7 @@ kotlin {
   }
 }
 
-val appVersion = "2.4.0903"
+val appVersion = "2.4.1600"
 
 compose.desktop {
   application {
@@ -96,7 +96,7 @@ afterEvaluate {
     // 注入应用版本
     systemProperties["dwebbrowser.version"] = appVersion
 
-//    jvmArgs("--add-opens", "java.desktop/java.awt=ALL-UNNAMED")
+    jvmArgs("--add-opens", "java.desktop/java.awt=ALL-UNNAMED")
   }
   tasks.getByName("desktopTest") {
     println("QAQ desktopTest=${this::class}")

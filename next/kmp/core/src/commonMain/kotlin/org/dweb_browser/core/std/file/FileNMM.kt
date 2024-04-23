@@ -63,12 +63,10 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     private val pickerPathToRealPathMap = mutableMapOf<String, Path>()
   }
 
-
   private fun IHandlerContext.getVfsPath(
     pathKey: String = "path",
   ) = getVirtualFsPath(
-    ipc.remote,
-    request.query(pathKey)
+    ipc.remote, request.query(pathKey)
   )
 
   private fun IHandlerContext.getPath(pathKey: String = "path"): Path {
@@ -79,12 +77,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     return getVfsPath(pathKey).fsFullPath
   }
 
-  fun IHandlerContext.getPathInfo(path: Path = getPath()): JsonElement {
+  private fun IHandlerContext.getPathInfo(path: Path = getPath()): JsonElement {
     val metadata = SystemFileSystem.metadataOrNull(path);
     return if (metadata == null) {
       JsonNull
     } else {
-
       FileMetadata(
         metadata.isRegularFile,
         metadata.isDirectory,
@@ -182,11 +179,10 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
                   bufferedSink.close()
                 })
                 // 追加内容
-                is FileOpAppend -> handler.appendingSink().buffer()
-                  .let { bufferedSink ->
-                    bufferedSink.write(op.input)
-                    bufferedSink.close()
-                  }
+                is FileOpAppend -> handler.appendingSink().buffer().let { bufferedSink ->
+                  bufferedSink.write(op.input)
+                  bufferedSink.close()
+                }
                 // 主动关闭
                 is FileOpClose -> this@consumeEachCborPacket.breakLoop()
               }
@@ -288,10 +284,9 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           // 如果不存在则需要创建空文件夹
           if (!SystemFileSystem.exists(targetPath)) {
             SystemFileSystem.createDirectories(targetPath, true)
-          } else {
-            // 需要保证文件夹为空
-            SystemFileSystem.deleteRecursively(targetPath, false)
           }
+          // 需要保证文件夹为空
+          SystemFileSystem.deleteRecursively(targetPath, false)
           // atomicMove 如果是不同的文件系统时，移动会失败，如 data 目录移动到 外部download目录，所以需要使用copy后自行删除源文件
           SystemFileSystem.atomicMove(sourcePath, targetPath)
           true
@@ -354,13 +349,12 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
 class VirtualFsPath(
   context: IMicroModuleManifest,
   virtualPathString: String,
-  findVfsDirectory: (firstSegment: String) -> IVirtualFsDirectory?
+  findVfsDirectory: (firstSegment: String) -> IVirtualFsDirectory?,
 ) {
   private val virtualFullPath = virtualPathString.toPath(true).also {
     if (!it.isAbsolute) {
       throw ResponseException(
-        HttpStatusCode.BadRequest,
-        "File path should be absolute path"
+        HttpStatusCode.BadRequest, "File path should be absolute path"
       )
     }
     if (it.segments.isEmpty()) {
@@ -384,8 +378,7 @@ class VirtualFsPath(
 }
 
 
-object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>(
-  "FileWatchEventName",
+object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>("FileWatchEventName",
   FileWatchEventName.ALL_VALUES,
   { eventName });
 @Serializable(with = FileWatchEventNameSerializer::class)
@@ -406,7 +399,8 @@ enum class FileWatchEventName(val eventName: String) {
   Unlink("unlink"),
 
   /** 文件夹被移除*/
-  UnlinkDir("unlinkDir"), ;
+  UnlinkDir("unlinkDir"),
+  ;
 
   companion object {
     val ALL_VALUES = entries.associateBy { it.eventName }
@@ -419,7 +413,7 @@ data class FileWatchEvent(
 )
 
 suspend fun IChannelHandlerContext.sendPath(
-  type: FileWatchEventName, path: Path, vfsPath: VirtualFsPath
+  type: FileWatchEventName, path: Path, vfsPath: VirtualFsPath,
 ) {
   pureChannelContext.sendJsonLine(
     FileWatchEvent(

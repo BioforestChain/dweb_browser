@@ -40,9 +40,10 @@ data class DWebViewOptions(
    */
   var tag: Int? = null,
   /**
-   * 是否离屏渲染
+   * 是否使用离屏渲染模式(目前主要用于桌面端web browser)
+   * @suppress Desktop Only
    */
-  val offscreen: Boolean = false,
+  val enabledOffScreenRender: Boolean = false
 ) {
 
   enum class DetachedStrategy {

@@ -4,10 +4,12 @@ import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.WebBeforeUnloadArgs
+import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.dwebview.WebLoadErrorState
 import org.dweb_browser.dwebview.WebLoadStartState
 import org.dweb_browser.dwebview.WebLoadSuccessState
@@ -16,6 +18,7 @@ import platform.Foundation.NSError
 import platform.Foundation.NSURLAuthenticationChallenge
 import platform.Foundation.NSURLAuthenticationMethodServerTrust
 import platform.Foundation.NSURLCredential
+import platform.Foundation.NSURLResponse
 import platform.Foundation.NSURLSessionAuthChallengeDisposition
 import platform.Foundation.NSURLSessionAuthChallengePerformDefaultHandling
 import platform.Foundation.NSURLSessionAuthChallengeUseCredential
@@ -45,7 +48,15 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
     decidePolicyForNavigationResponse: WKNavigationResponse,
     decisionHandler: (WKNavigationResponsePolicy) -> Unit
   ) {
-    decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyAllow)
+    val url = decidePolicyForNavigationResponse.response.URL?.absoluteString ?: ""
+    //被标识位download的url, 或者无法被原生webview处理的MIME格式。执行download流程。
+    if (needDownloadUrlSet.contains(url) || !decidePolicyForNavigationResponse.canShowMIMEType()) {
+      needDownloadUrlSet.remove(url)
+      decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyCancel)
+      doDownload(decidePolicyForNavigationResponse.response)
+    } else {
+      decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyAllow)
+    }
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -107,14 +118,40 @@ class DWebNavigationDelegate(val engine: DWebViewEngine) : NSObject(),
     }
   }
 
+  private var needDownloadUrlSet = mutableSetOf<String>()
+
   override fun webView(
     webView: WKWebView,
     decidePolicyForNavigationAction: WKNavigationAction,
     preferences: WKWebpagePreferences,
     decisionHandler: (WKNavigationActionPolicy, WKWebpagePreferences?) -> Unit
   ) {
+    if (decidePolicyForNavigationAction.shouldPerformDownload) {
+      /*
+      * 为了拿到download需要的MIME, suggestedFilename, content-lenght等数据，
+      * 先妥协将download标签标识的href链接的处理放置在decidePolicyForNavigationResponse阶段。
+      * 这边先做保存需要download的url。
+      * */
+      decidePolicyForNavigationAction.request.URL?.absoluteString?.let {
+        needDownloadUrlSet.add(it)
+      }
+    }
+
     decidePolicyForNavigationAction(webView, decidePolicyForNavigationAction) {
       decisionHandler(it, null)
+    }
+  }
+
+  private fun doDownload(response: NSURLResponse) {
+    MainScope().launch {
+      val arg = WebDownloadArgs(
+        engine.customUserAgent() ?: "",
+        response.suggestedFilename ?: "",
+        response.MIMEType ?: "",
+        response.expectedContentLength(),
+        response.URL?.absoluteString() ?: ""
+      )
+      engine.downloadSignal.emit(arg)
     }
   }
 

@@ -70,15 +70,15 @@ class JmmInstallerController(
     bottomSheets.onClose {
     }
   }
-
+  /**安装完成后打开app*/
   suspend fun openApp() {
     closeSelf() // 打开应用之前，需要关闭当前安装界面，否则在原生窗口的层级切换会出现问题
-    jmmNMM.nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${installMetadata.metadata.id}")
+    jmmNMM.bootstrapContext.dns.open(installMetadata.metadata.id)
   }
 
   // 关闭原来的app
   suspend fun closeApp() {
-    jmmNMM.nativeFetch("file://desk.browser.dweb/closeApp?app_id=${installMetadata.metadata.id}")
+    jmmNMM.bootstrapContext.dns.close(installMetadata.metadata.id)
   }
 
   /**

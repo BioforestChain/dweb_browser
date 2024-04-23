@@ -84,9 +84,7 @@ object WindowStateSerializer : KSerializer<WindowState> {
  * 单个窗口的信息集合
  */
 @Serializable(with = WindowStateSerializer::class)
-class WindowState(
-  internal var _constants: WindowConstants
-) {
+class WindowState(internal var _constants: WindowConstants) {
   val constants get() = _constants
 
   /**
@@ -428,3 +426,6 @@ class WindowState(
   var safePadding by WindowPropertyField.SafePadding.toObserve(observable)
 }
 
+// 设置窗口大小，并且可以传递是否需要让用户可以调整窗口大小
+@Serializable
+data class SetWindowSize(val resizable: Boolean = false, val width: Float? = null, val height: Float? = null)

@@ -49,8 +49,10 @@ fun Project.createElectronExec(
 ): TaskProvider<Exec> {
 
   val outputDirectory = provider { npmProject.dir }
+//  val outputDirectory = provider { npmProject.dir.get().asFile }
   val mainFileName =
     mainFile.map { it.asFile.toPath().relativize(npmProject.dir.toPath()).toString() }
+//    mainFile.map { it.asFile.toPath().relativize(npmProject.dir.get().asFile.toPath()).toString() }
 
   val electronFileTask = createElectronProject(
     taskName = "${taskName}CreateProject",

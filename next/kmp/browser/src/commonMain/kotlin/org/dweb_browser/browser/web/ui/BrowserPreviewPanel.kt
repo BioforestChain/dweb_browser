@@ -72,7 +72,6 @@ import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserHomePage
 import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.helper.platform.theme.DimenBottomBarHeight
 import org.dweb_browser.sys.window.render.LocalWindowController
 import kotlin.math.max
 
@@ -174,7 +173,7 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier) {
       }
     }
     Row(
-      modifier = Modifier.fillMaxWidth().height(DimenBottomBarHeight)
+      modifier = Modifier.fillMaxWidth().height(dimenBottomHeight)
         .background(MaterialTheme.colorScheme.surface), verticalAlignment = CenterVertically
     ) {
       IconButton(onClick = {
@@ -374,6 +373,7 @@ private fun PagePreviewCell(
         Icon(
           Icons.Default.Close,
           contentDescription = "Close Page",
+          tint = MaterialTheme.colorScheme.surfaceTint
         )
       }
     }

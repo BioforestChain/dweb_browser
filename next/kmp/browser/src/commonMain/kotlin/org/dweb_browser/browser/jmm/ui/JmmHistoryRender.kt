@@ -112,7 +112,9 @@ fun JmmHistoryController.JmmTabsView(tab: JmmTabs) {
   ) { metadata ->
     JmmViewItem(
       jmmHistoryMetadata = metadata,
-      buttonClick = produceEvent(metadata, scope = jmmNMM.getRuntimeScope()) { this@JmmTabsView.buttonClick(metadata) },
+      buttonClick = produceEvent(metadata, scope = jmmNMM.getRuntimeScope()) {
+        this@JmmTabsView.buttonClick(metadata)
+      },
       uninstall = { this@JmmTabsView.unInstall(metadata) },
       detail = { this@JmmTabsView.openInstallerView(metadata) }
     )
@@ -171,7 +173,7 @@ fun JmmViewItem(
           contentAlignment = Alignment.Center
         ) {
           val progress = with(jmmHistoryMetadata.state) {
-            if (total > 0) current * 1.0f / total else 0f
+            if (total > 0) progress() else 0f
           }
           val primary = MaterialTheme.colorScheme.primary
           when (jmmHistoryMetadata.state.state) {

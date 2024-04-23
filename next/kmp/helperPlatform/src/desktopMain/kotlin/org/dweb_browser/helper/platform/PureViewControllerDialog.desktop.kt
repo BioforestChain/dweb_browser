@@ -29,6 +29,8 @@ fun PureViewController.ModalDialog(
   state: DesktopPureDialogState = DesktopPureDialogState.default,
   content: @Composable (JDialog) -> Unit
 ) {
+  // 强行设置渲染方式为 SAMECANVAS
+  System.setProperty("compose.layers.type", "SAMECANVAS")
   val viewBox = LocalPureViewBox.current
   val dialog = remember {
     ComposeDialog(getComposeWindowOrNull(), Dialog.ModalityType.APPLICATION_MODAL).apply {
@@ -50,7 +52,7 @@ fun PureViewController.ModalDialog(
   val density = LocalDensity.current.density
   val layoutDirection = LocalLayoutDirection.current
   val boundsReady = remember { CompletableDeferred<Unit>() }
-  val safeAreaSpacePx = viewBox.asDesktop().currentViewControllerMaxBounds().timesToInt(density)
+  val safeAreaSpacePx = viewBox.asDesktop().currentViewControllerMaxBounds(true).timesToInt(density)
   LaunchedEffect(
     density, safeAreaSpacePx, layoutDirection, state.alignment, state.width, state.height
   ) {
@@ -86,6 +88,8 @@ fun PureViewController.ModalDialog(
       job.cancel()
       SwingUtilities.invokeLater {
         // dialog.removeAll()
+        // 重置渲染模式为 WINDOW
+        System.setProperty("compose.layers.type", "WINDOW")
         dialog.isVisible = false
       }
       requestClose()

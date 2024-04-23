@@ -30,9 +30,7 @@ object SharePlugin {
     debugShare(
       "open_share", "shareOptions==>$shareOptions files==>$files"
     )
-    if (shareOptions.text.isNullOrEmpty() && shareOptions.url.isNullOrEmpty() &&
-      (files != null && files.isEmpty())
-    ) {
+    if (shareOptions.text.isNullOrEmpty() && shareOptions.url.isNullOrEmpty() && (files != null && files.isEmpty())) {
       po.resolve("Must provide a URL or Message or files")
       return
     }
@@ -75,9 +73,12 @@ object SharePlugin {
     }
 
     var flags = PendingIntent.FLAG_UPDATE_CURRENT
-    // 如果当前sdk >= 31
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    // 如果当前sdk >= 31 并且 < 34
+    if (Build.VERSION.SDK_INT in Build.VERSION_CODES.S until Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
       flags = flags or PendingIntent.FLAG_MUTABLE
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+      // 34及以上版本，没法使用FLAG_MUTABLE，必须增加其他
+      flags = flags or PendingIntent.FLAG_IMMUTABLE
     }
     val pi = PendingIntent.getBroadcast(
       getAppContext(), 0, Intent(Intent.EXTRA_CHOSEN_COMPONENT), flags

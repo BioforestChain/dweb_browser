@@ -31,6 +31,7 @@ class BrowserController(
   private val closeWindowSignal = SimpleSignal()
   val onCloseWindow = closeWindowSignal.toListener()
 
+  val downloadController = BrowserDownloadController(browserNMM, this)
   val viewModel = BrowserViewModel(this, browserNMM)
   private val browserStore = BrowserStore(browserNMM)
 
@@ -41,7 +42,6 @@ class BrowserController(
 
   val ioScope get() = browserNMM.getRuntimeScope()
 
-  //  val searchEngines: MutableList<WebEngine> = mutableStateListOf()
   val bookmarksStateFlow = MutableStateFlow<List<WebSiteInfo>>(listOf())
   val historyStateFlow = MutableStateFlow<Map<String, List<WebSiteInfo>>>(mapOf())
 
@@ -49,26 +49,6 @@ class BrowserController(
     ioScope.launch {
       bookmarksStateFlow.value = browserStore.getBookLinks()
       historyStateFlow.value = browserStore.getHistoryLinks()
-//      val engines = browserStore.getSearchEngines()
-//      if (engines.isNotEmpty()) {
-//        // 下面判断是否在 DefaultSearchWebEngine 有新增，有新增内置，需要补充进去
-//        val notExists = DefaultSearchWebEngine.filter { default ->
-//          engines.find { engine -> default.host == engine.host } == null
-//        }
-//        if (notExists.isNotEmpty()) {
-//          DefaultSearchWebEngine.forEach { default ->
-//            engines.find { it.host == default.host }?.let { engine ->
-//              searchEngines.add(engine)
-//            } ?: searchEngines.add(default)
-//          }
-//          browserStore.setSearchEngines(searchEngines)
-//        } else {
-//          searchEngines.addAll(engines)
-//        }
-//      } else {
-//        searchEngines.addAll(DefaultSearchWebEngine)
-//        browserStore.setSearchEngines(searchEngines)
-//      }
     }
   }
 
@@ -142,12 +122,10 @@ class BrowserController(
   suspend fun saveStringToStore(key: String, data: String) = browserStore.saveString(key, data)
   suspend fun getStringFromStore(key: String) = browserStore.getString(key)
 
-  val downloadController = BrowserDownloadController(browserNMM, this)
-
   /**
    * 打开BottomSheetModal
    */
-  suspend fun openDownloadView(args: WebDownloadArgs) = downloadController.openDownloadView(args)
+  suspend fun openDownloadDialog(args: WebDownloadArgs) = downloadController.openDownloadDialog(args)
 
   fun showToastMessage(message: String, position: PositionType? = null) = ioScope.launch {
     browserNMM.showToast(message = message, position = position)

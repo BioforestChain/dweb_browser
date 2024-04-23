@@ -23,39 +23,47 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserDrawResource
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.web.model.LocalBrowserViewModel
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
 import org.dweb_browser.helper.PrivacyUrl
+import org.dweb_browser.helper.platform.LocalPureViewController
+import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.render.watchedState
 
 @Composable
-internal fun BrowserMenuPanel() {
+internal fun BrowserMenuPanel(modifier: Modifier = Modifier) {
   val uiScope = rememberCoroutineScope()
   val viewModel = LocalBrowserViewModel.current
   val scope = LocalBrowserViewModel.current.browserNMM.getRuntimeScope()
 
   val hide = remember(viewModel) { { viewModel.showMore = false } }
-
-  DropdownMenu(expanded = viewModel.showMore, onDismissRequest = { hide() }) {
+  DropdownMenu(
+    modifier = modifier,
+    expanded = viewModel.showMore,
+    onDismissRequest = { hide() }
+  ) {
     val page = viewModel.focusedPage
-
     // 添加书签
     if (page is BrowserWebPage) {
       /// 添加到桌面
-      SettingListItem(
-        title = BrowserI18nResource.browser_menu_add_to_desktop(), // stringResource(id = R.string.browser_options_privacy),
+      SettingListItem(title = BrowserI18nResource.browser_menu_add_to_desktop(), // stringResource(id = R.string.browser_options_privacy),
         icon = Icons.AutoMirrored.Default.AddToHomeScreen, {
           hide()
           uiScope.launch { viewModel.addUrlToDesktopUI(page) }
-        }
-      )
+        })
       val added = page.isInBookmark
       if (added) {
         SettingListItem(title = BrowserI18nResource.browser_remove_bookmark(),
@@ -74,10 +82,13 @@ internal fun BrowserMenuPanel() {
       }
     }
     SettingListItem(
-      title = BrowserI18nResource.Bookmark.page_title(), icon = Icons.Default.Bookmark, onClick = {
+      title = BrowserI18nResource.Bookmark.page_title(),
+      icon = Icons.Default.Bookmark,
+      onClick = {
         hide()
         uiScope.launch { viewModel.tryOpenUrlUI("about:bookmarks") }
-      }, trailingIcon = Icons.AutoMirrored.Filled.ArrowForwardIos
+      },
+      trailingIcon = Icons.AutoMirrored.Filled.ArrowForwardIos
     )
     // 分享
     if (page is BrowserWebPage) {
@@ -113,15 +124,13 @@ internal fun BrowserMenuPanel() {
     // 隐私政策
     SettingListItem(
       title = BrowserI18nResource.browser_options_privacy(), // stringResource(id = R.string.browser_options_privacy),
-      icon = Icons.Default.Policy,
-      onClick = {
+      icon = Icons.Default.Policy, onClick = {
         hide()
         uiScope.launch { viewModel.tryOpenUrlUI(PrivacyUrl) }
       }, trailingIcon = Icons.AutoMirrored.Filled.ArrowForwardIos
     )
 
-    SettingListItem(
-      title = BrowserI18nResource.browser_menu_scanner(), // stringResource(id = R.string.browser_options_privacy),
+    SettingListItem(title = BrowserI18nResource.browser_menu_scanner(), // stringResource(id = R.string.browser_options_privacy),
       leadingIcon = {
         Icon(
           BrowserDrawResource.Scanner.painter(),
@@ -129,12 +138,10 @@ internal fun BrowserMenuPanel() {
           tint = LocalContentColor.current,
           modifier = Modifier.size(24.dp),
         )
-      },
-      onClick = {
+      }, onClick = {
         viewModel.showQRCodePanel = true
         hide()
-      }
-    )
+      })
 
     HorizontalDivider()
     // 搜索引擎
@@ -156,12 +163,16 @@ internal fun BrowserMenuPanel() {
     )
     // 历史列表
     SettingListItem(
-      title = BrowserI18nResource.History.page_title(), icon = Icons.Default.History, onClick = {
+      title = BrowserI18nResource.History.page_title(),
+      icon = Icons.Default.History,
+      onClick = {
         hide()
         uiScope.launch { viewModel.tryOpenUrlUI("about:history") }
-      }, trailingIcon = Icons.AutoMirrored.Filled.ArrowForwardIos
+      },
+      trailingIcon = Icons.AutoMirrored.Filled.ArrowForwardIos
     )
   }
+
 }
 
 @Composable

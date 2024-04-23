@@ -1,9 +1,10 @@
-package org.dweb_browser.browser.desk.version
+package org.dweb_browser.browser.desk.upgrade
 
 import androidx.compose.runtime.mutableStateOf
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.desk.DesktopController
 import org.dweb_browser.browser.desk.debugDesk
+import org.dweb_browser.browser.desk.loadApplicationNewVersion
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.ext.createChannelOfDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
@@ -11,6 +12,7 @@ import org.dweb_browser.browser.download.ext.existsDownload
 import org.dweb_browser.browser.download.ext.pauseDownload
 import org.dweb_browser.browser.download.ext.removeDownload
 import org.dweb_browser.browser.download.ext.startDownload
+import org.dweb_browser.browser.web.openFileByPath
 import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.helper.compose.Language
 import org.dweb_browser.helper.compose.SimpleI18nResource
@@ -65,7 +67,6 @@ enum class NewVersionType {
 
 class NewVersionController(private val deskNMM: DeskNMM.DeskRuntime, val desktopController: DesktopController) {
   private val store = NewVersionStore(deskNMM)
-  private val manage = NewVersionManage()
   var newVersionItem: NewVersionItem? = null
   val newVersionType = mutableStateOf(NewVersionType.Hide) // 用于显示新版本提醒的控制
   var openAgain: Boolean = false // 默认不需要重新打开，只有在授权后返回时，才需要重新打开
@@ -81,7 +82,7 @@ class NewVersionController(private val deskNMM: DeskNMM.DeskRuntime, val desktop
   private suspend fun initNewVersionItem() {
     val currentVersion = deskNMM.getDeviceAppVersion() // 获取当前系统的 app 版本
     val saveVersionItem = store.getNewVersion() // 获取之前下载存储的版本
-    val loadVersionItem = manage.loadNewVersion() // 获取服务器最新的版本
+    val loadVersionItem = loadApplicationNewVersion() // 获取服务器最新的版本
     // 直接判断 load 和 save 版本是否高于系统版本
     val loadHigher = loadVersionItem?.let {
       loadVersionItem.versionName.isGreaterThan(currentVersion)
@@ -130,13 +131,12 @@ class NewVersionController(private val deskNMM: DeskNMM.DeskRuntime, val desktop
               channel.close()
               newVersionItem.alreadyWatch = false
               // 跳转到安装界面
-              if (checkInstallPermission()) { // 先判断是否有权限
-                val realPath = deskNMM.realFile(downloadTask.filepath)
+              val realPath = deskNMM.realFile(downloadTask.filepath)
+              if (openFileByPath(realPath = realPath, justInstall = true)) { // 安装文件 TODO
                 newVersionType.value = NewVersionType.Hide
-                manage.installApk(realPath)
+                openFileByPath(realPath = realPath, justInstall = true)
                 // 清除保存的新版本信息
                 store.clear()
-                // deskNMM.removeDownload(downloadTask.id) 不能在这边删除
               } else {
                 debugDesk("NewVersion", "no Install Apk Permission")
                 updateVersionType(NewVersionType.Install)
@@ -191,14 +191,9 @@ class NewVersionController(private val deskNMM: DeskNMM.DeskRuntime, val desktop
 
   suspend fun pause() = newVersionItem?.taskId?.let { deskNMM.pauseDownload(it) } ?: false
 
-  private suspend fun checkInstallPermission() = deskNMM.requestSystemPermission(
-    name = SystemPermissionName.InstallSystemApp,
-    title = NewVersionI18nResource.request_permission_message_install.text,
-    description = NewVersionI18nResource.request_permission_message_install.text
-  )
-
   fun openSystemInstallSetting() = run {
     openAgain = true // 为了使得返回的时候重新判断是否安装
-    manage.openSystemInstallSetting()
+    // TODO 这边似乎还没完成
+    // OpenFileUtil.openSystemInstallSetting()
   }
 }

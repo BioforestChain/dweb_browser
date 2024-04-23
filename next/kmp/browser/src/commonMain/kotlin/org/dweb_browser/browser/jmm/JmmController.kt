@@ -194,6 +194,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     return true
   }
 
+  /**监听下载进度回调*/
   private suspend fun watchProcess(metadata: JmmHistoryMetadata) {
     val taskId = metadata.taskId ?: return
     metadata.alreadyWatch = true
@@ -295,6 +296,7 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
     }
   }
 
+  /**尝试获取app session 这个可以保证更新的时候数据不被清空*/
   private suspend fun getAppSessionInfo(mmid: MMID, version: String): SessionInfo? {
     val session = jmmNMM.readFile("/data/apps/${mmid}-${version}/usr/sys/session.json")
     return if (session.isOk) {
@@ -305,7 +307,6 @@ class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore:
       null
     }
   }
-
 
   suspend fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
     historyMetadataMaps.remove(historyMetadata.metadata.id)

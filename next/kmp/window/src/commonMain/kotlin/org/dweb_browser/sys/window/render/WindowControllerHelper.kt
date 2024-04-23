@@ -250,6 +250,10 @@ fun WindowController.watchedIsMaximized() =
   watchedState(watchKey = WindowPropertyKeys.Mode) { isMaximized(mode) }
 
 @Composable
+fun WindowController.watchedIsFullscreen() =
+  watchedState(watchKey = WindowPropertyKeys.Mode) { isFullscreen(mode) }
+
+@Composable
 fun WindowController.watchedBounds() = watchedState(watchKey = WindowPropertyKeys.Bounds) { bounds }
 
 
@@ -278,13 +282,19 @@ private fun WindowController.calcWindowBoundsByLimits(
 ): PureRect {
   return if (watchedIsMaximized().value) {
     inMove.value = false
-    state.updateBounds {
-      copy(
-        x = 0f,
-        y = 0f,
-        width = limits.maxWidth,
-        height = limits.maxHeight,
-      )
+    // 原生窗口在最大化后，bounds已经由外部进行了修改
+    if (state.updateBoundsReason == WindowState.UpdateReason.Outer) {
+      watchedBounds().value
+    } else {
+      // TODO 如果进行最大化，simpleMaximized 函数需要自己处理 这个updateBounds 才对，而不是到这里 compose 函数中来修改
+      state.updateBounds {
+        copy(
+          x = 0f,
+          y = 0f,
+          width = limits.maxWidth,
+          height = limits.maxHeight,
+        )
+      }
     }
   } else {
     val layoutDirection = LocalLayoutDirection.current

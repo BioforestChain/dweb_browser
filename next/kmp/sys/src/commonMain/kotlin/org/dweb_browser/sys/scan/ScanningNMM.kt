@@ -29,7 +29,6 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
       routes(
         "/process" byChannel { ctx ->
           val time = datetimeNow()
-          println("lin.huang => process byChannel enter=>$time")
           var rotation = 0
           for (frame in ctx) {
             when (frame) {
@@ -37,7 +36,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
                 debugScanning("process=>byChannel", "PureTextFrame($time)")
                 rotation = frame.text.toIntOrNull() ?: 0
               }
-  
+
               is PureBinaryFrame -> {
                 debugScanning("process=>byChannel", "PureBinaryFrame($time) $rotation")
                 val result = try {
@@ -49,6 +48,10 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
                 debugScanning("process=>byChannel", result.joinToString(", ") { it.data })
                 // 不论 result 是否为空数组，都进行响应
                 ctx.sendJson(result)
+              }
+
+              else -> {
+                ctx.getChannel().close()
               }
             }
           }

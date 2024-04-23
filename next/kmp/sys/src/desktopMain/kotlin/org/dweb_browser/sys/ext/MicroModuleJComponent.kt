@@ -15,3 +15,6 @@ fun MicroModule.Runtime.getComposeWindowOrNull() =
     require(it is PureViewController);
     it.getComposeWindowOrNull()
   }
+
+fun MicroModule.getComposeWindowBoundsOrNull() =
+  windowInstancesManager.findByOwner(mmid)?.state?.bounds

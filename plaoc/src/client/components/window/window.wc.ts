@@ -38,6 +38,11 @@ export class HTMLDwebWindowElement extends HTMLStateObserverElement<$WindowRawSt
   }
 
   @cacheGetter()
+  get setBounds() {
+    return this.plugin.setBounds;
+  }
+
+  @cacheGetter()
   get visible() {
     return this.plugin.visible;
   }

@@ -16,10 +16,8 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.search.SearchEngine
 import org.dweb_browser.browser.search.SearchInject
-import org.dweb_browser.browser.search.ext.collectChannelOfEngines
-import org.dweb_browser.browser.search.ext.getEngineHomeLink
-import org.dweb_browser.browser.search.ext.getInjectList
 import org.dweb_browser.browser.web.BrowserController
+import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.web.data.AppBrowserTarget
 import org.dweb_browser.browser.web.data.KEY_NO_TRACE
 import org.dweb_browser.browser.web.data.WebSiteInfo
@@ -33,8 +31,8 @@ import org.dweb_browser.browser.web.model.page.BrowserHomePage
 import org.dweb_browser.browser.web.model.page.BrowserPage
 import org.dweb_browser.browser.web.model.page.BrowserSettingPage
 import org.dweb_browser.browser.web.model.page.BrowserWebPage
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.readFile
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.WebDownloadArgs
@@ -44,6 +42,7 @@ import org.dweb_browser.helper.compose.compositionChainOf
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.format
 import org.dweb_browser.helper.isDwebDeepLink
+import org.dweb_browser.helper.isTrimEndSlashEqual
 import org.dweb_browser.helper.platform.toByteArray
 import org.dweb_browser.helper.toWebUrl
 import org.dweb_browser.helper.toWebUrlOrWithoutProtocol
@@ -71,7 +70,7 @@ data class DwebLinkSearchItem(val link: String, val target: AppBrowserTarget) {
  * 这里作为 ViewModel
  */
 class BrowserViewModel(
-  private val browserController: BrowserController, internal val browserNMM: NativeMicroModule.NativeRuntime
+  internal val browserController: BrowserController, internal val browserNMM: NativeMicroModule.NativeRuntime
 ) {
   val browserOnVisible = browserController.onWindowVisible
   val browserOnClose = browserController.onCloseWindow
@@ -115,17 +114,20 @@ class BrowserViewModel(
     }
   }
 
-  private val searchEngineList = mutableStateListOf<SearchEngine>()
+  private var searchEngineList = listOf<SearchEngine>()
   val filterShowEngines get() = searchEngineList.filter { it.enable }
 
+  /**检查是否有设置过的默认搜索引擎，并且拼接成webUrl*/
   private suspend fun checkAndEnableSearchEngine(key: String): Url? {
     val homeLink = withScope(ioScope) {
       browserNMM.getEngineHomeLink(key.encodeURIComponent())
     } // 将关键字对应的搜索引擎置为有效
-    return homeLink.toWebUrl()
+    return if (homeLink.isNotEmpty()) homeLink.toWebUrl() else null
   }
 
   val searchInjectList = mutableStateListOf<SearchInject>()
+
+  /**获取注入的搜索引擎列表*/
   suspend fun getInjectList(searchText: String) {
     val list = browserNMM.getInjectList(searchText)
     searchInjectList.clear()
@@ -136,11 +138,12 @@ class BrowserViewModel(
     ioScope.launch {
       // 同步搜索引擎列表
       browserNMM.collectChannelOfEngines {
-        searchEngineList.clear()
-        searchEngineList.addAll(engineList)
+        searchEngineList = engineList
       }
     }
   }
+
+  suspend fun readFile(path: String) = browserNMM.readFile(path, create = false).binary()
 
   fun getBookmarks() = browserController.bookmarksStateFlow.value
   fun getHistoryLinks() = browserController.historyStateFlow.value
@@ -216,6 +219,8 @@ class BrowserViewModel(
       url = url,
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
       detachedStrategy = DWebViewOptions.DetachedStrategy.Ignore,
+      /// 桌面端web browser需要使用离屏渲染，才能preview tabs
+      enabledOffScreenRender = false
     )
   )
 
@@ -225,11 +230,15 @@ class BrowserViewModel(
         val newWebPage = BrowserWebPage(itemDwebView, browserController)
         addNewPageUI(newWebPage)
       }
-      dWebView.onDownloadListener { args: WebDownloadArgs ->
-        debugBrowser("download", args)
-        browserController.openDownloadView(args)
-      }
+      addDownloadListener(dWebView.onDownloadListener)
     }
+
+  fun addDownloadListener(listener: Signal.Listener<WebDownloadArgs>) {
+    listener.invoke { args: WebDownloadArgs ->
+      debugBrowser("download", args)
+      browserController.openDownloadDialog(args)
+    }
+  }
 
   private suspend fun createWebPage(url: String) = createWebPage(createDwebView(url))
 
@@ -351,18 +360,24 @@ class BrowserViewModel(
    * 否：将 url 进行判断封装，符合条件后，判断当前界面是否是 BrowserWebPage，然后进行搜索操作
    */
   suspend fun doSearchUI(url: String) {
-    if (url.isDwebDeepLink()) withScope(ioScope) {
-      browserNMM.nativeFetch(url)
-    } else {
-      val webUrl = url.toWebUrlOrWithoutProtocol() ?: checkAndEnableSearchEngine(url)
-      ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl()
-      debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
-      webUrl?.toString()?.let { searchUrl ->
-        if (focusedPage != null && focusedPage is BrowserWebPage) {
-          (focusedPage as BrowserWebPage).loadUrl(searchUrl)
-        } else {
-          addNewPageUI(searchUrl) { replaceOldPage = true } // 新增 BrowserWebPage 覆盖当前页
-        }
+    if (url.isDwebDeepLink()) {
+      return withScope(ioScope) { browserNMM.nativeFetch(url) }
+    }
+    // 尝试
+    val webUrl = url.toWebUrlOrWithoutProtocol()
+      ?: checkAndEnableSearchEngine(url) // 检查是否有默认的搜索引擎
+      ?: filterShowEngines.firstOrNull()?.searchLinks?.first()?.format(url)?.toWebUrl() // 转换成搜索链接
+    debugBrowser("doSearchUI", "url=$url, webUrl=$webUrl, focusedPage=$focusedPage")
+    // 当没有搜到需要的数据，给出提示
+    if (webUrl == null) {
+      showToastMessage(BrowserI18nResource.Home.search_error.text)
+      return
+    }
+    webUrl.toString().let { searchUrl ->
+      if (focusedPage != null && focusedPage is BrowserWebPage) {
+        (focusedPage as BrowserWebPage).loadUrl(searchUrl)// 使用当前页面继续搜索
+      } else {
+        addNewPageUI(searchUrl) { replaceOldPage = true } // 新增 BrowserWebPage 覆盖当前页
       }
     }
   }
@@ -521,9 +536,9 @@ class BrowserViewModel(
     val dayKey = item.day.toString()
     val addUrl = item.url
     browserController.historyStateFlow.update { historyMap ->
-      val dayList = historyMap[dayKey]?.apply {
+      val dayList = historyMap[dayKey]?.run {
         toMutableList().apply {
-          removeAll { item -> item.url == addUrl } // 删除同一天的重复数据
+          removeAll { item -> item.url.isTrimEndSlashEqual(addUrl) } // 删除同一天的重复数据
           add(0, item)
         }.toList()
       } ?: listOf(item)

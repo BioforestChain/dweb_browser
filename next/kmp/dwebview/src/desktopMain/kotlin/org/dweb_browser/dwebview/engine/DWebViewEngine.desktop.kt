@@ -12,6 +12,7 @@ import com.teamdev.jxbrowser.dom.event.EventType
 import com.teamdev.jxbrowser.dom.event.MouseEvent
 import com.teamdev.jxbrowser.dom.event.MouseEventParams
 import com.teamdev.jxbrowser.dom.event.UiEventModifierParams
+import com.teamdev.jxbrowser.engine.EngineOptions
 import com.teamdev.jxbrowser.frame.Frame
 import com.teamdev.jxbrowser.js.ConsoleMessageLevel
 import com.teamdev.jxbrowser.js.JsException
@@ -26,10 +27,13 @@ import com.teamdev.jxbrowser.net.callback.BeforeUrlRequestCallback
 import com.teamdev.jxbrowser.net.callback.InterceptUrlRequestCallback.Response
 import com.teamdev.jxbrowser.net.callback.VerifyCertificateCallback
 import com.teamdev.jxbrowser.net.proxy.CustomProxyConfig
+import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback
 import com.teamdev.jxbrowser.ui.Bitmap
 import com.teamdev.jxbrowser.ui.Point
 import com.teamdev.jxbrowser.view.swing.BrowserView
 import com.teamdev.jxbrowser.zoom.ZoomLevel
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -38,8 +42,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
+import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.ext.createDir
+import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.dwebview.CloseWatcher
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
@@ -65,21 +72,24 @@ import javax.swing.SwingUtilities
 class DWebViewEngine internal constructor(
   internal val remoteMM: MicroModule.Runtime,
   val options: DWebViewOptions,
-  internal val browser: Browser = createMainBrowser(remoteMM),
+  internal val browser: Browser = createMainBrowser(remoteMM, options.enabledOffScreenRender)
 ) {
   companion object {
+    // userDataDir同一个engine不能多次调用，jxbrowser会弹出异常无法捕获
+    private val userDataDirectoryInUseMicroModuleSet = mutableSetOf<String>()
+    private val userDataDirectoryLock = SynchronizedObject()
+
     /**
      * 构建一个 main-browser，当 main-browser 销毁， 对应的 WebviewEngine 也会被销毁
      */
-    internal fun createMainBrowser(remoteMM: MicroModule.Runtime) =
-      WebviewEngine.hardwareAccelerated {
+    internal fun createMainBrowser(remoteMM: MicroModule.Runtime, enabledOffScreenRender: Boolean): Browser {
+      val optionsBuilder: EngineOptions.Builder.() -> Unit = {
         addScheme(Scheme.of("dweb")) { params ->
           val pureResponse = runBlocking(ioAsyncExceptionHandler) {
-            remoteMM.nativeFetch(params.urlRequest().url().replaceFirst("/?", "?"))
+            remoteMM.nativeFetch(params.urlRequest().url())
           }
 
-          val jobBuilder =
-            UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
+          val jobBuilder = UrlRequestJob.Options.newBuilder(HttpStatus.of(pureResponse.status.value))
           pureResponse.headers.forEach { (key, value) ->
             jobBuilder.addHttpHeader(HttpHeader.of(key, value))
           }
@@ -88,9 +98,27 @@ class DWebViewEngine internal constructor(
         }
 
         addSwitch("--enable-experimental-web-platform-features")
+
+        // 设置用户数据目录，这样WebApp退出再重新打开时能够读取之前的数据
+        synchronized(userDataDirectoryLock) {
+          if (!userDataDirectoryInUseMicroModuleSet.contains(remoteMM.mmid)) {
+            runBlocking(ioAsyncExceptionHandler) {
+              if (remoteMM.createDir("/data/chromium")) {
+                userDataDir(remoteMM.realFile("/data/chromium").toPath().toNioPath())
+                userDataDirectoryInUseMicroModuleSet.add(remoteMM.mmid)
+              }
+            }
+          }
+        }
+      }
+
+      return if(enabledOffScreenRender) {
+        WebviewEngine.offScreen(optionsBuilder)
+      } else {
+        WebviewEngine.hardwareAccelerated(optionsBuilder)
       }.let { engine ->
         // 设置https代理
-        val proxyRules = "https=${DwebViewProxy.ProxyUrl}"
+        val proxyRules = "https=${DwebViewProxy.ProxyUrl},http://127.0.0.1:17890"
         engine.proxy().config(CustomProxyConfig.newInstance(proxyRules))
         engine.network()
           .set(VerifyCertificateCallback::class.java, VerifyCertificateCallback { params ->
@@ -107,18 +135,27 @@ class DWebViewEngine internal constructor(
         // 拦截内部浏览器dweb deeplink跳转
         engine.network().set(BeforeUrlRequestCallback::class.java, BeforeUrlRequestCallback {
           if (it.urlRequest().url().startsWith("dweb://")) {
-            remoteMM.scopeLaunch(cancelable = true) {
-              remoteMM.nativeFetch(it.urlRequest().url().replace("/?", "?"))
+            remoteMM.ioAsyncScope.launch {
+              remoteMM.nativeFetch(it.urlRequest().url())
             }
             BeforeUrlRequestCallback.Response.cancel()
           } else {
             BeforeUrlRequestCallback.Response.proceed()
           }
         })
+        //TODO 这里是还没做完的桌面端获取地址，改成ip位置？
+        engine.permissions()
+          .set(RequestPermissionCallback::class.java, RequestPermissionCallback { params, tell ->
+//        if(params.permissionType() == PermissionType.GEOLOCATION) {
+//          tell.grant()
+//        }
+            tell.grant()
+          })
 
         val browser = engine.newBrowser()
         // 同步销毁
         browser.on(BrowserClosed::class.java) {
+          userDataDirectoryInUseMicroModuleSet.remove(remoteMM.mmid)
           engine.close()
         }
         remoteMM.scopeLaunch(cancelable = true) {
@@ -128,6 +165,7 @@ class DWebViewEngine internal constructor(
         }
         browser
       }
+    }
   }
 
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }

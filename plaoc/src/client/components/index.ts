@@ -1,5 +1,5 @@
 //
-import type {} from "../../../../toolkit/dwebview-polyfill/src/global.type.ts";
+import "../../../../toolkit/dwebview-polyfill/src/global.type.ts";
 
 //
 export { createMockModuleServerIpc } from "../common/websocketIpc.ts";
@@ -27,3 +27,4 @@ export * from "./shortcut/index.ts";
 export * from "./splash-screen/index.ts";
 export * from "./toast/index.ts";
 export * from "./window/index.ts";
+

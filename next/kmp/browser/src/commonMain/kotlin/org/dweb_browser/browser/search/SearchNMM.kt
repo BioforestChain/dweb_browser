@@ -27,8 +27,6 @@ class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
   }
 
   inner class SearchRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
-
-
     override suspend fun _bootstrap() {
       val controller = SearchController(this)
 

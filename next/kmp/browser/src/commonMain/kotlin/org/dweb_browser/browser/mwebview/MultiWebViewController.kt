@@ -94,6 +94,9 @@ class MultiWebViewController(
       win = win,
     ).also { viewItem ->
       webViewList.add(viewItem)
+      dWebView.onCreateWindow {
+        appendWebViewAsItem(it)
+      }
       dWebView.onDestroy {
         closeWebView(webviewId)
       }

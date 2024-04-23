@@ -27,12 +27,13 @@ import DwebPlatformIosKit
     func createDesktopLink(link:String, title: String, iconString:String, completionHandler: @escaping (NSError?)->Void)
     func recognizedScreenGestures()
     func openDeepLink(url: String)
-    #warning("doAction(name:params:)便捷方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
+    func readFile(path: String, completed: @escaping (NSData?, NSError?) -> Void)
+    //warning("doAction(name:params:)便捷方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
     func doAction(name: String, params: [String: String]?)
 }
 
-@objc public protocol WebBrowserViewDataSource: TracklessDataSource, BookMarkDataSource, HistoryDataSource, WebBrowserViewWebDataSource, PermissionDataSource {
-    #warning("getDatas(for:params:)便捷方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
+@objc public protocol WebBrowserViewDataSource: TracklessDataSource, BookMarkDataSource, HistoryDataSource, WebBrowserViewWebDataSource, PermissionDataSource, DownloadDataSource {
+    //warning("getDatas(for:params:)便捷方法，避免每次修改protocol，kmp也必须重新跑脚本的繁琐流程。只在功能开发阶段，或者debug的时候使用")
     func getDatas(for: String, params: [String: AnyObject]?) -> [String: AnyObject]?
 }
 
@@ -88,3 +89,38 @@ extension HistoryDataSource {
         }
     }
 }
+
+// MARK: download data
+
+@objcMembers public class WebBrowserViewDownloadData: NSObject {
+    let name: String
+    let date: UInt64
+    let size: UInt32
+    let mime: String
+    let id: String
+    /// 0: init, 1：下载中，2：暂停，3：取消,  4:失败，5: 完成
+    let status: UInt8
+    let progress: Float //下载进度，只在status处于未完成时，有意义。
+    let localPath: String? //只有下载完成后，才有值。
+    public init(name: String, date: UInt64, size: UInt32, mime: String, status: UInt8, id: String, progress: Float, localPath: String?) {
+        self.name = name
+        self.date = date
+        self.size = size
+        self.mime = mime
+        self.status = status
+        self.id = id
+        self.progress = progress
+        self.localPath = localPath
+    }
+}
+
+@objc public protocol DownloadDataSource {
+    func loadAllDownloadDatas() -> [WebBrowserViewDownloadData]?
+    func removeDownload(ids: [String])
+    func addDownloadObserver(id: String, didChanged:@escaping (WebBrowserViewDownloadData) -> Void)
+    func removeAllDownloadObservers()
+    func pauseDownload(id: String)
+    func resumeDownload(id: String)
+    func localPathFor(id: String) -> String?
+}
+

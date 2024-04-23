@@ -78,7 +78,7 @@ abstract class WindowController(
   abstract val lifecycleScope: CoroutineScope
   val id = state.constants.wid;
 
-  //#region WindowMode相关的控制函数
+  //#region Focus
   private fun <R> createStateListener(
     key: WindowPropertyKeys,
     filter: (WindowState.(Observable.Change<WindowPropertyKeys, *>) -> Boolean)? = null,
@@ -123,11 +123,19 @@ abstract class WindowController(
 
   suspend fun blur() = managerRunOr({ it.blurWindow(this) }, { simpleBlur() })
 
+  //#endregion Focus
+
   val onModeChange =
     createStateListener(WindowPropertyKeys.Mode) { debugWindow("emit onModeChange", "$id $it") };
 
+
+  //#region maximize
+
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
+
+  fun isFullscreen(mode: WindowMode = state.mode) =
+    mode == WindowMode.FULLSCREEN
 
   val onMaximize = createStateListener(WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", id) }
@@ -141,10 +149,16 @@ abstract class WindowController(
 
   suspend fun maximize() = managerRunOr({ it.maximizeWindow(this) }, { simpleMaximize() })
 
+  fun fullscreen() {
+    if (!isFullscreen()) {
+      state.mode = WindowMode.FULLSCREEN
+    }
+  }
+
   private var _beforeMaximizeBounds: PureRect? = null
 
   /**
-   * 记忆窗口最大化之前的记忆
+   * 记忆窗口最大化之前的大小
    */
   val beforeMaximizeBounds get() = _beforeMaximizeBounds;
 
@@ -162,6 +176,7 @@ abstract class WindowController(
    */
   internal open suspend fun simpleUnMaximize() {
     if (isMaximized()) {
+      // 看看有没有记忆了之前的窗口大小
       when (val value = _beforeMaximizeBounds) {
         null -> {
           state.setDefaultFloatWindowBounds(
@@ -181,6 +196,31 @@ abstract class WindowController(
 
   suspend fun unMaximize() = managerRunOr({ it.unMaximizeWindow(this) }, { simpleUnMaximize() })
 
+  //#endregion maximize
+
+  //#region 设置窗口大小
+  internal open suspend fun setBoard(board: SetWindowSize) {
+    if (state.mode != WindowMode.FLOAT) {
+      state.mode = WindowMode.FLOAT
+    }
+    state.resizable = board.resizable
+    // 当有传递的时候再设置
+    state.updateMutableBounds {
+      if (board.width != null) {
+        this.width = board.width
+      }
+      if (board.height != null) {
+        this.height = board.height
+      }
+    }
+  }
+
+  suspend fun setBroad(board: SetWindowSize) =
+    managerRunOr({ it.setBroad(this, board) }, { setBoard(board) })
+
+  //#endregion
+
+  //# region visible
   fun isVisible() = state.visible
 
   val onVisible = createStateListener(WindowPropertyKeys.Visible, { visible }) {
@@ -202,6 +242,10 @@ abstract class WindowController(
 
   suspend fun show() = toggleVisible(true)
   suspend fun hide() = toggleVisible(false)
+
+  //#endregion
+
+  //#region close
 
   val onClose = createStateListener(WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSE }) { debugWindow("emit onClose", id) }
@@ -238,6 +282,8 @@ abstract class WindowController(
     if (isMainWindow) hide()
     else close(force)
   }
+
+  //#endregion
 
   val mainWindow: WindowController
     get() {
@@ -289,7 +335,6 @@ abstract class WindowController(
     )
   }, { simpleSetStyle(style) })
 
-  //#endregion
   private val goBackSignal = SimpleSignal()
   val onGoBack = goBackSignal.toListener()
 

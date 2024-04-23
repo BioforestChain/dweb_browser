@@ -10,8 +10,6 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
-import coil3.compose.EqualityDelegate
-
 
 @Composable
 fun SkikoCoilAsyncImage(
@@ -27,7 +25,9 @@ fun SkikoCoilAsyncImage(
   filterQuality: FilterQuality,
   clipToBounds: Boolean,
 ) {
-  if (model is String && (model.endsWith(".svg") || model.endsWith(".webp") || model.startsWith("data:"))) {
+  // if (model is String && (model.endsWith(".svg") || model.endsWith(".webp") || model.startsWith("data:"))) {
+  // TODO 目前发现 webp 使用 PureImageLoader 失败，无法显示。
+  if (model is String && (model.endsWith(".svg") || model.startsWith("data:"))) {
     BoxWithConstraints(modifier) {
       PureImageLoader.SmartLoad(model, maxWidth, maxHeight).with {
         Image(it, contentDescription = model, modifier = modifier)

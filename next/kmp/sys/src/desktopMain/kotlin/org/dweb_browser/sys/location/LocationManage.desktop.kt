@@ -45,10 +45,7 @@ actual class LocationManage {
               errorState ?: GeolocationPositionState.POSITION_UNAVAILABLE
             )
           )
-        }, object {
-          @Suppress("unused")
-          val enableHighAccuracy = precise
-        })
+        }, DesktopLocationObserver.getWebGeolocationOptions(precise))
     }.getOrElse {
       result.complete(
         GeolocationPosition.createErrorObj(

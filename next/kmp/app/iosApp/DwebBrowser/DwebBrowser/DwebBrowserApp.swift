@@ -6,10 +6,13 @@ import SwiftUI
 struct DwebBrowserApp: App {
     @UIApplicationDelegateAdaptor(DwebBrowserAppDelegate.self) var appDelegate
     @State private var deskVCStore = DwebDeskVCStore()
-
+    
     var body: some Scene {
         WindowGroup {
-            content
+            NavigationStack {
+                content
+            }
+            .tint(.black)
         }
     }
 

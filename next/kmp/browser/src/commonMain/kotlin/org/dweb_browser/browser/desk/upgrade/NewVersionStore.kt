@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.desk.version
+package org.dweb_browser.browser.desk.upgrade
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -12,13 +12,6 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.compose.ObservableMutableState
 import org.dweb_browser.helper.datetimeNow
-
-expect class NewVersionManage() {
-  suspend fun loadNewVersion(): NewVersionItem?
-
-  fun openSystemInstallSetting() // 打开系统的授权安装界面
-  fun installApk(realPath: String)
-}
 
 @Serializable
 data class NewVersionItem(
@@ -57,6 +50,14 @@ data class NewVersionItem(
     )
     if (lastState != this.status.state) {
       store.setNewVersion(this)
+    }
+  }
+
+  fun progress(): Float {
+    return if (_status.total == 0L) {
+      .0f
+    } else {
+      (_status.current * 1.0f / _status.total) * 10 / 10.0f
     }
   }
 }

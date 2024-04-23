@@ -9,21 +9,18 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
-import org.jetbrains.compose.ComposeExtension
 import org.jetbrains.compose.ComposePlugin
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.kpm.external.ExternalVariantApi
-import org.jetbrains.kotlin.gradle.kpm.external.project
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
@@ -49,9 +46,8 @@ open class KmpJsTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl
 
 class KmpBrowserJsTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpJsTargetDsl(kmpe)
 
-@OptIn(ExternalVariantApi::class)
 val KotlinMultiplatformExtension.compose: ComposePlugin.Dependencies
-  get() = project.extensions.getByType<ComposeExtension>().dependencies
+  get() = (this as ExtensionAware).extensions.getByName("compose") as ComposePlugin.Dependencies
 
 fun KotlinMultiplatformExtension.kmpBrowserJsTarget(
   project: Project,
@@ -587,6 +583,9 @@ fun KotlinMultiplatformExtension.kmpIosTarget(
   }
   println("kmpIosTarget: ${project.name}")
 
+  // TODO: 升级 kotlin 2.0.0 版本之前临时使用来软链接到 shared ComposeResource
+  kmpComposeResourceSymbolToShared(project)
+
   val dsl = KmpIosTargetDsl(this)
   dsl.configure()
   val libs = project.the<LibrariesForLibs>()
@@ -645,3 +644,39 @@ fun Project.getJxBrowserLicenseKey() = System.getProperty("jxbrowser.license.key
     System.setProperty("jxbrowser.license.key", it)
   }
 }
+
+fun KotlinMultiplatformExtension.kmpComposeResourceSymbolToShared(
+  project: Project,
+  configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure
+) {
+  if(project.name == "shared") {
+    return
+  }
+  with(sourceSets.commonMain.get()) {
+    kotlin.srcDirs.firstOrNull()?.let { srcFile ->
+      val composeResources = srcFile.resolve("../composeResources")
+
+      if(!composeResources.exists()) {
+        return
+      }
+
+      val sharedComposeResources = srcFile.resolve(
+        "../../../../shared/src/iosMain/composeResources"
+      ).also { it.mkdirs() }
+
+      composeResources.listFiles { dir, name ->
+        if (name.isNotEmpty()) {
+          val linkDeskFile = sharedComposeResources.resolve(name) // 创建link
+          val targetFile = dir.resolve(name) // 目标路径
+          if (!linkDeskFile.exists()) {
+            Files.createSymbolicLink(
+              linkDeskFile.toPath(),
+              targetFile.toPath()
+            )
+          } else {
+            println("file already exists => ${linkDeskFile.absolutePath}")
+          }
+        }
+        false
+      }
+    }
