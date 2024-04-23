@@ -215,7 +215,7 @@ export class Ipc {
     // 自触发
     this.#forkProducer.send(forkedIpc);
     // 通知对方
-    postMessage(
+    this.postMessage(
       ipcFork(
         forkedIpc.pid,
         autoStart,

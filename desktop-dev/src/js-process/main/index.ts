@@ -105,22 +105,21 @@ const createProcess = async (
  * @param env_json
  * @returns
  */
-const createIpc = async (process_id: number, mainfest_json: string, ipc_port: MessagePort, env_json = "{}") => {
+const createIpc = async (process_id: number, mainfest_json: string, ipc_port: MessagePort, auto_start = false) => {
   const process = _forceGetProcess(process_id);
   const manifest = JSON.parse(mainfest_json) as $MicroModuleManifest;
-  const env: Record<string, string> = JSON.parse(env_json);
 
-  process.worker.postMessage([`ipc-connect/${manifest.mmid}`, manifest, env], [ipc_port]);
+  process.worker.postMessage([`ipc-connect/${manifest.mmid}`, manifest, auto_start], [ipc_port]);
   /// 等待连接任务完成
   const connect_ready_po = new PromiseOut<void>();
-  const onEnvReady = (event: MessageEvent) => {
-    if (Array.isArray(event.data) && event.data[0] === "ipc-connect-ready" && event.data[1] === manifest.mmid) {
+  const onBeConnceted = (event: MessageEvent) => {
+    if (event.data === `ipc-be-connect/${manifest.mmid}`) {
       connect_ready_po.resolve();
     }
   };
-  process.worker.addEventListener("message", onEnvReady);
+  process.worker.addEventListener("message", onBeConnceted);
   await connect_ready_po.promise;
-  process.worker.removeEventListener("message", onEnvReady);
+  process.worker.removeEventListener("message", onBeConnceted);
   return;
 };
 

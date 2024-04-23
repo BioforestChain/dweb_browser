@@ -5,6 +5,7 @@ import kotlinx.coroutines.async
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.jmm.JsMicroModule
+import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
@@ -103,13 +104,14 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         shutdown()
       }
 
-      val processIdMap = SafeHashMap<String, Int>()
+      val tokenPidMap = SafeHashMap<String, Int>()
       routes(
         /**
          * 创建 web worker
          * 那么当前的ipc将会用来用作接下来的通讯
          */
         "/create-process" bind PureMethod.GET by defineJsonResponse {
+          debugMM("create-process", request)
           val processInfo = createProcessAndRun(
             processName = request.queryOrNull("name") ?: ipc.remote.name,
             remoteCodeIpc = ipc,
@@ -117,38 +119,51 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
             bootstrapUrl = bootstrapUrl,
             entry = request.queryOrNull("entry"),
           )
-          val handlerId = randomUUID()
-          processIdMap[handlerId] = processInfo.processId
+          val processToken = randomUUID()
+          tokenPidMap[processToken] = processInfo.processId
 
           // 创建成功了，注册销毁函数
           ipc.onClosed {
             scopeLaunch(cancelable = false) {
               debugJsProcess("close-all-process", mmid)
-              val processMap = processIdMap.remove(handlerId)
+              val processMap = tokenPidMap.remove(processToken)
               // 关闭代码通道
-              closeHttpDwebServer(DwebHttpServerOptions(mmid))
+              closeHttpDwebServer(DwebHttpServerOptions())
               // 关闭程序
               apis.destroyProcess(processInfo.processId)
             }
           }
           // 返回具柄
-          CreateProcessReturn(handlerId, portId = processInfo.portId).toJsonElement()
+          CreateProcessReturn(processToken, portId = processInfo.portId).toJsonElement()
         },
         /// 创建 web 通讯管道
-        "/create-ipc" bind PureMethod.GET by defineNumberResponse {
-          val handlerId = request.query("id")
+        "/create-ipc-endpoint" bind PureMethod.GET by defineNumberResponse {
+          debugMM("create-ipc-endpoint", request)
+          val processToken = request.query("token")
 
-          /**
-           * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
-           * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
-           */
+          val processId = tokenPidMap[processToken]
+            ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processToken invalid")
+
           val manifestJson = request.query("manifest")
-          val processId = processIdMap[handlerId]
-            ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$handlerId invalid")
-
-          // 返回 port_id
-          createIpcEndpoint(apis, processId, manifestJson)
+          // 返回 endpoint 的 globalId
+          apis.createIpcEndpoint(processId, manifestJson, ipc.remote.mmid).globalId.also {
+            debugMM("create-ipc-endpoint-success", it)
+          }
         },
+        "/create-ipc" bind PureMethod.GET by defineEmptyResponse {
+          debugMM("create-ipc", request)
+          val processToken = request.query("token")
+          val processId = tokenPidMap[processToken]
+            ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processToken invalid")
+
+          val remoteGlobalId = request.query("globalId").toInt()
+          val manifestJson = request.query("manifest")
+          apis.createJsIpc(
+            processId,
+            GlobalWebMessageEndpoint.get(remoteGlobalId).port,
+            manifestJson
+          )
+        }
 //        /// 桥接两个JMM
 //        "/bridge-ipc" bind PureMethod.GET by defineEmptyResponse {
 //          val handlerId = request.query("id")
@@ -175,6 +190,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       bootstrapUrl: String,
       entry: String?,
     ): ProcessInfo {
+      debugMM("createProcessAndRun", processName)
       /**
        * 用自己的域名的权限为它创建一个子域名
        */
@@ -280,12 +296,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       return processInfo
     }
 
-    /**创建到worker的Ipc 如果是worker到worker互联，则每个人分配一个messageChannel的port*/
-    private suspend fun createIpcEndpoint(
-      apis: JsProcessWebApi, processId: Int, manifestJson: String,
-    ): Int {
-      return apis.createIpcEndpoint(processId, manifestJson).globalId
-    }
 
 //    private suspend fun bridgeIpc(
 //      apis: JsProcessWebApi,

@@ -1,4 +1,5 @@
 import org.gradle.accessors.dm.LibrariesForLibs
+import java.util.Properties
 
 val libs = the<LibrariesForLibs>()
 

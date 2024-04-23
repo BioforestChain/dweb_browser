@@ -9,8 +9,12 @@ export class WebMessageEndpoint extends CommonEndpoint {
 
   constructor(readonly port: MessagePort, debugId: string) {
     super(debugId);
-    port.addEventListener("message", (event) => {
+  }
+
+  override doStart() {
+    this.port.addEventListener("message", (event) => {
       const rawData = event.data;
+      this.console.debug("QAQ", "in", rawData);
       let message: $EndpointRawMessage;
       if (this.protocol === ENDPOINT_PROTOCOL.CBOR && typeof rawData !== "string") {
         message = $cborToEndpointMessage(rawData);
@@ -20,15 +24,12 @@ export class WebMessageEndpoint extends CommonEndpoint {
 
       this.endpointMsgChannel.send(message);
     });
-    port.start();
-  }
-
-  override doStart() {
     this.port.start();
     return super.doStart();
   }
 
   protected postTextMessage(data: String) {
+    this.console.debug("QAQ", "out", data);
     this.port.postMessage(data);
   }
   protected postBinaryMessage(data: Uint8Array) {

@@ -1,29 +1,29 @@
 package org.dweb_browser.browser.jsProcess
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.core.http.dwebHttpGatewayServer
+import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.helper.withMainContext
 
 @Serializable
 data class ProcessInfo(@SerialName("process_id") val processId: Int, var portId: Int = -1)
 
 @Serializable
-data class CreateProcessReturn(val handlerId: UUID, val portId: Int)
+data class CreateProcessReturn(val processToken: UUID, val portId: Int)
 
 data class RunProcessMainOptions(val main_url: String)
 class JsProcessWebApi(internal val dWebView: IDWebView) {
@@ -101,32 +101,52 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
     }.getOrNull()
   }
 
-  suspend fun createIpcEndpoint(processId: Int, manifestJson: String) = withContext(Dispatchers.Main) {
-    val channel = dWebView.createMessageChannel()
-    val port1 = channel.port1
-    val port2 = channel.port2
-    val jsIpcEndpoint = GlobalWebMessageEndpoint(port2, "bridge-ipc")
-    val hid = hidAcc++
-    dWebView.evaluateAsyncJavascriptCode("""
+  /**
+   * 创建一对 ipc-endpoint，并同时将其中一个 endpoint 用来创建ipc，剩下的这个endpoint用来返回
+   */
+  suspend fun createIpcEndpoint(
+    processId: Int,
+    manifestJson: String,
+    debugIdPrefix: String,
+    autoStart: Boolean? = null,
+  ) =
+    withMainContext {
+      val channel = dWebView.createMessageChannel()
+      createJsIpc(processId, channel.port1, manifestJson, autoStart)
+      GlobalWebMessageEndpoint(channel.port2, debugIdPrefix)
+    }
+
+  /**
+   * 提供指定的endpoint，在 js 中创建一个 ipc
+   */
+  suspend fun createJsIpc(
+    processId: Int,
+    port: IWebMessagePort,
+    manifestJson: String,
+    autoStart: Boolean? = null,
+  ) {
+    withMainContext {
+      val hid = hidAcc++
+      dWebView.evaluateAsyncJavascriptCode("""
         new Promise((resolve,reject)=>{
             const prefix = "js-process/create-ipc/$hid:"
             addEventListener("message", async function doCreateIpc(event) {
                 if (event.data.startsWith(prefix)) {
                   const manifest_json = event.data.slice(prefix.length);
                   try{
-                    removeEventListener("message", doCreateIpc);
-                    const ipc_port = event.ports[0];
-                    resolve(await createIpc($processId, manifest_json, ipc_port))
-                    }catch(err){
-                        reject(err)
-                    }
+                      removeEventListener("message", doCreateIpc);
+                      const ipc_port = event.ports[0];
+                      resolve(await createIpc($processId, manifest_json, ipc_port, ${autoStart ?: "undefined"}))
+                  } catch (err) {
+                      reject(err)
+                  }
                 }
             })
         })
         """.trimIndent(), afterEval = {
-      dWebView.postMessage("js-process/create-ipc/$hid:$manifestJson", listOf(port1))
-    })
-    jsIpcEndpoint
+        dWebView.postMessage("js-process/create-ipc/$hid:$manifestJson", listOf(port))
+      })
+    }
   }
 //
 //  // 桥接两个worker

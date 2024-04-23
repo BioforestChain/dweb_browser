@@ -233,6 +233,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       routes(
         // 开启一个服务
         "/start" bind PureMethod.GET by defineJsonResponse {
+          debugMM("start", request)
           val subdomain = request.query("subdomain")
           start(ipc, DwebHttpServerOptions(subdomain)).toJsonElement()
         },
@@ -241,6 +242,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
          * 建议fork出一条链路后再使用
          */
         "/listen" bind PureMethod.GET by defineEmptyResponse {
+          debugMM("listen", request)
           val token = request.query("token")
           debugHttp("listen by token=$token")
           val routes = Json.decodeFromString<List<CommonRoute>>(request.query("routes"))
@@ -248,6 +250,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         },
         // 主动关闭一个服务
         "/close" bind PureMethod.GET by defineBooleanResponse {
+          debugMM("close", request)
           close(ipc, request.queryAs())
         },
         // 提供 httpclient-websocket 的通讯功能

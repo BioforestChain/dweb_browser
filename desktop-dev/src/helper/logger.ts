@@ -35,7 +35,20 @@ export const logger = (scope: unknown) => {
   };
   return logger;
 };
-const customInspect = (arg: any) =>
-  typeof arg === "object" && arg !== null && CUSTOM_INSPECT in arg ? arg[CUSTOM_INSPECT]() : arg;
-const customInspects = (args: any[]) => args.map(customInspect);
+const customInspect = (arg: any) => {
+  if (typeof arg === "object") {
+    if (arg !== null && CUSTOM_INSPECT in arg) {
+      return arg[CUSTOM_INSPECT]();
+    } else {
+      try {
+        return JSON.stringify(arg);
+      } catch {
+        return arg;
+      }
+    }
+  } else {
+    return arg;
+  }
+};
+const customInspects = (args: any[]) => args.filter((arg) => arg !== undefined).map(customInspect);
 export const CUSTOM_INSPECT = Symbol.for("inspect.custom");

@@ -19,6 +19,9 @@ export class Producer<T> {
   //#region Event
   static #Event = class Event<T> {
     constructor(readonly data: T, private producer: Producer<T>) {}
+    toString() {
+      return `Event<${this.data}>`;
+    }
     #job = new PromiseOut<void>();
     get job() {
       return this.#job.promise;
@@ -162,6 +165,9 @@ export class Producer<T> {
       private producer: Producer<T>
     ) {
       producer.consumers.add(this);
+    }
+    toString() {
+      return `Consumer<[${this.producer.name}]${this.name}>`;
     }
 
     // 消费过的事件

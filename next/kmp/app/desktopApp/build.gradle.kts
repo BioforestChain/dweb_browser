@@ -41,7 +41,7 @@ compose.desktop {
 
     // 用于打包应用时注入key
     jvmArgs += listOf(
-      "-Djxbrowser.license.key=${System.getProperty("jxbrowser.license.key")}",
+      "-Djxbrowser.license.key=${getJxBrowserLicenseKey()}",
       "-Ddwebbrowser.version=$appVersion",
     )
 
@@ -92,10 +92,13 @@ compose.desktop {
 // 用于启动桌面应用时注入key
 afterEvaluate {
   tasks.withType<JavaExec>() {
-    systemProperties["jxbrowser.license.key"] = System.getProperty("jxbrowser.license.key")
+    systemProperties["jxbrowser.license.key"] = getJxBrowserLicenseKey()
     // 注入应用版本
     systemProperties["dwebbrowser.version"] = appVersion
 
 //    jvmArgs("--add-opens", "java.desktop/java.awt=ALL-UNNAMED")
+  }
+  tasks.getByName("desktopTest") {
+    println("QAQ desktopTest=${this::class}")
   }
 }

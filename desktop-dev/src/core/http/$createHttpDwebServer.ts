@@ -28,15 +28,17 @@ export class HttpDwebServer {
   ) {}
   /** 开始处理请求 */
   listen = $once(async (...onFetchs: $OnFetch[]) => {
+    const serverIpc = await listenHttpDwebServer(this.nmm, this.startResult);
+
     const fetchHandler = createFetchHandler(onFetchs);
-    const ipc = await listenHttpDwebServer(this.nmm, this.startResult);
-    ipc.onRequest("http-listen").collect(async (event) => {
+    serverIpc.onRequest("http-listen").collect(async (event) => {
+      console.log("QAQ", "http-in", event);
       const response = await event.consumeAwaitMapNotNull((request) => fetchHandler(request));
       if (response) {
-        ipc.postMessage(response);
+        serverIpc.postMessage(response);
       }
     });
-    return Object.assign(fetchHandler, { ipc });
+    return Object.assign(fetchHandler, { ipc: serverIpc });
   });
   /** 关闭监听 */
   close = $once(async () => {
@@ -47,8 +49,27 @@ export class HttpDwebServer {
     await closeHttpDwebServer(this.nmm, this.options);
   });
 }
+/** 开始监听端口和域名 */
+const startHttpDwebServer = async (microModule: MicroModuleRuntime, options: $DwebHttpServerOptions) => {
+  const url = buildUrl(new URL(`file://http.std.dweb/start`), {
+    search: options,
+  });
+  return await microModule
+    .nativeFetch(url)
+    .object<ServerStartResult>()
+    .then((obj) => {
+      const { urlInfo, token } = obj;
+      const serverUrlInfo = new ServerUrlInfo(urlInfo.host, urlInfo.internal_origin, urlInfo.public_origin);
+      return new ServerStartResult(token, serverUrlInfo);
+    })
+    .catch((e) => {
+      console.log("startHttpDwebServer error=>", e);
+      throw e;
+    });
+};
+
 /** 开始处理请求 */
-export const listenHttpDwebServer = async (
+const listenHttpDwebServer = async (
   microModule: MicroModuleRuntime,
   startResult: ServerStartResult,
   routes: $ReqMatcher[] = [
@@ -71,9 +92,9 @@ export const listenHttpDwebServer = async (
       const httpIpc = await microModule.connect("http.std.dweb");
       return await httpIpc.fork(undefined, undefined, true, "listenHttpDwebServer");
     })());
+  microModule.console.debug("listenHttpDwebServer", serverIpc);
   await serverIpc.request(
-    buildUrl(`file://http.std.dweb`, {
-      pathname: "/listen",
+    buildUrl(`file://http.std.dweb/listen`, {
       search: {
         token: startResult.token,
         routes,
@@ -84,27 +105,8 @@ export const listenHttpDwebServer = async (
   return serverIpc;
 };
 
-/** 开始监听端口和域名 */
-export const startHttpDwebServer = async (microModule: MicroModuleRuntime, options: $DwebHttpServerOptions) => {
-  const url = buildUrl(new URL(`file://http.std.dweb/start`), {
-    search: options,
-  });
-  return await microModule
-    .nativeFetch(url)
-    .object<ServerStartResult>()
-    .then((obj) => {
-      const { urlInfo, token } = obj;
-      const serverUrlInfo = new ServerUrlInfo(urlInfo.host, urlInfo.internal_origin, urlInfo.public_origin);
-      return new ServerStartResult(token, serverUrlInfo);
-    })
-    .catch((e) => {
-      console.log("startHttpDwebServer error=>", e);
-      throw e;
-    });
-};
-
 /** 停止监听端口和域名 */
-export const closeHttpDwebServer = async (microModule: MicroModuleRuntime, options: $DwebHttpServerOptions) => {
+const closeHttpDwebServer = async (microModule: MicroModuleRuntime, options: $DwebHttpServerOptions) => {
   return await microModule
     .nativeFetch(
       buildUrl(new URL(`file://http.std.dweb/close`), {

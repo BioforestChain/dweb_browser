@@ -1,11 +1,12 @@
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
+import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
-import org.dweb_browser.browser.jsProcess.ext.createJsProcess
+import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.http.router.HttpHandlerToolkit
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileNMM
@@ -106,22 +107,36 @@ import kotlin.time.Duration.Companion.seconds
 //
 //}
 
-class TestNMM(mmid: String = "test.ipcPool.dweb", name: String) : NativeMicroModule(mmid, name) {
-  inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
-    override suspend fun _bootstrap() {
+//class TestNMM(mmid: String = "test.ipcPool.dweb", name: String) : NativeMicroModule(mmid, name) {
+//  inner class TestRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+//    override suspend fun _bootstrap() {
+//
+//    }
+//
+//    override suspend fun _shutdown() {
+//
+//    }
+//
+//  }
+//
+//  override fun createRuntime(bootstrapContext: BootstrapContext): Runtime {
+//    return TestRuntime(bootstrapContext)
+//  }
+//
+//}
 
-    }
-
-    override suspend fun _shutdown() {
-
-    }
-
+class TestJmm(mmid: String = "test.ipcPool.dweb", name: String) :
+  JsMicroModule(JmmAppInstallManifest().also {
+    it.id = mmid
+    it.name = name
+  }) {
+  inner class TestJmmRuntime(bootstrapContext: BootstrapContext) :
+    JsMicroModule.JmmRuntime(bootstrapContext) {
+    override val esmLoader: HttpHandlerToolkit.() -> Unit
+      get() = {}
   }
 
-  override fun createRuntime(bootstrapContext: BootstrapContext): Runtime {
-    return TestRuntime(bootstrapContext)
-  }
-
+  override fun createRuntime(bootstrapContext: BootstrapContext) = TestJmmRuntime(bootstrapContext)
 }
 
 class JsProcessTest {
@@ -136,19 +151,23 @@ class JsProcessTest {
     val jsProcessNMM = JsProcessNMM()
     val httpNMM = HttpNMM()
     val fileNMM = FileNMM()
-    val testNMM = TestNMM("xx.dweb", "xx")
+    val test1NMM = TestJmm("test1.dweb", "test1")
+    val test2NMM = TestJmm("test1.dweb", "test2")
+
+    //    val testJmmNMM = JsMicroModule(JmmAppInstallManifest().apply {
+//      id = "test1.jmm.dweb"
+//      name = "test1-jmm"
+//    })
     lateinit var dnsRunTime: DnsNMM.DnsRuntime
-      private set
-    lateinit var testRuntime: TestNMM.TestRuntime
       private set
 
     suspend fun init() {
       dns.install(jsProcessNMM)
       dns.install(httpNMM)
       dns.install(fileNMM)
-      dns.install(testNMM)
+      dns.install(test1NMM)
+      dns.install(test2NMM)
       dnsRunTime = dns.bootstrap()
-      testRuntime = dnsRunTime.open(testNMM.mmid) as TestNMM.TestRuntime
     }
   }
 
@@ -165,7 +184,8 @@ class JsProcessTest {
     buildJsProcessTestContext {
       val actual = randomUUID()
       println("QAQ actual=$actual")
-      val jsProcess = testRuntime.createJsProcess("hhh")
+      val testRuntime = dnsRunTime.open(test1NMM.mmid) as TestJmm.TestJmmRuntime
+      val jsProcess = testRuntime.getJsProcess()
       jsProcess.defineEsm {
         "/" bindPrefix PureMethod.GET by defineStringResponse {
           println("QAQ request.url=${request.url}")
@@ -193,11 +213,47 @@ class JsProcessTest {
   @Test
   fun testHttpInJsProcess() = runCommonTest(timeout = 600.seconds) {
     buildJsProcessTestContext {
-      val jsProcess = testRuntime.createJsProcess("js-http-demo")
+      val testRuntime = dnsRunTime.open(test1NMM.mmid) as TestJmm.TestJmmRuntime
+      val jsProcess = testRuntime.getJsProcess()
       jsProcess.defineEsm {
         "/index.js" bind PureMethod.GET by defineStringResponse {
           """
             const { http, jsProcess, ipc } = navigator.dweb;
+            const httpServer = await http.createHttpDwebServer(jsProcess, { subdomain: "www" });
+            await httpServer.listen((event) => {
+              console.log("got request", event.ipcRequest.url);
+              return { body: event.ipcRequest.parsed_url.pathname.slice(1) };
+            });
+            jsProcess.fetchIpc.postMessage(
+              ipc.IpcEvent.fromText("http-server", httpServer.startResult.urlInfo.buildDwebUrl().href)
+            );
+          """.trimIndent()
+        }
+      }
+
+      val jsHttpUrl = jsProcess.fetchIpc.onEvent("wait-js").mapNotNull { event ->
+        event.consumeFilter { it.name == "http-server" }?.text
+      }.first()
+      println("QAQ jsHttpUrl=$jsHttpUrl")
+
+      val actual = randomUUID()
+      val expected = testRuntime.nativeFetch("$jsHttpUrl$actual").text()
+      println("QAQ expected=$expected")
+      assertEquals(actual, expected)
+    }
+  }
+
+
+  @Test
+  fun testJmmConnectJmm() = runCommonTest(timeout = 600.seconds) {
+    buildJsProcessTestContext {
+      val test1Runtime = dnsRunTime.open(test1NMM.mmid) as TestJmm.TestJmmRuntime
+      val jsProcess1 = test1Runtime.getJsProcess()
+      jsProcess1.defineEsm {
+        "/index.js" bind PureMethod.GET by defineStringResponse {
+          """
+            const { http, jsProcess, ipc } = navigator.dweb;
+            jsProcess.connect()
             const httpServer = await http.createHttpDwebServer(jsProcess, { subdomain: "www" });
             jsProcess.fetchIpc.postMessage(
               ipc.IpcEvent.fromText("http-server", httpServer.startResult.urlInfo.buildDwebUrl().href)
@@ -209,14 +265,16 @@ class JsProcessTest {
           """.trimIndent()
         }
       }
+      val test2Runtime = dnsRunTime.open(test2NMM.mmid) as TestJmm.TestJmmRuntime
+      val jsProcess2 = test2Runtime.getJsProcess()
 
-      val jsHttpUrl = jsProcess.fetchIpc.onEvent("wait-js").mapNotNull { event ->
+      val jsHttpUrl = jsProcess1.fetchIpc.onEvent("wait-js").mapNotNull { event ->
         event.consumeFilter { it.name == "http-server" }?.text
       }.first()
       println("QAQ jsHttpUrl=$jsHttpUrl")
 
       val actual = "/${randomUUID()}"
-      val expected = testRuntime.nativeFetch("$jsHttpUrl$actual").text()
+      val expected = test1Runtime.nativeFetch("$jsHttpUrl$actual").text()
       println("QAQ expected=$expected")
       assertEquals(actual, expected)
     }

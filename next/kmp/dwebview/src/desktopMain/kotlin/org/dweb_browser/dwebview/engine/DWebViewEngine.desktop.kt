@@ -131,6 +131,17 @@ class DWebViewEngine internal constructor(
   }
 
   val wrapperView: BrowserView by lazy { BrowserView.newInstance(browser) }
+
+  //  class MyFrame(private val frame: Frame) : Frame by frame {
+  //    override fun executeJavaScript(code: String, c: Consumer<*>) {
+  //      return frame.executeJavaScript("debugger;$code", c)
+  //    }
+  //
+  //    override fun <T : Any?> executeJavaScript(code: String): T? {
+  //      return frame.executeJavaScript<T>("debugger;$code")
+  //    }
+  //  }
+  //  val mainFrame get() = MyFrame(browser.mainFrame().get())
   val mainFrame get() = browser.mainFrame().get()
   val mainFrameOrNull get() = browser.mainFrame().getOrNull()
   val document get() = mainFrame.document().get()
@@ -152,9 +163,8 @@ class DWebViewEngine internal constructor(
     script: String, afterEval: (suspend () -> Unit)? = null,
   ): String {
     val deferred = CompletableDeferred<String>()
-
     runCatching {
-      mainFrame.executeJavaScript("(async()=>{return ($script)})().then(r=>JSON.stringify(r)??'undefined',e=>{throw  String(e)})",
+      mainFrame.executeJavaScript("((async()=>String(JSON.stringify(await ($script))))()).catch(e=>{throw String(e)})",
         Consumer<JsObject> { jsObject ->
           if (jsObject is JsPromise) {
             jsObject.then {
@@ -170,7 +180,9 @@ class DWebViewEngine internal constructor(
             deferred.completeExceptionally(JsException(errorMessage ?: "unknown error"))
           }
         })
-    }.getOrElse { deferred.completeExceptionally(it) }
+    }.getOrElse {
+      deferred.completeExceptionally(it)
+    }
     afterEval?.invoke()
 
     return deferred.await()

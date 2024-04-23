@@ -154,10 +154,18 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   /**
    * 尝试连接到指定对象
    */
-  connect(mmid: $MMID) {
+  connect(mmid: $MMID, auto_start = true) {
     return mapHelper.getOrPut(this.connectionMap, mmid, () => {
       const po = new PromiseOut<Ipc>();
-      po.resolve(this.bootstrapContext.dns.connect(mmid));
+      po.resolve(
+        (async () => {
+          const ipc = await this.bootstrapContext.dns.connect(mmid);
+          if (auto_start) {
+            void ipc.start();
+          }
+          return ipc;
+        })()
+      );
       return po;
     }).promise;
   }
@@ -186,6 +194,9 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
       }
       this.#ipcConnectedProducer.send(ipc);
     }
+  }
+  getConnected(mmid: $MMID) {
+    return this.connectionMap.get(mmid)?.promise;
   }
 
   // private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit) {

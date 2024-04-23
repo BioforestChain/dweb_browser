@@ -18,6 +18,7 @@ import { onRenderer, onRendererDestroy } from "../../core/ipcEventOnRender.ts";
 import { onShortcut } from "../../core/ipcEventOnShortcut.ts";
 import { MicroModule, MicroModuleRuntime } from "../../core/MicroModule.ts";
 import { once } from "../../helper/$once.ts";
+import { mapHelper } from "../../helper/mapHelper.ts";
 import type { $RunMainConfig } from "../main/index.ts";
 import { createFetchHandler, Ipc, WebMessageEndpoint } from "./std-dweb-core.ts";
 
@@ -104,74 +105,28 @@ export class JsProcessMicroModule extends MicroModule {
           throw new Error("jmm dns.uninstall not implemented.");
         },
         connect: (mmid: `${string}.dweb`, reason?: Request | undefined): $PromiseMaybe<core.Ipc> => {
+          this.console.debug("connect", mmid);
           const po = new PromiseOut<Ipc>();
           this.fetchIpc.postMessage(core.IpcEvent.fromText("dns/connect", mmid));
 
-          // fetchIpc.onEvent("wait-dns-connect").collect(async (event) => {
-          //   const ipcEvent = event.consumeFilter((ipcEvent) => ipcEvent.name === `dns/connect/done/${connectMmid}`);
-          //   if (ipcEvent !== undefined) {
-          //     const { connect, result } = JSON.parse(core.IpcEvent.text(ipcEvent));
-          //     const task = this._ipcConnectsMap.get(connect);
-          //     console.log("xxlife 收到桥接完成消息=>", task, ipcEvent.name, ipcEvent.data);
-          //     if (task) {
-          //       /// 这里之所以 connect 和 result 存在不一致的情况，是因为 subprotocol 的存在
-          //       if (task.is_resolved === false) {
-          //         const resultTask = this._ipcConnectsMap.get(result);
-          //         if (resultTask && resultTask !== task) {
-          //           task.resolve(await resultTask.promise);
-          //         }
-          //       }
-          //       const ipc = await task.promise;
-          //       // 手动启动,这里才是真正的建立完成通信
-          //       ipc.start();
-          //       await ipc.ready();
-          //       console.log("xxlife 桥接建立完成=>", ipc.channelId, ipc.isActivity);
-          //     }
-          //   } else if (ipcEvent.name.startsWith("forward/")) {
-          //     // 这里负责代理native端的请求
-          //     const [_, action, mmid] = ipcEvent.name.split("/");
-          //     const ipc = await this.connect(mmid as $MMID);
-          //     if (action === "lifeCycle") {
-          //       ipc.postMessage($normalizeIpcMessage(JSON.parse(ipcEvent.text), ipc));
-          //     } else if (action === "request") {
-          //       const response = await ipc.request(
-          //         $normalizeIpcMessage(JSON.parse(ipcEvent.text), ipc) as IpcClientRequest
-          //       );
-          //       this.fetchIpc.postMessage(
-          //         IpcEvent.fromText(`forward/response/${mmid}`, JSON.stringify(response.ipcResMessage()))
-          //       );
-          //     } else if (action === "close") {
-          //       console.log("worker ipc close=>", ipc.channelId);
-          //       ipc.close();
-          //     }
-          //   }
-          // });
+          this.fetchIpc.onEvent("wait-dns-connect").collect(async (event) => {
+            await event.consumeAwaitMapNotNull(async (ipcEvent) => {
+              if (ipcEvent.name === "dns/connect/done") {
+                this.console.debug("connect-done", ipcEvent.data);
+                const done = JSON.parse(core.IpcEvent.text(ipcEvent)) as { connect: $MMID; result: $MMID };
+                if (done.connect === mmid) {
+                  const ipc = await this.runtime.getConnected(done.result);
+                  if (ipc === undefined) {
+                    po.reject(new Error(`no found connect result: ${done.result}`));
+                  } else {
+                    po.resolve(ipc);
+                  }
+                  return done;
+                }
+              }
+            });
+          });
 
-          const _beConnect = (event: MessageEvent) => {
-            const data = event.data;
-            if (Array.isArray(data) === false) {
-              return;
-            }
-            if (data[0] === `ipc-connect/${mmid}`) {
-              const port = event.ports[0];
-              const endpoint = new WebMessageEndpoint(port, mmid);
-              const manifest: core.$MicroModuleManifest = data[1];
-              const env: Record<string, string> = data[2];
-              Object.defineProperty(manifest, "env", { value: Object.freeze(env) });
-
-              const ipc = this.ipcPool.createIpc(
-                endpoint,
-                0,
-                manifest,
-                manifest,
-                false // 等一切准备完毕再手动启动
-              );
-              po.resolve(ipc);
-              workerGlobal.removeEventListener("message", _beConnect);
-            }
-          };
-
-          workerGlobal.addEventListener("message", _beConnect);
           return po.promise;
         },
         query: (mmid: `${string}.dweb`): Promise<core.$MicroModuleManifest | undefined> => {
@@ -205,7 +160,41 @@ export class JsProcessMicroModule extends MicroModule {
   }
 }
 export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
-  protected override _bootstrap() {}
+  protected override _bootstrap() {
+    const _beConnect = async (event: MessageEvent) => {
+      const data = event.data;
+      if (Array.isArray(data) === false) {
+        return;
+      }
+      const IPC_CONNECT_PREFIX = "ipc-connect/";
+      if (typeof data[0] === "string" && data[0].startsWith(IPC_CONNECT_PREFIX)) {
+        this.console.debug("ipc-connect", data);
+        const mmid = data[0].slice(IPC_CONNECT_PREFIX.length);
+        const port = event.ports[0];
+        const endpoint = new WebMessageEndpoint(port, mmid);
+        const manifest: core.$MicroModuleManifest = data[1];
+        const auto_start: boolean = data[2];
+
+        const ipc = this.ipcPool.createIpc(
+          endpoint,
+          0,
+          manifest,
+          manifest,
+          auto_start // 等一切准备完毕再手动启动
+        );
+        // 强制保存到连接池中
+        mapHelper.getOrPut(this.connectionMap, ipc.remote.mmid, () => new PromiseOut()).resolve(ipc);
+        // 触发beConnect
+        await this.beConnect(ipc);
+        workerGlobal.postMessage(`ipc-be-connect/${mmid}`);
+      }
+    };
+
+    workerGlobal.addEventListener("message", _beConnect);
+    this.onBeforeShutdown(() => {
+      workerGlobal.removeEventListener("message", _beConnect);
+    });
+  }
   protected override async _shutdown() {
     await this.fetchIpc.close();
   }
