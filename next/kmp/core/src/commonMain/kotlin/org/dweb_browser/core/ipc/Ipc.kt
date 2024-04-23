@@ -117,7 +117,7 @@ class Ipc internal constructor(
     closeDeferred.complete(cause)
     IpcLifecycle(IpcLifecycleClosed(reason)).also { closed ->
       lifecycleLocaleFlow.emit(closed)
-      sendLifecycleToRemote(closed)
+      runCatching { sendLifecycleToRemote(closed) }.getOrNull()
     }
     traceTimeout(1000, { this@Ipc }) {
       launchJobs.joinAll()

@@ -274,9 +274,9 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) :
 
 
     override suspend fun _shutdown() {
-      debugJsMM(
-        "jsMM_shutdown", "$mmid ipcNumber=>${fromMMIDOriginIpcWM.size}"
-      )
+      debugJsMM("shutdown") {
+        "ipc-count=>${fromMMIDOriginIpcWM.size}"
+      }
       val jsProcess = getJsProcess()
       jsProcess.codeIpc.close()
       fromMMIDOriginIpcWM.clear()

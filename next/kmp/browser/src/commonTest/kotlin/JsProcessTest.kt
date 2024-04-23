@@ -1,4 +1,5 @@
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
@@ -247,34 +248,37 @@ class JsProcessTest {
   @Test
   fun testJmmConnectJmm() = runCommonTest(timeout = 600.seconds) {
     buildJsProcessTestContext {
+      val actual = randomUUID()
+      println("QAQ actual=$actual")
       val test1Runtime = dnsRunTime.open(test1NMM.mmid) as TestJmm.TestJmmRuntime
       val jsProcess1 = test1Runtime.getJsProcess()
       jsProcess1.defineEsm {
         "/index.js" bind PureMethod.GET by defineStringResponse {
           """
-            const { http, jsProcess, ipc } = navigator.dweb;
-            jsProcess.connect()
-            const httpServer = await http.createHttpDwebServer(jsProcess, { subdomain: "www" });
-            jsProcess.fetchIpc.postMessage(
-              ipc.IpcEvent.fromText("http-server", httpServer.startResult.urlInfo.buildDwebUrl().href)
-            );
-            await httpServer.listen((event) => {
-              console.log("got request", event.ipcRequest.url);
-              return { body: event.ipcRequest.url };
-            });
+            const { jsProcess, ipc } = navigator.dweb;
+            const ipc2 = await jsProcess.connect(`${test2NMM.mmid}`)
+            ipc2.postMessage( ipc.IpcEvent.fromText("js2js", `$actual`) );
           """.trimIndent()
         }
       }
       val test2Runtime = dnsRunTime.open(test2NMM.mmid) as TestJmm.TestJmmRuntime
       val jsProcess2 = test2Runtime.getJsProcess()
+      jsProcess2.defineEsm {
+        "/index.js" bind PureMethod.GET by defineStringResponse {
+          """
+            const { jsProcess } = navigator.dweb;
+            
+            const ipc1 = await jsProcess.connect(`${test1NMM.mmid}`);
+            const ipc3 = await jsProcess.connect(`${fileNMM.mmid}`);
+            ipc1.onEvent("js2js").collect((event) => ipc3.postMessage(event.consume()));
+          """.trimIndent()
+        }
+      }
 
-      val jsHttpUrl = jsProcess1.fetchIpc.onEvent("wait-js").mapNotNull { event ->
-        event.consumeFilter { it.name == "http-server" }?.text
-      }.first()
-      println("QAQ jsHttpUrl=$jsHttpUrl")
-
-      val actual = "/${randomUUID()}"
-      val expected = test1Runtime.nativeFetch("$jsHttpUrl$actual").text()
+      val test3Runtime = dnsRunTime.open(fileNMM.mmid) as FileNMM.FileRuntime
+      val ipc3 = test3Runtime.connect(test2Runtime.mmid)
+      val result = ipc3.onEvent("js2js").map { it.consume() }.first()
+      val expected = result.text
       println("QAQ expected=$expected")
       assertEquals(actual, expected)
     }
