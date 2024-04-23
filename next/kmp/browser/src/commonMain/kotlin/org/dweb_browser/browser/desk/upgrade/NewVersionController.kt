@@ -1,7 +1,6 @@
 package org.dweb_browser.browser.desk.upgrade
 
 import androidx.compose.runtime.mutableStateOf
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.desk.DeskNMM
 import org.dweb_browser.browser.desk.DesktopController
 import org.dweb_browser.browser.desk.debugDesk
@@ -66,7 +65,7 @@ enum class NewVersionType {
   ;
 }
 
-class NewVersionController(private val deskNMM: DeskNMM, val desktopController: DesktopController) {
+class NewVersionController(private val deskNMM: DeskNMM.DeskRuntime, val desktopController: DesktopController) {
   private val store = NewVersionStore(deskNMM)
   var newVersionItem: NewVersionItem? = null
   val newVersionType = mutableStateOf(NewVersionType.Hide) // 用于显示新版本提醒的控制
@@ -77,7 +76,7 @@ class NewVersionController(private val deskNMM: DeskNMM, val desktopController: 
   }
 
   init {
-    deskNMM.ioAsyncScope.launch { initNewVersionItem() }
+    deskNMM.scopeLaunch(cancelable = true) { initNewVersionItem() }
   }
 
   private suspend fun initNewVersionItem() {
@@ -123,7 +122,7 @@ class NewVersionController(private val deskNMM: DeskNMM, val desktopController: 
   private suspend fun watchProcess(newVersionItem: NewVersionItem) {
     newVersionItem.taskId?.let { taskId ->
       newVersionItem.alreadyWatch = true
-      deskNMM.ioAsyncScope.launch {
+      deskNMM.scopeLaunch(cancelable = true) {
         val ret = deskNMM.createChannelOfDownload(taskId) {
           newVersionItem.updateDownloadTask(downloadTask, store)
           when (downloadTask.status.state) {
@@ -153,7 +152,7 @@ class NewVersionController(private val deskNMM: DeskNMM, val desktopController: 
   }
 
   suspend fun downloadApp() = debounce(
-    scope = deskNMM.ioAsyncScope,
+    scope = deskNMM.getRuntimeScope(),
     action = {
       val grant = deskNMM.requestSystemPermission(
         name = SystemPermissionName.STORAGE,

@@ -14,7 +14,7 @@ typealias DWEB_PROTOCOL = MMID
  * MMID or Protocol
  * 这里的定义，目的是在代码中明确区分出需求
  */
-typealias MPID = MMID
+typealias MMPT = MMID
 
 object CommonAppManifestSerializer : PropMetasSerializer<CommonAppManifest>(CommonAppManifest.P)
 
@@ -63,6 +63,10 @@ class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
   override var background_color by P_background_color(p)
   override var shortcuts by P_shortcuts(p)
   override var version by P_version(p)
+
+  override fun toString(): String {
+    return "CommonAppManifest@${hashCode()}"
+  }
 }
 
 interface ICommonAppManifest {

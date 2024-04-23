@@ -24,7 +24,7 @@ import org.dweb_browser.helper.datetimeNow
 @Serializable
 data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String)
 
-class JmmStore(microModule: MicroModule) {
+class JmmStore(microModule: MicroModule.Runtime) {
   private val storeApp = microModule.createStore("jmm_apps", false)
   private val storeHistoryMetadata = microModule.createStore("history_metadata", false)
 

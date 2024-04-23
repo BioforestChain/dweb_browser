@@ -1,28 +1,32 @@
 package org.dweb_browser.core.ipc.helper
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.toBase64
 
-@Serializable
-data class IpcStreamDataJsonAble(
-  val stream_id: String, val encoding: IPC_DATA_ENCODING, val data: String
-) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_DATA) {
+@Serializable()
+@SerialName(IPC_MESSAGE_TYPE_STREAM_DATA)
+class IpcStreamDataRawString(
+  val stream_id: String, val encoding: IPC_DATA_ENCODING, val data: String,
+) : IpcRawMessage {
   fun toIpcStreamData() = IpcStreamData(stream_id, encoding, data)
 }
 
-object IpcStreamDataSerializer : ProxySerializer<IpcStreamData, IpcStreamDataJsonAble>(
-  "IpcStreamData",
-  IpcStreamDataJsonAble.serializer(),
-  { jsonAble },
-  { toIpcStreamData() })
 
-@Serializable(IpcStreamDataSerializer::class)
+@Serializable()
+@SerialName(IPC_MESSAGE_TYPE_STREAM_DATA)
+class IpcStreamDataRawBinary(
+  val stream_id: String, val encoding: IPC_DATA_ENCODING, val data: ByteArray,
+) : IpcRawMessage {
+  fun toIpcStreamData() = IpcStreamData(stream_id, encoding, data)
+}
+
+
 data class IpcStreamData(
   override val stream_id: String,
   val encoding: IPC_DATA_ENCODING,
   val data: Any, /*String or ByteArray*/
-) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_DATA), IpcStream {
+) : IpcMessage, IpcStream, RawAble<IpcRawMessage> {
 
   companion object {
     fun fromBinary(streamId: String, data: ByteArray) =
@@ -45,16 +49,25 @@ data class IpcStreamData(
     dataToText(data, encoding)
   }
 
-  val jsonAble by lazy {
+  override val stringAble by lazy {
     when (encoding) {
-      IPC_DATA_ENCODING.BINARY -> fromBase64(
-        stream_id,
-        (data as ByteArray),
+      IPC_DATA_ENCODING.BINARY -> IpcStreamDataRawString(
+        stream_id, encoding, (data as ByteArray).toBase64()
       )
 
-      else -> this
-    }.run {
-      IpcStreamDataJsonAble(stream_id, encoding, data as String)
+      IPC_DATA_ENCODING.BASE64, IPC_DATA_ENCODING.UTF8 -> IpcStreamDataRawString(
+        stream_id,
+        encoding,
+        data as String
+      )
+    }
+  }
+  override val binaryAble by lazy {
+    when (encoding) {
+      IPC_DATA_ENCODING.BINARY -> IpcStreamDataRawBinary(stream_id, encoding, data as ByteArray)
+      IPC_DATA_ENCODING.BASE64, IPC_DATA_ENCODING.UTF8 -> IpcStreamDataRawBinary(
+        stream_id, IPC_DATA_ENCODING.BINARY, binary
+      )
     }
   }
 }

@@ -26,7 +26,7 @@ declare global {
  */
 export class Server_external extends HttpServer {
   constructor(private handlers: $OnFetch[] = []) {
-    super();
+    super("external");
     jsProcess.onFetch(async (event) => {
       if (event.pathname == ExternalState.WAIT_EXTERNAL_READY) {
         await this.ipcPo.waitOpen();
@@ -51,7 +51,10 @@ export class Server_external extends HttpServer {
       .cors();
   }
 
-  ipcPo: PromiseToggle<$ReadableStreamIpc, void> = new PromiseToggle<$ReadableStreamIpc, void>({ type: "close", value: undefined });
+  ipcPo: PromiseToggle<$ReadableStreamIpc, void> = new PromiseToggle<$ReadableStreamIpc, void>({
+    type: "close",
+    value: undefined,
+  });
 
   //窗口关闭的时候需要重新等待连接
   closeRegisterIpc() {
@@ -73,9 +76,15 @@ export class Server_external extends HttpServer {
         this.ipcPo.toggleClose();
       }
       // 跟自己建立双工通信
-      const streamIpc = createDuplexIpc(this._getOptions().subdomain, jsProcess.mmid, event.ipcRequest, () => {
-        this.ipcPo.toggleClose();
-      });
+      const streamIpc = createDuplexIpc(
+        jsProcess.ipcPool,
+        this._getOptions().subdomain,
+        jsProcess.mmid,
+        event.ipcRequest,
+        () => {
+          this.ipcPo.toggleClose();
+        }
+      );
       this.ipcPo.toggleOpen(streamIpc);
 
       // 接收前端的externalFetch函数发送的跟外部通信的消息
@@ -128,7 +137,7 @@ export class Server_external extends HttpServer {
       const response = (await ipc.request(event.request.url, event.request)).toResponse();
       // ipc.postMessage(response)
       // 构造返回值给对方
-      return IpcResponse.fromResponse(event.ipcRequest.req_id, response, event.ipc);
+      return IpcResponse.fromResponse(event.ipcRequest.reqId, response, event.ipc);
     }
   }
 }

@@ -7,7 +7,10 @@ import javax.swing.JOptionPane
 import javax.swing.Timer
 
 actual suspend fun showToast(
-  microModule: MicroModule, text: String, durationType: DurationType, positionType: PositionType
+  microModule: MicroModule.Runtime,
+  text: String,
+  durationType: DurationType,
+  positionType: PositionType
 ) {
   // val composeWindow = microModule.getComposeWindowOrNull() ?: return
   // val composeBounds = composeWindow.bounds // 这个窗口获取到的数据是主窗口，并非当前打开的窗口

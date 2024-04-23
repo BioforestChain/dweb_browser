@@ -51,7 +51,7 @@ class PermissionActivity : ComponentActivity() {
   companion object {
     private val launchTasks = mutableMapOf<UUID, CompletableDeferred<TaskResult>>()
     suspend fun launchAndroidSystemPermissionRequester(
-      microModule: MicroModule, androidPermissionTask: AndroidPermissionTask
+      microModule: MicroModule.Runtime, androidPermissionTask: AndroidPermissionTask
     ): TaskResult {
       if (androidPermissionTask.permissions.isEmpty()) {
         return emptyMap()

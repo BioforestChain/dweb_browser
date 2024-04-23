@@ -5,12 +5,12 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.dweb_browser.core.ipc.helper.ReadableStream
 import org.dweb_browser.helper.SafeInt
 import org.dweb_browser.helper.canReadContent
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.readAvailableByteArray
+import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -18,9 +18,9 @@ import kotlin.test.assertTrue
 class ReadableStreamTestTest {
   @OptIn(DelicateCoroutinesApi::class)
   @Test
-  fun `readablestream available test`() = runBlocking {
+  fun readableStreamAvailableTest() = runCommonTest {
     println("start")
-    val stream = ReadableStream(onStart = { controller ->
+    val stream = ReadableStream(this,onStart = { controller ->
       GlobalScope.launch {
         var i = 5
         while (i-- > 0) {
@@ -54,8 +54,8 @@ class ReadableStreamTestTest {
   }
 
   @Test
-  fun testCancel() = runBlocking {
-    val readableStream = ReadableStream(onStart = { controller ->
+  fun testCancel() = runCommonTest {
+    val readableStream = ReadableStream(this,onStart = { controller ->
       GlobalScope.launch {
         var i = 0
         while (true)          {

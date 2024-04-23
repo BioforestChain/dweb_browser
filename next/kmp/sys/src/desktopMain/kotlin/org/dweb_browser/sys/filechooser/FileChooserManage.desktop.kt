@@ -19,7 +19,7 @@ actual class FileChooserManage actual constructor() {
   }
   
   actual suspend fun openFileChooser(
-    microModule: MicroModule,
+    microModule: MicroModule.Runtime,
     accept: String,
     multiple: Boolean,
     limit: Int

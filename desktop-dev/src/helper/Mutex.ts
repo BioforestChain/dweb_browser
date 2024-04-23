@@ -1,9 +1,13 @@
 import { PromiseOut } from "./PromiseOut.ts";
 
-class Locker extends PromiseOut<void> {
-  constructor(readonly owner: unknown) {
-    super();
+class Locker {
+  readonly po = new PromiseOut<void>();
+  constructor(pre_locker: Locker | undefined) {
+    this.prev = pre_locker?.curr;
+    this.curr = this.prev?.then(() => this.po.promise) ?? this.po.promise;
   }
+  readonly prev: Promise<void> | undefined;
+  readonly curr: Promise<void>;
 }
 export class Mutex {
   constructor(lock?: boolean) {
@@ -15,26 +19,22 @@ export class Mutex {
     return this._lockers.length > 0;
   }
   private _lockers: Locker[] = [];
-  private get _lastLocker(): undefined | PromiseOut<void> {
+  private get _lastLocker() {
     return this._lockers[this._lockers.length - 1];
   }
-  lock(owner?: unknown) {
-    const pre_locker = this._lastLocker;
-    const locker = new Locker(owner);
+  lock() {
+    const locker = new Locker(this._lastLocker);
     this._lockers.push(locker);
-    return pre_locker?.promise;
+    return locker.prev;
   }
-  unlock(owner?: unknown) {
-    const index = this._lockers.findIndex((locker) => locker.owner === owner);
-    if (index !== -1) {
-      const locker = this._lockers.splice(index, 1)[0];
-      locker.resolve();
-    }
+  unlock() {
+    const locker = this._lockers.shift();
+    locker?.po.resolve();
   }
-  async withLock(cb: () => unknown) {
+  async withLock<R>(cb: () => R): Promise<Awaited<R>> {
     await this.lock();
     try {
-      await cb();
+      return await cb();
     } finally {
       this.unlock();
     }

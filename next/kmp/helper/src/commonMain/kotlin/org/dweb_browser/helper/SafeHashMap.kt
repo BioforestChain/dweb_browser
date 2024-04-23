@@ -30,4 +30,8 @@ class SafeHashMap<K, V> : MutableMap<K, V> {
   inline fun getOrPut(key: K, defaultValue: () -> V) = sync { getOrPut(key, defaultValue) }
   inline fun getOrDefault(key: K, defaultValue: V) = sync { getOrDefault(key, defaultValue) }
   inline fun getOrElse(key: K, defaultValue: () -> V) = sync { getOrElse(key, defaultValue) }
+
+  override fun toString(): String {
+    return origin.toString()
+  }
 }

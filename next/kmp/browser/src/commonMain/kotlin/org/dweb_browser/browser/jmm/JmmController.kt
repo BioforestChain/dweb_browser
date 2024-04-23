@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jmm
 
 import androidx.compose.runtime.mutableStateMapOf
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -42,7 +41,7 @@ import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.sys.toast.ext.showToast
 import org.dweb_browser.sys.window.core.WindowController
 
-class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) {
+class JmmController(private val jmmNMM: JmmNMM.JmmRuntime, private val jmmStore: JmmStore) {
   val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   // 构建jmm历史记录
@@ -199,7 +198,7 @@ class JmmController(private val jmmNMM: JmmNMM, private val jmmStore: JmmStore) 
   private suspend fun watchProcess(metadata: JmmHistoryMetadata) {
     val taskId = metadata.taskId ?: return
     metadata.alreadyWatch = true
-    jmmNMM.ioAsyncScope.launch {
+    jmmNMM.scopeLaunch(cancelable = true) {
       val res = jmmNMM.createChannelOfDownload(taskId) {
         metadata.updateByDownloadTask(downloadTask, jmmStore)
         when (downloadTask.status.state) {

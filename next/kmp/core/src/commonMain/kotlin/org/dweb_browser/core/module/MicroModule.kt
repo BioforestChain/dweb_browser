@@ -1,10 +1,16 @@
 package org.dweb_browser.core.module
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -13,14 +19,18 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.std.permission.PermissionProvider
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.Producer
+import org.dweb_browser.helper.ReasonLock
+import org.dweb_browser.helper.SafeHashMap
+import org.dweb_browser.helper.SafeHashSet
+import org.dweb_browser.helper.SafeLinkList
+import org.dweb_browser.helper.defaultAsyncExceptionHandler
+import org.dweb_browser.helper.listen
 import org.dweb_browser.pure.http.PureRequest
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 typealias Router = MutableMap<String, AppRun>
 typealias AppRun = (options: NativeOptions) -> Any
@@ -30,38 +40,10 @@ enum class MMState {
   BOOTSTRAP, SHUTDOWN,
 }
 
-val debugMicroModule = Debugger("MicroModule")
-
 abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleManifest by manifest {
+  val debugMM by lazy { Debugger("$this") }
+
   companion object {}
-
-  open val routers: Router? = null
-
-  private var runningStateLock = StatePromiseOut.resolve(MMState.SHUTDOWN)
-  private val readyLock = Mutex(true)
-
-  private fun getModuleCoroutineScope() =
-    CoroutineScope(SupervisorJob() + ioAsyncExceptionHandler + CoroutineName(mmid))
-
-  private var _scope: CoroutineScope = getModuleCoroutineScope()
-  val ioAsyncScope get() = _scope
-
-  val running get() = runningStateLock.value == MMState.BOOTSTRAP
-
-  protected open suspend fun beforeBootstrap(bootstrapContext: BootstrapContext): Boolean {
-    if (this.runningStateLock.state == MMState.BOOTSTRAP) {
-      debugMicroModule("module ${this.mmid} already running");
-      return false
-    }
-    this.runningStateLock.waitPromise() // 确保已经完成上一个状态
-    this.runningStateLock = StatePromiseOut(MMState.BOOTSTRAP)
-    this._bootstrapContext = bootstrapContext // 保存context
-    // 创建一个新的
-    if (!_scope.isActive) {
-      _scope = getModuleCoroutineScope()
-    }
-    return true
-  }
 
   /**
    * 获取权限提供器，这需要在bootstrap之前就能提供
@@ -69,149 +51,205 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
    */
   abstract suspend fun getSafeDwebPermissionProviders(): List<PermissionProvider>
 
-  private var _bootstrapContext: BootstrapContext? = null
-  val bootstrapContext get() = _bootstrapContext ?: throw Exception("module no run.")
+  /**
+   * 如果启动
+   * 那么会创建该运行时
+   */
+  abstract inner class Runtime : IMicroModuleManifest by manifest {
+    val debugMM get() = this@MicroModule.debugMM
+    abstract val bootstrapContext: BootstrapContext
 
-  protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
-  private suspend fun afterBootstrap(bootstrapContext: BootstrapContext) {
-    debugMicroModule("afterBootstrap", "ready: $mmid, ${_ipcSet.size}")
-    onConnect { (ipc) ->
-      ipc.readyInMicroModule("onConnect")
+    open val routers: Router? = null
+
+    protected val mmScope =
+      CoroutineScope(SupervisorJob() + defaultAsyncExceptionHandler + CoroutineName(manifest.mmid))
+
+    fun getRuntimeScope() = mmScope
+
+    private inner class ScopeJob(val job: Job, val cancelable: Boolean) {
+      init {
+        jobs.add(this)
+        job.invokeOnCompletion {
+          jobs.remove(this)
+        }
+      }
     }
-    for (ipc in _ipcSet) {
-      ipc.readyInMicroModule("afterBootstrap")
+
+    private val jobs = SafeLinkList<ScopeJob>()
+
+    /**
+     * 使用当前的MicroModule的生命周期来启动一个job
+     * 生命周期会确保这个job完成后才会完全结束
+     */
+    fun scopeLaunch(
+      context: CoroutineContext = EmptyCoroutineContext,
+      cancelable: Boolean,
+      action: suspend CoroutineScope.() -> Unit,
+    ) = mmScope.launch(context = context, block = action, start = CoroutineStart.UNDISPATCHED)
+      .also { job ->
+        ScopeJob(job, cancelable)
+      }
+
+    fun <R> scopeAsync(
+      context: CoroutineContext = EmptyCoroutineContext,
+      cancelable: Boolean,
+      action: suspend CoroutineScope.() -> R,
+    ) = mmScope.async(context = context, block = action, start = CoroutineStart.UNDISPATCHED)
+      .also { job ->
+        ScopeJob(job, cancelable)
+      }
+
+    private val stateLock = Mutex()
+    private var state = MMState.SHUTDOWN
+    val isRunning get() = state == MMState.BOOTSTRAP
+
+
+    protected abstract suspend fun _bootstrap()
+
+    suspend fun bootstrap() = stateLock.withLock {
+      if (state != MMState.BOOTSTRAP) {
+        debugMM("bootstrap-start")
+        _bootstrap();
+        debugMM("bootstrap-end")
+      } else {
+        debugMM("bootstrap", "$mmid already running")
+      }
+      state = MMState.BOOTSTRAP
     }
-    this.runningStateLock.resolve()
-    readyLock.unlock()
-  }
 
-  private fun Ipc.readyInMicroModule(tag: String) {
-    debugMicroModule("ready/$tag", "(self)$mmid=>${remote.mmid}(remote)")
-    ioAsyncScope.launch {
-      this@readyInMicroModule.readyPingPong(this@MicroModule)
+    val microModule get() = this@MicroModule
+
+    private val beforeShutdownFlow = MutableSharedFlow<Unit>()
+    val onBeforeShutdown = beforeShutdownFlow.shareIn(mmScope, SharingStarted.Eagerly)
+
+    private val shutdownDeferred = CompletableDeferred<Unit>()
+    val awaitShutdown = shutdownDeferred::await
+    fun onShutdown(action: () -> Unit) {
+      shutdownDeferred.invokeOnCompletion { action() }
     }
-  }
 
-  private val lifecycleLock = Mutex()
+//
+//    /**
+//     * 让回调函数一定在启动状态内被运行
+//     */
+//    suspend fun <R> withBootstrap(block: suspend () -> R) = readyLock.withLock { block() }
 
-  suspend fun bootstrap(bootstrapContext: BootstrapContext) = lifecycleLock.withLock {
-    if (this.beforeBootstrap(bootstrapContext)) {
-      try {
-        this._bootstrap(bootstrapContext);
-      } finally {
-        this.afterBootstrap(bootstrapContext);
+    protected abstract suspend fun _shutdown()
+
+    suspend fun shutdown() = stateLock.withLock {
+      if (state != MMState.SHUTDOWN) {
+        debugMM("shutdown-start")
+        debugMM("shutdown-before-start")
+        beforeShutdownFlow.emit(Unit)
+        debugMM("shutdown-before-end")
+        _shutdown()
+        debugMM("shutdown-wait-jobs")
+        shutdownDeferred.complete(Unit)
+        // 等待注册的任务完成
+        while (jobs.isNotEmpty()) {
+          val sj = jobs.firstOrNull() ?: continue
+          if (sj.cancelable) {
+            sj.job.cancel()
+          } else {
+            sj.job.join()
+          }
+          jobs.remove(sj)
+        }
+        debugMM("shutdown-end")
+        // 取消所有的工作
+        mmScope.cancel()
+      }
+      state = MMState.SHUTDOWN
+    }
+
+    /**
+     * MicroModule 引用池
+     */
+    private val connectionLinks = SafeHashSet<Ipc>()
+
+
+    /**
+     * 内部程序与外部程序通讯的方法
+     */
+    private val ipcConnectedProducer = Producer<IpcConnectArgs>("ipcConnect", mmScope);
+
+    /**
+     * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
+     * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
+     * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
+     */
+    val onConnect = ipcConnectedProducer.consumer("for-internal")
+
+    private val connectReason = ReasonLock()
+    private val connectionMap = SafeHashMap<MMID, Ipc>()
+
+    /**
+     * 尝试连接到指定对象
+     */
+    suspend fun connect(mmid: MMID, reason: PureRequest? = null) = connectReason.withLock(mmid) {
+      debugMM("connect", mmid)
+      connectionMap[mmid] ?: bootstrapContext.dns.connect(mmid, reason).also { ipc ->
+        connectionMap[mmid] = ipc
+        ipc.onClosed {
+          connectionMap.remove(mmid, ipc)
+        }
+      }
+    }.also { ipc ->
+      beConnect(ipc, reason)
+    }
+
+    /**
+     * 收到一个连接，触发相关事件
+     */
+    fun beConnect(ipc: Ipc, reason: PureRequest?): Job = scopeLaunch(cancelable = false) {
+      if (connectionLinks.add(ipc)) {
+        debugMM("beConnect", ipc)
+        // 这个ipc分叉出来的ipc也会一并归入管理
+        ipc.onFork("beConnect").listen {
+          ipc.debugIpc("onFork", it.data)
+          beConnect(it.consume(), null).join()
+        }
+        onBeforeShutdown.listen {
+          ipc.close()
+        }
+        ipc.onClosed {
+          connectionLinks.remove(ipc)
+        }
+        // 尝试保存到双向连接索引中
+        ipc.remote.mmid.also { remoteMmid ->
+          connectReason.withLock(remoteMmid) {
+            if (!connectionMap.contains(remoteMmid)) {
+              connectionMap[remoteMmid] = ipc
+              ipc.onClosed {
+                connectionMap.remove(remoteMmid, ipc)
+              }
+            }
+          }
+        }
+        ipcConnectedProducer.send(IpcConnectArgs(ipc, reason))
       }
     }
   }
 
-  protected open suspend fun beforeShutdown(): Boolean {
-    if (this.runningStateLock.state == MMState.SHUTDOWN) {
-      debugMicroModule("module $mmid already shutdown");
-      return false
-    }
-    readyLock.lock()
-    this.runningStateLock.waitPromise() // 确保已经完成上一个状态
-    this.runningStateLock = StatePromiseOut(MMState.SHUTDOWN)
-
-    /// 关闭所有的通讯
-    _ipcSet.toList().forEach {
-      it.close()
-    }
-    _ipcSet.clear()
-    return true
-  }
-
-  /**
-   * 让回调函数一定在启动状态内被运行
-   */
-  suspend fun <R> withBootstrap(block: suspend () -> R) = readyLock.withLock { block() }
-
-  protected abstract suspend fun _shutdown()
-  protected open suspend fun afterShutdown() {
-    _afterShutdownSignal.emitAndClear()
-    _connectSignal.clear()
-    runningStateLock.resolve()
-    this._bootstrapContext = null
-    // 取消所有的工作
-    this.ioAsyncScope.cancel()
-  }
-
-  suspend fun shutdown() = lifecycleLock.withLock {
-    if (this.beforeShutdown()) {
-      try {
-        this._shutdown()
-      } finally {
-        this.afterShutdown()
+  private val runtimeLock = Mutex()
+  var runtimeOrNull: Runtime? = null
+    private set
+  val isRunning get() = runtimeOrNull?.isRunning != true
+  open val runtime get() = runtimeOrNull ?: throw IllegalStateException("$this is no running")
+  suspend fun bootstrap(bootstrapContext: BootstrapContext) = runtimeLock.withLock {
+    runtimeOrNull ?: createRuntime(bootstrapContext).also {
+      runtimeOrNull = it
+      it.onShutdown {
+        runtimeOrNull = null
       }
+      it.bootstrap()
     }
   }
 
-  suspend fun dispose() {
-    this._dispose()
-  }
-
-  protected open suspend fun _dispose() {
-  }
-
-  private val _afterShutdownSignal = SimpleSignal();
-  val onAfterShutdown = _afterShutdownSignal.toListener()
-
-  /**
-   * 连接池
-   */
-  private val _ipcSet = mutableSetOf<Ipc>();
-
-  fun addToIpcSet(ipc: Ipc): Boolean {
-    debugMicroModule(
-      "addToIpcSet",
-      "$mmid => ${ipc.remote.mmid}, ${runningStateLock.isResolved}:${runningStateLock.value}"
-    )
-    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
-      ipc.readyInMicroModule("addToIpcSet")
-    }
-    return if (this._ipcSet.add(ipc)) {
-      ipc.onClose {
-        _ipcSet.remove(ipc)
-      }
-      true
-    } else false
-  }
-
-  /**
-   * 内部程序与外部程序通讯的方法
-   * TODO 这里应该是可以是多个
-   */
-  private val _connectSignal = Signal<IpcConnectArgs>();
-
-  /**
-   * 给内部程序自己使用的 onConnect，外部与内部建立连接时使用
-   * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
-   * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
-   */
-  val onConnect = _connectSignal.toListener()
-
-  /**
-   * 尝试连接到指定对象
-   */
-  suspend fun connect(mmid: MMID, reason: PureRequest? = null): Ipc {
-    val (ipc) = this.bootstrapContext.dns.connect(mmid, reason)
-    return ipc
-  }
-
-  /**
-   * 收到一个连接，触发相关事件
-   */
-  suspend fun beConnect(ipc: Ipc, reason: PureRequest) {
-    if (this.addToIpcSet(ipc)) {
-      _connectSignal.emit(Pair(ipc, reason))
-    }
-  }
-
-//  /** 激活NMM入口*/
-//  protected fun emitActivity(args)
+  abstract fun createRuntime(bootstrapContext: BootstrapContext): Runtime
 
   override fun toString(): String {
-    return "MicroModule($mmid)"
+    return "MM($mmid)"
   }
 
   open fun toManifest(): CommonAppManifest {
@@ -219,15 +257,4 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   }
 }
 
-typealias IpcConnectArgs = Pair<Ipc, PureRequest>
-typealias IpcActivityArgs = Pair<IpcEvent, Ipc>
-
-class StatePromiseOut<T>(val state: T) : PromiseOut<T>() {
-  companion object {
-    fun <T> resolve(state: T) = StatePromiseOut(state).also { it.resolve() }
-  }
-
-  fun resolve() {
-    super.resolve(state)
-  }
-}
+data class IpcConnectArgs(val ipc: Ipc, val reason: PureRequest?)

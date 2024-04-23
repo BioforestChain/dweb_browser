@@ -21,7 +21,7 @@ class FileChooserActivity : ComponentActivity() {
     private const val EXTRA_LIMIT_KEY = "limit"
 
     suspend fun launchAndroidFileChooser(
-      microModule: MicroModule, mimeType: String, multiple: Boolean, limit: Int
+      microModule: MicroModule.Runtime, mimeType: String, multiple: Boolean, limit: Int
     ): List<String> {
       val taskId = randomUUID()
       return CompletableDeferred<List<String>>().also { task ->

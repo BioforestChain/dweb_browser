@@ -17,36 +17,41 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(
-      /** 显示弹框*/
-      "/show" bind PureMethod.GET by defineBooleanResponse {
-        val duration = request.queryOrNull("duration") ?: EToast.Short.type
-        val message = request.query("message")
-        val position = request.queryOrNull("position") ?: PositionType.BOTTOM.position
-        val durationType = when (duration) {
-          EToast.Long.type -> DurationType.LONG
-          else -> DurationType.SHORT
-        }
-        val positionType = when (position) {
-          PositionType.BOTTOM.position -> PositionType.BOTTOM
-          PositionType.CENTER.position -> PositionType.CENTER
-          else -> PositionType.TOP
-        }
-        val fromMM = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@ToastNMM
-        debugToast(
-          "/show",
-          "message=$message,duration=${duration},position=${position} ${fromMM.mmid}"
-        )
-        showToast(fromMM, message, durationType, positionType)
-        return@defineBooleanResponse true
-      },
-    ).cors()
+  inner class ToastRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+
+    override suspend fun _bootstrap() {
+      routes(
+        /** 显示弹框*/
+        "/show" bind PureMethod.GET by defineBooleanResponse {
+          val duration = request.queryOrNull("duration") ?: EToast.Short.type
+          val message = request.query("message")
+          val position = request.queryOrNull("position") ?: PositionType.BOTTOM.position
+          val durationType = when (duration) {
+            EToast.Long.type -> DurationType.LONG
+            else -> DurationType.SHORT
+          }
+          val positionType = when (position) {
+            PositionType.BOTTOM.position -> PositionType.BOTTOM
+            PositionType.CENTER.position -> PositionType.CENTER
+            else -> PositionType.TOP
+          }
+          val fromMM = getRemoteRuntime()
+          debugToast("/show") {
+            "message=$message,duration=${duration},position=${position} ${fromMM.mmid}"
+          }
+          showToast(fromMM, message, durationType, positionType)
+          return@defineBooleanResponse true
+        },
+      ).cors()
+    }
+
+    override suspend fun _shutdown() {
+
+    }
   }
 
-  override suspend fun _shutdown() {
+  override fun createRuntime(bootstrapContext: BootstrapContext) = ToastRuntime(bootstrapContext)
 
-  }
 }
 
 enum class EToast(val type: String) {

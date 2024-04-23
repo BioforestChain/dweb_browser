@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.download
 
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -13,6 +12,7 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.fromBase64
+import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.valueNotIn
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.queryAs
@@ -52,94 +52,96 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     val decodeUrl by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { url.fromBase64().decodeToString() }
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val controller = DownloadController(this)
-    controller.loadDownloadList()
-    onAfterShutdown {
-      ioAsyncScope.launch {
+  inner class DownloadRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+    override suspend fun _bootstrap() {
+      val controller = DownloadController(this)
+      controller.loadDownloadList()
+      onBeforeShutdown.listen {
         controller.downloadTaskMaps.suspendForEach { _, downloadTask ->
           controller.pauseDownload(downloadTask)
         }
       }
-    }
-    routes(
-      // 开始下载
-      "/create" bind PureMethod.GET by defineStringResponse {
-        val mmid = ipc.remote.mmid
-        val params = request.queryAs<DownloadTaskParams>()
-        val externalDownload = request.queryAsOrNull<Boolean>("external") ?: false
-        debugDownload("/create", "mmid=$mmid, params=$params, external=$externalDownload")
-        val downloadTask = controller.createTaskFactory(params, mmid, externalDownload)
-        debugDownload("/create", "task=$downloadTask")
-        if (params.start) {
-          controller.downloadFactory(downloadTask)
+      routes(
+        // 开始下载
+        "/create" bind PureMethod.GET by defineStringResponse {
+          val mmid = ipc.remote.mmid
+          val params = request.queryAs<DownloadTaskParams>()
+          val externalDownload = request.queryAsOrNull<Boolean>("external") ?: false
+          debugDownload("/create", "mmid=$mmid, params=$params, external=$externalDownload")
+          val downloadTask = controller.createTaskFactory(params, mmid, externalDownload)
+          debugDownload("/create", "task=$downloadTask")
+          if (params.start) {
+            controller.downloadFactory(downloadTask)
+          }
+          downloadTask.id
+        },
+        // 开始/恢复 下载
+        "/start" bind PureMethod.GET by defineBooleanResponse {
+          val taskId = request.query("taskId")
+          debugDownload("/start", taskId)
+          val task = controller.downloadTaskMaps[taskId] ?: return@defineBooleanResponse false
+          debugDownload("/start", "task=$task")
+          controller.startDownload(task)
+        },
+        // 监控下载进度
+        "/watch/progress" byChannel { ctx ->
+          val taskId = request.query("taskId")
+          val downloadTask = controller.downloadTaskMaps[taskId]
+            ?: return@byChannel close(Throwable("not Found download task!"))
+          debugDownload("/watch/progress", "taskId=$taskId")
+          // 给别人的需要给picker地址
+          val pickFilepath = pickFile(downloadTask.filepath)
+          downloadTask.onChange {
+            ctx.sendJsonLine(it.copy(filepath = pickFilepath))
+          }.removeWhen(onClose)
+          downloadTask.emitChanged()
+        },
+        // 暂停下载
+        "/pause" bind PureMethod.GET by defineBooleanResponse {
+          val taskId = request.query("taskId")
+          val task = controller.downloadTaskMaps[taskId] ?: return@defineBooleanResponse false
+          controller.pauseDownload(task)
+          true
+        },
+        // 取消下载
+        "/cancel" bind PureMethod.GET by defineBooleanResponse {
+          val taskId = request.query("taskId")
+          controller.cancelDownload(taskId)
+        },
+        // 移除任务
+        "/remove" bind PureMethod.DELETE by defineEmptyResponse {
+          val taskId = request.query("taskId")
+          controller.removeDownload(taskId)
+        },
+        // taskId是否存在, -1 是不存在，其他返回值是下载的进度
+        "/exists" bind PureMethod.GET by defineBooleanResponse {
+          val taskId = request.query("taskId")
+          debugDownload("exists", "$taskId=>${controller.downloadTaskMaps[taskId]}")
+          controller.downloadTaskMaps[taskId]?.status?.state?.valueNotIn(
+            DownloadState.Completed, DownloadState.Canceled
+          ) ?: false
+        },
+        // taskId是否存在, -1 是不存在，其他返回值是下载的进度
+        "/current" bind PureMethod.GET by defineNumberResponse {
+          val taskId = request.query("taskId")
+          debugDownload("exists", "$taskId=>${controller.downloadTaskMaps[taskId]}")
+          controller.downloadTaskMaps[taskId]?.status?.let { status ->
+            if (status.state.valueNotIn(DownloadState.Completed, DownloadState.Canceled)) {
+              status.current
+            } else -1L
+          } ?: -1L
         }
-        downloadTask.id
-      },
-      // 开始/恢复 下载
-      "/start" bind PureMethod.GET by defineBooleanResponse {
-        val taskId = request.query("taskId")
-        debugDownload("/start", taskId)
-        val task = controller.downloadTaskMaps[taskId] ?: return@defineBooleanResponse false
-        debugDownload("/start", "task=$task")
-        controller.startDownload(task)
-      },
-      // 监控下载进度
-      "/watch/progress" byChannel { ctx ->
-        val taskId = request.query("taskId")
-        val downloadTask = controller.downloadTaskMaps[taskId]
-          ?: return@byChannel close(Throwable("not Found download task!"))
-        debugDownload("/watch/progress", "taskId=$taskId")
-        // 给别人的需要给picker地址
-        val pickFilepath = pickFile(downloadTask.filepath)
-        downloadTask.onChange {
-          ctx.sendJsonLine(it.copy(filepath = pickFilepath))
-        }.removeWhen(onClose)
-        downloadTask.emitChanged()
-      },
-      // 暂停下载
-      "/pause" bind PureMethod.GET by defineBooleanResponse {
-        val taskId = request.query("taskId")
-        val task = controller.downloadTaskMaps[taskId] ?: return@defineBooleanResponse false
-        controller.pauseDownload(task)
-        true
-      },
-      // 取消下载
-      "/cancel" bind PureMethod.GET by defineBooleanResponse {
-        val taskId = request.query("taskId")
-        controller.cancelDownload(taskId)
-      },
-      // 移除任务
-      "/remove" bind PureMethod.DELETE by defineEmptyResponse {
-        val taskId = request.query("taskId")
-        controller.removeDownload(taskId)
-      },
-      // taskId是否存在, -1 是不存在，其他返回值是下载的进度
-      "/exists" bind PureMethod.GET by defineBooleanResponse {
-        val taskId = request.query("taskId")
-        debugDownload("exists", "$taskId=>${controller.downloadTaskMaps[taskId]}")
-        controller.downloadTaskMaps[taskId]?.status?.state?.valueNotIn(
-          DownloadState.Completed, DownloadState.Canceled
-        ) ?: false
-      },
-      // taskId是否存在, -1 是不存在，其他返回值是下载的进度
-      "/current" bind PureMethod.GET by defineNumberResponse {
-        val taskId = request.query("taskId")
-        debugDownload("exists", "$taskId=>${controller.downloadTaskMaps[taskId]}")
-        controller.downloadTaskMaps[taskId]?.status?.let { status ->
-          if (status.state.valueNotIn(DownloadState.Completed, DownloadState.Canceled)) {
-            status.current
-          } else -1L
-        } ?: -1L
+      )
+      onRenderer {
+        controller.renderDownloadWindow(wid)
+        getMainWindow().setStateFromManifest(this@DownloadNMM)
       }
-    )
-    onRenderer {
-      controller.renderDownloadWindow(wid)
-      getMainWindow().setStateFromManifest(this@DownloadNMM)
+    }
+
+    override suspend fun _shutdown() {
+
     }
   }
 
-  override suspend fun _shutdown() {
-
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) = DownloadRuntime(bootstrapContext)
 }

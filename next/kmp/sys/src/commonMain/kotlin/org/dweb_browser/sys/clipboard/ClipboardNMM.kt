@@ -32,68 +32,74 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
     );
   }
 
-  private val clipboardManage = ClipboardManage()
+  inner class ClipboardRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(/** 读取剪切板*/
-      "/read" bind PureMethod.GET by definePureResponse {
-        val read = read()
-        debugClipboard("/read", read)
-        PureResponse(HttpStatusCode.OK, body = PureStringBody(read))
-      },
-      /**
-       * 写入剪切板
-       * fetch("file://clipboard.sys.dweb/write?xxx=xxx")
-       * */
-      "/write" bind PureMethod.GET by defineBooleanResponse {
+    private val clipboardManage = ClipboardManage()
 
-        val string = request.queryOrNull("string")
-        val image = request.queryOrNull("image")
-        val url = request.queryOrNull("url")
-        val label = request.queryOrNull("label")
-        debugClipboard("/write", "string:${string},image:${image},url:${url},label:${label}")
-        // 如果都是空
-        if (image.isNullOrEmpty() && url.isNullOrEmpty() && url.isNullOrEmpty()) {
-          PureResponse(HttpStatusCode.BadRequest)
-        }
-        write(string, image, url, labelValue = label) {
-          PureResponse(HttpStatusCode.OK, body = PureStringBody(it))
-        }
-        true
-      })
-  }
+    override suspend fun _bootstrap() {
+      routes(/** 读取剪切板*/
+        "/read" bind PureMethod.GET by definePureResponse {
+          val read = read()
+          debugClipboard("/read", read)
+          PureResponse(HttpStatusCode.OK, body = PureStringBody(read))
+        },
+        /**
+         * 写入剪切板
+         * fetch("file://clipboard.sys.dweb/write?xxx=xxx")
+         * */
+        "/write" bind PureMethod.GET by defineBooleanResponse {
 
-  private fun write(
-    data: String? = null,
-    image: String? = null,
-    url: String? = null,
-    labelValue: String? = "OcrText",
-    onErrorCallback: (String) -> Unit
-  ) {
-    val response: ClipboardWriteResponse = if (data != null) {
-      clipboardManage.writeText(data, label = labelValue)
-    } else if (image != null) {
-      clipboardManage.writeImage(image, label = labelValue)
-    } else if (url != null) {
-      clipboardManage.writeUrl(url, label = labelValue)
-    } else {
-      onErrorCallback("No data provided")
-      return
+          val string = request.queryOrNull("string")
+          val image = request.queryOrNull("image")
+          val url = request.queryOrNull("url")
+          val label = request.queryOrNull("label")
+          debugClipboard("/write", "string:${string},image:${image},url:${url},label:${label}")
+          // 如果都是空
+          if (image.isNullOrEmpty() && url.isNullOrEmpty() && url.isNullOrEmpty()) {
+            PureResponse(HttpStatusCode.BadRequest)
+          }
+          write(string, image, url, labelValue = label) {
+            PureResponse(HttpStatusCode.OK, body = PureStringBody(it))
+          }
+          true
+        })
     }
-    if (!response.success) {
-      onErrorCallback(response.errorManager)
+
+    private fun write(
+      data: String? = null,
+      image: String? = null,
+      url: String? = null,
+      labelValue: String? = "OcrText",
+      onErrorCallback: (String) -> Unit
+    ) {
+      val response: ClipboardWriteResponse = if (data != null) {
+        clipboardManage.writeText(data, label = labelValue)
+      } else if (image != null) {
+        clipboardManage.writeImage(image, label = labelValue)
+      } else if (url != null) {
+        clipboardManage.writeUrl(url, label = labelValue)
+      } else {
+        onErrorCallback("No data provided")
+        return
+      }
+      if (!response.success) {
+        onErrorCallback(response.errorManager)
+      }
+    }
+
+    fun read(): String {
+      val clipboardData = clipboardManage.read()
+      print(Json.encodeToString(clipboardData))
+      return Json.encodeToString(clipboardData)
+    }
+
+    override suspend fun _shutdown() {
+
     }
   }
 
-  fun read(): String {
-    val clipboardData = clipboardManage.read()
-    print(Json.encodeToString(clipboardData))
-    return Json.encodeToString(clipboardData)
-  }
-
-  override suspend fun _shutdown() {
-
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) =
+    ClipboardRuntime(bootstrapContext)
 }
 
 data class ClipboardWriteOption(

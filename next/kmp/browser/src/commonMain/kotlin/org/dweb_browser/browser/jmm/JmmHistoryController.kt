@@ -10,7 +10,7 @@ import org.dweb_browser.sys.window.ext.getMainWindow
  * JS 模块安装 的 控制器
  */
 class JmmHistoryController(
-  internal val jmmNMM: JmmNMM, private val jmmController: JmmController
+  internal val jmmNMM: JmmNMM.JmmRuntime, private val jmmController: JmmController
 ) {
   fun getHistoryMetadataMap() = jmmController.historyMetadataMaps
 
@@ -48,19 +48,19 @@ class JmmHistoryController(
     }
   }
 
-  fun openInstallerView(historyMetadata: JmmHistoryMetadata) = jmmNMM.ioAsyncScope.launch {
+  fun openInstallerView(historyMetadata: JmmHistoryMetadata) = jmmNMM.scopeLaunch(cancelable = false) {
     jmmController.openOrUpsetInstallerView(historyMetadata.originUrl, historyMetadata, true)
   }
 
   /// 卸载app
   fun unInstall(historyMetadata: JmmHistoryMetadata) {
-    jmmNMM.ioAsyncScope.launch {
+    jmmNMM.scopeLaunch(cancelable = false) {
       jmmController.uninstall(historyMetadata.metadata.id)
     }
   }
 
   fun removeHistoryMetadata(historyMetadata: JmmHistoryMetadata) {
-    jmmNMM.ioAsyncScope.launch {
+    jmmNMM.scopeLaunch(cancelable = false) {
       jmmController.removeHistoryMetadata(historyMetadata)
     }
   }

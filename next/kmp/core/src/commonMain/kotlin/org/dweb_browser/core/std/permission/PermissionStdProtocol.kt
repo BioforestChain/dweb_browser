@@ -20,7 +20,7 @@ private inline fun <T> PureRequest.mapOfPermissions(valueSelector: (PERMISSION_I
 /**
  * 权限模块需要附着到原生模块上才能完整，这里只提供一些基本标准
  */
-suspend fun NativeMicroModule.permissionStdProtocol(hooks: PermissionHooks): PermissionTable {
+suspend fun NativeMicroModule.NativeRuntime.permissionStdProtocol(hooks: PermissionHooks): PermissionTable {
   /**
    * 权限注册表
    */

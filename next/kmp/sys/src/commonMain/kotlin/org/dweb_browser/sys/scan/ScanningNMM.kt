@@ -20,63 +20,71 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
     short_name = "Scanning"
   }
 
-  private val scanningManager = ScanningManager()
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(
-      "/process" byChannel { ctx ->
-        val time = datetimeNow()
-        var rotation = 0
-        for (frame in ctx) {
-          when (frame) {
-            is PureTextFrame -> {
-              debugScanning("process=>byChannel", "PureTextFrame($time)")
-              rotation = frame.data.toIntOrNull() ?: 0
-            }
+  inner class ScanningRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
 
-            is PureBinaryFrame -> {
-              debugScanning("process=>byChannel", "PureBinaryFrame($time) $rotation")
-              val result = try {
-                scanningManager.recognize(frame.data, rotation)
-              } catch (e: Throwable) {
-                debugScanning("process=>byChannel", null, e)
-                emptyList()
+    private val scanningManager = ScanningManager()
+
+    override suspend fun _bootstrap() {
+      routes(
+        "/process" byChannel { ctx ->
+          val time = datetimeNow()
+          var rotation = 0
+          for (frame in ctx) {
+            when (frame) {
+              is PureTextFrame -> {
+                debugScanning("process=>byChannel", "PureTextFrame($time)")
+                rotation = frame.text.toIntOrNull() ?: 0
               }
-              debugScanning("process=>byChannel", result.joinToString(", ") { it.data })
-              // 不论 result 是否为空数组，都进行响应
-              ctx.sendJson(result)
-            }
 
-            else -> {
-              ctx.getChannel().close()
+              is PureBinaryFrame -> {
+                debugScanning("process=>byChannel", "PureBinaryFrame($time) $rotation")
+                val result = try {
+                  scanningManager.recognize(frame.binary, rotation)
+                } catch (e: Throwable) {
+                  debugScanning("process=>byChannel", null, e)
+                  emptyList()
+                }
+                debugScanning("process=>byChannel", result.joinToString(", ") { it.data })
+                // 不论 result 是否为空数组，都进行响应
+                ctx.sendJson(result)
+              }
+
+              else -> {
+                ctx.getChannel().close()
+              }
             }
           }
-        }
-      },
-      // 处理二维码图像
-      "/process" bind PureMethod.POST by defineJsonResponse {
-        val rotation = request.queryOrNull("rotation")?.toIntOrNull() ?: 0
-        debugScanning("process=>POST", "rotation=$rotation, ${request.body.contentLength}")
+        },
+        // 处理二维码图像
+        "/process" bind PureMethod.POST by defineJsonResponse {
+          val rotation = request.queryOrNull("rotation")?.toIntOrNull() ?: 0
+          debugScanning("process=>POST", "rotation=$rotation, ${request.body.contentLength}")
 
-        val imgBitArray = request.body.toPureBinary()
-        val result = try {
-          scanningManager.recognize(imgBitArray, rotation)
-        } catch (e: Throwable) {
-          debugScanning("process=>POST", null, e)
-          emptyList()
-        }
-        debugScanning("process=>POST", result.joinToString(", ") { it.data })
-        return@defineJsonResponse result.toJsonElement()
-      },
+          val imgBitArray = request.body.toPureBinary()
+          val result = try {
+            scanningManager.recognize(imgBitArray, rotation)
+          } catch (e: Throwable) {
+            debugScanning("process=>POST", null, e)
+            emptyList()
+          }
+          debugScanning("process=>POST", result.joinToString(", ") { it.data })
+          return@defineJsonResponse result.toJsonElement()
+        },
 
-      // 停止处理
-      "/stop" bind PureMethod.GET by defineBooleanResponse {
-        scanningManager.stop()
-        return@defineBooleanResponse true
-      },
-    ).cors()
+        // 停止处理
+        "/stop" bind PureMethod.GET by defineBooleanResponse {
+          scanningManager.stop()
+          return@defineBooleanResponse true
+        },
+      ).cors()
+    }
+
+    override suspend fun _shutdown() {
+
+    }
+
   }
 
-  override suspend fun _shutdown() {
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) = ScanningRuntime(bootstrapContext)
 }

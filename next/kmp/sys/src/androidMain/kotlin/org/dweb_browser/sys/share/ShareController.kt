@@ -2,9 +2,9 @@ package org.dweb_browser.sys.share
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
+import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.helper.Callback
-import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SignalCallback
 import org.dweb_browser.helper.Signal
 
 class ShareController {
@@ -16,12 +16,12 @@ class ShareController {
   var activity: ShareActivity? = null
 
   private var activityResultLauncherTask =
-    PromiseOut<ActivityResultLauncher<Intent>>()
+    CompletableDeferred<ActivityResultLauncher<Intent>>()
 
-  suspend fun waitActivityResultLauncherCreated() = activityResultLauncherTask.waitPromise()
+  suspend fun waitActivityResultLauncherCreated() = activityResultLauncherTask.await()
 
   val getShareSignal = Signal<String>()
-  fun getShareData(cb: Callback<String>) = getShareSignal.listen(cb)
+  fun getShareData(cb: SignalCallback<String>) = getShareSignal.listen(cb)
 
   var shareLauncher: ActivityResultLauncher<Intent>? = null
     set(value) {
@@ -30,9 +30,9 @@ class ShareController {
       }
       field = value
       if (value == null) {
-        activityResultLauncherTask = PromiseOut()
+        activityResultLauncherTask = CompletableDeferred()
       } else {
-        activityResultLauncherTask.resolve(value)
+        activityResultLauncherTask.complete(value)
       }
     }
 

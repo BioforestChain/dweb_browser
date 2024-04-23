@@ -25,29 +25,36 @@ class NotificationNMM : NativeMicroModule("notification.sys.dweb", "notification
     )
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val notificationManager = NotificationManager()
-    routes(
-      /** 创建消息*/
-      "/create" bind PureMethod.GET by definePureResponse {
-        val messageItem = request.queryAs<NotificationWebItem>()
-        val fromMM = bootstrapContext.dns.query(ipc.remote.mmid) ?: this@NotificationNMM
-        val grant = requestSystemPermission(
-          name = SystemPermissionName.Notification,
-          title = NotificationI18nResource.request_permission_title.text,
-          description = NotificationI18nResource.request_permission_message.text
-        )
-        if (grant) {
-          notificationManager.createNotification(fromMM, messageItem)
-          PureResponse(HttpStatusCode.OK)
-        } else {
-          PureResponse(HttpStatusCode.NotAcceptable)
-        }
-      },
-    )
+  inner class NotificationRuntime(override val bootstrapContext: BootstrapContext) :
+    NativeRuntime() {
+
+    override suspend fun _bootstrap() {
+      val notificationManager = NotificationManager()
+      routes(
+        /** 创建消息*/
+        "/create" bind PureMethod.GET by definePureResponse {
+          val messageItem = request.queryAs<NotificationWebItem>()
+          val fromMM = getRemoteRuntime()
+          val grant = requestSystemPermission(
+            name = SystemPermissionName.Notification,
+            title = NotificationI18nResource.request_permission_title.text,
+            description = NotificationI18nResource.request_permission_message.text
+          )
+          if (grant) {
+            notificationManager.createNotification(fromMM, messageItem)
+            PureResponse(HttpStatusCode.OK)
+          } else {
+            PureResponse(HttpStatusCode.NotAcceptable)
+          }
+        },
+      )
+    }
+
+    override suspend fun _shutdown() {
+
+    }
   }
 
-  override suspend fun _shutdown() {
-
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) =
+    NotificationRuntime(bootstrapContext)
 }

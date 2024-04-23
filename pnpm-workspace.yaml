@@ -1,6 +1,7 @@
 packages:
   - "desktop-dev/"
   - "desktop-dev/**/assets/*"
+  - "desktop-dev/src/browser/*"
   - "desktop-dev/**/assets"
   - "plaoc/demo/"
   - "toolkit/*"

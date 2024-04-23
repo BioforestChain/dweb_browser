@@ -9,23 +9,23 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.pure.http.PureChannelContext
 import org.dweb_browser.pure.http.PureTextFrame
 
-suspend fun BrowserNMM.getEngineHomeLink(key: String) =
+suspend fun BrowserNMM.BrowserRuntime.getEngineHomeLink(key: String) =
   nativeFetch("file://search.browser.dweb/homeLink?key=$key").text()
 
-suspend fun BrowserNMM.getInjectList(key: String) =
+suspend fun BrowserNMM.BrowserRuntime.getInjectList(key: String) =
   Json.decodeFromString<MutableList<SearchInject>>(
     nativeFetch("file://search.browser.dweb/injectList?key=$key").text()
   )
 
 class WatchSearchEngineContext(val engineList: List<SearchEngine>, val channel: PureChannelContext)
 
-suspend fun BrowserNMM.collectChannelOfEngines(collector: suspend WatchSearchEngineContext.() -> Unit) =
+suspend fun BrowserNMM.BrowserRuntime.collectChannelOfEngines(collector: suspend WatchSearchEngineContext.() -> Unit) =
   createChannel("file://search.browser.dweb/observe/engines") {
     for (pureFrame in income) {
       when (pureFrame) {
         is PureTextFrame -> {
           WatchSearchEngineContext(
-            Json.decodeFromString<List<SearchEngine>>(pureFrame.data),
+            Json.decodeFromString<List<SearchEngine>>(pureFrame.text),
             this
           ).collector()
         }

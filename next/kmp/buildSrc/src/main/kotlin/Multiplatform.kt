@@ -11,6 +11,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.dependencies
@@ -26,8 +27,10 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsTargetDsl
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsExec
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
+import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 import java.io.File
 import java.nio.file.Files
+import java.util.Properties
 
 fun KotlinCompilation<KotlinCommonOptions>.configureCompilation() {
   kotlinOptions {
@@ -177,7 +180,7 @@ class KmpNodeWasmTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDs
 
 fun KotlinMultiplatformExtension.kmpNodeWasmTarget(
   project: Project,
-  configure: KmpNodeWasmTargetDsl.() -> Unit = {}
+  configure: KmpNodeWasmTargetDsl.() -> Unit = {},
 ) {
   val libs = project.the<LibrariesForLibs>()
   val dsl = KmpNodeWasmTargetDsl(this)
@@ -293,7 +296,7 @@ open class KmpBaseTargetDsl(private val kmpe: KotlinMultiplatformExtension) {
 
   internal fun provides(
     sourceSet: KotlinSourceSet,
-    testSourceSet: KotlinSourceSet? = null
+    testSourceSet: KotlinSourceSet? = null,
   ) {
     val cbs = whenProvideCallbacks.getOrDefault(kmpe, mutableSetOf())
     sourceSet.run {
@@ -355,7 +358,7 @@ class KmpCommonTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
 fun KotlinMultiplatformExtension.kmpCommonTarget(
   project: Project,
-  configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure
+  configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure,
 ) {
   if (configuredCommonProjects[project].let {
       configure == it || (configure == KmpCommonTargetDsl.defaultConfigure && it != null)
@@ -425,7 +428,7 @@ class KmpComposeTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl
 
 fun KotlinMultiplatformExtension.kmpComposeTarget(
   project: Project,
-  configure: KmpComposeTargetDsl.() -> Unit = {}
+  configure: KmpComposeTargetDsl.() -> Unit = {},
 ) {
   val libs = project.the<LibrariesForLibs>()
   val dsl = KmpComposeTargetDsl(this)
@@ -496,7 +499,7 @@ class KmpAndroidTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl
 fun KotlinMultiplatformExtension.kmpAndroidTarget(
   project: Project,
   forceEnable: Boolean = false,
-  configure: KmpAndroidTargetDsl.() -> Unit = {}
+  configure: KmpAndroidTargetDsl.() -> Unit = {},
 ) {
   if (Features.androidApp.disabled && !forceEnable) {
     return
@@ -573,7 +576,7 @@ class KmpIosTargetDsl(kmpe: KotlinMultiplatformExtension) : KmpBaseTargetDsl(kmp
 
 fun KotlinMultiplatformExtension.kmpIosTarget(
   project: Project,
-  configure: KmpIosTargetDsl.() -> Unit = {}
+  configure: KmpIosTargetDsl.() -> Unit = {},
 ) {
   if (Features.iosApp.disabled || !Platform.isMac) {
     return
@@ -615,22 +618,45 @@ fun Project.configureJvmTests(fn: Test.() -> Unit = {}) {
     }
     fn()
   }
+
+// 用于启动桌面应用时注入key
+  afterEvaluate {
+    tasks.withType<JavaExec>() {
+      systemProperties["jxbrowser.license.key"] = getJxBrowserLicenseKey()
+//    jvmArgs("--add-opens", "java.desktop/java.awt=ALL-UNNAMED")
+    }
+    tasks.withType<KotlinJvmTest>() {
+      systemProperties["jxbrowser.license.key"] = getJxBrowserLicenseKey()
+    }
+  }
 }
 
 infix fun String.belong(domain: String) = this == domain || this.startsWith("$domain.")
 
+fun Project.getJxBrowserLicenseKey() = System.getProperty("jxbrowser.license.key") ?: run {
+  Properties().also { properties ->
+    rootDir.resolve("local.properties").apply {
+      if (exists()) {
+        inputStream().use { properties.load(it) }
+      }
+    }
+  }.getProperty("jxbrowser.license.key", "").also {
+    System.setProperty("jxbrowser.license.key", it)
+  }
+}
+
 fun KotlinMultiplatformExtension.kmpComposeResourceSymbolToShared(
   project: Project,
-  configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure
+  configure: KmpCommonTargetConfigure = KmpCommonTargetDsl.defaultConfigure,
 ) {
-  if(project.name == "shared") {
+  if (project.name == "shared") {
     return
   }
   with(sourceSets.commonMain.get()) {
     kotlin.srcDirs.firstOrNull()?.let { srcFile ->
       val composeResources = srcFile.resolve("../composeResources")
 
-      if(!composeResources.exists()) {
+      if (!composeResources.exists()) {
         return
       }
 

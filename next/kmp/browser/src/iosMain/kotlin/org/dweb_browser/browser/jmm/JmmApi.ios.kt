@@ -19,7 +19,7 @@ actual fun getChromeWebViewVersion(): String? {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-actual suspend fun jmmAppHashVerify(jmmNMM: JmmNMM, jmmHistoryMetadata: JmmHistoryMetadata, zipFilePath: String): Boolean {
+actual suspend fun jmmAppHashVerify(jmmNMM: JmmNMM.JmmRuntime, jmmHistoryMetadata: JmmHistoryMetadata, zipFilePath: String): Boolean {
   val data = NSMutableData()
   val deferred = CompletableDeferred<String>()
   jmmNMM.nativeFetch("file://file.std.dweb/read?path=$zipFilePath").stream().getReader("JmmAppHashVerify").consumeEachArrayRange { byteArray, last ->

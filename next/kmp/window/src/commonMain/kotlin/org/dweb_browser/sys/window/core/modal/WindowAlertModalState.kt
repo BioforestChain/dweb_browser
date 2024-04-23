@@ -21,9 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dweb_browser.pure.image.compose.PureImageLoader
@@ -73,7 +70,7 @@ data class AlertModalState internal constructor(
     val mm = LocalWindowMM.current
     val show by isOpenState
 
-    fun onModalDismissRequest(isDismiss: Boolean) = mm.ioAsyncScope.launch {
+    fun onModalDismissRequest(isDismiss: Boolean) = mm.scopeLaunch(cancelable = false) {
       dismissFlow.emit(isDismiss)
     }
 
@@ -90,12 +87,14 @@ data class AlertModalState internal constructor(
       sendCallback(mm, OpenModalCallback(sessionId))
 
       debugModal("DisposableEffect", " disposable")
-      val job = dismissFlow.debounce(200).map {
-        debugModal("dismissFlow", "close=$it")
-        if (show && it) {
-          safeClose(mm)
+      val job = mm.scopeLaunch(cancelable = true) {
+        dismissFlow.debounce(200).collect {
+          debugModal("dismissFlow", "close=$it")
+          if (show && it) {
+            safeClose(mm)
+          }
         }
-      }.launchIn(mm.ioAsyncScope)
+      }
       onDispose {
         job.cancel()
         /// 如果被销毁，那么也要进行安全的关闭
@@ -110,7 +109,7 @@ data class AlertModalState internal constructor(
         onModalDismissRequest(true)
         sendCallback(mm, CloseAlertModalCallback(sessionId, confirm))
         if (once) {
-          mm.ioAsyncScope.launch {
+          mm.scopeLaunch(cancelable = false) {
             parent.removeModal(mm, modalId)
           }
         }

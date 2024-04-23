@@ -2,14 +2,15 @@ package org.dweb_browser.core.module
 
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.pure.http.PureRequest
 
 
 interface BootstrapContext {
-  val dns: DnsMicroModule
+  val dns: DnsApi
 }
 
-interface DnsMicroModule {
+interface DnsApi {
   /**
    * 动态安装应用
    */
@@ -40,7 +41,7 @@ interface DnsMicroModule {
   /**
    * 与其它应用建立连接
    */
-  suspend fun connect(mmid: MMID, reason: PureRequest? = null): ConnectResult
+  suspend fun connect(mmid: MMID, reason: PureRequest? = null): Ipc// ConnectResult
 
   /**
    * 启动其它应用

@@ -27,7 +27,7 @@ internal val LocalJmmInstallerController =
  * JS 模块安装 的 控制器
  */
 class JmmInstallerController(
-  internal val jmmNMM: JmmNMM,
+  internal val jmmNMM: JmmNMM.JmmRuntime,
   private val jmmHistoryMetadata: JmmHistoryMetadata,
   private val jmmController: JmmController,
   private val openFromHistory: Boolean,

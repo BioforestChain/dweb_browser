@@ -9,6 +9,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.messagePort.DWebMessageChannel
@@ -22,6 +23,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.platform.setScale
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
@@ -41,7 +43,7 @@ import kotlin.native.runtime.NativeRuntimeApi
 
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun IDWebView.Companion.create(
-  mm: MicroModule,
+  mm: MicroModule.Runtime,
   options: DWebViewOptions
 ): IDWebView =
   create(
@@ -53,7 +55,7 @@ actual suspend fun IDWebView.Companion.create(
 @OptIn(ExperimentalForeignApi::class)
 suspend fun IDWebView.Companion.create(
   frame: CValue<CGRect>,
-  remoteMM: MicroModule,
+  remoteMM: MicroModule.Runtime,
   options: DWebViewOptions = DWebViewOptions(),
   configuration: WKWebViewConfiguration,
 ) = withMainContext {
@@ -62,13 +64,13 @@ suspend fun IDWebView.Companion.create(
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal fun IDWebView.Companion.create(
+internal suspend fun IDWebView.Companion.create(
   engine: DWebViewEngine,
   initUrl: String? = null,
-) = DWebView(engine, initUrl)
+) = DWebView.create(engine, initUrl)
 
 @OptIn(ExperimentalForeignApi::class, NativeRuntimeApi::class)
-class DWebView(
+class DWebView private constructor(
   viewEngine: DWebViewEngine,
   initUrl: String? = null
 ) : IDWebView(initUrl ?: viewEngine.options.url) {
@@ -87,11 +89,14 @@ class DWebView(
         prepare()
       }
     }
-  }
 
-  init {
-    viewEngine.remoteMM.onAfterShutdown {
-      destroy()
+    suspend fun create(
+      viewEngine: DWebViewEngine,
+      initUrl: String? = null
+    ) = DWebView(viewEngine, initUrl).also { dwebView ->
+      viewEngine.remoteMM.onBeforeShutdown.listen {
+        dwebView.destroy()
+      }
     }
   }
 
@@ -192,8 +197,8 @@ class DWebView(
     val port1_id = ports_id.objectAtIndex(0u) as Double
     val port2_id = ports_id.objectAtIndex(1u) as Double
 
-    val port1 = DWebMessagePort(port1_id.toInt(), this)
-    val port2 = DWebMessagePort(port2_id.toInt(), this)
+    val port1 = DWebMessagePort(port1_id.toInt(), this, ioScope)
+    val port2 = DWebMessagePort(port2_id.toInt(), this, ioScope)
 
     DWebMessageChannel(port1, port2)
   }

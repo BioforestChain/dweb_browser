@@ -7,7 +7,7 @@ import platform.WebKit.WKWebView
 import platform.darwin.NSObject
 
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE", "CONFLICTING_OVERLOADS")
-class DwebHttpURLSchemeHandler(microModule: MicroModule) : NSObject(), WKURLSchemeHandlerProtocol {
+class DwebHttpURLSchemeHandler(microModule: MicroModule.Runtime) : NSObject(), WKURLSchemeHandlerProtocol {
   val helper = DURLSchemeHandlerHelper(microModule)
 
   override fun webView(webView: WKWebView, startURLSchemeTask: WKURLSchemeTaskProtocol) {

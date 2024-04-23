@@ -6,7 +6,6 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.platform.ios.SoundRecordManager
-import org.dweb_browser.sys.mediacapture.MediaCaptureHandler
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
 import platform.Photos.PHAuthorizationStatusAuthorized
@@ -45,7 +44,7 @@ actual class FileChooserManage {
   }
 
   actual suspend fun openFileChooser(
-    microModule: MicroModule, accept: String, multiple: Boolean, limit: Int
+    microModule: MicroModule.Runtime, accept: String, multiple: Boolean, limit: Int
   ): List<String> {
 //    WARNING("Not yet implemented openFileChooser")
     if (isImage(accept)) {

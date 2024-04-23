@@ -9,7 +9,7 @@ import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.sys.share.ShareResult
 
-suspend fun NativeMicroModule.postSystemShare(
+suspend fun NativeMicroModule.NativeRuntime.postSystemShare(
   title: String, text: String? = null, url: String? = null, body: IPureBody? = null
 ): ShareResult {
   val requestUrl = buildUrlString("file://share.sys.dweb/share") {

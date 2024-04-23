@@ -5,7 +5,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
@@ -45,6 +46,8 @@ val defaultAsyncExceptionHandler = Default + commonAsyncExceptionHandler
 val mainAsyncExceptionHandler = SupervisorJob() + Main + commonAsyncExceptionHandler
 expect val ioAsyncExceptionHandler: CoroutineContext
 
+val emptyScope = CoroutineScope(EmptyCoroutineContext + commonAsyncExceptionHandler)
+
 expect suspend inline fun <T> withMainContext(crossinline block: suspend () -> T): T
 
 
@@ -58,11 +61,12 @@ suspend inline fun <T> withMainContextCommon(crossinline block: suspend () -> T)
 
 suspend fun <T> withScope(
   scope: CoroutineScope,
-  block: suspend CoroutineScope.() -> T
-) = scope.async(block=block).await() // withContext(scope.coroutineContext, block)
+  block: suspend CoroutineScope.() -> T,
+) = withContext(scope.coroutineContext, block)
+//  scope.async(block=block).await()
 
 inline fun CoroutineScope.launchWithMain(
-  crossinline block: suspend () -> Unit
+  crossinline block: suspend () -> Unit,
 ) = launch { withMainContext(block) }
 
 
@@ -138,7 +142,16 @@ fun printDebug(scope: String, tag: String, message: Any?, error: Any? = null) {
 
     else -> message
   }
-  printError("${now()} | ${scope.padEndAndSub(16)} | ${tag.padEndAndSub(22)} |", msg, err)
+  printError(
+    "${now()} | ${
+      when (scope.length) {
+        in 0..16 -> scope.padEndAndSub(16)
+        in 16..32 -> scope.padEndAndSub(32)
+        in 32..48 -> scope.padEndAndSub(48)
+        else -> scope.padEndAndSub(60)
+      }
+    } | ${tag.padEndAndSub(22)} |", msg, err
+  )
 }
 
 fun String.padEndAndSub(length: Int): String {
@@ -191,3 +204,20 @@ class Debugger(val scope: String) {
 }
 
 val debugTest = Debugger("test")
+val debugTimeout = Debugger("timeout")
+suspend inline fun <R> traceTimeout(
+  ms: Long,
+  crossinline log: () -> Any?,
+  crossinline block: suspend () -> R,
+) = if (debugTimeout.isEnable) {
+  coroutineScope {
+    val timeoutJob = launch { delay(ms);debugTimeout("traceTimeout", msgGetter = log) }
+    try {
+      block()
+    } finally {
+      timeoutJob.cancel()
+    }
+  }
+} else {
+  block()
+}

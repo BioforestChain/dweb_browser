@@ -21,7 +21,7 @@ class MicroModuleManifest private constructor(
     private val P_mmid = P.required<MMID>("mmid", "")
     private val P_ipc_support_protocols = P.required<IpcSupportProtocols>(
       "ipc_support_protocols", IpcSupportProtocols(
-        cbor = true, protobuf = true, raw = true
+        cbor = true, protobuf = false, json = true
       )
     )
   }
@@ -34,7 +34,6 @@ class MicroModuleManifest private constructor(
     }
   }
   override var ipc_support_protocols by P_ipc_support_protocols(p)
-
   override var id by P.getRequired<String>("id")(p) {
     p.set("mmid", value)
     afterWrite = {
@@ -49,4 +48,6 @@ interface IMicroModuleManifest : ICommonAppManifest {
   var mmid: MMID
   var ipc_support_protocols: IpcSupportProtocols
   fun toCommonAppManifest(): CommonAppManifest
+
+  fun getMmptList() = listOf(mmid, *dweb_protocols.toTypedArray())
 }

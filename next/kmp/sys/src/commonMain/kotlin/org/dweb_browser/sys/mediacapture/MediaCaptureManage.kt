@@ -94,7 +94,7 @@ data class Photo(
 )
 
 expect class MediaCaptureManage() {
-  suspend fun takePicture(microModule: MicroModule): PureStream?
-  suspend fun captureVideo(microModule: MicroModule): PureStream?
-  suspend fun recordSound(microModule: MicroModule): PureStream?
+  suspend fun takePicture(microModule: MicroModule.Runtime): PureStream?
+  suspend fun captureVideo(microModule: MicroModule.Runtime): PureStream?
+  suspend fun recordSound(microModule: MicroModule.Runtime): PureStream?
 }

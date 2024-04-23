@@ -12,7 +12,6 @@ import org.dweb_browser.helper.toKString
 import org.dweb_browser.helper.toNSString
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureChannelContext
-import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureFinData
 import org.dweb_browser.pure.http.PureTextFrame
 import org.dweb_browser.pure.http.websocket
@@ -34,7 +33,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
 
   private class WKScriptMessageEvent(
     private val msgBody: Any,
-    private val replyHandler: (Any?, String?) -> Unit
+    private val replyHandler: (Any?, String?) -> Unit,
   ) {
     suspend fun consume(handler: suspend (Any) -> Any?) {
       try {
@@ -69,9 +68,8 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                   sendOpen(wsId)
                   for (frame in income) {
                     when (frame) {
-                      is PureBinaryFrame -> sendBinaryMessage(wsId, frame.data)
-                      is PureTextFrame -> sendTextMessage(wsId, frame.data)
-                      is PureCloseFrame -> break
+                      is PureBinaryFrame -> sendBinaryMessage(wsId, frame.binary)
+                      is PureTextFrame -> sendTextMessage(wsId, frame.text)
                     }
                   }
                   sendClose(wsId)
@@ -186,7 +184,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
   override fun userContentController(
     userContentController: WKUserContentController,
     didReceiveScriptMessage: WKScriptMessage,
-    replyHandler: (Any?, String?) -> Unit
+    replyHandler: (Any?, String?) -> Unit,
   ) {
     debugIosWebSocket("didReceiveScriptMessage", "didReceiveScriptMessage=$didReceiveScriptMessage")
     engine.mainScope.launch {

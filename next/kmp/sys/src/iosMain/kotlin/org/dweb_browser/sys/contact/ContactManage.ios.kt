@@ -51,14 +51,14 @@ actual class ContactManage {
   var delegateHolder: CNContactDelegate? = null
 
   @OptIn(ExperimentalForeignApi::class)
-  actual suspend fun pickContact(microModule: MicroModule): ContactInfo? {
+  actual suspend fun pickContact(microModule: MicroModule.Runtime): ContactInfo? {
 
     val scope = CoroutineScope(Dispatchers.Main)
     val deferred = CompletableDeferred<CNContact?>()
 
     scope.launch {
 
-      val controller = MicroModule.getUIApplication().keyWindow?.rootViewController
+      val controller = MicroModule.Runtime.getUIApplication().keyWindow?.rootViewController
 
       if (controller != null) {
         val delegate = CNContactDelegate(cancel = {

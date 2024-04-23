@@ -62,7 +62,7 @@ data class NewVersionItem(
   }
 }
 
-class NewVersionStore(mm: MicroModule) {
+class NewVersionStore(mm: MicroModule.Runtime) {
   private val store = mm.createStore("NewVersion", false)
   private val newVersionKey = "NewVersionKey"
 

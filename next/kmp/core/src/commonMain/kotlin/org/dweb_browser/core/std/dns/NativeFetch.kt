@@ -9,7 +9,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.defaultHttpPureClient
 
-typealias FetchAdapter = suspend (remote: MicroModule, request: PureClientRequest) -> PureResponse?
+typealias FetchAdapter = suspend (remote: MicroModule.Runtime, request: PureClientRequest) -> PureResponse?
 
 val debugFetch = Debugger("fetch")
 
@@ -34,13 +34,12 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
     val fetch = client::fetch
   }
 
-
   val httpFetch = HttpFetch(this)
 }
 
 val httpFetch = nativeFetchAdaptersManager.httpFetch
 
-suspend fun MicroModule.nativeFetch(request: PureClientRequest): PureResponse {
+suspend fun MicroModule.Runtime.nativeFetch(request: PureClientRequest): PureResponse {
   for (fetchAdapter in nativeFetchAdaptersManager.adapters) {
     val response = fetchAdapter(this, request)
     if (response != null) {
@@ -50,12 +49,12 @@ suspend fun MicroModule.nativeFetch(request: PureClientRequest): PureResponse {
   return nativeFetchAdaptersManager.httpFetch(request)
 }
 
-suspend inline fun MicroModule.nativeFetch(url: Url) = nativeFetch(PureMethod.GET, url)
+suspend inline fun MicroModule.Runtime.nativeFetch(url: Url) = nativeFetch(PureMethod.GET, url)
 
-suspend inline fun MicroModule.nativeFetch(url: String) = nativeFetch(PureMethod.GET, url)
+suspend inline fun MicroModule.Runtime.nativeFetch(url: String) = nativeFetch(PureMethod.GET, url)
 
-suspend inline fun MicroModule.nativeFetch(method: PureMethod, url: Url) =
+suspend inline fun MicroModule.Runtime.nativeFetch(method: PureMethod, url: Url) =
   nativeFetch(PureClientRequest(url.toString(), method))
 
-suspend inline fun MicroModule.nativeFetch(method: PureMethod, url: String) =
+suspend inline fun MicroModule.Runtime.nativeFetch(method: PureMethod, url: String) =
   nativeFetch(PureClientRequest(url, method))

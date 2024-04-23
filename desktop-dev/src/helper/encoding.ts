@@ -1,4 +1,4 @@
-import { $Binary, binaryToU8a } from "./binaryHelper.ts";
+import { type $Binary, binaryToU8a } from "./binaryHelper.ts";
 
 export type $SimpleEncoding = "utf8" | "base64" | "hex";
 const textEncoder = new TextEncoder();

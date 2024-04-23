@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.ktor.http.URLBuilder
-import kotlinx.coroutines.launch
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.ext.createChannelOfDownload
 import org.dweb_browser.browser.download.ext.createDownloadTask
@@ -21,9 +20,12 @@ import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.dwebview.WebDownloadArgs
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.trueAlso
 
 class BrowserDownloadController(
-  private val browserNMM: BrowserNMM, private val browserController: BrowserController
+  private val browserNMM: BrowserNMM.BrowserRuntime,
+  private val browserController: BrowserController,
 ) {
   private val downloadStore = BrowserDownloadStore(browserNMM)
 
@@ -35,7 +37,7 @@ class BrowserDownloadController(
 
   init {
     // 初始化下载数据
-    browserNMM.ioAsyncScope.launch {
+    browserNMM.scopeLaunch(cancelable = true) {
       saveCompleteList.addAll(downloadStore.getCompleteAll())
       saveDownloadList.addAll(downloadStore.getDownloadAll())
       var save = false
@@ -58,7 +60,7 @@ class BrowserDownloadController(
    * 保存下载的数据
    */
   private fun saveDownloadList(download: Boolean = true, complete: Boolean = false) =
-    browserNMM.ioAsyncScope.launch {
+    browserNMM.scopeLaunch(cancelable = false) {
       if (download) downloadStore.saveDownloadList(saveDownloadList)
       if (complete) downloadStore.saveCompleteList(saveCompleteList)
     }
@@ -92,7 +94,7 @@ class BrowserDownloadController(
 
   private suspend fun watchProcess(browserDownloadItem: BrowserDownloadItem) {
     val taskId = browserDownloadItem.taskId ?: return
-    browserNMM.ioAsyncScope.launch {
+    browserNMM.scopeLaunch(cancelable = true) {
       browserDownloadItem.alreadyWatch = true
       val res = browserNMM.createChannelOfDownload(taskId) {
         val lastState = browserDownloadItem.state.state
@@ -126,12 +128,13 @@ class BrowserDownloadController(
     }
   }
 
-  fun deleteDownloadItems(list: List<BrowserDownloadItem>) = browserNMM.ioAsyncScope.launch {
-    list.forEach { item -> item.taskId?.let { taskId -> browserNMM.removeDownload(taskId) } }
-    saveCompleteList.removeAll(list)
-    saveDownloadList.removeAll(list)
-    saveDownloadList(download = true, complete = true)
-  }
+  fun deleteDownloadItems(list: List<BrowserDownloadItem>) =
+    browserNMM.scopeLaunch(cancelable = true) {
+      list.forEach { item -> item.taskId?.let { taskId -> browserNMM.removeDownload(taskId) } }
+      saveCompleteList.removeAll(list)
+      saveDownloadList.removeAll(list)
+      saveDownloadList(download = true, complete = true)
+    }
 
   /**
    * 打开网页下载的提示框
@@ -177,48 +180,53 @@ class BrowserDownloadController(
   /**
    * 用于响应点击“下载中”列表的按钮
    */
-  fun clickDownloadButton(downloadItem: BrowserDownloadItem) = browserNMM.ioAsyncScope.launch {
-    when (downloadItem.state.state) {
-      DownloadState.Completed -> {
-        openFileOnDownload(downloadItem) // 直接调用系统级别的打开文件操作
-      }
+  fun clickDownloadButton(downloadItem: BrowserDownloadItem) =
+    browserNMM.scopeLaunch(cancelable = true) {
+      when (downloadItem.state.state) {
+        DownloadState.Completed -> {
+          openFileOnDownload(downloadItem) // 直接调用系统级别的打开文件操作
+        }
 
-      DownloadState.Downloading -> {
-        pauseDownload(downloadItem)
-      }
+        DownloadState.Downloading -> {
+          pauseDownload(downloadItem)
+        }
 
-      else -> {
-        startDownload(downloadItem)
+        else -> {
+          startDownload(downloadItem)
+        }
       }
     }
-  }
 
   /**
    * 用于响应重新下载操作，主要就是网页点击下载后，如果判断列表中已经存在下载数据时调用
    */
-  fun clickRetryButton(downloadItem: BrowserDownloadItem) = browserNMM.ioAsyncScope.launch {
-    // 将状态进行修改下，然后启动下载
-    alreadyExists = false
-    if (downloadItem.state.state != DownloadState.Init) {
-      downloadItem.taskId?.let { taskId ->
-        browserNMM.removeDownload(taskId)
-        downloadItem.taskId = null
+  fun clickRetryButton(downloadItem: BrowserDownloadItem) =
+    browserNMM.scopeLaunch(cancelable = true) {
+      // 将状态进行修改下，然后启动下载
+      alreadyExists = false
+      if (downloadItem.state.state != DownloadState.Init) {
+        downloadItem.taskId?.let { taskId ->
+          browserNMM.removeDownload(taskId)
+          downloadItem.taskId = null
+        }
+        downloadItem.state = downloadItem.state.copy(state = DownloadState.Init, current = 0L)
+        clickDownloadButton(downloadItem)
       }
-      downloadItem.state = downloadItem.state.copy(state = DownloadState.Init, current = 0L)
-      clickDownloadButton(downloadItem)
     }
-  }
 
+  /// TODO waterbang fix this
   suspend fun shareDownloadItem(downloadItem: BrowserDownloadItem): Boolean {
     val ipc = browserNMM.connect("share.sys.dweb")
     ipc.postMessage(
       IpcEvent.fromUtf8("shareLocalFile", downloadItem.filePath)
     )
     val sharePromiseOut = PromiseOut<String>()
-    ipc.onEvent { (event, ipc) ->
-      if (event.name == "shareLocalFile") {
-        sharePromiseOut.resolve(event.data as String)
-        ipc.close()
+    ipc.onEvent("shareLocalFile").collectIn(browserNMM.getRuntimeScope()) { event ->
+      event.consumeFilter { ipcEvent ->
+        (ipcEvent.name == "shareLocalFile").trueAlso {
+          sharePromiseOut.resolve(ipcEvent.data as String)
+          ipc.close()
+        }
       }
     }
     return sharePromiseOut.waitPromise() == "success"

@@ -1,11 +1,7 @@
 package org.dweb_browser.dwebview.messagePort
 
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import org.dweb_browser.dwebview.DWebMessage
+import org.dweb_browser.core.ipc.helper.DWebMessage
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import platform.Foundation.NSNumber
 import platform.Foundation.valueForKey
 import platform.WebKit.WKContentWorld
@@ -100,14 +96,9 @@ internal class DWebViewWebMessage(val webview: DWebView) {
           val id = (message.valueForKey("id") as NSNumber).intValue
           val data = message.valueForKey("data") as String
           val ports = mutableListOf<DWebMessagePort>()
-
           val originPort = allPorts[id] ?: throw Exception("no found port by id:$id")
 
-          val messageScope =
-            CoroutineScope(CoroutineName("webMessage") + defaultAsyncExceptionHandler)
-          messageScope.launch {
-            originPort.onMessage.signal.emit(DWebMessage.DWebMessageString(data, ports))
-          }
+          originPort.dispatchMessage(DWebMessage.DWebMessageString(data, ports))
         }
       } catch (_: Throwable) {
       }

@@ -1,5 +1,5 @@
 export * from "../types.ts";
-import { $MMID } from "../types.ts";
+import type { $MMID } from "../types.ts";
 
 export type $PromiseMaybe<T> = Promise<Awaited<T>> | Awaited<T>;
 export type $Schema1ToType<S> = {

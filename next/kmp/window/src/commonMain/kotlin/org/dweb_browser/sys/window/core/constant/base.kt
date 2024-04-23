@@ -7,7 +7,7 @@ import org.dweb_browser.helper.compose.compositionChainOf
 
 val debugWindow = Debugger("window")
 
-val LocalWindowMM = compositionChainOf<NativeMicroModule>("Window MicroModule")
+val LocalWindowMM = compositionChainOf<NativeMicroModule.NativeRuntime>("Window MicroModule")
 
 //@SuppressLint("ExperimentalAnnotationRetention")
 @RequiresOptIn(

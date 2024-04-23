@@ -5,7 +5,7 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 
 
-class TaskbarStore(mm: MicroModule) {
+class TaskbarStore(mm: MicroModule.Runtime) {
   private val store = mm.createStore("taskbar", false)// createStore("taskbar/apps", false)
 
   suspend fun getApps(): MutableList<String> {
@@ -19,7 +19,7 @@ class TaskbarStore(mm: MicroModule) {
   }
 }
 
-class DaskSortStore(mm: MicroModule) {
+class DaskSortStore(mm: MicroModule.Runtime) {
   private val store = mm.createStore("desk_sort", false)// createStore("taskbar/apps", false)
 
   suspend fun getApps(): MutableList<String> {

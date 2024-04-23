@@ -18,4 +18,8 @@ class SafeHashSet<T> : MutableSet<T> {
   override fun remove(element: T) = sync { origin.remove(element) }
   override fun addAll(elements: Collection<T>) = sync { origin.addAll(elements) }
   override fun add(element: T) = sync { origin.add(element) }
+
+  override fun toString(): String {
+    return origin.toString()
+  }
 }

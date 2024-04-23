@@ -18,7 +18,7 @@ actual class NotificationManager {
     }
   }
 
-  actual suspend fun createNotification(microModule: MicroModule, message: NotificationWebItem) {
+  actual suspend fun createNotification(microModule: MicroModule.Runtime, message: NotificationWebItem) {
     TODO("No yet implement createNotification")
   }
 }

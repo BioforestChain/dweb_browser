@@ -1,7 +1,7 @@
-import type { MICRO_MODULE_CATEGORY } from "./category.const.ts";
+import type { MicroModule } from "./MicroModule.ts";
+import type { MICRO_MODULE_CATEGORY } from "./helper/category.const.ts";
 import type { $PromiseMaybe } from "./helper/types.ts";
-import type { MicroModule } from "./micro-module.ts";
-import type { $ConnectResult } from "./nativeConnect.ts";
+import type { Ipc } from "./ipc/ipc.ts";
 import type { $MMID, $MicroModuleManifest } from "./types.ts";
 
 export interface $BootstrapContext {
@@ -16,7 +16,7 @@ export interface $DnsMicroModule {
    * @param mmid
    * @param reason
    */
-  connect(mmid: $MMID, reason?: Request): $PromiseMaybe<$ConnectResult>;
+  connect(mmid: $MMID, reason?: Request): $PromiseMaybe<Ipc>;
   query(mmid: $MMID): Promise<$MicroModuleManifest | undefined>;
   /**
    * 根据类目搜索模块

@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.desk
 
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.ipc.Ipc
@@ -23,9 +24,9 @@ class RunningApp(
    */
   val ipc: Ipc,
   val bootstrapContext: BootstrapContext,
-  defaultWindowState: WindowState? = null
+  defaultWindowState: WindowState? = null,
 ) {
-  val onClose = ipc.onClose
+  val onClosed = ipc::onClosed
 
   /**
    * 所有的窗口实例
@@ -57,8 +58,10 @@ class RunningApp(
     )
     windows.add(newWin)
     // 监听app被shutdown的时候也需要移除window
-    ipc.onClose {
-      newWin.closeRoot()
+    ipc.onClosed {
+      newWin.lifecycleScope.launch {
+        newWin.closeRoot()
+      }
     }
     /// 窗口销毁的时候
     newWin.onClose {
@@ -69,24 +72,6 @@ class RunningApp(
       // 从引用中移除
       windows.remove(newWin)
     }
-
-//    /// 等待握手完成后，通知模块，提供渲染
-//    // TODO 这里可能会失败,并且卡在这里，这里应该是ipc.onError 去提醒用户,因此急迫需要一个全局能反馈信息的地方
-//    try {
-//      val job = CoroutineScope(CoroutineName("await-error")).launch {
-//        delay(3000)
-//        newWin.closeRoot(true)
-//        windowAdapterManager.renderProviders.remove(newWin.id)
-//        windows.remove(newWin)
-//        ipc.stopReady()
-//      }
-//      ipc.afterReady()
-//      job.cancel()
-//    } catch (e: Exception) {
-//      debugDesk("createWindow", "app代码异常，无法连接,请反馈后重新下载", e)
-//      throw Exception("app代码异常，无法连接,请反馈后重新下载")
-//    }
-
     ipc.postMessage(IpcEvent.createRenderer(newWin.id))
     return newWin
   }
@@ -119,6 +104,7 @@ class RunningApp(
     createWindow(latestWindowState).also { win ->
       latestWindowState = win.state
       win.onClose {
+        println("关闭窗口信号 ${ipc.debugId} ${ipc.remote.mmid}")
         if (mainWin == win) {
           mainWin = null
         }

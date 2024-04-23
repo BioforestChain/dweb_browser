@@ -11,9 +11,8 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
-import kotlinx.atomicfu.updateAndGet
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -55,7 +54,8 @@ sealed class BrowserPage(browserController: BrowserController) {
       thumbnail?.let { BitmapPainter(it) }
     }
 
-  private var captureJob = atomic<Job?>(null)
+  private val captureLock = SynchronizedObject()
+  private var captureJob: Job? = null
 
   suspend fun captureView() {
     captureViewInBackground().join()
@@ -71,20 +71,23 @@ sealed class BrowserPage(browserController: BrowserController) {
   open fun onRequestCapture() {}
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  fun captureViewInBackground() = captureJob.updateAndGet { busyJob ->
-    busyJob ?: captureController.captureAsync().apply {
+  fun captureViewInBackground() = synchronized(captureLock) {
+    captureJob ?: captureController.captureAsync().also { job ->
+      captureJob = job
       onRequestCapture()
-      invokeOnCompletion { error ->
+      job.invokeOnCompletion { error ->
         if (error == null) {
-          thumbnail = getCompleted()
+          thumbnail = job.getCompleted()
         }
         // 清理掉锁
-        captureJob.update {
-          if (it == this) null else it
+        synchronized(captureLock) {
+          if (captureJob == job) {
+            captureJob = null
+          }
         }
       }
     }
-  }!!
+  }
 
   @Composable
   internal abstract fun Render(modifier: Modifier)

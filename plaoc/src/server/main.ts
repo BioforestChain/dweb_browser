@@ -74,7 +74,6 @@ const main = async () => {
   jsProcess.onClose(() => {
     console.log("app后台被关闭。");
   });
-
   jsProcess.ready();
 
   //#region 启动http服务
@@ -90,17 +89,14 @@ const main = async () => {
     const ipc = await externalServer.ipcPo.waitOpen();
     ipc.postMessage(ipcEvent);
   });
-
   const wwwListenerTask = wwwServer.start().finally(() => console.log("wwwServer started"));
   const externalListenerTask = externalServer.start().finally(() => console.log("externalServer started"));
   const apiListenerTask = apiServer.start().finally(() => console.log("apiServer started"));
-
   all_webview_status.signal.listen((size) => {
     if (size === 0) {
       externalServer.closeRegisterIpc();
     }
   });
-
   /// 生成 index-url
   const wwwStartResult = await wwwServer.getStartResult();
   await apiServer.getStartResult();
@@ -111,14 +107,14 @@ const main = async () => {
   console.log("open in browser:", indexUrl.href);
   await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
   indexUrlPo.resolve(indexUrl.href);
+  console.log("indexUrl.href", indexUrl.href);
   open_main_window();
+
   //#endregion
 };
 
 try {
   await main();
 } catch (e) {
-  // todo 这里应该发送IpcError消息,这里是临时方案
-  jsProcess.close(e)
-  console.error("后端错误：", e);
+  jsProcess.close(`后端错误：${e}`);
 }

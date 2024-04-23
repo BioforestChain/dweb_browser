@@ -26,55 +26,59 @@ class SearchNMM : NativeMicroModule("search.browser.dweb", "Search Browser") {
     display = DisplayMode.Fullscreen
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val controller = SearchController(this)
+  inner class SearchRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+    override suspend fun _bootstrap() {
+      val controller = SearchController(this)
 
-    routes(
-      /**
-       * 判断当前是否属于引擎关键字,如果是，返回首页地址
-       */
-      "/homeLink" bind PureMethod.GET by defineStringResponse {
-        val key = request.queryOrNull("key")?.decodeURIComponent()
-          ?: throwException(HttpStatusCode.BadRequest, "not found key param")
-        debugSearch("browser/enable", "key=$key")
-        controller.enableAndGetEngineHomeLink(key) ?: ""
-      },
-      /**
-       * 监听所有可用引擎
-       */
-      "/observe/engines" byChannel { ctx ->
-        controller.onEngineUpdate {
-          debugSearch("browser", "/observe/engines => send")
-          ctx.sendJsonLine(controller.searchEngineList)
-        }.removeWhen(onClose)
-        controller.engineUpdateSignal.emit()
-      },
-      /**
-       * 搜索注入的搜索列表
-       */
-      "/injectList" bind PureMethod.GET by defineStringResponse {
-        val key = request.queryOrNull("key")
-          ?: throwException(HttpStatusCode.BadRequest, "not found key param")
-        debugSearch("browser", "/injects key=$key")
-        Json.encodeToString(controller.containsInject(key))
-      },
-    )
-
-    protocol("search.std.dweb") {
       routes(
         /**
-         * 注入离线搜索的内容
+         * 判断当前是否属于引擎关键字,如果是，返回首页地址
          */
-        "/inject" bind PureMethod.POST by defineBooleanResponse {
-          debugSearch("std/inject")
-          val searchInject = request.queryAs<SearchInject>()
-          debugSearch("std/inject", "injectSearch=$searchInject")
-          controller.inject(searchInject)
-        }
+        "/homeLink" bind PureMethod.GET by defineStringResponse {
+          val key = request.queryOrNull("key")?.decodeURIComponent()
+            ?: throwException(HttpStatusCode.BadRequest, "not found key param")
+          debugSearch("browser/enable", "key=$key")
+          controller.enableAndGetEngineHomeLink(key) ?: ""
+        },
+        /**
+         * 监听所有可用引擎
+         */
+        "/observe/engines" byChannel { ctx ->
+          controller.onEngineUpdate {
+            debugSearch("browser", "/observe/engines => send")
+            ctx.sendJsonLine(controller.searchEngineList)
+          }.removeWhen(onClose)
+          controller.engineUpdateSignal.emit()
+        },
+        /**
+         * 搜索都有注入的搜索列表
+         */
+        "/injectList" bind PureMethod.GET by defineStringResponse {
+          val key = request.queryOrNull("key")
+            ?: throwException(HttpStatusCode.BadRequest, "not found key param")
+          debugSearch("browser", "/injects key=$key")
+          Json.encodeToString(controller.containsInject(key))
+        },
       )
+
+      protocol("search.std.dweb") {
+        routes(
+          /**
+           * 注入离线搜索的内容
+           */
+          "/inject" bind PureMethod.POST by defineBooleanResponse {
+            debugSearch("std/inject")
+            val searchInject = request.queryAs<SearchInject>()
+            debugSearch("std/inject", "injectSearch=$searchInject")
+            controller.inject(searchInject)
+          }
+        )
+      }
+    }
+
+    override suspend fun _shutdown() {
     }
   }
 
-  override suspend fun _shutdown() {
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) = SearchRuntime(bootstrapContext)
 }

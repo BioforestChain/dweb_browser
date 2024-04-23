@@ -477,7 +477,7 @@ abstract class WindowController(
   /**
    * 尝试移除一个 modal
    */
-  suspend fun removeModal(module: MicroModule, modalId: String) = modalsLock.withLock("write") {
+  suspend fun removeModal(module: MicroModule.Runtime, modalId: String) = modalsLock.withLock("write") {
     val modal = state.modals[modalId] ?: return@withLock false
     modal.safeDestroy(module)
   }
@@ -526,7 +526,7 @@ abstract class WindowController(
    *
    * @return 返回true说明这次操作让这个 modal 关闭了。否则可能是 modal不存在、或者modal本来就是关闭的
    */
-  suspend fun closeModal(module: MicroModule, modalId: String) = modalsLock.withLock("write") {
+  suspend fun closeModal(module: MicroModule.Runtime, modalId: String) = modalsLock.withLock("write") {
     val modal = state.modals[modalId] ?: return@withLock false
     modal.safeClose(module)
   }

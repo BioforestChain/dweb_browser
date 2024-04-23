@@ -113,7 +113,7 @@ data class BrowserDownloadItem(
   val stateChanged = stateSignal.toListener()
 }
 
-class BrowserDownloadStore(mm: MicroModule) {
+class BrowserDownloadStore(mm: MicroModule.Runtime) {
   private val store = mm.createStore("browser_download", false)
   private val keyOfDownload = "downloading"
   private val keyOfComplete = "completed"

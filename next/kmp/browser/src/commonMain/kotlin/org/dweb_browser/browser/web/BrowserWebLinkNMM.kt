@@ -15,10 +15,14 @@ class WebLinkMicroModule(webLink: WebLinkManifest) : NativeMicroModule(webLink.i
     icons = webLink.icons
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    /// TODO 在浏览器中打开新的Tab页面，或者如果能找到url完全一样的，就直接聚焦那个页面
+  inner class WebLinkRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+    override suspend fun _bootstrap() {
+      /// TODO 在浏览器中打开新的Tab页面，或者如果能找到url完全一样的，就直接聚焦那个页面
+    }
+
+    override suspend fun _shutdown() {
+    }
   }
 
-  override suspend fun _shutdown() {
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) = WebLinkRuntime(bootstrapContext)
 }

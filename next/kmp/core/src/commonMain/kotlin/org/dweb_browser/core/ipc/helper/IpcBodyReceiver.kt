@@ -1,26 +1,42 @@
 package org.dweb_browser.core.ipc.helper
 
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.launch
+import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureStream
-import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.helper.toBase64ByteArray
 
-/**
- * metaBody 可能会被多次转发，
- * 但只有第一次得到这个 metaBody 的 ipc 才是它真正意义上的 Receiver
- */
+val debugIpcBodyReceiver = Debugger("ipc-body-receiver")
+
+
 class IpcBodyReceiver(
   override val metaBody: MetaBody,
   ipc: Ipc,
 ) : IpcBody() {
 
+  init {
+    /// 将第一次得到这个metaBody的 ipc 保存起来，这个ipc将用于接收
+    if (metaBody.type.isStream && metaBody.streamId != null) {
+      CACHE.streamId_receiverIpc_Map.getOrPut(metaBody.streamId) {
+        ipc.scope.launch {
+          ipc.awaitClosed()
+          CACHE.streamId_receiverIpc_Map.remove(metaBody.streamId)
+        }
+        metaBody.receiverPoolId = ipc.pool.poolId
+        ipc
+      }
+    }
+  }
 
   /// 因为是 abstract，所以得用 lazy 来延迟得到这些属性
   override val raw by lazy {
-    if (metaBody.type.isStream) {
-      val rawIpc = CACHE.metaId_receiverIpc_Map[metaBody.metaId]
-        ?: throw Exception("no found ipc by metaId:${metaBody.metaId}")
+    // 处理流
+    if (metaBody.type.isStream && metaBody.streamId != null) {
+      val rawIpc = CACHE.streamId_receiverIpc_Map[metaBody.streamId]
+        ?: throw Exception("no found ipc by metaId:${metaBody.streamId}")
       IPureBody.from(metaToStream(metaBody, rawIpc))
     } else when (metaBody.type.encoding) {
       /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
@@ -35,81 +51,74 @@ class IpcBodyReceiver(
     }
   }
 
-  init {
-    /// 将第一次得到这个metaBody的 ipc 保存起来，这个ipc将用于接收
-    if (metaBody.type.isStream) {
-      CACHE.metaId_receiverIpc_Map.getOrPut(metaBody.metaId) {
-        ipc.onClose {
-          CACHE.metaId_receiverIpc_Map.remove(metaBody.metaId)
-        }
-        metaBody.receiverUid = ipc.uid
-        ipc
-      }
-    }
-  }
-
   companion object {
-
+    // 支持快速从缓存里快速拿到IpcBody
     fun from(metaBody: MetaBody, ipc: Ipc): IpcBody {
-      return CACHE.metaId_ipcBodySender_Map[metaBody.metaId] ?: IpcBodyReceiver(metaBody, ipc)
+      return CACHE.streamId_ipcBodySender_Map[metaBody.streamId] ?: IpcBodyReceiver(metaBody, ipc)
     }
-
 
     /**
+     * 绑定Body到ReadableSteam输出PureStream
      * @return {String | ByteArray | InputStream}
      */
     fun metaToStream(metaBody: MetaBody, ipc: Ipc): PureStream {
-      /// metaToStream
-      val stream_id = metaBody.streamId!!;
+      val streamId = metaBody.streamId!!
+
       /**
        * 默认是暂停状态
        */
-      val paused = atomic(true);
-      val readableStream = ReadableStream(cid = "receiver=${stream_id}", onStart = { controller ->
-        // 注册关闭事件
-        ipc.onClose {
-          controller.closeWrite()
-        }
-        /// 如果有初始帧，直接存起来
-        when (metaBody.type.encoding) {
-          IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).encodeToByteArray()
-          IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
-          IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
-          else -> null
-        }?.let { firstData -> controller.enqueueBackground(firstData) }
-
-        ipc.onStream { (message) ->
-          when (message) {
-            is IpcStreamData -> if (message.stream_id == stream_id) {
-//              debugIpcBody(
-//                "receiver/StreamData/$ipc/${controller.stream}", message
-//              )
-              controller.enqueue(message.binary)
-            }
-
-            is IpcStreamEnd -> if (message.stream_id == stream_id) {
-//              debugIpcBody(
-//                "receiver/StreamEnd/$ipc/${controller.stream}", message
-//              )
-              controller.closeWrite()
-              offListener()
-            }
-
-            else -> {}
+      val paused = atomic(true)
+      val readableStream =
+        ReadableStream(ipc.scope, cid = "receiver=${streamId}", onStart = { controller ->
+          // 注册关闭事件
+          this.launch {
+            ipc.awaitClosed()
+            controller.closeWrite()
           }
-        }
-      }, onOpenReader = { controller ->
-        debugIpcBody(
-          "receiver/postPullMessage/$ipc/${controller.stream}", stream_id
-        )
-        if (paused.getAndSet(false)) {
-          ipc.postMessage(IpcStreamPulling(stream_id))
-        }
-      }, onClose = {
-        ipc.postMessage(IpcStreamAbort(stream_id))
-      });
+          /// 如果有初始帧，直接存起来
+          when (metaBody.type.encoding) {
+            IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).encodeToByteArray()
+            IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
+            IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
+            else -> null
+          }?.let { firstData -> controller.enqueueBackground(firstData) }
+          ipc.onStream("metaToStream").collectIn(ipc.scope) { event ->
+            val ipcStream = event.data
+            if (streamId == ipcStream.stream_id) {
+              when (ipcStream) {
+                is IpcStreamData -> {
+                  debugIpcBodyReceiver(
+                    "receiver/StreamData/$ipc/${controller.stream}", ipcStream
+                  )
+                  controller.enqueue(ipcStream.binary)
+                }
 
-      debugIpcBody("receiver/$ipc/$readableStream", "start by stream-id:${stream_id}")
+                is IpcStreamEnd -> {
+                  debugIpcBodyReceiver(
+                    "receiver/StreamEnd/$ipc/${controller.stream}", ipcStream
+                  )
+                  controller.closeWrite()
+                }
+
+                else -> return@collectIn
+              }
+              event.consume()
+            }
+          }
+        }, onOpenReader = { controller ->
+          debugIpcBodyReceiver(
+            "postPullMessage/$ipc/${controller.stream}", streamId
+          )
+          // 跟对面讲，我需要开始拉取数据了
+          if (paused.getAndSet(false)) {
+            ipc.postMessage(IpcStreamPulling(streamId))
+          }
+        }, onClose = {
+          // 跟对面讲，我关闭了,不再接受消息了，可以丢弃这个ByteChannel的内容了
+          ipc.postMessage(IpcStreamAbort(streamId))
+        });
+
+      debugIpcBodyReceiver("$ipc/$readableStream", "start by stream-id:${streamId}")
 
       return readableStream.stream
     }

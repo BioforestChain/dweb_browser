@@ -33,7 +33,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
 
     /// 提供图标文件的适配器。注意，这里不需要随着 BrowserNMM bootstrap 来安装，而是始终有效。
     /// 因为只要存在 BrowserNMM 这个模块，那么就会有桌面链接图标
-    nativeFetchAdaptersManager.append { fromMM, request ->
+    nativeFetchAdaptersManager.append(order = 5) { fromMM, request ->
       return@append request.respondLocalFile {
         if (filePath.startsWith("/web_icons/")) {
           debugBrowser("IconFile", "$fromMM => ${request.href}")
@@ -43,31 +43,31 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     }
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val webLinkStore = WebLinkStore(this)
-    val browserController = // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
-      withMainContext {
-        BrowserController(this@BrowserNMM, webLinkStore)
+  inner class BrowserRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+
+    override suspend fun _bootstrap() {
+      val webLinkStore = WebLinkStore(this)
+      // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
+      val browserController = withMainContext {
+        BrowserController(this, webLinkStore)
       }
-    loadWebLinkApps(browserController, webLinkStore)
+      loadWebLinkApps(browserController, webLinkStore)
 
-    onRenderer {
-      browserController.renderBrowserWindow(wid)
-    }
-    val openBrowser = defineBooleanResponse {
-      debugBrowser("do openinbrowser", request.href)
-      request.queryOrNull("url")?.let { url ->
-        openMainWindow()
-        browserController.tryOpenBrowserPage(url = url,
-          target = request.queryOrNull("target")?.let { AppBrowserTarget.valueOf(it) }
-            ?: AppBrowserTarget.BLANK
-        )
-        true
-      } ?: false
-    }
+      onRenderer {
+        browserController.renderBrowserWindow(wid)
+      }
+      val openBrowser = defineBooleanResponse {
+        debugBrowser("do openinbrowser", request.href)
+        request.queryOrNull("url")?.let { url ->
+          openMainWindow()
+          browserController.tryOpenBrowserPage(url = url,
+            target = request.queryOrNull("target")?.let { AppBrowserTarget.valueOf(it) }
+              ?: AppBrowserTarget.BLANK)
+          true
+        } ?: false
+      }
 
-    routes(
-      "search" bindDwebDeeplink defineBooleanResponse {
+      routes("search" bindDwebDeeplink defineBooleanResponse {
         debugBrowser("do search", request.href)
         request.queryOrNull("q")?.let { url ->
           openMainWindow()
@@ -75,36 +75,38 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
           true
         } ?: false
       },
-      "openinbrowser" bindDwebDeeplink openBrowser,
-      "/openinbrowser" bind PureMethod.GET by openBrowser,
-      "/uninstall" bind PureMethod.GET by defineBooleanResponse {
-        debugBrowser("do uninstall", request.href)
-        val mmid = request.query("app_id")
-        bootstrapContext.dns.uninstall(mmid) && webLinkStore.delete(mmid)
+        "openinbrowser" bindDwebDeeplink openBrowser,
+        "/openinbrowser" bind PureMethod.GET by openBrowser,
+        "/uninstall" bind PureMethod.GET by defineBooleanResponse {
+          debugBrowser("do uninstall", request.href)
+          val mmid = request.query("app_id")
+          bootstrapContext.dns.uninstall(mmid) && webLinkStore.delete(mmid)
+        })
+    }
+
+    /**
+     * 用来加载WebLink数据的，并且监听是否添加到桌面操作
+     */
+    private suspend fun loadWebLinkApps(
+      browserController: BrowserController, webLinkStore: WebLinkStore
+    ) {
+      webLinkStore.getAll().map { (_, webLinkManifest) ->
+        bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
       }
-    )
+      browserController.onWebLinkAdded { webLinkManifest -> // 监听是否添加到桌面操作
+        // TODO 先存储，再注入到dns
+        webLinkStore.delete(webLinkManifest.id)
+        webLinkStore.set(webLinkManifest.id, webLinkManifest)
+        bootstrapContext.dns.query(webLinkManifest.id)?.let {
+          bootstrapContext.dns.uninstall(webLinkManifest.id)
+        }
+        bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
+      }
+    }
+
+    override suspend fun _shutdown() {
+    }
   }
 
-  /**
-   * 用来加载WebLink数据的，并且监听是否添加到桌面操作
-   */
-  private suspend fun loadWebLinkApps(
-    browserController: BrowserController, webLinkStore: WebLinkStore
-  ) {
-    webLinkStore.getAll().map { (_, webLinkManifest) ->
-      bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
-    }
-    browserController.onWebLinkAdded { webLinkManifest -> // 监听是否添加到桌面操作
-      // TODO 先存储，再注入到dns
-      webLinkStore.delete(webLinkManifest.id)
-      webLinkStore.set(webLinkManifest.id, webLinkManifest)
-      bootstrapContext.dns.query(webLinkManifest.id)?.let {
-        bootstrapContext.dns.uninstall(webLinkManifest.id)
-      }
-      bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
-    }
-  }
-
-  override suspend fun _shutdown() {
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) = BrowserRuntime(bootstrapContext)
 }

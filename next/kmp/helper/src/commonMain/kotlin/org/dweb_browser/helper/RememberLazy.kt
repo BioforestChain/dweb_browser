@@ -12,7 +12,7 @@ class RememberLazy<T : Any?>(key: Any?, private val initializer: () -> T) : Memo
     }
   }
 
-  fun <T : Any?> then(key: Any? = null, initializer: () -> T) =
+  fun <R : Any?> then(key: Any? = null, initializer: () -> R) =
     RememberLazy(key, initializer).also { it.follow(this) }
 
   val lazy: Lazy<T>
@@ -45,6 +45,10 @@ open class MemoryChain(key: Any?) {
     }
   }
 
+
+  private val onChangeSignal = SimpleSignal()
+  val onChange = onChangeSignal.toListener()
+
   /**
    * 触发变更，跟随者递归该触发行为
    */
@@ -55,6 +59,4 @@ open class MemoryChain(key: Any?) {
     }
   }
 
-  private val onChangeSignal = SimpleSignal()
-  val onChange = onChangeSignal.toListener()
 }

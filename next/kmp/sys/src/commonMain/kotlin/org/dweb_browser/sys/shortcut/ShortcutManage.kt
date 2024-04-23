@@ -19,6 +19,6 @@ expect class ShortcutManage() {
    * iOS: 由于无法正确解析SVG图片，所以iOS会一直返回null.
    * Android: 如果icon=null, 会使用resource的生成新的icon.
    */
-  suspend fun getValidIcon(microModule: MicroModule, resource: ImageResource): ByteArray?
+  suspend fun getValidIcon(microModule: MicroModule.Runtime, resource: ImageResource): ByteArray?
 
 }

@@ -1,14 +1,13 @@
 package org.dweb_browser.sys.motionSensors
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.core.http.router.byChannel
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.pure.http.queryAsOrNull
 
 class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Sensors") {
   init {
@@ -16,45 +15,53 @@ class MotionSensorsNMM : NativeMicroModule("motion-sensors.sys.dweb", "Motion Se
       listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(
-      // 获取加速计 (push模式)
-      "/observe/accelerometer" byChannel { ctx ->
-        val fps = request.queryAsOrNull<Double>("fps")
-        val motionSensors = MotionSensorsManage(this@MotionSensorsNMM)
+  inner class MotionSensorsRuntime(override val bootstrapContext: BootstrapContext) :
+    NativeRuntime() {
 
-        if(motionSensors.isSupportAccelerometer) {
-          val job = CoroutineScope(ioAsyncExceptionHandler).launch {
-            motionSensors.getAccelerometerFlow(fps).collect {
-              ctx.sendJsonLine(it)
+    override suspend fun _bootstrap() {
+      routes(
+        // 获取加速计 (push模式)
+        "/observe/accelerometer" byChannel { ctx ->
+          val fps = request.queryAsOrNull<Double>("fps")
+          // TODO 这个MotionSensorsManage不能共享吗？
+          val motionSensors = MotionSensorsManage(this@MotionSensorsRuntime)
+
+          if (motionSensors.isSupportAccelerometer) {
+            val job = CoroutineScope(ioAsyncExceptionHandler).launch {
+              motionSensors.getAccelerometerFlow(fps).collect {
+                ctx.sendJsonLine(it)
+              }
+            }
+
+            onClose {
+              job.cancel()
             }
           }
+        },
+        // 获取陀螺仪 (push模式)
+        "/observe/gyroscope" byChannel { ctx ->
+          val motionSensors = MotionSensorsManage(this@MotionSensorsRuntime)
+          val fps = request.queryAsOrNull<Double>("fps")
 
-          onClose {
-            job.cancel()
-          }
-        }
-      },
-      // 获取陀螺仪 (push模式)
-      "/observe/gyroscope" byChannel { ctx ->
-        val motionSensors = MotionSensorsManage(this@MotionSensorsNMM)
-        val fps = request.queryAsOrNull<Double>("fps")
+          if (motionSensors.isSupportGyroscope) {
+            val job = CoroutineScope(ioAsyncExceptionHandler).launch {
+              motionSensors.getGyroscopeFlow(fps).collect {
+                ctx.sendJsonLine(it)
+              }
+            }
 
-        if(motionSensors.isSupportGyroscope) {
-          val job = CoroutineScope(ioAsyncExceptionHandler).launch {
-            motionSensors.getGyroscopeFlow(fps).collect {
-              ctx.sendJsonLine(it)
+            onClose {
+              job.cancel()
             }
           }
+        }).cors()
+    }
 
-          onClose {
-            job.cancel()
-          }
-        }
-      }).cors()
+    override suspend fun _shutdown() {
+
+    }
   }
 
-  override suspend fun _shutdown() {
-
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) =
+    MotionSensorsRuntime(bootstrapContext)
 }

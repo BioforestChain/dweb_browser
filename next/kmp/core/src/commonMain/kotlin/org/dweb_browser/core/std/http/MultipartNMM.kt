@@ -2,7 +2,6 @@ package org.dweb_browser.core.std.http
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
@@ -26,10 +25,11 @@ import org.dweb_browser.pure.http.PureMethod
 class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/form-data parser") {
 
 
-  @OptIn(ExperimentalSerializationApi::class)
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(
-      "/parser" bind PureMethod.POST by defineCborPackageResponse {
+  inner class MultipartRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override suspend fun _bootstrap() {
+      routes("/parser" bind PureMethod.POST by defineCborPackageResponse {
         val boundary =
           getBoundary(request.headers.toMap()) ?: throw Exception("boundary parser failed")
         val deferred = CompletableDeferred<Int>()
@@ -40,21 +40,14 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
           }
 
           override fun onFieldStart(
-            name: String?,
-            fileName: String?,
-            contentType: String?,
-            fieldIndex: Int
+            name: String?, fileName: String?, contentType: String?, fieldIndex: Int
           ) {
             runBlocking(context) {
               emit(
                 MultipartFilePackage(
-                  MultipartFileType.Desc,
-                  Cbor.encodeToByteArray<MultipartFieldDescription>(
+                  MultipartFileType.Desc, Cbor.encodeToByteArray<MultipartFieldDescription>(
                     MultipartFieldDescription(
-                      name,
-                      fileName,
-                      contentType,
-                      fieldIndex
+                      name, fileName, contentType, fieldIndex
                     )
                   )
                 )
@@ -66,8 +59,11 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
             runBlocking(context) {
               emit(
                 MultipartFilePackage(
-                  MultipartFileType.Data,
-                  Cbor.encodeToByteArray<MultipartFieldData>(MultipartFieldData(fieldIndex, chunk))
+                  MultipartFileType.Data, Cbor.encodeToByteArray<MultipartFieldData>(
+                    MultipartFieldData(
+                      fieldIndex, chunk
+                    )
+                  )
                 )
               )
             }
@@ -91,12 +87,12 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
           }
         }
 
-        ioAsyncScope.launch {
+        scopeLaunch(cancelable = false) {
           processMultipartOpen(boundary, multipartEachArrayRangeCallback)
         }
         val id = deferred.await()
 
-        ioAsyncScope.launch {
+        scopeLaunch(cancelable = true) {
           request.body.toPureStream().getReader("multipart/form-data")
             .consumeEachArrayRange { byteArray, last ->
               if (!(last && byteArray.isEmpty())) {
@@ -104,9 +100,12 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
               }
             }
         }
-      }
-    )
+      })
+    }
+
+    override suspend fun _shutdown() {}
   }
 
-  override suspend fun _shutdown() {}
+  override fun createRuntime(bootstrapContext: BootstrapContext) =
+    MultipartRuntime(bootstrapContext)
 }

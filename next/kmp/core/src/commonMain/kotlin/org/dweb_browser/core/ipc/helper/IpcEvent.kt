@@ -1,34 +1,44 @@
 package org.dweb_browser.core.ipc.helper
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.dweb_browser.helper.ProxySerializer
+import org.dweb_browser.helper.OrderBy
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.pure.http.PureBinaryFrame
-import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureFrame
 import org.dweb_browser.pure.http.PureTextFrame
 
 
 @Serializable
-data class IpcEventJsonAble(
-  val name: String, val data: String, val encoding: IPC_DATA_ENCODING, val orderBy: Int?
-) : IpcMessage(IPC_MESSAGE_TYPE.EVENT) {
+@SerialName(IPC_MESSAGE_TYPE_EVENT)
+class IpcEventRawString(
+  val name: String,
+  val data: String,
+  val encoding: IPC_DATA_ENCODING,
+  override val order: Int? = null,
+) : IpcRawMessage, OrderBy {
   fun toIpcEvent() = IpcEvent(name, data, encoding)
 }
 
-object IpcEventSerializer :
-  ProxySerializer<IpcEvent, IpcEventJsonAble>("IpcEvent", IpcEventJsonAble.serializer(),
-    { jsonAble },
-    { toIpcEvent() })
+@Serializable
+@SerialName(IPC_MESSAGE_TYPE_EVENT)
+class IpcEventRawBinary(
+  val name: String,
+  val data: ByteArray,
+  val encoding: IPC_DATA_ENCODING,
+  override val order: Int? = null,
+) : IpcRawMessage, OrderBy {
+  fun toIpcEvent() = IpcEvent(name, data, encoding)
+}
 
-@Serializable(with = IpcEventSerializer::class)
 class IpcEvent(
   val name: String,
-  val data: Any /*String or ByteArray*/,
+  val data: Any, /*String or ByteArray*/
   val encoding: IPC_DATA_ENCODING,
-  val orderBy: Int? = null
-) : IpcMessage(IPC_MESSAGE_TYPE.EVENT) {
-  override fun toString() = "IpcEvent(name=$name, data=$encoding::${data.toString().trim()})"
+  override val order: Int? = null,
+) : IpcMessage, OrderBy, RawAble<IpcRawMessage> {
+  override fun toString() =
+    "IpcEvent(name=$name, data=$encoding::${data.toString().trim()}, orderBy=$order)"
 
   companion object {
     fun fromBinary(name: String, data: ByteArray, orderBy: Int? = null) =
@@ -44,9 +54,8 @@ class IpcEvent(
       IpcEvent(name, data, IPC_DATA_ENCODING.UTF8, orderBy)
 
     fun fromPureFrame(name: String, pureFrame: PureFrame, orderBy: Int? = null) = when (pureFrame) {
-      is PureTextFrame -> fromUtf8(name, pureFrame.data, orderBy)
-      is PureBinaryFrame -> fromBinary(name, pureFrame.data, orderBy)
-      is PureCloseFrame -> fromUtf8(name, "close", orderBy)
+      is PureTextFrame -> fromUtf8(name, pureFrame.text, orderBy)
+      is PureBinaryFrame -> fromBinary(name, pureFrame.binary, orderBy)
     }.also { it.pureFrame = pureFrame }
 
 
@@ -65,20 +74,37 @@ class IpcEvent(
     dataToText(data, encoding)
   }
 
-  val jsonAble by lazy {
+  override val stringAble by lazy {
     when (encoding) {
-      IPC_DATA_ENCODING.BINARY -> fromBase64(
+      IPC_DATA_ENCODING.BINARY -> IpcEventRawString(
         name,
-        (data as ByteArray),
+        (data as ByteArray).toBase64(),
+        encoding,
+        order,
       )
 
-      else -> this
-    }.run {
-      IpcEventJsonAble(
+      IPC_DATA_ENCODING.BASE64, IPC_DATA_ENCODING.UTF8 -> IpcEventRawString(
         name,
-        data as String,
+        (data as String),
         encoding,
-        orderBy
+        order,
+      )
+    }
+  }
+  override val binaryAble by lazy {
+    when (encoding) {
+      IPC_DATA_ENCODING.BINARY -> IpcEventRawBinary(
+        name,
+        (data as ByteArray),
+        encoding,
+        order,
+      )
+
+      IPC_DATA_ENCODING.BASE64, IPC_DATA_ENCODING.UTF8 -> IpcEventRawBinary(
+        name,
+        binary,
+        IPC_DATA_ENCODING.BINARY,
+        order,
       )
     }
   }

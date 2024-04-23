@@ -5,7 +5,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -13,7 +12,6 @@ import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.debugMicroModule
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.getOrPut
@@ -22,34 +20,38 @@ import org.dweb_browser.pure.crypto.decipher.decipher_aes_256_gcm
 import org.dweb_browser.pure.crypto.hash.sha256
 import org.dweb_browser.pure.http.IPureBody
 
-fun MicroModule.createStore(storeName: String, encrypt: Boolean) =
+fun MicroModule.Runtime.createStore(storeName: String, encrypt: Boolean) =
   MicroModuleStore(this, storeName, encrypt)
 
-fun MicroModule.createStore(storeName: String, cipherChunkKey: ByteArray, encrypt: Boolean) =
+fun MicroModule.Runtime.createStore(
+  storeName: String,
+  cipherChunkKey: ByteArray,
+  encrypt: Boolean
+) =
   MicroModuleStore(this, storeName, cipherChunkKey, encrypt)
 
-private val defaultSimpleStoreCache by atomic(WeakHashMap<MicroModule, MicroModuleStore>())
+private val defaultSimpleStoreCache by atomic(WeakHashMap<MicroModule.Runtime, MicroModuleStore>())
 
-val MicroModule.store: MicroModuleStore
+val MicroModule.Runtime.store: MicroModuleStore
   get() = defaultSimpleStoreCache.getOrPut(this) {
     createStore("default", true)
   }
 
 class MicroModuleStore(
-  private val mm: MicroModule,
+  val mm: MicroModule.Runtime,
   private val storeName: String,
   private val cipherChunkKey: ByteArray?,
   private val encrypt: Boolean,
 ) {
   constructor(
-    mm: MicroModule, storeName: String, encrypt: Boolean
+    mm: MicroModule.Runtime, storeName: String, encrypt: Boolean
   ) : this(mm, storeName, null, encrypt)
 
   private val taskQueues = Channel<Task<*>>(onBufferOverflow = BufferOverflow.SUSPEND)
   private val storeMutex = Mutex()
 
   init {
-    mm.ioAsyncScope.launch {
+    mm.scopeLaunch(cancelable = true) {
       for (task in taskQueues) {
         // 防止并发修改异常
         storeMutex.withLock {
@@ -90,7 +92,7 @@ class MicroModuleStore(
       else Cbor.decodeFromByteArray(data)
     } catch (e: Throwable) {
       // debugger(e)
-      debugMicroModule("store/init", "e->${e.message}")
+      mm.debugMM("store/init", "e->${e.message}")
       mutableMapOf()
     }
   }
@@ -100,7 +102,7 @@ class MicroModuleStore(
 
   private fun <T> exec(action: suspend () -> T): Deferred<T> {
     val deferred = CompletableDeferred<T>()
-    mm.ioAsyncScope.launch {
+    mm.scopeLaunch(cancelable = true) {
       taskQueues.send(Task(deferred, action))
     }
     return deferred
@@ -113,7 +115,7 @@ class MicroModuleStore(
       try { // 使用try的目的是为了保证后面对象字段变更后，存储了新的内容。但由于存在旧数据解析失败导致的所有数据无法获取问题
         data[item.key] = Cbor.decodeFromByteArray<T>(item.value)
       } catch (e: Throwable) {
-        debugMicroModule("store/getAll", "${item.key}->${e.message}")
+        mm.debugMM("store/getAll", "${item.key}->${e.message}")
       }
     }
     return data

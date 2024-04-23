@@ -6,6 +6,7 @@ export type { ArgumentValue } from "https://deno.land/x/cliffy@v1.0.0-rc.3/comma
 export { Input } from "https://deno.land/x/cliffy@v1.0.0-rc.3/prompt/input.ts";
 export { Checkbox, Confirm, prompt } from "https://deno.land/x/cliffy@v1.0.0-rc.3/prompt/mod.ts";
 export { createHash, createSign, createVerify } from "node:crypto";
-export type { $JmmAppInstallManifest, $MMID } from "npm:@dweb-browser/js-process@0.1.7";
 export { v2 as webdav } from "npm:webdav-server";
+export type { $JmmAppInstallManifest, $MMID } from "../../desktop-dev/src/browser/js-process/module.ts";
 export { Ajv };
+

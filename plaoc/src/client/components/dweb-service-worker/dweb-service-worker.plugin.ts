@@ -1,4 +1,4 @@
-import { ReadableStreamIpc } from "dweb/core/ipc-web/index.ts";
+import { ReadableStreamIpc } from "dweb/core/index.ts";
 import { IpcHeaders } from "dweb/core/ipc/index.ts";
 import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";

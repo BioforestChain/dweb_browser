@@ -23,17 +23,17 @@ import org.dweb_browser.sys.window.core.modal.WindowAlertController
 import org.dweb_browser.sys.window.core.modal.WindowBottomSheetsController
 import org.dweb_browser.sys.window.core.windowAdapterManager
 
-private val microModuleModalLocks = WeakHashMap<MicroModule, Mutex>()
+private val microModuleModalLocks = WeakHashMap<MicroModule.Runtime, Mutex>()
 private val microModuleModalLocksSyncObj = SynchronizedObject()
 
-val NativeMicroModule.modalLock: Mutex
+val NativeMicroModule.NativeRuntime.modalLock: Mutex
   get() = synchronized(microModuleModalLocksSyncObj) {
     microModuleModalLocks.getOrPut(
       this
     ) { Mutex() }
   }
 
-suspend fun NativeMicroModule.createBottomSheets(
+suspend fun NativeMicroModule.NativeRuntime.createBottomSheets(
   title: String? = null,
   iconUrl: String? = null,
   iconAlt: String? = null,
@@ -69,7 +69,7 @@ suspend fun NativeMicroModule.createBottomSheets(
   }
 }
 
-suspend fun NativeMicroModule.createAlert(
+suspend fun NativeMicroModule.NativeRuntime.createAlert(
   title: String,
   message: String,
   iconUrl: String? = null,

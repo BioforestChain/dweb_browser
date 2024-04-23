@@ -47,7 +47,7 @@ import org.dweb_browser.sys.window.render.watchedState
 internal fun BrowserMenuPanel(modifier: Modifier = Modifier) {
   val uiScope = rememberCoroutineScope()
   val viewModel = LocalBrowserViewModel.current
-  val scope = LocalBrowserViewModel.current.browserNMM.ioAsyncScope
+  val scope = LocalBrowserViewModel.current.browserNMM.getRuntimeScope()
 
   val hide = remember(viewModel) { { viewModel.showMore = false } }
   DropdownMenu(

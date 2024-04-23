@@ -11,7 +11,7 @@ import org.dweb_browser.sys.window.core.windowInstancesManager
  *
  * PS JsMicroModule 不支持改函数，因为我们不能在native侧直接发送fetch，需要js侧自己发起
  */
-suspend fun NativeMicroModule.openMainWindow() =
+suspend fun NativeMicroModule.NativeRuntime.openMainWindow() =
   nativeFetch("file://window.sys.dweb/openMainWindow").text().let { wid ->
     windowInstancesManager.get(wid)?.also {
       it.state.constants.microModule.value = this;
@@ -22,9 +22,9 @@ suspend fun NativeMicroModule.openMainWindow() =
 /**
  * 根据窗口ID获得窗口的实例
  */
-suspend fun MicroModule.getWindow(wid: UUID) =
+suspend fun MicroModule.Runtime.getWindow(wid: UUID) =
   windowInstancesManager.get(wid)?.also { it.state.constants.microModule.value = this }
     ?: throw Exception("fail to got window for $mmid, wid=$wid is invalid, maybe microModule not an application")
 
-suspend fun NativeMicroModule.getOrOpenMainWindow() = getWindow(getOrOpenMainWindowId())
-suspend fun NativeMicroModule.getMainWindow() = getWindow(getMainWindowId())
+suspend fun NativeMicroModule.NativeRuntime.getOrOpenMainWindow() = getWindow(getOrOpenMainWindowId())
+suspend fun NativeMicroModule.NativeRuntime.getMainWindow() = getWindow(getMainWindowId())

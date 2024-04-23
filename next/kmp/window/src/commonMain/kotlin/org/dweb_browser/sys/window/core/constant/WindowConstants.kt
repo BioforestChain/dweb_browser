@@ -35,5 +35,5 @@ data class WindowConstants(
    * 提供放的 mm 实例
    */
   @Transient
-  val microModule = mutableStateOf<MicroModule?>(null)
+  val microModule = mutableStateOf<MicroModule.Runtime?>(null)
 }

@@ -1,4 +1,4 @@
-import { ImageResource } from "../core/types.ts";
+import type { ImageResource } from "../core/types.ts";
 
 const PURPOSES = ["monochrome", "maskable", "any"] as const;
 export const strictImageResource = (img: ImageResource, baseUrl = document.baseURI) => {

@@ -10,7 +10,7 @@ import org.dweb_browser.pure.http.PureMethod
 /**
  * 打开系统文件选择器,limit取值范围 1~16
  */
-suspend fun MicroModule.openSystemFileChooser(
+suspend fun MicroModule.Runtime.openSystemFileChooser(
   mimeType: String, multiple: Boolean = false, limit: Int = 1
 ): List<String> {
   val requestUrl = buildUrlString("file://fs-picker.sys.dweb/open-file") {

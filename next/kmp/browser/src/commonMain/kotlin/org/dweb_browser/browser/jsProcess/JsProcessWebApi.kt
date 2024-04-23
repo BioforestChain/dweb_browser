@@ -1,31 +1,30 @@
 package org.dweb_browser.browser.jsProcess
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.browser.jmm.JsMicroModule
-import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.browser.kit.GlobalWebMessageEndpoint
 import org.dweb_browser.core.http.dwebHttpGatewayServer
-import org.dweb_browser.core.ipc.helper.IPC_ROLE
+import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.create
-import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
-import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
 import org.dweb_browser.helper.SafeInt
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.helper.withMainContext
 
 @Serializable
-data class ProcessInfo(val process_id: Int)
-class ProcessHandler(val info: ProcessInfo, var ipc: MessagePortIpc)
+data class ProcessInfo(@SerialName("process_id") val processId: Int, var portId: Int = -1)
+
+@Serializable
+data class CreateProcessReturn(val processToken: UUID, val portId: Int)
+
 data class RunProcessMainOptions(val main_url: String)
 class JsProcessWebApi(internal val dWebView: IDWebView) {
 
@@ -34,94 +33,158 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
    */
   private var hidAcc by SafeInt(1);
 
+  /**
+   * 创建一个jsWorker线程
+   */
   suspend fun createProcess(
-    env_script_url: String,
-    metadata_json: String,
-    env_json: String,
-    remoteModule: IMicroModuleManifest,
-    host: String
-  ): ProcessHandler {
+    processName: String,
+    envScriptUrl: String,
+    metadataJson: String,
+    envJson: String,
+  ): ProcessInfo {
+    debugJsProcess("createProcess") {
+      """
+      ---
+      processName=$processName
+      envScriptUrl=$envScriptUrl
+      metadataJson=$metadataJson
+      envJson=$envJson
+      ---
+      """.trimIndent()
+    }
     val channel = dWebView.createMessageChannel()
     val port1 = channel.port1
     val port2 = channel.port2
-    val metadata_json_str = Json.encodeToString(metadata_json)
-    val env_json_str = Json.encodeToString(env_json)
+    val metadataJsonStr = Json.encodeToString(metadataJson)
+    val envJsonStr = Json.encodeToString(envJson)
+    val processNameStr = Json.encodeToString(processName)
 
     val hid = hidAcc++
-    val processInfo_json = dWebView.evaluateAsyncJavascriptCode("""
-            new Promise((resolve,reject)=>{
-                addEventListener("message", async function doCreateProcess(event) {
-                    if (event.data === "js-process/create-process/$hid") {
-                     try{
-                        removeEventListener("message", doCreateProcess);
-                        const fetch_port = event.ports[0];
-                        resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`,`{"jsMicroModule":"${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"}, ${dwebHttpGatewayServer.startServer()}`))
-                        }catch(err){
-                            reject(err)
-                        }
-                    }
-                })
-            })
-            """.trimIndent(), afterEval = {
+    val processInfoJson = dWebView.evaluateAsyncJavascriptCode("""
+      new Promise((resolve,reject)=>{
+          addEventListener("message", async function doCreateProcess(event) {
+              if (event.data === "js-process/create-process/$hid") {
+               try{
+                  removeEventListener("message", doCreateProcess);
+                  const fetch_port = event.ports[0];
+                  resolve(await createProcess($processNameStr,`$envScriptUrl`,$metadataJsonStr,$envJsonStr,fetch_port,${dwebHttpGatewayServer.startServer()}))
+                  }catch(err){
+                      reject(err)
+                  }
+              }
+          })
+      })
+      """.trimIndent(), afterEval = {
       try {
         dWebView.postMessage("js-process/create-process/$hid", listOf(port1))
       } catch (e: Exception) {
         e.printStackTrace()
       }
     })
-    debugJsProcess("processInfo", processInfo_json)
-    val info = Json.decodeFromString<ProcessInfo>(processInfo_json)
-    val ipc = MessagePortIpc.from(port2, remoteModule, IPC_ROLE.CLIENT)
-    return ProcessHandler(info, ipc)
+    debugJsProcess("processInfo", processInfoJson)
+    val info = Json.decodeFromString<ProcessInfo>(processInfoJson)
+    info.portId = GlobalWebMessageEndpoint(port2, "fetch-ipc-$processName").globalId
+    return info
   }
 
-  suspend fun createIpcFail(
-    process_id: String,
-    mmid: String,
-    reason: String
+  suspend fun runProcessMain(processId: Int, options: RunProcessMainOptions) {
+    dWebView.evaluateAsyncJavascriptCode(
+      "runProcessMain($processId, { main_url:`${options.main_url}` })"
+    )
+  }
+
+  suspend fun destroyProcess(processId: Int) {
+    runCatching {
+      dWebView.evaluateAsyncJavascriptCode(
+        "destroyProcess($processId)"
+      )
+    }.getOrNull()
+  }
+
+  /**
+   * 创建一对 ipc-endpoint，并同时将其中一个 endpoint 用来创建ipc，剩下的这个endpoint用来返回
+   */
+  suspend fun createIpcEndpoint(
+    processId: Int,
+    manifestJson: String,
+    debugIdPrefix: String,
+    autoStart: Boolean? = null,
+  ) =
+    withMainContext {
+      val channel = dWebView.createMessageChannel()
+      createJsIpc(processId, channel.port1, manifestJson, autoStart)
+      GlobalWebMessageEndpoint(channel.port2, debugIdPrefix)
+    }
+
+  /**
+   * 提供指定的endpoint，在 js 中创建一个 ipc
+   */
+  suspend fun createJsIpc(
+    processId: Int,
+    port: IWebMessagePort,
+    manifestJson: String,
+    autoStart: Boolean? = null,
   ) {
-    dWebView.evaluateAsyncJavascriptCode(
-      """createIpcFail(`$process_id`,`$mmid`,`${reason}`)"""
-    )
-  }
-
-  suspend fun runProcessMain(process_id: Int, options: RunProcessMainOptions) {
-    dWebView.evaluateAsyncJavascriptCode(
-      "runProcessMain($process_id, { main_url:`${options.main_url}` })"
-    )
-  }
-
-  suspend fun destroyProcess(process_id: Int) {
-    dWebView.evaluateAsyncJavascriptCode(
-      "destroyProcess($process_id)"
-    )
-  }
-
-  suspend fun createIpc(process_id: Int, mmid: MMID) = withContext(Dispatchers.Main) {
-    val channel = dWebView.createMessageChannel()
-    val port1 = channel.port1
-    val port2 = channel.port2
-    val jsIpcPortId = saveNative2JsIpcPort(port2)
-    val hid = hidAcc++
-    dWebView.evaluateAsyncJavascriptCode("""
+    withMainContext {
+      val hid = hidAcc++
+      dWebView.evaluateAsyncJavascriptCode("""
         new Promise((resolve,reject)=>{
+            const prefix = "js-process/create-ipc/$hid:"
             addEventListener("message", async function doCreateIpc(event) {
-                if (event.data === "js-process/create-ipc/$hid") {
+                if (event.data.startsWith(prefix)) {
+                  const manifest_json = event.data.slice(prefix.length);
                   try{
-                    removeEventListener("message", doCreateIpc);
-                    const ipc_port = event.ports[0];
-                    resolve(await createIpc($process_id, `$mmid`, ipc_port))
-                    }catch(err){
-                        reject(err)
-                    }
+                      removeEventListener("message", doCreateIpc);
+                      const ipc_port = event.ports[0];
+                      resolve(await createIpc($processId, manifest_json, ipc_port, ${autoStart ?: "undefined"}))
+                  } catch (err) {
+                      reject(err)
+                  }
                 }
             })
         })
         """.trimIndent(), afterEval = {
-      dWebView.postMessage("js-process/create-ipc/$hid", listOf(port1))
-    })
-    jsIpcPortId
+        dWebView.postMessage("js-process/create-ipc/$hid:$manifestJson", listOf(port))
+      })
+    }
   }
+//
+//  // 桥接两个worker
+//  suspend fun bridgeIpc(process_id: Int, fromMMid: MMID, toMMid: MMID) =
+//    withContext(Dispatchers.Main) {
+//      val channel = dWebView.createMessageChannel()
+//      val port1 = channel.port1
+//      val port2 = channel.port2
+//      val fromHid = hidAcc++
+//      val toHid = hidAcc++
+//      dWebView.evaluateAsyncJavascriptCode("""
+//        new Promise((resolve,reject)=>{
+//            addEventListener("message", async function doCreateIpc(event) {
+//                if (event.data === "js-process/create-ipc/$fromHid") {
+//                  try{
+//                    removeEventListener("message", doCreateIpc);
+//                    const ipc_port = event.ports[0];
+//                    resolve(await createIpc($process_id, `$fromMMid`, ipc_port))
+//                    }catch(err){
+//                        reject(err)
+//                    }
+//                } else if (event.data === "js-process/bridge-ipc/$toHid") {
+//                  try{
+//                    removeEventListener("message", doCreateIpc);
+//                    const ipc_port = event.ports[0];
+//                    resolve(await bridgeIpc(`$toMMid`, ipc_port))
+//                    }catch(err){
+//                        reject(err)
+//                    }
+//                }
+//            })
+//        })
+//        """.trimIndent(), afterEval = {
+//        dWebView.postMessage("js-process/create-ipc/$fromHid", listOf(port1))
+//        dWebView.postMessage("js-process/bridge-ipc/$toHid", listOf(port2))
+//      })
+//      return@withContext true
+//    }
 
 
   suspend fun destroy() {
@@ -133,17 +196,22 @@ class JsProcessWebApi(internal val dWebView: IDWebView) {
 
 
 suspend fun createJsProcessWeb(
-  mainServer: HttpDwebServer,
-  mm: NativeMicroModule
+  mainServer: HttpDwebServer, mm: NativeMicroModule.NativeRuntime,
 ): JsProcessWebApi {
+  debugJsProcess("createJsProcessWeb")
   /// WebView 实例
   val urlInfo = mainServer.startResult.urlInfo
 
   val jsProcessUrl = urlInfo.buildInternalUrl().build { resolvePath("/index.html") }.toString()
-  val dWebView = IDWebView.create(mm, DWebViewOptions(privateNet = true))
+  val dWebView = IDWebView.create(
+    mm, DWebViewOptions(
+      privateNet = true,
+      // openDevTools = true,
+      enabledOffScreenRender = true
+    )
+  )
+  // 等待加载完成
   dWebView.loadUrl(jsProcessUrl)
-  // 监听打开开发者工具事件
-  listenOpenDevTool(dWebView, mm.ioAsyncScope)
   /// 确保API可用
   while (dWebView.evaluateAsyncJavascriptCode("typeof createProcess==='function'") == "false") {
     delay(5)
@@ -151,8 +219,3 @@ suspend fun createJsProcessWeb(
 
   return JsProcessWebApi(dWebView)
 }
-
-/**
- *  桌面端监听打开开发者工具事件
- */
-expect fun listenOpenDevTool(dWebView: IDWebView, scope: CoroutineScope)

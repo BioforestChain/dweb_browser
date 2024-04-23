@@ -70,7 +70,7 @@ internal fun BoxScope.BottomDownloadButton() {
     }
 
     ElevatedButton(
-      onClick = produceEvent(jmmState, scope = jmmInstallerController.jmmNMM.ioAsyncScope) {
+      onClick = produceEvent(jmmState, scope = jmmInstallerController.jmmNMM.getRuntimeScope()) {
         when (jmmState.state) {
           JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceled -> {
             jmmInstallerController.createAndStartDownload()

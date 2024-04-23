@@ -12,7 +12,6 @@ import org.dweb_browser.pure.http.HttpPureServer
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureBinaryFrame
 import org.dweb_browser.pure.http.PureChannel
-import org.dweb_browser.pure.http.PureCloseFrame
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureTextFrame
@@ -48,9 +47,8 @@ internal class OffscreenWebCanvasMessageChannel {
               return@apply
             }
             when (frame) {
-              is PureBinaryFrame -> onMessageSignal.emit(ChannelMessage(binary = frame.data))
-              is PureTextFrame -> onMessageSignal.emit(ChannelMessage(text = frame.data))
-              is PureCloseFrame -> break
+              is PureBinaryFrame -> onMessageSignal.emit(ChannelMessage(binary = frame.binary))
+              is PureTextFrame -> onMessageSignal.emit(ChannelMessage(text = frame.text))
             }
           }
         }
@@ -98,7 +96,7 @@ internal class OffscreenWebCanvasMessageChannel {
 
   suspend fun postMessage(message: String) {
     val session = this.session ?: dataChannel.await()
-    session.afterStart().sendText(message)
+    session.start().sendText(message)
   }
 
   suspend fun close() {

@@ -29,7 +29,7 @@ data class NotificationWebItem(
 }
 
 expect class NotificationManager() {
-  suspend fun createNotification(microModule: MicroModule, message: NotificationWebItem)
+  suspend fun createNotification(microModule: MicroModule.Runtime, message: NotificationWebItem)
 //  fun updateNotification()
 //  fun cancelNotification()
 }

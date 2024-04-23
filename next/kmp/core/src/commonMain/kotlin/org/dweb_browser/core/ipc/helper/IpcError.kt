@@ -1,12 +1,13 @@
 package org.dweb_browser.core.ipc.helper
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+@SerialName(IPC_MESSAGE_TYPE_ERROR)
 data class IpcError(
-  val channelId: Int,
   val errorCode: Int,
-  val message: String = "",
-) : IpcMessage(IPC_MESSAGE_TYPE.ERROR) {
-  override fun toString() = "IpcError(channelId=$channelId,errorCode=$errorCode,message=$message)"
+  val message: String? = null,
+) : IpcRawMessage, IpcMessage {
+  override fun toString() = "IpcError(errorCode=$errorCode,message=$message)"
 }

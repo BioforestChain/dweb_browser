@@ -39,21 +39,21 @@ actual class MediaCaptureManage actual constructor() {
   }
 
   @SuppressLint("Recycle")
-  actual suspend fun takePicture(microModule: MicroModule): PureStream? =
+  actual suspend fun takePicture(microModule: MicroModule.Runtime): PureStream? =
     MediaCaptureActivity.launchAndroidTakePicture(microModule)?.let { uri ->
       val inputStream = getAppContext().contentResolver.openInputStream(uri)
       inputStream?.let { PureStream(it.toByteReadChannel()) }
     }
 
   @SuppressLint("Recycle")
-  actual suspend fun captureVideo(microModule: MicroModule): PureStream? =
+  actual suspend fun captureVideo(microModule: MicroModule.Runtime): PureStream? =
     MediaCaptureActivity.launchAndroidCaptureVideo(microModule)?.let { uri ->
       val inputStream = getAppContext().contentResolver.openInputStream(uri)
       inputStream?.let { PureStream(it.toByteReadChannel()) }
     }
 
   @SuppressLint("Recycle")
-  actual suspend fun recordSound(microModule: MicroModule): PureStream? =
+  actual suspend fun recordSound(microModule: MicroModule.Runtime): PureStream? =
     MediaCaptureActivity.launchAndroidRecordSound(microModule)?.let { uri ->
       val inputStream = getAppContext().contentResolver.openInputStream(uri)
       inputStream?.let { PureStream(it.toByteReadChannel()) }

@@ -6,167 +6,150 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.plus
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.helper.CborLoose
-import org.dweb_browser.helper.JsonLoose
-import org.dweb_browser.helper.printError
 import org.dweb_browser.pure.http.PureHeaders
 
-object IpcMessageConst {
-  @OptIn(ExperimentalSerializationApi::class)
-  val closeCborByteArray = CborLoose.encodeToByteArray("close")
-  val closeByteArray = "close".encodeToByteArray()
-
-  @OptIn(ExperimentalSerializationApi::class)
-  val pingCborByteArray = CborLoose.encodeToByteArray("ping")
-  val pingByteArray = "ping".encodeToByteArray()
-
-  @OptIn(ExperimentalSerializationApi::class)
-  val pongCborByteArray = CborLoose.encodeToByteArray("pong")
-  val pongByteArray = "pong".encodeToByteArray()
+val moduleIpc = SerializersModule {
+  polymorphic(IpcRawMessage::class) {
+    subclass(IpcLifecycle::class)
+    subclass(IpcReqMessage::class)
+    subclass(IpcResMessage::class)
+    subclass(IpcStreamPulling::class)
+    subclass(IpcStreamPaused::class)
+    subclass(IpcStreamEnd::class)
+    subclass(IpcStreamAbort::class)
+    subclass(IpcError::class)
+    subclass(IpcFork::class)
+  }
+  polymorphic(IpcLifecycleState::class) {
+    subclass(IpcLifecycleInit::class)
+    subclass(IpcLifecycleOpening::class)
+    subclass(IpcLifecycleOpened::class)
+    subclass(IpcLifecycleClosing::class)
+    subclass(IpcLifecycleClosed::class)
+  }
+  polymorphic(EndpointLifecycleState::class) {
+    subclass(EndpointLifecycleInit::class)
+    subclass(EndpointLifecycleOpening::class)
+    subclass(EndpointLifecycleOpened::class)
+    subclass(EndpointLifecycleClosing::class)
+    subclass(EndpointLifecycleClosed::class)
+  }
+  polymorphic(EndpointRawMessage::class) {
+    subclass(EndpointIpcRawMessage::class)
+    subclass(EndpointLifecycle::class)
+  }
 }
 
-fun bytesToIpcMessage(data: ByteArray, ipc: Ipc): Any {
-  if (data.contentEquals(IpcMessageConst.closeByteArray) || data.contentEquals(IpcMessageConst.pingByteArray) || data.contentEquals(
-      IpcMessageConst.pongByteArray
-    )
-  ) {
-    return data
-  }
-
-  return jsonToIpcMessage(data.decodeToString(), ipc)
-}
-
-/***
- * 用于cbor解析type属于何种类型
- * 原因：无法使用IpcMessage，因为IpcMessage是密封类，无法直接构造
- */
-private class IpcMessageType(val type: IPC_MESSAGE_TYPE)
-
-@OptIn(ExperimentalSerializationApi::class)
-fun cborToIpcMessage(data: ByteArray, ipc: Ipc): Any {
-  if (data.contentEquals(IpcMessageConst.closeCborByteArray) || data.contentEquals(IpcMessageConst.pingCborByteArray) || data.contentEquals(
-      IpcMessageConst.pongCborByteArray
-    )
-  ) {
-    return data
-  }
-
-  try {
-    val ipcMessage = CborLoose.decodeFromByteArray<IpcMessageType>(data)
-    return when (ipcMessage.type) {
-      IPC_MESSAGE_TYPE.REQUEST -> Cbor.decodeFromByteArray<IpcReqMessage>(data).let {
-        // 这里是指接收到数据而反序列化出 IpcRequest，所以不是发起者，而是响应者，因此是 IpcServerRequest
-        IpcServerRequest(
-          it.req_id,
-          it.url,
-          it.method,
-          PureHeaders(it.headers),
-          IpcBodyReceiver.from(it.metaBody, ipc),
-          ipc
-        )
-      }
-
-      IPC_MESSAGE_TYPE.RESPONSE -> Cbor.decodeFromByteArray<IpcResMessage>(data).let {
-        IpcResponse(
-          it.req_id,
-          it.statusCode,
-          PureHeaders(it.headers),
-          IpcBodyReceiver.from(it.metaBody, ipc),
-          ipc
-        )
-      }
-
-      IPC_MESSAGE_TYPE.EVENT -> Cbor.decodeFromByteArray<IpcEvent>(data)
-      IPC_MESSAGE_TYPE.STREAM_DATA -> Cbor.decodeFromByteArray<IpcStreamData>(data)
-      IPC_MESSAGE_TYPE.STREAM_PULL -> Cbor.decodeFromByteArray<IpcStreamPulling>(data)
-      IPC_MESSAGE_TYPE.STREAM_PAUSED -> Cbor.decodeFromByteArray<IpcStreamPaused>(data)
-      IPC_MESSAGE_TYPE.STREAM_END -> Cbor.decodeFromByteArray<IpcStreamEnd>(data)
-      IPC_MESSAGE_TYPE.STREAM_ABORT -> Cbor.decodeFromByteArray<IpcStreamAbort>(data)
-      IPC_MESSAGE_TYPE.LIFE_CYCLE -> Cbor.decodeFromByteArray<IpcLifeCycle>(data)
-      IPC_MESSAGE_TYPE.ERROR -> Cbor.decodeFromByteArray<IpcError>(data)
+val JsonIpc = Json {
+  encodeDefaults = true
+  ignoreUnknownKeys = true
+  serializersModule = moduleIpc + SerializersModule {
+    polymorphic(IpcRawMessage::class) {
+      subclass(IpcEventRawString::class)
+      subclass(IpcStreamDataRawString::class)
     }
-  } catch (e: Exception) {
-    return data
   }
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-fun ipcMessageToCbor(data: IpcMessage) = when (data) {
-  is IpcRequest -> Cbor.encodeToByteArray<IpcReqMessage>(data.ipcReqMessage)
-  is IpcResponse -> Cbor.encodeToByteArray<IpcResMessage>(data.ipcResMessage)
-  is IpcStreamData -> Cbor.encodeToByteArray<IpcStreamData>(data)
-  is IpcEvent -> Cbor.encodeToByteArray<IpcEvent>(data)
-  is IpcEventJsonAble -> Cbor.encodeToByteArray<IpcEventJsonAble>(data)
-  is IpcReqMessage -> Cbor.encodeToByteArray<IpcReqMessage>(data)
-  is IpcResMessage -> Cbor.encodeToByteArray<IpcResMessage>(data)
-  is IpcStreamAbort -> Cbor.encodeToByteArray<IpcStreamAbort>(data)
-  is IpcStreamDataJsonAble -> Cbor.encodeToByteArray<IpcStreamDataJsonAble>(data)
-  is IpcStreamEnd -> Cbor.encodeToByteArray<IpcStreamEnd>(data)
-  is IpcStreamPaused -> Cbor.encodeToByteArray<IpcStreamPaused>(data)
-  is IpcStreamPulling -> Cbor.encodeToByteArray<IpcStreamPulling>(data)
-  is IpcLifeCycle -> Cbor.encodeToByteArray<IpcLifeCycle>(data)
-  is IpcError -> Cbor.encodeToByteArray<IpcError>(data)
-}
-
-fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
-  if (data == "close" || data == "ping" || data == "pong") {
-    return data
-  }
-
-  try {
-    val typeInfo = Regex(""""type"\s*:\s*(\d+)""").find(data) ?: return data
-    return when (JsonLoose.decodeFromString<IPC_MESSAGE_TYPE>(typeInfo.groupValues[1])) {
-      IPC_MESSAGE_TYPE.REQUEST -> Json.decodeFromString<IpcReqMessage>(data).let {
-        // 这里是指接收到数据而反序列化出 IpcRequest，所以不是发起者，而是响应者，因此是 IpcServerRequest
-        IpcServerRequest(
-          it.req_id,
-          it.url,
-          it.method,
-          PureHeaders(it.headers),
-          IpcBodyReceiver.from(it.metaBody, ipc),
-          ipc
-        )
-      }
-
-      IPC_MESSAGE_TYPE.RESPONSE -> Json.decodeFromString<IpcResMessage>(data).let {
-        IpcResponse(
-          it.req_id,
-          it.statusCode,
-          PureHeaders(it.headers),
-          IpcBodyReceiver.from(it.metaBody, ipc),
-          ipc
-        )
-      }
-
-      IPC_MESSAGE_TYPE.EVENT -> Json.decodeFromString<IpcEvent>(data)
-      IPC_MESSAGE_TYPE.STREAM_DATA -> Json.decodeFromString<IpcStreamData>(data)
-      IPC_MESSAGE_TYPE.STREAM_PULL -> Json.decodeFromString<IpcStreamPulling>(data)
-      IPC_MESSAGE_TYPE.STREAM_PAUSED -> Json.decodeFromString<IpcStreamPaused>(data)
-      IPC_MESSAGE_TYPE.STREAM_END -> Json.decodeFromString<IpcStreamEnd>(data)
-      IPC_MESSAGE_TYPE.STREAM_ABORT -> Json.decodeFromString<IpcStreamAbort>(data)
-      IPC_MESSAGE_TYPE.LIFE_CYCLE -> Json.decodeFromString<IpcLifeCycle>(data)
-      IPC_MESSAGE_TYPE.ERROR -> Json.decodeFromString<IpcError>(data)
+val CborIpc = Cbor {
+  encodeDefaults = true
+  ignoreUnknownKeys = true
+  serializersModule = moduleIpc + SerializersModule {
+    polymorphic(IpcRawMessage::class) {
+      subclass(IpcEventRawBinary::class)
+      subclass(IpcStreamDataRawBinary::class)
     }
-  } catch (e: Exception) {
-    printError("jsonToIpcMessage=>",e.message)
-    return data
   }
 }
 
-fun ipcMessageToJson(data: IpcMessage) = when (data) {
-  is IpcRequest -> Json.encodeToString(data.ipcReqMessage)
-  is IpcResponse -> Json.encodeToString(data.ipcResMessage)
-  is IpcStreamData -> Json.encodeToString(data.jsonAble)
-  is IpcEvent -> Json.encodeToString(data.jsonAble)
-  is IpcEventJsonAble -> Json.encodeToString(data)
-  is IpcReqMessage -> Json.encodeToString(data)
-  is IpcResMessage -> Json.encodeToString(data)
-  is IpcStreamAbort -> Json.encodeToString(data)
-  is IpcStreamDataJsonAble -> Json.encodeToString(data)
-  is IpcStreamEnd -> Json.encodeToString(data)
-  is IpcStreamPaused -> Json.encodeToString(data)
-  is IpcStreamPulling -> Json.encodeToString(data)
-  is IpcLifeCycle -> Json.encodeToString(data)
-  is IpcError -> Json.encodeToString(data)
+@OptIn(ExperimentalSerializationApi::class)
+inline fun cborToEndpointMessage(data: ByteArray) =
+  CborIpc.decodeFromByteArray<EndpointRawMessage>(data)
+
+inline fun jsonToEndpointMessage(data: String) = JsonIpc.decodeFromString<EndpointRawMessage>(data)
+
+@OptIn(ExperimentalSerializationApi::class)
+fun endpointMessageToCbor(message: EndpointMessage) =
+  CborIpc.encodeToByteArray<EndpointRawMessage>(message.toEndpointRawMessage(true))
+
+fun endpointMessageToJson(message: EndpointMessage) =
+  JsonIpc.encodeToString<EndpointRawMessage>(message.toEndpointRawMessage(false))
+
+fun IpcRawMessage.toIpcMessage(ipc: Ipc): IpcMessage {
+  return when (val raw = this) {
+    is IpcReqMessage -> IpcServerRequest(
+      raw.reqId,
+      raw.url,
+      raw.method,
+      PureHeaders(raw.headers),
+      IpcBodyReceiver.from(raw.metaBody, ipc),
+      ipc
+    )
+
+    is IpcResMessage -> IpcResponse(
+      raw.reqId,
+      raw.statusCode,
+      PureHeaders(raw.headers),
+      IpcBodyReceiver.from(raw.metaBody, ipc),
+      ipc
+    )
+
+    is IpcError -> raw
+    is IpcEventRawString -> raw.toIpcEvent()
+    is IpcEventRawBinary -> raw.toIpcEvent()
+    is IpcFork -> raw
+    is IpcLifecycle -> raw
+    is IpcStreamAbort -> raw
+    is IpcStreamDataRawString -> raw.toIpcStreamData()
+    is IpcStreamDataRawBinary -> raw.toIpcStreamData()
+    is IpcStreamEnd -> raw
+    is IpcStreamPaused -> raw
+    is IpcStreamPulling -> raw
+  }
 }
+
+fun IpcMessage.toIpcRawMessage(binary: Boolean): IpcRawMessage {
+  return when (val msg = this) {
+    is IpcError -> msg
+    is IpcEvent -> msg.asRawAble(binary)
+    is IpcFork -> msg
+    is IpcLifecycle -> msg
+    is IpcClientRequest -> msg.asRawAble(binary)
+    is IpcServerRequest -> msg.asRawAble(binary)
+    is IpcResponse -> msg.asRawAble(binary)
+    is IpcStreamAbort -> msg
+    is IpcStreamData -> msg.asRawAble(binary)
+    is IpcStreamEnd -> msg
+    is IpcStreamPaused -> msg
+    is IpcStreamPulling -> msg
+  }
+}
+
+interface RawAble<T : Any> {
+  val stringAble: T
+  val binaryAble get() = stringAble
+  fun asRawAble(binary: Boolean) = when {
+    binary -> binaryAble
+    else -> stringAble
+  }
+}
+
+fun EndpointMessage.toEndpointRawMessage(binary: Boolean): EndpointRawMessage =
+  when (val msg = this) {
+    is EndpointIpcMessage -> msg.asRawAble(binary)
+    is EndpointLifecycle -> msg
+  }
+
+//fun EndpointRawMessage.toEndpointMessage(ipc: Ipc): EndpointMessage = when (val raw = this) {
+//  is EndpointIpcRawMessage -> raw.toEndpointMessage(ipc)
+//  is EndpointLifecycle -> raw
+//}
+
+
+//fun ipcMessageToJson(data: IpcMessage) = JsonIpc.encodeToString(data)

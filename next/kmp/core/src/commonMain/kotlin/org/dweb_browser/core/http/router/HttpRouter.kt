@@ -21,7 +21,7 @@ import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureRequest
 import org.dweb_browser.pure.http.PureResponse
 
-class HttpRouter(private val mm: MicroModule, val host: String) {
+class HttpRouter(private val mm: MicroModule.Runtime, val host: String) {
   private val routes = mutableMapOf<IRoute, HttpHandlerChain>()
 
   /**
@@ -54,7 +54,7 @@ class HttpRouter(private val mm: MicroModule, val host: String) {
       !(status.any { it != AuthorizationStatus.GRANTED }) // 如果有任何权限是非授权的，返回 false
     }
 
-  suspend fun addRoutes(vararg list: RouteHandler) {
+  fun addRoutes(vararg list: RouteHandler) {
     list.forEach { routeHandler ->
       val permissionIds =
         if (routeHandler.route.pathname == null) listOf() else mm.dweb_permissions.filter { permission ->
@@ -66,7 +66,11 @@ class HttpRouter(private val mm: MicroModule, val host: String) {
         }.map { it.pid.toString() }
       routes[routeHandler.route] = if (permissionIds.isNotEmpty()) {
         HttpHandlerChain {
-          if (!checkPermission(permissionIds, ipc.remote.mmid)) { // permissionIds 包含了 dweb_permissions 中所有的需要授权的 pid 列表
+          if (!checkPermission(
+              permissionIds,
+              ipc.remote.mmid
+            )
+          ) { // permissionIds 包含了 dweb_permissions 中所有的需要授权的 pid 列表
             return@HttpHandlerChain PureResponse(
               HttpStatusCode.Unauthorized,
               body = IPureBody.Companion.from(permissionIds.joinToString(",")) // 返回需要授权的 permissionIds
@@ -187,7 +191,11 @@ class HttpRouter(private val mm: MicroModule, val host: String) {
 }
 
 
-data class RouteHandler(val route: IRoute, val handler: HttpHandlerChain)
+data class RouteHandler(val route: IRoute, val handler: HttpHandlerChain) {
+  init {
+    handler.ctx?.addRoutes(this)
+  }
+}
 
 infix fun String.bind(method: PureMethod) =
   CommonRoute(pathname = this, method = method, matchMode = MatchMode.FULL)
@@ -209,7 +217,7 @@ infix fun String.byPrefix(action: HttpHandlerChain) =
   RouteHandler(PathRoute(this, MatchMode.PREFIX), action)
 
 infix fun String.byChannel(
-  by: suspend IChannelHandlerContext.(PureChannelContext) -> Unit
+  by: suspend IChannelHandlerContext.(PureChannelContext) -> Unit,
 ) = RouteHandler(
   DuplexRoute(this, MatchMode.FULL),
   HttpHandlerChain {

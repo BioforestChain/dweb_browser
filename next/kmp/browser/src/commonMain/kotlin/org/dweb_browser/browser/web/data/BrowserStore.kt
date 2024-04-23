@@ -41,7 +41,7 @@ enum class WebSiteType(val id: Int) {
 
 const val KEY_NO_TRACE = "browser.no.trace" // 无痕浏览
 
-class BrowserStore(mm: MicroModule) {
+class BrowserStore(mm: MicroModule.Runtime) {
   private val storeBookKey = "browser/links"
   private val storeEngineKey = "SearchEngines"
   private val storeBook = mm.createStore("browser_book", false)

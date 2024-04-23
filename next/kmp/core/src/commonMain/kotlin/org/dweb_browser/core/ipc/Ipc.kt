@@ -1,424 +1,430 @@
 package org.dweb_browser.core.ipc
 
 import io.ktor.http.Url
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.help.types.IMicroModuleManifest
+import kotlinx.coroutines.plus
+import org.dweb_browser.core.help.types.MicroModuleManifest
+import org.dweb_browser.core.ipc.helper.EndpointIpcMessage
 import org.dweb_browser.core.ipc.helper.IpcClientRequest
-import org.dweb_browser.core.ipc.helper.IpcClientRequest.Companion.toIpc
 import org.dweb_browser.core.ipc.helper.IpcError
-import org.dweb_browser.core.ipc.helper.IpcErrorMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
-import org.dweb_browser.core.ipc.helper.IpcLifeCycle
-import org.dweb_browser.core.ipc.helper.IpcLifeCycleMessageArgs
+import org.dweb_browser.core.ipc.helper.IpcFork
+import org.dweb_browser.core.ipc.helper.IpcLifecycle
+import org.dweb_browser.core.ipc.helper.IpcLifecycleClosed
+import org.dweb_browser.core.ipc.helper.IpcLifecycleClosing
+import org.dweb_browser.core.ipc.helper.IpcLifecycleInit
+import org.dweb_browser.core.ipc.helper.IpcLifecycleOpened
+import org.dweb_browser.core.ipc.helper.IpcLifecycleOpening
 import org.dweb_browser.core.ipc.helper.IpcMessage
-import org.dweb_browser.core.ipc.helper.IpcMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcRequest
-import org.dweb_browser.core.ipc.helper.IpcRequestMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcResponse
-import org.dweb_browser.core.ipc.helper.IpcResponseMessageArgs
 import org.dweb_browser.core.ipc.helper.IpcServerRequest
 import org.dweb_browser.core.ipc.helper.IpcStream
-import org.dweb_browser.core.ipc.helper.IpcStreamMessageArgs
-import org.dweb_browser.core.ipc.helper.OnIpcErrorMessage
-import org.dweb_browser.core.ipc.helper.OnIpcEventMessage
-import org.dweb_browser.core.ipc.helper.OnIpcLifeCycleMessage
-import org.dweb_browser.core.ipc.helper.OnIpcMessage
-import org.dweb_browser.core.ipc.helper.OnIpcRequestMessage
-import org.dweb_browser.core.ipc.helper.OnIpcResponseMessage
-import org.dweb_browser.core.ipc.helper.OnIpcStreamMessage
-import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.ipc.helper.toIpc
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.DeferredSignal
+import org.dweb_browser.helper.Producer
 import org.dweb_browser.helper.SafeHashMap
-import org.dweb_browser.helper.SafeInt
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.SafeLinkList
+import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.WARNING
+import org.dweb_browser.helper.asProducer
+import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.traceTimeout
+import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.helper.withScope
 import org.dweb_browser.pure.http.IPureBody
 import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.pure.http.PureResponse
 
-val debugIpc = Debugger("ipc")
 
-abstract class Ipc {
+class Ipc internal constructor(
+  val pid: Int,
+  val endpoint: IpcEndpoint,
+  val locale: MicroModuleManifest,
+  val remote: MicroModuleManifest,
+  val pool: IpcPool,
+  val debugId: String = "${endpoint.debugId}/$pid",
+) {
+  val debugIpc by lazy { Debugger(this.toString()) }
+
   companion object {
-    private var uid_acc by SafeInt(1)
-    private var req_id_acc by SafeInt(0)
-    var order_by_acc by SafeInt(0)
-    private val ipcMessageCoroutineScope =
-      CoroutineScope(CoroutineName("ipc-message") + ioAsyncExceptionHandler)
+    private val reqIdAcc = atomic(0)
   }
 
-  val uid = uid_acc++
+  private val job = SupervisorJob()
+  val scope = endpoint.scope + job
+
+  override fun toString() = "Ipc@$debugId"
 
   /**
-   * 是否支持 cbor 协议传输：
-   * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 cbor 的编解码
+   * 这部分得放最前面，因为有些地方需要立刻使用 onClosed
    */
-  open val supportCbor: Boolean = false
+
+  //#region close
+
+  private val closeDeferred = CompletableDeferred<CancellationException?>()
+
+  val isClosed get() = closeDeferred.isCompleted
 
   /**
-   * 是否支持 Protobuf 协议传输：
-   * 需要同时满足两个条件：通道支持直接传输二进制；通达支持 Protobuf 的编解码
+   * 等待ipc关闭之后
+   *
+   * 对比 onBeforeClose ，该函数不在 ipc scope
    */
-  open val supportProtobuf: Boolean = false
+  suspend fun awaitClosed() = closeDeferred.await()
+
+  val onClosed = DeferredSignal(closeDeferred)
+
+  // 开始触发关闭事件
+  suspend fun close(cause: CancellationException? = null) = scope.isActive.trueAlso {
+    closeOnce(cause)
+  }
 
   /**
-   * 是否支持结构化内存协议传输：
-   * 就是说不需要对数据手动序列化反序列化，可以直接传输内存对象
+   * 长任务，需要全部完成才能结束ipcEndpoint
    */
-  open val supportRaw: Boolean = false
+  val launchJobs = SafeLinkList<Job>()
 
-  /** 是否支持 二进制 传输 */
-  open val supportBinary: Boolean = false // get() = supportCbor || supportProtobuf
-
-  abstract val remote: IMicroModuleManifest
-
-  fun remoteAsInstance() = if (remote is MicroModule) remote as MicroModule else null
-
-
-  abstract val role: String
-
-  override fun toString() = "Ipc@$uid<${remote.mmid}>"
-
-  suspend fun postMessage(message: IpcMessage) {
-    if (this._closed) {
-      debugIpc("fail to post message, already closed")
-      return
+  private val closeOnce = SuspendOnce1 { cause: CancellationException? ->
+    if (scope.coroutineContext[Job] == coroutineContext[Job]) {
+      WARNING("close ipc by self. maybe leak.")
     }
-    this._doPostMessage(message)
+    debugIpc("closing", cause)
+    val reason = cause?.message
+    IpcLifecycle(IpcLifecycleClosing(reason)).also { closing ->
+      lifecycleLocaleFlow.emit(closing)
+      sendLifecycleToRemote(closing)
+    }
+    messageProducer.producer.close(cause)
+    closeDeferred.complete(cause)
+    IpcLifecycle(IpcLifecycleClosed(reason)).also { closed ->
+      lifecycleLocaleFlow.emit(closed)
+      runCatching { sendLifecycleToRemote(closed) }.getOrNull()
+    }
+    traceTimeout(1000, { this@Ipc }) {
+      launchJobs.joinAll()
+    }
+    scope.cancel(cause)
+    debugIpc("closed", cause)
+  }
+  //#endregion
+
+  /**
+   * 消息生产者，所有的消息在这里分发出去
+   */
+  private val messageProducer = endpoint.getIpcMessageProducer(this)
+  fun onMessage(name: String) = messageProducer.producer.consumer(name)
+
+  //#region 生命周期相关的
+  private val lifecycleLocaleFlow = MutableStateFlow(
+    IpcLifecycle(IpcLifecycleInit(pid, locale.toCommonAppManifest(), remote.toCommonAppManifest()))
+  )
+
+  private val lifecycleRemoteFlow = onMessage("ipc-lifecycle-remote#$pid").mapNotNull { event ->
+    event.consumeAs<IpcLifecycle>()
   }
 
-  suspend fun postResponse(req_id: Int, response: PureResponse) {
+  val lifecycle get() = lifecycleLocaleFlow.value
+  val onLifecycle = lifecycleLocaleFlow.stateIn(scope, SharingStarted.Eagerly, lifecycle)
+
+
+  // 标记ipc通道是否激活
+  val isActivity get() = endpoint.isActivity
+
+  suspend fun awaitOpen(reason: String? = null) = when (val state = lifecycle.state) {
+    is IpcLifecycleOpened -> lifecycle
+    else -> lifecycleLocaleFlow.mapNotNull {
+      debugIpc("awaitOpen", "state=$it reason=$reason")
+      val ipcLifecycle = when (it.state) {
+        is IpcLifecycleOpened -> it
+        is IpcLifecycleClosing, is IpcLifecycleClosed -> {
+          throw IllegalStateException("ipc already closed")
+        }
+
+        else -> null
+      }
+      ipcLifecycle
+    }.first().also {
+      debugIpc("lifecycle-opened", reason)
+    }
+  }
+
+  /**
+   * 启动，会至少等到endpoint握手完成
+   */
+  suspend fun start(await: Boolean = true, reason: String = "") {
+    if (await) {
+      withScope(scope) {
+        endpoint.start(true)
+        startOnce()
+        awaitOpen("from-start $reason")
+      }
+    } else {
+      scope.launch {
+        endpoint.start(true)
+        startOnce()
+      }
+    }
+  }
+
+  private val startOnce = SuspendOnce {
+    debugIpc("start", lifecycle)
+    // 当前状态必须是从init开始
+    when (val state = lifecycle.state) {
+      // 告知对方我启动了
+      is IpcLifecycleInit -> IpcLifecycle(IpcLifecycleOpening).also {
+        sendLifecycleToRemote(it)
+        debugIpc("emit-locale-lifecycle", it)
+        lifecycleLocaleFlow.emit(it)
+      }
+
+      else -> throw IllegalStateException("fail to start: ipc=$this state=$state")
+    }
+    // 监听远端生命周期指令，进行协议协商
+    lifecycleRemoteFlow.collectIn(scope) { lifecycleRemote ->
+      debugIpc("lifecycle-in") { "remote=$lifecycleRemote locale=$lifecycle" }
+      val doIpcOpened = suspend {
+        IpcLifecycle(IpcLifecycleOpened).also {
+          debugIpc("emit-locale-lifecycle", it)
+          sendLifecycleToRemote(it)
+          lifecycleLocaleFlow.emit(it)
+        }
+      }
+      when (lifecycleRemote.state) {
+        is IpcLifecycleClosing, is IpcLifecycleClosed -> scope.launch(start = CoroutineStart.UNDISPATCHED) { close() }
+        // 收到 opened 了，自己也设置成 opened，代表正式握手成功
+        is IpcLifecycleOpened -> {
+          when (lifecycle.state) {
+            is IpcLifecycleOpening -> doIpcOpened()
+
+            else -> {}
+          }
+        }
+        // 如果对方是 init，代表刚刚初始化，那么发送目前自己的状态
+        is IpcLifecycleInit -> sendLifecycleToRemote(lifecycle)
+        // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
+        is IpcLifecycleOpening -> doIpcOpened()
+      }
+    }
+    // 监听并分发 所有的消息
+    onMessage("fork#$debugId").collectIn(scope) { event ->
+      event.consumeAs<IpcFork> { ipcFork ->
+        val forkedIpc = Ipc(
+          pid = ipcFork.pid,
+          endpoint = endpoint,
+          locale = locale,
+          remote = remote,
+          pool = pool,
+        )
+        pool.safeCreatedIpc(
+          forkedIpc, autoStart = ipcFork.autoStart, startReason = ipcFork.startReason
+        )
+        endpoint.forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
+        forkProducer.send(forkedIpc)
+      }
+    }
+  }
+
+  /**
+   * 向远端发送 生命周期 信号
+   */
+  private suspend fun sendLifecycleToRemote(state: IpcLifecycle) {
+    debugIpc("lifecycle-out", state)
+    endpoint.postIpcMessage(EndpointIpcMessage(pid, state))
+  }
+
+  val waitForkedIpc = endpoint::waitForkedIpc
+
+  /**
+   * 在现有的线路中分叉出一个ipc通道
+   * 如果自定义了 locale/remote，那么说明自己是帮别人代理
+   */
+  suspend fun fork(
+    locale: MicroModuleManifest = this.locale,
+    remote: MicroModuleManifest = this.remote,
+    autoStart: Boolean = false,
+    startReason: String? = null,
+  ): Ipc {
+    awaitOpen("then-fork")
+    val forkedIpc = pool.createIpc(
+      pid = endpoint.generatePid(),
+      endpoint = endpoint,
+      locale = locale,
+      remote = remote,
+      autoStart = autoStart,
+      startReason = startReason
+    )
+    endpoint.forkedIpcMap.getOrPut(forkedIpc.pid) { CompletableDeferred() }.complete(forkedIpc)
+    // 自触发
+    forkProducer.send(forkedIpc)
+    // 通知对方
     postMessage(
-      IpcResponse.fromResponse(
-        req_id, response, this
+      IpcFork(
+        pid = forkedIpc.pid,
+        autoStart = autoStart,
+        startReason = startReason,
+        /// 对调locale/remote
+        locale = forkedIpc.remote.toCommonAppManifest(),
+        remote = forkedIpc.locale.toCommonAppManifest(),
       )
     )
+    return forkedIpc
   }
 
-  protected val _messageSignal = Signal<IpcMessageArgs>()
-  fun onMessage(cb: OnIpcMessage) = _messageSignal.listen(cb)
+  private val forkProducer = Producer<Ipc>("fork#$debugId", scope)
+  fun onFork(name: String) = forkProducer.consumer(name)
 
-  /**
-   * 强制触发消息传入，而不是依赖远端的 postMessage
-   */
-  suspend fun emitMessage(args: IpcMessageArgs) = _messageSignal.emit(args)
+  //#endregion
 
-  abstract suspend fun _doPostMessage(data: IpcMessage)
+  //#region 消息相关的
 
-  /**-----start*/
 
-  private fun <T : Any> _createSignal(): Signal<T> {
-    val signal = Signal<T>()
-    this.onClose {
-      signal.clear()
+  private inline fun <T : Any> messagePipeMap(
+    name: String,
+    crossinline mapNotNull: suspend (value: IpcMessage) -> T?,
+  ) = onMessage(name).mapNotNull { event ->
+    event.consumeMapNotNull {
+      mapNotNull(it)
     }
-    return signal
+  }.asProducer(messageProducer.producer.name + "/" + name, scope).also { producer ->
+    onClosed { cause ->
+      launchJobs += scope.launch {
+        producer.close(cause.exceptionOrNull())
+      }
+    }
   }
 
-  private val _requestSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    _createSignal<IpcRequestMessageArgs>().also { signal ->
-      _messageSignal.listen { args ->
-        when (val ipcReq = args.message) {
-          is IpcRequest -> {
-            val ipcServerRequest = when (ipcReq) {
-              is IpcClientRequest -> ipcReq.toServer(args.ipc)
-              is IpcServerRequest -> ipcReq
-            }
-            ipcMessageCoroutineScope.launch {
-              signal.emit(
-                IpcRequestMessageArgs(ipcServerRequest, args.ipc)
-              )
-            }
-          }
-
-          else -> {}
+  private val requestProducer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    messagePipeMap("request") { ipcMessage ->
+      when (ipcMessage) {
+        is IpcRequest -> when (ipcMessage) {
+          is IpcClientRequest -> ipcMessage.toServer(this)
+          is IpcServerRequest -> ipcMessage
         }
+
+        else -> null
       }
     }
   }
 
-  fun onRequest(cb: OnIpcRequestMessage) = _requestSignal.listen(cb)
+  fun onRequest(name: String) = requestProducer.consumer(name)
 
-  private val _responseSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    _createSignal<IpcResponseMessageArgs>().also { signal ->
-      _messageSignal.listen { args ->
-        if (args.message is IpcResponse) {
-          ipcMessageCoroutineScope.launch {
-            signal.emit(
-              IpcResponseMessageArgs(
-                args.message, args.ipc
-              )
-            )
-          }
-        }
-      }
+  private val responseProducer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    messagePipeMap("response") {
+      if (it is IpcResponse) it else null
     }
   }
 
-  private fun onResponse(cb: OnIpcResponseMessage) = _responseSignal.listen(cb)
+  fun onResponse(name: String) = responseProducer.consumer(name)
 
-  private val _streamSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    val signal = _createSignal<IpcStreamMessageArgs>()
-    /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
-    /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
-    val streamChannel = Channel<IpcStreamMessageArgs>(capacity = Channel.UNLIMITED)
-    ipcMessageCoroutineScope.launch {
-      for (message in streamChannel) {
-        signal.emit(message)
-      }
-    }
-    _messageSignal.listen { args ->
-      if (args.message is IpcStream) {
-        streamChannel.trySend(
-          IpcStreamMessageArgs(
-            args.message, args.ipc
-          )
-        )
-      }
-    }
-    onClose {
-      streamChannel.close()
-    }
-    signal
-  }
-
-  fun onStream(cb: OnIpcStreamMessage) = _streamSignal.listen(cb)
-
-  @OptIn(ExperimentalCoroutinesApi::class)
-  private val _eventSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    _createSignal<IpcEventMessageArgs>().also { signal ->
-      val orderByChannels = SafeHashMap<Int, Channel<IpcEventMessageArgs>>()
-      _messageSignal.listen { args ->
-        if (args.message is IpcEvent) {
-          val eventArgs = IpcEventMessageArgs(
-            args.message, args.ipc
-          )
-          when (val orderBy = args.message.orderBy) {
-            /// 无序模式
-            null -> ipcMessageCoroutineScope.launch {
-              signal.emit(eventArgs)
-            }
-            /// 有序模式
-            else -> {
-              val orderedEvents = orderByChannels.getOrPut(orderBy) {
-                Channel<IpcEventMessageArgs>(capacity = Channel.UNLIMITED).also { events ->
-                  var lastEmitTime = 0;
-                  /// 进行有序地发送
-                  val sendJob = ipcMessageCoroutineScope.launch {
-                    for (it in events) {
-                      signal.emit(it)
-                      lastEmitTime = 10
-                    }
-                  }
-                  val destroyEvents = {
-                    sendJob.cancel()
-
-                    orderByChannels.remove(orderBy)
-                    events.close()
-                  }
-                  /// 定时器释放内存
-                  val gcJob = ipcMessageCoroutineScope.launch {
-                    while (true) {
-                      delay(100)
-                      lastEmitTime--
-                      if (lastEmitTime <= 0 && events.isEmpty) {
-                        destroyEvents()
-                        break
-                      }
-                    }
-                  }
-                  /// ipc 关闭时释放
-                  onClose {
-                    gcJob.cancel()
-                    destroyEvents()
-                  }
-                }
-              }
-              orderedEvents.send(eventArgs)
-            }
-          }
-        }
-      }
+  private val streamProducer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    messagePipeMap("stream") {
+      if (it is IpcStream) it as IpcStream else null
     }
   }
 
-  fun onEvent(cb: OnIpcEventMessage) = _eventSignal.listen(cb)
+  fun onStream(name: String) = streamProducer.consumer(name)
 
-  private val _lifeCycleSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    _createSignal<IpcLifeCycleMessageArgs>().also { signal ->
-      _messageSignal.listen { args ->
-        if (args.message is IpcLifeCycle) {
-          ipcMessageCoroutineScope.launch {
-            signal.emit(
-              IpcLifeCycleMessageArgs(
-                args.message, args.ipc
-              )
-            )
-          }
-        }
-      }
+  private val eventProducer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    messagePipeMap("event") {
+      if (it is IpcEvent) it else null
     }
   }
 
-  fun onLifeCycle(cb: OnIpcLifeCycleMessage) = _lifeCycleSignal.listen(cb)
+  fun onEvent(name: String) = eventProducer.consumer(name)
 
-  private val _errorSignal by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    _createSignal<IpcErrorMessageArgs>().also { signal ->
-      _messageSignal.listen { args ->
-        if (args.message is IpcError) {
-          ipcMessageCoroutineScope.launch {
-            signal.emit(
-              IpcErrorMessageArgs(
-                args.message, args.ipc
-              )
-            )
-          }
-        }
-      }
+
+  private val errorProducer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    messagePipeMap("error") {
+      if (it is IpcError) it else null
     }
   }
 
-  fun onError(cb: OnIpcErrorMessage) = _errorSignal.listen(cb)
+  fun onError(name: String) = errorProducer.consumer(name)
 
-  /**-----end*/
+  suspend inline fun request(url: String) = request(
+    PureClientRequest(
+      method = PureMethod.GET,
+      href = url,
+    )
+  )
 
-  abstract suspend fun _doClose(): Unit
-
-  private var _closed = false
-  suspend fun close() {
-    if (this._closed) {
-      return
-    }
-    this._closed = true
-    this._doClose()
-    this.closeSignal.emitAndClear()
-
-    /// 关闭的时候会自动触发销毁
-    this.destroy(false)
+  suspend inline fun request(url: Url) = request(url.toString())
+  suspend fun request(ipcRequest: IpcRequest): IpcResponse {
+    val result = CompletableDeferred<IpcResponse>()
+    _reqResMap[ipcRequest.reqId] = result
+    this.postMessage(ipcRequest)
+    return result.await()
   }
-
-  val isClosed get() = _closed
-
-  val closeSignal = SimpleSignal()
-  val onClose = this.closeSignal.toListener()
-
-
-  private val _destroySignal = SimpleSignal()
-  val onDestroy = this._destroySignal.toListener()
-
-  private var _destroyed = false
-  val isDestroy get() = _destroyed
-
-  /**
-   * 销毁实例
-   */
-  suspend fun destroy(close: Boolean = true) {
-    if (_destroyed) {
-      return
-    }
-    _destroyed = true
-    if (close) {
-      this.close()
-    }
-    this._destroySignal.emitAndClear()
-  }
-
-  /**
-   * 发送请求
-   */
-  suspend fun request(url: String) = request(PureClientRequest(method = PureMethod.GET, href = url))
-
-  suspend fun request(url: Url) =
-    request(PureClientRequest(method = PureMethod.GET, href = url.toString()))
 
   private val _reqResMap by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     SafeHashMap<Int, CompletableDeferred<IpcResponse>>().also { reqResMap ->
-      onResponse { (response) ->
-        val result = reqResMap.remove(response.req_id)
-          ?: throw Exception("no found response by req_id: ${response.req_id}")
+      onResponse("req-res").collectIn(scope) { event ->
+        // 消耗掉
+        val response = event.consume()
+        val result = reqResMap.remove(response.reqId) ?: return@collectIn debugIpc(
+          "reqResMap", "onResponse", "no found response by reqId: ${event.data.reqId}"
+        )
         result.complete(response)
       }
     }
   }
 
-  suspend fun request(ipcRequest: IpcRequest): IpcResponse {
-    val result = CompletableDeferred<IpcResponse>()
-    _reqResMap[ipcRequest.req_id] = result
-    this.postMessage(ipcRequest)
-    return result.await()
-  }
-
-  private suspend fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
+  private suspend inline fun buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
     val reqId = this.allocReqId()
     return IpcClientRequest.fromRequest(reqId, this, url, init)
   }
 
+  // PureClientRequest -> ipcRequest -> IpcResponse -> PureResponse
   suspend fun request(pureRequest: PureClientRequest): PureResponse {
-    return this.request(
+    return request(
       pureRequest.toIpc(allocReqId(), this)
     ).toPure()
   }
 
   suspend fun request(url: String, init: IpcRequestInit): IpcResponse {
-    val ipcRequest = this._buildIpcRequest(url, init)
+    val ipcRequest = this.buildIpcRequest(url, init)
     return request(ipcRequest)
   }
 
-  private val reqIdSyncObj = SynchronizedObject()
-  private fun allocReqId() = synchronized(reqIdSyncObj) { ++req_id_acc }
+  private fun allocReqId() = reqIdAcc.incrementAndGet()
 
-  /** 自定义注册 请求与响应 的id */
-  private fun registerReqId(req_id: Int = this.allocReqId()): CompletableDeferred<IpcResponse> {
-    return _reqResMap.getOrPut(req_id) {
-      return CompletableDeferred()
+
+  /**发送各类消息到remote*/
+  suspend fun postMessage(data: IpcMessage) {
+    awaitOpen("then-postMessage")
+    withScope(scope) {
+      endpoint.postIpcMessage(EndpointIpcMessage(pid, data))
     }
   }
 
-  private val readyDeferred = CompletableDeferred<IpcEvent>()
-  suspend fun afterReady() = readyDeferred.await()
-
-  // 取消等待了，再等下去没有意义
-  fun stopReady() = readyDeferred.cancel()
-
-  /// 应用级别的 Ready协议，使用ping-pong方式来等待对方准备完毕，这不是必要的，确保双方都准寻这个协议才有必要去使用
-  /// 目前使用这个协议的主要是Web端（它同时还使用了 Activity协议）
-  internal val readyPingPong = SuspendOnce1 { mm: MicroModule ->
-    this.onEvent { (event, ipc) ->
-      if (event.name == "ping") {
-        ipc.postMessage(IpcEvent("pong", event.data, event.encoding))
-      } else if (event.name == "pong") {
-        readyDeferred.complete(event)
-      }
-    }
-    mm.ioAsyncScope.launch {
-      val ipc = this@Ipc
-      val pingDelay = 200L
-      var timeout = 30000L
-      while (!readyDeferred.isCompleted && !ipc.isClosed && timeout > 0L) {
-        ipc.postMessage(IpcEvent.fromUtf8("ping", ""))
-        delay(pingDelay)
-        timeout -= pingDelay
-      }
-    }
-    readyDeferred.await()
+  suspend inline fun postResponse(reqId: Int, response: PureResponse) {
+    postMessage(IpcResponse.fromResponse(reqId, response, this))
   }
+  //#endregion
+
 }
 
 data class IpcRequestInit(
   var method: PureMethod = PureMethod.GET,
   var body: IPureBody = IPureBody.Empty,
-  var headers: PureHeaders = PureHeaders()
+  var headers: PureHeaders = PureHeaders(),
 )

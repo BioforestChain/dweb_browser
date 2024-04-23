@@ -1,259 +1,403 @@
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { CacheGetter } from "../../helper/cacheGetter.ts";
-import { $Callback, createSignal } from "../../helper/createSignal.ts";
-import { MicroModule } from "../micro-module.ts";
 import type { $MicroModuleManifest } from "../types.ts";
-import type { IpcHeaders } from "./IpcHeaders.ts";
-import { IpcRequest } from "./IpcRequest.ts";
-import type { IpcResponse } from "./IpcResponse.ts";
-import {
-  $IpcMessage,
-  $OnIpcEventMessage,
-  $OnIpcRequestMessage,
-  $OnIpcStreamMessage,
-  IPC_MESSAGE_TYPE,
-  type $OnIpcMessage,
-} from "./const.ts";
+import type { IpcHeaders } from "./helper/IpcHeaders.ts";
 
-import { once } from "../../helper/helper.ts";
+import { IpcClientRequest, IpcServerRequest } from "./ipc-message/IpcRequest.ts";
+import { IpcResponse } from "./ipc-message/IpcResponse.ts";
+
+import { $once, once } from "../../helper/$once.ts";
+import { StateSignal } from "../../helper/StateSignal.ts";
+import { CUSTOM_INSPECT, logger } from "../../helper/logger.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
-import { $OnFetch, createFetchHandler } from "../helper/ipcFetchHelper.ts";
-import { IpcEvent } from "./IpcEvent.ts";
-import { PureChannel, pureChannelToIpcEvent } from "./PureChannel.ts";
-export {
-  FetchError,
-  FetchEvent,
-  type $FetchResponse,
-  type $OnFetch,
-  type $OnFetchReturn
-} from "../helper/ipcFetchHelper.ts";
+import { promiseAsSignalListener } from "../../helper/promiseSignal.ts";
+import { Producer } from "../helper/Producer.ts";
+import { IpcPool } from "./IpcPool.ts";
+import { endpointIpcMessage } from "./endpoint/EndpointIpcMessage.ts";
+import { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
+import { ipcFork } from "./ipc-message/IpcFork.ts";
+import {
+  ipcLifecycle,
+  ipcLifecycleClosed,
+  ipcLifecycleClosing,
+  ipcLifecycleInit,
+  ipcLifecycleOpened,
+  ipcLifecycleOpening,
+  type $IpcLifecycle,
+} from "./ipc-message/IpcLifecycle.ts";
+import type { $IpcMessage } from "./ipc-message/IpcMessage.ts";
+import { IPC_LIFECYCLE_STATE } from "./ipc-message/internal/IpcLifecycle.ts";
+import { IPC_MESSAGE_TYPE } from "./ipc-message/internal/IpcMessage.ts";
 
-let ipc_uid_acc = 0;
-let _order_by_acc = 0;
-export abstract class Ipc {
-  readonly uid = ipc_uid_acc++;
-  static order_by_acc = _order_by_acc++;
-  /**
-   * 是否支持使用 MessagePack 直接传输二进制
-   * 在一些特殊的场景下支持字符串传输，比如与webview的通讯
-   * 二进制传输在网络相关的服务里被支持，里效率会更高，但前提是对方有 MessagePack 的编解码能力
-   * 否则 JSON 是通用的传输协议
-   */
-  get support_cbor() {
-    return this._support_cbor;
+export class Ipc {
+  constructor(
+    readonly pid: number,
+    readonly endpoint: IpcEndpoint,
+    readonly locale: $MicroModuleManifest,
+    readonly remote: $MicroModuleManifest,
+    readonly pool: IpcPool,
+    readonly debugId = `${endpoint.debugId}/${pid}`
+  ) {}
+  toString() {
+    return `Ipc#${this.debugId}`;
   }
-  protected _support_cbor = false;
-  /**
-   * 是否支持使用 Protobuf 直接传输二进制
-   * 在网络环境里，protobuf 是更加高效的协议
-   */
-  get support_protobuf() {
-    return this._support_protobuf;
+  [CUSTOM_INSPECT]() {
+    return this.toString();
   }
-  protected _support_protobuf = false;
+  readonly console = logger(this);
 
-  /**
-   * 是否支持结构化内存协议传输：
-   * 就是说不需要对数据手动序列化反序列化，可以直接传输内存对象
-   */
-  get support_raw() {
-    return this._support_raw;
-  }
-  protected _support_raw = false;
-  /**
-   * 是否支持二进制传输
-   */
-  get support_binary() {
-    return this._support_binary ?? (this.support_cbor || this.support_protobuf || this.support_raw);
+  // reqId计数
+  #reqIdAcc = 0;
+  // 消息生产者，所有的消息在这里分发出去
+  #messageProducer = this.endpoint.getIpcMessageProducerByIpc(this);
+
+  onMessage(name: string) {
+    return this.#messageProducer.producer.consumer(name);
   }
 
-  protected _support_binary = false;
+  //#region 生命周期相关
+  #lifecycleLocaleFlow = new StateSignal<$IpcLifecycle>(
+    ipcLifecycle(ipcLifecycleInit(this.pid, this.locale, this.remote)),
+    ipcLifecycle.equals
+  );
+  readonly lifecycleLocaleFlow = this.#lifecycleLocaleFlow.asReadyonly();
+  get lifecycle() {
+    return this.lifecycleLocaleFlow.state;
+  }
+  onLifecycle = this.lifecycleLocaleFlow.listen;
 
-  abstract readonly remote: $MicroModuleManifest;
-  protected _closeSignal = createSignal<() => unknown>(false);
-  onClose = this._closeSignal.listen;
-  asRemoteInstance() {
-    if (this.remote instanceof MicroModule) {
-      return this.remote;
+  #lifecycleRemoteFlow = this.onMessage(`ipc-lifecycle-remote#${this.pid}`).mapNotNull((message) => {
+    if (message.type === IPC_MESSAGE_TYPE.LIFECYCLE) {
+      return message;
     }
-  }
-  abstract readonly role: string;
-
-  // deno-lint-ignore no-explicit-any
-  private _createSignal<T extends $Callback<any[]>>(autoStart?: boolean) {
-    const signal = createSignal<T>(autoStart);
-    this.onClose(() => signal.clear());
-    return signal;
-  }
-
-  protected _messageSignal = this._createSignal<$OnIpcMessage>(false);
-  postMessage(message: $IpcMessage): void {
-    if (this._closed) {
-      return;
-    }
-    this._doPostMessage(message);
-  }
-  abstract _doPostMessage(data: $IpcMessage): void;
-  onMessage = this._messageSignal.listen;
-
+  });
+  readonly lifecycleRemoteFlow = this.#lifecycleRemoteFlow;
   /**
-   * 强制触发消息传入，而不是依赖远端的 postMessage
+   * 向远端发送 生命周期 信号
    */
-  emitMessage = (args: IpcRequest) => this._messageSignal.emit(args, this);
-
-  private __onRequestSignal = new CacheGetter(() => {
-    const signal = this._createSignal<$OnIpcRequestMessage>(false);
-    this.onMessage((request, ipc) => {
-      if (request.type === IPC_MESSAGE_TYPE.REQUEST) {
-        signal.emit(request, ipc);
-      }
-    });
-    return signal;
-  });
-  private get _onRequestSignal() {
-    return this.__onRequestSignal.value;
+  #sendLifecycleToRemote(state: $IpcLifecycle) {
+    this.console.debug("lifecycle-out", state);
+    this.endpoint.postIpcMessage(endpointIpcMessage(this.pid, state));
   }
 
-  onRequest(cb: $OnIpcRequestMessage) {
-    return this._onRequestSignal.listen(cb);
+  // 标记ipc通道是否激活
+  get isActivity() {
+    return this.endpoint.isActivity;
   }
 
-  onFetch(...handlers: $OnFetch[]) {
-    const onRequest = createFetchHandler(handlers);
-    return onRequest.extendsTo(this.onRequest(onRequest));
-  }
-  private __onStreamSignal = new CacheGetter(() => {
-    const signal = this._createSignal<$OnIpcStreamMessage>(false);
-    this.onMessage((request, ipc) => {
-      if ("stream_id" in request) {
-        signal.emit(request, ipc);
-      }
-    });
-    return signal;
-  });
-  private get _onStreamSignal() {
-    return this.__onStreamSignal.value;
-  }
-  onStream(cb: $OnIpcStreamMessage) {
-    return this._onStreamSignal.listen(cb);
-  }
-
-  private __onEventSignal = new CacheGetter(() => {
-    const signal = this._createSignal<$OnIpcEventMessage>(false);
-    this.onMessage((event, ipc) => {
-      if (event.type === IPC_MESSAGE_TYPE.EVENT) {
-        signal.emit(event, ipc);
-      }
-    });
-    return signal;
-  });
-  private get _onEventSignal() {
-    return this.__onEventSignal.value;
-  }
-
-  onEvent(cb: $OnIpcEventMessage) {
-    return this._onEventSignal.listen(cb);
-  }
-
-  abstract _doClose(): void;
-
-  private _closed = false;
-  close() {
-    if (this._closed) {
-      return;
+  /**等待启动 */
+  async awaitOpen(reason?: string) {
+    if (this.lifecycle.state.name === IPC_LIFECYCLE_STATE.OPENED) {
+      return this.lifecycle;
     }
-    this._closed = true;
-    this._doClose();
-    this._closeSignal.emitAndClear();
-  }
-  get isClosed() {
-    return this._closed;
-  }
-
-  private _req_id_acc = 0;
-  allocReqId(_url?: string) {
-    return this._req_id_acc++;
-  }
-  private __reqresMap = new CacheGetter(() => {
-    const reqresMap = new Map<number, PromiseOut<IpcResponse>>();
-    this.onMessage((message) => {
-      if (message.type === IPC_MESSAGE_TYPE.RESPONSE) {
-        const response_po = reqresMap.get(message.req_id);
-        if (response_po) {
-          reqresMap.delete(message.req_id);
-          response_po.resolve(message);
-        } else {
-          throw new Error(`no found response by req_id: ${message.req_id}`);
+    const op = new PromiseOut<$IpcLifecycle>();
+    const off = this.onLifecycle((lifecycle) => {
+      switch (lifecycle.state.name) {
+        case IPC_LIFECYCLE_STATE.OPENED: {
+          op.resolve(lifecycle);
+          break;
+        }
+        case (IPC_LIFECYCLE_STATE.CLOSED, IPC_LIFECYCLE_STATE.CLOSING): {
+          op.reject("endpoint already closed");
+          break;
         }
       }
     });
-    return reqresMap;
-  });
-  private get _reqresMap() {
-    return this.__reqresMap.value;
+    const lifecycle = await op.promise;
+    this.console.debug("awaitOpen", lifecycle, reason);
+    off();
+    return lifecycle;
   }
 
-  private _buildIpcRequest(url: string, init?: $IpcRequestInit) {
-    const req_id = this.allocReqId();
-    const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
-    return ipcRequest;
+  /**
+   * 启动，会至少等到endpoint握手完成
+   */
+  async start(isAwait = true, reason?: string) {
+    this.console.debug("start", reason);
+    if (isAwait) {
+      this.endpoint.start(true);
+      this.startOnce();
+      await this.awaitOpen(`from-start ${reason}`);
+    } else {
+      this.endpoint.start(true);
+      this.startOnce();
+    }
   }
+
+  startOnce = $once(() => {
+    this.console.debug("startOnce", this.lifecycle);
+    // 当前状态必须是从init开始
+    if (this.lifecycle.state.name === IPC_LIFECYCLE_STATE.INIT) {
+      // 告知对方我启动了
+      const opening = ipcLifecycle(ipcLifecycleOpening());
+      this.#sendLifecycleToRemote(opening);
+      this.#lifecycleLocaleFlow.emit(opening);
+    } else {
+      throw new Error(`fail to start: ipc=${this} state=${this.lifecycle}`);
+    }
+    // 监听远端生命周期指令，进行协议协商
+    this.#lifecycleRemoteFlow((lifecycleRemote) => {
+      this.console.debug("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
+      // 告知启动完成
+      const doIpcOpened = () => {
+        const opend = ipcLifecycle(ipcLifecycleOpened());
+        this.#sendLifecycleToRemote(opend);
+        this.#lifecycleLocaleFlow.emit(opend);
+      };
+      // 处理远端生命周期
+      switch (lifecycleRemote.state.name) {
+        case (IPC_LIFECYCLE_STATE.CLOSING, IPC_LIFECYCLE_STATE.CLOSED): {
+          this.close(lifecycleRemote.state.reason);
+          break;
+        }
+        // 收到 opened 了，自己也设置成 opened，代表正式握手成功
+        case IPC_LIFECYCLE_STATE.OPENED: {
+          if (this.lifecycle.state.name === IPC_LIFECYCLE_STATE.OPENING) {
+            doIpcOpened();
+          }
+          break;
+        }
+        // 如果对方是 init，代表刚刚初始化，那么发送目前自己的状态
+        case IPC_LIFECYCLE_STATE.INIT: {
+          this.#sendLifecycleToRemote(this.lifecycle);
+          break;
+        }
+        // 等收到对方 Opening ，说明对方也开启了，那么开始协商协议，直到一致后才进入 Opened
+        case IPC_LIFECYCLE_STATE.OPENING: {
+          doIpcOpened();
+          break;
+        }
+      }
+    });
+    // 监听并分发 所有的消息
+    this.onMessage(`fork#${this.debugId}`).collect((event) => {
+      const ipcFork = event.consumeMapNotNull((data) => {
+        if (data.type === IPC_MESSAGE_TYPE.FORK) {
+          return data;
+        }
+      });
+      if (ipcFork === undefined) {
+        return;
+      }
+      const forkedIpc = new Ipc(ipcFork.pid, this.endpoint, this.locale, this.remote, this.pool);
+      this.pool.safeCreatedIpc(forkedIpc, ipcFork.autoStart, ipcFork.startReason);
+      mapHelper.getOrPut(this.forkedIpcMap, forkedIpc.pid, () => new PromiseOut()).resolve(forkedIpc);
+      this.#forkProducer.send(forkedIpc);
+    });
+  });
+  //#region fork
+
+  private forkedIpcMap = new Map<number, PromiseOut<Ipc>>();
+  waitForkedIpc(pid: number) {
+    return mapHelper.getOrPut(this.forkedIpcMap, pid, () => new PromiseOut()).promise;
+  }
+
+  /**
+   * 在现有的线路中分叉出一个ipc通道
+   * 如果自定义了 locale/remote，那么说明自己是帮别人代理
+   */
+  async fork(
+    locale: $MicroModuleManifest = this.locale,
+    remote: $MicroModuleManifest = this.remote,
+    autoStart: boolean = false,
+    startReason?: string
+  ) {
+    await this.awaitOpen("then-fork");
+    const forkedIpc = this.pool.createIpc(
+      this.endpoint,
+      this.endpoint.generatePid(),
+      locale,
+      remote,
+      autoStart,
+      startReason
+    );
+    mapHelper.getOrPut(this.forkedIpcMap, forkedIpc.pid, () => new PromiseOut()).resolve(forkedIpc);
+    // 自触发
+    this.#forkProducer.send(forkedIpc);
+    // 通知对方
+    this.postMessage(
+      ipcFork(
+        forkedIpc.pid,
+        autoStart,
+        /// 对调locale/remote
+        forkedIpc.remote,
+        forkedIpc.locale,
+        startReason
+      )
+    );
+    return forkedIpc;
+  }
+
+  #forkProducer = new Producer<Ipc>(`fork#${this.debugId}`);
+  onFork(name: string) {
+    return this.#forkProducer.consumer(name);
+  }
+  //#endregion
+
+  //#region 消息相关的
+  #messagePipeMap<R>(name: string, mapNotNull: (value: $IpcMessage) => R | undefined) {
+    const producer = new Producer<R>(this.#messageProducer.producer.name + "/" + name);
+    this.onClosed((reason) => {
+      return producer.close(reason);
+    });
+    const consumer = this.onMessage(name);
+    consumer.collect((event) => {
+      const result = event.consumeMapNotNull<R>(mapNotNull);
+      if (result === undefined) {
+        return;
+      }
+      producer.send(result);
+    });
+    producer.onClosed(() => {
+      consumer.cancel();
+    });
+    return producer;
+  }
+  #requestProducer = new CacheGetter(() =>
+    this.#messagePipeMap("request", (ipcMessage) => {
+      if (ipcMessage instanceof IpcClientRequest) {
+        return ipcMessage.toServer(this);
+      } else if (ipcMessage instanceof IpcServerRequest) {
+        return ipcMessage;
+      }
+    })
+  );
+  onRequest(name: string) {
+    return this.#requestProducer.value.consumer(name);
+  }
+  #responseProducer = new CacheGetter(() =>
+    this.#messagePipeMap("response", (ipcMessage) => {
+      if (ipcMessage instanceof IpcResponse) {
+        return ipcMessage;
+      }
+    })
+  );
+  onResponse(name: string) {
+    return this.#responseProducer.value.consumer(name);
+  }
+  #streamProducer = new CacheGetter(() =>
+    this.#messagePipeMap("stream", (ipcMessage) => {
+      if ("stream_id" in ipcMessage) {
+        return ipcMessage;
+      }
+    })
+  );
+  onStream(name: string) {
+    return this.#streamProducer.value.consumer(name);
+  }
+  #eventProducer = new CacheGetter(() =>
+    this.#messagePipeMap("event", (ipcMessage) => {
+      if (ipcMessage.type === IPC_MESSAGE_TYPE.EVENT) {
+        return ipcMessage;
+      }
+    })
+  );
+  onEvent(name: string) {
+    return this.#eventProducer.value.consumer(name);
+  }
+  #errorProducer = new CacheGetter(() =>
+    this.#messagePipeMap("error", (ipcMessage) => {
+      if (ipcMessage.type === IPC_MESSAGE_TYPE.ERROR) {
+        return ipcMessage;
+      }
+    })
+  );
+  onError(name: string) {
+    return this.#errorProducer.value.consumer(name);
+  }
+
+  #reqResMap = new CacheGetter(() => {
+    const reqResMap = new Map<number, PromiseOut<IpcResponse>>();
+    this.onResponse("req-res").collect((event) => {
+      const response = event.consume();
+      const result = mapHelper.getAndRemove(reqResMap, response.reqId);
+      if (result === undefined) {
+        throw new Error(`no found response by reqId: ${event.data.reqId}`);
+      }
+      result.resolve(response);
+    });
+    return reqResMap;
+  });
 
   /** 发起请求并等待响应 */
-  request(url: IpcRequest): Promise<IpcResponse>;
+  request(url: IpcClientRequest): Promise<IpcResponse>;
   request(url: string, init?: $IpcRequestInit): Promise<IpcResponse>;
-  request(input: string | IpcRequest, init?: $IpcRequestInit) {
-    const ipcRequest = input instanceof IpcRequest ? input : this._buildIpcRequest(input, init);
-    const result = this.registerReqId(ipcRequest.req_id);
+  request(input: string | IpcClientRequest, init?: $IpcRequestInit) {
+    const ipcRequest = input instanceof IpcClientRequest ? input : this.#buildIpcRequest(input, init);
+    const result = this.#registerReqId(ipcRequest.reqId);
     this.postMessage(ipcRequest);
     return result.promise;
   }
   /** 自定义注册 请求与响应 的id */
-  registerReqId(req_id = this.allocReqId()) {
-    return mapHelper.getOrPut(this._reqresMap, req_id, () => new PromiseOut());
+  #registerReqId(reqId = this.#allocReqId()) {
+    return mapHelper.getOrPut(this.#reqResMap.value, reqId, () => new PromiseOut());
+  }
+  #buildIpcRequest(url: string, init?: $IpcRequestInit) {
+    const reqId = this.#allocReqId();
+    const ipcRequest = IpcClientRequest.fromRequest(reqId, this, url, init);
+    return ipcRequest;
+  }
+  #allocReqId() {
+    return this.#reqIdAcc++;
   }
 
-  /**
-   * 代理管道 发送数据 与 接收数据
-   * @param channel
-   */
-  async pipeToChannel(channelId: string, channel: PureChannel) {
-    await pureChannelToIpcEvent(channelId, this, channel, channel.income.controller, channel.outgoing.stream, () =>
-      channel.afterStart()
-    );
-  }
-  /**
-   * 代理管道 发送数据 与 接收数据
-   * @param channel
-   */
-  async pipeFromChannel(channelId: string, channel: PureChannel) {
-    await pureChannelToIpcEvent(channelId, this, channel, channel.outgoing.controller, channel.income.stream, () =>
-      channel.start()
-    );
+  //#endregion
+
+  async postMessage(message: $IpcMessage) {
+    try {
+      await this.awaitOpen("then-postMessage");
+    } catch (e) {
+      this.console.debug(`ipc(${this}) fail to poseMessage: ${e}`);
+      return;
+    }
+    this.endpoint.postIpcMessage(endpointIpcMessage(this.pid, message));
   }
 
-  private readyListener = once(async () => {
-    const ready = new PromiseOut<IpcEvent>();
-    this.onEvent((event, ipc) => {
-      if (event.name === "ping") {
-        ipc.postMessage(new IpcEvent("pong", event.data, event.encoding));
-      } else if (event.name === "pong") {
-        ready.resolve(event);
-      }
-    });
-    (async () => {
-      let timeDelay = 50;
-      while (!ready.is_resolved && !this.isClosed && timeDelay < 5000) {
-        this.postMessage(IpcEvent.fromText("ping", ""));
-        await PromiseOut.sleep(timeDelay).promise;
-        timeDelay *= 3;
-      }
-    })();
-    return await ready.promise;
+  //#endregion
+
+  //#region close
+
+  @once()
+  private get _closePo() {
+    return new PromiseOut<string | undefined>();
+  }
+  awaitClosed() {
+    return this._closePo.promise;
+  }
+  @once()
+  get onClosed() {
+    return promiseAsSignalListener(this._closePo.promise);
+  }
+  get isClosed() {
+    return this.lifecycle.state.name == IPC_LIFECYCLE_STATE.CLOSED;
+  }
+
+  #closeOnce = $once(async (cause?: string) => {
+    this.console.debug("closing", cause);
+    {
+      const closing = ipcLifecycle(ipcLifecycleClosing(cause));
+      this.#lifecycleLocaleFlow.emit(closing);
+      this.#sendLifecycleToRemote(closing);
+    }
+    await this.#messageProducer.producer.close(cause);
+    this._closePo.resolve(cause);
+    {
+      const closed = ipcLifecycle(ipcLifecycleClosed(cause));
+      this.#lifecycleLocaleFlow.emitAndClear(closed);
+      this.#sendLifecycleToRemote(closed);
+    }
   });
-  ready() {
-    return this.readyListener();
+
+  async close(cause?: string) {
+    this.#closeOnce(cause);
+    this.#destroy();
   }
+
+  /**销毁ipc */
+  private _isDestroy = false;
+  async #destroy() {}
+
+  /**----- close end*/
 }
 export type $IpcRequestInit = {
   method?: string;
@@ -261,7 +405,8 @@ export type $IpcRequestInit = {
   | null
     | string
     /* base64 */
-    | Uint8Array
+    | ArrayBuffer
+    | ArrayBufferView
     /* stream+base64 */
     | Blob
     | ReadableStream<Uint8Array>;

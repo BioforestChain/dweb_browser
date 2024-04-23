@@ -17,7 +17,7 @@ data class SystemPermissionTask(
 typealias RequestSystemPermissionResult = Map<SystemPermissionName, AuthorizationStatus>
 
 suspend fun requestSysPermission(
-  microModule: MicroModule,
+  microModule: MicroModule.Runtime,
   pureViewController: IPureViewController?,
   permissionTaskList: List<SystemPermissionTask>
 ): Map<SystemPermissionName, AuthorizationStatus> {
@@ -48,7 +48,7 @@ object SystemPermissionAdapterManager : AdapterManager<RequestSystemPermission>(
 typealias RequestSystemPermission = suspend RequestSystemPermissionContext.() -> AuthorizationStatus?
 
 class RequestSystemPermissionContext(
-  val microModule: MicroModule,
+  val microModule: MicroModule.Runtime,
   val pureViewController: IPureViewController?,
   val task: SystemPermissionTask,
   val permissionTasks: List<SystemPermissionTask>

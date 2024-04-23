@@ -8,7 +8,7 @@ import platform.WebKit.WKWebView
 import platform.darwin.NSObject
 
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE", "CONFLICTING_OVERLOADS")
-class DwebURLSchemeHandler(microModule: MicroModule) : NSObject(),
+class DwebURLSchemeHandler(microModule: MicroModule.Runtime) : NSObject(),
   WKURLSchemeHandlerProtocol {
   val helper = DURLSchemeHandlerHelper(microModule)
 

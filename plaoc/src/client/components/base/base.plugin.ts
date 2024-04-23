@@ -1,8 +1,10 @@
-import type { $MMID } from "dweb/core/types.ts";
+import { IpcPool } from "dweb/core/index.ts";
 import { X_PLAOC_QUERY } from "../../common/const.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
-import { $BuildChannelWithBaseInit, $BuildRequestWithBaseInit } from "./base.type.ts";
+import { $BuildChannelWithBaseInit, $BuildRequestWithBaseInit, $MMID } from "./base.type.ts";
+
+export const webIpcPool = new IpcPool(`web-${location.host}`);
 
 export abstract class BasePlugin {
   private static urlData = new URLSearchParams(location.search);

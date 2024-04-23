@@ -2,7 +2,6 @@ package org.dweb_browser.browser.jmm
 
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -54,88 +53,93 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Service") {
     dweb_deeplinks = listOf("dweb://install")
     /// 提供JsMicroModule的文件适配器
     /// 这个适配器不需要跟着bootstrap声明周期，只要存在JmmNMM模块，就能生效
-    nativeFetchAdaptersManager.append { fromMM, request ->
+    nativeFetchAdaptersManager.append(order = 3) { fromMM, request ->
       val usrRootMap = mutableMapOf<String, Deferred<String>>()
       return@append request.respondLocalFile {
         if (filePath.startsWith("/usr/")) {
           val rootKey = "${fromMM.mmid}-${fromMM.version}"
           debugJMM("UsrFile", "$fromMM => ${request.href} in $rootKey")
           val root = usrRootMap.getOrPut(fromMM.mmid) {
-            fromMM.ioAsyncScope.async {
-              this@JmmNMM.withBootstrap {
-                this@JmmNMM.realFile("/data/apps/${fromMM.mmid}-${fromMM.version}")
-              }
+            fromMM.scopeAsync(cancelable = true) {
+              fromMM.realFile("/data/apps/${fromMM.mmid}-${fromMM.version}")
             }
           }.await()
+          debugJMM("respondLocalFile", root)
           returnFile(root, filePath)
         } else returnNext()
       }
     }
   }
 
-  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val store = JmmStore(this)
-    loadJmmAppList(store) // 加载安装的应用信息
+  inner class JmmRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
 
-    val jmmController = JmmController(this, store)
-    jmmController.loadHistoryMetadataUrl() // 加载之前加载过的应用
-    // 应用安装
-    val routeInstallHandler = defineEmptyResponse {
-      val metadataUrl = request.query("url")
-      // 加载url资源，这一步可能要多一些时间
-      val response = nativeFetch(metadataUrl)
-      //
-      if (!response.isOk) {
-        val message = "invalid status code: ${response.status}"
-        showToast(message)
-        throwException(HttpStatusCode.ExpectationFailed, message)
-      }
+    override suspend fun _bootstrap() {
+      val store = JmmStore(this)
+      loadJmmAppList(store) // 加载安装的应用信息
 
-      val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
-      debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
-      jmmController.openOrUpsetInstallerView(
-        metadataUrl, jmmAppInstallManifest.createJmmHistoryMetadata(metadataUrl)
-      )
-    }
-    routes(
-      // 安装
-      "install" bindDwebDeeplink routeInstallHandler,
-      "/install" bind PureMethod.GET by routeInstallHandler,
-      "/uninstall" bind PureMethod.GET by defineBooleanResponse {
-        val mmid = request.query("app_id")
-        debugJMM("uninstall", "mmid=$mmid")
-        jmmController.uninstall(mmid)
-      },
-      // app详情
-      "/detail" bind PureMethod.GET by defineBooleanResponse {
-        val mmid = request.query("app_id")
-        debugJMM("detailApp", mmid)
-        val info = store.getApp(mmid) ?: return@defineBooleanResponse false
+      val jmmController = JmmController(this, store)
+      jmmController.loadHistoryMetadataUrl() // 加载之前加载过的应用
+
+      val routeInstallHandler = defineEmptyResponse {
+        val metadataUrl = request.query("url")
+
+        // 加载url资源，这一步可能要多一些时间
+        val response = nativeFetch(metadataUrl)
+
+        if (!response.isOk) {
+          val message = "invalid status code: ${response.status}"
+          showToast(message)
+          throwException(HttpStatusCode.ExpectationFailed, message)
+        }
+
+        val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
+        debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
         jmmController.openOrUpsetInstallerView(
-          info.originUrl, info.installManifest.createJmmHistoryMetadata(info.originUrl)
+          metadataUrl, jmmAppInstallManifest.createJmmHistoryMetadata(metadataUrl)
         )
-        true
-      }).cors()
+      }
+      routes(
+        // 安装
+        "install" bindDwebDeeplink routeInstallHandler,
+        "/install" bind PureMethod.GET by routeInstallHandler,
+        "/uninstall" bind PureMethod.GET by defineBooleanResponse {
+          val mmid = request.query("app_id")
+          debugJMM("uninstall", "mmid=$mmid")
+          jmmController.uninstall(mmid)
+        },
+        // app详情
+        "/detail" bind PureMethod.GET by defineBooleanResponse {
+          val mmid = request.query("app_id")
+          debugJMM("detailApp", mmid)
+          val info = store.getApp(mmid) ?: return@defineBooleanResponse false
+          jmmController.openOrUpsetInstallerView(
+            info.originUrl, info.installManifest.createJmmHistoryMetadata(info.originUrl)
+          )
+          true
+        }).cors()
 
-    onRenderer {
-      getMainWindow().apply {
-        setStateFromManifest(this@JmmNMM)
-        state.keepBackground = true/// 保持在后台运行
-        jmmController.openHistoryView(this)
+      onRenderer {
+        getMainWindow().apply {
+          setStateFromManifest(this@JmmNMM)
+          state.keepBackground = true/// 保持在后台运行
+          jmmController.openHistoryView(this)
+        }
       }
     }
-  }
 
 
-  /**
-   * 从磁盘中恢复应用
-   */
-  private suspend fun loadJmmAppList(store: JmmStore) {
-    for (dbItem in store.getAllApps().values) {
-      bootstrapContext.dns.install(JsMicroModule(dbItem.installManifest))
+    /**
+     * 从磁盘中恢复应用
+     */
+    private suspend fun loadJmmAppList(store: JmmStore) {
+      for (dbItem in store.getAllApps().values) {
+        bootstrapContext.dns.install(JsMicroModule(dbItem.installManifest))
+      }
+    }
+
+    override suspend fun _shutdown() {
     }
   }
 
-  override suspend fun _shutdown() {
-  }
+  override fun createRuntime(bootstrapContext: BootstrapContext) = JmmRuntime(bootstrapContext)
 }

@@ -1,7 +1,7 @@
 import { isBinary } from "../../helper/binaryHelper.ts";
-import { $OnIpcRequestMessage, Ipc, IpcBody, IpcHeaders, IpcRequest, IpcResponse } from "../ipc/index.ts";
+import { Ipc, IpcBody, IpcHeaders, IpcResponse, IpcServerRequest } from "../ipc/index.ts";
 import { $bodyInitToIpcBodyArgs, isWebSocket } from "./ipcRequestHelper.ts";
-import { $PromiseMaybe } from "./types.ts";
+import { type $PromiseMaybe } from "./types.ts";
 
 export type $OnFetchReturn = Response | IpcResponse | $FetchResponse | void;
 
@@ -9,16 +9,16 @@ export type $OnFetchReturn = Response | IpcResponse | $FetchResponse | void;
  * fetch 处理函数
  * 如果标记成 中间件 模式，那么该函数会执行之前函数
  */
-export type $OnFetch = (event: FetchEvent) => $PromiseMaybe<$OnFetchReturn>;
+export type $OnFetch = (event: IpcFetchEvent) => $PromiseMaybe<$OnFetchReturn>;
 
-export type $OnFetchMid = (respose: IpcResponse, event: FetchEvent) => $PromiseMaybe<$OnFetchReturn>;
+export type $OnFetchMid = (respose: IpcResponse, event: IpcFetchEvent) => $PromiseMaybe<$OnFetchReturn>;
 /**
  * 对即将要进行的响应内容，作出额外的处理
  */
 export const fetchMid = (handler: $OnFetchMid) => Object.assign(handler, { [FETCH_MID_SYMBOL]: true } as const);
 export const FETCH_MID_SYMBOL = Symbol("fetch.middleware");
 
-export type $OnFetchEnd = (event: FetchEvent, respose: IpcResponse | undefined) => $PromiseMaybe<$OnFetchReturn>;
+export type $OnFetchEnd = (event: IpcFetchEvent, respose: IpcResponse | undefined) => $PromiseMaybe<$OnFetchReturn>;
 /**
  * 对即将要进行的响应内容，做出最后的处理
  *
@@ -73,7 +73,7 @@ export const fetchHanlderFactory = {
  * 一个通用的 ipcRequest 处理器
  * 开发不需要面对 ipcRequest，而是面对 web 标准的 Request、Response 即可
  */
-export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
+export const createFetchHandler = (onFetchs: Iterable<$OnFetch> = []) => {
   const onFetchHanlders: $AnyFetchHanlder[] = [...onFetchs];
 
   // deno-lint-ignore ban-types
@@ -138,8 +138,9 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
     return to;
   };
 
-  const onRequest = (async (request, ipc) => {
-    const event = new FetchEvent(request, ipc);
+  const onRequest = async (request: IpcServerRequest) => {
+    const ipc = request.ipc;
+    const event = new IpcFetchEvent(request, ipc);
     let res: IpcResponse | undefined;
 
     for (const handler of onFetchHanlders) {
@@ -160,14 +161,14 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
           res = result;
         } else if (result instanceof Response) {
           /// TODO 需要加入对 Response.error() 的支持，这需要新增 IpcError { message:string, reqId?:number } 的消息
-          res = await IpcResponse.fromResponse(request.req_id, result, ipc);
+          res = await IpcResponse.fromResponse(request.reqId, result, ipc);
         } else if (typeof result === "object") {
           /// 尝试构建出 IpcResponse
-          const req_id = request.req_id;
+          const reqId = request.reqId;
           const status = result.status ?? 200;
           const headers = new IpcHeaders(result.headers);
           if (result.body instanceof IpcBody) {
-            res = new IpcResponse(req_id, status, headers, result.body, ipc);
+            res = new IpcResponse(reqId, status, headers, result.body, ipc);
           } else {
             const body = await $bodyInitToIpcBodyArgs(result.body, (bodyInit) => {
               /// 尝试使用 JSON 解码
@@ -182,17 +183,17 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
               return String(bodyInit);
             });
             if (typeof body === "string") {
-              res = IpcResponse.fromText(req_id, status, headers, body, ipc);
+              res = IpcResponse.fromText(reqId, status, headers, body, ipc);
             } else if (isBinary(body)) {
-              res = IpcResponse.fromBinary(req_id, status, headers, body, ipc);
+              res = IpcResponse.fromBinary(reqId, status, headers, body, ipc);
             } else if (body instanceof ReadableStream) {
-              res = IpcResponse.fromStream(req_id, status, headers, body, ipc);
+              res = IpcResponse.fromStream(reqId, status, headers, body, ipc);
             }
           }
         }
       } catch (err) {
         if (err instanceof Response) {
-          res = await IpcResponse.fromResponse(request.req_id, err, ipc);
+          res = await IpcResponse.fromResponse(request.reqId, err, ipc);
         } else {
           /// 处理异常，尝试返回
           let err_code = 500;
@@ -210,7 +211,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
           /// 根据对方的接收需求，尝试返回 JSON
           if (request.headers.get("Accept") === "application/json") {
             res = IpcResponse.fromJson(
-              request.req_id,
+              request.reqId,
               err_code,
               new IpcHeaders().init("Content-Type", "text/html;charset=utf8"),
               { message: err_message, detail: err_detail },
@@ -218,7 +219,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
             );
           } else {
             res = IpcResponse.fromText(
-              request.req_id,
+              request.reqId,
               err_code,
               new IpcHeaders().init("Content-Type", "text/html;charset=utf8"),
               err instanceof Error ? `<h1>${err.message}</h1><hr/><pre>${err.stack}</pre>` : String(err),
@@ -233,17 +234,18 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
       ipc.postMessage(res);
       return res;
     }
-  }) satisfies $OnIpcRequestMessage;
+  };
 
   return extendsTo(onRequest);
 };
 
+export type $FetchHandler = ReturnType<typeof createFetchHandler>;
 export interface $FetchResponse extends ResponseInit {
   body?: BodyInit | null | IpcBody;
 }
 
-export class FetchEvent {
-  constructor(readonly ipcRequest: IpcRequest, readonly ipc: Ipc) {}
+export class IpcFetchEvent {
+  constructor(readonly ipcRequest: IpcServerRequest, readonly ipc: Ipc) {}
   get url() {
     return this.ipcRequest.parsed_url;
   }
@@ -321,8 +323,8 @@ export class FetchEvent {
   get href() {
     return this.url.href;
   }
-  get req_id() {
-    return this.ipcRequest.req_id;
+  get reqId() {
+    return this.ipcRequest.reqId;
   }
 }
 

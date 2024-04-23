@@ -1,5 +1,5 @@
-import { ReadableStreamIpc } from "dweb/core/ipc-web/index.ts";
-import { IPC_ROLE, IpcResponse } from "dweb/core/ipc/index.ts";
+import type { ReadableStreamIpc } from "dweb/core/index.ts";
+import { IpcResponse } from "dweb/core/ipc/index.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
@@ -7,6 +7,7 @@ import { $Callback, Signal } from "../../helper/createSignal.ts";
 import { ReadableStreamOut, binaryStreamRead } from "../../helper/readableStreamHelper.ts";
 import { $Coder, StateObserver } from "../../util/StateObserver.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
+import { webIpcPool } from "../index.ts";
 import { WindowAlertController } from "./WindowAlertController.ts";
 import { WindowBottomSheetsController } from "./WindowBottomSheetsController.ts";
 import type {
@@ -143,17 +144,15 @@ export class WindowPlugin extends BasePlugin {
   /** */
   private async wsToIpc(url: string) {
     const afterOpen = new PromiseOut<void>();
-    const ipc = new ReadableStreamIpc(
-      {
+    const ipc = webIpcPool.create<ReadableStreamIpc>("plaoc-window", {
+      remote: {
         mmid: "localhost.dweb",
         ipc_support_protocols: { cbor: false, protobuf: false, raw: false },
         dweb_deeplinks: [],
         categories: [],
         name: "",
       },
-      //@ts-ignore
-      IPC_ROLE.CLIENT
-    );
+    });
     const ws = new WebSocket(url);
     ws.binaryType = "arraybuffer";
     const streamout = new ReadableStreamOut();
@@ -195,7 +194,7 @@ export class WindowPlugin extends BasePlugin {
     callbackIpc.onRequest(async (request, ipc) => {
       const callbackData = JSON.parse(await request.body.text());
       onCallback.emit(callbackData);
-      callbackIpc.postMessage(IpcResponse.fromText(request.req_id, 200, undefined, "", ipc));
+      callbackIpc.postMessage(IpcResponse.fromText(request.reqId, 200, undefined, "", ipc));
     });
     const modal = await this.fetchApi(`/createModal`, {
       search: { type, ...input, callbackUrl, open, once },
