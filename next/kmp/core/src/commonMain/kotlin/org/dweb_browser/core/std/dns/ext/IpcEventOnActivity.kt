@@ -14,8 +14,8 @@ private const val ACTIVITY_EVENT_NAME = "activity"
 fun IpcEvent.Companion.createActivity(data: String) = IpcEvent.fromUtf8(ACTIVITY_EVENT_NAME, data)
 fun IpcEvent.isActivity() = name == ACTIVITY_EVENT_NAME
 suspend fun MicroModule.Runtime.onActivity(cb: suspend (value: Pair<IpcEvent, Ipc>) -> Unit) =
-  onConnect.listen { event ->
-    val (ipc) = event.data
+  onConnect.listen { connectEvent ->
+    val (ipc) = connectEvent.consume()
     scopeLaunch(cancelable = false) {
       ipc.onEvent("onActivity").collect { event ->
         if (event.data.isActivity()) {

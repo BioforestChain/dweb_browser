@@ -18,8 +18,8 @@ import org.dweb_browser.core.std.file.ext.appendFile
 import org.dweb_browser.core.std.file.ext.realFile
 import org.dweb_browser.core.std.file.ext.writeFile
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.consumeEachCborPacket
+import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultiPartFileEncode
 import org.dweb_browser.helper.platform.MultipartFieldData
@@ -161,16 +161,19 @@ class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
         },
       ).cors()
 
-      onConnect.collectIn(mmScope) { connectEvent ->
+      onConnect.listen { connectEvent ->
         val (ipc) = connectEvent.consume()
-        ipc.onEvent("shareLocalFile").collectIn(mmScope) { event ->
-          event.consumeFilter { ipcEvent ->
-            (ipcEvent.name == "shareLocalFile").trueAlso { // 用于文件分享，传入的内容是 《文件名&&文件路径》
-              val filePath = ipcEvent.text
-              val ret =
-                share(ShareOptions(null, null, null), listOf("file://$filePath"), this@ShareRuntime)
-              debugShare("shareLocalFile", ret)
-              ipc.postMessage(IpcEvent.fromUtf8("shareLocalFile", ret))
+        scopeLaunch(cancelable = true) {
+          ipc.onEvent("shareLocalFile").collect { event ->
+            event.consumeFilter { ipcEvent ->
+              (ipcEvent.name == "shareLocalFile").trueAlso { // 用于文件分享，传入的内容是 《文件名&&文件路径》
+                val filePath = ipcEvent.text
+                val ret = share(
+                  ShareOptions(null, null, null), listOf("file://$filePath"), this@ShareRuntime
+                )
+                debugShare("shareLocalFile", ret)
+                ipc.postMessage(IpcEvent.fromUtf8("shareLocalFile", ret))
+              }
             }
           }
         }
