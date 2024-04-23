@@ -9,10 +9,19 @@ import SwiftUI
 import AVKit
 import Observation
 
-public struct DownloadVideoPreviewView: View {
+public struct DownloadVideoPreviewView: DownloadPreview {
     let url: URL
-    public init(url: URL) {
+    
+    init(_ url: URL) {
         self.url = url
+    }
+    
+    static func isSupport(_ mime: DownloadDataMIME, _ localPath: String?) -> Bool {
+        if case .video(_) = mime, let _ = localPath {
+            return true
+        } else {
+            return false
+        }
     }
     
     @Environment(\.dismiss) private var dismiss
@@ -33,7 +42,7 @@ public struct DownloadVideoPreviewView: View {
 }
 
 @Observable class DownloadVideoPreviewImpViewModel: NSObject {
-    var player: AVPlayer = AVPlayer()
+    var player: AVPlayer? = nil
     var isPlaying: Bool = false
     var fullScreen = false
     
@@ -60,18 +69,20 @@ public struct DownloadVideoPreviewView: View {
     @ObservationIgnored
     private var isNeedAutoPlay = false
     
+    let url: URL
     init(url: URL) {
+        self.url = url
         player = AVPlayer(url: url)
     }
 
     func play() {
-        player.play()
+        player?.play()
         isPlaying = true
         resetAutoHideTimer()
     }
     
     func pause() {
-        player.pause()
+        player?.pause()
         isPlaying = false
         stopAutoHideTimer()
     }
@@ -90,6 +101,7 @@ public struct DownloadVideoPreviewView: View {
     }
     
     func playToggle() {
+        guard let player = player else { return }
         if player.rate > 0 {
             pause()
         } else {
@@ -108,6 +120,7 @@ public struct DownloadVideoPreviewView: View {
     
     func seek(_ editing: Bool) {
         Log("\(editing)")
+        guard let player = player else { return }
         if editing && player.rate > 0 {
             pause()
             isNeedAutoPlay = true
@@ -130,10 +143,13 @@ public struct DownloadVideoPreviewView: View {
     }
     
     func prepareVideo() async {
+        guard let player = player else { return }
+
         let dur = (try? await player.currentItem?.asset.load(.duration).seconds) ?? 0
         duration = Float(dur)
         
-        token = player.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 4), queue: DispatchQueue.main) { time in
+        token = player.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 4), queue: DispatchQueue.main) { [weak self] time in
+            guard let self = self else { return }
             self.current = Float(time.seconds)
             if self.duration > 0 {
                 self.progress = self.current / self.duration
@@ -163,9 +179,12 @@ public struct DownloadVideoPreviewView: View {
     }
     
     deinit {
+        pause()
         if let token = token {
-            player.removeTimeObserver(token)
+            player?.removeTimeObserver(token)
         }
+        player = nil
+        Log("deinit")
     }
 }
 
@@ -185,7 +204,6 @@ struct DownloadVideoPreviewImpView: View {
                             }
                         VideoPlayer(player: viewModel.player)
                             .disabled(true)
-
                     }
                     
                     VStack {
@@ -221,6 +239,9 @@ struct DownloadVideoPreviewImpView: View {
         .background {
             Color.black
                 .ignoresSafeArea()
+        }
+        .onDisappear {
+            viewModel.pause()
         }
     }
     
@@ -261,6 +282,6 @@ struct DownloadVideoPreviewImpView: View {
 
 #Preview(body: {
     VStack {
-        DownloadVideoPreviewView(url: URL(string: "https://file-examples.com/storage/fef545ae0b661d470abe676/2017/04/file_example_MP4_480_1_5MG.mp4")!)
+        DownloadVideoPreviewView(URL(string: "https://file-examples.com/storage/fef545ae0b661d470abe676/2017/04/file_example_MP4_480_1_5MG.mp4")!)
     }
 })

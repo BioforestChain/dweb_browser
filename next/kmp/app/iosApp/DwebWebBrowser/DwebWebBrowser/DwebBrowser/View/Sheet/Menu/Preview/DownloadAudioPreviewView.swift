@@ -9,15 +9,23 @@ import SwiftUI
 import AVKit
 import Observation
 
-public struct DownloadAudioPreviewView: View {
-    let audioUrl: URL
+public struct DownloadAudioPreviewView: DownloadPreview {
+    let url: URL
     
-    public init(audioUrl: URL) {
-        self.audioUrl = audioUrl
+    init(_ url: URL) {
+        self.url = url
+    }
+    
+    static func isSupport(_ mime: DownloadDataMIME, _ localPath: String?) -> Bool {
+        if case .audio(_) = mime, let _ = localPath {
+            return true
+        } else {
+            return false
+        }
     }
     
     public var body: some View {
-        DownloadAudioPreviewImpView(viewModel: DownloadAudioPreviewViewModel(audioUrl: audioUrl))
+        DownloadAudioPreviewImpView(viewModel: DownloadAudioPreviewViewModel(audioUrl: url))
     }
 }
 
@@ -110,6 +118,7 @@ public struct DownloadAudioPreviewView: View {
     }
     
     deinit {
+        player.pause()
         stopTimer()
     }
 }
@@ -117,7 +126,6 @@ public struct DownloadAudioPreviewView: View {
 struct DownloadAudioPreviewImpView: View {
     
     @Bindable var viewModel: DownloadAudioPreviewViewModel
-    @State var progress = Float.zero
     init(viewModel: DownloadAudioPreviewViewModel) {
         self.viewModel = viewModel
     }

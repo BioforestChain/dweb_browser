@@ -48,7 +48,9 @@ struct DownloadAudioPCMWaveView: View {
         })
         .frame(width: width)
         .task {
-            await load()
+            Task(priority: .background) {
+                await load()
+            }
         }
     }
         

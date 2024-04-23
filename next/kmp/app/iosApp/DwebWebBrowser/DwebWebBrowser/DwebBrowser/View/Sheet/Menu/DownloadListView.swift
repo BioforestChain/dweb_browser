@@ -53,15 +53,7 @@ struct DownloadListView: View {
             if downloadingDatas.count > 0 {
                 Section(header: Text("下载中")) {
                     ForEach(viewModel.downloadingDatas, id: \.id) { data in
-                        if data.isLoaded {
-                            NavigationLink {
-                                getPreview(data)
-                            } label: {
-                                DownloadItemView(data: data)
-                            }
-                        } else {
-                            DownloadItemView(data: data)
-                        }
+                        DownloadItemView(data: data)
                     }
                     .onDelete(perform: { indexSet in
                         viewModel.removeDownloading(indexSet)
@@ -73,10 +65,17 @@ struct DownloadListView: View {
             if downloadedDatas.count > 0 {
                 Section(header: Text("已下载")) {
                     ForEach(viewModel.downloadedDatas, id: \.id) { data in
-                        if data.isLoaded {
-                            NavigationLink {
-                                getPreview(data)
-                            } label: {
+                        if DownloadPreviewDispatch.isSupportPreview(data.mime, data.localPath) {
+                            ZStack {
+                                DownloadItemView(data: data)
+                                NavigationLink(destination: AnyView(getPreview(data)), label: {
+                                    EmptyView()
+                                })
+                                .frame(width: 0).opacity(0.0)
+                                .toolbarRole(.editor)
+                            }
+                        } else if let filePath = data.localPath {
+                            ShareLink(item: filePath) {
                                 DownloadItemView(data: data)
                             }
                         } else {
@@ -93,17 +92,12 @@ struct DownloadListView: View {
         .environment(viewModel)
     }
     
-    @ViewBuilder
-    func getPreview(_ item: DownloadItem) -> some View {
-        if let filePath = item.localPath, case .video(_) =  item.mime {
-            DownloadVideoPreviewView(url: URL(filePath: filePath))
-        } else if let filePath = item.localPath, case .audio(_) =  item.mime {
-            DownloadAudioPreviewView(audioUrl: URL(filePath: filePath))
-        } else {
-            //DownloadTextPreviewView(data: item)
-            Text("TODO: Preview")
-        }
-        
+    func isSupportPrview(_ item: DownloadItem) -> Bool {
+        return DownloadPreviewDispatch.isSupportPreview(item.mime, item.localPath)
+    }
+    
+    func getPreview(_ item: DownloadItem) -> any View {
+        return DownloadPreviewDispatch.dispathPreview(item.mime, item.localPath)
     }
 }
 
@@ -114,9 +108,11 @@ struct DownloadItemView: View {
     var body: some View {
         HStack {
             let _ = Self._printChanges()
+            
             leftView
                 .frame(maxWidth: 40)
                 .padding(10)
+            
             VStack(alignment: .leading) {
                 Text(data.title)
                     .font(.system(size: 18, weight: .semibold))
@@ -127,6 +123,13 @@ struct DownloadItemView: View {
                     Text(data.size)
                         .foregroundStyle(.gray)
                 }
+            }
+            
+            Spacer()
+            
+            if data.isLoaded {
+                Image(systemName: "chevron.right")
+                    .padding()
             }
         }
     }
@@ -147,7 +150,7 @@ struct DownloadItemView: View {
             }, pause: data.pause, progress: progress)
         } else {
             Circle()
-                .foregroundStyle(Color.blue.opacity(0.5))
+                .foregroundStyle(Color.blue.opacity(0.3))
                 .background(content: {
                     Image(systemName: data.mime.sfIcon)
                         .font(.system(size: 20))
@@ -178,6 +181,7 @@ struct Demo: View {
 
 
 #Preview(body: {
+    
     Demo()
         .environment(DownloadListViewModel())
 })

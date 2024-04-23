@@ -8,9 +8,24 @@
 import SwiftUI
 import QuickLook
 
-struct DownloadTextPreviewView: UIViewControllerRepresentable {
+struct DownloadTextPreviewView: DownloadPreview, UIViewControllerRepresentable {
     
-    let fileURL: URL
+    let url: URL
+    
+    init(_ url: URL) {
+        self.url = url
+    }
+    
+    static func isSupport(_ mime: DownloadDataMIME, _ localPath: String?) -> Bool {
+        if let filePath = localPath {
+            let url = URL(filePath: filePath)
+            let isSupport = QLPreviewController.canPreview(url as QLPreviewItem)
+            Log("mime:\(mime), support: \(isSupport)")
+            return isSupport
+        } else {
+            return false
+        }
+    }
     
     typealias UIViewControllerType = QLPreviewController
     
@@ -21,7 +36,7 @@ struct DownloadTextPreviewView: UIViewControllerRepresentable {
         }
         
         func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
-            return pereant.fileURL as QLPreviewItem
+            return pereant.url as QLPreviewItem
         }
                 
         let pereant: DownloadTextPreviewView

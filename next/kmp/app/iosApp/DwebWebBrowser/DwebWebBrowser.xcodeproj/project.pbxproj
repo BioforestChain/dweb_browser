@@ -75,6 +75,7 @@
 		48EC18782BD211E400877DC5 /* DownloadPlayableScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EC18772BD211E400877DC5 /* DownloadPlayableScrollView.swift */; };
 		48EEA8EE2B4FF17F006DA0F3 /* DwebWebBrowser.h in Headers */ = {isa = PBXBuildFile; fileRef = 48EEA8E12B4FF17F006DA0F3 /* DwebWebBrowser.h */; };
 		48EEA8F02B4FF17F006DA0F3 /* DwebWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48EEA8E62B4FF17F006DA0F3 /* DwebWebView.swift */; };
+		48F24A312BD744FC00F3C6AE /* DownloadImagePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48F24A302BD744FC00F3C6AE /* DownloadImagePreviewView.swift */; };
 		F0DA27022B679F350005ED24 /* MenuViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0DA27012B679F350005ED24 /* MenuViewModel.swift */; };
 /* End PBXBuildFile section */
 
@@ -152,6 +153,7 @@
 		48EC18772BD211E400877DC5 /* DownloadPlayableScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadPlayableScrollView.swift; sourceTree = "<group>"; };
 		48EEA8E12B4FF17F006DA0F3 /* DwebWebBrowser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DwebWebBrowser.h; sourceTree = "<group>"; };
 		48EEA8E62B4FF17F006DA0F3 /* DwebWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebWebView.swift; sourceTree = "<group>"; };
+		48F24A302BD744FC00F3C6AE /* DownloadImagePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadImagePreviewView.swift; sourceTree = "<group>"; };
 		F0DA27012B679F350005ED24 /* MenuViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -379,6 +381,20 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		4821B5BF2BD79A1700B00799 /* Preview */ = {
+			isa = PBXGroup;
+			children = (
+				48EA39EF2BC785DD00FC4898 /* DownloadPreviewViews.swift */,
+				48F24A302BD744FC00F3C6AE /* DownloadImagePreviewView.swift */,
+				4828BE1C2BD0C81A005AA0CD /* DownloadTextPreviewView.swift */,
+				4828BE1A2BD0C7C2005AA0CD /* DownloadVideoPreviewView.swift */,
+				4828BE182BD0C799005AA0CD /* DownloadAudioPreviewView.swift */,
+				4805C4AA2BCFB4AC00063760 /* DownloadAudioPCMWaveView.swift */,
+				48EC18772BD211E400877DC5 /* DownloadPlayableScrollView.swift */,
+			);
+			path = Preview;
+			sourceTree = "<group>";
+		};
 		482F5EAB2BC62EAD008F089D /* Menu */ = {
 			isa = PBXGroup;
 			children = (
@@ -386,12 +402,7 @@
 				482F5EA92BC62B27008F089D /* DownloadListView.swift */,
 				48A4AE442BC91D26008F5860 /* DownloadListViewModel.swift */,
 				48A4AE422BC91CE8008F5860 /* DownloadListData.swift */,
-				48EA39EF2BC785DD00FC4898 /* DownloadPreviewViews.swift */,
-				4828BE1C2BD0C81A005AA0CD /* DownloadTextPreviewView.swift */,
-				4828BE1A2BD0C7C2005AA0CD /* DownloadVideoPreviewView.swift */,
-				4828BE182BD0C799005AA0CD /* DownloadAudioPreviewView.swift */,
-				4805C4AA2BCFB4AC00063760 /* DownloadAudioPCMWaveView.swift */,
-				48EC18772BD211E400877DC5 /* DownloadPlayableScrollView.swift */,
+				4821B5BF2BD79A1700B00799 /* Preview */,
 			);
 			path = Menu;
 			sourceTree = "<group>";
@@ -513,6 +524,7 @@
 				4803BFC22B4FF279006B2F79 /* DataController.swift in Sources */,
 				48EC18782BD211E400877DC5 /* DownloadPlayableScrollView.swift in Sources */,
 				4803BFDB2B4FF279006B2F79 /* MenuCell.swift in Sources */,
+				48F24A312BD744FC00F3C6AE /* DownloadImagePreviewView.swift in Sources */,
 				4803BFD22B4FF279006B2F79 /* AddressBarView.swift in Sources */,
 				4803BFB62B4FF279006B2F79 /* DwebBrowserHistoryStore.swift in Sources */,
 				4828BE192BD0C799005AA0CD /* DownloadAudioPreviewView.swift in Sources */,

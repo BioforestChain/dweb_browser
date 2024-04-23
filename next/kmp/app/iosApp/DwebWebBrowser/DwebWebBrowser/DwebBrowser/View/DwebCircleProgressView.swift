@@ -30,7 +30,7 @@ struct DwebCircleProgressView: View {
                 .frame(maxWidth: .infinity, maxHeight:.infinity)
             })
         }
-        .progressViewStyle(DwebCircleProgressStyle(color: Color.blue.opacity(0.5), clockwise: false))
+        .progressViewStyle(DwebCircleProgressStyle(color: Color.blue.opacity(0.3), clockwise: false))
     }
 }
 

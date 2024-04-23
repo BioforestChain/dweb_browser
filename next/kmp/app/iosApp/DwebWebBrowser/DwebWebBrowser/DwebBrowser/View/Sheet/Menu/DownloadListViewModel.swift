@@ -34,13 +34,14 @@ import Observation
     }
     
     @ObservationIgnored
-    private var sizeStringCreator: (UInt32) -> String = { size in
-        switch size {
-            case 0..<1024: "\(size)Byte"
-            case 1024..<1024*1024: "\(size/1024)KB"
-            case 1024*1024..<1024*1024*1024: "\(size/1024/1024)MB"
+    private var sizeStringCreator: (UInt32) -> String = { oriSize in
+        let size = Float(oriSize)
+        return switch size {
+            case 0..<1024: String(format: "%.1fByte", size)
+            case 1024..<1024*1024: String(format: "%.1fKB", size/1024)
+            case 1024*1024..<1024*1024*1024: String(format: "%.1fMB", size/1024/1024)
             default:
-                "\(size/1024/1024/1024)GB"
+                String(format: "%.1fGB", size/1024/1024/1024)
         }
     }
     
@@ -103,10 +104,6 @@ import Observation
         guard case let .pause(p) = item.state else { return }
         item.updateState(.loading(p))
         browserViewDataSource.resumeDownload(id: item.id)
-    }
-    
-    func doShareAction() {
-        
     }
     
     private func addDownloadObserverIfNeed(_ datas: [WebBrowserViewDownloadData]?) {
