@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.WindowPlacement
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PureRect
 import org.dweb_browser.helper.WARNING
@@ -49,8 +50,10 @@ fun WindowController.WindowControllerEffect() {
       frameDragEnd = { dragStartPoint = null },
     )
 
+    // 监听原生窗口resize的变化，去改变state的bounds
     launch {
       composeWindowParams.componentEvents.componentResized.collect {
+        // 更新到外部，表示是从原生窗口同步而来到状态
         state.updateBounds(WindowState.UpdateReason.Outer) {
           copy(width = composeWindow.width / density, height = composeWindow.height / density)
         }
@@ -82,11 +85,14 @@ fun WindowController.WindowControllerEffect() {
         }
       }
     }
-
+    // 监听 state的bounds 变化
     state.observable.onChange {
       if (it.key == WindowPropertyKeys.Bounds) {
+        // 如果需要更新到内部
         if (state.updateBoundsReason == WindowState.UpdateReason.Inner) {
           val newBoundsPx = (it.newValue as PureRect).timesToInt(density)
+          // TODO waterbang 这里设置有bug待验证，设置过快会导致addComponentListener.componentResized 莫名的自己回滚，并且不是记忆窗口的问题
+          delay(100)
           composeWindow.setBounds(
             newBoundsPx.x,
             newBoundsPx.y,

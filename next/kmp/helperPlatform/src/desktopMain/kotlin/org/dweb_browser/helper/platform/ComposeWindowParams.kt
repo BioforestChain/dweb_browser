@@ -1,15 +1,9 @@
 package org.dweb_browser.helper.platform
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposePanel
-import androidx.compose.ui.awt.SwingPanel
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.unit.DpSize
@@ -218,6 +212,7 @@ class ComposeWindowParams(
     init {
       pvc.lifecycleScope.launch {
         pvc.composeWindowStateFlow.collect { composeWindow ->
+          // 监听原生窗口一些状态，用来通过副作用给控制器同步状态
           composeWindow.addComponentListener(object : ComponentListener {
             override fun componentResized(event: ComponentEvent) {
               _componentResized.launchEmit(event)

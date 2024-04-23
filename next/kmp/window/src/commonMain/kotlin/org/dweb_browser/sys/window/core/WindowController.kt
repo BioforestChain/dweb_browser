@@ -133,8 +133,9 @@ abstract class WindowController(
 
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
+
   fun isFullscreen(mode: WindowMode = state.mode) =
-     mode == WindowMode.FULLSCREEN
+    mode == WindowMode.FULLSCREEN
 
   val onMaximize = createStateListener(WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", id) }
@@ -148,10 +149,16 @@ abstract class WindowController(
 
   suspend fun maximize() = managerRunOr({ it.maximizeWindow(this) }, { simpleMaximize() })
 
+  fun fullscreen() {
+    if (!isFullscreen()) {
+      state.mode = WindowMode.FULLSCREEN
+    }
+  }
+
   private var _beforeMaximizeBounds: PureRect? = null
 
   /**
-   * 记忆窗口最大化之前的记忆
+   * 记忆窗口最大化之前的大小
    */
   val beforeMaximizeBounds get() = _beforeMaximizeBounds;
 
@@ -169,6 +176,7 @@ abstract class WindowController(
    */
   internal open suspend fun simpleUnMaximize() {
     if (isMaximized()) {
+      // 看看有没有记忆了之前的窗口大小
       when (val value = _beforeMaximizeBounds) {
         null -> {
           state.setDefaultFloatWindowBounds(
