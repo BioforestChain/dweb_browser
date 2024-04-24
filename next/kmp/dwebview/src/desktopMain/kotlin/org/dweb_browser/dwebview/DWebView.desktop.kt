@@ -19,14 +19,14 @@ import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.platform.IPureViewBox
 
 actual suspend fun IDWebView.Companion.create(
-  mm: MicroModule.Runtime, options: DWebViewOptions
+  mm: MicroModule.Runtime, options: DWebViewOptions, viewBox: IPureViewBox?
 ): IDWebView {
   DWebView.prepare()
   return DWebView(DWebViewEngine(mm, options))
 }
-
 
 internal fun IDWebView.Companion.create(engine: DWebViewEngine, initUrl: String?) =
   DWebView(engine, initUrl)

@@ -33,12 +33,14 @@ import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.listen
+import org.dweb_browser.helper.platform.IPureViewBox
+import org.dweb_browser.helper.platform.asAndroid
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(
-  mm: MicroModule.Runtime, options: DWebViewOptions
-): IDWebView = create(getAppContextUnsafe(), mm, options)
+  mm: MicroModule.Runtime, options: DWebViewOptions, viewBox: IPureViewBox?
+): IDWebView = create(getAppContextUnsafe(), mm, options, viewBox?.asAndroid()?.activity)
 
 suspend fun IDWebView.Companion.create(
   /**
@@ -234,10 +236,12 @@ class DWebView private constructor(internal val engine: DWebViewEngine, initUrl:
 
   private var faviconIcon: FaviconIcon? = null
   override suspend fun getFavoriteIcon(): ImageBitmap? = withMainContext {
-    val favicon = engine.favicon
-    if (faviconIcon?.favicon != favicon) {
-      faviconIcon = favicon?.let { FaviconIcon(it) }
-    }
+    // 考虑到 engine.favicon 在加载的时候会是空的，这边直接返回空，避免出现加载的时候显示旧的图标
+    engine.favicon?.let { favicon ->
+      if (faviconIcon?.favicon != favicon) {
+        faviconIcon = FaviconIcon(favicon)
+      }
+    } ?: run { faviconIcon = null }
     faviconIcon?.imageBitmap
   }
 

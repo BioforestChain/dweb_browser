@@ -25,6 +25,7 @@ import org.dweb_browser.helper.WARNING
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.platform.setScale
+import org.dweb_browser.helper.platform.IPureViewBox
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.helper.withMainContext
@@ -44,7 +45,8 @@ import kotlin.native.runtime.NativeRuntimeApi
 @OptIn(ExperimentalForeignApi::class)
 actual suspend fun IDWebView.Companion.create(
   mm: MicroModule.Runtime,
-  options: DWebViewOptions
+  options: DWebViewOptions,
+  viewBox: IPureViewBox?
 ): IDWebView =
   create(
     CGRectMake(0.0, 0.0, 100.0, 100.0),

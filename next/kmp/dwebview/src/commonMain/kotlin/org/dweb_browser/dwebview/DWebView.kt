@@ -27,11 +27,14 @@ import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.platform.IPureViewBox
 
 val debugDWebView = Debugger("dwebview")
 
 expect suspend fun IDWebView.Companion.create(
-  mm: MicroModule.Runtime, options: DWebViewOptions = DWebViewOptions()
+  mm: MicroModule.Runtime,
+  options: DWebViewOptions = DWebViewOptions(),
+  viewBox: IPureViewBox? = null
 ): IDWebView
 
 abstract class IDWebView(initUrl: String?) {
@@ -138,7 +141,7 @@ abstract class IDWebView(initUrl: String?) {
   /**
    * 打开开发者工具
    */
-  abstract suspend fun openDevTool():Unit
+  abstract suspend fun openDevTool(): Unit
 
   /**
    * 获取webview返回到favorite icon

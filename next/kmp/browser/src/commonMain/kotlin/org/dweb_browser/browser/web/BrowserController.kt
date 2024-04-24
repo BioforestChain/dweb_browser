@@ -97,6 +97,9 @@ class BrowserController(
     }
   }
 
+  // 用于获取窗口的视图盒子，对android来说，可以通过这个试图盒子获取activity
+  val viewBox get() = win?.viewBox
+
   /**
    * 通过 deeplink 来打开 web browser界面后，需要考虑是否加载
    */

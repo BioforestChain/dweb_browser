@@ -12,5 +12,5 @@ actual suspend fun IPureViewController.createDwebView(
   options: DWebViewOptions
 ): IDWebView {
   require(this is PureViewController)
-  return IDWebView.Companion.create(this, remoteMM, options)
+  return IDWebView.Companion.create(this, remoteMM, options, this)
 }

@@ -15,6 +15,7 @@ import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.create
 import org.dweb_browser.helper.getAppContextUnsafe
+import org.dweb_browser.helper.platform.asAndroid
 
 actual suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView =
   TaskbarView.from(taskbarController)
@@ -27,7 +28,7 @@ class TaskbarView private constructor(
       val dwebView = IDWebView.create(
         context = getAppContextUnsafe(),
         remoteMM = taskbarController.deskNMM,
-        options = taskbarController.getTaskbarDWebViewOptions(),
+        options = taskbarController.getTaskbarDWebViewOptions()
       )
       return TaskbarView(taskbarController, dwebView)
     }
