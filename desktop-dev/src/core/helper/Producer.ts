@@ -18,7 +18,7 @@ export class Producer<T> {
   console = logger(this);
   //#region Event
   static #Event = class Event<T> {
-    constructor(readonly data: T, private producer: Producer<T>) {}
+    constructor(readonly data: T, readonly producer: Producer<T>) {}
     toString() {
       return `Event<${this.data}>`;
     }
@@ -162,7 +162,7 @@ export class Producer<T> {
     constructor(
       readonly name: string,
       readonly input: Channel<Event<T>> = new Channel(),
-      private producer: Producer<T>
+      readonly producer: Producer<T>
     ) {
       producer.consumers.add(this);
     }

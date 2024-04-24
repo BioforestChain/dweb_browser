@@ -1,4 +1,4 @@
-import type { ReadableStreamIpc } from "dweb/core/index.ts";
+import { ReadableStreamEndpoint } from "dweb/core/index.ts";
 import type { $MicroModuleManifest } from "dweb/core/types.ts";
 import { PromiseOut } from "dweb/helper/PromiseOut.ts";
 import { simpleEncoder } from "dweb/helper/encoding.ts";
@@ -6,11 +6,11 @@ import { ReadableStreamOut, streamReadAll } from "dweb/helper/stream/readableStr
 import { webIpcPool } from "../index.ts";
 
 // 回复信息给后端
-export const createMockModuleServerIpc: (wsUrl: URL, remote: $MicroModuleManifest) => Promise<ReadableStreamIpc> = (
+export const createMockModuleServerIpc: (
   wsUrl: URL,
   remote: $MicroModuleManifest
-) => {
-  const waitOpenPo = new PromiseOut<ReadableStreamIpc>();
+) => Promise<ReadableStreamEndpoint> = (wsUrl: URL, remote: $MicroModuleManifest) => {
+  const waitOpenPo = new PromiseOut<ReadableStreamEndpoint>();
 
   /// 通过ws链接到代理服务器
   const ws = new WebSocket(wsUrl);
@@ -20,12 +20,8 @@ export const createMockModuleServerIpc: (wsUrl: URL, remote: $MicroModuleManifes
     waitOpenPo.reject(event);
   };
   ws.onopen = () => {
-    /**
-     * 构建服务器响应器
-     */
-    const serverIpc = webIpcPool.create<ReadableStreamIpc>(`client-${wsUrl}`,{
-      remote:remote
-    })
+    const endpoint = new ReadableStreamEndpoint(`client-${wsUrl}`);
+    const serverIpc = webIpcPool.createIpc(endpoint, 0, remote, remote, true);
     waitOpenPo.resolve(serverIpc);
     /**
      * 这是来自代理服务器的流对象

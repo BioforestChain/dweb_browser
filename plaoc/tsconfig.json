@@ -2,7 +2,7 @@
   "compilerOptions": {
     // Enable latest features
     "lib": ["ESNext", "DOM"],
-    "rootDir": "src",
+    "rootDir": "./",
     "outDir": "dist",
     "target": "ES2022",
     "module": "ESNext",
@@ -26,6 +26,6 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["src/core", "src/helper", "src/js-process"],
-  "exclude": ["scripts", "src/browser", "src/helperPlatformElectron"]
+  "include": ["cli/**/*.ts", "src/client", "src/is-dweb", "src/server"],
+  "exclude": ["scripts", "demo"]
 }

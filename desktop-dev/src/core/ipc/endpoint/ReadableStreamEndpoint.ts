@@ -1,11 +1,11 @@
-import { simpleDecoder } from "../../../helper/encoding";
-import { streamRead } from "../../../helper/stream/readableStreamHelper";
-import { Channel } from "../../helper/Channel";
-import type { $PromiseMaybe } from "../../helper/types";
-import { $cborToEndpointMessage, $jsonToEndpointMessage } from "../helper/$messageToIpcMessage";
-import { CommonEndpoint } from "./CommonEndpoint";
-import { ENDPOINT_PROTOCOL } from "./EndpointLifecycle";
-import type { $EndpointRawMessage } from "./EndpointMessage";
+import { simpleDecoder } from "../../../helper/encoding.ts";
+import { streamRead } from "../../../helper/stream/readableStreamHelper.ts";
+import { Channel } from "../../helper/Channel.ts";
+import type { $PromiseMaybe } from "../../helper/types.ts";
+import { $cborToEndpointMessage, $jsonToEndpointMessage } from "../helper/$messageToIpcMessage.ts";
+import { CommonEndpoint } from "./CommonEndpoint.ts";
+import { ENDPOINT_PROTOCOL } from "./EndpointLifecycle.ts";
+import type { $EndpointRawMessage } from "./EndpointMessage.ts";
 
 export class ReadableStreamEndpoint extends CommonEndpoint {
   override toString() {

@@ -1,5 +1,3 @@
-import type { ClassGetterDecorator } from "./Tc39Decorator";
-
 export const cacheGetter = () => {
   return (target: object, prop: string, desp: PropertyDescriptor) => {
     const source_fun = desp.get;

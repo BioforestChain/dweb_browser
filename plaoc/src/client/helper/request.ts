@@ -1,4 +1,4 @@
-import { $BodyData, IPC_METHOD, IpcRequest } from "../index.ts";
+import { IPC_METHOD, IpcRequest, type $BodyData } from "../index.ts";
 import { $makeExtends } from "./$makeExtends.ts";
 import { fetchExtends } from "./$makeFetchExtends.ts";
 

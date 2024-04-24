@@ -30,7 +30,6 @@ export interface $CommonAppManifest
     | "theme_color"
     | "background_color"
     | "shortcuts"
-    // "start_url" | "scope" | "related_applications" | "prefer_related_applications" | "iarc_rating_id"
   > {
   version?: string;
 }
@@ -68,79 +67,70 @@ export interface $MicroModuleRuntime extends $MicroModuleManifest {
   beConnect(ipc: import("./ipc/ipc.ts").Ipc): Promise<void>;
 }
 
+/**ipc事件句柄 */
 export const enum IPC_HANDLE_EVENT {
-  // State = "state", // 获取窗口状态
   Activity = "activity", // 激活应用程序时发出。各种操作都可以触发此事件，例如首次启动应用程序、在应用程序已运行时尝试重新启动该应用程序，或者单击应用程序的停靠栏或任务栏图标。
   Renderer = "renderer", // 窗口激活时发出，这里可以拿到应用的窗口句柄（wid）
   RendererDestroy = "renderer-destroy", // 窗口激活时发出，这里可以拿到应用的窗口句柄（wid）
-  Shortcut = "shortcut",// dinamic quick action
-  // WindowAllClosed = "window-all-closed", // 关闭应用程序窗口
-  // DidBecomeActive = "did-become-active", // 每次应用程序激活时都会发出，而不仅仅是在单击 Dock 图标或重新启动应用程序时发出。
-  // Quit = "quit", // 尝试关闭所有窗口。该before-quit事件将首先发出。如果所有窗口都成功关闭，will-quit将发出该事件，默认情况下应用程序将终止。当前只有quit事件。
-  // BeforeQuit = "before-quit",
-  // willQuit = "will-quit",
-  // Exit = "exit", // 所有窗口将在不询问用户的情况下立即关闭，并且不会发出before-quit 和事件。will-quit
-  // Relaunch = "relaunch", // 当前实例退出时重新启动应用程序。
+  Shortcut = "shortcut", // dinamic quick action
 }
 
 // Base on @types/web-app-manifest 1.0.4
 // Project: https://w3c.github.io/manifest/
 // Base Definitions by: Yamagishi Kazutoshi <https://github.com/ykzts>
-
+/**文本方向类型 */
 export type TextDirectionType = "ltr" | "rtl" | "auto";
+/**显示模式 */
 export type DisplayModeType = "fullscreen" | "standalone" | "minimal-ui" | "browser";
 
 /**
- * Each `ImageResource` represents an image that is used as part of a web application, suitable to use in
- * various contexts depending on the semantics of the member that is using the object (e.g., an icon
- * that is part of an application menu, etc.).
+ * 每一个`ImageResource`代表了用于应用的图片，根据使用该对象的成员的语义，
+ * 它适用于在各种上下文中使用（例如，作为应用菜单的一部分的图标等）。
  *
- * @see https://w3c.github.io/manifest/#imageresource-and-its-members
+ * 参见：https://w3c.github.io/manifest/#imageresource-and-its-members
  */
 export interface ImageResource {
   /**
-   * The `src` member of an `ImageResource` is a URL from which a user agent can fetch the image's data.
+   * `ImageResource`的`src`成员是用户代理可以获取图片数据的URL。
    *
-   * @see https://w3c.github.io/manifest/#src-member
+   * 参见：https://w3c.github.io/manifest/#src-member
    */
   src: string;
 
   /**
-   * The `sizes` member of an ImageResource is a string consisting of an unordered set of unique space-
-   * separated tokens which are ASCII case-insensitive that represents the dimensions of an image.
+   * ImageResource的`sizes`成员是由一组无序的唯一的空格分隔的令牌组成的字符串，
+   * 代表图像的尺寸。
    *
-   * @see https://w3c.github.io/manifest/#sizes-member
+   * 参见：https://w3c.github.io/manifest/#sizes-member
    */
   sizes?: string | undefined;
 
   /**
-   * The `type` member of an `ImageResource` is a hint as to the MIME type of the image.
+   * `ImageResource`的`type`成员是关于图像的MIME类型的提示。
    *
-   * @see https://w3c.github.io/manifest/#type-member
+   * 参见：https://w3c.github.io/manifest/#type-member
    */
   type?: string | undefined;
 
   /**
-   * The purpose member is an unordered set of unique space-separated tokens that are ASCII case-
-   * insensitive.
+   * `purpose`成员是一组无序的唯一的空格分隔的令牌，大小写不敏感。
    *
-   * @see https://w3c.github.io/manifest/#purpose-member
+   * 参见：https://w3c.github.io/manifest/#purpose-member
    */
   purpose?: string | undefined;
 
   /**
-   * The `platform` member represents the platform to which a containing object applies.
+   * `platform`成员表示包含对象适用于的平台。
    *
-   * @see https://w3c.github.io/manifest/#platform-member
+   * 参见：https://w3c.github.io/manifest/#platform-member
    */
   platform?: string | undefined;
 }
 
 /**
- * Each `Fingerprints` represents a set of cryptographic fingerprints used for verifying the application. A
- * fingerprint has the following two properties: `type` and `value`.
+ * 每一个`Fingerprints`代表了用于验证应用程序的一组加密指纹。指纹有以下两个属性：`type`和`value`。
  *
- * @see https://w3c.github.io/manifest/#fingerprints-member
+ * 参见：https://w3c.github.io/manifest/#fingerprints-member
  */
 export interface Fingerprint {
   type?: string | undefined;
@@ -148,199 +138,102 @@ export interface Fingerprint {
 }
 
 /**
- * Each `ExternalApplicationResources` represents an application related to the web application.
+ * “manifest”是一个包含启动参数和应用默认设置的JSON文档，
+ * 它应用于当应用启动时的情况。
  *
- * @see https://w3c.github.io/manifest/#externalapplicationresource-and-its-members
- */
-export interface ExternalApplicationResource {
-  /**
-   * The `platform` member represents the platform to which a containing object applies.
-   *
-   * @see https://w3c.github.io/manifest/#platform-member-0
-   */
-  platform: string;
-
-  /**
-   * The `url` member of an ExternalApplicationResource dictionary represents the
-   * URL at which the application can be found.
-   *
-   * @see https://w3c.github.io/manifest/#url-member-0
-   */
-  url?: string | undefined;
-
-  /**
-   * The `id` member of an ExternalApplicationResource dictionary represents the id which is used to
-   * represent the application on the platform.
-   *
-   * @see https://w3c.github.io/manifest/#id-member
-   */
-  id?: string | undefined;
-
-  /**
-   * The `min_version` member of an `ExternalApplicationResource` dictionary represents the minimum version
-   * of the application that is considered related to this web app.
-   *
-   * @see https://w3c.github.io/manifest/#min_version-member
-   */
-  min_version?: string | undefined;
-
-  /**
-   * The `fingerprints` member of an `ExternalApplicationResource` dictionary represents an array of
-   * `Fingerprint`s.
-   *
-   * @see https://w3c.github.io/manifest/#fingerprints-member
-   */
-  fingerprints?: Fingerprint[] | undefined;
-}
-
-/**
- * Each `ShortcutItem` represents a link to a key task or page within a web app.
- *
- * @see https://w3c.github.io/manifest/#shortcutitem-and-its-members
- */
-export interface ShortcutItem {
-  /**
-   * The `name` member of a `ShortcutItem` is a `string` that represents the name of the shortcut as it is usually
-   * displayed to the user in a context menu.
-   *
-   * @see https://w3c.github.io/manifest/#name-member-0
-   */
-  name: string;
-
-  /**
-   * The `short_name` member of a `ShortcutItem` is a `string` that represents a short version of the name of
-   * the shortcut.
-   *
-   * @see https://w3c.github.io/manifest/#short_name-member-0
-   */
-  short_name?: string | undefined;
-
-  /**
-   * The `description` member of a `ShortcutItem` is a `string` that allows the developer to describe the
-   * purpose of the shortcut.
-   *
-   * @see https://w3c.github.io/manifest/#description-member-0
-   */
-  description?: string | undefined;
-
-  /**
-   * The `url` member of a `ShortcutItem` is the URL within the application's scope that opens when the
-   * associated shortcut is activated.
-   *
-   * @see https://w3c.github.io/manifest/#url-member
-   */
-  url: string;
-
-  /**
-   * The `icons` member of an `ShortcutItem` member is an `array` of `ImageResource`s that can serve as iconic
-   * representations of the shortcut in various contexts.
-   *
-   * @see https://w3c.github.io/manifest/#icons-member-0
-   */
-  icons?: ImageResource[] | undefined;
-}
-
-/**
- * A `manifest` is a JSON document that contains startup parameters and application defaults for
- * when a web application is launched.
- *
- * @see https://w3c.github.io/manifest/#webappmanifest-dictionary
+ * 参见：https://w3c.github.io/manifest/#webappmanifest-dictionary
  */
 export interface WebAppManifest {
   /**
-   * The `dir` member specifies the base direction for the directionality-capable members of the manifest.
+   * “dir”成员指定manifest中那些能够设置方向性的成员的基本方向。
    *
-   * @see https://w3c.github.io/manifest/#dir-member
+   * 参见：https://w3c.github.io/manifest/#dir-member
    */
   dir?: TextDirectionType | undefined;
 
   /**
-   * The `lang` member is a language tag (`string`) that specifies the primary language for the values of
-   * the manifest's directionality-capable members (as knowing the language can also help with directionality).
+   * “lang”成员是一个语言标签（字符串），它指定了manifest中那些能够设置方向性的成员的主要语言
+   * （因为知道语言也可以帮助设置方向）。
    *
-   * @see https://w3c.github.io/manifest/#lang-member
+   * 参见：https://w3c.github.io/manifest/#lang-member
    */
   lang?: string | undefined;
 
   /**
-   * The `name` member is a `string` that represents the name of the web application as it is usually displayed
-   * to the user (e.g., amongst a list of other applications, or as a label for an icon).
+   * “name”成员是一个字符串，代表通常展示给用户看的应用的姓名
+   * （如：在其他应用的清单里，或者作为图标的标签）。
    *
-   * @see https://w3c.github.io/manifest/#name-member
+   * 参见：https://w3c.github.io/manifest/#name-member
    */
   name?: string | undefined;
 
   /**
-   * The `short_name` member is a `string` that represents a short version of the name of the web application.
+   * “short_name”成员是一个字符串，代表应用姓名的缩写。
    *
-   * @see https://w3c.github.io/manifest/#short_name-member
+   * 参见：https://w3c.github.io/manifest/#short_name-member
    */
   short_name?: string | undefined;
 
   /**
-   * The `description` member allows the developer to describe the purpose of the web application.
+   * “description”成员让开发者有机会描述应用的用途。
    *
-   * @see https://w3c.github.io/manifest/#description-member
+   * 参见：https://w3c.github.io/manifest/#description-member
    */
   description?: string | undefined;
 
   /**
    *
-   * #see https://developer.chrome.com/docs/extensions/mv3/manifest/homepage_url/
+   * 参见：https://developer.chrome.com/docs/extensions/mv3/manifest/homepage_url/
    */
   homepage_url?: string | undefined;
+
   /**
-   * The `icons` member is an array of `ImageResource`s that can serve as iconic representations of the web
-   * application in various contexts.
+   * “icons”成员是一个`ImageResource`s的数组，它可以在各种情境下作为应用的图标。
    *
-   * @see https://w3c.github.io/manifest/#icons-member
+   * 参见：https://w3c.github.io/manifest/#icons-member
    */
   icons?: ImageResource[] | undefined;
 
   /**
-   * The `screenshots` member is an array of `ImageResource`s, representing the web application in common
-   * usage scenarios.
+   * “screenshots”成员是一个`ImageResource`s的数组，它代表了应用在常见使用情景下的截图。
    *
-   * @see https://w3c.github.io/manifest/#screenshots-member
+   * 参见：https://w3c.github.io/manifest/#screenshots-member
    */
   screenshots?: ImageResource[] | undefined;
 
   /**
-   * The `categories` member describes the expected application categories to which the web application belongs.
+   * “categories”成员描述了预期的应用类别，也就是应用属于哪些类别。
    *
-   * @see https://w3c.github.io/manifest/#categories-member
+   * 参见：https://w3c.github.io/manifest/#categories-member
    */
   categories?: string[] | undefined;
 
   /**
-   * The `iarc_rating_id` member is a `string` that represents the International Age Rating Coalition (IARC)
-   * certification code of the web application.
+   * “iarc_rating_id”成员是一个字符串，代表应用的国际年龄分级联盟（IARC）认证代码。
    *
-   * @see https://w3c.github.io/manifest/#iarc_rating_id-member
+   * 参见：https://w3c.github.io/manifest/#iarc_rating_id-member
    */
   iarc_rating_id?: string | undefined;
 
   /**
-   * The `start_url` member is a `string` that represents the start URL , which is URL that the developer
-   * would prefer the user agent load when the user launches the web application (e.g., when the user
-   * clicks on the icon of the web application from a device's application menu or homescreen).
+   * “start_url”成员是一个字符串，代表起始URL，也就是开发者希望用户启动应用时加载的URL
+   * （如：当用户在设备的应用菜单或主屏幕上点击应用的图标时）。
    *
-   * @see https://w3c.github.io/manifest/#start_url-member
+   * 参见：https://w3c.github.io/manifest/#start_url-member
    */
   start_url?: string | undefined;
 
   /**
-   * The `display` member is a `DisplayModeType`, whose value is one of display modes values.
+   * “display”成员是一个`DisplayModeType`，它的值是显示模式值中的一个。
    *
-   * @see https://w3c.github.io/manifest/#display-member
+   * 参见：https://w3c.github.io/manifest/#display-member
    */
   display?: DisplayModeType | undefined;
 
   /**
-   * The `orientation` member is a string that serves as the default screen orientation for all top-level
-   * browsing contexts of the web application.
+   * “orientation”成员是一个字符串，它作为应用所有顶级浏览内容的默认屏幕方向。
    *
-   * @see https://w3c.github.io/manifest/#orientation-member
+   * 参见：https://w3c.github.io/manifest/#orientation-member
    */
   orientation?:
     | "any"
@@ -354,66 +247,136 @@ export interface WebAppManifest {
     | undefined;
 
   /**
-   * The manifest's id member is a string that represents the identity for the application.
-   * The identity takes the form of a URL, which is same origin as the start URL.
+   * manifest的“id”成员是一个字符串，代表应用的身份。
+   * 身份形式为URL，它与起始URL同源。
    *
-   * @see https://w3c.github.io/manifest/#id-member
+   * 参见：https://w3c.github.io/manifest/#id-member
    */
   id?: string | undefined;
 
   /**
-   * The `theme_color` member serves as the default theme color for an application context.
+   * “theme_color”成员作为应用内容的默认主题颜色。
    *
-   * @see https://w3c.github.io/manifest/#theme_color-member
+   * 参见：https://w3c.github.io/manifest/#theme_color-member
    */
   theme_color?: string | undefined;
 
   /**
-   * The `background_color` member describes the expected background color of the web application.
+   * “background_color”成员描述了预期的应用背景颜色。
    *
-   * @see https://w3c.github.io/manifest/#background_color-member
+   * 参见：https://w3c.github.io/manifest/#background_color-member
    */
   background_color?: string | undefined;
 
   /**
-   * The `scope` member is a string that represents the navigation scope of this web application's
-   * application context.
+   * “scope”成员是一个字符串，代表这个应用的应用内容的导航范围。
    *
-   * @see https://w3c.github.io/manifest/#scope-member
+   * 参见：https://w3c.github.io/manifest/#scope-member
    */
   scope?: string | undefined;
 
   /**
-   * The `related_applications` member lists related applications and serves as an indication of such a
-   * relationship between web application and related applications.
+   * “related_applications”成员列出了相关应用，提供了应用与相关应用间关系的提示。
    *
-   * @see https://w3c.github.io/manifest/#related_applications-member
+   * 参见：https://w3c.github.io/manifest/#related_applications-member
    */
   related_applications?: ExternalApplicationResource[] | undefined;
 
   /**
-   * The `prefer_related_applications` member is a boolean value that is used as a hint for the user agent
-   * to say that related applications should be preferred over the web application.
+   * “prefer_related_applications”成员是一个布尔值，它作为一个提示给用户代理，表示是否应该优先选择相关应用而不是应用。
    *
-   * @see https://w3c.github.io/manifest/#prefer_related_applications-member
+   * 参见：https://w3c.github.io/manifest/#prefer_related_applications-member
    */
   prefer_related_applications?: boolean | undefined;
 
   /**
-   * The `shortcuts` member is an `array` of `ShortcutItem`s that provide access to key tasks within a web application.
+   * “shortcuts”成员是一个`ShortcutItem`s的数组，它们提供了应用内部主要任务的访问。
    *
-   * @see https://w3c.github.io/manifest/#shortcuts-member
+   * 参见：https://w3c.github.io/manifest/#shortcuts-member
    */
   shortcuts?: ShortcutItem[] | undefined;
 }
 
-// import { AdaptersManager } from "../helper/AdaptersManager.ts";
-// import type { MicroModule } from "./MicroModule.ts";
+/**
+ * 每一个`ExternalApplicationResources`代表了一个与应用相关的应用程序。
+ *
+ * 参见：https://w3c.github.io/manifest/#externalapplicationresource-and-its-members
+ */
+export interface ExternalApplicationResource {
+  /**
+   * `platform`成员表示包含对象适用于的平台。
+   *
+   * 参见：https://w3c.github.io/manifest/#platform-member-0
+   */
+  platform: string;
 
-// export type $FetchAdapter = (
-//   remote: MicroModule,
-//   parsedUrl: URL,
-//   requestInit: RequestInit
-// ) => Promise<Response | void> | Response | void;
+  /**
+   * `ExternalApplicationResource`字典的`url`成员代表可以找到应用程序的URL。
+   *
+   * 参见：https://w3c.github.io/manifest/#url-member-0
+   */
+  url?: string | undefined;
 
-// export const nativeFetchAdaptersManager = new AdaptersManager<$FetchAdapter>();
+  /**
+   * `ExternalApplicationResource`字典的`id`成员代表用于在平台上代表应用程序的id。
+   *
+   * 参见：https://w3c.github.io/manifest/#id-member
+   */
+  id?: string | undefined;
+
+  /**
+   * `ExternalApplicationResource`字典的`min_version`成员代表与该应用相关的应用程序的最小版本。
+   *
+   * 参见：https://w3c.github.io/manifest/#min_version-member
+   */
+  min_version?: string | undefined;
+
+  /**
+   * `ExternalApplicationResource`字典的`fingerprints`成员代表`Fingerprint`s的数组。
+   *
+   * 参见：https://w3c.github.io/manifest/#fingerprints-member
+   */
+  fingerprints?: Fingerprint[] | undefined;
+}
+
+/**
+ * 每一个`ShortcutItem`代表了一个链接，连接到网络应用内的一个关键任务或页面。
+ *
+ * 参见：https://w3c.github.io/manifest/#shortcutitem-and-its-members
+ */
+export interface ShortcutItem {
+  /**
+   * `ShortcutItem`的`name`成员是一个字符串，代表了快捷方式的名字，通常会在上下文菜单中显示给用户。
+   *
+   * 参见：https://w3c.github.io/manifest/#name-member-0
+   */
+  name: string;
+
+  /**
+   * `ShortcutItem`的`short_name`成员是一个字符串，代表了快捷方式名字的缩写。
+   *
+   * 参见：https://w3c.github.io/manifest/#short_name-member-0
+   */
+  short_name?: string | undefined;
+
+  /**
+   * `ShortcutItem`的`description`成员是一个字符串，允许开发者描述快捷方式的用途。
+   *
+   * 参见：https://w3c.github.io/manifest/#description-member-0
+   */
+  description?: string | undefined;
+
+  /**
+   * `ShortcutItem`的`url`成员是一个URL，在应用的范围内，当相关的快捷方式被激活时，它会被打开。
+   *
+   * 参见：https://w3c.github.io/manifest/#url-member
+   */
+  url: string;
+
+  /**
+   * `ShortcutItem`的`icons`成员是一个`ImageResource`的数组，它们可以在各种上下文中作为快捷方式的图标表示。
+   *
+   * 参见：https://w3c.github.io/manifest/#icons-member-0
+   */
+  icons?: ImageResource[] | undefined;
+}

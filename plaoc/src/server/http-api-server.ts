@@ -4,12 +4,12 @@ import {
   $MMID,
   $OnFetch,
   $OnFetchReturn,
-  $ReadableStreamIpc,
-  FetchEvent,
+  IpcFetchEvent,
   IpcHeaders,
   IpcRequest,
   IpcResponse,
   PromiseOut,
+  ReadableStreamEndpoint,
   jsProcess,
   mapHelper,
 } from "./deps.ts";
@@ -38,7 +38,7 @@ export class Server_api extends HttpServer {
       .cors();
   }
 
-  protected async _provider(event: FetchEvent) {
+  protected async _provider(event: IpcFetchEvent) {
     // /dns.std.dweb/
     if (event.pathname.startsWith(DNS_PREFIX)) {
       return this._onDns(event);
@@ -49,7 +49,7 @@ export class Server_api extends HttpServer {
     return this._onApi(event);
   }
 
-  protected async _onDns(event: FetchEvent): Promise<$OnFetchReturn> {
+  protected async _onDns(event: IpcFetchEvent): Promise<$OnFetchReturn> {
     const url = new URL("file:/" + event.pathname + event.search);
     const pathname = url.pathname;
     const result = async () => {
@@ -81,7 +81,14 @@ export class Server_api extends HttpServer {
   }
 
   private callbacks = new Map<string, PromiseOut<$Ipc>>();
-  protected async _onInternal(event: FetchEvent): Promise<$OnFetchReturn> {
+  #remote = {
+    mmid: "localhost.dweb" as `${string}.dweb`,
+    ipc_support_protocols: { cbor: false, protobuf: false, json: false },
+    dweb_deeplinks: [],
+    categories: [],
+    name: "",
+  };
+  protected async _onInternal(event: IpcFetchEvent): Promise<$OnFetchReturn> {
     const pathname = event.pathname.slice(INTERNAL_PREFIX.length);
     // 返回窗口的操作id给前端
     if (pathname === "window-info") {
@@ -102,15 +109,8 @@ export class Server_api extends HttpServer {
       if (!id) {
         return IpcResponse.fromText(event.reqId, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
       }
-      const readableStreamIpc = jsProcess.ipcPool.create<$ReadableStreamIpc>(`${jsProcess.mmid}-api-server`, {
-        remote: {
-          mmid: "localhost.dweb",
-          ipc_support_protocols: { cbor: false, protobuf: false, raw: false },
-          dweb_deeplinks: [],
-          categories: [],
-          name: "",
-        },
-      });
+      const endpoint = new ReadableStreamEndpoint(`${jsProcess.mmid}-api-server`);
+      const readableStreamIpc = jsProcess.ipcPool.createIpc(endpoint, 0, this.#remote, this.#remote);
 
       readableStreamIpc.bindIncomeStream(event.request.body!);
       mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut()).resolve(readableStreamIpc);
@@ -125,7 +125,7 @@ export class Server_api extends HttpServer {
   /**
    * request 事件处理器
    */
-  protected async _onApi(event: FetchEvent): Promise<$OnFetchReturn> {
+  protected async _onApi(event: IpcFetchEvent): Promise<$OnFetchReturn> {
     const { pathname, search } = event;
     // 转发file请求到目标NMM
     const path = `file:/${pathname}${search}`;

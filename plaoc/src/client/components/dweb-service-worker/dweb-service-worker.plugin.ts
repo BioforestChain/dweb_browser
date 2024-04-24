@@ -1,5 +1,5 @@
-import { ReadableStreamIpc } from "dweb/core/index.ts";
 import { IpcHeaders } from "dweb/core/ipc/index.ts";
+import { ReadableStreamEndpoint } from "../../../../../desktop-dev/src/core/index.ts";
 import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
@@ -14,7 +14,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     super("dns.std.dweb");
   }
 
-  readonly ipcPromise: Promise<ReadableStreamIpc> = this.createIpc();
+  readonly ipcPromise: Promise<ReadableStreamEndpoint> = this.createIpc();
   private async createIpc() {
     const api_url = BasePlugin.api_url.replace("://api", "://external");
     const url = new URL(api_url.replace(/^http/, "ws"));
@@ -26,7 +26,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
       ipc_support_protocols: {
         cbor: false,
         protobuf: false,
-        raw: false,
+        json: false,
       },
       dweb_deeplinks: [],
       categories: [],

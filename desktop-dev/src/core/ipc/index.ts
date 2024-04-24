@@ -2,6 +2,7 @@ export * from "./IpcPool.ts";
 export * from "./endpoint/EndpointIpcMessage.ts";
 export * from "./endpoint/EndpointLifecycle.ts";
 export * from "./endpoint/IpcEndpoint.ts";
+export * from "./endpoint/ReadableStreamEndpoint.ts";
 export * from "./endpoint/WebMessageEndpoint.ts";
 export * from "./helper/$messageToIpcMessage.ts";
 export * from "./helper/IpcHeaders.ts";
@@ -21,3 +22,4 @@ export * from "./ipc-message/stream/IpcStreamEnd.ts";
 export * from "./ipc-message/stream/IpcStreamPaused.ts";
 export * from "./ipc-message/stream/IpcStreamPulling.ts";
 export * from "./ipc.ts";
+

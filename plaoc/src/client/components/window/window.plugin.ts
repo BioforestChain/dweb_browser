@@ -1,4 +1,4 @@
-import type { ReadableStreamIpc } from "dweb/core/index.ts";
+import { ReadableStreamEndpoint } from "dweb/core/index.ts";
 import { IpcResponse } from "dweb/core/ipc/index.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
@@ -139,20 +139,19 @@ export class WindowPlugin extends BasePlugin {
     return this.fetchApi("/close", { search: await this.windowInfo }).void();
   }
 
-  /** */
+  #remote = {
+    mmid: "localhost.dweb" as `${string}.dweb`,
+    ipc_support_protocols: { cbor: false, protobuf: false, json: false },
+    dweb_deeplinks: [],
+    categories: [],
+    name: "",
+  };
 
   /** */
   private async wsToIpc(url: string) {
     const afterOpen = new PromiseOut<void>();
-    const ipc = webIpcPool.create<ReadableStreamIpc>("plaoc-window", {
-      remote: {
-        mmid: "localhost.dweb",
-        ipc_support_protocols: { cbor: false, protobuf: false, raw: false },
-        dweb_deeplinks: [],
-        categories: [],
-        name: "",
-      },
-    });
+    const endpoint = new ReadableStreamEndpoint("plaoc-window");
+    const ipc = webIpcPool.createIpc(endpoint, 0, this.#remote, this.#remote, true);
     const ws = new WebSocket(url);
     ws.binaryType = "arraybuffer";
     const streamout = new ReadableStreamOut();

@@ -1,5 +1,5 @@
-import type { MicroModuleRuntime } from "../MicroModule";
-import type { $IpcEvent } from "../ipc";
+import type { MicroModuleRuntime } from "../MicroModule.ts";
+import type { $IpcEvent } from "../ipc/ipc-message/IpcEvent.ts";
 
 export const onSomeEvent = <T extends $IpcEvent>(
   runtime: MicroModuleRuntime,

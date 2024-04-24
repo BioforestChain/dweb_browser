@@ -1,12 +1,9 @@
 {
-  "deno.enable": true,
+  "deno.enable": false,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "search.useIgnoreFiles": true,
   "search.useParentIgnoreFiles": true,
   "lit-plugin.rules.no-invalid-tag-name": "off",
-  "[svelte]": {
-    "editor.defaultFormatter": "svelte.svelte-vscode"
-  },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": false
@@ -14,8 +11,5 @@
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": false
-  },
-  "[markdown]": {
-    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
   }
 }

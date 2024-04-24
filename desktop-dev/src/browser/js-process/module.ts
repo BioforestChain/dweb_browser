@@ -19,11 +19,9 @@ export type * from "../../js-process/worker/std-dweb-core.ts";
 export type * from "../../js-process/worker/std-dweb-http.ts";
 import type * as $Core from "../../js-process/worker/std-dweb-core.ts";
 
-
 export const { jsProcess, http, ipc, core } = navigator.dweb;
 export const {
   FetchError,
-  PURE_METHOD,
   Ipc,
   IpcBodySender,
   IpcEvent,
@@ -31,7 +29,6 @@ export const {
   IpcHeaders,
   IpcRequest: IpcClientRequest,
   IpcResponse,
-  ReadableStreamIpc,
   ReadableStreamOut,
   //
   PureChannel,

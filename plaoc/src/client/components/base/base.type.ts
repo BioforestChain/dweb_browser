@@ -1,4 +1,4 @@
-import { $BuildRequestInit } from "../../helper/request.ts";
+import type { $BuildRequestInit } from "../../helper/request.ts";
 
 export interface $DwebResult {
   success: boolean;

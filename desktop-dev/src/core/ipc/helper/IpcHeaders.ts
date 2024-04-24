@@ -5,7 +5,7 @@ export class IpcHeaders extends Headers {
     }
     return this;
   }
-  override toJSON() {
+  toJSON() {
     const record: Record<string, string> = {};
     this.forEach((value, key) => {
       // 单词首字母大写

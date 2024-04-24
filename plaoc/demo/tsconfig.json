@@ -19,7 +19,7 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["server/**/*.ts", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "node_modules/@types/web-bluetooth"],
+  "include": ["server/**/*.ts", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }],
   "exclude": ["node_modules"]
 }

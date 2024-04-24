@@ -1,6 +1,6 @@
-import { ENDPOINT_LIFECYCLE_STATE, ENDPOINT_PROTOCOL } from "./internal/EndpointLifecycle";
-import { ENDPOINT_MESSAGE_TYPE, endpointMessageBase } from "./internal/EndpointMessage";
-export { ENDPOINT_LIFECYCLE_STATE, ENDPOINT_PROTOCOL } from "./internal/EndpointLifecycle";
+import { ENDPOINT_LIFECYCLE_STATE, ENDPOINT_PROTOCOL } from "./internal/EndpointLifecycle.ts";
+import { ENDPOINT_MESSAGE_TYPE, endpointMessageBase } from "./internal/EndpointMessage.ts";
+export { ENDPOINT_LIFECYCLE_STATE, ENDPOINT_PROTOCOL } from "./internal/EndpointLifecycle.ts";
 
 export type $EndpointLifecycle<T extends $EndpointLifecycleState = $EndpointLifecycleState> = ReturnType<
   typeof _endpointLifecycle<T>

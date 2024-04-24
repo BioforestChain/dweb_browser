@@ -1,10 +1,10 @@
 
-import { FetchEvent, IpcResponse } from "dweb/core/ipc/index.ts";
+import { IpcFetchEvent, IpcResponse } from "dweb/core/ipc/index.ts";
 import type { $MicroModuleManifest } from "dweb/core/types.ts";
 import type { DwebServiceWorkerPlugin } from "./index.ts";
 
 export class ServiceWorkerFetchEvent extends Event {
-  constructor(private fetchEvent: FetchEvent,private plugin: DwebServiceWorkerPlugin) {
+  constructor(private fetchEvent: IpcFetchEvent,private plugin: DwebServiceWorkerPlugin) {
     super("fetch");
   }
   get request() {

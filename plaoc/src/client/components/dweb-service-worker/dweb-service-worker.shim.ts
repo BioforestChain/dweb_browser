@@ -1,9 +1,9 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { ListenerCallback } from "../base/base-event.ts";
+import type { ListenerCallback } from "../base/base-event.ts";
 import { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
 import { PlaocEvent } from "./IpcEvent.ts";
 import { dwebServiceWorkerPlugin } from "./dweb-service-worker.plugin.ts";
-import { DwebWorkerEventMap, eventHandle } from "./dweb-service-worker.type.ts";
+import { eventHandle, type DwebWorkerEventMap } from "./dweb-service-worker.type.ts";
 
 /**此处是消息分发中心，所有的app发给你的消息，都可以在这里监听到 */
 class DwebServiceWorker extends EventTarget {

@@ -1,5 +1,5 @@
 import { X_PLAOC_QUERY } from "./const.ts";
-import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "./deps.ts";
+import { $OnFetchReturn, IpcFetchEvent, IpcHeaders, jsProcess } from "./deps.ts";
 import { Server_www as _Server_www } from "./http-www-server.ts";
 
 /**
@@ -9,7 +9,7 @@ import { Server_www as _Server_www } from "./http-www-server.ts";
  */
 export class Server_www extends _Server_www {
   private xPlaocProxy: string | null = null;
-  override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
+  override async _provider(request: IpcFetchEvent): Promise<$OnFetchReturn> {
     // 请求申请
     if (
       request.pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`) ||
