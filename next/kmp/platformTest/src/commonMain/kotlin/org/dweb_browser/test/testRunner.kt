@@ -18,6 +18,8 @@ expect fun runCommonTest(
   block: suspend CoroutineScope.() -> Unit,
 ): TestResult
 
+expect fun dumpCoroutines()
+
 internal fun defaultRunCommonTest(
   context: CoroutineContext?, timeout: Duration?, block: suspend CoroutineScope.() -> Unit,
 ) = (context ?: EmptyCoroutineContext).let { ctx ->

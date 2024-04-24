@@ -8,6 +8,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.job
 
@@ -33,14 +34,16 @@ class DeferredSignal<T>(val deferred: Deferred<T>) : Deferred<T> by deferred {
 
 }
 
-suspend fun Job.await() {
-  val deferred = CompletableDeferred<Unit>()
+suspend inline fun Job.await() {
+  val deferred = CompletableDeferred<Unit>(SupervisorJob())
+  // job.join()
   invokeOnCompletion {
     val error = when (it) {
       is CancellationException -> null//it.cause
       is Throwable -> it
       else -> null
     }
+    println("QAQ error=$error")
     when (error) {
       null -> deferred.complete(Unit)
       else -> deferred.completeExceptionally(error)
@@ -49,7 +52,7 @@ suspend fun Job.await() {
   deferred.await()
 }
 
-fun CompletableJob.close(cause: Throwable? = null) {
+fun CompletableJob.cancelOrThrow(cause: Throwable? = null) {
   when (cause) {
     is CancellationException -> cancel(cause)
     null -> cancel()
@@ -57,7 +60,7 @@ fun CompletableJob.close(cause: Throwable? = null) {
   }
 }
 
-fun CoroutineScope.close(cause: Throwable? = null) {
+fun CoroutineScope.cancelOrThrow(cause: Throwable? = null) {
   when (cause) {
     is CancellationException -> cancel(cause)
     null -> cancel()

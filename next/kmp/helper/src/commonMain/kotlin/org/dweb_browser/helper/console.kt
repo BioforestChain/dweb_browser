@@ -5,7 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -210,13 +210,13 @@ suspend inline fun <R> traceTimeout(
   crossinline log: () -> Any?,
   crossinline block: suspend () -> R,
 ) = if (debugTimeout.isEnable) {
-  coroutineScope {
-    val timeoutJob = launch { delay(ms);debugTimeout("traceTimeout", msgGetter = log) }
-    try {
-      block()
-    } finally {
-      timeoutJob.cancel()
-    }
+  val timeoutJob = CoroutineScope(currentCoroutineContext()).launch {
+    delay(ms);debugTimeout("traceTimeout", msgGetter = log)
+  }
+  try {
+    block()
+  } finally {
+    timeoutJob.cancel()
   }
 } else {
   block()

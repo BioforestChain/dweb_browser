@@ -87,7 +87,7 @@ class PermissionApplicantTMM :
     override suspend fun _bootstrap() {
       onRenderer {
         val win = getMainWindow()
-        win.setStateFromManifest(this@PermissionApplicantTMM)
+        win.setStateFromManifest(manifest)
         windowAdapterManager.provideRender(wid) { modifier ->
           Column(modifier) {
             var okk by remember {

@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser
 
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Once
 import org.dweb_browser.helper.Once1
@@ -10,6 +11,7 @@ import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class OnceTest {
   @Test
@@ -26,6 +28,26 @@ class OnceTest {
       }
     }
     assertEquals(a.value, 1)
+  }
+
+  @Test
+  fun SuspendOnceResetTest() = runCommonTest {
+    val onceFun = SuspendOnce {
+      delay(100)
+      123
+    }
+    onceFun()
+    onceFun.reset()
+  }
+
+  @Test
+  fun SuspendOnceReset2Test() = runCommonTest(1000) {
+    val onceFun = SuspendOnce {
+      delay(10)
+      throw Exception("xxx")
+    }
+    launch { onceFun.reset() }
+    assertTrue(runCatching { onceFun() }.isFailure)
   }
 
   @Test
@@ -75,4 +97,5 @@ class OnceTest {
     }
     assertEquals(a.value, 1)
   }
+
 }

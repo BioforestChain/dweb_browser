@@ -13,3 +13,6 @@ actual fun runCommonTest(
   timeout: Duration?,
   block: suspend CoroutineScope.() -> Unit,
 ) = defaultRunCommonTest(context, timeout, block)
+
+actual fun dumpCoroutines() {
+}

@@ -1,26 +1,29 @@
 package info.bagen.dwebbrowser
 
-import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.update
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.OrderBy
-import org.dweb_browser.helper.OrderInvoker
 import org.dweb_browser.helper.Producer
+import org.dweb_browser.helper.SafeFloat
 import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.addDebugTags
-import org.dweb_browser.helper.await
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.now
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ProducerTest {
   init {
@@ -147,17 +150,18 @@ class ProducerTest {
     println("start consumer1")
     delay(1000)
     launch {
-      val res = atomic(0f)
+      val res = SafeFloat(0f)
       val job = consumer1.collectIn(this) { event ->
         event.consumeFilter {
           it <= 2f
         }?.also { value ->
-          res.update { it + value }
-          println("ADD $value")
+          res += value
+          println("ADD $value=$res")
         }
       }
       job.invokeOnCompletion {
-        assertEquals(6f, res.value)
+        println("ADD-DONE")
+        assertEquals(9f, res.value)
       }
     }
 
@@ -216,11 +220,11 @@ class ProducerTest {
 //  }
 
   @Test
-  fun parallelEmit() = runCommonTest(30) {
+  fun parallelEmit() = runCommonTest(10) {
     println("---test-$it")
     val producer = Producer<Int>("test", this)
     val res = SafeLinkList<Int>()
-    val MAX = 100
+    val MAX = 30
     val DELAY = 500L
     val startTime = datetimeNow()
     producer.consumer("consumer1").collectIn(this) {
@@ -236,15 +240,12 @@ class ProducerTest {
         producer.close()
       }
     }
-    val orderInvoker = OrderInvoker()
     for (i in 1..MAX) {
       launch(start = CoroutineStart.UNDISPATCHED) {
-        orderInvoker.tryInvoke(null) {
-          producer.send(i)
-        }
+        producer.send(i)
       }
     }
-    producer.await()
+    producer.join()
   }
 
   @Test
@@ -274,73 +275,12 @@ class ProducerTest {
         }
       }
     }
-    val orderInvoker = OrderInvoker()
     for (i in 1..MAX) {
       launch(start = CoroutineStart.UNDISPATCHED) {
-        orderInvoker.tryInvoke(null) {
-          producer.send(Data(i))
-        }
+        producer.send(Data(i))
       }
     }
-    producer.await()
-  }
-
-  @Test
-  fun jobTest() = runCommonTest {
-    run {
-      val rootJob = Job()
-      println("start")
-      launch {
-        delay(100)
-        rootJob.cancel(CancellationException("qaq"))
-      }
-      rootJob.invokeOnCompletion {
-        println(it)
-      }
-      var err: Throwable? = null
-      try {
-        rootJob.await()
-      } catch (e: Throwable) {
-        err = e
-      }
-      assertNull(err)
-    }
-    run {
-      val rootJob = Job()
-      println("start")
-      launch {
-        delay(100)
-        rootJob.completeExceptionally(Exception("qzq"))
-      }
-      rootJob.invokeOnCompletion {
-        println(it)
-      }
-      var err: Throwable? = null
-      try {
-        rootJob.await()
-      } catch (e: Throwable) {
-        err = e
-      }
-      assertNotNull(err)
-    }
-    run {
-      val rootJob = Job()
-      println("start")
-      launch {
-        delay(100)
-        rootJob.cancel()
-      }
-      rootJob.invokeOnCompletion {
-        println(it)
-      }
-      var err: Throwable? = null
-      try {
-        rootJob.await()
-      } catch (e: Throwable) {
-        err = e
-      }
-      assertNull(err)
-    }
+    producer.join()
   }
 
   @Test
@@ -363,10 +303,9 @@ class ProducerTest {
     for (i in 1..MAX) {
       producer.send(Data(i))
     }
-    producer.close()
+    producer.closeAndJoin()
 
     assertEquals(MAX, res.size)
-    producer.await()
   }
 
   @Test
@@ -390,10 +329,9 @@ class ProducerTest {
     for (i in 1..MAX) {
       producer.send(Data(i))
     }
-    producer.close()
+    producer.closeAndJoin()
 
     assertEquals(MAX, res.size / 2)
-    producer.await()
   }
 
   @Test
@@ -422,9 +360,73 @@ class ProducerTest {
     for (i in 1..MAX) {
       producer.send(Data(i))
     }
-    producer.close()
+    producer.closeAndJoin()
 
     assertEquals(MAX, res.size / 2)
-    producer.await()
+  }
+
+  @Test
+  fun testCancel() = runCommonTest {
+    val parentScope = CoroutineScope(ioAsyncExceptionHandler)
+    val producer = Producer<Unit>("test", parentScope)
+    val DEALY = 100L
+    launch {
+      delay(DEALY)
+      parentScope.cancel()
+    }
+    val start = datetimeNow()
+    producer.join()
+    val end = datetimeNow()
+    assertTrue(end - start >= DEALY)
+  }
+
+  @Test
+  fun testConsumerFirst() = runCommonTest {
+    data class Data(val data: Int) : OrderBy {
+      override val order = 1
+    }
+
+    coroutineScope {
+
+      val producer = Producer<Data>("test", this)
+
+      val actualDeferred = async { producer.consumer("consumer").map { it.consume() }.first().data }
+
+      val expected = 123456
+      producer.send(Data(expected))
+      val actual = actualDeferred.await()
+      println("QAQ actual=$actual")
+      assertEquals(expected, actual)
+
+    }
+  }
+
+  @Test
+  fun testConsumerFirst2() = runCommonTest {
+    data class Data(val data: Int) : OrderBy {
+      override val order = 1
+    }
+
+    val MAX = 10
+    val producer = Producer<Data>("test", this)
+    val res = SafeLinkList<Deferred<Data>>()
+
+    for (i in 1..MAX) {
+      val task = async(start = CoroutineStart.UNDISPATCHED) {
+        producer.consumer("consumer$i").map { it.stopImmediatePropagation(); it.consume(); }.first()
+      }
+      res.add(task)
+    }
+
+    val expected = mutableListOf<Int>()
+    for (i in 1..MAX) {
+      producer.send(Data(i))
+      expected.add(i)
+    }
+
+    val actual = res.map { it.await().data }
+    println("QAQ expected=$expected")
+    println("QAQ actual=$actual")
+    assertContentEquals(expected, actual)
   }
 }

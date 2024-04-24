@@ -38,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bind
@@ -80,6 +79,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
 
   inner class PermissionRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     override suspend fun _bootstrap() {
+      println("QAQ bootstrap-start $mmid")
       val permissionStdProtocol = permissionStdProtocol(hooks)
 
       routes(
@@ -96,13 +96,15 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
       )
 
       onRenderer {
+        println("QAQ onRenderer $mmid")
         getMainWindow().apply {
-          setStateFromManifest(this@PermissionNMM)
+          setStateFromManifest(manifest)
           windowAdapterManager.provideRender(id) { modifier ->
             PermissionManagerRender(modifier, this, permissionStdProtocol)
           }
         }
       }
+      println("QAQ bootstrap-end $mmid")
     }
 
     override suspend fun _shutdown() {}
@@ -110,7 +112,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
     @OptIn(ExperimentalMaterial3Api::class)
     val hooks = object : PermissionHooks {
       override suspend fun onRequestPermissions(
-        applicantIpc: Ipc, permissions: List<PermissionProvider>
+        applicantIpc: Ipc, permissions: List<PermissionProvider>,
       ): Map<PermissionProvider, AuthorizationRecord> {
         val applicant = applicantIpc.remote
         val permissionModuleMap = permissions.mapNotNull { permission ->

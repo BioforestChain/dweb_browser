@@ -14,5 +14,9 @@ kotlin {
   kmpAndroidTarget(project)
   kmpIosTarget(project)
   kmpNodeJsTarget(project)
-  kmpDesktopTarget(project)
+  kmpDesktopTarget(project) {
+    dependencies {
+      implementation(libs.test.kotlin.coroutines.debug)
+    }
+  }
 }
