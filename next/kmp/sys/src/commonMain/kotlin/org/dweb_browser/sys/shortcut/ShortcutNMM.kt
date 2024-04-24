@@ -92,7 +92,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
 
       onRenderer {
         getMainWindow().apply {
-          setStateFromManifest(this@ShortcutNMM)
+          setStateFromManifest(manifest)
           windowAdapterManager.provideRender(id) { modifier ->
             ShortcutManagerRender(
               modifier = modifier,

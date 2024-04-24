@@ -43,7 +43,7 @@ import org.dweb_browser.helper.SafeLinkList
 import org.dweb_browser.helper.SuspendOnce
 import org.dweb_browser.helper.SuspendOnce1
 import org.dweb_browser.helper.WARNING
-import org.dweb_browser.helper.asProducer
+import org.dweb_browser.helper.asProducerWithOrder
 import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.traceTimeout
 import org.dweb_browser.helper.trueAlso
@@ -303,8 +303,8 @@ class Ipc internal constructor(
   ) = onMessage(name).mapNotNull { event ->
     event.consumeMapNotNull {
       mapNotNull(it)
-    }
-  }.asProducer(messageProducer.producer.name + "/" + name, scope).also { producer ->
+    }?.let { Pair(it, event.order) }
+  }.asProducerWithOrder(messageProducer.producer.name + "/" + name, scope).also { producer ->
     onClosed { cause ->
       launchJobs += scope.launch {
         producer.close(cause.exceptionOrNull())

@@ -1,5 +1,9 @@
 package info.bagen.dwebbrowser
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IpcEvent
@@ -112,6 +116,31 @@ class IpcPoolTest {
     val dnsRuntime = dns.bootstrap()
     val selfRuntime = dnsRuntime.open(selfMM.mmid);
     val ipc = selfRuntime.connect(selfMM.mmid)
+  }
+
+  @Test
+  fun testLoopConnect() = runCommonTest(1000) { time ->
+    delay(10)
+    println("test-$time start")
+    val dns = DnsNMM()
+    val demo1MM = TestMicroModule("demo1.mm.dweb")
+    dns.install(demo1MM)
+    val demo2MM = TestMicroModule("demo2.mm.dweb")
+    dns.install(demo2MM)
+    val dnsRuntime = dns.bootstrap()
+    val ipc1 = async { dnsRuntime.open(demo2MM.mmid).connect(demo1MM.mmid) }
+    val ipc2 = async { dnsRuntime.open(demo1MM.mmid).connect(demo2MM.mmid) }
+
+    val ipcEvent1 = IpcEvent.fromUtf8("hi", "hixxx")
+    ipc1.await().postMessage(ipcEvent1)
+    val ipcEvent2 = ipc2.await()
+      .onEvent("wait-hi-$time")
+      .map { it.consume().also { println("QAQ got-hi = $it") } }
+      .first();
+
+    assertEquals(ipcEvent1.text, ipcEvent2.text)
+
+    dnsRuntime.shutdown()
   }
 
 }

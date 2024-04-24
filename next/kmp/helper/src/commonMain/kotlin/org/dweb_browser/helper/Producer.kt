@@ -32,7 +32,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
   init {
     parentScope.coroutineContext.job.invokeOnCompletion {
-      println("QAQ parent close so launch close")
+      debugProducer("parentScope.invokeOnCompletion")
       scope.launch {
         this@Producer.close(it)
       }
@@ -70,8 +70,8 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       order == null && data is OrderBy -> data.order
       else -> order
     }
-    var consumed = false
-      private set
+    private var consumeTimes = SafeInt(0)
+    val consumed get() = consumeTimes.value > 0
 
     /**
      * 这个锁用来确保消息的执行，同一时间有且只能有一个消费者在消费
@@ -86,7 +86,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
      * 但是这并不会停止向当前已有的其它消费器继续传播
      */
     fun consume(): T {
-      consumed = true
+      consumeTimes++
       return data
     }
 
@@ -158,16 +158,16 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         if (stoped) {
           return
         }
+        val beforeConsumeTimes = consumeTimes.value
 
         traceTimeout(1000, { "consumer=$consumer data=$data" }) {
+//          println("QAQ emitBy-start producer=${this@Producer} consumer=$consumer event-data=$data")
           // 对方的接收是非阻塞的，所以我们才会有 collectorLock，等待 consumer 挂载完成所有的 emitJobs
-          println("QAQ collectorEmitLock ${now()} ${this}")
           val emitLock = Mutex(true)
           val lockTimeout = scope.launch {
             delay(800)
             runCatching { emitLock.unlock() }
           }
-          println("QAQ input.send ${now()} ${this}")
           /// 这里使用channel将event和lock发送过去，但是send返回只代表了对面接收到，不代表对面处理完
           /// 所以这里我们还需要等待对面处理完成，这里 emitLock 就是这样一个等待作用，所以它有超时机制
           consumer.input.send(Pair(this, emitLock))
@@ -182,7 +182,9 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         }
         if (consumed) {
           complete()
-          debugProducer("emitBy", "consumer=$consumer consumed data=$data")
+          if (consumeTimes.value != beforeConsumeTimes) {
+            debugProducer("emitBy", "consumer=$consumer consumed data=$data")
+          }
         }
       }
     }
@@ -238,7 +240,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   private suspend fun doEmit(event: Event) {
     event.orderInvoke {
       withScope(scope) {
-        println("QAQ doEmit-start ${now()} $event")
+//        println("QAQ doEmit emitBy $event ${this@Producer} ${consumers.size}")
         for (consumer in consumers.toList()) {
           if (!consumer.started || consumer.startingBuffers?.contains(event) == true) {
             continue
@@ -248,7 +250,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
             break
           }
         }
-        println("QAQ doEmit done $event")
       }
     }
   }
@@ -287,7 +288,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         throw Exception("$this was collected")
       }
     }) { collector: FlowCollector<Event> ->
-      consumers.add(this@Consumer)
       val deferred = scope.async(SupervisorJob(), start = CoroutineStart.UNDISPATCHED) {
         debugProducer("startCollect") {
           Exception().stackTraceToString().split("\n").firstOrNull {
@@ -305,7 +305,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
             input.onReceive { Result.success(it) }
             errorCatcher.onAwait { Result.failure<Nothing>(it) }
           }.getOrThrow()
-          println("QAQ launch ${now()} $event")
           // 同一个事件的处理，不做任何阻塞，直接发出
           // 这里包一层launch，目的是确保不阻塞input的循环，从而确保上游event能快速涌入
           event.emitJobs += launch(start = CoroutineStart.UNDISPATCHED) {
@@ -316,25 +315,27 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
             }
           }
           emitLock.unlock()
-          println("QAQ unlock ${now()} $event")
         }
       }
-      withScope(scope) {
-        started = true
-        val starting = buffers.toList()
-        startingBuffers = starting
-        /// 将之前没有被消费的逐个触发，这里不用担心 buffers 被中途追加，emit会同步触发
-        for (event in starting) {
-          launch(start = CoroutineStart.UNDISPATCHED) {
-            event.orderInvoke {
-              event.emitBy(this@Consumer)
+      actionQueue.queue("add-consumer") {
+        consumers.add(this@Consumer)
+        withScope(scope) {
+          started = true
+          val starting = buffers.toList()
+          startingBuffers = starting
+          /// 将之前没有被消费的逐个触发，这里不用担心 buffers 被中途追加，emit会同步触发
+          for (event in starting) {
+            launch(start = CoroutineStart.UNDISPATCHED) {
+//              println("QAQ startingBuffers emitBy $event ${this@Producer}")
+              event.orderInvoke {
+                event.emitBy(this@Consumer)
+              }
             }
           }
+          startingBuffers = null
         }
-        startingBuffers = null
       }
       val x = invokeOnClose {
-        @Suppress("ThrowableNotThrown")
         deferred.cancel(CancellationException("${this@Producer} closed", it))
         consumers.remove(this@Consumer)
       }
@@ -342,12 +343,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         x.dispose()
         consumers.remove(this@Consumer)
       }
-      println("QAQ job.join start")
-      try {
-        deferred.await()
-      } catch (e: Throwable) {
-        println("QAQ job.join done error=$e")
-      }
+      deferred.await()
     }
   }
 
@@ -417,6 +413,16 @@ fun <T> Flow<T>.asProducer(
   emitter: suspend Producer<T>.(T) -> Unit = { send(it) },
 ) = Producer<T>(name, scope).also { producer ->
   collectIn(producer.scope) {
-    producer.emitter(it)
+    emitter(producer, it)
+  }
+}
+
+fun <T> Flow<Pair<T, Int?>>.asProducerWithOrder(
+  name: String,
+  scope: CoroutineScope,
+  emitter: suspend Producer<T>.(Pair<T, Int?>) -> Unit = { send(it.first, it.second) },
+) = Producer<T>(name, scope).also { producer ->
+  collectIn(producer.scope) {
+    emitter(producer, it)
   }
 }

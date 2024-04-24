@@ -195,22 +195,32 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     /**
      * 尝试连接到指定对象
      */
-    suspend fun connect(remoteMmid: MMID, reason: PureRequest? = null) =
-      connectWithLock(mmid, remoteMmid) {
-        debugMM("connect", remoteMmid)
-        connectionMap.getOrPut(remoteMmid) {
+    suspend fun connect(remoteMmid: MMID, reason: PureRequest? = null): Ipc {
+      // 先进行快速判断
+      connectionMap[remoteMmid]?.also {
+        return it.await()
+      }
+      // 查询真实要连接的mm
+      val remoteMM = bootstrapContext.dns.query(remoteMmid)
+        ?: throw Exception("Fail to connect $remoteMmid: no found.")
+
+      /// 上锁，进行连接
+      return connectWithLock(mmid, remoteMM.mmid) {
+        connectionMap.getOrPut(remoteMM.mmid) {
+          debugMM("doConnect", remoteMM.mmid)
           CompletableDeferred<Ipc>().also { ipcDeferred ->
             scopeLaunch(cancelable = false) {
-              val ipc = bootstrapContext.dns.connect(remoteMmid, reason)
+              val ipc = bootstrapContext.dns.connect(remoteMM.mmid, reason)
               ipcDeferred.complete(ipc)
               beConnect(ipc, reason)
               ipc.onClosed {
-                connectionMap.remove(remoteMmid, ipcDeferred)
+                connectionMap.remove(remoteMM.mmid, ipcDeferred)
               }
             }
           }
         }.await()
       }
+    }
 
     /**
      * 收到一个连接，触发相关事件

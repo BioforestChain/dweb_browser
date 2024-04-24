@@ -134,7 +134,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       )
       onRenderer {
         controller.renderDownloadWindow(wid)
-        getMainWindow().setStateFromManifest(this@DownloadNMM)
+        getMainWindow().setStateFromManifest(manifest)
       }
     }
 
