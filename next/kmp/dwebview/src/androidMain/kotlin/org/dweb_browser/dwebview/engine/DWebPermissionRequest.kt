@@ -5,10 +5,10 @@ import android.webkit.WebChromeClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.permission.AuthorizationStatus
 import org.dweb_browser.dwebview.DwebViewI18nResource
 import org.dweb_browser.dwebview.debugDWebView
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.permission.SystemPermissionTask
@@ -24,7 +24,7 @@ class DWebPermissionRequest(
     ).filterValues { value -> value != AuthorizationStatus.GRANTED }.isEmpty()
 
   override fun onPermissionRequest(request: PermissionRequest) {
-    val context = getAppContext()
+    val context = getAppContextUnsafe()
     debugDWebView(
       "onPermissionRequest",
       "activity:$context request.resources:${request.resources.joinToString { it }}"

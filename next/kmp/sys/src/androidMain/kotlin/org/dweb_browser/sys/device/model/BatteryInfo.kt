@@ -6,7 +6,7 @@ import android.os.BatteryManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 
 @Serializable
 data class Battery(
@@ -61,7 +61,7 @@ class BatteryInfo {
   private val batteryStatusIntent: Intent?
     get() {
       val batFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-      return getAppContext().registerReceiver(null, batFilter)
+      return getAppContextUnsafe().registerReceiver(null, batFilter)
     }
 
   val batteryPercent: Int

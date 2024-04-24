@@ -9,8 +9,8 @@ import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.getAppContextUnsafe
 import java.io.File
 
 object SharePlugin {
@@ -81,7 +81,7 @@ object SharePlugin {
       flags = flags or PendingIntent.FLAG_IMMUTABLE
     }
     val pi = PendingIntent.getBroadcast(
-      getAppContext(), 0, Intent(Intent.EXTRA_CHOSEN_COMPONENT), flags
+      getAppContextUnsafe(), 0, Intent(Intent.EXTRA_CHOSEN_COMPONENT), flags
     )
     val chooserIntent = Intent.createChooser(intent, shareOptions.title, pi.intentSender).apply {
       addCategory(Intent.CATEGORY_DEFAULT)
@@ -105,7 +105,7 @@ object SharePlugin {
           }
           intent.type = type
           val fileUrl = Uri.parse(file)
-          val context = getAppContext()
+          val context = getAppContextUnsafe()
           // android7 以上不能对外直接分享file://
           val shareFile = FileProvider.getUriForFile(
             context, "${context.packageName}.file.opener.provider", File(fileUrl.path!!)

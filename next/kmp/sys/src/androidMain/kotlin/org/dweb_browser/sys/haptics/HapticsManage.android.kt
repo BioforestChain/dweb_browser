@@ -5,12 +5,12 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 
 actual class VibrateManage actual constructor() {
 
   private var mVibrate: Vibrator
-  private val context = getAppContext()
+  private val context = getAppContextUnsafe()
 
   init {
     mVibrate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

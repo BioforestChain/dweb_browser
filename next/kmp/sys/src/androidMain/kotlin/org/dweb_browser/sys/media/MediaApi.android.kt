@@ -5,7 +5,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.platform.MultiPartFile
 import org.dweb_browser.helper.platform.MultipartFieldDescription
 import org.dweb_browser.helper.toBase64ByteArray
@@ -34,7 +34,7 @@ private suspend fun savePicture(
       put(MediaStore.Video.Media.IS_PENDING, 1)
     }
   }
-  val context = getAppContext()
+  val context = getAppContextUnsafe()
   // 插入图片到系统图库
   val imageUri =
     context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
@@ -59,7 +59,7 @@ class MediaPictureImpl(saveLocation: String, desc: MultipartFieldDescription) : 
   private var outputStream: OutputStream? = null
   private val contentValues: ContentValues?
   private val imageUri: Uri?
-  private val context = getAppContext()
+  private val context = getAppContextUnsafe()
 
   init {
     contentValues = ContentValues().apply {

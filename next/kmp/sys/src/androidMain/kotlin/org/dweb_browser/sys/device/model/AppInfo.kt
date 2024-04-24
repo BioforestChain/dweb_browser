@@ -6,7 +6,7 @@ import android.content.pm.PackageManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 
 @Serializable
 data class AppData(
@@ -18,7 +18,7 @@ data class AppData(
 
 class AppInfo {
   private val NOT_FOUND_VAL = "unknown"
-  val context = getAppContext()
+  val context = getAppContextUnsafe()
 
   fun getAppInfo(): String {
     return Json.encodeToString(appData)

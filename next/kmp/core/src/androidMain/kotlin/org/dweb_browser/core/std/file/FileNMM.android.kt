@@ -2,9 +2,9 @@ package org.dweb_browser.core.std.file
 
 import android.os.Environment
 import okio.Path.Companion.toPath
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 
-actual fun FileNMM.Companion.getApplicationRootDir() = getAppContext().dataDir.absolutePath.toPath()
+actual fun FileNMM.Companion.getApplicationRootDir() = getAppContextUnsafe().dataDir.absolutePath.toPath()
 
 /**
  * 持久化数据
@@ -17,7 +17,7 @@ actual fun FileNMM.getDataVirtualFsDirectory() = commonVirtualFsDirectoryFactory
  * 缓存文件夹，这里的空间会被按需回收
  */
 actual fun FileNMM.getCacheVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
-  "cache", getAppContext().cacheDir.absolutePath.toPath()
+  "cache", getAppContextUnsafe().cacheDir.absolutePath.toPath()
 )
 
 /**
@@ -25,5 +25,5 @@ actual fun FileNMM.getCacheVirtualFsDirectory() = commonVirtualFsDirectoryFactor
  */
 actual fun FileNMM.getExternalDownloadVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
   firstSegmentFlags = "download",
-  nativeFsPath = getAppContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)!!.absolutePath.toPath()
+  nativeFsPath = getAppContextUnsafe().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)!!.absolutePath.toPath()
 )

@@ -1,14 +1,10 @@
 package org.dweb_browser.core.module
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-
-lateinit var nativeMicroModuleAppContext: Context
-fun getAppContext() = nativeMicroModuleAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 
 private val lockActivityState = Mutex()
 fun <T : Activity> MicroModule.Runtime.startAppActivity(
@@ -21,11 +17,11 @@ fun <T : Activity> MicroModule.Runtime.startAppActivity(
         return@withLock // TODO 用户拒绝协议应该做的事情ØÏ
       }
 
-      val intent = Intent(getAppContext(), cls).also {
-        it.`package` = getAppContext().packageName
+      val intent = Intent(getAppContextUnsafe(), cls).also {
+        it.`package` = getAppContextUnsafe().packageName
       }
       onIntent(intent)
-      getAppContext().startActivity(intent)
+      getAppContextUnsafe().startActivity(intent)
     }
   }
 }

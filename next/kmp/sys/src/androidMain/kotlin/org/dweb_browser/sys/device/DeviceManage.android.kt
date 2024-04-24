@@ -4,7 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Environment
 import kotlinx.coroutines.runBlocking
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.permission.AndroidPermissionTask
 import org.dweb_browser.sys.permission.PermissionActivity
@@ -62,8 +62,8 @@ actual object DeviceManage {
   }
 
   actual fun deviceAppVersion(): String {
-    val packageManager: PackageManager = getAppContext().packageManager
-    val packageName: String = getAppContext().packageName
+    val packageManager: PackageManager = getAppContextUnsafe().packageManager
+    val packageName: String = getAppContextUnsafe().packageName
     return packageManager.getPackageInfo(packageName, 0).versionName
   }
 }

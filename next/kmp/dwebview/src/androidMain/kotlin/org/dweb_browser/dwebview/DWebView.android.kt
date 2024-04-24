@@ -23,7 +23,6 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.ipc.helper.IWebMessageChannel
 import org.dweb_browser.core.ipc.helper.IWebMessagePort
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebMessagePort.Companion.into
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.polyfill.DwebViewAndroidPolyfill
@@ -31,6 +30,7 @@ import org.dweb_browser.dwebview.proxy.DwebViewProxyOverride
 import org.dweb_browser.helper.Bounds
 import org.dweb_browser.helper.RememberLazy
 import org.dweb_browser.helper.SuspendOnce
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.listen
 import org.dweb_browser.helper.randomUUID
@@ -38,7 +38,7 @@ import org.dweb_browser.helper.withMainContext
 
 actual suspend fun IDWebView.Companion.create(
   mm: MicroModule.Runtime, options: DWebViewOptions
-): IDWebView = create(getAppContext(), mm, options)
+): IDWebView = create(getAppContextUnsafe(), mm, options)
 
 suspend fun IDWebView.Companion.create(
   /**

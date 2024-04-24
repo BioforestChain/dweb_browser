@@ -4,9 +4,9 @@ import android.app.Application
 import android.content.Context
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.module.nativeMicroModuleAppContext
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.androidAppContextDeferred
 
 class DwebBrowserApp : Application() {
   companion object {
@@ -36,7 +36,7 @@ class DwebBrowserApp : Application() {
 
   override fun onCreate() {
     appContext = this
-    nativeMicroModuleAppContext = this
+    androidAppContextDeferred.complete(this)
     super.onCreate()
     // uploadDeviceInfo()
   }

@@ -10,15 +10,15 @@ import androidx.core.graphics.drawable.IconCompat
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.platform.toAndroidBitmap
 import org.dweb_browser.helper.saveString
 import org.dweb_browser.sys.R
 
 actual class ShortcutManage {
-  private val context = getAppContext()
+  private val context = getAppContextUnsafe()
   private val MaxCount = 4
 
   actual suspend fun initShortcut() {

@@ -12,12 +12,12 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import org.dweb_browser.browser.util.regexDeepLink
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.isWebUrl
 import kotlin.math.abs
 
 actual fun beepAudio() {
-  (getAppContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager)
+  (getAppContextUnsafe().getSystemService(Context.AUDIO_SERVICE) as AudioManager)
     .playSoundEffect(AudioManager.FX_KEY_CLICK, 1.0f)
 }
 
@@ -70,7 +70,7 @@ actual fun transformPoint(
 }
 
 actual fun openDeepLink(data: String, showBackground: Boolean): Boolean {
-  val context = getAppContext()
+  val context = getAppContextUnsafe()
   // 下盘的是否是 DeepLink，如果不是的话，判断是否是
   val deepLink = data.regexDeepLink() ?: run {
     if (data.isWebUrl()) {

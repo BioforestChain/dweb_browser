@@ -8,17 +8,21 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
 import android.webkit.MimeTypeMap
-import kotlinx.coroutines.*
-import org.dweb_browser.core.module.getAppContext
-import java.io.*
+import org.dweb_browser.helper.getAppContextUnsafe
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import java.util.*
 
 @SuppressLint("StaticFieldLeak")
 object FileSystemPlugin {
 
-  private val context = getAppContext()
+  private val context = getAppContextUnsafe()
 
   fun readFile(path: String, eFileType: EFileType?, charset: Charset?): String? {
     return getInputStream(path, eFileType)?.let { inputStream ->

@@ -3,9 +3,9 @@ package org.dweb_browser.sys.share
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import kotlinx.coroutines.CompletableDeferred
-import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.helper.SignalCallback
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.SignalCallback
+import org.dweb_browser.helper.getAppContextUnsafe
 
 class ShareController {
 
@@ -37,7 +37,7 @@ class ShareController {
     }
 
   fun openActivity() {
-    val context = getAppContext()
+    val context = getAppContextUnsafe()
     val intent = Intent(context, ShareActivity::class.java)
     intent.action = "${context.packageName}.share"
     intent.`package` = context.packageName

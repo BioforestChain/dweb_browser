@@ -9,7 +9,7 @@ import android.provider.Settings
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -64,14 +64,14 @@ class NetWorkInfo {
 
   val switchOfInternet: Boolean
     get() {
-      val cm = getAppContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+      val cm = getAppContextUnsafe().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
       val ni = cm.activeNetworkInfo
       return ni?.isAvailable ?: false
     }
 
   val switchOfWifi: Boolean
     get() {
-      val wifi = getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+      val wifi = getAppContextUnsafe().getSystemService(Context.WIFI_SERVICE) as WifiManager
       return wifi.isWifiEnabled
     }
 
@@ -88,7 +88,7 @@ class NetWorkInfo {
 
   val macAddrOfWifi: String
     get() {
-      val wifi = getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+      val wifi = getAppContextUnsafe().getSystemService(Context.WIFI_SERVICE) as WifiManager
       return if (wifi.isWifiEnabled) {
         getWifiMacAddress()
       } else {
@@ -99,7 +99,7 @@ class NetWorkInfo {
   val macAddrOfBluetooth: String
     get() {
       return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        Settings.Secure.getString(getAppContext().contentResolver, "bluetooth_address")
+        Settings.Secure.getString(getAppContextUnsafe().contentResolver, "bluetooth_address")
           ?: "01:00:00:00:00:00"
       } else {
         val bta = BluetoothAdapter.getDefaultAdapter()
@@ -123,7 +123,7 @@ class NetWorkInfo {
   private fun getEthMacAddress(): String {
     var mac = "02:00:00:00:00:00"
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) { // android 6.0 以下 基础Mac获取方法
-      val wm = getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+      val wm = getAppContextUnsafe().getSystemService(Context.WIFI_SERVICE) as WifiManager
       mac = wm.connectionInfo.macAddress
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
       Build.VERSION.SDK_INT < Build.VERSION_CODES.N
@@ -145,7 +145,7 @@ class NetWorkInfo {
   private fun getWifiMacAddress(): String {
     var mac = "02:00:00:00:00:00"
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) { // android 6.0 以下 基础Mac获取方法
-      val wm = getAppContext().getSystemService(Context.WIFI_SERVICE) as WifiManager
+      val wm = getAppContextUnsafe().getSystemService(Context.WIFI_SERVICE) as WifiManager
       mac = wm.connectionInfo.macAddress
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
       Build.VERSION.SDK_INT < Build.VERSION_CODES.N

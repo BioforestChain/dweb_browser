@@ -5,7 +5,7 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import android.provider.ContactsContract
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.sys.permission.AndroidPermissionTask
 import org.dweb_browser.sys.permission.PermissionActivity
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
@@ -32,7 +32,7 @@ actual class ContactManage {
   actual suspend fun pickContact(microModule: MicroModule.Runtime): ContactInfo? =
     ContactPickerActivity.launchAndroidPickerContact(microModule)?.let { uri ->
       debugContact("pickContact", "uri=$uri")
-      val resolver = getAppContext().contentResolver
+      val resolver = getAppContextUnsafe().contentResolver
       val baseCursor = resolver.query(uri, null, null, null, null)
       var contactId: String? = null
       var displayName: String? = null
@@ -63,7 +63,7 @@ actual class ContactManage {
     val selection = "contact_id = $contactId"
     val args: Array<String>? = null
     val sort: String? = null
-    val cursor = getAppContext().contentResolver.query(uri, projection, selection, args, sort)
+    val cursor = getAppContextUnsafe().contentResolver.query(uri, projection, selection, args, sort)
     return cursor?.let {
       val result = if (cursor.moveToFirst()) {
         val stringBuffer = StringBuffer()

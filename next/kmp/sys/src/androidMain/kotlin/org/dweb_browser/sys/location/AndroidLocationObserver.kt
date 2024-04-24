@@ -10,7 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import kotlinx.coroutines.flow.MutableSharedFlow
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 
 // 转换为web标准需要的结构
 private fun toGeolocationPosition(lastLocation: Location): GeolocationPosition {
@@ -30,7 +30,7 @@ private fun toGeolocationPosition(lastLocation: Location): GeolocationPosition {
  */
 private fun askLocationSettings() {
   debugLocation("AndroidLocationObserver", "askLocationSettings")
-  getAppContext().startActivity(Intent().apply {
+  getAppContextUnsafe().startActivity(Intent().apply {
     action = android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS
     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
   })
@@ -92,12 +92,12 @@ class AndroidLocationObserver : LocationObserver() {
     //  拿到位置控制器 （国内无法使用google play服务,因此不能使用LocationServices.API/FusedLocationProviderClient）
     //  private val locationClient: FusedLocationProviderClient? = null
     private val locationManager =
-      getAppContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+      getAppContextUnsafe().getSystemService(Context.LOCATION_SERVICE) as LocationManager
   }
 
   @SuppressLint("MissingPermission")
   override suspend fun start(precise: Boolean, minTimeMs: Long, minDistance: Double) {
-    val context = getAppContext()
+    val context = getAppContextUnsafe()
 
     // 请求多次更新，这会通过回调触发到onLocationChanged
     if (Build.VERSION.SDK_INT >= 30) {

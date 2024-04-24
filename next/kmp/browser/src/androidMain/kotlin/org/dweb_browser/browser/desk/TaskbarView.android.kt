@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.IDWebView
 import org.dweb_browser.dwebview.Render
 import org.dweb_browser.dwebview.create
+import org.dweb_browser.helper.getAppContextUnsafe
 
 actual suspend fun ITaskbarView.Companion.create(taskbarController: TaskbarController): ITaskbarView =
   TaskbarView.from(taskbarController)
@@ -25,7 +25,7 @@ class TaskbarView private constructor(
   companion object {
     suspend fun from(taskbarController: TaskbarController): ITaskbarView {
       val dwebView = IDWebView.create(
-        context = getAppContext(),
+        context = getAppContextUnsafe(),
         remoteMM = taskbarController.deskNMM,
         options = taskbarController.getTaskbarDWebViewOptions(),
       )

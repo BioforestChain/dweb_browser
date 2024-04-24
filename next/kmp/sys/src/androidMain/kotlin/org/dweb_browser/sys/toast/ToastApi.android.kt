@@ -4,7 +4,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.Toast
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.withMainContext
 
 actual suspend fun showToast(
@@ -33,7 +33,7 @@ object ToastController {
       else -> Toast.LENGTH_SHORT
     }
     withMainContext {
-      Toast.makeText(getAppContext(), text, duration).also {
+      Toast.makeText(getAppContextUnsafe(), text, duration).also {
         when (positionType) {
           PositionType.TOP -> {
             it.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 40)

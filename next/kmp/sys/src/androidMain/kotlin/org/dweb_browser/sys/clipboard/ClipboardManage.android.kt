@@ -7,13 +7,13 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import io.ktor.util.sha1
-import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.permission.AuthorizationStatus
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.sys.permission.SystemPermissionAdapterManager
 import org.dweb_browser.sys.permission.SystemPermissionName
 
 private val clipboard by lazy {
-  getAppContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+  getAppContextUnsafe().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 }
 
 actual class ClipboardManage {
@@ -38,7 +38,7 @@ actual class ClipboardManage {
     clipboard.setPrimaryClip(ClipData.newPlainText(label, content))
   }
 
-  private val imageTmpDir = getAppContext().cacheDir.resolve("clipboard").apply { mkdirs() }
+  private val imageTmpDir = getAppContextUnsafe().cacheDir.resolve("clipboard").apply { mkdirs() }
 
   @OptIn(ExperimentalStdlibApi::class)
   actual fun writeImage(
@@ -83,7 +83,7 @@ actual class ClipboardManage {
           item?.text
         } else {
           val item = clipboard.primaryClip?.getItemAt(0)
-          item?.coerceToText(getAppContext()).toString()
+          item?.coerceToText(getAppContextUnsafe()).toString()
         }
     }
     var type = "text/plain"

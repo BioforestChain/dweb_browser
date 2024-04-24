@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printError
 import java.util.Locale
@@ -29,7 +29,7 @@ data class LocationData(
 )
 
 class LocationInfo : LocationListener {
-  val context = getAppContext()
+  val context = getAppContextUnsafe()
 
   @SuppressLint("MissingPermission") // 先忽略权限
   fun getLocationInfo(): String {
@@ -77,7 +77,7 @@ class LocationInfo : LocationListener {
       latlong[1] = 0.0
 
       try {
-        val manager = getAppContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val manager = getAppContextUnsafe().getSystemService(Context.LOCATION_SERVICE) as LocationManager
         manager.requestLocationUpdates(
           LocationManager.GPS_PROVIDER,
           MIN_TIME_BW_UPDATES,

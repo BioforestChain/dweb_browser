@@ -15,8 +15,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.module.startAppActivity
+import org.dweb_browser.helper.getAppContextUnsafe
 import org.dweb_browser.helper.getOrDefault
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.withMainContext
@@ -28,7 +28,7 @@ import javax.crypto.SecretKey
 actual object BiometricsManage {
 
   actual suspend fun checkSupportBiometrics() = BiometricCheckResult.ALL_VALUES.getOrDefault(
-    BiometricManager.from(getAppContext())
+    BiometricManager.from(getAppContextUnsafe())
       .canAuthenticate(BIOMETRIC_STRONG or BIOMETRIC_WEAK or DEVICE_CREDENTIAL),
     BiometricCheckResult.BIOMETRIC_STATUS_UNKNOWN
   )

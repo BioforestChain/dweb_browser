@@ -9,7 +9,7 @@ import androidx.core.content.FileProvider
 import io.ktor.http.ContentType
 import io.ktor.http.defaultForFile
 import org.dweb_browser.browser.web.debugBrowser
-import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.getAppContextUnsafe
 import java.io.File
 
 object InstallApkUtil {
@@ -43,13 +43,13 @@ object InstallApkUtil {
       intent.setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive")
       intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
-    getAppContext().startActivity(intent)
+    getAppContextUnsafe().startActivity(intent)
     return true
   }
 
   fun openFile(realPath: String): Boolean {
     val intent = Intent(Intent.ACTION_VIEW)
-    val context = getAppContext()
+    val context = getAppContextUnsafe()
     val file = File(realPath)
     val uriForFile = FileProvider.getUriForFile(
       context, "${context.packageName}.file.opener.provider", file
