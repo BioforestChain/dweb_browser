@@ -559,13 +559,15 @@ class BrowserViewModel(
 
   suspend fun removeHistoryLink(items: List<WebSiteInfo>) {
     browserController.historyStateFlow.update { historyMap ->
-      for (item in items) {
-        val dayKey = item.day.toString()
-        val dayList = historyMap[dayKey]?.filter { it.url != item.url } ?: continue
-        browserController.saveHistoryLinks(dayKey, dayList)
-        historyMap + Pair(dayKey, dayList)
+      var newHistoryMap = historyMap
+      val removeMap = items.groupBy { it.day.toString() }
+      removeMap.map { (dayKey, list) ->
+        historyMap[dayKey]?.filterNot { it in list }?.also { dayList ->
+          browserController.saveHistoryLinks(dayKey, dayList)
+          newHistoryMap = historyMap + Pair(dayKey, dayList)
+        }
       }
-      historyMap
+      newHistoryMap
     }
   }
 
