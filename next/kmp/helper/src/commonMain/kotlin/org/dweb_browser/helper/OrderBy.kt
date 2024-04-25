@@ -5,16 +5,15 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 
 
 class OrderDeferred(var current: Job? = null) {
   val lock = SynchronizedObject()
-  fun queue(key: Any?, scope: CoroutineScope, handler: suspend () -> Unit) = synchronized(lock) {
+  fun <T> queue(key: Any?, scope: CoroutineScope, handler: suspend () -> T) = synchronized(lock) {
     val preJob = current;
-//    var done = false
-    scope.launch(start = CoroutineStart.UNDISPATCHED) {
+    scope.async(start = CoroutineStart.UNDISPATCHED) {
       preJob?.join();
       handler()
     }.also { job ->
@@ -48,32 +47,27 @@ class OrderDeferred(var current: Job? = null) {
     }
   }
 
-  suspend fun queue(key: Any?, handler: suspend () -> Unit) = coroutineScope {
+  suspend fun <T> queue(key: Any?, handler: suspend () -> T) = coroutineScope {
     queue(key, this, handler)
   }
-
 }
 
 class OrderInvoker {
   private val queues = SafeHashMap<Int, OrderDeferred>()
-  suspend fun tryInvoke(param: Any?, invoker: suspend () -> Unit) {
-    tryInvoke(
-      order = when (param) {
-        is OrderBy -> param.order
-        else -> null
-      },
-      key = param,
-      invoker,
-    )
-  }
+  suspend fun <T> tryInvoke(param: Any?, invoker: suspend () -> T) = tryInvoke(
+    order = when (param) {
+      is OrderBy -> param.order
+      else -> null
+    },
+    key = param,
+    invoker,
+  )
 
-  suspend fun tryInvoke(order: Int?, key: Any? = null, invoker: suspend () -> Unit) {
-    if (order == null) {
-      invoker()
-    } else {
-      queues.getOrPut(order) { OrderDeferred() }.queue(key = key, handler = invoker).join()
+  suspend fun <T> tryInvoke(order: Int?, key: Any? = null, invoker: suspend () -> T) =
+    when (order) {
+      null -> invoker()
+      else -> queues.getOrPut(order) { OrderDeferred() }.queue(key = key, handler = invoker).await()
     }
-  }
 }
 
 interface OrderBy {

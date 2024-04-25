@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.MMID
@@ -28,11 +27,12 @@ class PermissionTable(private val nmm: NativeMicroModule.NativeRuntime) {
   class PermissionRow(
     val permissionId: PERMISSION_ID,
     val applicantMmid: MMID,
-    val record: AuthorizationRecord
+    val record: AuthorizationRecord,
   )
 
   @Composable
   fun AllData(): MutableList<PermissionRow> {
+    nmm.debugMM("PermissionTable/AllData")
     // 订阅变动
     val all = remember { mutableStateListOf<PermissionRow>() }
     all.clear()
@@ -57,6 +57,7 @@ class PermissionTable(private val nmm: NativeMicroModule.NativeRuntime) {
   }
 
   suspend fun addRecord(record: AuthorizationRecord) = lock.withLock {
+    nmm.debugMM("PermissionTable/addRecord", record)
     val recordMap = authorizationMap.getOrPut(record.pid) { mutableStateMapOf() }
     recordMap[record.applicantMmid] = record
     permissionStore.set(record.pid, recordMap)
@@ -64,6 +65,7 @@ class PermissionTable(private val nmm: NativeMicroModule.NativeRuntime) {
 
   suspend fun removeRecord(providerMmid: MMID, pid: PERMISSION_ID, applicantMmid: MMID) =
     lock.withLock {
+      nmm.debugMM("PermissionTable/removeRecord", pid)
       val recordMap = authorizationMap[pid] ?: return@withLock false
       val record = recordMap[applicantMmid] ?: return@withLock false
       if (record.providerMmid != providerMmid) {
@@ -83,6 +85,7 @@ class PermissionTable(private val nmm: NativeMicroModule.NativeRuntime) {
    * 查询权限的授权情况
    */
   suspend fun query(providerMmid: MMID, pid: PERMISSION_ID) = lock.withLock {
+    nmm.debugMM("PermissionTable/query", pid)
     authorizationMap[pid]?.filter { it.value.providerMmid == providerMmid }
       ?.mapValues { it.value.safeStatus } ?: mapOf()
   }
@@ -91,6 +94,7 @@ class PermissionTable(private val nmm: NativeMicroModule.NativeRuntime) {
    * 请求者 检查权限的状态
    */
   suspend fun check(applicantMmid: MMID, pid: PERMISSION_ID) = lock.withLock {
+    nmm.debugMM("PermissionTable/check", pid)
     authorizationMap[pid]?.get(applicantMmid)?.safeStatus ?: AuthorizationStatus.UNKNOWN
   }
 

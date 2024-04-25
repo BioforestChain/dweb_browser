@@ -1,9 +1,11 @@
 package info.bagen.dwebbrowser
 
+import io.ktor.utils.io.close
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IpcEvent
@@ -16,8 +18,12 @@ import org.dweb_browser.core.std.boot.BootNMM
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.collectIn
+import org.dweb_browser.helper.createByteChannel
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureStream
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -147,4 +153,51 @@ class IpcPoolTest {
     dnsRuntime.shutdown()
   }
 
+
+  @Test
+  fun testStreamBody() = runCommonTest {
+
+    val dns = DnsNMM()
+    val demo1MM = TestMicroModule("demo1.mm.dweb")
+    dns.install(demo1MM)
+    val demo2MM = TestMicroModule("demo2.mm.dweb")
+    dns.install(demo2MM)
+    val dnsRuntime = dns.bootstrap()
+    val demo1Runtime = dnsRuntime.open(demo1MM.mmid) as NativeMicroModule.NativeRuntime
+    val demo2Runtime = dnsRuntime.open(demo2MM.mmid) as NativeMicroModule.NativeRuntime
+    val ipc1 = demo1Runtime.connect(demo2MM.mmid)
+    ipc1.awaitOpen()
+    println("-".repeat(40))
+    println("-".repeat(40))
+    println("-".repeat(40))
+    delay(500)
+
+    val stream = createByteChannel()
+    var actual = 0
+    launch {
+      for (i in 0..10) {
+        actual += i
+        stream.writeInt(i)
+      }
+      stream.close()
+    }
+    val ipcRequest = PureClientRequest(
+      "file://${demo2MM.mmid}/test-stream",
+      method = PureMethod.POST,
+      body = IPureBody.from(PureStream(stream))
+    )
+    demo2Runtime.routes(
+      "/test-stream" bind PureMethod.POST by demo2Runtime.defineStringResponse {
+        val bodyReader = request.body.toPureStream().getReader("on-response")
+        var res = 0
+        while (!bodyReader.isClosedForRead) {
+          val value = bodyReader.readInt()
+          res += value
+        }
+        res.toString()
+      }
+    )
+    val response = ipc1.request(ipcRequest)
+    assertEquals(response.text().toInt(), actual)
+  }
 }

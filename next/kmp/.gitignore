@@ -12,6 +12,7 @@ local.properties
 xcuserdata
 X-Build
 /shared/src/commonMain/resources/browser
+/pureImage/src/commonMain/composeResources/files/offscreen-web-canvas
 /browser/src/commonMain/composeResources/files/browser
 /shared/src/iosMain/composeResources
 /dwebview/src/commonMain/composeResources/files/dwebview-polyfill

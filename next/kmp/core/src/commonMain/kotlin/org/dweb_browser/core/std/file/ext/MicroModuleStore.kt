@@ -3,18 +3,16 @@ package org.dweb_browser.core.std.file.ext
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.helper.OrderInvoker
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.getOrPut
+import org.dweb_browser.helper.toBase64
 import org.dweb_browser.pure.crypto.cipher.cipher_aes_256_gcm
 import org.dweb_browser.pure.crypto.decipher.decipher_aes_256_gcm
 import org.dweb_browser.pure.crypto.hash.sha256
@@ -26,9 +24,8 @@ fun MicroModule.Runtime.createStore(storeName: String, encrypt: Boolean) =
 fun MicroModule.Runtime.createStore(
   storeName: String,
   cipherChunkKey: ByteArray,
-  encrypt: Boolean
-) =
-  MicroModuleStore(this, storeName, cipherChunkKey, encrypt)
+  encrypt: Boolean,
+) = MicroModuleStore(this, storeName, cipherChunkKey, encrypt)
 
 private val defaultSimpleStoreCache by atomic(WeakHashMap<MicroModule.Runtime, MicroModuleStore>())
 
@@ -44,26 +41,23 @@ class MicroModuleStore(
   private val encrypt: Boolean,
 ) {
   constructor(
-    mm: MicroModule.Runtime, storeName: String, encrypt: Boolean
+    mm: MicroModule.Runtime, storeName: String, encrypt: Boolean,
   ) : this(mm, storeName, null, encrypt)
 
-  private val taskQueues = Channel<Task<*>>(onBufferOverflow = BufferOverflow.SUSPEND)
-  private val storeMutex = Mutex()
+  private val orderInvoker = OrderInvoker()
+  private suspend fun <T> exec(action: suspend () -> T) =
+    orderInvoker.tryInvoke(0, invoker = action)
 
-  init {
+  private fun <T> execDeferred(action: suspend () -> T): Deferred<T> {
+    val deferred = CompletableDeferred<T>()
     mm.scopeLaunch(cancelable = true) {
-      for (task in taskQueues) {
-        // 防止并发修改异常
-        storeMutex.withLock {
-          try {
-            @Suppress("UNCHECKED_CAST")
-            (task.deferred as CompletableDeferred<Any>).complete(task.action() as Any)
-          } catch (e: Throwable) {
-            task.deferred.completeExceptionally(e)
-          }
-        }
+      runCatching {
+        deferred.complete(exec(action))
+      }.getOrElse {
+        deferred.completeExceptionally(it)
       }
     }
+    return deferred
   }
 
   private val cipherPlainKey = mm.mmid + "/" + storeName
@@ -73,7 +67,7 @@ class MicroModuleStore(
     "/data/store/$storeName${if (encrypt) ".ebor" else ".cbor"}".encodeURIComponent()
 
   @OptIn(ExperimentalSerializationApi::class)
-  private var _store = exec<MutableMap<String, ByteArray>> {
+  private var _store = execDeferred<MutableMap<String, ByteArray>> {
     if (encrypt) {
       cipherKey = if (cipherChunkKey != null) {
         sha256(cipherChunkKey)
@@ -83,13 +77,18 @@ class MicroModuleStore(
     }
 
     try {
+      mm.debugMM("store-init-read", queryPath)
       val readRequest = mm.readFile(queryPath, true)
+      mm.debugMM("store-init-read-content", readRequest.binary().toBase64())
       val data = readRequest.binary().let {
         if (it.isEmpty()) it else cipherKey?.let { key -> decipher_aes_256_gcm(key, it) } ?: it
       }
+      mm.debugMM("store-init-read-data", data)
 
-      if (data.isEmpty()) mutableMapOf()
-      else Cbor.decodeFromByteArray(data)
+      when {
+        data.isEmpty() -> mutableMapOf()
+        else -> Cbor.decodeFromByteArray(data)
+      }
     } catch (e: Throwable) {
       // debugger(e)
       mm.debugMM("store/init", "e->${e.message}")
@@ -98,15 +97,6 @@ class MicroModuleStore(
   }
 
   suspend fun getStore() = _store.await()
-  internal class Task<T>(val deferred: CompletableDeferred<T>, val action: suspend () -> T) {}
-
-  private fun <T> exec(action: suspend () -> T): Deferred<T> {
-    val deferred = CompletableDeferred<T>()
-    mm.scopeLaunch(cancelable = true) {
-      taskQueues.send(Task(deferred, action))
-    }
-    return deferred
-  }
 
   @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun <reified T> getAll(): MutableMap<String, T> {
@@ -154,22 +144,17 @@ class MicroModuleStore(
   }
 
   @OptIn(ExperimentalSerializationApi::class)
-  suspend fun save() {
-    exec {
-      val map = getStore()
-      mm.writeFile(
-        path = queryPath,
-        body = IPureBody.from(
-          Cbor.encodeToByteArray(map).let {
-            cipherKey?.let { key -> cipher_aes_256_gcm(key, it) } ?: it
-          }
-        )
-      )
-    }.await()
+  suspend fun save() = exec {
+    val map = getStore()
+    mm.debugMM("store-save", queryPath)
+    mm.writeFile(path = queryPath, body = IPureBody.from(Cbor.encodeToByteArray(map).let {
+      cipherKey?.let { key -> cipher_aes_256_gcm(key, it) } ?: it
+    }))
   }
 
   @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun <reified T> set(key: String, value: T) {
+    mm.debugMM("store-set") { "key=$key value=$value" }
     val store = getStore()
     val newValue = Cbor.encodeToByteArray(value)
     if (!newValue.contentEquals(store[key])) {

@@ -1,5 +1,6 @@
 package org.dweb_browser.pure.image.offscreenwebcanvas
 
+import dweb_browser_kmp.pureimage.generated.resources.Res
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fromFilePath
@@ -15,8 +16,8 @@ import org.dweb_browser.pure.http.PureChannel
 import org.dweb_browser.pure.http.PureHeaders
 import org.dweb_browser.pure.http.PureResponse
 import org.dweb_browser.pure.http.PureTextFrame
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.InternalResourceApi
-import org.jetbrains.compose.resources.readResourceBytes
 
 internal suspend fun commonStartPureServer(server: HttpPureServer) = server.start(0u)
 internal expect suspend fun startPureServer(server: HttpPureServer): UShort
@@ -28,7 +29,7 @@ internal class OffscreenWebCanvasMessageChannel {
   val onMessage = onMessageSignal.toListener()
   val proxy = OffscreenWebCanvasFetchProxy()
 
-  @OptIn(InternalResourceApi::class)
+  @OptIn(InternalResourceApi::class, ExperimentalResourceApi::class)
   private val server = HttpPureServer {
     val pathname = it.url.encodedPath
     if (pathname == "/channel" && it.hasChannel) {
@@ -63,7 +64,7 @@ internal class OffscreenWebCanvasMessageChannel {
       proxy.proxy(it)
     } else {
       runCatching {
-        val content = readResourceBytes("offscreen-web-canvas$pathname")
+        val content = Res.readBytes("files/offscreen-web-canvas$pathname")
         PureResponse(body = IPureBody.from(content), headers = PureHeaders().apply {
           val extension = ContentType.fromFilePath(pathname)
           extension.firstOrNull()?.apply {

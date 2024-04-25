@@ -1,10 +1,10 @@
 package org.dweb_browser.dwebview.polyfill
 
-import org.jetbrains.compose.resources.InternalResourceApi
-import org.jetbrains.compose.resources.readResourceBytes
+import dweb_browser_kmp.dwebview.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 open class DwebViewCommonPolyfill {
-  @OptIn(InternalResourceApi::class)
+  @OptIn(ExperimentalResourceApi::class)
   suspend fun readDwebviewPolyfill(filename: String) =
-    readResourceBytes("files/dwebview-polyfill/$filename").decodeToString()
+    Res.readBytes("files/dwebview-polyfill/$filename").decodeToString()
 }

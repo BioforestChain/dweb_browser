@@ -42,7 +42,7 @@ export const toolkitTasks = new ConTasks(
     },
     "offscreen-web-canvas:build": {
       cmd: "npx",
-      args: [`vite`, `build`, `--outDir`, `../../../next/kmp/shared/src/commonMain/resources/offscreen-web-canvas`],
+      args: [`vite`, `build`, `--outDir`, `../../../next/kmp/pureImage/src/commonMain/composeResources/files/offscreen-web-canvas`],
       devAppendArgs: ["--watch"],
       cwd: "./offscreen-web-canvas",
     },
