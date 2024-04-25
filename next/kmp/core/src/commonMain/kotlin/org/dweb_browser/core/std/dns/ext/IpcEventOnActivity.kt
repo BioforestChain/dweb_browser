@@ -15,11 +15,13 @@ private const val ACTIVITY_EVENT_NAME = "activity"
 fun IpcEvent.Companion.createActivity(data: String) = IpcEvent.fromUtf8(ACTIVITY_EVENT_NAME, data)
 fun IpcEvent.isActivity() = name == ACTIVITY_EVENT_NAME
 suspend fun MicroModule.Runtime.onActivity(cb: suspend (value: Pair<IpcEvent, Ipc>) -> Unit) {
-  val winIpc = connect("dns.std.dweb")
-  winIpc.onEvent("onActivity").collectIn(getRuntimeScope()) { event ->
-    event.consumeFilter { ipcEvent ->
-      ipcEvent.isActivity().trueAlso {
-        cb(Pair(event.consume(), winIpc))
+  scopeLaunch(cancelable = true) {
+    val winIpc = connect("dns.std.dweb")
+    winIpc.onEvent("onActivity").collectIn(getRuntimeScope()) { event ->
+      event.consumeFilter { ipcEvent ->
+        ipcEvent.isActivity().trueAlso {
+          cb(Pair(event.consume(), winIpc))
+        }
       }
     }
   }

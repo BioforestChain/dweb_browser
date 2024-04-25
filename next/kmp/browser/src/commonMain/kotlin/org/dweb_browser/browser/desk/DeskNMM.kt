@@ -219,8 +219,10 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           val mmid = request.query("app_id")
           debugDesk("openAppOrActivate", "requestMMID=$mmid")
           // 内部接口，所以ipc通过connect获得
+          val targetIpc = connect(mmid, request)
+          debugDesk("openAppOrActivate", "targetIpc=$targetIpc")
           // 发现desk.js是判断返回值true or false 来显示是否正常启动，所以这边做下修改
-          openOrActivateAppWindow(connect(mmid, request), desktopController).id
+          openOrActivateAppWindow(targetIpc, desktopController).id
         },
         // 获取isMaximized 的值
         "/toggleMaximize" bind PureMethod.GET by defineBooleanResponse {

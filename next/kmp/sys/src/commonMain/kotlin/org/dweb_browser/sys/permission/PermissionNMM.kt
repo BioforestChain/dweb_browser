@@ -79,8 +79,7 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
 
   inner class PermissionRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
     override suspend fun _bootstrap() {
-      println("QAQ bootstrap-start $mmid")
-      val permissionStdProtocol = permissionStdProtocol(hooks)
+      val permissionTable = permissionStdProtocol(hooks)
 
       routes(
         "/request" bind PureMethod.POST by defineJsonResponse {
@@ -96,15 +95,13 @@ class PermissionNMM : NativeMicroModule("permission.sys.dweb", "Permission Manag
       )
 
       onRenderer {
-        println("QAQ onRenderer $mmid")
         getMainWindow().apply {
           setStateFromManifest(manifest)
           windowAdapterManager.provideRender(id) { modifier ->
-            PermissionManagerRender(modifier, this, permissionStdProtocol)
+            PermissionManagerRender(modifier, this, permissionTable)
           }
         }
       }
-      println("QAQ bootstrap-end $mmid")
     }
 
     override suspend fun _shutdown() {}

@@ -181,6 +181,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     debugDNS("connectTo") { "$fromMMID <=> $toMMID" }
 
     val toAppRuntime = dnsRuntime.open(toMicroModule.mmid, fromMM)
+    debugDNS("connectTo/opened", toAppRuntime)
     return connectMicroModules(fromMM, toAppRuntime, reason)
   }
 

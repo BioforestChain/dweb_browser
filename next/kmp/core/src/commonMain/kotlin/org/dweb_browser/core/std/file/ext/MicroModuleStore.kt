@@ -12,7 +12,6 @@ import org.dweb_browser.helper.OrderInvoker
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.getOrPut
-import org.dweb_browser.helper.toBase64
 import org.dweb_browser.pure.crypto.cipher.cipher_aes_256_gcm
 import org.dweb_browser.pure.crypto.decipher.decipher_aes_256_gcm
 import org.dweb_browser.pure.crypto.hash.sha256
@@ -67,7 +66,7 @@ class MicroModuleStore(
     "/data/store/$storeName${if (encrypt) ".ebor" else ".cbor"}".encodeURIComponent()
 
   @OptIn(ExperimentalSerializationApi::class)
-  private var _store = execDeferred<MutableMap<String, ByteArray>> {
+  private var _store = execDeferred {
     if (encrypt) {
       cipherKey = if (cipherChunkKey != null) {
         sha256(cipherChunkKey)
@@ -77,21 +76,21 @@ class MicroModuleStore(
     }
 
     try {
-      mm.debugMM("store-init-read", queryPath)
+      mm.debugMM("store-init", queryPath)
       val readRequest = mm.readFile(queryPath, true)
-      mm.debugMM("store-init-read-content", readRequest.binary().toBase64())
       val data = readRequest.binary().let {
         if (it.isEmpty()) it else cipherKey?.let { key -> decipher_aes_256_gcm(key, it) } ?: it
       }
-      mm.debugMM("store-init-read-data", data)
 
-      when {
+      val result: MutableMap<String, ByteArray> = when {
         data.isEmpty() -> mutableMapOf()
         else -> Cbor.decodeFromByteArray(data)
       }
+      mm.debugMM("store-init-data", result)
+      result
     } catch (e: Throwable) {
       // debugger(e)
-      mm.debugMM("store/init", "e->${e.message}")
+      mm.debugMM("store-init-error", null, e)
       mutableMapOf()
     }
   }

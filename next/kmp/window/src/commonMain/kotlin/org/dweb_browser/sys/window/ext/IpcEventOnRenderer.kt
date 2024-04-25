@@ -37,24 +37,28 @@ suspend fun NativeMicroModule.NativeRuntime.getOrOpenMainWindowId() =
 val NativeMicroModule.NativeRuntime.hasMainWindow
   get() = getMainWindowIdWMDeferred(this).isCompleted
 
-suspend fun NativeMicroModule.NativeRuntime.onRenderer(cb: suspend RendererContext.() -> Unit) {
-  val winIpc = connect("window.std.dweb")
-  winIpc.onEvent("onRender").collectIn(getRuntimeScope()) { event ->
-    event.consumeFilter { ipcEvent ->
-      if (ipcEvent.isRenderer()) {
-        val context = RendererContext.get(ipcEvent, winIpc, this)
-        context.cb()
-        winIpc.onClosed {
-          scopeLaunch(cancelable = false) {
-            context.emitDispose()
+fun NativeMicroModule.NativeRuntime.onRenderer(cb: suspend RendererContext.() -> Unit) {
+  val nmm = this
+  scopeLaunch(cancelable = true) {
+    // 这里需要放到 launch 中，因为 与 window 的连接可能会死锁
+    val winIpc = connect("window.std.dweb")
+    winIpc.onEvent("onRender").collectIn(getRuntimeScope()) { event ->
+      event.consumeFilter { ipcEvent ->
+        if (ipcEvent.isRenderer()) {
+          val context = RendererContext.get(ipcEvent, winIpc, nmm)
+          context.cb()
+          winIpc.onClosed {
+            scopeLaunch(cancelable = false) {
+              context.emitDispose()
+            }
           }
-        }
-        true
-      } else if (ipcEvent.isRendererDestroy()) {
-        val context = RendererContext.get(ipcEvent, winIpc, this)
-        context.emitDispose()
-        true
-      } else false
+          true
+        } else if (ipcEvent.isRendererDestroy()) {
+          val context = RendererContext.get(ipcEvent, winIpc, nmm)
+          context.emitDispose()
+          true
+        } else false
+      }
     }
   }
 }

@@ -231,7 +231,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   private suspend fun doEmit(event: Event) {
     event.orderInvoke {
       withScope(scope) {
-//        println("QAQ doEmit emitBy $event ${this@Producer} ${consumers.size}")
         for (consumer in consumers.toList()) {
           if (!consumer.started || consumer.startingBuffers?.contains(event) == true) {
             continue
@@ -326,7 +325,6 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
           /// 将之前没有被消费的逐个触发，这里不用担心 buffers 被中途追加，emit会同步触发
           for (event in starting) {
             launch(start = CoroutineStart.UNDISPATCHED) {
-//              println("QAQ startingBuffers emitBy $event ${this@Producer}")
               event.orderInvoke {
                 event.emitBy(this@Consumer)
               }

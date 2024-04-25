@@ -74,3 +74,4 @@
    1. 未来应该会使用 `MutableStateFlow<T>` 替代 `MutableStateOf<T>`，因为它是线程安全的。比方说 bookmarks 的数据已经是使用 MutableStateFlow 来实现，它是存储的是只读 map 与 list，修改起来更加可靠安全
 1. 在升级 gradle 后，记得也要顺便升级入口的脚步文件，例如： `./gradlew wrapper --gradle-version=8.6`
 1. 你可以在 kmp 目录下创建 local.properties 文件，将 `jxbrowser.license.key` 字段配置其中
+1. 请尽量不要在 Runtime 的 bootstrap 去做 connect，因为 connect 本身需要依赖对方 boostrap 完毕，所以一不小心可能会造成死锁

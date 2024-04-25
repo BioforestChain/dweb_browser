@@ -10,7 +10,7 @@ import org.dweb_browser.pure.http.PureRequest
 
 interface PermissionHooks {
   suspend fun onRequestPermissions(
-    applicantIpc: Ipc, permissions: List<PermissionProvider>
+    applicantIpc: Ipc, permissions: List<PermissionProvider>,
   ): Map<PermissionProvider, AuthorizationRecord>
 }
 
