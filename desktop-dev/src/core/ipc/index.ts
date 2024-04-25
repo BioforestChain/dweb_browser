@@ -9,7 +9,7 @@ export * from "./helper/IpcHeaders.ts";
 export * from "./helper/PureChannel.ts";
 export * from "./ipc-message/IpcError.ts";
 export * from "./ipc-message/IpcEvent.ts";
-export * from "./ipc-message/IpcLifecycle.ts";
+export * from "./ipc-message/IpcLifeCycle.ts";
 export * from "./ipc-message/IpcMessage.ts";
 export * from "./ipc-message/IpcRequest.ts";
 export * from "./ipc-message/IpcResponse.ts";

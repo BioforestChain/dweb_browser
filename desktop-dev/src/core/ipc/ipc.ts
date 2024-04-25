@@ -24,7 +24,7 @@ import {
   ipcLifecycleOpened,
   ipcLifecycleOpening,
   type $IpcLifecycle,
-} from "./ipc-message/IpcLifecycle.ts";
+} from "./ipc-message/IpcLifeCycle.ts";
 import type { $IpcMessage } from "./ipc-message/IpcMessage.ts";
 import { IPC_LIFECYCLE_STATE } from "./ipc-message/internal/IpcLifecycle.ts";
 import { IPC_MESSAGE_TYPE } from "./ipc-message/internal/IpcMessage.ts";
