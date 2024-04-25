@@ -47,7 +47,7 @@ internal fun <T> exitAnimationSpec() = tween<T>(300, easing = IosFastOutSlowInEa
 
 @Composable
 fun BrowserViewModalRender(
-  viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope
+  viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowContentRenderScope,
 ) {
 
   LocalCompositionChain.current.Provider(LocalBrowserViewModel provides viewModel) {
@@ -58,24 +58,33 @@ fun BrowserViewModalRender(
         modifier.requiredSize((width / scale).dp, (height / scale).dp).scale(scale)
       }
     }.background(MaterialTheme.colorScheme.background)) {
-      // 移除 viewModel.isPreviewInvisible, 避免显示的时候 WebView 重新加载。
-      if (!viewModel.showPreview) {//!viewModel.isPreviewInvisible
-        Column(Modifier.fillMaxSize()) {
-          // 网页主体
-          Box(modifier = Modifier.weight(1f)) {
-            BrowserPageBox(windowRenderScope)   // 中间网页主体
-          }
-          // 工具栏，包括搜索框和导航栏
-          BrowserBottomBar(Modifier.fillMaxWidth().wrapContentHeight())
-        }
+      if (BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))) {
+        return@Box
       }
-
-      BrowserPreviewPanel(Modifier.fillMaxSize().zIndex(2f))
       // 搜索界面考虑到窗口和全屏问题，显示的问题，需要控制modifier
-      BrowserSearchPanel(Modifier.fillMaxSize())
-      BrowserQRCodePanel(Modifier.fillMaxSize())
+      if (BrowserSearchPanel(Modifier.fillMaxSize())) {
+        return@Box
+      }
+      if (BrowserQRCodePanel(Modifier.fillMaxSize())) {
+        return@Box
+      }
+      BrowserPagePanel(Modifier.fillMaxSize(), windowRenderScope)
     }
   }
+}
+
+@Composable
+fun BrowserPagePanel(modifier: Modifier, windowRenderScope: WindowContentRenderScope) {
+  // 移除 viewModel.isPreviewInvisible, 避免显示的时候 WebView 重新加载。
+  Column(modifier) {
+    // 网页主体
+    Box(modifier = Modifier.weight(1f)) {
+      BrowserPageBox(windowRenderScope)   // 中间网页主体
+    }
+    // 工具栏，包括搜索框和导航栏
+    BrowserBottomBar(Modifier.fillMaxWidth().wrapContentHeight())
+  }
+
 }
 
 @OptIn(ExperimentalFoundationApi::class)

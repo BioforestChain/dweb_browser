@@ -75,3 +75,5 @@
 1. 在升级 gradle 后，记得也要顺便升级入口的脚步文件，例如： `./gradlew wrapper --gradle-version=8.6`
 1. 你可以在 kmp 目录下创建 local.properties 文件，将 `jxbrowser.license.key` 字段配置其中
 1. 请尽量不要在 Runtime 的 bootstrap 去做 connect，因为 connect 本身需要依赖对方 boostrap 完毕，所以一不小心可能会造成死锁
+1. Runtime 本身有自己的 coroutineScope ，你可以用 `getRuntimeScope()` 获取它。但通常的用法是使用 `scopeLaunch` 与 `scopeAsync` 这两个函数来使用它。这两个函数等价于 `scope.launch` 与 `scope.async`。特点在于，这两个函数明确要求提供 `cancelable` 参数从而获得 job/deferred ，这个参数意味着 Runtime 在进行 shutdown 的时候，是否可以对 job/deferred 进行取消。
+   > 比方说，我们需要确保一些数据写入完成才能完成 shutdown，通常这类“收尾任务”是不可取消的。

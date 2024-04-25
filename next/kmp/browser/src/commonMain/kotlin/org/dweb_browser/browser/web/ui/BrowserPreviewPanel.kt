@@ -80,13 +80,13 @@ import kotlin.math.max
  */
 @OptIn(ExperimentalTransitionApi::class)
 @Composable
-internal fun BrowserPreviewPanel(modifier: Modifier = Modifier) {
+internal fun BrowserPreviewPanel(modifier: Modifier = Modifier): Boolean {
   val viewModel = LocalBrowserViewModel.current
   // 使用动画替代
   if (viewModel.isPreviewInvisible) {
     // 停止渲染后，销毁 RenderReady  这个状态值
     viewModel.previewPanelAnimationReady.clear()
-    return
+    return false
   }
   val uiScope = rememberCoroutineScope()
   LocalWindowController.current.GoBackHandler {
@@ -206,10 +206,12 @@ internal fun BrowserPreviewPanel(modifier: Modifier = Modifier) {
       }
     }
   }
+  return true
 }
 
 private enum class PagePreviewState(val isMinimal: Boolean) {
-  Min(true), Max(false), ;
+  Min(true), Max(false),
+  ;
 }
 
 /**
@@ -354,7 +356,7 @@ private fun PagePreviewCell(
     elevation = if (focus) 4.dp else 1.dp, shape = RoundedCornerShape(16.dp),
     ambientColor = LocalContentColor.current,
     spotColor = LocalContentColor.current,
-  ).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.onSurface)
+  ).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.onSurface),
 ) {
   val viewModel = LocalBrowserViewModel.current
   val scope = viewModel.browserNMM.getRuntimeScope()

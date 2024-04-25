@@ -81,19 +81,27 @@ class BrowserViewModel(
 
   var showMore by mutableStateOf(false)
 
-  val previewPanelVisibleState = MutableTransitionState(PreviewPanelVisibleState.Close)
-
   enum class PreviewPanelVisibleState(val isVisible: Boolean) {
     DisplayGrid(true), Close(false), ;
   }
 
   var showQRCodePanel by mutableStateOf(false)
 
+
+  val previewPanelVisibleState = MutableTransitionState(PreviewPanelVisibleState.Close)
   /**
    * previewPanel 是否完成了布局计算，可以开始动画渲染
    */
   var previewPanelAnimationReady = mutableStateListOf<Int>()
+
+  /**
+   * 是否显示 Preview
+   */
   val showPreview get() = previewPanelVisibleState.targetState != PreviewPanelVisibleState.Close
+
+  /**
+   * Preview 是否不显示，同时 也不在 收起显示的动画中
+   */
   val isPreviewInvisible get() = !showPreview && previewPanelVisibleState.isIdle
   fun toggleShowPreviewUI(show: Boolean) {
     previewPanelVisibleState.targetState =

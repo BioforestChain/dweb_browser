@@ -3,7 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import prettier from "npm:prettier";
-import { WalkFiles } from "../../../js-core/scripts/WalkDir.ts";
+import { WalkFiles } from "../../dweb-core/scripts/WalkDir.ts";
 
 const cssFilepath = fileURLToPath(new URL("../src/pages/new-tab/components/widget.scss", import.meta.url).href);
 

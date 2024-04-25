@@ -1,25 +1,24 @@
 {
-  "name": "dweb-core",
+  "name": "@dweb-browser/core",
   "version": "0.0.1",
   "description": "dweb core",
   "main": "index.js",
-  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/BioforestChain/dweb-core.git"
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    }
   },
   "keywords": [
     "dweb"
   ],
   "author": "dweb",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/BioforestChain/dweb-core/issues"
+  "dependencies": {
+    "cbor-x": "^1.5.3"
   },
-  "homepage": "https://github.com/BioforestChain/dweb-core#readme",
   "devDependencies": {
     "@types/bun": "latest",
     "rollup-plugin-typescript2": "^0.36.0",

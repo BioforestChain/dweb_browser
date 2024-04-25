@@ -1,8 +1,11 @@
 {
   "compilerOptions": {
     // Enable latest features
-    "lib": ["ESNext", "DOM"],
-    "rootDir": "./",
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "rootDir": "./src",
     "outDir": "dist",
     "target": "ES2022",
     "module": "ESNext",
@@ -24,6 +27,5 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  },
-  "include": ["**/*.ts"]
+  }
 }

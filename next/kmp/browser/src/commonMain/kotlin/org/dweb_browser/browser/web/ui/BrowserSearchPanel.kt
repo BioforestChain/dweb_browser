@@ -68,13 +68,14 @@ import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BrowserSearchPanel(modifier: Modifier = Modifier) {
+fun BrowserSearchPanel(modifier: Modifier = Modifier):Boolean {
   val viewModel = LocalBrowserViewModel.current
   val searchPage = viewModel.showSearch
+
   AnimatedVisibility(
     searchPage != null,
-    enter = slideInVertically(enterAnimationSpec()) { it },
-    exit = slideOutVertically(exitAnimationSpec()) { it },
+    enter = remember { slideInVertically(enterAnimationSpec()) { it } },
+    exit = remember { slideOutVertically(exitAnimationSpec()) { it } },
   ) {
     if (searchPage == null) {
       return@AnimatedVisibility
@@ -141,7 +142,8 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
 
         /// 底部的输入框
         Box(
-          Modifier.fillMaxWidth().height(dimenBottomHeight).padding(horizontal = dimenPageHorizontal),
+          Modifier.fillMaxWidth().height(dimenBottomHeight)
+            .padding(horizontal = dimenPageHorizontal),
           contentAlignment = Alignment.Center
         ) {
           val focusRequester = remember { FocusRequester() }
@@ -202,7 +204,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
               // 清除文本的按钮
               IconButton(onClick = {
                 // 清空文本之后再次点击需要还原文本内容并对输入框失焦
-                if(searchTextField.text.isEmpty()) {
+                if (searchTextField.text.isEmpty()) {
                   searchTextField = TextFieldValue(searchPage.url)
                   hide()
                 } else {
@@ -218,6 +220,7 @@ fun BrowserSearchPanel(modifier: Modifier = Modifier) {
     }
 
   }
+  return searchPage != null
 }
 
 /**
@@ -245,7 +248,7 @@ private fun SearchSuggestion(
  * 本地资源
  */
 private fun LazyListScope.searchLocalItems(
-  viewModel: BrowserViewModel, searchText: String, openApp: (SearchInject) -> Unit
+  viewModel: BrowserViewModel, searchText: String, openApp: (SearchInject) -> Unit,
 ) {
   val injectList = viewModel.searchInjectList
   if (injectList.isEmpty() && viewModel.filterShowEngines.isNotEmpty()) return // 如果本地资源为空，但是搜索引擎不为空，不需要显示这个内容
@@ -290,7 +293,7 @@ private fun LazyListScope.searchLocalItems(
 }
 
 private fun LazyListScope.searchEngineItems(
-  viewModel: BrowserViewModel, searchText: String, onSearch: (String) -> Unit
+  viewModel: BrowserViewModel, searchText: String, onSearch: (String) -> Unit,
 ) {
   val list = viewModel.filterShowEngines
   if (list.isEmpty()) return // 如果空的直接不显示

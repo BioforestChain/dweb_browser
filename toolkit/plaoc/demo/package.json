@@ -1,5 +1,5 @@
 {
-  "name": "plaoc-plugins-examples",
+  "name": "@plaoc/plugins-demo",
   "version": "0.0.0",
   "private": true,
   "scripts": {

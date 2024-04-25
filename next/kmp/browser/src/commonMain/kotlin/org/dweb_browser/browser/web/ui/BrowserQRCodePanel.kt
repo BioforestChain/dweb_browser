@@ -18,7 +18,7 @@ import org.dweb_browser.sys.permission.SystemPermissionName
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
-fun BrowserQRCodePanel(modifier: Modifier) {
+fun BrowserQRCodePanel(modifier: Modifier): Boolean {
   val viewModel = LocalBrowserViewModel.current
 
   AnimatedVisibility(
@@ -64,4 +64,5 @@ fun BrowserQRCodePanel(modifier: Modifier) {
       onSuccess = { openDeepLink(it); viewModel.showQRCodePanel = false },
       onCancel = { viewModel.showQRCodePanel = false })
   }
+  return viewModel.showQRCodePanel
 }
