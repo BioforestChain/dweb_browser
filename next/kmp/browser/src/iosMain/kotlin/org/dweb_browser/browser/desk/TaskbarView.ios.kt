@@ -215,7 +215,7 @@ class UIDragGesture(
   fun getPoint(gesture: UIPanGestureRecognizer): Offset {
     val point = gesture.translationInView(view = view)
     val offset = point.useContents {
-      Offset(x.toFloat() * density, y.toFloat() * density)
+      Offset(x.toFloat() , y.toFloat())
     }
     return offset
   }
