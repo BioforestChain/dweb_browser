@@ -1,6 +1,0 @@
-{
-  "imports": {
-    "@dweb-browser/desktop/": "./desktop-dev/src/",
-    "https://deno.land/x/dweb/src/": "./desktop-dev/src/"
-  }
-}

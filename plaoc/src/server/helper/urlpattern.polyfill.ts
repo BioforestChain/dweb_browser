@@ -1,1 +1,0 @@
-import "npm:urlpattern-polyfill";

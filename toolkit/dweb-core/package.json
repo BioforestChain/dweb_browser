@@ -1,0 +1,33 @@
+{
+  "name": "dweb-core",
+  "version": "0.0.1",
+  "description": "dweb core",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BioforestChain/dweb-core.git"
+  },
+  "keywords": [
+    "dweb"
+  ],
+  "author": "dweb",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BioforestChain/dweb-core/issues"
+  },
+  "homepage": "https://github.com/BioforestChain/dweb-core#readme",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.9",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^1.5.0"
+  }
+}

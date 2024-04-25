@@ -5,7 +5,6 @@
     "init": "deno run -A ./scripts/init.ts",
     "dev": "deno run -A ./scripts/dev.ts",
     "sync:android": "deno run -A ./scripts/sync-android.ts",
-    "sync:desktop": "deno run -A ./scripts/sync-desktop.ts",
     "sync:next": "deno run -A ./scripts/sync-next.ts",
     "sync": "deno run -A ./scripts/sync.ts",
     "plaoc": "deno run -A ./plaoc/cli/plaoc.ts",

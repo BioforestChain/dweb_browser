@@ -1,0 +1,43 @@
+{
+  "module": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "name": "@plaoc/server",
+  "version": "0.1.4",
+  "description": "WebApp-Framework In DwebBrowser",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BioforestChain/dweb_browser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BioforestChain/dweb_browser/issues"
+  },
+  "keywords": [
+    "plaoc",
+    "dweb",
+    "middleware"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./middleware": {
+      "import": "./middlewares/index.js",
+      "types": "./middlewares/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "@dweb-browser/core": "workspace:*",
+    "deep-object-diff": "^1.1.9",
+    "is-mobile": "^4.0.0",
+    "urlpattern-polyfill": "*"
+  },
+  "peerDependencies": {
+    "@types/node": "*",
+    "tslib": "*"
+  }
+}
