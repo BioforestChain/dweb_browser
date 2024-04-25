@@ -42,7 +42,6 @@ import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.toAndroidRect
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.device.DeviceManage
-import org.jetbrains.annotations.Contract
 
 
 /**
@@ -217,6 +216,7 @@ class DWebViewEngine internal constructor(
   internal val dWebChromeClient = DWebChromeClient(this).also {
     it.addWebChromeClient(DWebFileChooser(remoteMM, ioScope, activity))
     it.addWebChromeClient(DWebPermissionRequest(remoteMM, ioScope))
+    it.addWebChromeClient(DWebCustomView(activity))
   }
 
   val onCloseWindow = dWebChromeClient.closeSignal.toListener()
