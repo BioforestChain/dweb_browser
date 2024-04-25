@@ -7,7 +7,7 @@ import io.ktor.utils.io.read
 actual suspend inline fun ByteReadChannel.consumeEachArrayRange(
   visitor: ConsumeEachArrayVisitor,
 ) {
-  val controller = org.dweb_browser.helper.ChannelConsumeEachController()
+  val controller = ChannelConsumeEachController()
   do {
     var lastChunkReported = false
     read { source, start, endExclusive ->

@@ -6,6 +6,8 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.withScope
+import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationShortcutIcon
 import platform.UIKit.UIApplicationShortcutItem
 import platform.UIKit.shortcutItems
@@ -25,12 +27,11 @@ actual class ShortcutManage {
 
   companion object {}
 
-  private val scope = CoroutineScope(Dispatchers.Main)
-
+  private val mainScope = CoroutineScope(Dispatchers.Main)
+  lateinit var app: UIApplication
   actual suspend fun initShortcut(microModule: MicroModule.Runtime) {
-
-    scope.launch {
-      val app = microModule.getUIApplication()
+    withScope(mainScope) {
+      app = microModule.getUIApplication()
       // 这里获取的都是动态的quick action
       val hasAddScan = app.shortcutItems?.firstOrNull {
         val item = it as UIApplicationShortcutItem
@@ -43,8 +44,8 @@ actual class ShortcutManage {
     }
   }
 
-  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>, microModule: MicroModule.Runtime): Boolean {
-    scope.launch {
+  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>): Boolean {
+    mainScope.launch {
       val shortcuts = mutableListOf<UIApplicationShortcutItem>()
       shortcuts.add(getScanShortcutItem())
       shortcuts += shortcutList.map {
@@ -53,7 +54,6 @@ actual class ShortcutManage {
       if (shortcuts.count() > maxCount) {
         shortcuts.add(maxCount - 1, getMoreShortcutItem())
       }
-      val app = microModule.getUIApplication()
       app.shortcutItems = shortcuts
     }
     return true
@@ -95,7 +95,10 @@ actual class ShortcutManage {
   }
 
   // iOS: 由于无法正确解析SVG图片，所以iOS会一直返回null.
-  actual suspend fun getValidIcon(microModule: MicroModule.Runtime, resource: ImageResource): ByteArray? {
+  actual suspend fun getValidIcon(
+    microModule: MicroModule.Runtime,
+    resource: ImageResource,
+  ): ByteArray? {
     return null
   }
 }

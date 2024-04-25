@@ -36,38 +36,7 @@ expect fun eprintln(message: String)
 
 fun WARNING(message: String) = eprintln("WARNING: $message")
 
-val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
-  printError(ctx.toString(), e.message, e)
-  debugger(ctx, e)
-}
-val defaultAsyncExceptionHandler = Default + commonAsyncExceptionHandler
-
-//val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
-val mainAsyncExceptionHandler = SupervisorJob() + Main + commonAsyncExceptionHandler
-expect val ioAsyncExceptionHandler: CoroutineContext
-
-val emptyScope = CoroutineScope(EmptyCoroutineContext + commonAsyncExceptionHandler)
-
-expect suspend inline fun <T> withMainContext(crossinline block: suspend () -> T): T
-
-
-suspend inline fun <T> withMainContextCommon(crossinline block: suspend () -> T): T {
-  return if (Main.isDispatchNeeded(EmptyCoroutineContext)) {
-    withContext(mainAsyncExceptionHandler) { block() }
-  } else {
-    block()
-  }
-}
-
-suspend fun <T> withScope(
-  scope: CoroutineScope,
-  block: suspend CoroutineScope.() -> T,
-) = withContext(scope.coroutineContext, block)
 //  scope.async(block=block).await()
-
-inline fun CoroutineScope.launchWithMain(
-  crossinline block: suspend () -> Unit,
-) = launch { withMainContext(block) }
 
 
 private val times = mutableMapOf<String, String>()

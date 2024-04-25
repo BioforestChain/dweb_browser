@@ -40,6 +40,7 @@ import platform.UIKit.UIViewAutoresizingFlexibleHeight
 import platform.UIKit.UIViewAutoresizingFlexibleWidth
 import platform.WebKit.WKWebViewConfiguration
 import platform.darwin.NSObject
+import kotlin.native.runtime.GC
 import kotlin.native.runtime.NativeRuntimeApi
 
 @OptIn(ExperimentalForeignApi::class)
@@ -174,7 +175,7 @@ class DWebView private constructor(
         /// 开始释放lazy属性绑定
         _engineLazy.setKey(null)
         delay(1000)
-        kotlin.native.runtime.GC.collect()
+        GC.collect()
       }
     }
   }

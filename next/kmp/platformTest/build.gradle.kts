@@ -4,14 +4,18 @@ plugins {
   id("kmp-library")
 }
 
-
 kotlin {
   kmpCommonTarget(project) {
     dependencies {
       implementation(libs.test.kotlin.coroutines.test)
     }
   }
-  kmpAndroidTarget(project)
+  kmpAndroidTarget(project){
+    dependencies{
+      api(libs.androidx.test.core)
+      api(libs.androidx.test.core.ktx)
+    }
+  }
   kmpIosTarget(project)
   kmpNodeJsTarget(project)
   kmpDesktopTarget(project) {

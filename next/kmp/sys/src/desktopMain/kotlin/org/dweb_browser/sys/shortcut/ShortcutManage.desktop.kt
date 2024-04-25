@@ -14,7 +14,7 @@ actual class ShortcutManage actual constructor() {
   /**
    * 动态注册的快捷列表
    */
-  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>, microModule: MicroModule.Runtime): Boolean {
+  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>): Boolean {
     // TODO Not yet implemented registryShortcut
     WARNING("Not yet implemented registryShortcut")
     return false
@@ -27,7 +27,7 @@ actual class ShortcutManage actual constructor() {
    */
   actual suspend fun getValidIcon(
     microModule: MicroModule.Runtime,
-    resource: ImageResource
+    resource: ImageResource,
   ): ByteArray? {
     // TODO Not yet implemented getValidIcon
     WARNING("Not yet implemented getValidIcon")

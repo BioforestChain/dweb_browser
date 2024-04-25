@@ -79,7 +79,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
           }
           shortcutList.add(systemShortcut)
           store.set(systemShortcut.title, systemShortcut)
-          shortcutManage.registryShortcut(shortcutList, this@ShortcutRuntime)
+          shortcutManage.registryShortcut(shortcutList)
         },
         "shortcutopen" bindDwebDeeplink defineEmptyResponse {
           val mmid = request.query("mmid")
@@ -103,13 +103,13 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
               },
               onDragEnd = { _, _ ->
                 scopeLaunch(cancelable = true) {
-                  shortcutManage.registryShortcut(shortcutList, this@ShortcutRuntime)
+                  shortcutManage.registryShortcut(shortcutList)
                 }
               },
               onRemove = { item ->
                 scopeLaunch(cancelable = true) {
                   shortcutList.removeAll { it.title == item.title }
-                  shortcutManage.registryShortcut(shortcutList, this@ShortcutRuntime)
+                  shortcutManage.registryShortcut(shortcutList)
                   store.delete(item.title)
                 }
               }
@@ -127,7 +127,7 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
       val map = store.getAll()
       val list = map.values.sortedBy { it.order }
       shortcutList.addAll(list)
-      shortcutManage.registryShortcut(shortcutList, this@ShortcutRuntime)
+      shortcutManage.registryShortcut(shortcutList)
       scopeLaunch(cancelable = true) {
         // 监听 dns 中应用的变化来实时更新快捷方式列表
         doObserve("file://dns.std.dweb/observe/install-apps") {
@@ -135,13 +135,13 @@ class ShortcutNMM : NativeMicroModule("shortcut.sys.dweb", "Shortcut") {
           debugShortcut("listenApps", "add=$adds, remove=$removes, updates=$updates")
           removes.map { mmid ->
             shortcutList.removeAll { it.mmid == mmid }
-            shortcutManage.registryShortcut(shortcutList, this@ShortcutRuntime)
+            shortcutManage.registryShortcut(shortcutList)
           }
           adds.map { mmid ->
             val addList = map.values.filter { it.mmid == mmid }
             if (addList.isNotEmpty()) {
               shortcutList.addAll(addList)
-              shortcutManage.registryShortcut(shortcutList, this@ShortcutRuntime)
+              shortcutManage.registryShortcut(shortcutList)
             }
           }
         }

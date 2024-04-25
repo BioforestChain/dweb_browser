@@ -40,7 +40,7 @@ class MultipartNMM : NativeMicroModule("multipart.http.std.dweb", "multipart/for
           }
 
           override fun onFieldStart(
-            name: String?, fileName: String?, contentType: String?, fieldIndex: Int
+            name: String?, fileName: String?, contentType: String?, fieldIndex: Int,
           ) {
             runBlocking(context) {
               emit(

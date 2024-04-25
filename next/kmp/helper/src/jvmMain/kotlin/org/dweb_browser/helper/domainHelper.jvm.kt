@@ -1,7 +1,7 @@
 package org.dweb_browser.helper
 
-import java.net.InetAddress
 import java.net.IDN
+import java.net.InetAddress
 
 actual fun String.toPunyCode() = IDN.toASCII(this)!!
 

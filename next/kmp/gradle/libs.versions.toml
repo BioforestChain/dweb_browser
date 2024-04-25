@@ -12,6 +12,7 @@ javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 agp = "8.3.2"
 kotlin-version = "1.9.23"
 androidx-test = "1.5.2"
+coreKtx = "1.6.0-alpha05"
 androidx-test-rules = "1.5.0"
 androidx-compose-ui-test = "1.6.6"
 androidx-lifecycle = "2.7.0"
@@ -199,6 +200,7 @@ androidx-biometric-ktx = { group = "androidx.biometric", name = "biometric-ktx",
 
 # 测试相关
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidx-test" }
+androidx-test-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "coreKtx" }
 androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test", version.ref = "androidx-compose-ui-test" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "androidx-compose-ui-test" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest", version.ref = "androidx-compose-ui-test" }

@@ -21,7 +21,6 @@ data class ClipboardWriteResponse(val success: Boolean, val errorManager: String
 @Serializable
 data class ClipboardData(val value: String, val type: String)
 
-
 /** 剪切板微模块*/
 class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
 

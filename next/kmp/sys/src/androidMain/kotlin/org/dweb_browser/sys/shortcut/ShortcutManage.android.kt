@@ -25,7 +25,7 @@ actual class ShortcutManage {
     setDynamicShortcuts(emptyList())
   }
 
-  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>, microModule: MicroModule.Runtime) =
+  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>) =
     setDynamicShortcuts(shortcutList)
 
   private fun setDynamicShortcuts(shortcutList: List<SystemShortcut>): Boolean {
@@ -100,7 +100,10 @@ actual class ShortcutManage {
       .build()
   }
 
-  actual suspend fun getValidIcon(microModule: MicroModule.Runtime, resource: ImageResource): ByteArray? {
+  actual suspend fun getValidIcon(
+    microModule: MicroModule.Runtime,
+    resource: ImageResource,
+  ): ByteArray? {
     return microModule.nativeFetch(resource.src).body.toPureBinary()
   }
 }

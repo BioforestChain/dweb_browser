@@ -12,7 +12,7 @@ class DeepLinkHook private constructor() {
     }
   }
 
-  private val scope = CoroutineScope(ioAsyncExceptionHandler)
+  private val scope = CoroutineScope(org.dweb_browser.helper.ioAsyncExceptionHandler)
 
   val deeplinkSignal = Signal<String>()
   fun emitOnInit(url: String) {
