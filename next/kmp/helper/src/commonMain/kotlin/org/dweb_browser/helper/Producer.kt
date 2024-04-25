@@ -9,10 +9,10 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -161,20 +161,11 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         val beforeConsumeTimes = consumeTimes.value
 
         traceTimeout(1000, { "consumer=$consumer data=$data" }) {
-//          println("QAQ emitBy-start producer=${this@Producer} consumer=$consumer event-data=$data")
-          // 对方的接收是非阻塞的，所以我们才会有 collectorLock，等待 consumer 挂载完成所有的 emitJobs
-          val emitLock = Mutex(true)
-          val lockTimeout = scope.launch {
-            delay(800)
-            runCatching { emitLock.unlock() }
-          }
-          /// 这里使用channel将event和lock发送过去，但是send返回只代表了对面接收到，不代表对面处理完
-          /// 所以这里我们还需要等待对面处理完成，这里 emitLock 就是这样一个等待作用，所以它有超时机制
-          consumer.input.send(Pair(this, emitLock))
 
-          /// 这里等待 consumer 解锁 collectorEmitLock，说明 emitJobs 已经被保存好了
-          emitLock.withLock {}
-          lockTimeout.cancel()
+          /// 这里使用channel将event和lock发送过去，但是 emit 返回只代表了对面接收到，不代表对面处理完
+          /// 所以这里我们还需要等待对面处理完成，这里 emit(null) 就是这样一个等待作用，它可以确保上一个event被接受处理
+          consumer.input.emit(this)
+          consumer.input.emit(null)
 
           // 等待事件执行完成在往下走
           emitJobs.joinAll()
@@ -263,8 +254,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
   inner class Consumer internal constructor(
     val name: String,
   ) : Flow<Event> {
-    //    internal val input2: MutableSharedFlow<Event> = MutableSharedFlow()
-    internal val input: Channel<Pair<Event, Mutex>> = Channel()
+    internal val input: MutableSharedFlow<Event?> = MutableSharedFlow()
     val debugConsumer by lazy { Debugger(this.toString()) }
     override fun toString(): String {
       return "Consumer<[$producerName]$name>"
@@ -277,12 +267,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
 
     internal var startingBuffers: List<Event>? = null
 
-
-    override suspend fun collect(collector: FlowCollector<Event>) {
-      collectOnce(collector)
-    }
-
-
+    private val errorCatcher = CompletableDeferred<Throwable?>()
     private val collectOnce = SuspendOnce1(before = {
       if (this.haveRun) {
         throw Exception("$this was collected")
@@ -296,15 +281,8 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
             }
           }
         }
-//        input2.collect{
-//        }
 
-        val errorCatcher = CompletableDeferred<Throwable>()
-        while (true) {
-          val (event, emitLock) = select {
-            input.onReceive { Result.success(it) }
-            errorCatcher.onAwait { Result.failure<Nothing>(it) }
-          }.getOrThrow()
+        val job = input.filterNotNull().collectIn(scope) { event ->
           // 同一个事件的处理，不做任何阻塞，直接发出
           // 这里包一层launch，目的是确保不阻塞input的循环，从而确保上游event能快速涌入
           event.emitJobs += launch(start = CoroutineStart.UNDISPATCHED) {
@@ -314,8 +292,30 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
               errorCatcher.complete(e)
             }
           }
-          emitLock.unlock()
         }
+        val error = select<Throwable?> {
+          job.onJoin { null }
+          errorCatcher.onAwait { it }
+        }
+
+        job.cancel()
+
+//        while (true) {
+//          val (event, emitLock) = select {
+//            input.onReceive { Result.success(it) }
+//            errorCatcher.onAwait { Result.failure<Nothing>(it) }
+//          }.getOrThrow()
+//          // 同一个事件的处理，不做任何阻塞，直接发出
+//          // 这里包一层launch，目的是确保不阻塞input的循环，从而确保上游event能快速涌入
+//          event.emitJobs += launch(start = CoroutineStart.UNDISPATCHED) {
+//            try {
+//              collector.emit(event)
+//            } catch (e: Throwable) {
+//              errorCatcher.complete(e)
+//            }
+//          }
+//          emitLock.unlock()
+//        }
       }
       actionQueue.queue("add-consumer") {
         consumers.add(this@Consumer)
@@ -344,6 +344,15 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
         consumers.remove(this@Consumer)
       }
       deferred.await()
+    }
+
+
+    override suspend fun collect(collector: FlowCollector<Event>) {
+      collectOnce(collector)
+    }
+
+    suspend fun close(cause: Throwable?) {
+      errorCatcher.complete(cause)
     }
   }
 
@@ -386,7 +395,7 @@ class Producer<T>(val name: String, parentScope: CoroutineScope) {
       debugProducer("close", "close consumers")
       // 关闭消费者channel，表示彻底无法再发数据
       for (consumer in consumers) {
-        consumer.input.close(cause)
+        consumer.close(cause)
       }
       scope.cancelOrThrow(cause)
       debugProducer("close", "free memory")

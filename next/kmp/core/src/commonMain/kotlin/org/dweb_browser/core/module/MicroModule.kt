@@ -47,10 +47,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     private val connectReason = ReasonLock()
     private suspend inline fun <T> connectWithLock(mmid1: MMID, mmid2: MMID, block: () -> T): T {
       val lockKey = listOf(mmid1, mmid2).sorted().joinToString("<=>")
-      println("QAQ connectWithLock-start $lockKey")
-      return connectReason.withLock(lockKey, block = block).also {
-        println("QAQ connectWithLock-end $lockKey")
-      }
+      return connectReason.withLock(lockKey, block = block)
     }
 
   }

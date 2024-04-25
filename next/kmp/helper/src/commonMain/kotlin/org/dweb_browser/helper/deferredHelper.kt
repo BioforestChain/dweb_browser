@@ -43,7 +43,6 @@ suspend inline fun Job.await() {
       is Throwable -> it
       else -> null
     }
-    println("QAQ error=$error")
     when (error) {
       null -> deferred.complete(Unit)
       else -> deferred.completeExceptionally(error)

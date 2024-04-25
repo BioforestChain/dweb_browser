@@ -66,8 +66,10 @@ class IpcPoolTest {
     val channel = NativeMessageChannel(kotlinIpcPool.scope, fromMM.id, toMM.id)
     println("1🧨=> ${fromMM.mmid} ${toMM.mmid}")
     val pid = 0
-    val fromNativeIpc = kotlinIpcPool.createIpc(channel.port1, pid, fromMM.manifest, toMM.manifest)
-    val toNativeIpc = kotlinIpcPool.createIpc(channel.port2, pid, toMM.manifest, fromMM.manifest)
+    val fromNativeIpc =
+      kotlinIpcPool.createIpc(channel.port1, pid, fromMM.manifest, toMM.manifest, autoStart = true)
+    val toNativeIpc =
+      kotlinIpcPool.createIpc(channel.port2, pid, toMM.manifest, fromMM.manifest, autoStart = true)
     toNativeIpc.onEvent("test").collectIn(this@runCommonTest) { event ->
       val ipcEvent = event.consume()
       println("🌞 toNativeIpc $ipcEvent")
@@ -77,6 +79,8 @@ class IpcPoolTest {
     fromNativeIpc.postMessage(IpcEvent.fromUtf8("哈哈", "xx"))
     assertIs<IpcLifecycleOpened>(fromNativeIpc.awaitOpen().state)
     assertIs<IpcLifecycleOpened>(toNativeIpc.awaitOpen().state)
+    println("okk")
+    toNativeIpc.close()
   }
 
   @Test

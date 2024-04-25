@@ -24,6 +24,7 @@ class IpcServerRequest(
   reqId = reqId, url = url, method = method, headers = headers, body = body, ipc = ipc
 ) {
 
+  override val typeTag = "IpcServerRequest"
   fun getClient() = findFrom { if (it is IpcClientRequest) it else null }
 
   internal val pure = LateInit<PureServerRequest>()

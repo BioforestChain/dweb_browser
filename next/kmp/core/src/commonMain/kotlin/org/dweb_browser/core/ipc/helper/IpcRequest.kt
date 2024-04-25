@@ -47,7 +47,8 @@ sealed class IpcRequest(
 
   val uri by lazy { Url(url) }
 
-  override fun toString() = "IpcRequest@$reqId/$method/$url".let { str ->
+  protected open val typeTag = "IpcRequest"
+  override fun toString() = "$typeTag@$reqId/$method/$url".let { str ->
     if (ipc.debugIpc.isEnable) "$str{${
       headers.toList().joinToString(", ") { it.first + ":" + it.second }
     }}" + "" else str

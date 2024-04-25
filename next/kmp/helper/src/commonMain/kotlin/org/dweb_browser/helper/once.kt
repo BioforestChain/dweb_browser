@@ -30,7 +30,6 @@ sealed class SuspendOnceBase<R> {
   fun reset(cause: Throwable? = null, doCancel: Boolean = true) {
     synchronized(lock) {
       if (doCancel && this.runned !== noRun) {
-        println("QAQ isCancelled=${this.runned.isCancelled} isActive=${this.runned.isActive} isCompleted=${this.runned.isCompleted}")
         this.runned.cancel("reset", cause)
       }
       this.runned = noRun

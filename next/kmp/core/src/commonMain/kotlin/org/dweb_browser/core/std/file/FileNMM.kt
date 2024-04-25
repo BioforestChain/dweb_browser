@@ -1,5 +1,6 @@
 package org.dweb_browser.core.std.file
 
+import dweb_browser_kmp.core.generated.resources.Res
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -31,8 +32,8 @@ import org.dweb_browser.pure.http.queryAsOrNull
 import org.dweb_browser.pure.io.SystemFileSystem
 import org.dweb_browser.pure.io.copyTo
 import org.dweb_browser.pure.io.toByteReadChannel
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.InternalResourceApi
-import org.jetbrains.compose.resources.readResourceBytes
 
 val debugFile = Debugger("file")
 
@@ -95,7 +96,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
 
   inner class FileRuntime(override val bootstrapContext: BootstrapContext) : NativeRuntime() {
 
-    @OptIn(InternalResourceApi::class)
+    @OptIn(InternalResourceApi::class, ExperimentalResourceApi::class)
     override suspend fun _bootstrap() {
       getDataVirtualFsDirectory().also {
         debugFile("DIR/DATA", it.getFsBasePath(this))
@@ -117,7 +118,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           // TODO 未来多平台下，sys的提供由 resource 函数统一供给
           if (firstSegment == "sys") {
             return@respondLocalFile try {
-              returnFile(readResourceBytes(contentPath))
+              returnFile(Res.readBytes("files/$contentPath"))
             } catch (e: Throwable) {
               /// 终止，不继续尝试从其它地方读取文件
               returnNoFound(e.message)

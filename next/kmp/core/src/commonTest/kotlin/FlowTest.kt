@@ -7,8 +7,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import org.dweb_browser.helper.collectIn
 import org.dweb_browser.helper.now
 import org.dweb_browser.test.runCommonTest
 import kotlin.test.Test
@@ -17,24 +19,24 @@ class FlowTest {
 
   @Test
   fun testAwaitEmit() = runCommonTest {
-    val flow = MutableSharedFlow<Unit>()
-    launch {
-      println("xxxx emit 1")
-      flow.emit(Unit)
-      println("xxxx emit end")
+    val flow = MutableSharedFlow<Int?>()
+    flow.filterNotNull().collectIn(this) {
+      println("QAQ ${now()} collect1 got-start $it")
+      delay(1000)
+      println("QAQ ${now()} collect1 got-end $it")
     }
+//    flow.collectIn(this) {
+//      println("QAQ ${now()} collect2 got-start $it")
+//      delay(1000)
+//      println("QAQ ${now()} collect2 got-end $it")
+//    }
 
-    val job1 = launch {
-      flow.collect {
-
-      }
+    for (i in 0..10) {
+      println("QAQ ${now()} emit-start $i")
+      flow.emit(i)
+      flow.emit(null)
+      println("QAQ ${now()} emit-end $i")
     }
-    val job2 = launch {
-      flow.collect {
-
-      }
-    }
-
 
   }
 

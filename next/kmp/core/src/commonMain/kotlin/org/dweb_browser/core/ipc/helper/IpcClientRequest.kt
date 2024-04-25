@@ -24,6 +24,7 @@ class IpcClientRequest(
 ) : IpcRequest(
   reqId = reqId, url = url, method = method, headers = headers, body = body, ipc = ipc
 ) {
+  override val typeTag = "IpcClientRequest"
   companion object {
 
     fun fromText(
