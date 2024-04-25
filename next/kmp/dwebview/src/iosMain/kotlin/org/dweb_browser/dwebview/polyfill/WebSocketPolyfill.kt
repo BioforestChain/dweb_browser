@@ -100,8 +100,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                 val fin = (message.objectAtIndex(2u) as NSNumber).boolValue
                 val data = (message.objectAtIndex(3u) as NSString).toKString()
                 pureTextFinData.append(data, fin)?.also {
-                  val pureFrame = PureTextFrame(it)
-                  outgoing.send(pureFrame)
+                  sendText(it)
                 }
               }
             }
@@ -111,8 +110,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                 val fin = (message.objectAtIndex(2u) as NSNumber).boolValue
                 val data = (message.objectAtIndex(3u) as NSString).toKString().toBase64ByteArray()
                 pureBinaryFinData.append(data, fin)?.also {
-                  val pureFrame = PureBinaryFrame(it)
-                  outgoing.send(pureFrame)
+                  sendBinary(it)
                 }
               }
             }
@@ -132,7 +130,7 @@ class DWebViewWebSocketMessageHandler(val engine: DWebViewEngine) : NSObject(),
                 } else {
                   close(
                     cause = Throwable((reasonCode ?: CloseReason.Codes.NORMAL.code).toString()),
-                    reason = CancellationException((nsString as NSString?)?.toKString())
+//                    reason = CancellationException((nsString as NSString?)?.toKString())
                   )
                 }
               }

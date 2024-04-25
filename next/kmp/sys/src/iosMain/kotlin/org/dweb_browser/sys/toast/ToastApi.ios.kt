@@ -30,7 +30,7 @@ actual suspend fun showToast(
 
     toastLabel.layer.setCornerRadius(10.0)
     toastLabel.layer.setMasksToBounds(true)
-    val controller = MicroModule.Runtime.getUIApplication().keyWindow?.rootViewController
+    val controller = microModule.getUIApplication().keyWindow?.rootViewController
 
     if (controller != null) {
       val width = controller.view.frame.useContents {

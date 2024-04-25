@@ -67,7 +67,7 @@ class TaskbarView private constructor(
       NormalFloatWindow()
     }
   }
-  private val scope = taskbarController.deskNMM.mmScope
+  private val scope = taskbarController.deskNMM.getRuntimeScope()
 
   @OptIn(ExperimentalForeignApi::class)
   @Composable

@@ -74,7 +74,7 @@ class DWebViewEngine(
   registryDwebSchemeHandler(remoteMM, it)
 }) {
   val mainScope = CoroutineScope(mainAsyncExceptionHandler + SupervisorJob())
-  val ioScope = CoroutineScope(remoteMM.mmScope.coroutineContext + SupervisorJob())
+  val ioScope = CoroutineScope(remoteMM.getRuntimeScope().coroutineContext + SupervisorJob())
 
   val loadStateChangeSignal = Signal<WebLoadState>()
   val onReady by lazy { loadStateChangeSignal.toReadyListener() }

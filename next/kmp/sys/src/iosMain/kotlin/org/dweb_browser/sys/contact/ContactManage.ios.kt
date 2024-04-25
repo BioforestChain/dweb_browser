@@ -58,7 +58,7 @@ actual class ContactManage {
 
     scope.launch {
 
-      val controller = MicroModule.Runtime.getUIApplication().keyWindow?.rootViewController
+      val controller = microModule.getUIApplication().keyWindow?.rootViewController
 
       if (controller != null) {
         val delegate = CNContactDelegate(cancel = {

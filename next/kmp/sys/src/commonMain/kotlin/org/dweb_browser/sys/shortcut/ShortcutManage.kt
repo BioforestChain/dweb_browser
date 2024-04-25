@@ -7,12 +7,12 @@ expect class ShortcutManage() {
   /**
    * 一些默认的系统快捷入口配置
    */
-  suspend fun initShortcut()
+  suspend fun initShortcut(microModule: MicroModule.Runtime)
 
   /**
    * 动态注册的快捷列表
    */
-  suspend fun registryShortcut(shortcutList: List<SystemShortcut>): Boolean
+  suspend fun registryShortcut(shortcutList: List<SystemShortcut>, microModule: MicroModule.Runtime): Boolean
 
   /**
    * 用于进一步的配置shortcut icon.

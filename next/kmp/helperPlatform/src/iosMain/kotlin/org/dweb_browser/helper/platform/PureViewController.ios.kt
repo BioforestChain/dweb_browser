@@ -144,7 +144,7 @@ class PureViewController(
         )
 
         LocalCompositionChain.current.Provider(
-          LocalPureViewController provides this,
+          LocalPureViewController provides this@PureViewController,
           LocalPureViewBox provides PureViewBox(LocalUIViewController.current),
           LocalUIKitBackgroundView provides backgroundView.value,
         ) {

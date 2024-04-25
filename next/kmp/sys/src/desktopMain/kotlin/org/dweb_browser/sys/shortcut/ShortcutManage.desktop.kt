@@ -8,13 +8,13 @@ actual class ShortcutManage actual constructor() {
   /**
    * 一些默认的系统快捷入口配置
    */
-  actual suspend fun initShortcut() {
+  actual suspend fun initShortcut(microModule: MicroModule.Runtime) {
   }
 
   /**
    * 动态注册的快捷列表
    */
-  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>): Boolean {
+  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>, microModule: MicroModule.Runtime): Boolean {
     // TODO Not yet implemented registryShortcut
     WARNING("Not yet implemented registryShortcut")
     return false

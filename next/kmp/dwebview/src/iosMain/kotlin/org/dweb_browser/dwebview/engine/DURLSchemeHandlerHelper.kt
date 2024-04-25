@@ -4,18 +4,17 @@ import io.ktor.utils.io.core.toByteArray
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ForeignException
-import kotlinx.coroutines.launch
-import org.dweb_browser.pure.http.IPureBody
-import org.dweb_browser.pure.http.PureClientRequest
-import org.dweb_browser.pure.http.PureStreamBody
-import org.dweb_browser.pure.http.PureHeaders
-import org.dweb_browser.pure.http.PureMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.NSInputStreamToByteReadChannel
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.platform.NSDataHelper.toNSData
 import org.dweb_browser.platform.ios.URLSchemeTaskHelper
+import org.dweb_browser.pure.http.IPureBody
+import org.dweb_browser.pure.http.PureClientRequest
+import org.dweb_browser.pure.http.PureHeaders
+import org.dweb_browser.pure.http.PureMethod
+import org.dweb_browser.pure.http.PureStreamBody
 import platform.Foundation.HTTPBodyStream
 import platform.Foundation.HTTPMethod
 import platform.Foundation.NSData
@@ -42,7 +41,7 @@ class DURLSchemeHandlerHelper(private val microModule: MicroModule.Runtime) {
     val pureBody = taskRequest.HTTPBodyStream?.let {
       PureStreamBody(
         NSInputStreamToByteReadChannel(
-          microModule.mmScope, it
+          microModule.getRuntimeScope(), it
         )
       )
     } ?: IPureBody.Empty

@@ -21,11 +21,11 @@ actual class ShortcutManage {
   private val context = getAppContextUnsafe()
   private val MaxCount = 4
 
-  actual suspend fun initShortcut() {
+  actual suspend fun initShortcut(microModule: MicroModule.Runtime) {
     setDynamicShortcuts(emptyList())
   }
 
-  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>) =
+  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>, microModule: MicroModule.Runtime) =
     setDynamicShortcuts(shortcutList)
 
   private fun setDynamicShortcuts(shortcutList: List<SystemShortcut>): Boolean {

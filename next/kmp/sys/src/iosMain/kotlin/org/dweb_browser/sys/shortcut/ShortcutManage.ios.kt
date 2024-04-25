@@ -6,8 +6,8 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.getUIApplication
 import org.dweb_browser.helper.ImageResource
-import platform.UIKit.UIApplicationShortcutItem
 import platform.UIKit.UIApplicationShortcutIcon
+import platform.UIKit.UIApplicationShortcutItem
 import platform.UIKit.shortcutItems
 
 private const val maxCount = 4
@@ -27,10 +27,10 @@ actual class ShortcutManage {
 
   private val scope = CoroutineScope(Dispatchers.Main)
 
-  actual suspend fun initShortcut() {
+  actual suspend fun initShortcut(microModule: MicroModule.Runtime) {
 
     scope.launch {
-      val app = MicroModule.Runtime.getUIApplication()
+      val app = microModule.getUIApplication()
       // 这里获取的都是动态的quick action
       val hasAddScan = app.shortcutItems?.firstOrNull {
         val item = it as UIApplicationShortcutItem
@@ -43,7 +43,7 @@ actual class ShortcutManage {
     }
   }
 
-  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>): Boolean {
+  actual suspend fun registryShortcut(shortcutList: List<SystemShortcut>, microModule: MicroModule.Runtime): Boolean {
     scope.launch {
       val shortcuts = mutableListOf<UIApplicationShortcutItem>()
       shortcuts.add(getScanShortcutItem())
@@ -53,7 +53,7 @@ actual class ShortcutManage {
       if (shortcuts.count() > maxCount) {
         shortcuts.add(maxCount - 1, getMoreShortcutItem())
       }
-      val app = MicroModule.Runtime.getUIApplication()
+      val app = microModule.getUIApplication()
       app.shortcutItems = shortcuts
     }
     return true
