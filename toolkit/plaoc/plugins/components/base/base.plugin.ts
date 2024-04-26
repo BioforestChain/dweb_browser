@@ -1,4 +1,4 @@
-import { IpcPool } from "dweb/core/index.ts";
+import { IpcPool } from "@dweb-browser/core";
 import { X_PLAOC_QUERY } from "../../common/const.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";

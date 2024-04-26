@@ -2,21 +2,27 @@
   "name": "@dweb-browser/core",
   "version": "0.0.1",
   "description": "dweb core",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "esbuild --bundle src/index.ts  --format=esm --outdir=dist"
   },
   "exports": {
-    ".": {
-      "default": "./src/index.ts"
-    }
+    ".": "./src/index.ts",
+    "./*": "./src/*"
   },
   "keywords": [
     "dweb"
   ],
   "author": "dweb",
-  "license": "ISC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BioforestChain/dweb_browser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BioforestChain/dweb_browser/issues"
+  },
   "dependencies": {
+    "@dweb-browser/helper": "workspace:~",
     "cbor-x": "^1.5.3"
   },
   "devDependencies": {

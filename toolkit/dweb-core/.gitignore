@@ -4,3 +4,4 @@
 **/assets/
 build/**
 *.bak/
+npm

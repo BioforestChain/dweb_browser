@@ -1,7 +1,6 @@
 packages:
   - "toolkit/*"
-  - "!toolkit/plaoc-html-demo"
   - "toolkit/plaoc/cli"
-  - "toolkit/plaoc/demo"
   - "toolkit/plaoc/is-dweb"
   - "toolkit/plaoc/server"
+  - "toolkit/plaoc/examples/*"

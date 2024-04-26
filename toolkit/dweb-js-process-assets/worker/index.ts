@@ -8,30 +8,30 @@ import type {
   $MMID,
 } from "../../src/types.ts";
 
-import { updateUrlOrigin } from "../../helper/fun/urlHelper.js";
-import { PromiseOut } from "../../helper/PromiseOut.js";
-export type { fetchExtends } from "../../helper/fetchExtends/index.js";
+import { updateUrlOrigin } from "@dweb-browser/helper/fun/urlHelper.ts";
+import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
+export type { fetchExtends } from "@dweb-browser/helper/fetchExtends/index.ts";
 
-import * as core from "./std-dweb-core.js";
-import * as http from "./std-dweb-http.js";
+import * as core from "./std-dweb-core.ts";
+import * as http from "./std-dweb-http.ts";
 
-import { once } from "../../helper/decorator/$once.js";
-import { mapHelper } from "../../helper/fun/mapHelper.js";
-import { $normalizeRequestInitAsIpcRequestArgs } from "../../helper/index.ts";
-import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
-import type { $PromiseMaybe } from "../../helper/type/types.ts";
+import { once } from "@dweb-browser/helper/decorator/$once.ts";
+import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
+import { $normalizeRequestInitAsIpcRequestArgs } from "@dweb-browser/helper/index.ts";
+import { normalizeFetchArgs } from "@dweb-browser/helper/normalizeFetchArgs.ts";
+import type { $PromiseMaybe } from "@dweb-browser/core/type/types.ts";
 import { type $BootstrapContext } from "../../src/bootstrapContext.ts";
 import type { MICRO_MODULE_CATEGORY } from "../../src/index.ts";
 import { onActivity } from "../../src/ipcEventOnActivity.ts";
 import { onRenderer, onRendererDestroy } from "../../src/ipcEventOnRender.ts";
 import { onShortcut } from "../../src/ipcEventOnShortcut.ts";
 import { MicroModule, MicroModuleRuntime } from "../../src/MicroModule.ts";
-import type { $RunMainConfig } from "../main/index.js";
+import type { $RunMainConfig } from "../main/index.ts";
 import {
   createFetchHandler,
   Ipc,
   WebMessageEndpoint,
-} from "./std-dweb-core.js";
+} from "./std-dweb-core.ts";
 
 declare global {
   interface DWebCore {

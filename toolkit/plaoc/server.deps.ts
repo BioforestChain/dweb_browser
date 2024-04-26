@@ -1,5 +1,5 @@
 // import type { } from "dweb/browser/js-process/assets/worker/index.ts";
-// export type { $MMID, $MicroModuleManifest } from "dweb/core/helper/types.ts";
+// export type { $MMID, $MicroModuleManifest } from "@dweb-browser/core/helper/types.ts";
 // //#region helper
 // export * from "dweb/helper/PromiseOut.ts";
 // export * from "dweb/helper/binaryHelper.ts";

@@ -1,5 +1,5 @@
-import { ReadableStreamEndpoint } from "dweb/core/index.ts";
-import type { $MicroModuleManifest } from "dweb/core/types.ts";
+import { ReadableStreamEndpoint } from "@dweb-browser/core/index.ts";
+import type { $MicroModuleManifest } from "@dweb-browser/core/types.ts";
 import { PromiseOut } from "dweb/helper/PromiseOut.ts";
 import { simpleEncoder } from "dweb/helper/encoding.ts";
 import { ReadableStreamOut, streamReadAll } from "dweb/helper/stream/readableStreamHelper.ts";

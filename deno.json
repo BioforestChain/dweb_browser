@@ -9,5 +9,9 @@
     "plaoc": "deno run -A ./plaoc/cli/plaoc.ts",
     "plaoc:net": "deno cache --reload https://deno.land/x/plaoc/cli/plaoc.ts && deno install -A -f https://deno.land/x/plaoc/cli/plaoc.ts",
     "std": "deno run -A ./std/cli/std.ts"
+  },
+  "imports": {
+    "@deno/dnt": "jsr:@deno/dnt@^0.41.1",
+    "@dweb-browser/helper": "file:./toolkit/dweb-helper/src"
   }
 }

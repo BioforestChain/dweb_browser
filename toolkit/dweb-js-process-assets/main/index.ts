@@ -1,5 +1,5 @@
-import { ChangeableMap } from "../../helper/ChangeableMap.js";
-import { PromiseOut } from "../../helper/PromiseOut.js";
+import { ChangeableMap } from "@dweb-browser/helper/ChangeableMap.ts";
+import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import type { $MicroModuleManifest } from "../../src/index.ts";
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯

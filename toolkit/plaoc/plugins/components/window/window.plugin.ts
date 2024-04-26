@@ -1,5 +1,5 @@
-import { ReadableStreamEndpoint } from "dweb/core/index.ts";
-import { IpcResponse } from "dweb/core/ipc/index.ts";
+import { ReadableStreamEndpoint } from "@dweb-browser/core/index.ts";
+import { IpcResponse } from "@dweb-browser/core/ipc/index.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";

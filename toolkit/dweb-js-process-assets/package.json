@@ -6,6 +6,7 @@
         "build:js-process.main": "vite build ./main --outDir=../../../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.main/"
     },
     "dependencies": {
-        "@dweb-browser/core": "workspace:~"
+        "@dweb-browser/core": "workspace:~",
+        "@dweb-browser/helper": "workspace:~"
     }
 }

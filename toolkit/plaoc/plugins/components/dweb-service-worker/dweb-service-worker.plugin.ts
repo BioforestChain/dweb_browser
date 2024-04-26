@@ -1,5 +1,5 @@
-import { ReadableStreamEndpoint } from "dweb/core/index.ts";
-import { IpcHeaders } from "dweb/core/ipc/index.ts";
+import { ReadableStreamEndpoint } from "@dweb-browser/core/index.ts";
+import { IpcHeaders } from "@dweb-browser/core/ipc/index.ts";
 import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/base.plugin.ts";

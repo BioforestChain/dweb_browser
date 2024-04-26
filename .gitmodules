@@ -1,9 +1,6 @@
 [submodule "toolkit/offscreen-web-canvas"]
 	path = toolkit/offscreen-web-canvas
 	url = https://github.com/BioforestChain/offscreen-web-canvas
-[submodule "toolkit/plaoc-html-demo"]
-	path = toolkit/plaoc-html-demo
-	url = https://github.com/BioforestChain/plaoc-html-demo
 [submodule "toolkit/dweb_browser_libs"]
 	path = toolkit/dweb_browser_libs
 	url = https://github.com/BioforestChain/dweb_browser_libs.git
