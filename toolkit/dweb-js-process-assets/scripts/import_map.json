@@ -1,0 +1,6 @@
+{
+    "imports": {
+        "@dweb-browser/core": "npm:@dweb-browser/core",
+        "@dweb-browser/helper": "npm:@dweb-browser/helper"
+    }
+}

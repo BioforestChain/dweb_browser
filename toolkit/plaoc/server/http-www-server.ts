@@ -8,7 +8,7 @@ import type {
 } from "./deps.ts";
 import { IpcFetchEvent, IpcResponse, jsProcess } from "./deps.ts";
 import { HttpServer } from "./helper/http-helper.ts";
-import { PlaocConfig } from "./plaoc-config.ts";
+import type { PlaocConfig } from "./plaoc-config.ts";
 import { setupDB } from "./shim/db.shim.ts";
 import { setupFetch } from "./shim/fetch.shim.ts";
 

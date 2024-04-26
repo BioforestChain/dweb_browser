@@ -1,0 +1,7 @@
+{
+    "imports": {
+        "@dweb-browser/js-process": "npm:@dweb-browser/js-process",
+        "@dweb-browser/core": "npm:@dweb-browser/core",
+        "@dweb-browser/helper": "npm:@dweb-browser/helper"
+    }
+}

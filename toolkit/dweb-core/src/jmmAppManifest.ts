@@ -1,9 +1,9 @@
-import { MICRO_MODULE_CATEGORY } from "@dweb-browser/core/type/category.const.ts";
+import type { MICRO_MODULE_CATEGORY } from "./type/category.const.ts";
 import type {
   $CommonAppManifest,
   $DWEB_DEEPLINK,
   $MMID,
-} from "@dweb-browser/core/types.ts";
+} from "./types.ts";
 
 /** Js模块应用 元数据 */
 export interface $JmmAppManifest extends Required<$CommonAppManifest> {

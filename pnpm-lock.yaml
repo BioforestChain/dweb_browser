@@ -143,14 +143,14 @@ importers:
         specifier: '*'
         version: 1.5.0(@types/node@20.12.7)(sass@1.75.0)
 
-  toolkit/dweb-js-process-assets:
+  toolkit/dweb-js-process-assets/npm:
     dependencies:
       '@dweb-browser/core':
         specifier: workspace:~
-        version: link:../dweb-core/npm
+        version: link:../../dweb-core/npm
       '@dweb-browser/helper':
         specifier: workspace:~
-        version: link:../dweb-helper/npm
+        version: link:../../dweb-helper/npm
 
   toolkit/dwebview-polyfill:
     dependencies:
@@ -177,7 +177,11 @@ importers:
         specifier: ^4.4.9
         version: 4.4.9(@types/node@20.12.7)(sass@1.75.0)
 
-  toolkit/plaoc/cli: {}
+  toolkit/plaoc/cli:
+    dependencies:
+      '@dweb-browser/core':
+        specifier: workspace:~
+        version: link:../../dweb-core/npm
 
   toolkit/plaoc/examples/plugin-demo:
     dependencies:
@@ -250,6 +254,12 @@ importers:
       '@dweb-browser/core':
         specifier: workspace:~
         version: link:../../dweb-core/npm
+      '@dweb-browser/helper':
+        specifier: workspace:~
+        version: link:../../dweb-helper/npm
+      '@dweb-browser/js-process':
+        specifier: workspace:~
+        version: link:../../dweb-js-process-assets/npm
       '@types/node':
         specifier: '*'
         version: 20.11.30

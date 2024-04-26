@@ -9,3 +9,4 @@ if (typeof Response.json !== "function") {
 if (typeof URLPattern === "undefined") {
   await import("urlpattern-polyfill");
 }
+export {};

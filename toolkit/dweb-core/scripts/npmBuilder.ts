@@ -8,13 +8,17 @@ export const npmBuilder = async (config: {
   version?: string;
   importMap?: string;
   options?: Partial<BuildOptions>;
+  entryPointsDirName?: string | boolean;
 }) => {
-  const { rootUrl, version, importMap, options } = config;
+  const { rootUrl, version, importMap, options, entryPointsDirName = "./src" } = config;
   const rootResolve = (path: string) => fileURLToPath(new URL(path, rootUrl));
   const npmDir = rootResolve("./npm");
   await emptyDir(npmDir);
 
-  const srcEntryPoints = [...WalkFiles(rootResolve("./src"))].map((it) => it.relativepath);
+  const srcEntryPoints =
+    typeof entryPointsDirName === "string"
+      ? [...WalkFiles(rootResolve(entryPointsDirName))].map((it) => it.relativepath)
+      : [];
 
   const packageJson = JSON.parse(fs.readFileSync(rootResolve("./package.json"), "utf-8"));
   if (version) {
@@ -27,7 +31,10 @@ export const npmBuilder = async (config: {
   // }
 
   await build({
-    entryPoints: [rootResolve("./index.ts"), ...srcEntryPoints.map((name) => ({ name:`./${name}`, path: `./src/${name}` }))],
+    entryPoints: [
+      { name: ".", path: rootResolve("./index.ts") },
+      ...srcEntryPoints.map((name) => ({ name: `./${name}`, path: `${entryPointsDirName}/${name}` })),
+    ],
     outDir: npmDir,
     packageManager: "pnpm",
     shims: {

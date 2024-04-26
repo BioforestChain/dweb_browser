@@ -8,13 +8,13 @@ import { updateUrlOrigin } from "@dweb-browser/helper/fun/urlHelper.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 export type { fetchExtends } from "@dweb-browser/helper/fetchExtends/index.ts";
 
-import * as core from "./std-dweb-core.ts";
-import * as http from "./std-dweb-http.ts";
+import * as core from "./worker/std-dweb-core.ts";
+import * as http from "./worker/std-dweb-http.ts";
 
 import { once } from "@dweb-browser/helper/decorator/$once.ts";
 import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
 import { normalizeFetchArgs } from "@dweb-browser/helper/normalizeFetchArgs.ts";
-import type { $PromiseMaybe } from "../../dweb-helper/src/$PromiseMaybe.ts";
+import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 // import { type $BootstrapContext } from "../../src/bootstrapContext.ts";
 // import type { MICRO_MODULE_CATEGORY } from "../../src/index.ts";
 // import { onActivity } from "../../src/ipcEventOnActivity.ts";
@@ -28,8 +28,8 @@ import { onRenderer, onRendererDestroy } from "@dweb-browser/core/ipcEventOnRend
 import { onShortcut } from "@dweb-browser/core/ipcEventOnShortcut.ts";
 import { MicroModule, MicroModuleRuntime } from "@dweb-browser/core/MicroModule.ts";
 import type { MICRO_MODULE_CATEGORY } from "@dweb-browser/core/type/category.const.ts";
-import type { $RunMainConfig } from "../main/index.ts";
-import { createFetchHandler, Ipc, WebMessageEndpoint } from "./std-dweb-core.ts";
+import type { $RunMainConfig } from "./main/index.ts";
+import { createFetchHandler, Ipc, WebMessageEndpoint } from "./worker/std-dweb-core.ts";
 
 declare global {
   interface DWebCore {

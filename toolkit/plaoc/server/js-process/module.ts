@@ -1,6 +1,5 @@
 //#region helper
-export { isWebSocket } from "@dweb-browser/helper";
-export type { $MMID, $MicroModuleManifest } from "@dweb-browser/helper";
+export type { $MMID, $MicroModuleManifest } from "@dweb-browser/core";
 export * from "@dweb-browser/helper/PromiseOut.ts";
 export * from "@dweb-browser/helper/createSignal.ts";
 export * from "@dweb-browser/helper/decorator/$debounce.ts";
@@ -9,15 +8,17 @@ export * from "@dweb-browser/helper/encoding.ts";
 export * from "@dweb-browser/helper/fun/binaryHelper.ts";
 export * from "@dweb-browser/helper/fun/mapHelper.ts";
 export * from "@dweb-browser/helper/stream/readableStreamHelper.ts";
-export type { $JmmAppInstallManifest, $JmmAppManifest } from "./types.ts";
+export type { $JmmAppInstallManifest, $JmmAppManifest } from "@dweb-browser/core/jmmAppManifest.ts";
 //#endregion
 
 //#region runtime types
-export type * from "@dweb-browser/js-process/worker/index.ts";
-export * from "@dweb-browser/js-process/worker/std-dweb-core.ts";
-export type * from "@dweb-browser/js-process/worker/std-dweb-http.ts";
+export type * from "@dweb-browser/js-process";
+export * from "@dweb-browser/js-process/std-dweb-core.ts";
+export type * from "@dweb-browser/js-process/std-dweb-http.ts";
 
-import type * as $Core from "@dweb-browser/js-process/worker/std-dweb-core.ts";
+// import type { core as $Core } from '@dweb-browser/js-process'
+import type * as $Core from "@dweb-browser/js-process/std-dweb-core.ts";
+export { isWebSocket } from "@dweb-browser/core/ipc/helper/ipcRequestHelper.ts";
 
 export const { jsProcess, http, ipc, core } = navigator.dweb;
 export const {
