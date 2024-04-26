@@ -1,0 +1,8 @@
+{
+    "files": [],
+    "references": [
+        {
+            "path": "./toolkit/dweb-core/tsconfig.json"
+        }
+    ]
+}

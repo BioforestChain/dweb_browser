@@ -1,7 +1,12 @@
 packages:
   - "toolkit/*"
+  - "toolkit/dweb-core/npm"
+  - "toolkit/dweb-helper/npm"
+  - "!toolkit/dweb-core"
+  - "!toolkit/dweb-helper"
   - "toolkit/plaoc/cli"
   - "toolkit/plaoc/is-dweb"
   - "toolkit/plaoc/server"
   - "toolkit/plaoc/plugins"
   - "toolkit/plaoc/examples/*"
+xxx:

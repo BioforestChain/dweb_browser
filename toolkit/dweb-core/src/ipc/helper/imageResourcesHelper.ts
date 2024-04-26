@@ -1,4 +1,4 @@
-import type { ImageResource } from "@dweb-browser/core/types.ts";
+import type { ImageResource } from "../../types.ts";
 
 const PURPOSES = ["monochrome", "maskable", "any"] as const;
 export const strictImageResource = (img: ImageResource, baseUrl = document.baseURI) => {

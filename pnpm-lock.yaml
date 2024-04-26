@@ -24,18 +24,15 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(prettier@2.8.8)(typescript@5.4.5)
 
-  toolkit/dweb-core:
+  toolkit/dweb-core/npm:
     dependencies:
       '@dweb-browser/helper':
         specifier: workspace:~
-        version: link:../dweb-helper
+        version: link:../../dweb-helper/npm
       cbor-x:
         specifier: ^1.5.3
         version: 1.5.4
     devDependencies:
-      '@types/bun':
-        specifier: latest
-        version: 1.1.0
       rollup-plugin-typescript2:
         specifier: ^0.36.0
         version: 0.36.0(rollup@4.16.4)(typescript@5.4.5)
@@ -62,7 +59,7 @@ importers:
     dependencies:
       '@dweb-browser/core':
         specifier: workspace:~
-        version: link:../dweb-core
+        version: link:../dweb-core/npm
       '@mdi/font':
         specifier: 7.0.96
         version: 7.0.96
@@ -137,23 +134,26 @@ importers:
         specifier: ^2.0.14
         version: 2.0.14(typescript@5.4.5)
 
-  toolkit/dweb-helper:
+  toolkit/dweb-helper/npm:
     dependencies:
       typescript:
         specifier: ^5.0.0
         version: 5.4.5
+      vitest:
+        specifier: '*'
+        version: 1.5.0(@types/node@20.12.7)(sass@1.75.0)
 
   toolkit/dweb-js-process-assets:
     dependencies:
       '@dweb-browser/core':
         specifier: workspace:~
-        version: link:../dweb-core
+        version: link:../dweb-core/npm
       '@dweb-browser/helper':
         specifier: workspace:~
-        version: link:../dweb-helper
+        version: link:../dweb-helper/npm
 
   toolkit/dwebview-polyfill:
-    devDependencies:
+    dependencies:
       vite:
         specifier: ^5.0.10
         version: 5.0.10(@types/node@20.12.7)(sass@1.75.0)
@@ -233,11 +233,23 @@ importers:
 
   toolkit/plaoc/is-dweb: {}
 
+  toolkit/plaoc/plugins:
+    dependencies:
+      '@dweb-browser/core':
+        specifier: workspace:^
+        version: link:../../dweb-core/npm
+      '@dweb-browser/helper':
+        specifier: workspace:^
+        version: link:../../dweb-helper/npm
+      '@dweb-browser/websocket-polyfill':
+        specifier: workspace:^
+        version: link:../../dwebview-polyfill
+
   toolkit/plaoc/server:
     dependencies:
       '@dweb-browser/core':
         specifier: workspace:~
-        version: link:../../dweb-core
+        version: link:../../dweb-core/npm
       '@types/node':
         specifier: '*'
         version: 20.11.30
@@ -963,55 +975,46 @@ packages:
     resolution: {integrity: sha512-ADm/xt86JUnmAfA9mBqFcRp//RVRt1ohGOYF6yL+IFCYqOBNwy5lbEK05xTsEoJq+/tJzg8ICUtS82WinJRuIw==}
     cpu: [arm]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-arm-musleabihf@4.16.4':
     resolution: {integrity: sha512-tJfJaXPiFAG+Jn3cutp7mCs1ePltuAgRqdDZrzb1aeE3TktWWJ+g7xK9SNlaSUFw6IU4QgOxAY4rA+wZUT5Wfg==}
     cpu: [arm]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-arm64-gnu@4.16.4':
     resolution: {integrity: sha512-7dy1BzQkgYlUTapDTvK997cgi0Orh5Iu7JlZVBy1MBURk7/HSbHkzRnXZa19ozy+wwD8/SlpJnOOckuNZtJR9w==}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.16.4':
     resolution: {integrity: sha512-zsFwdUw5XLD1gQe0aoU2HVceI6NEW7q7m05wA46eUAyrkeNYExObfRFQcvA6zw8lfRc5BHtan3tBpo+kqEOxmg==}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-linux-powerpc64le-gnu@4.16.4':
     resolution: {integrity: sha512-p8C3NnxXooRdNrdv6dBmRTddEapfESEUflpICDNKXpHvTjRRq1J82CbU5G3XfebIZyI3B0s074JHMWD36qOW6w==}
     cpu: [ppc64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-riscv64-gnu@4.16.4':
     resolution: {integrity: sha512-Lh/8ckoar4s4Id2foY7jNgitTOUQczwMWNYi+Mjt0eQ9LKhr6sK477REqQkmy8YHY3Ca3A2JJVdXnfb3Rrwkng==}
     cpu: [riscv64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-s390x-gnu@4.16.4':
     resolution: {integrity: sha512-1xwwn9ZCQYuqGmulGsTZoKrrn0z2fAur2ujE60QgyDpHmBbXbxLaQiEvzJWDrscRq43c8DnuHx3QorhMTZgisQ==}
     cpu: [s390x]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-x64-gnu@4.16.4':
     resolution: {integrity: sha512-LuOGGKAJ7dfRtxVnO1i3qWc6N9sh0Em/8aZ3CezixSTM+E9Oq3OvTsvC4sm6wWjzpsIlOCnZjdluINKESflJLA==}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-x64-musl@4.16.4':
     resolution: {integrity: sha512-ch86i7KkJKkLybDP2AtySFTRi5fM3KXp0PnHocHuJMdZwu7BuyIKi35BE9guMlmTpwwBTB3ljHj9IQXnTCD0vA==}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@rollup/rollup-win32-arm64-msvc@4.16.4':
     resolution: {integrity: sha512-Ma4PwyLfOWZWayfEsNQzTDBVW8PZ6TUUN1uFTBQbF2Chv/+sjenE86lpiEwj2FiviSmSZ4Ap4MaAfl1ciF4aSA==}
@@ -1042,9 +1045,6 @@ packages:
 
   '@tsconfig/node16@1.0.4':
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
-
-  '@types/bun@1.1.0':
-    resolution: {integrity: sha512-QGK0yU4jh0OK1A7DyhPkQuKjHQCC5jSJa3dpWIEhHv/rPfb6zLfdArc4/uUUZBMTcjilsafRXnPWO+1owb572Q==}
 
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
@@ -1084,9 +1084,6 @@ packages:
 
   '@types/webfontloader@1.6.38':
     resolution: {integrity: sha512-kUaF72Fv202suFx6yBrwXqeVRMx7hGtJTesyESZgn9sEPCUeDXm2p0SiyS1MTqW74nQP4p7JyrOCwZ7pNFns4w==}
-
-  '@types/ws@8.5.10':
-    resolution: {integrity: sha512-vmQSUcfalpIq0R9q7uTo2lXs6eGIpt9wtnLdMv9LVpIjCA/+ufZRozlVoVelIYixx1ugCBKDhn89vnsEGOCx9A==}
 
   '@types/xmldom@0.1.32':
     resolution: {integrity: sha512-zPO1iqnODar0cIXhuCc0QyGP+t2IG9dr//VkxDtYKZJSikgN7bdLyMdnUNWRtCKeHkgc9KkbgsdccVbrCHCn2g==}
@@ -1372,9 +1369,6 @@ packages:
     resolution: {integrity: sha512-QW8HiM1shhT2GuzkvklfjcKDiWFXHOeFCIA/huJPwHsslwcydgk7X+z2zXpEijP98UCY7HbubZt5J2Zgvf0CaQ==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
-
-  bun-types@1.1.0:
-    resolution: {integrity: sha512-GhMDD7TosdJzQPGUOcQD5PZshvXVxDfwGAZs2dq+eSaPsRn3iUCzvpFlsg7Q51bXVzLAUs+FWHlnmpgZ5UggIg==}
 
   cac@6.7.14:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
@@ -3204,10 +3198,6 @@ snapshots:
 
   '@tsconfig/node16@1.0.4': {}
 
-  '@types/bun@1.1.0':
-    dependencies:
-      bun-types: 1.1.0
-
   '@types/estree@1.0.5': {}
 
   '@types/glob@8.1.0':
@@ -3242,10 +3232,6 @@ snapshots:
   '@types/web-bluetooth@0.0.20': {}
 
   '@types/webfontloader@1.6.38': {}
-
-  '@types/ws@8.5.10':
-    dependencies:
-      '@types/node': 20.11.30
 
   '@types/xmldom@0.1.32': {}
 
@@ -3608,11 +3594,6 @@ snapshots:
       electron-to-chromium: 1.4.749
       node-releases: 2.0.14
       update-browserslist-db: 1.0.13(browserslist@4.23.0)
-
-  bun-types@1.1.0:
-    dependencies:
-      '@types/node': 20.11.30
-      '@types/ws': 8.5.10
 
   cac@6.7.14: {}
 

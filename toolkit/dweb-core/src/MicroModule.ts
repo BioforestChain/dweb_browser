@@ -174,7 +174,8 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
    * 收到一个连接，触发相关事件
    */
 
-  async beConnect(ipc: Ipc, reason?: Request) {
+  // deno-lint-ignore require-await
+  async beConnect(ipc: Ipc, _reason?: Request) {
     if (setHelper.add(this.connectionLinks, ipc)) {
       this.console.debug("beConnect", ipc);
       ipc.onFork("beConnect").collect(async (forkEvent) => {
