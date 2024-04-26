@@ -1,15 +1,17 @@
 {
-  "name": "websocket-polyfill",
+  "name": "@dweb-browser/websocket-polyfill",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "vite build"
+  },
+  "exports": {
+    "./*": "./src/*"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
+  "peerDependencies": {
     "vite": "^5.0.10"
   }
 }

@@ -3,21 +3,19 @@ import { CacheGetter } from "@dweb-browser/helper/cacheGetter.ts";
 import type { $MicroModuleManifest } from "../types.ts";
 import type { IpcHeaders } from "./helper/IpcHeaders.ts";
 
-import {
-  IpcClientRequest,
-  IpcServerRequest,
-} from "./ipc-message/IpcRequest.ts";
+import { IpcClientRequest, IpcServerRequest } from "./ipc-message/IpcRequest.ts";
 import { IpcResponse } from "./ipc-message/IpcResponse.ts";
 
-import { $once, once } from "@dweb-browser/helper/decorator/$once.ts";
-import { StateSignal } from "@dweb-browser/helper/StateSignal.ts";
-import { CUSTOM_INSPECT, logger } from "@dweb-browser/helper/logger.ts";
-import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
-import { promiseAsSignalListener } from "@dweb-browser/helper/promiseSignal.ts";
 import { Producer } from "@dweb-browser/helper/Producer.ts";
+import { StateSignal } from "@dweb-browser/helper/StateSignal.ts";
+import { $once, once } from "@dweb-browser/helper/decorator/$once.ts";
+import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
+import { CUSTOM_INSPECT, logger } from "@dweb-browser/helper/logger.ts";
+import { promiseAsSignalListener } from "@dweb-browser/helper/promiseSignal.ts";
 import { IpcPool } from "./IpcPool.ts";
 import { endpointIpcMessage } from "./endpoint/EndpointIpcMessage.ts";
 import { IpcEndpoint } from "./endpoint/IpcEndpoint.ts";
+import { $OnFetch, createFetchHandler } from "./helper/ipcFetchHelper.ts";
 import { ipcFork } from "./ipc-message/IpcFork.ts";
 import {
   ipcLifecycle,
@@ -69,9 +67,7 @@ export class Ipc {
   }
   onLifecycle = this.lifecycleLocaleFlow.listen;
 
-  #lifecycleRemoteFlow = this.onMessage(
-    `ipc-lifecycle-remote#${this.pid}`
-  ).mapNotNull((message) => {
+  #lifecycleRemoteFlow = this.onMessage(`ipc-lifecycle-remote#${this.pid}`).mapNotNull((message) => {
     if (message.type === IPC_MESSAGE_TYPE.LIFECYCLE) {
       return message;
     }
@@ -142,10 +138,7 @@ export class Ipc {
     }
     // 监听远端生命周期指令，进行协议协商
     this.#lifecycleRemoteFlow((lifecycleRemote) => {
-      this.console.debug(
-        "lifecycle-in",
-        `remote=${lifecycleRemote},local=${this.lifecycle}`
-      );
+      this.console.debug("lifecycle-in", `remote=${lifecycleRemote},local=${this.lifecycle}`);
       // 告知启动完成
       const doIpcOpened = () => {
         const opend = ipcLifecycle(ipcLifecycleOpened());
@@ -187,21 +180,9 @@ export class Ipc {
       if (ipcFork === undefined) {
         return;
       }
-      const forkedIpc = new Ipc(
-        ipcFork.pid,
-        this.endpoint,
-        this.locale,
-        this.remote,
-        this.pool
-      );
-      this.pool.safeCreatedIpc(
-        forkedIpc,
-        ipcFork.autoStart,
-        ipcFork.startReason
-      );
-      mapHelper
-        .getOrPut(this.forkedIpcMap, forkedIpc.pid, () => new PromiseOut())
-        .resolve(forkedIpc);
+      const forkedIpc = new Ipc(ipcFork.pid, this.endpoint, this.locale, this.remote, this.pool);
+      this.pool.safeCreatedIpc(forkedIpc, ipcFork.autoStart, ipcFork.startReason);
+      mapHelper.getOrPut(this.forkedIpcMap, forkedIpc.pid, () => new PromiseOut()).resolve(forkedIpc);
       this.#forkProducer.send(forkedIpc);
     });
   });
@@ -209,8 +190,7 @@ export class Ipc {
 
   private forkedIpcMap = new Map<number, PromiseOut<Ipc>>();
   waitForkedIpc(pid: number) {
-    return mapHelper.getOrPut(this.forkedIpcMap, pid, () => new PromiseOut())
-      .promise;
+    return mapHelper.getOrPut(this.forkedIpcMap, pid, () => new PromiseOut()).promise;
   }
 
   /**
@@ -232,9 +212,7 @@ export class Ipc {
       autoStart,
       startReason
     );
-    mapHelper
-      .getOrPut(this.forkedIpcMap, forkedIpc.pid, () => new PromiseOut())
-      .resolve(forkedIpc);
+    mapHelper.getOrPut(this.forkedIpcMap, forkedIpc.pid, () => new PromiseOut()).resolve(forkedIpc);
     // 自触发
     this.#forkProducer.send(forkedIpc);
     // 通知对方
@@ -258,13 +236,8 @@ export class Ipc {
   //#endregion
 
   //#region 消息相关的
-  #messagePipeMap<R>(
-    name: string,
-    mapNotNull: (value: $IpcMessage) => R | undefined
-  ) {
-    const producer = new Producer<R>(
-      this.#messageProducer.producer.name + "/" + name
-    );
+  #messagePipeMap<R>(name: string, mapNotNull: (value: $IpcMessage) => R | undefined) {
+    const producer = new Producer<R>(this.#messageProducer.producer.name + "/" + name);
     this.onClosed((reason) => {
       return producer.close(reason);
     });
@@ -293,6 +266,16 @@ export class Ipc {
   onRequest(name: string) {
     return this.#requestProducer.value.consumer(name);
   }
+
+  onFetch(name: string, ...handlers: $OnFetch[]) {
+    const onRequest = createFetchHandler(handlers);
+    return onRequest.extendsTo(
+      this.onRequest(name).collect((requestEvent) => {
+        return onRequest(requestEvent.data);
+      })
+    );
+  }
+
   #responseProducer = new CacheGetter(() =>
     this.#messagePipeMap("response", (ipcMessage) => {
       if (ipcMessage instanceof IpcResponse) {
@@ -351,21 +334,14 @@ export class Ipc {
   request(url: IpcClientRequest): Promise<IpcResponse>;
   request(url: string, init?: $IpcRequestInit): Promise<IpcResponse>;
   request(input: string | IpcClientRequest, init?: $IpcRequestInit) {
-    const ipcRequest =
-      input instanceof IpcClientRequest
-        ? input
-        : this.#buildIpcRequest(input, init);
+    const ipcRequest = input instanceof IpcClientRequest ? input : this.#buildIpcRequest(input, init);
     const result = this.#registerReqId(ipcRequest.reqId);
     this.postMessage(ipcRequest);
     return result.promise;
   }
   /** 自定义注册 请求与响应 的id */
   #registerReqId(reqId = this.#allocReqId()) {
-    return mapHelper.getOrPut(
-      this.#reqResMap.value,
-      reqId,
-      () => new PromiseOut()
-    );
+    return mapHelper.getOrPut(this.#reqResMap.value, reqId, () => new PromiseOut());
   }
   #buildIpcRequest(url: string, init?: $IpcRequestInit) {
     const reqId = this.#allocReqId();

@@ -15,5 +15,6 @@ module.exports = {
     "vue/valid-template-root": "off",
     "no-unused-vars": "off",
     "no-undef": "off",
+    "lit-plugin/no-invalid-tag-name": "off"
   },
 };

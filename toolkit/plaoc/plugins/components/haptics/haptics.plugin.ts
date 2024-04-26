@@ -1,5 +1,5 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { $BuildRequestInit } from "../../helper/request.ts";
+import type { $BuildRequestInit } from "../../helper/request.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
 import type { ImpactOptions, NotificationOptions, VibrateOptions } from "./haptics.type.ts";
 

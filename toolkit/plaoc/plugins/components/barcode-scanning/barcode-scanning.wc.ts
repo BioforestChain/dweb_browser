@@ -1,12 +1,12 @@
-import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";
 import {
   BarcodeScannerPermission,
   CameraDirection,
-  ScanOptions,
-  ScanResult,
-  ScannerProcesser,
+  type ScanOptions,
+  type ScanResult,
+  type ScannerProcesser,
 } from "./barcode-scanning.type.ts";
 
 const html = String.raw;
@@ -173,7 +173,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       return {
         hasContent: false,
         content: [],
-        permission: e,
+        permission: BarcodeScannerPermission.UserError,
       };
     } finally {
       this.stopScanning();

@@ -1,5 +1,5 @@
 import { $makeExtends } from "./$makeExtends.ts";
-import { $Transform, JsonlinesStream } from "./JsonlinesStream.ts";
+import { JsonlinesStream, type $Transform } from "./JsonlinesStream.ts";
 
 export const fetchStreamExtends = $makeExtends<Promise<Response>>()({
   /** 将响应的内容解码成 jsonlines 格式 */

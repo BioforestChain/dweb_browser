@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx esbuild ./index.ts --outdir=./dist"
+  },
+  "dependencies": {
+    "@dweb-browser/core": "workspace:^",
+    "@dweb-browser/helper": "workspace:^",
+    "@dweb-browser/websocket-polyfill": "workspace:^"
   },
   "keywords": [],
   "author": "",

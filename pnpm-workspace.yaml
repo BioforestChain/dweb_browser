@@ -3,4 +3,5 @@ packages:
   - "toolkit/plaoc/cli"
   - "toolkit/plaoc/is-dweb"
   - "toolkit/plaoc/server"
+  - "toolkit/plaoc/plugins"
   - "toolkit/plaoc/examples/*"

@@ -1,7 +1,7 @@
-import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import { BarcodeResult, SupportedFormat } from "./barcode-scanning.type.ts";
+import { SupportedFormat, type BarcodeResult } from "./barcode-scanning.type.ts";
 export class BarcodeScannerPlugin extends BasePlugin {
   constructor() {
     super("barcode-scanning.sys.dweb");

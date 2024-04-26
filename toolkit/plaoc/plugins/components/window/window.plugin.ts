@@ -1,11 +1,11 @@
 import { ReadableStreamEndpoint } from "@dweb-browser/core/index.ts";
 import { IpcResponse } from "@dweb-browser/core/ipc/index.ts";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { $Callback, Signal } from "../../helper/createSignal.ts";
+import { Signal, type $Callback } from "../../helper/createSignal.ts";
 import { ReadableStreamOut, binaryStreamRead } from "../../helper/readableStreamHelper.ts";
-import { $Coder, StateObserver } from "../../util/StateObserver.ts";
+import { StateObserver, type $Coder } from "../../util/StateObserver.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
 import { webIpcPool } from "../index.ts";
 import { WindowAlertController } from "./WindowAlertController.ts";
@@ -167,11 +167,11 @@ export class WindowPlugin extends BasePlugin {
     };
     ws.onopen = async () => {
       afterOpen.resolve();
-      for await (const data of binaryStreamRead(ipc.stream)) {
+      for await (const data of binaryStreamRead(endpoint.stream)) {
         ws.send(data);
       }
     };
-    ipc.bindIncomeStream(streamout.stream);
+    endpoint.bindIncomeStream(streamout.stream);
     await afterOpen.promise;
     return ipc;
   }
@@ -190,10 +190,11 @@ export class WindowPlugin extends BasePlugin {
     console.log("window#createModalArgs=>", registryUrl.href);
     const callbackIpc = await this.wsToIpc(registryUrl.href);
     const onCallback = new Signal<$Callback<[$ModalCallback]>>();
-    callbackIpc.onRequest(async (request, ipc) => {
+    callbackIpc.onRequest("registry-callback").collect(async (event) => {
+      const request = event.data
       const callbackData = JSON.parse(await request.body.text());
       onCallback.emit(callbackData);
-      callbackIpc.postMessage(IpcResponse.fromText(request.reqId, 200, undefined, "", ipc));
+      callbackIpc.postMessage(IpcResponse.fromText(request.reqId, 200, undefined, "", callbackIpc));
     });
     const modal = await this.fetchApi(`/createModal`, {
       search: { type, ...input, callbackUrl, open, once },

@@ -1,7 +1,7 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts";
 import { windowPlugin } from "./window.plugin.ts";
-import { $WindowRawState, $WindowState } from "./window.type.ts";
+import type { $WindowRawState, $WindowState } from "./window.type.ts";
 
 export class HTMLDwebWindowElement extends HTMLStateObserverElement<$WindowRawState, $WindowState> {
   static readonly tagName = "dweb-window";

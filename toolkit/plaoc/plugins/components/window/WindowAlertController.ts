@@ -1,7 +1,7 @@
-import { $Callback, Signal } from "../../helper/createSignal.ts";
+import type { $Callback, Signal } from "../../helper/createSignal.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
 import { WindowModalController } from "./WindowModalController.ts";
-import { $AlertModal, $ModalCallback } from "./window.type.ts";
+import type { $AlertModal, $ModalCallback } from "./window.type.ts";
 
 export class WindowAlertController extends WindowModalController {
   constructor(plugin: BasePlugin, modal: $AlertModal, onCallback: Signal<$Callback<[$ModalCallback]>>) {

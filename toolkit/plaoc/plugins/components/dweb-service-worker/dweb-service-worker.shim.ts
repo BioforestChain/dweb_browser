@@ -18,7 +18,7 @@ class DwebServiceWorker extends EventTarget {
     super();
     // 事件分发中心
     this.plugin.ipcPromise.then((ipc) => {
-      ipc.onFetch((fetchEvent) => {
+      ipc.onFetch("get-message", (fetchEvent) => {
         console.log("收到fetch消息", fetchEvent.pathname, this.isRegister);
         const serviceEvent = new ServiceWorkerFetchEvent(fetchEvent, this.plugin);
         if (!this.isRegister) {
@@ -26,9 +26,11 @@ class DwebServiceWorker extends EventTarget {
         }
         this.dispatchEvent(serviceEvent);
       });
-      ipc.onEvent((event) => {
-        console.log("收到Event消息", event.name, event.text, this.isRegister);
-        const plaocEvent = new PlaocEvent(event.name, event.text);
+      ipc.onEvent("get-event").collect((ipcEvent) => {
+        const event = ipcEvent.data;
+        const text = String(event.data);
+        console.log("收到Event消息", event.name, text, this.isRegister);
+        const plaocEvent = new PlaocEvent(event.name, text);
         // shortcut
         if (!this.isRegister && event.name === eventHandle.shortcut) {
           this.shortQueue.push(plaocEvent);
@@ -94,8 +96,8 @@ class DwebServiceWorker extends EventTarget {
     // 虽然有类型安全，但是这里还是做强验证
     if (eventName === "fetch") {
       this.start();
-    } 
-     if (eventName === "shortcut") {
+    }
+    if (eventName === "shortcut") {
       this.startShortcut();
     }
   }

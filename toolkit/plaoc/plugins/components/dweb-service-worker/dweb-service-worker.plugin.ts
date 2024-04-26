@@ -1,10 +1,8 @@
-import { ReadableStreamEndpoint } from "@dweb-browser/core/index.ts";
-import { IpcHeaders } from "@dweb-browser/core/ipc/index.ts";
+import { IpcHeaders, type Ipc } from "@dweb-browser/core/ipc/index.ts";
 import { createMockModuleServerIpc } from "../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import type { $BuildRequestWithBaseInit } from "../base/base.type.ts";
-import { $DwebResult } from "../base/base.type.ts";
+import type { $BuildRequestWithBaseInit, $DwebResult } from "../base/base.type.ts";
 
 /**这是app之间通信的组件 */
 export class DwebServiceWorkerPlugin extends BasePlugin {
@@ -14,7 +12,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     super("dns.std.dweb");
   }
 
-  readonly ipcPromise: Promise<ReadableStreamEndpoint> = this.createIpc();
+  readonly ipcPromise: Promise<Ipc> = this.createIpc();
   private async createIpc() {
     const api_url = BasePlugin.api_url.replace("://api", "://external");
     const url = new URL(api_url.replace(/^http/, "ws"));
@@ -67,7 +65,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
       }
       return { success: false, message: "false" };
     } catch (e) {
-      return { success: false, message: e };
+      return { success: false, message: String(e) };
     }
   }
 

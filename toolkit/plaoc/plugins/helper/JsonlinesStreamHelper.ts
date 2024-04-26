@@ -1,5 +1,5 @@
 import { BasePlugin } from "../components/base/base.plugin.ts";
-import { $Transform, JsonlinesStream } from "./JsonlinesStream.ts";
+import { JsonlinesStream, type $Transform } from "./JsonlinesStream.ts";
 import { ReadableStreamOut, streamRead } from "./readableStreamHelper.ts";
 
 export class JsonlinesStreamResponse<RAW, STATE> {
@@ -13,7 +13,7 @@ export class JsonlinesStreamResponse<RAW, STATE> {
     private buildWsUrl: (ws_url: URL) => Promise<URL | void> = async (ws_url) => ws_url
   ) {}
 
-  async *jsonlines(path: string, options?: { signal?: AbortSignal, searchParams?: URLSearchParams }) {
+  async *jsonlines(path: string, options?: { signal?: AbortSignal; searchParams?: URLSearchParams }) {
     const api_url = BasePlugin.api_url;
     const url = new URL(api_url.replace(/^http/, "ws"));
     // 内部的监听
@@ -21,7 +21,7 @@ export class JsonlinesStreamResponse<RAW, STATE> {
     options?.searchParams?.forEach((v, k) => {
       url.searchParams.append(k, v);
     });
-    
+
     const ws = new WebSocket((await this.buildWsUrl(url)) ?? url);
     this._ws = ws;
     ws.binaryType = "arraybuffer";

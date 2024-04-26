@@ -1,8 +1,8 @@
-import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { SafeEvent, SafeEventTarget, SafeStateEvent } from "../../helper/SafeEventTarget.ts";
-import { $Callback, Signal } from "../../helper/createSignal.ts";
+import type { $Callback, Signal } from "../../helper/createSignal.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import { $Modal, $ModalCallback } from "./window.type.ts";
+import type { $Modal, $ModalCallback } from "./window.type.ts";
 
 export const enum WindowModalState {
   INIT = "init",

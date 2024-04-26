@@ -1,16 +1,16 @@
-import { ReadableStreamEndpoint } from "@dweb-browser/core/index.ts";
+import { ReadableStreamEndpoint, type Ipc } from "@dweb-browser/core/index.ts";
 import type { $MicroModuleManifest } from "@dweb-browser/core/types.ts";
-import { PromiseOut } from "dweb/helper/PromiseOut.ts";
-import { simpleEncoder } from "dweb/helper/encoding.ts";
-import { ReadableStreamOut, streamReadAll } from "dweb/helper/stream/readableStreamHelper.ts";
+import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
+import { simpleEncoder } from "@dweb-browser/helper/encoding.ts";
+import { ReadableStreamOut, streamReadAll } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
 import { webIpcPool } from "../index.ts";
 
 // 回复信息给后端
-export const createMockModuleServerIpc: (
+export const createMockModuleServerIpc: (wsUrl: URL, remote: $MicroModuleManifest) => Promise<Ipc> = (
   wsUrl: URL,
   remote: $MicroModuleManifest
-) => Promise<ReadableStreamEndpoint> = (wsUrl: URL, remote: $MicroModuleManifest) => {
-  const waitOpenPo = new PromiseOut<ReadableStreamEndpoint>();
+) => {
+  const waitOpenPo = new PromiseOut<Ipc>();
 
   /// 通过ws链接到代理服务器
   const ws = new WebSocket(wsUrl);
@@ -28,7 +28,7 @@ export const createMockModuleServerIpc: (
      */
     const proxyStream = new ReadableStreamOut<Uint8Array>({ highWaterMark: 0 });
     // 将代理服务器收到的客户端请求，绑定到 响应服务器中
-    serverIpc.bindIncomeStream(proxyStream.stream);
+    endpoint.bindIncomeStream(proxyStream.stream);
 
     /// 客户端关闭，代理层跟着关闭，所以这里响应服务器也将关闭
     ws.onclose = () => {
@@ -55,7 +55,7 @@ export const createMockModuleServerIpc: (
       }
     };
     /// 响应服务器将响应内容写入serverIpc，这里读取写入的内容，将响应的内容通过代理层传回
-    void streamReadAll(serverIpc.stream, {
+    void streamReadAll(endpoint.stream, {
       map(chunk) {
         ws.send(chunk);
       },

@@ -1,4 +1,4 @@
-import { PromiseOut } from "../helper/PromiseOut.ts";
+import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 
 export interface FileData {
   name: string;
@@ -11,7 +11,7 @@ export interface FileData {
 export enum FileDataEncode {
   UTF8 = "utf8",
   BASE64 = "base64",
-  BINARY = "binary"
+  BINARY = "binary",
 }
 
 export async function normalToBase64String(file: File): Promise<string> {

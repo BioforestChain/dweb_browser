@@ -1,5 +1,5 @@
+import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { encode } from "cbor-x";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { FileData, FileDataEncode, normalToBase64String } from "../../util/file.ts";
 import { BaseResult } from "../../util/response.ts";
