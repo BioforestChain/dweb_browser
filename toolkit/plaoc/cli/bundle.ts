@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { Command } from "./deps.ts";
-import { $BundleOptions } from "./helper/const.ts";
+import type { $BundleOptions } from "./helper/const.ts";
 import {
   BackendServerGenerator,
   BundleZipGenerator,
