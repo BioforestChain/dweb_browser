@@ -1,5 +1,5 @@
 console.log("loading tasks...");
-import { assetsTasks } from "../desktop-dev/scripts/assets-tasks.ts";
+import { assetsTasks } from "../toolkit/dweb-core/scripts/assets-tasks.ts";
 import { toolkitTasks } from "../toolkit/toolkit-dev.ts";
 
 import { ConTasks, ExitAbortController } from "./helper/ConTasks.ts";

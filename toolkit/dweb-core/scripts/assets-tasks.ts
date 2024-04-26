@@ -10,22 +10,22 @@ const baseDir = fileURLToPath(import.meta.resolve("../"));
 export const assetsTasks = new ConTasks(
   {
     desk: viteTaskFactory({
-      inDir: "src/browser/desk/",
+      inDir: "../dweb-desk-assets",
       outDir: "../next/kmp/browser/src/commonMain/composeResources/files/browser/desk",
       baseDir,
     }),
-    "jmm.html": viteTaskFactory({
-      inDir: "src/browser/jmm/",
-      outDir: "../next/kmp/browser/src/commonMain/composeResources/files/browser/jmm",
-      baseDir,
-    }),
+    // "jmm.html": viteTaskFactory({
+    //   inDir: "src/browser/jmm/",
+    //   outDir: "../next/kmp/browser/src/commonMain/composeResources/files/browser/jmm",
+    //   baseDir,
+    // }),
     "js-process.worker.js": esbuildTaskFactory({
-      input: "src/js-process/worker/index.ts",
+      input: "../dweb-js-process-assets/worker",
       outfile: "../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.worker/index.js",
       baseDir,
     }),
     "js-process.main.html": viteTaskFactory({
-      inDir: "src/js-process/main",
+      inDir: "../dweb-js-process-assets/main",
       outDir: "../next/kmp/browser/src/commonMain/composeResources/files/browser/js-process.main",
       baseDir,
     }),

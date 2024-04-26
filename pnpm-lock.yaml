@@ -25,6 +25,10 @@ importers:
         version: 3.2.2(prettier@2.8.8)(typescript@5.4.5)
 
   toolkit/dweb-core:
+    dependencies:
+      cbor-x:
+        specifier: ^1.5.3
+        version: 1.5.4
     devDependencies:
       '@types/bun':
         specifier: latest

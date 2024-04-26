@@ -3,8 +3,8 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { format } from "node:util";
 import picocolors from "npm:picocolors";
-import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
-import { mapHelper } from "../../desktop-dev/src/helper/mapHelper.ts";
+import { PromiseOut } from "../../toolkit/dweb-core/src/helper/PromiseOut.ts";
+import { mapHelper } from "../../toolkit/dweb-core/src/helper/fun/mapHelper.ts";
 import { whichSync } from "./WhichCommand.ts";
 import { DenoOS } from "../deps.ts";
 
