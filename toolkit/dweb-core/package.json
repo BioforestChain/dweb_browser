@@ -6,7 +6,7 @@
     "build": "esbuild --bundle src/index.ts  --format=esm --outdir=dist"
   },
   "exports": {
-    ".": "./src/index.ts",
+    ".": "./index.ts",
     "./*": "./src/*"
   },
   "keywords": [

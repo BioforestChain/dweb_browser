@@ -1,7 +1,7 @@
-import type { MICRO_MODULE_CATEGORY } from "@dweb-browser/helper/type/category.const.ts";
-import type { $PromiseMaybe } from "@dweb-browser/helper/type/types.ts";
+import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 import type { MicroModule } from "./MicroModule.ts";
 import type { Ipc } from "./ipc/ipc.ts";
+import type { MICRO_MODULE_CATEGORY } from "./type/category.const.ts";
 import type { $MMID, $MicroModuleManifest } from "./types.ts";
 
 export interface $BootstrapContext {

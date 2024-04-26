@@ -1,3 +1,5 @@
+import type { MICRO_MODULE_CATEGORY } from "./type/category.const.ts";
+
 export type $MMID = `${string}.dweb`;
 export type $DWEB_DEEPLINK = `dweb:${string}`;
 /**
@@ -8,7 +10,6 @@ export interface $IpcSupportProtocols {
   protobuf: boolean;
   json: boolean;
 }
-import { MICRO_MODULE_CATEGORY } from "@dweb-browser/helper/type/category.const.ts";
 /**
  * 一种通用的 “应用” 元数据格式
  */
@@ -35,8 +36,7 @@ export interface $CommonAppManifest
 }
 type RequiredByKey<T, K extends keyof T> = T & Required<Pick<T, K>>;
 
-export interface $MicroModuleManifest
-  extends RequiredByKey<Omit<$CommonAppManifest, "id">, "name"> {
+export interface $MicroModuleManifest extends RequiredByKey<Omit<$CommonAppManifest, "id">, "name"> {
   /** 模块id */
   readonly mmid: $MMID;
   /** 对通讯协议的支持情况 */
@@ -82,11 +82,7 @@ export const enum IPC_HANDLE_EVENT {
 /**文本方向类型 */
 export type TextDirectionType = "ltr" | "rtl" | "auto";
 /**显示模式 */
-export type DisplayModeType =
-  | "fullscreen"
-  | "standalone"
-  | "minimal-ui"
-  | "browser";
+export type DisplayModeType = "fullscreen" | "standalone" | "minimal-ui" | "browser";
 
 /**
  * 每一个`ImageResource`代表了用于应用的图片，根据使用该对象的成员的语义，

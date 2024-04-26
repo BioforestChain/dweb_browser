@@ -1,4 +1,4 @@
-import type { $IpcMessage, $IpcRawMessage } from "../../index.ts";
+import type { $IpcMessage, $IpcRawMessage } from "../ipc-message/IpcMessage.ts";
 import { ENDPOINT_MESSAGE_TYPE } from "./EndpointMessage.ts";
 import { endpointMessageBase } from "./internal/EndpointMessage.ts";
 

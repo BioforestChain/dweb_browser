@@ -2,7 +2,7 @@ import { $once } from "@dweb-browser/helper/decorator/$once.ts";
 import {
   createFetchHandler,
   type $OnFetch,
-} from "@dweb-browser/helper/fun/ipcFetchHelper.ts";
+} from "../ipc/helper/ipcFetchHelper.ts";
 import { buildUrl } from "@dweb-browser/helper/fun/urlHelper.ts";
 import type { $ReqMatcher } from "../type/$ReqMatcher.ts";
 import type { MicroModuleRuntime } from "../MicroModule.ts";

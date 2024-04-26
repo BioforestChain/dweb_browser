@@ -1,4 +1,5 @@
-import { ReadableStreamEndpoint, type Ipc } from "@dweb-browser/core/index.ts";
+import { ReadableStreamEndpoint } from "@dweb-browser/core/ipc/endpoint/ReadableStreamEndpoint.ts";
+import type { Ipc } from "@dweb-browser/core/ipc/ipc.ts";
 import type { $MicroModuleManifest } from "@dweb-browser/core/types.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { simpleEncoder } from "@dweb-browser/helper/encoding.ts";

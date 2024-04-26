@@ -1,10 +1,7 @@
-import type { ImageResource } from "../../src/types.ts";
+import type { ImageResource } from "@dweb-browser/core/types.ts";
 
 const PURPOSES = ["monochrome", "maskable", "any"] as const;
-export const strictImageResource = (
-  img: ImageResource,
-  baseUrl = document.baseURI
-) => {
+export const strictImageResource = (img: ImageResource, baseUrl = document.baseURI) => {
   const imgUrl = new URL(img.src, baseUrl);
   let imageType = img.type;
   if (imageType === undefined) {
@@ -50,9 +47,7 @@ export const strictImageResource = (
 
   return {
     src: imgUrl.href,
-    purpose: (PURPOSES.includes(img.purpose as never)
-      ? img.purpose
-      : "any") as (typeof PURPOSES)[number],
+    purpose: (PURPOSES.includes(img.purpose as never) ? img.purpose : "any") as (typeof PURPOSES)[number],
     type: imageType,
     sizes: imageSizes,
   };

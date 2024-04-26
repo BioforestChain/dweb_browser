@@ -3,21 +3,21 @@ import { Producer } from "@dweb-browser/helper/Producer.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { once } from "@dweb-browser/helper/decorator/$once.ts";
 import { fetchExtends } from "@dweb-browser/helper/fetchExtends/index.ts";
-import { $normalizeRequestInitAsIpcRequestArgs } from "./ipc/helper/ipcRequestHelper.ts";
 import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
 import { setHelper } from "@dweb-browser/helper/fun/setHelper.ts";
 import { logger } from "@dweb-browser/helper/logger.ts";
 import { normalizeFetchArgs } from "@dweb-browser/helper/normalizeFetchArgs.ts";
 import { promiseAsSignalListener } from "@dweb-browser/helper/promiseSignal.ts";
-import type { MICRO_MODULE_CATEGORY } from "@dweb-browser/helper/type/category.const.ts";
 import type { $BootstrapContext } from "./bootstrapContext.ts";
+import { $normalizeRequestInitAsIpcRequestArgs } from "./ipc/helper/ipcRequestHelper.ts";
 import type { $IpcEvent, Ipc } from "./ipc/index.ts";
-import {
-  type $DWEB_DEEPLINK,
-  type $IpcSupportProtocols,
-  type $MMID,
-  type $MicroModuleManifest,
-  type $MicroModuleRuntime,
+import type { MICRO_MODULE_CATEGORY } from "./type/category.const.ts";
+import type {
+  $DWEB_DEEPLINK,
+  $IpcSupportProtocols,
+  $MMID,
+  $MicroModuleManifest,
+  $MicroModuleRuntime,
 } from "./types.ts";
 
 const enum MMState {
@@ -27,9 +27,7 @@ const enum MMState {
 export abstract class MicroModule {
   abstract manifest: $MicroModuleManifest;
 
-  protected abstract createRuntime(
-    context: $BootstrapContext
-  ): MicroModuleRuntime;
+  protected abstract createRuntime(context: $BootstrapContext): MicroModuleRuntime;
 
   @once()
   get console() {
@@ -225,18 +223,14 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   //   const args = normalizeFetchArgs(url, init);
   //   return this._nativeRequest(args.parsed_url, args.request_init);
   // }
-  private async _nativeFetch(
-    url: RequestInfo | URL,
-    init?: RequestInit
-  ): Promise<Response> {
+  private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     const { parsed_url, request_init } = normalizeFetchArgs(url, init);
     const hostName = parsed_url.hostname;
     if (hostName.endsWith(".dweb") && parsed_url.protocol === "file:") {
       // const tmp = this._ipcConnectsMap.get(hostName as $MMID);
       // console.log("🧊 connect=> ", hostName, tmp?.is_finished, tmp);
       const ipc = await this.connect(hostName as $MMID);
-      const ipc_req_init =
-        await $normalizeRequestInitAsIpcRequestArgs(request_init);
+      const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(request_init);
       // console.log("🧊 connect request=> ", ipc.isActivity, ipc.channelId, parsed_url.href);
       let ipc_response = await ipc.request(parsed_url.href, ipc_req_init);
       // console.log("🧊 connect response => ", ipc_response.statusCode, ipc.isActivity, parsed_url.href);
@@ -269,17 +263,11 @@ export abstract class MicroModuleRuntime implements $MicroModuleRuntime {
   async requestDwebPermissions(permissions: string) {
     const res = await (
       await this.nativeFetch(
-        new URL(
-          `file://permission.std.dweb/request?permissions=${encodeURIComponent(
-            permissions
-          )}`
-        )
+        new URL(`file://permission.std.dweb/request?permissions=${encodeURIComponent(permissions)}`)
       )
     ).text();
     const requestPermissionResult: Record<string, string> = JSON.parse(res);
-    return Object.values(requestPermissionResult).every(
-      (status) => status === "granted"
-    );
+    return Object.values(requestPermissionResult).every((status) => status === "granted");
   }
 
   @once()

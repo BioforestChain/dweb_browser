@@ -1,6 +1,8 @@
 import { assert, test } from "vitest";
 
-import { IpcEvent, jsIpcPool, type $MicroModuleManifest } from "../index.ts";
+import { jsIpcPool } from "../ipc/IpcPool.ts";
+import { IpcEvent } from "../ipc/ipc-message/IpcEvent.ts";
+import type { $MicroModuleManifest } from "../types.ts";
 import { WebMessageEndpoint } from "./endpoint/WebMessageEndpoint.ts";
 import { IPC_MESSAGE_TYPE } from "./ipc-message/internal/IpcMessage.ts";
 

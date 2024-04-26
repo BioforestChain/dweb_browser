@@ -5,7 +5,7 @@ import {
   IpcResponse,
   IpcServerRequest,
 } from "../index.ts";
-import { type $PromiseMaybe } from "../../type/types.ts";
+import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 import { isBinary } from "@dweb-browser/helper/fun/binaryHelper.ts";
 import { $bodyInitToIpcBodyArgs, isWebSocket } from "./ipcRequestHelper.ts";
 

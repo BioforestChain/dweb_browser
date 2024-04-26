@@ -1,7 +1,6 @@
 import { Channel } from "@dweb-browser/helper/Channel.ts";
 import { simpleDecoder } from "@dweb-browser/helper/encoding.ts";
 import { streamRead } from "@dweb-browser/helper/stream/readableStreamHelper.ts";
-import type { $PromiseMaybe } from "@dweb-browser/helper/type/types.ts";
 import {
   $cborToEndpointMessage,
   $jsonToEndpointMessage,
@@ -9,6 +8,7 @@ import {
 import { CommonEndpoint } from "./CommonEndpoint.ts";
 import { ENDPOINT_PROTOCOL } from "./EndpointLifecycle.ts";
 import type { $EndpointRawMessage } from "./EndpointMessage.ts";
+import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 
 export class ReadableStreamEndpoint extends CommonEndpoint {
   override toString() {

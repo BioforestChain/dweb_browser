@@ -2,7 +2,7 @@
 import { build, emptyDir } from "@deno/dnt";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-import { WalkFiles } from "./WalkDir.ts";
+import { WalkFiles } from "../../dweb-core/scripts/WalkDir.ts";
 
 await emptyDir("./npm");
 
@@ -14,11 +14,15 @@ await build({
     // see JS docs for overview and more options
     deno: false,
   },
+  test: false,
   mappings: {},
   importMap: import.meta.resolve("../../../deno.jsonc"),
   package: Object.assign(fs.readFileSync("./package.json"), {
     version: Deno.args[0],
   }) as any,
+  compilerOptions: {
+    lib: ["DOM", "ES2022"],
+  },
   postBuild() {
     // steps to run after building and before running the tests
     // Deno.copyFileSync("LICENSE", "npm/LICENSE");

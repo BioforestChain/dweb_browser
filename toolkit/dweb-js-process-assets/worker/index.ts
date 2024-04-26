@@ -1,12 +1,8 @@
+// deno-lint-ignore-file no-unused-vars
 /// <reference lib="webworker"/>
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
-import type {
-  $DWEB_DEEPLINK,
-  $IpcSupportProtocols,
-  $MicroModuleRuntime,
-  $MMID,
-} from "../../src/types.ts";
+import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MicroModuleRuntime, $MMID } from "@dweb-browser/core/types.ts";
 
 import { updateUrlOrigin } from "@dweb-browser/helper/fun/urlHelper.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
@@ -17,21 +13,23 @@ import * as http from "./std-dweb-http.ts";
 
 import { once } from "@dweb-browser/helper/decorator/$once.ts";
 import { mapHelper } from "@dweb-browser/helper/fun/mapHelper.ts";
-import { $normalizeRequestInitAsIpcRequestArgs } from "@dweb-browser/helper/index.ts";
 import { normalizeFetchArgs } from "@dweb-browser/helper/normalizeFetchArgs.ts";
-import type { $PromiseMaybe } from "@dweb-browser/core/type/types.ts";
-import { type $BootstrapContext } from "../../src/bootstrapContext.ts";
-import type { MICRO_MODULE_CATEGORY } from "../../src/index.ts";
-import { onActivity } from "../../src/ipcEventOnActivity.ts";
-import { onRenderer, onRendererDestroy } from "../../src/ipcEventOnRender.ts";
-import { onShortcut } from "../../src/ipcEventOnShortcut.ts";
-import { MicroModule, MicroModuleRuntime } from "../../src/MicroModule.ts";
+import type { $PromiseMaybe } from "../../dweb-helper/src/$PromiseMaybe.ts";
+// import { type $BootstrapContext } from "../../src/bootstrapContext.ts";
+// import type { MICRO_MODULE_CATEGORY } from "../../src/index.ts";
+// import { onActivity } from "../../src/ipcEventOnActivity.ts";
+// import { onRenderer, onRendererDestroy } from "../../src/ipcEventOnRender.ts";
+// import { onShortcut } from "../../src/ipcEventOnShortcut.ts";
+// import { MicroModule, MicroModuleRuntime } from "../../src/MicroModule.ts";
+import type { $BootstrapContext } from "@dweb-browser/core/bootstrapContext.ts";
+import { $normalizeRequestInitAsIpcRequestArgs } from "@dweb-browser/core/ipc/helper/ipcRequestHelper.ts";
+import { onActivity } from "@dweb-browser/core/ipcEventOnActivity.ts";
+import { onRenderer, onRendererDestroy } from "@dweb-browser/core/ipcEventOnRender.ts";
+import { onShortcut } from "@dweb-browser/core/ipcEventOnShortcut.ts";
+import { MicroModule, MicroModuleRuntime } from "@dweb-browser/core/MicroModule.ts";
+import type { MICRO_MODULE_CATEGORY } from "@dweb-browser/core/type/category.const.ts";
 import type { $RunMainConfig } from "../main/index.ts";
-import {
-  createFetchHandler,
-  Ipc,
-  WebMessageEndpoint,
-} from "./std-dweb-core.ts";
+import { createFetchHandler, Ipc, WebMessageEndpoint } from "./std-dweb-core.ts";
 
 declare global {
   interface DWebCore {
@@ -53,10 +51,7 @@ declare global {
 const workerGlobal = self as DedicatedWorkerGlobalScope;
 
 export class Metadata {
-  constructor(
-    readonly data: core.$MicroModuleManifest,
-    readonly env: Record<string, string>
-  ) {}
+  constructor(readonly data: core.$MicroModuleManifest, readonly env: Record<string, string>) {}
   envString(key: string) {
     const val = this.envStringOrNull(key);
     if (val == null) {
@@ -97,6 +92,9 @@ export class Metadata {
  * 这个是虚假的 $MicroModule，这里只是一个影子，指代 native 那边的 micro_module
  */
 export class JsProcessMicroModule extends MicroModule {
+  constructor(readonly meta: Metadata, private nativeFetchPort: MessagePort) {
+    super();
+  }
   override manifest = this.meta.data;
   readonly ipcPool = new core.IpcPool(this.meta.data.mmid);
   readonly fetchIpc = this.ipcPool.createIpc(
@@ -112,21 +110,16 @@ export class JsProcessMicroModule extends MicroModule {
   private get bootstrapContext() {
     const ctx: $BootstrapContext = {
       dns: {
-        install: function (mm: MicroModule): void {
+        install: function (_mm: MicroModule): void {
           throw new Error("jmm dns.install not implemented.");
         },
-        uninstall: function (mm: `${string}.dweb`): Promise<boolean> {
+        uninstall: function (_mm: `${string}.dweb`): Promise<boolean> {
           throw new Error("jmm dns.uninstall not implemented.");
         },
-        connect: (
-          mmid: `${string}.dweb`,
-          reason?: Request | undefined
-        ): $PromiseMaybe<core.Ipc> => {
+        connect: (mmid: `${string}.dweb`, reason?: Request | undefined): $PromiseMaybe<core.Ipc> => {
           this.console.debug("connect", mmid);
           const po = new PromiseOut<Ipc>();
-          this.fetchIpc.postMessage(
-            core.IpcEvent.fromText("dns/connect", mmid)
-          );
+          this.fetchIpc.postMessage(core.IpcEvent.fromText("dns/connect", mmid));
 
           this.fetchIpc.onEvent("wait-dns-connect").collect(async (event) => {
             await event.consumeAwaitMapNotNull(async (ipcEvent) => {
@@ -139,9 +132,7 @@ export class JsProcessMicroModule extends MicroModule {
                 if (done.connect === mmid) {
                   const ipc = await this.runtime.getConnected(done.result);
                   if (ipc === undefined) {
-                    po.reject(
-                      new Error(`no found connect result: ${done.result}`)
-                    );
+                    po.reject(new Error(`no found connect result: ${done.result}`));
                   } else {
                     po.resolve(ipc);
                   }
@@ -153,14 +144,10 @@ export class JsProcessMicroModule extends MicroModule {
 
           return po.promise;
         },
-        query: (
-          mmid: `${string}.dweb`
-        ): Promise<core.$MicroModuleManifest | undefined> => {
+        query: (mmid: `${string}.dweb`): Promise<core.$MicroModuleManifest | undefined> => {
           throw new Error("dns.query not implemented.");
         },
-        search: (
-          category: MICRO_MODULE_CATEGORY
-        ): Promise<core.$MicroModuleManifest[]> => {
+        search: (category: MICRO_MODULE_CATEGORY): Promise<core.$MicroModuleManifest[]> => {
           throw new Error("dns.search not implemented.");
         },
         open: (mmid: `${string}.dweb`): Promise<boolean> => {
@@ -180,16 +167,8 @@ export class JsProcessMicroModule extends MicroModule {
     });
     return ctx;
   }
-  constructor(
-    readonly meta: Metadata,
-    private nativeFetchPort: MessagePort
-  ) {
-    super();
-  }
   override async bootstrap() {
-    return (await super.bootstrap(
-      this.bootstrapContext
-    )) as unknown as JsProcessMicroModuleRuntime;
+    return (await super.bootstrap(this.bootstrapContext)) as unknown as JsProcessMicroModuleRuntime;
   }
 }
 export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
@@ -200,10 +179,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
         return;
       }
       const IPC_CONNECT_PREFIX = "ipc-connect/";
-      if (
-        typeof data[0] === "string" &&
-        data[0].startsWith(IPC_CONNECT_PREFIX)
-      ) {
+      if (typeof data[0] === "string" && data[0].startsWith(IPC_CONNECT_PREFIX)) {
         this.console.debug("ipc-connect", data);
         const mmid = data[0].slice(IPC_CONNECT_PREFIX.length);
         const port = event.ports[0];
@@ -219,9 +195,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
           auto_start // 等一切准备完毕再手动启动
         );
         // 强制保存到连接池中
-        mapHelper
-          .getOrPut(this.connectionMap, ipc.remote.mmid, () => new PromiseOut())
-          .resolve(ipc);
+        mapHelper.getOrPut(this.connectionMap, ipc.remote.mmid, () => new PromiseOut()).resolve(ipc);
         // 触发beConnect
         await this.beConnect(ipc);
         workerGlobal.postMessage(`ipc-be-connect/${mmid}`);
@@ -350,8 +324,7 @@ export class JsProcessMicroModuleRuntime extends MicroModuleRuntime {
   }
 
   private async _nativeRequest(parsed_url: URL, request_init: RequestInit) {
-    const ipc_req_init =
-      await $normalizeRequestInitAsIpcRequestArgs(request_init);
+    const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(request_init);
     return await this.fetchIpc.request(parsed_url.href, ipc_req_init);
   }
 
@@ -444,13 +417,7 @@ class DwebXMLHttpRequest extends XMLHttpRequest {
     username?: string | null | undefined,
     password?: string | null | undefined
   ): void;
-  override open(
-    method: unknown,
-    url: unknown,
-    async?: unknown,
-    username?: unknown,
-    password?: unknown
-  ): void {
+  override open(method: unknown, url: unknown, async?: unknown, username?: unknown, password?: unknown): void {
     let input: URL;
     if (typeof url === "string") {
       input = new URL(url);
@@ -502,16 +469,10 @@ export const installEnv = async (metadata: Metadata, gatewayPort: number) => {
     },
     WebSocket: {
       value: class extends WebSocket {
-        constructor(
-          url: string | URL,
-          protocols?: string | string[] | undefined
-        ) {
+        constructor(url: string | URL, protocols?: string | string[] | undefined) {
           let input = "wss://http.std.dweb/websocket";
           if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-            input = `ws://localhost:${gatewayPort}?X-Dweb-Url=${input.replace(
-              "wss:",
-              "ws:"
-            )}`;
+            input = `ws://localhost:${gatewayPort}?X-Dweb-Url=${input.replace("wss:", "ws:")}`;
           }
 
           if (typeof url === "string") {
@@ -538,9 +499,7 @@ export const installEnv = async (metadata: Metadata, gatewayPort: number) => {
       const config = data[1] as $RunMainConfig;
       const main_parsed_url = updateUrlOrigin(
         config.main_url,
-        `${self.location.href.startsWith("blob:https:") ? "https" : "http"}://${
-          jsProcess.host
-        }`
+        `${self.location.href.startsWith("blob:https:") ? "https" : "http"}://${jsProcess.host}`
       );
       const location = {
         hash: main_parsed_url.hash,

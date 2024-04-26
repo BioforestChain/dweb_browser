@@ -1,7 +1,6 @@
 export * from "../types.ts";
 import type { $MMID } from "../types.ts";
 
-export type $PromiseMaybe<T> = Promise<Awaited<T>> | Awaited<T>;
 export type $Schema1ToType<S> = {
   [key in keyof S]: $TypeName2ToType<S[key]>;
 };

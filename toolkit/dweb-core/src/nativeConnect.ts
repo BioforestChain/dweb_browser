@@ -1,7 +1,7 @@
+import type { $PromiseMaybe } from "@dweb-browser/helper/$PromiseMaybe.ts";
 import { AdaptersManager } from "@dweb-browser/helper/fun/AdaptersManager.ts";
-import type { $PromiseMaybe } from "@dweb-browser/helper/type/types.ts";
-import type { Ipc } from "./ipc/ipc.ts";
 import type { MicroModule } from "./MicroModule.ts";
+import type { Ipc } from "./ipc/ipc.ts";
 
 export type $ConnectAdapter = (fromMM: MicroModule, toMM: MicroModule, reason: Request) => $PromiseMaybe<Ipc | void>;
 

@@ -13,6 +13,7 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
+    "useDefineForClassFields": false,
 
     // Best practices
     "strict": true,

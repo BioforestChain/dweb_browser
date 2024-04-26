@@ -1,5 +1,4 @@
-import { ReadableStreamEndpoint } from "@dweb-browser/core/index.ts";
-import { IpcResponse } from "@dweb-browser/core/ipc/index.ts";
+import { IpcResponse, ReadableStreamEndpoint } from "@dweb-browser/core/ipc/index.ts";
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
@@ -191,7 +190,7 @@ export class WindowPlugin extends BasePlugin {
     const callbackIpc = await this.wsToIpc(registryUrl.href);
     const onCallback = new Signal<$Callback<[$ModalCallback]>>();
     callbackIpc.onRequest("registry-callback").collect(async (event) => {
-      const request = event.data
+      const request = event.consume();
       const callbackData = JSON.parse(await request.body.text());
       onCallback.emit(callbackData);
       callbackIpc.postMessage(IpcResponse.fromText(request.reqId, 200, undefined, "", callbackIpc));
