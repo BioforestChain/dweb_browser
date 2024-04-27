@@ -1,8 +1,9 @@
 console.log("loading tasks...");
 import { assetsTasks } from "../toolkit/dweb-core/scripts/assets-tasks.ts";
-import { toolkitTasks } from "../toolkit/toolkit-dev.ts";
+import { toolkitTasks } from "./toolkit/toolkit-dev.ts";
 
 import { ConTasks, ExitAbortController } from "./helper/ConTasks.ts";
+import { toolkitInit } from "./toolkit/toolkit-init.ts";
 export const devTasks = new ConTasks(
   {
     "plaoc:server": {
@@ -43,8 +44,8 @@ if (import.meta.main) {
     Deno.exit();
   });
 
-  // /// 首先取保 init 任务执行完成
-  // await initTasks.spawn([]).afterComplete();
+  /// 首先取保 init 任务执行完成
+  await toolkitInit();
   /// 开始执行，强制使用开发模式进行监听
   devTasks.spawn([...Deno.args, "--dev"]);
 }

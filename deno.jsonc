@@ -1,7 +1,7 @@
 {
   "lock": false,
   "tasks": {
-    "init": "deno run -A ./scripts/init.ts",
+    "init": "deno run -A ./scripts/toolkit/toolkit-init.ts",
     "dev": "deno run -A ./scripts/dev.ts",
     "sync:android": "deno run -A ./scripts/sync-android.ts",
     "sync:next": "deno run -A ./scripts/sync-next.ts",
@@ -21,7 +21,8 @@
     "cbor-x": "npm:cbor-x@^1.5.9",
     "is-mobile": "npm:is-mobile@^4.0.0",
     "urlpattern-polyfill": "npm:urlpattern-polyfill@^10.0.0",
-    "vitest": "npm:vitest@^1.5.2"
+    "vitest": "npm:vitest@^1.5.2",
+    "yaml": "npm:yaml@^2.4.1"
   },
   "compilerOptions": {
     // "useDefineForClassFields": false,

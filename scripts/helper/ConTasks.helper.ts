@@ -6,8 +6,14 @@ export const createBaseResolveTo = (baseDir: string = process.cwd()) => {
   if (baseDir.startsWith("file://")) {
     baseDir = fileURLToPath(baseDir);
   }
-  const baseResolveTo = (...paths: string[]) => {
-    return path.resolve(baseDir, ...paths);
+  const baseResolveTo = (...paths: (string | URL)[]) => {
+    let purePaths = paths.map((it) => it.toString());
+    const filePathIndex = purePaths.findLastIndex((it) => it.startsWith("file:"));
+    if (filePathIndex !== -1) {
+      purePaths = purePaths.slice(filePathIndex);
+      return path.resolve(fileURLToPath(purePaths[0]), ...purePaths.slice(1));
+    }
+    return path.resolve(baseDir, ...purePaths);
   };
   return baseResolveTo;
 };

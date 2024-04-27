@@ -33,6 +33,9 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
+#old
+/desktop-dev
+/plaoc
 
 #plaoc
 plaoc/build
