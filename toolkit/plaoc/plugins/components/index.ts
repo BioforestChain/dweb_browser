@@ -1,4 +1,4 @@
-import type {} from "@dweb-browser/polyfill";
+import "@dweb-browser/polyfill";
 
 //
 export { createMockModuleServerIpc } from "../common/websocketIpc.ts";

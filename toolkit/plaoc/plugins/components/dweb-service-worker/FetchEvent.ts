@@ -1,4 +1,4 @@
-import type { IpcFetchEvent } from "@dweb-browser/core/ipc/helper/ipcFetchHelper.js";
+import type { IpcFetchEvent } from "@dweb-browser/core/ipc/helper/ipcFetchHelper.ts";
 import { IpcResponse } from "@dweb-browser/core/ipc/index.ts";
 import type { $MicroModuleManifest } from "@dweb-browser/core/types.ts";
 import type { DwebServiceWorkerPlugin } from "./index.ts";

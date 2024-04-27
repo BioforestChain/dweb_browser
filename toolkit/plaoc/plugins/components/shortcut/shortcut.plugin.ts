@@ -16,7 +16,7 @@ export class ShortcutPlugin extends BasePlugin {
    * @Platform android/ios only
    */
   @bindThis
-   registry(option: ShortcutOption) {
+  registry(option: ShortcutOption) {
     const body = encode({
       title: option.title,
       data: option.data,
@@ -27,7 +27,7 @@ export class ShortcutPlugin extends BasePlugin {
       body: body,
       headers: {
         "Content-Type": "application/cbor",
-        "Content-Length": body.length,
+        "Content-Length": body.length.toString(),
       },
     }).boolean();
   }

@@ -1,4 +1,5 @@
 import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
+import "@dweb-browser/polyfill";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";
 import {
@@ -250,7 +251,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
           return blob.promise;
         };
         const waitFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
-        while (task.readyState === PromiseOut.PENDING) {
+        while (false === task.is_finished) {
           await waitFrame();
           const result = await this.controller?.process(await toBlob());
           if (result && result.length != 0) {

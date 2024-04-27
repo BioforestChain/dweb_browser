@@ -1,3 +1,4 @@
+import "@dweb-browser/polyfill";
 import { bindThis } from "../../helper/bindThis.ts";
 import type { $BuildRequestInit } from "../../helper/request.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
@@ -35,7 +36,7 @@ export class HapticsPlugin extends BasePlugin {
     });
   }
 
-  /** 
+  /**
    * 单击手势的反馈振动
    * @Platform android/ios only
    *  */
@@ -55,7 +56,7 @@ export class HapticsPlugin extends BasePlugin {
     return await this.fetchApi("/vibrateDisabled");
   }
 
-  /** 
+  /**
    * 双击手势的反馈振动
    * @Platform android/ios only
    */
@@ -63,7 +64,7 @@ export class HapticsPlugin extends BasePlugin {
   async vibrateDoubleClick() {
     return await this.fetchApi("/vibrateDoubleClick");
   }
-  /** 
+  /**
    * 重击手势的反馈振动, 比如菜单键/惨案/3Dtouch
    * @Platform android/ios only
    *  */
@@ -72,7 +73,7 @@ export class HapticsPlugin extends BasePlugin {
     return await this.fetchApi("/vibrateHeavyClick");
   }
 
-  /** 
+  /**
    * 滴答
    * @Platform android/ios only
    *  */

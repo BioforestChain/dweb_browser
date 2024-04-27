@@ -47,7 +47,6 @@ declare global {
     __native_close_watcher_exports__: CloseWatcherExports;
     open(url: string): Window;
   }
-  // deno-lint-ignore no-empty-interface
   interface CloseWatcher extends InstanceType<typeof CloseWatcherShim> {}
   const CloseWatcher: {
     prototype: InstanceType<typeof CloseWatcherShim>;

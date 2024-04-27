@@ -2,9 +2,9 @@ import { PromiseOut } from "@dweb-browser/helper/PromiseOut.ts";
 import { encode } from "cbor-x";
 import { bindThis } from "../../helper/bindThis.ts";
 import { FileData, FileDataEncode, normalToBase64String } from "../../util/file.ts";
-import { BaseResult } from "../../util/response.ts";
+import type { BaseResult } from "../../util/response.ts";
 import { BasePlugin } from "../base/base.plugin.ts";
-import { type ImageBlobOptions, type ShareOptions } from "./share.type.ts";
+import type { ImageBlobOptions, ShareOptions } from "./share.type.ts";
 export class SharePlugin extends BasePlugin {
   constructor() {
     super("share.sys.dweb");
@@ -182,7 +182,7 @@ export class SharePlugin extends BasePlugin {
       },
       headers: {
         "Content-Type": "application/cbor",
-        "Content-Length": shareBody.length,
+        "Content-Length": shareBody.length.toString(),
       },
       method: "POST",
       body: shareBody,

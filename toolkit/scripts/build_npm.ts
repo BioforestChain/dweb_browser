@@ -93,6 +93,7 @@ export const plaocCli = once(async () => {
   });
 });
 export const plaocPlugins = once(async () => {
+  await dwebPolyfill();
   await npmBuilder({
     packageDir: import.meta.resolve("../plaoc/plugins/"),
     version,

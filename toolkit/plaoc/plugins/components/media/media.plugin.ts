@@ -27,7 +27,7 @@ export class MediaPlugin extends BasePlugin {
       },
       headers: {
         "Content-Type": "application/cbor",
-        "Content-Length": shareBody.length,
+        "Content-Length": shareBody.length.toString(),
       },
       method: "POST",
       body: shareBody,
